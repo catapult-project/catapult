@@ -1,0 +1,10 @@
+To work on this code, from toplevel 
+  python -m SimpleHTTPServer 8001
+
+In any browser, navigate to
+  http://localhost:8001/src/tests.html
+
+If you add a file, make sure to update:
+ ../src/about_tracing.js
+
+And, of course, verify all the tests.html pass.
