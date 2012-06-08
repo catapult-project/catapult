@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-cr.define('cr.ui', function() {
+base.define('base.ui', function() {
 
   /**
    * The class name to set on the document element.
