@@ -16,7 +16,7 @@
  * file, we the definition used in Linux traces, as it improves the importing
  * code's readability.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * Represents the scheduling state for a single thread.
    * @constructor

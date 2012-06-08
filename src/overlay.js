@@ -12,7 +12,7 @@
  * restores its original parentage.
  *
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * Manages a full-window div that darkens the window, disables
    * input, and hosts the currently-visible overlays. You shouldn't
@@ -21,7 +21,7 @@ cr.define('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var OverlayRoot = cr.ui.define('div');
+  var OverlayRoot = base.ui.define('div');
   OverlayRoot.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -131,7 +131,7 @@ cr.define('tracing', function() {
     }
   };
 
-  cr.defineProperty(OverlayRoot, 'visible', cr.PropertyKind.BOOL_ATTR);
+  base.defineProperty(OverlayRoot, 'visible', base.PropertyKind.BOOL_ATTR);
 
   /**
    * Creates a new overlay element. It will not be visible until shown.
@@ -139,7 +139,7 @@ cr.define('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Overlay = cr.ui.define('div');
+  var Overlay = base.ui.define('div');
 
   Overlay.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -151,7 +151,7 @@ cr.define('tracing', function() {
       // create the overlay root on this document if its not present
       if (!this.ownerDocument.querySelector('.overlay-root')) {
         var overlayRoot = this.ownerDocument.createElement('div');
-        cr.ui.decorate(overlayRoot, OverlayRoot);
+        base.ui.decorate(overlayRoot, OverlayRoot);
         this.ownerDocument.body.appendChild(overlayRoot);
       }
 
@@ -173,7 +173,7 @@ cr.define('tracing', function() {
    * Shows and hides the overlay. Note that while visible == true, the overlay
    * element will be tempoarily reparented to another place in the DOM.
    */
-  cr.defineProperty(Overlay, 'visible', cr.PropertyKind.BOOL_ATTR,
+  base.defineProperty(Overlay, 'visible', base.PropertyKind.BOOL_ATTR,
       Overlay.prototype.onVisibleChanged_);
 
   return {

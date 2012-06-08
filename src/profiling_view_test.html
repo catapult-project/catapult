@@ -12,12 +12,10 @@ found in the LICENSE file.
 <link rel="stylesheet" href="overlay.css">
 <link rel="stylesheet" href="timeline_analysis.css">
 <link rel="stylesheet" href="timeline.css">
-<link rel="stylesheet" href="../shared/css/tabs.css">
 <script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
-<script src="../shared/js/cr.js"></script>
-<script src="../shared/js/cr/event_target.js"></script>
-<script src="../shared/js/cr/ui.js"></script>
-<script src="../shared/js/cr/ui/tabs.js"></script>
+<script src="base.js"></script>
+<script src="event_target.js"></script>
+<script src="ui.js"></script>
 <script src="overlay.js"></script>
 <script src="measuring_stick.js"></script>
 <script src="profiling_view.js"></script>
@@ -51,7 +49,7 @@ found in the LICENSE file.
     }
 
     FakeTracingController.prototype = {
-      __proto__: cr.EventTarget.prototype,
+      __proto__: base.EventTarget.prototype,
 
       beginTracing: function(opt_systemTracingEnabled) {
         this.wasBeginTracingCalled = true;
@@ -110,10 +108,10 @@ found in the LICENSE file.
       view.tracingController = tracingController;
       view.querySelector('button.record').click();
       assertTrue(tracingController.wasBeginTracingCalled);
-      assertEquals(cr.isChromeOS,
+      assertEquals(base.isChromeOS,
                    tracingController.wasBeginTracingCalledWithSystemTracingEnabled);
 
-      var e = new cr.Event('traceEnded');
+      var e = new base.Event('traceEnded');
       var didRefresh = false;
       e.events = tracingController.traceEvents;
       tracingController.dispatchEvent(e);
@@ -121,22 +119,22 @@ found in the LICENSE file.
     }
 
     function testRecordNonCros() {
-      var old = cr.isChromeOS;
-      cr.isChromeOS = false;
+      var old = base.isChromeOS;
+      base.isChromeOS = false;
       try {
         recordTestCommon();
       } finally {
-        cr.isChromeOS = old;
+        base.isChromeOS = old;
       }
     }
 
     function testRecordCros() {
-      var old = cr.isChromeOS;
-      cr.isChromeOS = true;
+      var old = base.isChromeOS;
+      base.isChromeOS = true;
       try {
         recordTestCommon();
       } finally {
-        cr.isChromeOS = old;
+        base.isChromeOS = old;
       }
     }
 

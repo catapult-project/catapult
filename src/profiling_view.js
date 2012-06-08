@@ -8,22 +8,21 @@
  * @fileoverview ProfilingView glues the TimelineView control to
  * TracingController.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * ProfilingView
    * @constructor
-   * @extends {ui.TabPanel}
+   * @extends {HTMLDivElement}
    */
-  var ProfilingView = cr.ui.define(cr.ui.TabPanel);
+  var ProfilingView = base.ui.define('div');
 
   ProfilingView.prototype = {
-    __proto__: cr.ui.TabPanel.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     traceEvents_: [],
     systemTraceEvents_: [],
 
     decorate: function() {
-      cr.ui.TabPanel.prototype.decorate.apply(this);
       this.classList.add('profiling-view');
 
       // make the <list>/add/save/record element
@@ -40,7 +39,7 @@ cr.define('tracing', function() {
       this.loadBn_.textContent = 'Load';
       this.loadBn_.addEventListener('click', this.onLoad_.bind(this));
 
-      if (cr.isChromeOS) {
+      if (base.isChromeOS) {
         this.systemTracingBn_ = document.createElement('input');
         this.systemTracingBn_.type = 'checkbox';
         this.systemTracingBn_.checked = true;
@@ -55,7 +54,7 @@ cr.define('tracing', function() {
       this.timelineView_.leftControls.appendChild(this.recordBn_);
       this.timelineView_.leftControls.appendChild(this.saveBn_);
       this.timelineView_.leftControls.appendChild(this.loadBn_);
-      if (cr.isChromeOS)
+      if (base.isChromeOS)
         this.timelineView_.leftControls.appendChild(this.systemTracingBn_);
 
       this.appendChild(this.timelineView_);
@@ -177,7 +176,7 @@ cr.define('tracing', function() {
     }
   };
 
-  cr.defineProperty(ProfilingView, 'tracingController', cr.PropertyKind.JS,
+  base.defineProperty(ProfilingView, 'tracingController', base.PropertyKind.JS,
                     ProfilingView.prototype.didSetTracingController_);
 
   return {

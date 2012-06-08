@@ -8,13 +8,13 @@
  * @fileoverview TimelineView visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * TimelineFindControl
    * @constructor
    * @extends {tracing.Overlay}
    */
-  var TimelineFindControl = cr.ui.define('div');
+  var TimelineFindControl = base.ui.define('div');
 
   TimelineFindControl.prototype = {
     __proto__: tracing.Overlay.prototype,
@@ -199,7 +199,7 @@ cr.define('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineView = cr.ui.define('div');
+  var TimelineView = base.ui.define('div');
 
   TimelineView.prototype = {
     __proto__: HTMLDivElement.prototype,

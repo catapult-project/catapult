@@ -11,10 +11,9 @@ found in the LICENSE file.
 <link rel="stylesheet" href="timeline_analysis.css">
 <link rel="stylesheet" href="timeline_view.css">
 <link rel="stylesheet" href="overlay.css">
-<script src="../shared/js/cr.js"></script>
-<script src="../shared/js/cr/event_target.js"></script>
-<script src="../shared/js/cr/ui.js"></script>
-<script src="../shared/js/util.js"></script>
+<script src="base.js"></script>
+<script src="event_target.js"></script>
+<script src="ui.js"></script>
 <script src="timeline_model.js"></script>
 <script src="linux_perf_importer.js"></script>
 <script src="trace_event_importer.js"></script>
@@ -76,7 +75,7 @@ found in the LICENSE file.
     containerEl.style.border = '1px solid red';
 
     var timelineViewEl = document.createElement('div');
-    cr.ui.decorate(timelineViewEl, tracing.TimelineView);
+    base.ui.decorate(timelineViewEl, tracing.TimelineView);
     timelineViewEl.focusElement = containerEl;
 
     parentEl.appendChild(titleEl);

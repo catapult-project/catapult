@@ -17,7 +17,7 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -30,7 +30,7 @@ cr.define('tracing', function() {
    * ways.
    *
    * @constructor
-   * @extends {cr.EventTarget}
+   * @extends {base.EventTarget}
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
@@ -51,7 +51,7 @@ cr.define('tracing', function() {
   }
 
   TimelineViewport.prototype = {
-    __proto__: cr.EventTarget.prototype,
+    __proto__: base.EventTarget.prototype,
 
     /**
      * Allows initialization of the viewport when the viewport's parent element
@@ -113,7 +113,7 @@ cr.define('tracing', function() {
      * to redraw when the underlying model has been mutated.
      */
     dispatchChangeEvent: function() {
-      cr.dispatchSimpleEvent(this, 'change');
+      base.dispatchSimpleEvent(this, 'change');
     },
 
     detach: function() {
@@ -220,7 +220,7 @@ cr.define('tracing', function() {
       if (this.gridTimebase_ == timebase)
         return;
       this.gridTimebase_ = timebase;
-      cr.dispatchSimpleEvent(this, 'change');
+      base.dispatchSimpleEvent(this, 'change');
     },
 
     get gridStep() {
@@ -391,7 +391,7 @@ cr.define('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Timeline = cr.ui.define('div');
+  var Timeline = base.ui.define('div');
 
   Timeline.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -752,7 +752,7 @@ cr.define('tracing', function() {
 
       this.selection_ = selection;
 
-      cr.dispatchSimpleEvent(this, 'selectionChange');
+      base.dispatchSimpleEvent(this, 'selectionChange');
       for (i = 0; i < this.selection_.length; i++)
         this.selection_[i].selected = true;
       this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
@@ -807,7 +807,7 @@ cr.define('tracing', function() {
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
       this.dragBox_.textContent = roundedDuration + 'ms';
 
-      var e = new cr.Event('selectionChanging');
+      var e = new base.Event('selectionChanging');
       e.loWX = loWX;
       e.hiWX = hiWX;
       this.dispatchEvent(e);
@@ -926,7 +926,7 @@ cr.define('tracing', function() {
    * The TimelineModel being viewed by the timeline
    * @type {TimelineModel}
    */
-  cr.defineProperty(Timeline, 'model', cr.PropertyKind.JS);
+  base.defineProperty(Timeline, 'model', base.PropertyKind.JS);
 
   return {
     Timeline: Timeline,

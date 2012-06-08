@@ -10,7 +10,7 @@
 var global = this;
 
 /** Platform, package, object property, and Event support. **/
-this.cr = (function() {
+this.base = (function() {
   'use strict';
 
   /**
@@ -49,7 +49,7 @@ this.cr = (function() {
    * @param {*} oldValue The old value for the property.
    */
   function dispatchPropertyChange(target, propertyName, newValue, oldValue) {
-    var e = new cr.Event(propertyName + 'Change');
+    var e = new base.Event(propertyName + 'Change');
     e.propertyName = propertyName;
     e.newValue = newValue;
     e.oldValue = oldValue;
@@ -94,7 +94,7 @@ this.cr = (function() {
    * Helper function for defineProperty that returns the getter to use for the
    * property.
    * @param {string} name The name of the property.
-   * @param {cr.PropertyKind} kind The kind of the property.
+   * @param {base.PropertyKind} kind The kind of the property.
    * @return {function():*} The getter for the property.
    */
   function getGetter(name, kind) {
@@ -122,7 +122,7 @@ this.cr = (function() {
    * kind.
    * @param {string} name The name of the property we are defining the setter
    *     for.
-   * @param {cr.PropertyKind} kind The kind of property we are getting the
+   * @param {base.PropertyKind} kind The kind of property we are getting the
    *     setter for.
    * @param {function(*):void} opt_setHook A function to run after the property
    *     is set, but before the propertyChange event is fired.
@@ -179,7 +179,7 @@ this.cr = (function() {
    * property change event with the type {@code name + 'Change'} is fired.
    * @param {!Object} obj The object to define the property for.
    * @param {string} name The name of the property.
-   * @param {cr.PropertyKind=} opt_kind What kind of underlying storage to use.
+   * @param {base.PropertyKind=} opt_kind What kind of underlying storage to use.
    * @param {function(*):void} opt_setHook A function to run after the
    *     property is set, but before the propertyChange event is fired.
    */
@@ -231,13 +231,13 @@ this.cr = (function() {
    *     during the dispatch this will return false.
    */
   function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable) {
-    var e = new cr.Event(type, opt_bubbles, opt_cancelable);
+    var e = new base.Event(type, opt_bubbles, opt_cancelable);
     return target.dispatchEvent(e);
   }
 
   /**
    * Calls |fun| and adds all the fields of the returned object to the object
-   * named by |name|. For example, cr.define('cr.ui', function() {
+   * named by |name|. For example, base.define('base.ui', function() {
    *   function List() {
    *     ...
    *   }
@@ -249,7 +249,7 @@ this.cr = (function() {
    *     ListItem: ListItem,
    *   };
    * });
-   * defines the functions cr.ui.List and cr.ui.ListItem.
+   * defines the functions base.ui.List and base.ui.ListItem.
    * @param {string} name The name of the object that we are adding fields to.
    * @param {!Function} fun The function that will return an object containing
    *     the names and values of the new fields.
@@ -281,7 +281,7 @@ this.cr = (function() {
   }
 
   /**
-   * Creates a new event to be used with cr.EventTarget or DOM EventTarget
+   * Creates a new event to be used with base.EventTarget or DOM EventTarget
    * objects.
    * @param {string} type The name of the event.
    * @param {boolean=} opt_bubbles Whether the event bubbles.
@@ -292,7 +292,7 @@ this.cr = (function() {
    * @extends {Event}
    */
   function Event(type, opt_bubbles, opt_preventable) {
-    var e = cr.doc.createEvent('Event');
+    var e = base.doc.createEvent('Event');
     e.initEvent(type, !!opt_bubbles, !!opt_preventable);
     e.__proto__ = global.Event.prototype;
     return e;
@@ -310,7 +310,7 @@ this.cr = (function() {
       Object.defineProperty(global, 'cr', {
         get: function() {
           Object.defineProperty(global, 'cr', {value: originalCr});
-          originalCr.initialize();
+          originalBase.initialize();
           return originalCr;
         },
         configurable: true
@@ -321,37 +321,37 @@ this.cr = (function() {
 
     Event.prototype = {__proto__: global.Event.prototype};
 
-    cr.doc = document;
+    base.doc = document;
 
     /**
      * Whether we are using a Mac or not.
      */
-    cr.isMac = /Mac/.test(navigator.platform);
+    base.isMac = /Mac/.test(navigator.platform);
 
     /**
      * Whether this is on the Windows platform or not.
      */
-    cr.isWindows = /Win/.test(navigator.platform);
+    base.isWindows = /Win/.test(navigator.platform);
 
     /**
      * Whether this is on chromeOS or not.
      */
-    cr.isChromeOS = /CrOS/.test(navigator.userAgent);
+    base.isChromeOS = /CrOS/.test(navigator.userAgent);
 
     /**
      * Whether this is on vanilla Linux (not chromeOS).
      */
-    cr.isLinux = /Linux/.test(navigator.userAgent);
+    base.isLinux = /Linux/.test(navigator.userAgent);
 
     /**
      * Whether this uses GTK or not.
      */
-    cr.isGTK = /GTK/.test(chrome.toolkit);
+    base.isGTK = /GTK/.test(chrome.toolkit);
 
     /**
      * Whether this uses the views toolkit or not.
      */
-    cr.isViews = /views/.test(chrome.toolkit);
+    base.isViews = /views/.test(chrome.toolkit);
   }
 
   return {
@@ -373,4 +373,4 @@ this.cr = (function() {
  * TODO(kgr): Move this to another file which is to be loaded last.
  * This will be done as part of future work to make this code pre-compilable.
  */
-cr.initialize();
+base.initialize();

@@ -8,7 +8,7 @@
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
 
   var pallette = tracing.getPallette();
   var highlightIdBoost = tracing.getPalletteHighlightIdBoost();
@@ -39,7 +39,7 @@ cr.define('tracing', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var TimelineContainerTrack = cr.ui.define('div');
+  var TimelineContainerTrack = base.ui.define('div');
   TimelineContainerTrack.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -148,7 +148,7 @@ cr.define('tracing', function() {
    * Visualizes a TimelineThread using a series of of TimelineSliceTracks.
    * @constructor
    */
-  var TimelineThreadTrack = cr.ui.define(TimelineContainerTrack);
+  var TimelineThreadTrack = base.ui.define(TimelineContainerTrack);
   TimelineThreadTrack.prototype = {
     __proto__: TimelineContainerTrack.prototype,
 
@@ -273,7 +273,7 @@ cr.define('tracing', function() {
    * Visualizes a TimelineCpu using a series of of TimelineSliceTracks.
    * @constructor
    */
-  var TimelineCpuTrack = cr.ui.define(TimelineContainerTrack);
+  var TimelineCpuTrack = base.ui.define(TimelineContainerTrack);
   TimelineCpuTrack.prototype = {
     __proto__: TimelineContainerTrack.prototype,
 
@@ -344,7 +344,7 @@ cr.define('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var CanvasBasedTrack = cr.ui.define('div');
+  var CanvasBasedTrack = base.ui.define('div');
 
   CanvasBasedTrack.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -503,7 +503,7 @@ cr.define('tracing', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineSliceTrack = cr.ui.define(CanvasBasedTrack);
+  var TimelineSliceTrack = base.ui.define(CanvasBasedTrack);
 
   TimelineSliceTrack.prototype = {
 
@@ -795,7 +795,7 @@ cr.define('tracing', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineViewportTrack = cr.ui.define(CanvasBasedTrack);
+  var TimelineViewportTrack = base.ui.define(CanvasBasedTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -946,7 +946,7 @@ cr.define('tracing', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineCounterTrack = cr.ui.define(CanvasBasedTrack);
+  var TimelineCounterTrack = base.ui.define(CanvasBasedTrack);
 
   TimelineCounterTrack.prototype = {
 

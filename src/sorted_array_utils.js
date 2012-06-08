@@ -8,7 +8,7 @@
  * over sorted arrays and intervals.
  *
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * Finds the first index in the array whose value is >= loVal.
    *

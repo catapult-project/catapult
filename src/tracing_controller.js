@@ -6,13 +6,13 @@
 /**
  * @fileoverview State and UI for trace data collection.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
 
   function TracingController() {
     this.overlay_ = document.createElement('div');
     this.overlay_.className = 'tracing-overlay';
 
-    cr.ui.decorate(this.overlay_, tracing.Overlay);
+    base.ui.decorate(this.overlay_, tracing.Overlay);
 
     this.statusDiv_ = document.createElement('div');
     this.overlay_.appendChild(this.statusDiv_);
@@ -35,7 +35,7 @@ cr.define('tracing', function() {
   }
 
   TracingController.prototype = {
-    __proto__: cr.EventTarget.prototype,
+    __proto__: base.EventTarget.prototype,
 
     gpuInfo_: undefined,
     clientInfo_: undefined,
@@ -81,11 +81,11 @@ cr.define('tracing', function() {
       chrome.send('beginTracing', [opt_systemTracingEnabled || false]);
       this.beginRequestBufferPercentFull_();
 
-      var e = new cr.Event('traceBegun');
+      var e = new base.Event('traceBegun');
       e.events = this.traceEvents_;
       this.dispatchEvent(e);
 
-      e = new cr.Event('traceEventsChanged');
+      e = new base.Event('traceEventsChanged');
       e.numEvents = this.traceEvents_.length;
       this.dispatchEvent(e);
 
@@ -172,7 +172,7 @@ cr.define('tracing', function() {
       this.tracingEnding_ = false;
       console.log('onEndTracingComplete p1 with ' +
                   this.traceEvents_.length + ' events.');
-      var e = new cr.Event('traceEnded');
+      var e = new base.Event('traceEnded');
       e.events = this.traceEvents_;
       this.dispatchEvent(e);
     },
@@ -217,7 +217,7 @@ cr.define('tracing', function() {
       if (data.systemTraceEvents)
         this.systemTraceEvents_ = data.systemTraceEvents;
 
-      var e = new cr.Event('loadTraceFileComplete');
+      var e = new base.Event('loadTraceFileComplete');
       e.events = this.traceEvents_;
       this.dispatchEvent(e);
     },
@@ -226,7 +226,7 @@ cr.define('tracing', function() {
      * Called by the browser when loading a trace file was canceled.
      */
     onLoadTraceFileCanceled: function() {
-      cr.dispatchSimpleEvent(this, 'loadTraceFileCanceled');
+      base.dispatchSimpleEvent(this, 'loadTraceFileCanceled');
     },
 
     /**
@@ -246,14 +246,14 @@ cr.define('tracing', function() {
      * Called by the browser when a trace file is saveed.
      */
     onSaveTraceFileComplete: function() {
-      cr.dispatchSimpleEvent(this, 'saveTraceFileComplete');
+      base.dispatchSimpleEvent(this, 'saveTraceFileComplete');
     },
 
     /**
      * Called by the browser when saving a trace file was canceled.
      */
     onSaveTraceFileCanceled: function() {
-      cr.dispatchSimpleEvent(this, 'saveTraceFileCanceled');
+      base.dispatchSimpleEvent(this, 'saveTraceFileCanceled');
     },
 
     selfTest: function() {

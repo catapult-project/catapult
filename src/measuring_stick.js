@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * Uses an embedded iframe to measure provided elements without forcing layout
    * on the main document.

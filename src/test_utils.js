@@ -21,7 +21,7 @@ function assertAlmostEquals(a, b) {
           _displayStringForValue(var2));
 }
 
-cr.define('test_utils', function() {
+base.define('test_utils', function() {
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
     req.open('GET', url, true);

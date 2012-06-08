@@ -25,7 +25,7 @@
  * Make sure to flush the trackRenderer before finishing drawing in order
  * to commit any queued drawing operations.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
 
   /**
    * Creates a fast rect renderer with a specific set of culling rules

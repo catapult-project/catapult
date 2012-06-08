@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-cr.define('cr.ui', function() {
+base.define('base.ui', function() {
 
   /**
    * Decorates elements as an instance of a class.
@@ -15,7 +15,7 @@ cr.define('cr.ui', function() {
   function decorate(source, constr) {
     var elements;
     if (typeof source == 'string')
-      elements = cr.doc.querySelectorAll(source);
+      elements = base.doc.querySelectorAll(source);
     else
       elements = [source];
 
@@ -34,7 +34,7 @@ cr.define('cr.ui', function() {
     if (opt_bag && opt_bag.ownerDocument)
       doc = opt_bag.ownerDocument;
     else
-      doc = cr.doc;
+      doc = base.doc;
     return doc.createElement(tagName);
   }
 
@@ -43,7 +43,7 @@ cr.define('cr.ui', function() {
    *
    * Usage:
    * <pre>
-   * var List = cr.ui.define('list');
+   * var List = base.ui.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {

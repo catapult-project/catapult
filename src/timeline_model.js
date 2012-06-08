@@ -20,7 +20,7 @@
  * nesting tasks.
  *
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   /**
    * A TimelineSlice represents an interval of time plus parameters associated
    * with that interval.
@@ -786,7 +786,7 @@ cr.define('tracing', function() {
   TimelineModel.registerImporter(TimelineModelEmptyImporter);
 
   TimelineModel.prototype = {
-    __proto__: cr.EventTarget.prototype,
+    __proto__: base.EventTarget.prototype,
 
     get numProcesses() {
       var n = 0;

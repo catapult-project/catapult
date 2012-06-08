@@ -6,7 +6,7 @@
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided timeline model.
  */
-cr.define('tracing', function() {
+base.define('tracing', function() {
   function ThreadState(tid) {
     this.openSlices = [];
   }

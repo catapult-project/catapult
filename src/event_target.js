@@ -7,7 +7,7 @@
  * as defined by DOM Level 2 Events.
  */
 
-cr.define('cr', function() {
+base.define('base', function() {
 
   /**
    * Creates a new EventTarget. This class implements the DOM level 2
