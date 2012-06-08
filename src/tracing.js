@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// NOTE: this file is meant to be used by chrome's about:tracing build system.
+// These <includes> get flattened into the main system as part of the build
+// process.
+
 <include src="gpu_internals/browser_bridge.js">
 <include src="tracing/overlay.js">
 <include src="tracing/tracing_controller.js">
