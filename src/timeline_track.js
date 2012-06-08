@@ -582,22 +582,7 @@ base.define('tracing', function() {
 
       // Draw grid without a transform because the scale
       // affects line width.
-      if (vp.gridEnabled) {
-        var x = vp.gridTimebase;
-        ctx.beginPath();
-        while (x < viewRWorld) {
-          if (x >= viewLWorld) {
-            // Do conversion to viewspace here rather than on
-            // x to avoid precision issues.
-            var vx = vp.xWorldToView(x);
-            ctx.moveTo(vx, 0);
-            ctx.lineTo(vx, canvasH);
-          }
-          x += vp.gridStep;
-        }
-        ctx.strokeStyle = 'rgba(255,0,0,0.25)';
-        ctx.stroke();
-      }
+      vp.draw(ctx,viewLWorld,viewRWorld,canvasH);
 
       // Begin rendering in world space.
       ctx.save();

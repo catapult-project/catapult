@@ -53,6 +53,26 @@ base.define('tracing', function() {
   TimelineViewport.prototype = {
     __proto__: base.EventTarget.prototype,
 
+    draw: function(ctx,viewLWorld,viewRWorld,canvasH)  {
+      if (this.gridEnabled) {
+        var x = this.gridTimebase;
+
+        ctx.beginPath();
+        while (x < viewRWorld) {
+          if (x >= viewLWorld) {
+            // Do conversion to viewspace here rather than on
+            // x to avoid precision issues.
+            var vx = this.xWorldToView(x);
+            ctx.moveTo(vx, 0);
+            ctx.lineTo(vx, canvasH);
+          }
+          x += this.gridStep;
+        }
+        ctx.strokeStyle = 'rgba(255,0,0,0.25)';
+        ctx.stroke();
+      }
+    },
+
     /**
      * Allows initialization of the viewport when the viewport's parent element
      * has been attached to the document and given a size.
