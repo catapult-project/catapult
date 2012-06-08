@@ -5,36 +5,34 @@
 // NOTE: this file is meant to be used by chrome's about:tracing build system.
 // These <includes> get flattened into the main system as part of the build
 // process.
+<include src="base.js">
+<include src="event_target.js">
+<include src="ui.js">
+<include src="focus_outline_manager.js">
+<include src="overlay.js">
+<include src="tracing_controller.js">
+<include src="timeline_model.js">
+<include src="linux_perf_importer.js">
+<include src="trace_event_importer.js">
+<include src="sorted_array_utils.js">
+<include src="measuring_stick.js">
+<include src="timeline.js">
+<include src="timeline_analysis.js">
+<include src="timeline_track.js">
+<include src="fast_rect_renderer.js">
+<include src="profiling_view.js">
+<include src="timeline_view.js">
 
-<include src="gpu_internals/browser_bridge.js">
-<include src="tracing/overlay.js">
-<include src="tracing/tracing_controller.js">
-<include src="tracing/timeline_model.js">
-<include src="tracing/linux_perf_importer.js">
-<include src="tracing/trace_event_importer.js">
-<include src="tracing/sorted_array_utils.js">
-<include src="tracing/measuring_stick.js">
-<include src="tracing/timeline.js">
-<include src="tracing/timeline_analysis.js">
-<include src="tracing/timeline_track.js">
-<include src="tracing/fast_rect_renderer.js">
-<include src="tracing/profiling_view.js">
-<include src="tracing/timeline_view.js">
-
-var browserBridge;
 var tracingController;
 var profilingView;  // Made global for debugging purposes only.
 
 /**
  * Main entry point called once the page has loaded.
  */
-function onLoad() {
-  browserBridge = new gpu.BrowserBridge();
+document.addEventListener('DOMContentLoaded', function() {
   tracingController = new tracing.TracingController();
 
-  profilingView = $('profiling-view');
-  cr.ui.decorate(profilingView, tracing.ProfilingView);
+  profilingView = document.body.querySelector('#profiling-view');
+  base.ui.decorate(profilingView, tracing.ProfilingView);
   profilingView.tracingController = tracingController;
-}
-
-document.addEventListener('DOMContentLoaded', onLoad);
+});
