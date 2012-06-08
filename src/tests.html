@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>All Tracing Tests</title>
+<script>
+  tests = [
+    'overlay_test.html',
+    'timeline_model_test.html',
+    'timeline_track_test.html',
+    'linux_perf_importer_test.html',
+    'trace_event_importer_test.html',
+    'profiling_view_test.html',
+    'timeline_test.html',
+    'timeline_view_test.html',
+    'timeline_analysis_test.html',
+  ];
+</script>
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script>
+  goog.require('goog.testing.MultiTestRunner');
+</script>
+<link rel="stylesheet" href="http://closure-library.googlecode.com/svn/trunk/closure/goog/css/multitestrunner.css" type="text/css">
+</head>
+<body>
+  <div id="runner"></div>
+  <script>
+    var testRunner = new goog.testing.MultiTestRunner()
+        .setName(document.title)
+        .setBasePath('./')
+        .setPoolSize(8)
+        .setStatsBucketSizes(5, 500)
+        .setHidePasses(true)
+        .addTests(tests);
+    testRunner.render(document.getElementById('runner'));
+    testRunner.start();
+  </script>
+</body>
+</html>

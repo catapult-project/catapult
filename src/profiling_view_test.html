@@ -1,0 +1,145 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>ProfilingView tests</title>
+<link rel="stylesheet" href="profiling_view.css">
+<link rel="stylesheet" href="timeline_view.css">
+<link rel="stylesheet" href="overlay.css">
+<link rel="stylesheet" href="timeline_analysis.css">
+<link rel="stylesheet" href="timeline.css">
+<link rel="stylesheet" href="../shared/css/tabs.css">
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/cr/ui/tabs.js"></script>
+<script src="overlay.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="profiling_view.js"></script>
+<script src="timeline_analysis.js"></script>
+<script src="timeline_view.js"></script>
+<script src="timeline_model.js"></script>
+<script src="linux_perf_importer.js"></script>
+<script src="trace_event_importer.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_track.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="fast_rect_renderer.js"></script>
+<script src="test_utils.js"></script>
+<script>
+  goog.require('goog.testing.jsunit');
+</script>
+<style>
+  .profiling-view {
+    border: 1px solid black;
+  }
+</style>
+</head>
+<body>
+  <script>
+    'use strict';
+
+    /*
+     * Just enough of the TracingController to support the tests below.
+     */
+    function FakeTracingController() {
+    }
+
+    FakeTracingController.prototype = {
+      __proto__: cr.EventTarget.prototype,
+
+      beginTracing: function(opt_systemTracingEnabled) {
+        this.wasBeginTracingCalled = true;
+        this.wasBeginTracingCalledWithSystemTracingEnabled = opt_systemTracingEnabled;
+      },
+
+      get traceEvents() {
+        if (!this.wasBeginTracingCalled)
+          return undefined;
+        return FakeTracingController.testData;
+      },
+
+      get systemTraceEvents() {
+        if (!this.wasBeginTracingCalled)
+          return [];
+        if (!this.wasBeginTracingCalledWithSystemTracingEnabled)
+          return [];
+        return FakeTracingController.systemTraceTestData;
+      }
+
+    };
+    FakeTracingController.testData = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    FakeTracingController.systemTraceTestData = [
+      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+                'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+                'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+                'next_prio=120',
+      ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
+                'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+                'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+      '     debugd-4404  [001] 15180.979010: sched_switch: prev_comm=debugd ' +
+                'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+                'next_comm=dbus-daemon next_pid=510 next_prio=120',
+      'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
+                'trace_event_clock_sync: parent_ts=0.0'
+    ].join('\n');
+
+    /* This test just instantiates a ProflingView and adds it to the DOM
+     * to help with non-unittest UI work.
+     */
+    function testInstantiate() {
+      var view = new tracing.ProfilingView();
+      view.tracingController = new FakeTracingController();
+      view.focusElement = view;
+      document.body.appendChild(view);
+    }
+
+    function recordTestCommon() {
+      var view = new tracing.ProfilingView();
+      var tracingController = new FakeTracingController()
+      view.tracingController = tracingController;
+      view.querySelector('button.record').click();
+      assertTrue(tracingController.wasBeginTracingCalled);
+      assertEquals(cr.isChromeOS,
+                   tracingController.wasBeginTracingCalledWithSystemTracingEnabled);
+
+      var e = new cr.Event('traceEnded');
+      var didRefresh = false;
+      e.events = tracingController.traceEvents;
+      tracingController.dispatchEvent(e);
+      assertTrue(!!view.timelineView.model);
+    }
+
+    function testRecordNonCros() {
+      var old = cr.isChromeOS;
+      cr.isChromeOS = false;
+      try {
+        recordTestCommon();
+      } finally {
+        cr.isChromeOS = old;
+      }
+    }
+
+    function testRecordCros() {
+      var old = cr.isChromeOS;
+      cr.isChromeOS = true;
+      try {
+        recordTestCommon();
+      } finally {
+        cr.isChromeOS = old;
+      }
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineView tests</title>
+<link rel="stylesheet" href="overlay.css">
+<link rel="stylesheet" href="timeline.css">
+<link rel="stylesheet" href="timeline_analysis.css">
+<link rel="stylesheet" href="timeline_view.css">
+<link rel="stylesheet" href="../shared/css/tabs.css">
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/cr/ui/tabs.js"></script>
+<script src="overlay.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="profiling_view.js"></script>
+<script src="timeline_analysis.js"></script>
+<script src="timeline_view.js"></script>
+<script src="timeline_model.js"></script>
+<script src="linux_perf_importer.js"></script>
+<script src="trace_event_importer.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_track.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="fast_rect_renderer.js"></script>
+<script src="test_utils.js"></script>
+<script>
+  goog.require('goog.testing.jsunit');
+</script>
+<style>
+  .timeline-view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .timeline-find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+  <script>
+    'use strict';
+
+    var assertArrayishEquals = test_utils.assertArrayishEquals;
+
+    /*
+     * Just enough of the Timeline to support the tests below.
+     */
+    var FakeTimeline = cr.ui.define('div');
+
+    FakeTimeline.prototype = {
+      __proto__: HTMLDivElement.prototype,
+
+      decorate: function() {
+        this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
+
+        this.selection = new tracing.TimelineSelection();
+        this.keyHelp = "<keyHelp>";
+
+        // Put some simple UI in for testing purposes.
+        var noteEl = document.createElement('div');
+        noteEl.textContent = "FakeTimeline:";
+        this.appendChild(noteEl);
+
+        this.statusEl_ = document.createElement('div');
+        this.appendChild(this.statusEl_);
+        this.refresh_();
+      },
+
+      refresh_: function() {
+        var status;
+        if (this.model)
+          status = "model=set";
+        else
+          status = "model=undefined";
+        this.statusEl_.textContent = status;
+      },
+
+      setSelectionAndMakeVisible: function(selection, zoomAllowed) {
+        this.selection = selection;
+      },
+
+      addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+        var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
+        for (var i = 0; i < n; i++)
+          selection.push_(
+              this.addAllObjectsMatchingFilterToSelectionReturnValue[i]);
+      }
+    };
+
+    /*
+     * This test just instantiates a TimelineView and adds it to the DOM
+     * to help with non-unittest UI work.
+     */
+    function testInstantiateTimelineView() {
+      var events = [
+        {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'a', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'a', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'a', args: {}, pid: 52, ts: 710, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'a', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'E'}
+      ];
+      var model = new tracing.TimelineModel();
+      model.importEvents(events);
+      var view = new tracing.TimelineView();
+      view.model = model;
+      view.tabIndex = 0;
+      view.focusElement = view;
+
+      document.body.appendChild(view);
+    }
+
+    /*
+     * This test just instantiates a FindDialog and adds it to the DOM
+     * to help with non-unittest UI work.
+     */
+    function testInstantiateTimelineFindControl() {
+      var ctl = new tracing.TimelineFindControl();
+      var didFindPrevious = false;
+      var didFindNext = false;
+      ctl.controller = {
+        findNext: function() {
+          didFindNext = true;
+        },
+
+        findPrevious: function() {
+          didFindPrevious = true;
+        },
+
+        filterHits: [],
+
+        currentHitIndex: 0,
+      }
+      document.body.appendChild(ctl);
+      ctl.querySelector('input').focus();
+      ctl.querySelector('input').blur();
+
+      ctl.querySelector('.find-previous').click();
+      assertTrue(didFindPrevious);
+      ctl.querySelector('.find-next').click();
+      assertTrue(didFindNext);
+    }
+
+    function testFindControllerNoTimeline() {
+      var controller = new tracing.TimelineFindController();
+      controller.findNext();
+      controller.findPrevious();
+    }
+
+    function testFindControllerEmptyHit() {
+      var timeline = new FakeTimeline();
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+
+      timeline.selection = new tracing.TimelineSelection();
+      controller.findNext();
+      assertArrayishEquals([], timeline.selection);
+      controller.findPrevious();
+      assertArrayishEquals([], timeline.selection);
+    }
+
+    function testFindControllerOneHit() {
+      var timeline = new FakeTimeline();
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1];
+      controller.findNext();
+      assertArrayishEquals([1], timeline.selection);
+      controller.findNext();
+      assertArrayishEquals([1], timeline.selection);
+      controller.findPrevious();
+      assertArrayishEquals([1], timeline.selection);
+    }
+
+    function testFindControllerMultipleHits() {
+      var timeline = new FakeTimeline();
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
+
+      // Loop through hits then when we wrap, try moving backward.
+      controller.findNext();
+      assertArrayishEquals([1], timeline.selection);
+      controller.findNext();
+      assertArrayishEquals([2], timeline.selection);
+      controller.findNext();
+      assertArrayishEquals([3], timeline.selection);
+      controller.findNext();
+      assertArrayishEquals([1], timeline.selection);
+      controller.findPrevious();
+      assertArrayishEquals([3], timeline.selection);
+      controller.findPrevious();
+      assertArrayishEquals([2], timeline.selection);
+    }
+
+    function testFindControllerChangeFilterAfterNext() {
+      var timeline = new FakeTimeline();
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
+
+      // Loop through hits then when we wrap, try moving backward.
+      controller.findNext();
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [4];
+      controller.filterText = "asdfsf";
+      controller.findNext();
+      assertArrayishEquals([4], timeline.selection);
+    }
+
+    function testFindControllerSelectsFirstItemImmediately() {
+      var timeline = new FakeTimeline();
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
+      controller.filterText = "asdfsf";
+      assertArrayishEquals([1], timeline.selection);
+      controller.findNext();
+      assertArrayishEquals([2], timeline.selection);
+    }
+
+    function testFindControllerWithRealTimeline() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+      t1.subRows[0].push(new tracing.TimelineThreadSlice('a', 0, 1, {}, 3));
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      var controller = new tracing.TimelineFindController();
+      controller.timeline = timeline;
+
+      // Test find with no filterText.
+      controller.findNext();
+
+      // Test find with filter txt.
+      controller.filterText = 'a';
+      controller.findNext();
+      assertEquals(1, timeline.selection.length);
+      assertEquals(t1.subRows[0][0], timeline.selection[0].slice);
+
+      controller.filterText = 'xxx';
+      controller.findNext();
+      assertEquals(0, timeline.selection.length);
+      controller.findNext();
+      assertEquals(0, timeline.selection.length);
+    }
+
+  </script>
+</body>
+</html>

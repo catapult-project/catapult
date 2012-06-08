@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2010 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<html>
+<head>
+<title>Overlay tests</title>
+<link rel="stylesheet" href="overlay.css">
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="overlay.js"></script>
+<script>
+
+goog.require('goog.testing.jsunit');
+
+</script>
+
+</head>
+<body>
+<div id="sandbox"></div>
+<script>
+
+var sandbox = document.getElementById('sandbox');
+var overlay;
+
+function testShowHideUnparented() {
+  overlay = new tracing.Overlay();
+  overlay.innerHTML =
+      '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
+  overlay.visible = true;
+  assertNotEquals(overlay.parentNode, null);
+
+  overlay.visible = false;
+  assertEquals(overlay.parentNode, null);
+}
+
+function testShowHideParented() {
+  overlay = new tracing.Overlay();
+  overlay.innerHTML =
+      '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
+  document.body.appendChild(overlay);
+  overlay.visible = true;
+  assertNotEquals(overlay.parentNode, null);
+
+  overlay.visible = false;
+  assertEquals(overlay.parentNode, document.body);
+}
+
+</script>
+
+</body>
+</html>
+

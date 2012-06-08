@@ -1,0 +1,31 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.tracing-overlay {
+  -webkit-box-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-pack: center;
+  display: -webkit-box;
+  height: 80px;
+  text-align: center;
+  width: 200px;
+}
+
+.tracing-start-button {
+  -webkit-margin-start: 5px;
+  background: rgb(255, 0, 0);
+  background-clip: border-box;
+  border: 1px solid black;
+  border-bottom: 0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  display: inline-block;
+  margin-top: 4px;
+  padding: 5px 10px 3px 10px;
+  position: fixed;
+  right: 3px;
+  text-align: center;
+  text-decoration: none;
+  top: -1px;
+}

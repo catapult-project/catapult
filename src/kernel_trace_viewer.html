@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2011 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Interactive Timeline Tests</title>
+<link rel="stylesheet" href="timeline.css">
+<link rel="stylesheet" href="timeline_view.css">
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/util.js"></script>
+<script src="timeline_model.js"></script>
+<script src="linux_perf_importer.js"></script>
+<script src="trace_event_importer.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="overlay.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_track.js"></script>
+<script src="timeline_view.js"></script>
+<script src="fast_rect_renderer.js"></script>
+<script src="test_utils.js"></script>
+<style>
+  .view {
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+</style>
+</head>
+<body>
+  <div class="view">
+  </div>
+  <script>
+  var linuxPerfData;
+  var traceEventData;
+  var timelineViewEl;
+  function onLoad() {
+    var dirname;
+    if (window.location.search) {
+      var q = {};
+      window.location.search.slice(1).split('&').forEach(function(x) {
+        var t = x.split('=');
+        q[t[0]] = t[1];
+      });
+      if (q.dirname)
+        dirname = q.dirname;
+      else
+        dirname = './cur_trace';
+    } else {
+      dirname = './cur_trace';
+    }
+    // Creating attached vs detached stress tests the canvas- and viewport-
+    // setup code.
+    test_utils.getAsync(dirname + '/kernel.trace', function(data) {
+      linuxPerfData = data;
+      reload();
+    });
+    test_utils.getAsync(dirname + '/chrome.json', function(data) {
+      traceEventData = data;
+      reload();
+    });
+  }
+  function reload() {
+    if (!linuxPerfData || !traceEventData)
+      return;
+
+    var m = new tracing.TimelineModel();
+    m.importEvents(traceEventData, true, [linuxPerfData]);
+
+    timelineViewEl = document.querySelector('.view');
+    cr.ui.decorate(timelineViewEl, tracing.TimelineView);
+    timelineViewEl.model = m;
+    timelineViewEl.tabIndex = 1;
+    timelineViewEl.timeline.focusElement = timelineViewEl;
+  }
+
+  document.addEventListener('DOMContentLoaded', onLoad);
+  </script>
+</body>
+</html>

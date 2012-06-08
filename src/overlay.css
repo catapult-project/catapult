@@ -1,0 +1,35 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.overlay-root {
+  -webkit-box-align: stretch;
+  -webkit-box-orient: horizontal;
+  -webkit-box-pack: center;
+  -webkit-user-select: none;
+  background: rgba(0, 0, 0, 0.8);
+  display: -webkit-box;
+  height: 100%;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.overlay-root:not([visible]),
+.overlay:not([visible]) {
+  display: none;
+}
+
+.overlay-root > .content-host {
+  -webkit-box-align: stretch;
+  -webkit-box-orient: vertical;
+  -webkit-box-pack: center;
+  -webkit-user-select: auto;
+  display: -webkit-box;
+}
+
+.overlay-root > .content-host > * {
+  background: rgb(255, 255, 255);
+}

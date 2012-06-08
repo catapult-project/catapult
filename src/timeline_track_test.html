@@ -1,0 +1,515 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineTrack tests</title>
+<script
+   src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js">
+</script>
+<script>
+  goog.require('goog.testing.jsunit');
+</script>
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+}
+
+.timeline-container {
+  border: 1px solid red;
+}
+
+</style>
+<link rel="stylesheet" href="timeline.css">
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/util.js"></script>
+<script src="timeline_model.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_track.js"></script>
+<script src="fast_rect_renderer.js"></script>
+</head>
+<body>
+<script>
+</script>
+<script>
+  'use strict';
+
+  var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
+  var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
+  var TimelineCounter = tracing.TimelineCounter;
+  var TimelineCounterTrack = tracing.TimelineCounterTrack;
+  var TimelineCpu = tracing.TimelineCpu;
+  var TimelineCpuTrack = tracing.TimelineCpuTrack;
+  var TimelineProcess = tracing.TimelineProcess;
+  var TimelineSelection = tracing.TimelineSelection;
+  var TimelineSliceTrack = tracing.TimelineSliceTrack;
+  var TimelineSlice = tracing.TimelineSlice;
+  var TimelineThread = tracing.TimelineThread;
+  var TimelineThreadSlice = tracing.TimelineThreadSlice;
+  var TimelineThreadTrack = tracing.TimelineThreadTrack;
+  var TimelineViewport = tracing.TimelineViewport;
+  var testDivs = {};
+
+  // Helper function to create a slice.
+  function newAsyncSlice(start, duration, startThread, endThread) {
+    var s = new TimelineAsyncSlice('a', 0, start);
+    s.duration = duration;
+    s.startThread = startThread;
+    s.endThread = endThread;
+    return s;
+  }
+
+  function getTestDiv(name) {
+    if (!testDivs[name]) {
+      testDivs[name] = document.createElement('div');
+      document.body.appendChild(testDivs[name]);
+    }
+    testDivs[name].textContent = '';
+    return testDivs[name];
+  }
+
+  function testBasicSlices() {
+    var testEl = getTestDiv('testBasicSlices');
+    var track = TimelineSliceTrack();
+    testEl.appendChild(track);
+    track.heading = 'testBasicSlices';
+    track.slices = [
+      new TimelineSlice('a', 0, 1, {}, 1),
+      new TimelineSlice('b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('b', 1, 7, {}, 0.5),
+      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+    ];
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 8.8, track.clientWidth);
+  }
+
+  function testFindAllObjectsMatchingInSliceTrack() {
+    var track = TimelineSliceTrack();
+    track.slices = [
+      new TimelineSlice('a', 0, 1, {}, 1),
+      new TimelineSlice('b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('b', 1, 7, {}, 0.5),
+      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+    ];
+    var selection = new TimelineSelection();
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineFilter("b"), selection);
+
+    assertEquals(2, selection.length);
+    assertEquals(track.slices[1], selection[0].slice);
+    assertEquals(track.slices[2], selection[1].slice);
+  }
+
+  function testShrinkingSliceSizes() {
+    var testEl = getTestDiv('testShrinkingSliceSizes');
+    var track = TimelineSliceTrack();
+    testEl.appendChild(track);
+    track.heading = 'testShrinkingSliceSizes';
+    var x = 0;
+    var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
+    var slices = [];
+    for (var i = 0; i < widths.length; i++) {
+      var s = new TimelineSlice('a', 1, x, {}, widths[i]);
+      x += s.duration + 0.5;
+      slices.push(s);
+    }
+    track.slices = slices;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 1.1 * x, track.clientWidth);
+  }
+
+  function testSelectionHitTesting() {
+    var testEl = getTestDiv('testSelectionHitTesting');
+    var track = new TimelineSliceTrack();
+    testEl.appendChild(track);
+    track.heading = 'testSelectionHitTesting';
+    track.headingWidth = '100px';
+    track.slices = [
+      new TimelineSlice('a', 0, 1, {}, 1),
+      new TimelineSlice('b', 1, 2.1, {}, 4.8)
+    ];
+    track.style.width = '500px';
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 7.6, track.clientWidth);
+    var clientRect = track.getBoundingClientRect();
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(1.5, clientRect.top + 5, selection);
+    assertEquals(track.slices[0], selection[0].slice);
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(2, clientRect.top + 5, selection);
+    assertEquals(0, selection.length);
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(6.8, clientRect.top + 5, selection);
+    assertEquals(track.slices[1], selection[0].slice);
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(6.9, clientRect.top + 5, selection);
+    assertEquals(0, selection.length);
+  }
+
+  function testSelectionHitTestingWithTimelineThreadTrack() {
+    var model = new tracing.TimelineModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.subRows[0].push(new tracing.TimelineThreadSlice('a', 0, 1, {}, 5));
+    t1.subRows[0].push(new tracing.TimelineThreadSlice('b', 0, 5.1, {}, 4));
+
+    var testEl = getTestDiv('testSelectionHitTestingWithTimelineThreadTrack');
+    var track = new tracing.TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testSelectionHitTestingWithTimelineThreadTrack';
+    track.headingWidth = '100px';
+    track.thread = t1;
+
+    track.style.width = '500px';
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 10, track.clientWidth);
+    var clientRect = track.getBoundingClientRect();
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(1.5, clientRect.top + 5, selection);
+    assertEquals(t1.subRows[0][0], selection[0].slice);
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsInRangeToSelection(1.5, 1.8, clientRect.top + 5, clientRect.top + 7, selection);
+    assertEquals(t1.subRows[0][0], selection[0].slice);
+  }
+
+  function testBasicCpu() {
+    var testEl = getTestDiv('testBasicCpu');
+
+    var cpu = new TimelineCpu(7);
+    cpu.slices = [
+      new TimelineSlice('a', 0, 1, {}, 1),
+      new TimelineSlice('b', 1, 2.1, {}, 4.8)
+    ];
+    cpu.updateBounds();
+
+    var track = TimelineCpuTrack();
+    testEl.appendChild(track);
+    track.heading = 'CPU ' + cpu.cpuNumber;
+    track.cpu = cpu;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 11.1, track.clientWidth);
+  }
+
+  function testViewport() {
+    var testEl = getTestDiv('testViewport');
+
+    var track = tracing.TimelineViewportTrack();
+    testEl.appendChild(track);
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.setPanAndScale(0,
+        track.clientWidth / 1000);
+  }
+
+  function testBasicCounter() {
+    var testEl = getTestDiv('testBasicCounter');
+
+    var ctr = new TimelineCounter(undefined,
+                                  'testBasicCounter', 'testBasicCounter');
+    ctr.seriesNames = ['value1', 'value2'];
+    ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
+                        tracing.getStringColorId('testBasicCounter.value2')];
+    ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    ctr.samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    ctr.updateBounds();
+
+    var track = new TimelineCounterTrack();
+    testEl.appendChild(track);
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 7.7, track.clientWidth);
+  }
+
+  function runOffscreenCounterTest(timestamps, samples, testFn) {
+    var testEl = document.createElement('div');
+    var ctr = new TimelineCounter(undefined,
+                                  'foo', 'foo');
+    var n = samples.length / timestamps.length;
+    ctr.timestamps = timestamps;
+    ctr.samples = samples;
+    ctr.seriesNames = []
+    ctr.seriesColors = []
+    for (var i = 0; i < n; ++i) {
+      ctr.seriesNames.push('value' + i);
+      ctr.seriesColors.push(tracing.getStringColorId(ctr.seriesNames[i]));
+    }
+    ctr.updateBounds();
+
+    var track = new TimelineCounterTrack();
+    testEl.appendChild(track);
+    document.body.appendChild(testEl);
+
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 10, track.clientWidth);
+
+    try {
+      testFn(ctr, track);
+    } finally {
+      document.body.removeChild(testEl);
+    }
+  }
+
+  function testBasicCounterXPointPicking() {
+    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    var samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    runOffscreenCounterTest(timestamps, samples, function(ctr, track) {
+      var clientRect = track.getBoundingClientRect();
+      var y75 = clientRect.top + 0.75 * clientRect.height;
+      var sel;
+
+      // In bounds.
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(1.5, y75, sel);
+      assertEquals(1, sel.length);
+      assertEquals(track, sel[0].track);
+      assertEquals(ctr, sel[0].counter);
+      assertEquals(1, sel[0].sampleIndex);
+
+      // Outside bouds.
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(-1, y75, sel);
+      assertEquals(0, sel.length);
+
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(8, y75, sel);
+      assertEquals(0, sel.length);
+    });
+  }
+
+  /* You'll need visual inspection to test eliding with this one. */
+  function testElideVisualInspection() {
+    var optDicts = [{ trackName: 'elideOff', elide: false },
+                    { trackName: 'elideOn', elide: true }];
+    for (var dictIndex in optDicts) {
+      var dict = optDicts[dictIndex];
+      var testEl = getTestDiv(dict.trackName);
+      var track = new TimelineSliceTrack();
+      if (dict.elide) {
+        track.SHOULD_ELIDE_TEXT = true;
+      } else {
+        track.SHOULD_ELIDE_TEXT = false;
+      }
+      var tooLongTitle = 'Unless eliding this SHOULD NOT BE DISPLAYED.  ';
+      var bigTitle = 'Very big title name that goes on longer ' +
+                     'than you may expect';
+      testEl.appendChild(track);
+      track.heading = 'Visual: ' + dict.trackName;
+      track.slices = [
+          // title, colorId, start, args, opt_duration
+          new TimelineSlice('a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
+          new TimelineSlice(bigTitle, 1, 2.1, {}, 4.8),
+          new TimelineSlice('cccc cccc cccc', 1, 7, {}, 0.5),
+          new TimelineSlice('d', 2, 7.6, {}, 1.0)
+      ];
+      track.viewport = new TimelineViewport(testEl);
+      track.viewport.xSetWorldRange(0, 9.5, track.clientWidth);
+    }
+  }
+
+  function testElide() {
+    var testEl = getTestDiv('testElide');
+    var track = new TimelineSliceTrack();
+    testEl.appendChild(track);
+    var bigtitle = 'Super duper long long title ' +
+      'holy moly when did you get so verbose?';
+    var smalltitle = 'small';
+    track.viewport = new TimelineViewport(testEl);
+    track.heading = 'testElide';
+    track.slices = [
+        // title, colorId, start, args, opt_duration
+        new TimelineSlice(bigtitle, 0, 1, {}, 1),
+        new TimelineSlice(smalltitle, 1, 2, {}, 1)
+    ];
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 3.3, track.clientWidth);
+    var stringWidthPair = undefined;
+    var pixWidth = track.viewport_.xViewVectorToWorld(1);
+
+    // Small titles on big slices are not elided.
+    stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
+      track.labelWidth(smalltitle), 1);
+    assertEquals(smalltitle, stringWidthPair.string);
+    // Keep shrinking the slice until eliding starts.
+    var elidedWhenSmallEnough = false;
+    for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
+      stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
+        track.labelWidth(smalltitle), sliceLength);
+      if (stringWidthPair.string.length < smalltitle.length) {
+        elidedWhenSmallEnough = true;
+        break;
+      }
+    }
+    assertTrue(elidedWhenSmallEnough);
+
+    // Big titles are elided immediately.
+    var superBigTitle = '';
+    for (var x = 0; x < 10; x++) {
+      superBigTitle += bigtitle;
+    }
+    stringWidthPair = track.elidedTitleCache.get(track, pixWidth,
+      superBigTitle, track.labelWidth(superBigTitle), 1);
+    assertTrue(stringWidthPair.string.length < superBigTitle.length);
+    // And elided text ends with ...
+    var len = stringWidthPair.string.length;
+    assertEquals('...', stringWidthPair.string.substring(len - 3, len));
+  }
+
+  function testTimelineThreadTrackWithRegularSlices() {
+    var testEl = getTestDiv('testTimelineThreadTrackWithRegularSlices');
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testTimelineThreadTrackWithRegularSlices';
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.subRows = [
+      [
+        new TimelineThreadSlice('a', 0, 1, {}, 1),
+        new TimelineThreadSlice('b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('c', 2, 7.6, {}, 0.4)
+      ],
+      [
+        new TimelineThreadSlice('d', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('e', 4, 7.1, {}, 0.3)
+      ]
+    ];
+    thread.updateBounds();
+    track.heading = 'thread regular';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 8.2, track.clientWidth);
+  }
+
+  function testTimelineThreadTrackWithTallSlices() {
+    var testEl = getTestDiv('testTimelineThreadTrackWithTallSlices');
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testTimelineThreadTrackWithTallSlices';
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.subRows = [
+      [new TimelineThreadSlice('a', 1, 0, {}, 1)],
+      [new TimelineThreadSlice('b', 2, 0.1, {}, 0.8)],
+      [new TimelineThreadSlice('c', 3, 0.15, {}, 0.70)],
+      [new TimelineThreadSlice('d', 4, 0.20, {}, 0.50)],
+      [new TimelineThreadSlice('e', 5, 0.30, {}, 0.28)],
+      [new TimelineThreadSlice('e', 6, 0.35, {}, 0.20)],
+      [new TimelineThreadSlice('f', 7, 0.40, {}, 0.10)]
+    ];
+    thread.updateBounds();
+    track.heading = 'thread tall';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 1.1, track.clientWidth);
+  }
+
+  function testTimelineThreadTrackWithRegularAndAsyncSlices() {
+    var testEl = getTestDiv('testTimelineThreadTrackWithAsyncSlices');
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.subRows = [
+      [
+        new TimelineThreadSlice('a', 0, 1, {}, 1),
+        new TimelineThreadSlice('b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('c', 2, 7.6, {}, 0.4)
+      ],
+      [
+        new TimelineThreadSlice('d', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('e', 4, 7.1, {}, 0.3)
+      ]
+    ];
+    thread.asyncSlices.push(newAsyncSlice(1.2, 7.2 - 1.2, thread, thread));
+    thread.asyncSlices.push(newAsyncSlice(1.3, 7.3 - 1.3, thread, thread));
+    thread.updateBounds();
+    track.heading = 'thread regular + async';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 8.15, track.clientWidth);
+  }
+
+  function testTimelineSliceTrackAddItemNearToProvidedHit() {
+    var track = new TimelineSliceTrack();
+    track.slices = [
+      new TimelineSlice('a', 0, 1, {}, 1),
+      new TimelineSlice('b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('b', 1, 7, {}, 0.5),
+      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+    ];
+    var sel = new tracing.TimelineSelection();
+    track.addAllObjectsMatchingFilterToSelection(new tracing.TimelineFilter("b"), sel);
+    var ret;
+
+    // Select to the right of B.
+    var selRight = new tracing.TimelineSelection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], 1, selRight);
+    assertTrue(ret);
+    assertEquals(track.slices[2], selRight[0].slice);
+
+    // Select to the right of the 2nd b.
+    var selRight2 = new tracing.TimelineSelection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], 2, selRight2);
+    assertTrue(ret);
+    assertEquals(track.slices[3], selRight2[0].slice);
+
+    // Select to 2 to the right of the 2nd b.
+    var selRightOfRight = new tracing.TimelineSelection();
+    ret = track.addItemNearToProvidedHitToSelection(selRight[0], 1, selRightOfRight);
+    assertTrue(ret);
+    assertEquals(track.slices[3], selRightOfRight[0].slice);
+
+    // Select to the right of the rightmost slice.
+    var selNone = new tracing.TimelineSelection();
+    ret = track.addItemNearToProvidedHitToSelection(selRightOfRight[0], 1, selNone);
+    assertFalse(ret);
+    assertEquals(0, selNone.length);
+
+    // Select A and then select left.
+    var sel = new tracing.TimelineSelection();
+    track.addAllObjectsMatchingFilterToSelection(new tracing.TimelineFilter("a"), sel);
+    var ret;
+
+    selNone = new tracing.TimelineSelection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], -1, selNone);
+    assertFalse(ret);
+    assertEquals(0, selNone.length);
+
+  }
+</script>
+</body>
+</html>

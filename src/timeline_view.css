@@ -1,0 +1,118 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.timeline-view {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  padding: 0;
+}
+
+.timeline-view > .control {
+  border-bottom: 1px solid #555;
+  display: -webkit-box;
+}
+
+.timeline-view > .control > .controls {
+  display: -webkit-box;
+}
+
+.timeline-view > .control > span {
+  padding-left: 5px;
+  padding-right: 10px;
+}
+
+.timeline-view > .control > button {
+  font-size: 75%;
+  height: 20px;
+  min-height: 10px;
+}
+
+.timeline-view > .control > .spacer {
+  -webkit-box-flex: 1;
+}
+
+.timeline-view > .timeline-container {
+  -webkit-box-flex: 1;
+  display: -webkit-box;
+  overflow: auto;
+}
+
+.timeline-view > .timeline-container > * {
+  -webkit-box-flex: 1;
+}
+
+.timeline-view > .analysis-container {
+  border-top: 1px solid black;
+  max-height: 250px;
+  min-height: 250px;
+  overflow: auto;
+}
+
+.timeline-view .selection {
+  margin: 2px;
+}
+
+.timeline-view .selection ul {
+  margin: 0;
+}
+
+.timeline-find-control {
+  -webkit-user-select: none;
+  display: -webkit-box;
+  position: relative;
+}
+
+.timeline-find-control .hit-count-label {
+  left: 0;
+  opacity: 0.25;
+  pointer-events: none;
+  position: absolute;
+  text-align: right;
+  top: 2px;
+  width: 170px;
+  z-index: 1;
+}
+
+.timeline-find-control input {
+  -webkit-user-select: auto;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  height: 19px;
+  margin-bottom: 1px;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 1px;
+  padding: 0;
+  width: 170px;
+}
+
+.timeline-button.find-previous {
+  border-left: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+.timeline-button.find-next {
+    border-bottom-right-radius: 5px;
+  border-left: none;
+  margin-left: 0;
+}
+
+.timeline-button {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: rgba(0,0,0,0.2);
+  font-size: 14px;
+  height: 17px;
+  margin: 1px;
+  text-align: center;
+  width: 23px;
+}
+
+.timeline-button:hover {
+  background-color: rgba(255, 255, 255, 1.0);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 1);
+}

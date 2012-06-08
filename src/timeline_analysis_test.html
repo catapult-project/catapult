@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineView tests</title>
+<link rel="stylesheet" href="overlay.css">
+<link rel="stylesheet" href="timeline.css">
+<link rel="stylesheet" href="timeline_analysis.css">
+<link rel="stylesheet" href="timeline_view.css">
+<link rel="stylesheet" href="../shared/css/tabs.css">
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/cr/ui/tabs.js"></script>
+<script src="overlay.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="profiling_view.js"></script>
+<script src="timeline_analysis.js"></script>
+<script src="timeline_view.js"></script>
+<script src="timeline_model.js"></script>
+<script src="linux_perf_importer.js"></script>
+<script src="trace_event_importer.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_track.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="fast_rect_renderer.js"></script>
+<script src="test_utils.js"></script>
+<script>
+  goog.require('goog.testing.jsunit');
+</script>
+<style>
+  .timeline-view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .timeline-find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+  <script>
+    'use strict';
+
+    function appendTestResult(title, el) {
+      var titleEl = document.createElement('div');
+      titleEl.textContent = title;
+      titleEl.style.fontSize = '120%';
+      titleEl.style.marginBottom = '0px';
+
+      var groupEl = document.createElement('div');
+      groupEl.style.marginBottom = '48px';
+      groupEl.style.border = '1px solid black';
+
+      groupEl.appendChild(el);
+      document.body.appendChild(titleEl);
+      document.body.appendChild(groupEl);
+    }
+
+    function testAnalyzeSingleSlice() {
+      var events = [
+        {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      ];
+      var model = new tracing.TimelineModel();
+      model.importEvents(events);
+
+      var t53track = new tracing.TimelineThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new tracing.TimelineSelection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineFilter('b'), selection);
+      assertEquals(1, selection.length);
+
+      var analysisEl = new tracing.TimelineAnalysisView();
+      analysisEl.selection = selection;
+
+      appendTestResult("Single thread slice", analysisEl);
+    }
+
+    function testAnalyzeMultipleNonNestedSlices() {
+      var events = [
+        {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'aa', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'aa', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'},
+      ];
+      var model = new tracing.TimelineModel();
+      model.importEvents(events);
+
+      var t53track = new tracing.TimelineThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new tracing.TimelineSelection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineFilter('a'), selection);
+      assertEquals(2, selection.length);
+
+      var analysisEl = new tracing.TimelineAnalysisView();
+      analysisEl.selection = selection;
+
+      appendTestResult("Multiple non nested thread slices", analysisEl);
+    }
+
+  </script>
+</body>
+</html>

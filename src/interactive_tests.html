@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Interactive Timeline Tests</title>
+<link rel="stylesheet" href="timeline.css">
+<link rel="stylesheet" href="timeline_analysis.css">
+<link rel="stylesheet" href="timeline_view.css">
+<link rel="stylesheet" href="overlay.css">
+<script src="../shared/js/cr.js"></script>
+<script src="../shared/js/cr/event_target.js"></script>
+<script src="../shared/js/cr/ui.js"></script>
+<script src="../shared/js/util.js"></script>
+<script src="timeline_model.js"></script>
+<script src="linux_perf_importer.js"></script>
+<script src="trace_event_importer.js"></script>
+<script src="sorted_array_utils.js"></script>
+<script src="measuring_stick.js"></script>
+<script src="overlay.js"></script>
+<script src="timeline.js"></script>
+<script src="timeline_analysis.js"></script>
+<script src="timeline_view.js"></script>
+<script src="timeline_track.js"></script>
+<script src="fast_rect_renderer.js"></script>
+<script src="test_utils.js"></script>
+</head>
+<body>
+  <div class="timeline-test" src="../test_data/trivial_trace.json" create-detached=1>
+  </div>
+
+  <div class="timeline-test" src="../test_data/trivial_trace.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/simple_trace.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/instance_counters.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/tall_trace.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/big_trace.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/huge_trace.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/main_thread_has_unclosed_slices.json">
+  </div>
+
+  <div class="timeline-test" src="../test_data/async_begin_end.json">
+  </div>
+
+  <script>
+  function load(parentEl) {
+    var src = parentEl.getAttribute('src');
+    if (document.location.hash && document.location.hash.substring(1) != src) {
+      parentEl.hidden = true;
+      return;
+    }
+    parentEl.hidden = false;
+    parentEl.textContent = '';
+    var titleEl = document.createElement('h3');
+    var linkEl = document.createElement('a');
+    linkEl.textContent = src;
+    linkEl.href = '#' + src;
+    titleEl.appendChild(linkEl);
+
+    var containerEl = document.createElement('div');
+    containerEl.tabIndex = 0;
+    containerEl.style.border = '1px solid red';
+
+    var timelineViewEl = document.createElement('div');
+    cr.ui.decorate(timelineViewEl, tracing.TimelineView);
+    timelineViewEl.focusElement = containerEl;
+
+    parentEl.appendChild(titleEl);
+    parentEl.appendChild(containerEl);
+
+    // Creating attached vs detached stress tests the canvas- and viewport-
+    // setup code.
+    var create_detached = parentEl.getAttribute('create-attached') == 1;
+    function createModel(data) {
+      timelineViewEl.model = new tracing.TimelineModel(data);
+      if (!create_detached)
+        containerEl.appendChild(timelineViewEl);
+    }
+    if (create_detached)
+      containerEl.appendChild(timelineViewEl);
+    test_utils.getAsync(src, createModel);
+  }
+
+  function onLoad() {
+    Array.prototype.forEach.call(document.querySelectorAll('.timeline-test'),
+                                 load);
+  }
+
+  document.addEventListener('DOMContentLoaded', onLoad);
+  window.addEventListener('hashchange', onLoad);
+  </script>
+</body>
+</html>
