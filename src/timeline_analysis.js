@@ -105,12 +105,31 @@ base.define('tracing', function() {
    * Returns the newly created nodes.
    */
   function appendSliceRow(table, label, duration, occurences) {
-      var row = appendElement(table, 'tr');
-      var td = appendTableCell(table, row, 0, label);
-      var td = appendTableCell(table, row, 1, tsRound(duration) + ' ms');
-      var td = appendTableCell(table, row, 2,
-          String(occurences) + ' occurences');
-      return row;
+    var row = appendElement(table, 'tr');
+    var td = appendTableCell(table, row, 0, label);
+    var td = appendTableCell(table, row, 1, tsRound(duration) + ' ms');
+    var td = appendTableCell(
+        table, row, 2, String(occurences) + ' occurences');
+    return row;
+  }
+
+  /**
+   * Creates and appends a row to |table| that summarizes one or more slices.
+   * The row has a left-aligned |label] in the first column, the |duration|
+   * of the data in the second, the number of occurrences in the third, the
+   * minimum duration in the fourth, the maximum duration in the fifth, and
+   * the average duration in the sixth.
+   * Returns the newly created nodes.
+   */
+  function appendInfoSliceRow(table, label, duration, occur, min, max, avg) {
+    var row = appendElement(table, 'tr');
+    var td = appendTableCell(table, row, 0, label);
+    var td = appendTableCell(table, row, 1, tsRound(duration) + ' ms');
+    var td = appendTableCell(table, row, 2, String(occur) + ' occurences');
+    var td = appendTableCell(table, row, 3, 'min:' + min);
+    var td = appendTableCell(table, row, 4, 'max:' + max);
+    var td = appendTableCell(table, row, 5, 'avg:' + avg);
+    return row;
   }
 
   /**
@@ -123,14 +142,13 @@ base.define('tracing', function() {
 
     if (sliceHits.length == 1) {
       var slice = sliceHits[0].slice;
-
       var table = appendElementWithClass(parent, 'table', 'timeline-slice');
 
       appendSummaryHeader(table, 'Selected item:');
-
       appendSummaryRow(table, 'Title', slice.title);
       appendSummaryRowTime(table, 'Start', slice.start);
       appendSummaryRowTime(table, 'Duration', slice.duration);
+
       if (slice.durationInUserTime)
         appendSummaryRowTime(table, 'Duration (U)', slice.durationInUserTime);
 
@@ -153,13 +171,16 @@ base.define('tracing', function() {
       // compute total sliceHits duration
       var titles = sliceHits.map(function(i) { return i.slice.title; });
 
+      var numTitles = 0;
       var slicesByTitle = {};
       for (var i = 0; i < sliceHits.length; i++) {
         var slice = sliceHits[i].slice;
-        if (!slicesByTitle[slice.title])
+        if (!slicesByTitle[slice.title]) {
           slicesByTitle[slice.title] = {
             slices: []
           };
+          numTitles++;
+        }
         slicesByTitle[slice.title].slices.push(slice);
       }
 
@@ -168,20 +189,36 @@ base.define('tracing', function() {
       appendSummaryHeader(table, 'Slices:');
 
       var totalDuration = 0;
+
+      // This will output the min, max, and average if there is only one title
       for (var sliceGroupTitle in slicesByTitle) {
         var sliceGroup = slicesByTitle[sliceGroupTitle];
         var duration = 0;
-        for (i = 0; i < sliceGroup.slices.length; i++)
+        var avg = 0;
+        var min = Number.MAX_VALUE;
+        var max = Number.MIN_VALUE;
+        for (var i = 0; i < sliceGroup.slices.length; i++) {
           duration += sliceGroup.slices[i].duration;
+          min = Math.min(sliceGroup.slices[i].duration, min);
+          max = Math.max(sliceGroup.slices[i].duration, max);
+        }
+
         totalDuration += duration;
 
-        appendSliceRow(table, sliceGroupTitle, duration,
-            sliceGroup.slices.length);
+        if (sliceGroup.slices.length == 0)
+          avg = 0;
+        avg = duration / sliceGroup.slices.length;
+
+        if (numTitles == 1)
+          appendInfoSliceRow(table, sliceGroupTitle, duration,
+              sliceGroup.slices.length, tsRound(min),
+              tsRound(max), tsRound(avg));
+        else
+          appendSliceRow(table, sliceGroupTitle, duration,
+                         sliceGroup.slices.length);
       }
-
       appendSliceRow(table, '*Totals', totalDuration, sliceHits.length);
-
-      appendElement(table, 'p');  // TODO(sleffler) proper vertical space?
+      appendElement(table, 'p'); // TODO(sleffler) proper vertical space?
       appendSummaryRowTime(table, 'Selection start', tsLo);
       appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
     }
@@ -197,7 +234,6 @@ base.define('tracing', function() {
       var table = appendElementWithClass(parent, 'table', 'timeline-counter');
 
       appendSummaryHeader(table, 'Selected counter:');
-
       appendSummaryRow(table, 'Title', ctr.name);
       appendSummaryRowTime(table, 'Timestamp', ctr.timestamps[sampleIndex]);
       if (ctr.numSeries > 1)
