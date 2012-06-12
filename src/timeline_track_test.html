@@ -7,12 +7,6 @@ found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
 <title>TimelineTrack tests</title>
-<script
-   src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js">
-</script>
-<script>
-  goog.require('goog.testing.jsunit');
-</script>
 <style>
 * {
   box-sizing: border-box;
@@ -26,6 +20,7 @@ found in the LICENSE file.
 </style>
 <link rel="stylesheet" href="timeline.css">
 <script src="base.js"></script>
+<script src="unittest.js"></script>
 <script src="event_target.js"></script>
 <script src="ui.js"></script>
 <script src="timeline_model.js"></script>
@@ -37,6 +32,7 @@ found in the LICENSE file.
 </head>
 <body>
 <script>
+  unittest.runAllTests();
 </script>
 <script>
   'use strict';

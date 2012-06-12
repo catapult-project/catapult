@@ -9,6 +9,7 @@ found in the LICENSE file.
 <title>All Tracing Tests</title>
 <script>
   tests = [
+    'unittest_test.html',
     'overlay_test.html',
     'timeline_model_test.html',
     'timeline_track_test.html',
@@ -20,24 +21,72 @@ found in the LICENSE file.
     'timeline_analysis_test.html',
   ];
 </script>
-<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
-<script>
-  goog.require('goog.testing.MultiTestRunner');
-</script>
-<link rel="stylesheet" href="http://closure-library.googlecode.com/svn/trunk/closure/goog/css/multitestrunner.css" type="text/css">
+<script src="base.js"></script>
+<script src="unittest.js"></script>
 </head>
 <body>
-  <div id="runner"></div>
   <script>
-    var testRunner = new goog.testing.MultiTestRunner()
-        .setName(document.title)
-        .setBasePath('./')
-        .setPoolSize(8)
-        .setStatsBucketSizes(5, 500)
-        .setHidePasses(true)
-        .addTests(tests);
-    testRunner.render(document.getElementById('runner'));
-    testRunner.start();
+  function runTest(runner, testCaseEl, test) {
+    testCaseEl.status = 'RUNNING'
+
+    var iframe = document.createElement('iframe');
+    iframe.src = test;
+    iframe.style.position = 'fixed';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+    function checkForDone() {
+      if (!iframe.contentWindow) {
+        setTimeout(checkForDone, 100);
+        return;
+      }
+
+      if (!iframe.contentWindow.G_testRunner) {
+        setTimeout(checkForDone, 100);
+        return;
+      }
+
+      var runner = iframe.contentWindow.G_testRunner;
+      if (!runner.done) {
+        setTimeout(checkForDone, 100);
+        return;
+      }
+
+      var stats = runner.computeResultStats();
+      if (!stats.numTestsWithErrors)
+        testCaseEl.status = 'PASSED'
+      else
+        testCaseEl.status = 'FAILED'
+    }
+    setTimeout(checkForDone, 0);
+  }
+
+  function run() {
+    var resultsEl = document.createElement('div');
+    resultsEl.className = 'unittest';
+    document.body.appendChild(resultsEl);
+
+    var numPassed = 0;
+    var numFailures = 0;
+    var runner = {
+      addFailedTest: function() {
+        numFailures++;
+      },
+      addPassedTest: function() {
+        numPassed++;
+      }
+    };
+    function begin() {
+      for (var i = 0; i < tests.length; i++) {
+        (function() {
+          var testCaseEl = unittest.createTestCaseDiv_(tests[i]);
+          resultsEl.appendChild(testCaseEl);
+          runTest(runner, testCaseEl, tests[i]);
+        })();
+      }
+    }
+    begin();
+  }
+  document.addEventListener('DOMContentLoaded', run);
   </script>
 </body>
 </html>

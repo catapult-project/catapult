@@ -12,8 +12,8 @@ found in the LICENSE file.
 <link rel="stylesheet" href="overlay.css">
 <link rel="stylesheet" href="timeline_analysis.css">
 <link rel="stylesheet" href="timeline.css">
-<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
 <script src="base.js"></script>
+<script src="unittest.js"></script>
 <script src="event_target.js"></script>
 <script src="ui.js"></script>
 <script src="overlay.js"></script>
@@ -30,7 +30,7 @@ found in the LICENSE file.
 <script src="fast_rect_renderer.js"></script>
 <script src="test_utils.js"></script>
 <script>
-  goog.require('goog.testing.jsunit');
+  unittest.runAllTests();
 </script>
 <style>
   .profiling-view {
