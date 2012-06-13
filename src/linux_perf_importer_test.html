@@ -20,8 +20,8 @@ found in the LICENSE file.
 </head>
 <body>
 <script>
-function testLineRE() {
-  var re = tracing._LinuxPerfImporterTestExports.lineRE;
+function testLineRE33() {
+  var re = tracing._LinuxPerfImporterTestExports.lineRE33;
   var x = re.exec('   <idle>-0     [001]  4467.843475: sched_switch: ' +
       'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
       'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
@@ -37,6 +37,18 @@ function testLineRE() {
       'prev_comm=Binder Thread # prev_pid=647 prev_prio=120 prev_state=D ==> ' +
       'next_comm=.android.chrome next_pid=1562 next_prio=120');
   assertNotNull(x);
+}
+
+function testLineRE34() {
+  var re = tracing._LinuxPerfImporterTestExports.lineRE34;
+  var x = re.exec('     systrace.sh-5441  [001] d...  1031.091570: ' +
+        'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
+  assertNotNull(x);
+  assertEquals(systrace.sh-5441', x[1]);
+  assertEquals('001', x[2]);
+  assertEquals('1031.091570', x[3]);
+  assertEquals('sched_wakeup', x[4]);
+  assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x[5]);
 }
 
 function testSchedSwitchRE() {
@@ -136,6 +148,37 @@ function testCanImport() {
     'More random text'
   ];
   assertFalse(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
+}
+
+function testCanImport34AndLater() {
+  var lines = [
+    '# tracer: nop',
+    '#',
+    '# entries-in-buffer/entries-written: 55191/55191   #P:2',
+    '#',
+    '#                              _-----=> irqs-off',
+    '#                             / _----=> need-resched',
+    '#                            | / _---=> hardirq/softirq',
+    '#                            || / _--=> preempt-depth',
+    '#                            ||| /     delay',
+    '#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION',
+    '#              | |       |   ||||       |         |',
+    '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
+        'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
+    '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
+        '==> next_comm=chrome next_pid=5418 next_prio=120',
+  ];
+  assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
+
+  var lines = [
+    '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
+        'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
+    '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
+        '==> next_comm=chrome next_pid=5418 next_prio=120',
+  ];
+  assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
 function testImportOneSequence() {

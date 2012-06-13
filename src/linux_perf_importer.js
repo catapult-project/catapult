@@ -80,10 +80,15 @@ base.define('tracing', function() {
 
   TestExports = {};
 
-  // Matches the generic trace record:
+  // Matches the generic trace record 3.4 and later:
+  //          <idle>-0     [001] d...  1.23: sched_switch
+  var lineRE34 = /^\s*(.+?)\s+\[(\d+)\]\s+....\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
+  TestExports.lineRE34 = lineRE34;
+
+  // Matches the generic trace record pre-3.4:
   //          <idle>-0     [001]  1.23: sched_switch
-  var lineRE = /^\s*(.+?)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
-  TestExports.lineRE = lineRE;
+  var lineRE33 = /^\s*(.+?)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
+  TestExports.lineRE33 = lineRE33;
 
   // Matches the sched_switch record
   var schedSwitchRE = new RegExp(
@@ -125,6 +130,21 @@ base.define('tracing', function() {
   TestExports.pseudoVblankTID = pseudoVblankTID;
 
   /**
+   * Deduce the format of trace data. Linix kernels prior to 3.3 used
+   * one format (by default); 3.4 and later used another.
+   *
+   * @return {string} the regular expression for parsing data when
+   * the format is recognized; otherwise null.
+   */
+  function autoDetectLineRE(line) {
+    if (lineRE34.exec(line))
+      return lineRE34;
+    if (lineRE33.exec(line))
+      return lineRE33;
+    return null;
+  };
+
+  /**
    * Guesses whether the provided events is a Linux perf string.
    * Looks for the magic string "# tracer" at the start of the file,
    * or the typical task-pid-cpu-timestamp-function sequence of a typical
@@ -142,7 +162,7 @@ base.define('tracing', function() {
     var m = /^(.+)\n/.exec(events);
     if (m)
       events = m[1];
-    if (lineRE.exec(events))
+    if (autoDetectLineRE(events))
       return true;
 
     return false;
@@ -518,11 +538,19 @@ base.define('tracing', function() {
     importCpuData: function() {
       this.lines_ = this.events_.split('\n');
 
+      var lineRE = null;
       for (this.lineNumber = 0; this.lineNumber < this.lines_.length;
           ++this.lineNumber) {
         var line = this.lines_[this.lineNumber];
         if (/^#/.exec(line) || line.length == 0)
           continue;
+        if (lineRE == null) {
+          lineRE = autoDetectLineRE(line);
+          if (lineRE == null) {
+            this.importError('Cannot parse line: ' + line);
+            continue;
+          }
+        }
         var eventBase = lineRE.exec(line);
         if (!eventBase) {
           this.importError('Unrecognized line: ' + line);
