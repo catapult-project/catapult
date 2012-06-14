@@ -586,18 +586,27 @@ base.define('tracing', function() {
 
       // Begin rendering in world space.
       ctx.save();
-      vp.applyTransformToCanavs(ctx);
+      vp.applyTransformToCanvas(ctx);
 
       // Slices.
       if (this.asyncStyle_)
         ctx.globalAlpha = 0.25;
-      var tr = new tracing.FastRectRenderer(ctx, viewLWorld, 2 * pixWidth,
-                                            2 * pixWidth, viewRWorld, pallette);
+      var tr = new tracing.FastRectRenderer(ctx, 2 * pixWidth, 2 * pixWidth,
+                                            pallette);
       tr.setYandH(0, canvasH);
       var slices = this.slices_;
-      for (var i = 0; i < slices.length; ++i) {
+      var lowSlice = tracing.findLowIndexInSortedArray(slices,
+                                                       function(slice) {
+                                                         return slice.start +
+                                                                slice.duration;
+                                                       },
+                                                       viewLWorld);
+      for (var i = lowSlice; i < slices.length; ++i) {
         var slice = slices[i];
         var x = slice.start;
+        if (x > viewRWorld) {
+          break;
+        }
         // Less than 0.001 causes short events to disappear when zoomed in.
         var w = Math.max(slice.duration, 0.001);
         var colorId = slice.selected ?
@@ -637,8 +646,11 @@ base.define('tracing', function() {
         // Don't render text until until it is 20px wide
         var quickDiscardThresshold = pixWidth * 20;
         var shouldElide = this.SHOULD_ELIDE_TEXT;
-        for (var i = 0; i < slices.length; ++i) {
+        for (var i = lowSlice; i < slices.length; ++i) {
           var slice = slices[i];
+          if (slice.start > viewRWorld) {
+            break;
+          }
           if (slice.duration > quickDiscardThresshold) {
             var title = slice.title;
             if (slice.didNotFinish) {
@@ -989,15 +1001,17 @@ base.define('tracing', function() {
 
       // Begin rendering in world space.
       ctx.save();
-      vp.applyTransformToCanavs(ctx);
+      vp.applyTransformToCanvas(ctx);
 
       // Figure out where drawing should begin.
       var numSeries = ctr.numSeries;
       var numSamples = ctr.numSamples;
       var startIndex = tracing.findLowIndexInSortedArray(ctr.timestamps,
-                                                         function() {
+                                                         function(x) {
+                                                           return x;
                                                          },
                                                          viewLWorld);
+      startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
 
       // Draw indices one by one until we fall off the viewRWorld.
       var yScale = canvasH / ctr.maxTotal;

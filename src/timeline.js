@@ -247,7 +247,7 @@ base.define('tracing', function() {
       return this.gridStep_;
     },
 
-    applyTransformToCanavs: function(ctx) {
+    applyTransformToCanvas: function(ctx) {
       ctx.transform(this.scaleX_, 0, 0, 1, this.panX_ * this.scaleX_, 0);
     }
   };

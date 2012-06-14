@@ -31,24 +31,19 @@ base.define('tracing', function() {
    * Creates a fast rect renderer with a specific set of culling rules
    * and color pallette.
    * @param {GraphicsContext2D} ctx Canvas2D drawing context.
-   * @param {number} vpLeft The leftmost visible part of the drawing viewport.
    * @param {number} minRectSize Only rectangles with width < minRectSize are
    *    considered for merging.
    * @param {number} maxMergeDist Controls how many successive small rectangles
    *    can be merged together before issuing a rectangle.
-   * @param {number} vpRight The rightmost visible part of the viewport.
    * @param {Array} pallette The color pallete for drawing. Pallette slots
    *    should map to valid Canvas fillStyle strings.
    *
    * @constructor
    */
-  function FastRectRenderer(ctx, vpLeft, minRectSize, maxMergeDist, vpRight,
-                            pallette) {
+  function FastRectRenderer(ctx, minRectSize, maxMergeDist, pallette) {
     this.ctx_ = ctx;
-    this.vpLeft_ = vpLeft;
     this.minRectSize_ = minRectSize;
     this.maxMergeDist_ = maxMergeDist;
-    this.vpRight_ = vpRight;
     this.pallette_ = pallette;
   }
 
@@ -78,7 +73,6 @@ base.define('tracing', function() {
      */
     fillRect: function(x, w, colorId) {
       var r = x + w;
-      if (r < this.vpLeft_ || x > this.vpRight_) return;
       if (w < this.minRectSize_) {
         if (r - this.mergeStartX_ > this.maxMergeDist_)
           this.flush();
