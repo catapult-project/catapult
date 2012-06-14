@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
-<title>TimelineView tests</title>
+<title>TimelineAnalysis tests</title>
 <link rel="stylesheet" href="overlay.css">
 <link rel="stylesheet" href="timeline.css">
 <link rel="stylesheet" href="timeline_analysis.css">
@@ -46,22 +46,7 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    function appendTestResult(title, el) {
-      var titleEl = document.createElement('div');
-      titleEl.textContent = title;
-      titleEl.style.fontSize = '120%';
-      titleEl.style.marginBottom = '0px';
-
-      var groupEl = document.createElement('div');
-      groupEl.style.marginBottom = '48px';
-      groupEl.style.border = '1px solid black';
-
-      groupEl.appendChild(el);
-      document.body.appendChild(titleEl);
-      document.body.appendChild(groupEl);
-    }
-
-    function testAnalyzeSingleSlice() {
+    function createSelectionWithSingleSlice() {
       var events = [
         {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
@@ -77,13 +62,10 @@ found in the LICENSE file.
         new tracing.TimelineFilter('b'), selection);
       assertEquals(1, selection.length);
 
-      var analysisEl = new tracing.TimelineAnalysisView();
-      analysisEl.selection = selection;
-
-      appendTestResult("Single thread slice", analysisEl);
+      return selection;
     }
 
-    function testAnalyzeMultipleNonNestedSlices() {
+    function createSelectionWithTwoSlices() {
       var events = [
         {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
@@ -101,11 +83,136 @@ found in the LICENSE file.
         new tracing.TimelineFilter('a'), selection);
       assertEquals(2, selection.length);
 
+      return selection;
+    }
+
+    function appendTestResult(title, el) {
+      var titleEl = document.createElement('div');
+      titleEl.textContent = title;
+      titleEl.style.fontSize = '120%';
+      titleEl.style.marginBottom = '0px';
+
+      var groupEl = document.createElement('div');
+      groupEl.style.marginBottom = '48px';
+      groupEl.style.border = '1px solid black';
+
+      groupEl.appendChild(el);
+      document.body.appendChild(titleEl);
+      document.body.appendChild(groupEl);
+    }
+
+    function testAnalysisViewWithSingleSlice() {
+      var selection = createSelectionWithSingleSlice();
+
+      var analysisEl = new tracing.TimelineAnalysisView();
+      analysisEl.selection = selection;
+
+      appendTestResult("Single thread slice", analysisEl);
+    }
+
+    function testAnalysisViewWithMultipleSlices() {
+      var selection = createSelectionWithTwoSlices();
+
       var analysisEl = new tracing.TimelineAnalysisView();
       analysisEl.selection = selection;
 
       appendTestResult("Multiple non nested thread slices", analysisEl);
     }
+
+    function StubAnalysisResults() {
+      this.tables = [];
+    }
+    StubAnalysisResults.prototype = {
+      __proto__: Object.protoype,
+
+      appendTable: function(parent, className) {
+        var table = {
+          className: className,
+          rows: [],
+        };
+        table.className = className;
+        this.tables.push(table);
+        return table;
+      },
+
+      appendTableHeader: function(table, label) {
+        if (table.tableHeader)
+          throw new Error("Only one summary header allowed.");
+        table.tableHeader = label;
+      },
+
+      appendSummaryRow: function(table, label, opt_text) {
+        table.rows.push({label: label,
+                         text: opt_text});
+      },
+
+      appendSpacingRow: function(table) {
+        table.rows.push({spacing: true});
+      },
+
+      appendSummaryRowTime: function(table, label, time) {
+        table.rows.push({label: label,
+                         time: time});
+      },
+
+      appendSliceRow: function(table, label, duration, occurences, details) {
+        table.rows.push({label: label,
+                         duration: duration,
+                         occurences: occurences,
+                         details: details});
+      }
+    };
+
+    function testAnalyzeSelectionWithSingleSlice() {
+      var selection = createSelectionWithSingleSlice();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected item:', table.tableHeader);
+      assertEquals(3, table.rows.length)
+
+      assertEquals("b", table.rows[0].text);
+      assertEquals(0, table.rows[1].time);
+      assertAlmostEquals(0.002, table.rows[2].time);
+    }
+
+
+    function testAnalyzeSelectionWithTwoSlices() {
+      var selection = createSelectionWithTwoSlices();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertTrue(table.tableHeader = 'Slices:');
+      assertEquals(6, table.rows.length)
+
+      assertEquals("a", table.rows[0].label);
+      assertEquals(1, table.rows[0].occurences);
+      assertAlmostEquals(0.04, table.rows[0].duration);
+
+      assertEquals("aa", table.rows[1].label);
+      assertEquals(1, table.rows[1].occurences);
+      assertAlmostEquals(0.06, table.rows[1].duration);
+
+      assertEquals("*Totals", table.rows[2].label);
+      assertEquals(2, table.rows[2].occurences);
+      assertAlmostEquals(0.1, table.rows[2].duration);
+
+      assertEquals("Selection start", table.rows[4].label);
+      assertAlmostEquals(0, table.rows[4].time);
+
+      assertEquals("Selection extent", table.rows[5].label);
+      assertAlmostEquals(0.18, table.rows[5].time);
+    }
+
+    // TODO(brendalee): Test multiple slices with same title.
+
+    // TODO(tbd): Test the counters cases.
+
+    // TODO(tbd): Test the case of a selection with both counters and slices.
 
   </script>
 </body>

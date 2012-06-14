@@ -9,159 +9,143 @@
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
 base.define('tracing', function() {
-  function tsRound(ts) {
-    return Math.round(ts * 1000.0) / 1000.0;
-  }
+
+  var AnalysisResults = base.ui.define('div');
+
+  AnalysisResults.prototype = {
+    __proto__: HTMLDivElement.prototype,
+
+    decorate: function() {
+    },
+
+    tsRound_: function(ts) {
+      return Math.round(ts * 1000.0) / 1000.0;
+    },
+
+    appendElement_: function(parent, tagName, opt_text) {
+      var n = parent.ownerDocument.createElement(tagName);
+      parent.appendChild(n);
+      if (opt_text != undefined)
+        n.textContent = opt_text;
+      return n;
+    },
+
+    appendText_: function(parent, text) {
+      var textElement = parent.ownerDocument.createTextNode(text);
+      parent.appendChild(textNode);
+      return textNode;
+    },
+
+    appendTableCell_: function(table, row, cellnum, text) {
+      var td = this.appendElement_(row, 'td', text);
+      td.className = table.className + '-col-' + cellnum;
+      return td;
+    },
+
+    /**
+     * Adds a table with the given className.
+     * @return The newly created table.
+     */
+    appendTable: function(className) {
+      var n = this.appendElement_(this, 'table');
+      n.className = className;
+      return n;
+    },
+
+    /**
+     * Creates and appends a row to |table| with a left-aligned |label]
+     * header that spans all columns.
+     */
+    appendTableHeader: function(table, label) {
+      var row = this.appendElement_(table, 'tr');
+
+      var th = this.appendElement_(row, 'th', label);
+      th.className = table.className + '-header';
+    },
+
+    /**
+     * Creates and appends a row to |table| with a left-aligned |label]
+     * in the first column and an optional |opt_text| value in the second
+     * column.
+     */
+    appendSummaryRow: function(table, label, opt_text) {
+      var row = this.appendElement_(table, 'tr');
+      this.appendTableCell_(table, row, 0, label);
+      if (opt_text)
+        this.appendTableCell_(table, row, 1, opt_text);
+    },
+
+    /**
+     * Adds a spacing row to spread out results.
+     */
+    appendSpacingRow: function(table) {
+      this.appendElement_(table, 'p');
+    },
+
+    /**
+     * Creates and appends a row to |table| with a left-aligned |label]
+     * in the first column and a millisecvond |time| value in the second
+     * column.
+     */
+    appendSummaryRowTime: function(table, label, time) {
+      this.appendSummaryRow(table, label, this.tsRound_(time) + ' ms');
+    },
+
+    /**
+     * Creates and appends a row to |table| that summarizes one or more slices.
+     * The row has a left-aligned |label] in the first column, the |duration|
+     * of the data in the second, the number of |occurrences| in the third.
+     * @param details May be undefined, or an object with contain min/max/avg.
+     */
+    appendSliceRow: function(table, label, duration, occurences, opt_statistics) {
+      var row = this.appendElement_(table, 'tr');
+      this.appendTableCell_(table, row, 0, label);
+      this.appendTableCell_(table, row, 1, this.tsRound_(duration) + ' ms');
+      this.appendTableCell_(
+          table, row, 2, String(occurences) + ' occurences');
+      if (opt_statistics) {
+        this.appendTableCell_(table, row, 3, 'min:' + this.tsRound_(opt_statistics.min));
+        this.appendTableCell_(table, row, 4, 'max:' + this.tsRound_(opt_statistics.max));
+        this.appendTableCell_(table, row, 5, 'avg:' + this.tsRound_(opt_statistics.avg));
+      }
+    },
+  };
 
   /**
-   * Creates and appends a DOM node of type |tagName| to |parent|. Optionally,
-   * sets the new node's text to |opt_text|. Returns the newly created node.
+   * Analyzes the selection, outputting the analysis results into the provided results object.
+   *
+   * @param results Where the analysis is placed. Should be an AnalysisResults object or something
+   * with compatible methods.
+   *
+   * @param selection The TimelineSelection to analyze.
    */
-  function appendElement(parent, tagName, opt_text) {
-    var n = parent.ownerDocument.createElement(tagName);
-    parent.appendChild(n);
-    if (opt_text != undefined)
-      n.textContent = opt_text;
-    return n;
-  }
+  function analyzeSelection(results, selection) {
 
-  /**
-   * Adds |tagName| to |parent| with className |classname|.  Returns
-   * the newly created node.
-   */
-  function appendElementWithClass(parent, tagName, classname) {
-    var n = appendElement(parent, tagName);
-    n.className = classname;
-    return n;
-  }
-
-  /**
-   * Adds |text| to |parent|.
-   */
-  function appendText(parent, text) {
-    var textNode = parent.ownerDocument.createTextNode(text);
-    parent.appendChild(textNode);
-    return textNode;
-  }
-
-  /**
-   * Adds a table header to |row| with |text| and className
-   * |table|.className-header.  Returns the newly created node.
-   */
-  function appendTableHeader(table, row, text) {
-    var th = appendElement(row, 'th', text);
-    th.className = table.className + '-header';
-    return th;
-  }
-
-  /**
-   * Adds table cell number |cellnum| to |row| with |text| and
-   * className |table|.className-col-|cellnum|.  Returns the newly
-   * created node.
-   */
-  function appendTableCell(table, row, cellnum, text) {
-    var td = appendElement(row, 'td', text);
-    td.className = table.className + '-col-' + cellnum;
-    return td;
-  }
-
-  /**
-   * Creates and appends a row to |table| with a left-aligned |label]
-   * header that spans all columns.  Returns the newly created nodes.
-   */
-  function appendSummaryHeader(table, label) {
-    var row = appendElement(table, 'tr');
-    var th = appendTableHeader(table, row, label);
-    return row;
-  }
-
-  /**
-   * Creates and appends a row to |table| with a left-aligned |label]
-   * in the first column and an optional |opt_text| value in the second
-   * column.  Returns the newly created nodes.
-   */
-  function appendSummaryRow(table, label, opt_text) {
-    var row = appendElement(table, 'tr');
-    var td = appendTableCell(table, row, 0, label);
-    if (opt_text) {
-      var td = appendTableCell(table, row, 1, opt_text);
-    }
-    return row;
-  }
-
-  /**
-   * Creates and appends a row to |table| with a left-aligned |label]
-   * in the first column and a millisecvond |time| value in the second
-   * column.  Returns the newly created nodes.
-   */
-  function appendSummaryRowTime(table, label, time) {
-    return appendSummaryRow(table, label, tsRound(time) + ' ms');
-  }
-
-  /**
-   * Creates and appends a row to |table| that summarizes one or more slices.
-   * The row has a left-aligned |label] in the first column, the |duration|
-   * of the data in the second, the number of |occurrences| in the third.
-   * Returns the newly created nodes.
-   */
-  function appendSliceRow(table, label, duration, occurences) {
-    var row = appendElement(table, 'tr');
-    var td = appendTableCell(table, row, 0, label);
-    var td = appendTableCell(table, row, 1, tsRound(duration) + ' ms');
-    var td = appendTableCell(
-        table, row, 2, String(occurences) + ' occurences');
-    return row;
-  }
-
-  /**
-   * Creates and appends a row to |table| that summarizes one or more slices.
-   * The row has a left-aligned |label] in the first column, the |duration|
-   * of the data in the second, the number of occurrences in the third, the
-   * minimum duration in the fourth, the maximum duration in the fifth, and
-   * the average duration in the sixth.
-   * Returns the newly created nodes.
-   */
-  function appendInfoSliceRow(table, label, duration, occur, min, max, avg) {
-    var row = appendElement(table, 'tr');
-    var td = appendTableCell(table, row, 0, label);
-    var td = appendTableCell(table, row, 1, tsRound(duration) + ' ms');
-    var td = appendTableCell(table, row, 2, String(occur) + ' occurences');
-    var td = appendTableCell(table, row, 3, 'min:' + min);
-    var td = appendTableCell(table, row, 4, 'max:' + max);
-    var td = appendTableCell(table, row, 5, 'avg:' + avg);
-    return row;
-  }
-
-  /**
-   * Converts the selection to a tabular summary display and appends
-   * the newly created elements to |parent|.  Returns the new elements.
-   */
-  function createSummaryElementForSelection(parent, selection) {
     var sliceHits = selection.getSliceHits();
     var counterSampleHits = selection.getCounterSampleHits();
 
     if (sliceHits.length == 1) {
       var slice = sliceHits[0].slice;
-      var table = appendElementWithClass(parent, 'table', 'timeline-slice');
+      var table = results.appendTable('timeline-slice');
 
-      appendSummaryHeader(table, 'Selected item:');
-      appendSummaryRow(table, 'Title', slice.title);
-      appendSummaryRowTime(table, 'Start', slice.start);
-      appendSummaryRowTime(table, 'Duration', slice.duration);
+      results.appendTableHeader(table, 'Selected item:');
+      results.appendSummaryRow(table, 'Title', slice.title);
+      results.appendSummaryRowTime(table, 'Start', slice.start);
+      results.appendSummaryRowTime(table, 'Duration', slice.duration);
 
       if (slice.durationInUserTime)
-        appendSummaryRowTime(table, 'Duration (U)', slice.durationInUserTime);
+        results.appendSummaryRowTime(table, 'Duration (U)', slice.durationInUserTime);
 
       var n = 0;
       for (var argName in slice.args) {
         n += 1;
       }
       if (n > 0) {
-        appendSummaryRow(table, 'Args');
+        results.appendSummaryRow(table, 'Args');
         for (var argName in slice.args) {
           var argVal = slice.args[argName];
           // TODO(sleffler) use span instead?
-          appendSummaryRow(table, ' ' + argName, argVal);
+          results.appendSummaryRow(table, ' ' + argName, argVal);
         }
       }
     } else if (sliceHits.length > 1) {
@@ -184,9 +168,9 @@ base.define('tracing', function() {
         slicesByTitle[slice.title].slices.push(slice);
       }
 
-      var table = appendElementWithClass(parent, 'table', 'timeline-slices');
+      var table = results.appendTable('timeline-slices');
 
-      appendSummaryHeader(table, 'Slices:');
+      results.appendTableHeader(table, 'Slices:');
 
       var totalDuration = 0;
 
@@ -209,18 +193,18 @@ base.define('tracing', function() {
           avg = 0;
         avg = duration / sliceGroup.slices.length;
 
+        var details = undefined;
         if (numTitles == 1)
-          appendInfoSliceRow(table, sliceGroupTitle, duration,
-              sliceGroup.slices.length, tsRound(min),
-              tsRound(max), tsRound(avg));
-        else
-          appendSliceRow(table, sliceGroupTitle, duration,
-                         sliceGroup.slices.length);
+          details = {min: min,
+                     max: max,
+                     avg: avg};
+        results.appendSliceRow(table, sliceGroupTitle, duration,
+                               sliceGroup.slices.length, details);
       }
-      appendSliceRow(table, '*Totals', totalDuration, sliceHits.length);
-      appendElement(table, 'p'); // TODO(sleffler) proper vertical space?
-      appendSummaryRowTime(table, 'Selection start', tsLo);
-      appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
+      results.appendSliceRow(table, '*Totals', totalDuration, sliceHits.length);
+      results.appendSpacingRow(table);
+      results.appendSummaryRowTime(table, 'Selection start', tsLo);
+      results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
     }
 
     if (counterSampleHits.length == 1) {
@@ -231,18 +215,19 @@ base.define('tracing', function() {
       for (var i = 0; i < ctr.numSeries; ++i)
         values.push(ctr.samples[ctr.numSeries * sampleIndex + i]);
 
-      var table = appendElementWithClass(parent, 'table', 'timeline-counter');
+      var table = results.appendTable('timeline-counter');
 
-      appendSummaryHeader(table, 'Selected counter:');
-      appendSummaryRow(table, 'Title', ctr.name);
-      appendSummaryRowTime(table, 'Timestamp', ctr.timestamps[sampleIndex]);
+      results.appendTableHeader(table, 'Selected counter:');
+      results.appendSummaryRow(table, 'Title', ctr.name);
+      results.appendSummaryRowTime(table, 'Timestamp', ctr.timestamps[sampleIndex]);
       if (ctr.numSeries > 1)
-        appendSummaryRow(table, 'Values', values.join('\n'));
+        results.appendSummaryRow(table, 'Values', values.join('\n'));
       else
-        appendSummaryRow(table, 'Value', values.join('\n'));
+        results.appendSummaryRow(table, 'Value', values.join('\n'));
+
     } else if (counterSampleHits.length > 1 && sliceHits.length == 0) {
-      appendText(parent, 'Analysis of multiple counters is not yet' +
-          'implemented. Pick a single counter.');
+      var table = results.appendTable('timeline-counter');
+      results.appendTableHeader(table, 'Multiple selected counters not supported.');
     }
   }
 
@@ -257,11 +242,14 @@ base.define('tracing', function() {
 
     set selection(selection) {
       this.textContent = '';
-      createSummaryElementForSelection(this, selection);
+      var results = new AnalysisResults();
+      analyzeSelection(results, selection);
+      this.appendChild(results);
     }
   };
 
   return {
     TimelineAnalysisView: TimelineAnalysisView,
+    analyzeSelection_: analyzeSelection,
   };
 });
