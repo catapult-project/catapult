@@ -649,18 +649,12 @@ base.define('tracing', function() {
       var viewWidth = this.firstCanvas.clientWidth;
       var curMouseV, curCenterW;
       switch (e.keyCode) {
-        case 101: // e
-          var vX = this.lastMouseViewPos_.x;
-          var wX = vp.xViewToWorld(this.lastMouseViewPos_.x);
-          var distFromCenter = vX - (viewWidth / 2);
-          var percFromCenter = distFromCenter / viewWidth;
-          var percFromCenterSq = percFromCenter * percFromCenter;
-          vp.xPanWorldPosToViewPos(wX, 'center', viewWidth);
-          break;
         case 119:  // w
+        case 44:   // ,
           this.zoomBy_(1.5);
           break;
         case 115:  // s
+        case 111:  // o
           this.zoomBy_(1 / 1.5);
           break;
         case 103:  // g
@@ -670,15 +664,18 @@ base.define('tracing', function() {
           this.onGridToggle_(false);
           break;
         case 87:  // W
+        case 60:  // <
           this.zoomBy_(10);
           break;
         case 83:  // S
+        case 79:  // O
           this.zoomBy_(1 / 10);
           break;
         case 97:  // a
           vp.panX += vp.xViewVectorToWorld(viewWidth * 0.1);
           break;
         case 100:  // d
+        case 101:  // e
           vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.1);
           break;
         case 65:  // A
@@ -738,17 +735,20 @@ base.define('tracing', function() {
     },
 
     get keyHelp() {
-      var help = 'Keyboard shortcuts:\n' +
+      var help = 'Qwerty Controls:\n' +
           ' w/s     : Zoom in/out    (with shift: go faster)\n' +
-          ' a/d     : Pan left/right\n' +
-          ' e       : Center on mouse\n' +
-          ' g/G     : Shows grid at the start/end of the selected task\n';
+          ' a/d     : Pan left/right\n\n' +
+          'Dvorak Controls:\n' +
+          ' ,/o     : Zoom in/out     (with shift: go faster)\n' +
+          ' a/e     : Pan left/right\n\n';
 
       if (this.focusElement.tabIndex) {
         help += ' <-      : Select previous event on current timeline\n' +
             ' ->      : Select next event on current timeline\n';
       } else {
-        help += ' <-,^TAB : Select previous event on current timeline\n' +
+        help += 'General Navigation\n' +
+            ' g/G     : Shows grid at the start/end of the selected task\n' + 
+            ' <-,^TAB : Select previous event on current timeline\n' +
             ' ->, TAB : Select next event on current timeline\n';
       }
       help +=
