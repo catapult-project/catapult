@@ -3,9 +3,11 @@
  * found in the LICENSE file. */
 
 .timeline-analysis {
-    -webkit-user-select: text;
     font-family: monospace;
     white-space: pre;
+}
+.timeline-analysis * {
+   -webkit-user-select: text !important;
 }
 
 .timeline-slice {
