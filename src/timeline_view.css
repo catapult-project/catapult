@@ -99,6 +99,10 @@
   margin-left: 0;
 }
 
+.timeline-view-help-overlay {
+  padding: 6px;
+}
+
 .timeline-button {
   background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 0, 0, 0.2);
