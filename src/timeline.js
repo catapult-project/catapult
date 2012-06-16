@@ -848,16 +848,25 @@ base.define('tracing', function() {
       this.viewport_.gridEnabled = true;
     },
 
+    isChildOfThis_: function(el) {
+      if (el == this)
+        return;
+
+      var isChildOfThis = false;
+      var cur = el;
+      while (cur.parentNode) {
+        if (cur == this)
+          return true;
+        cur = cur.parentNode;
+      }
+      return false;
+    },
+
     onMouseDown_: function(e) {
       var canv = this.firstCanvas;
       var rect = this.tracks_.getClientRects()[0];
-      var inside = rect &&
-          e.clientX >= rect.left &&
-          e.clientX < rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY < rect.bottom &&
-          e.x >= canv.offsetLeft;
-      if (!inside)
+
+      if (!this.isChildOfThis_(e.target))
         return;
 
       var pos = {
