@@ -33,3 +33,7 @@
 .overlay-root > .content-host > * {
   background: rgb(255, 255, 255);
 }
+
+.overlay {
+  padding: 8px;
+}
