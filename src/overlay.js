@@ -157,14 +157,46 @@ base.define('tracing', function() {
 
       this.classList.add('overlay');
       this.visible = false;
+      this.autoClose = false;
+      this.additionalCloseKeyCodes = [];
+      this.onKeyDown = this.onKeyDown.bind(this);
+      this.onKeyPress = this.onKeyPress.bind(this);
     },
 
     onVisibleChanged_: function() {
       var overlayRoot = this.ownerDocument.querySelector('.overlay-root');
       if (this.visible) {
         overlayRoot.showOverlay(this);
+        document.addEventListener('keydown', this.onKeyDown, true);
+        document.addEventListener('keypress', this.onKeyPress, true);
       } else {
+        document.removeEventListener('keydown', this.onKeyDown, true);
+        document.removeEventListener('keypress', this.onKeyPress, true);
         overlayRoot.hideOverlay(this);
+      }
+    },
+
+    onKeyDown: function(e) {
+      if (!this.autoClose)
+        return;
+
+      if (e.keyCode == 27) {
+        this.visible = false;
+        e.preventDefault();
+        return;
+      }
+    },
+
+    onKeyPress: function(e) {
+      if (!this.autoClose)
+        return;
+
+      for( var i = 0; i < this.additionalCloseKeyCodes.length; i++) {
+        if (e.keyCode == this.additionalCloseKeyCodes[i]) {
+          this.visible = false;
+          e.preventDefault();
+          return;
+        }
       }
     }
   };

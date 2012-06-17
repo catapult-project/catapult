@@ -253,13 +253,16 @@ base.define('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
     },
 
+
     createHelpButton_: function() {
       var dlg = new tracing.Overlay();
       dlg.classList.add('timeline-view-help-overlay');
+      dlg.autoClose = true;
+      dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
 
-      var showHelpEl = document.createElement('div');
-      showHelpEl.className = 'timeline-button timeline-view-help-button';
-      showHelpEl.textContent = '?';
+      var showEl = document.createElement('div');
+      showEl.className = 'timeline-button timeline-view-help-button';
+      showEl.textContent = '?';
 
       var helpTextEl = document.createElement('div');
       helpTextEl.style.whiteSpace = 'pre';
@@ -267,25 +270,16 @@ base.define('tracing', function() {
 
       function onClick() {
         dlg.visible = true;
-        helpTextEl.textContent = this.timeline_.keyHelp;
-        document.addEventListener('keydown', onKey, true);
+        if (this.timeline_)
+          helpTextEl.textContent = this.timeline_.keyHelp;
+        else
+          helpTextEl.textContent = 'No content loaded. For interesting help, load something.';
       }
-
-      function onKey(e) {
-        if (!dlg.visible)
-          return;
-
-        if (e.keyCode == 27 || e.keyCode == '?'.charCodeAt(0)) {
-          e.preventDefault();
-          document.removeEventListener('keydown', onKey);
-          dlg.visible = false;
-        }
-      }
-      showHelpEl.addEventListener('click', onClick.bind(this));
+      showEl.addEventListener('click', onClick.bind(this));
 
       dlg.appendChild(helpTextEl);
 
-      return showHelpEl;
+      return showEl;
     },
 
     get leftControls() {
