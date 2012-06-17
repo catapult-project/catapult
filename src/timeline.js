@@ -53,7 +53,10 @@ base.define('tracing', function() {
   TimelineViewport.prototype = {
     __proto__: base.EventTarget.prototype,
 
-    draw: function(ctx,viewLWorld,viewRWorld,canvasH)  {
+    drawUnderContent: function(ctx,viewLWorld,viewRWorld,canvasH) {
+    },
+
+    drawOverContent: function(ctx,viewLWorld,viewRWorld,canvasH) {
       if (this.gridEnabled) {
         var x = this.gridTimebase;
 

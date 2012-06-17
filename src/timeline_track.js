@@ -580,9 +580,8 @@ base.define('tracing', function() {
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
 
-      // Draw grid without a transform because the scale
-      // affects line width.
-      vp.draw(ctx,viewLWorld,viewRWorld,canvasH);
+      // Give the viewport a chance to draw onto this canvas.
+      vp.drawUnderContent(ctx,viewLWorld,viewRWorld,canvasH);
 
       // Begin rendering in world space.
       ctx.save();
@@ -674,6 +673,9 @@ base.define('tracing', function() {
           }
         }
       }
+
+      // Give the viewport a chance to draw over this canvas.
+      vp.drawOverContent(ctx,viewLWorld,viewRWorld,canvasH);
     },
 
     /**
@@ -995,6 +997,9 @@ base.define('tracing', function() {
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
 
+      // Give the viewport a chance to draw onto this canvas.
+      vp.drawUnderContent(ctx,viewLWorld,viewRWorld,canvasH);
+
       // Drop sampels that are less than skipDistancePix apart.
       var skipDistancePix = 1;
       var skipDistanceWorld = vp.xViewVectorToWorld(skipDistancePix);
@@ -1084,6 +1089,9 @@ base.define('tracing', function() {
         }
       }
       ctx.restore();
+
+      // Give the viewport a chance to draw over this canvas.
+      vp.drawOverContent(ctx,viewLWorld,viewRWorld,canvasH);
     },
 
     /**
