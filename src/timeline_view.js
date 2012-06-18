@@ -268,13 +268,41 @@ base.define('tracing', function() {
       helpTextEl.style.whiteSpace = 'pre';
       helpTextEl.style.fontFamily = 'monospace';
 
-      function onClick() {
+      function onClick(e) {
         dlg.visible = true;
         if (this.timeline_)
           helpTextEl.textContent = this.timeline_.keyHelp;
         else
           helpTextEl.textContent = 'No content loaded. For interesting help, load something.';
+        document.addEventListener('click', bgClick);
+        
+        // Stop event so it doesn't trigger new click listener on document.
+        e.stopPropagation();
+        return false;
       }
+
+      function bgClick(e) {
+        var target = e.target;
+        // Check to make sure we are not in dlg.
+        while(target!==null) {
+          if(target === dlg) {
+            return false;
+          }
+          target = target.parentNode;
+        }
+        // If the click occured outside dlg.
+        closeHelp();
+        return false;
+      }
+
+      function closeHelp() {
+        if (!dlg.visible) {
+          return;
+        }
+        document.removeEventListener('click', bgClick, true);
+        dlg.visible = false;
+      }
+
       showEl.addEventListener('click', onClick.bind(this));
 
       dlg.appendChild(helpTextEl);
