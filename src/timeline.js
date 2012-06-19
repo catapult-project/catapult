@@ -943,7 +943,7 @@ base.define('tracing', function() {
 
     onDblClick_: function(e) {
       var canv = this.firstCanvas;
-      if (e.x < canv.offsetLeft)
+      if (!this.isChildOfThis_(e.target))
         return;
 
       var scale = 4;
