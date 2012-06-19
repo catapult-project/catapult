@@ -35,6 +35,9 @@ base.define('unittest', function() {
                '  margin-left: 20px;',
                '  font-size: 90%',
                '}',
+               '.unittest-error-link {',
+               '  margin-left: 15px;',
+               '}',
                '',
                '.unittest-error-stack {',
                '  padding-bottom: 8px;',
@@ -49,12 +52,27 @@ base.define('unittest', function() {
     _ensureStylesheetInDocument(document);
     var el = document.createElement('div');
 
-    var titleEl = document.createElement('div');
-    el.appendChild(titleEl);
+    var titleBlockEl = document.createElement('div');
+    titleBlockEl.style.display = 'inline';
+    el.appendChild(titleBlockEl);
+
+    var titleEl = document.createElement('span');
+    titleBlockEl.appendChild(titleEl);
+
+    var errorLink = document.createElement('a');
+    errorLink.className = 'unittest-error-link';
+    errorLink.textContent = 'Run individually...';
+    errorLink.href = '#' + testName;
+    errorLink.style.display = 'none';
+    titleBlockEl.appendChild(errorLink);
 
     el.__defineSetter__('status', function(status) {
       titleEl.textContent = testName + ': ' + status;
       titleEl.className = statusToClassName(status);
+      if (status == 'FAILED')
+        errorLink.style.display = '';
+      else
+        errorLink.style.display = 'none';
     });
     el.status = 'READY';
     return el;
@@ -82,26 +100,33 @@ base.define('unittest', function() {
       return 'unittest-red';
   }
 
-  function HTMLTestRunner(opt_title) {
+  function HTMLTestRunner(opt_title, opt_curHash) {
     // This constructs a HTMLDivElement and then adds our own runner methods to
     // it. This is usually done via ui.js' define system, but we dont want our
     // test runner to be dependent on the UI lib. :)
     var outputEl = document.createElement('div');
     outputEl.__proto__ = HTMLTestRunner.prototype;
-    this.decorate.call(outputEl, opt_title);
+    this.decorate.call(outputEl, opt_title, opt_curHash);
     return outputEl;
   }
 
   HTMLTestRunner.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function(opt_title) {
+    decorate: function(opt_title, opt_curHash) {
       _ensureStylesheetInDocument(document);
       this.running = false;
       this.className = 'unittest-runner';
 
       this.currentTest_ = undefined;
       this.results = undefined;
+      if (opt_curHash) {
+        var trimmedHash = opt_curHash.substring(1);
+        this.filterFunc_ = function(testName) {
+          return testName.indexOf(trimmedHash) == 0;
+        };
+      } else
+        this.filterFunc_ = function(testName) { return true; };
 
       this.statusEl_ = document.createElement('div');
       this.appendChild(this.statusEl_);
@@ -164,6 +189,8 @@ base.define('unittest', function() {
       this.running = true;
       this.updateStatus();
       for (var i = 0; i < tests.length; i++) {
+        if (!this.filterFunc_(tests[i].testName))
+          continue;
         tests[i].run(this);
         this.updateStatus();
       }
@@ -406,18 +433,39 @@ base.define('unittest', function() {
    * Runs all unit tests.
    */
   function runAllTests(opt_objectToEnumerate) {
-    var runner = new HTMLTestRunner();
-    // Stash the runner on window so that the global test runner
-    // can get to it.
-    window.G_testRunner = runner;
-    document.addEventListener('DOMContentLoaded', function() {
+    var runner;
+    function init() {
+      if (runner)
+        runner.parentElement.removeChild(runner);
+      runner = new HTMLTestRunner(document.title, document.location.hash);
+      // Stash the runner on window so that the global test runner
+      // can get to it.
+      window.G_testRunner = runner;
+    }
+
+    function append() {
       document.body.appendChild(runner);
-    });
-    window.addEventListener('load', function() {
+    }
+
+    function run() {
       var objectToEnumerate = opt_objectToEnumerate || window;
       var tests = discoverTests(objectToEnumerate);
       runner.run(tests);
+    }
+
+    window.addEventListener('hashchange', function() {
+      init();
+      append();
+      run();
     });
+
+    init();
+    if (document.body)
+      append();
+    else
+      document.addEventListener('DOMContentLoaded', append);
+    window.addEventListener('load', run);
+
   }
 
   return {

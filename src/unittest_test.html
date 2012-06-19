@@ -315,7 +315,8 @@ function testTestErrorConstruction() {
 }
 
 function testTestRunnerOneFailed() {
-  var runner = new HTMLTestRunner('foo');
+  var runner = new HTMLTestRunner('foo', "");
+
   var test1 = new TestCase(function() {
     assertTrue(true);
   }, "test1");
@@ -338,6 +339,34 @@ function testTestRunnerOneFailed() {
   var stats = runner.computeResultStats();
   rawAssertEquals(2, stats.numTestsRun);
   rawAssertEquals(1, stats.numTestsPassed);
+  rawAssertEquals(1, stats.numTestsWithErrors);
+}
+
+function testTestRunnerOneFailedWithHashFilter() {
+  var runner = new HTMLTestRunner('foo', "#test2");
+
+  var test1 = new TestCase(function() {
+    assertTrue(true);
+  }, "test1");
+  var test2 = new TestCase(function() {
+    assertTrue(false);
+  }, "test2");
+
+  var testRunnerEl = document.createElement('div');
+  testRunnerEl.style.paddingTop = '24px';
+  testRunnerEl.textContent = 'testTestRunnerOneFailedWithHashFilter output the following:';
+
+  var testRunnerInnerEl = document.createElement('div');
+  testRunnerInnerEl.style.marginLeft = '15px';
+  testRunnerInnerEl.style.border = '1px solid black';
+  testRunnerInnerEl.appendChild(runner);
+  testRunnerEl.appendChild(testRunnerInnerEl);
+  document.body.appendChild(testRunnerEl);
+  runner.run([test1, test2]);
+
+  var stats = runner.computeResultStats();
+  rawAssertEquals(1, stats.numTestsRun);
+  rawAssertEquals(0, stats.numTestsPassed);
   rawAssertEquals(1, stats.numTestsWithErrors);
 }
 
