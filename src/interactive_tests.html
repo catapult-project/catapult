@@ -73,6 +73,8 @@ found in the LICENSE file.
     var containerEl = document.createElement('div');
     containerEl.tabIndex = 0;
     containerEl.style.border = '1px solid red';
+    containerEl.style.display = '-webkit-box';
+    containerEl.style.maxHeight = '800px';
 
     var timelineViewEl = document.createElement('div');
     base.ui.decorate(timelineViewEl, tracing.TimelineView);

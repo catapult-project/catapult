@@ -2,15 +2,32 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
+.timeline-view * {
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
 .timeline-view {
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;
+  cursor: default;
   display: -webkit-box;
+  font-family: sans-serif;
   padding: 0;
 }
 
+.timeline-view > .control > .title {
+  font-size: 14px;
+  height: 19px;
+  padding-left: 2px;
+  padding-right: 8px;
+  padding-top: 2px;
+}
+
 .timeline-view > .control {
-  border-bottom: 1px solid #555;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#E5E5E5), to(#D1D1D1));
+  background-color: #e6e6e6;
+  border-bottom: 1px solid #8e8e8e;
   display: -webkit-box;
 }
 
@@ -23,7 +40,7 @@
   padding-right: 10px;
 }
 
-.timeline-view > .control > button {
+.timeline-view > .control > .controls > button {
   font-size: 75%;
   height: 20px;
   min-height: 10px;
@@ -37,17 +54,26 @@
   -webkit-box-flex: 1;
   display: -webkit-box;
   overflow: auto;
+  border-bottom: 1px solid #8e8e8e;
 }
 
 .timeline-view > .timeline-container > * {
   -webkit-box-flex: 1;
 }
 
+.timeline-view > .analysis-container-drag-handle {
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#E5E5E5), to(#D1D1D1));
+  height: 8px;
+  border-top: 1px solid white;
+  border-bottom: 1px solid #8e8e8e;
+}
 .timeline-view > .analysis-container {
-  border-top: 1px solid black;
+  border-top: 1px solid white;
   max-height: 250px;
   min-height: 250px;
   overflow: auto;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .timeline-view .selection {
@@ -77,7 +103,8 @@
 
 .timeline-find-control input {
   -webkit-user-select: auto;
-  border: 1px solid rgba(0, 0, 0, 0.4);
+  background-color: #f8f8f8;
+  border: 1px solid rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
   height: 19px;
   margin-bottom: 1px;
@@ -87,6 +114,9 @@
   padding: 0;
   width: 170px;
 }
+.timeline-find-control input:focus {
+  background-color: white;
+}
 
 .timeline-button.find-previous {
   border-left: none;
@@ -94,7 +124,6 @@
   margin-right: 0;
 }
 .timeline-button.find-next {
-    border-bottom-right-radius: 5px;
   border-left: none;
   margin-left: 0;
 }
@@ -104,11 +133,11 @@
 }
 
 .timeline-button {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.2);
   color: rgba(0,0,0,0.2);
   font-size: 14px;
-  height: 17px;
+  height: 19px;
   margin: 1px;
   text-align: center;
   width: 23px;

@@ -2,6 +2,11 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
+.overlay-root * {
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
 .overlay-root {
   -webkit-box-align: stretch;
   -webkit-box-orient: horizontal;
@@ -9,6 +14,7 @@
   -webkit-user-select: none;
   background: rgba(0, 0, 0, 0.8);
   display: -webkit-box;
+  font-family: sans-serif;
   height: 100%;
   left: 0;
   position: fixed;

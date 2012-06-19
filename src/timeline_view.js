@@ -210,6 +210,7 @@ base.define('tracing', function() {
       // Create individual elements.
       this.titleEl_ = document.createElement('div');
       this.titleEl_.textContent = 'Tracing: ';
+      this.titleEl_.className = 'title';
 
       this.controlDiv_ = document.createElement('div');
       this.controlDiv_.className = 'control';
@@ -228,6 +229,9 @@ base.define('tracing', function() {
       var analysisContainer_ = document.createElement('div');
       analysisContainer_.className = 'analysis-container';
 
+      var analysisContainerDragHandleEl = document.createElement('div');
+      analysisContainerDragHandleEl.className = 'analysis-container-drag-handle';
+
       this.analysisEl_ = new tracing.TimelineAnalysisView();
 
       this.findCtl_ = new TimelineFindControl();
@@ -245,6 +249,7 @@ base.define('tracing', function() {
       this.appendChild(this.controlDiv_);
 
       this.appendChild(this.timelineContainer_);
+      this.appendChild(analysisContainerDragHandleEl);
 
       analysisContainer_.appendChild(this.analysisEl_);
       this.appendChild(analysisContainer_);

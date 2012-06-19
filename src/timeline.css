@@ -17,7 +17,6 @@
 .timeline-thread-track {
   -webkit-box-orient: vertical;
   display: -webkit-box;
-  padding: 1px 0;
   position: relative;
 }
 
@@ -34,26 +33,47 @@
 .timeline-track-button:hover {
   background-color: rgba(255, 255, 255, 1.0);
   border: 1px solid rgba(0, 0, 0, 0.5);
-  border-radius: 25%;
   box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
   color: rgba(0, 0, 0, 1);
 }
 
 .timeline-track-close-button {
-  left: 0;
+  left: 2px;
   position: absolute;
-  top: 0;
+  top: 2px;
 }
 
 .timeline-track-collapse-button {
-  left: 15px;
+  left: 17px;
   position: absolute;
-  top: 0;
+  top: 2px;
 }
 
-.timeline-thread-track:not(:first-child) {
-  border-top: 1px solid #D0D0D0;
+.timeline-thread-track:not(:first-child) > .timeline-canvas-based-track:first-child .timeline-canvas-based-track- {
+  border-top: 1px solid #D8D8D8;
 }
+
+.timeline-thread-track:not(:first-child) > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
+  border-top: 1px solid #D8D8D8;
+  height: 21px;
+}
+
+.timeline-thread-track > .timeline-canvas-based-track:first-child {
+  height: 21px;
+}
+
+.timeline-thread-track > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
+  padding-top: 2px;
+}
+
+.timeline-thread-track > .timeline-canvas-based-track:nth-last-child(0n+3) {
+  height: 22px;
+}
+
+.timeline-thread-track > .timeline-canvas-based-track:nth-last-child(0n+3) .timeline-canvas-based-track-canvas-container {
+  margin-bottom: 4px;
+}
+
 
 .timeline-canvas-based-track {
   -webkit-box-align: stretch;
@@ -65,6 +85,8 @@
 }
 
 .timeline-canvas-based-track-title {
+  background-color: #d6dde5;
+  border-right: 1px solid #8e8e8e;
   overflow: hidden;
   padding-right: 5px;
   text-align: right;
@@ -80,12 +102,14 @@
 .timeline-canvas-based-track-canvas {
   -webkit-box-flex: 1;
   display: block;
-  height: 100%;
-  width: 100%;
 }
 
 .timeline-viewport-track {
   height: 12px;
+}
+
+.timeline-viewport-track .timeline-canvas-based-track-canvas-container {
+  border-bottom: 1px solid #8e8e8e;
 }
 
 .timeline-slice-track {

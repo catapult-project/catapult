@@ -46,10 +46,11 @@ base.define('tracing', function() {
      * Adds a table with the given className.
      * @return The newly created table.
      */
-    appendTable: function(className) {
-      var n = this.appendElement_(this, 'table');
-      n.className = className;
-      return n;
+    appendTable: function(className, numColumns) {
+      var table = this.appendElement_(this, 'table');
+      table.className = className + ' timeline-analysis-table';
+      table.numColumns = numColumns;
+      return table;
     },
 
     /**
@@ -60,7 +61,7 @@ base.define('tracing', function() {
       var row = this.appendElement_(table, 'tr');
 
       var th = this.appendElement_(row, 'th', label);
-      th.className = table.className + '-header';
+      th.className = 'timeline-analysis-table-header';
     },
 
     /**
@@ -70,16 +71,27 @@ base.define('tracing', function() {
      */
     appendSummaryRow: function(table, label, opt_text) {
       var row = this.appendElement_(table, 'tr');
+      row.className = 'timeline-analysis-table-row';
+
       this.appendTableCell_(table, row, 0, label);
-      if (opt_text)
+      if (opt_text) {
         this.appendTableCell_(table, row, 1, opt_text);
+        for (var i = 2; i < table.numColumns; i++)
+          this.appendTableCell_(table, row, i, "");
+      } else {
+        for (var i = 1; i < table.numColumns; i++)
+          this.appendTableCell_(table, row, 1, "");
+      }
     },
 
     /**
      * Adds a spacing row to spread out results.
      */
     appendSpacingRow: function(table) {
-      this.appendElement_(table, 'p');
+      var row = this.appendElement_(table, 'tr');
+      row.className = 'timeline-analysis-table-row';
+      for (var i = 0; i < table.numColumns; i++)
+        this.appendTableCell_(table, row, i, " ");
     },
 
     /**
@@ -99,6 +111,7 @@ base.define('tracing', function() {
      */
     appendSliceRow: function(table, label, duration, occurences, opt_statistics) {
       var row = this.appendElement_(table, 'tr');
+      row.className = 'timeline-analysis-table-row';
       this.appendTableCell_(table, row, 0, label);
       this.appendTableCell_(table, row, 1, this.tsRound_(duration) + ' ms');
       this.appendTableCell_(
@@ -126,7 +139,7 @@ base.define('tracing', function() {
 
     if (sliceHits.length == 1) {
       var slice = sliceHits[0].slice;
-      var table = results.appendTable('timeline-slice');
+      var table = results.appendTable('timeline-analysis-slice-table', 2);
 
       results.appendTableHeader(table, 'Selected item:');
       results.appendSummaryRow(table, 'Title', slice.title);
@@ -168,8 +181,11 @@ base.define('tracing', function() {
         slicesByTitle[slice.title].slices.push(slice);
       }
 
-      var table = results.appendTable('timeline-slices');
-
+      var table;
+      if (numTitles == 1)
+        table = results.appendTable('timeline-analysis-slices-table', 4);
+      else
+        table = results.appendTable('timeline-analysis-slices-table', 3);
       results.appendTableHeader(table, 'Slices:');
 
       var totalDuration = 0;
@@ -215,7 +231,7 @@ base.define('tracing', function() {
       for (var i = 0; i < ctr.numSeries; ++i)
         values.push(ctr.samples[ctr.numSeries * sampleIndex + i]);
 
-      var table = results.appendTable('timeline-counter');
+      var table = results.appendTable('timeline-analysis-counter-table', 2);
 
       results.appendTableHeader(table, 'Selected counter:');
       results.appendSummaryRow(table, 'Title', ctr.name);
@@ -226,7 +242,7 @@ base.define('tracing', function() {
         results.appendSummaryRow(table, 'Value', values.join('\n'));
 
     } else if (counterSampleHits.length > 1 && sliceHits.length == 0) {
-      var table = results.appendTable('timeline-counter');
+      var table = results.appendTable('timeline-counter', 1);
       results.appendTableHeader(table, 'Multiple selected counters not supported.');
     }
   }

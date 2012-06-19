@@ -127,21 +127,21 @@ base.define('tracing', function() {
     });
     el.appendChild(closeEl);
 
-    if (canCollapse) {
-      var collapseEl = document.createElement('div');
-      collapseEl.classList.add('timeline-track-button');
-      collapseEl.classList.add('timeline-track-collapse-button');
-      var minus = '\u2212'; // minus sign;
-      var plus = '\u002b'; // plus sign;
-      collapseEl.textContent = minus;
-      var collapsed = false;
-      collapseEl.addEventListener('click', function() {
-        collapsed = !collapsed;
-        el.collapsedDidChange(collapsed);
-        collapseEl.textContent = collapsed ? plus : minus;
-      });
-      el.appendChild(collapseEl);
-    }
+    var collapseEl = document.createElement('div');
+    collapseEl.classList.add('timeline-track-button');
+    collapseEl.classList.add('timeline-track-collapse-button');
+    var minus = '\u2212'; // minus sign;
+    var plus = '\u002b'; // plus sign;
+    collapseEl.textContent = minus;
+    var collapsed = false;
+    collapseEl.addEventListener('click', function() {
+      collapsed = !collapsed;
+      el.collapsedDidChange(collapsed);
+      collapseEl.textContent = collapsed ? plus : minus;
+    });
+    el.appendChild(collapseEl);
+    if (!canCollapse)
+      collapseEl.style.display = 'None';
   }
 
   /**
@@ -421,12 +421,16 @@ base.define('tracing', function() {
           return;
 
         var style = window.getComputedStyle(this.canvasContainer_);
-        var style_width = parseInt(style.width);
-        var style_height = parseInt(style.height);
-        if (this.canvas_.width != style_width)
-          this.canvas_.width = style_width;
-        if (this.canvas_.height != style_height)
-          this.canvas_.height = style_height;
+        var innerWidth = parseInt(style.width) -
+          parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
+          parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth);
+        var innerHeight = parseInt(style.height) -
+          parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
+          parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
+        if (this.canvas_.width != innerWidth)
+          this.canvas_.width = innerWidth;
+        if (this.canvas_.height != innerHeight)
+          this.canvas_.height = innerHeight;
 
         this.redraw();
       }.bind(this), this);
