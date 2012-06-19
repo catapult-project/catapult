@@ -120,3 +120,17 @@
   box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
   color: rgba(0, 0, 0, 1);
 }
+
+
+.timeline-view-import-errors-button {
+  color: darkred;
+  border: solid 1px rgba(128,0,0,0.2);
+  width: auto;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.timeline-view-import-errors-button:hover {
+  color: red;
+  border: solid 1px red;
+}

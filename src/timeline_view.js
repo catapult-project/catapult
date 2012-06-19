@@ -233,7 +233,10 @@ base.define('tracing', function() {
       this.findCtl_ = new TimelineFindControl();
       this.findCtl_.controller = new TimelineFindController();
 
+      this.importErrorsButton_ = this.createImportErrorsButton_();
+
       // Connect everything up.
+      this.rightControls.appendChild(this.importErrorsButton_);
       this.rightControls.appendChild(this.findCtl_);
       this.controlDiv_.appendChild(this.titleEl_);
       this.controlDiv_.appendChild(this.leftControlsEl_);
@@ -253,6 +256,45 @@ base.define('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
     },
 
+    createImportErrorsButton_: function() {
+      // Set by the embedder of the help button that we create in this function.
+      var model;
+
+      var dlg = new tracing.Overlay();
+      dlg.classList.add('timeline-view-import-errors-overlay');
+      dlg.autoClose = true;
+
+      var showEl = document.createElement('div');
+      showEl.className = 'timeline-button timeline-view-import-errors-button';
+      showEl.textContent = 'Import errors!';
+      showEl.__defineSetter__('model', function(value) {
+        model = value;
+      });
+
+      var textEl = document.createElement('div');
+      textEl.style.whiteSpace = 'pre';
+      textEl.style.fontFamily = 'monospace';
+      textEl.style.margin = '8px';
+
+      var containerEl = document.createElement('div');
+      containerEl.style.overflow = 'auto';
+      containerEl.style.minWidth = '400px';
+      containerEl.style.minHeight = '200px';
+      containerEl.style.maxWidth = '800px';
+      containerEl.style.maxHeight = '500px';
+
+      containerEl.textContent = 'Errors ocurred during import:';
+      containerEl.appendChild(textEl);
+      dlg.appendChild(containerEl);
+
+      function onClick() {
+        dlg.visible = true;
+        textEl.textContent = model.importErrors.join("\n");
+      }
+      showEl.addEventListener('click', onClick.bind(this));
+
+      return showEl;
+    },
 
     createHelpButton_: function() {
       var dlg = new tracing.Overlay();
@@ -267,6 +309,7 @@ base.define('tracing', function() {
       var helpTextEl = document.createElement('div');
       helpTextEl.style.whiteSpace = 'pre';
       helpTextEl.style.fontFamily = 'monospace';
+      dlg.appendChild(helpTextEl);
 
       function onClick(e) {
         dlg.visible = true;
@@ -305,8 +348,6 @@ base.define('tracing', function() {
 
       showEl.addEventListener('click', onClick.bind(this));
 
-      dlg.appendChild(helpTextEl);
-
       return showEl;
     },
 
@@ -340,6 +381,8 @@ base.define('tracing', function() {
 
       // remove old timeline
       this.timelineContainer_.textContent = '';
+      this.importErrorsButton_.style.display = 'none';
+      this.importErrorsButton_.model = undefined;
 
       // create new timeline if needed
       if (this.timelineModel_.minTimestamp !== undefined) {
@@ -354,6 +397,10 @@ base.define('tracing', function() {
                                         this.onSelectionChangedBoundToThis_);
 
         this.findCtl_.controller.timeline = this.timeline_;
+        if (this.timeline_.model.importErrors.length) {
+          this.importErrorsButton_.model = model;
+          this.importErrorsButton_.style.display = ''; // Show the button.
+        }
         this.onSelectionChanged_();
       } else {
         this.timeline_ = undefined;

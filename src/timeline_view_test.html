@@ -106,7 +106,10 @@ found in the LICENSE file.
         {name: 'a', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'a', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'},
         {name: 'a', args: {}, pid: 52, ts: 710, cat: 'foo', tid: 53, ph: 'B'},
-        {name: 'a', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'E'}
+        {name: 'a', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'E'},
+
+        // Add a known problematic piece of data to test the import errors UI.
+        {ph: 'Z'}
       ];
       var model = new tracing.TimelineModel();
       model.importEvents(events);
