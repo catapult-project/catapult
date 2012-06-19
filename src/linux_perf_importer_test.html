@@ -44,7 +44,7 @@ function testLineRE34() {
   var x = re.exec('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
   assertNotNull(x);
-  assertEquals(systrace.sh-5441', x[1]);
+  assertEquals('systrace.sh-5441', x[1]);
   assertEquals('001', x[2]);
   assertEquals('1031.091570', x[3]);
   assertEquals('sched_wakeup', x[4]);
