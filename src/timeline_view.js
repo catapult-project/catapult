@@ -191,7 +191,7 @@ base.define('tracing', function() {
 
     findPrevious: function() {
       this.find_(-1);
-    },
+    }
   };
 
   /**
@@ -234,6 +234,9 @@ base.define('tracing', function() {
 
       this.analysisEl_ = new tracing.TimelineAnalysisView();
 
+      this.dragEl_ = new TimelineDragHandle();
+      this.dragEl_.target = analysisContainer_;
+
       this.findCtl_ = new TimelineFindControl();
       this.findCtl_.controller = new TimelineFindController();
 
@@ -251,6 +254,8 @@ base.define('tracing', function() {
 
       this.appendChild(this.timelineContainer_);
       this.appendChild(analysisContainerDragHandleEl);
+
+      analysisContainer_.appendChild(this.dragEl_);
 
       analysisContainer_.appendChild(this.analysisEl_);
       this.appendChild(analysisContainer_);
@@ -495,6 +500,52 @@ base.define('tracing', function() {
       var oldScrollTop = this.timelineContainer_.scrollTop;
       this.analysisEl_.selection = this.timeline_.selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
+    }
+  };
+
+  /**
+   * Timeline Drag Handle
+   * Detects when user clicks handle determines new height of container based
+   * on user's vertical mouse move and resizes the target.
+   * @constructor
+   * @extends {HTMLDivElement}
+   * You will need to set target to be the draggable element
+   */
+  var TimelineDragHandle = base.ui.define('div');
+
+  TimelineDragHandle.prototype = {
+    __proto__: HTMLDivElement.prototype,
+
+    decorate: function() {
+      this.className = 'timeline-drag-handle';
+      this.lastMousePosY = 0;
+      this.dragAnalysis = this.dragAnalysis.bind(this);
+      this.onMouseUp = this.onMouseUp.bind(this);
+      this.addEventListener('mousedown', this.onMouseDown);
+    },
+
+    dragAnalysis: function(e) {
+      // Compute the difference in height position.
+      var dy = this.lastMousePosY - e.clientY;
+      // If style is not set, start off with computed height.
+      if (!this.target.style.height)
+        this.target.style.height = window.getComputedStyle(this.target).height;
+      // Calculate new height of the container.
+      this.target.style.height = parseInt(this.target.style.height) + dy + 'px';
+      this.lastMousePosY = e.clientY;
+    },
+
+    onMouseDown: function(e) {
+      this.lastMousePosY = e.clientY;
+      document.addEventListener('mousemove', this.dragAnalysis);
+      document.addEventListener('mouseup', this.onMouseUp);
+      e.stopPropagation();
+      return false;
+    },
+
+    onMouseUp: function(e) {
+      document.removeEventListener('mousemove', this.dragAnalysis);
+      document.removeEventListener('mouseup', this.onMouseUp);
     }
   };
 
