@@ -7,11 +7,21 @@
   cursor: default;
 }
 
+.timeline {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
 .timeline-drag-box {
   background-color: rgba(0, 0, 255, 0.25);
   border: 1px solid rgb(0, 0, 96);
   font-size: 75%;
   position: fixed;
+}
+
+.timeline > .timeline-thread-list {
+  -webkit-box-flex: 1;
+  overflow: auto;
 }
 
 .timeline-thread-track {

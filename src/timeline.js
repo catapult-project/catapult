@@ -426,7 +426,13 @@ base.define('tracing', function() {
 
       this.viewport_ = new TimelineViewport(this);
 
+      // Add the viewport track.
+      this.viewportTrack_ = new tracing.TimelineViewportTrack();
+      this.viewportTrack_.viewport = this.viewport_;
+      this.appendChild(this.viewportTrack_);
+
       this.tracks_ = this.ownerDocument.createElement('div');
+      this.tracks_.className = 'timeline-thread-list';
       this.appendChild(this.tracks_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
@@ -518,16 +524,12 @@ base.define('tracing', function() {
       });
       maxHeadingWidth = maxHeadingWidth + 'px';
 
+      this.viewportTrack_.headingWidth = maxHeadingWidth;
+
       // Reset old tracks.
       for (var i = 0; i < this.tracks_.children.length; i++)
         this.tracks_.children[i].detach();
       this.tracks_.textContent = '';
-
-      // Add the viewport track
-      var viewportTrack = new tracing.TimelineViewportTrack();
-      viewportTrack.headingWidth = maxHeadingWidth;
-      viewportTrack.viewport = this.viewport_;
-      this.tracks_.appendChild(viewportTrack);
 
       // Get a sorted list of CPUs
       var cpus = model.getAllCpus();

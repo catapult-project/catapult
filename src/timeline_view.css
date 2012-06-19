@@ -53,7 +53,6 @@
 .timeline-view > .timeline-container {
   -webkit-box-flex: 1;
   display: -webkit-box;
-  overflow: auto;
   border-bottom: 1px solid #8e8e8e;
 }
 
