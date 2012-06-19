@@ -303,6 +303,17 @@ function testTestRunnerAllPassed() {
   rawAssertEquals(0, stats.numTestsWithErrors);
 }
 
+function testTestErrorConstruction() {
+  var err = new unittest.TestError();
+  rawAssertTrue(err instanceof Error);
+  rawAssertTrue(err.stack);
+
+  var err = new unittest.TestError("foo");
+  rawAssertTrue(err instanceof Error);
+  rawAssertTrue(err.stack);
+  rawAssertEquals('foo', err.message);
+}
+
 function testTestRunnerOneFailed() {
   var runner = new HTMLTestRunner('foo');
   var test1 = new TestCase(function() {

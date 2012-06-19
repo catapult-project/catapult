@@ -199,8 +199,10 @@ base.define('unittest', function() {
   };
 
   function TestError(opt_message) {
-    Error.captureStackTrace(this, TestError);
-    Error.call(this, opt_message);
+    var that = new Error(opt_message);
+    Error.captureStackTrace(that, TestError);
+    Error.__proto__ = TestError.prototype;
+    return that;
   }
 
   TestError.prototype = {
