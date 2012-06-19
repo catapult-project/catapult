@@ -86,6 +86,56 @@ found in the LICENSE file.
       return selection;
     }
 
+    function createSelectionWithTwoSlicesSameTitle() {
+      var events = [
+        {name: 'c', args: {}, pid: 52, ts: 620, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'c', args: {}, pid: 52, ts: 660, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'c', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'c', args: {}, pid: 52, ts: 800, cat: 'foo', tid: 53, ph: 'E'},
+      ];
+      var model = new tracing.TimelineModel();
+      model.importEvents(events);
+
+      var t53track = new tracing.TimelineThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new tracing.TimelineSelection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineFilter('c'), selection);
+      assertEquals(2, selection.length);
+
+      return selection;
+    }
+
+    function createSelectionWithCounters(numSamples) {
+      if (numSamples > 2 || numSamples < 1) 
+        throw new Error('This function only supports 1 or 2 samples');
+      var events = [
+        {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
+         ph: 'C', id: 0},
+        {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
+         ph: 'C', id: 0}
+      ];
+      var model = new tracing.TimelineModel(events);
+      var p = model.processes[1];
+      var ctr = model.processes[1].counters['foo.ctr[0]'];
+      assertEquals('ctr[0]', ctr.name);
+      assertEquals(2, ctr.numSamples);
+      assertEquals(1, ctr.numSeries);
+      assertArrayEquals([0, 0.01], ctr.timestamps);
+      assertArrayEquals([0, 10], ctr.samples);
+
+      var selection = new tracing.TimelineSelection();
+      var t1track = new tracing.TimelineThreadTrack();
+      selection.addCounterSample(t1track, ctr, 1);
+
+      if (numSamples == 1)
+        return selection;
+
+      selection.addCounterSample(t1track, ctr, 0);
+      return selection;
+    }
+
     function appendTestResult(title, el) {
       var titleEl = document.createElement('div');
       titleEl.textContent = title;
@@ -186,7 +236,7 @@ found in the LICENSE file.
       tracing.analyzeSelection_(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
-      assertTrue(table.tableHeader = 'Slices:');
+      assertEquals('Slices:', table.tableHeader);
       assertEquals(6, table.rows.length)
 
       assertEquals("a", table.rows[0].label);
@@ -208,11 +258,57 @@ found in the LICENSE file.
       assertAlmostEquals(0.18, table.rows[5].time);
     }
 
-    // TODO(brendalee): Test multiple slices with same title.
+    function testAnalyzeSelectionWithTwoSlicesSameTitle() {
+      var selection = createSelectionWithTwoSlicesSameTitle();
 
-    // TODO(tbd): Test the counters cases.
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Slices:', table.tableHeader);
+      assertEquals(5, table.rows.length)
+
+      assertEquals("c", table.rows[0].label);
+      assertEquals(2, table.rows[0].occurences);
+      assertAlmostEquals(0.1, table.rows[0].duration);
+      assertAlmostEquals(0.04, table.rows[0].details.min);
+      assertAlmostEquals(0.06, table.rows[0].details.max);
+      assertAlmostEquals(0.05, table.rows[0].details.avg);
+
+      assertEquals("*Totals", table.rows[1].label);
+      assertEquals(2, table.rows[1].occurences);
+      assertAlmostEquals(0.1, table.rows[1].duration);
+      
+      assertEquals("Selection start", table.rows[3].label);
+      assertAlmostEquals(0, table.rows[3].time);
+
+      assertEquals("Selection extent", table.rows[4].label);
+      assertAlmostEquals(0.18, table.rows[4].time);
+    }
+
+    function testAnalyzeSelectionWithSingleCounter() {
+      var selection = createSelectionWithCounters(1);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected counter:', table.tableHeader);
+      assertEquals(3, table.rows.length)
+
+      assertEquals("Title", table.rows[0].label);
+      assertEquals("Timestamp", table.rows[1].label);
+      assertEquals("Value", table.rows[2].label);
+      assertEquals(10, table.rows[2].text);
+    }
+
+    // TODO(brendalee): Test the case of a selection with multiple counters.
+    function testAnalyzeSelectionWithTwoCounters() {
+    }
 
     // TODO(tbd): Test the case of a selection with both counters and slices.
+    function testAnalyzeSelectionWithCounterAndSlices() {
+    }
 
   </script>
 </body>
