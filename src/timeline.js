@@ -636,6 +636,8 @@ base.define('tracing', function() {
     get listenToKeys_() {
       if (!this.viewport_.isAttachedToDocument_)
         return false;
+      if (this.activeElement instanceof tracing.TimelineFindControl)
+        return false;
       if (!this.focusElement_)
         return true;
       if (this.focusElement.tabIndex >= 0)
