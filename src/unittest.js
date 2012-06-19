@@ -48,7 +48,7 @@ base.define('unittest', function() {
     doc.head.appendChild(style);
   }
 
-  function createTestCaseDiv(testName) {
+  function createTestCaseDiv(testName, opt_href, opt_alwaysShowErrorLink) {
     _ensureStylesheetInDocument(document);
     var el = document.createElement('div');
 
@@ -62,14 +62,17 @@ base.define('unittest', function() {
     var errorLink = document.createElement('a');
     errorLink.className = 'unittest-error-link';
     errorLink.textContent = 'Run individually...';
-    errorLink.href = '#' + testName;
+    if (opt_href)
+      errorLink.href = opt_href;
+    else
+      errorLink.href = '#' + testName;
     errorLink.style.display = 'none';
     titleBlockEl.appendChild(errorLink);
 
     el.__defineSetter__('status', function(status) {
       titleEl.textContent = testName + ': ' + status;
       titleEl.className = statusToClassName(status);
-      if (status == 'FAILED')
+      if (status == 'FAILED' || opt_alwaysShowErrorLink)
         errorLink.style.display = '';
       else
         errorLink.style.display = 'none';

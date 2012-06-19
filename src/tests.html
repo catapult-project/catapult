@@ -21,10 +21,21 @@ found in the LICENSE file.
     'timeline_analysis_test.html',
   ];
 </script>
+<style>
+  h1 {
+      font-family: sans-serif;
+      font-size: 18pt;
+  }
+</style>
 <script src="base.js"></script>
 <script src="unittest.js"></script>
 </head>
 <body>
+  <h1>Trace-Viewer Tests</h3>
+
+  <div class="unittest">Interactive tests: <a href="interactive_tests.html" class="unittest-error-link">Run manually</a></div>
+  <br>
+
   <script>
   function runTest(runner, testCaseEl, test) {
     testCaseEl.status = 'RUNNING'
@@ -78,7 +89,7 @@ found in the LICENSE file.
     function begin() {
       for (var i = 0; i < tests.length; i++) {
         (function() {
-          var testCaseEl = unittest.createTestCaseDiv_(tests[i]);
+          var testCaseEl = unittest.createTestCaseDiv_(tests[i], tests[i], true);
           resultsEl.appendChild(testCaseEl);
           runTest(runner, testCaseEl, tests[i]);
         })();
