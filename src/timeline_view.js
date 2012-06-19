@@ -238,6 +238,7 @@ base.define('tracing', function() {
       this.findCtl_.controller = new TimelineFindController();
 
       this.importErrorsButton_ = this.createImportErrorsButton_();
+      this.importErrorsButton_.style.display = 'none';
 
       // Connect everything up.
       this.rightControls.appendChild(this.importErrorsButton_);
@@ -323,7 +324,7 @@ base.define('tracing', function() {
         else
           helpTextEl.textContent = 'No content loaded. For interesting help, load something.';
         document.addEventListener('click', bgClick);
-        
+
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
         return false;
