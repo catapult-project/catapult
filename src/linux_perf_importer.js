@@ -80,15 +80,17 @@ base.define('tracing', function() {
 
   TestExports = {};
 
-  // Matches the generic trace record 3.4 and later:
+  // Matches the default trace record in 3.2 and later (includes irq-info):
   //          <idle>-0     [001] d...  1.23: sched_switch
-  var lineRE34 = /^\s*(.+?)\s+\[(\d+)\]\s+....\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
-  TestExports.lineRE34 = lineRE34;
+  var lineREWithIRQInfo = new RegExp(
+      '^\\s*(.+?)\\s+\\[(\\d+)\\]' + '\\s+[dX.][N.][Hhs.][0-9a-f.]' +
+      '\\s+(\\d+\\.\\d+):\\s+(\\S+):\\s(.*)$');
+  TestExports.lineREWithIRQInfo = lineREWithIRQInfo;
 
-  // Matches the generic trace record pre-3.4:
+  // Matches the default trace record pre-3.2:
   //          <idle>-0     [001]  1.23: sched_switch
-  var lineRE33 = /^\s*(.+?)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
-  TestExports.lineRE33 = lineRE33;
+  var lineRE = /^\s*(.+?)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
+  TestExports.lineRE = lineRE;
 
   // Matches the sched_switch record
   var schedSwitchRE = new RegExp(
@@ -137,12 +139,13 @@ base.define('tracing', function() {
    * the format is recognized; otherwise null.
    */
   function autoDetectLineRE(line) {
-    if (lineRE34.exec(line))
-      return lineRE34;
-    if (lineRE33.exec(line))
-      return lineRE33;
+    if (lineREWithIRQInfo.exec(line))
+      return lineREWithIRQInfo;
+    if (lineRE.exec(line))
+      return lineRE;
     return null;
   };
+  TestExports.autoDetectLineRE = autoDetectLineRE;
 
   /**
    * Guesses whether the provided events is a Linux perf string.
