@@ -90,6 +90,14 @@ base.defineModule('timeline_test')
         events.push({name: 'a'+testIndex, args: {}, pid: testIndex, ts: startTime, cat: 'foo', tid: 53, ph: 'B'});
         events.push({name: 'a'+testIndex, args: {}, pid: testIndex, ts: endTime, cat: 'foo', tid: 53, ph: 'E'});
       }
+
+      /* 
+       * Add a slice with the same title as one of the previous slices 
+       * to test the case where multiple of these are selected.
+       */
+        events.push({name: 'a49', args: {}, pid: testIndex, ts: startTime, cat: 'foo', tid: 53, ph: 'B'});
+        events.push({name: 'a49', args: {}, pid: testIndex, ts: endTime, cat: 'foo', tid: 53, ph: 'E'});
+
       // Add a known problematic piece of data to test the import errors UI.
       events.push({ph: 'Z'});
 

@@ -186,10 +186,11 @@ base.defineModule('timeline_analysis')
 
       var table;
       if (numTitles == 1)
-        table = results.appendTable('timeline-analysis-slices-table', 4);
-      else
+        table = results.appendTable('timeline-analysis-slices-table', 2);
+      else {
         table = results.appendTable('timeline-analysis-slices-table', 3);
-      results.appendTableHeader(table, 'Slices:');
+        results.appendTableHeader(table, 'Slices:');
+      }
 
       var totalDuration = 0;
 
@@ -213,12 +214,21 @@ base.defineModule('timeline_analysis')
         avg = duration / sliceGroup.slices.length;
 
         var details = undefined;
-        if (numTitles == 1)
+        if (numTitles == 1) {
           details = {min: min,
                      max: max,
                      avg: avg};
-        results.appendSliceRow(table, sliceGroupTitle, duration,
-                               sliceGroup.slices.length, details);
+          results.appendSummaryRow(table, 'Statistics for', sliceGroupTitle);
+          results.appendSummaryRow(
+              table, 'Num Occurrences', sliceGroup.slices.length);
+          results.appendSummaryRowTime(table, 'Min duration', details.min);
+          results.appendSummaryRowTime(table, 'Avg duration', details.avg);
+          results.appendSummaryRowTime(table, 'Max duration', details.max);
+          results.appendSummaryRowTime(table, 'Summed durations', duration);
+          results.appendSummaryRowTime(table, 'Selection start', tsLo);
+          results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
+          return;
+        }
       }
       results.appendSliceRow(table, '*Totals', totalDuration, sliceHits.length);
       results.appendSpacingRow(table);
@@ -238,7 +248,8 @@ base.defineModule('timeline_analysis')
 
       results.appendTableHeader(table, 'Selected counter:');
       results.appendSummaryRow(table, 'Title', ctr.name);
-      results.appendSummaryRowTime(table, 'Timestamp', ctr.timestamps[sampleIndex]);
+      results.appendSummaryRowTime(
+          table, 'Timestamp', ctr.timestamps[sampleIndex]);
       if (ctr.numSeries > 1)
         results.appendSummaryRow(table, 'Values', values.join('\n'));
       else
@@ -246,7 +257,8 @@ base.defineModule('timeline_analysis')
 
     } else if (counterSampleHits.length > 1 && sliceHits.length == 0) {
       var table = results.appendTable('timeline-counter', 1);
-      results.appendTableHeader(table, 'Multiple selected counters not supported.');
+      results.appendTableHeader(table, 
+          'Multiple selected counters not supported.');
     }
   }
 

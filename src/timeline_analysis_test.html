@@ -225,25 +225,19 @@ base.defineModule('timeline_analysis_test')
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Slices:', table.tableHeader);
-      assertEquals(6, table.rows.length)
+      assertEquals(4, table.rows.length)
 
-      assertEquals("a", table.rows[0].label);
-      assertEquals(1, table.rows[0].occurences);
-      assertAlmostEquals(0.04, table.rows[0].duration);
+      assertEquals("*Totals", table.rows[0].label);
+      assertEquals(2, table.rows[0].occurences);
+      assertAlmostEquals(0.1, table.rows[0].duration);
 
-      assertEquals("aa", table.rows[1].label);
-      assertEquals(1, table.rows[1].occurences);
-      assertAlmostEquals(0.06, table.rows[1].duration);
+      assertEquals(true, table.rows[1].spacing);
 
-      assertEquals("*Totals", table.rows[2].label);
-      assertEquals(2, table.rows[2].occurences);
-      assertAlmostEquals(0.1, table.rows[2].duration);
-
-      assertEquals("Selection start", table.rows[4].label);
-      assertAlmostEquals(0, table.rows[4].time);
-
-      assertEquals("Selection extent", table.rows[5].label);
-      assertAlmostEquals(0.18, table.rows[5].time);
+      assertEquals("Selection start", table.rows[2].label);
+      assertAlmostEquals(0, table.rows[2].time);
+      
+      assertEquals("Selection extent", table.rows[3].label);
+      assertAlmostEquals(0.18, table.rows[3].time);
     }
 
     tests.testAnalyzeSelectionWithTwoSlicesSameTitle = function() {
@@ -253,6 +247,23 @@ base.defineModule('timeline_analysis_test')
       tracing.analyzeSelection_(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
+<<<<<<< HEAD
+      assertEquals(undefined, table.tableHeader);
+      assertEquals(8, table.rows.length)
+
+      assertEquals("Statistics for", table.rows[0].label);
+      assertEquals("c", table.rows[0].text);
+      assertEquals("Num Occurrences", table.rows[1].label);
+      assertEquals("2", table.rows[1].text);
+      assertEquals("Min duration", table.rows[2].label);
+      assertAlmostEquals(0.04, table.rows[2].time);
+      assertEquals("Avg duration", table.rows[3].label);
+      assertAlmostEquals(0.05, table.rows[3].time);
+      assertEquals("Max duration", table.rows[4].label);
+      assertAlmostEquals(0.06, table.rows[4].time);
+      assertEquals("Summed durations", table.rows[5].label);
+      assertAlmostEquals(0.1, table.rows[5].time);
+=======
       assertEquals('Slices:', table.tableHeader);
       assertEquals(5, table.rows.length)
 
@@ -272,6 +283,7 @@ base.defineModule('timeline_analysis_test')
 
       assertEquals("Selection extent", table.rows[4].label);
       assertAlmostEquals(0.18, table.rows[4].time);
+>>>>>>> refs/remotes/git-svn
     }
 
     function testAnalyzeSelectionWithSingleCounter() {
