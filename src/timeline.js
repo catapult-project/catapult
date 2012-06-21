@@ -210,7 +210,7 @@ base.defineModule('timeline')
         } else if (viewX == 'right') {
           viewX = viewWidth - 1;
         } else {
-          throw Error('unrecognized string for viewPos. left|center|right');
+          throw new Error('unrecognized string for viewPos. left|center|right');
         }
       }
       this.panX = (viewX / this.scaleX_) - worldX;
@@ -362,7 +362,7 @@ base.defineModule('timeline')
       var selection = new TimelineSelection();
       selection.range_dirty_ = true;
       if (index < 0 || index + count > this.length_)
-        throw 'Index out of bounds';
+        throw new Error('Index out of bounds');
 
       for (var i = index; i < index + count; i++)
         selection.push_(this[i]);
@@ -495,9 +495,9 @@ base.defineModule('timeline')
 
     set model(model) {
       if (!model)
-        throw Error('Model cannot be null');
+        throw new Error('Model cannot be null');
       if (this.model) {
-        throw Error('Cannot set model twice.');
+        throw new Error('Cannot set model twice.');
       }
       this.model_ = model;
 
@@ -776,7 +776,7 @@ base.defineModule('timeline')
 
     set selection(selection) {
       if (!(selection instanceof TimelineSelection))
-          throw 'Expected TimelineSelection';
+          throw new Error('Expected TimelineSelection');
 
       // Clear old selection.
       var i;
@@ -793,7 +793,7 @@ base.defineModule('timeline')
 
     setSelectionAndMakeVisible: function(selection, zoomAllowed) {
       if (!(selection instanceof TimelineSelection))
-          throw 'Expected TimelineSelection';
+          throw new Error('Expected TimelineSelection');
       this.selection = selection;
       var range = this.selection.range;
       var size = this.viewport_.xWorldVectorToView(range.max - range.min);

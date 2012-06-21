@@ -329,7 +329,8 @@ base.defineModule('linux_perf_importer')
               'Uninterruptable Sleep | WakeKill', ioWaitId,
               prevSlice.end, {}, midDuration));
           } else {
-            throw 'Unrecognized state: ' + prevSlice.args.stateWhenDescheduled;
+            throw new Error('Unrecognized state: ') + 
+                prevSlice.args.stateWhenDescheduled;
           }
 
           slices.push(new tracing.TimelineSlice('Running', runningId,
@@ -394,7 +395,7 @@ base.defineModule('linux_perf_importer')
      */
     abortImport: function() {
       if (this.pushedEventsToThreads)
-        throw 'Cannot abort, have alrady pushedCpuDataToThreads.';
+        throw new Error('Cannot abort, have alrady pushedCpuDataToThreads.');
 
       for (var cpuNumber in this.cpuStates_)
         delete this.model_.cpus[cpuNumber];

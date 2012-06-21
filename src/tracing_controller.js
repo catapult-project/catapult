@@ -67,7 +67,7 @@ base.defineModule('tracing_controller')
      */
     beginTracing: function(opt_systemTracingEnabled) {
       if (this.tracingEnabled_)
-        throw Error('Tracing already begun.');
+        throw new Error('Tracing already begun.');
 
       this.stopButton_.hidden = false;
       this.statusDiv_.textContent = 'Tracing active.';

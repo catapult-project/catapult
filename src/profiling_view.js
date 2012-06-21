@@ -69,7 +69,7 @@ base.defineModule('profiling_view')
 
     didSetTracingController_: function(value, oldValue) {
       if (oldValue)
-        throw 'Can only set tracing controller once.';
+        throw new Error('Can only set tracing controller once.');
 
       this.tracingController_.addEventListener('traceEnded',
           this.onRecordDone_.bind(this));

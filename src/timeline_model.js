@@ -110,7 +110,7 @@ base.defineModule('timeline_model')
    */
   function TimelineThread(parent, tid) {
     if (!parent)
-      throw 'Parent must be provided.';
+      throw new Error('Parent must be provided.');
     this.parent = parent;
     this.tid = tid;
     this.subRows = [[]];
@@ -280,9 +280,9 @@ base.defineModule('timeline_model')
      */
     updateBounds: function() {
       if (this.seriesNames.length != this.seriesColors.length)
-        throw 'seriesNames.length must match seriesColors.length';
+        throw new Error('seriesNames.length must match seriesColors.length');
       if (this.numSeries * this.numSamples != this.samples.length)
-        throw 'samples.length must be a multiple of numSamples.';
+        throw new Error('samples.length must be a multiple of numSamples.');
 
       this.totals = [];
       if (this.samples.length == 0) {
@@ -541,7 +541,8 @@ base.defineModule('timeline_model')
             // Instead of plotting one big slice for the entire
             // TimelineAsyncEvent, we plot each of the subSlices.
             if (slice.subSlices === undefined || slice.subSlices.length < 1)
-              throw 'TimelineAsyncEvent missing subSlices: ' + slice.name;
+              throw new Error('TimelineAsyncEvent missing subSlices: ') + 
+                  slice.name;
             for (var k = 0; k < slice.subSlices.length; k++)
               subRow.push(slice.subSlices[k]);
             break;
@@ -714,7 +715,7 @@ base.defineModule('timeline_model')
       return numRegularColorIds + 2;
     if (name == 'sleeping')
       return numRegularColorIds + 3;
-    throw 'Unrecognized color ' + name;
+    throw new Error('Unrecognized color ') + name;
   }
 
   // Previously computed string color IDs. They are based on a stable hash, so
@@ -978,7 +979,8 @@ base.defineModule('timeline_model')
         }
       }
       if (!importerConstructor)
-        throw 'Could not find an importer for the provided eventData.';
+        throw new Error(
+            'Could not find an importer for the provided eventData.');
 
       var importer = new importerConstructor(
           this, eventData, isAdditionalImport);
