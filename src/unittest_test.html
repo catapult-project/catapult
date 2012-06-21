@@ -305,10 +305,12 @@ function testTestRunnerAllPassed() {
 
 function testTestErrorConstruction() {
   var err = new unittest.TestError();
+  rawAssertTrue(err instanceof unittest.TestError);
   rawAssertTrue(err instanceof Error);
   rawAssertTrue(err.stack);
 
   var err = new unittest.TestError("foo");
+  rawAssertTrue(err instanceof unittest.TestError);
   rawAssertTrue(err instanceof Error);
   rawAssertTrue(err.stack);
   rawAssertEquals('foo', err.message);
