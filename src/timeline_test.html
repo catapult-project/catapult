@@ -5,42 +5,29 @@ Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<head i18n-values="dir:textdirection;">
+<head>
 <title>Timeline tests</title>
-<link rel="stylesheet" href="overlay.css">
-<link rel="stylesheet" href="timeline_view.css">
 <link rel="stylesheet" href="timeline.css">
 <script src="base.js"></script>
-<script src="unittest.js"></script>
-<script src="event_target.js"></script>
-<script src="ui.js"></script>
-<script src="overlay.js"></script>
-<script src="measuring_stick.js"></script>
-<script src="profiling_view.js"></script>
-<script src="timeline_view.js"></script>
-<script src="timeline_model.js"></script>
-<script src="linux_perf_importer.js"></script>
-<script src="trace_event_importer.js"></script>
-<script src="timeline.js"></script>
-<script src="timeline_track.js"></script>
-<script src="sorted_array_utils.js"></script>
-<script src="fast_rect_renderer.js"></script>
-<script src="test_utils.js"></script>
-<script>
-  unittest.runAllTests();
-</script>
-<style>
-</style>
 </head>
 <body>
-  <script>
-    'use strict';
+<script>
+'use strict';
+
+base.defineModule('timeline_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'trace_event_importer',
+               'timeline')
+    .runAllTests(function() {
+
+    var tests = {};
 
     /*
      * This test just instantiates a TimelineView and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    function testInstantiateTimeline() {
+    tests.testInstantiateTimeline = function() {
       var events = [
         {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
@@ -56,7 +43,7 @@ found in the LICENSE file.
       document.body.appendChild(timeline);
     }
 
-    function testAddAllObjectsMatchingFilterToSelection() {
+    tests.testAddAllObjectsMatchingFilterToSelection = function() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -89,7 +76,7 @@ found in the LICENSE file.
       assertEquals(expected[1].slice, result[1].slice);
     }
 
-    function testSelectionObject() {
+    tests.testSelectionObject = function() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -112,7 +99,7 @@ found in the LICENSE file.
       assertEquals(0, sel.length);
     }
 
-    function testShiftedSelection() {
+    tests.testShiftedSelection = function() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -130,6 +117,8 @@ found in the LICENSE file.
       assertEquals(t1.subRows[0][1], shifted[0].slice);
     }
 
-  </script>
+    return tests;
+});
+</script>
 </body>
 </html>

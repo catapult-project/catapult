@@ -8,12 +8,20 @@ found in the LICENSE file.
 <head>
 <title>Unittest Tests</title>
 <script src="base.js"></script>
-<script src="unittest.js"></script>
 </head>
 <body>
 
 <script>
 'use strict';
+
+base.defineModule('linux_perf_importer_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_importer',
+               'timeline')
+    .runWhenLoaded(function() {
+
+var tests = {};
 
 var TestCase = unittest.TestCase;
 var HTMLTestRunner = unittest.HTMLTestRunner;
@@ -68,12 +76,12 @@ function rawAssertNotThrows(fn) {
 /**
  * Runs all methods in the window that start with test_
  */
-document.addEventListener('DOMContentLoaded', function() {
+function runAllTests() {
   var testMethodNames = [];
-  for (var name in window) {
+  for (var name in tests) {
     if (name.indexOf('test') != 0)
       continue;
-    var value = window[name];
+    var value = tests[name];
     if (typeof value != 'function')
       continue;
     testMethodNames.push(name);
@@ -85,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var numFailures = 0;
   for (var i = 0; i < testMethodNames.length; i++) {
     var testMethodName = testMethodNames[i];
-    var testMethod = window[testMethodName];
+    var testMethod = tests[testMethodName];
     var testCaseEl = unittest.createTestCaseDiv_(testMethodName);
     resultsEl.appendChild(testCaseEl);
     testCaseEl.status = 'RUNNING'
@@ -123,8 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return true;
     }
   };
-});
-
+}
 
 // Simple assertions for use in testing the test harness. :)
 function FakeTest(testMethod, opt_testMethodName) {
@@ -164,7 +171,7 @@ FakeResults.prototype = {
   },
 };
 
-function testTestCaseRun() {
+tests.testTestCaseRun = function() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -187,7 +194,7 @@ function testTestCaseRun() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-function testTestCaseRun_TestThatFails() {
+tests.testTestCaseRun_TestThatFails = function() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -211,7 +218,7 @@ function testTestCaseRun_TestThatFails() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-function testObjectThatHasErrorInSetUp() {
+tests.testObjectThatHasErrorInSetUp = function() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -237,7 +244,7 @@ function testObjectThatHasErrorInSetUp() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-function testObjectThatThrowsInCleanup() {
+tests.testObjectThatThrowsInCleanup = function() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -263,7 +270,7 @@ function testObjectThatThrowsInCleanup() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-function rawAssertTrue() {
+tests.testRawAssertTrue = function() {
   var test = new TestCase(function() {
     rawAssertThrows(function() {
       assertTrue(false);
@@ -276,7 +283,7 @@ function rawAssertTrue() {
   test.run(results);
 }
 
-function testTestRunnerAllPassed() {
+tests.testTestRunnerAllPassed = function() {
   var runner = new HTMLTestRunner('foo');
   var test1 = new TestCase(function() {
     assertTrue(true);
@@ -303,7 +310,7 @@ function testTestRunnerAllPassed() {
   rawAssertEquals(0, stats.numTestsWithErrors);
 }
 
-function testTestErrorConstruction() {
+tests.testTestErrorConstruction = function() {
   var err = new unittest.TestError();
   rawAssertTrue(err instanceof unittest.TestError);
   rawAssertTrue(err instanceof Error);
@@ -316,9 +323,8 @@ function testTestErrorConstruction() {
   rawAssertEquals('foo', err.message);
 }
 
-function testTestRunnerOneFailed() {
+tests.testTestRunnerOneFailed = function() {
   var runner = new HTMLTestRunner('foo', "");
-
   var test1 = new TestCase(function() {
     assertTrue(true);
   }, "test1");
@@ -344,7 +350,7 @@ function testTestRunnerOneFailed() {
   rawAssertEquals(1, stats.numTestsWithErrors);
 }
 
-function testTestRunnerOneFailedWithHashFilter() {
+tests.testTestRunnerOneFailedWithHashFilter = function() {
   var runner = new HTMLTestRunner('foo', "#test2");
 
   var test1 = new TestCase(function() {
@@ -372,7 +378,7 @@ function testTestRunnerOneFailedWithHashFilter() {
   rawAssertEquals(1, stats.numTestsWithErrors);
 }
 
-function testTestDiscovery() {
+tests.testTestDiscovery = function() {
   var object = {
     test1: function() {
     },
@@ -382,29 +388,32 @@ function testTestDiscovery() {
     },
     alsoNotATest: 3
   }
-  var tests = unittest.discoverTests(undefined, object);
+  var tests = unittest.discoverTests(object, undefined);
   rawAssertEquals(2, tests.length);
   rawAssertEquals("test1", tests[0].testName);
   rawAssertEquals("test_2", tests[1].testName);
 }
 
-function testTestRunnerFilter() {
+tests.testTestRunnerFilter = function() {
   var object = {
     test1: function() {
     },
     test_2: function() {
     }
   }
-  var tests = unittest.discoverTests(/test_2/, object);
+  var tests = unittest.discoverTests(object, /test_2/);
   rawAssertEquals(1, tests.length);
   rawAssertEquals("test_2", tests[0].testName);
 }
 
-function test_stylesheet_was_injected() {
+tests.testStylesheetWasInjected = function() {
   var err = new unittest.TestError('hahaa');
   var errEl = unittest.createErrorDiv_(err, { get testName() { return "err"; } });
   rawAssertTrue(!!document.querySelector('style[unittest-stylesheet]'));
 }
+
+runAllTests();
+});
 </script>
 </body>
 </html>

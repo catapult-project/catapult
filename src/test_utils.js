@@ -5,7 +5,8 @@
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-base.define('test_utils', function() {
+base.defineModule('test_utils')
+    .exportsTo('test_utils', function() {
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
     req.open('GET', url, true);
@@ -40,16 +41,9 @@ base.define('test_utils', function() {
     return s;
   }
 
-  function assertArrayishEquals(ref, val) {
-    assertEquals(ref.length, val.length);
-    for (var i = 0; i < ref.length; i++)
-      assertEquals(ref[i], val[i]);
-  }
-
   return {
     getAsync: getAsync,
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
-    assertArrayishEquals: assertArrayishEquals
   };
 });

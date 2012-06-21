@@ -9,7 +9,9 @@
  * installs global assert methods during the test for backward compatibility
  * with Closure tests.
  */
-base.define('unittest', function() {
+base.defineModule('unittest')
+    .exportsTo('unittest', function() {
+
   function _ensureStylesheetInDocument(doc) {
     if (document.querySelector('style[unittest-stylesheet]'))
       return;
@@ -88,8 +90,14 @@ base.define('unittest', function() {
 
     var stackEl = document.createElement('div');
     stackEl.className = 'unittest-error-stack';
-    stackEl.textContent = e.stack;
 
+    if (typeof e == "string") {
+      stackEl.textContent = e;
+    } else if (e.stack){
+      stackEl.textContent = e.stack;
+    } else {
+      stackEl.textContent = e;
+    }
     el.appendChild(stackEl);
     return el;
   }
@@ -173,7 +181,7 @@ base.define('unittest', function() {
       } else if (this.running) {
         status = 'RUNNING';
       } else {
-        if (stats.numTestsWithErrors == 0)
+        if (stats.numTestsRun && stats.numTestsWithErrors == 0)
           status = 'PASSED';
         else
           status = 'FAILED';
@@ -273,13 +281,13 @@ base.define('unittest', function() {
 
     bindGlobals_: function() {
       forAllAssertAndEnsureMethodsIn_(TestCase.prototype, function(fieldName, fieldValue) {
-        window[fieldName] = fieldValue.bind(this);
+        global[fieldName] = fieldValue.bind(this);
       });
     },
 
     unbindGlobals_: function() {
       forAllAssertAndEnsureMethodsIn_(TestCase.prototype, function(fieldName, fieldValue) {
-        delete window[fieldName];
+        delete global[fieldName];
       });
     },
 
@@ -353,6 +361,20 @@ base.define('unittest', function() {
       throw new TestError(message);
     },
 
+    assertArrayShallowEquals: function(a, b, opt_message) {
+      if (a.length == b.length) {
+        var ok = true;
+        for (var i = 0; i < a.length; i++) {
+          ok &= a[i] === b[i];
+        }
+        if (ok)
+          return;
+      }
+
+      var message = opt_message || 'Expected array ' + b + ', got array ' + a;
+      throw new TestError(message);
+    },
+
     assertAlmostEquals: function(a, b, opt_message) {
       if (Math.abs(a - b) < 0.00001)
         return;
@@ -387,6 +409,8 @@ base.define('unittest', function() {
         try {
           this.tearDown();
         } catch(e) {
+          if (typeof e == "string")
+            e = new TestError(e);
           results.addError(e);
         }
       } finally {
@@ -405,12 +429,12 @@ base.define('unittest', function() {
    * found in the given object. This considers any functions beginning with test
    * as a potential test.
    *
-   * @param {RegExp} opt_filter Return only tests that match this regexp.
-   * @param {object} opt_objectToEnumerate The object to enumerate, or window if
+   * @param {object} opt_objectToEnumerate The object to enumerate, or global if
    * not specified.
+   * @param {RegExp} opt_filter Return only tests that match this regexp.
    */
-  function discoverTests(opt_filter, opt_objectToEnumerate) {
-    var objectToEnumerate = opt_objectToEnumerate || window;
+  function discoverTests(opt_objectToEnumerate, opt_filter) {
+    var objectToEnumerate = opt_objectToEnumerate || global;
 
     var tests = [];
     for (var testMethodName in objectToEnumerate) {
@@ -441,9 +465,9 @@ base.define('unittest', function() {
       if (runner)
         runner.parentElement.removeChild(runner);
       runner = new HTMLTestRunner(document.title, document.location.hash);
-      // Stash the runner on window so that the global test runner
+      // Stash the runner on global so that the global test runner
       // can get to it.
-      window.G_testRunner = runner;
+      global.G_testRunner = runner;
     }
 
     function append() {
@@ -451,12 +475,12 @@ base.define('unittest', function() {
     }
 
     function run() {
-      var objectToEnumerate = opt_objectToEnumerate || window;
+      var objectToEnumerate = opt_objectToEnumerate || global;
       var tests = discoverTests(objectToEnumerate);
       runner.run(tests);
     }
 
-    window.addEventListener('hashchange', function() {
+    global.addEventListener('hashchange', function() {
       init();
       append();
       run();
@@ -467,8 +491,7 @@ base.define('unittest', function() {
       append();
     else
       document.addEventListener('DOMContentLoaded', append);
-    window.addEventListener('load', run);
-
+    global.addEventListener('load', run);
   }
 
   return {

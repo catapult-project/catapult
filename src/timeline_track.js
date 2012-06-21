@@ -8,7 +8,12 @@
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-base.define('tracing', function() {
+base.defineModule('timeline_track')
+    .dependsOn('sorted_array_utils',
+               'fast_rect_renderer',
+               'timeline_model',
+               'ui')
+    .exportsTo('tracing', function() {
 
   var pallette = tracing.getPallette();
   var highlightIdBoost = tracing.getPalletteHighlightIdBoost();

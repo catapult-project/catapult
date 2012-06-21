@@ -8,7 +8,15 @@
  * @fileoverview TimelineView visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-base.define('tracing', function() {
+base.defineModule('timeline_view')
+    .stylesheet('timeline_view')
+    .dependsOn('timeline',
+               'timeline_analysis',
+               'overlay',
+               'trace_event_importer',
+               'linux_perf_importer')
+    .exportsTo('tracing', function() {
+
   /**
    * TimelineFindControl
    * @constructor

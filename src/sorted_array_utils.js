@@ -8,7 +8,8 @@
  * over sorted arrays and intervals.
  *
  */
-base.define('tracing', function() {
+base.defineModule('sorted_array_utils')
+    .exportsTo('tracing', function() {
   /**
    * Finds the first index in the array whose value is >= loVal.
    *

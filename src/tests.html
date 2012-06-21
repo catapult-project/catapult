@@ -63,7 +63,7 @@ found in the LICENSE file.
       }
 
       var stats = runner.computeResultStats();
-      if (!stats.numTestsWithErrors)
+      if (stats.numTestsRun && !stats.numTestsWithErrors)
         testCaseEl.status = 'PASSED'
       else
         testCaseEl.status = 'FAILED'

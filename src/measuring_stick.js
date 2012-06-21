@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.define('tracing', function() {
+base.defineModule('measuring_stick')
+    .exportsTo('tracing', function() {
+
   /**
    * Uses an embedded iframe to measure provided elements without forcing layout
    * on the main document.

@@ -20,7 +20,10 @@
  * nesting tasks.
  *
  */
-base.define('tracing', function() {
+base.defineModule('timeline_model')
+    .dependsOn('event_target')
+    .exportsTo('tracing', function() {
+
   /**
    * A TimelineSlice represents an interval of time plus parameters associated
    * with that interval.

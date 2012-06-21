@@ -6,7 +6,9 @@
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided timeline model.
  */
-base.define('tracing', function() {
+base.defineModule('trace_event_importer')
+    .dependsOn('timeline_model')
+    .exportsTo('tracing', function() {
   function ThreadState(tid) {
     this.openSlices = [];
   }

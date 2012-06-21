@@ -6,7 +6,9 @@
 /**
  * @fileoverview State and UI for trace data collection.
  */
-base.define('tracing', function() {
+base.defineModule('tracing_controller')
+    .stylesheet('tracing_controller')
+    .exportsTo('tracing', function() {
 
   function TracingController() {
     this.overlay_ = document.createElement('div');

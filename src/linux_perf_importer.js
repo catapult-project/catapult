@@ -16,7 +16,9 @@
  * file, we the definition used in Linux traces, as it improves the importing
  * code's readability.
  */
-base.define('tracing', function() {
+base.defineModule('linux_perf_importer')
+  .dependsOn('timeline_model')
+  .exportsTo('tracing', function() {
   /**
    * Represents the scheduling state for a single thread.
    * @constructor

@@ -6,8 +6,8 @@
  * @fileoverview This contains an implementation of the EventTarget interface
  * as defined by DOM Level 2 Events.
  */
-
-base.define('base', function() {
+base.defineModule('event_target')
+    .exportsTo('base', function() {
 
   /**
    * Creates a new EventTarget. This class implements the DOM level 2

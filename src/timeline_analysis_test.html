@@ -7,30 +7,7 @@ found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
 <title>TimelineAnalysis tests</title>
-<link rel="stylesheet" href="overlay.css">
-<link rel="stylesheet" href="timeline.css">
-<link rel="stylesheet" href="timeline_analysis.css">
-<link rel="stylesheet" href="timeline_view.css">
 <script src="base.js"></script>
-<script src="unittest.js"></script>
-<script src="event_target.js"></script>
-<script src="ui.js"></script>
-<script src="overlay.js"></script>
-<script src="measuring_stick.js"></script>
-<script src="profiling_view.js"></script>
-<script src="timeline_analysis.js"></script>
-<script src="timeline_view.js"></script>
-<script src="timeline_model.js"></script>
-<script src="linux_perf_importer.js"></script>
-<script src="trace_event_importer.js"></script>
-<script src="timeline.js"></script>
-<script src="timeline_track.js"></script>
-<script src="sorted_array_utils.js"></script>
-<script src="fast_rect_renderer.js"></script>
-<script src="test_utils.js"></script>
-<script>
-  unittest.runAllTests();
-</script>
 <style>
   .timeline-view {
     border: 1px solid black;
@@ -44,7 +21,18 @@ found in the LICENSE file.
 </head>
 <body>
   <script>
-    'use strict';
+'use strict';
+
+base.defineModule('timeline_analysis_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_model',
+               'trace_event_importer',
+               'timeline_analysis',
+               'timeline'/* TODO(nduca): reduce dependency to selection and track */ )
+    .runAllTests(function() {
+
+    var tests = {};
 
     function createSelectionWithSingleSlice() {
       var events = [
@@ -151,7 +139,7 @@ found in the LICENSE file.
       document.body.appendChild(groupEl);
     }
 
-    function testAnalysisViewWithSingleSlice() {
+    tests.testAnalysisViewWithSingleSlice = function() {
       var selection = createSelectionWithSingleSlice();
 
       var analysisEl = new tracing.TimelineAnalysisView();
@@ -160,7 +148,7 @@ found in the LICENSE file.
       appendTestResult("Single thread slice", analysisEl);
     }
 
-    function testAnalysisViewWithMultipleSlices() {
+    tests.testAnalysisViewWithMultipleSlices = function() {
       var selection = createSelectionWithTwoSlices();
 
       var analysisEl = new tracing.TimelineAnalysisView();
@@ -213,7 +201,7 @@ found in the LICENSE file.
       }
     };
 
-    function testAnalyzeSelectionWithSingleSlice() {
+    tests.testAnalyzeSelectionWithSingleSlice = function() {
       var selection = createSelectionWithSingleSlice();
 
       var results = new StubAnalysisResults();
@@ -229,7 +217,7 @@ found in the LICENSE file.
     }
 
 
-    function testAnalyzeSelectionWithTwoSlices() {
+    tests.testAnalyzeSelectionWithTwoSlices = function() {
       var selection = createSelectionWithTwoSlices();
 
       var results = new StubAnalysisResults();
@@ -258,7 +246,7 @@ found in the LICENSE file.
       assertAlmostEquals(0.18, table.rows[5].time);
     }
 
-    function testAnalyzeSelectionWithTwoSlicesSameTitle() {
+    tests.testAnalyzeSelectionWithTwoSlicesSameTitle = function() {
       var selection = createSelectionWithTwoSlicesSameTitle();
 
       var results = new StubAnalysisResults();
@@ -278,7 +266,7 @@ found in the LICENSE file.
       assertEquals("*Totals", table.rows[1].label);
       assertEquals(2, table.rows[1].occurences);
       assertAlmostEquals(0.1, table.rows[1].duration);
-      
+
       assertEquals("Selection start", table.rows[3].label);
       assertAlmostEquals(0, table.rows[3].time);
 
@@ -303,13 +291,15 @@ found in the LICENSE file.
     }
 
     // TODO(brendalee): Test the case of a selection with multiple counters.
-    function testAnalyzeSelectionWithTwoCounters() {
+    tests.testAnalyzeSelectionWithTwoCounters = function() {
     }
 
     // TODO(tbd): Test the case of a selection with both counters and slices.
-    function testAnalyzeSelectionWithCounterAndSlices() {
+    tests.testAnalyzeSelectionWithCounterAndSlices = function() {
     }
 
+    return tests;
+});
   </script>
 </body>
 </html>

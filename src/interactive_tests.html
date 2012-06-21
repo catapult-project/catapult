@@ -7,25 +7,7 @@ found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
 <title>Interactive Timeline Tests</title>
-<link rel="stylesheet" href="timeline.css">
-<link rel="stylesheet" href="timeline_analysis.css">
-<link rel="stylesheet" href="timeline_view.css">
-<link rel="stylesheet" href="overlay.css">
 <script src="base.js"></script>
-<script src="event_target.js"></script>
-<script src="ui.js"></script>
-<script src="timeline_model.js"></script>
-<script src="linux_perf_importer.js"></script>
-<script src="trace_event_importer.js"></script>
-<script src="sorted_array_utils.js"></script>
-<script src="measuring_stick.js"></script>
-<script src="overlay.js"></script>
-<script src="timeline.js"></script>
-<script src="timeline_analysis.js"></script>
-<script src="timeline_view.js"></script>
-<script src="timeline_track.js"></script>
-<script src="fast_rect_renderer.js"></script>
-<script src="test_utils.js"></script>
 </head>
 <body>
   <div class="timeline-test" src="../test_data/trivial_trace.json" create-detached=1>
@@ -56,6 +38,10 @@ found in the LICENSE file.
   </div>
 
   <script>
+  base.defineModule('interactive_tests')
+      .dependsOn('timeline_view', 'test_utils')
+      .runWhenLoaded(onLoad);
+
   function load(parentEl) {
     var src = parentEl.getAttribute('src');
     if (document.location.hash && document.location.hash.substring(1) != src) {
@@ -101,7 +87,6 @@ found in the LICENSE file.
                                  load);
   }
 
-  document.addEventListener('DOMContentLoaded', onLoad);
   window.addEventListener('hashchange', onLoad);
   </script>
 </body>

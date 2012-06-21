@@ -8,34 +8,22 @@ found in the LICENSE file.
 <head i18n-values="dir:textdirection;">
 <title>TimelineTrack tests</title>
 <style>
-* {
-  box-sizing: border-box;
-  -webkit-user-select: none;
-}
-
 .timeline-container {
   border: 1px solid red;
 }
-
 </style>
-<link rel="stylesheet" href="timeline.css">
 <script src="base.js"></script>
-<script src="unittest.js"></script>
-<script src="event_target.js"></script>
-<script src="ui.js"></script>
-<script src="timeline_model.js"></script>
-<script src="sorted_array_utils.js"></script>
-<script src="measuring_stick.js"></script>
-<script src="timeline.js"></script>
-<script src="timeline_track.js"></script>
-<script src="fast_rect_renderer.js"></script>
 </head>
 <body>
 <script>
-  unittest.runAllTests();
-</script>
-<script>
   'use strict';
+  base.defineModule('timeline_test')
+      .dependsOn('unittest',
+                 'test_utils',
+                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
+      .runAllTests(function() {
+
+  var tests = {};
 
   var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
   var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
@@ -71,7 +59,7 @@ found in the LICENSE file.
     return testDivs[name];
   }
 
-  function testBasicSlices() {
+  tests.testBasicSlices = function() {
     var testEl = getTestDiv('testBasicSlices');
     var track = TimelineSliceTrack();
     testEl.appendChild(track);
@@ -86,7 +74,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.8, track.clientWidth);
   }
 
-  function testFindAllObjectsMatchingInSliceTrack() {
+  tests.testFindAllObjectsMatchingInSliceTrack = function() {
     var track = TimelineSliceTrack();
     track.slices = [
       new TimelineSlice('a', 0, 1, {}, 1),
@@ -103,7 +91,7 @@ found in the LICENSE file.
     assertEquals(track.slices[2], selection[1].slice);
   }
 
-  function testShrinkingSliceSizes() {
+  tests.testShrinkingSliceSizes = function() {
     var testEl = getTestDiv('testShrinkingSliceSizes');
     var track = TimelineSliceTrack();
     testEl.appendChild(track);
@@ -121,7 +109,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 1.1 * x, track.clientWidth);
   }
 
-  function testSelectionHitTesting() {
+  tests.testSelectionHitTesting = function() {
     var testEl = getTestDiv('testSelectionHitTesting');
     var track = new TimelineSliceTrack();
     testEl.appendChild(track);
@@ -153,7 +141,7 @@ found in the LICENSE file.
     assertEquals(0, selection.length);
   }
 
-  function testSelectionHitTestingWithTimelineThreadTrack() {
+  tests.testSelectionHitTestingWithTimelineThreadTrack = function() {
     var model = new tracing.TimelineModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
@@ -181,7 +169,7 @@ found in the LICENSE file.
     assertEquals(t1.subRows[0][0], selection[0].slice);
   }
 
-  function testBasicCpu() {
+  tests.testBasicCpu = function() {
     var testEl = getTestDiv('testBasicCpu');
 
     var cpu = new TimelineCpu(7);
@@ -199,7 +187,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 11.1, track.clientWidth);
   }
 
-  function testViewport() {
+  tests.testViewport = function() {
     var testEl = getTestDiv('testViewport');
 
     var track = tracing.TimelineViewportTrack();
@@ -209,7 +197,7 @@ found in the LICENSE file.
         track.clientWidth / 1000);
   }
 
-  function testBasicCounter() {
+  tests.testBasicCounter = function() {
     var testEl = getTestDiv('testBasicCounter');
 
     var ctr = new TimelineCounter(undefined,
@@ -267,7 +255,7 @@ found in the LICENSE file.
     }
   }
 
-  function testBasicCounterXPointPicking() {
+  tests.testBasicCounterXPointPicking = function() {
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
     var samples = [0, 5,
                    3, 3,
@@ -302,7 +290,7 @@ found in the LICENSE file.
   }
 
   /* You'll need visual inspection to test eliding with this one. */
-  function testElideVisualInspection() {
+  tests.testElideVisualInspection = function() {
     var optDicts = [{ trackName: 'elideOff', elide: false },
                     { trackName: 'elideOn', elide: true }];
     for (var dictIndex in optDicts) {
@@ -331,7 +319,7 @@ found in the LICENSE file.
     }
   }
 
-  function testElide() {
+  tests.testElide = function() {
     var testEl = getTestDiv('testElide');
     var track = new TimelineSliceTrack();
     testEl.appendChild(track);
@@ -379,7 +367,7 @@ found in the LICENSE file.
     assertEquals('...', stringWidthPair.string.substring(len - 3, len));
   }
 
-  function testTimelineThreadTrackWithRegularSlices() {
+  tests.testTimelineThreadTrackWithRegularSlices = function() {
     var testEl = getTestDiv('testTimelineThreadTrackWithRegularSlices');
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -406,7 +394,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.2, track.clientWidth);
   }
 
-  function testTimelineThreadTrackWithTallSlices() {
+  tests.testTimelineThreadTrackWithTallSlices = function() {
     var testEl = getTestDiv('testTimelineThreadTrackWithTallSlices');
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -430,7 +418,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 1.1, track.clientWidth);
   }
 
-  function testTimelineThreadTrackWithRegularAndAsyncSlices() {
+  tests.testTimelineThreadTrackWithRegularAndAsyncSlices = function() {
     var testEl = getTestDiv('testTimelineThreadTrackWithAsyncSlices');
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -458,7 +446,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.15, track.clientWidth);
   }
 
-  function testTimelineSliceTrackAddItemNearToProvidedHit() {
+  tests.testTimelineSliceTrackAddItemNearToProvidedHit = function() {
     var track = new TimelineSliceTrack();
     track.slices = [
       new TimelineSlice('a', 0, 1, {}, 1),
@@ -505,6 +493,9 @@ found in the LICENSE file.
     assertEquals(0, selNone.length);
 
   }
+
+  return tests;
+});
 </script>
 </body>
 </html>

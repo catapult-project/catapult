@@ -8,19 +8,19 @@ found in the LICENSE file.
 <head>
 <title>LinuxPerfImporter tests</title>
 <script src="base.js"></script>
-<script src="unittest.js"></script>
-<script src="event_target.js"></script>
-<script src="test_utils.js"></script>
-<script src="timeline_model.js"></script>
-<script src="linux_perf_importer.js"></script>
-<script>
-  unittest.runAllTests();
-</script>
-
 </head>
 <body>
 <script>
-function testLineRE() {
+'use strict';
+
+base.defineModule('linux_perf_importer_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_importer')
+    .runAllTests(function() {
+
+var tests = {};
+tests.testLineRE = function() {
   var re = tracing._LinuxPerfImporterTestExports.lineRE;
   var x = re.exec('   <idle>-0     [001]  4467.843475: sched_switch: ' +
       'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
@@ -39,7 +39,7 @@ function testLineRE() {
   assertNotNull(x);
 }
 
-function testLineREWithIRQInfo() {
+tests.testLineREWithIRQInfo = function() {
   var re = tracing._LinuxPerfImporterTestExports.lineREWithIRQInfo;
   var x = re.exec('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
@@ -50,7 +50,7 @@ function testLineREWithIRQInfo() {
   assertEquals('sched_wakeup', x[4]);
   assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x[5]);
 }
- 
+
 function testAutodetectLineCornerCases() {
   var line = 'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
              'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
@@ -61,7 +61,7 @@ function testAutodetectLineCornerCases() {
   assertEquals(autoLineRE, lineRE, 'Mis-detected line format without IRQ info');
 }
 
-function testSchedSwitchRE() {
+tests.testSchedSwitchRE = function() {
   var re = tracing._LinuxPerfImporterTestExports.schedSwitchRE;
   var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
       '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
@@ -87,7 +87,7 @@ function testSchedSwitchRE() {
   assertEquals('.android.chrome', x[5]);
 }
 
-function testSchedWakeupRE() {
+tests.testSchedWakeupRE = function() {
   var re = tracing._LinuxPerfImporterTestExports.schedWakeupRE;
   var x = re.exec(
       'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
@@ -99,7 +99,7 @@ function testSchedWakeupRE() {
   assertEquals('000', x[5]);
 }
 
-function testTraceEventClockSyncRE() {
+tests.testTraceEventClockSyncRE = function() {
   var re = tracing._LinuxPerfImporterTestExports.traceEventClockSyncRE;
   var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
   assertNotNull(x);
@@ -110,7 +110,7 @@ function testTraceEventClockSyncRE() {
   assertEquals('123.456', x[1]);
 }
 
-function testCanImport() {
+tests.testCanImport = function() {
   var lines = [
     '# tracer: nop',
     '#',
@@ -160,7 +160,7 @@ function testCanImport() {
   assertFalse(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
-function testCanImport34AndLater() {
+tests.testCanImport34AndLater = function() {
   var lines = [
     '# tracer: nop',
     '#',
@@ -191,7 +191,7 @@ function testCanImport34AndLater() {
   assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
-function testImportOneSequence() {
+tests.testImportOneSequence = function() {
   var lines = [
     '          <idle>-0     [001]  4467.843475: sched_switch: ' +
                 'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
@@ -217,11 +217,11 @@ function testImportOneSequence() {
   assertAlmostEquals(.536 - .475, c.slices[0].duration);
 }
 
-function testImportOneSequenceWithSchedWakeUp() {
+tests.testImportOneSequenceWithSchedWakeUp = function() {
   // TODO(nduca): write test for this.
 }
 
-function testImportWithNewline() {
+tests.testImportWithNewline = function() {
   var lines = [
     ''
   ];
@@ -229,7 +229,7 @@ function testImportWithNewline() {
   assertEquals(0, m.importErrors.length);
 }
 
-function testClockSync() {
+tests.testClockSync = function() {
   var lines = [
     '          <idle>-0     [001]  4467.843475: sched_switch: ' +
                   'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
@@ -254,7 +254,7 @@ function testClockSync() {
   assertAlmostEquals((467.843475 - (467.843 - 0.1)) * 1000, c.slices[0].start);
 }
 
-function testClockSyncMarkWrite() {
+tests.testClockSyncMarkWrite = function() {
   var lines = [
     'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
               'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
@@ -279,10 +279,10 @@ function testClockSyncMarkWrite() {
 }
 
 
-function testImportWithoutClockSyncDeletesEverything() {
+tests.testImportWithoutClockSyncDeletesEverything = function() {
 }
 
-function testWorkQueueImport() {
+tests.testWorkQueueImport = function() {
   var lines = [
     ' kworker/0:3-6880  [000]  2784.771958: workqueue_execute_start: ' +
                'work struct ffff8800a5083a20: function intel_unpin_work_fn',
@@ -300,10 +300,10 @@ function testWorkQueueImport() {
   assertEquals(1, m.processes['7269'].threads['7269'].subRows.length);
 }
 
-function testPowerStartImport() {
+tests.testPowerStartImport = function() {
 }
 
-function testPowerFrequencyImport() {
+tests.testPowerFrequencyImport = function() {
   var lines = [
     ' kworker/0:3-6880  [000]  2784.783015: power_frequency: ' +
                'type=2 state=1000000 cpu_id=0',
@@ -324,7 +324,7 @@ function testPowerFrequencyImport() {
   assertEquals(2, c1.counters['Clock Frequency'].samples.length);
 }
 
-function testCpuFrequencyImport() {
+tests.testCpuFrequencyImport = function() {
   var lines = [
     '     kworker/1:0-9665  [001] 15051.007301: cpu_frequency: ' +
                    'state=800000 cpu_id=1',
@@ -347,7 +347,7 @@ function testCpuFrequencyImport() {
   assertEquals(2, c1.counters['Clock Frequency'].samples.length);
 }
 
-function testCpuIdleImport() {
+tests.testCpuIdleImport = function() {
   var lines = [
     '          <idle>-0     [000] 15050.992883: cpu_idle: ' +
                   'state=1 cpu_id=0',
@@ -374,7 +374,7 @@ function testCpuIdleImport() {
   assertEquals(4, c1.counters['C-State'].samples.length);
 }
 
-function testi915Import() {
+tests.testi915Import = function() {
   var lines = [
     // NB: spliced from different traces; mismatched timestamps don't matter
     '          chrome-1223  [000]  2784.773556: i915_gem_object_pwrite: ' +
@@ -438,6 +438,8 @@ function testi915Import() {
   assertEquals('drm_vblank', vblankThread.name);
   assertEquals(1, vblankThread.subRows.length);
 }
+return tests;
+});
 
 </script>
 </body>

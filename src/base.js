@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * The global object.
  * @type {!Object}
@@ -11,13 +13,269 @@ var global = this;
 
 /** Platform, package, object property, and Event support. **/
 this.base = (function() {
-  'use strict';
+  /**
+   * Base path for modules. Used to form URLs for module 'require' requests.
+   */
+  var moduleBasePath = '.';
+  function setModuleBasePath(path) {
+    if (path[path.length - 1] == '/')
+      path = path.substring(0, path.length - 1);
+    moduleBasePath = path;
+  }
+
+
+  var allModules = {};
+  var allStylesheets = {};
+
+  function mLog(text) {
+    // console.log(text);
+  }
+
+  function Module(moduleName) {
+    this.name = moduleName;
+    this.defined = false;
+    this.stylesheetNames = []
+    this.dependentModuleNames = [];
+    this.pendingExport_ = undefined;
+    this.pendingRuns_ = [];
+    this.loaded_ = false;
+    this.dependenciesSatisfied = false;
+    this.noMoreDependenciesAllowed = false;
+  }
+
+  Module.prototype = {
+    __proto__: Object.prototype,
+
+    /**
+     * Every argument provided is treated as a dependency of this module:
+     *   m.dependsOn('x', 'y')
+     * will load x.js and y.js as dependencies of this module.
+     *
+     * @param arguments A string name specifying the module name to load before
+     * running this module's exports.
+     */
+    dependsOn: function(/* arguments */) {
+      if (this.noMoreDependenciesAllowed)
+        throw new Error('All module requirements must be defined before exports.');
+      this.noMoreDependenciesAllowed = true;
+      for (var i = 0; i < arguments.length; i++)
+        this.require_(arguments[i]);
+      this.maybeDependenciesFullySatisfied_();
+      return this;
+    },
+
+    /**
+     * Adds a stylesheet as needed by this module.
+     *   m.stylesheet('x')
+     * will add x.css to document.head when this module is loaded.
+     *
+     * @param stylesheetName A string name specifying the module name to load before
+     * running this module's exports.
+     */
+    stylesheet: function(stylesheetName) {
+      for (var i = 0; i < this.stylesheetNames.length; i++)
+        if (this.stylesheetNames[i] == stylesheetName)
+          throw new Error('Stylesheet ' + stylesheetName + ' already listed for this module.');
+
+      this.stylesheetNames.push(stylesheetName);
+      if (allStylesheets[stylesheetName])
+        return;
+      allStylesheets[stylesheetName] = true;
+
+      var localPath = stylesheetName.replace(/\./g, '/') + '.css';
+      var stylesheetPath = moduleBasePath + '/' + localPath;
+
+      var linkEl = document.createElement('link');
+      linkEl.setAttribute('rel', 'stylesheet');
+      linkEl.setAttribute('href', stylesheetPath);
+      document.head.appendChild(linkEl);
+
+      return this;
+    },
+
+    /**
+     * Calls |fun| after the dependencies specified by dependsOn() are satisfied, adding all the fields of the returned object to the object
+     * specified by |namespace|. For example:
+     *   base.defineModule('xxx').requires('yyy').exportsTo('x.y.z', function() {
+     *     function List() {
+     *       ...
+     *     }
+     *     function ListItem() {
+     *       ...
+     *     }
+     *     return {
+     *       List: List,
+     *       ListItem: ListItem,
+     *     };
+     *   });
+     * defines the functions x.y.z.List and x.y.z.ListItem after yyy is loaded.
+     *
+     * @param {string} name The name of the object that we are adding fields to.
+     * @param {!Function} fun The function that will return an object containing
+     *     the names and values of the new fields.
+     */
+    exportsTo: function(namespace, fn) {
+      if (this.pendingExport_)
+        throw new Error('Cannot export twice from the same module.');
+
+      this.noMoreDependenciesAllowed = true;
+      this.pendingExport_ = {namespace: namespace,
+                             fn: fn};
+      this.maybeDependenciesFullySatisfied_();
+      return this;
+    },
+
+    runWhenLoaded: function(fn) {
+      this.pendingRuns_.push(fn);
+      this.maybeDependenciesFullySatisfied_();
+      return this;
+    },
+
+    require_: function(dependentModuleName) {
+      for (var i = 0; i < this.dependentModuleName; i++)
+        if (this.dependentModuleName[i] == dependentModuleName)
+          throw new Error(this.name + ' already has a dependency on ' + dependentModuleName);
+      this.dependentModuleNames.push(dependentModuleName);
+
+      if (allModules[dependentModuleName]) {
+        if (allModules[dependentModuleName].dependenciesSatisfied) {
+          mLog(this.name + '\'s dependency on ' + dependentModuleName + ' is already satisfied');
+          return;
+        } else {
+          mLog(this.name + '\'s needs ' + dependentModuleName + ' which is already pending.');
+          allModules[dependentModuleName].scriptEl_.addEventListener('dependenciesSatisfied', function() {
+            mLog(this.name + '\'s need for ' + dependentModuleName + ' has been satisfied.');
+            this.maybeDependenciesFullySatisfied_();
+          }.bind(this));
+          return;
+        }
+      }
+
+      mLog(this.name + '\'s is loading ' + dependentModuleName);
+      var localPath = dependentModuleName.replace(/\./g, '/') + '.js';
+      var scriptPath = moduleBasePath + '/' + localPath;
+      var scriptEl = document.createElement('script');
+      scriptEl.src = scriptPath;
+      scriptEl.async = true;
+
+      var dependentModule = new Module(dependentModuleName);
+      dependentModule.scriptEl_ = scriptEl;
+      dependentModule.scriptEl_.addEventListener('load', function() {
+        mLog(this.name + '\'s has loaded the script for ' + dependentModuleName);
+        dependentModule.loaded_ = true;
+        dependentModule.maybeDependenciesFullySatisfied_();
+      }.bind(this));
+      dependentModule.scriptEl_.addEventListener('dependenciesSatisfied', function() {
+        mLog(this.name + '\'s need for ' + dependentModuleName + ' has been satisfied.');
+        this.maybeDependenciesFullySatisfied_();
+      }.bind(this));
+      allModules[dependentModuleName] = dependentModule;
+
+      document.head.appendChild(scriptEl);
+    },
+
+    maybeDependenciesFullySatisfied_: function() {
+      if (this.dependenciesSatisfied) {
+        return;
+      }
+
+      if (this.scriptEl_ && !this.loaded_) {
+        mLog(this.name + ' is not yet loded');
+        return;
+      }
+
+      var numDependentsThatAreFullyLoaded = 0;
+      for (var i = 0; i < this.dependentModuleNames.length; i++) {
+        var dependentModuleName = this.dependentModuleNames[i];
+        var dependentModule = allModules[dependentModuleName];
+        if (!dependentModule.dependenciesSatisfied) {
+          mLog(this.name + ' still needs ' + dependentModuleName);
+          return;
+        }
+      }
+      this.dependenciesSatisfied = true;
+
+      this.doExport_();
+      this.doRuns_();
+
+      if (this.scriptEl_) {
+        mLog(this.name + ' has become fully loaded and is firing dependenciesSatisfied');
+        dispatchSimpleEvent(this.scriptEl_, 'dependenciesSatisfied', false, false);
+      }
+    },
+
+    doExport_: function() {
+      if (!this.pendingExport_)
+        return;
+
+      mLog('running exports for (' + this.name + ') -> ' + this.pendingExport_.namespace);
+
+      var obj = exportPath(this.pendingExport_.namespace);
+      try {
+        var exports = this.pendingExport_.fn();
+      } catch(e) {
+        console.log('While running exports for ' + this.name + ':', e.stack || e);
+        if (e.stack)
+          console.log(e.stack);
+        this.pendingExport_ = {};
+        return;
+      }
+
+      for (var propertyName in exports) {
+        // Maybe we should check the prototype chain here? The current usage
+        // pattern is always using an object literal so we only care about own
+        // properties.
+        var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
+                                                                 propertyName);
+        if (propertyDescriptor) {
+          Object.defineProperty(obj, propertyName, propertyDescriptor);
+          mLog('  +' + propertyName);
+        }
+      }
+      this.pendingExport_ = {};
+    },
+
+    doRuns_: function() {
+      var runs = this.pendingRuns_;
+      this.pendingRuns_ = [];
+      for (var i = 0; i < runs.length; i++) {
+        try {
+          runs[i].call(global);
+        } catch(e) {
+          console.log('While running runWhenLoaded for ' + this.name + ':', e.stack || e);
+          if (e.stack)
+            console.log(e.stack);
+        }
+      }
+    },
+
+    runAllTests: function(fn) {
+      this.runWhenLoaded(function() {
+        var tests = fn();
+        unittest.runAllTests(tests);
+      });
+      return this;
+    }
+  };
+
+  function defineModule(moduleName) {
+    if (allModules[moduleName]) {
+      if (allModules[moduleName].defined)
+        throw new Error(moduleName + ' has already been defined.');
+      return allModules[moduleName];
+    }
+
+    var module = new Module(moduleName);
+    allModules[moduleName] = module;
+    module.defined = true;
+    return module;
+  }
 
   /**
    * Builds an object structure for the provided namespace path,
    * ensuring that names that already exist are not overwritten. For
    * example:
-   * "a.b.c" -> a = {};a.b={};a.b.c={};
+   * 'a.b.c' -> a = {};a.b={};a.b.c={};
    * @param {string} name Name of the object that this file defines.
    * @param {*=} opt_object The object to expose at the end of the path.
    * @param {Object=} opt_objectToExportTo The object to add the path to;
@@ -73,7 +331,7 @@ this.base = (function() {
    */
   var PropertyKind = {
     /**
-     * Plain old JS property where the backing data is stored as a "private"
+     * Plain old JS property where the backing data is stored as a 'private'
      * field on the object.
      */
     JS: 'js',
@@ -236,39 +494,6 @@ this.base = (function() {
   }
 
   /**
-   * Calls |fun| and adds all the fields of the returned object to the object
-   * named by |name|. For example, base.define('base.ui', function() {
-   *   function List() {
-   *     ...
-   *   }
-   *   function ListItem() {
-   *     ...
-   *   }
-   *   return {
-   *     List: List,
-   *     ListItem: ListItem,
-   *   };
-   * });
-   * defines the functions base.ui.List and base.ui.ListItem.
-   * @param {string} name The name of the object that we are adding fields to.
-   * @param {!Function} fun The function that will return an object containing
-   *     the names and values of the new fields.
-   */
-  function define(name, fun) {
-    var obj = exportPath(name);
-    var exports = fun();
-    for (var propertyName in exports) {
-      // Maybe we should check the prototype chain here? The current usage
-      // pattern is always using an object literal so we only care about own
-      // properties.
-      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
-                                                               propertyName);
-      if (propertyDescriptor)
-        Object.defineProperty(obj, propertyName, propertyDescriptor);
-    }
-  }
-
-  /**
    * Adds a {@code getInstance} static method that always return the same
    * instance object.
    * @param {!Function} ctor The constructor for the class to add the static
@@ -355,16 +580,24 @@ this.base = (function() {
   }
 
   return {
+    set moduleBasePath(path) {
+      setModuleBasePath(path);
+    },
+
+    get moduleBasePath() {
+      return moduleBasePath;
+    },
+
+    defineModule: defineModule,
     addSingletonGetter: addSingletonGetter,
     createUid: createUid,
-    define: define,
     defineProperty: defineProperty,
     dispatchPropertyChange: dispatchPropertyChange,
     dispatchSimpleEvent: dispatchSimpleEvent,
     Event: Event,
     getUid: getUid,
     initialize: initialize,
-    PropertyKind: PropertyKind
+    PropertyKind: PropertyKind,
   };
 })();
 

@@ -17,7 +17,13 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-base.define('tracing', function() {
+base.defineModule('timeline')
+    .stylesheet('timeline')
+    .dependsOn('event_target',
+               'ui',
+               'measuring_stick',
+               'timeline_track')
+    .exportsTo('tracing', function() {
 
   /**
    * The TimelineViewport manages the transform used for navigating
