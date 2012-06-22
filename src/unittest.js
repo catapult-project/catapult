@@ -336,14 +336,14 @@ base.defineModule('unittest')
     assertEquals: function(a, b, opt_message) {
       if (a == b)
         return;
-      var message = opt_message || 'Expected ' + b + ', got ' + a;
+      var message = opt_message || 'Expected ' + a + ', got ' + b;
       throw new TestError(message);
     },
 
     assertNotEquals: function(a, b, opt_message) {
       if (a != b)
         return;
-      var message = opt_message || 'Expected something not equal to ' + b;;
+      var message = opt_message || 'Expected something not equal to ' + b;
       throw new TestError(message);
     },
 
@@ -357,7 +357,7 @@ base.defineModule('unittest')
           return;
       }
 
-      var message = opt_message || 'Expected array ' + b + ', got array ' + a;
+      var message = opt_message || 'Expected array ' + a + ', got array ' + b;
       throw new TestError(message);
     },
 
@@ -378,7 +378,7 @@ base.defineModule('unittest')
     assertAlmostEquals: function(a, b, opt_message) {
       if (Math.abs(a - b) < 0.00001)
         return;
-      var message = opt_message || 'Expected almost ' + b + ', got ' + a;
+      var message = opt_message || 'Expected almost ' + a + ', got ' + b;
       throw new TestError(message);
     },
 

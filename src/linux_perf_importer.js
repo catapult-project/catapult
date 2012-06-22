@@ -141,9 +141,9 @@ base.defineModule('linux_perf_importer')
    * the format is recognized; otherwise null.
    */
   function autoDetectLineRE(line) {
-    if (lineREWithIRQInfo.exec(line))
+    if (lineREWithIRQInfo.test(line))
       return lineREWithIRQInfo;
-    if (lineRE.exec(line))
+    if (lineRE.test(line))
       return lineRE;
     return null;
   };
@@ -161,7 +161,7 @@ base.defineModule('linux_perf_importer')
     if (!(typeof(events) === 'string' || events instanceof String))
       return false;
 
-    if (/^# tracer:/.exec(events))
+    if (/^# tracer:/.test(events))
       return true;
 
     var m = /^(.+)\n/.exec(events);
@@ -548,7 +548,7 @@ base.defineModule('linux_perf_importer')
       for (this.lineNumber = 0; this.lineNumber < this.lines_.length;
           ++this.lineNumber) {
         var line = this.lines_[this.lineNumber];
-        if (/^#/.exec(line) || line.length == 0)
+        if (line.length == 0 || /^#/.test(line))
           continue;
         if (lineRE == null) {
           lineRE = autoDetectLineRE(line);
@@ -563,7 +563,8 @@ base.defineModule('linux_perf_importer')
           continue;
         }
 
-        var cpuState = this.getOrCreateCpuState(parseInt(eventBase[2]));
+        var cpuNumber = parseInt(eventBase[2]);
+        var cpuState = this.getOrCreateCpuState(cpuNumber);
         var ts = parseFloat(eventBase[3]) * 1000;
 
         var eventName = eventBase[4];
@@ -607,8 +608,8 @@ base.defineModule('linux_perf_importer')
             this.cpuStateSlice(ts, targetCpuNumber, event[1], cpuState);
             break;
           case 'power_frequency':  // NB: old-style power event, deprecated
-            var event = /type=(\d+) state=(\d+) cpu_id=(\d)+/.exec(
-                eventBase[5]);
+            var event = /type=(\d+) state=(\d+) cpu_id=(\d)+/
+                .exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -671,7 +672,7 @@ base.defineModule('linux_perf_importer')
             kthread.openSlice = undefined;
             break;
           case 'i915_gem_object_create':
-            var event = /obj=(.+), size=(\d+)/.exec(eventBase[5]);
+            var event = /obj=(\w+), size=(\d+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -688,7 +689,7 @@ base.defineModule('linux_perf_importer')
           case 'i915_gem_object_bind':
           case 'i915_gem_object_unbind':
             // TODO(sleffler) mappable
-            var event = /obj=(.+), offset=(.+), size=(\d+)/.exec(eventBase[5]);
+            var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -705,7 +706,8 @@ base.defineModule('linux_perf_importer')
                 });
             break;
           case 'i915_gem_object_change_domain':
-            var event = /obj=(.+), read=(.+), write=(.+)/.exec(eventBase[5]);
+            var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
+                .exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -723,7 +725,7 @@ base.defineModule('linux_perf_importer')
             break;
           case 'i915_gem_object_pread':
           case 'i915_gem_object_pwrite':
-            var event = /obj=(.+), offset=(\d+), len=(\d+)/.exec(eventBase[5]);
+            var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -741,7 +743,7 @@ base.defineModule('linux_perf_importer')
             break;
           case 'i915_gem_object_fault':
             // TODO(sleffler) writable
-            var event = /obj=(.+), (.+) index=(\d+)/.exec(eventBase[5]);
+            var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -759,7 +761,7 @@ base.defineModule('linux_perf_importer')
             break;
           case 'i915_gem_object_clflush':
           case 'i915_gem_object_destroy':
-            var event = /obj=(.+)/.exec(eventBase[5]);
+            var event = /obj=(\w+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -789,8 +791,8 @@ base.defineModule('linux_perf_importer')
                 });
             break;
           case 'i915_gem_ring_flush':
-            var event = /dev=(\d+), ring=(\d+), invalidate=(.+), flush=(.+)/.
-                exec(eventBase[5]);
+            var event = /dev=(\d+), ring=(\w+), invalidate=(\w+), flush=(\w+)/
+                .exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -846,28 +848,11 @@ base.defineModule('linux_perf_importer')
                   ring: ring
                 });
             break;
-          case 'i915_gem_object_change_domain':
-            var event = /obj=(.+), read=(.+), write=(.+)/.exec(eventBase[5]);
-            if (!event) {
-              this.malformedEvent(eventName);
-              continue;
-            }
-
-            var obj = event[1];
-            var read = event[2];
-            var write = event[3];
-            this.i915GemObjectSlice(ts, eventName, obj,
-                {
-                  obj: obj,
-                  read: read,
-                  write: write
-                });
-            break;
           case 'i915_reg_rw':
-            var event = /(.+) reg=(.+), len=(.+), val=(.+)/.exec(eventBase[5]);
+            var event = /(\w+) reg=(\w+), len=(\d+), val=(\(\w+, \w+\))/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
-              continue;
+                continue;
             }
 
             var rw = event[1];
@@ -883,7 +868,7 @@ base.defineModule('linux_perf_importer')
                 });
             break;
           case 'i915_flip_request':
-            var event = /plane=(\d+), obj=(.+)/.exec(eventBase[5]);
+            var event = /plane=(\d+), obj=(\w+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
@@ -894,7 +879,7 @@ base.defineModule('linux_perf_importer')
             this.i915OpenFlipSlice(ts, obj, plane);
             break;
           case 'i915_flip_complete':
-            var event = /plane=(\d+), obj=(.+)/.exec(eventBase[5]);
+            var event = /plane=(\d+), obj=(\w+)/.exec(eventBase[5]);
             if (!event) {
               this.malformedEvent(eventName);
               continue;
