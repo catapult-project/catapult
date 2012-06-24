@@ -31,6 +31,45 @@ this.base = (function() {
     // console.log(text);
   }
 
+  function doExport(name, namespace, fn) {
+    mLog('running exports for (' + name + ') -> ' + namespace);
+
+    var obj = exportPath(namespace);
+    try {
+      var exports = fn();
+    } catch(e) {
+      console.log('While running exports for ' + name + ':', e.stack || e);
+      if (e.stack)
+        console.log(e.stack);
+      return;
+    }
+
+    for (var propertyName in exports) {
+      // Maybe we should check the prototype chain here? The current usage
+      // pattern is always using an object literal so we only care about own
+      // properties.
+      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
+                                                               propertyName);
+      if (propertyDescriptor) {
+        Object.defineProperty(obj, propertyName, propertyDescriptor);
+        mLog('  +' + propertyName);
+      }
+    }
+  }
+
+  function doRuns(runs) {
+    for (var i = 0; i < runs.length; i++) {
+      try {
+        runs[i].call(global);
+      } catch(e) {
+        console.log('While running runWhenLoaded for ' + this.name + ':', e.stack || e);
+        if (e.stack)
+          console.log(e.stack);
+      }
+    }
+  }
+
+
   function Module(moduleName) {
     this.name = moduleName;
     this.defined = false;
@@ -96,7 +135,7 @@ this.base = (function() {
     /**
      * Calls |fun| after the dependencies specified by dependsOn() are satisfied, adding all the fields of the returned object to the object
      * specified by |namespace|. For example:
-     *   base.defineModule('xxx').requires('yyy').exportsTo('x.y.z', function() {
+     *   defineModule('xxx').requires('yyy').exportsTo('x.y.z', function() {
      *     function List() {
      *       ...
      *     }
@@ -195,57 +234,18 @@ this.base = (function() {
       }
       this.dependenciesSatisfied = true;
 
-      this.doExport_();
-      this.doRuns_();
+      if (this.pendingExport_) {
+        doExport(this.name, this.pendingExport_.namespace, this.pendingExport_.fn)
+        this.pendingExport_ = {};
+      }
+
+      var runs = this.pendingRuns_;
+      this.pendingRuns_ = [];
+      doRuns(runs);
 
       if (this.scriptEl_) {
         mLog(this.name + ' has become fully loaded and is firing dependenciesSatisfied');
         dispatchSimpleEvent(this.scriptEl_, 'dependenciesSatisfied', false, false);
-      }
-    },
-
-    doExport_: function() {
-      if (!this.pendingExport_)
-        return;
-
-      mLog('running exports for (' + this.name + ') -> ' + this.pendingExport_.namespace);
-
-      var obj = exportPath(this.pendingExport_.namespace);
-      try {
-        var exports = this.pendingExport_.fn();
-      } catch(e) {
-        console.log('While running exports for ' + this.name + ':', e.stack || e);
-        if (e.stack)
-          console.log(e.stack);
-        this.pendingExport_ = {};
-        return;
-      }
-
-      for (var propertyName in exports) {
-        // Maybe we should check the prototype chain here? The current usage
-        // pattern is always using an object literal so we only care about own
-        // properties.
-        var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
-                                                                 propertyName);
-        if (propertyDescriptor) {
-          Object.defineProperty(obj, propertyName, propertyDescriptor);
-          mLog('  +' + propertyName);
-        }
-      }
-      this.pendingExport_ = {};
-    },
-
-    doRuns_: function() {
-      var runs = this.pendingRuns_;
-      this.pendingRuns_ = [];
-      for (var i = 0; i < runs.length; i++) {
-        try {
-          runs[i].call(global);
-        } catch(e) {
-          console.log('While running runWhenLoaded for ' + this.name + ':', e.stack || e);
-          if (e.stack)
-            console.log(e.stack);
-        }
       }
     },
 
@@ -258,6 +258,30 @@ this.base = (function() {
     }
   };
 
+  function FlattenedModule(moduleName) {
+    this.name = moduleName;
+  };
+  FlattenedModule.prototype = {
+    __proto__: Object.prototype,
+
+    dependsOn: function(/* arguments */) {
+      // TODO(nduca): Add some sanity checks.
+      return this;
+    },
+    stylesheet: function() {
+      // TODO(nduca): Add some sanity checks.
+      return this;
+    },
+    exportsTo: function(namespace, fn) {
+      doExport(this.name, namespace, fn);
+      return this;
+    },
+    runWhenLoaded: function(fn) {
+      doRuns([fn]);
+      return this;
+    }
+  };
+
   function defineModule(moduleName) {
     if (allModules[moduleName]) {
       if (allModules[moduleName].defined)
@@ -265,7 +289,12 @@ this.base = (function() {
       return allModules[moduleName];
     }
 
-    var module = new Module(moduleName);
+    var module
+    if (global.FLATTENED && global.FLATTENED[moduleName])
+      module = new FlattenedModule(moduleName);
+    else
+      module = new Module(moduleName);
+
     allModules[moduleName] = module;
     module.defined = true;
     return module;

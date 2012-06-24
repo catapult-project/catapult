@@ -33,7 +33,8 @@ base.defineModule('tracing_controller')
     this.onKeydownBoundToThis_ = this.onKeydown_.bind(this);
     this.onKeypressBoundToThis_ = this.onKeypress_.bind(this);
 
-    chrome.send('tracingControllerInitialized');
+    if (chrome.send)
+      chrome.send('tracingControllerInitialized');
   }
 
   TracingController.prototype = {

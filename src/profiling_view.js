@@ -10,7 +10,7 @@
  */
 base.defineModule('profiling_view')
     .stylesheet('profiling_view')
-    .dependsOn('timeline_view')
+    .dependsOn('timeline_view', 'tracing_controller')
     .exportsTo('tracing', function() {
   /**
    * ProfilingView

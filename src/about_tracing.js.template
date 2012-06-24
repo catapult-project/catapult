@@ -1,0 +1,17 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+<WARNING_MESSAGE></WARNING_MESSAGE>
+<SCRIPT_CONTENTS></SCRIPT_CONTENTS>
+
+var tracingController;
+var profilingView;  // Made global for debugging purposes only.
+
+document.addEventListener('DOMContentLoaded', function() {
+  tracingController = new tracing.TracingController();
+
+  profilingView = document.body.querySelector('#profiling-view');
+  base.ui.decorate(profilingView, tracing.ProfilingView);
+  profilingView.tracingController = tracingController;
+});
