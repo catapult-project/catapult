@@ -228,6 +228,9 @@ base.defineModule('timeline_analysis')
           results.appendSummaryRowTime(table, 'Selection start', tsLo);
           results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
           return;
+        } else { 
+          results.appendSliceRow(
+              table, sliceGroupTitle, duration, sliceGroup.slices.length);
         }
       }
       results.appendSliceRow(table, '*Totals', totalDuration, sliceHits.length);
