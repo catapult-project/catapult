@@ -96,7 +96,8 @@ base.defineModule('linux_perf_importer')
 
   // Matches the sched_switch record
   var schedSwitchRE = new RegExp(
-      'prev_comm=(.+) prev_pid=(\\d+) prev_prio=(\\d+) prev_state=(\\S) ==> ' +
+      'prev_comm=(.+) prev_pid=(\\d+) prev_prio=(\\d+) ' +
+      'prev_state=(\\S|\\S\\|\\S) ==> ' +
       'next_comm=(.+) next_pid=(\\d+) next_prio=(\\d+)');
   TestExports.schedSwitchRE = schedSwitchRE;
 

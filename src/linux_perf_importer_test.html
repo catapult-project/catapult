@@ -85,6 +85,13 @@ tests.testSchedSwitchRE = function() {
   assertNotNull(x);
   assertEquals('Binder Thread #', x[1]);
   assertEquals('.android.chrome', x[5]);
+
+  // explict test for prev_state of D|W
+  var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
+      'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
+      'next_prio=120');
+  assertNotNull(x);
+  assertEquals('D|W', x[4]);
 }
 
 tests.testSchedWakeupRE = function() {
