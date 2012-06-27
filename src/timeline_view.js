@@ -302,7 +302,7 @@ base.defineModule('timeline_view')
       containerEl.style.maxWidth = '800px';
       containerEl.style.maxHeight = '500px';
 
-      containerEl.textContent = 'Errors ocurred during import:';
+      containerEl.textContent = 'Errors occurred during import:';
       containerEl.appendChild(textEl);
       dlg.appendChild(containerEl);
 

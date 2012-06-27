@@ -365,7 +365,7 @@ base.defineModule('trace_event_importer')
             asyncEventStatesByNameThenID[name] = {};
           if (asyncEventStatesByNameThenID[name][id]) {
             this.model_.importErrors.push(
-                'At ' + event.ts + ', an slice of the same id ' + id +
+                'At ' + event.ts + ', a slice of the same id ' + id +
                 ' was alrady open.');
             continue;
           }
