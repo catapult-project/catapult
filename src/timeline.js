@@ -453,6 +453,8 @@ base.defineModule('timeline')
       this.bindEventListener_(document, 'mouseup', this.onMouseUp_, this);
       this.bindEventListener_(document, 'dblclick', this.onDblClick_, this);
 
+      this.addEventListener('mousewheel', this.onMouseWheel_);
+
       this.lastMouseViewPos_ = {x: 0, y: 0};
 
       this.selection_ = new TimelineSelection();
@@ -699,6 +701,15 @@ base.defineModule('timeline')
           break;
       }
     },
+
+    onMouseWheel_: function(e) {
+      if(e.altKey) {
+        var delta = e.wheelDeltaY / 120;
+        var zoomScale = Math.pow(1.5, delta);
+        this.zoomBy_(zoomScale);
+        e.preventDefault();
+      }
+   },
 
     // Not all keys send a keypress.
     onKeydown_: function(e) {
