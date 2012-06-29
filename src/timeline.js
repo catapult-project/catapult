@@ -777,6 +777,7 @@ base.defineModule('timeline')
       }
       help +=
           '\n' +
+          'Alt + Scroll to zoom in/out\n' +
           'Dbl-click to zoom in; Shift dbl-click to zoom out\n';
       return help;
     },
