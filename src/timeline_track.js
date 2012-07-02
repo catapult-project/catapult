@@ -818,6 +818,16 @@ base.defineModule('timeline_track')
       this.classList.add('timeline-viewport-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
+
+      this.addEventListener('click', this.onClick);
+    },
+
+    onClick: function(e) {
+      var clickOffset = e.clientX - this.canvasContainer_.offsetLeft;
+      var ts = this.viewport_.xViewToWorld(clickOffset);
+      if (this.viewport_.removeMarkerNear(ts, 3))
+        return;
+      this.viewport_.addMarker(ts);
     },
 
     redraw: function() {
@@ -832,6 +842,20 @@ base.defineModule('timeline_track')
       var pixWidth = vp.xViewVectorToWorld(1);
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
+
+      ctx.beginPath();
+      for(var i = 0; i < vp.markers.length; ++i) {
+        var ts = vp.markers[i].x;
+        if(ts >= viewLWorld && ts < viewRWorld) {
+          var viewX = vp.xWorldToView(ts);
+          ctx.moveTo(viewX, canvasH);
+          ctx.lineTo(viewX - 3, canvasH / 2);
+          ctx.lineTo(viewX + 3, canvasH / 2);
+          ctx.lineTo(viewX, canvasH);
+        }
+      }
+      ctx.fillStyle = 'rgb(0,0,0)';
+      ctx.fill();
 
       var idealMajorMarkDistancePix = 150;
       var idealMajorMarkDistanceWorld =

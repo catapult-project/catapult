@@ -54,6 +54,8 @@ base.defineModule('timeline')
     // and install a resize listener.
     this.checkForAttachInterval_ = setInterval(
         this.checkForAttach_.bind(this), 250);
+
+    this.markers = [];
   }
 
   TimelineViewport.prototype = {
@@ -80,6 +82,18 @@ base.defineModule('timeline')
         ctx.strokeStyle = 'rgba(255,0,0,0.25)';
         ctx.stroke();
       }
+
+      ctx.beginPath();
+      for(var i = 0; i < this.markers.length; ++i) {
+        var ts = this.markers[i].x;
+        if(ts >= viewLWorld && ts < viewRWorld) {
+          var viewX = this.xWorldToView(ts);
+          ctx.moveTo(viewX, 0);
+          ctx.lineTo(viewX, canvasH);
+        }
+      }
+      ctx.strokeStyle = 'rgb(0,0,0)';
+      ctx.stroke();
     },
 
     /**
@@ -258,6 +272,23 @@ base.defineModule('timeline')
 
     applyTransformToCanvas: function(ctx) {
       ctx.transform(this.scaleX_, 0, 0, 1, this.panX_ * this.scaleX_, 0);
+    },
+
+    addMarker: function(ts) {
+      this.markers.push({x: ts});
+      this.dispatchChangeEvent();
+    },
+
+    removeMarkerNear: function(ts, nearnessInViewPixels) {
+      // Converts pixels into distance in world.
+      var nearnessThresholdWorld = this.xViewVectorToWorld(nearnessInViewPixels);
+      for(var i = 0; i < this.markers.length; ++i) {
+        if(Math.abs(this.markers[i].x - ts) <= nearnessThresholdWorld) {
+         this.markers.splice(i, 1);
+         this.dispatchChangeEvent();
+         return true;
+        }
+      }
     }
   };
 
