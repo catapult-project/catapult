@@ -8,6 +8,7 @@
  */
 base.defineModule('tracing_controller')
     .stylesheet('tracing_controller')
+    .dependsOn('event_target')
     .exportsTo('tracing', function() {
 
   function TracingController() {
