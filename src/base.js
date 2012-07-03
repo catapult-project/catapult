@@ -38,9 +38,8 @@ this.base = (function() {
     try {
       var exports = fn();
     } catch(e) {
-      console.log('While running exports for ' + name + ':', e.stack || e);
-      if (e.stack)
-        console.log(e.stack);
+      console.log('While running exports for ', name, ':');
+      console.log(e.stack || e);
       return;
     }
 
@@ -57,14 +56,13 @@ this.base = (function() {
     }
   }
 
-  function doRuns(runs) {
+  function doRuns(name, runs) {
     for (var i = 0; i < runs.length; i++) {
       try {
         runs[i].call(global);
       } catch(e) {
-        console.log('While running runWhenLoaded for ' + this.name + ':', e.stack || e);
-        if (e.stack)
-          console.log(e.stack);
+        console.log('While running runWhenLoaded for ', name, ':');
+        console.log(e.stack || e);
       }
     }
   }
@@ -241,7 +239,7 @@ this.base = (function() {
 
       var runs = this.pendingRuns_;
       this.pendingRuns_ = [];
-      doRuns(runs);
+      doRuns(this.name, runs);
 
       if (this.scriptEl_) {
         mLog(this.name + ' has become fully loaded and is firing dependenciesSatisfied');
