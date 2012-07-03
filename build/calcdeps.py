@@ -171,9 +171,10 @@ class Module(object):
       rest = rest[m.end():]
 
     # Look for dependsOn.
-    m = re.match("\s*\.\s*dependsOn\((.+?)\)", rest, re.DOTALL)
+    m = re.match("\s*\.\s*dependsOn\((.*?)\)", rest, re.DOTALL)
     if m:
       deps = re.split(",\s*", m.group(1))
+      deps = [x for x in deps if len(x)]
       def stripquotes(x):
         n = re.match("""(["'])(.+)\\1""", x)
         assert n

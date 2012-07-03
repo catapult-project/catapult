@@ -29,6 +29,28 @@ base.defineModule('myModule')
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
 
+  def test_parse_empty_depends_declaration(self):
+    text = """// blahblahblah
+base.defineModule('myModule')
+      .dependsOn()
+"""
+    module = calcdeps.Module("myModule")
+    module.parse_declaration_(text)
+    self.assertEquals([], module.style_sheet_names);
+    self.assertEquals([], module.dependent_module_names);
+
+  def test_parse_empty_depends_declaration_2(self):
+    text = """// blahblahblah
+base.defineModule('myModule')
+      .dependsOn()
+      .exportsTo("x", function() {
+      });
+"""
+    module = calcdeps.Module("myModule")
+    module.parse_declaration_(text)
+    self.assertEquals([], module.style_sheet_names);
+    self.assertEquals([], module.dependent_module_names);
+
   def test_parse_declaration_2(self):
     text = """// blahblahblah
 base.defineModule('myModule')
