@@ -1,30 +1,29 @@
 <!DOCTYPE html>
+<html>
 <!--
-Copyright (c) 2010 The Chromium Authors. All rights reserved.
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<html>
 <head>
 <title>Overlay tests</title>
-<link rel="stylesheet" href="overlay.css">
 <script src="base.js"></script>
-<script src="unittest.js"></script>
-<script src="ui.js"></script>
-<script src="overlay.js"></script>
-<script>
-  unittest.runAllTests();
-</script>
-
 </head>
 <body>
-<div id="sandbox"></div>
 <script>
+'use strict';
+
+base.defineModule('overlay_test')
+    .dependsOn('unittest',
+               'overlay')
+    .runAllTests(function() {
 
 var sandbox = document.getElementById('sandbox');
 var overlay;
 
-function testShowHideUnparented() {
+var tests = {};
+
+tests.testShowHideUnparented = function() {
   overlay = new tracing.Overlay();
   overlay.innerHTML =
       '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
@@ -35,7 +34,7 @@ function testShowHideUnparented() {
   assertEquals(overlay.parentNode, null);
 }
 
-function testShowHideParented() {
+tests.testShowHideParented = function() {
   overlay = new tracing.Overlay();
   overlay.innerHTML =
       '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
@@ -47,6 +46,8 @@ function testShowHideParented() {
   assertEquals(overlay.parentNode, document.body);
 }
 
+return tests;
+});
 </script>
 
 </body>
