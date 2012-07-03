@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('timeline_test')
+base.defineModule('ui_test')
     .dependsOn('unittest',
                'ui')
     .runAllTests(function() {
@@ -41,7 +41,7 @@ base.defineModule('timeline_test')
       base.ui.decorate(testElement, TestElement);
       assertEquals(1, testElement.decorateCallCount);
     };
- 
+
     return tests;
 });
 </script>
