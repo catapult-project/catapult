@@ -237,9 +237,6 @@ base.defineModule('timeline_view')
       var analysisContainer_ = document.createElement('div');
       analysisContainer_.className = 'analysis-container';
 
-      var analysisContainerDragHandleEl = document.createElement('div');
-      analysisContainerDragHandleEl.className = 'analysis-container-drag-handle';
-
       this.analysisEl_ = new tracing.TimelineAnalysisView();
 
       this.dragEl_ = new TimelineDragHandle();
@@ -261,9 +258,7 @@ base.defineModule('timeline_view')
       this.appendChild(this.controlDiv_);
 
       this.appendChild(this.timelineContainer_);
-      this.appendChild(analysisContainerDragHandleEl);
-
-      analysisContainer_.appendChild(this.dragEl_);
+      this.appendChild(this.dragEl_);
 
       analysisContainer_.appendChild(this.analysisEl_);
       this.appendChild(analysisContainer_);

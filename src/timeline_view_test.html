@@ -109,6 +109,10 @@ base.defineModule('timeline_view_test')
       view.tabIndex = 0;
       view.focusElement = view;
 
+      var selection = new tracing.TimelineSelection();
+      view.timeline.addAllObjectsMatchingFilterToSelection({matchSlice: function(){return true;}}, selection);
+      view.timeline.selection = selection;
+
       document.body.appendChild(view);
     }
 
