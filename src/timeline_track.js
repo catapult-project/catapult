@@ -12,11 +12,12 @@ base.defineModule('timeline_track')
     .dependsOn('sorted_array_utils',
                'fast_rect_renderer',
                'timeline_model',
+               'timeline_color_scheme',
                'ui')
     .exportsTo('tracing', function() {
 
-  var pallette = tracing.getPallette();
-  var highlightIdBoost = tracing.getPalletteHighlightIdBoost();
+  var palette = tracing.getColorPalette();
+  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
 
   // TODO(jrg): possibly obsoleted with the elided string cache.
   // Consider removing.
@@ -600,7 +601,7 @@ base.defineModule('timeline_track')
       if (this.asyncStyle_)
         ctx.globalAlpha = 0.25;
       var tr = new tracing.FastRectRenderer(ctx, 2 * pixWidth, 2 * pixWidth,
-                                            pallette);
+                                            palette);
       tr.setYandH(0, canvasH);
       var slices = this.slices_;
       var lowSlice = tracing.findLowIndexInSortedArray(slices,
@@ -631,7 +632,7 @@ base.defineModule('timeline_track')
           if (pixWidth > 0.001) {
             tr.fillRect(x, pixWidth, colorId);
           } else {
-            ctx.fillStyle = pallette[colorId];
+            ctx.fillStyle = palette[colorId];
             ctx.beginPath();
             ctx.moveTo(x - (4 * pixWidth), canvasH);
             ctx.lineTo(x, 0);
@@ -1056,7 +1057,7 @@ base.defineModule('timeline_track')
       for (var seriesIndex = ctr.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
         var colorId = ctr.seriesColors[seriesIndex];
-        ctx.fillStyle = pallette[colorId];
+        ctx.fillStyle = palette[colorId];
         ctx.beginPath();
 
         // Set iLast and xLast such that the first sample we draw is the

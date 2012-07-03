@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>TimelineAsyncSliceGroup tests</title>
+<script src="base.js"></script>
+<style>
+  .timeline-view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .timeline-find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_async_slice_group_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_model')
+    .runAllTests(function() {
+
+  var tests = {};
+
+  var TimelineProcess = tracing.TimelineProcess;
+  var TimelineThread = tracing.TimelineThread;
+  var TimelineModel = tracing.TimelineModel;
+  var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
+  var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
+  var newAsyncSlice = test_utils.newAsyncSlice;
+
+  tests.testAsyncSliceGroupBounds_Empty = function() {
+    var g = new TimelineAsyncSliceGroup(name);
+    g.updateBounds();
+    assertEquals(undefined, g.minTimestamp);
+    assertEquals(undefined, g.maxTimestamp);
+  }
+
+  tests.testAsyncSliceGroupBounds_Basic = function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.push(newAsyncSlice(0, 1, t1, t1));
+    g.push(newAsyncSlice(1, 1.5, t1, t1));
+    assertEquals(2, g.length);
+    g.updateBounds();
+    assertEquals(0, g.minTimestamp);
+    assertEquals(2.5, g.maxTimestamp);
+  }
+
+  tests.testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices =
+      function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+    g.slices.push(newAsyncSlice(1, 1, t1, t1));
+
+    assertEquals(1, g.subRows.length);
+    assertEquals(2, g.subRows[0].length);
+    assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
+    assertEquals(g.slices[1].subSlices[0], g.subRows[0][1]);
+  }
+
+  tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+    g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
+    g.updateBounds();
+
+    assertEquals(2, g.subRows.length);
+    assertEquals(1, g.subRows[0].length);
+    assertEquals(g.slices[0], g.subRows[0][0]);
+    assertEquals(1, g.subRows[1].length);
+    assertEquals(g.slices[1], g.subRows[1][0]);
+  }
+
+  tests.testAsyncSliceGroup_rebuildSubRows_threePartlyOverlappingSlices =
+      function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+    g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
+    g.slices.push(newAsyncSlice(1, 1.5, t1, t1));
+    g.updateBounds();
+
+    assertEquals(2, g.subRows.length);
+    assertEquals(2, g.subRows[0].length);
+    assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
+    assertEquals(g.slices[2].subSlices[0], g.subRows[0][1]);
+    assertEquals(1, g.subRows[1].length);
+    assertEquals(g.slices[1].subSlices[0], g.subRows[1][0]);
+  }
+
+  tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+    g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
+    g.slices.push(newAsyncSlice(2, 1, t1, t1));
+    g.updateBounds();
+
+    assertEquals(2, g.subRows.length);
+    assertEquals(2, g.subRows[0].length);
+    assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
+    assertEquals(g.slices[2].subSlices[0], g.subRows[0][1]);
+    assertEquals(1, g.subRows[1].length);
+    assertEquals(g.slices[1].subSlices[0], g.subRows[1][0]);
+  }
+
+  tests.testAsyncSliceGroup_computeSubGroups_twoThreadSpecificSlices =
+      function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var t2 = new TimelineThread(p1, 2);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+    g.slices.push(newAsyncSlice(0, 1, t2, t2));
+
+    var subGroups = g.computeSubGroups();
+    assertEquals(2, subGroups.length);
+
+    assertEquals(g.name, subGroups[0].name);
+    assertEquals(1, subGroups[0].slices.length);
+    assertEquals(g.slices[0], subGroups[0].slices[0]);
+
+    assertEquals(g.name, subGroups[1].name);
+    assertEquals(1, subGroups[1].slices.length);
+    assertEquals(g.slices[1], subGroups[1].slices[0]);
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

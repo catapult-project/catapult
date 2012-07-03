@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>TimelineCounter tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_counter_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_counter')
+    .runAllTests(function() {
+
+  var tests = {};
+
+  // Our unittest harness treats a lack of tests as a failure. So,
+  // leave a single empty test in place so that this passes. Remove this
+  // when an actual test is added.
+  tests.testPlaceholder = function() {
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

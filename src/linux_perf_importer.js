@@ -17,7 +17,8 @@
  * code's readability.
  */
 base.defineModule('linux_perf_importer')
-  .dependsOn('timeline_model')
+  .dependsOn('timeline_model',
+             'timeline_color_scheme')
   .exportsTo('tracing', function() {
   /**
    * Represents the scheduling state for a single thread.
@@ -330,7 +331,7 @@ base.defineModule('linux_perf_importer')
               'Uninterruptable Sleep | WakeKill', ioWaitId,
               prevSlice.end, {}, midDuration));
           } else {
-            throw new Error('Unrecognized state: ') + 
+            throw new Error('Unrecognized state: ') +
                 prevSlice.args.stateWhenDescheduled;
           }
 

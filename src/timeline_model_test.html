@@ -26,45 +26,16 @@ found in the LICENSE file.
 base.defineModule('timeline_model_test')
     .dependsOn('unittest',
                'test_utils',
-               'timeline_view')
+               'timeline_model')
     .runAllTests(function() {
 
 var tests = {};
 
-var TimelineCpu = tracing.TimelineCpu;
 var TimelineSlice = tracing.TimelineSlice;
 var TimelineThreadSlice = tracing.TimelineThreadSlice;
-var TimelineProcess = tracing.TimelineProcess;
 var TimelineThread = tracing.TimelineThread;
 var TimelineModel = tracing.TimelineModel;
 var TimelineFilter = tracing.TimelineFilter;
-var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
-var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
-var newAsyncSlice = test_utils.newAsyncSlice;
-
-tests.testThreadBounds_Empty = function() {
-  var t = new TimelineThread(new TimelineProcess(7), 1);
-  t.updateBounds();
-  assertEquals(undefined, t.minTimestamp);
-  assertEquals(undefined, t.maxTimestamp);
-}
-
-tests.testThreadBounds_SubRow = function() {
-  var t = new TimelineThread(new TimelineProcess(7), 1);
-  t.subRows[0].push(new TimelineThreadSlice('a', 0, 1, {}, 3));
-  t.updateBounds();
-  assertEquals(1, t.minTimestamp);
-  assertEquals(4, t.maxTimestamp);
-}
-
-tests.testThreadBounds_AsyncSliceGroup = function() {
-  var t = new TimelineThread(new TimelineProcess(7), 1);
-  t.subRows[0].push(new TimelineThreadSlice('a', 0, 1, {}, 3));
-  t.asyncSlices.push(newAsyncSlice(0.1, 5, t, t));
-  t.updateBounds();
-  assertEquals(0.1, t.minTimestamp);
-  assertEquals(5.1, t.maxTimestamp);
-}
 
 tests.testModelBounds_EmptyModel = function() {
   var m = new TimelineModel();
@@ -100,21 +71,6 @@ tests.testModelBounds_OneThreadAndOneEmptyThread = function() {
   assertEquals(4, m.maxTimestamp);
 }
 
-tests.testCpuBounds_Empty = function() {
-  var cpu = new TimelineCpu(undefined, 1);
-  cpu.updateBounds();
-  assertEquals(undefined, cpu.minTimestamp);
-  assertEquals(undefined, cpu.maxTimestamp);
-}
-
-tests.testCpuBounds_OneSlice = function() {
-  var cpu = new TimelineCpu(undefined, 1);
-  cpu.slices.push(new TimelineSlice('a', 0, 1, {}, 3));
-  cpu.updateBounds();
-  assertEquals(1, cpu.minTimestamp);
-  assertEquals(4, cpu.maxTimestamp);
-}
-
 tests.testModelBounds_OneCpu = function() {
   var m = new TimelineModel();
   var cpu = m.getOrCreateCpu(1);
@@ -136,111 +92,6 @@ tests.testModelBounds_OneCpuOneThread = function() {
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
   assertEquals(5, m.maxTimestamp);
-}
-
-tests.testPTIDFromPidAndTid = function() {
-  assertEquals('1:2', TimelineThread.getPTIDFromPidAndTid(1, 2));
-}
-
-tests.testAsyncSliceGroupBounds_Empty = function() {
-  var g = new TimelineAsyncSliceGroup(name);
-  g.updateBounds();
-  assertEquals(undefined, g.minTimestamp);
-  assertEquals(undefined, g.maxTimestamp);
-}
-
-tests.testAsyncSliceGroupBounds_Basic = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.push(newAsyncSlice(0, 1, t1, t1));
-  g.push(newAsyncSlice(1, 1.5, t1, t1));
-  assertEquals(2, g.length);
-  g.updateBounds();
-  assertEquals(0, g.minTimestamp);
-  assertEquals(2.5, g.maxTimestamp);
-}
-
-tests.testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.slices.push(newAsyncSlice(0, 1, t1, t1));
-  g.slices.push(newAsyncSlice(1, 1, t1, t1));
-
-  assertEquals(1, g.subRows.length);
-  assertEquals(2, g.subRows[0].length);
-  assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
-  assertEquals(g.slices[1].subSlices[0], g.subRows[0][1]);
-}
-
-tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.slices.push(newAsyncSlice(0, 1, t1, t1));
-  g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
-  g.updateBounds();
-
-  assertEquals(2, g.subRows.length);
-  assertEquals(1, g.subRows[0].length);
-  assertEquals(g.slices[0], g.subRows[0][0]);
-  assertEquals(1, g.subRows[1].length);
-  assertEquals(g.slices[1], g.subRows[1][0]);
-}
-
-tests.testAsyncSliceGroup_rebuildSubRows_threePartlyOverlappingSlices = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.slices.push(newAsyncSlice(0, 1, t1, t1));
-  g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
-  g.slices.push(newAsyncSlice(1, 1.5, t1, t1));
-  g.updateBounds();
-
-  assertEquals(2, g.subRows.length);
-  assertEquals(2, g.subRows[0].length);
-  assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
-  assertEquals(g.slices[2].subSlices[0], g.subRows[0][1]);
-  assertEquals(1, g.subRows[1].length);
-  assertEquals(g.slices[1].subSlices[0], g.subRows[1][0]);
-}
-
-tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.slices.push(newAsyncSlice(0, 1, t1, t1));
-  g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
-  g.slices.push(newAsyncSlice(2, 1, t1, t1));
-  g.updateBounds();
-
-  assertEquals(2, g.subRows.length);
-  assertEquals(2, g.subRows[0].length);
-  assertEquals(g.slices[0].subSlices[0], g.subRows[0][0]);
-  assertEquals(g.slices[2].subSlices[0], g.subRows[0][1]);
-  assertEquals(1, g.subRows[1].length);
-  assertEquals(g.slices[1].subSlices[0], g.subRows[1][0]);
-}
-
-tests.testAsyncSliceGroup_computeSubGroups_twoThreadSpecificSlices = function() {
-  var p1 = new TimelineProcess(1);
-  var t1 = new TimelineThread(p1, 1);
-  var t2 = new TimelineThread(p1, 2);
-  var g = new TimelineAsyncSliceGroup('a');
-  g.slices.push(newAsyncSlice(0, 1, t1, t1));
-  g.slices.push(newAsyncSlice(0, 1, t2, t2));
-
-  var subGroups = g.computeSubGroups();
-  assertEquals(2, subGroups.length);
-
-  assertEquals(g.name, subGroups[0].name);
-  assertEquals(1, subGroups[0].slices.length);
-  assertEquals(g.slices[0], subGroups[0].slices[0]);
-
-  assertEquals(g.name, subGroups[1].name);
-  assertEquals(1, subGroups[1].slices.length);
-  assertEquals(g.slices[1], subGroups[1].slices[0]);
 }
 
 tests.testModelCanImportEmpty = function() {

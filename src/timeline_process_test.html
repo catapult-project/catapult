@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>TimelineProcess tests</title>
+<script src="base.js"></script>
+<style>
+  .timeline-view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .timeline-find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_process_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_model')
+    .runAllTests(function() {
+
+  var tests = {};
+
+  var TimelineProcess = tracing.TimelineProcess;
+
+  // Our unittest harness treats a lack of tests as a failure. So,
+  // leave a single empty test in place so that this passes. Remove this
+  // when an actual test is added.
+  tests.testGetOrCreateCounter = function() {
+    var process = new TimelineProcess(7);
+    var ctrBar = process.getOrCreateCounter('foo', 'bar');
+    var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
+    assertEquals(ctrBar2, ctrBar);
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

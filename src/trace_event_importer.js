@@ -7,7 +7,8 @@
  * into the provided timeline model.
  */
 base.defineModule('trace_event_importer')
-    .dependsOn('timeline_model')
+    .dependsOn('timeline_model',
+               'timeline_color_scheme')
     .exportsTo('tracing', function() {
   function ThreadState(tid) {
     this.openSlices = [];
