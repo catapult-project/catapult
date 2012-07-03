@@ -82,6 +82,34 @@ def generate_js():
 
   return result
 
+def is_out_of_date():
+  olddir = os.getcwd()
+  try:
+    os.chdir(srcdir)
+
+    o = open(os.path.join(srcdir, "about_tracing.html"), 'r')
+    existing_result_html = o.read()
+    o.close()
+
+    result_html = generate_html()
+
+    if result_html != existing_result_html:
+      return True
+
+    o = open(os.path.join(srcdir, "about_tracing.js"), 'r')
+    existing_result_js = o.read()
+    o.close()
+
+    result_js = generate_js()
+
+    if result_js != existing_result_js:
+      return True
+
+  finally:
+    os.chdir(olddir)
+  return False
+
+
 def main(args):
   parser = optparse.OptionParser()
   options, args = parser.parse_args(args)
