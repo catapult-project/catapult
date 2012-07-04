@@ -51,9 +51,27 @@ found in the LICENSE file.
     iframe.style.position = 'fixed';
     iframe.style.visibility = 'hidden';
     document.body.appendChild(iframe);
+    iframe.contentWindow.addEventListener('error', function(msg, url, lineNumber) {
+      if (iframe.contentWindow.G_testRunner)
+        return false;
+
+      if (iframe.contentWindow.errorsCaughtByTestHarness)
+        return false;
+
+      iframe.contentWindow.errorsCaughtByTestHarness = [
+          {msg: msg, url: url, lineNumber: lineNumber}];
+      return false;
+    });
+
     function checkForDone() {
       if (!iframe.contentWindow) {
         setTimeout(checkForDone, 100);
+        return;
+      }
+
+      if (iframe.contentWindow.errorsCaughtByTestHarness &&
+        iframe.contentWindow.errorsCaughtByTestHarness.length) {
+        testCaseEl.status = 'FAILED'
         return;
       }
 
