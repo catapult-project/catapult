@@ -1,0 +1,49 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+unittest-test-runner {
+  display: block;
+}
+test-case {
+  display: block;
+  font-size: 90%;
+}
+
+unittest-test-runner > title {
+  border-bottom: 1px solid black;
+  display: block;
+  font-family: sans-serif;
+  margin: auto;
+  width: 100%;
+}
+
+test-case > title {
+  display: block;
+  font-family: monospace;
+}
+
+test-case-error,
+test-case-output {
+  display: block;
+  margin-left: 16px;
+  margin-bottom: 16px;
+}
+test-case-stack {
+  overflow-x: auto;
+  display: block;
+  white-space: pre;
+  font-family: monospace;
+}
+.unittest-green {
+  color: darkgreen;
+}
+
+.unittest-yellow {
+  color: orange;
+}
+
+.unittest-red {
+  color: darkRed;
+}
+

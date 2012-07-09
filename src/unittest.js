@@ -10,59 +10,21 @@
  * with Closure tests.
  */
 base.defineModule('unittest')
+    .stylesheet('unittest')
     .exportsTo('unittest', function() {
 
-  function _ensureStylesheetInDocument(doc) {
-    if (document.querySelector('style[unittest-stylesheet]'))
-      return;
-    var style = doc.createElement('style');
-    style.setAttribute('unittest-stylesheet', true);
-
-    var css = ['.unittest {',
-               '  font: normal 100% monospace;',
-               '}',
-               '.unittest-green {',
-               '  color: darkgreen;',
-               '}',
-               '',
-               '.unittest-yellow {',
-               '  color: orange;',
-               '}',
-               '',
-               '.unittest-red {',
-               '  color: darkRed;',
-               '}',
-               '',
-               '.unittest-error {',
-               '  margin-left: 20px;',
-               '  font-size: 90%',
-               '}',
-               '.unittest-error-link {',
-               '  margin-left: 15px;',
-               '}',
-               '',
-               '.unittest-error-stack {',
-               '  padding-bottom: 8px;',
-               '  white-space: pre-wrap;',
-               '}',
-               '']
-    style.textContent = css.join('\n');
-    doc.head.appendChild(style);
-  }
-
   function createTestCaseDiv(testName, opt_href, opt_alwaysShowErrorLink) {
-    _ensureStylesheetInDocument(document);
-    var el = document.createElement('div');
+    var el = document.createElement('test-case');
 
-    var titleBlockEl = document.createElement('div');
+    var titleBlockEl = document.createElement('title');
     titleBlockEl.style.display = 'inline';
     el.appendChild(titleBlockEl);
 
     var titleEl = document.createElement('span');
+    titleEl.style.marginRight = '20px';
     titleBlockEl.appendChild(titleEl);
 
     var errorLink = document.createElement('a');
-    errorLink.className = 'unittest-error-link';
     errorLink.textContent = 'Run individually...';
     if (opt_href)
       errorLink.href = opt_href;
@@ -73,32 +35,63 @@ base.defineModule('unittest')
 
     el.__defineSetter__('status', function(status) {
       titleEl.textContent = testName + ': ' + status;
-      titleEl.className = statusToClassName(status);
+      updateClassListGivenStatus(titleEl, status);
       if (status == 'FAILED' || opt_alwaysShowErrorLink)
         errorLink.style.display = '';
       else
         errorLink.style.display = 'none';
     });
+
+    el.addError = function(test, e) {
+      var errorEl = createErrorDiv(test, e);
+      el.appendChild(errorEl);
+      return errorEl;
+    };
+
+    el.addHTMLOutput = function(opt_title, opt_element) {
+      var outputEl = createOutputDiv(opt_title, opt_element);
+      el.appendChild(outputEl);
+      return outputEl.contents;
+    };
+
     el.status = 'READY';
     return el;
   }
 
   function createErrorDiv(test, e) {
-    _ensureStylesheetInDocument(document);
-    var el = document.createElement('div');
+    var el = document.createElement('test-case-error');
     el.className = 'unittest-error';
 
-    var stackEl = document.createElement('div');
-    stackEl.className = 'unittest-error-stack';
-
+    var stackEl = document.createElement('test-case-stack');
     if (typeof e == "string") {
       stackEl.textContent = e;
     } else if (e.stack){
-      stackEl.textContent = e.stack;
+      var i = document.location.pathname.lastIndexOf('/');
+      var path = document.location.origin + document.location.pathname.substring(0, i);
+      var pathEscaped = path.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      var cleanStack = e.stack.replace(new RegExp(pathEscaped, 'g'), ".");
+      stackEl.textContent = cleanStack;
     } else {
       stackEl.textContent = e;
     }
     el.appendChild(stackEl);
+    return el;
+  }
+
+  function createOutputDiv(opt_title, opt_element) {
+    var el = document.createElement('test-case-output');
+    if (opt_title) {
+      var titleEl = document.createElement('div');
+      titleEl.textContent = opt_title;
+      el.appendChild(titleEl);
+    }
+    var contentEl = opt_element || document.createElement('div');
+    contentEl.style.border = '1px  solid black';
+    el.appendChild(contentEl);
+
+    el.__defineGetter__('contents', function() {
+      return contentEl;
+    });
     return el;
   }
 
@@ -111,11 +104,23 @@ base.defineModule('unittest')
       return 'unittest-red';
   }
 
+  function updateClassListGivenStatus(el, status) {
+    var newClass = statusToClassName(status);
+    if (newClass != 'unittest-green')
+      el.classList.remove('unittest-green');
+    if (newClass != 'unittest-yellow')
+      el.classList.remove('unittest-yellow');
+    if (newClass != 'unittest-red')
+      el.classList.remove('unittest-red');
+
+    el.classList.add(newClass);
+  }
+
   function HTMLTestRunner(opt_title, opt_curHash) {
     // This constructs a HTMLDivElement and then adds our own runner methods to
     // it. This is usually done via ui.js' define system, but we dont want our
     // test runner to be dependent on the UI lib. :)
-    var outputEl = document.createElement('div');
+    var outputEl = document.createElement('unittest-test-runner');
     outputEl.__proto__ = HTMLTestRunner.prototype;
     this.decorate.call(outputEl, opt_title, opt_curHash);
     return outputEl;
@@ -125,9 +130,7 @@ base.defineModule('unittest')
     __proto__: HTMLDivElement.prototype,
 
     decorate: function(opt_title, opt_curHash) {
-      _ensureStylesheetInDocument(document);
       this.running = false;
-      this.className = 'unittest-runner';
 
       this.currentTest_ = undefined;
       this.results = undefined;
@@ -139,14 +142,13 @@ base.defineModule('unittest')
       } else
         this.filterFunc_ = function(testName) { return true; };
 
-      this.statusEl_ = document.createElement('div');
+      this.statusEl_ = document.createElement('title');
       this.appendChild(this.statusEl_);
 
       this.resultsEl_ = document.createElement('div');
-      this.resultsEl_.style = 'unittest-results';
       this.appendChild(this.resultsEl_);
 
-      this.title = opt_title || document.title;
+      this.title_ = opt_title || document.title;
 
       this.updateStatus();
     },
@@ -173,8 +175,6 @@ base.defineModule('unittest')
 
     updateStatus: function() {
       var stats = this.computeResultStats();
-      this.className = 'unittest';
-
       var status;
       if (!this.results) {
         status = 'READY';
@@ -187,8 +187,8 @@ base.defineModule('unittest')
           status = 'FAILED';
       }
 
-      this.statusEl_.className = statusToClassName(status);
-      this.statusEl_.textContent = this.title + ' [' + status + ']';
+      updateClassListGivenStatus(this.statusEl_, status);
+      this.statusEl_.textContent = this.title_ + ' [' + status + ']';
     },
 
     get done() {
@@ -220,9 +220,19 @@ base.defineModule('unittest')
       this.resultsEl_.appendChild(this.currentTestCaseEl_);
     },
 
+    /**
+     * Adds some html content to the currently running test
+     * @param {String} opt_title The title for the output
+     * @param {HTMLElement} opt_element The element to add. If not added, then 
+     * @return {HTMLElement} The element added, or if !opt_element, the element created.
+     */
+    addHTMLOutput: function(opt_title, opt_element) {
+      return this.currentTestCaseEl_.addHTMLOutput(opt_title, opt_element);
+    },
+
     addError: function(e) {
       this.currentResults_.errors.push(e);
-      this.currentTestCaseEl_.appendChild(createErrorDiv(this.currentTest_, e));
+      return this.currentTestCaseEl_.addError(this.currentTest_, e);
     },
 
     didRunTest: function(test) {
@@ -258,6 +268,7 @@ base.defineModule('unittest')
 
     this.testMethod_ = testMethod;
     this.testMethodName_ = opt_testMethodName || testMethod.name;
+    this.results_ = undefined;
   };
 
   function forAllAssertAndEnsureMethodsIn_(prototype, fn) {
@@ -289,6 +300,16 @@ base.defineModule('unittest')
       forAllAssertAndEnsureMethodsIn_(TestCase.prototype, function(fieldName, fieldValue) {
         delete global[fieldName];
       });
+    },
+
+    /**
+     * Adds some html content to the currently running test
+     * @param {String} opt_title The title for the output
+     * @param {HTMLElement} opt_element The element to add. If not added, then 
+     * @return {HTMLElement} The element added, or if !opt_element, the element created.
+     */
+    addHTMLOutput: function(opt_title, opt_element) {
+      return this.results_.addHTMLOutput(opt_title, opt_element);
     },
 
     assertTrue: function(a, opt_message) {
@@ -388,6 +409,7 @@ base.defineModule('unittest')
     run: function(results) {
       this.bindGlobals_();
       try {
+        this.results_ = results;
         results.willRunTest(this);
 
         // Set up.
@@ -416,6 +438,7 @@ base.defineModule('unittest')
       } finally {
         this.unbindGlobals_();
         results.didRunTest(this);
+        this.results_ = undefined;
       }
     },
 

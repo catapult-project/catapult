@@ -86,8 +86,7 @@ function runAllTests() {
       continue;
     testMethodNames.push(name);
   }
-  var resultsEl = document.createElement('div');
-  resultsEl.className = 'unittest';
+  var resultsEl = document.createElement('unittest-test-runner');
   document.body.appendChild(resultsEl);
 
   var numFailures = 0;
@@ -97,18 +96,24 @@ function runAllTests() {
     var testCaseEl = unittest.createTestCaseDiv_(testMethodName);
     resultsEl.appendChild(testCaseEl);
     testCaseEl.status = 'RUNNING'
+
+    var testStub = {
+      get testName() {
+        return testMethodName;
+      },
+
+      addHTMLOutput: function(opt_title, opt_element) {
+        return testCaseEl.addHTMLOutput(opt_title, opt_element);
+      }
+    };
+
     try {
-      testMethod();
+      testMethod.call(testStub);
       testCaseEl.status = 'PASSED'
     } catch(e) {
       testCaseEl.status = 'FAILED'
       e.testName = testMethodName;
-      var testStub = {
-        get testName() {
-          return testMethodName;
-        }
-      };
-      testCaseEl.appendChild(unittest.createErrorDiv_(testStub, e));
+      testCaseEl.addError(testStub, e);
       numFailures += 1;
     }
   }
@@ -292,16 +297,8 @@ tests.testTestRunnerAllPassed = function() {
     assertTrue(true);
   }, "test2");
 
-  var testRunnerEl = document.createElement('div');
-  testRunnerEl.style.paddingTop = '24px';
-  testRunnerEl.textContent = 'testTestRunnerAllPassed output the following:';
-
-  var testRunnerInnerEl = document.createElement('div');
-  testRunnerInnerEl.style.marginLeft = '15px';
-  testRunnerInnerEl.style.border = '1px solid black';
-  testRunnerInnerEl.appendChild(runner);
-  testRunnerEl.appendChild(testRunnerInnerEl);
-  document.body.appendChild(testRunnerEl);
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result');
+  testRunnerEl.appendChild(runner);
   runner.run([test1, test2]);
 
   var stats = runner.computeResultStats();
@@ -332,16 +329,8 @@ tests.testTestRunnerOneFailed = function() {
     assertTrue(false);
   }, "test2");
 
-  var testRunnerEl = document.createElement('div');
-  testRunnerEl.style.paddingTop = '24px';
-  testRunnerEl.textContent = 'testTestRunnerOneFailed output the following:';
-
-  var testRunnerInnerEl = document.createElement('div');
-  testRunnerInnerEl.style.marginLeft = '15px';
-  testRunnerInnerEl.style.border = '1px solid black';
-  testRunnerInnerEl.appendChild(runner);
-  testRunnerEl.appendChild(testRunnerInnerEl);
-  document.body.appendChild(testRunnerEl);
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
+  testRunnerEl.appendChild(runner);
   runner.run([test1, test2]);
 
   var stats = runner.computeResultStats();
@@ -360,16 +349,8 @@ tests.testTestRunnerOneFailedWithHashFilter = function() {
     assertTrue(false);
   }, "test2");
 
-  var testRunnerEl = document.createElement('div');
-  testRunnerEl.style.paddingTop = '24px';
-  testRunnerEl.textContent = 'testTestRunnerOneFailedWithHashFilter output the following:';
-
-  var testRunnerInnerEl = document.createElement('div');
-  testRunnerInnerEl.style.marginLeft = '15px';
-  testRunnerInnerEl.style.border = '1px solid black';
-  testRunnerInnerEl.appendChild(runner);
-  testRunnerEl.appendChild(testRunnerInnerEl);
-  document.body.appendChild(testRunnerEl);
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
+  testRunnerEl.appendChild(runner);
   runner.run([test1, test2]);
 
   var stats = runner.computeResultStats();
@@ -404,12 +385,6 @@ tests.testTestRunnerFilter = function() {
   var tests = unittest.discoverTests(object, /test_2/);
   rawAssertEquals(1, tests.length);
   rawAssertEquals("test_2", tests[0].testName);
-}
-
-tests.testStylesheetWasInjected = function() {
-  var err = new unittest.TestError('hahaa');
-  var errEl = unittest.createErrorDiv_(err, { get testName() { return "err"; } });
-  rawAssertTrue(!!document.querySelector('style[unittest-stylesheet]'));
 }
 
 runAllTests();
