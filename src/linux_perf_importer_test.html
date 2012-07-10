@@ -445,6 +445,26 @@ tests.testi915Import = function() {
   assertEquals('drm_vblank', vblankThread.name);
   assertEquals(1, vblankThread.subRows.length);
 }
+
+tests.testExynosImport = function() {
+  var lines = [
+    '               X-945   [001] ....   113.995549: exynos_flip_request: ' +
+                    'pipe=0',
+    '               X-945   [001] ....   113.995561: exynos_flip_complete: ' +
+                    'pipe=0'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  // For hand-assigned pseudo PID's+TID's.
+  var exports = tracing._LinuxPerfImporterTestExports;
+
+  var kernelProc = m.processes[exports.pseudoKernelPID];
+
+  var exynosFlipThread = kernelProc.threads[exports.pseudoExynosFlipTID];
+  assertEquals('exynos_flip', exynosFlipThread.name);
+  assertEquals(1, exynosFlipThread.subRows.length);
+}
 return tests;
 });
 

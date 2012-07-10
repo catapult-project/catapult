@@ -134,6 +134,8 @@ base.defineModule('linux_perf_importer')
   TestExports.pseudoI915RegTID = pseudoI915RegTID;
   var pseudoVblankTID = 5;
   TestExports.pseudoVblankTID = pseudoVblankTID;
+  var pseudoExynosFlipTID = 6;
+  TestExports.pseudoExynosFlipTID = pseudoExynosFlipTID;
 
   /**
    * Deduce the format of trace data. Linix kernels prior to 3.3 used
@@ -530,6 +532,31 @@ base.defineModule('linux_perf_importer')
         kthread.openSlice = undefined;
     },
 
+    exynosOpenFlipSlice: function(ts, pipe) {
+      // Should we use the Exynos pipe to fake up a thread in case we have more
+      // than one pipe in use?
+      var kthread = this.getOrCreateKernelThread('exynos_flip',
+          pseudoKernelPID, pseudoExynosFlipTID);
+      kthread.openSliceTS = ts;
+      kthread.openSlice = 'flip in pipe:' + pipe;
+    },
+
+    exynosCloseFlipSlice: function(ts, args) {
+      // use exynos pipe in thread?
+      var kthread = this.getOrCreateKernelThread('exynos_flip',
+          pseudoKernelPID, pseudoExynosFlipTID);
+      if (kthread.openSlice) {
+        var slice = new tracing.TimelineSlice(kthread.openSlice,
+            tracing.getStringColorId(kthread.openSlice),
+            kthread.openSliceTS,
+            args,
+            ts - kthread.openSliceTS);
+
+        kthread.thread.subRows[0].push(slice);
+      }
+      kthread.openSlice = undefined;
+    },
+
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.getOrCreateKernelThread('drm_vblank',
           pseudoKernelPID, pseudoVblankTID);
@@ -893,6 +920,29 @@ base.defineModule('linux_perf_importer')
                   {
                     obj: obj,
                     plane: plane
+                  });
+            break;
+          case 'exynos_flip_request':
+            var event = /pipe=(\d+)/.exec(eventBase[5]);
+            if (!event) {
+              this.malformedEvent(eventName);
+              continue;
+            }
+
+            var pipe = parseInt(event[1]);
+            this.exynosOpenFlipSlice(ts, pipe);
+            break;
+          case 'exynos_flip_complete':
+            var event = /pipe=(\d+)/.exec(eventBase[5]);
+            if (!event) {
+              this.malformedEvent(eventName);
+              continue;
+            }
+
+            var pipe = parseInt(event[1]);
+            this.exynosCloseFlipSlice(ts,
+                  {
+                    pipe: pipe
                   });
             break;
           case 'drm_vblank_event':
