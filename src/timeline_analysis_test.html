@@ -39,8 +39,7 @@ base.defineModule('timeline_analysis_test')
         {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       ];
-      var model = new tracing.TimelineModel();
-      model.importEvents(events);
+      var model = new tracing.TimelineModel(events);
 
       var t53track = new tracing.TimelineThreadTrack();
       t53track.thread = model.processes[52].threads[53];
@@ -60,8 +59,7 @@ base.defineModule('timeline_analysis_test')
         {name: 'aa', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'aa', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'},
       ];
-      var model = new tracing.TimelineModel();
-      model.importEvents(events);
+      var model = new tracing.TimelineModel(events);
 
       var t53track = new tracing.TimelineThreadTrack();
       t53track.thread = model.processes[52].threads[53];
@@ -81,8 +79,7 @@ base.defineModule('timeline_analysis_test')
         {name: 'c', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'c', args: {}, pid: 52, ts: 800, cat: 'foo', tid: 53, ph: 'E'},
       ];
-      var model = new tracing.TimelineModel();
-      model.importEvents(events);
+      var model = new tracing.TimelineModel(events);
 
       var t53track = new tracing.TimelineThreadTrack();
       t53track.thread = model.processes[52].threads[53];
@@ -96,7 +93,7 @@ base.defineModule('timeline_analysis_test')
     }
 
     function createSelectionWithCounters(numSamples) {
-      if (numSamples > 2 || numSamples < 1) 
+      if (numSamples > 2 || numSamples < 1)
         throw new Error('This function only supports 1 or 2 samples');
       var events = [
         {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,

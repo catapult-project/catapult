@@ -31,21 +31,21 @@ base.defineModule('timeline_model')
 
   /**
    * Builds a model from an array of TraceEvent objects.
-   * @param {Object=} opt_data The event data to import into the new model.
-   *     See TimelineModel.importEvents for details and more advanced ways to
-   *     import data.
-   * @param {bool=} opt_zeroAndBoost Whether to align to zero and boost the
-   *     by 15%. Defaults to true.
+   * @param {Object=} opt_eventData Data from a single trace to be imported into
+   *     the new model. See TimelineModel.importTraces for details on how to
+   *     import multiple traces at once.
+   * @param {bool=} opt_shiftWorldToZero Whether to shift the world to zero.
+   * Defaults to true.
    * @constructor
    */
-  function TimelineModel(opt_eventData, opt_zeroAndBoost) {
+  function TimelineModel(opt_eventData, opt_shiftWorldToZero) {
     this.cpus = {};
     this.processes = {};
     this.importErrors = [];
     this.asyncSliceGroups = {};
 
     if (opt_eventData)
-      this.importEvents(opt_eventData, opt_zeroAndBoost);
+      this.importTraces([opt_eventData], opt_shiftWorldToZero);
   }
 
   var importerConstructors = [];
@@ -61,6 +61,7 @@ base.defineModule('timeline_model')
   };
 
   function TimelineModelEmptyImporter(events) {
+    this.importPriority = 0;
   };
 
   TimelineModelEmptyImporter.canImport = function(eventData) {
@@ -113,34 +114,57 @@ base.defineModule('timeline_model')
       return this.processes[pid];
     },
 
+
     /**
-     * The import takes an array of json-ified TraceEvents and adds them into
-     * the TimelineModel as processes, threads, and slices.
+     * Closes any slices that need closing
      */
+    autoCloseOpenSlices_: function() {
+      this.updateBounds();
+      var maxTimestamp = this.maxTimestamp;
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        for (var tid in process.threads) {
+          var thread = process.threads[tid];
+          thread.autoCloseOpenSlices(maxTimestamp);
+        }
+      }
+    },
+
+    /**
+     * Generates import errors for any threads in the model
+     * that had badSlices.
+     */
+    generateImportErrorsForBadSlices_: function() {
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        for (var tid in process.threads) {
+          var thread = process.threads[tid];
+          var badSlices = thread.badSlices;
+          for (var i = 0; i < badSlices.length; i++) {
+            this.importErrors.push(
+                'Thread ' + tid +
+                '\'s had a slice named ' + badSlices[i].title +
+                ' start=' + badSlices[i].start +
+                ' with duration=' + badSlices[i].duration +
+                ' that could not be placed.');
+          }
+        }
+      }
+    },
 
     /**
      * Removes threads from the model that are fully empty.
      */
-    pruneEmptyThreads: function() {
+    pruneEmptyThreads_: function() {
       for (var pid in this.processes) {
         var process = this.processes[pid];
-        var prunedThreads = {};
+        var threadsToKeep = {};
         for (var tid in process.threads) {
           var thread = process.threads[tid];
-
-          // Begin-events without matching end events leave a thread in a state
-          // where the toplevel subrows are empty but child subrows have
-          // entries. The autocloser will fix this up later. But, for the
-          // purposes of pruning, such threads need to be treated as having
-          // content.
-          var hasNonEmptySubrow = false;
-          for (var s = 0; s < thread.subRows.length; s++)
-            hasNonEmptySubrow |= thread.subRows[s].length > 0;
-
-          if (hasNonEmptySubrow || thread.asyncSlices.length > 0)
-            prunedThreads[tid] = thread;
+          if (!thread.isEmpty)
+            threadsToKeep[tid] = thread;
         }
-        process.threads = prunedThreads;
+        process.threads = threadsToKeep;
       }
     },
 
@@ -253,18 +277,7 @@ base.defineModule('timeline_model')
       return counters;
     },
 
-    /**
-     * Imports the provided events into the model. The eventData type
-     * is undefined and will be passed to all the timeline importers registered
-     * via TimelineModel.registerImporter. The first importer that returns true
-     * for canImport(events) will be used to import the events.
-     *
-     * @param {Object} events Events to import.
-     * @param {boolean} isAdditionalImport True the eventData being imported is
-     *     an additional trace after the primary eventData.
-     * @return {TimelineModelImporter} The importer used for the eventData.
-     */
-    importOneTrace_: function(eventData, isAdditionalImport) {
+    createImporter_: function(eventData) {
       var importerConstructor;
       for (var i = 0; i < importerConstructors.length; ++i) {
         if (importerConstructors[i].canImport(eventData)) {
@@ -277,8 +290,7 @@ base.defineModule('timeline_model')
             'Could not find an importer for the provided eventData.');
 
       var importer = new importerConstructor(
-          this, eventData, isAdditionalImport);
-      importer.importEvents();
+          this, eventData);
       return importer;
     },
 
@@ -292,45 +304,44 @@ base.defineModule('timeline_model')
      * traces are to be imported, specify the first one as events, and the
      * remainder in the opt_additionalEventData array.
      *
-     * @param {Object} eventData Events to import.
-     * @param {bool=} opt_zeroAndBoost Whether to align to zero and boost the
-     *     by 15%. Defaults to true.
-     * @param {Array=} opt_additionalEventData An array of eventData objects
-     *     (e.g. array of arrays) to
-     * import after importing the primary events.
+     * @param {Array} traces An array of eventData to be imported. Each
+     * eventData should correspond to a single trace file and will be handled by
+     * a separate importer.
+     * @param {bool=} opt_shiftWorldToZero Whether to shift the world to zero.
+     * Defaults to true.
      */
-    importEvents: function(eventData,
-                           opt_zeroAndBoost, opt_additionalEventData) {
-      if (opt_zeroAndBoost === undefined)
-        opt_zeroAndBoost = true;
+    importTraces: function(traces,
+                           opt_shiftWorldToZero) {
+      if (opt_shiftWorldToZero === undefined)
+        opt_shiftWorldToZero = true;
 
-      var activeImporters = [];
-      var importer = this.importOneTrace_(eventData, false);
-      activeImporters.push(importer);
-      if (opt_additionalEventData) {
-        for (var i = 0; i < opt_additionalEventData.length; ++i) {
-          importer = this.importOneTrace_(opt_additionalEventData[i], true);
-          activeImporters.push(importer);
-        }
-      }
-      for (var i = 0; i < activeImporters.length; ++i)
-        activeImporters[i].finalizeImport();
+      // Figure out which importers to use.
+      var importers = [];
+      for (var i = 0; i < traces.length; ++i)
+        importers.push(this.createImporter_(traces[i]));
 
-      for (var i = 0; i < activeImporters.length; ++i)
-        this.pruneEmptyThreads();
+      // Sort them on priority. This ensures importing happens in a predictable
+      // order, e.g. linux_perf_importer before trace_event_importer.
+      importers.sort(function(x, y) {
+        return x.importPriority - y.importPriority;
+      });
 
+      // Run the import.
+      for (var i = 0; i < importers.length; i++)
+        importers[i].importEvents(i > 0);
+
+      this.autoCloseOpenSlices_();
+
+      for (var i = 0; i < importers.length; i++)
+        importers[i].finalizeImport();
+
+      this.generateImportErrorsForBadSlices_();
+
+      this.pruneEmptyThreads_();
       this.updateBounds();
 
-      if (opt_zeroAndBoost)
+      if (opt_shiftWorldToZero)
         this.shiftWorldToZero();
-
-      if (opt_zeroAndBoost &&
-          this.minTimestamp !== undefined &&
-          this.maxTimestamp !== undefined) {
-        var boost = (this.maxTimestamp - this.minTimestamp) * 0.15;
-        this.minTimestamp = this.minTimestamp - boost;
-        this.maxTimestamp = this.maxTimestamp + boost;
-      }
     }
   };
 

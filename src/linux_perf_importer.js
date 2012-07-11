@@ -70,8 +70,8 @@ base.defineModule('linux_perf_importer')
    * Imports linux perf events into a specified model.
    * @constructor
    */
-  function LinuxPerfImporter(model, events, isAdditionalImport) {
-    this.isAdditionalImport_ = isAdditionalImport;
+  function LinuxPerfImporter(model, events) {
+    this.importPriority = 2;
     this.model_ = model;
     this.events_ = events;
     this.clockSyncRecords_ = [];
@@ -235,9 +235,9 @@ base.defineModule('linux_perf_importer')
     /**
      * Imports the data in this.events_ into model_.
      */
-    importEvents: function() {
+    importEvents: function(isSecondaryImport) {
       this.importCpuData();
-      if (!this.alignClocks())
+      if (!this.alignClocks(isSecondaryImport))
         return;
       this.buildPerThreadCpuSlicesFromCpuState();
     },
@@ -348,11 +348,11 @@ base.defineModule('linux_perf_importer')
      * Walks the slices stored on this.cpuStates_ and adjusts their timestamps
      * based on any alignment metadata we discovered.
      */
-    alignClocks: function() {
+    alignClocks: function(isSecondaryImport) {
       if (this.clockSyncRecords_.length == 0) {
-        // If this is an additional import, and no clock syncing records were
+        // If this is a secondary import, and no clock syncing records were
         // found, then abort the import. Otherwise, just skip clock alignment.
-        if (!this.isAdditionalImport_)
+        if (!isSecondaryImport)
           return;
 
         // Remove the newly imported CPU slices from the model.
@@ -386,9 +386,7 @@ base.defineModule('linux_perf_importer')
       for (var kernelThreadName in this.kernelThreadStates_) {
         var kthread = this.kernelThreadStates_[kernelThreadName];
         var thread = kthread.thread;
-        for (var i = 0; i < thread.subRows[0].length; i++) {
-          thread.subRows[0][i].start += timeShift;
-        }
+        thread.shiftTimestampsForward(timeShift);
       }
       return true;
     },
@@ -485,7 +483,7 @@ base.defineModule('linux_perf_importer')
       var slice = new tracing.TimelineSlice(kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.subRows[0].push(slice);
+      kthread.thread.pushSlice(slice);
     },
 
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
@@ -495,7 +493,7 @@ base.defineModule('linux_perf_importer')
       var slice = new tracing.TimelineSlice(kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.subRows[0].push(slice);
+      kthread.thread.pushSlice(slice);
     },
 
     i915RegSlice: function(ts, eventName, reg, args) {
@@ -505,7 +503,7 @@ base.defineModule('linux_perf_importer')
       var slice = new tracing.TimelineSlice(kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.subRows[0].push(slice);
+      kthread.thread.pushSlice(slice);
     },
 
     i915OpenFlipSlice: function(ts, obj, plane) {
@@ -527,7 +525,7 @@ base.defineModule('linux_perf_importer')
               args,
               ts - kthread.openSliceTS);
 
-          kthread.thread.subRows[0].push(slice);
+          kthread.thread.pushSlice(slice);
         }
         kthread.openSlice = undefined;
     },
@@ -552,7 +550,7 @@ base.defineModule('linux_perf_importer')
             args,
             ts - kthread.openSliceTS);
 
-        kthread.thread.subRows[0].push(slice);
+        kthread.thread.pushSlice(slice);
       }
       kthread.openSlice = undefined;
     },
@@ -564,7 +562,7 @@ base.defineModule('linux_perf_importer')
       var slice = new tracing.TimelineSlice(kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.subRows[0].push(slice);
+      kthread.thread.pushSlice(slice);
     },
 
     /**
@@ -696,7 +694,7 @@ base.defineModule('linux_perf_importer')
                   {},
                   ts - kthread.openSliceTS);
 
-              kthread.thread.subRows[0].push(slice);
+              kthread.thread.pushSlice(slice);
             }
             kthread.openSlice = undefined;
             break;

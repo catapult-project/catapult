@@ -20,6 +20,7 @@ base.defineModule('trace_event_importer_test')
     .runAllTests(function() {
 
 var tests = {};
+var findSliceNamed = test_utils.findSliceNamed;
 
 tests.testCanImportEmpty = function() {
   self.assertFalse(tracing.TraceEventImporter.canImport([]));
@@ -59,6 +60,21 @@ tests.testBasicSingleThreadNonnestedParsing = function() {
   assertEquals(0, slice.subSlices.length);
 }
 
+tests.testArgumentDupeCreatesNonFailingImportError = function() {
+  var events = [
+    {name: 'a', args: {'x': 1}, pid: 1, ts: 520, cat: 'foo', tid: 1, ph: 'B'},
+    {name: 'a', args: {'x': 2}, pid: 1, ts: 560, cat: 'foo', tid: 1, ph: 'E'},
+  ];
+
+  var m = new tracing.TimelineModel(events);
+  var t = m.processes[1].threads[1];
+  var sA = findSliceNamed(t.slices, 'a');
+
+  assertEquals(2, sA.args.x);
+  assertEquals(m.importErrors.length, 1);
+}
+
+
 tests.testNestedParsing = function() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -66,27 +82,25 @@ tests.testNestedParsing = function() {
     {name: 'b', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.TimelineModel(events);
+  var m = new tracing.TimelineModel(events, false);
+  var t = m.processes[1].threads[1];
 
-  var p = m.processes[1];
-  var t = p.threads[1];
+  var sA = findSliceNamed(t.slices, 'a');
+  var sB = findSliceNamed(t.slices, 'b');
+
+  assertEquals('a', sA.title);
+  assertEquals(0.001, sA.start);
+  assertEquals(0.003, sA.duration);
+  assertArrayEquals([sB], sA.subSlices);
+
+  assertEquals('b', sB.title);
+  assertEquals(0.002, sB.start);
+  assertEquals(0.001, sB.duration);
+  assertArrayEquals([], sB.subSlices);
+
   assertEquals(2, t.subRows.length);
-  var subRow = t.subRows[0];
-  assertEquals(1, subRow.length);
-  var slice = subRow[0];
-  assertEquals('a', slice.title);
-  assertEquals((4 - 1) / 1000, slice.duration);
-  assertEquals(1, slice.subSlices.length);
-
-  slice = slice.subSlices[0];
-  assertEquals('b', slice.title);
-  assertEquals((2 - 1) / 1000, slice.start);
-  assertEquals((3 - 2) / 1000, slice.duration);
-  assertEquals(0, slice.subSlices.length);
-
-  subRow = t.subRows[1];
-  slice = subRow[0];
-  assertEquals(t.subRows[0][0].subSlices[0], slice);
+  assertArrayEquals([sA], t.subRows[0]);
+  assertArrayEquals([sB], t.subRows[1]);
 }
 
 tests.testAutoclosing = function() {
@@ -132,12 +146,22 @@ tests.testAutoclosingWithSubTasks = function() {
     {name: 'b1', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
     {name: 'b2', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'}
   ];
-  var m = new tracing.TimelineModel(events);
-  var p = m.processes[1];
-  var t = p.threads[1];
-  assertEquals(2, t.subRows.length);
-  assertEquals(1, t.subRows[0].length);
-  assertEquals(2, t.subRows[1].length);
+  var m = new tracing.TimelineModel(events, false);
+  var t = m.processes[1].threads[1];
+
+  var sA = findSliceNamed(t.slices, 'a');
+  var sB1 = findSliceNamed(t.slices, 'b1');
+  var sB2 = findSliceNamed(t.slices, 'b2');
+
+  // The subRow builder uses timestamp containment of a slice to determine
+  // nesting, rather than the sequential ordering of B/E events. In this case,
+  // the autocloser shuts everything at 0.003, leaving b2 with end=0.003 and b2
+  // with start==end==0.003. Thus, b2 gets placed inside b1, even though in the
+  // original trace, b2 follows b1.
+  assertEquals(3, t.subRows.length);
+  assertArrayEquals([sA], t.subRows[0]);
+  assertArrayEquals([sB1], t.subRows[1]);
+  assertArrayEquals([sB2], t.subRows[2]);
 }
 
 tests.testAutoclosingWithEventsOutsideRange = function() {
@@ -150,25 +174,24 @@ tests.testAutoclosingWithEventsOutsideRange = function() {
     {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.TimelineModel(events);
+  var m = new tracing.TimelineModel(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
+  assertEquals(2, t.slices.length);
+
   var subRow = t.subRows[0];
   assertEquals('a', subRow[0].title);
   assertEquals(0, subRow[0].start);
   assertEquals(0.003, subRow[0].duration);
 
-  var t = p.threads[2];
-  var subRow = t.subRows[0];
-  assertEquals('b', subRow[0].title);
-  assertEquals(0.001, subRow[0].start);
-  assertEquals(0.001, subRow[0].duration);
+  var t2 = p.threads[2];
+  var subRow2 = t2.subRows[0];
+  assertEquals('b', subRow2[0].title);
+  assertEquals(0.001, subRow2[0].start);
+  assertEquals(0.001, subRow2[0].duration);
 
-  // 0.00345 instead of 0.003 because TimelineModel bloats the world range by
-  // 15%.
-  assertEquals(-0.00045, m.minTimestamp);
-  assertEquals(0.00345, m.maxTimestamp);
-
+  assertEquals(0.000, m.minTimestamp);
+  assertEquals(0.003, m.maxTimestamp);
 }
 
 tests.testNestedAutoclosing = function() {
@@ -181,21 +204,23 @@ tests.testNestedAutoclosing = function() {
     {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.TimelineModel(events);
-  var p = m.processes[1];
-  var t = p.threads[1];
-  var subRow = t.subRows[0];
-  var slice = subRow[0];
-  assertEquals('a1', slice.title);
-  assertTrue(slice.didNotFinish);
-  assertEquals(0, slice.start);
-  assertEquals((2 - 1) / 1000, slice.duration);
+  var m = new tracing.TimelineModel(events, false);
+  var t1 = m.processes[1].threads[1];
+  var t2 = m.processes[1].threads[2];
 
-  var slice = slice.subSlices[0];
-  assertEquals('a2', slice.title);
-  assertTrue(slice.didNotFinish);
-  assertEquals((1.5 - 1) / 1000, slice.start);
-  assertEquals((2 - 1.5) / 1000, slice.duration);
+  var sA1 = findSliceNamed(t1.slices, 'a1');
+  var sA2 = findSliceNamed(t1.slices, 'a2');
+  var sB = findSliceNamed(t2.slices, 'b');
+
+  assertEquals(0.002, sA1.end);
+  assertEquals(0.002, sA2.end);
+
+  assertEquals(2, t1.subRows.length);
+  assertArrayEquals([sA1], t1.subRows[0]);
+  assertArrayEquals([sA2], t1.subRows[1]);
+
+  assertEquals(1, t2.subRows.length);
+  assertArrayEquals([sB], t2.subRows[0]);
 }
 
 tests.testTaskColoring = function() {
@@ -335,23 +360,21 @@ tests.testThreadNames = function() {
   assertEquals('Thread 2', m.processes[2].threads[2].name);
 }
 
-// User time.
-tests.testUserTime = function() {
+tests.testParsingWhenEndComesFirst = function() {
   var events = [
-    {name: 'thread_name', args: {name: 'Thread 1'},
-      pid: 1, ts: 0, tid: 1, ph: 'M'},
-    {name: 'a', args: {}, pid: 1, ts: 1, uts: 10, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'a', args: {}, pid: 1, ts: 2, uts: 20, cat: 'foo', tid: 1, ph: 'E'},
-    {name: 'a', args: {}, pid: 1, ts: 2 , uts: 60, cat: 'foo', tid: 1, ph: 'I'}
+    {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E'},
+    {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
+    {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.TimelineModel(events);
-  var subRow = m.processes[1].threads[1].subRows[0];
-  assertEquals(0.01, subRow[0].startInUserTime);
-  assertEquals(0.01, subRow[0].durationInUserTime);
-  assertEquals(0.06, subRow[1].startInUserTime);
-  assertEquals(0, subRow[1].durationInUserTime);
+  var m = new tracing.TimelineModel(events, false);
+  var p = m.processes[1];
+  var t = p.threads[1];
+  assertEquals(1, t.slices.length);
+  assertEquals('a', t.slices[0].title);
+  assertEquals(0.004, t.slices[0].start);
+  assertEquals(0.001, t.slices[0].duration);
+  assertEquals(1, m.importErrors.length);
 }
-
 
 tests.testImmediateParsing = function() {
   var events = [
@@ -361,20 +384,26 @@ tests.testImmediateParsing = function() {
     {name: 'immediate', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'I'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.TimelineModel(events);
+  var m = new tracing.TimelineModel(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
+  assertEquals(2, t.slices.length);
+  assertEquals(0.002, t.slices[0].start);
+  assertEquals(0, t.slices[0].duration);
+  assertEquals(0.001, t.slices[1].start);
+  assertEquals(0.003, t.slices[1].duration);
+
   assertEquals(2, t.subRows.length);
   var subRow = t.subRows[0];
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
-  assertEquals((4 - 1) / 1000, slice.duration);
+  assertEquals(0.003, slice.duration);
   assertEquals(1, slice.subSlices.length);
 
   var immed = slice.subSlices[0];
   assertEquals('immediate', immed.title);
-  assertEquals((2 - 1) / 1000, immed.start);
+  assertEquals(0.002, immed.start);
   assertEquals(0, immed.duration);
   assertEquals(0, immed.subSlices.length);
 

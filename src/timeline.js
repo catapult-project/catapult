@@ -143,7 +143,11 @@ base.defineModule('timeline')
       var curSize = this.clientWidth + 'x' + this.clientHeight;
       if (this.pendingSetFunction_) {
         this.lastSize_ = curSize;
-        this.pendingSetFunction_();
+        try {
+          this.pendingSetFunction_();
+        } catch(ex) {
+          console.log("While running setWhenPossible:", ex);
+        }
         this.pendingSetFunction_ = undefined;
       }
 
@@ -637,8 +641,10 @@ base.defineModule('timeline')
       // Set up a reasonable viewport.
       this.viewport_.setWhenPossible(function() {
         var w = this.firstCanvas.width;
-        this.viewport_.xSetWorldRange(this.model_.minTimestamp,
-                                      this.model_.maxTimestamp,
+        var boost =
+            (this.model_.maxTimestamp - this.model_.minTimestamp) * 0.15;
+        this.viewport_.xSetWorldRange(this.model_.minTimestamp - boost,
+                                      this.model_.maxTimestamp + boost,
                                       w);
       }.bind(this));
     },
@@ -854,8 +860,11 @@ base.defineModule('timeline')
     },
 
     get firstCanvas() {
-      return this.tracks_.firstChild ?
-          this.tracks_.firstChild.firstCanvas : undefined;
+      if (this.viewportTrack_)
+        return this.viewportTrack_.firstCanvas;
+      if (this.tracks_.firstChild)
+        return this.tracks_.firstChild.firstCanvas;
+      return undefined;
     },
 
     hideDragBox_: function() {

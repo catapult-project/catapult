@@ -55,7 +55,7 @@ tests.testModelBounds_OneEmptyThread = function() {
 tests.testModelBounds_OneThread = function() {
   var m = new TimelineModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t.subRows[0].push(new TimelineThreadSlice('a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
   assertEquals(4, m.maxTimestamp);
@@ -64,7 +64,7 @@ tests.testModelBounds_OneThread = function() {
 tests.testModelBounds_OneThreadAndOneEmptyThread = function() {
   var m = new TimelineModel();
   var t1 = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t1.subRows[0].push(new TimelineThreadSlice('a', 0, 1, {}, 3));
+  t1.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
   var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
@@ -87,7 +87,7 @@ tests.testModelBounds_OneCpuOneThread = function() {
   cpu.slices.push(new TimelineSlice('a', 0, 1, {}, 3));
 
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t.subRows[0].push(new TimelineThreadSlice('a', 0, 1, {}, 4));
+  t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 4));
 
   m.updateBounds();
   assertEquals(1, m.minTimestamp);

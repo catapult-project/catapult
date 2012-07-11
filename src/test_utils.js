@@ -41,9 +41,28 @@ base.defineModule('test_utils')
     return s;
   }
 
+  function newSlice(start, duration) {
+    return newSliceNamed('a', start, duration);
+  }
+
+  function newSliceNamed(name, start, duration) {
+    var s = new tracing.TimelineSlice(name, 0, start, {}, duration);
+    return s;
+  }
+
+  function findSliceNamed(slices, name) {
+    for (var i = 0; i < slices.length; i++)
+      if (slices[i].title == name)
+        return slices[i];
+    return undefined;
+  }
+
   return {
     getAsync: getAsync,
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
+    newSlice: newSlice,
+    newSliceNamed: newSliceNamed,
+    findSliceNamed: findSliceNamed
   };
 });

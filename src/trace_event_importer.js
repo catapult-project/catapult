@@ -10,11 +10,9 @@ base.defineModule('trace_event_importer')
     .dependsOn('timeline_model',
                'timeline_color_scheme')
     .exportsTo('tracing', function() {
-  function ThreadState(tid) {
-    this.openSlices = [];
-  }
 
   function TraceEventImporter(model, eventData) {
+    this.importPriority = 1;
     this.model_ = model;
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -46,11 +44,6 @@ base.defineModule('trace_event_importer')
     // If we see that, just pull out the trace events.
     if (this.events_.traceEvents)
       this.events_ = this.events_.traceEvents;
-
-    // To allow simple indexing of threads, we store all the threads by a
-    // PTID. A ptid is a pid and tid joined together x:y fashion, eg
-    // 1024:130. The ptid is a unique key for a thread in the trace.
-    this.threadStateByPTID_ = {};
 
     // Async events need to be processed durign finalizeEvents
     this.allAsyncEvents_ = [];
@@ -86,141 +79,15 @@ base.defineModule('trace_event_importer')
     __proto__: Object.prototype,
 
     /**
-     * Helper to process a 'begin' event (e.g. initiate a slice).
-     * @param {ThreadState} state Thread state (holds slices).
-     * @param {Object} event The current trace event.
-     */
-    processBeginEvent: function(index, state, event) {
-      var colorId = tracing.getStringColorId(event.name);
-      var slice =
-          { index: index,
-            slice: new tracing.TimelineThreadSlice(event.name, colorId,
-                                                   event.ts / 1000,
-                                                   event.args) };
-
-      if (event.uts)
-        slice.slice.startInUserTime = event.uts / 1000;
-
-      if (event.args['ui-nest'] === '0') {
-        this.model_.importErrors.push('ui-nest no longer supported.');
-        return;
-      }
-
-      state.openSlices.push(slice);
-    },
-
-    /**
-     * Helper to process an 'end' event (e.g. close a slice).
-     * @param {ThreadState} state Thread state (holds slices).
-     * @param {Object} event The current trace event.
-     */
-    processEndEvent: function(state, event) {
-      if (event.args['ui-nest'] === '0') {
-        this.model_.importErrors.push('ui-nest no longer supported.');
-        return;
-      }
-      if (state.openSlices.length == 0) {
-        // Ignore E events that are unmatched.
-        return;
-      }
-      var slice = state.openSlices.pop().slice;
-      slice.duration = (event.ts / 1000) - slice.start;
-      if (event.uts)
-        slice.durationInUserTime = (event.uts / 1000) - slice.startInUserTime;
-      for (var arg in event.args)
-        slice.args[arg] = event.args[arg];
-
-      // Store the slice on the correct subrow.
-      var thread = this.model_.getOrCreateProcess(event.pid).
-          getOrCreateThread(event.tid);
-      var subRowIndex = state.openSlices.length;
-      thread.getSubrow(subRowIndex).push(slice);
-
-      // Add the slice to the subSlices array of its parent.
-      if (state.openSlices.length) {
-        var parentSlice = state.openSlices[state.openSlices.length - 1];
-        parentSlice.slice.subSlices.push(slice);
-      }
-    },
-
-    /**
      * Helper to process an 'async finish' event, which will close an open slice
      * on a TimelineAsyncSliceGroup object.
      **/
-    processAsyncEvent: function(index, state, event) {
+    processAsyncEvent: function(index, event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allAsyncEvents_.push({
         event: event,
         thread: thread});
-    },
-
-    /**
-     * Helper function that closes any open slices. This happens when a trace
-     * ends before an 'E' phase event can get posted. When that happens, this
-     * closes the slice at the highest timestamp we recorded and sets the
-     * didNotFinish flag to true.
-     */
-    autoCloseOpenSlices: function() {
-      // We need to know the model bounds in order to assign an end-time to
-      // the open slices.
-      this.model_.updateBounds();
-
-      // The model's max value in the trace is wrong at this point if there are
-      // un-closed events. To close those events, we need the true global max
-      // value. To compute this, build a list of timestamps that weren't
-      // included in the max calculation, then compute the real maximum based on
-      // that.
-      var openTimestamps = [];
-      for (var ptid in this.threadStateByPTID_) {
-        var state = this.threadStateByPTID_[ptid];
-        for (var i = 0; i < state.openSlices.length; i++) {
-          var slice = state.openSlices[i];
-          openTimestamps.push(slice.slice.start);
-          for (var s = 0; s < slice.slice.subSlices.length; s++) {
-            var subSlice = slice.slice.subSlices[s];
-            openTimestamps.push(subSlice.start);
-            if (subSlice.duration)
-              openTimestamps.push(subSlice.end);
-          }
-        }
-      }
-
-      // Figure out the maximum value of model.maxTimestamp and
-      // Math.max(openTimestamps). Made complicated by the fact that the model
-      // timestamps might be undefined.
-      var realMaxTimestamp;
-      if (this.model_.maxTimestamp) {
-        realMaxTimestamp = Math.max(this.model_.maxTimestamp,
-                                    Math.max.apply(Math, openTimestamps));
-      } else {
-        realMaxTimestamp = Math.max.apply(Math, openTimestamps);
-      }
-
-      // Automatically close any slices are still open. These occur in a number
-      // of reasonable situations, e.g. deadlock. This pass ensures the open
-      // slices make it into the final model.
-      for (var ptid in this.threadStateByPTID_) {
-        var state = this.threadStateByPTID_[ptid];
-        while (state.openSlices.length > 0) {
-          var slice = state.openSlices.pop();
-          slice.slice.duration = realMaxTimestamp - slice.slice.start;
-          slice.slice.didNotFinish = true;
-          var event = this.events_[slice.index];
-
-          // Store the slice on the correct subrow.
-          var thread = this.model_.getOrCreateProcess(event.pid)
-                           .getOrCreateThread(event.tid);
-          var subRowIndex = state.openSlices.length;
-          thread.getSubrow(subRowIndex).push(slice.slice);
-
-          // Add the slice to the subSlices array of its parent.
-          if (state.openSlices.length) {
-            var parentSlice = state.openSlices[state.openSlices.length - 1];
-            parentSlice.slice.subSlices.push(slice.slice);
-          }
-        }
-      }
     },
 
     /**
@@ -276,28 +143,53 @@ base.defineModule('trace_event_importer')
       var second_pass_events = [];
       for (var eI = 0; eI < events.length; eI++) {
         var event = events[eI];
-        var ptid = tracing.TimelineThread.getPTIDFromPidAndTid(
-            event.pid, event.tid);
-
-        if (!(ptid in this.threadStateByPTID_))
-          this.threadStateByPTID_[ptid] = new ThreadState();
-        var state = this.threadStateByPTID_[ptid];
-
         if (event.ph == 'B') {
-          this.processBeginEvent(eI, state, event);
+          var thread = this.model_.getOrCreateProcess(event.pid)
+            .getOrCreateThread(event.tid);
+          if (!thread.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
+            this.model_.importErrors.push(
+              'Timestamps are moving backward.');
+            continue;
+          }
+          thread.beginSlice(event.name, event.ts / 1000, event.args);
         } else if (event.ph == 'E') {
-          this.processEndEvent(state, event);
+          var thread = this.model_.getOrCreateProcess(event.pid)
+            .getOrCreateThread(event.tid);
+          if (!thread.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
+            this.model_.importErrors.push(
+              'Timestamps are moving backward.');
+            continue;
+          }
+          if (!thread.openSliceCount) {
+            this.model_.importErrors.push(
+              'E phase event without a matching B phase event.');
+            continue;
+          }
+
+          var slice = thread.endSlice(event.ts / 1000);
+          for (var arg in event.args) {
+            if (slice.args[arg] !== undefined) {
+              this.model_.importErrors.push(
+                  'Both the B and E phases of ' + slice.name +
+                  'provided values for argument ' + arg + '. ' +
+                  'The value of the E phase event will be used.');
+            }
+            slice.args[arg] = event.args[arg];
+          }
+
         } else if (event.ph == 'S') {
-          this.processAsyncEvent(eI, state, event);
+          this.processAsyncEvent(eI, event);
         } else if (event.ph == 'F') {
-          this.processAsyncEvent(eI, state, event);
+          this.processAsyncEvent(eI, event);
         } else if (event.ph == 'T') {
-          this.processAsyncEvent(eI, state, event);
+          this.processAsyncEvent(eI, event);
         } else if (event.ph == 'I') {
           // Treat an Instant event as a duration 0 slice.
           // TimelineSliceTrack's redraw() knows how to handle this.
-          this.processBeginEvent(eI, state, event);
-          this.processEndEvent(state, event);
+          var thread = this.model_.getOrCreateProcess(event.pid)
+            .getOrCreateThread(event.tid);
+          thread.beginSlice(event.name, event.ts / 1000, event.args);
+          thread.endSlice(event.ts / 1000);
         } else if (event.ph == 'C') {
           this.processCounterEvent(event);
         } else if (event.ph == 'M') {
@@ -315,22 +207,17 @@ base.defineModule('trace_event_importer')
               '(' + event.name + ')');
         }
       }
-
-      // Autoclose any open slices.
-      var hasOpenSlices = false;
-      for (var ptid in this.threadStateByPTID_) {
-        var state = this.threadStateByPTID_[ptid];
-        hasOpenSlices |= state.openSlices.length > 0;
-      }
-      if (hasOpenSlices)
-        this.autoCloseOpenSlices();
     },
 
     /**
      * Called by the TimelineModel after all other importers have imported their
-     * events. This function creates async slices for any async events we saw.
+     * events.
      */
     finalizeImport: function() {
+      this.createAsyncSlices_();
+    },
+
+    createAsyncSlices_: function() {
       if (this.allAsyncEvents_.length == 0)
         return;
 

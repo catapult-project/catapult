@@ -95,9 +95,12 @@ base.defineModule('profiling_view')
 
       if (!hasEvents) return;
 
+      var traces = [traceEvents];
+      if (this.tracingController_.systemTraceEvents.length)
+        traces.push(this.tracingController_.systemTraceEvents);
+
       var m = new tracing.TimelineModel();
-      m.importEvents(traceEvents, true,
-                     [this.tracingController_.systemTraceEvents]);
+      m.importTraces(traces, true);
       this.timelineView_.model = m;
     },
 

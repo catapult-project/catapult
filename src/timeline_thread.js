@@ -9,10 +9,12 @@
  */
 base.defineModule('timeline_thread')
     .dependsOn('timeline_slice',
+               'timeline_slice_group',
                'timeline_async_slice_group')
     .exportsTo('tracing', function() {
 
   var TimelineSlice = tracing.TimelineSlice;
+  var TimelineSliceGroup = tracing.TimelineSliceGroup;
   var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
   var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
 
@@ -32,6 +34,8 @@ base.defineModule('timeline_thread')
    */
   function TimelineThreadSlice(title, colorId, start, args, opt_duration) {
     TimelineSlice.call(this, title, colorId, start, args, opt_duration);
+    // Do not modify this directly.
+    // subSlices is configured by TimelineSliceGroup.rebuildSubRows_.
     this.subSlices = [];
   }
 
@@ -51,11 +55,12 @@ base.defineModule('timeline_thread')
    * @constructor
    */
   function TimelineThread(parent, tid) {
+    TimelineSliceGroup.call(this, TimelineThreadSlice);
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;
     this.tid = tid;
-    this.subRows = [[]];
+    this.cpuSlices = undefined;
     this.asyncSlices = new TimelineAsyncSliceGroup(this.ptid);
   }
 
@@ -74,6 +79,9 @@ base.defineModule('timeline_thread')
   }
 
   TimelineThread.prototype = {
+
+    __proto__: TimelineSliceGroup.prototype,
+
     /**
      * Name of the thread, if present.
      */
@@ -87,33 +95,33 @@ base.defineModule('timeline_thread')
       return TimelineThread.getPTIDFromPidAndTid(this.tid, this.parent.pid);
     },
 
-    getSubrow: function(i) {
-      while (i >= this.subRows.length)
-        this.subRows.push([]);
-      return this.subRows[i];
-    },
-
-
-    shiftSubRow_: function(subRow, amount) {
-      for (var tS = 0; tS < subRow.length; tS++) {
-        var slice = subRow[tS];
-        slice.start = (slice.start + amount);
-      }
-    },
-
     /**
      * Shifts all the timestamps inside this thread forward by the amount
      * specified.
      */
     shiftTimestampsForward: function(amount) {
+      TimelineSliceGroup.prototype.shiftTimestampsForward.call(this, amount);
+
       if (this.cpuSlices)
         this.shiftSubRow_(this.cpuSlices, amount);
 
-      for (var tSR = 0; tSR < this.subRows.length; tSR++) {
-        this.shiftSubRow_(this.subRows[tSR], amount);
-      }
-
       this.asyncSlices.shiftTimestampsForward(amount);
+    },
+
+    /**
+     * Determins whether this thread is empty. If true, it usually implies
+     * that it should be pruned from the model.
+     */
+    get isEmpty() {
+      if (this.slices.length)
+        return false;
+      if (this.openSliceCount)
+        return false;
+      if (this.cpuSlices && this.cpuSlices.length)
+        return false;
+      if (this.asyncSlices.length)
+        return false;
+      return true;
     },
 
     /**
@@ -121,18 +129,22 @@ base.defineModule('timeline_thread')
      * current objects associated with the thread.
      */
     updateBounds: function() {
+      TimelineSliceGroup.prototype.updateBounds.call(this);
       var values = [];
-      var slices;
-      if (this.subRows[0].length != 0) {
-        slices = this.subRows[0];
-        values.push(slices[0].start);
-        values.push(slices[slices.length - 1].end);
-      }
+      if (this.minTimestamp !== undefined)
+        values.push(this.minTimestamp, this.maxTimestamp);
+
       if (this.asyncSlices.slices.length) {
         this.asyncSlices.updateBounds();
         values.push(this.asyncSlices.minTimestamp);
         values.push(this.asyncSlices.maxTimestamp);
       }
+
+      if (this.cpuSlices && this.cpuSlices.length) {
+        values.push(this.cpuSlices[0].start);
+        values.push(this.cpuSlices[this.cpuSlices.length - 1].end);
+      }
+
       if (values.length) {
         this.minTimestamp = Math.min.apply(Math, values);
         this.maxTimestamp = Math.max.apply(Math, values);

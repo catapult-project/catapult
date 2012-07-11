@@ -1,0 +1,308 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>TimelineSliceGroup tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_slice_group_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_slice_group')
+    .runAllTests(function() {
+
+  var TimelineSlice = tracing.TimelineSlice;
+  var TimelineSliceGroup = tracing.TimelineSliceGroup;
+  var newSlice = test_utils.newSlice;
+  var newSliceNamed = test_utils.newSliceNamed;
+
+  var tests = {};
+
+  tests.testBasicBeginEnd = function() {
+    var group = new TimelineSliceGroup();
+    assertEquals(group.openSliceCount, 0);
+    var sliceA = group.beginSlice("a", 1, {a:1});
+    assertEquals(1, group.openSliceCount);
+    assertEquals("a", sliceA.title);
+    assertEquals(1, sliceA.start);
+    assertEquals(1, sliceA.args.a);
+
+    var sliceB = group.endSlice(3);
+    assertEquals(sliceA, sliceB);
+    assertEquals(2, sliceB.duration);
+  };
+
+  tests.testNestedBeginEnd = function() {
+    var group = new TimelineSliceGroup();
+    assertEquals(group.openSliceCount, 0);
+    group.beginSlice("a", 1);
+    group.beginSlice("b", 2);
+    group.endSlice(2.5);
+    group.endSlice(3);
+
+    assertEquals(2, group.slices.length);
+    assertEquals("b", group.slices[0].title);
+    assertEquals(0.5, group.slices[0].duration);
+
+    assertEquals("a", group.slices[1].title);
+    assertEquals(2, group.slices[1].duration);
+  };
+
+  tests.testBounds = function() {
+    var group = new TimelineSliceGroup();
+    group.updateBounds();
+    assertEquals(group.minTimestamp, undefined);
+    assertEquals(group.maxTimestamp, undefined);
+
+    group.pushSlice(newSlice(1, 3));
+    group.pushSlice(newSlice(7, 2));
+    group.updateBounds();
+    assertEquals(1, group.minTimestamp);
+    assertEquals(9, group.maxTimestamp);
+  }
+
+  tests.testBoundsWithPartial = function() {
+    var group = new TimelineSliceGroup();
+    group.beginSlice('a', 7);
+    group.updateBounds();
+    assertEquals(7, group.minTimestamp);
+    assertEquals(7, group.maxTimestamp);
+  }
+
+  tests.testBoundsWithTwoPartials = function() {
+    var group = new TimelineSliceGroup();
+    group.beginSlice('a', 0);
+    group.beginSlice('a', 1);
+    group.updateBounds();
+    assertEquals(0, group.minTimestamp);
+    assertEquals(1, group.maxTimestamp);
+  }
+
+  tests.testBoundsWithBothPartialAndRegular = function() {
+    var group = new TimelineSliceGroup();
+    group.updateBounds();
+    assertEquals(undefined, group.minTimestamp);
+    assertEquals(undefined, group.maxTimestamp);
+
+    group.pushSlice(newSlice(1, 3));
+    group.beginSlice('a', 7);
+    group.updateBounds();
+    assertEquals(1, group.minTimestamp);
+    assertEquals(7, group.maxTimestamp);
+  }
+
+  tests.testAutocloserBasic = function() {
+    var group = new TimelineSliceGroup();
+    assertEquals(group.openSliceCount, 0);
+
+    group.pushSlice(newSliceNamed("a", 1, 0.5));
+
+    group.beginSlice("b", 2);
+    group.beginSlice("c", 2.5);
+    group.endSlice(3);
+
+    group.autoCloseOpenSlices();
+    group.updateBounds();
+
+    assertEquals(1, group.minTimestamp);
+    assertEquals(3, group.maxTimestamp);
+    assertEquals(3, group.slices.length);
+    assertEquals("a", group.slices[0].title);
+    assertEquals("c", group.slices[1].title);
+    assertEquals("b", group.slices[2].title);
+    assertTrue(group.slices[2].didNotFinish);
+    assertEquals(1, group.slices[2].duration);
+  }
+
+  tests.testAutocloserWithSubTasks = function() {
+    var group = new TimelineSliceGroup();
+    assertEquals(group.openSliceCount, 0);
+
+    group.beginSlice("a", 1);
+    group.beginSlice("b1", 2);
+    group.endSlice(3);
+    group.beginSlice("b2", 3);
+
+    group.autoCloseOpenSlices();
+    assertEquals(3, group.slices.length);
+    assertEquals("b1", group.slices[0].title);
+
+    assertEquals("b2", group.slices[1].title);
+    assertTrue(group.slices[1].didNotFinish);
+    assertEquals(0, group.slices[1].duration);
+
+    assertEquals("a", group.slices[2].title);
+    assertTrue(group.slices[2].didNotFinish);
+    assertEquals(2, group.slices[2].duration);
+  }
+
+  tests.testSubRowBuilderBasic = function() {
+    var group = new TimelineSliceGroup();
+    var sA = group.pushSlice(newSliceNamed("a", 1, 2));
+    var sB = group.pushSlice(newSliceNamed("a", 3, 1));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(1, subRows.length);
+    assertEquals(2, subRows[0].length);
+    assertArrayEquals([sA, sB], subRows[0]);
+  }
+
+  tests.testSubRowBuilderBasic2 = function() {
+    var group = new TimelineSliceGroup();
+    var sA = group.pushSlice(newSliceNamed("a", 1, 4));
+    var sB = group.pushSlice(newSliceNamed("b", 3, 1));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertEquals(1, subRows[0].length);
+    assertEquals(1, subRows[1].length);
+    assertArrayEquals([sA], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+  }
+
+  tests.testSubRowBuilderNestedExactly = function() {
+    var group = new TimelineSliceGroup();
+    var sA = group.pushSlice(newSliceNamed("a", 1, 4));
+    var sB = group.pushSlice(newSliceNamed("b", 1, 4));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertEquals(1, subRows[0].length);
+    assertEquals(1, subRows[1].length);
+    assertArrayEquals([sA], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+  }
+
+  tests.testSubRowBuilderInstantEvents = function() {
+    var group = new TimelineSliceGroup();
+    var sA = group.pushSlice(newSliceNamed("a", 1, 0));
+    var sB = group.pushSlice(newSliceNamed("b", 2, 0));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(1, subRows.length);
+    assertEquals(2, subRows[0].length);
+    assertArrayEquals([sA, sB], subRows[0]);
+  }
+
+  tests.testSubRowBuilderTwoInstantEvents = function() {
+    var group = new TimelineSliceGroup();
+    var sA = group.pushSlice(newSliceNamed("a", 1, 0));
+    var sB = group.pushSlice(newSliceNamed("b", 1, 0));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertArrayEquals([sA], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+  }
+
+  tests.testSubRowBuilderOutOfOrderAddition = function() {
+    var group = new TimelineSliceGroup();
+
+    // Pattern being tested:
+    // [    a     ][   b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed("b", 3, 1));
+    var sA = group.pushSlice(newSliceNamed("a", 1, 2));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(1, subRows.length);
+    assertEquals(2, subRows[0].length);
+    assertArrayEquals([sA, sB], subRows[0]);
+  }
+
+
+  tests.testSubRowBuilderOutOfOrderAddition2 = function() {
+    var group = new TimelineSliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]
+    //   [  b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed("b", 3, 1));
+    var sA = group.pushSlice(newSliceNamed("a", 1, 5));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertEquals(1, subRows[0].length);
+    assertEquals(1, subRows[1].length);
+    assertArrayEquals([sA], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+  }
+
+  tests.testSubRowBuilderOnNestedZeroLength = function() {
+    var group = new TimelineSliceGroup();
+
+    // Pattern being tested:
+    // [    a    ]
+    // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    var sA = group.pushSlice(newSliceNamed("a", 1, 3));
+    var sB1 = group.pushSlice(newSliceNamed("b1", 1, 2));
+    var sB2 = group.pushSlice(newSliceNamed("b2", 4, 0));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertArrayEquals([sA], subRows[0]);
+    assertArrayEquals([sB1, sB2], subRows[1]);
+  }
+
+  tests.testSubRowBuilderOnGroup1 = function() {
+    var group = new TimelineSliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]   [  c   ]
+    //   [  b   ]
+    var sA = group.pushSlice(newSliceNamed("a", 1, 3));
+    var sB = group.pushSlice(newSliceNamed("b", 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed("c", 5, 0));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(2, subRows.length);
+    assertArrayEquals([sA, sC], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+  }
+
+  tests.testSubRowBuilderOnGroup2 = function() {
+    var group = new TimelineSliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]   [  d   ]
+    //   [  b   ]
+    //    [ c ]
+    var sA = group.pushSlice(newSliceNamed("a", 1, 3));
+    var sB = group.pushSlice(newSliceNamed("b", 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed("c", 1.75, 0.5));
+    var sD = group.pushSlice(newSliceNamed("c", 5, 0.25));
+
+    var subRows = group.subRows;
+    assertEquals(0, group.badSlices.length);
+    assertEquals(3, subRows.length);
+    assertArrayEquals([sA, sD], subRows[0]);
+    assertArrayEquals([sB], subRows[1]);
+    assertArrayEquals([sC], subRows[2]);
+  }
+
+  // TODO: test cretion of subSlices
+
+
+  return tests;
+});
+</script>
+</body>
+</html>

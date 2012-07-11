@@ -62,7 +62,7 @@ found in the LICENSE file.
       return;
 
     var m = new tracing.TimelineModel();
-    m.importEvents(traceEventData, true, [linuxPerfData]);
+    m.importTraces([traceEventData, linuxPerfData], true);
 
     timelineViewEl = document.querySelector('.view');
     base.ui.decorate(timelineViewEl, tracing.TimelineView);

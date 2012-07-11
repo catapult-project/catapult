@@ -43,6 +43,7 @@ base.defineModule('timeline_async_slice_group')
   function TimelineAsyncSliceGroup(name) {
     this.name = name;
     this.slices = [];
+    this.subRows_ = undefined;
   }
 
   TimelineAsyncSliceGroup.prototype = {
@@ -53,6 +54,7 @@ base.defineModule('timeline_async_slice_group')
      */
     push: function(slice) {
       this.slices.push(slice);
+      this.subRows_ = [];
     },
 
     /**
@@ -60,20 +62,6 @@ base.defineModule('timeline_async_slice_group')
      */
     get length() {
       return this.slices.length;
-    },
-
-    /**
-     * Built automatically by rebuildSubRows().
-     */
-    subRows_: undefined,
-
-    /**
-     * Updates the bounds for this group based on the slices it contains.
-     */
-    sortSlices_: function() {
-      this.slices.sort(function(x, y) {
-        return x.start - y.start;
-      });
     },
 
     /**
@@ -93,10 +81,17 @@ base.defineModule('timeline_async_slice_group')
      * Updates the bounds for this group based on the slices it contains.
      */
     updateBounds: function() {
-      this.sortSlices_();
       if (this.slices.length) {
-        this.minTimestamp = this.slices[0].start;
-        this.maxTimestamp = this.slices[this.slices.length - 1].end;
+        var minTimestamp = Number.MAX_VALUE;
+        var maxTimestamp = -Number.MAX_VALUE;
+        for (var i = 0; i < this.slices.length; i++) {
+          if (this.slices[i].start < minTimestamp)
+            minTimestamp = this.slices[i].start;
+          if (this.slices[i].end > maxTimestamp)
+            maxTimestamp = this.slices[i].end;
+        }
+        this.minTimestamp = minTimestamp;
+        this.maxTimestamp = maxTimestamp;
       } else {
         this.minTimestamp = undefined;
         this.maxTimestamp = undefined;
@@ -119,10 +114,15 @@ base.defineModule('timeline_async_slice_group')
      * doesn't fit in any subrow, make another subRow.
      */
     rebuildSubRows_: function() {
-      this.sortSlices_();
+      var slices = [];
+      slices.push.apply(slices, this.slices);
+      slices.sort(function(x, y) {
+        return x.start - y.start;
+      });
+
       var subRows = [];
-      for (var i = 0; i < this.slices.length; i++) {
-        var slice = this.slices[i];
+      for (var i = 0; i < slices.length; i++) {
+        var slice = slices[i];
 
         var found = false;
         for (var j = 0; j < subRows.length; j++) {
