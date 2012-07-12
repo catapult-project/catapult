@@ -102,8 +102,12 @@ base.defineModule('timeline_thread')
     shiftTimestampsForward: function(amount) {
       TimelineSliceGroup.prototype.shiftTimestampsForward.call(this, amount);
 
-      if (this.cpuSlices)
-        this.shiftSubRow_(this.cpuSlices, amount);
+      if (this.cpuSlices) {
+        for (var i = 0; i < this.cpuSlices.length; i++) {
+            var slice = this.cpuSlices[i];
+            slice.start += amount;
+        }
+      }
 
       this.asyncSlices.shiftTimestampsForward(amount);
     },
