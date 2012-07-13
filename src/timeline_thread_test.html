@@ -24,6 +24,7 @@ base.defineModule('timeline_thread_test')
   var TimelineThreadSlice = tracing.TimelineThreadSlice;
   var TimelineProcess = tracing.TimelineProcess;
   var TimelineThread = tracing.TimelineThread;
+  var newSliceNamed = test_utils.newSliceNamed;
   var newAsyncSlice = test_utils.newAsyncSlice;
 
   tests.testPTIDFromPidAndTid = function() {
@@ -52,6 +53,50 @@ base.defineModule('timeline_thread_test')
     t.updateBounds();
     assertEquals(0.1, t.minTimestamp);
     assertEquals(5.1, t.maxTimestamp);
+  }
+
+  tests.testThreadBounds_Cpu = function() {
+    var t = new TimelineThread(new TimelineProcess(7), 1);
+    t.cpuSlices = [newSliceNamed("x", 0, 1)];
+    t.updateBounds();
+    assertEquals(0, t.minTimestamp);
+    assertEquals(1, t.maxTimestamp);
+  }
+
+  tests.testShiftTimestampsForwardWithCpu = function() {
+    var t = new TimelineThread(new TimelineProcess(7), 1);
+    t.pushSlice(new TimelineThreadSlice('a', 0, 0, {}, 3));
+    t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
+    t.cpuSlices = [newSliceNamed("x", 0, 1)];
+
+    var shiftCount = 0;
+    t.asyncSlices.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+
+    t.shiftTimestampsForward(0.32);
+
+    assertEquals(1, shiftCount);
+    assertEquals(0.32, t.slices[0].start);
+    assertEquals(0.32, t.cpuSlices[0].start);
+  }
+
+  tests.testShiftTimestampsForwardWithoutCpu = function() {
+    var t = new TimelineThread(new TimelineProcess(7), 1);
+    t.pushSlice(new TimelineThreadSlice('a', 0, 0, {}, 3));
+    t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
+
+    var shiftCount = 0;
+    t.asyncSlices.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+
+    t.shiftTimestampsForward(0.32);
+
+    assertEquals(1, shiftCount);
+    assertEquals(0.32, t.slices[0].start);
   }
 
   return tests;

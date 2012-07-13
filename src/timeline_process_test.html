@@ -33,15 +33,30 @@ base.defineModule('timeline_process_test')
 
   var TimelineProcess = tracing.TimelineProcess;
 
-  // Our unittest harness treats a lack of tests as a failure. So,
-  // leave a single empty test in place so that this passes. Remove this
-  // when an actual test is added.
   tests.testGetOrCreateCounter = function() {
     var process = new TimelineProcess(7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
     assertEquals(ctrBar2, ctrBar);
-  }
+  };
+
+  tests.testShiftTimestampsForward = function() {
+    var process = new TimelineProcess(7);
+    var ctr = process.getOrCreateCounter('foo', 'bar');
+    var thread = process.getOrCreateThread(1);
+
+    var shiftCount = 0;
+    thread.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+    ctr.shiftTimestampsForward = function(ts) {
+      if (ts == 0.32)
+        shiftCount++;
+    };
+    process.shiftTimestampsForward(0.32);
+    assertEquals(2, shiftCount);
+  };
 
   return tests;
 });
