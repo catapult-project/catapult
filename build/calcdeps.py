@@ -106,7 +106,7 @@ class Module(object):
     else:
       self.contents = module_contents
     self.filename = module_filename
-    self.parse_declaration_(self.contents, decl_required)
+    self.parse_definition_(self.contents, decl_required)
 
   def resolve(self, all_resources, resource_finder):
     if "scripts" not in all_resources:
@@ -154,7 +154,7 @@ class Module(object):
       already_loaded_set.add(self.name)
       load_sequence.append(self)
 
-  def parse_declaration_(self, text, decl_required = True):
+  def parse_definition_(self, text, decl_required = True):
     if not decl_required and not self.name:
       raise Exception("Module.name must be set for decl_required to be false.")
 
@@ -164,7 +164,7 @@ class Module(object):
     if not m:
       if decl_required:
         raise DepsExceptions(
-          "For %s expected a declaration, but none found." % familiar_name)
+          "For %s expected base.defineModule, but none found." % familiar_name)
       return
 
     if self.name:

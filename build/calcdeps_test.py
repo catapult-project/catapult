@@ -17,42 +17,42 @@ base.defineModule('myModule')
       .dependsOn('dependency1', 'dependency2')
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals(["myStylesheet"], module.style_sheet_names);
     self.assertEquals(["dependency1", "dependency2"],
                       module.dependent_module_names);
 
-  def test_parse_declaration_with_deps_and_stylesheet_swapped(self):
+  def test_parse_definition_with_deps_and_stylesheet_swapped(self):
     text = """// blahblahblah
 base.defineModule('myModule')
       .dependsOn('dependency1', 'dependency2')
       .stylesheet('myStylesheet')
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals(["myStylesheet"], module.style_sheet_names);
     self.assertEquals(["dependency1", "dependency2"],
                       module.dependent_module_names);
 
-  def test_parse_empty_declaration(self):
+  def test_parse_empty_definition(self):
     text = """// blahblahblah
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text, decl_required = False)
+    module.parse_definition_(text, decl_required = False)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
 
-  def test_parse_empty_depends_declaration(self):
+  def test_parse_empty_depends_definition(self):
     text = """// blahblahblah
 base.defineModule('myModule')
       .dependsOn()
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
 
-  def test_parse_empty_depends_declaration_2(self):
+  def test_parse_empty_depends_definition_2(self):
     text = """// blahblahblah
 base.defineModule('myModule')
       .dependsOn()
@@ -60,30 +60,30 @@ base.defineModule('myModule')
       });
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
 
-  def test_parse_declaration_2(self):
+  def test_parse_definition_2(self):
     text = """// blahblahblah
 base.defineModule('myModule')
       .dependsOn("dependency1", 'dependency2')
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals(["dependency1", "dependency2"], module.dependent_module_names);
 
-  def test_parse_declaration_3(self):
+  def test_parse_definition_3(self):
     text = """// blahblahblah
 base.defineModule("myModule").dependsOn('dependency1', 'dependency2')
 """
     module = calcdeps.Module("myModule")
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals(["dependency1", "dependency2"], module.dependent_module_names);
 
-  def test_parse_declaration_4(self):
+  def test_parse_definition_4(self):
     text = """// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
