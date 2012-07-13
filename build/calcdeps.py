@@ -5,6 +5,9 @@ import sys
 import os
 import re
 
+class DepsException(Exception):
+  pass
+
 """
 The core of this script is the calc_load_sequence function. In total, this
 walks over the provided javascript files and figures out their dependencies
@@ -121,7 +124,7 @@ class Module(object):
 
       filename, contents = resource_finder.find_and_load_module(self, name)
       if not filename:
-        raise Error("Could not find a file for module %s" % name)
+        raise DepsException("Could not find a file for module %s" % name)
 
       module = Module(name)
       all_resources["scripts"][name] = module
@@ -137,7 +140,7 @@ class Module(object):
 
       filename, contents = resource_finder.find_and_load_style_sheet(self, name)
       if not filename:
-        raise Error("Could not find a file for stylesheet %s" % name)
+        raise DepsException("Could not find a file for stylesheet %s" % name)
 
       style_sheet = StyleSheet(name, filename, contents)
       all_resources["style_sheets"][name] = style_sheet
@@ -157,14 +160,18 @@ class Module(object):
 
     m = re.search("""base\s*\.\s*defineModule\((["'])(.+?)\\1\)""",
                   text, re.DOTALL)
+    familiar_name = self.filename or self.name
     if not m:
       if decl_required:
-        raise Exception("Expected a declaration, but none found.")
+        raise DepsExceptions(
+          "For %s expected a declaration, but none found." % familiar_name)
       return
 
     if self.name:
       if self.name != m.group(2):
-        raise Exception("Module delaration does not match module name.")
+        raise DepsException(
+          "For %s, base.defineModule(...) must be base.defineModule(%s)" %
+          (familiar_name, self.name))
     else:
       self.name = m.group(2)
 

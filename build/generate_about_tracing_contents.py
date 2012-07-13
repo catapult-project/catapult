@@ -118,7 +118,12 @@ def main(args):
   try:
     os.chdir(srcdir)
 
-    result_html = generate_html()
+    try:
+      result_html = generate_html()
+    except calcdeps.DepsException, ex:
+      sys.stderr.write("Error: %s\n\n" % str(ex))
+      return 255
+
     o = open(os.path.join(srcdir, "about_tracing.html"), 'w')
     o.write(result_html)
     o.close()
@@ -131,7 +136,7 @@ def main(args):
   finally:
     os.chdir(olddir)
 
-  return 255
+  return 0
 
 if __name__ == "__main__":
   sys.exit(main(sys.argv))

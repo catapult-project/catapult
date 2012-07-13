@@ -6,7 +6,14 @@ _EXCLUDED_PATHS = (
 
 def _CheckIfAboutTracingIsOutOfdate(input_api, output_api):
   import build.generate_about_tracing_contents as generator
-  if generator.is_out_of_date():
+  import build.calcdeps
+
+  try:
+    out_of_date = generator.is_out_of_date()
+  except build.calcdeps.DepsException, ex:
+    return [output_api.PresubmitError(str(ex))]
+
+  if out_of_date:
     return [output_api.PresubmitError(
         'This change affects module depenencies. You need to run'
         ' ./build/generate_about_tracing_contents.py')]
