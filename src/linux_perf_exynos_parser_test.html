@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>LinuxPerfExynosParser tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('linux_perf_exynos_parser_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_exynos_parser')
+    .runAllTests(function() {
+
+var tests = {};
+
+tests.testExynosImport = function() {
+  var lines = [
+    '               X-945   [001] ....   113.995549: exynos_flip_request: ' +
+                    'pipe=0',
+    '               X-945   [001] ....   113.995561: exynos_flip_complete: ' +
+                    'pipe=0'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var gfxFlipThread = threads[0];
+  assertEquals('exynos_flip', gfxFlipThread.name);
+  assertEquals(1, gfxFlipThread.subRows.length);
+}
+
+return tests;
+});
+
+</script>
+</body>
+</html>

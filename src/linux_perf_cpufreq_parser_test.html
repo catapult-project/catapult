@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>LinuxPerfCpufreqParser tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('linux_perf_cpufreq_parser_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_cpufreq_parser')
+    .runAllTests(function() {
+
+var tests = {};
+
+tests.testCpufreqImport = function() {
+}
+
+return tests;
+});
+
+</script>
+</body>
+</html>

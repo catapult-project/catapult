@@ -16,10 +16,12 @@ found in the LICENSE file.
 base.defineModule('linux_perf_importer_test')
     .dependsOn('unittest',
                'test_utils',
+	       'linux_perf_sched_parser',
                'linux_perf_importer')
     .runAllTests(function() {
 
 var tests = {};
+
 tests.testLineRE = function() {
   var re = tracing._LinuxPerfImporterTestExports.lineRE;
   var x = re.exec('   <idle>-0     [001]  4467.843475: sched_switch: ' +
@@ -59,51 +61,6 @@ function testAutodetectLineCornerCases() {
   var autoLineRE = tracing._LinuxPerfImporterTestExports.autoDetectLineRE(line);
   var lineRE = tracing._LinuxPerfImporterTestExports.lineRE;
   assertEquals(autoLineRE, lineRE, 'Mis-detected line format without IRQ info');
-}
-
-tests.testSchedSwitchRE = function() {
-  var re = tracing._LinuxPerfImporterTestExports.schedSwitchRE;
-  var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
-      '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
-  assertNotNull(x);
-  assertEquals('swapper', x[1]);
-  assertEquals('0', x[2]);
-  assertEquals('120', x[3]);
-  assertEquals('R', x[4]);
-  assertEquals('SurfaceFlinger', x[5]);
-  assertEquals('178', x[6]);
-  assertEquals('112', x[7]);
-
-  var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
-      'prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120');
-  assertNotNull(x);
-  assertEquals('.android.chrome', x[1]);
-  assertEquals('Binder Thread #', x[5]);
-
-  var x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 ' +
-      'prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120');
-  assertNotNull(x);
-  assertEquals('Binder Thread #', x[1]);
-  assertEquals('.android.chrome', x[5]);
-
-  // explict test for prev_state of D|W
-  var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
-      'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
-      'next_prio=120');
-  assertNotNull(x);
-  assertEquals('D|W', x[4]);
-}
-
-tests.testSchedWakeupRE = function() {
-  var re = tracing._LinuxPerfImporterTestExports.schedWakeupRE;
-  var x = re.exec(
-      'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
-  assertNotNull(x);
-  assertEquals('SensorService', x[1]);
-  assertEquals('207', x[2]);
-  assertEquals('112', x[3]);
-  assertEquals('1', x[4]);
-  assertEquals('000', x[5]);
 }
 
 tests.testTraceEventClockSyncRE = function() {
@@ -224,10 +181,6 @@ tests.testImportOneSequence = function() {
   assertAlmostEquals(.536 - .475, c.slices[0].duration);
 }
 
-tests.testImportOneSequenceWithSchedWakeUp = function() {
-  // TODO(nduca): write test for this.
-}
-
 tests.testImportWithNewline = function() {
   var lines = [
     ''
@@ -289,182 +242,6 @@ tests.testClockSyncMarkWrite = function() {
 tests.testImportWithoutClockSyncDeletesEverything = function() {
 }
 
-tests.testWorkQueueImport = function() {
-  var lines = [
-    ' kworker/0:3-6880  [000]  2784.771958: workqueue_execute_start: ' +
-               'work struct ffff8800a5083a20: function intel_unpin_work_fn',
-    ' kworker/0:3-6880  [000]  2784.771966: workqueue_execute_end: ' +
-               'work struct ffff8800a5083a20',
-    ' kworker/1:2-7269  [001]  2784.805966: workqueue_execute_start: ' +
-               'work struct ffff88014fb0f158: function do_dbs_timer',
-    ' kworker/1:2-7269  [001]  2784.805975: workqueue_execute_end: ' +
-               'work struct ffff88014fb0f158'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  assertEquals(1, m.processes['6880'].threads['6880'].subRows.length);
-  assertEquals(1, m.processes['7269'].threads['7269'].subRows.length);
-}
-
-tests.testPowerStartImport = function() {
-}
-
-tests.testPowerFrequencyImport = function() {
-  var lines = [
-    ' kworker/0:3-6880  [000]  2784.783015: power_frequency: ' +
-               'type=2 state=1000000 cpu_id=0',
-    ' kworker/1:2-7269  [001]  2784.788993: power_frequency: ' +
-               'type=2 state=800000 cpu_id=1',
-    ' kworker/1:2-7269  [001]  2784.993120: power_frequency: ' +
-               'type=2 state=1300000 cpu_id=1'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  var c0 = m.cpus[0];
-  assertEquals(0, c0.slices.length);
-  assertEquals(1, c0.counters['Clock Frequency'].samples.length);
-
-  var c1 = m.cpus[1];
-  assertEquals(0, c1.slices.length);
-  assertEquals(2, c1.counters['Clock Frequency'].samples.length);
-}
-
-tests.testCpuFrequencyImport = function() {
-  var lines = [
-    '     kworker/1:0-9665  [001] 15051.007301: cpu_frequency: ' +
-                   'state=800000 cpu_id=1',
-    '     kworker/1:0-9665  [001] 15051.010278: cpu_frequency: ' +
-                   'state=1300000 cpu_id=1',
-    '     kworker/0:2-7972  [000] 15051.010278: cpu_frequency: ' +
-                   'state=1000000 cpu_id=0',
-    '     kworker/0:2-7972  [000] 15051.020304: cpu_frequency: ' +
-                   'state=800000 cpu_id=0'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  var c0 = m.cpus[0];
-  assertEquals(0, c0.slices.length);
-  assertEquals(2, c0.counters['Clock Frequency'].samples.length);
-
-  var c1 = m.cpus[1];
-  assertEquals(0, c1.slices.length);
-  assertEquals(2, c1.counters['Clock Frequency'].samples.length);
-}
-
-tests.testCpuIdleImport = function() {
-  var lines = [
-    '          <idle>-0     [000] 15050.992883: cpu_idle: ' +
-                  'state=1 cpu_id=0',
-    '          <idle>-0     [000] 15050.993027: cpu_idle: ' +
-                  'state=4294967295 cpu_id=0',
-    '          <idle>-0     [001] 15050.993132: cpu_idle: ' +
-                  'state=1 cpu_id=1',
-    '          <idle>-0     [001] 15050.993276: cpu_idle: ' +
-                  'state=4294967295 cpu_id=1',
-    '          <idle>-0     [001] 15050.993279: cpu_idle: ' +
-                  'state=3 cpu_id=1',
-    '          <idle>-0     [001] 15050.993457: cpu_idle: ' +
-                  'state=4294967295 cpu_id=1',
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  var c0 = m.cpus[0];
-  assertEquals(0, c0.slices.length);
-  assertEquals(2, c0.counters['C-State'].samples.length);
-
-  var c1 = m.cpus[1];
-  assertEquals(0, c1.slices.length);
-  assertEquals(4, c1.counters['C-State'].samples.length);
-}
-
-tests.testi915Import = function() {
-  var lines = [
-    // NB: spliced from different traces; mismatched timestamps don't matter
-    '          chrome-1223  [000]  2784.773556: i915_gem_object_pwrite: ' +
-               'obj=ffff88013f13fc00, offset=0, len=2984',
-    '          chrome-1539  [000] 18420.677750: ' +
-               'i915_gem_object_change_domain: ' +
-               'obj=ffff8800a88d1400, read=44=>40, write=00=>40',
-    '          chrome-1539  [000] 18420.677759: i915_gem_object_fault: ' +
-               'obj=ffff8800a88d1400, GTT index=0 , writable',
-    '               X-964   [000]  2784.774864: i915_flip_request: ' +
-               'plane=0, obj=ffff88013f0b9a00',
-    '          <idle>-0     [000]  2784.788644: i915_flip_complete: ' +
-               'plane=0, obj=ffff88013f0b9a00',
-    '          chrome-1539  [001] 18420.681687: i915_gem_request_retire: ' +
-               'dev=0, ring=1, seqno=1178152',
-    '          chrome-1539  [000] 18422.955688: i915_gem_request_add: ' +
-               'dev=0, ring=1, seqno=1178364',
-    '             cat-21833 [000] 18422.956832: i915_gem_request_complete: ' +
-               'dev=0, ring=1, seqno=1178364',
-    '               X-1012  [001] 18420.682511: i915_gem_request_wait_begin: ' +
-               'dev=0, ring=4, seqno=1178156',
-    '               X-1012  [000] 18422.765707: i915_gem_request_wait_end: ' +
-               'dev=0, ring=4, seqno=1178359',
-    '          chrome-1539  [000] 18422.955655: i915_gem_ring_flush: ' +
-               'dev=0, ring=1, invalidate=001e, flush=0040',
-    '          chrome-1539  [000] 18422.955660: i915_gem_ring_dispatch: ' +
-               'dev=0, ring=1, seqno=1178364',
-    '          chrome-1539  [000] 18420.677772: i915_reg_rw: ' +
-               'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)',
-    '          chrome-2465  [000]    71.653157: drm_vblank_event: ' +
-               'crtc=0, seq=4233',
-    '          <idle>-0     [000]    71.669851: drm_vblank_event: ' +
-               'crtc=0, seq=4234'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  // For hand-assigned pseudo PID's+TID's.
-  var exports = tracing._LinuxPerfImporterTestExports;
-
-  var kernelProc = m.processes[exports.pseudoKernelPID];
-
-  var i915GemThread = kernelProc.threads[exports.pseudoI915GemObjectTID];
-  assertEquals('i915_gem', i915GemThread.name);
-  assertEquals(1, i915GemThread.subRows.length);
-
-  var i915FlipThread = kernelProc.threads[exports.pseudoI915FlipTID];
-  assertEquals('i915_flip', i915FlipThread.name);
-  assertEquals(1, i915FlipThread.subRows.length);
-
-  assertAlmostEquals(2784.774864 * 1000.0,
-      i915FlipThread.subRows[0][0].start);
-  assertAlmostEquals((2784.788644 - 2784.774864) * 1000.0,
-      i915FlipThread.subRows[0][0].duration);
-
-  var i915RegThread = kernelProc.threads[exports.pseudoI915RegTID];
-  assertEquals('i915_reg', i915RegThread.name);
-  assertEquals(1, i915RegThread.subRows.length);
-
-  var vblankThread = kernelProc.threads[exports.pseudoVblankTID];
-  assertEquals('drm_vblank', vblankThread.name);
-  assertEquals(1, vblankThread.subRows.length);
-}
-
-tests.testExynosImport = function() {
-  var lines = [
-    '               X-945   [001] ....   113.995549: exynos_flip_request: ' +
-                    'pipe=0',
-    '               X-945   [001] ....   113.995561: exynos_flip_complete: ' +
-                    'pipe=0'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
-
-  // For hand-assigned pseudo PID's+TID's.
-  var exports = tracing._LinuxPerfImporterTestExports;
-
-  var kernelProc = m.processes[exports.pseudoKernelPID];
-
-  var exynosFlipThread = kernelProc.threads[exports.pseudoExynosFlipTID];
-  assertEquals('exynos_flip', exynosFlipThread.name);
-  assertEquals(1, exynosFlipThread.subRows.length);
-}
 return tests;
 });
 

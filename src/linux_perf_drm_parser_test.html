@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>LinuxPerfDrmParser tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('linux_perf_drm_parser_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_drm_parser')
+    .runAllTests(function() {
+
+var tests = {};
+
+tests.testDrmImport = function() {
+  var lines = [
+    '          chrome-2465  [000]    71.653157: drm_vblank_event: ' +
+               'crtc=0, seq=4233',
+    '          <idle>-0     [000]    71.669851: drm_vblank_event: ' +
+               'crtc=0, seq=4234'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var vblankThread = threads[0];
+  assertEquals('drm_vblank', vblankThread.name);
+  assertEquals(1, vblankThread.subRows.length);
+}
+
+return tests;
+});
+
+</script>
+</body>
+</html>
