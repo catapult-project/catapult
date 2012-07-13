@@ -64,6 +64,9 @@ class StyleSheet(object):
     self.filename = filename
     self.contents = contents
 
+  def __repr__(self):
+    return "StyleSheet(%s)" % self.name
+
 class Module(object):
   """Represents a javascript module. It can either be directly requested, e.g.
   passed in by name to calc_load_sequence, or created by being referenced a
@@ -86,6 +89,9 @@ class Module(object):
     self.dependent_modules = []
     self.style_sheet_names = []
     self.style_sheets = []
+
+  def __repr__(self):
+    return "Module(%s)" % self.name
 
   def load_and_parse(self, module_filename,
                      module_contents = None,
@@ -164,14 +170,19 @@ class Module(object):
 
     rest = text[m.end():]
 
+    stylesheet_regex = """\s*\.\s*stylesheet\((["'])(.+?)\\1\)"""
+
+    got_stylesheet = False
+
     # Look for a stylesheet.
-    m = re.match("""\s*\.\s*stylesheet\((["'])(.+?)\\1\)""", rest, re.DOTALL)
+    m = re.match(stylesheet_regex, rest, re.DOTALL)
     if m:
       self.style_sheet_names.append(m.group(2))
       rest = rest[m.end():]
+      got_stylesheet = True
 
     # Look for dependsOn.
-    m = re.match("\s*\.\s*dependsOn\((.*?)\)", rest, re.DOTALL)
+    m = re.match("""\s*\.\s*dependsOn\((.*?)\)""", rest, re.DOTALL)
     if m:
       deps = re.split(",\s*", m.group(1))
       deps = [x for x in deps if len(x)]
@@ -182,6 +193,16 @@ class Module(object):
       sdeps = [stripquotes(x) for x in deps]
       self.dependent_module_names.extend(sdeps)
       rest = rest[m.end():]
+
+    # Look for a stylesheet if it wasn't found before.
+    if not got_stylesheet:
+      m = re.match(stylesheet_regex, rest, re.DOTALL)
+      if m:
+        self.style_sheet_names.append(m.group(2))
+        rest = rest[m.end():]
+        got_stylesheet = True
+
+
 
 def calc_load_sequence(filenames):
   """Given a list of starting javascript files, figure out all the Module

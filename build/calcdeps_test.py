@@ -19,7 +19,20 @@ base.defineModule('myModule')
     module = calcdeps.Module("myModule")
     module.parse_declaration_(text)
     self.assertEquals(["myStylesheet"], module.style_sheet_names);
-    self.assertEquals(["dependency1", "dependency2"], module.dependent_module_names);
+    self.assertEquals(["dependency1", "dependency2"],
+                      module.dependent_module_names);
+
+  def test_parse_declaration_with_deps_and_stylesheet_swapped(self):
+    text = """// blahblahblah
+base.defineModule('myModule')
+      .dependsOn('dependency1', 'dependency2')
+      .stylesheet('myStylesheet')
+"""
+    module = calcdeps.Module("myModule")
+    module.parse_declaration_(text)
+    self.assertEquals(["myStylesheet"], module.style_sheet_names);
+    self.assertEquals(["dependency1", "dependency2"],
+                      module.dependent_module_names);
 
   def test_parse_empty_declaration(self):
     text = """// blahblahblah
