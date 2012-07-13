@@ -11,6 +11,8 @@ base.defineModule('timeline_counter')
     .dependsOn()
     .exportsTo('tracing', function() {
 
+  var nextCounterGUID = 1;
+
   /**
    * Stores all the samples for a given counter.
    * @constructor
@@ -23,10 +25,17 @@ base.defineModule('timeline_counter')
     this.seriesColors = [];
     this.timestamps = [];
     this.samples = [];
+    this.guid_ = nextCounterGUID++;
   }
 
   TimelineCounter.prototype = {
     __proto__: Object.prototype,
+    /*
+     * @return {Number} A globally unique identifier for this counter.
+     */
+    get guid() {
+      return this.guid_;
+    },
 
     get numSeries() {
       return this.seriesNames.length;
@@ -34,6 +43,54 @@ base.defineModule('timeline_counter')
 
     get numSamples() {
       return this.timestamps.length;
+    },
+
+    getSampleValue: function(index, seriesIndex) {
+      return this.samples[index * this.numSeries + seriesIndex];
+    },
+
+     /**
+     * Obtains min, max, avg, values, start, and end for different series for
+     * a given counter
+     *     getSampleStatistics([0,1])
+     * The statistics objects that this returns are an array of objects, one
+     * object for each series for the counter in the form:
+     * {min: minVal, max: maxVal, avg: avgVal, start: startVal, end: endVal}
+     *
+     * @param {Array.<Number>} Indices to summarize
+     * @return {Object} An array of statistics. Each element in the array
+     * has data for one of the series in the selected counter.
+     */
+    getSampleStatistics: function(sampleIndices) {
+      sampleIndices.sort();
+      var sampleIndex = this.sampleIndex;
+      var numSeries = this.numSeries;
+      var numSamples = this.numSamples;
+
+      var ret = [];
+
+      for (var i = 0; i < numSeries; ++i) {
+        var sum = 0;
+        var min = Number.MAX_VALUE;
+        var max = -Number.MAX_VALUE;
+        for (var j = 0; j < sampleIndices.length; j++) {
+          var x = sampleIndices[j];
+          sum += this.getSampleValue(x, i);
+          min = Math.min(this.getSampleValue(x, i), min);
+          max = Math.max(this.getSampleValue(x, i), max);
+        }
+        var avg = sum / sampleIndices.length;
+        var start = this.getSampleValue(sampleIndices[0], i);
+        var end = this.getSampleValue(
+            sampleIndices[sampleIndices.length - 1], i);
+
+        ret.push({min: min,
+                  max: max,
+                  avg: avg,
+                  start: start,
+                  end: end});
+      }
+      return ret;
     },
 
     /**
