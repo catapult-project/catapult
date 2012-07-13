@@ -34,20 +34,27 @@ base.defineModule('timeline_analysis_test')
 
     var TimelineCounter = tracing.TimelineCounter;
     var TimelineThread = tracing.TimelineThread;
+    var TimelineAnalysisView = tracing.TimelineAnalysisView;
+    var TimelineModel = tracing.TimelineModel;
+    var TimelineThreadTrack = tracing.TimelineThreadTrack;
+    var TimelineSelection = tracing.TimelineSelection;
+    var TimelineFilter = tracing.TimelineFilter;
+    var TimelineCounterTrack = tracing.TimelineCounterTrack;
+    var TimelineSliceTrack = tracing.TimelineSliceTrack;
     var newSliceNamed = test_utils.newSliceNamed;
     var tests = {};
 
     function createSelectionWithSingleSlice() {
-      var model = new tracing.TimelineModel();
+      var model = new TimelineModel();
       var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
       t53.pushSlice(newSliceNamed('b', 0, 0.002));
 
-      var t53track = new tracing.TimelineThreadTrack();
+      var t53track = new TimelineThreadTrack();
       t53track.thread = t53;
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new tracing.TimelineFilter('b'), selection);
+        new TimelineFilter('b'), selection);
       assertEquals(1, selection.length);
 
       return selection;
@@ -60,14 +67,14 @@ base.defineModule('timeline_analysis_test')
         {name: 'aa', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'aa', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'},
       ];
-      var model = new tracing.TimelineModel(events);
+      var model = new TimelineModel(events);
 
-      var t53track = new tracing.TimelineThreadTrack();
+      var t53track = new TimelineThreadTrack();
       t53track.thread = model.processes[52].threads[53];
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new tracing.TimelineFilter('a'), selection);
+        new TimelineFilter('a'), selection);
       assertEquals(2, selection.length);
 
       return selection;
@@ -80,14 +87,14 @@ base.defineModule('timeline_analysis_test')
         {name: 'c', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'c', args: {}, pid: 52, ts: 800, cat: 'foo', tid: 53, ph: 'E'},
       ];
-      var model = new tracing.TimelineModel(events);
+      var model = new TimelineModel(events);
 
-      var t53track = new tracing.TimelineThreadTrack();
+      var t53track = new TimelineThreadTrack();
       t53track.thread = model.processes[52].threads[53];
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new tracing.TimelineFilter('c'), selection);
+        new TimelineFilter('c'), selection);
       assertEquals(2, selection.length);
 
       return selection;
@@ -102,7 +109,7 @@ base.defineModule('timeline_analysis_test')
         {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
          ph: 'C', id: 0}
       ];
-      var model = new tracing.TimelineModel(events);
+      var model = new TimelineModel(events);
       var p = model.processes[1];
       var ctr = model.processes[1].counters['foo.ctr[0]'];
       assertEquals('ctr[0]', ctr.name);
@@ -111,8 +118,8 @@ base.defineModule('timeline_analysis_test')
       assertArrayEquals([0, 0.01], ctr.timestamps);
       assertArrayEquals([0, 10], ctr.samples);
 
-      var selection = new tracing.TimelineSelection();
-      var t1track = new tracing.TimelineThreadTrack();
+      var selection = new TimelineSelection();
+      var t1track = new TimelineThreadTrack();
       selection.addCounterSample(t1track, ctr, 1);
 
       if (numSamples == 1)
@@ -131,15 +138,15 @@ base.defineModule('timeline_analysis_test')
         {name: 'ctr', args: {'bytesallocated': 20, 'bytesfree': 5}, pid: 1,
          ts: 20, cat: 'foo', tid: 1, ph: 'C', id: 0}
       ];
-      var model = new tracing.TimelineModel(events);
+      var model = new TimelineModel(events);
       var p = model.processes[1];
       var ctr = model.processes[1].counters['foo.ctr[0]'];
       assertEquals('ctr[0]', ctr.name);
       assertEquals(3, ctr.numSamples);
       assertEquals(2, ctr.numSeries);
 
-      var selection = new tracing.TimelineSelection();
-      var t1track = new tracing.TimelineThreadTrack();
+      var selection = new TimelineSelection();
+      var t1track = new TimelineThreadTrack();
       selection.addCounterSample(t1track, ctr, 1);
 
       return selection;
@@ -158,8 +165,8 @@ base.defineModule('timeline_analysis_test')
       ctr2.timestamps.push(0, 10, 20);
       ctr2.samples.push(0, 25, 10, 15, 20, 5);
 
-      var selection = new tracing.TimelineSelection();
-      var t1track = new tracing.TimelineThreadTrack();
+      var selection = new TimelineSelection();
+      var t1track = new TimelineThreadTrack();
       selection.addCounterSample(t1track, ctr1, 1);
       selection.addCounterSample(t1track, ctr2, 2);
 
@@ -185,8 +192,8 @@ base.defineModule('timeline_analysis_test')
       assertEquals(4, ctr2.numSamples);
       assertEquals(2, ctr2.numSeries);
 
-      var selection = new tracing.TimelineSelection();
-      var t1track = new tracing.TimelineThreadTrack();
+      var selection = new TimelineSelection();
+      var t1track = new TimelineThreadTrack();
       selection.addCounterSample(t1track, ctr1, 1);
       selection.addCounterSample(t1track, ctr2, 2);
 
@@ -194,7 +201,7 @@ base.defineModule('timeline_analysis_test')
     }
 
     function createSelectionWithSingleSliceSingleCounter() {
-      var model = new tracing.TimelineModel();
+      var model = new TimelineModel();
       var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
       thread.pushSlice(newSliceNamed('b', 1, 5));
 
@@ -207,85 +214,66 @@ base.defineModule('timeline_analysis_test')
       assertEquals(3, ctr1.numSamples);
       assertEquals(2, ctr1.numSeries);
 
-      var ctr1track = new tracing.TimelineCounterTrack();
+      var ctr1track = new TimelineCounterTrack();
       ctr1track.counter = ctr1;
 
-      var threadTrack = new tracing.TimelineSliceTrack();
+      var threadTrack = new TimelineSliceTrack();
       threadTrack.slices = thread.subRows[0];
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new TimelineSelection();
       selection.addCounterSample(ctr1track, ctr1, 1);
       threadTrack.addAllObjectsMatchingFilterToSelection(
-        new tracing.TimelineFilter('b'), selection);
+        new TimelineFilter('b'), selection);
       assertEquals(2, selection.length);
       return selection;
-    }
-
-    function appendTestResult(title, el) {
-      var titleEl = document.createElement('div');
-      titleEl.textContent = title;
-      titleEl.style.fontSize = '120%';
-      titleEl.style.marginBottom = '0px';
-
-      var groupEl = document.createElement('div');
-      groupEl.style.marginBottom = '48px';
-      groupEl.style.border = '1px solid black';
-
-      groupEl.appendChild(el);
-      document.body.appendChild(titleEl);
-      document.body.appendChild(groupEl);
     }
 
     tests.testAnalysisViewWithSingleSlice = function() {
       var selection = createSelectionWithSingleSlice();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-
-      appendTestResult("Single thread slice", analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     tests.testAnalysisViewWithMultipleSlices = function() {
       var selection = createSelectionWithTwoSlices();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-
-      appendTestResult("Multiple non nested thread slices", analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     tests.testAnalysisViewWithMultipleSlicesSameTitle = function() {
       var selection = createSelectionWithTwoSlicesSameTitle();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-
-      appendTestResult("Multiple thread slices with same title", analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     tests.testAnalysisViewWithSingleCounterWithTwoSeries = function() {
       var selection = createSelectionWithTwoSeriesSingleCounter();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-      appendTestResult("Single counter with two series", analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     tests.testAnalysisViewWithTwoCountersWithTwoSeries = function() {
       var selection = createSelectionWithTwoSeriesTwoCounters();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-      appendTestResult("Multiple counters with two series", analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     tests.testAnalysisViewWithSingleSliceSingleCounter = function() {
       var selection = createSelectionWithSingleSliceSingleCounter();
 
-      var analysisEl = new tracing.TimelineAnalysisView();
+      var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
-      appendTestResult("Single slice and single counter with two series",
-        analysisEl);
+      this.addHTMLOutput(undefined, analysisEl);
     }
 
     function StubAnalysisResults() {
