@@ -42,23 +42,21 @@ base.defineModule('profiling_view')
       this.loadBn_.textContent = 'Load';
       this.loadBn_.addEventListener('click', this.onLoad_.bind(this));
 
-      if (base.isChromeOS) {
-        this.systemTracingBn_ = document.createElement('input');
-        this.systemTracingBn_.type = 'checkbox';
-        this.systemTracingBn_.checked = true;
+      this.systemTracingBn_ = document.createElement('input');
+      this.systemTracingBn_.type = 'checkbox';
+      this.systemTracingBn_.checked = false;
 
-        var systemTracingLabelEl = document.createElement('div');
-        systemTracingLabelEl.className = 'label';
-        systemTracingLabelEl.textContent = 'System events';
-        systemTracingLabelEl.appendChild(this.systemTracingBn_);
-      }
+      this.systemTracingLabelEl_ = document.createElement('label');
+      this.systemTracingLabelEl_.textContent = 'System events';
+      this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
+      this.systemTracingLabelEl_.style.display = 'none';
+      this.systemTracingLabelEl_.style.marginLeft = '16px';
 
       this.timelineView_ = new tracing.TimelineView();
       this.timelineView_.leftControls.appendChild(this.recordBn_);
       this.timelineView_.leftControls.appendChild(this.saveBn_);
       this.timelineView_.leftControls.appendChild(this.loadBn_);
-      if (base.isChromeOS)
-        this.timelineView_.leftControls.appendChild(this.systemTracingBn_);
+      this.timelineView_.leftControls.appendChild(this.systemTracingLabelEl_);
 
       this.appendChild(this.timelineView_);
 
@@ -71,16 +69,13 @@ base.defineModule('profiling_view')
       if (oldValue)
         throw new Error('Can only set tracing controller once.');
 
-      this.tracingController_.addEventListener('traceEnded',
-          this.onRecordDone_.bind(this));
-      this.tracingController_.addEventListener('loadTraceFileComplete',
-          this.onLoadTraceFileComplete_.bind(this));
-      this.tracingController_.addEventListener('saveTraceFileComplete',
-          this.onSaveTraceFileComplete_.bind(this));
-      this.tracingController_.addEventListener('loadTraceFileCanceled',
-          this.onLoadTraceFileCanceled_.bind(this));
-      this.tracingController_.addEventListener('saveTraceFileCanceled',
-          this.onSaveTraceFileCanceled_.bind(this));
+      if (this.tracingController_.supportsSystemTracing) {
+        this.systemTracingLabelEl_.style.display = 'block';
+        this.systemTracingBn_.checked = true;
+      } else {
+        this.systemTracingLabelEl_.style.display = 'none';
+      }
+
       this.refresh_();
     },
 
@@ -117,16 +112,16 @@ base.defineModule('profiling_view')
     ///////////////////////////////////////////////////////////////////////////
 
     onRecord_: function() {
-      var systemTracingEnabled;
-      if (this.systemTracingBn_)
-        systemTracingEnabled = this.systemTracingBn_.checked;
-      else
-        systemTracingEnabled = false;
-      this.tracingController_.beginTracing(systemTracingEnabled);
-    },
-
-    onRecordDone_: function() {
-      this.refresh_();
+      var that = this;
+      var tc = this.tracingController_;
+      tc.beginTracing(this.systemTracingBn_.checked);
+      function response() {
+        that.refresh_();
+        setTimeout(function() {
+          tc.removeEventListener('traceEnded', response);
+        }, 0);
+      }
+      tc.addEventListener('traceEnded', response);
     },
 
     ///////////////////////////////////////////////////////////////////////////
@@ -141,17 +136,19 @@ base.defineModule('profiling_view')
       this.overlayEl_.appendChild(labelEl);
       this.overlayEl_.visible = true;
 
-      this.tracingController_.beginSaveTraceFile();
-    },
-
-    onSaveTraceFileComplete_: function(e) {
-      this.overlayEl_.visible = false;
-      this.overlayEl_ = undefined;
-    },
-
-    onSaveTraceFileCanceled_: function(e) {
-      this.overlayEl_.visible = false;
-      this.overlayEl_ = undefined;
+      var that = this;
+      var tc = this.tracingController_;
+      function response() {
+        that.overlayEl_.visible = false;
+        that.overlayEl_ = undefined;
+        setTimeout(function() {
+          tc.removeEventListener('saveTraceFileComplete', response);
+          tc.removeEventListener('saveTraceFileCanceled', response);
+        }, 0);
+      }
+      tc.addEventListener('saveTraceFileComplete', response);
+      tc.addEventListener('saveTraceFileCanceled', response);
+      tc.beginSaveTraceFile();
     },
 
     ///////////////////////////////////////////////////////////////////////////
@@ -166,20 +163,23 @@ base.defineModule('profiling_view')
       this.overlayEl_.appendChild(labelEl);
       this.overlayEl_.visible = true;
 
+      var that = this;
+      var tc = this.tracingController_;
       this.tracingController_.beginLoadTraceFile();
+      function response(e) {
+        that.overlayEl_.visible = false;
+        that.overlayEl_ = undefined;
+        if (e.type == 'loadTraceFileComplete')
+          that.refresh_();
+        setTimeout(function() {
+          tc.removeEventListener('loadTraceFileComplete', response);
+          tc.removeEventListener('loadTraceFileCanceled', response);
+        }, 0);
+      }
+
+      tc.addEventListener('loadTraceFileComplete', response);
+      tc.addEventListener('loadTraceFileCanceled', response);
     },
-
-    onLoadTraceFileComplete_: function(e) {
-      this.overlayEl_.visible = false;
-      this.overlayEl_ = undefined;
-
-      this.refresh_();
-    },
-
-    onLoadTraceFileCanceled_: function(e) {
-      this.overlayEl_.visible = false;
-      this.overlayEl_ = undefined;
-    }
   };
 
   base.defineProperty(ProfilingView, 'tracingController', base.PropertyKind.JS,

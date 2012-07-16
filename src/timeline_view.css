@@ -40,10 +40,11 @@
   padding-right: 10px;
 }
 
-.timeline-view > .control > .controls > button {
-  font-size: 75%;
-  height: 20px;
-  min-height: 10px;
+.timeline-view > .control > .controls > button,
+.timeline-view > .control > .controls > label {
+  font-size: 11px;
+  margin: 1px 2px 1px 2px;
+  height: 19px;
 }
 
 .timeline-view > .control > .spacer {

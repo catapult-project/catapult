@@ -11,7 +11,15 @@ base.defineModule('tracing_controller')
     .dependsOn('event_target')
     .exportsTo('tracing', function() {
 
-  function TracingController() {
+  /**
+   * The tracing controller is responsible for talking to tracing_ui.cc in
+   * chrome
+   * @constructor
+   * @param {function(String, opt_Array.<String>} Function to be used to send
+   * data to chrome.
+   */
+  function TracingController(sendFn) {
+    this.sendFn_ = sendFn;
     this.overlay_ = document.createElement('div');
     this.overlay_.className = 'tracing-overlay';
 
@@ -34,8 +42,10 @@ base.defineModule('tracing_controller')
     this.onKeydownBoundToThis_ = this.onKeydown_.bind(this);
     this.onKeypressBoundToThis_ = this.onKeypress_.bind(this);
 
-    if (chrome.send)
-      chrome.send('tracingControllerInitialized');
+    this.supportsSystemTracing_ = base.isChromeOS;
+
+    if (this.sendFn_)
+      this.sendFn_('tracingControllerInitialized');
   }
 
   TracingController.prototype = {
@@ -46,6 +56,10 @@ base.defineModule('tracing_controller')
     tracingEnabled_: false,
     tracingEnding_: false,
     systemTraceDataFilename_: undefined,
+
+    get supportsSystemTracing() {
+      return this.supportsSystemTracing_;
+    },
 
     onRequestBufferPercentFullComplete: function(percent_full) {
       if (!this.overlay_.visible)
@@ -61,7 +75,7 @@ base.defineModule('tracing_controller')
      * Begin requesting the buffer fullness
      */
     beginRequestBufferPercentFull_: function() {
-      chrome.send('beginRequestBufferPercentFull');
+      this.sendFn_('beginRequestBufferPercentFull');
     },
 
     /**
@@ -82,7 +96,7 @@ base.defineModule('tracing_controller')
 
       this.traceEvents_ = [];
       this.systemTraceEvents_ = [];
-      chrome.send('beginTracing', [opt_systemTracingEnabled || false]);
+      this.sendFn_('beginTracing', [opt_systemTracingEnabled || false]);
       this.beginRequestBufferPercentFull_();
 
       var e = new base.Event('traceBegun');
@@ -160,8 +174,9 @@ base.defineModule('tracing_controller')
       this.stopButton_.hidden = true;
       // delay sending endTracingAsync until we get a chance to
       // update the screen...
+      var that = this;
       window.setTimeout(function() {
-        chrome.send('endTracingAsync');
+        that.sendFn_('endTracingAsync');
       }, 100);
     },
 
@@ -202,7 +217,7 @@ base.defineModule('tracing_controller')
      * Tells browser to put up a load dialog and load the trace file
      */
     beginLoadTraceFile: function() {
-      chrome.send('loadTraceFile');
+      this.sendFn_('loadTraceFile');
     },
 
     /**
@@ -220,6 +235,8 @@ base.defineModule('tracing_controller')
 
       if (data.systemTraceEvents)
         this.systemTraceEvents_ = data.systemTraceEvents;
+      else
+        this.systemTraceEvents_ = [];
 
       var e = new base.Event('loadTraceFileComplete');
       e.events = this.traceEvents_;
@@ -243,7 +260,7 @@ base.defineModule('tracing_controller')
         clientInfo: this.clientInfo_,
         gpuInfo: this.gpuInfo_
       };
-      chrome.send('saveTraceFile', [JSON.stringify(data)]);
+      this.sendFn_('saveTraceFile', [JSON.stringify(data)]);
     },
 
     /**
@@ -258,11 +275,6 @@ base.defineModule('tracing_controller')
      */
     onSaveTraceFileCanceled: function() {
       base.dispatchSimpleEvent(this, 'saveTraceFileCanceled');
-    },
-
-    selfTest: function() {
-      this.beginTracing();
-      window.setTimeout(this.endTracing.bind(This), 500);
     }
   };
   return {

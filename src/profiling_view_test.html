@@ -21,10 +21,76 @@ found in the LICENSE file.
 base.defineModule('profiling_view_test')
     .dependsOn('unittest',
                'test_utils',
-               'profiling_view')
+               'profiling_view',
+               'tracing_controller')
     .runAllTests(function() {
 
     var tests = {};
+
+    var testData = [
+      {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 32000, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 54000, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var systemTraceTestData = [
+      'systrace.sh-8170  [000] 0.013: sched_switch: ' +
+                'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+                'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+                'next_prio=120',
+      ' kworker/1:0-7873  [000] 0.036: sched_switch: ' +
+                'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+                'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+      '     debugd-4404  [000] 0.070: sched_switch: prev_comm=debugd ' +
+                'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+                'next_comm=dbus-daemon next_pid=510 next_prio=120',
+      'systrace.sh-8182  [000] 0.000: tracing_mark_write: ' +
+                'trace_event_clock_sync: parent_ts=0.0'
+    ].join('\n');
+
+    /* This test just instantiates a ProflingView and adds it to the DOM
+     * to help with non-unittest UI work.
+     */
+    tests.testInstantiate = function() {
+      var view = new tracing.ProfilingView();
+      var tracingController;
+
+      // This code emulates Chrome's responses to sendFn enough that the real
+      // tracing controller can be used to interactively test the UI.
+      var systemTraceRequested = false;
+      function send(message, opt_args) {
+        var args = opt_args || [];
+        if (message == 'beginTracing') {
+          systemTraceRequested = opt_args[0];
+        } else if(message == 'beginRequestBufferPercentFull') {
+          setTimeout(function() {
+            view.tracingController.onRequestBufferPercentFullComplete(0.5);
+          }, 1);
+        } else if(message == 'endTracingAsync') {
+          setTimeout(function() {
+            if (systemTraceRequested)
+              view.tracingController.onSystemTraceDataCollected(systemTraceTestData);
+            view.tracingController.onTraceDataCollected(testData);
+            view.tracingController.onEndTracingComplete();
+          }, 1);
+        } else if(message == 'loadTraceFile') {
+          setTimeout(function() {
+            view.tracingController.onLoadTraceFileComplete(JSON.stringify(testData));
+          }, 150);
+        } else if(message == 'saveTraceFile') {
+          setTimeout(function() {
+            view.tracingController.onSaveTraceFileComplete();
+          }, 1);
+        }
+      }
+
+      tracingController = new tracing.TracingController(send);
+      tracingController.supportsSystemTracing_ = true;
+
+      view.tracingController = tracingController;
+      view.focusElement = view;
+      this.addHTMLOutput(undefined, view);
+    }
 
     /*
      * Just enough of the TracingController to support the tests below.
@@ -35,6 +101,10 @@ base.defineModule('profiling_view_test')
     FakeTracingController.prototype = {
       __proto__: base.EventTarget.prototype,
 
+      get supportsSystemTracing() {
+        return base.isChromeOS;
+      },
+
       beginTracing: function(opt_systemTracingEnabled) {
         this.wasBeginTracingCalled = true;
         this.wasBeginTracingCalledWithSystemTracingEnabled = opt_systemTracingEnabled;
@@ -43,7 +113,7 @@ base.defineModule('profiling_view_test')
       get traceEvents() {
         if (!this.wasBeginTracingCalled)
           return undefined;
-        return FakeTracingController.testData;
+        return testData;
       },
 
       get systemTraceEvents() {
@@ -51,40 +121,10 @@ base.defineModule('profiling_view_test')
           return [];
         if (!this.wasBeginTracingCalledWithSystemTracingEnabled)
           return [];
-        return FakeTracingController.systemTraceTestData;
+        return systemTraceTestData;
       }
 
     };
-    FakeTracingController.testData = [
-      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
-      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
-    ];
-    FakeTracingController.systemTraceTestData = [
-      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
-                'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-                'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-                'next_prio=120',
-      ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
-                'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
-                'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
-      '     debugd-4404  [001] 15180.979010: sched_switch: prev_comm=debugd ' +
-                'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
-                'next_comm=dbus-daemon next_pid=510 next_prio=120',
-      'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
-                'trace_event_clock_sync: parent_ts=0.0'
-    ].join('\n');
-
-    /* This test just instantiates a ProflingView and adds it to the DOM
-     * to help with non-unittest UI work.
-     */
-    tests.testInstantiate = function() {
-      var view = new tracing.ProfilingView();
-      view.tracingController = new FakeTracingController();
-      view.focusElement = view;
-      document.body.appendChild(view);
-    }
 
     function recordTestCommon() {
       var view = new tracing.ProfilingView();
