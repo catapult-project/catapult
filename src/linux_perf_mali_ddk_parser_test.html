@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>LinuxPerfMaliDDKParser tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('linux_perf_mali_ddk_parser_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'linux_perf_mali_ddk_parser')
+    .runAllTests(function() {
+
+var tests = {};
+
+tests.testMaliDDKImport = function() {
+  var lines = [
+    // Row 1 open
+    '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992: ' +
+                'glTexSubImage2D',
+    // Row 2 open
+    '           chrome-1780  [001] ...1   28.562655: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_api.c996: ' +
+                'gles_texture_tex_sub_image_2d',
+    // Row 3 open
+    '            chrome-1780  [001] ...1   28.562671: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c295: ' +
+                'gles_texturep_slave_map_master',
+    // Row 3 close
+    '           chrome-1780  [001] ...1   28.562684: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c295: ',
+    // Row 3 open
+    '           chrome-1780  [001] ...1   28.562700: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c1505: ' +
+                'gles2_texturep_upload_2d',
+    // Row 4 open
+    '           chrome-1780  [001] ...1   28.562726: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c1612: ' +
+                'gles2_texturep_upload_2d: pixel array: wait for dependencies',
+    // Row 5 open
+    '           chrome-1780  [001] ...1   28.562742: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c1693: ' +
+                'cobj_convert_pixels_to_surface',
+    // Row 6 open
+    '           chrome-1780  [001] ...1   28.562776: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c1461: ' +
+                'cobj_convert_pixels',
+    // Row 7 open
+    '           chrome-1780  [001] ...1   28.562791: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c1505: ' +
+                'cobj_convert_pixels: fast-path linear copy',
+    // Row 8 open
+    '           chrome-1780  [001] ...1   28.562808: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c1511: ' +
+                'cobj_convert_pixels: reorder-only',
+    // Row 8 close
+    '           chrome-1780  [001] ...1   28.563383: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c1511',
+    // Row 7 close
+    '           chrome-1780  [001] ...1   28.563397: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c1505',
+    // Row 6 close
+    '           chrome-1780  [001] ...1   28.563409: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c1461',
+    // Row 5 close
+    '           chrome-1780  [001] ...1   28.563438: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c1693',
+    // Row 4 close
+    '           chrome-1780  [001] ...1   28.563451: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c1612',
+    // Row 3 close
+    '           chrome-1780  [001] ...1   28.563462: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c1505',
+    // Row 2 close
+    '           chrome-1780  [001] ...1   28.563475: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_api.c996',
+    // Row 1 close
+    '           chrome-1780  [001] ...1   28.563486: tracing_mark_write: ' +
+                'mali_driver: cros_trace_print_exit: ' +
+                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992',
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var maliThread = threads[0];
+  assertEquals('mali_ddk', maliThread.name);
+  assertEquals(8, maliThread.subRows.length);
+}
+
+return tests;
+});
+
+</script>
+</body>
+</html>
