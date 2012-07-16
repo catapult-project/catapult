@@ -9,8 +9,45 @@ import os
 
 srcdir = os.path.join(os.path.dirname(__file__), "../src")
 
+class JSStripTests(unittest.TestCase):
+  def test_tokenize_0(self):
+    tokens = list(calcdeps._tokenize_js(""))
+    self.assertEquals([], tokens)
+
+  def test_tokenize_nl(self):
+    tokens = list(calcdeps._tokenize_js("\n"))
+    self.assertEquals(["\n"], tokens)
+
+  def test_tokenize_slashslash_comment(self):
+    tokens = list(calcdeps._tokenize_js("A // foo"))
+    self.assertEquals(["A ", "//", " foo"], tokens)
+
+  def test_tokenize_slashslash_comment_then_newline2(self):
+    tokens = list(calcdeps._tokenize_js("""A // foo
+bar"""
+))
+    self.assertEquals(["A ", "//", " foo", "\n", "bar"], tokens)
+
+  def test_tokenize_cstyle_comment(self):
+    tokens = list(calcdeps._tokenize_js("""A /* foo */"""))
+    self.assertEquals(["A ", "/*", " foo ", "*/"], tokens)
+
+  def test_tokenize_cstyle_comment(self):
+    tokens = list(calcdeps._tokenize_js("""A /* foo
+*bar
+*/"""))
+    self.assertEquals(["A ", "/*", " foo", "\n", "*bar", "\n", "*/"], tokens)
+
+  def test_strip_comments(self):
+    self.assertEquals("A ", calcdeps._strip_js_comments("A // foo"))
+
+    self.assertEquals("A  b", calcdeps._strip_js_comments("A /* foo */ b"))
+    self.assertEquals("A  b", calcdeps._strip_js_comments("""A /* foo
+ */ b"""))
+
+
 class ParseTests(unittest.TestCase):
-  def test_parse_declaration_1(self):
+  def test_parse_definition_1(self):
     text = """// blahblahblah
 base.defineModule('myModule')
       .stylesheet('myStylesheet')
@@ -64,6 +101,13 @@ base.defineModule('myModule')
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
 
+  def test_parse_definition_with_bad_name(self):
+    text = """base.defineModule('myModulex')
+"""
+    module = calcdeps.Module("myModule")
+    self.assertRaises(calcdeps.DepsException,
+                      lambda: module.parse_definition_(text))
+
   def test_parse_definition_2(self):
     text = """// blahblahblah
 base.defineModule('myModule')
@@ -104,7 +148,7 @@ base.defineModule('timeline_view')
     .exportsTo('tracing', function() {"""
 
     module = calcdeps.Module()
-    module.parse_declaration_(text)
+    module.parse_definition_(text)
     self.assertEquals("timeline_view", module.name)
     self.assertEquals(["timeline_view"], module.style_sheet_names);
     self.assertEquals(["timeline",
@@ -112,6 +156,27 @@ base.defineModule('timeline_view')
                        "overlay",
                        "trace_event_importer",
                        "linux_perf_importer"], module.dependent_module_names);
+
+  def test_parse_definition_with_definition_in_comments(self):
+    text = """// SomeComment
+/*
+ * All subclasses should depend on linux_perf_parser, e.g.
+ *
+ * base.defineModule('linux_perf_workqueue_parser')
+ *   .dependsOn('linux_perf_parser')
+ *   .exportsTo('tracing', function()
+ *
+ */
+base.defineModule('myModule')
+      .dependsOn("dependency1", 'dependency2')
+"""
+    module = calcdeps.Module("myModule")
+    module.parse_definition_(text)
+    self.assertEquals([], module.style_sheet_names);
+    self.assertEquals(["dependency1", "dependency2"],
+                      module.dependent_module_names);
+
+
 
 class ResourceFinderStub(object):
   def __init__(self):

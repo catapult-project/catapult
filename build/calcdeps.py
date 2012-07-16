@@ -70,6 +70,61 @@ class StyleSheet(object):
   def __repr__(self):
     return "StyleSheet(%s)" % self.name
 
+def _tokenize_js(text):
+  rest = text
+  tokens = ["//", "/*", "*/", "\n"]
+  while len(rest):
+    indices = [rest.find(token) for token in tokens]
+    found_indices = [index for index in indices if index >= 0]
+
+    if len(found_indices) == 0:
+      # end of string
+      yield rest
+      return
+
+    min_index = min(found_indices)
+    token_with_min = tokens[indices.index(min_index)]
+
+    if min_index > 0:
+      yield rest[:min_index]
+
+    yield rest[min_index:min_index + len(token_with_min)]
+    rest = rest[min_index + len(token_with_min):]
+
+def _strip_js_comments(text):
+  result_tokens = []
+  token_stream = _tokenize_js(text).__iter__()
+  while True:
+    try:
+      t = token_stream.next()
+    except StopIteration:
+      break
+
+    if t == "//":
+      while True:
+        try:
+          t2 = token_stream.next()
+          if t2 == "\n":
+            break
+        except StopIteration:
+          break
+    elif t == '/*':
+      nesting = 1
+      while True:
+        try:
+          t2 = token_stream.next()
+          if t2 == "/*":
+            nesting += 1
+          elif t2 == "*/":
+            nesting -= 1
+            if nesting == 0:
+              break
+        except StopIteration:
+          break
+    else:
+      result_tokens.append(t)
+  return "".join(result_tokens)
+
 class Module(object):
   """Represents a javascript module. It can either be directly requested, e.g.
   passed in by name to calc_load_sequence, or created by being referenced a
@@ -158,8 +213,10 @@ class Module(object):
     if not decl_required and not self.name:
       raise Exception("Module.name must be set for decl_required to be false.")
 
+    stripped_text = _strip_js_comments(text)
+
     m = re.search("""base\s*\.\s*defineModule\((["'])(.+?)\\1\)""",
-                  text, re.DOTALL)
+                  stripped_text, re.DOTALL)
     familiar_name = self.filename or self.name
     if not m:
       if decl_required:
@@ -175,7 +232,7 @@ class Module(object):
     else:
       self.name = m.group(2)
 
-    rest = text[m.end():]
+    rest = stripped_text[m.end():]
 
     stylesheet_regex = """\s*\.\s*stylesheet\((["'])(.+?)\\1\)"""
 
