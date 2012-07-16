@@ -129,7 +129,7 @@ base.defineModule('linux_perf_power_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfPowerParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfPowerParser);
 
   return {
     LinuxPerfPowerParser: LinuxPerfPowerParser

@@ -73,7 +73,7 @@ base.defineModule('linux_perf_sched_parser')
     },
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfSchedParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfSchedParser);
 
   return {
     LinuxPerfSchedParser: LinuxPerfSchedParser,

@@ -69,7 +69,7 @@ base.defineModule('linux_perf_workqueue_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfWorkqueueParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfWorkqueueParser);
 
   return {
     LinuxPerfWorkqueueParser: LinuxPerfWorkqueueParser

@@ -67,7 +67,7 @@ base.defineModule('linux_perf_mali_ddk_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfMaliDDKParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfMaliDDKParser);
 
   return {
     LinuxPerfMaliDDKParser: LinuxPerfMaliDDKParser

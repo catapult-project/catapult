@@ -53,10 +53,9 @@ base.defineModule('linux_perf_drm_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfDrmParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfDrmParser);
 
   return {
-    LinuxPerfDrmParser: LinuxPerfDrmParser,
-    _LinuxPerfDrmParserTestExports: TestExports
+    LinuxPerfDrmParser: LinuxPerfDrmParser
   };
 });

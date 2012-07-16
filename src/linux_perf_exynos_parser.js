@@ -68,7 +68,7 @@ base.defineModule('linux_perf_exynos_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfExynosParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfExynosParser);
 
   return {
     LinuxPerfExynosParser: LinuxPerfExynosParser

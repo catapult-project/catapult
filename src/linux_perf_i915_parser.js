@@ -326,7 +326,7 @@ base.defineModule('linux_perf_i915_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfI915Parser);
+  LinuxPerfParser.registerSubtype(LinuxPerfI915Parser);
 
   return {
     LinuxPerfI915Parser: LinuxPerfI915Parser

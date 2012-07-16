@@ -14,14 +14,7 @@ base.defineModule('timeline_view')
                'timeline_analysis',
                'overlay',
                'trace_event_importer',
-               'linux_perf_cpufreq_parser',
-               'linux_perf_drm_parser',
-               'linux_perf_exynos_parser',
-               'linux_perf_i915_parser',
-               'linux_perf_mali_ddk_parser',
-               'linux_perf_power_parser',
-               'linux_perf_sched_parser',
-               'linux_perf_workqueue_parser')
+               'linux_perf_importer')
     .exportsTo('tracing', function() {
 
   /**

@@ -18,7 +18,15 @@
  */
 base.defineModule('linux_perf_importer')
   .dependsOn('timeline_model',
-             'timeline_color_scheme')
+             'timeline_color_scheme',
+             'linux_perf_cpufreq_parser',
+             'linux_perf_drm_parser',
+             'linux_perf_exynos_parser',
+             'linux_perf_i915_parser',
+             'linux_perf_mali_ddk_parser',
+             'linux_perf_power_parser',
+             'linux_perf_sched_parser',
+             'linux_perf_workqueue_parser')
   .exportsTo('tracing', function() {
   /**
    * Represents the scheduling state for a single thread.
@@ -64,18 +72,6 @@ base.defineModule('linux_perf_importer')
       this.lastActiveComm = comm;
       this.lastActivePrio = prio;
     }
-  };
-
-  var parserConstructors = [];
-
-  /**
-   * Registers an event parser. All registered parsers are considered
-   * when processing an import request.
-   *
-   * @param {Function} parser The parser's constructor function.
-   */
-  LinuxPerfImporter.registerParser = function(parserConstructor) {
-    parserConstructors.push(parserConstructor);
   };
 
   /**
@@ -420,6 +416,7 @@ base.defineModule('linux_perf_importer')
      */
     createParsers: function() {
       // Instantiate the parsers; this will register handlers for known events
+      var parserConstructors = tracing.LinuxPerfParser.getSubtypeConstructors();
       for (var i = 0; i < parserConstructors.length; ++i) {
         var parserConstructor = parserConstructors[i];
         this.parsers_.push(new parserConstructor(this));

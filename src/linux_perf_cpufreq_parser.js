@@ -107,10 +107,9 @@ base.defineModule('linux_perf_cpufreq_parser')
     }
   };
 
-  tracing.LinuxPerfImporter.registerParser(LinuxPerfCpufreqParser);
+  LinuxPerfParser.registerSubtype(LinuxPerfCpufreqParser);
 
   return {
-    LinuxPerfCpufreqParser: LinuxPerfCpufreqParser,
-    _LinuxPerfCpufreqParserTestExports: TestExports
+    LinuxPerfCpufreqParser: LinuxPerfCpufreqParser
   };
 });
