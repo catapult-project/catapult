@@ -44,7 +44,7 @@ base.defineModule('linux_perf_sched_parser')
     /**
      * Parses scheduler events and sets up state in the importer.
      */
-    schedSwitchEvent: function(eventName, cpuNumber, ts, eventBase) {
+    schedSwitchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedSwitchRE.exec(eventBase[5]);
       if (!event)
         return false;
@@ -60,7 +60,7 @@ base.defineModule('linux_perf_sched_parser')
       return true;
     },
 
-    schedWakeupEvent: function(eventName, cpuNumber, ts, eventBase) {
+    schedWakeupEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedWakeupRE.exec(eventBase[5]);
       if (!event)
         return false;

@@ -83,7 +83,7 @@ base.defineModule('linux_perf_power_parser')
     /**
      * Parses power events and sets up state in the importer.
      */
-    powerStartEvent: function(eventName, cpuNumber, ts, eventBase) {
+    powerStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /type=(\d+) state=(\d) cpu_id=(\d)+/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -94,7 +94,7 @@ base.defineModule('linux_perf_power_parser')
       return true;
     },
 
-    powerFrequencyEvent: function(eventName, cpuNumber, ts, eventBase) {
+    powerFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /type=(\d+) state=(\d+) cpu_id=(\d)+/
           .exec(eventBase[5]);
       if (!event)
@@ -106,7 +106,7 @@ base.defineModule('linux_perf_power_parser')
       return true;
     },
 
-    cpuFrequencyEvent: function(eventName, cpuNumber, ts, eventBase) {
+    cpuFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -117,7 +117,7 @@ base.defineModule('linux_perf_power_parser')
       return true;
     },
 
-    cpuIdleEvent: function(eventName, cpuNumber, ts, eventBase) {
+    cpuIdleEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase[5]);
       if (!event)
         return false;

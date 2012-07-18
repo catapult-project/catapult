@@ -59,7 +59,7 @@ base.defineModule('linux_perf_cpufreq_parser')
     /**
      * Parses cpufreq events and sets up state in the importer.
      */
-    cpufreqUpDownEvent: function(eventName, cpuNumber, ts, eventBase) {
+    cpufreqUpDownEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /cpu=(\d+) targ=(\d+) actual=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -77,7 +77,8 @@ base.defineModule('linux_perf_cpufreq_parser')
       return true;
     },
 
-    cpufreqTargetEvent: function(eventName, cpuNumber, ts, eventBase) {
+    cpufreqTargetEvent: function(eventName, cpuNumber, pid, ts,
+                                 eventBase) {
       var event = /cpu=(\d+) load=(\d+) cur=(\d+) targ=(\d+)/
           .exec(eventBase[5]);
       if (!event)
@@ -98,7 +99,8 @@ base.defineModule('linux_perf_cpufreq_parser')
       return true;
     },
 
-    cpufreqBoostUnboostEvent: function(eventName, cpuNumber, ts, eventBase) {
+    cpufreqBoostUnboostEvent: function(eventName, cpuNumber, pid, ts,
+                                       eventBase) {
       this.cpufreqBoostSlice(ts, eventName,
           {
             type: eventBase[5]

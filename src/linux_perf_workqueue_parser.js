@@ -38,7 +38,7 @@ base.defineModule('linux_perf_workqueue_parser')
     /**
      * Parses workqueue events and sets up state in the importer.
      */
-    executeStartEvent: function(eventName, cpuNumber, ts, eventBase) {
+    executeStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteStartRE.exec(eventBase[5]);
       if (!event)
         return false;
@@ -49,7 +49,7 @@ base.defineModule('linux_perf_workqueue_parser')
       return true;
     },
 
-    executeEndEvent: function(eventName, cpuNumber, ts, eventBase) {
+    executeEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteEndRE.exec(eventBase[5]);
       if (!event)
         return false;

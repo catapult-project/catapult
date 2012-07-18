@@ -457,7 +457,7 @@ base.defineModule('linux_perf_importer')
     /**
      * Processes a trace_event_clock_sync event.
      */
-    traceClockSyncEvent: function(eventName, cpuNumber, ts, eventBase) {
+    traceClockSyncEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /parent_ts=(\d+\.?\d*)/.exec(eventBase[2]);
       if (!event)
         return false;
@@ -472,7 +472,7 @@ base.defineModule('linux_perf_importer')
     /**
      * Processes a trace_marking_write event.
      */
-    traceMarkingWriteEvent: function(eventName, cpuNumber, ts, eventBase) {
+    traceMarkingWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -483,7 +483,7 @@ base.defineModule('linux_perf_importer')
         this.importError('Unknown trace_marking_write event ' + writeEventName);
         return true;
       }
-      return handler(writeEventName, cpuNumber, ts, event);
+      return handler(writeEventName, cpuNumber, pid, ts, event);
     },
 
     /**
@@ -511,6 +511,7 @@ base.defineModule('linux_perf_importer')
           continue;
         }
 
+        var pid = parseInt((/\S+-(\d+)/.exec(eventBase[1]))[1]);
         var cpuNumber = parseInt(eventBase[2]);
         var ts = parseFloat(eventBase[3]) * 1000;
         var eventName = eventBase[4];
@@ -520,7 +521,7 @@ base.defineModule('linux_perf_importer')
           this.importError('Unknown event ' + eventName + ' (' + line + ')');
           continue;
         }
-        if (!handler(eventName, cpuNumber, ts, eventBase))
+        if (!handler(eventName, cpuNumber, pid, ts, eventBase))
           this.importError('Malformed ' + eventName + ' event (' + line + ')');
       }
     }

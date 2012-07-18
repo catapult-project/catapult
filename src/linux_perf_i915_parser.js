@@ -119,7 +119,7 @@ base.defineModule('linux_perf_i915_parser')
     /**
      * Parses i915 driver events and sets up state in the importer.
      */
-    gemObjectCreateEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectCreateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+), size=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -134,7 +134,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemObjectBindEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectBindEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) mappable
       var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase[5]);
       if (!event)
@@ -152,7 +152,8 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemObjectChangeDomainEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectChangeDomainEvent: function(eventName, cpuNumber, pid, ts,
+                                         eventBase) {
       var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
           .exec(eventBase[5]);
       if (!event)
@@ -170,7 +171,8 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemObjectPreadWriteEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectPreadWriteEvent: function(eventName, cpuNumber, pid, ts,
+                                       eventBase) {
       var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -187,7 +189,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemObjectFaultEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectFaultEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) writable
       var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase[5]);
       if (!event)
@@ -205,7 +207,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemObjectDestroyEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemObjectDestroyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -218,7 +220,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemRingDispatchEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemRingDispatchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -235,7 +237,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemRingFlushEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemRingFlushEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\w+), invalidate=(\w+), flush=(\w+)/
           .exec(eventBase[5]);
       if (!event)
@@ -255,7 +257,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemRequestEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemRequestEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -272,7 +274,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    gemRingWaitEvent: function(eventName, cpuNumber, ts, eventBase) {
+    gemRingWaitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
@@ -287,7 +289,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    regRWEvent: function(eventName, cpuNumber, ts, eventBase) {
+    regRWEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /(\w+) reg=(\w+), len=(\d+), val=(\(\w+, \w+\))/
           .exec(eventBase[5]);
       if (!event)
@@ -307,7 +309,7 @@ base.defineModule('linux_perf_i915_parser')
       return true;
     },
 
-    flipEvent: function(eventName, cpuNumber, ts, eventBase) {
+    flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /plane=(\d+), obj=(\w+)/.exec(eventBase[5]);
       if (!event)
         return false;

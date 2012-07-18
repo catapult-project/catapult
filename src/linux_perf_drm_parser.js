@@ -37,7 +37,7 @@ base.defineModule('linux_perf_drm_parser')
     /**
      * Parses drm driver events and sets up state in the importer.
      */
-    vblankEvent: function(eventName, cpuNumber, ts, eventBase) {
+    vblankEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;

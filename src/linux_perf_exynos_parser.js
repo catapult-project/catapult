@@ -51,7 +51,7 @@ base.defineModule('linux_perf_exynos_parser')
     /**
      * Parses exynos events and sets up state in the importer.
      */
-    flipEvent: function(eventName, cpuNumber, ts, eventBase) {
+    flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /pipe=(\d+)/.exec(eventBase[5]);
       if (!event)
         return false;
