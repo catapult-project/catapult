@@ -275,7 +275,7 @@ tests.testObjectThatThrowsInCleanup = function() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-tests.testRawAssertTrue = function() {
+tests.testAssertTrue = function() {
   var test = new TestCase(function() {
     rawAssertThrows(function() {
       assertTrue(false);
@@ -284,6 +284,22 @@ tests.testRawAssertTrue = function() {
       assertTrue(true);
     });
   }, "test_assert_true");
+  var results = new FakeResults();
+  test.run(results);
+}
+
+tests.testAssertThrows = function() {
+  var test = new TestCase(function() {
+    rawAssertThrows(function() {
+      assertThrows(function() {
+      });
+    });
+    rawAssertNotThrows(function() {
+      assertThrows(function() {
+        throw new Error("expected_error");
+      });
+    });
+  }, "test_assert_throws");
   var results = new FakeResults();
   test.run(results);
 }

@@ -403,6 +403,16 @@ base.defineModule('unittest')
       throw new TestError(message);
     },
 
+    assertThrows: function(fn, opt_message) {
+      try {
+        fn();
+      } catch(e) {
+        return;
+      }
+      var message = opt_message || 'Expected throw from ' + fn;
+      throw new TestError(message);
+    },
+
     setUp: function() {
     },
 
