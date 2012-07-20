@@ -829,15 +829,45 @@ base.defineModule('timeline_track')
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
 
-      this.addEventListener('click', this.onClick);
+      this.addEventListener('mousedown', this.onMouseDown);
     },
 
-    onClick: function(e) {
-      var clickOffset = e.clientX - this.canvasContainer_.offsetLeft;
+    onMouseDown: function(e){
+      this.placeAndBeginDraggingMarker(e.clientX);
+    },
+
+
+    placeAndBeginDraggingMarker: function(clientX) {
+      var clickOffset = clientX - this.canvasContainer_.offsetLeft;
       var ts = this.viewport_.xViewToWorld(clickOffset);
-      if (this.viewport_.removeMarkerNear(ts, 3))
-        return;
-      this.viewport_.addMarker(ts);
+      var marker = this.viewport_.findMarkerNear(ts, 3);
+      var createdMarker = false;
+      var movedMarker = false;
+      if (!marker) {
+        marker = this.viewport_.addMarker(ts);
+        createdMarker = true;
+      }
+      marker.selected = true;
+
+      var that = this;
+      var onMouseMove = function(e) {
+        var clickOffset = e.clientX - that.canvasContainer_.offsetLeft;
+        var ts = that.viewport_.xViewToWorld(clickOffset);
+        marker.moveTo(ts);
+        movedMarker = true;
+      };
+
+      var onMouseUp = function(e) {
+        marker.selected = false;
+        if(!movedMarker && !createdMarker)
+          that.viewport_.removeMarker(marker);
+        that.viewport_.dispatchChangeEvent();
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mousemove', onMouseMove);
+      };
+
+      document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('mousemove', onMouseMove);
     },
 
     redraw: function() {
@@ -853,19 +883,9 @@ base.defineModule('timeline_track')
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
 
-      ctx.beginPath();
       for(var i = 0; i < vp.markers.length; ++i) {
-        var ts = vp.markers[i].x;
-        if(ts >= viewLWorld && ts < viewRWorld) {
-          var viewX = vp.xWorldToView(ts);
-          ctx.moveTo(viewX, canvasH);
-          ctx.lineTo(viewX - 3, canvasH / 2);
-          ctx.lineTo(viewX + 3, canvasH / 2);
-          ctx.lineTo(viewX, canvasH);
-        }
+        vp.markers[i].drawTriangle(ctx,viewLWorld,viewRWorld,canvasH,vp);
       }
-      ctx.fillStyle = 'rgb(0,0,0)';
-      ctx.fill();
 
       var idealMajorMarkDistancePix = 150;
       var idealMajorMarkDistanceWorld =

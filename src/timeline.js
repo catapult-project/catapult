@@ -58,6 +58,60 @@ base.defineModule('timeline')
     this.markers = [];
   }
 
+  function TimelineMarker(vp, pos) {
+    this.viewport_ = vp;
+    this.position_ = pos;
+    this.selected_ = false;
+  }
+
+  TimelineMarker.prototype = {
+    moveTo: function(ts) {
+      this.position_ = ts;
+      this.viewport_.dispatchChangeEvent();
+    },
+
+    set selected(selected) {
+      this.selected_ = selected;
+      this.viewport_.dispatchChangeEvent();
+    },
+
+    get selected() {
+      return this.selected_;
+    },
+
+    get color() {
+      if(this.selected)
+        return 'rgb(255,0,0)';
+      return 'rgb(0,0,0)';
+    },
+
+    drawTriangle: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
+      ctx.beginPath();
+      var ts = this.position_;
+      if(ts >= viewLWorld && ts < viewRWorld) {
+        var viewX = vp.xWorldToView(ts);
+        ctx.moveTo(viewX, canvasH);
+        ctx.lineTo(viewX - 3, canvasH / 2);
+        ctx.lineTo(viewX + 3, canvasH / 2);
+        ctx.lineTo(viewX, canvasH);
+      }
+      ctx.fillStyle = this.color;
+      ctx.fill();
+    },
+
+    drawLine: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
+      ctx.beginPath();
+      var ts = this.position_;
+      if(ts >= viewLWorld && ts < viewRWorld) {
+        var viewX = vp.xWorldToView(ts);
+        ctx.moveTo(viewX, 0);
+        ctx.lineTo(viewX, canvasH);
+      }
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
+    }
+  };
+
   TimelineViewport.prototype = {
     __proto__: base.EventTarget.prototype,
 
@@ -83,17 +137,9 @@ base.defineModule('timeline')
         ctx.stroke();
       }
 
-      ctx.beginPath();
       for(var i = 0; i < this.markers.length; ++i) {
-        var ts = this.markers[i].x;
-        if(ts >= viewLWorld && ts < viewRWorld) {
-          var viewX = this.xWorldToView(ts);
-          ctx.moveTo(viewX, 0);
-          ctx.lineTo(viewX, canvasH);
-        }
+        this.markers[i].drawLine(ctx,viewLWorld,viewRWorld,canvasH,this);
       }
-      ctx.strokeStyle = 'rgb(0,0,0)';
-      ctx.stroke();
     },
 
     /**
@@ -279,20 +325,32 @@ base.defineModule('timeline')
     },
 
     addMarker: function(ts) {
-      this.markers.push({x: ts});
+      var marker = new TimelineMarker(this, ts);
+      this.markers.push(marker);
       this.dispatchChangeEvent();
+      return marker;
     },
 
-    removeMarkerNear: function(ts, nearnessInViewPixels) {
+    removeMarker: function(marker) {
+      for(var i = 0; i < this.markers.length; ++i) {
+        if(this.markers[i] === marker) {
+          this.markers.splice(i, 1);
+          this.dispatchChangeEvent();
+          return true;
+        }
+      }
+    },
+
+    findMarkerNear: function(ts, nearnessInViewPixels) {
       // Converts pixels into distance in world.
       var nearnessThresholdWorld = this.xViewVectorToWorld(nearnessInViewPixels);
       for(var i = 0; i < this.markers.length; ++i) {
-        if(Math.abs(this.markers[i].x - ts) <= nearnessThresholdWorld) {
-         this.markers.splice(i, 1);
-         this.dispatchChangeEvent();
-         return true;
+        if(Math.abs(this.markers[i].position_ - ts) <= nearnessThresholdWorld) {
+         var marker = this.markers[i];
+         return marker;
         }
       }
+      return undefined;
     }
   };
 
@@ -483,12 +541,12 @@ base.defineModule('timeline')
 
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
-      this.bindEventListener_(document, 'mousedown', this.onMouseDown_, this);
       this.bindEventListener_(document, 'mousemove', this.onMouseMove_, this);
       this.bindEventListener_(document, 'mouseup', this.onMouseUp_, this);
-      this.bindEventListener_(document, 'dblclick', this.onDblClick_, this);
 
       this.addEventListener('mousewheel', this.onMouseWheel_);
+      this.addEventListener('mousedown', this.onMouseDown_);
+      this.addEventListener('dblclick', this.onDblClick_);
 
       this.lastMouseViewPos_ = {x: 0, y: 0};
 
@@ -928,11 +986,13 @@ base.defineModule('timeline')
     },
 
     onMouseDown_: function(e) {
+      if(e.shiftKey) {
+        this.viewportTrack_.placeAndBeginDraggingMarker(e.clientX);
+        return;
+      }
+
       var canv = this.firstCanvas;
       var rect = this.tracks_.getClientRects()[0];
-
-      if (!this.isChildOfThis_(e.target))
-        return;
 
       var pos = {
         x: e.clientX - canv.offsetLeft,
@@ -1005,8 +1065,6 @@ base.defineModule('timeline')
 
     onDblClick_: function(e) {
       var canv = this.firstCanvas;
-      if (!this.isChildOfThis_(e.target))
-        return;
 
       var scale = 4;
       if (e.shiftKey)
