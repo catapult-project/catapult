@@ -30,6 +30,8 @@ base.defineModule('timeline_view_test')
                'timeline_view')
     .runAllTests(function() {
 
+    var newSliceNamed = test_utils.newSliceNamed;
+
     var tests = {};
     /*
      * Just enough of the Timeline to support the tests below.
@@ -81,27 +83,27 @@ base.defineModule('timeline_view_test')
      * to help with non-unittest UI work.
      */
     tests.testInstantiateTimelineView = function() {
-      var events = [];
       var num_tests = 50;
       var testIndex = 0;
+      var startTime = 1100;
+
+      var model = new tracing.TimelineModel();
       for(testIndex = 0; testIndex < num_tests; ++testIndex){
-        var startTime = 500 + Math.random()*300;
-        var endTime = startTime + Math.random()*300;
-        events.push({name: 'a'+testIndex, args: {}, pid: testIndex, ts: startTime, cat: 'foo', tid: 53, ph: 'B'});
-        events.push({name: 'a'+testIndex, args: {}, pid: testIndex, ts: endTime, cat: 'foo', tid: 53, ph: 'E'});
+        var process = model.getOrCreateProcess(testIndex);
+        var thread = process.getOrCreateThread(testIndex);
+        thread.slices.push(newSliceNamed('a', startTime, 1));
+        thread.slices.push(newSliceNamed('a', startTime + 1.15, 1));
       }
 
       /*
        * Add a slice with the same title as one of the previous slices
        * to test the case where multiple of these are selected.
        */
-        events.push({name: 'a49', args: {}, pid: testIndex, ts: startTime, cat: 'foo', tid: 53, ph: 'B'});
-        events.push({name: 'a49', args: {}, pid: testIndex, ts: endTime, cat: 'foo', tid: 53, ph: 'E'});
 
       // Add a known problematic piece of data to test the import errors UI.
-      events.push({ph: 'Z'});
+      model.importErrors.push('Synthetic Import Error');
+      model.updateBounds();
 
-      var model = new tracing.TimelineModel(events);
       var view = new tracing.TimelineView();
       view.style.height = '400px';
       view.model = model;

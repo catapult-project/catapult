@@ -811,12 +811,18 @@ base.defineModule('timeline')
       if (!this.listenToKeys_)
         return;
       var sel;
+      var vp = this.viewport_;
+      var viewWidth = this.firstCanvas.clientWidth;
       switch (e.keyCode) {
         case 37:   // left arrow
           sel = this.selection.getShiftedSelection(-1);
           if (sel) {
             this.setSelectionAndMakeVisible(sel);
             e.preventDefault();
+          } else {
+            if (!this.firstCanvas)
+              return;
+            vp.panX += vp.xViewVectorToWorld(viewWidth * 0.1);
           }
           break;
         case 39:   // right arrow
@@ -824,6 +830,10 @@ base.defineModule('timeline')
           if (sel) {
             this.setSelectionAndMakeVisible(sel);
             e.preventDefault();
+          } else {
+            if (!this.firstCanvas)
+              return;
+            vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.1);
           }
           break;
         case 9:    // TAB
