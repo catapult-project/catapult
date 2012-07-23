@@ -165,6 +165,7 @@ base.defineModule('overlay')
       this.additionalCloseKeyCodes = [];
       this.onKeyDown = this.onKeyDown.bind(this);
       this.onKeyPress = this.onKeyPress.bind(this);
+      this.onDocumentClick = this.onDocumentClick.bind(this);
     },
 
     onVisibleChanged_: function() {
@@ -173,9 +174,11 @@ base.defineModule('overlay')
         overlayRoot.showOverlay(this);
         document.addEventListener('keydown', this.onKeyDown, true);
         document.addEventListener('keypress', this.onKeyPress, true);
+        document.addEventListener('click', this.onDocumentClick, true);
       } else {
         document.removeEventListener('keydown', this.onKeyDown, true);
         document.removeEventListener('keypress', this.onKeyPress, true);
+        document.removeEventListener('click', this.onDocumentClick, true);
         overlayRoot.hideOverlay(this);
       }
     },
@@ -202,7 +205,20 @@ base.defineModule('overlay')
           return;
         }
       }
+    },
+
+    onDocumentClick: function(e) {
+      var target = e.target;
+      while(target !== null) {
+        if(target === this)
+          return;
+        target = target.parentNode;
+      }
+      this.visible = false;
+      e.preventDefault();
+      return;
     }
+
   };
 
   /**
