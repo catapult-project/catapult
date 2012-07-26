@@ -838,22 +838,22 @@ base.defineModule('timeline_track')
 
 
     placeAndBeginDraggingMarker: function(clientX) {
-      var clickOffset = clientX - this.canvasContainer_.offsetLeft;
-      var ts = this.viewport_.xViewToWorld(clickOffset);
-      var marker = this.viewport_.findMarkerNear(ts, 3);
+      var viewX = clientX - this.canvasContainer_.offsetLeft;
+      var worldX = this.viewport_.xViewToWorld(viewX);
+      var marker = this.viewport_.findMarkerNear(worldX, 3);
       var createdMarker = false;
       var movedMarker = false;
       if (!marker) {
-        marker = this.viewport_.addMarker(ts);
+        marker = this.viewport_.addMarker(worldX);
         createdMarker = true;
       }
       marker.selected = true;
 
       var that = this;
       var onMouseMove = function(e) {
-        var clickOffset = e.clientX - that.canvasContainer_.offsetLeft;
-        var ts = that.viewport_.xViewToWorld(clickOffset);
-        marker.moveTo(ts);
+        var viewX = e.clientX - that.canvasContainer_.offsetLeft;
+        var worldX = that.viewport_.xViewToWorld(viewX);
+        marker.positionWorld = worldX;
         movedMarker = true;
       };
 

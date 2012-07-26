@@ -58,15 +58,19 @@ base.defineModule('timeline')
     this.markers = [];
   }
 
-  function TimelineMarker(vp, pos) {
+  function TimelineMarker(vp, positionWorld) {
     this.viewport_ = vp;
-    this.position_ = pos;
+    this.positionWorld_ = positionWorld;
     this.selected_ = false;
   }
 
   TimelineMarker.prototype = {
-    moveTo: function(ts) {
-      this.position_ = ts;
+    get positionWorld() {
+      return this.positionWorld_;
+    },
+
+    set positionWorld(positionWorld) {
+      this.positionWorld_ = positionWorld;
       this.viewport_.dispatchChangeEvent();
     },
 
@@ -87,7 +91,7 @@ base.defineModule('timeline')
 
     drawTriangle: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
       ctx.beginPath();
-      var ts = this.position_;
+      var ts = this.positionWorld_;
       if(ts >= viewLWorld && ts < viewRWorld) {
         var viewX = vp.xWorldToView(ts);
         ctx.moveTo(viewX, canvasH);
@@ -101,7 +105,7 @@ base.defineModule('timeline')
 
     drawLine: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
       ctx.beginPath();
-      var ts = this.position_;
+      var ts = this.positionWorld_;
       if(ts >= viewLWorld && ts < viewRWorld) {
         var viewX = vp.xWorldToView(ts);
         ctx.moveTo(viewX, 0);
@@ -324,8 +328,8 @@ base.defineModule('timeline')
       ctx.transform(this.scaleX_, 0, 0, 1, this.panX_ * this.scaleX_, 0);
     },
 
-    addMarker: function(ts) {
-      var marker = new TimelineMarker(this, ts);
+    addMarker: function(positionWorld) {
+      var marker = new TimelineMarker(this, positionWorld);
       this.markers.push(marker);
       this.dispatchChangeEvent();
       return marker;
@@ -341,11 +345,12 @@ base.defineModule('timeline')
       }
     },
 
-    findMarkerNear: function(ts, nearnessInViewPixels) {
+    findMarkerNear: function(positionWorld, nearnessInViewPixels) {
       // Converts pixels into distance in world.
       var nearnessThresholdWorld = this.xViewVectorToWorld(nearnessInViewPixels);
       for(var i = 0; i < this.markers.length; ++i) {
-        if(Math.abs(this.markers[i].position_ - ts) <= nearnessThresholdWorld) {
+        if(Math.abs(this.markers[i].positionWorld - positionWorld) <=
+            nearnessThresholdWorld) {
          var marker = this.markers[i];
          return marker;
         }
