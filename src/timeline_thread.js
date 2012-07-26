@@ -58,7 +58,7 @@ base.defineModule('timeline_thread')
     TimelineSliceGroup.call(this, TimelineThreadSlice);
     if (!parent)
       throw new Error('Parent must be provided.');
-    this.parent = parent;
+    this.pid = parent.pid;
     this.tid = tid;
     this.cpuSlices = undefined;
     this.asyncSlices = new TimelineAsyncSliceGroup(this.ptid);
@@ -88,11 +88,11 @@ base.defineModule('timeline_thread')
     name: undefined,
 
     /**
-     * @return {string} A concatenation of the parent id and the thread's
+     * @return {string} A concatenation of the pid and the thread's
      * tid. Can be used to uniquely identify a thread.
      */
     get ptid() {
-      return TimelineThread.getPTIDFromPidAndTid(this.tid, this.parent.pid);
+      return TimelineThread.getPTIDFromPidAndTid(this.tid, this.pid);
     },
 
     /**
@@ -163,14 +163,14 @@ base.defineModule('timeline_thread')
      */
     get userFriendlyName() {
       var tname = this.name || this.tid;
-      return this.parent.pid + ': ' + tname;
+      return this.pid + ': ' + tname;
     },
 
     /**
      * @return {String} User friendly details about this thread.
      */
     get userFriendlyDetails() {
-      return 'pid: ' + this.parent.pid +
+      return 'pid: ' + this.pid +
           ', tid: ' + this.tid +
           (this.name ? ', name: ' + this.name : '');
     }
@@ -181,9 +181,8 @@ base.defineModule('timeline_thread')
    * then by names, then by tid.
    */
   TimelineThread.compare = function(x, y) {
-    if (x.parent.pid != y.parent.pid) {
-      return tracing.TimelineProcess.compare(x.parent, y.parent.pid);
-    }
+    if (x.pid != y.pid)
+      return x.pid - y.pid;
 
     if (x.name && y.name) {
       var tmp = x.name.localeCompare(y.name);

@@ -42,7 +42,6 @@ base.defineModule('timeline_model')
     this.cpus = {};
     this.processes = {};
     this.importErrors = [];
-    this.asyncSliceGroups = {};
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);

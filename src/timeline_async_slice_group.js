@@ -27,6 +27,22 @@ base.defineModule('timeline_async_slice_group')
   TimelineAsyncSlice.prototype = {
     __proto__: TimelineSlice.prototype,
 
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++ ) {
+        var key = keys[i];
+        if (typeof this[key] == "function")
+          continue;
+        if (key == "startThread" || key == "endThread") {
+          obj[key] = this[key].ptid;
+          continue;
+        }
+        obj[key] = this[key];
+      }
+      return obj;
+    },
+
     id: undefined,
 
     startThread: undefined,

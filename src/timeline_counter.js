@@ -18,7 +18,13 @@ base.defineModule('timeline_counter')
    * @constructor
    */
   function TimelineCounter(parent, id, name) {
-    this.parent = parent;
+    if (parent == null) {
+      this.parent_id = null;
+    } else if (parent.pid != undefined) {
+      this.parent_id = parent.pid;
+    } else if (parent.cpuNumber != undefined) {
+      this.parent_id = parent.cpuNumber;
+    }
     this.id = id;
     this.name = name;
     this.seriesNames = [];
@@ -138,11 +144,11 @@ base.defineModule('timeline_counter')
   };
 
   /**
-   * Comparison between counters that orders by pid, then name.
+   * Comparison between counters that orders by parent_id, then name.
    */
   TimelineCounter.compare = function(x, y) {
-    if (x.parent.pid != y.parent.pid) {
-      return TimelineProcess.compare(x.parent, y.parent.pid);
+    if (x.parent_id != y.parent_id) {
+      return x.parent_id - y.parent_id;
     }
     var tmp = x.name.localeCompare(y.name);
     if (tmp == 0)
