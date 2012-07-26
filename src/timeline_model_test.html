@@ -145,6 +145,19 @@ tests.testTimelineModel_toJSON = function() {
   assertNotNull(JSON.stringify(m));
 }
 
+tests.testTimelineModel_findAllThreadsNamed = function() {
+  var m = new TimelineModel();
+  var t = m.getOrCreateProcess(1).getOrCreateThread(1);
+  t.name = 'CrBrowserMain';
+
+  m.updateBounds();
+  console.log(m);
+  var f = m.findAllThreadsNamed('CrBrowserMain');
+  assertArrayEquals([t], f);
+  f = m.findAllThreadsNamed('NoSuchThread');
+  assertEquals(0, f.length);
+}
+
   return tests;
 });
 </script>

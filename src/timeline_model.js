@@ -276,6 +276,21 @@ base.defineModule('timeline_model')
       return counters;
     },
 
+    /**
+     * @param {String} The name of the thread to find
+     * @return {Array} An array of all the matched threads
+     */
+    findAllThreadsNamed: function(name) {
+      var namedThreads = [];
+      var threads = this.getAllThreads();
+      for (var i = 0; i < threads.length; i++) {
+        var thread = threads[i];
+        if (thread.name == name)
+          namedThreads.push(thread);
+      }
+      return namedThreads;
+    },
+
     createImporter_: function(eventData) {
       var importerConstructor;
       for (var i = 0; i < importerConstructors.length; ++i) {
