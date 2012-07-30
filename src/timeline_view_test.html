@@ -85,14 +85,20 @@ base.defineModule('timeline_view_test')
     tests.testInstantiateTimelineView = function() {
       var num_tests = 50;
       var testIndex = 0;
-      var startTime = 1100;
+      var startTime = 0;
 
       var model = new tracing.TimelineModel();
       for(testIndex = 0; testIndex < num_tests; ++testIndex){
-        var process = model.getOrCreateProcess(testIndex);
-        var thread = process.getOrCreateThread(testIndex);
-        thread.slices.push(newSliceNamed('a', startTime, 1));
-        thread.slices.push(newSliceNamed('a', startTime + 1.15, 1));
+        var process = model.getOrCreateProcess(10000 + testIndex); 
+        if(testIndex % 2 == 0) {
+          var thread = process.getOrCreateThread('Thread Name Here');
+          thread.slices.push(newSliceNamed('a', startTime, 1));
+          thread.slices.push(newSliceNamed('b', startTime + 1.15, .5));
+        } else {
+          var thread = process.getOrCreateThread('Name');
+          thread.slices.push(newSliceNamed('a', startTime + .17, .55));
+          thread.slices.push(newSliceNamed('b', startTime + 1.1, .7));
+        }
       }
 
       /*
