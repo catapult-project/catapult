@@ -557,15 +557,6 @@ base.defineModule('timeline_track')
 
     set slices(slices) {
       this.slices_ = slices;
-
-      // Verify that slices are monotonically increasing when assigned.
-      if (slices[0].duration < 0)
-        throw new Error('Slices must be monotonically increasing');
-      for (var i = 1; i < slices.length; i++) {
-        if (slices[i].duration < 0 ||
-            slices[i].start < slices[i-1].end)
-          throw new Error('Slices must be monotonically increasing');
-      }
       this.invalidate();
     },
 

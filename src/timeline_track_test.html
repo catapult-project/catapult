@@ -474,14 +474,7 @@ found in the LICENSE file.
     ret = track.addItemNearToProvidedHitToSelection(sel[0], -1, selNone);
     assertFalse(ret);
     assertEquals(0, selNone.length);
-  }
 
-  // Tests that an error is thrown if a slice is not monotonically increasing.
-  tests.testMonotonicallyIncreasingSliceTracks = function() {
-    var track = new TimelineSliceTrack();
-    assertThrows(function() {
-      track.slices = [new TimelineSlice('a', 0, 1, {}, -1)];
-    })
   }
 
   return tests;
