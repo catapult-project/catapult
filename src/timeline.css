@@ -99,7 +99,8 @@
   border-right: 1px solid #8e8e8e;
   overflow: hidden;
   padding-right: 5px;
-  text-align: right;
+  padding-left: 18px;
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
