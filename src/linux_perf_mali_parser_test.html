@@ -6,14 +6,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>LinuxPerfMaliDDKParser tests</title>
+<title>LinuxPerfMaliParser tests</title>
 <script src="base.js"></script>
 </head>
 <body>
 <script>
 'use strict';
 
-base.defineModule('linux_perf_mali_ddk_parser_test')
+base.defineModule('linux_perf_mali_parser_test')
     .dependsOn('unittest',
                'test_utils',
                'linux_perf_importer')
@@ -114,6 +114,51 @@ tests.testMaliDDKImport = function() {
   var maliThread = threads[0];
   assertEquals('mali_ddk', maliThread.name);
   assertEquals(8, maliThread.subRows.length);
+}
+
+tests.testDVFSFrequencyImport = function() {
+  var lines = [
+    '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_set_clock: ' +
+                   'frequency=266',
+    '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_set_clock: ' +
+                   'frequency=400'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var c0 = m.cpus[0];
+  assertEquals(0, c0.slices.length);
+  assertEquals(2, c0.counters['DVFS Frequency'].samples.length);
+}
+
+tests.testDVFSVoltageImport = function() {
+  var lines = [
+    '     kworker/u:0-5     [001] ....  1174.839562: mali_dvfs_set_voltage: ' +
+                   'voltage=937500',
+    '     kworker/u:0-5     [000] ....  1183.840009: mali_dvfs_set_voltage: ' +
+                   'voltage=1100000'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var c0 = m.cpus[0];
+  assertEquals(0, c0.slices.length);
+  assertEquals(2, c0.counters['DVFS Voltage'].samples.length);
+}
+
+tests.testDVFSUtilizationImport = function() {
+  var lines = [
+    '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_event: ' +
+                   'utilization=7',
+    '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_event: ' +
+                   'utilization=37'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var c0 = m.cpus[0];
+  assertEquals(0, c0.slices.length);
+  assertEquals(2, c0.counters['DVFS Utilization'].samples.length);
 }
 
 return tests;
