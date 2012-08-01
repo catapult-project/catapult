@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Settings tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('settings_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'settings')
+    .runAllTests(function() {
+
+var tests = {};
+
+tests.testSetGetString = function() {
+  var settings = new base.Settings();
+  settings.set('my_key', 'my_val');
+  assertEquals('my_val', settings.get('my_key'));
+}
+
+tests.testSetGetNumber = function() {
+  var settings = new base.Settings();
+  settings.set('my_key', 5);
+  // Numbers are converted to strings.
+  assertEquals('5', settings.get('my_key'));
+}
+
+tests.testSetGetBool = function() {
+  var settings = new base.Settings();
+  settings.set('my_key', false);
+  // Booleans are converted to strings.
+  assertEquals('false', settings.get('my_key'));
+}
+
+tests.testSetGetObject = function() {
+  var settings = new base.Settings();
+  settings.set('my_key', {'hello': 5});
+  // Objects are converted to strings.
+  assertEquals('[object Object]', settings.get('my_key'));
+}
+
+tests.testGetUnset = function() {
+  var settings = new base.Settings();
+  // Undefined should be returned if value isn't set.
+  assertUndefined(settings.get('my_key'));
+}
+
+tests.testGetDefault = function() {
+  var settings = new base.Settings();
+  // Null should be returned if value isn't set.
+  assertEquals('default_val', settings.get('my_key', 'default_val'));
+}
+
+
+return tests;
+});
+
+</script>
+</body>
+</html>
