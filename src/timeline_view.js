@@ -154,7 +154,7 @@ base.defineModule('timeline_view')
       if (this.filterHitsDirty_) {
         this.filterHitsDirty_ = false;
         if (this.timeline_) {
-          var filter = new tracing.TimelineFilter(this.filterText);
+          var filter = new tracing.TimelineTitleFilter(this.filterText);
           this.filterHits_.clear();
           this.timeline.addAllObjectsMatchingFilterToSelection(
             filter, this.filterHits_);

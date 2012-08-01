@@ -38,7 +38,7 @@ base.defineModule('timeline_analysis_test')
     var TimelineModel = tracing.TimelineModel;
     var TimelineThreadTrack = tracing.TimelineThreadTrack;
     var TimelineSelection = tracing.TimelineSelection;
-    var TimelineFilter = tracing.TimelineFilter;
+    var TimelineTitleFilter = tracing.TimelineTitleFilter;
     var TimelineCounterTrack = tracing.TimelineCounterTrack;
     var TimelineSliceTrack = tracing.TimelineSliceTrack;
     var newSliceNamed = test_utils.newSliceNamed;
@@ -54,7 +54,7 @@ base.defineModule('timeline_analysis_test')
 
       var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new TimelineFilter('b'), selection);
+        new TimelineTitleFilter('b'), selection);
       assertEquals(1, selection.length);
 
       return selection;
@@ -74,7 +74,7 @@ base.defineModule('timeline_analysis_test')
 
       var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new TimelineFilter('a'), selection);
+        new TimelineTitleFilter('a'), selection);
       assertEquals(2, selection.length);
 
       return selection;
@@ -94,7 +94,7 @@ base.defineModule('timeline_analysis_test')
 
       var selection = new TimelineSelection();
       t53track.addAllObjectsMatchingFilterToSelection(
-        new TimelineFilter('c'), selection);
+        new TimelineTitleFilter('c'), selection);
       assertEquals(2, selection.length);
 
       return selection;
@@ -223,7 +223,7 @@ base.defineModule('timeline_analysis_test')
       var selection = new TimelineSelection();
       selection.addCounterSample(ctr1track, ctr1, 1);
       threadTrack.addAllObjectsMatchingFilterToSelection(
-        new TimelineFilter('b'), selection);
+        new TimelineTitleFilter('b'), selection);
       assertEquals(2, selection.length);
       return selection;
     }

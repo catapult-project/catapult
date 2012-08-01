@@ -528,6 +528,8 @@ base.defineModule('timeline')
     decorate: function() {
       this.classList.add('timeline');
 
+      this.current_filter_ = new tracing.TimelineFilter();
+
       this.viewport_ = new TimelineViewport(this);
 
       // Add the viewport track.
@@ -587,6 +589,15 @@ base.defineModule('timeline')
 
     get viewport() {
       return this.viewport_;
+    },
+
+    get current_filter() {
+      return this.current_filter_;
+    },
+
+    set current_filter(filter) {
+      this.current_filter_ = filter;
+      // TODO(simonjam): Rebuild track list here.
     },
 
     get model() {
@@ -716,7 +727,7 @@ base.defineModule('timeline')
      * @param {TimelineFilter} filter The filter to use for finding matches.
      * @param {TimelineSelection} selection The selection to add matches to.
      * @return {Array} An array of objects that match the provided
-     * TimelineFilter.
+     * TimelineTitleFilter.
      */
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.tracks_.children.length; ++i)

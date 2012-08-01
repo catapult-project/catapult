@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>TimelineModel tests</title>
+<script src="base.js"></script>
+<style>
+  .timeline-view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .timeline-find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_filter_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_slice',
+               'timeline_filter')
+    .runAllTests(function() {
+
+  var TimelineSlice = tracing.TimelineSlice;
+
+  var tests = {};
+
+  var TimelineTitleFilter = tracing.TimelineTitleFilter;
+  var TimelineCategoryFilter = tracing.TimelineCategoryFilter;
+
+  tests.testTimelineTitleFilter = function() {
+    var s0 = new TimelineSlice('a', 0, 1, {}, 3);
+    assertFalse(new TimelineTitleFilter('').matchSlice(s0));
+
+    assertTrue(new TimelineTitleFilter('a').matchSlice(s0));
+    assertFalse(new TimelineTitleFilter('x').matchSlice(s0));
+
+    var s1 = new TimelineSlice('ba', 0, 1, {}, 3);
+    assertTrue(new TimelineTitleFilter('a').matchSlice(s1));
+    assertTrue(new TimelineTitleFilter('ba').matchSlice(s1));
+    assertFalse(new TimelineTitleFilter('x').matchSlice(s1));
+  }
+
+  tests.testTimelineCategoryFilter = function() {
+    var sNoCategory = new TimelineSlice('a', 0, 1, {}, 3);
+    sNoCategory.category = undefined;
+    assertFalse(new TimelineCategoryFilter(["x"]).matchSlice(sNoCategory));
+
+    var s0 = new TimelineSlice('a', 0, 1, {}, 3);
+    s0.category = 'x';
+    assertTrue(new TimelineCategoryFilter(["x"]).matchSlice(s0));
+
+    var s1 = new TimelineSlice('ba', 0, 1, {}, 3);
+    s1.category = 'y';
+    assertFalse(new TimelineCategoryFilter(["x"]).matchSlice(s1));
+    assertTrue(new TimelineCategoryFilter(["x", "y"]).matchSlice(s1));
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

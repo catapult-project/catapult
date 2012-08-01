@@ -1,0 +1,90 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+'use strict';
+
+/**
+ * @fileoverview TimelineModel is a parsed representation of the
+ * TraceEvents obtained from base/trace_event in which the begin-end
+ * tokens are converted into a hierarchy of processes, threads,
+ * subrows, and slices.
+ *
+ * The building block of the model is a slice. A slice is roughly
+ * equivalent to function call executing on a specific thread. As a
+ * result, slices may have one or more subslices.
+ *
+ * A thread contains one or more subrows of slices. Row 0 corresponds to
+ * the "root" slices, e.g. the topmost slices. Row 1 contains slices that
+ * are nested 1 deep in the stack, and so on. We use these subrows to draw
+ * nesting tasks.
+ *
+ */
+base.defineModule('timeline_filter')
+    .dependsOn()
+    .exportsTo('tracing', function() {
+
+  /**
+   * @constructor The generic base class for filtering a TimelineModel based on
+   * various rules. The base class returns true for everything.
+   */
+  function TimelineFilter() {
+  }
+
+  TimelineFilter.prototype = {
+    __proto__: Object.prototype,
+
+    matchSlice: function(slice) {
+      return true;
+    }
+  };
+
+  /**
+   * @constructor A filter that matches objects by their name.
+   * Timeline.findAllObjectsMatchingFilter
+   */
+  function TimelineTitleFilter(text) {
+    TimelineFilter.call(this);
+    this.text_ = text;
+  }
+  TimelineTitleFilter.prototype = {
+    __proto__: TimelineFilter.prototype,
+
+    matchSlice: function(slice) {
+      if (this.text_.length == 0)
+        return false;
+      return slice.title.indexOf(this.text_) != -1;
+    }
+  };
+
+  /**
+   * @constructor A filter that matches objects by their category.
+   * @param {Array<string>} opt_categories Categories to match.
+   */
+  function TimelineCategoryFilter(opt_categories) {
+    TimelineFilter.call(this);
+    this.categories_ = {};
+    var cats = opt_categories || [];
+    for (var i = 0; i < cats.length; i++)
+      this.addCategory(cats[i]);
+  }
+  TimelineCategoryFilter.prototype = {
+    __proto__: TimelineFilter.prototype,
+
+    addCategory: function(cat) {
+      this.categories_[cat] = true;
+    },
+
+    matchSlice: function(slice) {
+      if (!slice.category)
+        return false;
+      return !!this.categories_[slice.category];
+    }
+  };
+
+  return {
+    TimelineFilter: TimelineFilter,
+    TimelineTitleFilter: TimelineTitleFilter,
+    TimelineCategoryFilter: TimelineCategoryFilter,
+  }
+});

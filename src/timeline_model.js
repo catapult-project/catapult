@@ -23,7 +23,8 @@
 base.defineModule('timeline_model')
     .dependsOn('event_target',
                'timeline_process',
-               'timeline_cpu')
+               'timeline_cpu',
+               'timeline_filter')
     .exportsTo('tracing', function() {
 
   var TimelineProcess = tracing.TimelineProcess;
@@ -359,27 +360,8 @@ base.defineModule('timeline_model')
     }
   };
 
-  /**
-   * @constructor A filter that can be passed into
-   * Timeline.findAllObjectsMatchingFilter
-   */
-  function TimelineFilter(text) {
-    this.text_ = text;
-  }
-  TimelineFilter.prototype = {
-    __proto__: Object.prototype,
-
-    matchSlice: function(slice) {
-      if (this.text_.length == 0)
-        return false;
-      return slice.title.indexOf(this.text_) != -1;
-    }
-
-  };
-
   return {
-    TimelineModel: TimelineModel,
-    TimelineFilter: TimelineFilter
+    TimelineModel: TimelineModel
   };
 
 });

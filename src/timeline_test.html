@@ -62,7 +62,7 @@ base.defineModule('timeline_test')
       var expected = [{slice: t1asg.slices[0].subSlices[0]},
                       {slice: t1.slices[0]}];
       var result = new tracing.TimelineSelection();
-      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineFilter('a'), result);
+      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter('a'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
@@ -70,7 +70,7 @@ base.defineModule('timeline_test')
       var expected = [{slice: t1asg.slices[1].subSlices[0]},
                       {slice: t1.slices[1]}];
       var result = new tracing.TimelineSelection();
-      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineFilter('b'), result);
+      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter('b'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
