@@ -100,7 +100,8 @@ base.defineModule('profiling_view')
     },
 
     onKeypress_: function(event) {
-      if (event.keyCode == 114 && !this.tracingController_.isTracingEnabled) {
+      if (event.keyCode == 114 && !this.tracingController_.isTracingEnabled &&
+          document.activeElement.nodeName != 'INPUT') {
         this.onRecord_();
       }
     },

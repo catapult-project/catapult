@@ -772,6 +772,8 @@ base.defineModule('timeline')
         return;
       if (!this.listenToKeys_)
         return;
+      if (document.activeElement.nodeName == "INPUT")
+        return;
       var viewWidth = this.firstCanvas.clientWidth;
       var curMouseV, curCenterW;
       switch (e.keyCode) {
