@@ -887,12 +887,15 @@ base.defineModule('timeline')
     },
 
     get keyHelp() {
+      var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
       var help = 'Qwerty Controls:\n' +
           ' w/s     : Zoom in/out    (with shift: go faster)\n' +
           ' a/d     : Pan left/right\n\n' +
           'Dvorak Controls:\n' +
           ' ,/o     : Zoom in/out     (with shift: go faster)\n' +
-          ' a/e     : Pan left/right\n\n';
+          ' a/e     : Pan left/right\n\n' +
+          'Mouse Controls:\n' +
+          ' drag    : Select slices   (with ' + mod + ': zoom to slices)\n\n';
 
       if (this.focusElement.tabIndex) {
         help += ' <-      : Select previous event on current timeline\n' +
@@ -1092,8 +1095,18 @@ base.defineModule('timeline')
               loWX, hiWX, loY, hiY, selection);
           }
         }
-        // Activate the new selection.
+        // Activate the new selection, and zoom if ctrl key held down.
         this.selection = selection;
+        var isMac = navigator.platform.indexOf('Mac') == 0;
+        if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
+          var range = selection.range;
+          var worldCenter = range.min + (range.max - range.min) * 0.5;
+          var worldRange = (range.max - range.min) * 0.5;
+          var boost = worldRange * 0.15;
+          this.viewport_.xSetWorldRange(worldCenter - worldRange - boost,
+                                        worldCenter + worldRange + boost,
+                                        this.firstCanvas.width);
+        }
       }
     },
 
