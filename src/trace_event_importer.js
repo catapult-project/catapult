@@ -40,10 +40,16 @@ base.defineModule('trace_event_importer')
 
     // Some trace_event implementations put the actual trace events
     // inside a container. E.g { ... , traceEvents: [ ] }
-    //
     // If we see that, just pull out the trace events.
-    if (this.events_.traceEvents)
+    if (this.events_.traceEvents) {
       this.events_ = this.events_.traceEvents;
+      for (fieldName in this.events_) {
+        if (fieldName == 'traceEvents')
+          continue;
+        this.model_.metadata.push({name: fieldName,
+            value: this.events_[fieldName]});
+      }
+    }
 
     // Async events need to be processed durign finalizeEvents
     this.allAsyncEvents_ = [];

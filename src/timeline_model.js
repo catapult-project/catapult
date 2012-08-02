@@ -43,6 +43,7 @@ base.defineModule('timeline_model')
     this.cpus = {};
     this.processes = {};
     this.importErrors = [];
+    this.metadata = [];
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -113,7 +114,6 @@ base.defineModule('timeline_model')
         this.processes[pid] = new TimelineProcess(pid);
       return this.processes[pid];
     },
-
 
     /**
      * Closes any slices that need closing

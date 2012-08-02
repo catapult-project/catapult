@@ -150,15 +150,50 @@
   color: rgba(0, 0, 0, 1);
 }
 
-.timeline-view-import-errors-button {
-  color: darkred;
-  border: solid 1px rgba(128,0,0,0.2);
+.timeline-view-info-button {
   width: auto;
   padding-left: 4px;
   padding-right: 4px;
 }
 
+.timeline-view-info-button:hover {
+  border: solid 1px;
+}
+
+.timeline-view-import-errors-button {
+  color: darkred;
+  border: solid 1px rgba(128, 0, 0, 0.2);
+}
+
 .timeline-view-import-errors-button:hover {
   color: red;
   border: solid 1px red;
+}
+
+.import-errors-dialog {
+  overflow: auto;
+  min-width: 400px;
+  min-height: 200px;
+  max-width: 800px;
+  max-height: 500px;
+}
+
+.import-errors-dialog-text {
+  white-space: pre;
+  font-family: monospace;
+  margin: 8px;
+}
+
+.metadata-dialog {
+  overflow: auto;
+  min-width: 400px;
+  min-height: 200px;
+  max-width: 800px;
+  max-height: 500px;
+}
+
+.metadata-dialog-text {
+  white-space: pre;
+  font-family: monospace;
+  margin: 8px;
 }

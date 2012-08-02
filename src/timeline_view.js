@@ -248,8 +248,12 @@ base.defineModule('timeline_view')
       this.importErrorsButton_ = this.createImportErrorsButton_();
       this.importErrorsButton_.style.display = 'none';
 
+      this.metadataButton_ = this.createMetadataButton_();
+      this.metadataButton_.style.display = 'none';
+
       // Connect everything up.
       this.rightControls.appendChild(this.importErrorsButton_);
+      this.rightControls.appendChild(this.metadataButton_);
       this.rightControls.appendChild(this.findCtl_);
       this.controlDiv_.appendChild(this.titleEl_);
       this.controlDiv_.appendChild(this.leftControlsEl_);
@@ -279,23 +283,19 @@ base.defineModule('timeline_view')
       dlg.autoClose = true;
 
       var showEl = document.createElement('div');
-      showEl.className = 'timeline-button timeline-view-import-errors-button';
+      showEl.className = 'timeline-button timeline-view-import-errors-button' +
+          ' timeline-view-info-button';
       showEl.textContent = 'Import errors!';
       showEl.__defineSetter__('model', function(value) {
         model = value;
       });
 
       var textEl = document.createElement('div');
-      textEl.style.whiteSpace = 'pre';
-      textEl.style.fontFamily = 'monospace';
-      textEl.style.margin = '8px';
+      textEl.className = 'info-button-text import-errors-dialog-text';
 
       var containerEl = document.createElement('div');
-      containerEl.style.overflow = 'auto';
-      containerEl.style.minWidth = '400px';
-      containerEl.style.minHeight = '200px';
-      containerEl.style.maxWidth = '800px';
-      containerEl.style.maxHeight = '500px';
+      containerEl.className = 'info-button-container' +
+          'import-errors-dialog';
 
       containerEl.textContent = 'Errors occurred during import:';
       containerEl.appendChild(textEl);
@@ -330,13 +330,57 @@ base.defineModule('timeline_view')
         if (this.timeline_)
           helpTextEl.textContent = this.timeline_.keyHelp;
         else
-          helpTextEl.textContent = 'No content loaded. For interesting help, load something.';
+          helpTextEl.textContent = 'No content loaded. For interesting help,' +
+              ' load something.';
+        document.addEventListener('click', bgClick);
 
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
         return false;
       }
 
+      showEl.addEventListener('click', onClick.bind(this));
+
+      return showEl;
+    },
+
+    createMetadataButton_: function() {
+      // Set by the embedder of the help button that we create in this function.
+      var model;
+
+      var dlg = new tracing.Overlay();
+      dlg.classList.add('timeline-view-metadata-overlay');
+      dlg.autoClose = true;
+
+      var showEl = document.createElement('div');
+      showEl.className = 'timeline-button timeline-view-metadata-button' +
+          ' timeline-view-info-button';
+      showEl.textContent = 'Metadata';
+      showEl.__defineSetter__('model', function(value) {
+        model = value;
+      });
+
+      var textEl = document.createElement('div');
+      textEl.className = 'info-button-text metadata-dialog-text';
+
+      var containerEl = document.createElement('div');
+      containerEl.className = 'info-button-container metadata-dialog';
+
+      containerEl.textContent = 'Metadata Info:';
+      containerEl.appendChild(textEl);
+      dlg.appendChild(containerEl);
+
+      function onClick() {
+        dlg.visible = true;
+
+        var metadataStrings = [];
+
+        for (var data in model.metadata) {
+          metadataStrings.push(JSON.stringify(model.metadata[data].name) +
+            ": " + JSON.stringify(model.metadata[data].value));
+        }
+        textEl.textContent = metadataStrings.join("\n");
+      }
       showEl.addEventListener('click', onClick.bind(this));
 
       return showEl;
@@ -374,6 +418,8 @@ base.defineModule('timeline_view')
       this.timelineContainer_.textContent = '';
       this.importErrorsButton_.style.display = 'none';
       this.importErrorsButton_.model = undefined;
+      this.metadataButton_.style.display = 'none';
+      this.metadataButton_.model = undefined;
 
       // create new timeline if needed
       if (this.timelineModel_.minTimestamp !== undefined) {
@@ -392,6 +438,11 @@ base.defineModule('timeline_view')
           this.importErrorsButton_.model = model;
           this.importErrorsButton_.style.display = ''; // Show the button.
         }
+        if (this.timeline_.model.metadata.length) {
+          this.metadataButton_.model = model;
+          this.metadataButton_.style.display = ''; // Show the button.
+        }
+
         this.onSelectionChanged_();
       } else {
         this.timeline_ = undefined;

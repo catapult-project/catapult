@@ -110,6 +110,11 @@ base.defineModule('timeline_view_test')
       model.importErrors.push('Synthetic Import Error');
       model.updateBounds();
 
+      // Add data with metadata information stored
+      model.metadata.push({name: 'a', value: 'testA'});
+      model.metadata.push({name: 'b', value: 'testB'});
+      model.metadata.push({name: 'c', value: 'testC'});
+
       var view = new tracing.TimelineView();
       view.style.height = '400px';
       view.model = model;
