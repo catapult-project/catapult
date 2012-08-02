@@ -1030,6 +1030,18 @@ base.defineModule('timeline')
 
       var canv = this.firstCanvas;
       var rect = this.tracks_.getClientRects()[0];
+      var canvRect = this.firstCanvas.getClientRects()[0];
+
+      var inside = rect &&
+          e.clientX >= rect.left &&
+          e.clientX < rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY < rect.bottom &&
+          e.clientX >= canvRect.left &&
+          e.clientX < canvRect.right;
+
+      if (!inside)
+        return;
 
       var pos = {
         x: e.clientX - canv.offsetLeft,
