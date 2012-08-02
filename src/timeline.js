@@ -713,14 +713,16 @@ base.defineModule('timeline')
       }.bind(this));
 
       // Set up a reasonable viewport.
-      this.viewport_.setWhenPossible(function() {
-        var w = this.firstCanvas.width;
-        var boost =
-            (this.model_.maxTimestamp - this.model_.minTimestamp) * 0.15;
-        this.viewport_.xSetWorldRange(this.model_.minTimestamp - boost,
-                                      this.model_.maxTimestamp + boost,
-                                      w);
-      }.bind(this));
+      this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+    },
+
+    setInitialViewport_: function() {
+      var w = this.firstCanvas.width;
+      var boost =
+          (this.model_.maxTimestamp - this.model_.minTimestamp) * 0.15;
+      this.viewport_.xSetWorldRange(this.model_.minTimestamp - boost,
+                                    this.model_.maxTimestamp + boost,
+                                    w);
     },
 
     /**
@@ -812,6 +814,9 @@ base.defineModule('timeline')
         case 68:  // D
           vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.5);
           break;
+        case 48:  // 0
+          this.setInitialViewport_();
+          break;
       }
     },
 
@@ -901,7 +906,8 @@ base.defineModule('timeline')
       help +=
           '\n' +
           'Alt + Scroll to zoom in/out\n' +
-          'Dbl-click to zoom in; Shift dbl-click to zoom out\n';
+          'Dbl-click to zoom in; Shift dbl-click to zoom out\n' +
+          '0 to reset zoom and pan to initial view\n';
       return help;
     },
 

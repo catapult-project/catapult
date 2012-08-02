@@ -5,8 +5,8 @@
 'use strict';
 
 /**
- * @fileoverview TimelineView visualizes TRACE_EVENT events using the
- * tracing.Timeline component and adds in selection summary and control buttons.
+ * @fileoverview TimelineAnalysis summarizes info about the selected slices
+ * to the analysis panel.
  */
 base.defineModule('timeline_analysis')
     .dependsOn('ui')
