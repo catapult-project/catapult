@@ -54,7 +54,7 @@ base.defineModule('linux_perf_importer')
         else
           name = this.lastActiveComm;
 
-        var slice = new tracing.TimelineSlice(name,
+        var slice = new tracing.TimelineSlice('', name,
                                               tracing.getStringColorId(name),
                                               this.lastActiveTs,
                                               {
@@ -289,7 +289,7 @@ base.defineModule('linux_perf_importer')
         var slices = [];
         if (origSlices.length) {
           var slice = origSlices[0];
-          slices.push(new tracing.TimelineSlice('Running', runningId,
+          slices.push(new tracing.TimelineSlice('', 'Running', runningId,
               slice.start, {}, slice.duration));
         }
         for (var i = 1; i < origSlices.length; i++) {
@@ -297,43 +297,43 @@ base.defineModule('linux_perf_importer')
           var nextSlice = origSlices[i];
           var midDuration = nextSlice.start - prevSlice.end;
           if (prevSlice.args.stateWhenDescheduled == 'S') {
-            slices.push(new tracing.TimelineSlice('Sleeping', sleepingId,
+            slices.push(new tracing.TimelineSlice('', 'Sleeping', sleepingId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'R') {
-            slices.push(new tracing.TimelineSlice('Runnable', runnableId,
+            slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             slices.push(new tracing.TimelineSlice(
-              'Uninterruptible Sleep', ioWaitId,
+              '', 'Uninterruptible Sleep', ioWaitId,
               prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tracing.TimelineSlice('__TASK_STOPPED', ioWaitId,
-                prevSlice.end, {}, midDuration));
+            slices.push(new tracing.TimelineSlice('', '__TASK_STOPPED',
+                ioWaitId, prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tracing.TimelineSlice('debug', ioWaitId,
+            slices.push(new tracing.TimelineSlice('', 'debug', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tracing.TimelineSlice('Zombie', ioWaitId,
+            slices.push(new tracing.TimelineSlice('', 'Zombie', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tracing.TimelineSlice('Exit Dead', ioWaitId,
+            slices.push(new tracing.TimelineSlice('', 'Exit Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tracing.TimelineSlice('Task Dead', ioWaitId,
+            slices.push(new tracing.TimelineSlice('', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tracing.TimelineSlice('WakeKill', ioWaitId,
+            slices.push(new tracing.TimelineSlice('', 'WakeKill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             slices.push(new tracing.TimelineSlice(
-              'Uninterruptable Sleep | WakeKill', ioWaitId,
+              '', 'Uninterruptable Sleep | WakeKill', ioWaitId,
               prevSlice.end, {}, midDuration));
           } else {
             throw new Error('Unrecognized state: ') +
                 prevSlice.args.stateWhenDescheduled;
           }
 
-          slices.push(new tracing.TimelineSlice('Running', runningId,
+          slices.push(new tracing.TimelineSlice('', 'Running', runningId,
               nextSlice.start, {}, nextSlice.duration));
         }
         thread.cpuSlices = slices;

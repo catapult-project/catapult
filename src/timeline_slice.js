@@ -17,7 +17,8 @@ base.defineModule('timeline_slice')
    * All time units are stored in milliseconds.
    * @constructor
    */
-  function TimelineSlice(title, colorId, start, args, opt_duration) {
+  function TimelineSlice(category, title, colorId, start, args, opt_duration) {
+    this.category = category || '';
     this.title = title;
     this.start = start;
     this.colorId = colorId;

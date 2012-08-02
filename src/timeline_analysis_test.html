@@ -153,13 +153,13 @@ base.defineModule('timeline_analysis_test')
     }
 
     function createSelectionWithTwoSeriesTwoCounters() {
-      var ctr1 = new TimelineCounter(null, 0, 'ctr1');
+      var ctr1 = new TimelineCounter(null, 0, '', 'ctr1');
       ctr1.seriesNames.push('bytesallocated', 'bytesfree');
       ctr1.seriesColors.push(0, 1);
       ctr1.timestamps.push(0, 10, 20);
       ctr1.samples.push(0, 25, 10, 15, 20, 5);
 
-      var ctr2 = new TimelineCounter(null, 0, 'ctr2');
+      var ctr2 = new TimelineCounter(null, 0, '', 'ctr2');
       ctr2.seriesNames.push('bytesallocated', 'bytesfree');
       ctr2.seriesColors.push(0, 1);
       ctr2.timestamps.push(0, 10, 20);
@@ -174,7 +174,7 @@ base.defineModule('timeline_analysis_test')
     }
 
     function createSelectionWithTwoCountersDiffSeriesDiffHits() {
-      var ctr1 = new TimelineCounter(null, 0, 'a');
+      var ctr1 = new TimelineCounter(null, 0, '','a');
       ctr1.seriesNames.push('bytesallocated');
       ctr1.seriesColors.push(0);
       ctr1.timestamps.push(0, 10, 20);
@@ -183,7 +183,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals(3, ctr1.numSamples);
       assertEquals(1, ctr1.numSeries);
 
-      var ctr2 = new TimelineCounter(null, 0, 'b');
+      var ctr2 = new TimelineCounter(null, 0, '', 'b');
       ctr2.seriesNames.push('bytesallocated', 'bytesfree');
       ctr2.seriesColors.push(0, 1);
       ctr2.timestamps.push(0, 10, 20, 30);

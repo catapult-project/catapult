@@ -28,7 +28,7 @@ base.defineModule('linux_perf_drm_parser')
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
-      var slice = new tracing.TimelineSlice(kthread.openSlice,
+      var slice = new tracing.TimelineSlice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);

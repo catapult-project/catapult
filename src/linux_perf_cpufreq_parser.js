@@ -41,7 +41,7 @@ base.defineModule('linux_perf_cpufreq_parser')
       // TODO(sleffler) should be per-cpu
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
-      var slice = new tracing.TimelineSlice(kthread.openSlice,
+      var slice = new tracing.TimelineSlice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);
@@ -50,7 +50,7 @@ base.defineModule('linux_perf_cpufreq_parser')
     cpufreqBoostSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
-      var slice = new tracing.TimelineSlice(kthread.openSlice,
+      var slice = new tracing.TimelineSlice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);

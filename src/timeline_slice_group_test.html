@@ -29,7 +29,7 @@ base.defineModule('timeline_slice_group_test')
   tests.testBasicBeginEnd = function() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
-    var sliceA = group.beginSlice("a", 1, {a:1});
+    var sliceA = group.beginSlice("", "a", 1, {a:1});
     assertEquals(1, group.openSliceCount);
     assertEquals("a", sliceA.title);
     assertEquals(1, sliceA.start);
@@ -43,8 +43,8 @@ base.defineModule('timeline_slice_group_test')
   tests.testNestedBeginEnd = function() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
-    group.beginSlice("a", 1);
-    group.beginSlice("b", 2);
+    group.beginSlice("", "a", 1);
+    group.beginSlice("", "b", 2);
     group.endSlice(2.5);
     group.endSlice(3);
 
@@ -71,7 +71,7 @@ base.defineModule('timeline_slice_group_test')
 
   tests.testBoundsWithPartial = function() {
     var group = new TimelineSliceGroup();
-    group.beginSlice('a', 7);
+    group.beginSlice('', 'a', 7);
     group.updateBounds();
     assertEquals(7, group.minTimestamp);
     assertEquals(7, group.maxTimestamp);
@@ -79,8 +79,8 @@ base.defineModule('timeline_slice_group_test')
 
   tests.testBoundsWithTwoPartials = function() {
     var group = new TimelineSliceGroup();
-    group.beginSlice('a', 0);
-    group.beginSlice('a', 1);
+    group.beginSlice('', 'a', 0);
+    group.beginSlice('', 'a', 1);
     group.updateBounds();
     assertEquals(0, group.minTimestamp);
     assertEquals(1, group.maxTimestamp);
@@ -93,7 +93,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(undefined, group.maxTimestamp);
 
     group.pushSlice(newSlice(1, 3));
-    group.beginSlice('a', 7);
+    group.beginSlice('', 'a', 7);
     group.updateBounds();
     assertEquals(1, group.minTimestamp);
     assertEquals(7, group.maxTimestamp);
@@ -105,8 +105,8 @@ base.defineModule('timeline_slice_group_test')
 
     group.pushSlice(newSliceNamed("a", 1, 0.5));
 
-    group.beginSlice("b", 2);
-    group.beginSlice("c", 2.5);
+    group.beginSlice("", "b", 2);
+    group.beginSlice("", "c", 2.5);
     group.endSlice(3);
 
     group.autoCloseOpenSlices();
@@ -126,10 +126,10 @@ base.defineModule('timeline_slice_group_test')
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
 
-    group.beginSlice("a", 1);
-    group.beginSlice("b1", 2);
+    group.beginSlice("", "a", 1);
+    group.beginSlice("", "b1", 2);
     group.endSlice(3);
-    group.beginSlice("b2", 3);
+    group.beginSlice("", "b2", 3);
 
     group.autoCloseOpenSlices();
     assertEquals(3, group.slices.length);

@@ -20,7 +20,7 @@ base.defineModule('timeline_slice_group')
    * TimelineSliceGroup mutation methods.
    *
    * @constructor
-   * @param {function(new:TimelineSlice, title, colorId, start, args)}
+   * @param {function(new:TimelineSlice, category, title, colorId, start, args)}
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
   function TimelineSliceGroup(opt_sliceConstructor) {
@@ -67,7 +67,7 @@ base.defineModule('timeline_slice_group')
      * @param {Object.<string, Object>} opt_args Arguments associated with
      * the slice.
      */
-    beginSlice: function(title, ts, opt_args) {
+    beginSlice: function(category, title, ts, opt_args) {
       if (this.openPartialSlices_.length) {
         var prevSlice = this.openPartialSlices_[
             this.openPartialSlices_.length - 1];
@@ -76,7 +76,7 @@ base.defineModule('timeline_slice_group')
       }
 
       var colorId = tracing.getStringColorId(title);
-      var slice = new this.sliceConstructor(title, colorId, ts,
+      var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {});
       this.openPartialSlices_.push(slice);
       return slice;

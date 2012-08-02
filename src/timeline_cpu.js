@@ -36,7 +36,7 @@ base.defineModule('timeline_cpu')
       else
         id = name;
       if (!this.counters[id])
-        this.counters[id] = new TimelineCounter(this, id, name);
+        this.counters[id] = new TimelineCounter(this, id, cat, name);
       return this.counters[id];
     },
 

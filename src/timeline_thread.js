@@ -32,8 +32,8 @@ base.defineModule('timeline_thread')
    *
    * @constructor
    */
-  function TimelineThreadSlice(title, colorId, start, args, opt_duration) {
-    TimelineSlice.call(this, title, colorId, start, args, opt_duration);
+  function TimelineThreadSlice(cat, title, colorId, start, args, opt_duration) {
+    TimelineSlice.call(this, cat, title, colorId, start, args, opt_duration);
     // Do not modify this directly.
     // subSlices is configured by TimelineSliceGroup.rebuildSubRows_.
     this.subSlices = [];

@@ -20,8 +20,8 @@ base.defineModule('timeline_async_slice_group')
    *
    * @constructor
    */
-  function TimelineAsyncSlice(title, colorId, start, args) {
-    TimelineSlice.call(this, title, colorId, start, args);
+  function TimelineAsyncSlice(category, title, colorId, start, args) {
+    TimelineSlice.call(this, category, title, colorId, start, args);
   };
 
   TimelineAsyncSlice.prototype = {

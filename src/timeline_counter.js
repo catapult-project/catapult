@@ -17,7 +17,7 @@ base.defineModule('timeline_counter')
    * Stores all the samples for a given counter.
    * @constructor
    */
-  function TimelineCounter(parent, id, name) {
+  function TimelineCounter(parent, id, category, name) {
     if (parent == null) {
       this.parent_id = null;
     } else if (parent.pid != undefined) {
@@ -26,6 +26,7 @@ base.defineModule('timeline_counter')
       this.parent_id = parent.cpuNumber;
     }
     this.id = id;
+    this.category = category || '';
     this.name = name;
     this.seriesNames = [];
     this.seriesColors = [];

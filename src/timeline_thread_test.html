@@ -40,7 +40,7 @@ base.defineModule('timeline_thread_test')
 
   tests.testThreadBounds_SubRow = function() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
-    t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
+    t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
     t.updateBounds();
     assertEquals(1, t.minTimestamp);
     assertEquals(4, t.maxTimestamp);
@@ -48,7 +48,7 @@ base.defineModule('timeline_thread_test')
 
   tests.testThreadBounds_AsyncSliceGroup = function() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
-    t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
+    t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
     t.asyncSlices.push(newAsyncSlice(0.1, 5, t, t));
     t.updateBounds();
     assertEquals(0.1, t.minTimestamp);
@@ -65,7 +65,7 @@ base.defineModule('timeline_thread_test')
 
   tests.testShiftTimestampsForwardWithCpu = function() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
-    t.pushSlice(new TimelineThreadSlice('a', 0, 0, {}, 3));
+    t.pushSlice(new TimelineThreadSlice('', 'a', 0, 0, {}, 3));
     t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
     t.cpuSlices = [newSliceNamed("x", 0, 1)];
 
@@ -84,7 +84,7 @@ base.defineModule('timeline_thread_test')
 
   tests.testShiftTimestampsForwardWithoutCpu = function() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
-    t.pushSlice(new TimelineThreadSlice('a', 0, 0, {}, 3));
+    t.pushSlice(new TimelineThreadSlice('', 'a', 0, 0, {}, 3));
     t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
 
     var shiftCount = 0;

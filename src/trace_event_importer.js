@@ -157,7 +157,7 @@ base.defineModule('trace_event_importer')
               'Timestamps are moving backward.');
             continue;
           }
-          thread.beginSlice(event.name, event.ts / 1000, event.args);
+          thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
         } else if (event.ph == 'E') {
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
@@ -194,7 +194,7 @@ base.defineModule('trace_event_importer')
           // TimelineSliceTrack's redraw() knows how to handle this.
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
-          thread.beginSlice(event.name, event.ts / 1000, event.args);
+          thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
           thread.endSlice(event.ts / 1000);
         } else if (event.ph == 'C') {
           this.processCounterEvent(event);
@@ -284,6 +284,7 @@ base.defineModule('trace_event_importer')
           if (event.ph == 'F') {
             // Create a slice from start to end.
             var slice = new tracing.TimelineAsyncSlice(
+                events[0].event.cat,
                 name,
                 tracing.getStringColorId(name),
                 events[0].event.ts / 1000);
@@ -302,6 +303,7 @@ base.defineModule('trace_event_importer')
               if (events[j - 1].event.ph == 'T')
                 subName = name + ':' + events[j - 1].event.args.step;
               var subSlice = new tracing.TimelineAsyncSlice(
+                  events[0].event.cat,
                   subName,
                   tracing.getStringColorId(name + j),
                   events[j - 1].event.ts / 1000);

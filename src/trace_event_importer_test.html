@@ -31,8 +31,8 @@ tests.testBasicSingleThreadNonnestedParsing = function() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
-    {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
-    {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
+    {name: 'b', args: {}, pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'B'},
+    {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E'}
   ];
 
   var m = new tracing.TimelineModel(events);
@@ -49,12 +49,14 @@ tests.testBasicSingleThreadNonnestedParsing = function() {
   assertEquals(2, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0, slice.start);
   assertAlmostEquals((560 - 520) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
 
   slice = subRow[1];
   assertEquals('b', slice.title);
+  assertEquals('bar', slice.category);
   assertAlmostEquals((629 - 520) / 1000, slice.start);
   assertAlmostEquals((631 - 629) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
@@ -74,12 +76,34 @@ tests.testArgumentDupeCreatesNonFailingImportError = function() {
   assertEquals(m.importErrors.length, 1);
 }
 
+tests.testCategoryBeginEndMismatchPrefersBegin = function() {
+  var events = [
+    {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+    {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'},
+  ];
+
+  var m = new tracing.TimelineModel(events);
+  assertEquals(1, m.numProcesses);
+  var p = m.processes[52];
+  assertNotUndefined(p);
+
+  assertEquals(1, p.numThreads);
+  var t = p.threads[53];
+  assertNotUndefined(t);
+  assertEquals(1, t.subRows.length);
+  assertEquals(53, t.tid);
+  var subRow = t.subRows[0];
+  assertEquals(1, subRow.length);
+  var slice = subRow[0];
+  assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
+}
 
 tests.testNestedParsing = function() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
+    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
+    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'E'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events, false);
@@ -89,11 +113,13 @@ tests.testNestedParsing = function() {
   var sB = findSliceNamed(t.slices, 'b');
 
   assertEquals('a', sA.title);
+  assertEquals('foo', sA.category);
   assertEquals(0.001, sA.start);
   assertEquals(0.003, sA.duration);
   assertArrayEquals([sB], sA.subSlices);
 
   assertEquals('b', sB.title);
+  assertEquals('bar', sB.category);
   assertEquals(0.002, sB.start);
   assertEquals(0.001, sB.duration);
   assertArrayEquals([], sB.subSlices);
@@ -109,8 +135,8 @@ tests.testAutoclosing = function() {
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
 
     // Slice that does finish to give an 'end time' to make autoclosing work.
-    {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
+    {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
+    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events);
   var p = m.processes[1];
@@ -118,6 +144,7 @@ tests.testAutoclosing = function() {
   var subRow = t.subRows[0];
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertTrue(slice.didNotFinish);
   assertEquals(0, slice.start);
   assertEquals((2 - 1) / 1000, slice.duration);
@@ -134,6 +161,7 @@ tests.testAutoclosingLoneBegin = function() {
   var subRow = t.subRows[0];
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertTrue(slice.didNotFinish);
   assertEquals(0, slice.start);
   assertEquals(0, slice.duration);
@@ -171,8 +199,8 @@ tests.testAutoclosingWithEventsOutsideRange = function() {
     {name: 'a', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'},
 
     // Slice that does finish to give an 'end time' to establish a basis
-    {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
+    {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
+    {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events, false);
   var p = m.processes[1];
@@ -181,12 +209,14 @@ tests.testAutoclosingWithEventsOutsideRange = function() {
 
   var subRow = t.subRows[0];
   assertEquals('a', subRow[0].title);
+  assertEquals('foo', subRow[0].category);
   assertEquals(0, subRow[0].start);
   assertEquals(0.003, subRow[0].duration);
 
   var t2 = p.threads[2];
   var subRow2 = t2.subRows[0];
   assertEquals('b', subRow2[0].title);
+  assertEquals('bar', subRow2[0].category);
   assertEquals(0.001, subRow2[0].start);
   assertEquals(0.001, subRow2[0].duration);
 
@@ -231,10 +261,10 @@ tests.testTaskColoring = function() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
-    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'},
-    {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'a', args: {}, pid: 1, ts: 6, cat: 'foo', tid: 1, ph: 'E'}
+    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'B'},
+    {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 1, ph: 'E'},
+    {name: 'a', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
+    {name: 'a', args: {}, pid: 1, ts: 6, cat: 'baz', tid: 1, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events);
   var p = m.processes[1];
@@ -242,11 +272,14 @@ tests.testTaskColoring = function() {
   var subRow = t.subRows[0];
   var a1 = subRow[0];
   assertEquals('a', a1.title);
+  assertEquals('foo', a1.category);
   var b = subRow[1];
   assertEquals('b', b.title);
+  assertEquals('bar', b.category);
   assertNotEquals(a1.colorId, b.colorId);
-  var a2 = subRow[0];
+  var a2 = subRow[2];
   assertEquals('a', a2.title);
+  assertEquals('baz', a2.category);
   assertEquals(a1.colorId, a2.colorId);
 }
 
@@ -254,8 +287,8 @@ tests.testMultipleThreadParsing = function() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
-    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 2, ph: 'B'},
-    {name: 'b', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 2, ph: 'E'}
+    {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
+    {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events);
   assertEquals(1, m.numProcesses);
@@ -274,6 +307,7 @@ tests.testMultipleThreadParsing = function() {
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0, slice.start);
   assertEquals((2 - 1) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
@@ -288,6 +322,7 @@ tests.testMultipleThreadParsing = function() {
   assertEquals(1, subRow.length);
   slice = subRow[0];
   assertEquals('b', slice.title);
+  assertEquals('bar', slice.category);
   assertEquals((3 - 1) / 1000, slice.start);
   assertEquals((4 - 3) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
@@ -297,8 +332,8 @@ tests.testMultiplePidParsing = function() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
-    {name: 'b', args: {}, pid: 2, ts: 3, cat: 'foo', tid: 2, ph: 'B'},
-    {name: 'b', args: {}, pid: 2, ts: 4, cat: 'foo', tid: 2, ph: 'E'}
+    {name: 'b', args: {}, pid: 2, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
+    {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events);
   assertEquals(2, m.numProcesses);
@@ -317,6 +352,7 @@ tests.testMultiplePidParsing = function() {
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0, slice.start);
   assertEquals((2 - 1) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
@@ -334,6 +370,7 @@ tests.testMultiplePidParsing = function() {
   assertEquals(1, subRow.length);
   slice = subRow[0];
   assertEquals('b', slice.title);
+  assertEquals('bar', slice.category);
   assertEquals((3 - 1) / 1000, slice.start);
   assertEquals((4 - 3) / 1000, slice.duration);
   assertEquals(0, slice.subSlices.length);
@@ -371,6 +408,7 @@ tests.testParsingWhenEndComesFirst = function() {
   var t = p.threads[1];
   assertEquals(1, t.slices.length);
   assertEquals('a', t.slices[0].title);
+  assertEquals('foo', t.slices[0].category);
   assertEquals(0.004, t.slices[0].start);
   assertEquals(0.001, t.slices[0].duration);
   assertEquals(1, m.importErrors.length);
@@ -381,7 +419,7 @@ tests.testImmediateParsing = function() {
     // Need to include immediates inside a task so the timeline
     // recentering/zeroing doesn't clobber their timestamp.
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'immediate', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'I'},
+    {name: 'immediate', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'I'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
   var m = new tracing.TimelineModel(events, false);
@@ -398,11 +436,13 @@ tests.testImmediateParsing = function() {
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0.003, slice.duration);
   assertEquals(1, slice.subSlices.length);
 
   var immed = slice.subSlices[0];
   assertEquals('immediate', immed.title);
+  assertEquals('bar', immed.category);
   assertEquals(0.002, immed.start);
   assertEquals(0, immed.duration);
   assertEquals(0, immed.subSlices.length);
@@ -426,6 +466,7 @@ tests.testSimpleCounter = function() {
   var ctr = m.processes[1].counters['foo.ctr'];
 
   assertEquals('ctr', ctr.name);
+  assertEquals('foo', ctr.category);
   assertEquals(3, ctr.numSamples);
   assertEquals(1, ctr.numSeries);
 
@@ -448,12 +489,15 @@ tests.testInstanceCounter = function() {
     {name: 'ctr', args: {'value': 20}, pid: 1, ts: 15, cat: 'foo', tid: 1,
      ph: 'C', id: 1},
     {name: 'ctr', args: {'value': 30}, pid: 1, ts: 18, cat: 'foo', tid: 1,
-     ph: 'C', id: 1}
+     ph: 'C', id: 1},
+    {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
+     ph: 'C', id: 2}
   ];
   var m = new tracing.TimelineModel(events);
   var p = m.processes[1];
   var ctr = m.processes[1].counters['foo.ctr[0]'];
   assertEquals('ctr[0]', ctr.name);
+  assertEquals('foo', ctr.category);
   assertEquals(2, ctr.numSamples);
   assertEquals(1, ctr.numSeries);
   assertArrayEquals([0, 0.01], ctr.timestamps);
@@ -461,15 +505,24 @@ tests.testInstanceCounter = function() {
 
   var ctr = m.processes[1].counters['foo.ctr[1]'];
   assertEquals('ctr[1]', ctr.name);
+  assertEquals('foo', ctr.category);
   assertEquals(3, ctr.numSamples);
   assertEquals(1, ctr.numSeries);
   assertArrayEquals([0.01, 0.015, 0.018], ctr.timestamps);
   assertArrayEquals([10, 20, 30], ctr.samples);
+
+  var ctr = m.processes[1].counters['bar.ctr[2]'];
+  assertEquals('ctr[2]', ctr.name);
+  assertEquals('bar', ctr.category);
+  assertEquals(1, ctr.numSamples);
+  assertEquals(1, ctr.numSeries);
+  assertArrayEquals([0.02], ctr.timestamps);
+  assertArrayEquals([40], ctr.samples);
 }
 
 tests.testMultiCounterUpdateBounds = function() {
   var ctr = new tracing.TimelineCounter(undefined, 'testBasicCounter',
-      'testBasicCounter');
+      '', 'testBasicCounter');
   ctr.seriesNames = ['value1', 'value2'];
   ctr.seriesColors = ['testBasicCounter.value1', 'testBasicCounter.value2'];
   ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -510,6 +563,7 @@ tests.testMultiCounter = function() {
   assertEquals('ctr', ctr.name);
 
   assertEquals('ctr', ctr.name);
+  assertEquals('foo', ctr.category);
   assertEquals(3, ctr.numSamples);
   assertEquals(2, ctr.numSeries);
 
@@ -590,9 +644,9 @@ tests.testImportStringWithMissingCloseSquareBracketAndNewline = function() {
 tests.testStartFinishOneSliceOneThread = function() {
   var events = [
     // Time is intentionally out of order.
-    {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+    {name: 'a', args: {}, pid: 52, ts: 560, cat: 'cat', tid: 53,
        ph: 'F', id: 72},
-    {name: 'a', pid: 52, ts: 524, cat: 'foo', tid: 53,
+    {name: 'a', pid: 52, ts: 524, cat: 'cat', tid: 53,
        ph: 'S', id: 72, args: {'foo': 'bar'}}
   ];
 
@@ -601,6 +655,7 @@ tests.testStartFinishOneSliceOneThread = function() {
   assertNotUndefined(t);
   assertEquals(1, t.asyncSlices.slices.length);
   assertEquals('a', t.asyncSlices.slices[0].title);
+  assertEquals('cat', t.asyncSlices.slices[0].category);
   assertEquals(72, t.asyncSlices.slices[0].id);
   assertEquals('bar', t.asyncSlices.slices[0].args.foo);
   assertEquals(0, t.asyncSlices.slices[0].start);
@@ -629,6 +684,7 @@ tests.testEndArgsAddedToSlice = function() {
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('a', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0, slice.start);
   assertEquals(0, slice.subSlices.length);
   assertEquals(1, slice.args['x']);
@@ -655,6 +711,7 @@ tests.testEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
   assertEquals(1, subRow.length);
   var slice = subRow[0];
   assertEquals('b', slice.title);
+  assertEquals('foo', slice.category);
   assertEquals(0, slice.start);
   assertEquals(0, slice.subSlices.length);
   assertEquals(4, slice.args['z']);
@@ -675,6 +732,7 @@ tests.testAsyncEndArgsAddedToSlice = function() {
   assertEquals(1, t.asyncSlices.slices.length);
   var parentSlice = t.asyncSlices.slices[0];
   assertEquals('c', parentSlice.title);
+  assertEquals('foo', parentSlice.category);
 
   assertNotUndefined(parentSlice.subSlices);
   assertEquals(1, parentSlice.subSlices.length);
@@ -698,6 +756,7 @@ tests.testAsyncEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
   assertEquals(1, t.asyncSlices.slices.length);
   var parentSlice = t.asyncSlices.slices[0];
   assertEquals('d', parentSlice.title);
+  assertEquals('foo', parentSlice.category);
 
   assertNotUndefined(parentSlice.subSlices);
   assertEquals(1, parentSlice.subSlices.length);
@@ -722,18 +781,21 @@ tests.testAsyncStepsInOneThread = function() {
   assertEquals(1, t.asyncSlices.slices.length);
   var parentSlice = t.asyncSlices.slices[0];
   assertEquals('a', parentSlice.title);
+  assertEquals('foo', parentSlice.category);
   assertEquals(0, parentSlice.start);
 
   assertNotUndefined(parentSlice.subSlices);
   assertEquals(2, parentSlice.subSlices.length);
   var subSlice = parentSlice.subSlices[0];
   assertEquals('a', subSlice.title);
+  assertEquals('foo', subSlice.category);
   assertEquals(0, subSlice.start);
   assertAlmostEquals((548 - 524) / 1000, subSlice.duration);
   assertEquals(1, subSlice.args['x']);
 
   var subSlice = parentSlice.subSlices[1];
   assertEquals('a:s1', subSlice.title);
+  assertEquals('foo', subSlice.category);
   assertAlmostEquals((548 - 524) / 1000, subSlice.start);
   assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
   assertEquals(2, subSlice.args['y']);

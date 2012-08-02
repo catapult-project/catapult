@@ -43,7 +43,7 @@ found in the LICENSE file.
 
   // Helper function to create a slice.
   function newAsyncSlice(start, duration, startThread, endThread) {
-    var s = new TimelineAsyncSlice('a', 0, start);
+    var s = new TimelineAsyncSlice('', 'a', 0, start);
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;
@@ -56,10 +56,10 @@ found in the LICENSE file.
     testEl.appendChild(track);
     track.heading = 'testBasicSlices';
     track.slices = [
-      new TimelineSlice('a', 0, 1, {}, 1),
-      new TimelineSlice('b', 1, 2.1, {}, 4.8),
-      new TimelineSlice('b', 1, 7, {}, 0.5),
-      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+      new TimelineSlice('', 'a', 0, 1, {}, 1),
+      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('', 'b', 1, 7, {}, 0.5),
+      new TimelineSlice('', 'c', 2, 7.6, {}, 0.4)
     ];
     track.viewport = new TimelineViewport(testEl);
     track.viewport.xSetWorldRange(0, 8.8, track.clientWidth);
@@ -68,10 +68,10 @@ found in the LICENSE file.
   tests.testFindAllObjectsMatchingInSliceTrack = function() {
     var track = TimelineSliceTrack();
     track.slices = [
-      new TimelineSlice('a', 0, 1, {}, 1),
-      new TimelineSlice('b', 1, 2.1, {}, 4.8),
-      new TimelineSlice('b', 1, 7, {}, 0.5),
-      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+      new TimelineSlice('', 'a', 0, 1, {}, 1),
+      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('', 'b', 1, 7, {}, 0.5),
+      new TimelineSlice('', 'c', 2, 7.6, {}, 0.4)
     ];
     var selection = new TimelineSelection();
     track.addAllObjectsMatchingFilterToSelection(
@@ -91,7 +91,7 @@ found in the LICENSE file.
     var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
     var slices = [];
     for (var i = 0; i < widths.length; i++) {
-      var s = new TimelineSlice('a', 1, x, {}, widths[i]);
+      var s = new TimelineSlice('', 'a', 1, x, {}, widths[i]);
       x += s.duration + 0.5;
       slices.push(s);
     }
@@ -107,8 +107,8 @@ found in the LICENSE file.
     track.heading = 'testSelectionHitTesting';
     track.headingWidth = '100px';
     track.slices = [
-      new TimelineSlice('a', 0, 1, {}, 1),
-      new TimelineSlice('b', 1, 2.1, {}, 4.8)
+      new TimelineSlice('', 'a', 0, 1, {}, 1),
+      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8)
     ];
     track.style.width = '500px';
     track.viewport = new TimelineViewport(testEl);
@@ -136,8 +136,8 @@ found in the LICENSE file.
     var model = new tracing.TimelineModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 1, {}, 4));
-    t1.pushSlice(new tracing.TimelineThreadSlice('b', 0, 5.1, {}, 4));
+    t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.pushSlice(new tracing.TimelineThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = this.addHTMLOutput();
     var track = new tracing.TimelineThreadTrack();
@@ -165,8 +165,8 @@ found in the LICENSE file.
 
     var cpu = new TimelineCpu(7);
     cpu.slices = [
-      new TimelineSlice('a', 0, 1, {}, 1),
-      new TimelineSlice('b', 1, 2.1, {}, 4.8)
+      new TimelineSlice('', 'a', 0, 1, {}, 1),
+      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8)
     ];
     cpu.updateBounds();
 
@@ -192,7 +192,7 @@ found in the LICENSE file.
     var testEl = this.addHTMLOutput();
 
     var ctr = new TimelineCounter(undefined,
-                                  'testBasicCounter', 'testBasicCounter');
+                                  'testBasicCounter', '', 'testBasicCounter');
     ctr.seriesNames = ['value1', 'value2'];
     ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
                         tracing.getStringColorId('testBasicCounter.value2')];
@@ -218,7 +218,7 @@ found in the LICENSE file.
   function runOffscreenCounterTest(timestamps, samples, testFn) {
     var testEl = document.createElement('div');
     var ctr = new TimelineCounter(undefined,
-                                  'foo', 'foo');
+                                  'foo', '', 'foo');
     var n = samples.length / timestamps.length;
     ctr.timestamps = timestamps;
     ctr.samples = samples;
@@ -300,10 +300,10 @@ found in the LICENSE file.
       track.heading = 'Visual: ' + dict.trackName;
       track.slices = [
           // title, colorId, start, args, opt_duration
-          new TimelineSlice('a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
-          new TimelineSlice(bigTitle, 1, 2.1, {}, 4.8),
-          new TimelineSlice('cccc cccc cccc', 1, 7, {}, 0.5),
-          new TimelineSlice('d', 2, 7.6, {}, 1.0)
+          new TimelineSlice('', 'a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
+          new TimelineSlice('', bigTitle, 1, 2.1, {}, 4.8),
+          new TimelineSlice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
+          new TimelineSlice('', 'd', 2, 7.6, {}, 1.0)
       ];
       track.viewport = new TimelineViewport(testEl);
       track.viewport.xSetWorldRange(0, 9.5, track.clientWidth);
@@ -321,8 +321,8 @@ found in the LICENSE file.
     track.heading = 'testElide';
     track.slices = [
         // title, colorId, start, args, opt_duration
-        new TimelineSlice(bigtitle, 0, 1, {}, 1),
-        new TimelineSlice(smalltitle, 1, 2, {}, 1)
+        new TimelineSlice('', bigtitle, 0, 1, {}, 1),
+        new TimelineSlice('', smalltitle, 1, 2, {}, 1)
     ];
     track.viewport = new TimelineViewport(testEl);
     track.viewport.xSetWorldRange(0, 3.3, track.clientWidth);
@@ -365,12 +365,12 @@ found in the LICENSE file.
     track.heading = 'testTimelineThreadTrackWithRegularSlices';
     var thread = new TimelineThread(new TimelineProcess(7), 1);
     thread.pushSlices([
-        new TimelineThreadSlice('a', 0, 1, {}, 1),
-        new TimelineThreadSlice('b', 1, 2.1, {}, 4.8),
-        new TimelineThreadSlice('b', 1, 7, {}, 0.5),
-        new TimelineThreadSlice('c', 2, 7.6, {}, 0.4),
-        new TimelineThreadSlice('d', 3, 1.1, {}, 0.8),
-        new TimelineThreadSlice('e', 4, 7.1, {}, 0.3)
+        new TimelineThreadSlice('', 'a', 0, 1, {}, 1),
+        new TimelineThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new TimelineThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('', 'e', 4, 7.1, {}, 0.3)
     ]);
     thread.updateBounds();
     track.heading = 'thread regular';
@@ -388,13 +388,13 @@ found in the LICENSE file.
     track.heading = 'testTimelineThreadTrackWithTallSlices';
     var thread = new TimelineThread(new TimelineProcess(7), 1);
     thread.pushSlices([
-      new TimelineThreadSlice('a', 1, 0, {}, 1),
-      new TimelineThreadSlice('b', 2, 0.1, {}, 0.8),
-      new TimelineThreadSlice('c', 3, 0.15, {}, 0.70),
-      new TimelineThreadSlice('d', 4, 0.20, {}, 0.50),
-      new TimelineThreadSlice('e', 5, 0.30, {}, 0.28),
-      new TimelineThreadSlice('e', 6, 0.35, {}, 0.20),
-      new TimelineThreadSlice('f', 7, 0.40, {}, 0.10)
+      new TimelineThreadSlice('', 'a', 1, 0, {}, 1),
+      new TimelineThreadSlice('', 'b', 2, 0.1, {}, 0.8),
+      new TimelineThreadSlice('', 'c', 3, 0.15, {}, 0.70),
+      new TimelineThreadSlice('', 'd', 4, 0.20, {}, 0.50),
+      new TimelineThreadSlice('', 'e', 5, 0.30, {}, 0.28),
+      new TimelineThreadSlice('', 'e', 6, 0.35, {}, 0.20),
+      new TimelineThreadSlice('', 'f', 7, 0.40, {}, 0.10)
     ]);
     thread.updateBounds();
     track.heading = 'thread tall';
@@ -411,12 +411,12 @@ found in the LICENSE file.
     testEl.appendChild(track);
     var thread = new TimelineThread(new TimelineProcess(7), 1);
     thread.pushSlices([
-        new TimelineThreadSlice('a', 0, 1, {}, 1),
-        new TimelineThreadSlice('b', 1, 2.1, {}, 4.8),
-        new TimelineThreadSlice('b', 1, 7, {}, 0.5),
-        new TimelineThreadSlice('c', 2, 7.6, {}, 0.4),
-        new TimelineThreadSlice('d', 3, 1.1, {}, 0.8),
-        new TimelineThreadSlice('e', 4, 7.1, {}, 0.3)
+        new TimelineThreadSlice('', 'a', 0, 1, {}, 1),
+        new TimelineThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new TimelineThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('', 'e', 4, 7.1, {}, 0.3)
     ]);
     thread.asyncSlices.push(newAsyncSlice(1.2, 7.2 - 1.2, thread, thread));
     thread.asyncSlices.push(newAsyncSlice(1.3, 7.3 - 1.3, thread, thread));
@@ -432,10 +432,10 @@ found in the LICENSE file.
   tests.testTimelineSliceTrackAddItemNearToProvidedHit = function() {
     var track = new TimelineSliceTrack();
     track.slices = [
-      new TimelineSlice('a', 0, 1, {}, 1),
-      new TimelineSlice('b', 1, 2.1, {}, 4.8),
-      new TimelineSlice('b', 1, 7, {}, 0.5),
-      new TimelineSlice('c', 2, 7.6, {}, 0.4)
+      new TimelineSlice('', 'a', 0, 1, {}, 1),
+      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8),
+      new TimelineSlice('', 'b', 1, 7, {}, 0.5),
+      new TimelineSlice('', 'c', 2, 7.6, {}, 0.4)
     ];
     var sel = new tracing.TimelineSelection();
     track.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter("b"), sel);

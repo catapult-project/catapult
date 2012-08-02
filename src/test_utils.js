@@ -29,11 +29,11 @@ base.defineModule('test_utils')
   }
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
-    var s = new tracing.TimelineAsyncSlice(name, 0, start);
+    var s = new tracing.TimelineAsyncSlice('', name, 0, start);
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;
-    var subSlice = new tracing.TimelineAsyncSlice(name, 0, start);
+    var subSlice = new tracing.TimelineAsyncSlice('', name, 0, start);
     subSlice.duration = duration;
     subSlice.startThread = startThread;
     subSlice.endThread = endThread;
@@ -46,7 +46,7 @@ base.defineModule('test_utils')
   }
 
   function newSliceNamed(name, start, duration) {
-    var s = new tracing.TimelineSlice(name, 0, start, {}, duration);
+    var s = new tracing.TimelineSlice('', name, 0, start, {}, duration);
     return s;
   }
 

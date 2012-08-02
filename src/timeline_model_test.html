@@ -40,20 +40,20 @@ var TimelineTitleFilter = tracing.TimelineTitleFilter;
 var createModelWithOneOfEverything = function() {
   var m = new TimelineModel();
   var cpu = m.getOrCreateCpu(1);
-  cpu.slices.push(new TimelineSlice('a', 0, 1, {}, 3));
+  cpu.slices.push(test_utils.newSlice(1, 3));
 
   var p = m.getOrCreateProcess(1)
   var t = p.getOrCreateThread(1);
-  t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 4));
+  t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 4));
   t.asyncSlices.push(test_utils.newAsyncSlice(0, 1, t, t));
 
-  var c = p.getOrCreateCounter("ProcessCounter");
+  var c = p.getOrCreateCounter("", "ProcessCounter");
   c.seriesNames.push('a', 'b');
   c.seriesColors.push(0, 1);
   c.timestamps.push(0, 1, 2, 3);
   c.samples.push(5, 10, 6, 15, 5, 12, 7, 16);
 
-  var c1 = cpu.getOrCreateCounter("CpuCounter");
+  var c1 = cpu.getOrCreateCounter("", "CpuCounter");
   c1.seriesNames.push('a', 'b');
   c1.seriesColors.push(0, 1);
   c1.timestamps.push(0, 1, 2, 3);
@@ -82,7 +82,7 @@ tests.testModelBounds_OneEmptyThread = function() {
 tests.testModelBounds_OneThread = function() {
   var m = new TimelineModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
   assertEquals(4, m.maxTimestamp);
@@ -91,7 +91,7 @@ tests.testModelBounds_OneThread = function() {
 tests.testModelBounds_OneThreadAndOneEmptyThread = function() {
   var m = new TimelineModel();
   var t1 = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t1.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 3));
+  t1.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
   var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
@@ -101,7 +101,7 @@ tests.testModelBounds_OneThreadAndOneEmptyThread = function() {
 tests.testModelBounds_OneCpu = function() {
   var m = new TimelineModel();
   var cpu = m.getOrCreateCpu(1);
-  cpu.slices.push(new TimelineSlice('a', 0, 1, {}, 3));
+  cpu.slices.push(test_utils.newSlice(1, 3));
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
   assertEquals(4, m.maxTimestamp);
@@ -111,10 +111,10 @@ tests.testModelBounds_OneCpu = function() {
 tests.testModelBounds_OneCpuOneThread = function() {
   var m = new TimelineModel();
   var cpu = m.getOrCreateCpu(1);
-  cpu.slices.push(new TimelineSlice('a', 0, 1, {}, 3));
+  cpu.slices.push(test_utils.newSlice(1, 3));
 
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-  t.pushSlice(new TimelineThreadSlice('a', 0, 1, {}, 4));
+  t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 4));
 
   m.updateBounds();
   assertEquals(1, m.minTimestamp);
@@ -128,13 +128,13 @@ tests.testModelCanImportEmpty = function() {
 }
 
 tests.testTimelineTitleFilter = function() {
-  var s0 = new TimelineSlice('a', 0, 1, {}, 3);
+  var s0 = test_utils.newSlice(1, 3);
   assertFalse(new TimelineTitleFilter('').matchSlice(s0));
 
   assertTrue(new TimelineTitleFilter('a').matchSlice(s0));
   assertFalse(new TimelineTitleFilter('x').matchSlice(s0));
 
-  var s1 = new TimelineSlice('ba', 0, 1, {}, 3);
+  var s1 = test_utils.newSliceNamed('ba', 1, 3);
   assertTrue(new TimelineTitleFilter('a').matchSlice(s1));
   assertTrue(new TimelineTitleFilter('ba').matchSlice(s1));
   assertFalse(new TimelineTitleFilter('x').matchSlice(s1));

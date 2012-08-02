@@ -64,7 +64,7 @@ base.defineModule('timeline_process')
     getOrCreateCounter: function(cat, name) {
       var id = cat + '.' + name;
       if (!this.counters[id])
-        this.counters[id] = new TimelineCounter(this, id, name);
+        this.counters[id] = new TimelineCounter(this, id, cat, name);
       return this.counters[id];
     }
   };

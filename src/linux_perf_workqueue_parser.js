@@ -56,7 +56,7 @@ base.defineModule('linux_perf_workqueue_parser')
 
       var kthread = this.importer.getOrCreateKernelThread(eventBase[1]);
       if (kthread.openSlice) {
-        var slice = new tracing.TimelineSlice(kthread.openSlice,
+        var slice = new tracing.TimelineSlice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             {},

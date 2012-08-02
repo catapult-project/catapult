@@ -48,13 +48,12 @@ base.defineModule('timeline_test')
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
-      t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('b', 0, 1.1, {}, 2.8));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
       var t1asg = t1.asyncSlices;
       t1asg.slices.push(test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
       t1asg.slices.push(test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
-
 
       var timeline = new tracing.Timeline();
       timeline.model = model;
@@ -62,7 +61,8 @@ base.defineModule('timeline_test')
       var expected = [{slice: t1asg.slices[0].subSlices[0]},
                       {slice: t1.slices[0]}];
       var result = new tracing.TimelineSelection();
-      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter('a'), result);
+      timeline.addAllObjectsMatchingFilterToSelection(
+          new tracing.TimelineTitleFilter('a'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
@@ -70,7 +70,8 @@ base.defineModule('timeline_test')
       var expected = [{slice: t1asg.slices[1].subSlices[0]},
                       {slice: t1.slices[1]}];
       var result = new tracing.TimelineSelection();
-      timeline.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter('b'), result);
+      timeline.addAllObjectsMatchingFilterToSelection(
+          new tracing.TimelineTitleFilter('b'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
@@ -80,8 +81,8 @@ base.defineModule('timeline_test')
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
-      t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 5, {}, 1));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
 
       var sel = new tracing.TimelineSelection();
       sel.addSlice({}, t1.slices[0]);
@@ -103,8 +104,8 @@ base.defineModule('timeline_test')
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
-      t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('a', 0, 5, {}, 1));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
 
       var track = new tracing.TimelineSliceTrack();
       track.slices = t1.subRows[0];
