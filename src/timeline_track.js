@@ -831,7 +831,7 @@ base.defineModule('timeline_track')
     placeAndBeginDraggingMarker: function(clientX) {
       var viewX = clientX - this.canvasContainer_.offsetLeft;
       var worldX = this.viewport_.xViewToWorld(viewX);
-      var marker = this.viewport_.findMarkerNear(worldX, 3);
+      var marker = this.viewport_.findMarkerNear(worldX, 6);
       var createdMarker = false;
       var movedMarker = false;
       if (!marker) {
