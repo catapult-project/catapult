@@ -104,7 +104,7 @@
 .timeline-find-control input {
   -webkit-user-select: auto;
   background-color: #f8f8f8;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   height: 19px;
   margin-bottom: 1px;
@@ -134,8 +134,8 @@
 
 .timeline-button {
   background-color: #f8f8f8;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  color: rgba(0,0,0,0.2);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  color: rgba(0,0,0,0.8);
   font-size: 14px;
   height: 19px;
   margin: 1px;
