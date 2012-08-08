@@ -459,10 +459,15 @@ base.defineModule('timeline_track')
         var innerHeight = parseInt(style.height) -
           parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
           parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
-        if (this.canvas_.width != innerWidth)
-          this.canvas_.width = innerWidth;
-        if (this.canvas_.height != innerHeight)
-          this.canvas_.height = innerHeight;
+        var pixelRatio = window.devicePixelRatio || 1;
+        if (this.canvas_.width != innerWidth) {
+          this.canvas_.width = innerWidth * pixelRatio;
+          this.canvas_.style.width = innerWidth + 'px';
+        }
+        if (this.canvas_.height != innerHeight) {
+          this.canvas_.height = innerHeight * pixelRatio;
+          this.canvas_.style.height = innerHeight + 'px';
+        }
 
         this.redraw();
       }.bind(this), this);
@@ -672,10 +677,11 @@ base.defineModule('timeline_track')
       ctx.restore();
 
       // Labels.
+      var pixelRatio = window.devicePixelRatio || 1;
       if (canvasH > 8) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.font = '10px sans-serif';
+        ctx.font = (10 * pixelRatio) + 'px sans-serif';
         ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.fillStyle = 'rgb(0,0,0)';
         // Don't render text until until it is 20px wide
@@ -704,7 +710,7 @@ base.defineModule('timeline_track')
             }
             if (drawnWidth * pixWidth < slice.duration) {
               var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
-              ctx.fillText(drawnTitle, cX, 2.5, drawnWidth);
+              ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
             }
           }
         }
@@ -948,7 +954,9 @@ base.defineModule('timeline_track')
       ctx.strokeStyle = 'rgb(0, 0, 0)';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.font = '9px sans-serif';
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
       // Each iteration of this loop draws one major mark
       // and numTicksPerMajor minor ticks.
@@ -965,7 +973,8 @@ base.defineModule('timeline_track')
         var roundedUnitValue = Math.floor(unitValue * 100000) / 100000;
         if (!tickLabels[roundedUnitValue])
             tickLabels[roundedUnitValue] = roundedUnitValue + ' ' + unit;
-        ctx.fillText(tickLabels[roundedUnitValue], curXView + 2, 0);
+        ctx.fillText(tickLabels[roundedUnitValue],
+                     curXView + 2 * pixelRatio, 0);
         ctx.beginPath();
 
         // Major mark
