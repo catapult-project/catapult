@@ -11,6 +11,7 @@
 base.defineModule('timeline_track')
     .dependsOn('sorted_array_utils',
                'fast_rect_renderer',
+               'timeline_filter',
                'timeline_model',
                'timeline_color_scheme',
                'ui')
@@ -162,6 +163,11 @@ base.defineModule('timeline_track')
       this.classList.add('timeline-thread-track');
     },
 
+    set current_filter(v) {
+      this.current_filter_ = v;
+      this.updateChildTracks_();
+    },
+
     get thread() {
       return this.thread_;
     },
@@ -198,6 +204,10 @@ base.defineModule('timeline_track')
       this.updateChildTracks_();
     },
 
+    get hasContent() {
+      return !!this.tracks_ && !!this.tracks_.length;
+    },
+
     addTrack_: function(slices) {
       var track = new TimelineSliceTrack();
       track.heading = '';
@@ -215,6 +225,7 @@ base.defineModule('timeline_track')
       this.textContent = '';
       this.tracks_ = [];
       if (this.thread_) {
+        this.thread_.current_filter = this.current_filter_;
         if (this.thread_.cpuSlices) {
           var track = this.addTrack_(this.thread_.cpuSlices);
           track.height = '4px';
@@ -236,9 +247,11 @@ base.defineModule('timeline_track')
         }
 
         for (var srI = 0; srI < this.thread_.subRows.length; srI++) {
-          var track = this.addTrack_(this.thread_.subRows[srI]);
-          track.decorateHit = function(hit) {
-            hit.thread = this.thread_;
+          if (this.thread_.subRows[srI].length) {
+            var track = this.addTrack_(this.thread_.subRows[srI]);
+            track.decorateHit = function(hit) {
+              hit.thread = this.thread_;
+            }
           }
         }
 
@@ -287,6 +300,11 @@ base.defineModule('timeline_track')
       this.classList.add('timeline-thread-track');
     },
 
+    set current_filter(v) {
+      this.current_filter_ = v;
+      this.updateChildTracks_();
+    },
+
     get cpu() {
       return this.cpu_;
     },
@@ -323,13 +341,21 @@ base.defineModule('timeline_track')
       this.updateChildTracks_();
     },
 
+    get hasContent() {
+      return !!this.tracks_ && !!this.tracks_.length;
+    },
+
     updateChildTracks_: function() {
       this.detach();
       this.textContent = '';
       this.tracks_ = [];
       if (this.cpu_) {
         var track = new TimelineSliceTrack();
-        track.slices = this.cpu_.slices;
+        track.slices = tracing.filterSliceArray(this.current_filter_,
+                                                this.cpu_.slices);
+        if (!track.slices.length)
+          return;
+
         track.headingWidth = this.headingWidth_;
         track.viewport = this.viewport_;
 

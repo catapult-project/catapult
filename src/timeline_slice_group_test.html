@@ -298,6 +298,25 @@ base.defineModule('timeline_slice_group_test')
     assertArrayEquals([sC], subRows[2]);
   }
 
+  tests.testFiltering = function() {
+    var group = new TimelineSliceGroup();
+
+    var sA = group.pushSlice(newSliceNamed("a", 1, 3));
+    var sB = group.pushSlice(newSliceNamed("b", 1.5, 1));
+
+    assertEquals(2, group.subRows.length);
+
+    group.current_filter = new tracing.TimelineTitleFilter('x');
+    assertEquals(1, group.subRows.length);
+    assertEquals(0, group.subRows[0].length);
+
+    group.current_filter = new tracing.TimelineTitleFilter('a');
+    assertEquals(1, group.subRows.length);
+
+    group.current_filter = new tracing.TimelineTitleFilter('b');
+    assertEquals(1, group.subRows.length);
+  }
+
   // TODO: test cretion of subSlices
 
 

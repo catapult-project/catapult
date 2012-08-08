@@ -24,6 +24,18 @@ base.defineModule('timeline_filter')
     .dependsOn()
     .exportsTo('tracing', function() {
 
+  function filterSliceArray(filter, slices) {
+    if (filter === undefined)
+      return slices;
+
+    var matched = [];
+    for (var i = 0; i < slices.length; ++i) {
+      if (filter.matchSlice(slices[i]))
+        matched.push(slices[i]);
+    }
+    return matched;
+  }
+
   /**
    * @constructor The generic base class for filtering a TimelineModel based on
    * various rules. The base class returns true for everything.
@@ -34,7 +46,23 @@ base.defineModule('timeline_filter')
   TimelineFilter.prototype = {
     __proto__: Object.prototype,
 
+    matchCounter: function(counter) {
+      return true;
+    },
+
+    matchCpu: function(cpu) {
+      return true;
+    },
+
+    matchProcess: function(process) {
+      return true;
+    },
+
     matchSlice: function(slice) {
+      return true;
+    },
+
+    matchThread: function(thread) {
       return true;
     }
   };
@@ -52,6 +80,8 @@ base.defineModule('timeline_filter')
 
     matchSlice: function(slice) {
       if (this.text_.length == 0)
+        return false;
+      if (slice.title === undefined)
         return false;
       return slice.title.indexOf(this.text_) != -1;
     }
@@ -83,6 +113,7 @@ base.defineModule('timeline_filter')
   };
 
   return {
+    filterSliceArray: filterSliceArray,
     TimelineFilter: TimelineFilter,
     TimelineTitleFilter: TimelineTitleFilter,
     TimelineCategoryFilter: TimelineCategoryFilter,

@@ -95,6 +95,12 @@ base.defineModule('timeline_thread')
       return TimelineThread.getPTIDFromPidAndTid(this.tid, this.pid);
     },
 
+    set current_filter(v) {
+      this.asyncSlices.current_filter = v;
+      TimelineSliceGroup.prototype.__lookupSetter__('current_filter').call(
+          this, v);
+    },
+
     /**
      * Shifts all the timestamps inside this thread forward by the amount
      * specified.

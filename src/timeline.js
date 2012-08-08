@@ -556,6 +556,7 @@ base.defineModule('timeline')
       this.addEventListener('dblclick', this.onDblClick_);
 
       this.lastMouseViewPos_ = {x: 0, y: 0};
+      this.maxHeadingWidth_ = 0;
 
       this.selection_ = new TimelineSelection();
     },
@@ -597,7 +598,7 @@ base.defineModule('timeline')
 
     set current_filter(filter) {
       this.current_filter_ = filter;
-      // TODO(simonjam): Rebuild track list here.
+      this.rebuildRows_();
     },
 
     get model() {
@@ -639,33 +640,43 @@ base.defineModule('timeline')
         if (w > maxHeadingWidth)
           maxHeadingWidth = w;
       });
-      maxHeadingWidth = maxHeadingWidth + 'px';
+      this.maxHeadingWidth_ = maxHeadingWidth + 'px';
 
-      this.viewportTrack_.headingWidth = maxHeadingWidth;
+      this.viewportTrack_.headingWidth = this.maxHeadingWidth_;
 
+      this.rebuildRows_();
+    },
+
+    rebuildRows_: function() {
       // Reset old tracks.
       for (var i = 0; i < this.tracks_.children.length; i++)
         this.tracks_.children[i].detach();
       this.tracks_.textContent = '';
 
       // Get a sorted list of CPUs
-      var cpus = model.getAllCpus();
+      var cpus = this.model_.getAllCpus();
       cpus.sort(tracing.TimelineCpu.compare);
 
       // Create tracks for each CPU.
       cpus.forEach(function(cpu) {
+        if (!this.current_filter.matchCpu(cpu))
+          return;
         var track = new tracing.TimelineCpuTrack();
         track.heading = 'CPU ' + cpu.cpuNumber + ':';
-        track.headingWidth = maxHeadingWidth;
+        track.headingWidth = this.maxHeadingWidth_;
         track.viewport = this.viewport_;
+        track.current_filter = this.current_filter;
         track.cpu = cpu;
-        this.tracks_.appendChild(track);
+        if (track.hasContent)
+          this.tracks_.appendChild(track);
 
         for (var counterName in cpu.counters) {
           var counter = cpu.counters[counterName];
+          if (!this.current_filter.matchCounter(counter))
+            continue;
           track = new tracing.TimelineCounterTrack();
           track.heading = 'CPU ' + cpu.cpuNumber + ' ' + counter.name + ':';
-          track.headingWidth = maxHeadingWidth;
+          track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
           track.counter = counter;
           this.tracks_.appendChild(track);
@@ -673,22 +684,27 @@ base.defineModule('timeline')
       }.bind(this));
 
       // Get a sorted list of processes.
-      var processes = model.getAllProcesses();
+      var processes = this.model_.getAllProcesses();
       processes.sort(tracing.TimelineProcess.compare);
 
       // Create tracks for each process.
       processes.forEach(function(process) {
+        if (!this.current_filter.matchProcess(process))
+          return;
         // Add counter tracks for this process.
         var counters = [];
-        for (var tid in process.counters)
+        for (var tid in process.counters) {
+          if (!this.current_filter.matchCounter(process.counters[tid]))
+            continue;
           counters.push(process.counters[tid]);
+        }
         counters.sort(tracing.TimelineCounter.compare);
 
         // Create the counters for this process.
         counters.forEach(function(counter) {
           var track = new tracing.TimelineCounterTrack();
           track.heading = counter.name + ':';
-          track.headingWidth = maxHeadingWidth;
+          track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
           track.counter = counter;
           this.tracks_.appendChild(track);
@@ -702,13 +718,18 @@ base.defineModule('timeline')
 
         // Create the threads.
         threads.forEach(function(thread) {
+          if (!this.current_filter.matchThread(thread))
+            return;
           var track = new tracing.TimelineThreadTrack();
           track.heading = thread.userFriendlyName + ':';
           track.tooltip = thread.userFriendlyDetails;
-          track.headingWidth = maxHeadingWidth;
+          track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
+          track.current_filter = this.current_filter;
           track.thread = thread;
-          this.tracks_.appendChild(track);
+          if (track.hasContent) {
+            this.tracks_.appendChild(track);
+          }
         }.bind(this));
       }.bind(this));
 

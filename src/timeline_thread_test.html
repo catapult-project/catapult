@@ -26,6 +26,7 @@ base.defineModule('timeline_thread_test')
   var TimelineThread = tracing.TimelineThread;
   var newSliceNamed = test_utils.newSliceNamed;
   var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
 
   tests.testPTIDFromPidAndTid = function() {
     assertEquals('1:2', TimelineThread.getPTIDFromPidAndTid(1, 2));
@@ -97,6 +98,26 @@ base.defineModule('timeline_thread_test')
 
     assertEquals(1, shiftCount);
     assertEquals(0.32, t.slices[0].start);
+  }
+
+  tests.testFilterSlices = function() {
+    var t = new TimelineThread(new TimelineProcess(7), 1);
+    t.pushSlice(newSliceNamed('a', 0, 0));
+    t.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
+
+    assertEquals(1, t.subRows.length);
+    assertEquals(1, t.subRows[0].length);
+    assertEquals(1, t.asyncSlices.subRows.length);
+
+    t.current_filter = new tracing.TimelineTitleFilter('x');
+    assertEquals(1, t.subRows.length);
+    assertEquals(0, t.subRows[0].length);
+    assertEquals(0, t.asyncSlices.subRows.length);
+
+    t.current_filter = new tracing.TimelineTitleFilter('a');
+    assertEquals(1, t.subRows.length);
+    assertEquals(1, t.subRows[0].length);
+    assertEquals(1, t.asyncSlices.subRows.length);
   }
 
   return tests;

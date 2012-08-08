@@ -47,6 +47,22 @@ base.defineModule('timeline_async_slice_group_test')
     assertEquals(2.5, g.maxTimestamp);
   }
 
+  tests.testAsyncSliceGroup_filterSubRows =
+      function() {
+    var p1 = new TimelineProcess(1);
+    var t1 = new TimelineThread(p1, 1);
+    var g = new TimelineAsyncSliceGroup('a');
+    g.slices.push(newAsyncSlice(0, 1, t1, t1));
+
+    assertEquals(1, g.subRows.length);
+
+    g.current_filter = new tracing.TimelineTitleFilter('x');
+    assertEquals(0, g.subRows.length);
+
+    g.current_filter = new tracing.TimelineTitleFilter('a');
+    assertEquals(1, g.subRows.length);
+  }
+
   tests.testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices =
       function() {
     var p1 = new TimelineProcess(1);

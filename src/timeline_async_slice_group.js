@@ -59,6 +59,7 @@ base.defineModule('timeline_async_slice_group')
   function TimelineAsyncSliceGroup(name) {
     this.name = name;
     this.slices = [];
+    this.current_filter_ = undefined;
     this.subRows_ = undefined;
   }
 
@@ -70,7 +71,7 @@ base.defineModule('timeline_async_slice_group')
      */
     push: function(slice) {
       this.slices.push(slice);
-      this.subRows_ = [];
+      this.subRows_ = undefined;
     },
 
     /**
@@ -78,6 +79,11 @@ base.defineModule('timeline_async_slice_group')
      */
     get length() {
       return this.slices.length;
+    },
+
+    set current_filter(v) {
+      this.current_filter_ = v;
+      this.subRows_ = undefined;
     },
 
     /**
@@ -130,8 +136,7 @@ base.defineModule('timeline_async_slice_group')
      * doesn't fit in any subrow, make another subRow.
      */
     rebuildSubRows_: function() {
-      var slices = [];
-      slices.push.apply(slices, this.slices);
+      var slices = tracing.filterSliceArray(this.current_filter_, this.slices);
       slices.sort(function(x, y) {
         return x.start - y.start;
       });

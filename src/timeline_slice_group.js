@@ -8,7 +8,7 @@
  * @fileoverview Provides the TimelineSliceGroup class.
  */
 base.defineModule('timeline_slice_group')
-    .dependsOn('timeline_slice', 'timeline_color_scheme')
+    .dependsOn('timeline_slice', 'timeline_color_scheme', 'timeline_filter')
     .exportsTo('tracing', function() {
   var TimelineSlice = tracing.TimelineSlice;
 
@@ -30,12 +30,18 @@ base.defineModule('timeline_slice_group')
     this.openPartialSlices_ = [];
 
     this.slices = [];
+    this.current_filter_ = undefined;
     this.subRows_ = undefined;
     this.badSlices_ = undefined;
   }
 
   TimelineSliceGroup.prototype = {
     __proto__: Object.prototype,
+
+    set current_filter(v) {
+      this.current_filter_ = v;
+      this.subRows_ = undefined;
+    },
 
     /**
      * Helper function that pushes the provided slice onto the slices array.
@@ -247,7 +253,7 @@ base.defineModule('timeline_slice_group')
       //  0:  [    a       ]  [f]
       //  1:    [  b  ][e]
       //  2:    [c][d]
-      var slices = this.slices;
+      var slices = tracing.filterSliceArray(this.current_filter_, this.slices);
       var ops = [];
       for (var i = 0; i < slices.length; i++) {
         if (slices[i].subSlices)

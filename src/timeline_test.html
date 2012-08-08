@@ -118,6 +118,108 @@ base.defineModule('timeline_test')
       assertEquals(t1.subRows[0][1], shifted[0].slice);
     }
 
+    tests.testEmptyThreadsDeleted = function() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      assertEquals(0, timeline.tracks_.children.length);
+    }
+
+    function NoCountersFilter() {}
+    NoCountersFilter.prototype = {
+      __proto__: tracing.TimelineFilter.prototype,
+      matchCounter: function(c) {
+        return false;
+      }
+    }
+
+    tests.testFilteredCounters = function() {
+      var model = new tracing.TimelineModel();
+      var c1 = model.getOrCreateCpu(0);
+      c1.getOrCreateCounter('', 'b');
+      var p1 = model.getOrCreateProcess(1);
+      p1.getOrCreateCounter('', 'a');
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      assertEquals(2, timeline.tracks_.children.length);
+
+      timeline.current_filter = new NoCountersFilter();
+      assertEquals(0, timeline.tracks_.children.length);
+    }
+
+    function NoCpusFilter() {}
+    NoCpusFilter.prototype = {
+      __proto__: tracing.TimelineFilter.prototype,
+      matchCpu: function(c) {
+        return false;
+      }
+    }
+
+    tests.testFilteredCpus = function() {
+      var model = new tracing.TimelineModel();
+      var c1 = model.getOrCreateCpu(1);
+      c1.getOrCreateCounter('', 'a');
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      assertEquals(1, timeline.tracks_.children.length);
+
+      timeline.current_filter = new NoCpusFilter();
+      assertEquals(0, timeline.tracks_.children.length);
+    }
+
+    function NoProcessesFilter() {}
+    NoProcessesFilter.prototype = {
+      __proto__: tracing.TimelineFilter.prototype,
+      matchProcess: function(c) {
+        return false;
+      }
+    }
+
+    tests.testFilteredProcesses = function() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      p1.getOrCreateCounter('', 'a');
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      assertEquals(1, timeline.tracks_.children.length);
+
+      timeline.current_filter = new NoProcessesFilter();
+      assertEquals(0, timeline.tracks_.children.length);
+    }
+
+    function NoThreadsFilter() {}
+    NoThreadsFilter.prototype = {
+      __proto__: tracing.TimelineFilter.prototype,
+      matchThread: function(c) {
+        return false;
+      }
+    }
+
+    tests.testFilteredThreads = function() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(2);
+      t1.pushSlice(test_utils.newSlice(0, 1));
+
+      var timeline = new tracing.Timeline();
+      timeline.model = model;
+
+      assertEquals(1, timeline.tracks_.children.length);
+
+      timeline.current_filter = new NoThreadsFilter();
+      assertEquals(0, timeline.tracks_.children.length);
+    }
+
     return tests;
 });
 </script>
