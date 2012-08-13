@@ -228,6 +228,61 @@ base.defineModule('timeline_analysis_test')
       return selection;
     }
 
+    function createSelectionWithNormallyDistributedSamples(numSlices) {
+      // Distance between start times is normally distributed, with mu = 16ms
+      // and sigma = 3ms.
+      var startTimes = [
+        0,             18.4362262859, 32.5378088645, 44.8978868054,
+        63.4772725504, 77.438888345,  92.0102867913, 99.6208686689,
+        119.150576393, 137.54545468,  153.991587743, 175.456095568,
+        193.395772651, 205.691644582, 218.740054982, 239.308480724,
+        250.880949151, 268.528689601, 281.950478133, 296.791635722,
+        315.862427391, 333.954888221, 342.392899581, 362.364373939,
+        377.593380892, 392.296896748, 415.779941407, 435.517713864,
+        454.581222491, 470.329018858, 488.37029095,  502.283017166,
+        521.15141113,  534.36224697,  554.425018316, 574.89913248,
+        589.60294439,  604.780562233, 615.481610668, 630.055628965,
+        645.908449096, 661.776084055, 673.276049017, 689.776401428,
+        704.440135004, 716.33262401,  732.380086528, 743.970715322,
+        756.506690025, 772.391485532, 794.636984401, 803.801415494,
+        819.006502926, 837.610127549, 854.551103283, 875.170613672,
+        891.508235124, 905.263299017, 929.309555683, 943.417968804,
+        957.289319239, 972.302910569, 986.669355637, 1002.71558868,
+        1013.83359637, 1030.16840733, 1040.39503139, 1057.61583325,
+        1075.64709686, 1086.67671319, 1100.4617455,  1118.4871842,
+        1129.98143488, 1144.52318588, 1160.36966285, 1179.50049042,
+        1195.03088169, 1215.98199401, 1226.66591838, 1245.83650314,
+        1268.18058265, 1285.11047342, 1301.71570575, 1316.40723345,
+        1329.94342488, 1343.7569577,  1358.28267513, 1371.17560308,
+        1386.42247119, 1401.51767749, 1417.52489051, 1440.98712348,
+        1457.80113781, 1475.66079406, 1494.64137536, 1509.52941903,
+        1524.54762552, 1545.42960714, 1565.19444597, 1580.56308936,
+        1596.72211651 ];
+
+      var events = [];
+
+      var model = new TimelineModel();
+      var thread = model.getOrCreateProcess(52).getOrCreateThread(53);
+      var duration = 1; // 1ms
+
+      for (var i = 0; i < startTimes.length; ++i) {
+        for (var j = 0; j < numSlices; ++j) {
+          var name = 'slice' + String(j);
+          thread.slices.push(newSliceNamed(name, startTimes[i], duration));
+        }
+      }
+
+      var t53track = new TimelineThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new TimelineSelection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TimelineTitleFilter('slice'), selection);
+      assertEquals(101 * numSlices, selection.length);
+
+      return selection;
+    }
+
     tests.testAnalysisViewWithSingleSlice = function() {
       var selection = createSelectionWithSingleSlice();
 
@@ -270,6 +325,15 @@ base.defineModule('timeline_analysis_test')
 
     tests.testAnalysisViewWithSingleSliceSingleCounter = function() {
       var selection = createSelectionWithSingleSliceSingleCounter();
+
+      var analysisEl = new TimelineAnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    tests.testSelectionWithNormallyDistributedSamples = function() {
+      var numSlices = 1;
+      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
 
       var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
@@ -371,25 +435,21 @@ base.defineModule('timeline_analysis_test')
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
 
-      assertEquals(undefined, table.tableHeader);
-      assertEquals(8, table.rows.length)
+      assertEquals("Slices:", table.tableHeader);
+      assertEquals(5, table.rows.length)
 
-      assertEquals("Statistics for", table.rows[0].label);
-      assertEquals("c", table.rows[0].text);
-      assertEquals("Num Occurrences", table.rows[1].label);
-      assertEquals("2", table.rows[1].text);
-      assertEquals("Min duration", table.rows[2].label);
-      assertAlmostEquals(0.04, table.rows[2].time);
-      assertEquals("Avg duration", table.rows[3].label);
-      assertAlmostEquals(0.05, table.rows[3].time);
-      assertEquals("Max duration", table.rows[4].label);
-      assertAlmostEquals(0.06, table.rows[4].time);
-      assertEquals("Summed durations", table.rows[5].label);
-      assertAlmostEquals(0.1, table.rows[5].time);
-      assertEquals("Selection start", table.rows[6].label);
-      assertAlmostEquals(0, table.rows[6].time);
-      assertEquals("Selection extent", table.rows[7].label);
-      assertAlmostEquals(0.18, table.rows[7].time);
+      assertEquals("c", table.rows[0].label);
+      assertEquals("2", table.rows[0].occurences);
+      assertAlmostEquals(0.04, table.rows[0].details.min);
+      assertAlmostEquals(0.05, table.rows[0].details.avg);
+      assertAlmostEquals(0.06, table.rows[0].details.max);
+      assertAlmostEquals(0.1, table.rows[0].duration);
+      assertEquals("*Totals", table.rows[1].label);
+      assertAlmostEquals(0.1, table.rows[1].duration);
+      assertEquals("Selection start", table.rows[3].label);
+      assertAlmostEquals(0, table.rows[3].time);
+      assertEquals("Selection extent", table.rows[4].label);
+      assertAlmostEquals(0.18, table.rows[4].time);
     }
 
     function testAnalyzeSelectionWithSingleCounter() {
@@ -453,6 +513,44 @@ base.defineModule('timeline_analysis_test')
 
       assertEquals('Selected counter:', counterTable.tableHeader);
       assertEquals(4, counterTable.rows.length);
+    }
+
+    tests.testAnalyzeSelectionWithNormallyDistributedSamples = function() {
+      var numSlices = 1;
+      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+
+      assertEquals('Frequency (occurrences/s)',
+                   results.tables[0].rows[8].label);
+      assertEquals(63, Math.round(results.tables[0].rows[8].time));
+
+      assertEquals('Std Dev (occurrences/s)',
+                   results.tables[0].rows[9].label);
+      assertEquals(16, Math.round(results.tables[0].rows[9].time));
+    }
+
+    tests.testAnalyzeSelectionWithNormallyDistributedSamples = function() {
+      var numSlices = 2;
+      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+
+      assertEquals('slice0', results.tables[0].rows[0].label);
+      assertEquals(
+          63, Math.round(results.tables[0].rows[0].details.frequency));
+      assertEquals(
+          16, Math.round(results.tables[0].rows[0].details.frequency_stddev));
+
+      assertEquals('slice1', results.tables[0].rows[1].label);
+      assertEquals(
+          63, Math.round(results.tables[0].rows[1].details.frequency));
+      assertEquals(
+          16, Math.round(results.tables[0].rows[1].details.frequency_stddev));
     }
 
     return tests;

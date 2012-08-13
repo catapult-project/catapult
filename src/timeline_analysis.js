@@ -45,6 +45,19 @@ base.defineModule('timeline_analysis')
       return td;
     },
 
+    appendTableCellWithTooltip_: function(table, row, cellnum, text, tooltip) {
+      if (tooltip) {
+        var td = this.appendElement_(row, 'td');
+        td.className = table.className + '-col-' + cellnum;
+        var span = this.appendElement_(td, 'span', text);
+        span.className = 'tooltip';
+        span.title = tooltip;
+        return td;
+      } else {
+        this.appendTableCell_(table, row, cellnum, text);
+      }
+    },
+
     /**
      * Adds a table with the given className.
      * @return The newly created table.
@@ -117,39 +130,49 @@ base.defineModule('timeline_analysis')
      */
     appendDataRow: function(
         table, label, opt_duration, opt_occurences, opt_statistics) {
+
+      var tooltip = undefined;
+      if (opt_statistics) {
+        tooltip = 'Min Duration:\u0009' + this.tsRound_(opt_statistics.min) +
+                  ' ms \u000DMax Duration:\u0009' +
+                  this.tsRound_(opt_statistics.max) +
+                  ' ms \u000DAvg Duration:\u0009' +
+                  this.tsRound_(opt_statistics.avg) + ' ms';
+
+        if (opt_statistics.start) {
+          tooltip += '\u000DStart Time:\u0009' +
+              this.tsRound_(opt_statistics.start) + ' ms';
+        }
+        if (opt_statistics.end) {
+          tooltip += '\u000DEnd Time:\u0009' +
+              this.tsRound_(opt_statistics.end) + ' ms';
+        }
+        if (opt_statistics.frequency && opt_statistics.frequency_stddev) {
+          tooltip += '\u000DFrequency:\u0009' +
+              this.tsRound_(opt_statistics.frequency) +
+              ' occurrences/s (\u03C3 = ' +
+              this.tsRound_(opt_statistics.frequency_stddev) + ')';
+        }
+      }
+
       var row = this.appendElement_(table, 'tr');
       row.className = 'timeline-analysis-table-row';
-      this.appendTableCell_(table, row, 0, label);
+
+      this.appendTableCellWithTooltip_(table, row, 0, label, tooltip);
 
       if (opt_duration !== undefined) {
-        this.appendTableCell_(
-            table, row, 1, this.tsRound_(opt_duration) + ' ms');
+        this.appendTableCellWithTooltip_(table, row, 1,
+            this.tsRound_(opt_duration) + ' ms', tooltip);
       } else {
         this.appendTableCell_(table, row, 1, '');
       }
 
       if (opt_occurences !== undefined) {
-        this.appendTableCell_(
-            table, row, 2, String(opt_occurences) + ' occurences');
+        this.appendTableCellWithTooltip_(table, row, 2,
+            String(opt_occurences) + ' occurrences', tooltip);
+
       } else {
         this.appendTableCell_(table, row, 2, '');
-      }
-
-      if (opt_statistics) {
-        this.appendTableCell_(
-          table, row, 3, 'min:' + this.tsRound_(opt_statistics.min));
-        this.appendTableCell_(
-          table, row, 4, 'max:' + this.tsRound_(opt_statistics.max));
-        this.appendTableCell_(
-          table, row, 5, 'avg:' + this.tsRound_(opt_statistics.avg));
-        if (opt_statistics.start) {
-          this.appendTableCell_(
-              table, row, 6, 'start:' + this.tsRound_(opt_statistics.start));
-        }
-        if (opt_statistics.end) {
-          this.appendTableCell_(
-              table, row, 6, 'end:' + this.tsRound_(opt_statistics.end));
-        }
       }
     },
   };
@@ -215,24 +238,25 @@ base.defineModule('timeline_analysis')
       }
 
       var table;
-      if (numTitles == 1)
-        table = results.appendTable('timeline-analysis-slices-table', 2);
-      else {
-        table = results.appendTable('timeline-analysis-slices-table', 3);
-        results.appendTableHeader(table, 'Slices:');
-      }
+      table = results.appendTable('timeline-analysis-slices-table', 3);
+      results.appendTableHeader(table, 'Slices:');
 
       var totalDuration = 0;
-
-      // This will output the min, max, and average if there is only one title
       for (var sliceGroupTitle in slicesByTitle) {
         var sliceGroup = slicesByTitle[sliceGroupTitle];
         var duration = 0;
         var avg = 0;
+        var startOfFirstOccurrence = Number.MAX_VALUE;
+        var startOfLastOccurrence = -Number.MAX_VALUE;
+        var frequencyDetails = undefined;
         var min = Number.MAX_VALUE;
         var max = -Number.MAX_VALUE;
         for (var i = 0; i < sliceGroup.slices.length; i++) {
           duration += sliceGroup.slices[i].duration;
+          startOfFirstOccurrence = Math.min(sliceGroup.slices[i].start,
+                                            startOfFirstOccurrence);
+          startOfLastOccurrence = Math.max(sliceGroup.slices[i].start,
+                                            startOfLastOccurrence);
           min = Math.min(sliceGroup.slices[i].duration, min);
           max = Math.max(sliceGroup.slices[i].duration, max);
         }
@@ -243,25 +267,33 @@ base.defineModule('timeline_analysis')
           avg = 0;
         avg = duration / sliceGroup.slices.length;
 
-        var details = undefined;
-        if (numTitles == 1) {
-          details = {min: min,
-                     max: max,
-                     avg: avg};
-          results.appendSummaryRow(table, 'Statistics for', sliceGroupTitle);
-          results.appendSummaryRow(
-              table, 'Num Occurrences', sliceGroup.slices.length);
-          results.appendSummaryRowTime(table, 'Min duration', details.min);
-          results.appendSummaryRowTime(table, 'Avg duration', details.avg);
-          results.appendSummaryRowTime(table, 'Max duration', details.max);
-          results.appendSummaryRowTime(table, 'Summed durations', duration);
-          results.appendSummaryRowTime(table, 'Selection start', tsLo);
-          results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
-          return;
-        } else {
-          results.appendDataRow(
-              table, sliceGroupTitle, duration, sliceGroup.slices.length);
+        var details = {min: min,
+                       max: max,
+                       avg: avg,
+                       frequency: undefined,
+                       frequency_stddev: undefined};
+
+        // We require at least 3 samples to compute the stddev.
+        var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
+        if (sliceGroup.slices.length > 2 && elapsed > 0) {
+          var numDistances = sliceGroup.slices.length - 1;
+          details.frequency = (1000 * numDistances) / elapsed;
+
+          // Compute the stddev.
+          var sumOfSquaredDistancesToMean = 0;
+          for (var i = 1; i < sliceGroup.slices.length; i++) {
+            var currentFrequency = 1000 /
+                (sliceGroup.slices[i].start - sliceGroup.slices[i-1].start);
+            var signedDistance = details.frequency - currentFrequency;
+            sumOfSquaredDistancesToMean += signedDistance * signedDistance;
+          }
+
+          details.frequency_stddev = Math.sqrt(
+              sumOfSquaredDistancesToMean / (numDistances - 1));
         }
+        results.appendDataRow(
+            table, sliceGroupTitle, duration, sliceGroup.slices.length,
+            details);
       }
       results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
       results.appendSpacingRow(table);
