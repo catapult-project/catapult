@@ -30,18 +30,10 @@ base.defineModule('timeline_slice_group')
     this.openPartialSlices_ = [];
 
     this.slices = [];
-    this.current_filter_ = undefined;
-    this.subRows_ = undefined;
-    this.badSlices_ = undefined;
   }
 
   TimelineSliceGroup.prototype = {
     __proto__: Object.prototype,
-
-    set current_filter(v) {
-      this.current_filter_ = v;
-      this.subRows_ = undefined;
-    },
 
     /**
      * Helper function that pushes the provided slice onto the slices array.
@@ -49,7 +41,6 @@ base.defineModule('timeline_slice_group')
      */
     pushSlice: function(slice) {
       this.slices.push(slice);
-      this.subRows_ = undefined;
       return slice;
     },
 
@@ -59,7 +50,6 @@ base.defineModule('timeline_slice_group')
      */
     pushSlices: function(slices) {
       this.slices.push.apply(this.slices, slices);
-      this.subRows_ = undefined;
     },
 
     /**
@@ -187,137 +177,6 @@ base.defineModule('timeline_slice_group')
       } else {
         this.minTimestamp = undefined;
         this.maxTimestamp = undefined;
-      }
-      this.subRows_ = undefined;
-    },
-
-    /**
-     * @return {Array.<Array.<TimelineSlice>>} An array of array of slices,
-     * organized into rows based on their nesting structure. Each item in the
-     * array represents a single logical track that can be handed to a
-     * TimelineSliceTrack.
-     *
-     * DO NOT modify the returned array, it is automatically built for you.
-     * Also, while trying to push to the returned array throw an error, not all
-     * types of mutation will fail (for performance reasons).
-     */
-    get subRows() {
-      if (!this.subRows_)
-        this.rebuildSubRows_();
-      return this.subRows_;
-    },
-
-    /**
-     * @return {Array.<TimelineSlice>} An array of slices that could not be put
-     * into the subRows data structure due to nesting violations. If all slices
-     * are placed successfully, then badSlices.length is 0.
-     */
-    get badSlices() {
-      if (!this.subRows_)
-        this.rebuildSubRows_();
-      return this.badSlices_;
-    },
-
-    /**
-     * Breaks up the list of slices into N rows, each of which is a list of
-     * slices that are non overlapping.
-     */
-    rebuildSubRows_: function() {
-      // This function works by walking through slices by start time.
-      //
-      // The basic idea here is to insert each slice as deep into the subrow
-      // list as it can go such that every subSlice is fully contained by its
-      // parent slice.
-      //
-      // Visually, if we start with this:
-      //  0:  [    a       ]
-      //  1:    [  b  ]
-      //  2:    [c][d]
-      //
-      // To place this slice:
-      //               [e]
-      // We first check row 2's last item, [d]. [e] wont fit into [d] (they dont
-      // even intersect). So we go to row 1. That gives us [b], and [d] wont fit
-      // into that either. So, we go to row 0 and its last slice, [a]. That can
-      // completely contain [e], so that means we should add [e] as a subchild
-      // of [a]. That puts it on row 1, yielding:
-      //  0:  [    a       ]
-      //  1:    [  b  ][e]
-      //  2:    [c][d]
-      //
-      // If we then get this slice:
-      //                      [f]
-      // We do the same deepest-to-shallowest walk of the subrows trying to fit
-      // it. This time, it doesn't fit in any open slice. So, we simply append
-      // it to row 0:
-      //  0:  [    a       ]  [f]
-      //  1:    [  b  ][e]
-      //  2:    [c][d]
-      var slices = tracing.filterSliceArray(this.current_filter_, this.slices);
-      var ops = [];
-      for (var i = 0; i < slices.length; i++) {
-        if (slices[i].subSlices)
-          slices[i].subSlices.splice(0,
-                                     slices[i].subSlices.length);
-        ops.push(i);
-      }
-
-      ops.sort(function(ix,iy) {
-        var x = slices[ix];
-        var y = slices[iy];
-        if (x.start != y.start)
-          return x.start - y.start;
-        return ix - iy;
-      });
-
-      var subRows = [[]];
-      var badSlices = [];
-
-      for (var i = 0; i < ops.length; i++) {
-        var op = ops[i];
-        var slice = slices[op];
-
-        // Try to fit the slice into the existing subrows.
-        var inserted = false;
-        for (var j = subRows.length - 1; j >= 0; j--) {
-          if (subRows[j].length == 0)
-            continue;
-
-          var insertedSlice = subRows[j][subRows[j].length - 1];
-          if (slice.start < insertedSlice.start) {
-            badSlices.push(slice);
-            inserted = true;
-          }
-          if (slice.start >= insertedSlice.start &&
-              slice.end   <= insertedSlice.end) {
-            // Insert it into subRow j + 1.
-            while (subRows.length <= j + 1)
-              subRows.push([]);
-            subRows[j + 1].push(slice);
-            if (insertedSlice.subSlices)
-              insertedSlice.subSlices.push(slice);
-            inserted = true;
-            break;
-          }
-        }
-        if (inserted)
-          continue;
-
-        // Append it to subRow[0] as a root.
-        subRows[0].push(slice);
-      }
-
-      this.badSlices_ = badSlices;
-      this.subRows_ = subRows;
-
-      // Prevent accidental messing around with these arrays.
-      this.subRows_.__defineGetter__('push', function() {
-        throw Error("Do not modify elements in this array, ever!");
-      });
-      for (var i = 0; i < this.subRows_.length; i++) {
-        this.subRows_[i].__defineGetter__('push', function() {
-          throw Error("Do not modify elements in this array!");
-        });
       }
     },
   };

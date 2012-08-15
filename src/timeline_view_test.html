@@ -258,7 +258,7 @@ base.defineModule('timeline_view_test')
       controller.filterText = 'a';
       controller.findNext();
       assertEquals(1, timeline.selection.length);
-      assertEquals(t1.subRows[0][0], timeline.selection[0].slice);
+      assertEquals(t1.slices[0], timeline.selection[0].slice);
 
       controller.filterText = 'xxx';
       controller.findNext();

@@ -59,20 +59,20 @@
   top: 2px;
 }
 
-.timeline-thread-track:not(:first-child) > .timeline-canvas-based-track:first-child .timeline-canvas-based-track- {
+.timeline-thread-track:not(:first-child) > .timeline-thread-first-visible-group > .timeline-canvas-based-track:first-child .timeline-canvas-based-track- {
   border-top: 1px solid #D8D8D8;
 }
 
-.timeline-thread-track:not(:first-child) > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
+.timeline-thread-track:not(:first-child) > .timeline-thread-first-visible-group > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
   border-top: 1px solid #D8D8D8;
   height: 21px;
 }
 
-.timeline-thread-track > .timeline-canvas-based-track:first-child {
+.timeline-thread-track > .timeline-thread-first-visible-group > .timeline-canvas-based-track:first-child {
   height: 21px;
 }
 
-.timeline-thread-track > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
+.timeline-thread-track > .timeline-thread-first-visible-group > .timeline-canvas-based-track:first-child .timeline-canvas-based-track-canvas-container {
   padding-top: 2px;
 }
 

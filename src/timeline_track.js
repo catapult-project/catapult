@@ -43,12 +43,36 @@ base.defineModule('timeline_track')
   var elidedTitleCacheDict = {};
 
   /**
+   * The base class for all tracks.
+   * @constructor
+   */
+  var TimelineTrack = base.ui.define('div');
+  TimelineTrack.prototype = {
+    __proto__: HTMLDivElement.prototype,
+
+    decorate: function() {
+    },
+
+    get visible() {
+      return this.style.display !== 'none';
+    },
+
+    set visible(v) {
+      this.style.display = (v ? '' : 'none');
+    },
+
+    get numVisibleTracks() {
+      return (this.visible ? 1 : 0);
+    }
+  };
+
+  /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var TimelineContainerTrack = base.ui.define('div');
+  var TimelineContainerTrack = base.ui.define(TimelineTrack);
   TimelineContainerTrack.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    __proto__: TimelineTrack.prototype,
 
     decorate: function() {
       this.tracks_ = [];
@@ -57,6 +81,7 @@ base.defineModule('timeline_track')
     detach: function() {
       for (var i = 0; i < this.tracks_.length; i++)
         this.tracks_[i].detach();
+      this.tracks_ = [];
     },
 
     get viewport() {
@@ -74,6 +99,17 @@ base.defineModule('timeline_track')
       if (this.tracks_.length)
         return this.tracks_[0].firstCanvas;
       return undefined;
+    },
+
+    get numVisibleTracks() {
+      if (!this.visible)
+        return 0;
+
+      var sum = 0;
+      for (var i = 0; i < this.tracks_.length; ++i) {
+        sum += this.tracks_[i].numVisibleTracks;
+      }
+      return sum;
     },
 
     /**
@@ -161,11 +197,7 @@ base.defineModule('timeline_track')
 
     decorate: function() {
       this.classList.add('timeline-thread-track');
-    },
-
-    set current_filter(v) {
-      this.current_filter_ = v;
-      this.updateChildTracks_();
+      this.categoryFilter_ = new tracing.TimelineFilter();
     },
 
     get thread() {
@@ -204,8 +236,16 @@ base.defineModule('timeline_track')
       this.updateChildTracks_();
     },
 
-    get hasContent() {
-      return !!this.tracks_ && !!this.tracks_.length;
+    get categoryFilter() {
+      return this.categoryFilter_;
+    },
+
+    set categoryFilter(v) {
+      this.categoryFilter_ = v;
+      for (var i = 0; i < this.tracks_.length; ++i) {
+        this.tracks_[i].categoryFilter = v;
+      }
+      this.updateVisibility_();
     },
 
     addTrack_: function(slices) {
@@ -223,49 +263,62 @@ base.defineModule('timeline_track')
     updateChildTracks_: function() {
       this.detach();
       this.textContent = '';
-      this.tracks_ = [];
       if (this.thread_) {
-        this.thread_.current_filter = this.current_filter_;
-        if (this.thread_.cpuSlices) {
-          var track = this.addTrack_(this.thread_.cpuSlices);
-          track.height = '4px';
-          track.decorateHit = function(hit) {
-            hit.thread = this.thread_;
-          }
+        if (this.categoryFilter &&
+            !this.categoryFilter.matchThread(this.thread_)) {
+          this.visible = false;
+          return;
+        }
+        var cpuTrack = this.addTrack_(this.thread_.cpuSlices);
+        cpuTrack.categoryFilter = this.categoryFilter;
+        cpuTrack.height = '4px';
+        cpuTrack.decorateHit = function(hit) {
+          hit.thread = this.thread_;
         }
 
-        if (this.thread_.asyncSlices.length) {
-          var subRows = this.thread_.asyncSlices.subRows;
-          for (var srI = 0; srI < subRows.length; srI++) {
-            var track = this.addTrack_(subRows[srI]);
-            track.decorateHit = function(hit) {
-              // TODO(simonjam): figure out how to associate subSlice hits back
-              // to their parent slice.
-            }
-            track.asyncStyle = true;
-          }
+        var asyncTrack = new TimelineAsyncSliceGroupTrack();
+        asyncTrack.categoryFilter = this.categoryFilter;
+        asyncTrack.headingWidth = this.headingWidth_;
+        asyncTrack.viewport = this.viewport_;
+        asyncTrack.decorateHit = function(hit) {
+          // TODO(simonjam): figure out how to associate subSlice hits back
+          // to their parent slice.
         }
+        asyncTrack.group = this.thread_.asyncSlices;
+        this.appendChild(asyncTrack);
+        this.tracks_.push(asyncTrack);
 
-        for (var srI = 0; srI < this.thread_.subRows.length; srI++) {
-          if (this.thread_.subRows[srI].length) {
-            var track = this.addTrack_(this.thread_.subRows[srI]);
-            track.decorateHit = function(hit) {
-              hit.thread = this.thread_;
-            }
-          }
+        var track = new TimelineSliceGroupTrack();
+        track.categoryFilter = this.categoryFilter;
+        track.headingWidth = this.headingWidth_;
+        track.viewport = this.viewport_;
+        track.decorateHit = function(hit) {
+          hit.thread = this.thread_;
         }
+        track.group = this.thread_;
+        this.appendChild(track);
+        this.tracks_.push(track);
 
-        if (this.tracks_.length > 0) {
-          if (this.thread_.cpuSlices) {
-            this.tracks_[1].heading = this.heading_;
-            this.tracks_[1].tooltip = this.tooltip_;
-          } else {
-            this.tracks_[0].heading = this.heading_;
-            this.tracks_[0].tooltip = this.tooltip_;
+        this.updateVisibility_();
+      }
+      addControlButtonElements(this, this.tracks_.length >= 4);
+    },
+
+    updateVisibility_: function() {
+      var shouldBeVisible = false;
+      for (var i = 0; i < this.tracks_.length; ++i) {
+        var track = this.tracks_[i];
+        if (track.visible) {
+          shouldBeVisible = true;
+          if (i >= 1) {
+            track.classList.add('timeline-thread-first-visible-group');
+            track.heading = this.heading_;
+            track.tooltip = this.tooltip_;
+            break;
           }
         }
       }
-      addControlButtonElements(this, this.tracks_.length >= 4);
+      this.visible = shouldBeVisible;
     },
 
     collapsedDidChange: function(collapsed) {
@@ -275,7 +328,7 @@ base.defineModule('timeline_track')
           if (h > 2) {
             this.tracks_[i].height = Math.floor(h) + 'px';
           } else {
-            this.tracks_[i].style.display = 'None';
+            this.tracks_[i].style.display = 'none';
           }
           h = h * 0.5;
         }
@@ -300,8 +353,8 @@ base.defineModule('timeline_track')
       this.classList.add('timeline-thread-track');
     },
 
-    set current_filter(v) {
-      this.current_filter_ = v;
+    set categoryFilter(v) {
+      this.categoryFilter_ = v;
       this.updateChildTracks_();
     },
 
@@ -341,17 +394,13 @@ base.defineModule('timeline_track')
       this.updateChildTracks_();
     },
 
-    get hasContent() {
-      return !!this.tracks_ && !!this.tracks_.length;
-    },
-
     updateChildTracks_: function() {
       this.detach();
       this.textContent = '';
       this.tracks_ = [];
       if (this.cpu_) {
         var track = new TimelineSliceTrack();
-        track.slices = tracing.filterSliceArray(this.current_filter_,
+        track.slices = tracing.filterSliceArray(this.categoryFilter_,
                                                 this.cpu_.slices);
         if (!track.slices.length)
           return;
@@ -376,10 +425,10 @@ base.defineModule('timeline_track')
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var CanvasBasedTrack = base.ui.define('div');
+  var CanvasBasedTrack = base.ui.define(TimelineTrack);
 
   CanvasBasedTrack.prototype = {
-    __proto__: HTMLDivElement.prototype,
+    __proto__: TimelineTrack.prototype,
 
     decorate: function() {
       this.className = 'timeline-canvas-based-track';
@@ -587,7 +636,9 @@ base.defineModule('timeline_track')
     },
 
     set slices(slices) {
-      this.slices_ = slices;
+      this.slices_ = slices || [];
+      if (!slices)
+        this.visible = false;
       this.invalidate();
     },
 
@@ -827,6 +878,284 @@ base.defineModule('timeline_track')
           this.decorateHit(hit);
         }
       }
+    }
+  };
+
+  /**
+   * A track that displays a TimelineSliceGroup.
+   * @constructor
+   * @extends {TimelineContainerTrack}
+   */
+
+  var TimelineSliceGroupTrack = base.ui.define(TimelineContainerTrack);
+
+  TimelineSliceGroupTrack.prototype = {
+
+    __proto__: TimelineContainerTrack.prototype,
+
+    decorate: function() {
+    },
+
+    get group() {
+      return this.group_;
+    },
+
+    set group(g) {
+      this.group_ = g;
+      this.updateChildTracks_();
+    },
+
+    // FIXME: Move to base class.
+    get headingWidth() {
+      return this.headingWidth_;
+    },
+
+    set headingWidth(width) {
+      this.headingWidth_ = width;
+      this.updateChildTracks_();
+    },
+
+    set heading(h) {
+      if (this.tracks_.length)
+        this.tracks_[0].heading = h;
+    },
+
+    set tooltip(t) {
+      if (this.tracks_.length)
+        this.tracks_[0].tooltip = t;
+    },
+
+    set decorateHit(f) {
+      this.decorateHit_ = f;
+      this.updateChildTracks_();
+    },
+
+    get categoryFilter() {
+      return this.categoryFilter_;
+    },
+
+    set categoryFilter(v) {
+      this.categoryFilter_ = v;
+      this.updateChildTracks_();
+    },
+
+    addTrack_: function(slices) {
+      var track = new TimelineSliceTrack();
+      track.heading = '';
+      track.slices = slices;
+      track.headingWidth = this.headingWidth_;
+      track.viewport = this.viewport_;
+      track.decorateHit = this.decorateHit_;
+
+      this.tracks_.push(track);
+      this.appendChild(track);
+      return track;
+    },
+
+    updateChildTracks_: function() {
+      if (!this.group_) {
+        this.visible = false;
+        return;
+      }
+
+      var slices = tracing.filterSliceArray(this.categoryFilter_,
+                                            this.group_.slices);
+      if (!slices.length) {
+        this.visible = false;
+        return;
+      }
+      this.visible = true;
+
+      if (this.areArrayContentsSame_(this.filteredSlices_, slices))
+        return;
+
+      this.filteredSlices_ = slices;
+      this.detach();
+      this.textContent = '';
+      this.subRows_ = this.buildSubRows_(slices);
+      for (var srI = 0; srI < this.subRows_.length; srI++) {
+        if (this.subRows_[srI].length) {
+          this.addTrack_(this.subRows_[srI]);
+        }
+      }
+    },
+
+    /**
+     * Breaks up the list of slices into N rows, each of which is a list of
+     * slices that are non overlapping.
+     */
+    buildSubRows_: function(slices) {
+      // This function works by walking through slices by start time.
+      //
+      // The basic idea here is to insert each slice as deep into the subrow
+      // list as it can go such that every subSlice is fully contained by its
+      // parent slice.
+      //
+      // Visually, if we start with this:
+      //  0:  [    a       ]
+      //  1:    [  b  ]
+      //  2:    [c][d]
+      //
+      // To place this slice:
+      //               [e]
+      // We first check row 2's last item, [d]. [e] wont fit into [d] (they dont
+      // even intersect). So we go to row 1. That gives us [b], and [d] wont fit
+      // into that either. So, we go to row 0 and its last slice, [a]. That can
+      // completely contain [e], so that means we should add [e] as a subchild
+      // of [a]. That puts it on row 1, yielding:
+      //  0:  [    a       ]
+      //  1:    [  b  ][e]
+      //  2:    [c][d]
+      //
+      // If we then get this slice:
+      //                      [f]
+      // We do the same deepest-to-shallowest walk of the subrows trying to fit
+      // it. This time, it doesn't fit in any open slice. So, we simply append
+      // it to row 0:
+      //  0:  [    a       ]  [f]
+      //  1:    [  b  ][e]
+      //  2:    [c][d]
+      if (!slices.length)
+        return [];
+
+      var ops = [];
+      for (var i = 0; i < slices.length; i++) {
+        if (slices[i].subSlices)
+          slices[i].subSlices.splice(0,
+                                     slices[i].subSlices.length);
+        ops.push(i);
+      }
+
+      ops.sort(function(ix,iy) {
+        var x = slices[ix];
+        var y = slices[iy];
+        if (x.start != y.start)
+          return x.start - y.start;
+        return ix - iy;
+      });
+
+      var subRows = [[]];
+      this.badSlices_ = [];  // TODO(simonjam): Connect this again.
+
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        var slice = slices[op];
+
+        // Try to fit the slice into the existing subrows.
+        var inserted = false;
+        for (var j = subRows.length - 1; j >= 0; j--) {
+          if (subRows[j].length == 0)
+            continue;
+
+          var insertedSlice = subRows[j][subRows[j].length - 1];
+          if (slice.start < insertedSlice.start) {
+            this.badSlices_.push(slice);
+            inserted = true;
+          }
+          if (slice.start >= insertedSlice.start &&
+              slice.end   <= insertedSlice.end) {
+            // Insert it into subRow j + 1.
+            while (subRows.length <= j + 1)
+              subRows.push([]);
+            subRows[j + 1].push(slice);
+            if (insertedSlice.subSlices)
+              insertedSlice.subSlices.push(slice);
+            inserted = true;
+            break;
+          }
+        }
+        if (inserted)
+          continue;
+
+        // Append it to subRow[0] as a root.
+        subRows[0].push(slice);
+      }
+
+      return subRows;
+    },
+
+    areArrayContentsSame_: function(a, b) {
+      if (!a || !b)
+        return false;
+      if (!a.length || !b.length)
+        return false;
+      if (a.length != b.length)
+        return false;
+      for (var i = 0; i < a.length; ++i) {
+        if (a[i] != b[i])
+          return false;
+      }
+      return true;
+    }
+  };
+
+  /**
+   * A track that displays a TimelineAsyncSliceGroup.
+   * @constructor
+   * @extends {TimelineSliceGroup}
+   */
+
+  var TimelineAsyncSliceGroupTrack = base.ui.define(TimelineSliceGroupTrack);
+
+  TimelineAsyncSliceGroupTrack.prototype = {
+
+    __proto__: TimelineSliceGroupTrack.prototype,
+
+    decorate: function() {
+    },
+
+    addTrack_: function(slices) {
+      var track = TimelineSliceGroupTrack.prototype.addTrack_.call(this,
+                                                                   slices);
+      track.asyncStyle = true;
+      return track;
+    },
+
+    /**
+     * Breaks up the list of slices into N rows, each of which is a list of
+     * slices that are non overlapping.
+     *
+     * It uses a very simple approach: walk through the slices in sorted order
+     * by start time. For each slice, try to fit it in an existing subRow. If it
+     * doesn't fit in any subrow, make another subRow.
+     */
+    buildSubRows_: function() {
+      var slices = tracing.filterSliceArray(this.categoryFilter_,
+                                            this.group_.slices);
+      slices.sort(function(x, y) {
+        return x.start - y.start;
+      });
+
+      var subRows = [];
+      for (var i = 0; i < slices.length; i++) {
+        var slice = slices[i];
+
+        var found = false;
+        for (var j = 0; j < subRows.length; j++) {
+          var subRow = subRows[j];
+          var lastSliceInSubRow = subRow[subRow.length - 1];
+          if (slice.start >= lastSliceInSubRow.end) {
+            found = true;
+            // Instead of plotting one big slice for the entire
+            // TimelineAsyncEvent, we plot each of the subSlices.
+            if (slice.subSlices === undefined || slice.subSlices.length < 1)
+              throw new Error('TimelineAsyncEvent missing subSlices: ') +
+                  slice.name;
+            for (var k = 0; k < slice.subSlices.length; k++)
+              subRow.push(slice.subSlices[k]);
+            break;
+          }
+        }
+        if (!found) {
+          var subRow = [];
+          if (slice.subSlices !== undefined) {
+            for (var k = 0; k < slice.subSlices.length; k++)
+              subRow.push(slice.subSlices[k]);
+            subRows.push(subRow);
+          }
+        }
+      }
+      return subRows;
     }
   };
 
@@ -1285,9 +1614,12 @@ base.defineModule('timeline_track')
 
   };
 
+
   return {
+    TimelineAsyncSliceGroupTrack: TimelineAsyncSliceGroupTrack,
     TimelineCounterTrack: TimelineCounterTrack,
     TimelineSliceTrack: TimelineSliceTrack,
+    TimelineSliceGroupTrack: TimelineSliceGroupTrack,
     TimelineThreadTrack: TimelineThreadTrack,
     TimelineViewportTrack: TimelineViewportTrack,
     TimelineCpuTrack: TimelineCpuTrack

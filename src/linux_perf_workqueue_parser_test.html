@@ -35,8 +35,8 @@ tests.testWorkQueueImport = function() {
   var m = new tracing.TimelineModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
-  assertEquals(1, m.processes['6880'].threads['6880'].subRows.length);
-  assertEquals(1, m.processes['7269'].threads['7269'].subRows.length);
+  assertEquals(1, m.processes['6880'].threads['6880'].slices.length);
+  assertEquals(1, m.processes['7269'].threads['7269'].slices.length);
 }
 
 return tests;

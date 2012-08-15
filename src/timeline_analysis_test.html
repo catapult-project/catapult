@@ -218,7 +218,7 @@ base.defineModule('timeline_analysis_test')
       ctr1track.counter = ctr1;
 
       var threadTrack = new TimelineSliceTrack();
-      threadTrack.slices = thread.subRows[0];
+      threadTrack.slices = thread.slices;
 
       var selection = new TimelineSelection();
       selection.addCounterSample(ctr1track, ctr1, 1);

@@ -647,6 +647,14 @@ base.defineModule('timeline')
       this.rebuildRows_();
     },
 
+    get numVisibleTracks() {
+      var count = 0;
+      for (var i = 0; i < this.tracks_.children.length; ++i) {
+        count += this.tracks_.children[i].numVisibleTracks;
+      }
+      return count;
+    },
+
     rebuildRows_: function() {
       // Reset old tracks.
       for (var i = 0; i < this.tracks_.children.length; i++)
@@ -667,8 +675,7 @@ base.defineModule('timeline')
         track.viewport = this.viewport_;
         track.current_filter = this.current_filter;
         track.cpu = cpu;
-        if (track.hasContent)
-          this.tracks_.appendChild(track);
+        this.tracks_.appendChild(track);
 
         for (var counterName in cpu.counters) {
           var counter = cpu.counters[counterName];
@@ -718,18 +725,14 @@ base.defineModule('timeline')
 
         // Create the threads.
         threads.forEach(function(thread) {
-          if (!this.current_filter.matchThread(thread))
-            return;
           var track = new tracing.TimelineThreadTrack();
           track.heading = thread.userFriendlyName + ':';
           track.tooltip = thread.userFriendlyDetails;
           track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
-          track.current_filter = this.current_filter;
+          track.categoryFilter = this.current_filter;
           track.thread = thread;
-          if (track.hasContent) {
-            this.tracks_.appendChild(track);
-          }
+          this.tracks_.appendChild(track);
         }.bind(this));
       }.bind(this));
 

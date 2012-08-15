@@ -108,14 +108,14 @@ base.defineModule('timeline_test')
       t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
 
       var track = new tracing.TimelineSliceTrack();
-      track.slices = t1.subRows[0];
+      track.slices = t1.slices;
 
       var sel = new tracing.TimelineSelection();
-      sel.addSlice(track, t1.subRows[0][0]);
+      sel.addSlice(track, t1.slices[0]);
 
       var shifted = sel.getShiftedSelection(1);
       assertEquals(1, shifted.length);
-      assertEquals(t1.subRows[0][1], shifted[0].slice);
+      assertEquals(t1.slices[1], shifted[0].slice);
     }
 
     tests.testEmptyThreadsDeleted = function() {
@@ -126,7 +126,7 @@ base.defineModule('timeline_test')
       var timeline = new tracing.Timeline();
       timeline.model = model;
 
-      assertEquals(0, timeline.tracks_.children.length);
+      assertEquals(0, timeline.numVisibleTracks);
     }
 
     function NoCountersFilter() {}
@@ -142,15 +142,15 @@ base.defineModule('timeline_test')
       var c1 = model.getOrCreateCpu(0);
       c1.getOrCreateCounter('', 'b');
       var p1 = model.getOrCreateProcess(1);
-      p1.getOrCreateCounter('', 'a');
+      p1.getOrCreateCounter('', 'a').samples = [1];
 
       var timeline = new tracing.Timeline();
       timeline.model = model;
 
-      assertEquals(2, timeline.tracks_.children.length);
+      assertEquals(2, timeline.numVisibleTracks);
 
       timeline.current_filter = new NoCountersFilter();
-      assertEquals(0, timeline.tracks_.children.length);
+      assertEquals(0, timeline.numVisibleTracks);
     }
 
     function NoCpusFilter() {}
@@ -169,10 +169,10 @@ base.defineModule('timeline_test')
       var timeline = new tracing.Timeline();
       timeline.model = model;
 
-      assertEquals(1, timeline.tracks_.children.length);
+      assertEquals(1, timeline.numVisibleTracks);
 
       timeline.current_filter = new NoCpusFilter();
-      assertEquals(0, timeline.tracks_.children.length);
+      assertEquals(0, timeline.numVisibleTracks);
     }
 
     function NoProcessesFilter() {}
@@ -191,10 +191,10 @@ base.defineModule('timeline_test')
       var timeline = new tracing.Timeline();
       timeline.model = model;
 
-      assertEquals(1, timeline.tracks_.children.length);
+      assertEquals(1, timeline.numVisibleTracks);
 
       timeline.current_filter = new NoProcessesFilter();
-      assertEquals(0, timeline.tracks_.children.length);
+      assertEquals(0, timeline.numVisibleTracks);
     }
 
     function NoThreadsFilter() {}
@@ -214,10 +214,10 @@ base.defineModule('timeline_test')
       var timeline = new tracing.Timeline();
       timeline.model = model;
 
-      assertEquals(1, timeline.tracks_.children.length);
+      assertEquals(1, timeline.numVisibleTracks);
 
       timeline.current_filter = new NoThreadsFilter();
-      assertEquals(0, timeline.tracks_.children.length);
+      assertEquals(0, timeline.numVisibleTracks);
     }
 
     return tests;

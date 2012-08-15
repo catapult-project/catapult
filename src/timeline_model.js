@@ -131,28 +131,6 @@ base.defineModule('timeline_model')
     },
 
     /**
-     * Generates import errors for any threads in the model
-     * that had badSlices.
-     */
-    generateImportErrorsForBadSlices_: function() {
-      for (var pid in this.processes) {
-        var process = this.processes[pid];
-        for (var tid in process.threads) {
-          var thread = process.threads[tid];
-          var badSlices = thread.badSlices;
-          for (var i = 0; i < badSlices.length; i++) {
-            this.importErrors.push(
-                'Thread ' + tid +
-                '\'s had a slice named ' + badSlices[i].title +
-                ' start=' + badSlices[i].start +
-                ' with duration=' + badSlices[i].duration +
-                ' that could not be placed.');
-          }
-        }
-      }
-    },
-
-    /**
      * Removes threads from the model that are fully empty.
      */
     pruneEmptyThreads_: function() {
@@ -349,8 +327,6 @@ base.defineModule('timeline_model')
 
       for (var i = 0; i < importers.length; i++)
         importers[i].finalizeImport();
-
-      this.generateImportErrorsForBadSlices_();
 
       this.pruneEmptyThreads_();
       this.updateBounds();

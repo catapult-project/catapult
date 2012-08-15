@@ -113,7 +113,7 @@ tests.testMaliDDKImport = function() {
 
   var maliThread = threads[0];
   assertEquals('mali_ddk', maliThread.name);
-  assertEquals(8, maliThread.subRows.length);
+  assertEquals(9, maliThread.slices.length);
 }
 
 tests.testDVFSFrequencyImport = function() {

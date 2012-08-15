@@ -111,6 +111,9 @@ base.defineModule('sorted_array_utils')
    */
   function iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal,
                                             hiVal, cb) {
+    if (ary.length == 0)
+      return;
+
     if (loVal > hiVal) return;
 
     var i = findLowIndexInSortedArray(ary, mapLoFn, loVal);
