@@ -81,7 +81,7 @@ base.defineModule('tracing_controller')
     /**
      * Called by info_view to empty the trace buffer
      */
-    beginTracing: function(opt_systemTracingEnabled) {
+    beginTracing: function(opt_systemTracingEnabled, opt_categories) {
       if (this.tracingEnabled_)
         throw new Error('Tracing already begun.');
 
@@ -96,7 +96,13 @@ base.defineModule('tracing_controller')
 
       this.traceEvents_ = [];
       this.systemTraceEvents_ = [];
-      this.sendFn_('beginTracing', [opt_systemTracingEnabled || false]);
+      this.sendFn_(
+          'beginTracing',
+          [
+              opt_systemTracingEnabled || false,
+              opt_categories || "-test_*"
+          ]
+      );
       this.beginRequestBufferPercentFull_();
 
       var e = new base.Event('traceBegun');
