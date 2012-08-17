@@ -80,8 +80,18 @@ base.defineModule('tracing_controller')
 
     /**
      * Called by info_view to empty the trace buffer
+     *
+     * |opt_trace_categories| is a comma-delimited list of category wildcards.
+     * A category can have an optional '-' prefix to make it an excluded
+     * category.  All the same rules apply above, so for example, having both
+     * included and excluded categories in the same list would not be
+     * supported.
+     *
+     * Example: beginTracing("test_MyTest*");
+     * Example: beginTracing("test_MyTest*,test_OtherStuff");
+     * Example: beginTracing("-excluded_category1,-excluded_category2");
      */
-    beginTracing: function(opt_systemTracingEnabled, opt_categories) {
+    beginTracing: function(opt_systemTracingEnabled, opt_trace_categories) {
       if (this.tracingEnabled_)
         throw new Error('Tracing already begun.');
 
@@ -100,7 +110,7 @@ base.defineModule('tracing_controller')
           'beginTracing',
           [
               opt_systemTracingEnabled || false,
-              opt_categories || "-test_*"
+              opt_trace_categories || "-test_*"
           ]
       );
       this.beginRequestBufferPercentFull_();
