@@ -29,6 +29,10 @@ base.defineModule('timeline_analysis_test')
                'timeline_model',
                'trace_event_importer',
                'timeline_analysis',
+               'timeline_filter',
+               'tracks.timeline_counter_track',
+               'tracks.timeline_slice_track',
+               'tracks.timeline_thread_track',
                'timeline'/* TODO(nduca): reduce dependency to selection and track */ )
     .runAllTests(function() {
 
@@ -36,11 +40,11 @@ base.defineModule('timeline_analysis_test')
     var TimelineThread = tracing.TimelineThread;
     var TimelineAnalysisView = tracing.TimelineAnalysisView;
     var TimelineModel = tracing.TimelineModel;
-    var TimelineThreadTrack = tracing.TimelineThreadTrack;
+    var TimelineThreadTrack = tracks.TimelineThreadTrack;
     var TimelineSelection = tracing.TimelineSelection;
     var TimelineTitleFilter = tracing.TimelineTitleFilter;
-    var TimelineCounterTrack = tracing.TimelineCounterTrack;
-    var TimelineSliceTrack = tracing.TimelineSliceTrack;
+    var TimelineCounterTrack = tracks.TimelineCounterTrack;
+    var TimelineSliceTrack = tracks.TimelineSliceTrack;
     var newSliceNamed = test_utils.newSliceNamed;
     var tests = {};
 

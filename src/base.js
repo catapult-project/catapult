@@ -169,6 +169,9 @@ this.base = (function() {
     },
 
     require_: function(dependentModuleName) {
+    if (dependentModuleName.indexOf('/') >= 0)
+        throw new Error('Slashes are not allowed in module names. ' +
+                        'Use "." instead: ' + dependentModuleName);
       for (var i = 0; i < this.dependentModuleName; i++)
         if (this.dependentModuleName[i] == dependentModuleName)
           throw new Error(this.name + ' already has a dependency on ' + dependentModuleName);
@@ -281,6 +284,9 @@ this.base = (function() {
   };
 
   function defineModule(moduleName) {
+    if (moduleName.indexOf('/') >= 0)
+      throw new Error('Slashes are not allowed in module names. ' +
+                      'Use "." instead: ' + moduleName);
     if (allModules[moduleName]) {
       if (allModules[moduleName].defined)
         throw new Error(moduleName + ' has already been defined.');
@@ -575,35 +581,14 @@ this.base = (function() {
 
     base.doc = document;
 
-    /**
-     * Whether we are using a Mac or not.
-     */
     base.isMac = /Mac/.test(navigator.platform);
-
-    /**
-     * Whether this is on the Windows platform or not.
-     */
     base.isWindows = /Win/.test(navigator.platform);
-
-    /**
-     * Whether this is on chromeOS or not.
-     */
     base.isChromeOS = /CrOS/.test(navigator.userAgent);
-
-    /**
-     * Whether this is on vanilla Linux (not chromeOS).
-     */
     base.isLinux = /Linux/.test(navigator.userAgent);
-
-    /**
-     * Whether this uses GTK or not.
-     */
     base.isGTK = /GTK/.test(chrome.toolkit);
-
-    /**
-     * Whether this uses the views toolkit or not.
-     */
     base.isViews = /views/.test(chrome.toolkit);
+
+    setModuleBasePath('/src');
   }
 
   return {

@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineTrack tests</title>
+<style>
+.timeline-container {
+  border: 1px solid red;
+}
+</style>
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  'use strict';
+  base.defineModule('tracks.timeline_viewport_track_test')
+      .dependsOn('tracks.timeline_viewport_track',
+                 'unittest',
+                 'test_utils',
+                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
+      .runAllTests(function() {
+
+  var tests = {};
+
+  var TimelineViewport = tracing.TimelineViewport;
+  var TimelineViewportTrack = tracks.TimelineViewportTrack;
+
+  tests.testViewport = function() {
+    var testEl = this.addHTMLOutput();
+
+    var track = TimelineViewportTrack();
+    testEl.appendChild(track);
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.setPanAndScale(0,
+        track.clientWidth / 1000);
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

@@ -22,7 +22,11 @@ base.defineModule('timeline')
     .dependsOn('event_target',
                'ui',
                'measuring_stick',
-               'timeline_track')
+               'tracks.timeline_track',
+               'tracks.timeline_counter_track',
+               'tracks.timeline_cpu_track',
+               'tracks.timeline_thread_track',
+               'tracks.timeline_viewport_track')
     .exportsTo('tracing', function() {
 
   /**
@@ -533,7 +537,7 @@ base.defineModule('timeline')
       this.viewport_ = new TimelineViewport(this);
 
       // Add the viewport track.
-      this.viewportTrack_ = new tracing.TimelineViewportTrack();
+      this.viewportTrack_ = new tracks.TimelineViewportTrack();
       this.viewportTrack_.viewport = this.viewport_;
       this.appendChild(this.viewportTrack_);
 
@@ -669,7 +673,7 @@ base.defineModule('timeline')
       cpus.forEach(function(cpu) {
         if (!this.current_filter.matchCpu(cpu))
           return;
-        var track = new tracing.TimelineCpuTrack();
+        var track = new tracks.TimelineCpuTrack();
         track.heading = 'CPU ' + cpu.cpuNumber + ':';
         track.headingWidth = this.maxHeadingWidth_;
         track.viewport = this.viewport_;
@@ -681,7 +685,7 @@ base.defineModule('timeline')
           var counter = cpu.counters[counterName];
           if (!this.current_filter.matchCounter(counter))
             continue;
-          track = new tracing.TimelineCounterTrack();
+          track = new tracks.TimelineCounterTrack();
           track.heading = 'CPU ' + cpu.cpuNumber + ' ' + counter.name + ':';
           track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
@@ -709,7 +713,7 @@ base.defineModule('timeline')
 
         // Create the counters for this process.
         counters.forEach(function(counter) {
-          var track = new tracing.TimelineCounterTrack();
+          var track = new tracks.TimelineCounterTrack();
           track.heading = counter.name + ':';
           track.headingWidth = this.maxHeadingWidth_;
           track.viewport = this.viewport_;
@@ -725,7 +729,7 @@ base.defineModule('timeline')
 
         // Create the threads.
         threads.forEach(function(thread) {
-          var track = new tracing.TimelineThreadTrack();
+          var track = new tracks.TimelineThreadTrack();
           track.heading = thread.userFriendlyName + ':';
           track.tooltip = thread.userFriendlyDetails;
           track.headingWidth = this.maxHeadingWidth_;

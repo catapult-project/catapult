@@ -176,6 +176,20 @@ base.defineModule('myModule')
     self.assertEquals(["dependency1", "dependency2"],
                       module.dependent_module_names);
 
+  def test_parse_definition_with_slashes(self):
+    text = """base.defineModule('somePath/myModule')
+"""
+    module = calcdeps.Module("myModule")
+    self.assertRaises(calcdeps.DepsException,
+                      lambda: module.parse_definition_(text))
+
+  def test_parse_dependency_with_slashes(self):
+    text = """base.defineModule('myModule').dependsOn("foo/dependency1")
+"""
+    module = calcdeps.Module("myModule")
+    self.assertRaises(calcdeps.DepsException,
+                      lambda: module.parse_definition_(text))
+
 
 
 class ResourceFinderStub(object):
@@ -230,18 +244,34 @@ class FlattenTests(unittest.TestCase):
 
     self.assertEquals([all_resources["scripts"]["z"], all_resources["scripts"]["y"], x_module], load_sequence)
 
+
 class ResourceFinderTest(unittest.TestCase):
   def test_basic(self):
 
-    resource_finder = calcdeps.ResourceFinder()
+    resource_finder = calcdeps.ResourceFinder(srcdir)
     module = calcdeps.Module("unittest")
     module.load_and_parse(os.path.join(srcdir, "unittest.js"))
     filename, contents = resource_finder.find_and_load_module(module, "base")
 
-    assert filename
+    self.assertEquals(filename, "base.js")
+    expected_contents = ''
+    with open(os.path.join(srcdir, "base.js")) as f:
+      expected_contents = f.read()
+    self.assertEquals(contents, expected_contents)
 
-    same = os.path.samefile(os.path.join(srcdir, "base.js"), os.path.join(filename))
-    self.assertTrue(same)
+  def test_dependency_in_subdir(self):
+    resource_finder = calcdeps.ResourceFinder(srcdir)
+    module = calcdeps.Module("unittest")
+    module.load_and_parse(os.path.join(srcdir, "unittest.js"))
+    filename, contents = resource_finder.find_and_load_module(
+        module, "tracks.timeline_track")
+
+    self.assertEquals(filename, "tracks/timeline_track.js")
+    expected_contents = ''
+    with open(os.path.join(srcdir, "tracks/timeline_track.js")) as f:
+      expected_contents = f.read()
+    self.assertEquals(contents, expected_contents)
+
 
 class CalcLoadSequenceTest(unittest.TestCase):
   def test_one_toplevel_nodeps(self):

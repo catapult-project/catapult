@@ -31,20 +31,20 @@ class ResourceFinder(object):
   code is responsible for figuring out what filename corresponds to 'bar' given
   a Module('foo').
   """
-  def __init__(self):
+  def __init__(self, root_dir):
+    self._root_dir = root_dir
     pass
 
   def _find_and_load(self, current_module, requested_name, extension):
     assert current_module.filename
-    cwd = os.path.dirname(current_module.filename)
     pathy_name = requested_name.replace(".", os.sep)
-    filename = os.path.join(cwd, pathy_name + extension)
-    filename = os.path.normpath(filename)
+    filename = pathy_name + extension
+    absolute_path = os.path.join(self._root_dir, filename)
 
-    if not os.path.exists(filename):
+    if not os.path.exists(absolute_path):
       return None, None
 
-    f = open(filename, 'r')
+    f = open(absolute_path, 'r')
     contents = f.read()
     f.close()
 
@@ -224,13 +224,17 @@ class Module(object):
           "For %s expected base.defineModule, but none found." % familiar_name)
       return
 
+    name = m.group(2)
     if self.name:
-      if self.name != m.group(2):
+      if self.name != name:
         raise DepsException(
           "For %s, base.defineModule(...) must be base.defineModule(%s)" %
           (familiar_name, self.name))
     else:
-      self.name = m.group(2)
+      if '/' in name:
+        raise DepsException("Slashes are not allowed in module names. "
+                            "Use '.' instead: %s" % name)
+      self.name = name
 
     rest = stripped_text[m.end():]
 
@@ -249,13 +253,16 @@ class Module(object):
     m = re.match("""\s*\.\s*dependsOn\((.*?)\)""", rest, re.DOTALL)
     if m:
       deps = re.split(",\s*", m.group(1))
-      deps = [x for x in deps if len(x)]
-      def stripquotes(x):
-        n = re.match("""(["'])(.+)\\1""", x)
+      for dep in deps:
+        if not dep:
+          continue
+        n = re.match("""(["'])(.+)\\1""", dep)
         assert n
-        return n.group(2)
-      sdeps = [stripquotes(x) for x in deps]
-      self.dependent_module_names.extend(sdeps)
+        unquoted_dep = n.group(2)
+        if '/' in unquoted_dep:
+          raise DepsException("Slashes are not allowed in module names. "
+                              "Use '.' instead: %s" % unquoted_dep)
+        self.dependent_module_names.append(unquoted_dep)
       rest = rest[m.end():]
 
     # Look for a stylesheet if it wasn't found before.
@@ -288,7 +295,10 @@ def calc_load_sequence(filenames):
   all_resources = {}
   all_resources["scripts"] = {}
   toplevel_modules = []
-  resource_finder = ResourceFinder()
+  root_dir = ''
+  if filenames:
+    root_dir = os.path.abspath(os.path.dirname(filenames[0]))
+  resource_finder = ResourceFinder(root_dir)
   for filename in filenames:
     assert os.path.exists(filename)
     name  = os.path.splitext(os.path.basename(filename))[0]

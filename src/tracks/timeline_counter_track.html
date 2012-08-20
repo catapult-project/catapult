@@ -1,0 +1,146 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineTrack tests</title>
+<style>
+.timeline-container {
+  border: 1px solid red;
+}
+</style>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+  'use strict';
+  base.defineModule('timeline_track_test')
+      .dependsOn('unittest',
+                 'test_utils',
+                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
+      .runAllTests(function() {
+
+  var tests = {};
+
+  var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
+  var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
+  var TimelineAsyncSliceGroupTrack = tracing.TimelineAsyncSliceGroupTrack;
+  var TimelineCounter = tracing.TimelineCounter;
+  var TimelineCounterTrack = tracing.TimelineCounterTrack;
+  var TimelineCpu = tracing.TimelineCpu;
+  var TimelineCpuTrack = tracing.TimelineCpuTrack;
+  var TimelineProcess = tracing.TimelineProcess;
+  var TimelineSelection = tracing.TimelineSelection;
+  var TimelineSliceGroup = tracing.TimelineSliceGroup;
+  var TimelineSliceGroupTrack = tracing.TimelineSliceGroupTrack;
+  var TimelineSliceTrack = tracing.TimelineSliceTrack;
+  var TimelineSlice = tracing.TimelineSlice;
+  var TimelineThread = tracing.TimelineThread;
+  var TimelineThreadSlice = tracing.TimelineThreadSlice;
+  var TimelineThreadTrack = tracing.TimelineThreadTrack;
+  var TimelineViewport = tracing.TimelineViewport;
+  var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
+  var newSliceNamed = test_utils.newSliceNamed;
+  var testDivs = {};
+
+  tests.testBasicCounter = function() {
+    var testEl = this.addHTMLOutput();
+
+    var ctr = new TimelineCounter(undefined,
+                                  'testBasicCounter', '', 'testBasicCounter');
+    ctr.seriesNames = ['value1', 'value2'];
+    ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
+                        tracing.getStringColorId('testBasicCounter.value2')];
+    ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    ctr.samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    ctr.updateBounds();
+
+    var track = new TimelineCounterTrack();
+    testEl.appendChild(track);
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 7.7, track.clientWidth);
+  }
+
+  function runOffscreenCounterTest(timestamps, samples, testFn) {
+    var testEl = document.createElement('div');
+    var ctr = new TimelineCounter(undefined,
+                                  'foo', '', 'foo');
+    var n = samples.length / timestamps.length;
+    ctr.timestamps = timestamps;
+    ctr.samples = samples;
+    ctr.seriesNames = []
+    ctr.seriesColors = []
+    for (var i = 0; i < n; ++i) {
+      ctr.seriesNames.push('value' + i);
+      ctr.seriesColors.push(tracing.getStringColorId(ctr.seriesNames[i]));
+    }
+    ctr.updateBounds();
+
+    var track = new TimelineCounterTrack();
+    testEl.appendChild(track);
+    document.body.appendChild(testEl);
+
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 10, track.clientWidth);
+
+    try {
+      testFn(ctr, track);
+    } finally {
+      document.body.removeChild(testEl);
+    }
+  }
+
+  tests.testBasicCounterXPointPicking = function() {
+    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    var samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    runOffscreenCounterTest(timestamps, samples, function(ctr, track) {
+      var clientRect = track.getBoundingClientRect();
+      var y75 = clientRect.top + 0.75 * clientRect.height;
+      var sel;
+
+      // In bounds.
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(1.5, y75, sel);
+      assertEquals(1, sel.length);
+      assertEquals(track, sel[0].track);
+      assertEquals(ctr, sel[0].counter);
+      assertEquals(1, sel[0].sampleIndex);
+
+      // Outside bouds.
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(-1, y75, sel);
+      assertEquals(0, sel.length);
+
+      sel = new tracing.TimelineSelection();
+      track.addIntersectingItemsToSelection(8, y75, sel);
+      assertEquals(0, sel.length);
+    });
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>

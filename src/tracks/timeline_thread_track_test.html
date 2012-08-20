@@ -1,0 +1,167 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineTrack tests</title>
+<style>
+.timeline-container {
+  border: 1px solid red;
+}
+</style>
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  'use strict';
+  base.defineModule('tracks.timeline_thread_track_test')
+      .dependsOn('tracks.timeline_thread_track',
+                 'timeline_model',
+                 'unittest',
+                 'test_utils',
+                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
+      .runAllTests(function() {
+
+  var tests = {};
+
+  var TimelineProcess = tracing.TimelineProcess;
+  var TimelineSelection = tracing.TimelineSelection;
+  var TimelineThread = tracing.TimelineThread;
+  var TimelineThreadSlice = tracing.TimelineThreadSlice;
+  var TimelineThreadTrack = tracks.TimelineThreadTrack;
+  var TimelineViewport = tracing.TimelineViewport;
+  var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
+  var newSliceNamed = test_utils.newSliceNamed;
+
+  tests.testSelectionHitTestingWithTimelineThreadTrack = function() {
+    var model = new tracing.TimelineModel();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.pushSlice(new tracing.TimelineThreadSlice('', 'b', 0, 5.1, {}, 4));
+
+    var testEl = this.addHTMLOutput();
+    var track = new TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testSelectionHitTestingWithTimelineThreadTrack';
+    track.headingWidth = '100px';
+    track.thread = t1;
+
+    track.style.width = '500px';
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 10, track.clientWidth);
+    var clientRect = track.getBoundingClientRect();
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsToSelection(1.5, clientRect.top + 5, selection);
+    assertEquals(t1.slices[0], selection[0].slice);
+
+    var selection = new TimelineSelection();
+    track.addIntersectingItemsInRangeToSelection(1.5, 1.8, clientRect.top + 5, clientRect.top + 7, selection);
+    assertEquals(t1.slices[0], selection[0].slice);
+  }
+
+  tests.testTimelineThreadTrackWithRegularSlices = function() {
+    var testEl = this.addHTMLOutput();
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testTimelineThreadTrackWithRegularSlices';
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.pushSlices([
+        new TimelineThreadSlice('', 'a', 0, 1, {}, 1),
+        new TimelineThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new TimelineThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('', 'e', 4, 7.1, {}, 0.3)
+    ]);
+    thread.updateBounds();
+    track.heading = 'thread regular';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 8.2, track.clientWidth);
+  }
+
+  tests.testTimelineThreadTrackWithTallSlices = function() {
+    var testEl = this.addHTMLOutput();
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testTimelineThreadTrackWithTallSlices';
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.pushSlices([
+      new TimelineThreadSlice('', 'a', 1, 0, {}, 1),
+      new TimelineThreadSlice('', 'b', 2, 0.1, {}, 0.8),
+      new TimelineThreadSlice('', 'c', 3, 0.15, {}, 0.70),
+      new TimelineThreadSlice('', 'd', 4, 0.20, {}, 0.50),
+      new TimelineThreadSlice('', 'e', 5, 0.30, {}, 0.28),
+      new TimelineThreadSlice('', 'e', 6, 0.35, {}, 0.20),
+      new TimelineThreadSlice('', 'f', 7, 0.40, {}, 0.10)
+    ]);
+    thread.updateBounds();
+    track.heading = 'thread tall';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 1.1, track.clientWidth);
+  }
+
+  tests.testTimelineThreadTrackWithRegularAndAsyncSlices = function() {
+    var testEl = this.addHTMLOutput();
+    var track = TimelineThreadTrack();
+    testEl.appendChild(track);
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.pushSlices([
+        new TimelineThreadSlice('', 'a', 0, 1, {}, 1),
+        new TimelineThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new TimelineThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new TimelineThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new TimelineThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new TimelineThreadSlice('', 'e', 4, 7.1, {}, 0.3)
+    ]);
+    thread.asyncSlices.push(newAsyncSlice(1.2, 7.2 - 1.2, thread, thread));
+    thread.asyncSlices.push(newAsyncSlice(1.3, 7.3 - 1.3, thread, thread));
+    thread.updateBounds();
+    track.heading = 'thread regular + async';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new TimelineViewport(testEl);
+    track.viewport.xSetWorldRange(0, 8.15, track.clientWidth);
+  }
+
+  tests.testFilterThreadSlices = function() {
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.pushSlice(newSliceNamed('a', 0, 0));
+    thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
+
+    var t = new TimelineThreadTrack();
+    t.thread = thread;
+
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[1].tracks_.length);
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[2].tracks_.length);
+
+    t.categoryFilter = new tracing.TimelineTitleFilter('x');
+    assertFalse(t.tracks_[1].visible);
+    assertFalse(t.tracks_[1].visible);
+
+    t.categoryFilter = new tracing.TimelineTitleFilter('a');
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[1].tracks_.length);
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[2].tracks_.length);
+  }
+
+  return tests;
+});
+</script>
+</body>
+</html>
