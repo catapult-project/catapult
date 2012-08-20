@@ -36,7 +36,6 @@ base.defineModule('tracks.timeline_viewport_track')
       this.classList.add('timeline-viewport-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
-
       this.addEventListener('mousedown', this.onMouseDown);
     },
 
@@ -69,13 +68,40 @@ base.defineModule('tracks.timeline_viewport_track')
         marker.selected = false;
         if(!movedMarker && !createdMarker)
           that.viewport_.removeMarker(marker);
-        that.viewport_.dispatchChangeEvent();
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousemove', onMouseMove);
       };
 
       document.addEventListener('mouseup', onMouseUp);
       document.addEventListener('mousemove', onMouseMove);
+    },
+
+    drawArrow_: function(ctx, x1, y1, x2, y2, arrowWidth, color) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.closePath();
+      ctx.strokeStyle = color;
+      ctx.stroke();
+
+      var dx = x2 - x1;
+      var dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy);
+      var perc = (len - 10) / len;
+      var bx = x1 + perc * dx;
+      var by = y1 + perc * dy;
+      var ux = dx / len;
+      var uy = dy / len;
+      var ax = uy * arrowWidth;
+      var ay = -ux * arrowWidth;
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.moveTo(bx + ax, by + ay);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(bx - ax, by - ay);
+      ctx.lineTo(bx + ax, by + ay);
+      ctx.closePath();
+      ctx.fill();
     },
 
     redraw: function() {
@@ -91,8 +117,14 @@ base.defineModule('tracks.timeline_viewport_track')
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
 
-      for(var i = 0; i < vp.markers.length; ++i) {
-        vp.markers[i].drawTriangle(ctx,viewLWorld,viewRWorld,canvasH,vp);
+      var measurements = this.classList.contains('timeline-viewport' +
+                                          '-track-with-distance-measurements');
+
+      var rulerHeight = measurements ? canvasH / 2 : canvasH;
+
+      for (var i = 0; i < vp.markers.length; ++i) {
+        vp.markers[i].drawTriangle_(ctx,viewLWorld,viewRWorld,
+                                    canvasH,rulerHeight,vp);
       }
 
       var idealMajorMarkDistancePix = 150;
@@ -161,6 +193,7 @@ base.defineModule('tracks.timeline_viewport_track')
 
         var unitValue = curX / unitDivisor;
         var roundedUnitValue = Math.floor(unitValue * 100000) / 100000;
+
         if (!tickLabels[roundedUnitValue])
             tickLabels[roundedUnitValue] = roundedUnitValue + ' ' + unit;
         ctx.fillText(tickLabels[roundedUnitValue],
@@ -169,16 +202,92 @@ base.defineModule('tracks.timeline_viewport_track')
 
         // Major mark
         ctx.moveTo(curXView, 0);
-        ctx.lineTo(curXView, canvasW);
+        ctx.lineTo(curXView, rulerHeight);
 
         // Minor marks
         for (var i = 1; i < numTicksPerMajor; ++i) {
           var xView = Math.floor(curXView + minorMarkDistancePx * i);
-          ctx.moveTo(xView, canvasH - minorTickH);
-          ctx.lineTo(xView, canvasH);
+          ctx.moveTo(xView, rulerHeight - minorTickH);
+          ctx.lineTo(xView, rulerHeight);
         }
 
         ctx.stroke();
+      }
+
+      // Give distance between directly adjacent markers.
+      if(measurements) {
+
+        // Divide canvas horizontally between ruler and measurements.
+        ctx.moveTo(0, rulerHeight);
+        ctx.lineTo(canvasW, rulerHeight);
+        ctx.stroke();
+
+        // Obtain a sorted array of markers
+        var sortedMarkers = vp.markers.slice();
+        sortedMarkers.sort(function(a, b){return a.positionWorld_
+                                                    - b.positionWorld_});
+
+        var displayDistance;
+        var unitDivisor;
+        var arrowSpacing = 10;
+        var arrowColor = 'rgb(128,121,121)';
+        var displayTextColor = 'rgb(0,0,0)';
+        for(i = 0; i < sortedMarkers.length - 1; i++) {
+          var rightMarker = sortedMarkers[i+1];
+          var leftMarker = sortedMarkers[i];
+          var distanceBetweenMarkers = rightMarker.positionWorld
+                                              - leftMarker.positionWorld;
+          var distanceBetweenMarkersView =
+                            vp.xWorldVectorToView(distanceBetweenMarkers);
+
+          var positionInMiddleOfMarkers = leftMarker.positionWorld +
+                                              distanceBetweenMarkers / 2;
+          var positionInMiddleOfMarkersView =
+                                vp.xWorldToView(positionInMiddleOfMarkers);
+
+          // Determine units.
+          if (distanceBetweenMarkers < 100) {
+            unit = 'ms';
+            unitDivisor = 1;
+          } else {
+            unit = 's';
+            unitDivisor = 1000;
+          }
+          // Calculate display value to print.
+          displayDistance = distanceBetweenMarkers / unitDivisor;
+          var roundedDisplayDistance = Math.abs((Math.floor(displayDistance *
+                                                                1000) / 1000));
+          var textToDraw = roundedDisplayDistance + ' ' + unit;
+          var textWidthView = ctx.measureText(textToDraw).width;
+          var textWidthWorld = vp.xViewVectorToWorld(textWidthView);
+          var minArrowWidth = 10;
+          var spaceNeededView = textWidthView + 2 * (arrowSpacing +
+                                                                minArrowWidth);
+          if(spaceNeededView <= distanceBetweenMarkersView) {
+            // Set text positions.
+            var textLeft = leftMarker.positionWorld + (distanceBetweenMarkers /
+                                                      2) - (textWidthWorld / 2);
+            var textRight = textLeft + textWidthWorld;
+            var measurementsPosY = rulerHeight + 2;
+            var textPosY = measurementsPosY;
+            var textLeftView = vp.xWorldToView(textLeft);
+            var textRightView = vp.xWorldToView(textRight);
+            var leftMarkerView = vp.xWorldToView(leftMarker.positionWorld);
+            var rightMarkerView = vp.xWorldToView(rightMarker.positionWorld);
+            var arrowPosY = measurementsPosY + 4;
+            var arrowWidth = 3;
+            // Draw left arrow.
+            this.drawArrow_(ctx, textLeftView - arrowSpacing, arrowPosY,
+                            leftMarkerView, arrowPosY, arrowWidth, arrowColor);
+            // Draw right arrow.
+            this.drawArrow_(ctx, textRightView + arrowSpacing, arrowPosY,
+                           rightMarkerView, arrowPosY, arrowWidth, arrowColor);
+
+            // Print the display distance text.
+            ctx.fillStyle = displayTextColor;
+            ctx.fillText(textToDraw, textLeftView, textPosY);
+          }
+        }
       }
     },
 

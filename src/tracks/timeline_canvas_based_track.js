@@ -43,9 +43,12 @@ base.defineModule('tracks.timeline_canvas_based_track')
     },
 
     detach: function() {
-      if (this.viewport_)
+      if (this.viewport_) {
         this.viewport_.removeEventListener('change',
                                            this.viewportChangeBoundToThis_);
+        this.viewport_.removeEventListener('markersChange',
+                                        this.viewportMarkersChangeBoundToThis_);
+      }
     },
 
     set headingWidth(width) {
@@ -70,20 +73,36 @@ base.defineModule('tracks.timeline_canvas_based_track')
 
     set viewport(v) {
       this.viewport_ = v;
-      if (this.viewport_)
+      if (this.viewport_) {
         this.viewport_.removeEventListener('change',
                                            this.viewportChangeBoundToThis_);
+        this.viewport_.removeEventListener('markersChange',
+                                        this.viewportMarkersChangeBoundToThis_);
+      }
       this.viewport_ = v;
       if (this.viewport_) {
         this.viewportChangeBoundToThis_ = this.viewportChange_.bind(this);
         this.viewport_.addEventListener('change',
                                         this.viewportChangeBoundToThis_);
+        this.viewportMarkersChangeBoundToThis_ =
+                                        this.viewportMarkersChange_.bind(this);
+        this.viewport_.addEventListener('markersChange',
+                                        this.viewportMarkersChangeBoundToThis_);
       }
       this.invalidate();
     },
 
     viewportChange_: function() {
       this.invalidate();
+    },
+
+    viewportMarkersChange_: function() {
+      if (this.viewport_.markers.length < 2)
+        this.classList.remove('timeline-viewport-track-with' +
+                                         '-distance-measurements');
+      else
+         this.classList.add('timeline-viewport-track-with' +
+                                           '-distance-measurements');
     },
 
     invalidate: function() {

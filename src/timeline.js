@@ -93,18 +93,27 @@ base.defineModule('timeline')
       return 'rgb(0,0,0)';
     },
 
-    drawTriangle: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
+    drawTriangle_: function(ctx,viewLWorld,viewRWorld,canvasH,rulerHeight,vp) {
       ctx.beginPath();
       var ts = this.positionWorld_;
       if(ts >= viewLWorld && ts < viewRWorld) {
         var viewX = vp.xWorldToView(ts);
-        ctx.moveTo(viewX, canvasH);
-        ctx.lineTo(viewX - 3, canvasH / 2);
-        ctx.lineTo(viewX + 3, canvasH / 2);
-        ctx.lineTo(viewX, canvasH);
+        ctx.moveTo(viewX, rulerHeight);
+        ctx.lineTo(viewX - 3, rulerHeight / 2);
+        ctx.lineTo(viewX + 3, rulerHeight / 2);
+        ctx.lineTo(viewX, rulerHeight);
+        ctx.closePath();
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        if(rulerHeight != canvasH) {
+          ctx.beginPath();
+          ctx.moveTo(viewX, rulerHeight)
+          ctx.lineTo(viewX, canvasH);
+          ctx.closePath();
+          ctx.strokeStyle = this.color;
+          ctx.stroke();
+        }
       }
-      ctx.fillStyle = this.color;
-      ctx.fill();
     },
 
     drawLine: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
@@ -215,6 +224,10 @@ base.defineModule('timeline')
      */
     dispatchChangeEvent: function() {
       base.dispatchSimpleEvent(this, 'change');
+    },
+
+    dispatchMarkersChangeEvent_: function() {
+      base.dispatchSimpleEvent(this, 'markersChange');
     },
 
     detach: function() {
@@ -336,6 +349,7 @@ base.defineModule('timeline')
       var marker = new TimelineMarker(this, positionWorld);
       this.markers.push(marker);
       this.dispatchChangeEvent();
+      this.dispatchMarkersChangeEvent_();
       return marker;
     },
 
@@ -344,6 +358,7 @@ base.defineModule('timeline')
         if(this.markers[i] === marker) {
           this.markers.splice(i, 1);
           this.dispatchChangeEvent();
+          this.dispatchMarkersChangeEvent_();
           return true;
         }
       }
@@ -353,8 +368,8 @@ base.defineModule('timeline')
       // Converts pixels into distance in world.
       var nearnessThresholdWorld = this.xViewVectorToWorld(nearnessInViewPixels);
       for(var i = 0; i < this.markers.length; ++i) {
-        if(Math.abs(this.markers[i].positionWorld - positionWorld) <=
-            nearnessThresholdWorld) {
+        if(Math.abs(this.markers[i].positionWorld - positionWorld)
+                                              <= nearnessThresholdWorld) {
          var marker = this.markers[i];
          return marker;
         }
