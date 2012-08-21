@@ -23,6 +23,7 @@ base.defineModule('tracks.timeline_slice_group_track')
     __proto__: tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
+      this.classList.add('timeline-slice-group-track');
     },
 
     get group() {
@@ -31,16 +32,6 @@ base.defineModule('tracks.timeline_slice_group_track')
 
     set group(g) {
       this.group_ = g;
-      this.updateChildTracks_();
-    },
-
-    // FIXME: Move to base class.
-    get headingWidth() {
-      return this.headingWidth_;
-    },
-
-    set headingWidth(width) {
-      this.headingWidth_ = width;
       this.updateChildTracks_();
     },
 
@@ -59,25 +50,15 @@ base.defineModule('tracks.timeline_slice_group_track')
       this.updateChildTracks_();
     },
 
-    get categoryFilter() {
-      return this.categoryFilter_;
-    },
-
-    set categoryFilter(v) {
-      this.categoryFilter_ = v;
+    applyCategoryFilter_: function() {
       this.updateChildTracks_();
     },
 
-    addTrack_: function(slices) {
+    addSliceTrack_: function(slices) {
       var track = new tracks.TimelineSliceTrack();
-      track.heading = '';
       track.slices = slices;
-      track.headingWidth = this.headingWidth_;
-      track.viewport = this.viewport_;
       track.decorateHit = this.decorateHit_;
-
-      this.tracks_.push(track);
-      this.appendChild(track);
+      this.addTrack_(track);
       return track;
     },
 
@@ -87,7 +68,7 @@ base.defineModule('tracks.timeline_slice_group_track')
         return;
       }
 
-      var slices = tracing.filterSliceArray(this.categoryFilter_,
+      var slices = tracing.filterSliceArray(this.categoryFilter,
                                             this.group_.slices);
       if (!slices.length) {
         this.visible = false;
@@ -100,11 +81,10 @@ base.defineModule('tracks.timeline_slice_group_track')
 
       this.filteredSlices_ = slices;
       this.detach();
-      this.textContent = '';
       this.subRows_ = this.buildSubRows_(slices);
       for (var srI = 0; srI < this.subRows_.length; srI++) {
         if (this.subRows_[srI].length) {
-          this.addTrack_(this.subRows_[srI]);
+          this.addSliceTrack_(this.subRows_[srI]);
         }
       }
     },

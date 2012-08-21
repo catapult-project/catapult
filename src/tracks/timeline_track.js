@@ -9,6 +9,7 @@
  * the visible slices.
  */
 base.defineModule('tracks.timeline_track')
+    .stylesheet('tracks.timeline_track')
     .dependsOn('ui')
     .exportsTo('tracks', function() {
 

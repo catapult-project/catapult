@@ -1,0 +1,33 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.timeline-canvas-based-track {
+  -webkit-box-align: stretch;
+  -webkit-box-orient: horizontal;
+  background-color: white;
+  display: -webkit-box;
+  margin: 0;
+  padding: 0 5px 0 0;
+}
+
+.timeline-canvas-based-track-title {
+  background-color: #d6dde5;
+  border-right: 1px solid #8e8e8e;
+  overflow: hidden;
+  padding-right: 5px;
+  padding-left: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-canvas-based-track-canvas-container {
+  -webkit-box-flex: 1;
+  width: 100%;
+}
+
+.timeline-canvas-based-track-canvas {
+  -webkit-box-flex: 1;
+  display: block;
+}

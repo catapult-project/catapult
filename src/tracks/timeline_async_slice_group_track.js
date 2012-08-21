@@ -23,10 +23,11 @@ base.defineModule('tracks.timeline_async_slice_group_track')
     __proto__: tracks.TimelineSliceGroupTrack.prototype,
 
     decorate: function() {
+      this.classList.add('timeline-async-slice-group-track');
     },
 
-    addTrack_: function(slices) {
-      var track = tracks.TimelineSliceGroupTrack.prototype.addTrack_.call(
+    addSliceTrack_: function(slices) {
+      var track = tracks.TimelineSliceGroupTrack.prototype.addSliceTrack_.call(
           this, slices);
       track.asyncStyle = true;
       return track;
@@ -41,7 +42,7 @@ base.defineModule('tracks.timeline_async_slice_group_track')
      * doesn't fit in any subrow, make another subRow.
      */
     buildSubRows_: function() {
-      var slices = tracing.filterSliceArray(this.categoryFilter_,
+      var slices = tracing.filterSliceArray(this.categoryFilter,
                                             this.group_.slices);
       slices.sort(function(x, y) {
         return x.start - y.start;

@@ -1,0 +1,15 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.timeline-viewport-track {
+  height: 12px;
+}
+
+.timeline-viewport-track-with-distance-measurements {
+  height: 24px;
+}
+
+.timeline-viewport-track .timeline-canvas-based-track-canvas-container {
+  border-bottom: 1px solid #8e8e8e;
+}

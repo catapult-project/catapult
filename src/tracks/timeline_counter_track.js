@@ -5,6 +5,7 @@
 'use strict';
 
 base.defineModule('tracks.timeline_counter_track')
+    .stylesheet('tracks.timeline_counter_track')
     .dependsOn('tracks.timeline_canvas_based_track',
                'timeline_color_scheme',
                'ui')
@@ -28,6 +29,7 @@ base.defineModule('tracks.timeline_counter_track')
       this.classList.add('timeline-counter-track');
       this.addControlButtonElements_(false);
       this.selectedSamples_ = {};
+      this.categoryFilter_ = new tracing.TimelineFilter();
     },
 
     /**
@@ -45,15 +47,26 @@ base.defineModule('tracks.timeline_counter_track')
     set counter(counter) {
       this.counter_ = counter;
       this.invalidate();
+      this.updateVisibility_();
+    },
+
+    set categoryFilter(v) {
+      this.categoryFilter_ = v;
+      this.updateVisibility_();
     },
 
     /**
-     * @return {Object} A sparce, mutable map from sample index to bool. Samples
+     * @return {Object} A sparse, mutable map from sample index to bool. Samples
      * indices the map that are true are drawn as selected. Callers that mutate
      * the map must manually call invalidate on the track to trigger a redraw.
      */
     get selectedSamples() {
       return this.selectedSamples_;
+    },
+
+    updateVisibility_: function() {
+      this.visible = (this.counter_ &&
+                      this.categoryFilter_.matchCounter(this.counter_));
     },
 
     redraw: function() {

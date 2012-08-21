@@ -1,0 +1,46 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.timeline-thread-track {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  position: relative;
+}
+
+/* The first row of slices in each thread should have a border above it. */
+.timeline-thread-track > .timeline-slice-group-track.first-visible-child > .timeline-slice-track.first-visible-child .timeline-canvas-based-track-canvas-container {
+  border-top: 1px solid #D8D8D8;
+  height: 21px;
+  padding-top: 2px;
+}
+
+/* ...except for the very first one at the top. */
+.timeline-process-track.first-visible-child > .timeline-thread-track.first-visible-child > .timeline-slice-group-track.first-visible-child > .timeline-slice-track.first-visible-child .timeline-canvas-based-track-canvas-container {
+  border-top: 0;
+}
+
+/* The track containing the heading is 21px tall. */
+.timeline-thread-track > .timeline-slice-group-track.first-visible-child .timeline-canvas-based-track:first-child {
+  height: 21px;
+}
+
+/* The last row of slices should have a gap underneath it. */
+.timeline-thread-track .timeline-canvas-based-track:last-child .timeline-canvas-based-track-canvas-container {
+  margin-bottom: 4px;
+}
+
+/* ...but in order for that to work, we need to make the whole last track
+ * taller. This allows us to have a gap under the slices, but not in the heading
+ * column on the left. */
+.timeline-thread-track .timeline-canvas-based-track:last-child {
+  height: 22px;
+}
+
+/* ...and if it happens to be the only track, then we need to be more specific
+ * than the heading rule above. */
+.timeline-thread-track > .timeline-slice-group-track.first-visible-child .timeline-canvas-based-track:first-child:last-child {
+  height: 22px;
+}
+
+

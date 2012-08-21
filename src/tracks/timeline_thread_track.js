@@ -5,6 +5,7 @@
 'use strict';
 
 base.defineModule('tracks.timeline_thread_track')
+    .stylesheet('tracks.timeline_thread_track')
     .dependsOn('tracks.timeline_container_track',
                'tracks.timeline_slice_track',
                'tracks.timeline_slice_group_track',
@@ -53,77 +54,37 @@ base.defineModule('tracks.timeline_thread_track')
       this.updateChildTracks_();
     },
 
-    get headingWidth() {
-      return this.headingWidth_;
-    },
-
-    set headingWidth(width) {
-      this.headingWidth_ = width;
-      this.updateChildTracks_();
-    },
-
-    get categoryFilter() {
-      return this.categoryFilter_;
-    },
-
-    set categoryFilter(v) {
-      this.categoryFilter_ = v;
-      for (var i = 0; i < this.tracks_.length; ++i) {
-        this.tracks_[i].categoryFilter = v;
-      }
+    applyCategoryFilter_: function() {
       this.updateVisibility_();
-    },
-
-    addTrack_: function(slices) {
-      var track = new tracks.TimelineSliceTrack();
-      track.heading = '';
-      track.slices = slices;
-      track.headingWidth = this.headingWidth_;
-      track.viewport = this.viewport_;
-
-      this.tracks_.push(track);
-      this.appendChild(track);
-      return track;
     },
 
     updateChildTracks_: function() {
       this.detach();
-      this.textContent = '';
       if (this.thread_) {
-        if (this.categoryFilter &&
-            !this.categoryFilter.matchThread(this.thread_)) {
-          this.visible = false;
-          return;
-        }
-        var cpuTrack = this.addTrack_(this.thread_.cpuSlices);
-        cpuTrack.categoryFilter = this.categoryFilter;
+        var cpuTrack = new tracks.TimelineSliceTrack();
+        cpuTrack.heading = '';
+        cpuTrack.slices = this.thread_.cpuSlices;
         cpuTrack.height = '4px';
         cpuTrack.decorateHit = function(hit) {
           hit.thread = this.thread_;
         }
+        this.addTrack_(cpuTrack);
 
         var asyncTrack = new tracks.TimelineAsyncSliceGroupTrack();
         asyncTrack.categoryFilter = this.categoryFilter;
-        asyncTrack.headingWidth = this.headingWidth_;
-        asyncTrack.viewport = this.viewport_;
         asyncTrack.decorateHit = function(hit) {
           // TODO(simonjam): figure out how to associate subSlice hits back
           // to their parent slice.
         }
         asyncTrack.group = this.thread_.asyncSlices;
-        this.appendChild(asyncTrack);
-        this.tracks_.push(asyncTrack);
+        this.addTrack_(asyncTrack);
 
         var track = new tracks.TimelineSliceGroupTrack();
-        track.categoryFilter = this.categoryFilter;
-        track.headingWidth = this.headingWidth_;
-        track.viewport = this.viewport_;
         track.decorateHit = function(hit) {
           hit.thread = this.thread_;
         }
         track.group = this.thread_;
-        this.appendChild(track);
-        this.tracks_.push(track);
+        this.addTrack_(track);
 
         this.updateVisibility_();
       }
@@ -131,13 +92,16 @@ base.defineModule('tracks.timeline_thread_track')
     },
 
     updateVisibility_: function() {
+      if (!this.categoryFilter.matchThread(this.thread)) {
+        this.visible = false;
+        return;
+      }
       var shouldBeVisible = false;
       for (var i = 0; i < this.tracks_.length; ++i) {
         var track = this.tracks_[i];
         if (track.visible) {
           shouldBeVisible = true;
           if (i >= 1) {
-            track.classList.add('timeline-thread-first-visible-group');
             track.heading = this.heading_;
             track.tooltip = this.tooltip_;
             break;

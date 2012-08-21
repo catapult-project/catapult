@@ -21,12 +21,7 @@ base.defineModule('tracks.timeline_cpu_track')
     __proto__: tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
-      this.classList.add('timeline-thread-track');
-    },
-
-    set categoryFilter(v) {
-      this.categoryFilter_ = v;
-      this.updateChildTracks_();
+      this.classList.add('timeline-cpu-track');
     },
 
     get cpu() {
@@ -56,34 +51,34 @@ base.defineModule('tracks.timeline_cpu_track')
       this.updateChildTracks_();
     },
 
-    get headingWidth() {
-      return this.headingWidth_;
-    },
-
-    set headingWidth(width) {
-      this.headingWidth_ = width;
-      this.updateChildTracks_();
+    applyCategoryFilter_: function() {
+      if (this.categoryFilter.matchCpu(this.cpu_))
+        this.updateChildTracks_();
+      else
+        this.visible = false;
     },
 
     updateChildTracks_: function() {
       this.detach();
-      this.textContent = '';
-      this.tracks_ = [];
       if (this.cpu_) {
-        var track = new tracks.TimelineSliceTrack();
-        track.slices = tracing.filterSliceArray(this.categoryFilter_,
-                                                this.cpu_.slices);
-        if (!track.slices.length)
-          return;
+        var slices = tracing.filterSliceArray(this.categoryFilter_,
+                                              this.cpu_.slices);
+        if (slices.length) {
+          var track = new tracks.TimelineSliceTrack();
+          track.slices = slices;
+          track.heading = this.heading_;
+          track.tooltip = this.tooltip_;
+          this.addTrack_(track);
+        }
 
-        track.headingWidth = this.headingWidth_;
-        track.viewport = this.viewport_;
-
-        this.tracks_.push(track);
-        this.appendChild(track);
-
-        this.tracks_[0].heading = this.heading_;
-        this.tracks_[0].tooltip = this.tooltip_;
+        for (var counterName in this.cpu_.counters) {
+          var counter = this.cpu_.counters[counterName];
+          track = new tracks.TimelineCounterTrack();
+          track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
+              counter.name + ':';
+          track.counter = counter;
+          this.addTrack_(track);
+        }
       }
       this.addControlButtonElements_(false);
     }

@@ -4,12 +4,8 @@
 
 'use strict';
 
-/**
- * @fileoverview Renders an array of slices into the provided div,
- * using a child canvas element. Uses a FastRectRenderer to draw only
- * the visible slices.
- */
 base.defineModule('tracks.timeline_viewport_track')
+    .stylesheet('tracks.timeline_viewport_track')
     .dependsOn('tracks.timeline_track',
                'tracks.timeline_canvas_based_track',
                'ui')

@@ -5,6 +5,7 @@
 'use strict';
 
 base.defineModule('tracks.timeline_canvas_based_track')
+    .stylesheet('tracks.timeline_canvas_based_track')
     .dependsOn('tracks.timeline_track',
                'fast_rect_renderer',
                'timeline_color_scheme',

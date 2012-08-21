@@ -4,6 +4,7 @@
 
 'use strict';
 base.defineModule('tracks.timeline_slice_track')
+    .stylesheet('tracks.timeline_slice_track')
     .dependsOn('tracks.timeline_canvas_based_track',
                'sorted_array_utils',
                'fast_rect_renderer',

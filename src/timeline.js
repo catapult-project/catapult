@@ -22,10 +22,7 @@ base.defineModule('timeline')
     .dependsOn('event_target',
                'ui',
                'measuring_stick',
-               'tracks.timeline_track',
-               'tracks.timeline_counter_track',
-               'tracks.timeline_cpu_track',
-               'tracks.timeline_thread_track',
+               'tracks.timeline_model_track',
                'tracks.timeline_viewport_track')
     .exportsTo('tracing', function() {
 
@@ -556,9 +553,8 @@ base.defineModule('timeline')
       this.viewportTrack_.viewport = this.viewport_;
       this.appendChild(this.viewportTrack_);
 
-      this.tracks_ = this.ownerDocument.createElement('div');
-      this.tracks_.className = 'timeline-thread-list';
-      this.appendChild(this.tracks_);
+      this.modelTrack_ = new tracks.TimelineModelTrack();
+      this.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
       this.dragBox_.className = 'timeline-drag-box';
@@ -596,8 +592,7 @@ base.defineModule('timeline')
     },
 
     detach: function() {
-      for (var i = 0; i < this.tracks_.children.length; i++)
-        this.tracks_.children[i].detach();
+      this.modelTrack_.detach();
 
       for (var i = 0; i < this.boundListeners_.length; i++) {
         var binding = this.boundListeners_[i];
@@ -617,7 +612,7 @@ base.defineModule('timeline')
 
     set current_filter(filter) {
       this.current_filter_ = filter;
-      this.rebuildRows_();
+      this.modelTrack_.categoryFilter = filter;
     },
 
     get model() {
@@ -631,132 +626,17 @@ base.defineModule('timeline')
         throw new Error('Cannot set model twice.');
       }
       this.model_ = model;
-
-      // Figure out all the headings.
-      var allHeadings = [];
-      model.getAllThreads().forEach(function(t) {
-        allHeadings.push(t.userFriendlyName);
-      });
-      model.getAllCounters().forEach(function(c) {
-        allHeadings.push(c.name);
-      });
-      model.getAllCpus().forEach(function(c) {
-        allHeadings.push('CPU ' + c.cpuNumber);
-      });
-
-      // Figure out the maximum heading size.
-      var maxHeadingWidth = 0;
-      var measuringStick = new tracing.MeasuringStick();
-      var headingEl = document.createElement('div');
-      headingEl.style.position = 'fixed';
-      headingEl.className = 'timeline-canvas-based-track-title';
-      allHeadings.forEach(function(text) {
-        headingEl.textContent = text + ':__';
-        var w = measuringStick.measure(headingEl).width;
-        // Limit heading width to 300px.
-        if (w > 300)
-          w = 300;
-        if (w > maxHeadingWidth)
-          maxHeadingWidth = w;
-      });
-      this.maxHeadingWidth_ = maxHeadingWidth + 'px';
-
-      this.viewportTrack_.headingWidth = this.maxHeadingWidth_;
-
-      this.rebuildRows_();
-    },
-
-    get numVisibleTracks() {
-      var count = 0;
-      for (var i = 0; i < this.tracks_.children.length; ++i) {
-        count += this.tracks_.children[i].numVisibleTracks;
-      }
-      return count;
-    },
-
-    rebuildRows_: function() {
-      // Reset old tracks.
-      for (var i = 0; i < this.tracks_.children.length; i++)
-        this.tracks_.children[i].detach();
-      this.tracks_.textContent = '';
-
-      // Get a sorted list of CPUs
-      var cpus = this.model_.getAllCpus();
-      cpus.sort(tracing.TimelineCpu.compare);
-
-      // Create tracks for each CPU.
-      cpus.forEach(function(cpu) {
-        if (!this.current_filter.matchCpu(cpu))
-          return;
-        var track = new tracks.TimelineCpuTrack();
-        track.heading = 'CPU ' + cpu.cpuNumber + ':';
-        track.headingWidth = this.maxHeadingWidth_;
-        track.viewport = this.viewport_;
-        track.current_filter = this.current_filter;
-        track.cpu = cpu;
-        this.tracks_.appendChild(track);
-
-        for (var counterName in cpu.counters) {
-          var counter = cpu.counters[counterName];
-          if (!this.current_filter.matchCounter(counter))
-            continue;
-          track = new tracks.TimelineCounterTrack();
-          track.heading = 'CPU ' + cpu.cpuNumber + ' ' + counter.name + ':';
-          track.headingWidth = this.maxHeadingWidth_;
-          track.viewport = this.viewport_;
-          track.counter = counter;
-          this.tracks_.appendChild(track);
-        }
-      }.bind(this));
-
-      // Get a sorted list of processes.
-      var processes = this.model_.getAllProcesses();
-      processes.sort(tracing.TimelineProcess.compare);
-
-      // Create tracks for each process.
-      processes.forEach(function(process) {
-        if (!this.current_filter.matchProcess(process))
-          return;
-        // Add counter tracks for this process.
-        var counters = [];
-        for (var tid in process.counters) {
-          if (!this.current_filter.matchCounter(process.counters[tid]))
-            continue;
-          counters.push(process.counters[tid]);
-        }
-        counters.sort(tracing.TimelineCounter.compare);
-
-        // Create the counters for this process.
-        counters.forEach(function(counter) {
-          var track = new tracks.TimelineCounterTrack();
-          track.heading = counter.name + ':';
-          track.headingWidth = this.maxHeadingWidth_;
-          track.viewport = this.viewport_;
-          track.counter = counter;
-          this.tracks_.appendChild(track);
-        }.bind(this));
-
-        // Get a sorted list of threads.
-        var threads = [];
-        for (var tid in process.threads)
-          threads.push(process.threads[tid]);
-        threads.sort(tracing.TimelineThread.compare);
-
-        // Create the threads.
-        threads.forEach(function(thread) {
-          var track = new tracks.TimelineThreadTrack();
-          track.heading = thread.userFriendlyName + ':';
-          track.tooltip = thread.userFriendlyDetails;
-          track.headingWidth = this.maxHeadingWidth_;
-          track.viewport = this.viewport_;
-          track.categoryFilter = this.current_filter;
-          track.thread = thread;
-          this.tracks_.appendChild(track);
-        }.bind(this));
-      }.bind(this));
+      this.modelTrack_.model = model;
+      this.modelTrack_.viewport = this.viewport_;
+      this.modelTrack_.categoryFilter = this.current_filter;
+      this.viewportTrack_.headingWidth = this.modelTrack_.headingWidth;
 
       // Set up a reasonable viewport.
       this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+    },
+
+    get numVisibleTracks() {
+      return this.modelTrack_.numVisibleTracks;
     },
 
     setInitialViewport_: function() {
@@ -775,9 +655,8 @@ base.defineModule('timeline')
      * TimelineTitleFilter.
      */
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-      for (var i = 0; i < this.tracks_.children.length; ++i)
-        this.tracks_.children[i].addAllObjectsMatchingFilterToSelection(
-          filter, selection);
+      this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
+                                                              selection);
     },
 
     /**
@@ -1000,8 +879,8 @@ base.defineModule('timeline')
     get firstCanvas() {
       if (this.viewportTrack_)
         return this.viewportTrack_.firstCanvas;
-      if (this.tracks_.firstChild)
-        return this.tracks_.firstChild.firstCanvas;
+      if (this.modelTrack_)
+        return this.modelTrack_.firstCanvas;
       return undefined;
     },
 
@@ -1072,7 +951,7 @@ base.defineModule('timeline')
       }
 
       var canv = this.firstCanvas;
-      var rect = this.tracks_.getClientRects()[0];
+      var rect = this.modelTrack_.getClientRects()[0];
       var canvRect = this.firstCanvas.getClientRects()[0];
 
       var inside = rect &&
@@ -1138,18 +1017,9 @@ base.defineModule('timeline')
 
         // Figure out what has been hit.
         var selection = new TimelineSelection();
-        for (i = 0; i < this.tracks_.children.length; i++) {
-          var track = this.tracks_.children[i];
+        this.modelTrack_.addIntersectingItemsInRangeToSelection(
+            loWX, hiWX, loY, hiY, selection);
 
-          // Only check tracks that insersect the rect.
-          var trackClientRect = track.getBoundingClientRect();
-          var a = Math.max(loY, trackClientRect.top);
-          var b = Math.min(hiY, trackClientRect.bottom);
-          if (a <= b) {
-            track.addIntersectingItemsInRangeToSelection(
-              loWX, hiWX, loY, hiY, selection);
-          }
-        }
         // Activate the new selection, and zoom if ctrl key held down.
         this.selection = selection;
         var isMac = navigator.platform.indexOf('Mac') == 0;
