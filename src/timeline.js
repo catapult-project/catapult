@@ -738,7 +738,11 @@ base.defineModule('timeline')
           vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.5);
           break;
         case 48:  // 0
+        case 122: // z
           this.setInitialViewport_();
+          break;
+        case 102:  // f
+          this.zoomToSelection_();
           break;
       }
     },
@@ -809,6 +813,21 @@ base.defineModule('timeline')
       vp.xPanWorldPosToViewPos(curCenterW, curMouseV, viewWidth);
     },
 
+    /**
+     * Zoom into the current selection.
+     */
+    zoomToSelection_: function() {
+      if (!this.selection)
+        return;
+      var range = this.selection.range;
+      var worldCenter = range.min + (range.max - range.min) * 0.5;
+      var worldRange = (range.max - range.min) * 0.5;
+      var boost = worldRange * 0.15;
+      this.viewport_.xSetWorldRange(worldCenter - worldRange - boost,
+                                    worldCenter + worldRange + boost,
+                                    this.firstCanvas.width);
+    },
+
     get keyHelp() {
       var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
       var help = 'Qwerty Controls:\n' +
@@ -833,7 +852,8 @@ base.defineModule('timeline')
           '\n' +
           'Alt + Scroll to zoom in/out\n' +
           'Dbl-click to zoom in; Shift dbl-click to zoom out\n' +
-          '0 to reset zoom and pan to initial view\n';
+          'f to zoom into selection\n' +
+          'z to reset zoom and pan to initial view\n';
       return help;
     },
 
@@ -1025,13 +1045,7 @@ base.defineModule('timeline')
         this.selection = selection;
         var isMac = navigator.platform.indexOf('Mac') == 0;
         if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
-          var range = selection.range;
-          var worldCenter = range.min + (range.max - range.min) * 0.5;
-          var worldRange = (range.max - range.min) * 0.5;
-          var boost = worldRange * 0.15;
-          this.viewport_.xSetWorldRange(worldCenter - worldRange - boost,
-                                        worldCenter + worldRange + boost,
-                                        this.firstCanvas.width);
+          this.zoomToSelection_();
         }
       }
     },
