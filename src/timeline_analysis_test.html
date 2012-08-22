@@ -46,12 +46,16 @@ base.defineModule('timeline_analysis_test')
     var TimelineCounterTrack = tracks.TimelineCounterTrack;
     var TimelineSliceTrack = tracks.TimelineSliceTrack;
     var newSliceNamed = test_utils.newSliceNamed;
+    var newSliceCategory = test_utils.newSliceCategory;
     var tests = {};
 
-    function createSelectionWithSingleSlice() {
+    function createSelectionWithSingleSlice(withCategory) {
       var model = new TimelineModel();
       var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      t53.pushSlice(newSliceNamed('b', 0, 0.002));
+      if (withCategory)
+        t53.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
+      else
+        t53.pushSlice(newSliceNamed('b', 0, 0.002));
 
       var t53track = new TimelineThreadTrack();
       t53track.thread = t53;
@@ -295,6 +299,14 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
+    tests.testAnalysisViewWithSingleSliceCategory = function() {
+      var selection = createSelectionWithSingleSlice(true);
+
+      var analysisEl = new TimelineAnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
     tests.testAnalysisViewWithMultipleSlices = function() {
       var selection = createSelectionWithTwoSlices();
 
@@ -403,6 +415,21 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.002, table.rows[2].time);
     }
 
+    tests.testAnalyzeSelectionWithSingleSliceCategory = function() {
+      var selection = createSelectionWithSingleSlice(true);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected slice:', table.tableHeader);
+      assertEquals(4, table.rows.length)
+
+      assertEquals("b", table.rows[0].text);
+      assertEquals("foo", table.rows[1].text);
+      assertEquals(0, table.rows[2].time);
+      assertAlmostEquals(0.002, table.rows[3].time);
+    }
 
     tests.testAnalyzeSelectionWithTwoSlices = function() {
       var selection = createSelectionWithTwoSlices();

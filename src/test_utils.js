@@ -50,6 +50,11 @@ base.defineModule('test_utils')
     return s;
   }
 
+  function newSliceCategory(category, name, start, duration) {
+    var s = new tracing.TimelineSlice(category, name, 0, start, {}, duration);
+    return s;
+  }
+
   function findSliceNamed(slices, name) {
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)
@@ -63,6 +68,7 @@ base.defineModule('test_utils')
     newAsyncSliceNamed: newAsyncSliceNamed,
     newSlice: newSlice,
     newSliceNamed: newSliceNamed,
+    newSliceCategory: newSliceCategory,
     findSliceNamed: findSliceNamed
   };
 });

@@ -197,6 +197,10 @@ base.defineModule('timeline_analysis')
 
       results.appendTableHeader(table, 'Selected slice:');
       results.appendSummaryRow(table, 'Title', slice.title);
+
+      if (slice.category)
+        results.appendSummaryRow(table, 'Category', slice.category);
+
       results.appendSummaryRowTime(table, 'Start', slice.start);
       results.appendSummaryRowTime(table, 'Duration', slice.duration);
 
