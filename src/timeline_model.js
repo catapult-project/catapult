@@ -44,6 +44,7 @@ base.defineModule('timeline_model')
     this.processes = {};
     this.importErrors = [];
     this.metadata = [];
+    this.categories = [];
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -126,6 +127,34 @@ base.defineModule('timeline_model')
         for (var tid in process.threads) {
           var thread = process.threads[tid];
           thread.autoCloseOpenSlices(maxTimestamp);
+        }
+      }
+    },
+
+    /**
+     * Generates the set of categories from the slices.
+     */
+    updateCategories_: function() {
+      // TODO(sullivan): Is there a way to do this more cleanly?
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        for (var tid in process.threads) {
+          var slices = process.threads[tid].slices;
+          for (var i = 0; i < slices.length; i++) {
+            var category = slices[i].category;
+            if (category && this.categories.indexOf(category) == -1) {
+              this.categories.push(category);
+            }
+          }
+        }
+      }
+      for (var cpu in this.cpus) {
+        var slices = this.cpus[cpu].slices;
+        for (var i = 0; i < slices.length; i++) {
+          var category = slices[i].category;
+          if (category && this.categories.indexOf(category) == -1) {
+            this.categories.push(category);
+          }
         }
       }
     },
@@ -330,6 +359,8 @@ base.defineModule('timeline_model')
 
       this.pruneEmptyThreads_();
       this.updateBounds();
+
+      this.updateCategories_();
 
       if (opt_shiftWorldToZero)
         this.shiftWorldToZero();

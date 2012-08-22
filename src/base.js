@@ -11,7 +11,7 @@
  */
 var global = this;
 
-/** Platform, package, object property, and Event support. **/
+/** Platform, package, object property, and Event support. */
 this.base = (function() {
   /**
    * Base path for modules. Used to form URLs for module 'require' requests.

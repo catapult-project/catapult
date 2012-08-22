@@ -60,6 +60,38 @@ tests.testGetDefault = function() {
   assertEquals('default_val', settings.get('my_key', 'default_val'));
 }
 
+tests.testSetGetPrefix = function() {
+  var settings = new base.Settings();
+  settings.set('key_a', 'foo', 'my_prefix');
+  assertEquals('foo', settings.get('key_a', undefined, 'my_prefix'));
+  assertEquals('foo', settings.get('key_a', 'bar', 'my_prefix'));
+  assertEquals(undefined, settings.get('key_a'));
+  assertEquals('bar', settings.get('key_a', 'bar'));
+}
+
+tests.testKeys = function() {
+  var settings = new base.Settings();
+  settings.set('key_a', 'foo');
+  settings.set('key_b', 'bar');
+  settings.set('key_c', 'baz');
+  assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys());
+}
+
+tests.testKeysPrefix = function() {
+  var settings = new base.Settings();
+  settings.set('key_a', 'foo', 'prefix1');
+  settings.set('key_b', 'bar', 'prefix1');
+  settings.set('key_c', 'baz', 'prefix1');
+  settings.set('key_a', 'foo', 'prefix2');
+  settings.set('key_b', 'bar', 'prefix2');
+  settings.set('key_C', 'baz', 'prefix2');
+  assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys('prefix1'));
+  assertArrayEquals(['key_C', 'key_a', 'key_b'], settings.keys('prefix2'));
+  assertArrayEquals(['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
+                     'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
+                    settings.keys());
+}
+
 
 return tests;
 });

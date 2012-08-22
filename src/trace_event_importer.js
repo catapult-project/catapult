@@ -87,7 +87,7 @@ base.defineModule('trace_event_importer')
     /**
      * Helper to process an 'async finish' event, which will close an open slice
      * on a TimelineAsyncSliceGroup object.
-     **/
+     */
     processAsyncEvent: function(index, event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);

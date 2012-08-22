@@ -150,7 +150,7 @@ base.defineModule('timeline_test')
 
       assertEquals(2, timeline.numVisibleTracks);
 
-      timeline.current_filter = new NoCountersFilter();
+      timeline.categoryFilter = new NoCountersFilter();
       assertEquals(0, timeline.numVisibleTracks);
     }
 
@@ -172,7 +172,7 @@ base.defineModule('timeline_test')
 
       assertEquals(1, timeline.numVisibleTracks);
 
-      timeline.current_filter = new NoCpusFilter();
+      timeline.categoryFilter = new NoCpusFilter();
       assertEquals(0, timeline.numVisibleTracks);
     }
 
@@ -194,7 +194,7 @@ base.defineModule('timeline_test')
 
       assertEquals(1, timeline.numVisibleTracks);
 
-      timeline.current_filter = new NoProcessesFilter();
+      timeline.categoryFilter = new NoProcessesFilter();
       assertEquals(0, timeline.numVisibleTracks);
     }
 
@@ -217,7 +217,7 @@ base.defineModule('timeline_test')
 
       assertEquals(1, timeline.numVisibleTracks);
 
-      timeline.current_filter = new NoThreadsFilter();
+      timeline.categoryFilter = new NoThreadsFilter();
       assertEquals(0, timeline.numVisibleTracks);
     }
 

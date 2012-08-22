@@ -117,7 +117,7 @@ base.defineModule('timeline_async_slice_group')
      *
      * @return {Array} An array of TimelineAsyncSliceGroups where each group has
      * slices that started on the same thread.
-     **/
+     */
     computeSubGroups: function() {
       var subGroupsByPTID = {};
       for (var i = 0; i < this.slices.length; ++i) {

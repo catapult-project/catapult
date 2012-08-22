@@ -197,3 +197,18 @@
   font-family: monospace;
   margin: 8px;
 }
+
+.category-filter-dialog {
+  min-width: 400px;
+  min-height: 200px;
+  padding: 20px;
+}
+
+.category-filter-dialog-form {
+  padding: 10px;
+  font-size: 80%;
+}
+
+.category-filter-dialog-form input {
+  margin-right: 7px;
+}

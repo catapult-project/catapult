@@ -22,6 +22,7 @@ base.defineModule('timeline')
     .dependsOn('event_target',
                'ui',
                'measuring_stick',
+               'timeline_filter',
                'tracks.timeline_model_track',
                'tracks.timeline_viewport_track')
     .exportsTo('tracing', function() {
@@ -544,7 +545,7 @@ base.defineModule('timeline')
     decorate: function() {
       this.classList.add('timeline');
 
-      this.current_filter_ = new tracing.TimelineFilter();
+      this.categoryFilter_ = new tracing.TimelineCategoryFilter();
 
       this.viewport_ = new TimelineViewport(this);
 
@@ -606,12 +607,12 @@ base.defineModule('timeline')
       return this.viewport_;
     },
 
-    get current_filter() {
-      return this.current_filter_;
+    get categoryFilter() {
+      return this.categoryFilter_;
     },
 
-    set current_filter(filter) {
-      this.current_filter_ = filter;
+    set categoryFilter(filter) {
+      this.categoryFilter_ = filter;
       this.modelTrack_.categoryFilter = filter;
     },
 
@@ -628,7 +629,7 @@ base.defineModule('timeline')
       this.model_ = model;
       this.modelTrack_.model = model;
       this.modelTrack_.viewport = this.viewport_;
-      this.modelTrack_.categoryFilter = this.current_filter;
+      this.modelTrack_.categoryFilter = this.categoryFilter;
       this.viewportTrack_.headingWidth = this.modelTrack_.headingWidth;
 
       // Set up a reasonable viewport.

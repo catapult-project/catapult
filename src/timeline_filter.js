@@ -88,8 +88,9 @@ base.defineModule('timeline_filter')
   };
 
   /**
-   * @constructor A filter that matches objects by their category.
-   * @param {Array<string>} opt_categories Categories to match.
+   * @constructor A filter that filters objects by their category.
+   * Objects match if they are NOT in the list of categories
+   * @param {Array<string>} opt_categories Categories to blacklist.
    */
   function TimelineCategoryFilter(opt_categories) {
     TimelineFilter.call(this);
@@ -107,8 +108,8 @@ base.defineModule('timeline_filter')
 
     matchSlice: function(slice) {
       if (!slice.category)
-        return false;
-      return !!this.categories_[slice.category];
+        return true;
+      return !this.categories_[slice.category];
     }
   };
 

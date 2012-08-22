@@ -170,6 +170,7 @@ base.defineModule('overlay')
 
     onVisibleChanged_: function() {
       var overlayRoot = this.ownerDocument.querySelector('.overlay-root');
+      base.dispatchSimpleEvent(this, 'visibleChange');
       if (this.visible) {
         overlayRoot.showOverlay(this);
         document.addEventListener('keydown', this.onKeyDown, true);

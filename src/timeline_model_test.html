@@ -157,6 +157,18 @@ tests.testTimelineModel_findAllThreadsNamed = function() {
   assertEquals(0, f.length);
 }
 
+tests.testTimelineModel_updateCategories = function() {
+  var m = new TimelineModel();
+  var t = m.getOrCreateProcess(1).getOrCreateThread(1);
+  t.pushSlice(new TimelineThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('categoryB', 'a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+  t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+  m.updateCategories_();
+  assertArrayEquals(["categoryA", "categoryB"], m.categories);
+}
+
   return tests;
 });
 </script>
