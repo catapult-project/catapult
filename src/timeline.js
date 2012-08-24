@@ -995,6 +995,8 @@ base.defineModule('timeline')
 
       this.dragBeginEvent_ = e;
       e.preventDefault();
+      if (document.activeElement)
+        document.activeElement.blur();
       if (this.focusElement.tabIndex >= 0)
         this.focusElement.focus();
     },
