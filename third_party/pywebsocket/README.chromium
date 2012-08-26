@@ -1,0 +1,15 @@
+Name: pywebsocket
+Short Name: pywebsocket
+URL: http://code.google.com/p/pywebsocket/
+Version: 0
+Date: Sun Aug 26 12:59:31 PDT 2012
+Revision: r658
+License: BSD
+License File: src/COPYING
+Security Critical: no
+
+Description:
+Python implementation of the websocket protocol.
+
+Local Modifications:
+None.
