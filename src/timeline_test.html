@@ -7,7 +7,6 @@ found in the LICENSE file.
 -->
 <head>
 <title>Timeline tests</title>
-<link rel="stylesheet" href="timeline.css">
 <script src="base.js"></script>
 </head>
 <body>
@@ -76,47 +75,6 @@ base.defineModule('timeline_test')
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
-    }
-
-    tests.testSelectionObject = function() {
-      var model = new tracing.TimelineModel();
-      var p1 = model.getOrCreateProcess(1);
-      var t1 = p1.getOrCreateThread(1);
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
-
-      var sel = new tracing.TimelineSelection();
-      sel.addSlice({}, t1.slices[0]);
-
-      assertEquals(1, sel.range.min);
-      assertEquals(4, sel.range.max);
-      assertEquals(t1.slices[0], sel[0].slice);
-
-      sel.addSlice({}, t1.slices[1]);
-      assertEquals(1, sel.range.min);
-      assertEquals(6, sel.range.max);
-      assertEquals(t1.slices[1], sel[1].slice);
-
-      sel.clear();
-      assertEquals(0, sel.length);
-    }
-
-    tests.testShiftedSelection = function() {
-      var model = new tracing.TimelineModel();
-      var p1 = model.getOrCreateProcess(1);
-      var t1 = p1.getOrCreateThread(1);
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
-
-      var track = new tracks.TimelineSliceTrack();
-      track.slices = t1.slices;
-
-      var sel = new tracing.TimelineSelection();
-      sel.addSlice(track, t1.slices[0]);
-
-      var shifted = sel.getShiftedSelection(1);
-      assertEquals(1, shifted.length);
-      assertEquals(t1.slices[1], shifted[0].slice);
     }
 
     tests.testEmptyThreadsDeleted = function() {

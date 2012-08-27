@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Timeline viewport tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_viewport_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'timeline_viewport')
+    .runAllTests(function() {
+
+    var tests = {};
+
+    // The test harness considers no tests as a failure. So, until we get a viewport test,
+    // this nop serves to keep this file passing.
+    tests.testNoop = function() {
+    }
+
+    return tests;
+});
+</script>
+</body>
+</html>

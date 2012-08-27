@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Timeline selection tests</title>
+<script src="base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.defineModule('timeline_selection_test')
+    .dependsOn('unittest',
+               'test_utils',
+               'tracks.timeline_slice_track',
+               'timeline_model',
+               'timeline_selection')
+    .runAllTests(function() {
+
+    var tests = {};
+
+    tests.testSelectionObject = function() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
+
+      var sel = new tracing.TimelineSelection();
+      sel.addSlice({}, t1.slices[0]);
+
+      assertEquals(1, sel.range.min);
+      assertEquals(4, sel.range.max);
+      assertEquals(t1.slices[0], sel[0].slice);
+
+      sel.addSlice({}, t1.slices[1]);
+      assertEquals(1, sel.range.min);
+      assertEquals(6, sel.range.max);
+      assertEquals(t1.slices[1], sel[1].slice);
+
+      sel.clear();
+      assertEquals(0, sel.length);
+    }
+
+    tests.testShiftedSelection = function() {
+      var model = new tracing.TimelineModel();
+      var p1 = model.getOrCreateProcess(1);
+      var t1 = p1.getOrCreateThread(1);
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 5, {}, 1));
+
+      var track = new tracks.TimelineSliceTrack();
+      track.slices = t1.slices;
+
+      var sel = new tracing.TimelineSelection();
+      sel.addSlice(track, t1.slices[0]);
+
+      var shifted = sel.getShiftedSelection(1);
+      assertEquals(1, shifted.length);
+      assertEquals(t1.slices[1], shifted[0].slice);
+    }
+
+    return tests;
+});
+</script>
+</body>
+</html>
