@@ -65,13 +65,10 @@ base.defineModule('timeline_view')
       this.findCtl_.controller = new tracing.TimelineFindController();
 
       this.importErrorsButton_ = this.createImportErrorsButton_();
-      this.importErrorsButton_.style.display = 'none';
-
       this.categoryFilterButton_ = this.createCategoryFilterButton_();
-      this.categoryFilterButton_.style.display = 'None';
-
+      this.categoryFilterButton_.callback =
+        this.updateCategoryFilterFromSettings_.bind(this);
       this.metadataButton_ = this.createMetadataButton_();
-      this.metadataButton_.style.display = 'none';
 
       // Connect everything up.
       this.rightControls.appendChild(this.importErrorsButton_);
@@ -98,9 +95,6 @@ base.defineModule('timeline_view')
     },
 
     createImportErrorsButton_: function() {
-      // Set by the embedder of the help button that we create in this function.
-      var model;
-
       var dlg = new tracing.Overlay();
       dlg.classList.add('timeline-view-import-errors-overlay');
       dlg.autoClose = true;
@@ -109,9 +103,6 @@ base.defineModule('timeline_view')
       showEl.className = 'timeline-button timeline-view-import-errors-button' +
           ' timeline-view-info-button';
       showEl.textContent = 'Import errors!';
-      showEl.__defineSetter__('model', function(value) {
-        model = value;
-      });
 
       var textEl = document.createElement('div');
       textEl.className = 'info-button-text import-errors-dialog-text';
@@ -124,40 +115,55 @@ base.defineModule('timeline_view')
       containerEl.appendChild(textEl);
       dlg.appendChild(containerEl);
 
+      var that = this;
       function onClick() {
         dlg.visible = true;
-        textEl.textContent = model.importErrors.join("\n");
+        textEl.textContent = that.model.importErrors.join("\n");
       }
       showEl.addEventListener('click', onClick.bind(this));
+
+      function updateVisibility() {
+        if (that.model &&
+            that.model.importErrors.length)
+          showEl.style.display = '';
+        else
+          showEl.style.display = 'none';
+      }
+      updateVisibility();
+      that.addEventListener('modelChange', updateVisibility);
 
       return showEl;
     },
 
     createCategoryFilterButton_: function() {
       // Set by the embedder of the help button that we create in this function.
-      var model, settings, callback;
+      var callback;
 
       var showEl = document.createElement('div');
       showEl.className = 'timeline-button timeline-view-info-button';
       showEl.textContent = 'Category Filters';
-      showEl.__defineSetter__('model', function(value) {
-        model = value;
-      });
-      showEl.__defineSetter__('settings', function(value) {
-        settings = value;
-      });
       showEl.__defineSetter__('callback', function(value) {
         callback = value;
       });
 
 
+      var that = this;
       function onClick() {
         var dlg = new tracing.TimelineCategoryFilterDialog();
-        dlg.model = model;
-        dlg.settings = settings;
+        dlg.model = that.model;
+        dlg.settings = that.settings;
         dlg.settingUpdatedCallback = callback;
         dlg.visible = true;
       }
+
+      function updateVisibility() {
+        if (that.model)
+          showEl.style.display = 'none';
+        else
+          showEl.style.display = '';
+      }
+      updateVisibility();
+      that.addEventListener('modelChange', updateVisibility);
 
       showEl.addEventListener('click', onClick.bind(this));
       return showEl;
@@ -198,9 +204,6 @@ base.defineModule('timeline_view')
     },
 
     createMetadataButton_: function() {
-      // Set by the embedder of the help button that we create in this function.
-      var model;
-
       var dlg = new tracing.Overlay();
       dlg.classList.add('timeline-view-metadata-overlay');
       dlg.autoClose = true;
@@ -209,9 +212,6 @@ base.defineModule('timeline_view')
       showEl.className = 'timeline-button timeline-view-metadata-button' +
           ' timeline-view-info-button';
       showEl.textContent = 'Metadata';
-      showEl.__defineSetter__('model', function(value) {
-        model = value;
-      });
 
       var textEl = document.createElement('div');
       textEl.className = 'info-button-text metadata-dialog-text';
@@ -223,11 +223,13 @@ base.defineModule('timeline_view')
       containerEl.appendChild(textEl);
       dlg.appendChild(containerEl);
 
+      var that = this;
       function onClick() {
         dlg.visible = true;
 
         var metadataStrings = [];
 
+        var model = that.model;
         for (var data in model.metadata) {
           metadataStrings.push(JSON.stringify(model.metadata[data].name) +
             ": " + JSON.stringify(model.metadata[data].value));
@@ -235,6 +237,16 @@ base.defineModule('timeline_view')
         textEl.textContent = metadataStrings.join("\n");
       }
       showEl.addEventListener('click', onClick.bind(this));
+
+      function updateVisibility() {
+        if (that.model &&
+            that.model.metadata.length)
+          showEl.style.display = '';
+        else
+          showEl.style.display = 'none';
+      }
+      updateVisibility();
+      that.addEventListener('modelChange', updateVisibility);
 
       return showEl;
     },
@@ -261,57 +273,47 @@ base.defineModule('timeline_view')
     },
 
     get model() {
-      return this.timelineModel_;
+      if (this.timeline_)
+        return this.timeline_.model;
+      return undefined;
     },
 
     set model(model) {
-      this.timelineModel_ = model;
+      var modelInstanceChanged = model != this.model;
+      var modelValid = model && model.minTimestamp !== undefined;
 
-      // remove old timeline
-      this.timelineContainer_.textContent = '';
-      this.importErrorsButton_.style.display = 'none';
-      this.importErrorsButton_.model = undefined;
-      this.categoryFilterButton_.style.display = 'none';
-      this.categoryFilterButton_.model = undefined;
-      this.categoryFilterButton_.settings = undefined;
-      this.metadataButton_.style.display = 'none';
-      this.metadataButton_.model = undefined;
-
-      // create new timeline if needed
-      if (this.timelineModel_.minTimestamp !== undefined) {
-        if (this.timeline_)
+      // Remove old timeline if the model has completely changed.
+      if (modelInstanceChanged) {
+        this.timelineContainer_.textContent = '';
+        if (this.timeline_) {
+          this.timeline_.removeEventListener(
+              'selectionChange', this.onSelectionChangedBoundToThis_);
           this.timeline_.detach();
+          this.timeline_ = undefined;
+          this.findCtl_.controller.timeline = undefined;
+        }
+      }
+
+      // Create new timeline if needed.
+      if (modelValid && !this.timeline_) {
         this.timeline_ = new tracing.Timeline();
-        this.timeline_.model = this.timelineModel_;
         this.timeline_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.timelineContainer_.appendChild(this.timeline_);
-        this.timeline_.addEventListener('selectionChange',
-                                        this.onSelectionChangedBoundToThis_);
-
         this.findCtl_.controller.timeline = this.timeline_;
-        if (this.timeline_.model.importErrors.length) {
-          this.importErrorsButton_.model = model;
-          this.importErrorsButton_.style.display = ''; // Show the button.
-        }
-        if (this.timeline_.model.categories.length) {
-          this.categoryFilterButton_.model = model;
-          this.categoryFilterButton_.settings = this.settings;
-          this.categoryFilterButton_.callback =
-              this.updateCategoryFilterFromSettings_.bind(this);
-          this.categoryFilterButton_.style.display = ''; // Show the button.
-          this.updateCategoryFilterFromSettings_();
-        }
-        if (this.timeline_.model.metadata.length) {
-          this.metadataButton_.model = model;
-          this.metadataButton_.style.display = ''; // Show the button.
-        }
-
-        this.onSelectionChanged_();
-      } else {
-        this.timeline_ = undefined;
-        this.findCtl_.controller.timeline = undefined;
+        this.timeline_.addEventListener(
+            'selectionChange', this.onSelectionChangedBoundToThis_);
+        this.updateCategoryFilterFromSettings_();
       }
+
+      // Set the model.
+      if (modelValid)
+        this.timeline_.model = model;
+      base.dispatchSimpleEvent(this, 'modelChange');
+
+      // Do things that are selection specific
+      if (modelInstanceChanged)
+        this.onSelectionChanged_();
     },
 
     get timeline() {
@@ -399,11 +401,18 @@ base.defineModule('timeline_view')
 
     onSelectionChanged_: function(e) {
       var oldScrollTop = this.timelineContainer_.scrollTop;
-      this.analysisEl_.selection = this.timeline_.selection;
+
+      var selection = this.timeline_ ?
+        this.timeline_.selection :
+        new tracing.TimelineSelection();
+      this.analysisEl_.selection = selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
     },
 
     updateCategoryFilterFromSettings_: function() {
+      if (!this.timeline_)
+        return;
+
       // Get the disabled categories from settings.
       var categories = this.settings.keys('categories');
       var disabledCategories = [];

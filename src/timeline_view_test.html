@@ -34,18 +34,17 @@ base.defineModule('timeline_view_test')
 
     var tests = {};
 
-    /*
-     * This test just instantiates a TimelineView and adds it to the DOM
-     * to help with non-unittest UI work.
-     */
-    tests.testInstantiateTimelineView = function() {
+    function createFullyPopulatedModel(opt_withError, opt_withMetadata) {
+      var withError = opt_withError !== undefined ? opt_withError : true;
+      var withMetadata = opt_withMetadata !== undefined ? opt_withMetadata : true;
+
       var num_tests = 50;
       var testIndex = 0;
       var startTime = 0;
 
       var model = new tracing.TimelineModel();
       for(testIndex = 0; testIndex < num_tests; ++testIndex){
-        var process = model.getOrCreateProcess(10000 + testIndex); 
+        var process = model.getOrCreateProcess(10000 + testIndex);
         if(testIndex % 2 == 0) {
           var thread = process.getOrCreateThread('Thread Name Here');
           thread.slices.push(new tracing.TimelineSlice('foo', 'a', 0, startTime, {}, 1));
@@ -58,11 +57,6 @@ base.defineModule('timeline_view_test')
       }
       model.updateCategories_();
 
-      /*
-       * Add a slice with the same title as one of the previous slices
-       * to test the case where multiple of these are selected.
-       */
-
       // Add a known problematic piece of data to test the import errors UI.
       model.importErrors.push('Synthetic Import Error');
       model.updateBounds();
@@ -71,6 +65,16 @@ base.defineModule('timeline_view_test')
       model.metadata.push({name: 'a', value: 'testA'});
       model.metadata.push({name: 'b', value: 'testB'});
       model.metadata.push({name: 'c', value: 'testC'});
+
+      return model;
+    }
+
+    /*
+     * This test just instantiates a TimelineView and adds it to the DOM
+     * to help with non-unittest UI work.
+     */
+    tests.testInstantiateTimelineView = function() {
+      var model = createFullyPopulatedModel(true, true);
 
       var view = new tracing.TimelineView();
       view.style.height = '400px';
@@ -83,6 +87,39 @@ base.defineModule('timeline_view_test')
       view.timeline.selection = selection;
 
       this.addHTMLOutput(undefined, view);
+    }
+
+    tests.testChangeModelToSomethingDifferent = function() {
+      var model00 = createFullyPopulatedModel(false, false);
+      var model11 = createFullyPopulatedModel(true, true);
+
+      var view = new tracing.TimelineView();
+      view.style.height = '400px';
+      view.model = model00;
+      view.model = undefined;
+      view.model = model11;
+      view.model = model00;
+    }
+
+
+    tests.testSetModelToSameThingAgain = function() {
+      var model = createFullyPopulatedModel(false, false);
+
+      // Create a view with am model.
+      var view = new tracing.TimelineView();
+      view.style.height = '400px';
+      view.model = model;
+
+      // Mutate the model and update the view.
+      var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
+      t123.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
+      view.model = model;
+
+      // Verify that the new bits of the model show up in the view.
+      var selection = new tracing.TimelineSelection();
+      var filter = new tracing.TimelineTitleFilter('somethingUnusual');
+      view.timeline.addAllObjectsMatchingFilterToSelection(filter, selection);
+      assertEquals(selection.length, 1);
     }
 
     tests.testSetModelUpdatesCategories = function() {

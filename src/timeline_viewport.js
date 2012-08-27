@@ -150,8 +150,10 @@ base.defineModule('timeline_viewport')
         window.clearInterval(this.checkForAttachInterval_);
         this.checkForAttachInterval_ = undefined;
       }
-      this.iframe_.removeEventListener('resize', this.onResizeBoundToThis_);
-      this.parentEl_.removeChild(this.iframe_);
+      if (this.iframe_) {
+        this.iframe_.removeEventListener('resize', this.onResizeBoundToThis_);
+        this.parentEl_.removeChild(this.iframe_);
+      }
     },
 
     get scaleX() {

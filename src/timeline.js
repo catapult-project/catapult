@@ -129,9 +129,8 @@ base.defineModule('timeline')
     set model(model) {
       if (!model)
         throw new Error('Model cannot be null');
-      if (this.model) {
-        throw new Error('Cannot set model twice.');
-      }
+
+      var modelInstanceChanged = this.model_ != model;
       this.model_ = model;
       this.modelTrack_.model = model;
       this.modelTrack_.viewport = this.viewport_;
@@ -139,7 +138,8 @@ base.defineModule('timeline')
       this.viewportTrack_.headingWidth = this.modelTrack_.headingWidth;
 
       // Set up a reasonable viewport.
-      this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+      if (modelInstanceChanged)
+          this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
     },
 
     get numVisibleTracks() {
