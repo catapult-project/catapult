@@ -122,6 +122,39 @@ base.defineModule('timeline_view_test')
       assertEquals(selection.length, 1);
     }
 
+    tests.testChangeModelToSomethingDifferent = function() {
+      var model00 = createFullyPopulatedModel(false, false);
+      var model11 = createFullyPopulatedModel(true, true);
+
+      var view = new tracing.TimelineView();
+      view.style.height = '400px';
+      view.model = model00;
+      view.model = undefined;
+      view.model = model11;
+      view.model = model00;
+    }
+
+
+    tests.testSetModelToSameThingAgain = function() {
+      var model = createFullyPopulatedModel(false, false);
+
+      // Create a view with am model.
+      var view = new tracing.TimelineView();
+      view.style.height = '400px';
+      view.model = model;
+
+      // Mutate the model and update the view.
+      var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
+      t123.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
+      view.model = model;
+
+      // Verify that the new bits of the model show up in the view.
+      var selection = new tracing.TimelineSelection();
+      var filter = new tracing.TimelineTitleFilter('somethingUnusual');
+      view.timeline.addAllObjectsMatchingFilterToSelection(filter, selection);
+      assertEquals(selection.length, 1);
+    }
+
     tests.testSetModelUpdatesCategories = function() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
