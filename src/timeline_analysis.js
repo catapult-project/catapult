@@ -90,7 +90,7 @@ base.defineModule('timeline_analysis')
       row.className = 'timeline-analysis-table-row';
 
       this.appendTableCell_(table, row, 0, label);
-      if (opt_text) {
+      if (opt_text !== undefined) {
         this.appendTableCell_(table, row, 1, opt_text);
         for (var i = 2; i < table.numColumns; i++)
           this.appendTableCell_(table, row, i, "");

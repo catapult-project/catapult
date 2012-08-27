@@ -415,6 +415,31 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.002, table.rows[2].time);
     }
 
+    tests.testAnalyzeSelectionWithFalsyArgs = function() {
+      var model = new TimelineModel();
+      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      var slice = newSliceNamed('b', 0, 0.002);
+      slice.args.bar = 0;
+      slice.args.foo = false;
+      t53.pushSlice(slice);
+      var t53track = new TimelineThreadTrack();
+      t53track.thread = t53;
+      var selection = new TimelineSelection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TimelineTitleFilter('b'), selection);
+      assertEquals(1, selection.length);
+
+      var analysisEl = new TimelineAnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+      var rows = analysisEl.querySelectorAll('tr');
+      assertEquals(rows.length, 7);
+      assertEquals(" bar", rows[5].children[0].textContent);
+      assertEquals("0", rows[5].children[1].textContent);
+      assertEquals(" foo", rows[6].children[0].textContent);
+      assertEquals("false", rows[6].children[1].textContent);
+    }
+
     tests.testAnalyzeSelectionWithSingleSliceCategory = function() {
       var selection = createSelectionWithSingleSlice(true);
 
