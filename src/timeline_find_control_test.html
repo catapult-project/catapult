@@ -99,7 +99,7 @@ base.defineModule('timeline_find_control_test')
 
         currentHitIndex: 0,
       }
-      document.body.appendChild(ctl);
+      this.addHTMLOutput(undefined, ctl);
       ctl.querySelector('input').focus();
       ctl.querySelector('input').blur();
 
