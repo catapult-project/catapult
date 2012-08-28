@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2011 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Simple Embedded Timeline Viewer</title>
+<script src="../src/base.js"></script>
+<style>
+  .view {
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+</style>
+</head>
+<body>
+  <div class="view">
+  </div>
+  <script>
+  'use strict';
+
+  var timelineViewEl;
+
+  function loadTraces(filenames, callback) {
+    var traces = [];
+    for (var i = 0; i < filenames.length; i++) {
+      traces.push(undefined);
+    }
+    var numTracesPending = filenames.length;
+
+    filenames.forEach(function(filename, i) {
+      test_utils.getAsync(filename, function(trace) {
+        traces[i] = trace;
+        numTracesPending--;
+        if (numTracesPending == 0)
+          callback(traces);
+      });
+    });
+  }
+
+  function createViewFromTraces(traces) {
+    var m = new tracing.TimelineModel();
+    m.importTraces(traces, true);
+
+    timelineViewEl = document.querySelector('.view');
+    base.ui.decorate(timelineViewEl, tracing.TimelineView);
+    timelineViewEl.model = m;
+    timelineViewEl.tabIndex = 1;
+    timelineViewEl.timeline.focusElement = timelineViewEl;
+  }
+
+  function onLoad() {
+    if (!document.body)
+      document.addEventListener('DOMContentLoaded', onLoad);
+    var filenames = ["../test_data/simple_trace.json"];
+    loadTraces(filenames,
+               createViewFromTraces);
+  }
+
+  // trace-viewer's current module loader is asynchronous. As a result, you have
+  // to ask for the module system to tell you when the timeline-view and all its
+  // dependencies have been loaded, instead of just relying on DOMContentLoaded.
+  base.defineModule('traces_viewer')
+      .dependsOn('timeline_view',
+                 'test_utils')
+      .runWhenLoaded(onLoad);
+
+  </script>
+</body>
+</html>
