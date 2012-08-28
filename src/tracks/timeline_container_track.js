@@ -25,6 +25,10 @@ base.defineModule('tracks.timeline_container_track')
     },
 
     detach: function() {
+      this.detachAllChildren();
+    },
+
+    detachAllChildren: function() {
       for (var i = 0; i < this.tracks_.length; i++)
         this.tracks_[i].detach();
       this.tracks_ = [];

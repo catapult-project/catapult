@@ -25,6 +25,13 @@ base.defineModule('tracks.timeline_model_track')
 
     decorate: function() {
       this.classList.add('timeline-model-track');
+      this.measuringStick_ = new tracing.MeasuringStick();
+      this.measuringStick_.attach();
+    },
+
+    detach: function() {
+      tracks.TimelineContainerTrack.prototype.detach.call(this);
+      this.measuringStick_.detach();
     },
 
     get model() {
@@ -52,24 +59,24 @@ base.defineModule('tracks.timeline_model_track')
 
       // Figure out the maximum heading size.
       var maxHeadingWidth = 0;
-      var measuringStick = new tracing.MeasuringStick();
       var headingEl = document.createElement('div');
       headingEl.style.position = 'fixed';
       headingEl.className = 'timeline-canvas-based-track-title';
-      allHeadings.forEach(function(text) {
+      for (var i = 0; i < allHeadings.length; i++) {
+        var text = allHeadings[i];
         headingEl.textContent = text + ':__';
-        var w = measuringStick.measure(headingEl).width;
+        var w = this.measuringStick_.measure(headingEl).width;
         // Limit heading width to 300px.
         if (w > 300)
           w = 300;
         if (w > maxHeadingWidth)
           maxHeadingWidth = w;
-      });
+      }
       this.headingWidth = maxHeadingWidth + 'px';
     },
 
     updateChildTracks_: function() {
-      this.detach();
+      this.detachAllChildren();
       if (this.model_) {
         var cpus = this.model_.getAllCpus();
         cpus.sort(tracing.TimelineCpu.compare);
