@@ -508,7 +508,7 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.18, table.rows[4].time);
     }
 
-    function testAnalyzeSelectionWithSingleCounter() {
+    tests.testAnalyzeSelectionWithSingleCounter = function() {
       var selection = createSelectionWithCounters(1);
 
       var results = new StubAnalysisResults();
@@ -520,7 +520,7 @@ base.defineModule('timeline_analysis_test')
 
       assertEquals("Title", table.rows[0].label);
       assertEquals("Timestamp", table.rows[1].label);
-      assertEquals("Value", table.rows[2].label);
+      assertEquals("value", table.rows[2].label);
       assertEquals(10, table.rows[2].text);
     }
 
