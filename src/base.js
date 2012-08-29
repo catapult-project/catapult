@@ -141,16 +141,8 @@ this.base = (function() {
 
     // Load the module stylesheet first.
     var stylesheets = moduleStylesheets[dependentModuleName] || [];
-    for (var i = 0; i < stylesheets.length; i++) {
-      var stylesheetName = stylesheets[i];
-      var localPath = stylesheetName.replace(/\./g, '/') + '.css';
-      var stylesheetPath = moduleBasePath + '/' + localPath;
-
-      var linkEl = document.createElement('link');
-      linkEl.setAttribute('rel', 'stylesheet');
-      linkEl.setAttribute('href', stylesheetPath);
-      base.doc.head.appendChild(linkEl);
-    }
+    for (var i = 0; i < stylesheets.length; i++)
+      requireStylesheet(stylesheets[i]);
 
     // Load the module's dependent scripts after.
     var dependentModules =
@@ -168,9 +160,21 @@ this.base = (function() {
     moduleLoadStatus[dependentModuleName] = 'APPENDED';
   }
 
+  var stylesheetLoadStatus = {};
   function requireStylesheet(dependentStylesheetName) {
-    // This is a nop. By the time we've gotten to executing this statement,
-    // the stylesheet should already be loaded.
+    if (window.FLATTENED)
+      return;
+
+    if (stylesheetLoadStatus[dependentStylesheetName])
+      return;
+    stylesheetLoadStatus[dependentStylesheetName] = true;
+    var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
+    var stylesheetPath = moduleBasePath + '/' + localPath;
+
+    var linkEl = document.createElement('link');
+    linkEl.setAttribute('rel', 'stylesheet');
+    linkEl.setAttribute('href', stylesheetPath);
+    base.doc.head.appendChild(linkEl);
   }
 
   function exportTo(namespace, fn) {
