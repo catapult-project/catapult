@@ -160,11 +160,11 @@ base.exportTo('tracks', function() {
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.tracks_.length; i++)
         this.tracks_[i].addAllObjectsMatchingFilterToSelection(
-          filter, selection);
+            filter, selection);
     }
   };
 
   return {
-    TimelineContainerTrack: TimelineContainerTrack,
-  }
+    TimelineContainerTrack: TimelineContainerTrack
+  };
 });

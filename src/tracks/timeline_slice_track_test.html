@@ -54,7 +54,7 @@ found in the LICENSE file.
     ];
     var selection = new TimelineSelection();
     track.addAllObjectsMatchingFilterToSelection(
-        new tracing.TimelineTitleFilter("b"), selection);
+        new tracing.TimelineTitleFilter('b'), selection);
 
     assertEquals(2, selection.length);
     assertEquals(track.slices[1], selection[0].slice);
@@ -198,7 +198,8 @@ found in the LICENSE file.
       new TimelineSlice('', 'c', 2, 7.6, {}, 0.4)
     ];
     var sel = new tracing.TimelineSelection();
-    track.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter("b"), sel);
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineTitleFilter('b'), sel);
     var ret;
 
     // Select to the right of B.
@@ -215,19 +216,22 @@ found in the LICENSE file.
 
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new tracing.TimelineSelection();
-    ret = track.addItemNearToProvidedHitToSelection(selRight[0], 1, selRightOfRight);
+    ret = track.addItemNearToProvidedHitToSelection(
+       selRight[0], 1, selRightOfRight);
     assertTrue(ret);
     assertEquals(track.slices[3], selRightOfRight[0].slice);
 
     // Select to the right of the rightmost slice.
     var selNone = new tracing.TimelineSelection();
-    ret = track.addItemNearToProvidedHitToSelection(selRightOfRight[0], 1, selNone);
+    ret = track.addItemNearToProvidedHitToSelection(
+       selRightOfRight[0], 1, selNone);
     assertFalse(ret);
     assertEquals(0, selNone.length);
 
     // Select A and then select left.
     var sel = new tracing.TimelineSelection();
-    track.addAllObjectsMatchingFilterToSelection(new tracing.TimelineTitleFilter("a"), sel);
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TimelineTitleFilter('a'), sel);
     var ret;
 
     selNone = new tracing.TimelineSelection();

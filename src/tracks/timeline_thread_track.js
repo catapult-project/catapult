@@ -133,6 +133,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineThreadTrack: TimelineThreadTrack,
-  }
+    TimelineThreadTrack: TimelineThreadTrack
+  };
 });

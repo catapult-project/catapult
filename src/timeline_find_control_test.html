@@ -43,11 +43,11 @@ found in the LICENSE file.
         this.addAllObjectsMatchingFilterToSelectionReturnValue = [];
 
         this.selection = new tracing.TimelineSelection();
-        this.keyHelp = "<keyHelp>";
+        this.keyHelp = '<keyHelp>';
 
         // Put some simple UI in for testing purposes.
         var noteEl = document.createElement('div');
-        noteEl.textContent = "FakeTimeline:";
+        noteEl.textContent = 'FakeTimeline:';
         this.appendChild(noteEl);
 
         this.statusEl_ = document.createElement('div');
@@ -58,9 +58,9 @@ found in the LICENSE file.
       refresh_: function() {
         var status;
         if (this.model)
-          status = "model=set";
+          status = 'model=set';
         else
-          status = "model=undefined";
+          status = 'model=undefined';
         this.statusEl_.textContent = status;
       },
 
@@ -95,8 +95,8 @@ found in the LICENSE file.
 
         filterHits: [],
 
-        currentHitIndex: 0,
-      }
+        currentHitIndex: 0
+      };
       this.addHTMLOutput(undefined, ctl);
       ctl.querySelector('input').focus();
       ctl.querySelector('input').blur();
@@ -144,7 +144,7 @@ found in the LICENSE file.
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
 
-      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
 
       // Loop through hits then when we wrap, try moving backward.
       controller.findNext();
@@ -166,12 +166,12 @@ found in the LICENSE file.
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
 
-      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
 
       // Loop through hits then when we wrap, try moving backward.
       controller.findNext();
       timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [4];
-      controller.filterText = "asdfsf";
+      controller.filterText = 'asdfsf';
       controller.findNext();
       assertArrayShallowEquals([4], timeline.selection);
     }
@@ -180,8 +180,8 @@ found in the LICENSE file.
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
-      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1,2,3];
-      controller.filterText = "asdfsf";
+      timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+      controller.filterText = 'asdfsf';
       assertArrayShallowEquals([1], timeline.selection);
       controller.findNext();
       assertArrayShallowEquals([2], timeline.selection);

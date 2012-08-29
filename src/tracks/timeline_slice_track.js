@@ -102,7 +102,7 @@ base.exportTo('tracks', function() {
       var viewRWorld = vp.xViewToWorld(canvasW);
 
       // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx,viewLWorld,viewRWorld,canvasH);
+      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
 
       // Begin rendering in world space.
       ctx.save();
@@ -197,7 +197,7 @@ base.exportTo('tracks', function() {
       }
 
       // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx,viewLWorld,viewRWorld,canvasH);
+      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     /**
@@ -393,6 +393,6 @@ base.exportTo('tracks', function() {
   }
 
   return {
-    TimelineSliceTrack: TimelineSliceTrack,
-  }
+    TimelineSliceTrack: TimelineSliceTrack
+  };
 });

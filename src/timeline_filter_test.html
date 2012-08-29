@@ -49,17 +49,17 @@ found in the LICENSE file.
   function testTimelineCategoryFilter() {
     var sNoCategory = test_utils.newSlice(1, 3);
     sNoCategory.category = undefined;
-    assertTrue(new TimelineCategoryFilter(["x"]).matchSlice(sNoCategory));
+    assertTrue(new TimelineCategoryFilter(['x']).matchSlice(sNoCategory));
 
     var s0 = test_utils.newSlice(1, 3);
     s0.category = 'x';
-    assertFalse(new TimelineCategoryFilter(["x"]).matchSlice(s0));
+    assertFalse(new TimelineCategoryFilter(['x']).matchSlice(s0));
 
     var s1 = test_utils.newSliceNamed('ba', 1, 3);
     s1.category = 'y';
-    assertTrue(new TimelineCategoryFilter(["x"]).matchSlice(s1));
-    assertFalse(new TimelineCategoryFilter(["y"]).matchSlice(s1));
-    assertFalse(new TimelineCategoryFilter(["x", "y"]).matchSlice(s1));
+    assertTrue(new TimelineCategoryFilter(['x']).matchSlice(s1));
+    assertFalse(new TimelineCategoryFilter(['y']).matchSlice(s1));
+    assertFalse(new TimelineCategoryFilter(['x', 'y']).matchSlice(s1));
   }
 
   function testFilterSliceArray() {

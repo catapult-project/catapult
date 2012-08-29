@@ -39,5 +39,5 @@ base.exportTo('tracing', function() {
 
   return {
     TimelineSlice: TimelineSlice
-  }
+  };
 });

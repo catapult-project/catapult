@@ -4,12 +4,14 @@
 
 'use strict';
 
+
 /**
  * The global object.
  * @type {!Object}
  * @const
  */
 var global = this;
+
 
 /** Platform, package, object property, and Event support. */
 this.base = (function() {
@@ -29,7 +31,7 @@ this.base = (function() {
     if (true)
       return;
 
-    var spacing = "";
+    var spacing = '';
     var indentLevel = opt_indentLevel || 0;
     for (var i = 0; i < indentLevel; i++)
       spacing += ' ';
@@ -77,8 +79,8 @@ this.base = (function() {
     for (var i = 0; i < dependentModules.length; i++)
       if (dependentModules[i] == dependentModuleName)
         found = true;
-    if (!found)
-      dependentModules.push(dependentModuleName);
+      if (!found)
+        dependentModules.push(dependentModuleName);
   }
 
   function addModuleStylesheet(moduleName, stylesheetName) {
@@ -90,8 +92,8 @@ this.base = (function() {
     for (var i = 0; i < stylesheets.length; i++)
       if (stylesheets[i] == stylesheetName)
         found = true;
-    if (!found)
-      stylesheets.push(stylesheetName);
+      if (!found)
+        stylesheets.push(stylesheetName);
   }
 
   function ensureDepsLoaded() {
@@ -103,17 +105,17 @@ this.base = (function() {
     var src = moduleBasePath + '/' + 'deps.js';
     req.open('GET', src, false);
     req.send(null);
-    if(req.status != 200)
-      throw new Error("Could not find " + deps +
-                      ". Run calcdeps.py and try again.");
+    if (req.status != 200)
+      throw new Error('Could not find ' + deps +
+                      '. Run calcdeps.py and try again.');
 
     base.addModuleStylesheet = addModuleStylesheet;
     base.addModuleDependency = addModuleDependency;
     try {
       // By construction, the deps file should call addModuleDependency.
       eval(req.responseText);
-    } catch(e) {
-      throw new Error("When loading deps, got " + e.stack ? e.stack : e);
+    } catch (e) {
+      throw new Error('When loading deps, got ' + e.stack ? e.stack : e);
     }
     delete base.addModuleDependency;
     delete base.addModuleStylesheet;
@@ -136,7 +138,7 @@ this.base = (function() {
     if (moduleLoadStatus[dependentModuleName] == 'APPENDED')
       return;
     if (moduleLoadStatus[dependentModuleName] == 'RESOLVING')
-      throw new Error("Circular dependency betwen modules. Cannot continue!");
+      throw new Error('Circular dependency betwen modules. Cannot continue!');
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
 
     // Load the module stylesheet first.
@@ -155,7 +157,7 @@ this.base = (function() {
     var localPath = dependentModuleName.replace(/\./g, '/') + '.js';
     var src = moduleBasePath + '/' + localPath;
     var text = '<script type="text/javascript" src="' + src +
-      '"></' + 'script>';
+        '"></' + 'script>';
     base.doc.write(text);
     moduleLoadStatus[dependentModuleName] = 'APPENDED';
   }
@@ -181,7 +183,7 @@ this.base = (function() {
     var obj = exportPath(namespace);
     try {
       var exports = fn();
-    } catch(e) {
+    } catch (e) {
       console.log('While running exports for ', name, ':');
       console.log(e.stack || e);
       return;
@@ -338,7 +340,8 @@ this.base = (function() {
    * property change event with the type {@code name + 'Change'} is fired.
    * @param {!Object} obj The object to define the property for.
    * @param {string} name The name of the property.
-   * @param {base.PropertyKind=} opt_kind What kind of underlying storage to use.
+   * @param {base.PropertyKind=} opt_kind What kind of underlying storage to
+   * use.
    * @param {function(*):void} opt_setHook A function to run after the
    *     property is set, but before the propertyChange event is fired.
    */
@@ -480,7 +483,7 @@ this.base = (function() {
     Event: Event,
     getUid: getUid,
     initialize: initialize,
-    PropertyKind: PropertyKind,
+    PropertyKind: PropertyKind
   };
 })();
 

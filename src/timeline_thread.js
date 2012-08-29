@@ -103,8 +103,8 @@ base.exportTo('tracing', function() {
 
       if (this.cpuSlices) {
         for (var i = 0; i < this.cpuSlices.length; i++) {
-            var slice = this.cpuSlices[i];
-            slice.start += amount;
+          var slice = this.cpuSlices[i];
+          slice.start += amount;
         }
       }
 
@@ -200,5 +200,5 @@ base.exportTo('tracing', function() {
   return {
     TimelineThreadSlice: TimelineThreadSlice,
     TimelineThread: TimelineThread
-  }
+  };
 });

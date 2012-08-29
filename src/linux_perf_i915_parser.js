@@ -126,10 +126,10 @@ base.exportTo('tracing', function() {
       var obj = event[1];
       var size = parseInt(event[2]);
       this.i915GemObjectSlice(ts, eventName, obj,
-           {
-             obj: obj,
-             size: size
-           });
+          {
+            obj: obj,
+            size: size
+          });
       return true;
     },
 
@@ -214,7 +214,7 @@ base.exportTo('tracing', function() {
       var obj = event[1];
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj,
+            obj: obj
           });
       return true;
     },

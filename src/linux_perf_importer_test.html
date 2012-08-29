@@ -136,7 +136,7 @@ function testCanImport34AndLater() {
         'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
     '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
         'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
-        '==> next_comm=chrome next_pid=5418 next_prio=120',
+        '==> next_comm=chrome next_pid=5418 next_prio=120'
   ];
   assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 
@@ -145,7 +145,7 @@ function testCanImport34AndLater() {
         'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
     '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
         'prev_comm=systrace.sh prev_pid=5441 prev_prio=120 prev_state=x ' +
-        '==> next_comm=chrome next_pid=5418 next_prio=120',
+        '==> next_comm=chrome next_pid=5418 next_prio=120'
   ];
   assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }

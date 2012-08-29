@@ -61,7 +61,7 @@ base.exportTo('tracing', function() {
      * endSlice must be made with non-monotonically-decreasing timestamps.
      *
      * @param {String} title Title of the slice to add.
-     * @param {Number] ts The timetsamp of the slice, in milliseconds.
+     * @param {Number} ts The timetsamp of the slice, in milliseconds.
      * @param {Object.<string, Object>} opt_args Arguments associated with
      * the slice.
      */
@@ -70,7 +70,7 @@ base.exportTo('tracing', function() {
         var prevSlice = this.openPartialSlices_[
             this.openPartialSlices_.length - 1];
         if (ts < prevSlice.start)
-          throw new Error("Slices must be added in increasing timestamp order");
+          throw new Error('Slices must be added in increasing timestamp order');
       }
 
       var colorId = tracing.getStringColorId(title);
@@ -108,8 +108,8 @@ base.exportTo('tracing', function() {
       var slice = this.openPartialSlices_[this.openSliceCount - 1];
       this.openPartialSlices_.splice(this.openSliceCount - 1, 1);
       if (ts < slice.start)
-        throw new Error("Slice " + slice.name +
-                        " end time is before its start.");
+        throw new Error('Slice ' + slice.name +
+                        ' end time is before its start.');
 
       slice.duration = ts - slice.start;
       this.pushSlice(slice);
@@ -180,10 +180,10 @@ base.exportTo('tracing', function() {
         this.minTimestamp = undefined;
         this.maxTimestamp = undefined;
       }
-    },
+    }
   };
 
   return {
     TimelineSliceGroup: TimelineSliceGroup
-  }
+  };
 });

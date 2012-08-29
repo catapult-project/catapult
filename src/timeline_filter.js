@@ -115,6 +115,6 @@ base.exportTo('tracing', function() {
     filterSliceArray: filterSliceArray,
     TimelineFilter: TimelineFilter,
     TimelineTitleFilter: TimelineTitleFilter,
-    TimelineCategoryFilter: TimelineCategoryFilter,
-  }
+    TimelineCategoryFilter: TimelineCategoryFilter
+  };
 });

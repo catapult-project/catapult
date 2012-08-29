@@ -54,7 +54,7 @@ base.exportTo('tracing', function() {
       return this.samples[index * this.numSeries + seriesIndex];
     },
 
-     /**
+    /**
      * Obtains min, max, avg, values, start, and end for different series for
      * a given counter
      *     getSampleStatistics([0,1])
@@ -62,7 +62,7 @@ base.exportTo('tracing', function() {
      * object for each series for the counter in the form:
      * {min: minVal, max: maxVal, avg: avgVal, start: startVal, end: endVal}
      *
-     * @param {Array.<Number>} Indices to summarize
+     * @param {Array.<Number>} Indices to summarize.
      * @return {Object} An array of statistics. Each element in the array
      * has data for one of the series in the selected counter.
      */
@@ -90,10 +90,10 @@ base.exportTo('tracing', function() {
             sampleIndices[sampleIndices.length - 1], i);
 
         ret.push({min: min,
-                  max: max,
-                  avg: avg,
-                  start: start,
-                  end: end});
+          max: max,
+          avg: avg,
+          start: start,
+          end: end});
       }
       return ret;
     },
@@ -156,6 +156,6 @@ base.exportTo('tracing', function() {
   };
 
   return {
-    TimelineCounter: TimelineCounter,
-  }
+    TimelineCounter: TimelineCounter
+  };
 });

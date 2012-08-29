@@ -47,10 +47,10 @@ base.exportTo('tracing', function() {
   TimelineViewport.prototype = {
     __proto__: base.EventTarget.prototype,
 
-    drawUnderContent: function(ctx,viewLWorld,viewRWorld,canvasH) {
+    drawUnderContent: function(ctx, viewLWorld, viewRWorld, canvasH) {
     },
 
-    drawOverContent: function(ctx,viewLWorld,viewRWorld,canvasH) {
+    drawOverContent: function(ctx, viewLWorld, viewRWorld, canvasH) {
       if (this.gridEnabled) {
         var x = this.gridTimebase;
 
@@ -69,8 +69,8 @@ base.exportTo('tracing', function() {
         ctx.stroke();
       }
 
-      for(var i = 0; i < this.markers.length; ++i) {
-        this.markers[i].drawLine(ctx,viewLWorld,viewRWorld,canvasH,this);
+      for (var i = 0; i < this.markers.length; ++i) {
+        this.markers[i].drawLine(ctx, viewLWorld, viewRWorld, canvasH, this);
       }
     },
 
@@ -123,8 +123,8 @@ base.exportTo('tracing', function() {
         this.lastSize_ = curSize;
         try {
           this.pendingSetFunction_();
-        } catch(ex) {
-          console.log("While running setWhenPossible:", ex);
+        } catch (ex) {
+          console.log('While running setWhenPossible:', ex);
         }
         this.pendingSetFunction_ = undefined;
       }
@@ -271,8 +271,8 @@ base.exportTo('tracing', function() {
     },
 
     removeMarker: function(marker) {
-      for(var i = 0; i < this.markers.length; ++i) {
-        if(this.markers[i] === marker) {
+      for (var i = 0; i < this.markers.length; ++i) {
+        if (this.markers[i] === marker) {
           this.markers.splice(i, 1);
           this.dispatchChangeEvent();
           this.dispatchMarkersChangeEvent_();
@@ -285,11 +285,11 @@ base.exportTo('tracing', function() {
       // Converts pixels into distance in world.
       var nearnessThresholdWorld = this.xViewVectorToWorld(
           nearnessInViewPixels);
-      for(var i = 0; i < this.markers.length; ++i) {
-        if(Math.abs(this.markers[i].positionWorld - positionWorld)
-                                              <= nearnessThresholdWorld) {
-         var marker = this.markers[i];
-         return marker;
+      for (var i = 0; i < this.markers.length; ++i) {
+        if (Math.abs(this.markers[i].positionWorld - positionWorld) <=
+            nearnessThresholdWorld) {
+          var marker = this.markers[i];
+          return marker;
         }
       }
       return undefined;
@@ -326,15 +326,16 @@ base.exportTo('tracing', function() {
     },
 
     get color() {
-      if(this.selected)
+      if (this.selected)
         return 'rgb(255,0,0)';
       return 'rgb(0,0,0)';
     },
 
-    drawTriangle_: function(ctx,viewLWorld,viewRWorld,canvasH,rulerHeight,vp) {
+    drawTriangle_: function(ctx, viewLWorld, viewRWorld,
+                            canvasH, rulerHeight, vp) {
       ctx.beginPath();
       var ts = this.positionWorld_;
-      if(ts >= viewLWorld && ts < viewRWorld) {
+      if (ts >= viewLWorld && ts < viewRWorld) {
         var viewX = vp.xWorldToView(ts);
         ctx.moveTo(viewX, rulerHeight);
         ctx.lineTo(viewX - 3, rulerHeight / 2);
@@ -343,9 +344,9 @@ base.exportTo('tracing', function() {
         ctx.closePath();
         ctx.fillStyle = this.color;
         ctx.fill();
-        if(rulerHeight != canvasH) {
+        if (rulerHeight != canvasH) {
           ctx.beginPath();
-          ctx.moveTo(viewX, rulerHeight)
+          ctx.moveTo(viewX, rulerHeight);
           ctx.lineTo(viewX, canvasH);
           ctx.closePath();
           ctx.strokeStyle = this.color;
@@ -354,10 +355,10 @@ base.exportTo('tracing', function() {
       }
     },
 
-    drawLine: function(ctx,viewLWorld,viewRWorld,canvasH,vp) {
+    drawLine: function(ctx, viewLWorld, viewRWorld, canvasH, vp) {
       ctx.beginPath();
       var ts = this.positionWorld_;
-      if(ts >= viewLWorld && ts < viewRWorld) {
+      if (ts >= viewLWorld && ts < viewRWorld) {
         var viewX = vp.xWorldToView(ts);
         ctx.moveTo(viewX, 0);
         ctx.lineTo(viewX, canvasH);

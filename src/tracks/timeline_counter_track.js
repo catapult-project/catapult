@@ -85,7 +85,7 @@ base.exportTo('tracks', function() {
       var viewRWorld = vp.xViewToWorld(canvasW);
 
       // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx,viewLWorld,viewRWorld,canvasH);
+      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
 
       // Drop sampels that are less than skipDistancePix apart.
       var skipDistancePix = 1;
@@ -178,7 +178,7 @@ base.exportTo('tracks', function() {
       ctx.restore();
 
       // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx,viewLWorld,viewRWorld,canvasH);
+      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     /**
@@ -243,7 +243,7 @@ base.exportTo('tracks', function() {
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(
-      loWX, hiWX, loY, hiY, selection) {
+        loWX, hiWX, loY, hiY, selection) {
 
       var clientRect = this.getBoundingClientRect();
       var a = Math.max(loY, clientRect.top);
@@ -283,6 +283,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineCounterTrack: TimelineCounterTrack,
-  }
+    TimelineCounterTrack: TimelineCounterTrack
+  };
 });

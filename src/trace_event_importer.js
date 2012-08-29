@@ -46,7 +46,7 @@ base.exportTo('tracing', function() {
         if (fieldName == 'traceEvents')
           continue;
         this.model_.metadata.push({name: fieldName,
-            value: this.events_[fieldName]});
+          value: this.events_[fieldName]});
       }
     }
 
@@ -153,7 +153,7 @@ base.exportTo('tracing', function() {
             .getOrCreateThread(event.tid);
           if (!thread.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
             this.model_.importErrors.push(
-              'Timestamps are moving backward.');
+                'Timestamps are moving backward.');
             continue;
           }
           thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
@@ -162,12 +162,12 @@ base.exportTo('tracing', function() {
             .getOrCreateThread(event.tid);
           if (!thread.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
             this.model_.importErrors.push(
-              'Timestamps are moving backward.');
+                'Timestamps are moving backward.');
             continue;
           }
           if (!thread.openSliceCount) {
             this.model_.importErrors.push(
-              'E phase event without a matching B phase event.');
+                'E phase event without a matching B phase event.');
             continue;
           }
 

@@ -79,6 +79,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineProcessTrack: TimelineProcessTrack,
-  }
+    TimelineProcessTrack: TimelineProcessTrack
+  };
 });

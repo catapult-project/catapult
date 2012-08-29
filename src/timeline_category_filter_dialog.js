@@ -92,6 +92,6 @@ base.exportTo('tracing', function() {
 
 
   return {
-    TimelineCategoryFilterDialog: TimelineCategoryFilterDialog,
+    TimelineCategoryFilterDialog: TimelineCategoryFilterDialog
   };
 });

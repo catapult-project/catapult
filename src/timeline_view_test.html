@@ -33,23 +33,31 @@ found in the LICENSE file.
 
     function createFullyPopulatedModel(opt_withError, opt_withMetadata) {
       var withError = opt_withError !== undefined ? opt_withError : true;
-      var withMetadata = opt_withMetadata !== undefined ? opt_withMetadata : true;
+      var withMetadata = opt_withMetadata !== undefined ?
+          opt_withMetadata : true;
 
       var num_tests = 50;
       var testIndex = 0;
       var startTime = 0;
 
       var model = new tracing.TimelineModel();
-      for(testIndex = 0; testIndex < num_tests; ++testIndex){
+      for (testIndex = 0; testIndex < num_tests; ++testIndex) {
         var process = model.getOrCreateProcess(10000 + testIndex);
-        if(testIndex % 2 == 0) {
+        if (testIndex % 2 == 0) {
           var thread = process.getOrCreateThread('Thread Name Here');
-          thread.slices.push(new tracing.TimelineSlice('foo', 'a', 0, startTime, {}, 1));
-          thread.slices.push(new tracing.TimelineSlice('bar', 'b', 0, startTime + 1.15, {}, .5));
+          thread.slices.push(
+              new tracing.TimelineSlice('foo', 'a', 0, startTime, {}, 1));
+          thread.slices.push(
+              new tracing.TimelineSlice('bar', 'b', 0,
+                                        startTime + 1.15, {}, .5));
         } else {
           var thread = process.getOrCreateThread('Name');
-          thread.slices.push(new tracing.TimelineSlice('foo', 'a', 0, startTime + .17, {}, .55));
-          thread.slices.push(new tracing.TimelineSlice('bar', 'b', 0, startTime + 1.1, {}, .7));
+          thread.slices.push(
+              new tracing.TimelineSlice('foo', 'a', 0,
+                                        startTime + .17, {}, .55));
+          thread.slices.push(
+              new tracing.TimelineSlice('bar', 'b', 0,
+                                        startTime + 1.1, {}, .7));
         }
       }
       model.updateCategories_();
@@ -80,7 +88,9 @@ found in the LICENSE file.
       view.focusElement = view;
 
       var selection = new tracing.TimelineSelection();
-      view.timeline.addAllObjectsMatchingFilterToSelection({matchSlice: function(){return true;}}, selection);
+      view.timeline.addAllObjectsMatchingFilterToSelection({
+          matchSlice: function() { return true;}
+      }, selection);
       view.timeline.selection = selection;
 
       this.addHTMLOutput(undefined, view);
@@ -157,9 +167,12 @@ found in the LICENSE file.
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
-      t1.pushSlice(new tracing.TimelineThreadSlice('foo', 'a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('bar', 'b', 0, 1.1, {}, 2.8));
-      t1.pushSlice(new tracing.TimelineThreadSlice('baz', 'b', 0, 1.2, {}, 2.4));
+      t1.pushSlice(new tracing.TimelineThreadSlice('foo', 'a',
+                                                   0, 1, {}, 3));
+      t1.pushSlice(new tracing.TimelineThreadSlice('bar', 'b',
+                                                   0, 1.1, {}, 2.8));
+      t1.pushSlice(new tracing.TimelineThreadSlice('baz', 'b',
+                                                   0, 1.2, {}, 2.4));
       model.updateCategories_();
       model.updateBounds();
 

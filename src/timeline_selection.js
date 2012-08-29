@@ -101,7 +101,7 @@ base.exportTo('tracing', function() {
 
     addCounterSample: function(track, counter, sampleIndex) {
       return this.push_(
-        new TimelineSelectionCounterSampleHit(
+          new TimelineSelectionCounterSampleHit(
           track, counter, sampleIndex));
     },
 
@@ -124,7 +124,7 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < this.length_; i++)
         if (this[i] instanceof TimelineSelectionCounterSampleHit)
           selection.push_(this[i]);
-      return selection;
+        return selection;
     },
 
     getSliceHits: function() {
@@ -132,7 +132,7 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < this.length_; i++)
         if (this[i] instanceof TimelineSelectionSliceHit)
           selection.push_(this[i]);
-      return selection;
+        return selection;
     },
 
     map: function(fn) {
@@ -157,12 +157,12 @@ base.exportTo('tracing', function() {
       if (newSelection.length == 0)
         return undefined;
       return newSelection;
-    },
+    }
   };
 
   return {
     TimelineSelectionSliceHit: TimelineSelectionSliceHit,
     TimelineSelectionCounterSampleHit: TimelineSelectionCounterSampleHit,
-    TimelineSelection: TimelineSelection,
+    TimelineSelection: TimelineSelection
   };
 });

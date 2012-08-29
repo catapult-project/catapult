@@ -29,11 +29,11 @@ base.exportTo('tracing', function() {
     toJSON: function() {
       var obj = new Object();
       var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++ ) {
+      for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        if (typeof this[key] == "function")
+        if (typeof this[key] == 'function')
           continue;
-        if (key == "startThread" || key == "endThread") {
+        if (key == 'startThread' || key == 'endThread') {
           obj[key] = this[key].ptid;
           continue;
         }
@@ -139,5 +139,5 @@ base.exportTo('tracing', function() {
   return {
     TimelineAsyncSlice: TimelineAsyncSlice,
     TimelineAsyncSliceGroup: TimelineAsyncSliceGroup
-  }
+  };
 });

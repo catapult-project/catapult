@@ -31,13 +31,13 @@ found in the LICENSE file.
     function testDecorateOnceViaNew() {
       var testElement = new TestElement();
       assertEquals(1, testElement.decorateCallCount);
-    };
+    }
 
     function testDecorateOnceDirectly() {
       var testElement = document.createElement('div');
       base.ui.decorate(testElement, TestElement);
       assertEquals(1, testElement.decorateCallCount);
-    };
+    }
 </script>
 </body>
 </html>

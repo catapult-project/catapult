@@ -69,7 +69,7 @@ base.exportTo('tracing', function() {
       var prio = parseInt(event[3]);
       this.importer.markPidRunnable(ts, pid, comm, prio);
       return true;
-    },
+    }
   };
 
   LinuxPerfParser.registerSubtype(LinuxPerfSchedParser);

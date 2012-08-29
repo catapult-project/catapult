@@ -284,8 +284,8 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @param {String} The name of the thread to find
-     * @return {Array} An array of all the matched threads
+     * @param {String} The name of the thread to find.
+     * @return {Array} An array of all the matched threads.
      */
     findAllThreadsNamed: function(name) {
       var namedThreads = [];

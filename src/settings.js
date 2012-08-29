@@ -103,20 +103,23 @@ base.exportTo('base', function() {
 
   return {
     Settings: Settings
-  }
+  };
 });
+
+
 
 /**
  * Create a Fake localStorage object which just stores to a dictionary
  * instead of actually saving into localStorage. Only used in unit tests.
+ * @constructor
  */
 function FakeLocalStorage() {
   return Object.create({}, {
-      key: { value: function(i) {
-        return Object.keys(this).sort()[i];
-      }},
-      length: { get: function() {
-        return Object.keys(this).length;
-      }}
+    key: { value: function(i) {
+      return Object.keys(this).sort()[i];
+    }},
+    length: { get: function() {
+      return Object.keys(this).length;
+    }}
   });
 }

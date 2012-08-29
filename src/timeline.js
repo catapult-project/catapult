@@ -30,7 +30,7 @@ base.require('ui');
 base.exportTo('tracing', function() {
 
   var TimelineSelection = tracing.TimelineSelection;
-  var TimelineViewport = tracing.TimelineViewport;;
+  var TimelineViewport = tracing.TimelineViewport;
 
   /**
    * Renders a TimelineModel into a div element, making one
@@ -139,7 +139,7 @@ base.exportTo('tracing', function() {
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
-          this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+        this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
     },
 
     get numVisibleTracks() {
@@ -203,7 +203,7 @@ base.exportTo('tracing', function() {
         return;
       if (!this.listenToKeys_)
         return;
-      if (document.activeElement.nodeName == "INPUT")
+      if (document.activeElement.nodeName == 'INPUT')
         return;
       var viewWidth = this.firstCanvas.clientWidth;
       var curMouseV, curCenterW;
@@ -254,13 +254,13 @@ base.exportTo('tracing', function() {
     },
 
     onMouseWheel_: function(e) {
-      if(e.altKey) {
+      if (e.altKey) {
         var delta = e.wheelDeltaY / 120;
         var zoomScale = Math.pow(1.5, delta);
         this.zoomBy_(zoomScale);
         e.preventDefault();
       }
-   },
+    },
 
     // Not all keys send a keypress.
     onKeydown_: function(e) {
@@ -350,7 +350,7 @@ base.exportTo('tracing', function() {
             ' ->      : Select next event on current timeline\n';
       } else {
         help += 'General Navigation\n' +
-            ' g/G     : Shows grid at the start/end of the selected task\n' + 
+            ' g/G     : Shows grid at the start/end of the selected task\n' +
             ' <-,^TAB : Select previous event on current timeline\n' +
             ' ->, TAB : Select next event on current timeline\n';
       }
@@ -369,7 +369,7 @@ base.exportTo('tracing', function() {
 
     set selection(selection) {
       if (!(selection instanceof TimelineSelection))
-          throw new Error('Expected TimelineSelection');
+        throw new Error('Expected TimelineSelection');
 
       // Clear old selection.
       var i;
@@ -386,7 +386,7 @@ base.exportTo('tracing', function() {
 
     setSelectionAndMakeVisible: function(selection, zoomAllowed) {
       if (!(selection instanceof TimelineSelection))
-          throw new Error('Expected TimelineSelection');
+        throw new Error('Expected TimelineSelection');
       this.selection = selection;
       var range = this.selection.range;
       var size = this.viewport_.xWorldVectorToView(range.max - range.min);
@@ -472,7 +472,7 @@ base.exportTo('tracing', function() {
     },
 
     onMouseDown_: function(e) {
-      if(e.shiftKey) {
+      if (e.shiftKey) {
         this.viewportTrack_.placeAndBeginDraggingMarker(e.clientX);
         return;
       }
@@ -576,6 +576,6 @@ base.exportTo('tracing', function() {
   base.defineProperty(Timeline, 'model', base.PropertyKind.JS);
 
   return {
-    Timeline: Timeline,
+    Timeline: Timeline
   };
 });

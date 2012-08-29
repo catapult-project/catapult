@@ -58,7 +58,8 @@ found in the LICENSE file.
     assertEquals(t1.slices[0], selection[0].slice);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsInRangeToSelection(1.5, 1.8, clientRect.top + 5, clientRect.top + 7, selection);
+    track.addIntersectingItemsInRangeToSelection(
+        1.5, 1.8, clientRect.top + 5, clientRect.top + 7, selection);
     assertEquals(t1.slices[0], selection[0].slice);
   }
 

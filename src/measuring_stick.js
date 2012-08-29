@@ -34,11 +34,11 @@ base.exportTo('tracing', function() {
     attach: function() {
       var iframe = document.createElement('iframe');
       iframe.style.cssText =
-        'width:100%;height:0;border:0;visibility:hidden';
+          'width:100%;height:0;border:0;visibility:hidden';
       document.body.appendChild(iframe);
       this.iframe_ = iframe;
       this.iframe_.contentDocument.body.style.cssText =
-        'padding:0;margin:0;overflow:hidden';
+          'padding:0;margin:0;overflow:hidden';
 
       var stylesheets = document.querySelectorAll('link[rel=stylesheet]');
       for (var i = 0; i < stylesheets.length; i++) {

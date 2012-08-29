@@ -46,7 +46,7 @@ function testi915Import() {
     '          chrome-1539  [000] 18422.955660: i915_gem_ring_dispatch: ' +
                'dev=0, ring=1, seqno=1178364',
     '          chrome-1539  [000] 18420.677772: i915_reg_rw: ' +
-               'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)',
+               'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)'
   ];
   var m = new tracing.TimelineModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);

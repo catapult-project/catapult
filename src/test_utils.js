@@ -58,7 +58,7 @@ base.exportTo('test_utils', function() {
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)
         return slices[i];
-    return undefined;
+      return undefined;
   }
 
   return {

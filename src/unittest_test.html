@@ -22,55 +22,41 @@ found in the LICENSE file.
 var TestCase = unittest.TestCase;
 var HTMLTestRunner = unittest.HTMLTestRunner;
 
-/**
- * Bootstrap truth assertion for testing the test harness.
- */
 function rawAssertTrue(a) {
   if (a) return;
   throw new Error('Expected true, got ' + a);
 }
 
-/**
- * Bootstrap truth assertion for testing the test harness.
- */
 function rawAssertFalse(a) {
   if (!a) return;
   throw new Error('Expected true, got ' + a);
 }
 
-/**
- * Bootstrap quality assertion for testing the test harness.
- */
 function rawAssertEquals(a, b) {
   if (a == b) return;
   throw new Error('Expected <' + a + '>, got <' + b + '>');
 }
 
-/**
- * Bootstrap quality assertion for testing the test harness.
- */
 function rawAssertThrows(fn) {
   try {
     fn();
-  } catch(e) {
+  } catch (e) {
     return;
   }
   throw new Error('Expected <' + fn + '> to throw');
 }
 
-/**
- * Bootstrap quality assertion for testing the test harness.
- */
 function rawAssertNotThrows(fn) {
   try {
     fn();
-  } catch(e) {
+  } catch (e) {
     throw new Error('Expected <' + fn + '> to not throw');
   }
 }
 
 /**
- * Runs all methods in the window that start with test_
+ * Runs all methods in the window that start with test_.
+ * @return {undefined} Nothing.
  */
 function runAllTests() {
   var testMethodNames = [];
@@ -91,7 +77,7 @@ function runAllTests() {
     var testMethod = tests[testMethodName];
     var testCaseEl = unittest.createTestCaseDiv_(testMethodName);
     resultsEl.appendChild(testCaseEl);
-    testCaseEl.status = 'RUNNING'
+    testCaseEl.status = 'RUNNING';
 
     var testStub = {
       get testName() {
@@ -105,9 +91,9 @@ function runAllTests() {
 
     try {
       testMethod.call(testStub);
-      testCaseEl.status = 'PASSED'
-    } catch(e) {
-      testCaseEl.status = 'FAILED'
+      testCaseEl.status = 'PASSED';
+    } catch (e) {
+      testCaseEl.status = 'FAILED';
       e.testName = testMethodName;
       testCaseEl.addError(testStub, e);
       numFailures += 1;
@@ -125,7 +111,7 @@ function runAllTests() {
         get numTestsWithErrors() {
           return numFailures;
         }
-      }
+      };
     },
 
     get done() {
@@ -169,14 +155,14 @@ FakeResults.prototype = {
   didRunTest: function(test) {
     this.didDidRunTest = true;
     this.didRunTestArg1 = test;
-  },
+  }
 };
 
 function testTestCaseRun() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
-  }, "test_testcase_run");
+  }, 'test_testcase_run');
   var results = new FakeResults();
   test.run(results);
 
@@ -200,7 +186,7 @@ function testTestCaseRun_TestThatFails() {
   var test = new FakeTest(function() {
     didRunTestMethod = true;
     assertTrue(false);
-  }, "test_testcase_run_test_that_fails");
+  }, 'test_testcase_run_test_that_fails');
   var results = new FakeResults();
   test.run(results);
 
@@ -223,7 +209,7 @@ function testObjectThatHasErrorInSetUp() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
-  }, "test_object_that_has_error_in_setUp");
+  }, 'test_object_that_has_error_in_setUp');
   test.setUp = function() {
     throw Error('Intentional setUp error');
   };
@@ -249,7 +235,7 @@ function testObjectThatThrowsInCleanup() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
-  }, "test_object_that_throws_in_cleanup");
+  }, 'test_object_that_throws_in_cleanup');
   test.setUp = function() {
     throw Error('Intentional setUp error');
   };
@@ -279,7 +265,7 @@ function testAssertTrue() {
     rawAssertNotThrows(function() {
       assertTrue(true);
     });
-  }, "test_assert_true");
+  }, 'test_assert_true');
   var results = new FakeResults();
   test.run(results);
 }
@@ -292,10 +278,10 @@ function testAssertThrows() {
     });
     rawAssertNotThrows(function() {
       assertThrows(function() {
-        throw new Error("expected_error");
+        throw new Error('expected_error');
       });
     });
-  }, "test_assert_throws");
+  }, 'test_assert_throws');
   var results = new FakeResults();
   test.run(results);
 }
@@ -304,10 +290,10 @@ function testTestRunnerAllPassed() {
   var runner = new HTMLTestRunner('foo');
   var test1 = new TestCase(function() {
     assertTrue(true);
-  }, "test1");
+  }, 'test1');
   var test2 = new TestCase(function() {
     assertTrue(true);
-  }, "test2");
+  }, 'test2');
 
   var testRunnerEl = this.addHTMLOutput('Hypothetical result');
   testRunnerEl.appendChild(runner);
@@ -325,7 +311,7 @@ function testTestErrorConstruction() {
   rawAssertTrue(err instanceof Error);
   rawAssertTrue(err.stack);
 
-  var err = new unittest.TestError("foo");
+  var err = new unittest.TestError('foo');
   rawAssertTrue(err instanceof unittest.TestError);
   rawAssertTrue(err instanceof Error);
   rawAssertTrue(err.stack);
@@ -333,13 +319,13 @@ function testTestErrorConstruction() {
 }
 
 function testTestRunnerOneFailed() {
-  var runner = new HTMLTestRunner('foo', "");
+  var runner = new HTMLTestRunner('foo', '');
   var test1 = new TestCase(function() {
     assertTrue(true);
-  }, "test1");
+  }, 'test1');
   var test2 = new TestCase(function() {
     assertTrue(false);
-  }, "test2");
+  }, 'test2');
 
   var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
   testRunnerEl.appendChild(runner);
@@ -352,14 +338,14 @@ function testTestRunnerOneFailed() {
 }
 
 function testTestRunnerOneFailedWithHashFilter() {
-  var runner = new HTMLTestRunner('foo', "#test2");
+  var runner = new HTMLTestRunner('foo', '#test2');
 
   var test1 = new TestCase(function() {
     assertTrue(true);
-  }, "test1");
+  }, 'test1');
   var test2 = new TestCase(function() {
     assertTrue(false);
-  }, "test2");
+  }, 'test2');
 
   var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
   testRunnerEl.appendChild(runner);
@@ -380,11 +366,11 @@ function testTestDiscovery() {
     notATest: function() {
     },
     alsoNotATest: 3
-  }
+  };
   var tests = unittest.discoverTests(object, undefined);
   rawAssertEquals(2, tests.length);
-  rawAssertEquals("test1", tests[0].testName);
-  rawAssertEquals("test_2", tests[1].testName);
+  rawAssertEquals('test1', tests[0].testName);
+  rawAssertEquals('test_2', tests[1].testName);
 }
 
 function testTestRunnerFilter() {
@@ -393,10 +379,10 @@ function testTestRunnerFilter() {
     },
     test_2: function() {
     }
-  }
+  };
   var tests = unittest.discoverTests(object, /test_2/);
   rawAssertEquals(1, tests.length);
-  rawAssertEquals("test_2", tests[0].testName);
+  rawAssertEquals('test_2', tests[0].testName);
 }
 
 </script>

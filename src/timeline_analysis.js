@@ -59,7 +59,7 @@ base.exportTo('tracing', function() {
 
     /**
      * Adds a table with the given className.
-     * @return The newly created table.
+     * @return {HTMLTableElement} The newly created table.
      */
     appendTable: function(className, numColumns) {
       var table = this.appendElement_(this, 'table');
@@ -92,10 +92,10 @@ base.exportTo('tracing', function() {
       if (opt_text !== undefined) {
         this.appendTableCell_(table, row, 1, opt_text);
         for (var i = 2; i < table.numColumns; i++)
-          this.appendTableCell_(table, row, i, "");
+          this.appendTableCell_(table, row, i, '');
       } else {
         for (var i = 1; i < table.numColumns; i++)
-          this.appendTableCell_(table, row, 1, "");
+          this.appendTableCell_(table, row, 1, '');
       }
     },
 
@@ -106,7 +106,7 @@ base.exportTo('tracing', function() {
       var row = this.appendElement_(table, 'tr');
       row.className = 'timeline-analysis-table-row';
       for (var i = 0; i < table.numColumns; i++)
-        this.appendTableCell_(table, row, i, " ");
+        this.appendTableCell_(table, row, i, ' ');
     },
 
     /**
@@ -123,8 +123,8 @@ base.exportTo('tracing', function() {
      * or one or more counters.
      * The row has a left-aligned |label| in the first column, the |duration|
      * of the data in the second, the number of |occurrences| in the third.
-     * @param opt_statistics May be undefined, or an object which contains
-     * calculated staistics containing min/max/avg for slices, or
+     * @param {object} opt_statistics May be undefined, or an object which
+     * contains calculated staistics containing min/max/avg for slices, or
      * min/max/avg/start/end for counters.
      */
     appendDataRow: function(
@@ -173,17 +173,15 @@ base.exportTo('tracing', function() {
       } else {
         this.appendTableCell_(table, row, 2, '');
       }
-    },
+    }
   };
 
   /**
    * Analyzes the selection, outputting the analysis results into the provided
    * results object.
    *
-   * @param results Where the analysis is placed. Should be an AnalysisResults
-   * object or something with compatible methods.
-   *
-   * @param selection The TimelineSelection to analyze.
+   * @param {AnalysisResults} results Where the analysis is placed.
+   * @param {TimelineSelection} selection What to analyze.
    */
   function analyzeSelection(results, selection) {
 
@@ -259,7 +257,7 @@ base.exportTo('tracing', function() {
           startOfFirstOccurrence = Math.min(sliceGroup.slices[i].start,
                                             startOfFirstOccurrence);
           startOfLastOccurrence = Math.max(sliceGroup.slices[i].start,
-                                            startOfLastOccurrence);
+              startOfLastOccurrence);
           min = Math.min(sliceGroup.slices[i].duration, min);
           max = Math.max(sliceGroup.slices[i].duration, max);
         }
@@ -271,10 +269,10 @@ base.exportTo('tracing', function() {
         avg = duration / sliceGroup.slices.length;
 
         var details = {min: min,
-                       max: max,
-                       avg: avg,
-                       frequency: undefined,
-                       frequency_stddev: undefined};
+          max: max,
+          avg: avg,
+          frequency: undefined,
+          frequency_stddev: undefined};
 
         // We require at least 3 samples to compute the stddev.
         var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
@@ -286,7 +284,7 @@ base.exportTo('tracing', function() {
           var sumOfSquaredDistancesToMean = 0;
           for (var i = 1; i < sliceGroup.slices.length; i++) {
             var currentFrequency = 1000 /
-                (sliceGroup.slices[i].start - sliceGroup.slices[i-1].start);
+                (sliceGroup.slices[i].start - sliceGroup.slices[i - 1].start);
             var signedDistance = details.frequency - currentFrequency;
             sumOfSquaredDistancesToMean += signedDistance * signedDistance;
           }
@@ -367,6 +365,6 @@ base.exportTo('tracing', function() {
 
   return {
     TimelineAnalysisView: TimelineAnalysisView,
-    analyzeSelection_: analyzeSelection,
+    analyzeSelection_: analyzeSelection
   };
 });

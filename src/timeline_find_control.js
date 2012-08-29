@@ -152,7 +152,7 @@ base.exportTo('tracing', function() {
           var filter = new tracing.TimelineTitleFilter(this.filterText);
           this.filterHits_.clear();
           this.timeline.addAllObjectsMatchingFilterToSelection(
-            filter, this.filterHits_);
+              filter, this.filterHits_);
           this.currentHitIndex_ = this.filterHits_.length - 1;
         } else {
           this.filterHits_.clear();
@@ -199,6 +199,6 @@ base.exportTo('tracing', function() {
 
   return {
     TimelineFindControl: TimelineFindControl,
-    TimelineFindController: TimelineFindController,
+    TimelineFindController: TimelineFindController
   };
 });

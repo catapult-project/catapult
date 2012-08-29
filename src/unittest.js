@@ -62,13 +62,14 @@ base.exportTo('unittest', function() {
     el.className = 'unittest-error';
 
     var stackEl = document.createElement('test-case-stack');
-    if (typeof e == "string") {
+    if (typeof e == 'string') {
       stackEl.textContent = e;
-    } else if (e.stack){
+    } else if (e.stack) {
       var i = document.location.pathname.lastIndexOf('/');
-      var path = document.location.origin + document.location.pathname.substring(0, i);
+      var path = document.location.origin +
+          document.location.pathname.substring(0, i);
       var pathEscaped = path.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-      var cleanStack = e.stack.replace(new RegExp(pathEscaped, 'g'), ".");
+      var cleanStack = e.stack.replace(new RegExp(pathEscaped, 'g'), '.');
       stackEl.textContent = cleanStack;
     } else {
       stackEl.textContent = e;
@@ -211,7 +212,7 @@ base.exportTo('unittest', function() {
     willRunTest: function(test) {
       this.currentTest_ = test;
       this.currentResults_ = {testName: test.testName,
-                              errors: []};
+        errors: []};
       this.results.push(this.currentResults_);
 
       this.currentTestCaseEl_ = createTestCaseDiv(test.testName);
@@ -221,9 +222,10 @@ base.exportTo('unittest', function() {
 
     /**
      * Adds some html content to the currently running test
-     * @param {String} opt_title The title for the output
-     * @param {HTMLElement} opt_element The element to add. If not added, then 
-     * @return {HTMLElement} The element added, or if !opt_element, the element created.
+     * @param {String} opt_title The title for the output.
+     * @param {HTMLElement} opt_element The element to add. If not added, then.
+     * @return {HTMLElement} The element added, or if !opt_element, the element
+     * created.
      */
     addHTMLOutput: function(opt_title, opt_element) {
       return this.currentTestCaseEl_.addHTMLOutput(opt_title, opt_element);
@@ -242,7 +244,7 @@ base.exportTo('unittest', function() {
 
       this.currentResults_ = undefined;
       this.currentTest_ = undefined;
-    },
+    }
   };
 
   function TestError(opt_message) {
@@ -262,8 +264,9 @@ base.exportTo('unittest', function() {
   function TestCase(testMethod, opt_testMethodName) {
     if (!testMethod)
       throw new Error('testMethod must be provided');
-    if (testMethod.name == ""  && !opt_testMethodName)
-      throw new Error('testMethod must have a name, or opt_testMethodName must be provided.');
+    if (testMethod.name == '' && !opt_testMethodName)
+      throw new Error('testMethod must have a name, ' +
+                      'or opt_testMethodName must be provided.');
 
     this.testMethod_ = testMethod;
     this.testMethodName_ = opt_testMethodName || testMethod.name;
@@ -278,7 +281,7 @@ base.exportTo('unittest', function() {
       var fieldValue = prototype[fieldName];
       if (typeof fieldValue != 'function')
         continue;
-      fn(fieldName,fieldValue);
+      fn(fieldName, fieldValue);
     }
   }
 
@@ -290,22 +293,25 @@ base.exportTo('unittest', function() {
     },
 
     bindGlobals_: function() {
-      forAllAssertAndEnsureMethodsIn_(TestCase.prototype, function(fieldName, fieldValue) {
-        global[fieldName] = fieldValue.bind(this);
-      });
+      forAllAssertAndEnsureMethodsIn_(TestCase.prototype,
+          function(fieldName, fieldValue) {
+            global[fieldName] = fieldValue.bind(this);
+          });
     },
 
     unbindGlobals_: function() {
-      forAllAssertAndEnsureMethodsIn_(TestCase.prototype, function(fieldName, fieldValue) {
-        delete global[fieldName];
-      });
+      forAllAssertAndEnsureMethodsIn_(TestCase.prototype,
+          function(fieldName, fieldValue) {
+            delete global[fieldName];
+          });
     },
 
     /**
      * Adds some html content to the currently running test
-     * @param {String} opt_title The title for the output
-     * @param {HTMLElement} opt_element The element to add. If not added, then 
-     * @return {HTMLElement} The element added, or if !opt_element, the element created.
+     * @param {String} opt_title The title for the output.
+     * @param {HTMLElement} opt_element The element to add. If not added, then.
+     * @return {HTMLElement} The element added, or if !opt_element, the element
+     * created.
      */
     addHTMLOutput: function(opt_title, opt_element) {
       return this.results_.addHTMLOutput(opt_title, opt_element);
@@ -405,7 +411,7 @@ base.exportTo('unittest', function() {
     assertThrows: function(fn, opt_message) {
       try {
         fn();
-      } catch(e) {
+      } catch (e) {
         return;
       }
       var message = opt_message || 'Expected throw from ' + fn;
@@ -424,7 +430,7 @@ base.exportTo('unittest', function() {
         // Set up.
         try {
           this.setUp();
-        } catch(e) {
+        } catch (e) {
           results.addError(e);
           return;
         }
@@ -432,15 +438,15 @@ base.exportTo('unittest', function() {
         // Run.
         try {
           this.testMethod_();
-        } catch(e) {
+        } catch (e) {
           results.addError(e);
         }
 
         // Tear down.
         try {
           this.tearDown();
-        } catch(e) {
-          if (typeof e == "string")
+        } catch (e) {
+          if (typeof e == 'string')
             e = new TestError(e);
           results.addError(e);
         }
@@ -452,7 +458,7 @@ base.exportTo('unittest', function() {
     },
 
     tearDown: function() {
-    },
+    }
 
   };
 
@@ -536,6 +542,6 @@ base.exportTo('unittest', function() {
     discoverTests: discoverTests,
     runAllTests: runAllTests,
     createErrorDiv_: createErrorDiv,
-    createTestCaseDiv_: createTestCaseDiv,
+    createTestCaseDiv_: createTestCaseDiv
   };
 });

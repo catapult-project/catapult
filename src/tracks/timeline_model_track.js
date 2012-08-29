@@ -104,6 +104,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineModelTrack: TimelineModelTrack,
-  }
+    TimelineModelTrack: TimelineModelTrack
+  };
 });

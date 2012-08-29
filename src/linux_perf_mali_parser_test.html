@@ -99,7 +99,7 @@ function testMaliDDKImport() {
     // Row 1 close
     '           chrome-1780  [001] ...1   28.563486: tracing_mark_write: ' +
                 'mali_driver: cros_trace_print_exit: ' +
-                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992',
+                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992'
   ];
   var m = new tracing.TimelineModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);

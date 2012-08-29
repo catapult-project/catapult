@@ -180,11 +180,11 @@ base.exportTo('tracing', function() {
 
       tc.addEventListener('loadTraceFileComplete', response);
       tc.addEventListener('loadTraceFileCanceled', response);
-    },
+    }
   };
 
   base.defineProperty(ProfilingView, 'tracingController', base.PropertyKind.JS,
-                    ProfilingView.prototype.didSetTracingController_);
+      ProfilingView.prototype.didSetTracingController_);
 
   return {
     ProfilingView: ProfilingView

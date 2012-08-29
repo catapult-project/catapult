@@ -135,7 +135,7 @@ base.exportTo('tracks', function() {
         ops.push(i);
       }
 
-      ops.sort(function(ix,iy) {
+      ops.sort(function(ix, iy) {
         var x = slices[ix];
         var y = slices[iy];
         if (x.start != y.start)
@@ -162,7 +162,7 @@ base.exportTo('tracks', function() {
             inserted = true;
           }
           if (slice.start >= insertedSlice.start &&
-              slice.end   <= insertedSlice.end) {
+              slice.end <= insertedSlice.end) {
             // Insert it into subRow j + 1.
             while (subRows.length <= j + 1)
               subRows.push([]);
@@ -199,6 +199,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineSliceGroupTrack: TimelineSliceGroupTrack,
-  }
+    TimelineSliceGroupTrack: TimelineSliceGroupTrack
+  };
 });

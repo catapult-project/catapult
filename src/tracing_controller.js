@@ -108,8 +108,8 @@ base.exportTo('tracing', function() {
       this.sendFn_(
           'beginTracing',
           [
-              opt_systemTracingEnabled || false,
-              opt_trace_categories || "-test_*"
+           opt_systemTracingEnabled || false,
+           opt_trace_categories || '-test_*'
           ]
       );
       this.beginRequestBufferPercentFull_();

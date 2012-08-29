@@ -304,8 +304,8 @@ base.exportTo('tracing', function() {
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             slices.push(new tracing.TimelineSlice(
-              '', 'Uninterruptible Sleep', ioWaitId,
-              prevSlice.end, {}, midDuration));
+                '', 'Uninterruptible Sleep', ioWaitId,
+                prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
             slices.push(new tracing.TimelineSlice('', '__TASK_STOPPED',
                 ioWaitId, prevSlice.end, {}, midDuration));
@@ -326,8 +326,8 @@ base.exportTo('tracing', function() {
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             slices.push(new tracing.TimelineSlice(
-              '', 'Uninterruptable Sleep | WakeKill', ioWaitId,
-              prevSlice.end, {}, midDuration));
+                '', 'Uninterruptable Sleep | WakeKill', ioWaitId,
+                prevSlice.end, {}, midDuration));
           } else {
             throw new Error('Unrecognized state: ') +
                 prevSlice.args.stateWhenDescheduled;

@@ -86,7 +86,7 @@ base.exportTo('tracing', function() {
   }
 
   LinuxPerfParser.prototype = {
-    __proto__: Object.prototype,
+    __proto__: Object.prototype
   };
 
   return {

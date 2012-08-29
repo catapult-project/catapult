@@ -26,32 +26,32 @@ found in the LICENSE file.
   function testBasicBeginEnd() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
-    var sliceA = group.beginSlice("", "a", 1, {a:1});
+    var sliceA = group.beginSlice('', 'a', 1, {a: 1});
     assertEquals(1, group.openSliceCount);
-    assertEquals("a", sliceA.title);
+    assertEquals('a', sliceA.title);
     assertEquals(1, sliceA.start);
     assertEquals(1, sliceA.args.a);
 
     var sliceB = group.endSlice(3);
     assertEquals(sliceA, sliceB);
     assertEquals(2, sliceB.duration);
-  };
+  }
 
   function testNestedBeginEnd() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
-    group.beginSlice("", "a", 1);
-    group.beginSlice("", "b", 2);
+    group.beginSlice('', 'a', 1);
+    group.beginSlice('', 'b', 2);
     group.endSlice(2.5);
     group.endSlice(3);
 
     assertEquals(2, group.slices.length);
-    assertEquals("b", group.slices[0].title);
+    assertEquals('b', group.slices[0].title);
     assertEquals(0.5, group.slices[0].duration);
 
-    assertEquals("a", group.slices[1].title);
+    assertEquals('a', group.slices[1].title);
     assertEquals(2, group.slices[1].duration);
-  };
+  }
 
   function testBounds() {
     var group = new TimelineSliceGroup();
@@ -100,10 +100,10 @@ found in the LICENSE file.
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
 
-    group.pushSlice(newSliceNamed("a", 1, 0.5));
+    group.pushSlice(newSliceNamed('a', 1, 0.5));
 
-    group.beginSlice("", "b", 2);
-    group.beginSlice("", "c", 2.5);
+    group.beginSlice('', 'b', 2);
+    group.beginSlice('', 'c', 2.5);
     group.endSlice(3);
 
     group.autoCloseOpenSlices();
@@ -112,9 +112,9 @@ found in the LICENSE file.
     assertEquals(1, group.minTimestamp);
     assertEquals(3, group.maxTimestamp);
     assertEquals(3, group.slices.length);
-    assertEquals("a", group.slices[0].title);
-    assertEquals("c", group.slices[1].title);
-    assertEquals("b", group.slices[2].title);
+    assertEquals('a', group.slices[0].title);
+    assertEquals('c', group.slices[1].title);
+    assertEquals('b', group.slices[2].title);
     assertTrue(group.slices[2].didNotFinish);
     assertEquals(1, group.slices[2].duration);
   }
@@ -123,20 +123,20 @@ found in the LICENSE file.
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
 
-    group.beginSlice("", "a", 1);
-    group.beginSlice("", "b1", 2);
+    group.beginSlice('', 'a', 1);
+    group.beginSlice('', 'b1', 2);
     group.endSlice(3);
-    group.beginSlice("", "b2", 3);
+    group.beginSlice('', 'b2', 3);
 
     group.autoCloseOpenSlices();
     assertEquals(3, group.slices.length);
-    assertEquals("b1", group.slices[0].title);
+    assertEquals('b1', group.slices[0].title);
 
-    assertEquals("b2", group.slices[1].title);
+    assertEquals('b2', group.slices[1].title);
     assertTrue(group.slices[1].didNotFinish);
     assertEquals(0, group.slices[1].duration);
 
-    assertEquals("a", group.slices[2].title);
+    assertEquals('a', group.slices[2].title);
     assertTrue(group.slices[2].didNotFinish);
     assertEquals(2, group.slices[2].duration);
   }

@@ -84,6 +84,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineCpuTrack: TimelineCpuTrack,
-  }
+    TimelineCpuTrack: TimelineCpuTrack
+  };
 });

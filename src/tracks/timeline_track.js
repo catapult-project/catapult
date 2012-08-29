@@ -64,6 +64,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineTrack: TimelineTrack,
+    TimelineTrack: TimelineTrack
   };
 });

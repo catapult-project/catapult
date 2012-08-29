@@ -169,6 +169,6 @@ base.exportTo('base.ui', function() {
     decorate: decorate,
     define: define,
     limitInputWidth: limitInputWidth,
-    toCssPx: toCssPx,
+    toCssPx: toCssPx
   };
 });

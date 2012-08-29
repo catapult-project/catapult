@@ -55,7 +55,7 @@ found in the LICENSE file.
 
   function testThreadBounds_Cpu() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
-    t.cpuSlices = [newSliceNamed("x", 0, 1)];
+    t.cpuSlices = [newSliceNamed('x', 0, 1)];
     t.updateBounds();
     assertEquals(0, t.minTimestamp);
     assertEquals(1, t.maxTimestamp);
@@ -65,7 +65,7 @@ found in the LICENSE file.
     var t = new TimelineThread(new TimelineProcess(7), 1);
     t.pushSlice(new TimelineThreadSlice('', 'a', 0, 0, {}, 3));
     t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
-    t.cpuSlices = [newSliceNamed("x", 0, 1)];
+    t.cpuSlices = [newSliceNamed('x', 0, 1)];
 
     var shiftCount = 0;
     t.asyncSlices.shiftTimestampsForward = function(ts) {

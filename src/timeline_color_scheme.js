@@ -152,5 +152,5 @@ base.exportTo('tracing', function() {
     getColorIdByName: getColorIdByName,
     getStringHash: getStringHash,
     getStringColorId: getStringColorId
-  }
+  };
 });

@@ -75,6 +75,6 @@ base.exportTo('tracing', function() {
 
 
   return {
-    TimelineCpu: TimelineCpu,
-  }
+    TimelineCpu: TimelineCpu
+  };
 });

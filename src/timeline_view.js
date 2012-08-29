@@ -68,7 +68,7 @@ base.exportTo('tracing', function() {
       this.importErrorsButton_ = this.createImportErrorsButton_();
       this.categoryFilterButton_ = this.createCategoryFilterButton_();
       this.categoryFilterButton_.callback =
-        this.updateCategoryFilterFromSettings_.bind(this);
+          this.updateCategoryFilterFromSettings_.bind(this);
       this.metadataButton_ = this.createMetadataButton_();
 
       // Connect everything up.
@@ -119,7 +119,7 @@ base.exportTo('tracing', function() {
       var that = this;
       function onClick() {
         dlg.visible = true;
-        textEl.textContent = that.model.importErrors.join("\n");
+        textEl.textContent = that.model.importErrors.join('\n');
       }
       showEl.addEventListener('click', onClick.bind(this));
 
@@ -233,9 +233,9 @@ base.exportTo('tracing', function() {
         var model = that.model;
         for (var data in model.metadata) {
           metadataStrings.push(JSON.stringify(model.metadata[data].name) +
-            ": " + JSON.stringify(model.metadata[data].value));
+              ': ' + JSON.stringify(model.metadata[data].value));
         }
-        textEl.textContent = metadataStrings.join("\n");
+        textEl.textContent = metadataStrings.join('\n');
       }
       showEl.addEventListener('click', onClick.bind(this));
 
@@ -262,7 +262,7 @@ base.exportTo('tracing', function() {
 
     get title() {
       return this.titleEl_.textContent.substring(
-        this.titleEl_.textContent.length - 2);
+          this.titleEl_.textContent.length - 2);
     },
 
     set title(text) {
@@ -404,8 +404,8 @@ base.exportTo('tracing', function() {
       var oldScrollTop = this.timelineContainer_.scrollTop;
 
       var selection = this.timeline_ ?
-        this.timeline_.selection :
-        new tracing.TimelineSelection();
+          this.timeline_.selection :
+          new tracing.TimelineSelection();
       this.analysisEl_.selection = selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
     },

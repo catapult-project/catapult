@@ -61,7 +61,7 @@ function testBasicSingleThreadNonnestedParsing() {
 function testArgumentDupeCreatesNonFailingImportError() {
   var events = [
     {name: 'a', args: {'x': 1}, pid: 1, ts: 520, cat: 'foo', tid: 1, ph: 'B'},
-    {name: 'a', args: {'x': 2}, pid: 1, ts: 560, cat: 'foo', tid: 1, ph: 'E'},
+    {name: 'a', args: {'x': 2}, pid: 1, ts: 560, cat: 'foo', tid: 1, ph: 'E'}
   ];
 
   var m = new tracing.TimelineModel(events);
@@ -75,7 +75,7 @@ function testArgumentDupeCreatesNonFailingImportError() {
 function testCategoryBeginEndMismatchPrefersBegin() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
-    {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'},
+    {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'}
   ];
 
   var m = new tracing.TimelineModel(events);
@@ -625,7 +625,7 @@ function testStartFinishOneSliceOneThread() {
 function testEndArgsAddedToSlice() {
   var events = [
     {name: 'a', args: {x: 1}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
-    {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+    {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
   var m = new tracing.TimelineModel(events);
@@ -722,7 +722,7 @@ function testAsyncStepsInOneThread() {
     {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
        ph: 'F', id: 72},
     {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53,
-       ph: 'T', id: 72, },
+       ph: 'T', id: 72},
     {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
        ph: 'S', id: 72}
   ];
@@ -760,7 +760,7 @@ function testAsyncStepsMissingStart() {
     {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
        ph: 'F', id: 72},
     {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53,
-       ph: 'T', id: 72, },
+       ph: 'T', id: 72}
   ];
 
   var m = new tracing.TimelineModel(events);
@@ -772,9 +772,9 @@ function testAsyncStepsMissingFinish() {
   var events = [
     // Time is intentionally out of order.
     {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53,
-       ph: 'T', id: 72, },
+       ph: 'T', id: 72},
     {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-       ph: 'S', id: 72},
+       ph: 'S', id: 72}
   ];
 
   var m = new tracing.TimelineModel(events);

@@ -81,6 +81,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineAsyncSliceGroupTrack: TimelineAsyncSliceGroupTrack,
-  }
+    TimelineAsyncSliceGroupTrack: TimelineAsyncSliceGroupTrack
+  };
 });

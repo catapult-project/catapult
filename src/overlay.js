@@ -198,7 +198,7 @@ base.exportTo('tracing', function() {
       if (!this.autoClose)
         return;
 
-      for( var i = 0; i < this.additionalCloseKeyCodes.length; i++) {
+      for (var i = 0; i < this.additionalCloseKeyCodes.length; i++) {
         if (e.keyCode == this.additionalCloseKeyCodes[i]) {
           this.visible = false;
           e.preventDefault();
@@ -209,8 +209,8 @@ base.exportTo('tracing', function() {
 
     onDocumentClick: function(e) {
       var target = e.target;
-      while(target !== null) {
-        if(target === this)
+      while (target !== null) {
+        if (target === this)
           return;
         target = target.parentNode;
       }

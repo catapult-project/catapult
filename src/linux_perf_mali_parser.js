@@ -36,7 +36,7 @@ base.exportTo('tracing', function() {
     maliDDKOpenSlice: function(pid, ts, func, blockinfo) {
       var kthread = this.importer.getOrCreateKernelThread('mali_ddk', pid,
                                                           'mali_ddk');
-      kthread.thread.beginSlice(func, '', ts, { 'blockinfo':blockinfo });
+      kthread.thread.beginSlice(func, '', ts, { 'blockinfo': blockinfo });
     },
 
     maliDDKCloseSlice: function(pid, ts, args, blockinfo) {
@@ -65,15 +65,15 @@ base.exportTo('tracing', function() {
      * gles/src/texture/mali_gles_texture_slave.c1505:
      */
     maliDDKEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-        var maliEvent =
-            /^s*(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/.exec(eventBase[2]);
-          switch (maliEvent[1]) {
-            case 'cros_trace_print_enter':
-              this.maliDDKOpenSlice(pid, ts, maliEvent[3], maliEvent[2]);
-              break;
-            case 'cros_trace_print_exit':
-              this.maliDDKCloseSlice(pid, ts, [], maliEvent[2]);
-          }
+      var maliEvent =
+          /^s*(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/.exec(eventBase[2]);
+      switch (maliEvent[1]) {
+        case 'cros_trace_print_enter':
+          this.maliDDKOpenSlice(pid, ts, maliEvent[3], maliEvent[2]);
+          break;
+        case 'cros_trace_print_exit':
+          this.maliDDKCloseSlice(pid, ts, [], maliEvent[2]);
+      }
       return true;
     },
 

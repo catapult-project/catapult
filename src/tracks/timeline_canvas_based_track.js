@@ -48,7 +48,7 @@ base.exportTo('tracks', function() {
         this.viewport_.removeEventListener('change',
                                            this.viewportChangeBoundToThis_);
         this.viewport_.removeEventListener('markersChange',
-                                        this.viewportMarkersChangeBoundToThis_);
+            this.viewportMarkersChangeBoundToThis_);
       }
     },
 
@@ -78,7 +78,7 @@ base.exportTo('tracks', function() {
         this.viewport_.removeEventListener('change',
                                            this.viewportChangeBoundToThis_);
         this.viewport_.removeEventListener('markersChange',
-                                        this.viewportMarkersChangeBoundToThis_);
+            this.viewportMarkersChangeBoundToThis_);
       }
       this.viewport_ = v;
       if (this.viewport_) {
@@ -86,7 +86,7 @@ base.exportTo('tracks', function() {
         this.viewport_.addEventListener('change',
                                         this.viewportChangeBoundToThis_);
         this.viewportMarkersChangeBoundToThis_ =
-                                        this.viewportMarkersChange_.bind(this);
+            this.viewportMarkersChange_.bind(this);
         this.viewport_.addEventListener('markersChange',
                                         this.viewportMarkersChangeBoundToThis_);
       }
@@ -100,10 +100,10 @@ base.exportTo('tracks', function() {
     viewportMarkersChange_: function() {
       if (this.viewport_.markers.length < 2)
         this.classList.remove('timeline-viewport-track-with' +
-                                         '-distance-measurements');
+            '-distance-measurements');
       else
-         this.classList.add('timeline-viewport-track-with' +
-                                           '-distance-measurements');
+        this.classList.add('timeline-viewport-track-with' +
+            '-distance-measurements');
     },
 
     invalidate: function() {
@@ -116,11 +116,11 @@ base.exportTo('tracks', function() {
 
         var style = window.getComputedStyle(this.canvasContainer_);
         var innerWidth = parseInt(style.width) -
-          parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
-          parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth);
+            parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
+            parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth);
         var innerHeight = parseInt(style.height) -
-          parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
-          parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
+            parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
+            parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
         var pixelRatio = window.devicePixelRatio || 1;
         if (this.canvas_.width != innerWidth) {
           this.canvas_.width = innerWidth * pixelRatio;
@@ -142,6 +142,6 @@ base.exportTo('tracks', function() {
   };
 
   return {
-    TimelineCanvasBasedTrack: TimelineCanvasBasedTrack,
-  }
+    TimelineCanvasBasedTrack: TimelineCanvasBasedTrack
+  };
 });

@@ -59,22 +59,25 @@ found in the LICENSE file.
         var args = opt_args || [];
         if (message == 'beginTracing') {
           systemTraceRequested = opt_args[0];
-        } else if(message == 'beginRequestBufferPercentFull') {
+        } else if (message == 'beginRequestBufferPercentFull') {
           setTimeout(function() {
             view.tracingController.onRequestBufferPercentFullComplete(0.5);
           }, 1);
-        } else if(message == 'endTracingAsync') {
+        } else if (message == 'endTracingAsync') {
           setTimeout(function() {
-            if (systemTraceRequested)
-              view.tracingController.onSystemTraceDataCollected(systemTraceTestData);
+            if (systemTraceRequested) {
+              view.tracingController.onSystemTraceDataCollected(
+                  systemTraceTestData);
+            }
             view.tracingController.onTraceDataCollected(testData);
             view.tracingController.onEndTracingComplete();
           }, 1);
-        } else if(message == 'loadTraceFile') {
+        } else if (message == 'loadTraceFile') {
           setTimeout(function() {
-            view.tracingController.onLoadTraceFileComplete(JSON.stringify(testData));
+            view.tracingController.onLoadTraceFileComplete(
+                JSON.stringify(testData));
           }, 150);
-        } else if(message == 'saveTraceFile') {
+        } else if (message == 'saveTraceFile') {
           setTimeout(function() {
             view.tracingController.onSaveTraceFileComplete();
           }, 1);
@@ -104,7 +107,8 @@ found in the LICENSE file.
 
       beginTracing: function(opt_systemTracingEnabled) {
         this.wasBeginTracingCalled = true;
-        this.wasBeginTracingCalledWithSystemTracingEnabled = opt_systemTracingEnabled;
+        this.wasBeginTracingCalledWithSystemTracingEnabled =
+            opt_systemTracingEnabled;
       },
 
       get traceEvents() {
@@ -125,12 +129,12 @@ found in the LICENSE file.
 
     function recordTestCommon() {
       var view = new tracing.ProfilingView();
-      var tracingController = new FakeTracingController()
+      var tracingController = new FakeTracingController();
       view.tracingController = tracingController;
       view.querySelector('button.record').click();
       assertTrue(tracingController.wasBeginTracingCalled);
       assertEquals(base.isChromeOS,
-                   tracingController.wasBeginTracingCalledWithSystemTracingEnabled);
+          tracingController.wasBeginTracingCalledWithSystemTracingEnabled);
 
       var e = new base.Event('traceEnded');
       var didRefresh = false;
