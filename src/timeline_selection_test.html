@@ -8,22 +8,19 @@ found in the LICENSE file.
 <head>
 <title>Timeline selection tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_model');
+  base.require('timeline_selection');
+  base.require('tracks.timeline_slice_track');
+</script>
 </head>
 <body>
 <script>
-'use strict';
+    'use strict';
 
-base.defineModule('timeline_selection_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'tracks.timeline_slice_track',
-               'timeline_model',
-               'timeline_selection')
-    .runAllTests(function() {
-
-    var tests = {};
-
-    tests.testSelectionObject = function() {
+    function testSelectionObject() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -46,7 +43,7 @@ base.defineModule('timeline_selection_test')
       assertEquals(0, sel.length);
     }
 
-    tests.testShiftedSelection = function() {
+    function testShiftedSelection() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -63,9 +60,6 @@ base.defineModule('timeline_selection_test')
       assertEquals(1, shifted.length);
       assertEquals(t1.slices[1], shifted[0].slice);
     }
-
-    return tests;
-});
 </script>
 </body>
 </html>

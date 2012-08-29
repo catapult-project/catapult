@@ -8,10 +8,9 @@
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
-base.defineModule('tracks.timeline_track')
-    .stylesheet('tracks.timeline_track')
-    .dependsOn('ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_track');
+base.require('ui');
+base.exportTo('tracks', function() {
 
   /**
    * The base class for all tracks.

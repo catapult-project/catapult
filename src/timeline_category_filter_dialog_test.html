@@ -10,18 +10,15 @@ found in the LICENSE file.
 <script src="base.js"></script>
 </head>
 <body>
-<script>
-'use strict';
-
-base.defineModule('timeline_find_control_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'settings',
-               'timeline_category_filter_dialog',
-               'timeline_model')
-    .runAllTests(function() {
-
-    var tests = {};
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('settings');
+    base.require('timeline_category_filter_dialog');
+    base.require('timeline_model');
+  </script>
+  <script>
+    'use strict';
 
     var testModel = new tracing.TimelineModel();
     var p1 = testModel.getOrCreateProcess(1);
@@ -35,7 +32,7 @@ base.defineModule('timeline_find_control_test')
 
 
 
-    tests.testCategoryFilterDialog_UpdateForm_NoSettings = function() {
+    function testCategoryFilterDialog_UpdateForm_NoSettings() {
       var settings = new base.Settings();
 
       var dlg = new tracing.TimelineCategoryFilterDialog();
@@ -61,7 +58,7 @@ base.defineModule('timeline_find_control_test')
       assertEquals('three', labels[2].textContent);
     }
 
-    tests.testCategoryFilterDialog_UpdateForm_Settings = function() {
+    function testCategoryFilterDialog_UpdateForm_Settings() {
       var settings = new base.Settings();
       settings.set('one', true, 'categories');
       settings.set('two', false, 'categories');
@@ -89,8 +86,6 @@ base.defineModule('timeline_find_control_test')
       assertEquals('three', labels[2].textContent);
     }
 
-    return tests;
-});
-</script>
+  </script>
 </body>
 </html>

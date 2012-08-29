@@ -5,8 +5,7 @@
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
-base.defineModule('test_utils')
-    .exportsTo('test_utils', function() {
+base.exportTo('test_utils', function() {
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
     req.open('GET', url, true);

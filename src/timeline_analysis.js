@@ -8,10 +8,9 @@
  * @fileoverview TimelineAnalysis summarizes info about the selected slices
  * to the analysis panel.
  */
-base.defineModule('timeline_analysis')
-    .dependsOn('ui')
-    .stylesheet('timeline_analysis')
-    .exportsTo('tracing', function() {
+base.require('ui');
+base.requireStylesheet('timeline_analysis');
+base.exportTo('tracing', function() {
 
   var AnalysisResults = base.ui.define('div');
 

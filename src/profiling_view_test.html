@@ -15,17 +15,14 @@ found in the LICENSE file.
 </style>
 </head>
 <body>
-<script>
-'use strict';
-
-base.defineModule('profiling_view_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'profiling_view',
-               'tracing_controller')
-    .runAllTests(function() {
-
-    var tests = {};
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('profiling_view');
+    base.require('tracing_controller');
+  </script>
+  <script>
+    'use strict';
 
     var testData = [
       {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
@@ -51,7 +48,7 @@ base.defineModule('profiling_view_test')
     /* This test just instantiates a ProflingView and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    tests.testInstantiate = function() {
+    function testInstantiate() {
       var view = new tracing.ProfilingView();
       var tracingController;
 
@@ -142,7 +139,7 @@ base.defineModule('profiling_view_test')
       assertTrue(!!view.timelineView.model);
     }
 
-    tests.testRecordNonCros = function() {
+    function testRecordNonCros() {
       var old = base.isChromeOS;
       base.isChromeOS = false;
       try {
@@ -152,7 +149,7 @@ base.defineModule('profiling_view_test')
       }
     }
 
-    tests.testRecordCros = function() {
+    function testRecordCros() {
       var old = base.isChromeOS;
       base.isChromeOS = true;
       try {
@@ -161,8 +158,6 @@ base.defineModule('profiling_view_test')
         base.isChromeOS = old;
       }
     }
-    return tests;
-});
   </script>
 </body>
 </html>

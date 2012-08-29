@@ -8,20 +8,18 @@ found in the LICENSE file.
 <head>
 <title>TimelineCounter tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_counter');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_counter_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_counter')
-    .runAllTests(function() {
+  'use strict';
 
   var TimelineCounter = tracing.TimelineCounter;
 
-  var tests = {};
 
 
 
@@ -34,7 +32,7 @@ base.defineModule('timeline_counter_test')
     return ctr;
   }
 
-  tests.testGetSampleStatisticsWithSingleSelection = function() {
+  function testGetSampleStatisticsWithSingleSelection() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0]);
 
@@ -51,7 +49,7 @@ base.defineModule('timeline_counter_test')
     assertEquals(10, ret[1].end);
   }
 
-  tests.testGetSampleStatisticsWithMultipleSelections = function() {
+  function testGetSampleStatisticsWithMultipleSelections() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0, 1]);
 
@@ -68,7 +66,7 @@ base.defineModule('timeline_counter_test')
     assertEquals(15, ret[1].end);
   }
 
-  tests.testGetSampleStatisticsWithOutofOrderIndices = function() {
+  function testGetSampleStatisticsWithOutofOrderIndices() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0]);
 
@@ -85,7 +83,7 @@ base.defineModule('timeline_counter_test')
     assertEquals(15, ret[1].end);
   }
 
-  tests.testGetSampleStatisticsWithAllSelections = function() {
+  function testGetSampleStatisticsWithAllSelections() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0, 2, 3]);
 
@@ -102,8 +100,6 @@ base.defineModule('timeline_counter_test')
     assertEquals(16, ret[1].end);
   }
 
-  return tests;
-});
 </script>
 </body>
 </html>

@@ -13,41 +13,20 @@ found in the LICENSE file.
 }
 </style>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+</script>
 </head>
 <body>
 <script>
   'use strict';
-  base.defineModule('timeline_track_test')
-      .dependsOn('unittest',
-                 'test_utils',
-                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
-      .runAllTests(function() {
 
-  var tests = {};
-
-  var TimelineAsyncSlice = tracing.TimelineAsyncSlice;
-  var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
-  var TimelineAsyncSliceGroupTrack = tracing.TimelineAsyncSliceGroupTrack;
   var TimelineCounter = tracing.TimelineCounter;
   var TimelineCounterTrack = tracing.TimelineCounterTrack;
-  var TimelineCpu = tracing.TimelineCpu;
-  var TimelineCpuTrack = tracing.TimelineCpuTrack;
-  var TimelineProcess = tracing.TimelineProcess;
-  var TimelineSelection = tracing.TimelineSelection;
-  var TimelineSliceGroup = tracing.TimelineSliceGroup;
-  var TimelineSliceGroupTrack = tracing.TimelineSliceGroupTrack;
-  var TimelineSliceTrack = tracing.TimelineSliceTrack;
-  var TimelineSlice = tracing.TimelineSlice;
-  var TimelineThread = tracing.TimelineThread;
-  var TimelineThreadSlice = tracing.TimelineThreadSlice;
-  var TimelineThreadTrack = tracing.TimelineThreadTrack;
-  var TimelineViewport = tracing.TimelineViewport;
-  var newAsyncSlice = test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
-  var newSliceNamed = test_utils.newSliceNamed;
-  var testDivs = {};
 
-  tests.testBasicCounter = function() {
+  function testBasicCounter() {
     var testEl = this.addHTMLOutput();
 
     var ctr = new TimelineCounter(undefined,
@@ -105,7 +84,7 @@ found in the LICENSE file.
     }
   }
 
-  tests.testBasicCounterXPointPicking = function() {
+  function testBasicCounterXPointPicking() {
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
     var samples = [0, 5,
                    3, 3,
@@ -138,9 +117,6 @@ found in the LICENSE file.
       assertEquals(0, sel.length);
     });
   }
-
-  return tests;
-});
 </script>
 </body>
 </html>

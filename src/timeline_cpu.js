@@ -7,10 +7,9 @@
 /**
  * @fileoverview Provides the TimelineCpu class.
  */
-base.defineModule('timeline_cpu')
-    .dependsOn('timeline_slice',
-               'timeline_counter')
-    .exportsTo('tracing', function() {
+base.require('timeline_slice');
+base.require('timeline_counter');
+base.exportTo('tracing', function() {
 
   var TimelineCounter = tracing.TimelineCounter;
 

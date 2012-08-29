@@ -1,4 +1,4 @@
-// Copyright (c) 2010 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,8 +6,7 @@
  * @fileoverview This contains an implementation of the EventTarget interface
  * as defined by DOM Level 2 Events.
  */
-base.defineModule('event_target')
-    .exportsTo('base', function() {
+base.exportTo('base', function() {
 
   /**
    * Creates a new EventTarget. This class implements the DOM level 2

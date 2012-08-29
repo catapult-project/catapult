@@ -8,17 +8,14 @@ found in the LICENSE file.
 <head>
 <title>UI tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('ui');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('ui_test')
-    .dependsOn('unittest',
-               'ui')
-    .runAllTests(function() {
-
-    var tests = {};
+    'use strict';
 
     var TestElement = base.ui.define('div');
     TestElement.prototype = {
@@ -31,19 +28,16 @@ base.defineModule('ui_test')
       }
     };
 
-    tests.testDecorateOnceViaNew = function() {
+    function testDecorateOnceViaNew() {
       var testElement = new TestElement();
       assertEquals(1, testElement.decorateCallCount);
     };
 
-    tests.testDecorateOnceDirectly = function() {
+    function testDecorateOnceDirectly() {
       var testElement = document.createElement('div');
       base.ui.decorate(testElement, TestElement);
       assertEquals(1, testElement.decorateCallCount);
     };
-
-    return tests;
-});
 </script>
 </body>
 </html>

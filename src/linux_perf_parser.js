@@ -58,9 +58,7 @@
  * adding a new subclass you must run build/generate_about_tracing_contents.py
  * to regenerate about_tracing.*.
  */
-base.defineModule('linux_perf_parser')
-  .dependsOn()
-  .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   var subtypeConstructors = [];
 

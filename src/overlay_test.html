@@ -13,17 +13,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('overlay_test')
-    .dependsOn('unittest',
-               'overlay')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('overlay');
 
 var sandbox = document.getElementById('sandbox');
 var overlay;
 
-var tests = {};
 
-tests.testShowHideUnparented = function() {
+function testShowHideUnparented() {
   overlay = new tracing.Overlay();
   overlay.innerHTML =
       '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
@@ -34,7 +32,7 @@ tests.testShowHideUnparented = function() {
   assertEquals(overlay.parentNode, null);
 }
 
-tests.testShowHideParented = function() {
+function testShowHideParented() {
   overlay = new tracing.Overlay();
   overlay.innerHTML =
       '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
@@ -46,8 +44,6 @@ tests.testShowHideParented = function() {
   assertEquals(overlay.parentNode, document.body);
 }
 
-return tests;
-});
 </script>
 
 </body>

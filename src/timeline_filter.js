@@ -20,9 +20,7 @@
  * nesting tasks.
  *
  */
-base.defineModule('timeline_filter')
-    .dependsOn()
-    .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   function filterSliceArray(filter, slices) {
     if (filter === undefined)

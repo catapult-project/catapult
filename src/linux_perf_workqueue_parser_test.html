@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_workqueue_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testWorkQueueImport = function() {
+function testWorkQueueImport() {
   var lines = [
     ' kworker/0:3-6880  [000]  2784.771958: workqueue_execute_start: ' +
                'work struct ffff8800a5083a20: function intel_unpin_work_fn',
@@ -38,9 +34,6 @@ tests.testWorkQueueImport = function() {
   assertEquals(1, m.processes['6880'].threads['6880'].slices.length);
   assertEquals(1, m.processes['7269'].threads['7269'].slices.length);
 }
-
-return tests;
-});
 
 </script>
 </body>

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_slice_group_track')
-    .dependsOn('tracks.timeline_container_track',
-               'sorted_array_utils',
-               'ui')
-    .exportsTo('tracks', function() {
+base.require('tracks.timeline_container_track');
+base.require('sorted_array_utils');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * A track that displays a TimelineSliceGroup.

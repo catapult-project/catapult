@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_mali_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testMaliDDKImport = function() {
+function testMaliDDKImport() {
   var lines = [
     // Row 1 open
     '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
@@ -116,7 +112,7 @@ tests.testMaliDDKImport = function() {
   assertEquals(9, maliThread.slices.length);
 }
 
-tests.testDVFSFrequencyImport = function() {
+function testDVFSFrequencyImport() {
   var lines = [
     '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_set_clock: ' +
                    'frequency=266',
@@ -131,7 +127,7 @@ tests.testDVFSFrequencyImport = function() {
   assertEquals(2, c0.counters['DVFS Frequency'].samples.length);
 }
 
-tests.testDVFSVoltageImport = function() {
+function testDVFSVoltageImport() {
   var lines = [
     '     kworker/u:0-5     [001] ....  1174.839562: mali_dvfs_set_voltage: ' +
                    'voltage=937500',
@@ -146,7 +142,7 @@ tests.testDVFSVoltageImport = function() {
   assertEquals(2, c0.counters['DVFS Voltage'].samples.length);
 }
 
-tests.testDVFSUtilizationImport = function() {
+function testDVFSUtilizationImport() {
   var lines = [
     '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_event: ' +
                    'utilization=7',
@@ -160,9 +156,6 @@ tests.testDVFSUtilizationImport = function() {
   assertEquals(0, c0.slices.length);
   assertEquals(2, c0.counters['DVFS Utilization'].samples.length);
 }
-
-return tests;
-});
 
 </script>
 </body>

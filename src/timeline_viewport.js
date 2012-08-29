@@ -7,9 +7,9 @@
 /**
  * @fileoverview Code for the timeline viewport.
  */
-base.defineModule('timeline_viewport')
-    .dependsOn('event_target')
-    .exportsTo('tracing', function() {
+base.require('event_target');
+
+base.exportTo('tracing', function() {
 
   /**
    * The TimelineViewport manages the transform used for navigating

@@ -8,26 +8,24 @@ found in the LICENSE file.
 <head>
 <title>TraceEventImporter tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('trace_event_importer');
+</script>
 </head>
 <body>
 <script>
 'use strict';
 
-base.defineModule('trace_event_importer_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'trace_event_importer')
-    .runAllTests(function() {
-
-var tests = {};
 var findSliceNamed = test_utils.findSliceNamed;
 
-tests.testCanImportEmpty = function() {
+function testCanImportEmpty() {
   self.assertFalse(tracing.TraceEventImporter.canImport([]));
   self.assertFalse(tracing.TraceEventImporter.canImport(''));
 }
 
-tests.testBasicSingleThreadNonnestedParsing = function() {
+function testBasicSingleThreadNonnestedParsing() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
@@ -60,7 +58,7 @@ tests.testBasicSingleThreadNonnestedParsing = function() {
   assertEquals(0, slice.subSlices.length);
 }
 
-tests.testArgumentDupeCreatesNonFailingImportError = function() {
+function testArgumentDupeCreatesNonFailingImportError() {
   var events = [
     {name: 'a', args: {'x': 1}, pid: 1, ts: 520, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {'x': 2}, pid: 1, ts: 560, cat: 'foo', tid: 1, ph: 'E'},
@@ -74,7 +72,7 @@ tests.testArgumentDupeCreatesNonFailingImportError = function() {
   assertEquals(m.importErrors.length, 1);
 }
 
-tests.testCategoryBeginEndMismatchPrefersBegin = function() {
+function testCategoryBeginEndMismatchPrefersBegin() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'},
@@ -95,7 +93,7 @@ tests.testCategoryBeginEndMismatchPrefersBegin = function() {
   assertEquals('foo', slice.category);
 }
 
-tests.testNestedParsing = function() {
+function testNestedParsing() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
@@ -119,7 +117,7 @@ tests.testNestedParsing = function() {
   assertEquals(0.001, sB.duration);
 }
 
-tests.testAutoclosing = function() {
+function testAutoclosing() {
   var events = [
     // Slice that doesn't finish.
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -139,7 +137,7 @@ tests.testAutoclosing = function() {
   assertEquals((2 - 1) / 1000, slice.duration);
 }
 
-tests.testAutoclosingLoneBegin = function() {
+function testAutoclosingLoneBegin() {
   var events = [
     // Slice that doesn't finish.
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'}
@@ -155,7 +153,7 @@ tests.testAutoclosingLoneBegin = function() {
   assertEquals(0, slice.duration);
 }
 
-tests.testAutoclosingWithSubTasks = function() {
+function testAutoclosingWithSubTasks() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'b1', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'B'},
@@ -174,7 +172,7 @@ tests.testAutoclosingWithSubTasks = function() {
   assertEquals(0.003, sB2.end);
 }
 
-tests.testAutoclosingWithEventsOutsideRange = function() {
+function testAutoclosingWithEventsOutsideRange() {
   var events = [
     // Slice that begins before min and ends after max of the other threads.
     {name: 'a', args: {}, pid: 1, ts: 0, cat: 'foo', tid: 1, ph: 'B'},
@@ -206,7 +204,7 @@ tests.testAutoclosingWithEventsOutsideRange = function() {
   assertEquals(0.003, m.maxTimestamp);
 }
 
-tests.testNestedAutoclosing = function() {
+function testNestedAutoclosing() {
   var events = [
     // Tasks that don't finish.
     {name: 'a1', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -228,7 +226,7 @@ tests.testNestedAutoclosing = function() {
   assertEquals(0.002, sA2.end);
 }
 
-tests.testTaskColoring = function() {
+function testTaskColoring() {
   // The test below depends on hashing of 'a' != 'b'. Fail early if that
   // assumption is incorrect.
   assertNotEquals(tracing.getStringHash('a'), tracing.getStringHash('b'));
@@ -257,7 +255,7 @@ tests.testTaskColoring = function() {
   assertEquals(a1.colorId, a2.colorId);
 }
 
-tests.testMultipleThreadParsing = function() {
+function testMultipleThreadParsing() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
@@ -298,7 +296,7 @@ tests.testMultipleThreadParsing = function() {
   assertEquals(0, slice.subSlices.length);
 }
 
-tests.testMultiplePidParsing = function() {
+function testMultiplePidParsing() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
@@ -347,7 +345,7 @@ tests.testMultiplePidParsing = function() {
 }
 
 // Thread names.
-tests.testThreadNames = function() {
+function testThreadNames() {
   var events = [
     {name: 'thread_name', args: {name: 'Thread 1'},
       pid: 1, ts: 0, tid: 1, ph: 'M'},
@@ -363,7 +361,7 @@ tests.testThreadNames = function() {
   assertEquals('Thread 2', m.processes[2].threads[2].name);
 }
 
-tests.testParsingWhenEndComesFirst = function() {
+function testParsingWhenEndComesFirst() {
   var events = [
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
@@ -380,7 +378,7 @@ tests.testParsingWhenEndComesFirst = function() {
   assertEquals(1, m.importErrors.length);
 }
 
-tests.testImmediateParsing = function() {
+function testImmediateParsing() {
   var events = [
     // Need to include immediates inside a task so the timeline
     // recentering/zeroing doesn't clobber their timestamp.
@@ -411,7 +409,7 @@ tests.testImmediateParsing = function() {
   assertEquals(0, immed.subSlices.length);
 }
 
-tests.testSimpleCounter = function() {
+function testSimpleCounter() {
   var events = [
     {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
      ph: 'C'},
@@ -438,7 +436,7 @@ tests.testSimpleCounter = function() {
   assertEquals(10, ctr.maxTotal);
 }
 
-tests.testInstanceCounter = function() {
+function testInstanceCounter() {
   var events = [
     {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
      ph: 'C', id: 0},
@@ -480,7 +478,7 @@ tests.testInstanceCounter = function() {
   assertArrayEquals([40], ctr.samples);
 }
 
-tests.testMultiCounterUpdateBounds = function() {
+function testMultiCounterUpdateBounds() {
   var ctr = new tracing.TimelineCounter(undefined, 'testBasicCounter',
       '', 'testBasicCounter');
   ctr.seriesNames = ['value1', 'value2'];
@@ -508,7 +506,7 @@ tests.testMultiCounterUpdateBounds = function() {
                      3.1, 3.6], ctr.totals);
 }
 
-tests.testMultiCounter = function() {
+function testMultiCounter() {
   var events = [
     {name: 'ctr', args: {'value1': 0, 'value2': 7}, pid: 1, ts: 0, cat: 'foo',
      tid: 1, ph: 'C'},
@@ -541,7 +539,7 @@ tests.testMultiCounter = function() {
   assertEquals(14, ctr.maxTotal);
 }
 
-tests.testImportObjectInsteadOfArray = function() {
+function testImportObjectInsteadOfArray() {
   var events = { traceEvents: [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
@@ -551,7 +549,7 @@ tests.testImportObjectInsteadOfArray = function() {
   assertEquals(1, m.numProcesses);
 }
 
-tests.testImportString = function() {
+function testImportString() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
@@ -561,7 +559,7 @@ tests.testImportString = function() {
   assertEquals(1, m.numProcesses);
 }
 
-tests.testImportStringWithTrailingNewLine = function() {
+function testImportStringWithTrailingNewLine() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
@@ -571,7 +569,7 @@ tests.testImportStringWithTrailingNewLine = function() {
   assertEquals(1, m.numProcesses);
 }
 
-tests.testImportStringWithMissingCloseSquareBracket = function() {
+function testImportStringWithMissingCloseSquareBracket() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
@@ -586,7 +584,7 @@ tests.testImportStringWithMissingCloseSquareBracket = function() {
   assertEquals(1, m.numProcesses);
 }
 
-tests.testImportStringWithMissingCloseSquareBracketAndNewline = function() {
+function testImportStringWithMissingCloseSquareBracketAndNewline() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
@@ -601,7 +599,7 @@ tests.testImportStringWithMissingCloseSquareBracketAndNewline = function() {
   assertEquals(1, m.numProcesses);
 }
 
-tests.testStartFinishOneSliceOneThread = function() {
+function testStartFinishOneSliceOneThread() {
   var events = [
     // Time is intentionally out of order.
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'cat', tid: 53,
@@ -624,7 +622,7 @@ tests.testStartFinishOneSliceOneThread = function() {
   assertEquals(t, t.asyncSlices.slices[0].endThread);
 }
 
-tests.testEndArgsAddedToSlice = function() {
+function testEndArgsAddedToSlice() {
   var events = [
     {name: 'a', args: {x: 1}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
@@ -649,7 +647,7 @@ tests.testEndArgsAddedToSlice = function() {
   assertEquals(2, slice.args['y']);
 }
 
-tests.testEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
+function testEndArgOverrwritesOriginalArgValueIfDuplicated() {
   var events = [
     {name: 'b', args: {z: 3}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'b', args: {z: 4}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
@@ -671,7 +669,7 @@ tests.testEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
   assertEquals(4, slice.args['z']);
 }
 
-tests.testAsyncEndArgsAddedToSlice = function() {
+function testAsyncEndArgsAddedToSlice() {
   var events = [
     // Time is intentionally out of order.
     {name: 'c', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
@@ -695,7 +693,7 @@ tests.testAsyncEndArgsAddedToSlice = function() {
   assertEquals(2, subSlice.args['y']);
 }
 
-tests.testAsyncEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
+function testAsyncEndArgOverrwritesOriginalArgValueIfDuplicated() {
   var events = [
     // Time is intentionally out of order.
     {name: 'd', args: {z: 4}, pid: 52, ts: 560, cat: 'foo', tid: 53,
@@ -718,7 +716,7 @@ tests.testAsyncEndArgOverrwritesOriginalArgValueIfDuplicated = function() {
   assertEquals(4, subSlice.args['z']);
 }
 
-tests.testAsyncStepsInOneThread = function() {
+function testAsyncStepsInOneThread() {
   var events = [
     // Time is intentionally out of order.
     {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
@@ -756,7 +754,7 @@ tests.testAsyncStepsInOneThread = function() {
   assertEquals(3, subSlice.args['z']);
 }
 
-tests.testAsyncStepsMissingStart = function() {
+function testAsyncStepsMissingStart() {
   var events = [
     // Time is intentionally out of order.
     {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
@@ -770,7 +768,7 @@ tests.testAsyncStepsMissingStart = function() {
   assertUndefined(t);
 }
 
-tests.testAsyncStepsMissingFinish = function() {
+function testAsyncStepsMissingFinish() {
   var events = [
     // Time is intentionally out of order.
     {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53,
@@ -786,9 +784,6 @@ tests.testAsyncStepsMissingFinish = function() {
 
 // TODO(nduca): one slice, two threads
 // TODO(nduca): one slice, two pids
-
-return tests;
-});
 </script>
 </body>
 </html>

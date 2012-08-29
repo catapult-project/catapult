@@ -7,10 +7,9 @@
 /**
  * @fileoverview Provides the TimelineProcess class.
  */
-base.defineModule('timeline_process')
-    .dependsOn('timeline_thread',
-               'timeline_counter')
-    .exportsTo('tracing', function() {
+base.require('timeline_thread');
+base.require('timeline_counter');
+base.exportTo('tracing', function() {
 
   var TimelineThread = tracing.TimelineThread;
   var TimelineCounter = tracing.TimelineCounter;

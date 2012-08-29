@@ -8,26 +8,20 @@ found in the LICENSE file.
 <head>
 <title>Timeline viewport tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_viewport');
+</script>
 </head>
 <body>
 <script>
-'use strict';
+  'use strict';
 
-base.defineModule('timeline_viewport_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_viewport')
-    .runAllTests(function() {
-
-    var tests = {};
-
-    // The test harness considers no tests as a failure. So, until we get a viewport test,
-    // this nop serves to keep this file passing.
-    tests.testNoop = function() {
-    }
-
-    return tests;
-});
+  // The test harness considers no tests as a failure. So, until we get a viewport test,
+  // this nop serves to keep this file passing.
+  function testNoop() {
+  }
 </script>
 </body>
 </html>

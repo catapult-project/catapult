@@ -4,15 +4,16 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_thread_track')
-    .stylesheet('tracks.timeline_thread_track')
-    .dependsOn('tracks.timeline_container_track',
-               'tracks.timeline_slice_track',
-               'tracks.timeline_slice_group_track',
-               'tracks.timeline_async_slice_group_track',
-               'timeline_filter',
-               'ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_thread_track');
+
+base.require('tracks.timeline_container_track');
+base.require('tracks.timeline_slice_track');
+base.require('tracks.timeline_slice_group_track');
+base.require('tracks.timeline_async_slice_group_track');
+base.require('timeline_filter');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * Visualizes a TimelineThread using a series of of TimelineSliceTracks.

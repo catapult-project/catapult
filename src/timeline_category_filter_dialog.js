@@ -8,10 +8,9 @@
  * @fileoverview TimelineCategoryFilterButton extracts categories from the model
  * and shows/hides them based on settings.
  */
-base.defineModule('timeline_category_filter_dialog')
-    .dependsOn('timeline_filter',
-               'overlay')
-    .exportsTo('tracing', function() {
+base.require('timeline_filter');
+base.require('overlay');
+base.exportTo('tracing', function() {
 
   var TimelineCategoryFilterDialog = base.ui.define('div');
 

@@ -13,6 +13,7 @@ var global = this;
 
 /** Platform, package, object property, and Event support. */
 this.base = (function() {
+
   /**
    * Base path for modules. Used to form URLs for module 'require' requests.
    */
@@ -24,284 +25,15 @@ this.base = (function() {
   }
 
 
-  var allModules = {};
-  var allStylesheets = {};
-
-  function mLog(text) {
-    // console.log(text);
-  }
-
-  function doExport(name, namespace, fn) {
-    mLog('running exports for (' + name + ') -> ' + namespace);
-
-    var obj = exportPath(namespace);
-    try {
-      var exports = fn();
-    } catch(e) {
-      console.log('While running exports for ', name, ':');
-      console.log(e.stack || e);
+  function mLog(text, opt_indentLevel) {
+    if (true)
       return;
-    }
 
-    for (var propertyName in exports) {
-      // Maybe we should check the prototype chain here? The current usage
-      // pattern is always using an object literal so we only care about own
-      // properties.
-      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
-                                                               propertyName);
-      if (propertyDescriptor) {
-        Object.defineProperty(obj, propertyName, propertyDescriptor);
-        mLog('  +' + propertyName);
-      }
-    }
-  }
-
-  function doRuns(name, runs) {
-    for (var i = 0; i < runs.length; i++) {
-      try {
-        runs[i].call(global);
-      } catch(e) {
-        console.log('While running runWhenLoaded for ', name, ':');
-        console.log(e.stack || e);
-      }
-    }
-  }
-
-
-  function Module(moduleName) {
-    this.name = moduleName;
-    this.defined = false;
-    this.stylesheetNames = []
-    this.dependentModuleNames = [];
-    this.pendingExport_ = undefined;
-    this.pendingRuns_ = [];
-    this.loaded_ = false;
-    this.dependenciesSatisfied = false;
-    this.noMoreDependenciesAllowed = false;
-  }
-
-  Module.prototype = {
-    __proto__: Object.prototype,
-
-    /**
-     * Every argument provided is treated as a dependency of this module:
-     *   m.dependsOn('x', 'y')
-     * will load x.js and y.js as dependencies of this module.
-     *
-     * @param arguments A string name specifying the module name to load before
-     * running this module's exports.
-     */
-    dependsOn: function(/* arguments */) {
-      if (this.noMoreDependenciesAllowed)
-        throw new Error('All module requirements must be defined before exports.');
-      this.noMoreDependenciesAllowed = true;
-      for (var i = 0; i < arguments.length; i++)
-        this.require_(arguments[i]);
-      this.maybeDependenciesFullySatisfied_();
-      return this;
-    },
-
-    /**
-     * Adds a stylesheet as needed by this module.
-     *   m.stylesheet('x')
-     * will add x.css to document.head when this module is loaded.
-     *
-     * @param stylesheetName A string name specifying the module name to load before
-     * running this module's exports.
-     */
-    stylesheet: function(stylesheetName) {
-      for (var i = 0; i < this.stylesheetNames.length; i++)
-        if (this.stylesheetNames[i] == stylesheetName)
-          throw new Error('Stylesheet ' + stylesheetName + ' already listed for this module.');
-
-      this.stylesheetNames.push(stylesheetName);
-      if (allStylesheets[stylesheetName])
-        return;
-      allStylesheets[stylesheetName] = true;
-
-      var localPath = stylesheetName.replace(/\./g, '/') + '.css';
-      var stylesheetPath = moduleBasePath + '/' + localPath;
-
-      var linkEl = document.createElement('link');
-      linkEl.setAttribute('rel', 'stylesheet');
-      linkEl.setAttribute('href', stylesheetPath);
-      document.head.appendChild(linkEl);
-
-      return this;
-    },
-
-    /**
-     * Calls |fun| after the dependencies specified by dependsOn() are satisfied, adding all the fields of the returned object to the object
-     * specified by |namespace|. For example:
-     *   defineModule('xxx').requires('yyy').exportsTo('x.y.z', function() {
-     *     function List() {
-     *       ...
-     *     }
-     *     function ListItem() {
-     *       ...
-     *     }
-     *     return {
-     *       List: List,
-     *       ListItem: ListItem,
-     *     };
-     *   });
-     * defines the functions x.y.z.List and x.y.z.ListItem after yyy is loaded.
-     *
-     * @param {string} name The name of the object that we are adding fields to.
-     * @param {!Function} fun The function that will return an object containing
-     *     the names and values of the new fields.
-     */
-    exportsTo: function(namespace, fn) {
-      if (this.pendingExport_)
-        throw new Error('Cannot export twice from the same module.');
-
-      this.noMoreDependenciesAllowed = true;
-      this.pendingExport_ = {namespace: namespace,
-                             fn: fn};
-      this.maybeDependenciesFullySatisfied_();
-      return this;
-    },
-
-    runWhenLoaded: function(fn) {
-      this.pendingRuns_.push(fn);
-      this.maybeDependenciesFullySatisfied_();
-      return this;
-    },
-
-    require_: function(dependentModuleName) {
-    if (dependentModuleName.indexOf('/') >= 0)
-        throw new Error('Slashes are not allowed in module names. ' +
-                        'Use "." instead: ' + dependentModuleName);
-      for (var i = 0; i < this.dependentModuleName; i++)
-        if (this.dependentModuleName[i] == dependentModuleName)
-          throw new Error(this.name + ' already has a dependency on ' + dependentModuleName);
-      this.dependentModuleNames.push(dependentModuleName);
-
-      if (allModules[dependentModuleName]) {
-        if (allModules[dependentModuleName].dependenciesSatisfied) {
-          mLog(this.name + '\'s dependency on ' + dependentModuleName + ' is already satisfied');
-          return;
-        } else {
-          mLog(this.name + '\'s needs ' + dependentModuleName + ' which is already pending.');
-          allModules[dependentModuleName].scriptEl_.addEventListener('dependenciesSatisfied', function() {
-            mLog(this.name + '\'s need for ' + dependentModuleName + ' has been satisfied.');
-            this.maybeDependenciesFullySatisfied_();
-          }.bind(this));
-          return;
-        }
-      }
-
-      mLog(this.name + '\'s is loading ' + dependentModuleName);
-      var localPath = dependentModuleName.replace(/\./g, '/') + '.js';
-      var scriptPath = moduleBasePath + '/' + localPath;
-      var scriptEl = document.createElement('script');
-      scriptEl.src = scriptPath;
-      scriptEl.async = true;
-
-      var dependentModule = new Module(dependentModuleName);
-      dependentModule.scriptEl_ = scriptEl;
-      dependentModule.scriptEl_.addEventListener('load', function() {
-        mLog(this.name + '\'s has loaded the script for ' + dependentModuleName);
-        dependentModule.loaded_ = true;
-        dependentModule.maybeDependenciesFullySatisfied_();
-      }.bind(this));
-      dependentModule.scriptEl_.addEventListener('dependenciesSatisfied', function() {
-        mLog(this.name + '\'s need for ' + dependentModuleName + ' has been satisfied.');
-        this.maybeDependenciesFullySatisfied_();
-      }.bind(this));
-      allModules[dependentModuleName] = dependentModule;
-
-      document.head.appendChild(scriptEl);
-    },
-
-    maybeDependenciesFullySatisfied_: function() {
-      if (this.dependenciesSatisfied) {
-        return;
-      }
-
-      if (this.scriptEl_ && !this.loaded_) {
-        mLog(this.name + ' is not yet loded');
-        return;
-      }
-
-      var numDependentsThatAreFullyLoaded = 0;
-      for (var i = 0; i < this.dependentModuleNames.length; i++) {
-        var dependentModuleName = this.dependentModuleNames[i];
-        var dependentModule = allModules[dependentModuleName];
-        if (!dependentModule.dependenciesSatisfied) {
-          mLog(this.name + ' still needs ' + dependentModuleName);
-          return;
-        }
-      }
-      this.dependenciesSatisfied = true;
-
-      if (this.pendingExport_) {
-        doExport(this.name, this.pendingExport_.namespace, this.pendingExport_.fn)
-        this.pendingExport_ = {};
-      }
-
-      var runs = this.pendingRuns_;
-      this.pendingRuns_ = [];
-      doRuns(this.name, runs);
-
-      if (this.scriptEl_) {
-        mLog(this.name + ' has become fully loaded and is firing dependenciesSatisfied');
-        dispatchSimpleEvent(this.scriptEl_, 'dependenciesSatisfied', false, false);
-      }
-    },
-
-    runAllTests: function(fn) {
-      this.runWhenLoaded(function() {
-        var tests = fn();
-        unittest.runAllTests(tests);
-      });
-      return this;
-    }
-  };
-
-  function FlattenedModule(moduleName) {
-    this.name = moduleName;
-  };
-  FlattenedModule.prototype = {
-    __proto__: Object.prototype,
-
-    dependsOn: function(/* arguments */) {
-      // TODO(nduca): Add some sanity checks.
-      return this;
-    },
-    stylesheet: function() {
-      // TODO(nduca): Add some sanity checks.
-      return this;
-    },
-    exportsTo: function(namespace, fn) {
-      doExport(this.name, namespace, fn);
-      return this;
-    },
-    runWhenLoaded: function(fn) {
-      doRuns([fn]);
-      return this;
-    }
-  };
-
-  function defineModule(moduleName) {
-    if (moduleName.indexOf('/') >= 0)
-      throw new Error('Slashes are not allowed in module names. ' +
-                      'Use "." instead: ' + moduleName);
-    if (allModules[moduleName]) {
-      if (allModules[moduleName].defined)
-        throw new Error(moduleName + ' has already been defined.');
-      return allModules[moduleName];
-    }
-
-    var module
-    if (global.FLATTENED && global.FLATTENED[moduleName])
-      module = new FlattenedModule(moduleName);
-    else
-      module = new Module(moduleName);
-
-    allModules[moduleName] = module;
-    module.defined = true;
-    return module;
+    var spacing = "";
+    var indentLevel = opt_indentLevel || 0;
+    for (var i = 0; i < indentLevel; i++)
+      spacing += ' ';
+    console.log(spacing + text);
   }
 
   /**
@@ -330,6 +62,138 @@ this.base = (function() {
       }
     }
     return cur;
+  };
+
+  var didLoadModules = false;
+  var moduleDependencies = {};
+  var moduleStylesheets = {};
+
+  function addModuleDependency(moduleName, dependentModuleName) {
+    if (!moduleDependencies[moduleName])
+      moduleDependencies[moduleName] = [];
+
+    var dependentModules = moduleDependencies[moduleName];
+    var found = false;
+    for (var i = 0; i < dependentModules.length; i++)
+      if (dependentModules[i] == dependentModuleName)
+        found = true;
+    if (!found)
+      dependentModules.push(dependentModuleName);
+  }
+
+  function addModuleStylesheet(moduleName, stylesheetName) {
+    if (!moduleStylesheets[moduleName])
+      moduleStylesheets[moduleName] = [];
+
+    var stylesheets = moduleStylesheets[moduleName];
+    var found = false;
+    for (var i = 0; i < stylesheets.length; i++)
+      if (stylesheets[i] == stylesheetName)
+        found = true;
+    if (!found)
+      stylesheets.push(stylesheetName);
+  }
+
+  function ensureDepsLoaded() {
+    if (didLoadModules)
+      return;
+    didLoadModules = true;
+
+    var req = new XMLHttpRequest();
+    var src = moduleBasePath + '/' + 'deps.js';
+    req.open('GET', src, false);
+    req.send(null);
+    if(req.status != 200)
+      throw new Error("Could not find " + deps +
+                      ". Run calcdeps.py and try again.");
+
+    base.addModuleStylesheet = addModuleStylesheet;
+    base.addModuleDependency = addModuleDependency;
+    try {
+      // By construction, the deps file should call addModuleDependency.
+      eval(req.responseText);
+    } catch(e) {
+      throw new Error("When loading deps, got " + e.stack ? e.stack : e);
+    }
+    delete base.addModuleDependency;
+    delete base.addModuleStylesheet;
+  }
+
+  var moduleLoadStatus = {};
+  function require(dependentModuleName, opt_indentLevel) {
+    var indentLevel = opt_indentLevel || 0;
+
+    if (window.FLATTENED) {
+      if (!window.FLATTENED[dependentModuleName])
+        throw new Error('Somehow, module ' + dependentModuleName +
+                        ' didn\'t get flattened!');
+      return;
+    }
+    ensureDepsLoaded();
+
+    mLog('require(' + dependentModuleName + ')', indentLevel);
+
+    if (moduleLoadStatus[dependentModuleName] == 'APPENDED')
+      return;
+    if (moduleLoadStatus[dependentModuleName] == 'RESOLVING')
+      throw new Error("Circular dependency betwen modules. Cannot continue!");
+    moduleLoadStatus[dependentModuleName] = 'RESOLVING';
+
+    // Load the module stylesheet first.
+    var stylesheets = moduleStylesheets[dependentModuleName] || [];
+    for (var i = 0; i < stylesheets.length; i++) {
+      var stylesheetName = stylesheets[i];
+      var localPath = stylesheetName.replace(/\./g, '/') + '.css';
+      var stylesheetPath = moduleBasePath + '/' + localPath;
+
+      var linkEl = document.createElement('link');
+      linkEl.setAttribute('rel', 'stylesheet');
+      linkEl.setAttribute('href', stylesheetPath);
+      base.doc.head.appendChild(linkEl);
+    }
+
+    // Load the module's dependent scripts after.
+    var dependentModules =
+        moduleDependencies[dependentModuleName] || [];
+    for (var i = 0; i < dependentModules.length; i++)
+      require(dependentModules[i], indentLevel + 1);
+
+    mLog('load(' + dependentModuleName + ')', indentLevel);
+    // Load the module itself.
+    var localPath = dependentModuleName.replace(/\./g, '/') + '.js';
+    var src = moduleBasePath + '/' + localPath;
+    var text = '<script type="text/javascript" src="' + src +
+      '"></' + 'script>';
+    base.doc.write(text);
+    moduleLoadStatus[dependentModuleName] = 'APPENDED';
+  }
+
+  function requireStylesheet(dependentStylesheetName) {
+    // This is a nop. By the time we've gotten to executing this statement,
+    // the stylesheet should already be loaded.
+  }
+
+  function exportTo(namespace, fn) {
+    var obj = exportPath(namespace);
+    try {
+      var exports = fn();
+    } catch(e) {
+      console.log('While running exports for ', name, ':');
+      console.log(e.stack || e);
+      return;
+    }
+
+    for (var propertyName in exports) {
+      // Maybe we should check the prototype chain here? The current usage
+      // pattern is always using an object literal so we only care about own
+      // properties.
+      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
+                                                               propertyName);
+      if (propertyDescriptor) {
+        Object.defineProperty(obj, propertyName, propertyDescriptor);
+        mLog('  +' + propertyName);
+      }
+    }
   };
 
   /**
@@ -600,7 +464,10 @@ this.base = (function() {
       return moduleBasePath;
     },
 
-    defineModule: defineModule,
+    require: require,
+    requireStylesheet: requireStylesheet,
+    exportTo: exportTo,
+
     addSingletonGetter: addSingletonGetter,
     createUid: createUid,
     defineProperty: defineProperty,

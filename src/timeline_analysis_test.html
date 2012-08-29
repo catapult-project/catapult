@@ -21,20 +21,20 @@ found in the LICENSE file.
 </head>
 <body>
   <script>
-'use strict';
-
-base.defineModule('timeline_analysis_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_model',
-               'trace_event_importer',
-               'timeline_analysis',
-               'timeline_filter',
-               'tracks.timeline_counter_track',
-               'tracks.timeline_slice_track',
-               'tracks.timeline_thread_track',
-               'timeline'/* TODO(nduca): reduce dependency to selection and track */ )
-    .runAllTests(function() {
+    base.require('unittest');
+    base.require('tracing_controller');
+    base.require('test_utils');
+    base.require('timeline_model')
+    base.require('trace_event_importer');
+    base.require('timeline_analysis');
+    base.require('timeline_filter');
+    base.require('tracks.timeline_counter_track');
+    base.require('tracks.timeline_slice_track');
+    base.require('tracks.timeline_thread_track')
+    base.require('timeline'); /* TODO(nduca): reduce dependency to selection and track */
+  </script>
+  <script>
+    'use strict';
 
     var TimelineCounter = tracing.TimelineCounter;
     var TimelineThread = tracing.TimelineThread;
@@ -47,7 +47,6 @@ base.defineModule('timeline_analysis_test')
     var TimelineSliceTrack = tracks.TimelineSliceTrack;
     var newSliceNamed = test_utils.newSliceNamed;
     var newSliceCategory = test_utils.newSliceCategory;
-    var tests = {};
 
     function createSelectionWithSingleSlice(withCategory) {
       var model = new TimelineModel();
@@ -291,7 +290,7 @@ base.defineModule('timeline_analysis_test')
       return selection;
     }
 
-    tests.testAnalysisViewWithSingleSlice = function() {
+    function testAnalysisViewWithSingleSlice() {
       var selection = createSelectionWithSingleSlice();
 
       var analysisEl = new TimelineAnalysisView();
@@ -299,7 +298,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithSingleSliceCategory = function() {
+    function testAnalysisViewWithSingleSliceCategory() {
       var selection = createSelectionWithSingleSlice(true);
 
       var analysisEl = new TimelineAnalysisView();
@@ -307,7 +306,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithMultipleSlices = function() {
+    function testAnalysisViewWithMultipleSlices() {
       var selection = createSelectionWithTwoSlices();
 
       var analysisEl = new TimelineAnalysisView();
@@ -315,7 +314,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithMultipleSlicesSameTitle = function() {
+    function testAnalysisViewWithMultipleSlicesSameTitle() {
       var selection = createSelectionWithTwoSlicesSameTitle();
 
       var analysisEl = new TimelineAnalysisView();
@@ -323,7 +322,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithSingleCounterWithTwoSeries = function() {
+    function testAnalysisViewWithSingleCounterWithTwoSeries() {
       var selection = createSelectionWithTwoSeriesSingleCounter();
 
       var analysisEl = new TimelineAnalysisView();
@@ -331,7 +330,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithTwoCountersWithTwoSeries = function() {
+    function testAnalysisViewWithTwoCountersWithTwoSeries() {
       var selection = createSelectionWithTwoSeriesTwoCounters();
 
       var analysisEl = new TimelineAnalysisView();
@@ -339,7 +338,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testAnalysisViewWithSingleSliceSingleCounter = function() {
+    function testAnalysisViewWithSingleSliceSingleCounter() {
       var selection = createSelectionWithSingleSliceSingleCounter();
 
       var analysisEl = new TimelineAnalysisView();
@@ -347,7 +346,7 @@ base.defineModule('timeline_analysis_test')
       this.addHTMLOutput(undefined, analysisEl);
     }
 
-    tests.testSelectionWithNormallyDistributedSamples = function() {
+    function testSelectionWithNormallyDistributedSamples() {
       var numSlices = 1;
       var selection = createSelectionWithNormallyDistributedSamples(numSlices);
 
@@ -400,7 +399,7 @@ base.defineModule('timeline_analysis_test')
       },
     };
 
-    tests.testAnalyzeSelectionWithSingleSlice = function() {
+    function testAnalyzeSelectionWithSingleSlice() {
       var selection = createSelectionWithSingleSlice();
 
       var results = new StubAnalysisResults();
@@ -415,7 +414,7 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.002, table.rows[2].time);
     }
 
-    tests.testAnalyzeSelectionWithFalsyArgs = function() {
+    function testAnalyzeSelectionWithFalsyArgs() {
       var model = new TimelineModel();
       var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
       var slice = newSliceNamed('b', 0, 0.002);
@@ -440,7 +439,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals("false", rows[6].children[1].textContent);
     }
 
-    tests.testAnalyzeSelectionWithSingleSliceCategory = function() {
+    function testAnalyzeSelectionWithSingleSliceCategory() {
       var selection = createSelectionWithSingleSlice(true);
 
       var results = new StubAnalysisResults();
@@ -456,7 +455,7 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.002, table.rows[3].time);
     }
 
-    tests.testAnalyzeSelectionWithTwoSlices = function() {
+    function testAnalyzeSelectionWithTwoSlices() {
       var selection = createSelectionWithTwoSlices();
 
       var results = new StubAnalysisResults();
@@ -483,7 +482,7 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.18, table.rows[5].time);
     }
 
-    tests.testAnalyzeSelectionWithTwoSlicesSameTitle = function() {
+    function testAnalyzeSelectionWithTwoSlicesSameTitle() {
       var selection = createSelectionWithTwoSlicesSameTitle();
 
       var results = new StubAnalysisResults();
@@ -508,7 +507,7 @@ base.defineModule('timeline_analysis_test')
       assertAlmostEquals(0.18, table.rows[4].time);
     }
 
-    tests.testAnalyzeSelectionWithSingleCounter = function() {
+    function testAnalyzeSelectionWithSingleCounter() {
       var selection = createSelectionWithCounters(1);
 
       var results = new StubAnalysisResults();
@@ -524,7 +523,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals(10, table.rows[2].text);
     }
 
-    tests.testAnalyzeSelectionWithBasicTwoSeriesTwoCounters = function() {
+    function testAnalyzeSelectionWithBasicTwoSeriesTwoCounters() {
       var selection = createSelectionWithTwoSeriesTwoCounters();
 
       var results = new StubAnalysisResults();
@@ -540,7 +539,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals('ctr2: bytesfree', table.rows[3].label);
     }
 
-    tests.testAnalyzeSelectionWithComplexSeriesTwoCounters = function() {
+    function testAnalyzeSelectionWithComplexSeriesTwoCounters() {
       var selection = createSelectionWithTwoCountersDiffSeriesDiffHits();
 
       var results = new StubAnalysisResults();
@@ -555,7 +554,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals('b: bytesfree', table.rows[2].label);
     }
 
-    tests.testAnalyzeSelectionWithCounterAndSlices = function() {
+    function testAnalyzeSelectionWithCounterAndSlices() {
       var selection = createSelectionWithSingleSliceSingleCounter();
 
       var results = new StubAnalysisResults();
@@ -571,7 +570,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals(4, counterTable.rows.length);
     }
 
-    tests.testAnalyzeSelectionWithNormallyDistributedSamples = function() {
+    function testAnalyzeSelectionWithNormallyDistributedSamples() {
       var numSlices = 1;
       var selection = createSelectionWithNormallyDistributedSamples(numSlices);
 
@@ -588,7 +587,7 @@ base.defineModule('timeline_analysis_test')
       assertEquals(16, Math.round(results.tables[0].rows[9].time));
     }
 
-    tests.testAnalyzeSelectionWithNormallyDistributedSamples = function() {
+    function testAnalyzeSelectionWithNormallyDistributedSamples() {
       var numSlices = 2;
       var selection = createSelectionWithNormallyDistributedSamples(numSlices);
 
@@ -608,9 +607,6 @@ base.defineModule('timeline_analysis_test')
       assertEquals(
           16, Math.round(results.tables[0].rows[1].details.frequency_stddev));
     }
-
-    return tests;
-});
   </script>
 </body>
 </html>

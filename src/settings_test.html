@@ -13,54 +13,50 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('settings_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'settings')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('settings');
 
-var tests = {};
-
-tests.testSetGetString = function() {
+function testSetGetString() {
   var settings = new base.Settings();
   settings.set('my_key', 'my_val');
   assertEquals('my_val', settings.get('my_key'));
 }
 
-tests.testSetGetNumber = function() {
+function testSetGetNumber() {
   var settings = new base.Settings();
   settings.set('my_key', 5);
   // Numbers are converted to strings.
   assertEquals('5', settings.get('my_key'));
 }
 
-tests.testSetGetBool = function() {
+function testSetGetBool() {
   var settings = new base.Settings();
   settings.set('my_key', false);
   // Booleans are converted to strings.
   assertEquals('false', settings.get('my_key'));
 }
 
-tests.testSetGetObject = function() {
+function testSetGetObject() {
   var settings = new base.Settings();
   settings.set('my_key', {'hello': 5});
   // Objects are converted to strings.
   assertEquals('[object Object]', settings.get('my_key'));
 }
 
-tests.testGetUnset = function() {
+function testGetUnset() {
   var settings = new base.Settings();
   // Undefined should be returned if value isn't set.
   assertUndefined(settings.get('my_key'));
 }
 
-tests.testGetDefault = function() {
+function testGetDefault() {
   var settings = new base.Settings();
   // Null should be returned if value isn't set.
   assertEquals('default_val', settings.get('my_key', 'default_val'));
 }
 
-tests.testSetGetPrefix = function() {
+function testSetGetPrefix() {
   var settings = new base.Settings();
   settings.set('key_a', 'foo', 'my_prefix');
   assertEquals('foo', settings.get('key_a', undefined, 'my_prefix'));
@@ -69,7 +65,7 @@ tests.testSetGetPrefix = function() {
   assertEquals('bar', settings.get('key_a', 'bar'));
 }
 
-tests.testKeys = function() {
+function testKeys() {
   var settings = new base.Settings();
   settings.set('key_a', 'foo');
   settings.set('key_b', 'bar');
@@ -77,7 +73,7 @@ tests.testKeys = function() {
   assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys());
 }
 
-tests.testKeysPrefix = function() {
+function testKeysPrefix() {
   var settings = new base.Settings();
   settings.set('key_a', 'foo', 'prefix1');
   settings.set('key_b', 'bar', 'prefix1');
@@ -91,10 +87,6 @@ tests.testKeysPrefix = function() {
                      'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
                     settings.keys());
 }
-
-
-return tests;
-});
 
 </script>
 </body>

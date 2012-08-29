@@ -7,9 +7,11 @@
 /**
  * @fileoverview Provides the TimelineSliceGroup class.
  */
-base.defineModule('timeline_slice_group')
-    .dependsOn('timeline_slice', 'timeline_color_scheme', 'timeline_filter')
-    .exportsTo('tracing', function() {
+base.require('timeline_slice');
+base.require('timeline_color_scheme');
+base.require('timeline_filter');
+
+base.exportTo('tracing', function() {
   var TimelineSlice = tracing.TimelineSlice;
 
   /**

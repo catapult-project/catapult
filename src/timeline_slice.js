@@ -7,8 +7,7 @@
 /**
  * @fileoverview Provides the TimelineSlice class.
  */
-base.defineModule('timeline_slice')
-    .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   /**
    * A TimelineSlice represents an interval of time plus parameters associated

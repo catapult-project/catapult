@@ -13,18 +13,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_power_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testPowerStartImport = function() {
+function testPowerStartImport() {
 }
 
-tests.testPowerFrequencyImport = function() {
+function testPowerFrequencyImport() {
   var lines = [
     ' kworker/0:3-6880  [000]  2784.783015: power_frequency: ' +
                'type=2 state=1000000 cpu_id=0',
@@ -45,7 +41,7 @@ tests.testPowerFrequencyImport = function() {
   assertEquals(2, c1.counters['Clock Frequency'].samples.length);
 }
 
-tests.testCpuFrequencyImport = function() {
+function testCpuFrequencyImport() {
   var lines = [
     '     kworker/1:0-9665  [001] 15051.007301: cpu_frequency: ' +
                    'state=800000 cpu_id=1',
@@ -68,7 +64,7 @@ tests.testCpuFrequencyImport = function() {
   assertEquals(2, c1.counters['Clock Frequency'].samples.length);
 }
 
-tests.testCpuIdleImport = function() {
+function testCpuIdleImport() {
   var lines = [
     '          <idle>-0     [000] 15050.992883: cpu_idle: ' +
                   'state=1 cpu_id=0',
@@ -94,9 +90,6 @@ tests.testCpuIdleImport = function() {
   assertEquals(0, c1.slices.length);
   assertEquals(4, c1.counters['C-State'].samples.length);
 }
-
-return tests;
-});
 
 </script>
 </body>

@@ -3,14 +3,16 @@
 // found in the LICENSE file.
 
 'use strict';
-base.defineModule('tracks.timeline_slice_track')
-    .stylesheet('tracks.timeline_slice_track')
-    .dependsOn('tracks.timeline_canvas_based_track',
-               'sorted_array_utils',
-               'fast_rect_renderer',
-               'timeline_color_scheme',
-               'ui')
-    .exportsTo('tracks', function() {
+
+base.requireStylesheet('tracks.timeline_slice_track');
+
+base.require('tracks.timeline_canvas_based_track');
+base.require('sorted_array_utils');
+base.require('fast_rect_renderer');
+base.require('timeline_color_scheme');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   var palette = tracing.getColorPalette();
 

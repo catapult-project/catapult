@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_importer_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testLineRE = function() {
+function testLineRE() {
   var re = tracing._LinuxPerfImporterTestExports.lineRE;
   var x = re.exec('   <idle>-0     [001]  4467.843475: sched_switch: ' +
       'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
@@ -40,7 +36,7 @@ tests.testLineRE = function() {
   assertNotNull(x);
 }
 
-tests.testLineREWithIRQInfo = function() {
+function testLineREWithIRQInfo() {
   var re = tracing._LinuxPerfImporterTestExports.lineREWithIRQInfo;
   var x = re.exec('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
@@ -62,7 +58,7 @@ function testAutodetectLineCornerCases() {
   assertEquals(autoLineRE, lineRE, 'Mis-detected line format without IRQ info');
 }
 
-tests.testTraceEventClockSyncRE = function() {
+function testTraceEventClockSyncRE() {
   var re = tracing._LinuxPerfImporterTestExports.traceEventClockSyncRE;
   var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
   assertNotNull(x);
@@ -73,7 +69,7 @@ tests.testTraceEventClockSyncRE = function() {
   assertEquals('123.456', x[1]);
 }
 
-tests.testCanImport = function() {
+function testCanImport() {
   var lines = [
     '# tracer: nop',
     '#',
@@ -123,7 +119,7 @@ tests.testCanImport = function() {
   assertFalse(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
-tests.testCanImport34AndLater = function() {
+function testCanImport34AndLater() {
   var lines = [
     '# tracer: nop',
     '#',
@@ -154,7 +150,7 @@ tests.testCanImport34AndLater = function() {
   assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
-tests.testImportOneSequence = function() {
+function testImportOneSequence() {
   var lines = [
     '          <idle>-0     [001]  4467.843475: sched_switch: ' +
                 'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
@@ -180,7 +176,7 @@ tests.testImportOneSequence = function() {
   assertAlmostEquals(.536 - .475, c.slices[0].duration);
 }
 
-tests.testImportWithNewline = function() {
+function testImportWithNewline() {
   var lines = [
     ''
   ];
@@ -188,7 +184,7 @@ tests.testImportWithNewline = function() {
   assertEquals(0, m.importErrors.length);
 }
 
-tests.testClockSync = function() {
+function testClockSync() {
   var lines = [
     '          <idle>-0     [001]  4467.843475: sched_switch: ' +
                   'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
@@ -213,7 +209,7 @@ tests.testClockSync = function() {
   assertAlmostEquals((467.843475 - (467.843 - 0.1)) * 1000, c.slices[0].start);
 }
 
-tests.testClockSyncMarkWrite = function() {
+function testClockSyncMarkWrite() {
   var lines = [
     'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
               'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
@@ -238,11 +234,8 @@ tests.testClockSyncMarkWrite = function() {
 }
 
 
-tests.testImportWithoutClockSyncDeletesEverything = function() {
+function testImportWithoutClockSyncDeletesEverything() {
 }
-
-return tests;
-});
 
 </script>
 </body>

@@ -7,7 +7,6 @@ found in the LICENSE file.
 -->
 <head>
 <title>TimelineModel tests</title>
-<script src="base.js"></script>
 <style>
   .timeline-view {
     border: 1px solid black;
@@ -18,26 +17,23 @@ found in the LICENSE file.
     margin: 10px;
   }
 </style>
+<script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_slice');
+  base.require('timeline_filter');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_filter_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_slice',
-               'timeline_filter')
-    .runAllTests(function() {
+  'use strict';
 
   var TimelineSlice = tracing.TimelineSlice;
-
-  var tests = {};
-
   var TimelineTitleFilter = tracing.TimelineTitleFilter;
   var TimelineCategoryFilter = tracing.TimelineCategoryFilter;
 
-  tests.testTimelineTitleFilter = function() {
+  function testTimelineTitleFilter() {
     var s0 = test_utils.newSlice(1, 3);
     assertFalse(new TimelineTitleFilter('').matchSlice(s0));
 
@@ -50,7 +46,7 @@ base.defineModule('timeline_filter_test')
     assertFalse(new TimelineTitleFilter('x').matchSlice(s1));
   }
 
-  tests.testTimelineCategoryFilter = function() {
+  function testTimelineCategoryFilter() {
     var sNoCategory = test_utils.newSlice(1, 3);
     sNoCategory.category = undefined;
     assertTrue(new TimelineCategoryFilter(["x"]).matchSlice(sNoCategory));
@@ -66,7 +62,7 @@ base.defineModule('timeline_filter_test')
     assertFalse(new TimelineCategoryFilter(["x", "y"]).matchSlice(s1));
   }
 
-  tests.testFilterSliceArray = function() {
+  function testFilterSliceArray() {
     var slices = [
       test_utils.newSliceNamed('ba', 1, 3),
       test_utils.newSliceNamed('ab', 1, 3),
@@ -80,9 +76,6 @@ base.defineModule('timeline_filter_test')
     assertEquals('ab', matched[1].title);
     assertEquals('axa', matched[2].title);
   }
-
-  return tests;
-});
 </script>
 </body>
 </html>

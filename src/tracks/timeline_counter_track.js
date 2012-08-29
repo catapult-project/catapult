@@ -4,12 +4,13 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_counter_track')
-    .stylesheet('tracks.timeline_counter_track')
-    .dependsOn('tracks.timeline_canvas_based_track',
-               'timeline_color_scheme',
-               'ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_counter_track');
+
+base.require('tracks.timeline_canvas_based_track');
+base.require('timeline_color_scheme');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   var palette = tracing.getColorPalette();
 

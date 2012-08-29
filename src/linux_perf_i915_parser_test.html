@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_i915_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testi915Import = function() {
+function testi915Import() {
   var lines = [
     // NB: spliced from different traces; mismatched timestamps don't matter
     '          chrome-1223  [000]  2784.773556: i915_gem_object_pwrite: ' +
@@ -95,9 +91,6 @@ tests.testi915Import = function() {
 
   assertEquals(1, i915RegThread.slices.length);
 }
-
-return tests;
-});
 
 </script>
 </body>

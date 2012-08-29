@@ -7,9 +7,8 @@
 /**
  * @fileoverview Provides the TimelineAsyncSliceGroup class.
  */
-base.defineModule('timeline_async_slice_group')
-    .dependsOn('timeline_slice')
-    .exportsTo('tracing', function() {
+base.require('timeline_slice');
+base.exportTo('tracing', function() {
 
   var TimelineSlice = tracing.TimelineSlice;
 

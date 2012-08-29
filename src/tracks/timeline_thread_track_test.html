@@ -13,19 +13,16 @@ found in the LICENSE file.
 }
 </style>
 <script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+  base.require('tracks.timeline_thread_track');
+</script>
 </head>
 <body>
 <script>
   'use strict';
-  base.defineModule('tracks.timeline_thread_track_test')
-      .dependsOn('tracks.timeline_thread_track',
-                 'timeline_model',
-                 'unittest',
-                 'test_utils',
-                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
-      .runAllTests(function() {
-
-  var tests = {};
 
   var TimelineProcess = tracing.TimelineProcess;
   var TimelineSelection = tracing.TimelineSelection;
@@ -37,7 +34,7 @@ found in the LICENSE file.
   var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
   var newSliceNamed = test_utils.newSliceNamed;
 
-  tests.testSelectionHitTestingWithTimelineThreadTrack = function() {
+  function testSelectionHitTestingWithTimelineThreadTrack() {
     var model = new tracing.TimelineModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
@@ -65,7 +62,7 @@ found in the LICENSE file.
     assertEquals(t1.slices[0], selection[0].slice);
   }
 
-  tests.testTimelineThreadTrackWithRegularSlices = function() {
+  function testTimelineThreadTrackWithRegularSlices() {
     var testEl = this.addHTMLOutput();
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -88,7 +85,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.2, track.clientWidth);
   }
 
-  tests.testTimelineThreadTrackWithTallSlices = function() {
+  function testTimelineThreadTrackWithTallSlices() {
     var testEl = this.addHTMLOutput();
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -112,7 +109,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 1.1, track.clientWidth);
   }
 
-  tests.testTimelineThreadTrackWithRegularAndAsyncSlices = function() {
+  function testTimelineThreadTrackWithRegularAndAsyncSlices() {
     var testEl = this.addHTMLOutput();
     var track = TimelineThreadTrack();
     testEl.appendChild(track);
@@ -136,7 +133,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.15, track.clientWidth);
   }
 
-  tests.testFilterThreadSlices = function() {
+  function testFilterThreadSlices() {
     var thread = new TimelineThread(new TimelineProcess(7), 1);
     thread.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
@@ -159,9 +156,6 @@ found in the LICENSE file.
     assertTrue(t.tracks_[1].visible);
     assertEquals(1, t.tracks_[2].tracks_.length);
   }
-
-  return tests;
-});
 </script>
 </body>
 </html>

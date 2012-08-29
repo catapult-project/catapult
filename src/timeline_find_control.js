@@ -7,11 +7,10 @@
 /**
  * @fileoverview TimelineFindControl and TimelineFindController.
  */
-base.defineModule('timeline_find_control')
-    .dependsOn('timeline',
-               'timeline_filter',
-               'overlay')
-    .exportsTo('tracing', function() {
+base.require('timeline');
+base.require('timeline_filter');
+base.require('overlay');
+base.exportTo('tracing', function() {
 
   /**
    * TimelineFindControl

@@ -16,18 +16,18 @@
  * file, we the definition used in Linux traces, as it improves the importing
  * code's readability.
  */
-base.defineModule('linux_perf_importer')
-  .dependsOn('timeline_model',
-             'timeline_color_scheme',
-             'linux_perf_cpufreq_parser',
-             'linux_perf_drm_parser',
-             'linux_perf_exynos_parser',
-             'linux_perf_i915_parser',
-             'linux_perf_mali_parser',
-             'linux_perf_power_parser',
-             'linux_perf_sched_parser',
-             'linux_perf_workqueue_parser')
-  .exportsTo('tracing', function() {
+base.require('timeline_model');
+base.require('timeline_color_scheme');
+base.require('linux_perf_cpufreq_parser');
+base.require('linux_perf_drm_parser');
+base.require('linux_perf_exynos_parser');
+base.require('linux_perf_i915_parser');
+base.require('linux_perf_mali_parser');
+base.require('linux_perf_power_parser');
+base.require('linux_perf_sched_parser');
+base.require('linux_perf_workqueue_parser');
+
+base.exportTo('tracing', function() {
   /**
    * Represents the scheduling state for a single thread.
    * @constructor

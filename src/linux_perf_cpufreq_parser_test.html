@@ -11,21 +11,14 @@ found in the LICENSE file.
 </head>
 <body>
 <script>
-'use strict';
+  'use strict';
 
-base.defineModule('linux_perf_cpufreq_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testCpufreqImport = function() {
-}
-
-return tests;
-});
+  function testCpufreqImport() {
+  }
 
 </script>
 </body>

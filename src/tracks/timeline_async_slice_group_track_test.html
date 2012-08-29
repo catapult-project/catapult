@@ -13,19 +13,16 @@ found in the LICENSE file.
 }
 </style>
 <script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+  base.require('timeline_model');
+</script>
 </head>
 <body>
 <script>
   'use strict';
-  base.defineModule('tracks.timeline_async_slice_group_track_test')
-      .dependsOn('tracks.timeline_async_slice_group_track',
-                 'unittest',
-                 'test_utils',
-                 'timeline' /* TODO(nduca): reduce dependency to tracks */,
-                 'timeline_model')
-      .runAllTests(function() {
-
-  var tests = {};
 
   var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
   var TimelineAsyncSliceGroupTrack = tracks.TimelineAsyncSliceGroupTrack;
@@ -33,8 +30,7 @@ found in the LICENSE file.
   var TimelineThread = tracing.TimelineThread;
   var newAsyncSlice = test_utils.newAsyncSlice;
 
-  tests.testAsyncSliceGroup_filterSubRows =
-      function() {
+  function testAsyncSliceGroup_filterSubRows() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -53,8 +49,7 @@ found in the LICENSE file.
     assertEquals(1, track.subRows_.length);
   }
 
-  tests.testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices =
-      function() {
+  function testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -70,7 +65,7 @@ found in the LICENSE file.
     assertEquals(g.slices[1].subSlices[0], subRows[0][1]);
   }
 
-  tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
+  function testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -88,8 +83,7 @@ found in the LICENSE file.
     assertEquals(g.slices[1], subRows[1][0]);
   }
 
-  tests.testAsyncSliceGroup_rebuildSubRows_threePartlyOverlappingSlices =
-      function() {
+  function testAsyncSliceGroup_rebuildSubRows_threePartlyOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -109,7 +103,7 @@ found in the LICENSE file.
     assertEquals(g.slices[1].subSlices[0], subRows[1][0]);
   }
 
-  tests.testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices = function() {
+  function testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -129,8 +123,7 @@ found in the LICENSE file.
     assertEquals(g.slices[1].subSlices[0], subRows[1][0]);
   }
 
-  tests.testAsyncSliceGroup_computeSubGroups_twoThreadSpecificSlices =
-      function() {
+  function testAsyncSliceGroup_computeSubGroups_twoThreadSpecificSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var t2 = new TimelineThread(p1, 2);
@@ -152,9 +145,6 @@ found in the LICENSE file.
     assertEquals(1, subGroups[1].slices.length);
     assertEquals(g.slices[1], subGroups[1].slices[0]);
   }
-
-  return tests;
-});
 </script>
 </body>
 </html>

@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.defineModule('ui')
-  .exportsTo('base.ui', function() {
+base.exportTo('base.ui', function() {
 
   /**
    * Decorates elements as an instance of a class.

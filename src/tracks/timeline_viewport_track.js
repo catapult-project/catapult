@@ -4,12 +4,13 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_viewport_track')
-    .stylesheet('tracks.timeline_viewport_track')
-    .dependsOn('tracks.timeline_track',
-               'tracks.timeline_canvas_based_track',
-               'ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_viewport_track');
+
+base.require('tracks.timeline_track');
+base.require('tracks.timeline_canvas_based_track');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * A track that displays the viewport size and scale.

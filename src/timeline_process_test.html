@@ -7,7 +7,6 @@ found in the LICENSE file.
 -->
 <head>
 <title>TimelineProcess tests</title>
-<script src="base.js"></script>
 <style>
   .timeline-view {
     border: 1px solid black;
@@ -18,29 +17,27 @@ found in the LICENSE file.
     margin: 10px;
   }
 </style>
+<script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_process');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_process_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_model')
-    .runAllTests(function() {
-
-  var tests = {};
+  'use strict';
 
   var TimelineProcess = tracing.TimelineProcess;
 
-  tests.testGetOrCreateCounter = function() {
+  function testGetOrCreateCounter() {
     var process = new TimelineProcess(7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
     assertEquals(ctrBar2, ctrBar);
   };
 
-  tests.testShiftTimestampsForward = function() {
+  function testShiftTimestampsForward() {
     var process = new TimelineProcess(7);
     var ctr = process.getOrCreateCounter('foo', 'bar');
     var thread = process.getOrCreateThread(1);
@@ -58,8 +55,6 @@ base.defineModule('timeline_process_test')
     assertEquals(2, shiftCount);
   };
 
-  return tests;
-});
 </script>
 </body>
 </html>

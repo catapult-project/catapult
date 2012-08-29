@@ -4,10 +4,9 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_async_slice_group_track')
-    .dependsOn('tracks.timeline_slice_group_track',
-               'ui')
-    .exportsTo('tracks', function() {
+base.require('tracks.timeline_slice_group_track');
+base.require('ui');
+base.exportTo('tracks', function() {
 
   /**
    * A track that displays a TimelineAsyncSliceGroup.

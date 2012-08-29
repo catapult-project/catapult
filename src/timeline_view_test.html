@@ -21,18 +21,15 @@ found in the LICENSE file.
 </style>
 </head>
 <body>
-<script>
-'use strict';
-
-base.defineModule('timeline_view_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_view')
-    .runAllTests(function() {
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('timeline_view');
+  </script>
+  <script>
+    'use strict';
 
     var newSliceNamed = test_utils.newSliceNamed;
-
-    var tests = {};
 
     function createFullyPopulatedModel(opt_withError, opt_withMetadata) {
       var withError = opt_withError !== undefined ? opt_withError : true;
@@ -73,7 +70,7 @@ base.defineModule('timeline_view_test')
      * This test just instantiates a TimelineView and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    tests.testInstantiateTimelineView = function() {
+    function testInstantiateTimelineView() {
       var model = createFullyPopulatedModel(true, true);
 
       var view = new tracing.TimelineView();
@@ -89,7 +86,7 @@ base.defineModule('timeline_view_test')
       this.addHTMLOutput(undefined, view);
     }
 
-    tests.testChangeModelToSomethingDifferent = function() {
+    function testChangeModelToSomethingDifferent() {
       var model00 = createFullyPopulatedModel(false, false);
       var model11 = createFullyPopulatedModel(true, true);
 
@@ -102,7 +99,7 @@ base.defineModule('timeline_view_test')
     }
 
 
-    tests.testSetModelToSameThingAgain = function() {
+    function testSetModelToSameThingAgain() {
       var model = createFullyPopulatedModel(false, false);
 
       // Create a view with am model.
@@ -122,7 +119,7 @@ base.defineModule('timeline_view_test')
       assertEquals(selection.length, 1);
     }
 
-    tests.testChangeModelToSomethingDifferent = function() {
+    function testChangeModelToSomethingDifferent() {
       var model00 = createFullyPopulatedModel(false, false);
       var model11 = createFullyPopulatedModel(true, true);
 
@@ -135,7 +132,7 @@ base.defineModule('timeline_view_test')
     }
 
 
-    tests.testSetModelToSameThingAgain = function() {
+    function testSetModelToSameThingAgain() {
       var model = createFullyPopulatedModel(false, false);
 
       // Create a view with am model.
@@ -155,7 +152,7 @@ base.defineModule('timeline_view_test')
       assertEquals(selection.length, 1);
     }
 
-    tests.testSetModelUpdatesCategories = function() {
+    function testSetModelUpdatesCategories() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -176,7 +173,7 @@ base.defineModule('timeline_view_test')
       assertUndefined(view.timeline.categoryFilter_.categories_['baz']);
     }
 
-    tests.testUpdateCategoryFilterFromSettings = function() {
+    function testUpdateCategoryFilterFromSettings() {
       var view = new tracing.TimelineView();
       view.timeline_ = {};
       view.settings.set('foo', true, 'categories');
@@ -188,9 +185,6 @@ base.defineModule('timeline_view_test')
       assertTrue(view.timeline_.categoryFilter.categories_['baz']);
     }
 
-
-    return tests;
-});
 </script>
 </body>
 </html>

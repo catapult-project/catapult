@@ -4,13 +4,12 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_cpu_track')
-    .dependsOn('tracks.timeline_container_track',
-               'tracks.timeline_slice_track',
-               'timeline_filter',
-               'timeline_model',
-               'ui')
-    .exportsTo('tracks', function() {
+base.require('tracks.timeline_container_track');
+base.require('tracks.timeline_slice_track');
+base.require('timeline_filter');
+base.require('timeline_model');
+base.require('ui');
+base.exportTo('tracks', function() {
 
   /**
    * Visualizes a TimelineCpu using a series of of TimelineSliceTracks.

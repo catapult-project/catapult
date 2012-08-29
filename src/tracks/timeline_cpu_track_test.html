@@ -13,26 +13,23 @@ found in the LICENSE file.
 }
 </style>
 <script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+  base.require('timeline_model');
+</script>
 </head>
 <body>
 <script>
   'use strict';
-  base.defineModule('tracks.timeline_cpu_track_test')
-      .dependsOn('tracks.timeline_cpu_track',
-                 'unittest',
-                 'test_utils',
-                 'timeline', /* TODO(nduca): reduce dependency to tracks */
-                 'timeline_model')
-      .runAllTests(function() {
-
-  var tests = {};
 
   var TimelineCpu = tracing.TimelineCpu;
   var TimelineCpuTrack = tracks.TimelineCpuTrack;
   var TimelineSlice = tracing.TimelineSlice;
   var TimelineViewport = tracing.TimelineViewport;
 
-  tests.testBasicCpu = function() {
+  function testBasicCpu() {
     var testEl = this.addHTMLOutput();
 
     var cpu = new TimelineCpu(7);
@@ -50,8 +47,6 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 11.1, track.clientWidth);
   }
 
-  return tests;
-});
 </script>
 </body>
 </html>

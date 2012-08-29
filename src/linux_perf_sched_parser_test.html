@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_sched_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testSchedSwitchRE = function() {
+function testSchedSwitchRE() {
   var re = tracing._LinuxPerfSchedParserTestExports.schedSwitchRE;
   var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
       '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
@@ -54,7 +50,7 @@ tests.testSchedSwitchRE = function() {
   assertEquals('D|W', x[4]);
 }
 
-tests.testSchedWakeupRE = function() {
+function testSchedWakeupRE() {
   var re = tracing._LinuxPerfSchedParserTestExports.schedWakeupRE;
   var x = re.exec(
       'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
@@ -66,12 +62,9 @@ tests.testSchedWakeupRE = function() {
   assertEquals('000', x[5]);
 }
 
-tests.testImportOneSequenceWithSchedWakeUp = function() {
+function testImportOneSequenceWithSchedWakeUp() {
   // TODO(nduca): write test for this.
 }
-
-return tests;
-});
 
 </script>
 </body>

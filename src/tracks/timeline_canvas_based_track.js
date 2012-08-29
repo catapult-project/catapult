@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_canvas_based_track')
-    .stylesheet('tracks.timeline_canvas_based_track')
-    .dependsOn('tracks.timeline_track',
-               'fast_rect_renderer',
-               'timeline_color_scheme',
-               'ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_canvas_based_track');
+base.require('tracks.timeline_track');
+base.require('fast_rect_renderer');
+base.require('timeline_color_scheme');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * A canvas-based track constructed. Provides the basic heading and

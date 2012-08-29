@@ -13,26 +13,23 @@ found in the LICENSE file.
 }
 </style>
 <script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_slice');
+  base.require('timeline');
+</script>
 </head>
 <body>
 <script>
   'use strict';
-  base.defineModule('tracks.timeline_slice_track_test')
-      .dependsOn('tracks.timeline_slice_track',
-                 'timeline_slice',
-                 'unittest',
-                 'test_utils',
-                 'timeline' /* TODO(nduca): reduce dependency to tracks */)
-      .runAllTests(function() {
-
-  var tests = {};
 
   var TimelineSelection = tracing.TimelineSelection;
   var TimelineSliceTrack = tracks.TimelineSliceTrack;
   var TimelineSlice = tracing.TimelineSlice;
   var TimelineViewport = tracing.TimelineViewport;
 
-  tests.testBasicSlices = function() {
+  function testBasicSlices() {
     var testEl = this.addHTMLOutput();
     var track = TimelineSliceTrack();
     testEl.appendChild(track);
@@ -47,7 +44,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 8.8, track.clientWidth);
   }
 
-  tests.testFindAllObjectsMatchingInSliceTrack = function() {
+  function testFindAllObjectsMatchingInSliceTrack() {
     var track = TimelineSliceTrack();
     track.slices = [
       new TimelineSlice('', 'a', 0, 1, {}, 1),
@@ -64,7 +61,7 @@ found in the LICENSE file.
     assertEquals(track.slices[2], selection[1].slice);
   }
 
-  tests.testShrinkingSliceSizes = function() {
+  function testShrinkingSliceSizes() {
     var testEl = this.addHTMLOutput();
     var track = TimelineSliceTrack();
     testEl.appendChild(track);
@@ -82,7 +79,7 @@ found in the LICENSE file.
     track.viewport.xSetWorldRange(0, 1.1 * x, track.clientWidth);
   }
 
-  tests.testSelectionHitTesting = function() {
+  function testSelectionHitTesting() {
     var testEl = this.addHTMLOutput();
     var track = new TimelineSliceTrack();
     testEl.appendChild(track);
@@ -115,7 +112,7 @@ found in the LICENSE file.
   }
 
   /* You'll need visual inspection to test eliding with this one. */
-  tests.testElideVisualInspection = function() {
+  function testElideVisualInspection() {
     var optDicts = [{ trackName: 'elideOff', elide: false },
                     { trackName: 'elideOn', elide: true }];
     for (var dictIndex in optDicts) {
@@ -144,7 +141,7 @@ found in the LICENSE file.
     }
   }
 
-  tests.testElide = function() {
+  function testElide() {
     var testEl = this.addHTMLOutput();
     var track = new TimelineSliceTrack();
     testEl.appendChild(track);
@@ -192,7 +189,7 @@ found in the LICENSE file.
     assertEquals('...', stringWidthPair.string.substring(len - 3, len));
   }
 
-  tests.testTimelineSliceTrackAddItemNearToProvidedHit = function() {
+  function testTimelineSliceTrackAddItemNearToProvidedHit() {
     var track = new TimelineSliceTrack();
     track.slices = [
       new TimelineSlice('', 'a', 0, 1, {}, 1),
@@ -238,9 +235,6 @@ found in the LICENSE file.
     assertFalse(ret);
     assertEquals(0, selNone.length);
   }
-
-  return tests;
-});
 </script>
 </body>
 </html>

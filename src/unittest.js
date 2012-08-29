@@ -9,9 +9,8 @@
  * installs global assert methods during the test for backward compatibility
  * with Closure tests.
  */
-base.defineModule('unittest')
-    .stylesheet('unittest')
-    .exportsTo('unittest', function() {
+base.requireStylesheet('unittest');
+base.exportTo('unittest', function() {
 
   function createTestCaseDiv(testName, opt_href, opt_alwaysShowErrorLink) {
     var el = document.createElement('test-case');
@@ -526,6 +525,9 @@ base.defineModule('unittest')
       document.addEventListener('DOMContentLoaded', append);
     global.addEventListener('load', run);
   }
+
+  if (/_test.html$/.test(document.location.pathname))
+    runAllTests();
 
   return {
     HTMLTestRunner: HTMLTestRunner,

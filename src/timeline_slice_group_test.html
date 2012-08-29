@@ -8,25 +8,22 @@ found in the LICENSE file.
 <head>
 <title>TimelineSliceGroup tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_slice_group');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_slice_group_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_slice_group')
-    .runAllTests(function() {
+  'use strict';
 
   var TimelineSlice = tracing.TimelineSlice;
   var TimelineSliceGroup = tracing.TimelineSliceGroup;
   var newSlice = test_utils.newSlice;
   var newSliceNamed = test_utils.newSliceNamed;
 
-  var tests = {};
-
-  tests.testBasicBeginEnd = function() {
+  function testBasicBeginEnd() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
     var sliceA = group.beginSlice("", "a", 1, {a:1});
@@ -40,7 +37,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(2, sliceB.duration);
   };
 
-  tests.testNestedBeginEnd = function() {
+  function testNestedBeginEnd() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
     group.beginSlice("", "a", 1);
@@ -56,7 +53,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(2, group.slices[1].duration);
   };
 
-  tests.testBounds = function() {
+  function testBounds() {
     var group = new TimelineSliceGroup();
     group.updateBounds();
     assertEquals(group.minTimestamp, undefined);
@@ -69,7 +66,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(9, group.maxTimestamp);
   }
 
-  tests.testBoundsWithPartial = function() {
+  function testBoundsWithPartial() {
     var group = new TimelineSliceGroup();
     group.beginSlice('', 'a', 7);
     group.updateBounds();
@@ -77,7 +74,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(7, group.maxTimestamp);
   }
 
-  tests.testBoundsWithTwoPartials = function() {
+  function testBoundsWithTwoPartials() {
     var group = new TimelineSliceGroup();
     group.beginSlice('', 'a', 0);
     group.beginSlice('', 'a', 1);
@@ -86,7 +83,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(1, group.maxTimestamp);
   }
 
-  tests.testBoundsWithBothPartialAndRegular = function() {
+  function testBoundsWithBothPartialAndRegular() {
     var group = new TimelineSliceGroup();
     group.updateBounds();
     assertEquals(undefined, group.minTimestamp);
@@ -99,7 +96,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(7, group.maxTimestamp);
   }
 
-  tests.testAutocloserBasic = function() {
+  function testAutocloserBasic() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
 
@@ -122,7 +119,7 @@ base.defineModule('timeline_slice_group_test')
     assertEquals(1, group.slices[2].duration);
   }
 
-  tests.testAutocloserWithSubTasks = function() {
+  function testAutocloserWithSubTasks() {
     var group = new TimelineSliceGroup();
     assertEquals(group.openSliceCount, 0);
 
@@ -145,10 +142,6 @@ base.defineModule('timeline_slice_group_test')
   }
 
   // TODO: test cretion of subSlices
-
-
-  return tests;
-});
 </script>
 </body>
 </html>

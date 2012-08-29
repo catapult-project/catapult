@@ -7,9 +7,7 @@
 /**
  * @fileoverview Provides color scheme related functions.
  */
-base.defineModule('timeline_color_scheme')
-    .dependsOn()
-    .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   // The color palette is split in half, with the upper
   // half of the palette being the "highlighted" verison

@@ -8,26 +8,22 @@ found in the LICENSE file.
 <head>
 <title>Timeline tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+  base.require('trace_event_importer');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'trace_event_importer',
-               'timeline',
-               'tracks.timeline_slice_track')
-    .runAllTests(function() {
-
-    var tests = {};
+    'use strict';
 
     /*
      * This test just instantiates a TimelineView and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    tests.testInstantiateTimeline = function() {
+    function testInstantiateTimeline() {
       var events = [
         {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
@@ -43,7 +39,7 @@ base.defineModule('timeline_test')
       outputEl.appendChild(timeline);
     }
 
-    tests.testAddAllObjectsMatchingFilterToSelection = function() {
+    function testAddAllObjectsMatchingFilterToSelection() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -77,7 +73,7 @@ base.defineModule('timeline_test')
       assertEquals(expected[1].slice, result[1].slice);
     }
 
-    tests.testEmptyThreadsDeleted = function() {
+    function testEmptyThreadsDeleted() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -96,7 +92,7 @@ base.defineModule('timeline_test')
       }
     }
 
-    tests.testFilteredCounters = function() {
+    function testFilteredCounters() {
       var model = new tracing.TimelineModel();
       var c1 = model.getOrCreateCpu(0);
       c1.getOrCreateCounter('', 'b');
@@ -120,7 +116,7 @@ base.defineModule('timeline_test')
       }
     }
 
-    tests.testFilteredCpus = function() {
+    function testFilteredCpus() {
       var model = new tracing.TimelineModel();
       var c1 = model.getOrCreateCpu(1);
       c1.getOrCreateCounter('', 'a');
@@ -142,7 +138,7 @@ base.defineModule('timeline_test')
       }
     }
 
-    tests.testFilteredProcesses = function() {
+    function testFilteredProcesses() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       p1.getOrCreateCounter('', 'a');
@@ -164,7 +160,7 @@ base.defineModule('timeline_test')
       }
     }
 
-    tests.testFilteredThreads = function() {
+    function testFilteredThreads() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(2);
@@ -178,9 +174,6 @@ base.defineModule('timeline_test')
       timeline.categoryFilter = new NoThreadsFilter();
       assertEquals(0, timeline.numVisibleTracks);
     }
-
-    return tests;
-});
 </script>
 </body>
 </html>

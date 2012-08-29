@@ -4,11 +4,10 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_container_track')
-    .dependsOn('tracks.timeline_track',
-               'timeline_filter',
-               'ui')
-    .exportsTo('tracks', function() {
+base.require('tracks.timeline_track');
+base.require('timeline_filter');
+base.require('ui');
+base.exportTo('tracks', function() {
 
   /**
    * A generic track that contains other tracks as its children.

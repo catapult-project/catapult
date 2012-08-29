@@ -7,9 +7,7 @@
 /**
  * @fileoverview Provides the TimelineCounter class.
  */
-base.defineModule('timeline_counter')
-    .dependsOn()
-    .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   var nextCounterGUID = 1;
 

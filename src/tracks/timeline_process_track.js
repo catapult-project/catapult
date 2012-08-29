@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_process_track')
-    .dependsOn('tracks.timeline_container_track',
-               'tracks.timeline_counter_track',
-               'tracks.timeline_thread_track',
-               'timeline_filter',
-               'ui')
-    .exportsTo('tracks', function() {
+base.require('tracks.timeline_container_track');
+base.require('tracks.timeline_counter_track');
+base.require('tracks.timeline_thread_track');
+base.require('timeline_filter');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * Visualizes a TimelineProcess by building TimelineThreadTracks and

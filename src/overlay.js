@@ -12,11 +12,10 @@
  * restores its original parentage.
  *
  */
-base.defineModule('overlay')
-    .stylesheet('overlay')
-    .dependsOn('ui',
-               'event_target')
-    .exportsTo('tracing', function() {
+base.requireStylesheet('overlay');
+base.require('ui');
+base.require('event_target');
+base.exportTo('tracing', function() {
   /**
    * Manages a full-window div that darkens the window, disables
    * input, and hosts the currently-visible overlays. You shouldn't

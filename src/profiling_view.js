@@ -8,10 +8,10 @@
  * @fileoverview ProfilingView glues the TimelineView control to
  * TracingController.
  */
-base.defineModule('profiling_view')
-    .stylesheet('profiling_view')
-    .dependsOn('timeline_view', 'tracing_controller')
-    .exportsTo('tracing', function() {
+base.requireStylesheet('profiling_view');
+base.require('timeline_view');
+base.require('tracing_controller');
+base.exportTo('tracing', function() {
   /**
    * ProfilingView
    * @constructor

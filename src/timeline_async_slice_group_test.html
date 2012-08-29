@@ -10,16 +10,13 @@ found in the LICENSE file.
 <script src="base.js"></script>
 </head>
 <body>
-<script>
-'use strict';
-
-base.defineModule('timeline_async_slice_group_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_model')
-    .runAllTests(function() {
-
-  var tests = {};
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('timeline_model');
+  </script>
+  <script>
+    'use strict';
 
   var TimelineProcess = tracing.TimelineProcess;
   var TimelineThread = tracing.TimelineThread;
@@ -28,14 +25,14 @@ base.defineModule('timeline_async_slice_group_test')
   var TimelineAsyncSliceGroup = tracing.TimelineAsyncSliceGroup;
   var newAsyncSlice = test_utils.newAsyncSlice;
 
-  tests.testAsyncSliceGroupBounds_Empty = function() {
+  function testAsyncSliceGroupBounds_Empty() {
     var g = new TimelineAsyncSliceGroup(name);
     g.updateBounds();
     assertEquals(undefined, g.minTimestamp);
     assertEquals(undefined, g.maxTimestamp);
   }
 
-  tests.testAsyncSliceGroupBounds_Basic = function() {
+  function testAsyncSliceGroupBounds_Basic() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var g = new TimelineAsyncSliceGroup('a');
@@ -47,7 +44,7 @@ base.defineModule('timeline_async_slice_group_test')
     assertEquals(2.5, g.maxTimestamp);
   }
 
-  tests.testAsyncSlice_toJSON = function() {
+  function testAsyncSlice_toJSON() {
     var js = [
       '{',
       '  "category" : "",',
@@ -80,8 +77,6 @@ base.defineModule('timeline_async_slice_group_test')
     assertEquals(js, JSON.stringify(s));
   }
 
-  return tests;
-});
 </script>
 </body>
 </html>

@@ -6,10 +6,9 @@
 /**
  * @fileoverview State and UI for trace data collection.
  */
-base.defineModule('tracing_controller')
-    .stylesheet('tracing_controller')
-    .dependsOn('event_target')
-    .exportsTo('tracing', function() {
+base.requireStylesheet('tracing_controller');
+base.require('event_target');
+base.exportTo('tracing', function() {
 
   /**
    * The tracing controller is responsible for talking to tracing_ui.cc in

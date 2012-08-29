@@ -25,8 +25,7 @@
  * Make sure to flush the trackRenderer before finishing drawing in order
  * to commit any queued drawing operations.
  */
-base.defineModule('fast_rect_renderer')
-    .exportsTo('tracing', function() {
+base.exportTo('tracing', function() {
 
   /**
    * Creates a fast rect renderer with a specific set of culling rules

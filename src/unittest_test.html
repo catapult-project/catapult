@@ -8,20 +8,16 @@ found in the LICENSE file.
 <head>
 <title>Unittest Tests</title>
 <script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+</script>
 </head>
 <body>
 
 <script>
 'use strict';
 
-base.defineModule('unittest_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer',
-               'timeline')
-    .runWhenLoaded(function() {
-
-var tests = {};
 
 var TestCase = unittest.TestCase;
 var HTMLTestRunner = unittest.HTMLTestRunner;
@@ -176,7 +172,7 @@ FakeResults.prototype = {
   },
 };
 
-tests.testTestCaseRun = function() {
+function testTestCaseRun() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -199,7 +195,7 @@ tests.testTestCaseRun = function() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-tests.testTestCaseRun_TestThatFails = function() {
+function testTestCaseRun_TestThatFails() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -223,7 +219,7 @@ tests.testTestCaseRun_TestThatFails = function() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-tests.testObjectThatHasErrorInSetUp = function() {
+function testObjectThatHasErrorInSetUp() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -249,7 +245,7 @@ tests.testObjectThatHasErrorInSetUp = function() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-tests.testObjectThatThrowsInCleanup = function() {
+function testObjectThatThrowsInCleanup() {
   var didRunTestMethod = false;
   var test = new FakeTest(function() {
     didRunTestMethod = true;
@@ -275,7 +271,7 @@ tests.testObjectThatThrowsInCleanup = function() {
   rawAssertTrue(window.assertEquals == undefined);
 }
 
-tests.testAssertTrue = function() {
+function testAssertTrue() {
   var test = new TestCase(function() {
     rawAssertThrows(function() {
       assertTrue(false);
@@ -288,7 +284,7 @@ tests.testAssertTrue = function() {
   test.run(results);
 }
 
-tests.testAssertThrows = function() {
+function testAssertThrows() {
   var test = new TestCase(function() {
     rawAssertThrows(function() {
       assertThrows(function() {
@@ -304,7 +300,7 @@ tests.testAssertThrows = function() {
   test.run(results);
 }
 
-tests.testTestRunnerAllPassed = function() {
+function testTestRunnerAllPassed() {
   var runner = new HTMLTestRunner('foo');
   var test1 = new TestCase(function() {
     assertTrue(true);
@@ -323,7 +319,7 @@ tests.testTestRunnerAllPassed = function() {
   rawAssertEquals(0, stats.numTestsWithErrors);
 }
 
-tests.testTestErrorConstruction = function() {
+function testTestErrorConstruction() {
   var err = new unittest.TestError();
   rawAssertTrue(err instanceof unittest.TestError);
   rawAssertTrue(err instanceof Error);
@@ -336,7 +332,7 @@ tests.testTestErrorConstruction = function() {
   rawAssertEquals('foo', err.message);
 }
 
-tests.testTestRunnerOneFailed = function() {
+function testTestRunnerOneFailed() {
   var runner = new HTMLTestRunner('foo', "");
   var test1 = new TestCase(function() {
     assertTrue(true);
@@ -355,7 +351,7 @@ tests.testTestRunnerOneFailed = function() {
   rawAssertEquals(1, stats.numTestsWithErrors);
 }
 
-tests.testTestRunnerOneFailedWithHashFilter = function() {
+function testTestRunnerOneFailedWithHashFilter() {
   var runner = new HTMLTestRunner('foo', "#test2");
 
   var test1 = new TestCase(function() {
@@ -375,7 +371,7 @@ tests.testTestRunnerOneFailedWithHashFilter = function() {
   rawAssertEquals(1, stats.numTestsWithErrors);
 }
 
-tests.testTestDiscovery = function() {
+function testTestDiscovery() {
   var object = {
     test1: function() {
     },
@@ -391,7 +387,7 @@ tests.testTestDiscovery = function() {
   rawAssertEquals("test_2", tests[1].testName);
 }
 
-tests.testTestRunnerFilter = function() {
+function testTestRunnerFilter() {
   var object = {
     test1: function() {
     },
@@ -403,8 +399,6 @@ tests.testTestRunnerFilter = function() {
   rawAssertEquals("test_2", tests[0].testName);
 }
 
-runAllTests();
-});
 </script>
 </body>
 </html>

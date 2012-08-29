@@ -7,11 +7,10 @@
 /**
  * @fileoverview Provides the TimelineThread class.
  */
-base.defineModule('timeline_thread')
-    .dependsOn('timeline_slice',
-               'timeline_slice_group',
-               'timeline_async_slice_group')
-    .exportsTo('tracing', function() {
+base.require('timeline_slice');
+base.require('timeline_slice_group');
+base.require('timeline_async_slice_group');
+base.exportTo('tracing', function() {
 
   var TimelineSlice = tracing.TimelineSlice;
   var TimelineSliceGroup = tracing.TimelineSliceGroup;

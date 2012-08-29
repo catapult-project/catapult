@@ -20,12 +20,11 @@
  * nesting tasks.
  *
  */
-base.defineModule('timeline_model')
-    .dependsOn('event_target',
-               'timeline_process',
-               'timeline_cpu',
-               'timeline_filter')
-    .exportsTo('tracing', function() {
+base.require('event_target');
+base.require('timeline_process');
+base.require('timeline_cpu');
+base.require('timeline_filter');
+base.exportTo('tracing', function() {
 
   var TimelineProcess = tracing.TimelineProcess;
   var TimelineCpu = tracing.TimelineCpu;

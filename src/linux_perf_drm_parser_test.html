@@ -11,36 +11,29 @@ found in the LICENSE file.
 </head>
 <body>
 <script>
-'use strict';
+  'use strict';
 
-base.defineModule('linux_perf_drm_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('linux_perf_importer');
 
-var tests = {};
+  function testDrmImport() {
+    var lines = [
+      '          chrome-2465  [000]    71.653157: drm_vblank_event: ' +
+                 'crtc=0, seq=4233',
+      '          <idle>-0     [000]    71.669851: drm_vblank_event: ' +
+                 'crtc=0, seq=4234'
+    ];
+    var m = new tracing.TimelineModel(lines.join('\n'), false);
+    assertEquals(0, m.importErrors.length);
 
-tests.testDrmImport = function() {
-  var lines = [
-    '          chrome-2465  [000]    71.653157: drm_vblank_event: ' +
-               'crtc=0, seq=4233',
-    '          <idle>-0     [000]    71.669851: drm_vblank_event: ' +
-               'crtc=0, seq=4234'
-  ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
+    var threads = m.getAllThreads();
+    assertEquals(1, threads.length);
 
-  var threads = m.getAllThreads();
-  assertEquals(1, threads.length);
-
-  var vblankThread = threads[0];
-  assertEquals('drm_vblank', vblankThread.name);
-  assertEquals(2, vblankThread.slices.length);
-}
-
-return tests;
-});
+    var vblankThread = threads[0];
+    assertEquals('drm_vblank', vblankThread.name);
+    assertEquals(2, vblankThread.slices.length);
+  }
 
 </script>
 </body>

@@ -13,15 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-base.defineModule('linux_perf_exynos_parser_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'linux_perf_importer')
-    .runAllTests(function() {
+base.require('unittest');
+base.require('test_utils');
+base.require('linux_perf_importer');
 
-var tests = {};
-
-tests.testExynosImport = function() {
+function testExynosImport() {
   var lines = [
     '               X-945   [001] ....   113.995549: exynos_flip_request: ' +
                     'pipe=0',
@@ -38,9 +34,6 @@ tests.testExynosImport = function() {
   assertEquals('exynos_flip', gfxFlipThread.name);
   assertEquals(1, gfxFlipThread.slices.length);
 }
-
-return tests;
-});
 
 </script>
 </body>

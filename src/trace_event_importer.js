@@ -6,10 +6,9 @@
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided timeline model.
  */
-base.defineModule('trace_event_importer')
-    .dependsOn('timeline_model',
-               'timeline_color_scheme')
-    .exportsTo('tracing', function() {
+base.require('timeline_model');
+base.require('timeline_color_scheme');
+base.exportTo('tracing', function() {
 
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;

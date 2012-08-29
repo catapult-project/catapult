@@ -5,9 +5,8 @@
 /**
  * @fileoverview Parses cpufreq events in the Linux event trace format.
  */
-base.defineModule('linux_perf_cpufreq_parser')
-  .dependsOn('linux_perf_parser')
-  .exportsTo('tracing', function() {
+base.require('linux_perf_parser');
+base.exportTo('tracing', function() {
 
   var LinuxPerfParser = tracing.LinuxPerfParser;
 

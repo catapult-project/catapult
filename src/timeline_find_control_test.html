@@ -7,7 +7,6 @@ found in the LICENSE file.
 -->
 <head>
 <title>TimelineFindControl tests</title>
-<script src="base.js"></script>
 <style>
   .timeline-view {
     border: 1px solid black;
@@ -19,20 +18,19 @@ found in the LICENSE file.
     margin: 10px;
   }
 </style>
+<script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_find_control');
+</script>
 </head>
 <body>
 <script>
-'use strict';
-
-base.defineModule('timeline_find_control_test')
-    .dependsOn('unittest',
-               'test_utils',
-               'timeline_find_control')
-    .runAllTests(function() {
+    'use strict';
 
     var newSliceNamed = test_utils.newSliceNamed;
 
-    var tests = {};
     /*
      * Just enough of the Timeline to support the tests below.
      */
@@ -82,7 +80,7 @@ base.defineModule('timeline_find_control_test')
      * This test just instantiates a FindDialog and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    tests.testInstantiateTimelineFindControl = function() {
+    function testInstantiateTimelineFindControl() {
       var ctl = new tracing.TimelineFindControl();
       var didFindPrevious = false;
       var didFindNext = false;
@@ -109,13 +107,13 @@ base.defineModule('timeline_find_control_test')
       assertTrue(didFindNext);
     }
 
-    tests.testFindControllerNoTimeline = function() {
+    function testFindControllerNoTimeline() {
       var controller = new tracing.TimelineFindController();
       controller.findNext();
       controller.findPrevious();
     }
 
-    tests.testFindControllerEmptyHit = function() {
+    function testFindControllerEmptyHit() {
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
@@ -127,7 +125,7 @@ base.defineModule('timeline_find_control_test')
       assertArrayShallowEquals([], timeline.selection);
     }
 
-    tests.testFindControllerOneHit = function() {
+    function testFindControllerOneHit() {
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
@@ -141,7 +139,7 @@ base.defineModule('timeline_find_control_test')
       assertArrayShallowEquals([1], timeline.selection);
     }
 
-    tests.testFindControllerMultipleHits = function() {
+    function testFindControllerMultipleHits() {
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
@@ -163,7 +161,7 @@ base.defineModule('timeline_find_control_test')
       assertArrayShallowEquals([2], timeline.selection);
     }
 
-    tests.testFindControllerChangeFilterAfterNext = function() {
+    function testFindControllerChangeFilterAfterNext() {
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
@@ -178,7 +176,7 @@ base.defineModule('timeline_find_control_test')
       assertArrayShallowEquals([4], timeline.selection);
     }
 
-    tests.testFindControllerSelectsFirstItemImmediately = function() {
+    function testFindControllerSelectsFirstItemImmediately() {
       var timeline = new FakeTimeline();
       var controller = new tracing.TimelineFindController();
       controller.timeline = timeline;
@@ -189,7 +187,7 @@ base.defineModule('timeline_find_control_test')
       assertArrayShallowEquals([2], timeline.selection);
     }
 
-    tests.testFindControllerWithRealTimeline = function() {
+    function testFindControllerWithRealTimeline() {
       var model = new tracing.TimelineModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
@@ -216,9 +214,6 @@ base.defineModule('timeline_find_control_test')
       controller.findNext();
       assertEquals(0, timeline.selection.length);
     }
-
-    return tests;
-});
 </script>
 </body>
 </html>

@@ -7,9 +7,8 @@
 /**
  * @fileoverview Code for the timeline viewport.
  */
-base.defineModule('timeline_selection')
-    .dependsOn('event_target')
-    .exportsTo('tracing', function() {
+base.require('event_target');
+base.exportTo('tracing', function() {
 
   function TimelineSelectionSliceHit(track, slice) {
     this.track = track;

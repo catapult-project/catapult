@@ -7,8 +7,7 @@
 /**
  * @fileoverview Provides the Settings class.
  */
-base.defineModule('settings')
-    .exportsTo('base', function() {
+base.exportTo('base', function() {
 
   /**
    * Settings is a simple wrapper around local storage, to make it easier

@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.defineModule('tracks.timeline_model_track')
-    .stylesheet('tracks.timeline_model_track')
-    .dependsOn('tracks.timeline_container_track',
-               'tracks.timeline_cpu_track',
-               'tracks.timeline_process_track',
-               'ui')
-    .exportsTo('tracks', function() {
+base.requireStylesheet('tracks.timeline_model_track');
+base.require('tracks.timeline_container_track');
+base.require('tracks.timeline_cpu_track');
+base.require('tracks.timeline_process_track');
+base.require('ui');
+
+base.exportTo('tracks', function() {
 
   /**
    * Visualizes a TimelineModel by building TimelineProcessTracks and

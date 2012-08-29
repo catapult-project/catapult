@@ -17,17 +17,17 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-base.defineModule('timeline')
-    .stylesheet('timeline')
-    .dependsOn('event_target',
-               'measuring_stick',
-               'timeline_filter',
-               'timeline_selection',
-               'timeline_viewport',
-               'tracks.timeline_model_track',
-               'tracks.timeline_viewport_track',
-               'ui')
-    .exportsTo('tracing', function() {
+base.requireStylesheet('timeline');
+base.require('event_target');
+base.require('measuring_stick');
+base.require('timeline_filter');
+base.require('timeline_selection');
+base.require('timeline_viewport');
+base.require('tracks.timeline_model_track');
+base.require('tracks.timeline_viewport_track');
+base.require('ui');
+
+base.exportTo('tracing', function() {
 
   var TimelineSelection = tracing.TimelineSelection;
   var TimelineViewport = tracing.TimelineViewport;;
