@@ -142,7 +142,7 @@ base.exportTo('tracing', function() {
 
       var showEl = document.createElement('div');
       showEl.className = 'timeline-button timeline-view-info-button';
-      showEl.textContent = 'Category Filters';
+      showEl.textContent = 'Categories';
       showEl.__defineSetter__('callback', function(value) {
         callback = value;
       });
@@ -159,9 +159,9 @@ base.exportTo('tracing', function() {
 
       function updateVisibility() {
         if (that.model)
-          showEl.style.display = 'none';
-        else
           showEl.style.display = '';
+        else
+          showEl.style.display = 'none';
       }
       updateVisibility();
       that.addEventListener('modelChange', updateVisibility);
