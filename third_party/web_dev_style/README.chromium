@@ -1,0 +1,15 @@
+Name: web_dev_style
+Short Name: web_dev_style in chromium
+URL: http://src.chromium.org/viewvc/chrome/trunk/src/chrome/browser/resources/web_dev_style/
+Version: 0
+Date: Fri Aug 24 18:54:32 2012 -0700
+Revision: 153377
+License: BSD
+License File: LICENSE
+Security Critical: no
+
+Description:
+The web_dev_style portion of the chromium project, containing css and js lint bindings.
+
+Local Modifications:
+Removed OWNERS file.
