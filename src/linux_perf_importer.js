@@ -21,6 +21,7 @@ base.require('timeline_color_scheme');
 base.require('linux_perf_cpufreq_parser');
 base.require('linux_perf_drm_parser');
 base.require('linux_perf_exynos_parser');
+base.require('linux_perf_gesture_parser');
 base.require('linux_perf_i915_parser');
 base.require('linux_perf_mali_parser');
 base.require('linux_perf_power_parser');
