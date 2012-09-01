@@ -30,8 +30,12 @@ css_warning_message = """/**
 *        Do not edit directly.
 */
 """
+def _get_input_filenames():
+  return [os.path.join(srcdir, f)
+          for f in ['base.js', 'timeline_view.js']]
 
-def generate_css(filenames):
+def generate_css():
+  filenames = _get_input_filenames()
   load_sequence = parse_deps.calc_load_sequence(filenames)
 
   style_sheet_chunks = [css_warning_message, '\n']
@@ -41,7 +45,8 @@ def generate_css(filenames):
 
   return ''.join(style_sheet_chunks)
 
-def generate_js(filenames):
+def generate_js():
+  filenames = _get_input_filenames()
   load_sequence = parse_deps.calc_load_sequence(filenames)
 
   js_chunks = [js_warning_message, '\n']
@@ -51,7 +56,7 @@ def generate_js(filenames):
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
 
   for module in load_sequence:
-    js_chunks.append(module.timeline_view)
+    js_chunks.append(module.contents)
     js_chunks.append("\n")
 
   return ''.join(js_chunks)
@@ -68,15 +73,13 @@ def main(args):
     print "Must specify one, or both of --js and --css"
     return 1
 
-  input_filenames = [os.path.join(srcdir, f)
-                     for f in ['base.js', 'timeline_view.js']]
   if options.js_file:
     with open(options.js_file, 'w') as f:
-      f.write(generate_js(input_filenames))
+      f.write(generate_js())
 
   if options.css_file:
     with open(options.css_file, 'w') as f:
-      f.write(generate_css(input_filenames))
+      f.write(generate_css())
 
   return 0
 
