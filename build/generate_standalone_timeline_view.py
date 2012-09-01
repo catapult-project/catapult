@@ -41,7 +41,7 @@ def generate_css():
   style_sheet_chunks = [css_warning_message, '\n']
   for module in load_sequence:
     for style_sheet in module.style_sheets:
-      style_sheet_chunks.append("""%s\n""" % style_sheet.timeline_view)
+      style_sheet_chunks.append("""%s\n""" % style_sheet.contents)
 
   return ''.join(style_sheet_chunks)
 
