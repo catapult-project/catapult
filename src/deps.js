@@ -379,6 +379,12 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'profiling_view',
     'profiling_view');
+base.addModuleDependency(
+    'timeline_stream_importer',
+    'timeline_model');
+base.addModuleDependency(
+    'timeline_stream_importer',
+    'timeline_slice');
 base.addModuleStylesheet(
     'unittest',
     'unittest');

@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>TimelineStreamImporter tests</title>
+  <script src="/src/base.js"></script>
+  <style>
+    .timeline-view {
+      border: 1px solid black;
+      margin: 10px;
+      height: 350px;
+    }
+
+    .timeline-find-dialog {
+      border: 1px solid black;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline_view');
+  base.require('timeline_stream_importer');
+</script>
+<script>
+  'use strict';
+
+  window.onload = function() {
+    var num_tests = 1;
+    var testIndex = 0;
+    var startTime = 0;
+
+    var model = new tracing.TimelineModel();
+
+    var view = new tracing.TimelineView();
+    view.style.height = '800px';
+    view.model = model;
+    view.tabIndex = 0;
+    view.focusElement = view;
+
+    var streamer = new tracing.TimelineStreamImporter(model);
+    streamer.addEventListener('connect', function () {
+      console.log('connected');
+    });
+    streamer.addEventListener('disconnect', function () {
+      console.log('disconnected.');
+    });
+    streamer.addEventListener('modelchange', function (event) {
+      view.model = event.model;
+    });
+    streamer.connect(new WebSocket('ws://localhost:8001/stream'));
+    document.body.appendChild(view);
+  }
+</script>
+</body>
+</html>
