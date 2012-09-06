@@ -584,6 +584,19 @@ function testImportStringWithMissingCloseSquareBracket() {
   assertEquals(1, m.numProcesses);
 }
 
+function testImportStringWithEndingCommaButMissingCloseSquareBracket() {
+  var lines = [
+    '[',
+    '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},',
+    '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},'
+    ]
+  var text = lines.join('\n');
+
+  var m = new tracing.TimelineModel(text);
+  assertEquals(1, m.numProcesses);
+  assertEquals(1, m.processes[52].threads[53].slices.length);
+}
+
 function testImportStringWithMissingCloseSquareBracketAndNewline() {
   var events = [
     {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
@@ -597,6 +610,19 @@ function testImportStringWithMissingCloseSquareBracketAndNewline() {
   var dropped = tmp.substring(0, tmp.length - 1);
   var m = new tracing.TimelineModel(dropped + '\n');
   assertEquals(1, m.numProcesses);
+}
+
+function testImportStringWithEndingCommaButMissingCloseSquareBracketCRLF() {
+  var lines = [
+    '[',
+    '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},',
+    '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},'
+    ]
+  var text = lines.join('\r\n');
+
+  var m = new tracing.TimelineModel(text);
+  assertEquals(1, m.numProcesses);
+  assertEquals(1, m.processes[52].threads[53].slices.length);
 }
 
 function testStartFinishOneSliceOneThread() {

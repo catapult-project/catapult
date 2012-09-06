@@ -22,15 +22,22 @@ base.exportTo('tracing', function() {
       // throwing the string at JSON.parse.
       if (eventData[0] == '[') {
         n = eventData.length;
-        if (eventData[n - 1] != ']' && eventData[n - 1] != '\n') {
-          eventData = eventData + ']';
-        } else if (eventData[n - 2] != ']' && eventData[n - 1] == '\n') {
-          eventData = eventData + ']';
-        } else if (eventData[n - 3] != ']' && eventData[n - 2] == '\r' &&
-            eventData[n - 1] == '\n') {
-          eventData = eventData + ']';
+        if (eventData[n - 1] == '\n') {
+          eventData = eventData.substring(0, n - 1);
+          n--;
+
+          if (eventData[n - 1] == '\r') {
+            eventData = eventData.substring(0, n - 1);
+            n--;
+          }
         }
+
+        if (eventData[n - 1] == ',')
+          eventData = eventData.substring(0, n - 1);
+        if (eventData[n - 1] != ']')
+          eventData = eventData + ']';
       }
+
       this.events_ = JSON.parse(eventData);
 
     } else {
