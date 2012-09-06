@@ -9,6 +9,8 @@ import os
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
+FILES_TO_IGNORE = ["about_tracing.js"]
+
 js_warning_message = (
 """// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
@@ -30,6 +32,11 @@ def generate_deps_js():
                os.path.splitext(x)[1] == ".js"]
 
   filenames = [os.path.relpath(x) for x in filenames]
+  filenames = [x for x in filenames
+               if x not in FILES_TO_IGNORE]
+
+  if "deps.js" in filenames:
+    filenames.remove("deps.js")
 
   load_sequence = parse_deps.calc_load_sequence(filenames)
 

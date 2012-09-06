@@ -265,7 +265,6 @@ def calc_load_sequence(filenames):
   The output of this function is an array of Module objects ordered by
   dependency.
   """
-
   all_resources = {}
   all_resources["scripts"] = {}
   toplevel_modules = []
@@ -276,7 +275,12 @@ def calc_load_sequence(filenames):
   for filename in filenames:
     if not os.path.exists(filename):
       raise Exception("Could not find %s" % filename)
-    name  = os.path.splitext(os.path.basename(filename))[0]
+    dirname = os.path.dirname(filename)
+    modname  = os.path.splitext(os.path.basename(filename))[0]
+    if len(dirname):
+      name = dirname.replace('/', '.') + '.' + modname
+    else:
+      name = modname
 
     if name in all_resources["scripts"]:
       continue
@@ -284,11 +288,27 @@ def calc_load_sequence(filenames):
     module = Module(name)
     module.load_and_parse(filename, decl_required = False)
     all_resources["scripts"][module.name] = module
-    toplevel_modules.append(module)
     module.resolve(all_resources, resource_finder)
+
+  # Find the root modules: ones who have no dependencies.
+  module_ref_counts = {}
+  for module in all_resources["scripts"].values():
+    module_ref_counts[module.name] = 0
+
+  def inc_ref_count(name):
+    module_ref_counts[name] = module_ref_counts[name] + 1
+  for module in all_resources["scripts"].values():
+    for dependent_module in module.dependent_modules:
+      inc_ref_count(dependent_module.name)
+
+  root_modules = [all_resources["scripts"][name]
+                  for name, ref_count in module_ref_counts.items()
+                  if ref_count == 0]
+
+  root_modules.sort(lambda x, y: cmp(x.name, y.name))
 
   already_loaded_set = set()
   load_sequence = []
-  for module in toplevel_modules:
+  for module in root_modules:
     module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
   return load_sequence
