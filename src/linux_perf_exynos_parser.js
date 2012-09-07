@@ -21,6 +21,11 @@ base.exportTo('tracing', function() {
         LinuxPerfExynosParser.prototype.flipEvent.bind(this));
     importer.registerEventHandler('exynos_flip_complete',
         LinuxPerfExynosParser.prototype.flipEvent.bind(this));
+
+    importer.registerEventHandler('exynos_busfreq_target_int',
+        LinuxPerfExynosParser.prototype.busfreqTargetIntEvent.bind(this));
+    importer.registerEventHandler('exynos_busfreq_target_mif',
+        LinuxPerfExynosParser.prototype.busfreqTargetMifEvent.bind(this));
   }
 
   LinuxPerfExynosParser.prototype = {
@@ -64,7 +69,43 @@ base.exportTo('tracing', function() {
               pipe: pipe
             });
       return true;
-    }
+    },
+
+    exynosBusfreqSample: function(name, ts, frequency) {
+      var targetCpu = this.importer.getOrCreateCpuState(0);
+      var counter = targetCpu.cpu.getOrCreateCounter('', name);
+      if (counter.numSeries == 0) {
+        counter.seriesNames.push('frequency');
+        counter.seriesColors.push(
+            tracing.getStringColorId(counter.name + '.' + 'frequency'));
+      }
+      counter.timestamps.push(ts);
+      counter.samples.push(frequency);
+    },
+
+    /**
+     * Parses exynos_busfreq_target_int events and sets up state.
+     */
+    busfreqTargetIntEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /frequency=(\d+)/.exec(eventBase[5]);
+      if (!event)
+        return false;
+
+      this.exynosBusfreqSample('INT Frequency', ts, parseInt(event[1]));
+      return true;
+    },
+
+    /**
+     * Parses exynos_busfreq_target_mif events and sets up state.
+     */
+    busfreqTargetMifEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+      var event = /frequency=(\d+)/.exec(eventBase[5]);
+      if (!event)
+        return false;
+
+      this.exynosBusfreqSample('MIF Frequency', ts, parseInt(event[1]));
+      return true;
+    },
   };
 
   LinuxPerfParser.registerSubtype(LinuxPerfExynosParser);

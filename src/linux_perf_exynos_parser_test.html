@@ -34,6 +34,26 @@ function testExynosImport() {
   assertEquals('exynos_flip', gfxFlipThread.name);
   assertEquals(1, gfxFlipThread.slices.length);
 }
+ 
+function testExynosBusfreqImport() {
+  var lines = [
+    '     kworker/1:0-4177  [001] ....  2803.129806: ' +
+                    'exynos_busfreq_target_int: frequency=200000',
+    '     kworker/1:0-4177  [001] ....  2803.229207: ' +
+                    'exynos_busfreq_target_int: frequency=267000',
+    '     kworker/1:0-4177  [001] ....  2803.329031: ' +
+                    'exynos_busfreq_target_int: frequency=160000',
+    '     kworker/1:0-4177  [001] ....  2805.729039: ' +
+                    'exynos_busfreq_target_mif: frequency=200000'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var c0 = m.cpus[0];
+  assertEquals(0, c0.slices.length);
+  assertEquals(3, c0.counters['INT Frequency'].samples.length);
+  assertEquals(1, c0.counters['MIF Frequency'].samples.length);
+}
 
 </script>
 </body>
