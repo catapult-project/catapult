@@ -154,6 +154,186 @@ found in the LICENSE file.
     assertTrue(didSend);
     assertFalse(importer.paused);
   }
+
+  function testCounters() {
+    var model = new tracing.TimelineModel();
+    var importer = new tracing.TimelineStreamImporter(model);
+
+    assertFalse(importer.paused);
+    assertFalse(importer.connected);
+
+    var socket = new FakeWebSocket();
+    importer.connect(socket);
+
+    socket.connected = true;
+    assertTrue(importer.connected);
+
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes'],
+        sc: [4],
+        c: [
+          {
+            t: 2,
+            v: [16]
+          },
+          {
+            t: 16,
+            v: [32]
+          }
+        ]
+      }
+    });
+
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes'],
+        sc: [4],
+        c: [
+          {
+            t: 32,
+            v: [48]
+          },
+          {
+            t: 48,
+            v: [64]
+          },
+          {
+            t: 64,
+            v: [16]
+          }
+        ]
+      }
+    });
+
+    socket.dispatchAllPendingMessages();
+
+    assertNotUndefined(model.processes[1]);
+    assertNotUndefined(model.processes[1].counters['streamed.Allocator']);
+    var counter = model.processes[1].counters['streamed.Allocator'];
+    assertNotUndefined(counter.samples);
+    assertEquals(counter.samples.length, 5);
+    assertEquals(counter.seriesNames.length, 1);
+    assertEquals(counter.seriesColors.length, 1);
+    assertEquals(counter.samples[2], 48);
+    assertEquals(counter.timestamps[4], 64);
+    assertEquals(model.minTimestamp, 2);
+    assertEquals(model.maxTimestamp, 64);
+  }
+
+  function testCounterImportErrors() {
+    var model = new tracing.TimelineModel();
+    var importer = new tracing.TimelineStreamImporter(model);
+
+    assertFalse(importer.paused);
+    assertFalse(importer.connected);
+
+    var socket = new FakeWebSocket();
+    importer.connect(socket);
+
+    socket.connected = true;
+    assertTrue(importer.connected);
+
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes', 'Nibbles', 'Bits'],
+        sc: [4,3,2],
+        c: [
+          {
+            t: 2,
+            v: [16,12,2]
+          },
+          {
+            t: 16,
+            v: [32,3,4]
+          }
+        ]
+      }
+    });
+
+    // Test for name change import error
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes', 'NotNibbles', 'Bits'],
+        sc: [4,3,2],
+        c: [
+          {
+            t: 18,
+            v: [16,12,2]
+          },
+          {
+            t: 24,
+            v: [32,3,4]
+          }
+        ]
+      }
+    });
+
+    socket.dispatchAllPendingMessages();
+
+    assertNotUndefined(model.processes[1]);
+    assertEquals(model.importErrors.length, 1);
+    // test for series number change
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes', 'Bits'],
+        sc: [4,3],
+        c: [
+          {
+            t: 26,
+            v: [16,12]
+          },
+          {
+            t: 32,
+            v: [32,3]
+          }
+        ]
+      }
+    });
+
+    socket.dispatchAllPendingMessages();
+    assertEquals(model.importErrors.length, 2);
+
+    // test for sn.length != sc.length
+    socket.pushMessage({
+      cmd: "pcd",
+      pid: 1,
+      cd: {
+        n: 'Allocator',
+        sn: ['Bytes', 'Nibbles', 'Bits'],
+        sc: [4,3,2,5],
+        c: [
+          {
+            t: 2,
+            v: [16,12,2]
+          },
+          {
+            t: 16,
+            v: [32,3,4]
+          }
+        ]
+      }
+    });
+
+
+    socket.dispatchAllPendingMessages();
+    assertEquals(model.importErrors.length, 3);
+  }
 </script>
 </body>
 </html>

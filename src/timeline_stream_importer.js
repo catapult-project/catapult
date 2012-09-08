@@ -29,7 +29,10 @@ base.exportTo('tracing', function() {
    *   ... command specific data
    * }
    *
-   * The importer understands 1 command: 'ptd' (Process Thread Data)
+   * The importer understands 2 commands:
+   *      'ptd' (Process Thread Data)
+   *      'pcd' (Process Counter Data)
+   *
    * The command specific data is as follows:
    *
    * {
@@ -42,6 +45,22 @@ base.exportTo('tracing', function() {
    *                              'e': endTime
    *                              }, ... ]
    *         }
+   * }
+   *
+   * {
+   *  'pid' 'Remote Process Id',
+   *  'cd': {
+   *      'n': 'Counter Name',
+   *      'sn': ['Series Name',...]
+   *      'sc': [seriesColor, ...]
+   *      'c': [
+   *            {
+   *              't': timestamp,
+   *              'v': [value0, value1, ...]
+   *            },
+   *            ....
+   *           ]
+   *       }
    * }
    * @param {TimelineModel} model that will be updated
    * when events are received.
@@ -96,6 +115,7 @@ base.exportTo('tracing', function() {
       var packet = JSON.parse(event.data);
       var command = packet['cmd'];
       var pid = packet['pid'];
+      var modelDirty = false;
       if (command == 'ptd') {
         var process = this.model_.getOrCreateProcess(pid);
         var threadData = packet['td'];
@@ -111,6 +131,57 @@ base.exportTo('tracing', function() {
             {},
             slice['e'] - slice['s']));
         }
+        modelDirty = true;
+      } else if (command == 'pcd') {
+        var process = this.model_.getOrCreateProcess(pid);
+        var counterData = packet['cd'];
+        var counterName = counterData['n'];
+        var counterSeriesNames = counterData['sn'];
+        var counterSeriesColors = counterData['sc'];
+        var counterValues = counterData['c'];
+        var counter = process.getOrCreateCounter('streamed', counterName);
+        if (counterSeriesNames.length != counterSeriesColors.length) {
+          var importError = 'Streamed counter name length does not match' +
+                            'counter color length' + counterSeriesNames.length +
+                            ' vs ' + counterSeriesColors.length;
+          this.model_.importErrors.push(importError);
+          return;
+        }
+        if (counter.seriesNames.length == 0) {
+          // First time
+          counter.seriesNames = counterSeriesNames;
+          counter.seriesColors = counterSeriesColors;
+        } else {
+          if (counter.seriesNames.length != counterSeriesNames.length) {
+            var importError = 'Streamed counter ' + counterName +
+              'changed number of seriesNames';
+            this.model_.importErrors.push(importError);
+            return;
+          } else {
+            for (var i = 0; i < counter.seriesNames.length; i++) {
+              var oldSeriesName = counter.seriesNames[i];
+              var newSeriesName = counterSeriesNames[i];
+              if (oldSeriesName != newSeriesName) {
+                var importError = 'Streamed counter ' + counterName +
+                  'series name changed from ' +
+                  oldSeriesName + ' to ' +
+                  newSeriesName;
+                this.model_.importErrors.push(importError);
+                return;
+              }
+            }
+          }
+        }
+        for (var c = 0; c < counterValues.length; c++) {
+          var count = counterValues[c];
+          var x = count['t'];
+          var y = count['v'];
+          counter.timestamps.push(x);
+          counter.samples = counter.samples.concat(y);
+        }
+        modelDirty = true;
+      }
+      if (modelDirty == true) {
         this.model_.updateBounds();
         this.dispatchEvent({'type': 'modelchange',
           'model': this.model_});

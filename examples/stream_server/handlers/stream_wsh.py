@@ -42,41 +42,43 @@ def make_thread_command(base_time, thread_name):
     out.append('}')
     return ''.join(out)
 
-def make_count(start_time, count, bytes, last):
+def make_count(start_time, value, last):
     out = []
     out.append('{')
     out.append('\"t\": {0},'.format(start_time))
-    out.append('\"c\": {0},'.format(count))
-    out.append('\"b\": {0}'.format(bytes))
+    out.append('\"v\": [{0}]'.format(value))
     out.append('}')
     if last == False:
         out.append(',')
     return ''.join(out)
 
-def make_allocator(allocator_name, base_time):
+def make_counter(counter_name, series_name, base_time):
     out = []
-    out.append('\"n\": \"{0}\",'.format(allocator_name))
+    out.append('\"n\": \"{0}\",'.format(counter_name))
+    out.append('\"sn\": [\"{0}\"],'.format(series_name))
+    out.append('\"sc\": [2],')
     out.append('\"c\": [')
-    out.append(make_count(base_time, 1, 16, False))
-    out.append(make_count(base_time+1, 2, 32, False))
-    out.append(make_count(base_time+2, 3, 48, False))
-    out.append(make_count(base_time+3, 4, 64, False))
-    out.append(make_count(base_time+8, 1, 16, True))
+    out.append(make_count(base_time, 16, False))
+    out.append(make_count(base_time+1, 32, False))
+    out.append(make_count(base_time+2, 48, False))
+    out.append(make_count(base_time+3, 64, False))
+    out.append(make_count(base_time+8, 16, True))
     out.append(']')
     return ''.join(out)
 
-def make_allocator_payload(pid, allocator_name, base_time):
+def make_counter_payload(pid, counter_name, series_name, base_time):
     out = []
     out.append('\"pid\": \"{0}\",'.format(pid))
-    out.append('\"ad\": {')
-    out.append(make_allocator(allocator_name, base_time))
+    out.append('\"cd\": {')
+    out.append(make_counter(counter_name, series_name, base_time))
     out.append('}')
     return ''.join(out)
 
-def make_allocator_command(base_time, allocator_name):
+def make_counter_command(base_time, counter_name, series_name):
     out = []
-    out.append('{ \"cmd\": \"pad\",')
-    out.append(make_allocator_payload('314159', allocator_name, base_time))
+    out.append('{ \"cmd\": \"pcd\",')
+    out.append(make_counter_payload('314159', counter_name,
+                                    series_name, base_time))
     out.append('}')
     return ''.join(out)
 
@@ -89,11 +91,11 @@ def web_socket_transfer_data(request):
         request.ws_stream.send_message(msg, binary=False)
         msg = make_thread_command(start_time+2, 'cherry')
         request.ws_stream.send_message(msg, binary=False)
-        msg = make_allocator_command(start_time+2, 'Base')
+        msg = make_counter_command(start_time+2, 'Base', 'Bytes')
         request.ws_stream.send_message(msg, binary=False)
-        msg = make_allocator_command(start_time+3, 'Font')
+        msg = make_counter_command(start_time+3, 'Font', 'Bytes')
         request.ws_stream.send_message(msg, binary=False)
-        msg = make_allocator_command(start_time+5, 'Textures')
+        msg = make_counter_command(start_time+5, 'Textures', 'Bytes')
         request.ws_stream.send_message(msg, binary=False)
         start_time += 16
         time.sleep(0.16)
