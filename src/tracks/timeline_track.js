@@ -40,8 +40,9 @@ base.exportTo('tracks', function() {
       closeEl.classList.add('timeline-track-button');
       closeEl.classList.add('timeline-track-close-button');
       closeEl.textContent = String.fromCharCode(215); // &times;
+      var that = this;
       closeEl.addEventListener('click', function() {
-        this.style.display = 'None';
+        that.style.display = 'None';
       });
       this.appendChild(closeEl);
 
