@@ -60,8 +60,12 @@ base.exportTo('tracing', function() {
       this.viewportTrack_.viewport = this.viewport_;
       this.appendChild(this.viewportTrack_);
 
+      this.modelTrackContainer_ = document.createElement('div');
+      this.modelTrackContainer_.className = 'timeline-model-track-container';
+      this.appendChild(this.modelTrackContainer_);
+
       this.modelTrack_ = new tracks.TimelineModelTrack();
-      this.appendChild(this.modelTrack_);
+      this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
       this.dragBox_.className = 'timeline-drag-box';
