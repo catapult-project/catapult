@@ -476,6 +476,9 @@ base.exportTo('tracing', function() {
     },
 
     onMouseDown_: function(e) {
+      if (e.button !== 0)
+        return;
+
       if (e.shiftKey) {
         this.viewportTrack_.placeAndBeginDraggingMarker(e.clientX);
         return;

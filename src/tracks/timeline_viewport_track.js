@@ -37,6 +37,8 @@ base.exportTo('tracks', function() {
     },
 
     onMouseDown: function(e) {
+      if (e.button != 0)
+        return;
       this.placeAndBeginDraggingMarker(e.clientX);
     },
 
