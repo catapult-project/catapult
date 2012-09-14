@@ -74,6 +74,7 @@ base.exportTo('tracing', function() {
 
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
+      this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
       this.bindEventListener_(document, 'mousemove', this.onMouseMove_, this);
       this.bindEventListener_(document, 'mouseup', this.onMouseUp_, this);
 
@@ -306,6 +307,25 @@ base.exportTo('tracing', function() {
           }
           break;
       }
+      if (e.shiftKey && this.dragBeginEvent_) {
+          var vertical = e.shiftKey;
+          if (this.dragBeginEvent_) {
+            this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+                               this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+          }
+      }
+    },
+
+    onKeyup_: function(e) {
+      if (!this.listenToKeys_)
+        return;
+      if (!e.shiftKey) {
+        if (this.dragBeginEvent_) {
+          var vertical = e.shiftKey;
+          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+                                this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+          }
+      }
     },
 
     /**
@@ -340,23 +360,27 @@ base.exportTo('tracing', function() {
 
     get keyHelp() {
       var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
-      var help = 'Qwerty Controls:\n' +
-          ' w/s     : Zoom in/out    (with shift: go faster)\n' +
-          ' a/d     : Pan left/right\n\n' +
-          'Dvorak Controls:\n' +
-          ' ,/o     : Zoom in/out     (with shift: go faster)\n' +
-          ' a/e     : Pan left/right\n\n' +
-          'Mouse Controls:\n' +
-          ' drag    : Select slices   (with ' + mod + ': zoom to slices)\n\n';
+      var help = 'Qwerty Controls\n' +
+          ' w/s           : Zoom in/out    (with shift: go faster)\n' +
+          ' a/d           : Pan left/right\n\n' +
+          'Dvorak Controls\n' +
+          ' ,/o           : Zoom in/out     (with shift: go faster)\n' +
+          ' a/e           : Pan left/right\n\n' +
+          'Mouse Controls\n' +
+          ' drag          : Select slices   (with ' + mod +
+                                                        ': zoom to slices)\n' +
+          ' drag + shift  : Select all slices vertically\n\n';
 
       if (this.focusElement.tabIndex) {
-        help += ' <-      : Select previous event on current timeline\n' +
-            ' ->      : Select next event on current timeline\n';
+        help +=
+          ' <-            : Select previous event on current timeline\n' +
+          ' ->            : Select next event on current timeline\n';
       } else {
         help += 'General Navigation\n' +
-            ' g/G     : Shows grid at the start/end of the selected task\n' +
-            ' <-,^TAB : Select previous event on current timeline\n' +
-            ' ->, TAB : Select next event on current timeline\n';
+          ' g/General     : Shows grid at the start/end of the selected' +
+                                                                  ' task\n' +
+          ' <-,^TAB       : Select previous event on current timeline\n' +
+          ' ->, TAB       : Select next event on current timeline\n';
       }
       help +=
           '\n' +
@@ -422,16 +446,56 @@ base.exportTo('tracing', function() {
       this.dragBox_.style.height = 0;
     },
 
-    setDragBoxPosition_: function(eDown, eCur) {
-      var loX = Math.min(eDown.clientX, eCur.clientX);
-      var hiX = Math.max(eDown.clientX, eCur.clientX);
-      var loY = Math.min(eDown.clientY, eCur.clientY);
-      var hiY = Math.max(eDown.clientY, eCur.clientY);
+    intersectRect_: function(r1, r2) {
+      var results = new Object;
+      if (r2.left > r1.right || r2.right < r1.left ||
+            r2.top > r1.bottom || r2.bottom < r1.top) {
+        return false;
+      }
+      results.left = Math.max(r1.left, r2.left);
+      results.top = Math.max(r1.top, r2.top);
+      results.right = Math.min(r1.right, r2.right);
+      results.bottom = Math.min(r1.bottom, r2.bottom);
+      results.width = (results.right - results.left);
+      results.height = (results.bottom - results.top);
+      return results;
+    },
 
-      this.dragBox_.style.left = loX + 'px';
-      this.dragBox_.style.top = loY + 'px';
-      this.dragBox_.style.width = hiX - loX + 'px';
-      this.dragBox_.style.height = hiY - loY + 'px';
+    setDragBoxPosition_: function(xStart, yStart, xEnd, yEnd, vertical) {
+      var loY;
+      var hiY;
+      var loX = Math.min(xStart, xEnd);
+      var hiX = Math.max(xStart, xEnd);
+      var modelTrackRect = this.modelTrack_.getBoundingClientRect();
+
+      if (vertical) {
+        loY = modelTrackRect.top;
+        hiY = modelTrackRect.bottom;
+      } else {
+        loY = Math.min(yStart, yEnd);
+        hiY = Math.max(yStart, yEnd);
+      }
+
+      var dragRect = {left: loX, top: loY, width: hiX - loX, height: hiY - loY};
+      dragRect.right = dragRect.left + dragRect.width;
+      dragRect.bottom = dragRect.top + dragRect.height;
+      var modelTrackContainerRect =
+                              this.modelTrackContainer_.getBoundingClientRect();
+      var clipRect = {
+        left: modelTrackContainerRect.left,
+        top: modelTrackContainerRect.top,
+        right: modelTrackContainerRect.right,
+        bottom: modelTrackContainerRect.bottom,
+      };
+      var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
+      clipRect.left = clipRect.left + trackTitleWidth;
+
+      var finalDragBox = this.intersectRect_(clipRect, dragRect);
+
+      this.dragBox_.style.left = finalDragBox.left + 'px';
+      this.dragBox_.style.width = finalDragBox.width + 'px';
+      this.dragBox_.style.top = finalDragBox.top + 'px';
+      this.dragBox_.style.height = finalDragBox.height + 'px';
 
       var canv = this.firstCanvas;
       var loWX = this.viewport_.xViewToWorld(loX - canv.offsetLeft);
@@ -485,8 +549,8 @@ base.exportTo('tracing', function() {
       }
 
       var canv = this.firstCanvas;
-      var rect = this.modelTrack_.getClientRects()[0];
-      var canvRect = this.firstCanvas.getClientRects()[0];
+      var rect = this.modelTrack_.getBoundingClientRect();
+      var canvRect = this.firstCanvas.getBoundingClientRect();
 
       var inside = rect &&
           e.clientX >= rect.left &&
@@ -528,7 +592,13 @@ base.exportTo('tracing', function() {
 
       // Update the drag box
       if (this.dragBeginEvent_) {
-        this.setDragBoxPosition_(this.dragBeginEvent_, e);
+        this.dragBoxXStart_ = this.dragBeginEvent_.clientX;
+        this.dragBoxXEnd_ = e.clientX;
+        this.dragBoxYStart_ = this.dragBeginEvent_.clientY;
+        this.dragBoxYEnd_ = e.clientY;
+        var vertical = e.shiftKey;
+        this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+                                this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
       }
     },
 
@@ -541,10 +611,21 @@ base.exportTo('tracing', function() {
         this.dragBeginEvent_ = null;
 
         // Figure out extents of the drag.
+        var loY;
+        var hiY;
         var loX = Math.min(eDown.clientX, e.clientX);
         var hiX = Math.max(eDown.clientX, e.clientX);
-        var loY = Math.min(eDown.clientY, e.clientY);
-        var hiY = Math.max(eDown.clientY, e.clientY);
+        var tracksContainer = this.modelTrackContainer_.getBoundingClientRect();
+        var topBoundary = tracksContainer.height;
+        var vertical = e.shiftKey;
+        if (vertical) {
+          var modelTrackRect = this.modelTrack_.getBoundingClientRect();
+          loY = modelTrackRect.top;
+          hiY = modelTrackRect.bottom;
+        } else {
+          loY = Math.min(eDown.clientY, e.clientY);
+          hiY = Math.max(eDown.clientY, e.clientY);
+        }
 
         // Convert to worldspace.
         var canv = this.firstCanvas;
