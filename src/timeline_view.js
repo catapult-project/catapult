@@ -192,7 +192,6 @@ base.exportTo('tracing', function() {
         else
           helpTextEl.textContent = 'No content loaded. For interesting help,' +
               ' load something.';
-        document.addEventListener('click', bgClick);
 
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
