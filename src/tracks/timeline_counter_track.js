@@ -183,18 +183,22 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting a point to a selection.
-     * @param {number} wX X location to search at, in worldspace.
-     * @param {number} wY Y location to search at, in offset space.
+     * @param {number} vX X location to search at, in view space.
+     * @param {number} vY Y location to search at, in view space.
      *     offset space.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */
-    addIntersectingItemsToSelection: function(wX, wY, selection) {
+    addIntersectingItemsToSelection: function(vX, vY, selection) {
       var clientRect = this.getBoundingClientRect();
-      if (wY < clientRect.top || wY >= clientRect.bottom)
+      if (vY < clientRect.top || vY >= clientRect.bottom)
         return false;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var wX = this.viewport_.xViewVectorToWorld(vX * devicePixelRatio);
+
       var ctr = this.counter_;
-      if (wX < this.counter_.timestamps[0])
+      if (vX < this.counter_.timestamps[0])
         return false;
       var i = tracing.findLowIndexInSortedArray(ctr.timestamps,
                                                 function(x) { return x; },

@@ -202,16 +202,18 @@ base.exportTo('tracks', function() {
 
     /**
      * Finds slices intersecting the given interval.
-     * @param {number} wX X location to search at, in worldspace.
-     * @param {number} wY Y location to search at, in offset space.
+     * @param {number} vX X location to search at, in view space.
+     * @param {number} vY Y location to search at, in view space.
      *     offset space.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */
-    addIntersectingItemsToSelection: function(wX, wY, selection) {
+    addIntersectingItemsToSelection: function(vX, vY, selection) {
       var clientRect = this.getBoundingClientRect();
-      if (wY < clientRect.top || wY >= clientRect.bottom)
+      if (vY < clientRect.top || vY >= clientRect.bottom)
         return false;
+      var pixelRatio = window.devicePixelRatio || 1;
+      var wX = this.viewport_.xViewVectorToWorld(vX * devicePixelRatio);
       var x = tracing.findLowIndexInSortedIntervals(this.slices_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
@@ -226,21 +228,26 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting the given range to a selection.
-     * @param {number} loWX Lower X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} hiWX Upper X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} loY Lower Y bound of the interval to search, in
-     *     offset space.
-     * @param {number} hiY Upper Y bound of the interval to search, in
-     *     offset space.
+     * @param {number} loVX Lower X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVX Upper X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} loVY Lower Y bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVY Upper Y bound of the interval to search, in
+     *     viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(
-        loWX, hiWX, loY, hiY, selection) {
+        loVX, hiVX, loVY, hiVY, selection) {
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
+      var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
+
       var clientRect = this.getBoundingClientRect();
-      var a = Math.max(loY, clientRect.top);
-      var b = Math.min(hiY, clientRect.bottom);
+      var a = Math.max(loVY, clientRect.top);
+      var b = Math.min(hiVY, clientRect.bottom);
       if (a > b)
         return;
 

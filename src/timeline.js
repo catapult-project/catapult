@@ -629,13 +629,13 @@ base.exportTo('tracing', function() {
 
         // Convert to worldspace.
         var canv = this.firstCanvas;
-        var loWX = this.viewport_.xViewToWorld(loX - canv.offsetLeft);
-        var hiWX = this.viewport_.xViewToWorld(hiX - canv.offsetLeft);
+        var loVX = loX - canv.offsetLeft;
+        var hiVX = hiX - canv.offsetLeft;
 
         // Figure out what has been hit.
         var selection = new TimelineSelection();
         this.modelTrack_.addIntersectingItemsInRangeToSelection(
-            loWX, hiWX, loY, hiY, selection);
+            loVX, hiVX, loY, hiY, selection);
 
         // Activate the new selection, and zoom if ctrl key held down.
         this.selection = selection;

@@ -42,24 +42,28 @@ found in the LICENSE file.
     t1.pushSlice(new tracing.TimelineThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = this.addHTMLOutput();
+    testEl.style.width = '600px';
     var track = new TimelineThreadTrack();
     testEl.appendChild(track);
     track.heading = 'testSelectionHitTestingWithTimelineThreadTrack';
     track.headingWidth = '100px';
     track.thread = t1;
 
-    track.style.width = '500px';
+    var y = track.getBoundingClientRect().top;
+    var h = track.getBoundingClientRect().height;
+    var wW = 10;
+    var vW = track.firstCanvas.getBoundingClientRect().width;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 10, track.clientWidth);
-    var clientRect = track.getBoundingClientRect();
+    track.viewport.xSetWorldRange(0, wW, vW);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsToSelection(1.5, clientRect.top + 5, selection);
+    track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
     assertEquals(t1.slices[0], selection[0].slice);
 
     var selection = new TimelineSelection();
     track.addIntersectingItemsInRangeToSelection(
-        1.5, 1.8, clientRect.top + 5, clientRect.top + 7, selection);
+        (1.5/wW)*vW, (1.8/wW)*vW,
+        y, y + h, selection);
     assertEquals(t1.slices[0], selection[0].slice);
   }
 

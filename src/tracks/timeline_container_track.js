@@ -45,8 +45,9 @@ base.exportTo('tracks', function() {
     },
 
     get firstCanvas() {
-      if (this.tracks_.length)
-        return this.tracks_[0].firstCanvas;
+      for (var i = 0; i < this.tracks_.length; i++)
+        if (this.tracks_[i].visible)
+          return this.tracks_[i].firstCanvas;
       return undefined;
     },
 
@@ -118,42 +119,42 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting a point to a selection.
-     * @param {number} wX X location to search at, in worldspace.
-     * @param {number} wY Y location to search at, in offset space.
+     * @param {number} vX X location to search at, in view space.
+     * @param {number} vY Y location to search at, in offset space.
      *     offset space.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */
-    addIntersectingItemsToSelection: function(wX, wY, selection) {
+    addIntersectingItemsToSelection: function(vX, vY, selection) {
       for (var i = 0; i < this.tracks_.length; i++) {
         var trackClientRect = this.tracks_[i].getBoundingClientRect();
-        if (wY >= trackClientRect.top && wY < trackClientRect.bottom)
-          this.tracks_[i].addIntersectingItemsToSelection(wX, wY, selection);
+        if (vY >= trackClientRect.top && vY < trackClientRect.bottom)
+          this.tracks_[i].addIntersectingItemsToSelection(vX, vY, selection);
       }
       return false;
     },
 
     /**
      * Adds items intersecting the given range to a selection.
-     * @param {number} loWX Lower X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} hiWX Upper X bound of the interval to search, in
-     *     worldspace.
+     * @param {number} loVX Lower X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVX Upper X bound of the interval to search, in
+     *     viewspace.
      * @param {number} loY Lower Y bound of the interval to search, in
-     *     offset space.
+     *     viewspace space.
      * @param {number} hiY Upper Y bound of the interval to search, in
-     *     offset space.
+     *     viewspace space.
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(
-        loWX, hiWX, loY, hiY, selection) {
+        loVX, hiVX, loY, hiY, selection) {
       for (var i = 0; i < this.tracks_.length; i++) {
         var trackClientRect = this.tracks_[i].getBoundingClientRect();
         var a = Math.max(loY, trackClientRect.top);
         var b = Math.min(hiY, trackClientRect.bottom);
         if (a <= b)
           this.tracks_[i].addIntersectingItemsInRangeToSelection(
-              loWX, hiWX, loY, hiY, selection);
+              loVX, hiVX, loY, hiY, selection);
       }
     },
 

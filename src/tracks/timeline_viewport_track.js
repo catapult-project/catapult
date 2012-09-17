@@ -318,23 +318,22 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting a point to a selection.
-     * @param {number} wX X location to search at, in worldspace.
-     * @param {number} wY Y location to search at, in offset space.
-     *     offset space.
+     * @param {number} vX X location to search at, in viewspace.
+     * @param {number} vY Y location to search at, in viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */
-    addIntersectingItemsToSelection: function(wX, wY, selection) {
+    addIntersectingItemsToSelection: function(vX, vY, selection) {
       // Does nothing. There's nothing interesting to pick on the viewport
       // track.
     },
 
     /**
      * Adds items intersecting the given range to a selection.
-     * @param {number} loWX Lower X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} hiWX Upper X bound of the interval to search, in
-     *     worldspace.
+     * @param {number} loVX Lower X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVX Upper X bound of the interval to search, in
+     *     viewspace.
      * @param {number} loY Lower Y bound of the interval to search, in
      *     offset space.
      * @param {number} hiY Upper Y bound of the interval to search, in
@@ -342,7 +341,7 @@ base.exportTo('tracks', function() {
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(
-        loWX, hiWX, loY, hiY, selection) {
+        loVX, hiVX, loY, hiY, selection) {
       // Does nothing. There's nothing interesting to pick on the viewport
       // track.
     },

@@ -82,32 +82,35 @@ found in the LICENSE file.
   function testSelectionHitTesting() {
     var testEl = this.addHTMLOutput();
     var track = new TimelineSliceTrack();
+    testEl.style.width = '600px';
+
     testEl.appendChild(track);
     track.heading = 'testSelectionHitTesting';
     track.headingWidth = '100px';
     track.slices = [
       new TimelineSlice('', 'a', 0, 1, {}, 1),
-      new TimelineSlice('', 'b', 1, 2.1, {}, 4.8)
+      new TimelineSlice('', 'b', 1, 5, {}, 4.8)
     ];
-    track.style.width = '500px';
+    var y = track.getBoundingClientRect().top + 5;
+    var wW = 10;
+    var vW = track.firstCanvas.getBoundingClientRect().width;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 7.6, track.clientWidth);
-    var clientRect = track.getBoundingClientRect();
+    track.viewport.xSetWorldRange(0, wW, vW);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsToSelection(1.5, clientRect.top + 5, selection);
+    track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
     assertEquals(track.slices[0], selection[0].slice);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsToSelection(2, clientRect.top + 5, selection);
+    track.addIntersectingItemsToSelection((2/wW)*vW, y, selection);
     assertEquals(0, selection.length);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsToSelection(6.8, clientRect.top + 5, selection);
+    track.addIntersectingItemsToSelection((6.8/wW)*vW, y, selection);
     assertEquals(track.slices[1], selection[0].slice);
 
     var selection = new TimelineSelection();
-    track.addIntersectingItemsToSelection(6.9, clientRect.top + 5, selection);
+    track.addIntersectingItemsToSelection((9.9/wW)*vW, y, selection);
     assertEquals(0, selection.length);
   }
 
