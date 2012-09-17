@@ -32,6 +32,21 @@ base.exportTo('tracing', function() {
   var TimelineSelection = tracing.TimelineSelection;
   var TimelineViewport = tracing.TimelineViewport;
 
+  function intersectRect_(r1, r2) {
+    var results = new Object;
+    if (r2.left > r1.right || r2.right < r1.left ||
+         r2.top > r1.bottom || r2.bottom < r1.top) {
+      return false;
+    }
+    results.left = Math.max(r1.left, r2.left);
+    results.top = Math.max(r1.top, r2.top);
+    results.right = Math.min(r1.right, r2.right);
+    results.bottom = Math.min(r1.bottom, r2.bottom);
+    results.width = (results.right - results.left);
+    results.height = (results.bottom - results.top);
+    return results;
+  }
+
   /**
    * Renders a TimelineModel into a div element, making one
    * TimelineTrack for each subrow in each thread of the model, managing
@@ -446,21 +461,6 @@ base.exportTo('tracing', function() {
       this.dragBox_.style.height = 0;
     },
 
-    intersectRect_: function(r1, r2) {
-      var results = new Object;
-      if (r2.left > r1.right || r2.right < r1.left ||
-            r2.top > r1.bottom || r2.bottom < r1.top) {
-        return false;
-      }
-      results.left = Math.max(r1.left, r2.left);
-      results.top = Math.max(r1.top, r2.top);
-      results.right = Math.min(r1.right, r2.right);
-      results.bottom = Math.min(r1.bottom, r2.bottom);
-      results.width = (results.right - results.left);
-      results.height = (results.bottom - results.top);
-      return results;
-    },
-
     setDragBoxPosition_: function(xStart, yStart, xEnd, yEnd, vertical) {
       var loY;
       var hiY;
@@ -490,7 +490,7 @@ base.exportTo('tracing', function() {
       var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
       clipRect.left = clipRect.left + trackTitleWidth;
 
-      var finalDragBox = this.intersectRect_(clipRect, dragRect);
+      var finalDragBox = intersectRect_(clipRect, dragRect);
 
       this.dragBox_.style.left = finalDragBox.left + 'px';
       this.dragBox_.style.width = finalDragBox.width + 'px';
