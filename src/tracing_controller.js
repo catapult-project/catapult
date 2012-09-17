@@ -97,6 +97,7 @@ base.exportTo('tracing', function() {
       this.stopButton_.hidden = false;
       this.statusDiv_.textContent = 'Tracing active.';
       this.overlay_.visible = true;
+      this.overlay_.defaultClickShouldClose = false;
 
       this.tracingEnabled_ = true;
 

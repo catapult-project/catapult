@@ -160,6 +160,7 @@ base.exportTo('tracing', function() {
 
       this.classList.add('overlay');
       this.visible = false;
+      this.defaultClickShouldClose = true;
       this.autoClose = false;
       this.additionalCloseKeyCodes = [];
       this.onKeyDown = this.onKeyDown.bind(this);
@@ -208,6 +209,8 @@ base.exportTo('tracing', function() {
     },
 
     onDocumentClick: function(e) {
+      if (!this.defaultClickShouldClose)
+        return;
       var target = e.target;
       while (target !== null) {
         if (target === this)
@@ -227,6 +230,8 @@ base.exportTo('tracing', function() {
    */
   base.defineProperty(Overlay, 'visible', base.PropertyKind.BOOL_ATTR,
       Overlay.prototype.onVisibleChanged_);
+  base.defineProperty(Overlay, 'defaultClickShouldClose',
+      base.PropertyKind.BOOL_ATTR);
 
   return {
     Overlay: Overlay
