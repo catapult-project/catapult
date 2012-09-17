@@ -41,5 +41,7 @@
 }
 
 .overlay {
+  max-height: 500px;
+  overflow: auto;
   padding: 8px;
 }
