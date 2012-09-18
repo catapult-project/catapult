@@ -23,6 +23,11 @@ found in the LICENSE file.
 <body>
   <div class="view">
   </div>
+
+  <script>
+  base.require('timeline_view');
+  base.require('test_utils');
+  </script>
   <script>
   'use strict';
 
@@ -57,21 +62,12 @@ found in the LICENSE file.
   }
 
   function onLoad() {
-    if (!document.body)
-      document.addEventListener('DOMContentLoaded', onLoad);
     var filenames = ['../test_data/simple_trace.json'];
     loadTraces(filenames,
                createViewFromTraces);
   }
 
-  // trace-viewer's current module loader is asynchronous. As a result, you have
-  // to ask for the module system to tell you when the timeline-view and all its
-  // dependencies have been loaded, instead of just relying on DOMContentLoaded.
-  base.defineModule('traces_viewer')
-      .dependsOn('timeline_view',
-                 'test_utils')
-      .runWhenLoaded(onLoad);
-
+  document.addEventListener('DOMContentLoaded', onLoad);
   </script>
 </body>
 </html>
