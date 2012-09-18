@@ -183,9 +183,8 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting a point to a selection.
-     * @param {number} vX X location to search at, in view space.
-     * @param {number} vY Y location to search at, in view space.
-     *     offset space.
+     * @param {number} vX X location to search at, in viewspace.
+     * @param {number} vY Y location to search at, in viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */
@@ -236,26 +235,30 @@ base.exportTo('tracks', function() {
 
     /**
      * Adds items intersecting the given range to a selection.
-     * @param {number} loWX Lower X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} hiWX Upper X bound of the interval to search, in
-     *     worldspace.
-     * @param {number} loY Lower Y bound of the interval to search, in
-     *     offset space.
-     * @param {number} hiY Upper Y bound of the interval to search, in
-     *     offset space.
+     * @param {number} loVX Lower X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVX Upper X bound of the interval to search, in
+     *     viewspace.
+     * @param {number} loVY Lower Y bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVY Upper Y bound of the interval to search, in
+     *     viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(
-        loWX, hiWX, loY, hiY, selection) {
+        loVX, hiVX, loVY, hiVY, selection) {
 
       var clientRect = this.getBoundingClientRect();
-      var a = Math.max(loY, clientRect.top);
-      var b = Math.min(hiY, clientRect.bottom);
+      var a = Math.max(loVY, clientRect.top);
+      var b = Math.min(hiVY, clientRect.bottom);
       if (a > b)
         return;
 
       var ctr = this.counter_;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
+      var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
 
       var iLo = tracing.findLowIndexInSortedArray(ctr.timestamps,
                                                   function(x) { return x; },

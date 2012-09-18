@@ -202,9 +202,8 @@ base.exportTo('tracks', function() {
 
     /**
      * Finds slices intersecting the given interval.
-     * @param {number} vX X location to search at, in view space.
-     * @param {number} vY Y location to search at, in view space.
-     *     offset space.
+     * @param {number} vX X location to search at, in viewspace.
+     * @param {number} vY Y location to search at, in viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      * @return {boolean} true if a slice was found, otherwise false.
      */

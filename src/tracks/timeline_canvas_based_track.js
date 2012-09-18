@@ -89,6 +89,8 @@ base.exportTo('tracks', function() {
             this.viewportMarkersChange_.bind(this);
         this.viewport_.addEventListener('markersChange',
                                         this.viewportMarkersChangeBoundToThis_);
+        if (this.isAttachedToDocument_)
+          this.updateCanvasSizeIfNeeded_();
       }
       this.invalidate();
     },
@@ -113,29 +115,44 @@ base.exportTo('tracks', function() {
         this.rafPending_ = false;
         if (!this.viewport_)
           return;
-
-        var style = window.getComputedStyle(this.canvasContainer_);
-        var innerWidth = parseInt(style.width) -
-            parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
-            parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth);
-        var innerHeight = parseInt(style.height) -
-            parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
-            parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
-        var pixelRatio = window.devicePixelRatio || 1;
-        if (this.canvas_.width != innerWidth) {
-          this.canvas_.width = innerWidth * pixelRatio;
-          this.canvas_.style.width = innerWidth + 'px';
-        }
-        if (this.canvas_.height != innerHeight) {
-          this.canvas_.height = innerHeight * pixelRatio;
-          this.canvas_.style.height = innerHeight + 'px';
-        }
-
+        this.updateCanvasSizeIfNeeded_();
         this.redraw();
       }.bind(this), this);
       this.rafPending_ = true;
     },
 
+    /**
+     * @return {boolean} Whether the current timeline is attached to the
+     * document.
+     */
+    get isAttachedToDocument_() {
+      var cur = this.parentNode;
+      if (!cur)
+        return;
+      while (cur.parentNode)
+        cur = cur.parentNode;
+      return cur == this.ownerDocument;
+    },
+
+
+    updateCanvasSizeIfNeeded_: function() {
+      var style = window.getComputedStyle(this.canvasContainer_);
+      var innerWidth = parseInt(style.width) -
+          parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
+          parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth);
+      var innerHeight = parseInt(style.height) -
+          parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
+          parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
+      var pixelRatio = window.devicePixelRatio || 1;
+      if (this.canvas_.width != innerWidth) {
+        this.canvas_.width = innerWidth * pixelRatio;
+        this.canvas_.style.width = innerWidth + 'px';
+      }
+      if (this.canvas_.height != innerHeight) {
+        this.canvas_.height = innerHeight * pixelRatio;
+        this.canvas_.style.height = innerHeight + 'px';
+      }
+    },
     get firstCanvas() {
       return this.canvas_;
     }

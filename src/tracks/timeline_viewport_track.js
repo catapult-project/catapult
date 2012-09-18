@@ -334,10 +334,10 @@ base.exportTo('tracks', function() {
      *     viewspace.
      * @param {number} hiVX Upper X bound of the interval to search, in
      *     viewspace.
-     * @param {number} loY Lower Y bound of the interval to search, in
-     *     offset space.
-     * @param {number} hiY Upper Y bound of the interval to search, in
-     *     offset space.
+     * @param {number} loVY Lower Y bound of the interval to search, in
+     *     viewspace.
+     * @param {number} hiVY Upper Y bound of the interval to search, in
+     *     viewspace.
      * @param {TimelineSelection} selection Selection to which to add hits.
      */
     addIntersectingItemsInRangeToSelection: function(

@@ -17,7 +17,7 @@ base.exportTo('tracing', function() {
    *   x' = (x+pan) * scale
    *
    * The timeline code tries to avoid directly accessing this transform,
-   * instead using this class to do conversion between world and view space,
+   * instead using this class to do conversion between world and viewspace,
    * as well as the math for centering the viewport in various interesting
    * ways.
    *
