@@ -50,7 +50,9 @@ def generate_html():
   style_sheet_contents = ""
   for module in load_sequence:
     for style_sheet in module.style_sheets:
-      style_sheet_contents += """<link rel="stylesheet" href="%s">\n""" % style_sheet.filename
+      rel_filename = os.path.relpath(style_sheet.filename, srcdir)
+      link_tag = """<link rel="stylesheet" href="%s">\n""" % rel_filename
+      style_sheet_contents += link_tag
 
   result = template
   result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>", html_warning_message)
@@ -77,7 +79,8 @@ def generate_js():
     script_contents += "window.FLATTENED['%s'] = true;\n" % module.name
 
   for module in load_sequence:
-    script_contents += """<include src="%s">\n""" % module.filename
+    rel_filename = os.path.relpath(module.filename, srcdir)
+    script_contents += """<include src="%s">\n""" % rel_filename
 
   result = template
   result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>",

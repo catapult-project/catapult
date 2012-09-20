@@ -28,7 +28,7 @@ base.exportTo('tracing', function() {
   // Matches the sched_switch record
   var schedSwitchRE = new RegExp(
       'prev_comm=(.+) prev_pid=(\\d+) prev_prio=(\\d+) ' +
-      'prev_state=(\\S|\\S\\|\\S) ==> ' +
+      'prev_state=(\\S\\+?|\\S\\|\\S) ==> ' +
       'next_comm=(.+) next_pid=(\\d+) next_prio=(\\d+)');
   TestExports.schedSwitchRE = schedSwitchRE;
 

@@ -27,6 +27,7 @@ base.require('linux_perf_mali_parser');
 base.require('linux_perf_power_parser');
 base.require('linux_perf_sched_parser');
 base.require('linux_perf_workqueue_parser');
+base.require('linux_perf_android_parser');
 
 base.exportTo('tracing', function() {
   /**
@@ -236,6 +237,7 @@ base.exportTo('tracing', function() {
       this.importCpuData();
       if (!this.alignClocks(isSecondaryImport))
         return;
+      this.buildMapFromLinuxPidsToTimelineThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
     },
 
@@ -300,7 +302,8 @@ base.exportTo('tracing', function() {
           if (prevSlice.args.stateWhenDescheduled == 'S') {
             slices.push(new tracing.TimelineSlice('', 'Sleeping', sleepingId,
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'R') {
+          } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
+                     prevSlice.args.stateWhenDescheduled == 'R+') {
             slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
@@ -350,7 +353,7 @@ base.exportTo('tracing', function() {
         // If this is a secondary import, and no clock syncing records were
         // found, then abort the import. Otherwise, just skip clock alignment.
         if (!isSecondaryImport)
-          return;
+          return true;
 
         // Remove the newly imported CPU slices from the model.
         this.abortImport();
@@ -473,18 +476,27 @@ base.exportTo('tracing', function() {
     /**
      * Processes a trace_marking_write event.
      */
-    traceMarkingWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    traceMarkingWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase,
+                                     threadName) {
       var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase[5]);
-      if (!event)
-        return false;
+      if (!event) {
+        // Check if the event matches events traced by the Android framework
+        if (eventBase[5].lastIndexOf('B|', 0) === 0 ||
+            eventBase[5] === 'E' ||
+            eventBase[5].lastIndexOf('C|', 0) === 0)
+          event = [eventBase[5], 'android', eventBase[5]];
+        else
+          return false;
+      }
 
       var writeEventName = eventName + ':' + event[1];
+      var threadName = (/(\S+)-\d+/.exec(eventBase[1]))[1];
       var handler = this.eventHandlers_[writeEventName];
       if (!handler) {
         this.importError('Unknown trace_marking_write event ' + writeEventName);
         return true;
       }
-      return handler(writeEventName, cpuNumber, pid, ts, event);
+      return handler(writeEventName, cpuNumber, pid, ts, event, threadName);
     },
 
     /**

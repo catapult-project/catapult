@@ -302,6 +302,9 @@ base.addModuleDependency(
     'linux_perf_workqueue_parser',
     'linux_perf_parser');
 base.addModuleDependency(
+    'linux_perf_android_parser',
+    'linux_perf_parser');
+base.addModuleDependency(
     'linux_perf_importer',
     'timeline_model');
 base.addModuleDependency(
@@ -334,6 +337,9 @@ base.addModuleDependency(
 base.addModuleDependency(
     'linux_perf_importer',
     'linux_perf_workqueue_parser');
+base.addModuleDependency(
+    'linux_perf_importer',
+    'linux_perf_android_parser');
 base.addModuleDependency(
     'timeline_view',
     'timeline');

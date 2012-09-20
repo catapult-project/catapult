@@ -51,7 +51,7 @@ class ResourceFinder(object):
     contents = f.read()
     f.close()
 
-    return filename, contents
+    return absolute_path, contents
 
   def find_and_load_module(self, current_module, requested_module_name):
     return self._find_and_load(current_module, requested_module_name, ".js")
