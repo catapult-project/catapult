@@ -36,7 +36,8 @@ base.exportTo('tracing', function() {
     maliDDKOpenSlice: function(pid, ts, func, blockinfo) {
       var kthread = this.importer.getOrCreateKernelThread('mali_ddk', pid,
                                                           'mali_ddk');
-      kthread.thread.beginSlice(func, '', ts, { 'blockinfo': blockinfo });
+      kthread.thread.beginSlice('gpu-driver', func, ts,
+                                { 'blockinfo': blockinfo });
     },
 
     maliDDKCloseSlice: function(pid, ts, args, blockinfo) {
