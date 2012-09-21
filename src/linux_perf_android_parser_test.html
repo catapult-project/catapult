@@ -17,7 +17,7 @@ base.require('unittest');
 base.require('test_utils');
 base.require('linux_perf_importer');
 
-function testMaliDDKImport() {
+function testAndroidUserlandImport() {
   var lines = [
     'SurfaceFlinger-4831  [001] ...1 80909.598554: tracing_mark_write: B|4829|onMessageReceived',
     'SurfaceFlinger-4831  [001] ...1 80909.598572: tracing_mark_write: B|4829|handleMessageInvalidate',
@@ -46,6 +46,49 @@ function testMaliDDKImport() {
     'SurfaceFlinger-4831  [001] ...1 80909.599068: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599087: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599104: tracing_mark_write: E'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var thread = threads[0];
+  assertEquals(4829, thread.pid);
+  assertEquals(4831, thread.tid);
+  assertEquals('SurfaceFlinger', thread.name);
+  assertEquals(11, thread.slices.length);
+}
+
+function testAndroidUserlandLegacyKernelImport() {
+  var lines = [
+    'SurfaceFlinger-4831  [001] ...1 80909.598554: 0: B|4829|onMessageReceived',
+    'SurfaceFlinger-4831  [001] ...1 80909.598572: 0: B|4829|handleMessageInvalidate',
+    'SurfaceFlinger-4831  [001] ...1 80909.598590: 0: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598604: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598627: 0: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598651: 0: B|4829|updateTexImage',
+    'SurfaceFlinger-4831  [001] ...1 80909.598675: 0: B|4829|acquireBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598695: 0: B|4829|' +
+      'com.android.launcher/com.android.launcher2.Launcher: 0',
+    'SurfaceFlinger-4831  [001] ...1 80909.598709: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598733: 0: C|4829|' +
+      'com.android.launcher/com.android.launcher2.Launcher|0',
+    'SurfaceFlinger-4831  [001] ...1 80909.598746: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598844: 0: B|4829|releaseBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598862: 0: B|4829|' +
+      'com.android.launcher/com.android.launcher2.Launcher: 2',
+    'SurfaceFlinger-4831  [001] ...1 80909.598876: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598892: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598925: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598955: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.598988: 0: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.599001: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.599021: 0: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.599036: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.599068: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.599087: 0: E',
+    'SurfaceFlinger-4831  [001] ...1 80909.599104: 0: E'
   ];
   var m = new tracing.TimelineModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);

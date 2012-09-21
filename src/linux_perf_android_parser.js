@@ -20,6 +20,8 @@ base.exportTo('tracing', function() {
 
     importer.registerEventHandler('tracing_mark_write:android',
         LinuxPerfAndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
+    importer.registerEventHandler('0:android',
+        LinuxPerfAndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
 
     this.model_ = importer.model_;
     this.ppids_ = {};
