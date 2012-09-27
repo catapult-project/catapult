@@ -274,7 +274,7 @@ found in the LICENSE file.
 
       for (var i = 0; i < startTimes.length; ++i) {
         for (var j = 0; j < numSlices; ++j) {
-          var name = 'slice' + String(j);
+          var name = 'slice' + String(numSlices - 1 - j);
           thread.slices.push(newSliceNamed(name, startTimes[i], duration));
         }
       }
@@ -568,23 +568,6 @@ found in the LICENSE file.
 
       assertEquals('Selected counter:', counterTable.tableHeader);
       assertEquals(4, counterTable.rows.length);
-    }
-
-    function testAnalyzeSelectionWithNormallyDistributedSamples() {
-      var numSlices = 1;
-      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
-
-      var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
-      assertEquals(1, results.tables.length);
-
-      assertEquals('Frequency (occurrences/s)',
-                   results.tables[0].rows[8].label);
-      assertEquals(63, Math.round(results.tables[0].rows[8].time));
-
-      assertEquals('Std Dev (occurrences/s)',
-                   results.tables[0].rows[9].label);
-      assertEquals(16, Math.round(results.tables[0].rows[9].time));
     }
 
     function testAnalyzeSelectionWithNormallyDistributedSamples() {

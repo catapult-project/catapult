@@ -140,7 +140,12 @@ base.exportTo('tracks', function() {
         var y = slices[iy];
         if (x.start != y.start)
           return x.start - y.start;
-        return ix - iy;
+
+        // Elements get inserted into the slices array in order of when the
+        // slices end.  Because slices must be properly nested, we break
+        // start-time ties by assuming that the elements appearing earlier in
+        // the slices array (and thus ending earlier) start later.
+        return iy - ix;
       });
 
       var subRows = [[]];
