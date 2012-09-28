@@ -60,6 +60,24 @@ function testAndroidUserlandImport() {
   assertEquals(11, thread.slices.length);
 }
 
+function testAndroidUserlandImportWithSpacesInThreadName() {
+  var lines = [
+    'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer',
+    'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E',
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var thread = threads[0];
+  assertEquals(4829, thread.pid);
+  assertEquals(4831, thread.tid);
+  assertEquals('Surface Flinger ', thread.name);
+  assertEquals(1, thread.slices.length);
+}
+
 function testAndroidUserlandLegacyKernelImport() {
   var lines = [
     'SurfaceFlinger-4831  [001] ...1 80909.598554: 0: B|4829|onMessageReceived',

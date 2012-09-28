@@ -490,7 +490,7 @@ base.exportTo('tracing', function() {
       }
 
       var writeEventName = eventName + ':' + event[1];
-      var threadName = (/(\S+)-\d+/.exec(eventBase[1]))[1];
+      var threadName = (/(.+)-\d+/.exec(eventBase[1]))[1];
       var handler = this.eventHandlers_[writeEventName];
       if (!handler) {
         this.importError('Unknown trace_marking_write event ' + writeEventName);
@@ -524,7 +524,7 @@ base.exportTo('tracing', function() {
           continue;
         }
 
-        var pid = parseInt((/\S+-(\d+)/.exec(eventBase[1]))[1]);
+        var pid = parseInt((/.+-(\d+)/.exec(eventBase[1]))[1]);
         var cpuNumber = parseInt(eventBase[2]);
         var ts = parseFloat(eventBase[3]) * 1000;
         var eventName = eventBase[4];
