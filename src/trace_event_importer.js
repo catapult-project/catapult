@@ -213,6 +213,12 @@ base.exportTo('tracing', function() {
             this.model_.importErrors.push(
                 'Unrecognized metadata name: ' + event.name);
           }
+        } else if (event.ph == 's') {
+          // NB: toss until there's proper support
+        } else if (event.ph == 't') {
+          // NB: toss until there's proper support
+        } else if (event.ph == 'f') {
+          // NB: toss until there's proper support
         } else {
           this.model_.importErrors.push(
               'Unrecognized event phase: ' + event.ph +
