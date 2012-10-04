@@ -275,6 +275,12 @@ base.addModuleDependency(
     'trace_event_importer',
     'timeline_color_scheme');
 base.addModuleDependency(
+    'linux_perf_bus_parser',
+    'linux_perf_parser');
+base.addModuleDependency(
+    'linux_perf_clock_parser',
+    'linux_perf_parser');
+base.addModuleDependency(
     'linux_perf_cpufreq_parser',
     'linux_perf_parser');
 base.addModuleDependency(
@@ -310,6 +316,12 @@ base.addModuleDependency(
 base.addModuleDependency(
     'linux_perf_importer',
     'timeline_color_scheme');
+base.addModuleDependency(
+    'linux_perf_importer',
+    'linux_perf_bus_parser');
+base.addModuleDependency(
+    'linux_perf_importer',
+    'linux_perf_clock_parser');
 base.addModuleDependency(
     'linux_perf_importer',
     'linux_perf_cpufreq_parser');

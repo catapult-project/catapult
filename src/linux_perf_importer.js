@@ -18,6 +18,8 @@
  */
 base.require('timeline_model');
 base.require('timeline_color_scheme');
+base.require('linux_perf_bus_parser');
+base.require('linux_perf_clock_parser');
 base.require('linux_perf_cpufreq_parser');
 base.require('linux_perf_drm_parser');
 base.require('linux_perf_exynos_parser');
