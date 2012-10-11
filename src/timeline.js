@@ -647,6 +647,18 @@ base.exportTo('tracing', function() {
     },
 
     onDblClick_: function(e) {
+      var modelTrackContainerRect =
+                              this.modelTrackContainer_.getBoundingClientRect();
+      var clipBounds = {
+        left: modelTrackContainerRect.left,
+        right: modelTrackContainerRect.right,
+      };
+      var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
+      clipBounds.left = clipBounds.left + trackTitleWidth;
+
+      if (e.clientX < clipBounds.left || e.clientX > clipBounds.right)
+        return;
+
       var canv = this.firstCanvas;
 
       var scale = 4;
