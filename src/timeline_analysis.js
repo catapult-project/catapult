@@ -185,8 +185,8 @@ base.exportTo('tracing', function() {
    */
   function analyzeSelection(results, selection) {
 
-    var sliceHits = selection.getSliceHits();
-    var counterSampleHits = selection.getCounterSampleHits();
+    var sliceHits = selection.getSliceHitsAsSelection();
+    var counterSampleHits = selection.getCounterSampleHitsAsSelection();
 
     if (sliceHits.length == 1) {
       var slice = sliceHits[0].slice;

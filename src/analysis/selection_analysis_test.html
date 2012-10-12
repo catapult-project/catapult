@@ -1,0 +1,135 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Selection Analysis Tests</title>
+<script src="/src/base.js"></script>
+</head>
+<body>
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('timeline');
+    base.require('analysis.selection_analysis');
+    base.require('analysis.analysis_test_support');
+    base.requireStylesheet('analysis.analysis_test_support');
+  </script>
+  <script>
+    'use strict';
+
+    function testSelectionAnalysisWithJustCounter() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
+
+      var analysis = new tracing.SelectionAnalysis();
+      analysis.selection = selection;
+
+      var selectionEl = analysis;
+      var counterSelectionEl = selectionEl.children[0];
+      var singleCounterEl = counterSelectionEl.children[0];
+      var singleCounterAnalysisEl = singleCounterEl.children[0];
+      var row1El = singleCounterAnalysisEl.children[0];
+      var row2El = singleCounterAnalysisEl.children[1];
+
+      assertEquals('Counter Title', row1El.children[0].textContent);
+      assertEquals('ctr1', row1El.children[1].textContent);
+      assertEquals('Timestamp', row2El.children[0].textContent);
+      assertEquals('0', row2El.children[1].textContent);
+
+      this.addHTMLOutput(undefined, analysis);
+    }
+
+    function testSelectionAnalysisWithJustSlices() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+
+      var analysis = new tracing.SelectionAnalysis();
+      analysis.selection = selection;
+
+      var selectionEl = analysis;
+      var sliceSelectionEl = selectionEl.children[0];
+      var groupSliceEl = sliceSelectionEl.children[1];
+      var groupSliceAnalysisEl = groupSliceEl.children[0];
+      var infoRowEl = groupSliceAnalysisEl.children[0];
+
+      assertEquals('b', infoRowEl.children[0].textContent);
+      assertEquals('0.004', infoRowEl.children[1].textContent);
+      assertEquals('2', infoRowEl.children[2].textContent);
+
+      this.addHTMLOutput(undefined, analysis);
+    }
+
+    function testSelectionAnalysisWithSingleSlice() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('c', selection);
+
+      var analysis = new tracing.SelectionAnalysis();
+      analysis.selection = selection;
+
+      var selectionEl = analysis;
+      var sliceSelectionEl = selectionEl.children[0];
+      var singleSliceEl = sliceSelectionEl.children[0];
+      var singleSliceAnalysisEl = singleSliceEl.children[0];
+      var row1El = singleSliceAnalysisEl.children[0];
+      var row2El = singleSliceAnalysisEl.children[1];
+      var row3El = singleSliceAnalysisEl.children[2];
+      var row4El = singleSliceAnalysisEl.children[3];
+
+      assertEquals('Slice Title', row1El.children[0].textContent);
+      assertEquals('c', row1El.children[1].textContent);
+      assertEquals('Category', row2El.children[0].textContent);
+      assertEquals('Start Time', row3El.children[0].textContent);
+      assertEquals('0', row3El.children[1].textContent);
+      assertEquals('Duration in ms', row4El.children[0].textContent);
+      assertEquals('0.002', row4El.children[1].textContent);
+
+      this.addHTMLOutput(undefined, analysis);
+    }
+
+    function testSelectionAnalysisWithSlicesAndCounters() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+      selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
+
+      var analysis = new tracing.SelectionAnalysis();
+      analysis.selection = selection;
+
+      var selectionEl = analysis;
+      var sliceSelectionEl = selectionEl.children[0];
+      var groupSliceEl = sliceSelectionEl.children[1];
+      var groupSliceAnalysisEl = groupSliceEl.children[0];
+      var infoRowEl = groupSliceAnalysisEl.children[0];
+
+      var counterSelectionEl = selectionEl.children[1];
+      var singleCounterEl = counterSelectionEl.children[0];
+      var singleCounterAnalysisEl = singleCounterEl.children[0];
+      var row1El = singleCounterAnalysisEl.children[0];
+      var row2El = singleCounterAnalysisEl.children[1];
+
+      assertEquals('b', infoRowEl.children[0].textContent);
+      assertEquals('0.004', infoRowEl.children[1].textContent);
+      assertEquals('2', infoRowEl.children[2].textContent);
+
+      assertEquals('Counter Title', row1El.children[0].textContent);
+      assertEquals('ctr1', row1El.children[1].textContent);
+      assertEquals('Timestamp', row2El.children[0].textContent);
+      assertEquals('0', row2El.children[1].textContent);
+
+      this.addHTMLOutput(undefined, analysis);
+    }
+
+  </script>
+</body>
+</html>

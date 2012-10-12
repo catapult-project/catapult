@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Slice Selection Analysis Tests</title>
+<script src="/src/base.js"></script>
+</head>
+<body>
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('analysis.slice_selection_analysis');
+    base.require('analysis.analysis_test_support');
+  </script>
+  <script>
+    'use strict';
+
+    function testSelectionAnalysisWithSlice() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+
+      var analysis = new tracing.SliceSelectionAnalysis();
+      analysis.selection = selection;
+
+      var sliceSelectionEl = analysis;
+      var groupSliceEl = sliceSelectionEl.children[1];
+      var groupSliceAnalysisEl = groupSliceEl.children[0];
+      var infoRowEl = groupSliceAnalysisEl.children[0];
+
+      assertEquals('b', infoRowEl.children[0].textContent);
+      assertEquals('0.004', infoRowEl.children[1].textContent);
+      assertEquals('2', infoRowEl.children[2].textContent);
+    }
+
+  </script>
+</body>
+</html>

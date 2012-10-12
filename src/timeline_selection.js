@@ -89,6 +89,10 @@ base.exportTo('tracing', function() {
       this.range_dirty_ = true;
     },
 
+    pushHit: function(hit) {
+      this.push_(hit);
+    },
+
     push_: function(hit) {
       this[this.length_++] = hit;
       this.range_dirty_ = true;
@@ -119,20 +123,36 @@ base.exportTo('tracing', function() {
       return selection;
     },
 
-    getCounterSampleHits: function() {
+    getCounterSampleHitsAsSelection: function() {
       var selection = new TimelineSelection();
       for (var i = 0; i < this.length_; i++)
         if (this[i] instanceof TimelineSelectionCounterSampleHit)
           selection.push_(this[i]);
-        return selection;
+      return selection;
     },
 
-    getSliceHits: function() {
+    getSliceHitsAsSelection: function() {
       var selection = new TimelineSelection();
       for (var i = 0; i < this.length_; i++)
         if (this[i] instanceof TimelineSelectionSliceHit)
           selection.push_(this[i]);
-        return selection;
+      return selection;
+    },
+
+    getNumSliceHits: function() {
+      var numHits = 0;
+      for (var i = 0; i < this.length_; i++)
+        if (this[i] instanceof TimelineSelectionSliceHit)
+          numHits++;
+      return numHits;
+    },
+
+    getNumCounterHits: function() {
+      var numHits = 0;
+      for (var i = 0; i < this.length_; i++)
+        if (this[i] instanceof TimelineSelectionCounterSampleHit)
+          numHits++;
+      return numHits;
     },
 
     map: function(fn) {

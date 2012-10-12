@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Single Slice Selection Analysis Tests</title>
+<script src="/src/base.js"></script>
+</head>
+<body>
+  <script>
+    base.require('unittest');
+    base.require('test_utils');
+    base.require('analysis.single_slice_selection_analysis');
+    base.require('analysis.analysis_test_support');
+  </script>
+  <script>
+    'use strict';
+
+    function testSelectionAnalysisWithSingleSlice() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('c', selection);
+
+      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      analysis.selection = selection;
+
+      assertEquals('c', analysis.children[0].children[0].textContent);
+      assertEquals('0', analysis.children[0].children[2].textContent);
+      assertEquals('0.002', analysis.children[0].children[3].textContent);
+
+    }
+
+  </script>
+</body>
+</html>
