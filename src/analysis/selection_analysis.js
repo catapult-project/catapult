@@ -6,7 +6,6 @@
 
 base.requireStylesheet('analysis.selection_analysis');
 base.require('analysis.slice_selection_analysis');
-base.require('analysis.counter_selection_analysis');
 base.require('ui');
 
 /**

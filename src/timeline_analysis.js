@@ -136,7 +136,8 @@ base.exportTo('tracing', function() {
                   ' ms \u000DMax Duration:\u0009' +
                   this.tsRound_(opt_statistics.max) +
                   ' ms \u000DAvg Duration:\u0009' +
-                  this.tsRound_(opt_statistics.avg) + ' ms';
+                  this.tsRound_(opt_statistics.avg) + ' ms (\u03C3 = ' +
+                  this.tsRound_(opt_statistics.avg_stddev) + ')';
 
         if (opt_statistics.start) {
           tooltip += '\u000DStart Time:\u0009' +
@@ -271,8 +272,19 @@ base.exportTo('tracing', function() {
         var details = {min: min,
           max: max,
           avg: avg,
+          avg_stddev: undefined,
           frequency: undefined,
           frequency_stddev: undefined};
+
+        // Compute the stddev of the slice durations.
+        var sumOfSquaredDistancesToMean = 0;
+        for (var i = 0; i < sliceGroup.slices.length; i++) {
+          var signedDistance = details.avg - sliceGroup.slices[i].duration;
+          sumOfSquaredDistancesToMean += signedDistance * signedDistance;
+        }
+
+        details.avg_stddev = Math.sqrt(
+            sumOfSquaredDistancesToMean / (sliceGroup.slices.length - 1));
 
         // We require at least 3 samples to compute the stddev.
         var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
@@ -281,7 +293,7 @@ base.exportTo('tracing', function() {
           details.frequency = (1000 * numDistances) / elapsed;
 
           // Compute the stddev.
-          var sumOfSquaredDistancesToMean = 0;
+          sumOfSquaredDistancesToMean = 0;
           for (var i = 1; i < sliceGroup.slices.length; i++) {
             var currentFrequency = 1000 /
                 (sliceGroup.slices[i].start - sliceGroup.slices[i - 1].start);

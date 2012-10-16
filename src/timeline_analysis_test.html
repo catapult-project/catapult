@@ -266,16 +266,43 @@ found in the LICENSE file.
         1524.54762552, 1545.42960714, 1565.19444597, 1580.56308936,
         1596.72211651];
 
+      var durations = [
+        1.56308936, 1.4362262859, 1.5378088645, 1.8978868054,
+        1.4772725504, 1.438888345, 1.0102867913, 1.6208686689,
+        1.150576393, 1.54545468, 1.991587743, 1.456095568,
+        1.395772651, 1.691644582, 1.740054982, 1.308480724,
+        1.880949151, 1.528689601, 1.950478133, 1.791635722,
+        1.862427391, 1.954888221, 1.392899581, 1.364373939,
+        1.593380892, 1.296896748, 1.779941407, 1.517713864,
+        1.581222491, 1.329018858, 1.37029095, 1.283017166,
+        1.15141113, 1.36224697, 1.425018316, 1.89913248,
+        1.60294439, 1.780562233, 1.481610668, 1.055628965,
+        1.908449096, 1.776084055, 1.276049017, 1.776401428,
+        1.440135004, 1.33262401, 1.380086528, 1.970715322,
+        1.506690025, 1.391485532, 1.636984401, 1.801415494,
+        1.006502926, 1.610127549, 1.551103283, 1.170613672,
+        1.508235124, 1.263299017, 1.309555683, 1.417968804,
+        1.289319239, 1.302910569, 1.669355637, 1.71558868,
+        1.83359637, 1.16840733, 1.39503139, 1.61583325,
+        1.64709686, 1.67671319, 1.4617455, 1.4871842,
+        1.98143488, 1.52318588, 1.36966285, 1.50049042,
+        1.03088169, 1.98199401, 1.66591838, 1.83650314,
+        1.18058265, 1.11047342, 1.71570575, 1.40723345,
+        1.94342488, 1.7569577, 1.28267513, 1.17560308,
+        1.42247119, 1.51767749, 1.52489051, 1.98712348,
+        1.80113781, 1.66079406, 1.64137536, 1.52941903,
+        1.54762552, 1.42960714, 1.19444597, 1.56308936,
+        1.72211651];
+
       var events = [];
 
       var model = new TimelineModel();
       var thread = model.getOrCreateProcess(52).getOrCreateThread(53);
-      var duration = 1; // 1ms
 
       for (var i = 0; i < startTimes.length; ++i) {
         for (var j = 0; j < numSlices; ++j) {
           var name = 'slice' + String(numSlices - 1 - j);
-          thread.slices.push(newSliceNamed(name, startTimes[i], duration));
+          thread.slices.push(newSliceNamed(name, startTimes[i], durations[i]));
         }
       }
 
@@ -583,12 +610,17 @@ found in the LICENSE file.
           63, Math.round(results.tables[0].rows[0].details.frequency));
       assertEquals(
           16, Math.round(results.tables[0].rows[0].details.frequency_stddev));
+      assertEquals(
+          250, Math.round(results.tables[0].rows[0].details.avg_stddev * 1000));
+
 
       assertEquals('slice1', results.tables[0].rows[1].label);
       assertEquals(
           63, Math.round(results.tables[0].rows[1].details.frequency));
       assertEquals(
           16, Math.round(results.tables[0].rows[1].details.frequency_stddev));
+      assertEquals(
+          250, Math.round(results.tables[0].rows[1].details.avg_stddev * 1000));
     }
   </script>
 </body>
