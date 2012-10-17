@@ -352,7 +352,8 @@ base.exportTo('tracing', function() {
         return;
       var vp = this.viewport_;
       var viewWidth = this.firstCanvas.clientWidth;
-      var curMouseV = this.lastMouseViewPos_.x;
+      var pixelRatio = window.devicePixelRatio || 1;
+      var curMouseV = this.lastMouseViewPos_.x * pixelRatio;
       var curCenterW = vp.xViewToWorld(curMouseV);
       vp.scaleX = vp.scaleX * scale;
       vp.xPanWorldPosToViewPos(curCenterW, curMouseV, viewWidth);
@@ -497,9 +498,12 @@ base.exportTo('tracing', function() {
       this.dragBox_.style.top = finalDragBox.top + 'px';
       this.dragBox_.style.height = finalDragBox.height + 'px';
 
+      var pixelRatio = window.devicePixelRatio || 1;
       var canv = this.firstCanvas;
-      var loWX = this.viewport_.xViewToWorld(loX - canv.offsetLeft);
-      var hiWX = this.viewport_.xViewToWorld(hiX - canv.offsetLeft);
+      var loWX = this.viewport_.xViewToWorld(
+          (loX - canv.offsetLeft) * pixelRatio);
+      var hiWX = this.viewport_.xViewToWorld(
+          (hiX - canv.offsetLeft) * pixelRatio);
 
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
       this.dragBox_.textContent = roundedDuration + 'ms';
