@@ -21,6 +21,7 @@ found in the LICENSE file.
 <script>
   base.require('unittest');
   base.require('test_utils');
+  base.require('timeline_counter');
   base.require('timeline_slice');
   base.require('timeline_filter');
 </script>
@@ -44,6 +45,17 @@ found in the LICENSE file.
     assertTrue(new TimelineTitleFilter('a').matchSlice(s1));
     assertTrue(new TimelineTitleFilter('ba').matchSlice(s1));
     assertFalse(new TimelineTitleFilter('x').matchSlice(s1));
+
+    var c0 = test_utils.newCounter(null);
+    assertFalse(new TimelineTitleFilter('').matchCounter(c0));
+
+    assertTrue(new TimelineTitleFilter('a').matchCounter(c0));
+    assertFalse(new TimelineTitleFilter('x').matchCounter(c0));
+
+    var c1 = test_utils.newCounterNamed(null, 'ba');
+    assertTrue(new TimelineTitleFilter('a').matchCounter(c1));
+    assertTrue(new TimelineTitleFilter('ba').matchCounter(c1));
+    assertFalse(new TimelineTitleFilter('x').matchCounter(c1));
   }
 
   function testTimelineCategoryFilter() {
@@ -60,6 +72,17 @@ found in the LICENSE file.
     assertTrue(new TimelineCategoryFilter(['x']).matchSlice(s1));
     assertFalse(new TimelineCategoryFilter(['y']).matchSlice(s1));
     assertFalse(new TimelineCategoryFilter(['x', 'y']).matchSlice(s1));
+
+    var cNoCategory = test_utils.newCounterCategory(null, undefined, 'a');
+    assertTrue(new TimelineCategoryFilter(['x']).matchCounter(cNoCategory));
+
+    var c0 = test_utils.newCounterCategory(null, 'x', 'a');
+    assertFalse(new TimelineCategoryFilter(['x']).matchCounter(c0));
+
+    var c1 = test_utils.newCounterCategory(null, 'y', 'ba');
+    assertTrue(new TimelineCategoryFilter(['x']).matchCounter(c1));
+    assertFalse(new TimelineCategoryFilter(['y']).matchCounter(c1));
+    assertFalse(new TimelineCategoryFilter(['x', 'y']).matchCounter(c1));
   }
 
   function testFilterSliceArray() {
@@ -75,6 +98,21 @@ found in the LICENSE file.
     assertEquals('ba', matched[0].title);
     assertEquals('ab', matched[1].title);
     assertEquals('axa', matched[2].title);
+  }
+
+  function testFilterCounterArray() {
+    var counters = [
+      test_utils.newCounterNamed(null, 'ba'),
+      test_utils.newCounterNamed(null, 'ab'),
+      test_utils.newCounterNamed(null, 'x'),
+      test_utils.newCounterNamed(null, 'axa')
+    ];
+    var filter = new TimelineTitleFilter('a');
+    var matched = tracing.filterCounterArray(filter, counters);
+    assertEquals(3, matched.length);
+    assertEquals('ba', matched[0].name);
+    assertEquals('ab', matched[1].name);
+    assertEquals('axa', matched[2].name);
   }
 </script>
 </body>

@@ -34,6 +34,18 @@ base.exportTo('tracing', function() {
     return matched;
   }
 
+  function filterCounterArray(filter, counters) {
+    if (filter === undefined)
+      return counters;
+
+    var matched = [];
+    for (var i = 0; i < counters.length; ++i) {
+      if (filter.matchCounter(counters[i]))
+        matched.push(counters[i]);
+    }
+    return matched;
+  }
+
   /**
    * @constructor The generic base class for filtering a TimelineModel based on
    * various rules. The base class returns true for everything.
@@ -76,6 +88,14 @@ base.exportTo('tracing', function() {
   TimelineTitleFilter.prototype = {
     __proto__: TimelineFilter.prototype,
 
+    matchCounter: function(counter) {
+      if (this.text_.length == 0)
+        return false;
+      if (counter.name === undefined)
+        return false;
+      return counter.name.indexOf(this.text_) != -1;
+    },
+
     matchSlice: function(slice) {
       if (this.text_.length == 0)
         return false;
@@ -104,6 +124,12 @@ base.exportTo('tracing', function() {
       this.categories_[cat] = true;
     },
 
+    matchCounter: function(counter) {
+      if (!counter.category)
+        return true;
+      return !this.categories_[counter.category];
+    },
+
     matchSlice: function(slice) {
       if (!slice.category)
         return true;
@@ -112,6 +138,7 @@ base.exportTo('tracing', function() {
   };
 
   return {
+    filterCounterArray: filterCounterArray,
     filterSliceArray: filterSliceArray,
     TimelineFilter: TimelineFilter,
     TimelineTitleFilter: TimelineTitleFilter,

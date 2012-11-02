@@ -40,6 +40,20 @@ base.exportTo('test_utils', function() {
     return s;
   }
 
+  function newCounter(parent) {
+    return newCounterNamed(parent, 'a');
+  }
+
+  function newCounterNamed(parent, name) {
+    var s = new tracing.TimelineCounter(parent, name, null, name);
+    return s;
+  }
+
+  function newCounterCategory(parent, category, name) {
+    var s = new tracing.TimelineCounter(parent, name, category, name);
+    return s;
+  }
+
   function newSlice(start, duration) {
     return newSliceNamed('a', start, duration);
   }
@@ -65,6 +79,9 @@ base.exportTo('test_utils', function() {
     getAsync: getAsync,
     newAsyncSlice: newAsyncSlice,
     newAsyncSliceNamed: newAsyncSliceNamed,
+    newCounter: newCounter,
+    newCounterNamed: newCounterNamed,
+    newCounterCategory: newCounterCategory,
     newSlice: newSlice,
     newSliceNamed: newSliceNamed,
     newSliceCategory: newSliceCategory,

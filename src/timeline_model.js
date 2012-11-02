@@ -131,20 +131,24 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * Generates the set of categories from the slices.
+     * Generates the set of categories from the slices and counters.
      */
     updateCategories_: function() {
-      // TODO(sullivan): Is there a way to do this more cleanly?
-      for (var pid in this.processes) {
-        var process = this.processes[pid];
-        for (var tid in process.threads) {
-          var slices = process.threads[tid].slices;
-          for (var i = 0; i < slices.length; i++) {
-            var category = slices[i].category;
-            if (category && this.categories.indexOf(category) == -1) {
-              this.categories.push(category);
-            }
+      var threads = this.getAllThreads();
+      for (var tI = 0; tI < threads.length; tI++) {
+        var slices = threads[tI].slices;
+        for (var i = 0; i < slices.length; i++) {
+          var category = slices[i].category;
+          if (category && this.categories.indexOf(category) == -1) {
+            this.categories.push(category);
           }
+        }
+      }
+      var counters = this.getAllCounters();
+      for (var tI = 0; tI < counters.length; tI++) {
+        var category = counters[tI].category;
+        if (category && this.categories.indexOf(category) == -1) {
+          this.categories.push(category);
         }
       }
       for (var cpu in this.cpus) {
