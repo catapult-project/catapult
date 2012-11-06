@@ -369,8 +369,8 @@ function testTestDiscovery() {
   };
   var tests = unittest.discoverTests(object, undefined);
   rawAssertEquals(2, tests.length);
-  rawAssertEquals('test1', tests[0].testName);
-  rawAssertEquals('test_2', tests[1].testName);
+  rawAssertEquals('test_2', tests[0].testName);
+  rawAssertEquals('test1', tests[1].testName);
 }
 
 function testTestRunnerFilter() {
