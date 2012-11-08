@@ -105,7 +105,8 @@ class BrowserBackend(object):
 
   def DoesDebuggerUrlExist(self, url):
     matches = [t for t in self._ListTabs()
-               if t['webSocketDebuggerUrl'] == url]
+               if 'webSocketDebuggerUrl' in t and\
+               t['webSocketDebuggerUrl'] == url]
     return len(matches) >= 1
 
   def CreateForwarder(self, host_port):

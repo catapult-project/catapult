@@ -106,6 +106,11 @@ http://goto/read-src-internal, or create a new archive using --record.
     page_state = PageState()
     try:
       did_prepare = self.PreparePage(page, tab, page_state, results)
+    except util.TimeoutException, ex:
+      logging.warning('TimedOut waiting for reply on %s. This is unusual.',
+                      page.url)
+      results.AddFailure(page, ex, traceback.format_exc())
+      return
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
