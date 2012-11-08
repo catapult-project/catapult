@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import os
+import sys
+
+import telemetry.run_tests
+
+if __name__ == '__main__':
+  top_level_dir = os.path.abspath(
+    os.path.dirname(__file__))
+  start_dir = 'telemetry'
+  ret = telemetry.run_tests.Main(
+    sys.argv[1:], start_dir, top_level_dir)
+  sys.exit(ret)
