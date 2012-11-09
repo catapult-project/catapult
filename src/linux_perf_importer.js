@@ -483,9 +483,8 @@ base.exportTo('tracing', function() {
       var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase[5]);
       if (!event) {
         // Check if the event matches events traced by the Android framework
-        if (eventBase[5].lastIndexOf('B|', 0) === 0 ||
-            eventBase[5] === 'E' ||
-            eventBase[5].lastIndexOf('C|', 0) === 0)
+        var tag = eventBase[5].substring(0, 2);
+        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'C|')
           event = [eventBase[5], 'android', eventBase[5]];
         else
           return false;

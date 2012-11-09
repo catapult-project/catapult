@@ -121,6 +121,40 @@ function testAndroidUserlandLegacyKernelImport() {
   assertEquals(11, thread.slices.length);
 }
 
+function testAndroidUserlandChromiumImport() {
+  var lines = [
+    'SandboxedProces-2894  [001] ...1   253.780659: tracing_mark_write: B|2867|' +
+      'DoWorkLoop|arg1=1',
+    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: B|2867|' +
+      'DeferOrRunPendingTask|source=test;task=xyz',
+    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: E|2867|' +
+      'DeferOrRunPendingTask',
+    'SandboxedProces-2894  [001] ...1   253.780686: tracing_mark_write: B|2867|' +
+      'MessageLoop::RunTask|source=ipc/ipc_sync_message_filter.cc:Send',
+    'SandboxedProces-2894  [001] ...1   253.780700: tracing_mark_write: E|2867|' +
+      'MessageLoop::RunTask',
+    'SandboxedProces-2894  [001] ...1   253.780659: tracing_mark_write: E|2867|' +
+      'DoWorkLoop|arg2=2'
+  ];
+  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+
+  var threads = m.getAllThreads();
+  assertEquals(1, threads.length);
+
+  var thread = threads[0];
+  assertEquals(2867, thread.pid);
+  assertEquals(2894, thread.tid);
+  assertEquals('SandboxedProces', thread.name);
+  assertEquals(3, thread.slices.length);
+
+  assertEquals('test', thread.slices[0].args['source']);
+  assertEquals('xyz', thread.slices[0].args['task']);
+  assertEquals('ipc/ipc_sync_message_filter.cc:Send', thread.slices[1].args['source']);
+  assertEquals('1', thread.slices[2].args['arg1']);
+  assertEquals('2', thread.slices[2].args['arg2']);
+}
+
 </script>
 </body>
 </html>

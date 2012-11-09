@@ -27,6 +27,19 @@ base.exportTo('tracing', function() {
     this.ppids_ = {};
   }
 
+  function parseArgs(argsString) {
+    var args = {};
+    if (argsString) {
+      var argsArray = argsString.split(';');
+      for (var i = 0; i < argsArray.length; ++i) {
+        var parts = argsArray[i].split('=');
+        if (parts[0])
+          args[parts[0]] = parts[1];
+      }
+    }
+    return args;
+  }
+
   LinuxPerfAndroidParser.prototype = {
     __proto__: LinuxPerfParser.prototype,
 
@@ -47,7 +60,7 @@ base.exportTo('tracing', function() {
           }
 
           this.ppids_[pid] = ppid;
-          thread.beginSlice(null, name, ts, {});
+          thread.beginSlice(null, name, ts, parseArgs(eventData[3]));
 
           break;
         case 'E':
@@ -66,8 +79,7 @@ base.exportTo('tracing', function() {
 
           var slice = thread.endSlice(ts);
 
-          // TODO(jgennis): add real support for arguments
-          args = {};
+          var args = parseArgs(eventData[3]);
           for (var arg in args) {
             if (slice.args[arg] !== undefined) {
               this.model_.importErrors.push(
@@ -75,7 +87,7 @@ base.exportTo('tracing', function() {
                   'provided values for argument ' + arg + '. ' +
                   'The value of the E event will be used.');
             }
-            slice.args[arg] = event.args[arg];
+            slice.args[arg] = args[arg];
           }
 
           break;
