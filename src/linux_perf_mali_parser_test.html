@@ -18,7 +18,7 @@ base.require('test_utils');
 base.require('linux_perf_importer');
 
 function testMaliDDKImport() {
-  var lines = [
+  var linesNoThread = [
     // Row 1 open
     '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
                 'mali_driver: cros_trace_print_enter: ' +
@@ -101,15 +101,108 @@ function testMaliDDKImport() {
                 'mali_driver: cros_trace_print_exit: ' +
                 'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992'
   ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
-  assertEquals(0, m.importErrors.length);
 
-  var threads = m.getAllThreads();
-  assertEquals(1, threads.length);
+  var linesWithThread = [
+    // Row 1 open
+    '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992: ' +
+                'glTexSubImage2D',
+    // Row 2 open
+    '           chrome-1780  [001] ...1   28.562655: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_api.c@996: ' +
+                'gles_texture_tex_sub_image_2d',
+    // Row 3 open
+    '            chrome-1780  [001] ...1   28.562671: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@295: ' +
+                'gles_texturep_slave_map_master',
+    // Row 3 close
+    '           chrome-1780  [001] ...1   28.562684: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@295: ',
+    // Row 3 open
+    '           chrome-1780  [001] ...1   28.562700: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@1505: ' +
+                'gles2_texturep_upload_2d',
+    // Row 4 open
+    '           chrome-1780  [001] ...1   28.562726: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@1612: ' +
+                'gles2_texturep_upload_2d: pixel array: wait for dependencies',
+    // Row 5 open
+    '           chrome-1780  [001] ...1   28.562742: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1693: ' +
+                'cobj_convert_pixels_to_surface',
+    // Row 6 open
+    '           chrome-1780  [001] ...1   28.562776: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1461: ' +
+                'cobj_convert_pixels',
+    // Row 7 open
+    '           chrome-1780  [001] ...1   28.562791: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1505: ' +
+                'cobj_convert_pixels: fast-path linear copy',
+    // Row 8 open
+    '           chrome-1780  [001] ...1   28.562808: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1511: ' +
+                'cobj_convert_pixels: reorder-only',
+    // Row 8 close
+    '           chrome-1780  [001] ...1   28.563383: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1511',
+    // Row 7 close
+    '           chrome-1780  [001] ...1   28.563397: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1505',
+    // Row 6 close
+    '           chrome-1780  [001] ...1   28.563409: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1461',
+    // Row 5 close
+    '           chrome-1780  [001] ...1   28.563438: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'cobj/src/mali_cobj_surface_operations.c@1693',
+    // Row 4 close
+    '           chrome-1780  [001] ...1   28.563451: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@1612',
+    // Row 3 close
+    '           chrome-1780  [001] ...1   28.563462: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_slave.c@1505',
+    // Row 2 close
+    '           chrome-1780  [001] ...1   28.563475: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'gles/src/texture/mali_gles_texture_api.c@996',
+    // Row 1 close
+    '           chrome-1780  [001] ...1   28.563486: tracing_mark_write: ' +
+                'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
+                'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
+  ];
+  var traceNoThread =
+    new tracing.TimelineModel(linesNoThread.join('\n'), false);
+  var traceWithThread =
+    new tracing.TimelineModel(linesWithThread.join('\n'), false);
+  assertEquals(0, traceNoThread.importErrors.length);
+  assertEquals(0, traceWithThread.importErrors.length);
 
-  var maliThread = threads[0];
-  assertEquals('mali_ddk', maliThread.name);
-  assertEquals(9, maliThread.slices.length);
+  var threadsNoThread = traceNoThread.getAllThreads();
+  var threadsWithThread = traceWithThread.getAllThreads();
+  assertEquals(1, threadsNoThread.length);
+  assertEquals(1, threadsWithThread.length);
+
+  var maliThreadNoThread = threadsNoThread[0];
+  var maliThreadWithThread = threadsWithThread[0];
+  assertEquals('mali', maliThreadNoThread.tid);
+  assertEquals('mali-1878934320', maliThreadWithThread.tid);
+  assertEquals(9, maliThreadNoThread.slices.length);
+  assertEquals(9, maliThreadWithThread.slices.length);
 }
 
 function testDVFSFrequencyImport() {

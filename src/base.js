@@ -106,7 +106,7 @@ this.base = (function() {
     req.open('GET', src, false);
     req.send(null);
     if (req.status != 200)
-      throw new Error('Could not find ' + deps +
+      throw new Error('Could not find ' + src +
                       '. Run calcdeps.py and try again.');
 
     base.addModuleStylesheet = addModuleStylesheet;

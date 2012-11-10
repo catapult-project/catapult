@@ -33,47 +33,76 @@ base.exportTo('tracing', function() {
   LinuxPerfMaliParser.prototype = {
     __proto__: LinuxPerfParser.prototype,
 
-    maliDDKOpenSlice: function(pid, ts, func, blockinfo) {
-      var kthread = this.importer.getOrCreateKernelThread('mali_ddk', pid,
-                                                          'mali_ddk');
-      kthread.thread.beginSlice('gpu-driver', func, ts,
-                                { 'blockinfo': blockinfo });
+    maliDDKOpenSlice: function(pid, tid, ts, func, blockinfo) {
+      var thread = this.importer.model_.getOrCreateProcess(pid)
+        .getOrCreateThread(tid);
+      var funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
+      thread.beginSlice('gpu-driver', funcArgs[1], ts,
+          { 'args': funcArgs[2],
+            'blockinfo': blockinfo });
     },
 
-    maliDDKCloseSlice: function(pid, ts, args, blockinfo) {
-      var kthread = this.importer.getOrCreateKernelThread('mali_ddk', pid,
-                                                          'mali_ddk');
-      var thread = kthread.thread;
+    maliDDKCloseSlice: function(pid, tid, ts, args, blockinfo) {
+      var thread = this.importer.model_.getOrCreateProcess(pid)
+        .getOrCreateThread(tid);
       if (!thread.openSliceCount) {
-        this.importer.importError('maliDDKCloseSlice w/o matching OpenSlice');
+        // Discard unmatched ends.
         return;
       }
       thread.endSlice(ts);
     },
 
     /**
+     * Deduce the format of Mali perf events.
+     *
+     * @return {RegExp} the regular expression for parsing data when the format
+     * is recognized; otherwise null.
+     */
+    autoDetectLineRE: function(line) {
+      // Matches Mali perf events with thread info
+      var lineREWithThread =
+        /^\s*\(([\w\-]*)\)\s*(\w+):\s*([\w\\\/\.\-]*@\d*):?\s*(.*)$/;
+      if (lineREWithThread.test(line))
+        return lineREWithThread;
+
+      // Matches old-style Mali perf events
+      var lineRENoThread = /^s*()(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/;
+      if (lineRENoThread.test(line))
+        return lineRENoThread;
+      return null;
+    },
+
+    lineRE: null,
+
+    /**
      * Parses maliDDK events and sets up state in the importer.
      * events will come in pairs with a cros_trace_print_enter
-     * like this:
+     * like this (line broken here for formatting):
      *
-     * tracing_mark_write: mali_driver: cros_trace_print_enter:
-     * gles/src/texture/mali_gles_texture_slave.c1505:
-     * gles2_texturep_upload_2d
+     * tracing_mark_write: mali_driver: (mali-012345) cros_trace_print_enter: \
+     *   gles/src/texture/mali_gles_texture_slave.c@1505: gles2_texturep_upload
      *
      * and a cros_trace_print_exit like this:
      *
-     * tracing_mark_write: mali_driver: cros_trace_print_exit:
-     * gles/src/texture/mali_gles_texture_slave.c1505:
+     * tracing_mark_write: mali_driver: (mali-012345) cros_trace_print_exit: \
+     *   gles/src/texture/mali_gles_texture_slave.c@1505:
      */
     maliDDKEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var maliEvent =
-          /^s*(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/.exec(eventBase[2]);
-      switch (maliEvent[1]) {
+      if (this.lineRE == null) {
+        this.lineRE = this.autoDetectLineRE(eventBase[2]);
+        if (this.lineRE == null)
+          return false;
+      }
+      var maliEvent = this.lineRE.exec(eventBase[2]);
+      // Old-style Mali perf events have no thread id, so make one.
+      var tid = (maliEvent[1] === '' ? 'mali' : maliEvent[1]);
+      switch (maliEvent[2]) {
         case 'cros_trace_print_enter':
-          this.maliDDKOpenSlice(pid, ts, maliEvent[3], maliEvent[2]);
+          this.maliDDKOpenSlice(pid, tid, ts, maliEvent[4],
+              maliEvent[3]);
           break;
         case 'cros_trace_print_exit':
-          this.maliDDKCloseSlice(pid, ts, [], maliEvent[2]);
+          this.maliDDKCloseSlice(pid, tid, ts, [], maliEvent[3]);
       }
       return true;
     },
