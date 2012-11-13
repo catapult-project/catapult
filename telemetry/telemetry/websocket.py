@@ -14,3 +14,4 @@ def __init__():
 __init__()
 
 from websocket import create_connection # pylint: disable=W0611
+from websocket import WebSocketException # pylint: disable=W0611

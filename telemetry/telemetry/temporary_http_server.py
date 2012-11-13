@@ -7,6 +7,8 @@ import subprocess
 import sys
 import urlparse
 
+from telemetry import util
+
 class TemporaryHTTPServer(object):
   def __init__(self, browser_backend, path):
     self._server = None
@@ -30,6 +32,10 @@ class TemporaryHTTPServer(object):
         stdout=self._devnull, stderr=self._devnull)
 
     self._forwarder = browser_backend.CreateForwarder(self._host_port)
+
+    def IsServerUp():
+      return not socket.socket().connect_ex(('localhost', self._host_port))
+    util.WaitFor(IsServerUp, 5)
 
   @property
   def path(self):

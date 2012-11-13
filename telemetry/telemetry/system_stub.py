@@ -7,6 +7,7 @@ This test allows one to test code that itself uses os, sys, and subprocess.
 """
 
 import os
+import re
 import shlex
 import sys as real_sys
 
@@ -87,12 +88,25 @@ class OsModuleStub(object):
     def exists(self, path):
       return path in self.files
 
-    def join(self, *args):
+    def join(self, *paths):
+      def IsAbsolutePath(path):
+        if self.sys.platform.startswith('win'):
+          return re.match('[a-zA-Z]:\\\\', path)
+        else:
+          return path.startswith('/')
+
+      # Per Python specification, if any component is an absolute path,
+      # discard previous components.
+      for index, path in reversed(list(enumerate(paths))):
+        if IsAbsolutePath(path):
+          paths = paths[index:]
+          break
+
       if self.sys.platform.startswith('win'):
-        tmp = os.path.join(*args)
+        tmp = os.path.join(*paths)
         return tmp.replace('/', '\\')
       else:
-        tmp = os.path.join(*args)
+        tmp = os.path.join(*paths)
         return tmp.replace('\\', '/')
 
     def dirname(self, filename): # pylint: disable=R0201

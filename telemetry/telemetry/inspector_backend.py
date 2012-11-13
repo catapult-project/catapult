@@ -36,7 +36,7 @@ class InspectorBackend(object):
     self._SetTimeout(timeout)
     try:
       data = self._socket.recv()
-    except socket.error:
+    except (socket.error, websocket.WebSocketException):
       if self._backend.DoesDebuggerUrlExist(self._socket_url):
         return
       raise tab_crash_exception.TabCrashException()
@@ -77,7 +77,7 @@ class InspectorBackend(object):
     while True:
       try:
         data = self._socket.recv()
-      except socket.error:
+      except (socket.error, websocket.WebSocketException):
         if self._backend.DoesDebuggerUrlExist(self._socket_url):
           raise util.TimeoutException(
             "TimedOut waiting for reply. This is unusual.")

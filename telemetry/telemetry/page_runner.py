@@ -147,14 +147,14 @@ http://goto/read-src-internal, or create a new archive using --record.
       return tab.runtime.Evaluate(expression)
 
     # Wait until the form is submitted and the page completes loading.
-    util.WaitFor(lambda: IsPageLoaded(), 60) # pylint: disable=W0108
+    util.WaitFor(IsPageLoaded, 60)
 
   def PreparePage(self, page, tab, page_state, results):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
-      path = os.path.join(self.page_set.base_dir,
-                          parsed_url.netloc,
-                          parsed_url.path) # pylint: disable=E1101
+      path = os.path.join(
+          self.page_set.base_dir,
+          parsed_url.netloc + parsed_url.path) # pylint: disable=E1101
       dirname, filename = os.path.split(path)
       tab.browser.SetHTTPServerDirectory(dirname)
       target_side_url = tab.browser.http_server.UrlOf(filename)
