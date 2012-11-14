@@ -35,7 +35,7 @@ base.exportTo('tracing', function() {
     set selection(selection) {
 
       if (selection.getNumSliceHits() != 1)
-        return;
+        throw new Error('Expected only 1 slice in selection');
 
       this.selection_ = selection;
       this.updateContents_();
@@ -47,7 +47,7 @@ base.exportTo('tracing', function() {
 
     set verticalDisplay(b) {
       this.verticalDisplay_ = b;
-      updateContents_();
+      this.updateContents_();
     },
 
     updateContents_: function() {
@@ -59,33 +59,87 @@ base.exportTo('tracing', function() {
       var hit = this.selection_[0];
       var slice = hit.slice;
 
-      this.appendData_('Title', slice.title);
-      this.appendData_('Category', slice.category);
-      this.appendData_('Start Time', tracing.tsRound(slice.start));
-      this.appendData_('Duration', tracing.tsRound(slice.duration));
-
-      this.appendChild(row);
-    },
-
-    appendData_: function(title, value) {
       if (this.verticalDisplay) {
-        var el = document.createElement('span');
-        el.classList.add('analyis-table-row-title');
-        el.textContent = title;
-        this.appendChild(el);
-
-        el = document.createElement('span');
-        el.classList.add('analyis-table-cell');
-        el.textContent = value;
-        this.appendChild(el);
-              return;
+        this.appendDataRow_('Title', slice.title);
+        this.appendDataRow_('Category', slice.category);
+        this.appendDataRow_('Start Time', tracing.tsRound(slice.start));
+        this.appendDataRow_('Duration', tracing.tsRound(slice.duration));
+      }else {
+        var rowEl = document.createElement('div');
+        rowEl.classList.add('analysis-table-row');
+        this.appendData_(rowEl, slice.category);
+        this.appendData_(rowEl, tracing.tsRound(slice.start));
+        this.appendData_(rowEl, tracing.tsRound(slice.duration));
+        this.appendChild(rowEl);
       }
 
+      var n = 0;
+      for (var name in slice.args) {
+        n += 1;
+      }
+
+      if (n > 0) {
+        var el = document.createElement('div');
+        el.classList.add('analysis-table-row');
+        this.appendData_(el, 'Args');
+        this.appendChild(el);
+
+        for (var name in slice.args) {
+          this.appendDataRow_(name, slice.args[name]);
+        }
+      }
+
+    },
+
+    appendDataRow_: function(title, value) {
+      var rowEl = document.createElement('div');
+      rowEl.classList.add('analysis-table-row');
+
+      var el = document.createElement('span');
+      el.classList.add('analysis-table-row-title');
+      el.textContent = title;
+      rowEl.appendChild(el);
+
       el = document.createElement('span');
-      el.classList.add('analyis-table-cell');
+      el.classList.add('analysis-table-cell');
+      if (value == false && value != 0)
+        value = '-';
       el.textContent = value;
-      this.appendChild(el);
-    }
+      rowEl.appendChild(el);
+
+      this.appendChild(rowEl);
+    },
+
+    appendData_: function(rowEl, value) {
+      var el = document.createElement('span');
+      el.classList.add('analysis-table-cell');
+      if (value == false)
+        value = '-';
+      el.textContent = value;
+      rowEl.appendChild(el);
+    },
+
+    createColumnTitleRow: function() {
+      if (this.verticalDisplay)
+        throw new error('Cannot mix vertical and horizontal displays.');
+
+      this.textContent = '';
+      var row = document.createElement('div');
+      row.classList.add('analysis-table-row');
+      row.classList.add('column-title-row');
+
+      this.createAndAppendSpan_(row, 'Slice Category');
+      this.createAndAppendSpan_(row, 'Start Time');
+      this.createAndAppendSpan_(row, 'Duration ms');
+
+      return row;
+    },
+
+    createAndAppendSpan_: function(row, content) {
+      var el = document.createElement('span');
+      el.textContent = content;
+      row.appendChild(el);
+    },
 
   };
 

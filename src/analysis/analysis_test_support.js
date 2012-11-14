@@ -31,6 +31,30 @@ base.exportTo('tracing', function() {
         t1.pushSlice(newSliceNamed('b', 0, 0.002));
       t1.pushSlice(newSliceNamed('b', 0, 0.002));
       t1.pushSlice(newSliceNamed('c', 0, 0.002));
+      t1.pushSlice(newSliceNamed('c', .01, 0.003));
+      t1.pushSlice(newSliceNamed('c', .01, 0.001));
+      t1.pushSlice(newSliceNamed('c', .02, 0.004));
+      t1.pushSlice(newSliceNamed('d', 0, 0.002));
+      t1.pushSlice(newSliceNamed('d', .01, 0.003));
+      t1.pushSlice(newSliceNamed('d', .01, 0.001));
+      t1.pushSlice(newSliceNamed('d', .02, 0.004));
+      t1.pushSlice(newSliceNamed('e', 0, 0.002));
+      t1.pushSlice(newSliceNamed('e', .01, 0.003));
+      t1.pushSlice(newSliceNamed('e', .01, 0.001));
+      t1.pushSlice(newSliceNamed('e', .02, 0.004));
+      t1.pushSlice(newSliceNamed('f', 0, 0.002));
+      t1.pushSlice(newSliceNamed('Slice with a really, really long name.',
+                                  0, 0.005));
+
+      t1.slices.push(new tracing.TimelineSlice('category', 'D', 0, 1.15,
+                                            {src_file: 'Arg D src_file',
+                                            src_func: 'Arg D src_func'}, .5));
+      t1.slices.push(new tracing.TimelineSlice('cat', 'E', 0, 1,
+                                            {src_file: 'Arg E src_file',
+                                            src_func: 'Arg E src_func'}, .4));
+      t1.slices.push(new tracing.TimelineSlice('cat', 'F', 0, 1,
+                                            {src_file: '0',
+                                            src_func: 'false'}, .4));
 
       var ctr1 = p1.getOrCreateCounter('foo', 'ctr1');
       ctr1.seriesNames.push('bytesallocated', 'bytesfree');

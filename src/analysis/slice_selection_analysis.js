@@ -71,25 +71,46 @@ base.exportTo('tracing', function() {
          * and for each selection of hits, create a group analysis
          * and append accordingly.
          */
+
+        // Initialize varibales for summary of groups.
+        var allGroupsDuration = 0;
+        var allGroupsOccurrences = 0;
+        var allGroupsEnd = undefined;
+        var allGroupsStart = undefined;
+
         var addedHeader = false;
         for (var groupTitle in selectionsByTitle) {
           var childEl = new tracing.SliceGroupSelectionAnalysis();
-          childEl.selection = selectionsByTitle[groupTitle];
           if (!addedHeader) {
             this.appendChild(childEl.createColumnTitleRow());
             addedHeader = true;
           }
+          childEl.selection = selectionsByTitle[groupTitle];
 
           this.appendChild(childEl);
+
+          allGroupsDuration += childEl.roundedSelectionDuration;
+          allGroupsOccurrences += childEl.occurrences;
+          if (allGroupsEnd == undefined ||
+              childEl.selectionEndTime > allGroupsEnd) {
+            allGroupsEnd = childEl.selectionEndTime;
+          }
+          if (allGroupsStart == undefined ||
+              childEl.selectionStartTime < allGroupsStart) {
+            allGroupsStart = childEl.selectionStartTime;
+          }
         }
 
-        // TODO (kassycoan): add group summary data.
+        // Construct and append the groups summary.
+        var groupSummaryEl = document.createElement('group-totals-summary');
+        this.appendDataRow_('Totals', tracing.tsRound(allGroupsDuration),
+            allGroupsOccurrences);
+        this.appendDataRow_('Selection Start', tracing.tsRound(allGroupsStart));
+        this.appendDataRow_('Selection End', tracing.tsRound(allGroupsEnd));
+        this.appendChild(groupSummaryEl);
 
       }
-
     },
-
-    /* Helper functions for group slice selectionsByTitle */
 
     buildSelectionsByTitleByTitle_: function(sliceHits) {
       var selectionsByTitle = {};
@@ -101,6 +122,29 @@ base.exportTo('tracing', function() {
         selectionsByTitle[title].pushHit(sliceHit);
       }
       return selectionsByTitle;
+    },
+
+    appendDataRow_: function(title, value, additional_valueCell) {
+      var rowEl = document.createElement('div');
+      rowEl.classList.add('analysis-table-row');
+
+      var el = document.createElement('span');
+      el.classList.add('analysis-table-row-title');
+      el.textContent = title;
+      rowEl.appendChild(el);
+
+      el = document.createElement('span');
+      el.classList.add('analysis-table-cell');
+      el.textContent = value;
+      rowEl.appendChild(el);
+
+      if (additional_valueCell) {
+        el = document.createElement('span');
+        el.classList.add('analyis-table-cell');
+        el.textContent = additional_valueCell;
+        rowEl.appendChild(el);
+      }
+      this.appendChild(rowEl);
     }
 
   };

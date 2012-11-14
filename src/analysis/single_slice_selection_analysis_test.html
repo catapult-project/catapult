@@ -19,19 +19,83 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    function testSelectionAnalysisWithSingleSlice() {
+    function testSelectionAnalysisWithSingleSliceArgsAndCategory_analysis() {
       var data = tracing.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
-      data.t1track.selectByTitle('c', selection);
+      data.t1track.selectByTitle('D', selection);
 
       var analysis = new tracing.SingleSliceSelectionAnalysis();
       analysis.selection = selection;
+      analysis.verticalDisplay = true;
 
-      assertEquals('c', analysis.children[0].children[0].textContent);
-      assertEquals('0', analysis.children[0].children[2].textContent);
-      assertEquals('0.002', analysis.children[0].children[3].textContent);
+      var singleSliceEl = analysis;
+      var categoryEl = singleSliceEl.children[1];
+      var argEl1 = singleSliceEl.children[5];
+      var argEl2 = singleSliceEl.children[6];
 
+      assertEquals(true, analysis instanceof
+          tracing.SingleSliceSelectionAnalysis);
+      assertEquals(7, singleSliceEl.children.length);
+      assertEquals('category', categoryEl.children[1].textContent);
+      assertEquals('Arg D src_file', argEl1.children[1].textContent);
+      assertEquals('Arg D src_func', argEl2.children[1].textContent);
+    }
+
+    function testSingleSliceSelectionWithMissingCategoryAndArgs() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('f', selection);
+
+      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      analysis.selection = selection;
+      analysis.verticalDisplay = true;
+
+      var singleSliceEl = analysis;
+      var row1 = analysis.children[0];
+      var row2 = analysis.children[1];
+      var row3 = analysis.children[2];
+      var row4 = analysis.children[3];
+
+      assertEquals('f', row1.children[1].textContent);
+      assertEquals('', row2.children[1].textContent);
+      assertEquals('0', row3.children[1].textContent);
+      assertEquals('0.002', row4.children[1].textContent);
+    }
+
+    function testSingleSliceSelectionWithMultipleSlices() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+
+      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      assertThrows(function() {
+        analysis.selection = selection;
+      });
+    }
+
+    function testSingleSliceSelectionWithFalseArgs() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('F', selection);
+
+      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      analysis.selection = selection;
+      analysis.verticalDisplay = true;
+
+      var singleSliceEl = analysis;
+      var categoryEl = singleSliceEl.children[1];
+      var argEl1 = singleSliceEl.children[5];
+      var argEl2 = singleSliceEl.children[6];
+
+      assertEquals(true, singleSliceEl instanceof
+          tracing.SingleSliceSelectionAnalysis);
+      assertEquals(7, singleSliceEl.children.length);
+      assertEquals('0', argEl1.children[1].textContent);
+      assertEquals('false', argEl2.children[1].textContent);
     }
 
   </script>

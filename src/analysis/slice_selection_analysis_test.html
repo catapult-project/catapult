@@ -19,7 +19,15 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    function testSelectionAnalysisWithSlice() {
+    function testEmptySelection() {
+      var selection = new tracing.TimelineSelection();
+      var analysis = new tracing.SliceSelectionAnalysis();
+      assertThrows(function() {
+        analysis.selection = selection;
+      });
+    }
+
+    function testSliceSelectionAnalysisWithMultipleSlicesSameTitle() {
       var data = tracing.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
@@ -30,12 +38,67 @@ found in the LICENSE file.
 
       var sliceSelectionEl = analysis;
       var groupSliceEl = sliceSelectionEl.children[1];
-      var groupSliceAnalysisEl = groupSliceEl.children[0];
-      var infoRowEl = groupSliceAnalysisEl.children[0];
+      var headerEl = sliceSelectionEl.children[0];
 
-      assertEquals('b', infoRowEl.children[0].textContent);
-      assertEquals('0.004', infoRowEl.children[1].textContent);
-      assertEquals('2', infoRowEl.children[2].textContent);
+      assertEquals(true, sliceSelectionEl instanceof
+          tracing.SliceSelectionAnalysis);
+      assertEquals(6, sliceSelectionEl.children.length);
+      assertEquals(true, groupSliceEl instanceof
+          tracing.SliceGroupSelectionAnalysis);
+      assertEquals(1, groupSliceEl.children.length);
+      assertEquals(3, headerEl.children.length);
+    }
+
+
+    function FAILS_testSliceSelectionAnalysisWithMultipleSlicesSameTitle() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+
+      var analysis = new tracing.SliceSelectionAnalysis();
+      analysis.selection = selection;
+
+      var sliceSelectionEl = analysis;
+      var singleSliceEl = sliceSelectionEl.children[0];
+
+      assertEquals(true, analysis instanceof tracing.SliceSelectionAnalysis);
+      /*
+        TODO (kassycoan) add asserts here
+        Problem is group-totals-summary element isn't surrounding
+        the summary information.
+      */
+
+      this.addHTMLOutput(undefined, analysis);
+    }
+
+    function testSliceSelectionAnalysisWithMultipleSlicesDifferentTitles() {
+      var data = tracing.createReferenceData(true);
+
+      var selection = new tracing.TimelineSelection();
+      data.t1track.selectByTitle('b', selection);
+      data.t1track.selectByTitle('c', selection);
+      data.t1track.selectByTitle('d', selection);
+      data.t1track.selectByTitle('e', selection);
+      data.t1track.selectByTitle('Slice with a really, really long name.',
+                                  selection);
+
+      var analysis = new tracing.SliceSelectionAnalysis();
+      analysis.selection = selection;
+
+      var sliceSelectionEl = analysis;
+      var groupSliceEl = sliceSelectionEl.children[1];
+      var headerEl = sliceSelectionEl.children[0];
+
+      assertEquals(true, sliceSelectionEl instanceof
+          tracing.SliceSelectionAnalysis);
+      assertEquals(true, groupSliceEl instanceof
+          tracing.SliceGroupSelectionAnalysis);
+      assertEquals(10, sliceSelectionEl.children.length);
+      assertEquals(1, groupSliceEl.children.length);
+      assertEquals(3, headerEl.children.length);
+
+      this.addHTMLOutput(undefined, analysis);
     }
 
   </script>

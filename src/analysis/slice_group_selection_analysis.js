@@ -4,6 +4,9 @@
 
 'use strict';
 
+base.require('ui');
+base.require('analysis.util');
+
 /**
  * @fileoverview Conains classes for slice group selections.
  *
@@ -45,32 +48,61 @@ base.exportTo('tracing', function() {
       return this.selection_;
     },
 
+    get roundedSelectionDuration() {
+      return this.roundedSelectionDuration_;
+    },
+
+    get selectionStartTime() {
+      return this.selectionStartTime_;
+    },
+
+    get selectionEndTime() {
+      return this.selectionEndTime_;
+    },
+
+    get occurrences() {
+      return this.occurrences_;
+    },
+
     updateContents_: function() {
-      this.textContent = '';
 
       var totalDuration = 0;
-      var occurrences = this.selection[i].length;
-      for (var i = 0; i < occurrences; i++) {
+      var groupStart = undefined;
+      var groupEnd = undefined;
+      var numOccurrences = this.selection.length;
+      for (var i = 0; i < numOccurrences; i++) {
         var slice = this.selection[i].slice;
         totalDuration += slice.duration;
+        if (groupStart == undefined || slice.groupStart < groupStart)
+          groupStart = slice.start;
+        var sliceEnd = slice.end;
+        if (groupEnd == undefined || sliceEnd > groupEnd)
+          groupEnd = sliceEnd;
       }
 
-      var roundedTotalDuration = tracing.tsRound(totalDuration);
+      this.roundedSelectionDuration_ = tracing.tsRound(totalDuration);
+      this.selectionStartTime_ = groupStart;
+      this.selectionEndTime_ = groupEnd;
+      this.occurrences_ = numOccurrences;
 
-      this.createAndAppendSpan_(this, this.selection[0].slice.title);
-      this.createAndAppendSpan_(this, roundedTotalDuration);
-      this.createAndAppendSpan_(this, occurrences);
+      var rowEl = document.createElement('div');
+      rowEl.classList.add('analysis-table-row');
+      this.createAndAppendSpan_(rowEl, this.selection[0].slice.title);
+      this.createAndAppendSpan_(rowEl, this.roundedSelectionDuration_);
+      this.createAndAppendSpan_(rowEl, this.occurrences);
+      this.appendChild(rowEl);
     },
 
     createColumnTitleRow: function() {
       this.textContent = '';
       var row = document.createElement('div');
+      row.classList.add('analysis-table-row');
 
       this.createAndAppendSpan_(row, 'Slice Group Title');
       this.createAndAppendSpan_(row, 'Total Duration ms');
       this.createAndAppendSpan_(row, 'Occurrences');
 
-      this.appendChild(row);
+      return row;
     },
 
     createAndAppendSpan_: function(row, content) {

@@ -173,6 +173,12 @@ base.addModuleDependency(
     'analysis.single_slice_selection_analysis',
     'analysis.util');
 base.addModuleDependency(
+    'analysis.slice_group_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.slice_group_selection_analysis',
+    'analysis.util');
+base.addModuleDependency(
     'analysis.slice_selection_analysis',
     'analysis.single_slice_selection_analysis');
 base.addModuleDependency(
