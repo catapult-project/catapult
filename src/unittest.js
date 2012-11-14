@@ -489,7 +489,7 @@ base.exportTo('unittest', function() {
       tests.push(testCase);
     }
     tests.sort(function(a, b) {
-      return a.testName >= b.testName;
+      return a.testName < b.testName;
     });
     return tests;
   }
