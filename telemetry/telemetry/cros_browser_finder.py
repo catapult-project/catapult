@@ -51,7 +51,7 @@ def FindAllAvailableBrowsers(options):
                       options.cros_remote)
       logging.warn('to allow passwordless login as root.')
       logging.warn('For a test-build device, pass this to your script:')
-      logging.warn('   --identity $(CHROMITE)/ssh_keys/id_testing:')
+      logging.warn('   --identity $(CHROMITE)/ssh_keys/testing_rsa')
       logging.warn('')
       logging.warn('For a developer-mode device, the steps are:')
       logging.warn(' - Ensure you have an id_rsa.pub (etc) on this computer')

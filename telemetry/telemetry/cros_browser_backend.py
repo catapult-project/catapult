@@ -2,16 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
+import os
 import socket
 import subprocess
 import time
 
 from telemetry import browser_backend
-from telemetry import cros_interface
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
-  """The backend for controlling a browser instance running on CrOS.
-  """
   def __init__(self, browser_type, options, is_content_shell, cri):
     super(CrOSBrowserBackend, self).__init__(is_content_shell, options)
     # Initialize fields so that an explosion during init doesn't break in Close.
@@ -20,82 +18,48 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     self._cri = cri
     self._browser_type = browser_type
 
+    self._remote_debugging_port = self._cri.GetRemotePort()
+    self._login_ext_dir = '/tmp/chromeos_login_ext'
+
+    # Ensure the UI is running and logged out.
+    self._RestartUI()
+
+    # Delete test@test.test's cryptohome vault (user data directory).
+    if not options.dont_override_profile:
+      logging.info('Deleting user\'s cryptohome vault (the user data dir)')
+      self._cri.GetCmdOutput(
+          ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
+
+    # Push a dummy login extension to the device.
+    # This extension automatically logs in as test@test.test
+    logging.info('Copying dummy login extension to the device')
+    cri.PushFile(
+        os.path.join(os.path.dirname(__file__), 'chromeos_login_ext'), '/tmp/')
+    cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
+
+    # Restart Chrome with the login extension and remote debugging.
+    logging.info('Restarting Chrome with flags and login')
+    args = ['dbus-send', '--system', '--type=method_call',
+            '--dest=org.chromium.SessionManager',
+            '/org/chromium/SessionManager',
+            'org.chromium.SessionManagerInterface.EnableChromeTesting',
+            'boolean:true',
+            'array:string:"%s"' % '","'.join(self.GetBrowserStartupArgs())]
+    cri.GetCmdOutput(args)
+
+    # Find a free local port.
     tmp = socket.socket()
     tmp.bind(('', 0))
     self._port = tmp.getsockname()[1]
     tmp.close()
 
-    self._remote_debugging_port = self._cri.GetRemotePort()
-    self._tmpdir = None
+    # Forward the remote debugging port.
+    logging.info('Forwarding remote debugging port')
+    self._forwarder = SSHForwarder(
+      cri, 'L', (self._port, self._remote_debugging_port))
 
-    self._X = None
-    self._proc = None
-
-    # TODO(nduca): Stop ui if running.
-    if self._cri.IsServiceRunning('ui'):
-      # Note, if this hangs, its probably because they were using wifi AND they
-      # had a user-specific wifi password, which when you stop ui kills the wifi
-      # connection.
-      logging.debug('stopping ui')
-      self._cri.GetCmdOutput(['stop', 'ui'])
-
-    # Set up user data dir.
-    if not is_content_shell:
-      logging.info('Preparing user data dir')
-      self._tmpdir = '/tmp/telemetry'
-      if options.dont_override_profile:
-        # TODO(nduca): Implement support for this.
-        logging.critical('Feature not (yet) implemented.')
-
-      # Ensure a clean user_data_dir.
-      self._cri.RmRF(self._tmpdir)
-
-    # Set startup args.
-    args = ['/opt/google/chrome/chrome']
-    args.extend(self.GetBrowserStartupArgs())
-
-    # Final bits of command line prep.
-    def EscapeIfNeeded(arg):
-      return arg.replace(' ', '" "')
-    args = [EscapeIfNeeded(arg) for arg in args]
-    prevent_output = not options.show_stdout
-
-    # Stop old X.
-    logging.info('Stoppping old X')
-    self._cri.KillAllMatching(
-      lambda name: name.startswith('/usr/bin/X '))
-
-    # Start X.
-    logging.info('Starting new X')
-    X_args = ['/usr/bin/X',
-              '-noreset',
-              '-nolisten',
-              'tcp',
-              'vt01',
-              '-auth',
-              '/var/run/chromelogin.auth']
-    self._X = cros_interface.DeviceSideProcess(
-      self._cri, X_args, prevent_output=prevent_output)
-
-    # Stop old chrome.
-    logging.info('Killing old chrome')
-    self._cri.KillAllMatching(
-      lambda name: name.startswith('/opt/google/chrome/chrome '))
-
-    # Start chrome via a bootstrap.
-    logging.info('Starting chrome')
-    self._proc = cros_interface.DeviceSideProcess(
-      self._cri,
-      args,
-      prevent_output=prevent_output,
-      extra_ssh_args=['-L%i:localhost:%i' % (
-          self._port, self._remote_debugging_port)],
-      leave_ssh_alive=True,
-      env={'DISPLAY': ':0',
-           'USER': 'chronos'},
-      login_shell=True)
-
-    # You're done.
+    # Wait for the browser to come up.
+    logging.info('Waiting for browser to be ready')
     try:
       self._WaitForBrowserToComeUp()
     except:
@@ -103,6 +67,12 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       traceback.print_exc()
       self.Close()
       raise
+
+    # Make sure there's a tab open.
+    if self.num_tabs == 0:
+      self.NewTab()
+
+    logging.info('Browser is up!')
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
@@ -117,9 +87,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--enable-accelerated-layers',
             '--force-compositing-mode',
             '--remote-debugging-port=%i' % self._remote_debugging_port,
+            '--auth-ext-path=%s' % self._login_ext_dir,
             '--start-maximized'])
-    if not self.is_content_shell:
-      args.append('--user-data-dir=%s' % self._tmpdir)
 
     return args
 
@@ -127,39 +96,48 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     self.Close()
 
   def Close(self):
-    if self._proc:
-      self._proc.Close()
-      self._proc = None
+    self._RestartUI() # Logs out.
 
-    if self._X:
-      self._X.Close()
-      self._X = None
+    if self._forwarder:
+      self._forwarder.Close()
+      self._forwarder = None
 
-    if self._tmpdir:
-      self._cri.RmRF(self._tmpdir)
-      self._tmpdir = None
+    if self._login_ext_dir:
+      self._cri.RmRF(self._login_ext_dir)
+      self._login_ext_dir = None
 
     self._cri = None
 
   def IsBrowserRunning(self):
-    if not self._proc:
-      return False
-    return self._proc.IsAlive()
+    # On ChromeOS, there should always be a browser running.
+    for _, process in self._cri.ListProcesses():
+      if process.startswith('/opt/google/chrome/chrome'):
+        return True
+    return False
 
   def CreateForwarder(self, *ports):
     assert self._cri
-    return SSHReverseForwarder(self._cri, *ports)
+    return SSHForwarder(self._cri, 'R', *[(port, port) for port in ports])
+
+  def _RestartUI(self):
+    if self._cri:
+      logging.info('(Re)starting the ui (logs the user out)')
+      if self._cri.IsServiceRunning('ui'):
+        self._cri.GetCmdOutput(['restart', 'ui'])
+      else:
+        self._cri.GetCmdOutput(['start', 'ui'])
 
 
-class SSHReverseForwarder(object):
-  def __init__(self, cri, *ports):
+class SSHForwarder(object):
+  def __init__(self, cri, forwarding_flag, *ports):
     self._proc = None
-    self._host_port = ports[0]
+    self._host_port = ports[0][0]
 
     self._proc = subprocess.Popen(
-      cri.FormSSHCommandLine(['sleep', '99999999999'],
-                             ['-R%i:localhost:%i' %
-                              (port, port) for port in ports]),
+      cri.FormSSHCommandLine(
+        ['sleep', '999999999'],
+        ['-%s%i:localhost:%i' % (forwarding_flag, from_port, to_port)
+        for from_port, to_port in ports]),
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       stdin=subprocess.PIPE,

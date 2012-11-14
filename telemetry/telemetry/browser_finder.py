@@ -24,9 +24,13 @@ def FindBrowser(options):
   """
   if options.browser_type == 'exact' and options.browser_executable == None:
     raise Exception('--browser=exact requires --browser-executable to be set.')
-
   if options.browser_type != 'exact' and options.browser_executable != None:
     raise Exception('--browser-executable requires --browser=exact.')
+
+  if options.browser_type == 'cros-chrome' and options.cros_remote == None:
+    raise Exception('browser_type=cros-chrome requires cros_remote be set.')
+  if options.browser_type != 'cros-chrome' and options.cros_remote != None:
+    raise Exception('cros_remote requires browser_type=cros-chrome.')
 
   if options.browser_type == None:
     raise BrowserTypeRequiredException('browser_type must be specified')

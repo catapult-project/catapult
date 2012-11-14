@@ -14,7 +14,7 @@ from telemetry import wpr_modes
 from telemetry import wpr_server
 
 class BrowserBackend(object):
-  """A base class for broser backends. Provides basic functionality
+  """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
   def __init__(self, is_content_shell, options):
     self.is_content_shell = is_content_shell
