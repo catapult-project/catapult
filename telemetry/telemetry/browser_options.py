@@ -146,3 +146,7 @@ class BrowserOptions(optparse.Values):
       return ret
     parser.parse_args = ParseArgs
     return parser
+
+  def AppendExtraBrowserArg(self, arg):
+    if arg not in self.extra_browser_args:
+      self.extra_browser_args.append(arg)

@@ -35,7 +35,7 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
     options = options_for_unittests.Get()
     assert options
     temp_parser = options.CreateParser()
-    benchmark.AddOptions(temp_parser)
+    benchmark.AddCommandLineOptions(temp_parser)
     defaults = temp_parser.get_default_values()
     for k, v in defaults.__dict__.items():
       if hasattr(options, k):

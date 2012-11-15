@@ -8,7 +8,6 @@ from telemetry import tab_test_case
 class InspectorPageTest(tab_test_case.TabTestCase):
   def __init__(self, *args):
     super(InspectorPageTest, self).__init__(*args)
-    self._custom_action_called = False
 
   def testPageNavigateToNormalUrl(self):
     self._tab.page.Navigate('http://www.google.com')
@@ -34,13 +33,13 @@ class InspectorPageTest(tab_test_case.TabTestCase):
     self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
                       '/page_with_link.html')
 
-    self._custom_action_called = False
+    custom_action_called = [False]
     def CustomAction():
-      self._custom_action_called = True
+      custom_action_called[0] = True
       self._tab.runtime.Execute('document.getElementById("clickme").click();')
 
     self._tab.page.PerformActionAndWaitForNavigate(CustomAction)
 
-    self.assertTrue(self._custom_action_called)
+    self.assertTrue(custom_action_called[0])
     self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
                       '/blank.html')

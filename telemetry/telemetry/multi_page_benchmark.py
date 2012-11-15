@@ -138,7 +138,7 @@ class MultiPageBenchmark(page_test.PageTest):
   To add test-specific options:
 
      class BodyChildElementBenchmark(MultiPageBenchmark):
-        def AddOptions(parser):
+        def AddCommandLineOptions(parser):
            parser.add_option('--element', action='store', default='body')
 
         def MeasurePage(self, page, tab, results):
@@ -146,8 +146,8 @@ class MultiPageBenchmark(page_test.PageTest):
               'document.querySelector('%s').children.length')
            results.Add('children', 'count', child_count)
   """
-  def __init__(self):
-    super(MultiPageBenchmark, self).__init__('_RunTest')
+  def __init__(self, interaction_name=''):
+    super(MultiPageBenchmark, self).__init__('_RunTest', interaction_name)
 
   def _RunTest(self, page, tab, results):
     results.WillMeasurePage(page)

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import all_page_interactions
 from telemetry import compound_interaction
 from telemetry import page_interaction
 from telemetry import tab_test_case
@@ -23,8 +24,8 @@ class CompoundInteractionTest(tab_test_case.TabTestCase):
       def PerformInteraction(self, page, tab):
         CompoundInteractionTest.interaction2_called = True
 
-    page_interaction.RegisterClass('mock1', MockInteraction1)
-    page_interaction.RegisterClass('mock2', MockInteraction2)
+    all_page_interactions.RegisterClassForTest('mock1', MockInteraction1)
+    all_page_interactions.RegisterClassForTest('mock2', MockInteraction2)
 
     i = compound_interaction.CompoundInteraction({
         'action': 'compound',

@@ -24,14 +24,3 @@ class PageInteraction(object):
 
   def CleanUp(self, page, tab):
     pass
-
-_page_interaction_classes = {}
-def GetAllClasses():
-  return list(_page_interaction_classes.values())
-
-def FindClassWithName(name):
-  return _page_interaction_classes.get(name)
-
-def RegisterClass(name, interaction_class):
-  assert name not in _page_interaction_classes
-  _page_interaction_classes[name] = interaction_class

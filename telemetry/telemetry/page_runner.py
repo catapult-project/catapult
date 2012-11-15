@@ -73,6 +73,9 @@ http://goto/read-src-internal, or create a new archive using --record.
       if not os.path.exists(credentials_path):
         credentials_path = None
 
+    for page in self.page_set:
+      test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
+
     with possible_browser.Create() as b:
       b.credentials.credentials_path = credentials_path
       test.SetUpBrowser(b)
@@ -101,6 +104,10 @@ http://goto/read-src-internal, or create a new archive using --record.
             self._RunPage(options, page, tab, test, results)
 
   def _RunPage(self, options, page, tab, test, results):
+    if not test.CanRunForPage(page):
+      results.AddSkippedPage(page, 'Test cannot run', '')
+      return
+
     logging.info('Running %s' % page.url)
 
     page_state = PageState()

@@ -13,6 +13,4 @@ class ClickToNavigateInteraction(page_interaction.PageInteraction):
     def DoClick():
       tab.runtime.Execute(code)
     tab.page.PerformActionAndWaitForNavigate(DoClick)
-
-
-page_interaction.RegisterClass('click_to_navigate', ClickToNavigateInteraction)
+    tab.WaitForDocumentReadyStateToBeComplete()
