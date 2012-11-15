@@ -24,7 +24,6 @@ base.exportTo('tracing', function() {
 
     decorate: function() {
       this.selection_ = undefined;
-      this.hasHeader_ = false;
       this.verticalDisplay_ = false;
     },
 
@@ -33,6 +32,9 @@ base.exportTo('tracing', function() {
     },
 
     set selection(selection) {
+
+      if (selection.getNumCounterHits() != 0)
+        throw new Error('Expected only slices in selection');
 
       if (selection.getNumSliceHits() != 1)
         throw new Error('Expected only 1 slice in selection');

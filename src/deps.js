@@ -185,8 +185,23 @@ base.addModuleDependency(
     'analysis.slice_selection_analysis',
     'analysis.slice_group_selection_analysis');
 base.addModuleDependency(
+    'analysis.single_counter_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.single_counter_selection_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.counter_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.counter_selection_analysis',
+    'analysis.single_counter_selection_analysis');
+base.addModuleDependency(
     'analysis.selection_analysis',
     'analysis.slice_selection_analysis');
+base.addModuleDependency(
+    'analysis.selection_analysis',
+    'analysis.counter_selection_analysis');
 base.addModuleDependency(
     'analysis.selection_analysis',
     'ui');
