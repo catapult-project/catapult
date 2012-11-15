@@ -33,6 +33,11 @@ class BenchForReplay(multi_page_benchmark.MultiPageBenchmark):
     if '404 Not Found' in contents.strip():
       raise multi_page_benchmark.MeasurementFailure('Page not in archive.')
 
+class BenchQueryParams(multi_page_benchmark.MultiPageBenchmark):
+  def MeasurePage(self, page, tab, results):
+    query = tab.runtime.Evaluate('window.location.search')
+    assert query.strip() == '?foo=1'
+
 class MultiPageBenchmarkUnitTest(
   multi_page_benchmark_unittest_base.MultiPageBenchmarkUnitTestBase):
 
@@ -44,6 +49,13 @@ class MultiPageBenchmarkUnitTest(
   def testGotToBlank(self):
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
     benchmark = BenchForBlank()
+    all_results = self.RunBenchmark(benchmark, ps)
+    self.assertEquals(0, len(all_results.page_failures))
+
+  def testGotQueryParams(self):
+    ps = self.CreatePageSet('file:///../unittest_data/blank.html?foo=1')
+    benchmark = BenchQueryParams()
+    ps.pages[-1].query_params = '?foo=1'
     all_results = self.RunBenchmark(benchmark, ps)
     self.assertEquals(0, len(all_results.page_failures))
 
