@@ -4,6 +4,7 @@
 from telemetry import inspector_console
 from telemetry import inspector_page
 from telemetry import inspector_runtime
+from telemetry import inspector_timeline
 from telemetry import util
 
 DEFAULT_TAB_TIMEOUT = 60
@@ -25,6 +26,8 @@ class Tab(object):
     self._page = inspector_page.InspectorPage(self._inspector_backend)
     self._runtime = inspector_runtime.InspectorRuntime(self._inspector_backend)
     self._console = inspector_console.InspectorConsole(self._inspector_backend)
+    self._timeline = inspector_timeline.InspectorTimeline(
+        self._inspector_backend)
 
   def __del__(self):
     self.Close()
@@ -33,6 +36,7 @@ class Tab(object):
     self._console = None
     self._runtime = None
     self._page = None
+    self._timeline = None
     if self._inspector_backend:
       self._inspector_backend.Close()
       self._inspector_backend = None
@@ -61,8 +65,13 @@ class Tab(object):
 
   @property
   def console(self):
-    """Methods for interacting with the page's console objec."""
+    """Methods for interacting with the page's console object."""
     return self._console
+
+  @property
+  def timeline(self):
+    """Methods for interacting with the inspector timeline."""
+    return self._timeline
 
   def WaitForDocumentReadyStateToBeComplete(self, timeout=DEFAULT_TAB_TIMEOUT):
     util.WaitFor(
