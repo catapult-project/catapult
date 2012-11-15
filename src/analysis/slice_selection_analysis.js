@@ -103,12 +103,13 @@ base.exportTo('tracing', function() {
 
         // Construct and append the groups summary.
         var groupSummaryEl = document.createElement('group-totals-summary');
-        this.appendDataRow_('Totals', tracing.tsRound(allGroupsDuration),
-            allGroupsOccurrences);
-        this.appendDataRow_('Selection Start', tracing.tsRound(allGroupsStart));
-        this.appendDataRow_('Selection End', tracing.tsRound(allGroupsEnd));
+        this.appendDataRow_(groupSummaryEl, 'Totals',
+            tracing.tsRound(allGroupsDuration), allGroupsOccurrences);
+        this.appendDataRow_(groupSummaryEl, 'Selection Start',
+            tracing.tsRound(allGroupsStart));
+        this.appendDataRow_(groupSummaryEl, 'Selection End',
+            tracing.tsRound(allGroupsEnd));
         this.appendChild(groupSummaryEl);
-
       }
     },
 
@@ -124,7 +125,8 @@ base.exportTo('tracing', function() {
       return selectionsByTitle;
     },
 
-    appendDataRow_: function(title, value, additional_valueCell) {
+    appendDataRow_: function(parentContainer, title, value,
+        additional_valueCell) {
       var rowEl = document.createElement('div');
       rowEl.classList.add('analysis-table-row');
 
@@ -144,7 +146,7 @@ base.exportTo('tracing', function() {
         el.textContent = additional_valueCell;
         rowEl.appendChild(el);
       }
-      this.appendChild(rowEl);
+      parentContainer.appendChild(rowEl);
     }
 
   };

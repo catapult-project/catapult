@@ -42,7 +42,7 @@ found in the LICENSE file.
 
       assertEquals(true, sliceSelectionEl instanceof
           tracing.SliceSelectionAnalysis);
-      assertEquals(6, sliceSelectionEl.children.length);
+      assertEquals(3, sliceSelectionEl.children.length);
       assertEquals(true, groupSliceEl instanceof
           tracing.SliceGroupSelectionAnalysis);
       assertEquals(1, groupSliceEl.children.length);
@@ -50,7 +50,7 @@ found in the LICENSE file.
     }
 
 
-    function FAILS_testSliceSelectionAnalysisWithMultipleSlicesSameTitle() {
+    function testSliceSelectionAnalysisWithMultipleSlicesSameTitle() {
       var data = tracing.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
@@ -60,16 +60,15 @@ found in the LICENSE file.
       analysis.selection = selection;
 
       var sliceSelectionEl = analysis;
-      var singleSliceEl = sliceSelectionEl.children[0];
+      var headerEl = sliceSelectionEl.children[0];
+      var groupSliceEl = sliceSelectionEl.children[1];
+      var summaryEl = sliceSelectionEl.children[2];
 
       assertEquals(true, analysis instanceof tracing.SliceSelectionAnalysis);
-      /*
-        TODO (kassycoan) add asserts here
-        Problem is group-totals-summary element isn't surrounding
-        the summary information.
-      */
-
-      this.addHTMLOutput(undefined, analysis);
+      assertEquals(3, analysis.children.length);
+      assertEquals(3, headerEl.children.length);
+      assertEquals(1, groupSliceEl.children.length);
+      assertEquals(3, summaryEl.children.length);
     }
 
     function testSliceSelectionAnalysisWithMultipleSlicesDifferentTitles() {
@@ -94,11 +93,9 @@ found in the LICENSE file.
           tracing.SliceSelectionAnalysis);
       assertEquals(true, groupSliceEl instanceof
           tracing.SliceGroupSelectionAnalysis);
-      assertEquals(10, sliceSelectionEl.children.length);
+      assertEquals(7, sliceSelectionEl.children.length);
       assertEquals(1, groupSliceEl.children.length);
       assertEquals(3, headerEl.children.length);
-
-      this.addHTMLOutput(undefined, analysis);
     }
 
   </script>
