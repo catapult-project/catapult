@@ -5,8 +5,7 @@ class EvaluateException(Exception):
   pass
 
 class InspectorRuntime(object):
-  def __init__(self, inspector_backend, tab):
-    self._tab = tab
+  def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
     self._inspector_backend.RegisterDomain(
         'Runtime',

@@ -11,11 +11,6 @@ class TabTestCase(unittest.TestCase):
     self._browser = None
     self._tab = None
     options = options_for_unittests.Get()
-
-    if self._extra_browser_args:
-      for arg in self._extra_browser_args:
-        options.extra_browser_args.append(arg)
-
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')
