@@ -14,7 +14,7 @@ def WaitFor(condition,
   start_time = time.time()
   while True:
     if pass_time_left_to_func:
-      res = condition((start_time + timeout) - time.time())
+      res = condition(max((start_time + timeout) - time.time(), 0.0))
     else:
       res = condition()
     if res:
