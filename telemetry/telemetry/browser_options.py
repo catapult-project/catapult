@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import optparse
-import os
 import sys
 import shlex
 import logging
@@ -62,9 +61,7 @@ class BrowserOptions(optparse.Values):
     group.add_option(
         '--remote',
         dest='cros_remote',
-        default=os.getenv('REMOTE'),
-        help='The IP address of a remote ChromeOS device to use. ' +
-             'Defaults to $REMOTE from environment variable if set.')
+        help='The IP address of a remote ChromeOS device to use.')
     group.add_option('--identity',
         dest='cros_ssh_identity',
         default=None,
