@@ -122,3 +122,7 @@ class InspectorBackend(object):
     self._domain_handlers[domain_name] = (notification_handler,
                                           will_close_handler)
 
+  def UnregisterDomain(self, domain_name):
+    """Unregisters a previously registered domain."""
+    assert domain_name in self._domain_handlers
+    self._domain_handlers.pop(domain_name)

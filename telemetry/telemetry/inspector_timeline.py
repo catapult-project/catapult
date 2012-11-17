@@ -63,10 +63,6 @@ class InspectorTimeline(object):
     self._inspector_backend = inspector_backend
     self._is_recording = False
     self._timeline_events = TimelineEvents()
-    self._inspector_backend.RegisterDomain('Timeline',
-       self._OnNotification, self._OnClose)
-    req = {'method': 'Timeline.start'}
-    self._SendSyncRequest(req)
 
   @property
   def timeline_events(self):
@@ -76,6 +72,10 @@ class InspectorTimeline(object):
     if self._is_recording:
       return
     self._is_recording = True
+    self._inspector_backend.RegisterDomain('Timeline',
+       self._OnNotification, self._OnClose)
+    req = {'method': 'Timeline.start'}
+    self._SendSyncRequest(req)
 
   def Stop(self):
     if not self._is_recording:
@@ -83,6 +83,7 @@ class InspectorTimeline(object):
     self._is_recording = False
     req = {'method': 'Timeline.stop'}
     self._SendSyncRequest(req)
+    self._inspector_backend.UnregisterDomain('Timeline')
 
   def _SendSyncRequest(self, req, timeout=60):
     res = self._inspector_backend.SyncRequest(req, timeout)
