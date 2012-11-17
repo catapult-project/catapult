@@ -84,7 +84,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--enable-threaded-compositing',
             '--enable-per-tile-painting',
             '--enable-gpu-sandboxing',
-            '--enable-accelerated-layers',
             '--force-compositing-mode',
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             '--auth-ext-path=%s' % self._login_ext_dir,
