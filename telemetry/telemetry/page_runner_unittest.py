@@ -40,6 +40,25 @@ class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # multi_page_benchmark_unittest to here.
 
+  def testHandlingOfCrashedTab(self):
+    page1 = page_module.Page('chrome://crash')
+    page2 = page_module.Page('http://www.google.com')
+    ps = page_set.PageSet()
+    ps.pages.append(page1)
+    ps.pages.append(page2)
+    results = page_test.PageTestResults()
+
+    class Test(page_test.PageTest):
+      def RunTest(self, *args):
+        pass
+
+    with page_runner.PageRunner(ps) as runner:
+      options = options_for_unittests.Get()
+      possible_browser = browser_finder.FindBrowser(options)
+      runner.Run(options, possible_browser, Test('RunTest'), results)
+    self.assertEquals(1, len(results.page_successes))
+    self.assertEquals(1, len(results.page_failures))
+
   def testCredentialsWhenLoginFails(self):
     results = page_test.PageTestResults()
     credentials_backend = StubCredentialsBackend(login_return_value=False)

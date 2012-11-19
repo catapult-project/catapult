@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import csv
 import json
 import os
 import urlparse
@@ -43,6 +44,30 @@ class PageSet(object):
       if parsed_url.scheme != 'file':
         return False
     return True
+
+  def ReorderPageSet(self, results_file):
+    """Reorders this page set based on the results of a past run."""
+    page_set_dict = {}
+    for page in self.pages:
+      page_set_dict[page.url] = page
+
+    pages = []
+    with open(results_file, 'rb') as csv_file:
+      csv_reader = csv.reader(csv_file)
+      csv_header = csv_reader.next()
+
+      if 'url' not in csv_header:
+        raise Exception('Unusable results_file.')
+
+      url_index = csv_header.index('url')
+
+      for csv_row in csv_reader:
+        if csv_row[url_index] in page_set_dict:
+          pages.append(page_set_dict[csv_row[url_index]])
+        else:
+          raise Exception('Unusable results_file.')
+
+    return pages
 
   def __iter__(self):
     return self.pages.__iter__()

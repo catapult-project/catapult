@@ -7,15 +7,45 @@ import time
 import traceback
 import urlparse
 import random
-import csv
 
 from telemetry import page_test
+from telemetry import tab_crash_exception
 from telemetry import util
 from telemetry import wpr_modes
 
 class PageState(object):
   def __init__(self):
     self.did_login = False
+
+class _RunState(object):
+  def __init__(self):
+    self.first_browser = True
+    self.browser = None
+    self.tab = None
+
+  def Close(self):
+    if self.tab:
+      self.tab.Close()
+      self.tab = None
+
+    if self.browser:
+      self.browser.Close()
+      self.browser = None
+
+def _ShufflePageSet(page_set, options):
+  if options.test_shuffle_order_file and not options.test_shuffle:
+    raise Exception('--test-shuffle-order-file requires --test-shuffle.')
+
+  if options.test_shuffle_order_file:
+    return page_set.ReorderPageSet(options.test_shuffle_order_file)
+
+  pages = page_set.pages[:]
+  if options.test_shuffle:
+    random.Random().shuffle(pages)
+  return [page
+      for _ in xrange(options.pageset_repeat)
+      for page in pages
+      for _ in xrange(options.page_repeat)]
 
 class PageRunner(object):
   """Runs a given test against a given test."""
@@ -28,28 +58,8 @@ class PageRunner(object):
   def __exit__(self, *args):
     self.Close()
 
-  def _ReorderPageSet(self, test_shuffle_order_file):
-    page_set_dict = {}
-    for page in self.page_set:
-      page_set_dict[page.url] = page
-
-    self.page_set.pages = []
-    with open(test_shuffle_order_file, 'rb') as csv_file:
-      csv_reader = csv.reader(csv_file)
-      csv_header = csv_reader.next()
-
-      if 'url' not in csv_header:
-        raise Exception('Unusable test_shuffle_order_file.')
-
-      url_index = csv_header.index('url')
-
-      for csv_row in csv_reader:
-        if csv_row[url_index] in page_set_dict:
-          self.page_set.pages.append(page_set_dict[csv_row[url_index]])
-        else:
-          raise Exception('Unusable test_shuffle_order_file.')
-
   def Run(self, options, possible_browser, test, results):
+    # Set up WPR mode.
     archive_path = os.path.abspath(os.path.join(self.page_set.base_dir,
                                                 self.page_set.archive_path))
     if options.wpr_mode == wpr_modes.WPR_OFF:
@@ -66,6 +76,7 @@ To fix this, either add svn-internal to your .gclient using
 http://goto/read-src-internal, or create a new archive using --record.
 """, os.path.relpath(archive_path))
 
+    # Verify credentials path.
     credentials_path = None
     if self.page_set.credentials_path:
       credentials_path = os.path.join(self.page_set.base_dir,
@@ -76,32 +87,35 @@ http://goto/read-src-internal, or create a new archive using --record.
     for page in self.page_set:
       test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 
-    with possible_browser.Create() as b:
-      b.credentials.credentials_path = credentials_path
-      test.SetUpBrowser(b)
+    # Reorder page set based on options.
+    pages = _ShufflePageSet(self.page_set, options)
 
-      b.credentials.WarnIfMissingCredentials(self.page_set)
+    state = _RunState()
+    try:
+      for page in pages:
+        if not state.browser:
+          assert not state.tab
+          state.browser = possible_browser.Create()
+          state.browser.credentials.credentials_path = credentials_path
+          test.SetUpBrowser(state.browser)
 
-      if not options.test_shuffle and options.test_shuffle_order_file is not\
-          None:
-        raise Exception('--test-shuffle-order-file requires --test-shuffle.')
+          if state.first_browser:
+            state.browser.credentials.WarnIfMissingCredentials(self.page_set)
+            state.first_browser = False
 
-      # Set up a random generator for shuffling the page running order.
-      test_random = random.Random()
+          state.browser.SetReplayArchivePath(archive_path)
 
-      b.SetReplayArchivePath(archive_path)
-      with b.ConnectToNthTab(0) as tab:
-        if options.test_shuffle_order_file is None:
-          for _ in range(int(options.pageset_repeat)):
-            if options.test_shuffle:
-              test_random.shuffle(self.page_set)
-            for page in self.page_set:
-              for _ in range(int(options.page_repeat)):
-                self._RunPage(options, page, tab, test, results)
-        else:
-          self._ReorderPageSet(options.test_shuffle_order_file)
-          for page in self.page_set:
-            self._RunPage(options, page, tab, test, results)
+        if not state.tab:
+          state.tab = state.browser.ConnectToNthTab(0)
+
+        try:
+          self._RunPage(options, page, state.tab, test, results)
+        except tab_crash_exception.TabCrashException:
+          # If we don't support tab control, just restart the browser.
+          # TODO(dtu): Create a new tab: crbug.com/155077, crbug.com/159852
+          state.Close()
+    finally:
+      state.Close()
 
   def _RunPage(self, options, page, tab, test, results):
     if not test.CanRunForPage(page):
@@ -114,10 +128,14 @@ http://goto/read-src-internal, or create a new archive using --record.
     try:
       did_prepare = self.PreparePage(page, tab, page_state, results)
     except util.TimeoutException, ex:
-      logging.warning('TimedOut waiting for reply on %s. This is unusual.',
+      logging.warning('Timed out waiting for reply on %s. This is unusual.',
                       page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       return
+    except tab_crash_exception.TabCrashException, ex:
+      logging.warning('Tab crashed: %s', page.url)
+      results.AddFailure(page, ex, traceback.format_exc())
+      raise
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
@@ -138,12 +156,18 @@ http://goto/read-src-internal, or create a new archive using --record.
       logging.warning('Timed out while running %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       return
+    except tab_crash_exception.TabCrashException, ex:
+      logging.warning('Tab crashed: %s', page.url)
+      results.AddFailure(page, ex, traceback.format_exc())
+      raise
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
       raise
     finally:
       self.CleanUpPage(page, tab, page_state)
+
+    results.AddSuccess(page)
 
   def Close(self):
     pass
