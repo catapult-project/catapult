@@ -59,8 +59,9 @@ class InspectorTimeline(object):
     def __exit__(self, *args):
       self._timeline.Stop()
 
-  def __init__(self, inspector_backend):
+  def __init__(self, inspector_backend, tab):
     self._inspector_backend = inspector_backend
+    self._tab = tab
     self._is_recording = False
     self._timeline_events = TimelineEvents()
 

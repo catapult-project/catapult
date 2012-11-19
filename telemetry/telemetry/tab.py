@@ -23,11 +23,13 @@ class Tab(object):
   def __init__(self, browser, inspector_backend):
     self._browser = browser
     self._inspector_backend = inspector_backend
-    self._page = inspector_page.InspectorPage(self._inspector_backend)
-    self._runtime = inspector_runtime.InspectorRuntime(self._inspector_backend)
-    self._console = inspector_console.InspectorConsole(self._inspector_backend)
+    self._page = inspector_page.InspectorPage(self._inspector_backend, self)
+    self._runtime = inspector_runtime.InspectorRuntime(
+        self._inspector_backend, self)
+    self._console = inspector_console.InspectorConsole(
+        self._inspector_backend, self)
     self._timeline = inspector_timeline.InspectorTimeline(
-        self._inspector_backend)
+        self._inspector_backend, self)
 
   def __del__(self):
     self.Close()

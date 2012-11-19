@@ -7,10 +7,19 @@ from telemetry import browser_finder
 from telemetry import options_for_unittests
 
 class TabTestCase(unittest.TestCase):
+  def __init__(self, *args):
+    self._extra_browser_args = []
+    super(TabTestCase, self).__init__(*args)
+
   def setUp(self):
     self._browser = None
     self._tab = None
     options = options_for_unittests.Get()
+
+    if self._extra_browser_args:
+      for arg in self._extra_browser_args:
+        options.extra_browser_args.append(arg)
+
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')

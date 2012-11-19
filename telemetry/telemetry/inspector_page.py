@@ -5,9 +5,13 @@ import json
 import logging
 
 from telemetry import util
+from telemetry import png_bitmap
+
+DEFAULT_SCREENSHOT_TIMEOUT = 60
 
 class InspectorPage(object):
-  def __init__(self, inspector_backend):
+  def __init__(self, inspector_backend, tab):
+    self._tab = tab
     self._inspector_backend = inspector_backend
     self._inspector_backend.RegisterDomain(
         'Page',
@@ -81,3 +85,56 @@ class InspectorPage(object):
       self._inspector_backend.SendAndIgnoreResponse(request)
 
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
+
+  @property
+  def screenshot_supported(self):
+    """True if the browser instance is capable of capturing screenshots"""
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking === undefined'):
+      return False
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking.windowSnapshot === undefined'):
+      return False
+
+    return True
+
+  def Screenshot(self, timeout=DEFAULT_SCREENSHOT_TIMEOUT):
+    """Capture a screenshot of the window for rendering validation"""
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking === undefined'):
+      raise Exception("Browser was not started with --enable-gpu-benchmarking")
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking.windowSnapshot === undefined'):
+      raise Exception("Browser does not support window snapshot API.")
+
+    self._tab.runtime.Evaluate("""
+        if(!window.__telemetry) {
+          window.__telemetry = {}
+        }
+        window.__telemetry.snapshotComplete = false;
+        window.__telemetry.snapshotData = null;
+        window.chrome.gpuBenchmarking.windowSnapshot(function(snapshot) {
+            window.__telemetry.snapshotData = snapshot;
+            window.__telemetry.snapshotComplete = true;
+        });
+    """)
+
+    def IsSnapshotComplete():
+      return self._tab.runtime.Evaluate('window.__telemetry.snapshotComplete')
+
+    util.WaitFor(IsSnapshotComplete, timeout)
+
+    snap = self._tab.runtime.Evaluate("""
+      (function() {
+        var data = window.__telemetry.snapshotData;
+        delete window.__telemetry.snapshotComplete;
+        delete window.__telemetry.snapshotData;
+        return data;
+      })()
+    """)
+    if snap:
+      return png_bitmap.PngBitmap(snap['data'])
+    return None
