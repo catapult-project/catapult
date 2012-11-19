@@ -43,9 +43,10 @@ class InspectorBackend(object):
 
     res = json.loads(data)
     logging.debug('got [%s]', data)
-    if 'method' not in res:
-      return
+    if 'method' in res:
+      self._HandleNotification(res)
 
+  def _HandleNotification(self, res):
     mname = res['method']
     dot_pos = mname.find('.')
     domain_name = mname[:dot_pos]
@@ -55,6 +56,8 @@ class InspectorBackend(object):
       except Exception:
         import traceback
         traceback.print_exc()
+    else:
+      logging.debug('Unhandled inspector message: %s', res)
 
   def SendAndIgnoreResponse(self, req):
     req['id'] = self._next_request_id
@@ -80,23 +83,13 @@ class InspectorBackend(object):
       except (socket.error, websocket.WebSocketException):
         if self._backend.DoesDebuggerUrlExist(self._socket_url):
           raise util.TimeoutException(
-            "TimedOut waiting for reply. This is unusual.")
+            'Timed out waiting for reply. This is unusual.')
         raise tab_crash_exception.TabCrashException()
 
       res = json.loads(data)
       logging.debug('got [%s]', data)
       if 'method' in res:
-        mname = res['method']
-        dot_pos = mname.find('.')
-        domain_name = mname[:dot_pos]
-        if domain_name in self._domain_handlers:
-          try:
-            self._domain_handlers[domain_name][0](res)
-          except Exception:
-            import traceback
-            traceback.print_exc()
-        else:
-          logging.debug('Unhandled inspector mesage: %s', data)
+        self._HandleNotification(res)
         continue
 
       if res['id'] != req['id']:
