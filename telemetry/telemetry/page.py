@@ -14,10 +14,8 @@ class Page(object):
       else:
         raise Exception('URLs must be fully qualified: %s' % url)
     self.url = url
-    self.interactions = 'scroll'
     self.credentials = None
     self.wait_time_after_navigate = 2
-    self.scroll_is_infinite = False
     self.wait_for_javascript_expression = None
 
     if attributes:
