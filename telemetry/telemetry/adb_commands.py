@@ -17,6 +17,7 @@ sys.path.append(
                      '../../../build/android')))
 try:
   from pylib import android_commands # pylint: disable=F0401
+  from pylib import cmd_helper # pylint: disable=F0401
   from pylib import forwarder # pylint: disable=F0401
   from pylib import valgrind_tools # pylint: disable=F0401
 except Exception:
@@ -119,27 +120,28 @@ class AdbCommands(object):
   def IsRootEnabled(self):
     return self._adb.IsRootEnabled()
 
-def HasForwarder(adb, buildtype=None):
+def HasForwarder(buildtype=None):
   if not buildtype:
-    return (HasForwarder(adb, buildtype='Release') or
-            HasForwarder(adb, buildtype='Debug'))
-  return (os.path.exists(os.path.join('out', buildtype, 'device_forwarder')) and
-          os.path.exists(os.path.join('out', buildtype, 'host_forwarder')))
+    return (HasForwarder(buildtype='Release') or
+            HasForwarder(buildtype='Debug'))
+  return (os.path.exists(os.path.join(cmd_helper.OutDirectory.get(), buildtype,
+                                     'device_forwarder')) and
+          os.path.exists(os.path.join(cmd_helper.OutDirectory.get(), buildtype,
+                                      'host_forwarder')))
 
 class Forwarder(object):
   def __init__(self, adb, *ports):
-    assert HasForwarder(adb)
+    assert HasForwarder()
 
     port_pairs = [(port, port) for port in ports]
     tool = valgrind_tools.BaseTool()
 
     self._host_port = ports[0]
     buildtype = 'Debug'
-    if HasForwarder(adb, 'Release'):
+    if HasForwarder('Release'):
       buildtype = 'Release'
-    self._forwarder = forwarder.Forwarder(
-        adb.Adb(), port_pairs,
-        tool, '127.0.0.1', buildtype)
+    self._forwarder = forwarder.Forwarder(adb.Adb(), buildtype)
+    self._forwarder.Run(port_pairs, tool, '127.0.0.1')
 
   @property
   def url(self):

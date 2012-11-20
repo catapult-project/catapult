@@ -138,7 +138,7 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
 
   # See if the "forwarder" is installed -- we need this to host content locally
   # but make it accessible to the device.
-  if len(possible_browsers) and not adb_commands.HasForwarder(adb):
+  if len(possible_browsers) and not adb_commands.HasForwarder():
     logging.warn('telemetry detected an android device. However,')
     logging.warn('Chrome\'s port-forwarder app is not available.')
     logging.warn('To build:')
