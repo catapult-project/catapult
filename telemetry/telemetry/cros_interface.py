@@ -12,8 +12,6 @@ import tempfile
 
 from telemetry import util
 
-_next_remote_port = 9224
-
 # TODO(nduca): This whole file is built up around making individual ssh calls
 # for each operation. It really could get away with a single ssh session built
 # around pexpect, I suspect, if we wanted it to be faster. But, this was
@@ -373,7 +371,24 @@ class CrOSInterface(object):
     return stdout
 
   def GetRemotePort(self):
-    global _next_remote_port
-    port = _next_remote_port
-    _next_remote_port += 1
-    return port
+    netstat = self.GetAllCmdOutput(['netstat', '-ant'])
+    netstat = netstat[0].split('\n')
+    ports_in_use = []
+
+    for line in netstat[2:]:
+      if not line:
+        continue
+      address_in_use = line.split()[3]
+      port_in_use = address_in_use.split(':')[-1]
+      ports_in_use.append(int(port_in_use))
+
+    return sorted(ports_in_use)[-1] + 1
+
+  def IsHTTPServerRunningOnPort(self, port):
+    wget_output = self.GetAllCmdOutput(
+        ['wget', 'localhost:%i' % (port), '-T1', '-t1'])
+
+    if 'Connection refused' in wget_output[1]:
+      return False
+
+    return True

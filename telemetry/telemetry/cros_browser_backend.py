@@ -5,9 +5,9 @@ import logging
 import os
 import socket
 import subprocess
-import time
 
 from telemetry import browser_backend
+from telemetry import util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
   def __init__(self, browser_type, options, is_content_shell, cri):
@@ -116,7 +116,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def CreateForwarder(self, *ports):
     assert self._cri
-    return SSHForwarder(self._cri, 'R', *[(port, port) for port in ports])
+    return SSHForwarder(self._cri, 'R', *ports)
 
   def _RestartUI(self):
     if self._cri:
@@ -132,19 +132,30 @@ class SSHForwarder(object):
     self._proc = None
     self._host_port = ports[0][0]
 
+    port_pairs = []
+
+    for port in ports:
+      if port[1] is None:
+        port_pairs.append((port[0], cri.GetRemotePort()))
+      else:
+        port_pairs.append(port)
+
+    if forwarding_flag == 'R':
+      self._device_port = port_pairs[0][0]
+    else:
+      self._device_port = port_pairs[0][1]
+
     self._proc = subprocess.Popen(
       cri.FormSSHCommandLine(
         ['sleep', '999999999'],
         ['-%s%i:localhost:%i' % (forwarding_flag, from_port, to_port)
-        for from_port, to_port in ports]),
+        for from_port, to_port in port_pairs]),
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       stdin=subprocess.PIPE,
       shell=False)
 
-    # TODO(nduca): How do we wait for the server to come up in a
-    # robust way?
-    time.sleep(1.5)
+    util.WaitFor(lambda: cri.IsHTTPServerRunningOnPort(self._device_port), 60)
 
   @property
   def url(self):

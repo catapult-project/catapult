@@ -6,7 +6,9 @@
 # actually talking to the device. This would improve our coverage quite
 # a bit.
 import unittest
+import socket
 
+from telemetry import cros_browser_backend
 from telemetry import cros_interface
 from telemetry import options_for_unittests
 from telemetry import run_tests
@@ -109,3 +111,38 @@ class CrOSInterfaceTest(unittest.TestCase):
 
     self.assertTrue(cri.IsServiceRunning('openssh-server'))
 
+  @run_tests.RequiresBrowserOfType('cros-chrome')
+  def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
+    remote = options_for_unittests.Get().cros_remote
+    cri = cros_interface.CrOSInterface(
+      remote,
+      options_for_unittests.Get().cros_ssh_identity)
+
+    # Create local server.
+    sock = socket.socket()
+    sock.bind(('', 0))
+    port = sock.getsockname()[1]
+    sock.listen(0)
+
+    # Get remote port and ensure that it was unused.
+    remote_port = cri.GetRemotePort()
+    self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
+
+    # Forward local server's port to remote device's remote_port.
+    forwarder = cros_browser_backend.SSHForwarder(
+        cri, 'R', (remote_port, port))
+
+    # At this point, remote device should be able to connect to local server.
+    self.assertTrue(cri.IsHTTPServerRunningOnPort(remote_port))
+
+    # Next remote port shouldn't be the same as remote_port, since remote_port
+    # is now in use.
+    self.assertTrue(cri.GetRemotePort() != remote_port)
+
+    # Close forwarder and local server ports.
+    forwarder.Close()
+    sock.close()
+
+    # Device should no longer be able to connect to remote_port since it is no
+    # longer in use.
+    self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))

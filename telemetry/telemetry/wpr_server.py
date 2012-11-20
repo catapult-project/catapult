@@ -21,8 +21,11 @@ class ReplayServer(object):
     self._web_page_replay = None
     self._is_record_mode = is_record_mode
 
+    # Note: This can cause flake if server doesn't shut down properly and keeps
+    # ports tied up. See crbug.com/157459.
     self._forwarder = browser_backend.CreateForwarder(
-        webpagereplay.HTTP_PORT, webpagereplay.HTTPS_PORT)
+        (webpagereplay.HTTP_PORT, webpagereplay.HTTP_PORT),
+        (webpagereplay.HTTPS_PORT, webpagereplay.HTTPS_PORT))
 
     options = []
     if self._is_record_mode:
