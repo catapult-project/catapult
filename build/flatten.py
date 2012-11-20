@@ -37,7 +37,6 @@ def flatten_style_sheet_contents(filenames):
   return out.getvalue()
 
 def main(argv):
-  import pdb; pdb.set_trace()
   parser = optparse.OptionParser(usage="flatten filename1.js [filename2.js ...]")
   parser.add_option("--css", dest="flatten_css", action="store_true", help="Outputs a flattened stylesheet.")
   options, args = parser.parse_args(argv[1:])
