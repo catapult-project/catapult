@@ -128,7 +128,8 @@ this.base = (function() {
     if (window.FLATTENED) {
       if (!window.FLATTENED[dependentModuleName])
         throw new Error('Somehow, module ' + dependentModuleName +
-                        ' didn\'t get flattened!');
+                        ' didn\'t get stored in the flattened js file! ' +
+                        'You may need to rerun build/flatten.py');
       return;
     }
     ensureDepsLoaded();

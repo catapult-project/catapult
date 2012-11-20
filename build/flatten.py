@@ -3,13 +3,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import optparse
-import calcdeps
 import sys
+import parse_deps
 import StringIO
 
 def flatten_module_contents(filenames):
   out = StringIO.StringIO()
-  load_sequence = calcdeps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames)
 
   flattened_module_names = ["'%s'" % module.name for module in load_sequence]
   out.write("    if (!window.FLATTENED) window.FLATTENED = {};\n")
@@ -24,7 +24,7 @@ def flatten_module_contents(filenames):
 
 def flatten_style_sheet_contents(filenames):
   out = StringIO.StringIO()
-  load_sequence = calcdeps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames)
 
   # Stylesheets should be sourced from topmsot in, not inner-out.
   load_sequence.reverse()
@@ -37,15 +37,20 @@ def flatten_style_sheet_contents(filenames):
   return out.getvalue()
 
 def main(argv):
+  import pdb; pdb.set_trace()
   parser = optparse.OptionParser(usage="flatten filename1.js [filename2.js ...]")
   parser.add_option("--css", dest="flatten_css", action="store_true", help="Outputs a flattened stylesheet.")
-  options, args = parser.parse_args(argv)
+  options, args = parser.parse_args(argv[1:])
+
+  if len(args) == 0:
+    sys.stderr.write("Expected: filename or filenames to flatten\n")
+    return 255
 
   if options.flatten_css:
     sys.stdout.write(flatten_style_sheet_contents(args))
   else:
     sys.stdout.write(flatten_module_contents(args))
-  return 255
+  return 0
 
 if __name__ == "__main__":
   sys.exit(main(sys.argv))
