@@ -98,8 +98,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     return DoNothingForwarder(ports[0])
 
 class DoNothingForwarder(object):
-  def __init__(self, host_port):
-    self._host_port = host_port
+  def __init__(self, *port_pairs):
+    self._host_port = port_pairs[0][0]
 
   @property
   def url(self):
