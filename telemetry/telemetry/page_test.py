@@ -93,3 +93,7 @@ class PageTest(object):
     from telemetry import all_page_interactions
     return all_page_interactions.FindClassWithName(
         interaction_data['action'])(interaction_data)
+
+  @property
+  def interaction_name_to_run(self):
+    return self._interaction_name_to_run

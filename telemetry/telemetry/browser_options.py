@@ -83,9 +83,6 @@ class BrowserOptions(optparse.Values):
 
     # Page set options
     group = optparse.OptionGroup(parser, 'Page set options')
-    group.add_option('--record', action='store_const',
-        dest='wpr_mode', const=wpr_modes.WPR_RECORD,
-        help='Record to the page set archive')
     group.add_option('--page-repeat', dest='page_repeat', default=1,
         help='Number of times to repeat each individual ' +
         'page in the pageset before proceeding.')
