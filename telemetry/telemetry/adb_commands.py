@@ -130,13 +130,10 @@ def HasForwarder(buildtype=None):
                                       'host_forwarder')))
 
 class Forwarder(object):
-  def __init__(self, adb, *ports):
+  def __init__(self, adb, *port_pairs):
     assert HasForwarder()
-
-    port_pairs = [(port, port) for port in ports]
     tool = valgrind_tools.BaseTool()
-
-    self._host_port = ports[0]
+    self._host_port = port_pairs[0][0]
     buildtype = 'Debug'
     if HasForwarder('Release'):
       buildtype = 'Release'
