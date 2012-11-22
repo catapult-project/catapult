@@ -76,7 +76,7 @@ class AdbCommandsModuleStub(object):
     return self.attached_devices
 
   @staticmethod
-  def HasForwarder(_):
+  def HasForwarder(_=None):
     return True
 
 class OsModuleStub(object):
