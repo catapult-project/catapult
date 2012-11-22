@@ -18,7 +18,7 @@ def Set(options, browser_type):
   _options = options
   _browser_type = browser_type
 
-def Get():
+def GetCopy():
   if not _options:
     return None
 

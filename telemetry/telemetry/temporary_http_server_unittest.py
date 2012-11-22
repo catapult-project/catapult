@@ -11,7 +11,7 @@ class TemporaryHTTPServerTest(unittest.TestCase):
   def testBasicHosting(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
       b.SetHTTPServerDirectory(unittest_data_dir)

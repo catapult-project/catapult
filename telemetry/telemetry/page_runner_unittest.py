@@ -54,7 +54,7 @@ class PageRunnerTests(unittest.TestCase):
         pass
 
     with page_runner.PageRunner(ps) as runner:
-      options = options_for_unittests.Get()
+      options = options_for_unittests.GetCopy()
       possible_browser = browser_finder.FindBrowser(options)
       runner.Run(options, possible_browser, Test('RunTest'), results)
     self.assertEquals(1, len(results.page_successes))
@@ -104,7 +104,7 @@ class PageRunnerTests(unittest.TestCase):
 
       test = TestThatInstallsCredentialsBackend(credentials_backend)
       with page_runner.PageRunner(ps) as runner:
-        options = options_for_unittests.Get()
+        options = options_for_unittests.GetCopy()
         possible_browser = browser_finder.FindBrowser(options)
         runner.Run(options, possible_browser, test, results)
 
@@ -124,7 +124,7 @@ class PageRunnerTests(unittest.TestCase):
 
     test = TestUserAgent('RunTest')
     with page_runner.PageRunner(ps) as runner:
-      options = options_for_unittests.Get()
+      options = options_for_unittests.GetCopy()
       possible_browser = browser_finder.FindBrowser(options)
       results = page_test.PageTestResults()
       runner.Run(options, possible_browser, test, results)

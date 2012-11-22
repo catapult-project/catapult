@@ -25,7 +25,7 @@ class TestGoogleCredentialsBackend(unittest.TestCase):
     if not os.path.exists(credentials_path):
       return
 
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
     with browser_finder.FindBrowser(options).Create() as b:
       b.credentials.credentials_path = credentials_path
       if not b.credentials.CanLogin('google'):

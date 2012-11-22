@@ -5,6 +5,7 @@ import optparse
 import sys
 import shlex
 import logging
+import copy
 
 from telemetry import browser_finder
 from telemetry import wpr_modes
@@ -34,9 +35,7 @@ class BrowserOptions(optparse.Values):
     self.verbosity = 0
 
   def Copy(self):
-    other = BrowserOptions()
-    other.__dict__.update(self.__dict__)
-    return other
+    return copy.deepcopy(self)
 
   def CreateParser(self, *args, **kwargs):
     parser = optparse.OptionParser(*args, **kwargs)

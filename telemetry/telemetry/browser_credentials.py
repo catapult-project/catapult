@@ -74,7 +74,7 @@ class BrowserCredentials(object):
     homedir_credentials_path = os.path.expanduser('~/.telemetry-credentials')
     homedir_credentials = {}
 
-    if (not options_for_unittests.Get() and
+    if (not options_for_unittests.GetCopy() and
         os.path.exists(homedir_credentials_path)):
       logging.info("Found ~/.telemetry-credentials. Its contents will be used "
                    "when no other credentials can be found.")

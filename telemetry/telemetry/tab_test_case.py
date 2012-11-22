@@ -14,7 +14,7 @@ class TabTestCase(unittest.TestCase):
   def setUp(self):
     self._browser = None
     self._tab = None
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
 
     self.CustomizeBrowserOptions(options)
 

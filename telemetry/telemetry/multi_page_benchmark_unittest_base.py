@@ -33,7 +33,7 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
 
   def RunBenchmark(self, benchmark, ps):
     """Runs a benchmark against a pageset, returning the rows its outputs."""
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
     assert options
     temp_parser = options.CreateParser()
     benchmark.AddCommandLineOptions(temp_parser)

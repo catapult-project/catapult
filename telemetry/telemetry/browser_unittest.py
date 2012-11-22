@@ -8,7 +8,7 @@ from telemetry import options_for_unittests
 
 class BrowserTest(unittest.TestCase):
   def testBrowserCreation(self):
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')
@@ -22,7 +22,7 @@ class BrowserTest(unittest.TestCase):
     # This test starts the browser with --enable-benchmarking, which should
     # create a chrome.Interval namespace. This tests whether the command line is
     # being set.
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
 
     flag1 = '--user-agent=telemetry'
     options.extra_browser_args.append(flag1)
@@ -36,7 +36,7 @@ class BrowserTest(unittest.TestCase):
                           'telemetry')
 
   def testNewCloseTab(self):
-    options = options_for_unittests.Get()
+    options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
       self.assertEquals(1, b.num_tabs)
