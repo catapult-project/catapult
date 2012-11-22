@@ -9,6 +9,7 @@ import json
 from telemetry import browser_gone_exception
 from telemetry import inspector_backend
 from telemetry import tab
+from telemetry import user_agent
 from telemetry import util
 from telemetry import wpr_modes
 from telemetry import wpr_server
@@ -29,6 +30,8 @@ class BrowserBackend(object):
     args.append('--no-first-run')
     if self.options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.CHROME_FLAGS)
+    args.extend(user_agent.GetChromeUserAgentArgumentFromType(
+        self.options.browser_user_agent_type))
     return args
 
   @property

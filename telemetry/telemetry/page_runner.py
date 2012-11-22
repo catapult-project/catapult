@@ -84,6 +84,10 @@ http://goto/read-src-internal, or create a new archive using --record.
       if not os.path.exists(credentials_path):
         credentials_path = None
 
+    # Setup user agent.
+    if self.page_set.user_agent_type:
+      options.browser_user_agent_type = self.page_set.user_agent_type
+
     for page in self.page_set:
       test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 

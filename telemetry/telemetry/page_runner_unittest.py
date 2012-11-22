@@ -10,6 +10,7 @@ from telemetry import page_set
 from telemetry import page_test
 from telemetry import page_runner
 from telemetry import options_for_unittests
+from telemetry import user_agent
 
 SIMPLE_CREDENTIALS_STRING = """
 {
@@ -108,3 +109,22 @@ class PageRunnerTests(unittest.TestCase):
         runner.Run(options, possible_browser, test, results)
 
     return did_run[0]
+
+  def testUserAgent(self):
+    page = page_module.Page('about:blank')
+    ps = page_set.PageSet()
+    ps.pages.append(page)
+    ps.user_agent_type = 'tablet'
+
+    class TestUserAgent(page_test.PageTest):
+      def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
+        actual_user_agent = tab.runtime.Evaluate('window.navigator.userAgent')
+        expected_user_agent = '"%s"' % user_agent.UA_TYPE_MAPPING['tablet']
+        assert actual_user_agent.strip() == expected_user_agent
+
+    test = TestUserAgent('RunTest')
+    with page_runner.PageRunner(ps) as runner:
+      options = options_for_unittests.Get()
+      possible_browser = browser_finder.FindBrowser(options)
+      results = page_test.PageTestResults()
+      runner.Run(options, possible_browser, test, results)

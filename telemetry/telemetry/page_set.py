@@ -14,6 +14,7 @@ class PageSet(object):
     self.archive_path = ''
     self.base_dir = base_dir
     self.credentials_path = None
+    self.user_agent_type = None
 
     if attributes:
       for k, v in attributes.iteritems():

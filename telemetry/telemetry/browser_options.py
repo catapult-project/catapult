@@ -29,6 +29,8 @@ class BrowserOptions(optparse.Values):
     self.wpr_mode = wpr_modes.WPR_OFF
     self.wpr_make_javascript_deterministic = True
 
+    self.browser_user_agent_type = None
+
     self.verbosity = 0
 
   def Copy(self):

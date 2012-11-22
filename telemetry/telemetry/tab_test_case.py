@@ -16,6 +16,8 @@ class TabTestCase(unittest.TestCase):
     self._tab = None
     options = options_for_unittests.Get()
 
+    self.CustomizeBrowserOptions(options)
+
     if self._extra_browser_args:
       for arg in self._extra_browser_args:
         options.extra_browser_args.append(arg)
@@ -36,3 +38,6 @@ class TabTestCase(unittest.TestCase):
     if self._browser:
       self._browser.Close()
 
+  def CustomizeBrowserOptions(self, options):
+    """Override to add test-specific options to the BrowserOptions object"""
+    pass
