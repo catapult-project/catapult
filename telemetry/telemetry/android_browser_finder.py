@@ -83,10 +83,10 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
     return []
 
   device = None
-  if not options.android_device:
-    devices = adb_commands.GetAttachedDevices()
+  if options.android_device:
+    devices = [options.android_device]
   else:
-    devices = []
+    devices = adb_commands.GetAttachedDevices()
 
   if len(devices) == 0:
     logging.info('No android devices found.')
