@@ -12,6 +12,8 @@
 //   3b. If no callback is specified, the results is sent to the console.
 
 (function() {
+  MAX_SCROLL_LENGTH_PIXELS = 5000;
+
   var getTimeMs = (function() {
     if (window.performance)
       return (performance.now       ||
@@ -39,7 +41,8 @@
    * Uses smooth scrolling capabilities provided by the platform, if available.
    * @constructor
    */
-  function SmoothScrollDownGesture(opt_element) {
+  function SmoothScrollDownGesture(length, opt_element) {
+    this.length_ = length;
     this.element_ = opt_element || document.body;
   };
 
@@ -74,8 +77,7 @@
         chrome.gpuBenchmarking &&
         chrome.gpuBenchmarking.smoothScrollBy) {
       var rect = getBoundingVisibleRect(this.element_);
-      chrome.gpuBenchmarking.smoothScrollBy(
-          this.element_.scrollHeight, function() {
+      chrome.gpuBenchmarking.smoothScrollBy(this.length_, function() {
         callback();
       }, rect.left + rect.width / 2, rect.top + rect.height / 2);
       return;
@@ -187,7 +189,8 @@
     this.element_ = opt_element || document.body;
     // Some pages load more content when you scroll to the bottom. Record
     // the original element height here and only scroll to that point.
-    this.scrollHeight_ = this.element_.scrollHeight
+    this.scrollHeight_ = Math.min(MAX_SCROLL_LENGTH_PIXELS,
+                                  this.element_.scrollHeight - 1);
     requestAnimationFrame(this.startPass_.bind(this));
   };
 
@@ -200,7 +203,8 @@
       this.renderingStats_ = new RafRenderingStats();
     this.renderingStats_.start();
 
-    this.gesture_ = new SmoothScrollDownGesture(this.element_);
+    this.gesture_ = new SmoothScrollDownGesture(this.scrollHeight_,
+                                                this.element_);
     this.gesture_.start(this.onGestureComplete_.bind(this));
   };
 
@@ -214,11 +218,11 @@
 
     // If the scrollHeight went down, only scroll to the new scrollHeight.
     this.scrollHeight_ = Math.min(this.scrollHeight_,
-                                  this.element_.scrollHeight);
+                                  this.element_.scrollHeight - 1);
 
     // -1 to allow for rounding errors on scaled viewports (like mobile).
     var isPassComplete =
-        this.element_.scrollTop + clientHeight >= this.scrollHeight_ - 1;
+        this.element_.scrollTop + clientHeight >= this.scrollHeight_;
 
     if (!isPassComplete) {
       this.gesture_.start(this.onGestureComplete_.bind(this));

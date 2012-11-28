@@ -32,6 +32,7 @@ class BrowserOptions(optparse.Values):
 
     self.browser_user_agent_type = None
 
+    self.trace_dir = None
     self.verbosity = 0
 
   def Copy(self):
@@ -101,6 +102,9 @@ class BrowserOptions(optparse.Values):
 
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
+    group.add_option(
+      '--trace-dir', dest='trace_dir', default=None,
+      help='Record traces and store them in this directory.')
     group.add_option(
       '-v', '--verbose', action='count', dest='verbosity',
       help='Increase verbosity level (repeat as needed)')
