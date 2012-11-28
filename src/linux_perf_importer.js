@@ -162,6 +162,10 @@ base.exportTo('tracing', function() {
   LinuxPerfImporter.prototype = {
     __proto__: Object.prototype,
 
+    get model() {
+      return this.model_;
+    },
+
     /**
      * Precomputes a lookup table from linux pids back to existing
      * TimelineThreads. This is used during importing to add information to each

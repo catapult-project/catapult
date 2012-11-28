@@ -83,6 +83,7 @@ base.exportTo('tracing', function() {
    */
   function LinuxPerfParser(importer) {
     this.importer = importer;
+    this.model = importer.model;
   }
 
   LinuxPerfParser.prototype = {
