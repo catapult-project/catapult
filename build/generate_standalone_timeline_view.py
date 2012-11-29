@@ -43,13 +43,18 @@ py_warning_message = """#!/usr/bin/env python
 #
 """
 
+def _sopen(filename, mode):
+  if filename != '-':
+    return open(filename, mode)
+  return os.fdopen(os.dup(sys.stdout.fileno()), 'w')
+
 def _get_input_filenames():
   return [os.path.join(srcdir, f)
           for f in ['base.js', 'timeline_view.js']]
 
 def generate_css():
   filenames = _get_input_filenames()
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   style_sheet_chunks = [css_warning_message, '\n']
   for module in load_sequence:
@@ -60,7 +65,7 @@ def generate_css():
 
 def generate_js():
   filenames = _get_input_filenames()
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
@@ -75,7 +80,13 @@ def generate_js():
   return ''.join(js_chunks)
 
 def main(args):
-  parser = optparse.OptionParser()
+  parser = optparse.OptionParser(
+    usage="%prog --js=<filename> --css=<filename>",
+    epilog="""
+A script to takes all of the javascript and css files that comprise trace-viewer
+and merges them together into two giant js and css files, taking into account various
+ordering restrictions between them.
+""")
   parser.add_option("--js", dest="js_file",
                     help="Where to place generated javascript file")
   parser.add_option("--css", dest="css_file",
@@ -83,15 +94,16 @@ def main(args):
   options, args = parser.parse_args(args)
 
   if not options.js_file and not options.css_file:
-    print "Must specify one or both of --js or --css"
+    sys.stderr.write("ERROR: Must specify one or both of --js=<filename> or --css=<filename>\n\n")
+    parser.print_help()
     return 1
 
   if options.js_file:
-    with open(options.js_file, 'w') as f:
+    with _sopen(options.js_file, 'w') as f:
       f.write(generate_js())
 
   if options.css_file:
-    with open(options.css_file, 'w') as f:
+    with _sopen(options.css_file, 'w') as f:
       f.write(generate_css())
 
   return 0

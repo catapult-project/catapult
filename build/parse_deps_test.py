@@ -229,7 +229,7 @@ class ResourceFinderTest(unittest.TestCase):
     module.load_and_parse(os.path.join(srcdir, "unittest.js"))
     filename, contents = resource_finder.find_and_load_module(module, "base")
 
-    self.assertEquals(filename, "base.js")
+    self.assertTrue(os.path.samefile(filename, os.path.join(srcdir, "base.js")))
     expected_contents = ''
     with open(os.path.join(srcdir, "base.js")) as f:
       expected_contents = f.read()
@@ -242,7 +242,7 @@ class ResourceFinderTest(unittest.TestCase):
     filename, contents = resource_finder.find_and_load_module(
         module, "tracks.timeline_track")
 
-    self.assertEquals(filename, "tracks/timeline_track.js")
+    self.assertTrue(os.path.samefile(filename, os.path.join(srcdir, "tracks/timeline_track.js")))
     expected_contents = ''
     with open(os.path.join(srcdir, "tracks/timeline_track.js")) as f:
       expected_contents = f.read()
@@ -252,7 +252,7 @@ class ResourceFinderTest(unittest.TestCase):
 class CalcLoadSequenceTest(unittest.TestCase):
   def test_one_toplevel_nodeps(self):
     load_sequence = parse_deps.calc_load_sequence(
-      [os.path.join(srcdir, "unittest.js")])
+      [os.path.join(srcdir, "unittest.js")], srcdir)
     name_sequence = [x.name for x in load_sequence]
     self.assertEquals(["unittest"], name_sequence)
 

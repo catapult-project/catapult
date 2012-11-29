@@ -19,7 +19,7 @@ foo.js:
 and bar.js:
    base.require('baz');
 
-calc_load_sequence(['foo']) will yield:
+calc_load_sequence(['foo'], '.') will yield:
    [Module('baz'), Module('bar'), Module('foo')]
 
 which is, based on the dependencies, the correct sequence in which to load
@@ -251,7 +251,7 @@ class Module(object):
       rest = rest[m.end():]
 
 
-def calc_load_sequence(filenames):
+def calc_load_sequence(filenames, toplevel_dir):
   """Given a list of starting javascript files, figure out all the Module
   objects that need to be loaded to satisfiy their dependencies.
 
@@ -275,8 +275,10 @@ def calc_load_sequence(filenames):
   for filename in filenames:
     if not os.path.exists(filename):
       raise Exception("Could not find %s" % filename)
-    dirname = os.path.dirname(filename)
-    modname  = os.path.splitext(os.path.basename(filename))[0]
+
+    rel_filename = os.path.relpath(filename, toplevel_dir)
+    dirname = os.path.dirname(rel_filename)
+    modname  = os.path.splitext(os.path.basename(rel_filename))[0]
     if len(dirname):
       name = dirname.replace('/', '.') + '.' + modname
     else:

@@ -3,13 +3,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import optparse
+import os
 import sys
 import parse_deps
 import StringIO
 
+srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+
 def flatten_module_contents(filenames):
   out = StringIO.StringIO()
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   flattened_module_names = ["'%s'" % module.name for module in load_sequence]
   out.write("    if (!window.FLATTENED) window.FLATTENED = {};\n")
@@ -24,7 +27,7 @@ def flatten_module_contents(filenames):
 
 def flatten_style_sheet_contents(filenames):
   out = StringIO.StringIO()
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   # Stylesheets should be sourced from topmsot in, not inner-out.
   load_sequence.reverse()
@@ -37,7 +40,12 @@ def flatten_style_sheet_contents(filenames):
   return out.getvalue()
 
 def main(argv):
-  parser = optparse.OptionParser(usage="flatten filename1.js [filename2.js ...]")
+  parser = optparse.OptionParser(usage="flatten filename1.js [filename2.js ...]",
+                                 epilog="""
+This is a low-level flattening tool. You probably are meaning to run
+generate_standalone_timeline_view.py
+""")
+
   parser.add_option("--css", dest="flatten_css", action="store_true", help="Outputs a flattened stylesheet.")
   options, args = parser.parse_args(argv[1:])
 

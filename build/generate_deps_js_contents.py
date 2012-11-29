@@ -38,7 +38,7 @@ def generate_deps_js():
   if "deps.js" in filenames:
     filenames.remove("deps.js")
 
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   chunks = [js_warning_message]
   for module in load_sequence:
