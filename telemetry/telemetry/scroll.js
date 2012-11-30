@@ -41,8 +41,7 @@
    * Uses smooth scrolling capabilities provided by the platform, if available.
    * @constructor
    */
-  function SmoothScrollDownGesture(length, opt_element) {
-    this.length_ = length;
+  function SmoothScrollDownGesture(opt_element) {
     this.element_ = opt_element || document.body;
   };
 
@@ -71,13 +70,13 @@
     return rect;
   };
 
-  SmoothScrollDownGesture.prototype.start = function(callback) {
+  SmoothScrollDownGesture.prototype.start = function(distance, callback) {
     this.callback_ = callback;
     if (chrome &&
         chrome.gpuBenchmarking &&
         chrome.gpuBenchmarking.smoothScrollBy) {
       var rect = getBoundingVisibleRect(this.element_);
-      chrome.gpuBenchmarking.smoothScrollBy(this.length_, function() {
+      chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
         callback();
       }, rect.left + rect.width / 2, rect.top + rect.height / 2);
       return;
@@ -183,12 +182,24 @@
     this.callback_ = opt_callback;
   }
 
+  ScrollTest.prototype.getRemainingScrollDistance_ = function() {
+    var clientHeight;
+    // clientHeight is "special" for the body element.
+    if (this.element_ == document.body)
+      clientHeight = window.innerHeight;
+    else
+      clientHeight = this.element_.clientHeight;
+
+    return this.scrollHeight_ - this.element_.scrollTop - clientHeight;
+  }
+
   ScrollTest.prototype.start = function(opt_element) {
     // Assign this.element_ here instead of constructor, because the constructor
     // ensures this method will be called after the document is loaded.
     this.element_ = opt_element || document.body;
     // Some pages load more content when you scroll to the bottom. Record
     // the original element height here and only scroll to that point.
+    // -1 to allow for rounding errors on scaled viewports (like mobile).
     this.scrollHeight_ = Math.min(MAX_SCROLL_LENGTH_PIXELS,
                                   this.element_.scrollHeight - 1);
     requestAnimationFrame(this.startPass_.bind(this));
@@ -203,29 +214,20 @@
       this.renderingStats_ = new RafRenderingStats();
     this.renderingStats_.start();
 
-    this.gesture_ = new SmoothScrollDownGesture(this.scrollHeight_,
-                                                this.element_);
-    this.gesture_.start(this.onGestureComplete_.bind(this));
+    this.gesture_ = new SmoothScrollDownGesture(this.element_);
+    this.gesture_.start(this.getRemainingScrollDistance_(),
+                        this.onGestureComplete_.bind(this));
   };
 
   ScrollTest.prototype.onGestureComplete_ = function(timestamp) {
-    // clientHeight is "special" for the body element.
-    var clientHeight;
-    if (this.element_ == document.body)
-      clientHeight = window.innerHeight;
-    else
-      clientHeight = this.element_.clientHeight;
-
     // If the scrollHeight went down, only scroll to the new scrollHeight.
+    // -1 to allow for rounding errors on scaled viewports (like mobile).
     this.scrollHeight_ = Math.min(this.scrollHeight_,
                                   this.element_.scrollHeight - 1);
 
-    // -1 to allow for rounding errors on scaled viewports (like mobile).
-    var isPassComplete =
-        this.element_.scrollTop + clientHeight >= this.scrollHeight_;
-
-    if (!isPassComplete) {
-      this.gesture_.start(this.onGestureComplete_.bind(this));
+    if (this.getRemainingScrollDistance_() > 0) {
+      this.gesture_.start(this.getRemainingScrollDistance_(),
+                          this.onGestureComplete_.bind(this));
       return;
     }
 
