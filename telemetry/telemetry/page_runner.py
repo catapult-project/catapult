@@ -49,9 +49,9 @@ def _ShufflePageSet(page_set, options):
   if options.test_shuffle:
     random.Random().shuffle(pages)
   return [page
-      for _ in xrange(options.pageset_repeat)
+      for _ in xrange(int(options.pageset_repeat))
       for page in pages
-      for _ in xrange(options.page_repeat)]
+      for _ in xrange(int(options.page_repeat))]
 
 class PageRunner(object):
   """Runs a given test against a given test."""
@@ -98,8 +98,12 @@ http://goto/read-src-internal, or create a new archive using --record.
       test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 
     # Check tracing directory.
-    if options.trace_dir and not os.path.isdir(options.trace_dir):
-      raise Exception('Trace directory doesn\'t exist: %s' % options.trace_dir)
+    if options.trace_dir:
+      if not os.path.isdir(options.trace_dir):
+        raise Exception('Trace directory doesn\'t exist: %s' %
+                        options.trace_dir)
+      elif os.listdir(options.trace_dir):
+        raise Exception('Trace directory isn\'t empty: %s' % options.trace_dir)
 
     # Reorder page set based on options.
     pages = _ShufflePageSet(self.page_set, options)
@@ -160,8 +164,22 @@ http://goto/read-src-internal, or create a new archive using --record.
           util.WaitFor(lambda: not IsTracingRunning(), 10)
 
           logging.info('Processing trace...')
-          with open(os.path.join(options.trace_dir, page.url_as_file_safe_name +
-              '.json'), 'w') as trace_file:
+
+          trace_file_base = os.path.join(
+              options.trace_dir, page.url_as_file_safe_name)
+
+          if options.page_repeat != 1 or options.pageset_repeat != 1:
+            trace_file_index = 0
+
+            while True:
+              trace_file = '%s_%03d.json' % (trace_file_base, trace_file_index)
+              if not os.path.exists(trace_file):
+                break
+              trace_file_index = trace_file_index + 1
+          else:
+            trace_file = '%s.json' % trace_file_base
+
+          with open(trace_file, 'w') as trace_file:
             trace_file.write(state.trace_tab.runtime.Evaluate("""
               JSON.stringify({
                 traceEvents: tracingController.traceEvents,
