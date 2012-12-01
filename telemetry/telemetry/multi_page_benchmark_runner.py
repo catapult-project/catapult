@@ -34,6 +34,12 @@ def Main(benchmark_dir):
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog [options] <benchmark> <page_set>')
 
+  parser.add_option('--output-format',
+                    dest='output_format',
+                    default='csv',
+                    help='Output format. Can be "csv" or "terminal-block". '
+                    'Defaults to "%default".')
+
   benchmark = None
   if benchmark_name is not None:
     benchmark = benchmarks[benchmark_name]()
@@ -60,7 +66,15 @@ def Main(benchmark_dir):
 Use --browser=list to figure out which are available.\n"""
     sys.exit(1)
 
-  results = multi_page_benchmark.CsvBenchmarkResults(csv.writer(sys.stdout))
+  if options.output_format == 'csv':
+    results = multi_page_benchmark.CsvBenchmarkResults(csv.writer(sys.stdout))
+  elif options.output_format == 'terminal-block':
+    results = multi_page_benchmark.TerminalBlockBenchmarkResults(sys.stdout)
+  else:
+    raise Exception('Invalid --output-format value: "%s". Valid values are '
+                    '"csv" and "terminal-block".'
+                    % options.output_format)
+
   with page_runner.PageRunner(ps) as runner:
     runner.Run(options, possible_browser, benchmark, results)
   # When using an exact executable, assume it is a reference build for the
