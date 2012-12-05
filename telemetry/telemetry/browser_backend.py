@@ -14,6 +14,12 @@ from telemetry import util
 from telemetry import wpr_modes
 from telemetry import wpr_server
 
+
+class BrowserConnectionGoneException(
+    browser_gone_exception.BrowserGoneException):
+  pass
+
+
 class BrowserBackend(object):
   """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
@@ -42,17 +48,7 @@ class BrowserBackend(object):
     def IsBrowserUp():
       try:
         self._ListTabs()
-      except socket.error:
-        if not self.IsBrowserRunning():
-          raise browser_gone_exception.BrowserGoneException()
-        return False
-      except httplib.BadStatusLine:
-        if not self.IsBrowserRunning():
-          raise browser_gone_exception.BrowserGoneException()
-        return False
-      except urllib2.URLError:
-        if not self.IsBrowserRunning():
-          raise browser_gone_exception.BrowserGoneException()
+      except BrowserConnectionGoneException:
         return False
       else:
         return True
@@ -66,17 +62,22 @@ class BrowserBackend(object):
     return 'http://localhost:%i/json' % self._port
 
   def _ListTabs(self, timeout=None):
-    req = urllib2.urlopen(self._debugger_url, timeout=timeout)
-    data = req.read()
-    all_contexts = json.loads(data)
-    tabs = [ctx for ctx in all_contexts
-            if not ctx['url'].startswith('chrome-extension://')]
-    # FIXME(dtu): The remote debugger protocol returns in order of most
-    # recently created tab first. In order to convert it to the UI tab
-    # order, we just reverse the list, which assumes we can't move tabs.
-    # We should guarantee that the remote debugger returns in the UI tab order.
-    tabs.reverse()
-    return tabs
+    try:
+      req = urllib2.urlopen(self._debugger_url, timeout=timeout)
+      data = req.read()
+      all_contexts = json.loads(data)
+      tabs = [ctx for ctx in all_contexts
+              if not ctx['url'].startswith('chrome-extension://')]
+      # FIXME(dtu): The remote debugger protocol returns in order of most
+      # recently created tab first. In order to convert it to the UI tab
+      # order, we just reverse the list, which assumes we can't move tabs.
+      # We should guarantee that the remote debugger returns in UI tab order.
+      tabs.reverse()
+      return tabs
+    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
+      if not self.IsBrowserRunning():
+        raise browser_gone_exception.BrowserGoneException()
+      raise BrowserConnectionGoneException()
 
   def NewTab(self, timeout=None):
     req = urllib2.urlopen(self._debugger_url + '/new', timeout=timeout)

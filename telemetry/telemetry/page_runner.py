@@ -8,6 +8,7 @@ import traceback
 import urlparse
 import random
 
+from telemetry import browser_gone_exception
 from telemetry import page_set_url_builder
 from telemetry import page_test
 from telemetry import tab_crash_exception
@@ -111,23 +112,34 @@ http://goto/read-src-internal, or create a new archive using --record.
     state = _RunState()
     try:
       for page in pages:
-        if not state.browser:
-          self._SetupBrowser(state, test, possible_browser, credentials_path,
-                             archive_path)
-        if not state.tab:
-          state.tab = state.browser.ConnectToNthTab(0)
-        if options.trace_dir:
-          self._SetupTracingTab(state)
+        tries = 3
+        while tries:
+          try:
+            if not state.browser:
+              self._SetupBrowser(state, test, possible_browser,
+                                 credentials_path, archive_path)
+            if not state.tab:
+              state.tab = state.browser.ConnectToNthTab(0)
+            if options.trace_dir:
+              self._SetupTracingTab(state)
 
-        try:
-          self._RunPage(options, page, state.tab, test, results)
-        except tab_crash_exception.TabCrashException:
-          # If we don't support tab control, just restart the browser.
-          # TODO(dtu): Create a new tab: crbug.com/155077, crbug.com/159852
-          state.Close()
+            try:
+              self._RunPage(options, page, state.tab, test, results)
+            except tab_crash_exception.TabCrashException:
+              # If we don't support tab control, just restart the browser.
+              # TODO(dtu): Create a new tab: crbug.com/155077, crbug.com/159852
+              state.Close()
 
-        if options.trace_dir and state.trace_tab:
-          self._EndTracing(state, options, page)
+            if options.trace_dir and state.trace_tab:
+              self._EndTracing(state, options, page)
+            break
+          except browser_gone_exception.BrowserGoneException:
+            logging.warning('Lost connection to browser. Retrying.')
+            state.Close()
+            tries -= 1
+            if not tries:
+              logging.error('Lost connection to browser 3 times. Failing.')
+              raise
     finally:
       state.Close()
 
@@ -150,6 +162,8 @@ http://goto/read-src-internal, or create a new archive using --record.
       logging.warning('Tab crashed: %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       raise
+    except browser_gone_exception.BrowserGoneException:
+      raise browser_gone_exception.BrowserGoneException()
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
@@ -174,6 +188,8 @@ http://goto/read-src-internal, or create a new archive using --record.
       logging.warning('Tab crashed: %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       raise
+    except browser_gone_exception.BrowserGoneException:
+      raise browser_gone_exception.BrowserGoneException()
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
@@ -294,5 +310,8 @@ http://goto/read-src-internal, or create a new archive using --record.
   def _CleanUpPage(self, page, tab, page_state): # pylint: disable=R0201
     if page.credentials and page_state.did_login:
       tab.browser.credentials.LoginNoLongerNeeded(tab, page.credentials)
-    tab.runtime.Evaluate("""window.chrome && chrome.benchmarking &&
-                            chrome.benchmarking.closeConnections()""")
+    try:
+      tab.runtime.Evaluate("""window.chrome && chrome.benchmarking &&
+                              chrome.benchmarking.closeConnections()""")
+    except Exception:
+      pass
