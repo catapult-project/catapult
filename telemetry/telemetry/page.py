@@ -50,5 +50,9 @@ class Page(object):
     # Just replace all special characters in the url with underscore.
     return re.sub('[^a-zA-Z0-9]', '_', self.url)
 
+  @property
+  def display_url(self):
+    return re.sub('https?://', '', self.url)
+
   def __str__(self):
     return self.url

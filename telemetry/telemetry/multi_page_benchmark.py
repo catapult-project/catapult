@@ -33,6 +33,7 @@ class BenchmarkResults(page_test.PageTestResults):
     super(BenchmarkResults, self).__init__()
     self.results_summary = defaultdict(list)
     self.page_results = []
+    self.urls = []
     self.field_names = None
     self.field_units = {}
     self.field_types = {}
@@ -66,6 +67,7 @@ results! You must return the same dict keys every time."""
       self.field_names.sort()
 
     self.page_results.append(self._page_values)
+    self.urls.append(self._page.display_url)
     for name in self.field_names:
       units = self.field_units[name]
       data_type = self.field_types[name]
@@ -83,6 +85,12 @@ results! You must return the same dict keys every time."""
         trace += (trace_tag or '')
       else:
         trace = measurement + (trace_tag or '')
+      if len(self.urls) > 1:
+        print
+        assert len(self.urls) == len(values)
+        for i, value in enumerate(values):
+          PrintPerfResult(measurement + '_by_url', self.urls[i], [value], units,
+                          'unimportant')
       PrintPerfResult(measurement, trace, values, units, data_type)
 
 
