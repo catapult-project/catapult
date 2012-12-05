@@ -280,7 +280,7 @@ http://goto/read-src-internal, or create a new archive using --record.
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
       dirname, filename = page_set_url_builder.GetUrlBaseDirAndFile(
-          self.page_set.base_dir, parsed_url)
+          page, self.page_set.base_dir, parsed_url)
       tab.browser.SetHTTPServerDirectory(dirname)
       target_side_url = tab.browser.http_server.UrlOf(filename)
     else:

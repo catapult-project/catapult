@@ -44,6 +44,17 @@ class InspectorPageTest(tab_test_case.TabTestCase):
     self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
                       '/blank.html')
 
+  def testGetCookieByName(self):
+    unittest_data_dir = os.path.join(os.path.dirname(__file__),
+                                     '..', 'unittest_data')
+    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._tab.page.Navigate(
+      self._browser.http_server.UrlOf('blank.html'))
+    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self._tab.runtime.Execute('document.cookie="foo=bar"')
+    self.assertEquals(self._tab.page.GetCookieByName('foo'), 'bar')
+
+
 class GpuInspectorPageTest(tab_test_case.TabTestCase):
   def setUp(self):
     self._extra_browser_args = ['--enable-gpu-benchmarking']
