@@ -104,6 +104,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
                             'chrome://newtab/')
     try:
       self._WaitForBrowserToComeUp()
+      self._PostBrowserStartupInitialization()
     except:
       import traceback
       traceback.print_exc()

@@ -35,6 +35,15 @@ class BrowserTest(unittest.TestCase):
         self.assertEquals(t.runtime.Evaluate('navigator.userAgent'),
                           'telemetry')
 
+  def testVersionDetection(self):
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
+    with browser_to_create.Create() as b:
+      # pylint: disable=W0212
+      self.assertGreater(b._backend._inspector_protocol_version, 0)
+      self.assertGreater(b._backend._chrome_branch_number, 0)
+      self.assertGreater(b._backend._webkit_base_revision, 0)
+
   def testNewCloseTab(self):
     options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)

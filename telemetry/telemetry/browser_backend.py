@@ -5,6 +5,7 @@ import urllib2
 import httplib
 import socket
 import json
+import re
 
 from telemetry import browser_gone_exception
 from telemetry import inspector_backend
@@ -24,9 +25,14 @@ class BrowserBackend(object):
   """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
   def __init__(self, is_content_shell, options):
+    self.browser_type = options.browser_type
     self.is_content_shell = is_content_shell
     self.options = options
     self._port = None
+
+    self._inspector_protocol_version = 0
+    self._chrome_branch_number = 0
+    self._webkit_base_revision = 0
 
   def GetBrowserStartupArgs(self):
     args = []
@@ -57,14 +63,33 @@ class BrowserBackend(object):
     except util.TimeoutException:
       raise browser_gone_exception.BrowserGoneException()
 
-  @property
-  def _debugger_url(self):
-    return 'http://localhost:%i/json' % self._port
+  def _PostBrowserStartupInitialization(self):
+    # Detect version information.
+    data = self._Request('version')
+    resp = json.loads(data)
+    if 'Protocol-Version' in resp:
+      self._inspector_protocol_version = resp['Protocol-Version']
+      mU = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+ Safari', resp['User-Agent'])
+      mW = re.search('\((trunk)?\@(\d+)\)', resp['WebKit-Version'])
+      if mU:
+        self._chrome_branch_number = int(mU.group(1))
+      if mW:
+        self._webkit_base_revision = int(mW.group(2))
+      return
+
+    # Detection has failed: assume 18.0.1025.168 ~= Chrome Android.
+    self._inspector_protocol_version = 1.0
+    self._chrome_branch_number = 1025
+    self._webkit_base_revision = 106313
+
+  def _Request(self, path, timeout=None):
+    url = 'http://localhost:%i/json/%s' % (self._port, path)
+    req = urllib2.urlopen(url, timeout=timeout)
+    return req.read()
 
   def _ListTabs(self, timeout=None):
     try:
-      req = urllib2.urlopen(self._debugger_url, timeout=timeout)
-      data = req.read()
+      data = self._Request('', timeout=timeout)
       all_contexts = json.loads(data)
       tabs = [ctx for ctx in all_contexts
               if not ctx['url'].startswith('chrome-extension://')]
@@ -80,8 +105,7 @@ class BrowserBackend(object):
       raise BrowserConnectionGoneException()
 
   def NewTab(self, timeout=None):
-    req = urllib2.urlopen(self._debugger_url + '/new', timeout=timeout)
-    data = req.read()
+    data = self._Request('new', timeout=timeout)
     new_tab = json.loads(data)
     return new_tab
 
@@ -91,8 +115,7 @@ class BrowserBackend(object):
     tab_id = target_tab['webSocketDebuggerUrl'].split('/')[-1]
     target_num_tabs = self.num_tabs - 1
 
-    urllib2.urlopen('%s/close/%s' % (self._debugger_url, tab_id),
-                    timeout=timeout)
+    self._Request('close/%s' % tab_id, timeout=timeout)
 
     util.WaitFor(lambda: self.num_tabs == target_num_tabs, timeout=5)
 

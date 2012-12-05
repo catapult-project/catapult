@@ -62,6 +62,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     logging.info('Waiting for browser to be ready')
     try:
       self._WaitForBrowserToComeUp()
+      self._PostBrowserStartupInitialization()
     except:
       import traceback
       traceback.print_exc()

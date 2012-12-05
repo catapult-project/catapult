@@ -33,6 +33,10 @@ class Browser(object):
     self.Close()
 
   @property
+  def browser_type(self):
+    return self._backend.browser_type
+
+  @property
   def is_content_shell(self):
     """Returns whether this browser is a content shell, only."""
     return self._backend.is_content_shell

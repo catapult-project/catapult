@@ -40,6 +40,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
     try:
       self._WaitForBrowserToComeUp()
+      self._PostBrowserStartupInitialization()
     except:
       self.Close()
       raise
