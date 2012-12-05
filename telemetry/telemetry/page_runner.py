@@ -9,7 +9,6 @@ import urlparse
 import random
 
 from telemetry import browser_gone_exception
-from telemetry import page_set_url_builder
 from telemetry import page_test
 from telemetry import tab_crash_exception
 from telemetry import util
@@ -279,8 +278,7 @@ http://goto/read-src-internal, or create a new archive using --record.
   def _PreparePage(self, page, tab, page_state, results):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
-      dirname, filename = page_set_url_builder.GetUrlBaseDirAndFile(
-          page, self.page_set.base_dir, parsed_url)
+      dirname, filename = page.url_base_dir_and_file
       tab.browser.SetHTTPServerDirectory(dirname)
       target_side_url = tab.browser.http_server.UrlOf(filename)
     else:
