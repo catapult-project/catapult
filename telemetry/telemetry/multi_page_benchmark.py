@@ -85,7 +85,7 @@ results! You must return the same dict keys every time."""
         trace += (trace_tag or '')
       else:
         trace = measurement + (trace_tag or '')
-      if len(self.urls) > 1:
+      if len(self.urls) > 1 and not trace_tag:
         print
         assert len(self.urls) == len(values)
         for i, value in enumerate(values):
