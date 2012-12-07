@@ -27,3 +27,11 @@ class TestPage(unittest.TestCase):
     dirname, filename = apage.url_base_dir_and_file
     self.assertEqual(dirname, 'basedir/../../somedir/')
     self.assertEqual(filename, 'otherdir/file.html')
+
+  def testDisplayUrlForHttp(self):
+    self.assertEquals(page.Page('http://www.foo.com/').display_url,
+                      'www.foo.com/')
+
+  def testDisplayUrlForFile(self):
+    self.assertEquals(page.Page('file:///../../otherdir/file.html').display_url,
+                      'file.html')

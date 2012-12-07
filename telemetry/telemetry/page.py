@@ -52,6 +52,8 @@ class Page(object):
 
   @property
   def display_url(self):
+    if self.url.startswith('file://'):
+      return os.path.split(self.url)[1]
     return re.sub('https?://', '', self.url)
 
   def __str__(self):
