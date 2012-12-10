@@ -90,7 +90,7 @@ class TabController(object):
               if not ctx['url'].startswith('chrome-extension://')]
       return tabs
     except (socket.error, httplib.BadStatusLine, urllib2.URLError):
-      if not self.IsBrowserRunning():
+      if not self._browser_backend.IsBrowserRunning():
         raise browser_gone_exception.BrowserGoneException()
       raise BrowserConnectionGoneException()
 
