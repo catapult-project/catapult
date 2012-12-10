@@ -56,7 +56,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     platform = android_platform.AndroidPlatform(
         self._args[0].Adb(), self._args[1],
         self._args[1] + self._args[4])
-    return browser.Browser(backend, platform)
+    b = browser.Browser(backend, platform)
+    backend.SetBrowser(b)
+    return b
 
 def FindAllAvailableBrowsers(options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""

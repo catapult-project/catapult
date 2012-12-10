@@ -18,24 +18,24 @@ def Main(args):
   browser_to_create = telemetry.FindBrowser(options)
   assert browser_to_create
   with browser_to_create.Create() as b:
-    with b.ConnectToNthTab(0) as tab:
+    tab = b.tabs[0]
 
-      # Measure round-trip-time for evaluate
-      times = []
-      for i in range(1000):
-        start = time.time()
-        tab.runtime.Evaluate('%i * 2' % i)
-        times.append(time.time() - start)
-      N = float(len(times))
-      avg = sum(times, 0.0) / N
-      squared_diffs = [(t - avg) * (t - avg) for t in times]
-      stdev = sum(squared_diffs, 0.0) / (N - 1)
-      times.sort()
-      percentile_75 = times[int(0.75 * N)]
+    # Measure round-trip-time for evaluate
+    times = []
+    for i in range(1000):
+      start = time.time()
+      tab.runtime.Evaluate('%i * 2' % i)
+      times.append(time.time() - start)
+    N = float(len(times))
+    avg = sum(times, 0.0) / N
+    squared_diffs = [(t - avg) * (t - avg) for t in times]
+    stdev = sum(squared_diffs, 0.0) / (N - 1)
+    times.sort()
+    percentile_75 = times[int(0.75 * N)]
 
-      print "%s: avg=%f; stdev=%f; min=%f; 75th percentile = %f" % (
-        "Round trip time (seconds)",
-        avg, stdev, min(times), percentile_75)
+    print "%s: avg=%f; stdev=%f; min=%f; 75th percentile = %f" % (
+      "Round trip time (seconds)",
+      avg, stdev, min(times), percentile_75)
 
   return 0
 

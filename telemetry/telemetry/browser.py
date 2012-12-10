@@ -8,6 +8,7 @@ from telemetry import browser_credentials
 from telemetry import wpr_modes
 from telemetry import wpr_server
 
+
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
 
@@ -33,6 +34,10 @@ class Browser(object):
     self.Close()
 
   @property
+  def platform(self):
+    return self._platform
+
+  @property
   def browser_type(self):
     return self._backend.browser_type
 
@@ -42,26 +47,15 @@ class Browser(object):
     return self._backend.is_content_shell
 
   @property
-  def num_tabs(self):
-    return self._backend.num_tabs
+  def supports_tab_control(self):
+    return self._backend.supports_tab_control
 
   @property
-  def platform(self):
-    return self._platform
-
-  def NewTab(self):
-    return self._backend.NewTab()
-
-  def CloseTab(self, index):
-    self._backend.CloseTab(index)
-
-  def GetNthTabUrl(self, index):
-    return self._backend.GetNthTabUrl(index)
-
-  def ConnectToNthTab(self, index):
-    return self._backend.ConnectToNthTab(self, index)
+  def tabs(self):
+    return self._backend.tabs
 
   def Close(self):
+    """Closes this browser."""
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None

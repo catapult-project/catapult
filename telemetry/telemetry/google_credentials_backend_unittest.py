@@ -30,9 +30,8 @@ class TestGoogleCredentialsBackend(unittest.TestCase):
       b.credentials.credentials_path = credentials_path
       if not b.credentials.CanLogin('google'):
         return
-      with b.ConnectToNthTab(0) as tab:
-        ret = b.credentials.LoginNeeded(tab, 'google')
-        self.assertTrue(ret)
+      ret = b.credentials.LoginNeeded(b.tabs[0], 'google')
+      self.assertTrue(ret)
 
   def testLoginUsingMock(self): # pylint: disable=R0201
     tab = MockTab()

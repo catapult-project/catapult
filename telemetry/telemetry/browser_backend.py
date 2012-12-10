@@ -6,9 +6,9 @@ import httplib
 import socket
 import json
 import re
+import weakref
 
 from telemetry import browser_gone_exception
-from telemetry import inspector_backend
 from telemetry import tab
 from telemetry import user_agent
 from telemetry import util
@@ -21,10 +21,97 @@ class BrowserConnectionGoneException(
   pass
 
 
+class TabController(object):
+  def __init__(self, browser, browser_backend):
+    self._browser = browser
+    self._browser_backend = browser_backend
+
+    # Stores web socket debugger URLs in iteration order.
+    self._tab_list = []
+    # Maps debugger URLs to Tab objects.
+    self._tab_dict = weakref.WeakValueDictionary()
+
+    self._UpdateTabList()
+
+  def New(self, timeout=None):
+    self._browser_backend.Request('new', timeout=timeout)
+    return self[-1]
+
+  def DoesDebuggerUrlExist(self, url):
+    self._UpdateTabList()
+    return url in self._tab_list
+
+  def CloseTab(self, debugger_url, timeout=None):
+    # TODO(dtu): crbug.com/160946, allow closing the last tab on some platforms.
+    # For now, just create a new tab before closing the last tab.
+    if len(self) <= 1:
+      self.New()
+
+    tab_id = debugger_url.split('/')[-1]
+    try:
+      response = self._browser_backend.Request('close/%s' % tab_id,
+                                               timeout=timeout)
+    except urllib2.HTTPError:
+      raise Exception('Unable to close tab, tab id not found: %s' % tab_id)
+    assert response == 'Target is closing'
+
+    util.WaitFor(lambda: not self._FindTabInfo(debugger_url), timeout=5)
+    self._UpdateTabList()
+
+  def GetTabUrl(self, debugger_url):
+    tab_info = self._FindTabInfo(debugger_url)
+    assert tab_info is not None
+    return tab_info['url']
+
+  def __iter__(self):
+    self._UpdateTabList()
+    return self._tab_list.__iter__()
+
+  def __len__(self):
+    self._UpdateTabList()
+    return len(self._tab_list)
+
+  def __getitem__(self, index):
+    self._UpdateTabList()
+    # This dereference will propagate IndexErrors.
+    debugger_url = self._tab_list[index]
+    # Lazily get/create a Tab object.
+    tab_object = self._tab_dict.get(debugger_url)
+    if not tab_object:
+      tab_object = tab.Tab(self._browser, self, debugger_url)
+      self._tab_dict[debugger_url] = tab_object
+    return tab_object
+
+  def _ListTabs(self, timeout=None):
+    try:
+      data = self._browser_backend.Request('', timeout=timeout)
+      all_contexts = json.loads(data)
+      tabs = [ctx for ctx in all_contexts
+              if not ctx['url'].startswith('chrome-extension://')]
+      return tabs
+    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
+      if not self.IsBrowserRunning():
+        raise browser_gone_exception.BrowserGoneException()
+      raise BrowserConnectionGoneException()
+
+  def _UpdateTabList(self):
+    new_tab_list = map(lambda tab_info: tab_info['webSocketDebuggerUrl'],
+                       self._ListTabs())
+    self._tab_list = [t for t in self._tab_list if t in new_tab_list]
+    self._tab_list += [t for t in new_tab_list if t not in self._tab_list]
+
+  def _FindTabInfo(self, debugger_url):
+    for tab_info in self._ListTabs():
+      if tab_info.get('webSocketDebuggerUrl') == debugger_url:
+        return tab_info
+    return None
+
+
 class BrowserBackend(object):
   """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
   def __init__(self, is_content_shell, options):
+    self.tabs = None
     self.browser_type = options.browser_type
     self.is_content_shell = is_content_shell
     self.options = options
@@ -33,6 +120,9 @@ class BrowserBackend(object):
     self._inspector_protocol_version = 0
     self._chrome_branch_number = 0
     self._webkit_base_revision = 0
+
+  def SetBrowser(self, browser):
+    self.tabs = TabController(browser, self)
 
   def GetBrowserStartupArgs(self):
     args = []
@@ -50,11 +140,11 @@ class BrowserBackend(object):
   def wpr_mode(self):
     return self.options.wpr_mode
 
-  def _WaitForBrowserToComeUp(self):
+  def _WaitForBrowserToComeUp(self, timeout=None):
     def IsBrowserUp():
       try:
-        self._ListTabs()
-      except BrowserConnectionGoneException:
+        self.Request('', timeout=timeout)
+      except (socket.error, httplib.BadStatusLine, urllib2.URLError):
         return False
       else:
         return True
@@ -65,7 +155,7 @@ class BrowserBackend(object):
 
   def _PostBrowserStartupInitialization(self):
     # Detect version information.
-    data = self._Request('version')
+    data = self.Request('version')
     resp = json.loads(data)
     if 'Protocol-Version' in resp:
       self._inspector_protocol_version = resp['Protocol-Version']
@@ -82,59 +172,14 @@ class BrowserBackend(object):
     self._chrome_branch_number = 1025
     self._webkit_base_revision = 106313
 
-  def _Request(self, path, timeout=None):
+  def Request(self, path, timeout=None):
     url = 'http://localhost:%i/json/%s' % (self._port, path)
     req = urllib2.urlopen(url, timeout=timeout)
     return req.read()
 
-  def _ListTabs(self, timeout=None):
-    try:
-      data = self._Request('', timeout=timeout)
-      all_contexts = json.loads(data)
-      tabs = [ctx for ctx in all_contexts
-              if not ctx['url'].startswith('chrome-extension://')]
-      # FIXME(dtu): The remote debugger protocol returns in order of most
-      # recently created tab first. In order to convert it to the UI tab
-      # order, we just reverse the list, which assumes we can't move tabs.
-      # We should guarantee that the remote debugger returns in UI tab order.
-      tabs.reverse()
-      return tabs
-    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
-      if not self.IsBrowserRunning():
-        raise browser_gone_exception.BrowserGoneException()
-      raise BrowserConnectionGoneException()
-
-  def NewTab(self, timeout=None):
-    data = self._Request('new', timeout=timeout)
-    new_tab = json.loads(data)
-    return new_tab
-
-  def CloseTab(self, index, timeout=None):
-    assert self.num_tabs > 1, 'Closing the last tab not supported.'
-    target_tab = self._ListTabs()[index]
-    tab_id = target_tab['webSocketDebuggerUrl'].split('/')[-1]
-    target_num_tabs = self.num_tabs - 1
-
-    self._Request('close/%s' % tab_id, timeout=timeout)
-
-    util.WaitFor(lambda: self.num_tabs == target_num_tabs, timeout=5)
-
   @property
-  def num_tabs(self):
-    return len(self._ListTabs())
-
-  def GetNthTabUrl(self, index):
-    return self._ListTabs()[index]['url']
-
-  def ConnectToNthTab(self, browser, index):
-    ib = inspector_backend.InspectorBackend(self, self._ListTabs()[index])
-    return tab.Tab(browser, ib)
-
-  def DoesDebuggerUrlExist(self, url):
-    matches = [t for t in self._ListTabs()
-               if 'webSocketDebuggerUrl' in t and\
-               t['webSocketDebuggerUrl'] == url]
-    return len(matches) >= 1
+  def supports_tab_control(self):
+    return self._chrome_branch_number >= 1303
 
   def CreateForwarder(self, host_port):
     raise NotImplementedError()

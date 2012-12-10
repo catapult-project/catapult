@@ -27,11 +27,11 @@ class _RunState(object):
 
   def Close(self):
     if self.trace_tab:
-      self.trace_tab.Close()
+      self.trace_tab.Disconnect()
       self.trace_tab = None
 
     if self.tab:
-      self.tab.Close()
+      self.tab.Disconnect()
       self.tab = None
 
     if self.browser:
@@ -118,16 +118,22 @@ http://goto/read-src-internal, or create a new archive using --record.
               self._SetupBrowser(state, test, possible_browser,
                                  credentials_path, archive_path)
             if not state.tab:
-              state.tab = state.browser.ConnectToNthTab(0)
+              if len(state.browser.tabs) == 0:
+                state.browser.tabs.New()
+              state.tab = state.browser.tabs[0]
             if options.trace_dir:
               self._SetupTracingTab(state)
 
             try:
               self._RunPage(options, page, state.tab, test, results)
             except tab_crash_exception.TabCrashException:
+              # Close the crashed tab. We'll open another before the next run.
+              if state.browser.supports_tab_control:
+                state.tab.Close()
+                state.tab = None
               # If we don't support tab control, just restart the browser.
-              # TODO(dtu): Create a new tab: crbug.com/155077, crbug.com/159852
-              state.Close()
+              else:
+                state.Close()
 
             if options.trace_dir and state.trace_tab:
               self._EndTracing(state, options, page)
@@ -224,13 +230,12 @@ http://goto/read-src-internal, or create a new archive using --record.
 
   def _SetupTracingTab(self, state):
     if not state.trace_tab:
-      state.browser.NewTab()
       # Swap the two tabs because new tabs open to about:blank, and we
       # can't navigate across protocols to chrome://tracing. The initial
       # tab starts at chrome://newtab, so it works for that tab.
       # TODO(dtu): If the trace_tab crashes, we're hosed.
       state.trace_tab = state.tab
-      state.tab = state.browser.ConnectToNthTab(1)
+      state.tab = state.browser.tabs.New()
 
       state.trace_tab.page.Navigate('chrome://tracing')
       state.trace_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

@@ -13,10 +13,10 @@ class BrowserTest(unittest.TestCase):
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')
     with browser_to_create.Create() as b:
-      self.assertEquals(1, b.num_tabs)
+      self.assertEquals(1, len(b.tabs))
 
       # Different browsers boot up to different things
-      assert b.GetNthTabUrl(0)
+      assert b.tabs[0].url
 
   def testCommandLineOverriding(self):
     # This test starts the browser with --enable-benchmarking, which should
@@ -29,11 +29,10 @@ class BrowserTest(unittest.TestCase):
 
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
-      with b.ConnectToNthTab(0) as t:
-        t.page.Navigate('http://www.google.com/')
-        t.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-        self.assertEquals(t.runtime.Evaluate('navigator.userAgent'),
-                          'telemetry')
+      t = b.tabs[0]
+      t.page.Navigate('http://www.google.com/')
+      t.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      self.assertEquals(t.runtime.Evaluate('navigator.userAgent'), 'telemetry')
 
   def testVersionDetection(self):
     options = options_for_unittests.GetCopy()
@@ -48,13 +47,15 @@ class BrowserTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
-      self.assertEquals(1, b.num_tabs)
-      existing_tab_url = b.GetNthTabUrl(0)
-      b.NewTab()
-      self.assertEquals(2, b.num_tabs)
-      self.assertEquals(b.GetNthTabUrl(0), existing_tab_url)
-      self.assertEquals(b.GetNthTabUrl(1), 'about:blank')
-      b.CloseTab(1)
-      self.assertEquals(1, b.num_tabs)
-      self.assertEquals(b.GetNthTabUrl(0), existing_tab_url)
-      self.assertRaises(AssertionError, b.CloseTab, 0)
+      existing_tab = b.tabs[0]
+      self.assertEquals(1, len(b.tabs))
+      existing_tab_url = existing_tab.url
+
+      new_tab = b.tabs.New()
+      self.assertEquals(2, len(b.tabs))
+      self.assertEquals(existing_tab.url, existing_tab_url)
+      self.assertEquals(new_tab.url, 'about:blank')
+
+      new_tab.Close()
+      self.assertEquals(1, len(b.tabs))
+      self.assertEquals(existing_tab.url, existing_tab_url)

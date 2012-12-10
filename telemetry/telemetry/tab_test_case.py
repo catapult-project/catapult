@@ -27,14 +27,14 @@ class TabTestCase(unittest.TestCase):
       raise Exception('No browser found, cannot continue test.')
     try:
       self._browser = browser_to_create.Create()
-      self._tab = self._browser.ConnectToNthTab(0)
+      self._tab = self._browser.tabs[0]
     except:
       self.tearDown()
       raise
 
   def tearDown(self):
     if self._tab:
-      self._tab.Close()
+      self._tab.Disconnect()
     if self._browser:
       self._browser.Close()
 

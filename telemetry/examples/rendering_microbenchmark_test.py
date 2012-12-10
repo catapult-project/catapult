@@ -34,41 +34,41 @@ def Main(args):
         telemetry.GetAllAvailableBrowserTypes(options))
     return 255
   with browser_to_create.Create() as b:
-    with b.ConnectToNthTab(0) as tab:
-      # Check browser for benchmark API. Can only be done on non-chrome URLs.
-      tab.page.Navigate('http://www.google.com')
-      import time
-      time.sleep(2)
-      tab.WaitForDocumentReadyStateToBeComplete()
-      if tab.runtime.Evaluate('window.chrome.gpuBenchmarking === undefined'):
-        print 'Browser does not support gpu benchmarks API.'
-        return 255
+    tab = b.tabs[0]
+    # Check browser for benchmark API. Can only be done on non-chrome URLs.
+    tab.page.Navigate('http://www.google.com')
+    import time
+    time.sleep(2)
+    tab.WaitForDocumentReadyStateToBeComplete()
+    if tab.runtime.Evaluate('window.chrome.gpuBenchmarking === undefined'):
+      print 'Browser does not support gpu benchmarks API.'
+      return 255
 
-      if tab.runtime.Evaluate(
-          'window.chrome.gpuBenchmarking.runRenderingBenchmarks === undefined'):
-        print 'Browser does not support rendering benchmarks API.'
-        return 255
+    if tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking.runRenderingBenchmarks === undefined'):
+      print 'Browser does not support rendering benchmarks API.'
+      return 255
 
-      # Run the test. :)
-      first_line = []
-      def DumpResults(url, results):
-        if len(first_line) == 0:
-          cols = ['url']
-          for r in results:
-            cols.append(r['benchmark'])
-          print ','.join(cols)
-          first_line.append(0)
-        cols = [url]
+    # Run the test. :)
+    first_line = []
+    def DumpResults(url, results):
+      if len(first_line) == 0:
+        cols = ['url']
         for r in results:
-          cols.append(str(r['result']))
+          cols.append(r['benchmark'])
         print ','.join(cols)
+        first_line.append(0)
+      cols = [url]
+      for r in results:
+        cols.append(str(r['result']))
+      print ','.join(cols)
 
-      for u in urls:
-        tab.page.Navigate(u)
-        tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-        results = tab.runtime.Evaluate(
-            'window.chrome.gpuBenchmarking.runRenderingBenchmarks();')
-        DumpResults(url, results)
+    for u in urls:
+      tab.page.Navigate(u)
+      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      results = tab.runtime.Evaluate(
+          'window.chrome.gpuBenchmarking.runRenderingBenchmarks();')
+      DumpResults(url, results)
 
   return 0
 

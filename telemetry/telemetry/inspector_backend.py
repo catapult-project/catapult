@@ -13,12 +13,10 @@ class InspectorException(Exception):
   pass
 
 class InspectorBackend(object):
-  def __init__(self, backend, descriptor):
-    self._backend = backend
-    self._descriptor = descriptor
-    self._socket_url = descriptor['webSocketDebuggerUrl']
-    self._socket = websocket.create_connection(
-        descriptor['webSocketDebuggerUrl'])
+  def __init__(self, tab_controller, debugger_url):
+    self._tab_controller = tab_controller
+    self._socket_url = debugger_url
+    self._socket = websocket.create_connection(self._socket_url)
     self._next_request_id = 0
     self._domain_handlers = {}
     self._cur_socket_timeout = 0
@@ -30,14 +28,14 @@ class InspectorBackend(object):
     self._domain_handlers = {}
     self._socket.close()
     self._socket = None
-    self._backend = None
+    self._tab_controller = None
 
   def DispatchNotifications(self, timeout=10):
     self._SetTimeout(timeout)
     try:
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
-      if self._backend.DoesDebuggerUrlExist(self._socket_url):
+      if self._tab_controller.DoesDebuggerUrlExist(self._socket_url):
         return
       raise tab_crash_exception.TabCrashException()
 
@@ -81,7 +79,7 @@ class InspectorBackend(object):
       try:
         data = self._socket.recv()
       except (socket.error, websocket.WebSocketException):
-        if self._backend.DoesDebuggerUrlExist(self._socket_url):
+        if self._tab_controller.DoesDebuggerUrlExist(self._socket_url):
           raise util.TimeoutException(
             'Timed out waiting for reply. This is unusual.')
         raise tab_crash_exception.TabCrashException()

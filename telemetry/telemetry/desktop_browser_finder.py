@@ -36,7 +36,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self._options, self._local_executable, self._is_content_shell)
-    return browser.Browser(backend, platform.Platform())
+    b = browser.Browser(backend, platform.Platform())
+    backend.SetBrowser(b)
+    return b
 
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""

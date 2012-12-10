@@ -70,8 +70,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       raise
 
     # Make sure there's a tab open.
-    if self.num_tabs == 0:
-      self.NewTab()
+    if len(self.tabs) == 0:
+      self.tabs.New()
 
     logging.info('Browser is up!')
 

@@ -28,7 +28,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = cros_browser_backend.CrOSBrowserBackend(
         self.browser_type, self._options, *self._args)
-    return browser.Browser(backend, platform.Platform())
+    b = browser.Browser(backend, platform.Platform())
+    backend.SetBrowser(b)
+    return b
 
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
