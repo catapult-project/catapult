@@ -21,13 +21,15 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     self._package = package
     self._cmdline_file = cmdline_file
     self._activity = activity
-    self._port = 9222
+    if not options.keep_test_server_ports:
+      adb_commands.ResetTestServerPortAllocation()
+    self._port = adb_commands.AllocateTestServerPort()
     self._devtools_remote_port = devtools_remote_port
 
     # Kill old browser.
     self._adb.KillAll(self._package)
     self._adb.KillAll('device_forwarder')
-    self._adb.Forward('tcp:9222', self._devtools_remote_port)
+    self._adb.Forward('tcp:%d' % self._port, self._devtools_remote_port)
 
     # Chrome Android doesn't listen to --user-data-dir.
     # TODO: symlink the app's Default, files and cache dir

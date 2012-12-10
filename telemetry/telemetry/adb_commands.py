@@ -19,12 +19,15 @@ try:
   from pylib import android_commands # pylint: disable=F0401
   from pylib import cmd_helper # pylint: disable=F0401
   from pylib import forwarder # pylint: disable=F0401
+  from pylib import ports # pylint: disable=F0401
   from pylib import valgrind_tools # pylint: disable=F0401
 except Exception:
   android_commands = None
 
+
 def IsAndroidSupported():
   return android_commands != None
+
 
 def GetAttachedDevices():
   """Returns a list of attached, online android devices.
@@ -32,6 +35,15 @@ def GetAttachedDevices():
   If a preferred device has been set with ANDROID_SERIAL, it will be first in
   the returned list."""
   return android_commands.GetAttachedDevices()
+
+
+def AllocateTestServerPort():
+  return ports.AllocateTestServerPort()
+
+
+def ResetTestServerPortAllocation():
+  return ports.ResetTestServerPortAllocation()
+
 
 class AdbCommands(object):
   """A thin wrapper around ADB"""
