@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 import logging
 import sys
+import time
 
 from telemetry import all_page_interactions # pylint: disable=W0611
 from telemetry import browser_finder
@@ -33,6 +34,9 @@ class RecordPage(page_test.PageTest):
       interaction.CustomizeBrowserOptions(options)
 
   def Run(self, options, page, tab, results):
+    # When recording, sleep to catch any resources that load post-onload.
+    time.sleep(3)
+
     # Run the interactions for all benchmarks. Reload the page between
     # interactions.
     should_reload = False
