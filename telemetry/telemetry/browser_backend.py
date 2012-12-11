@@ -173,7 +173,9 @@ class BrowserBackend(object):
     self._webkit_base_revision = 106313
 
   def Request(self, path, timeout=None):
-    url = 'http://localhost:%i/json/%s' % (self._port, path)
+    url = 'http://localhost:%i/json' % self._port
+    if path:
+      url += '/' + path
     req = urllib2.urlopen(url, timeout=timeout)
     return req.read()
 
