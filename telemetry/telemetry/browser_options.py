@@ -60,7 +60,7 @@ class BrowserOptions(optparse.Values):
         dest='android_device',
         help='The android device ID to use'
              'If not specified, only 0 or 1 connected devcies are supported.')
-    group.add_option('--keep_test_server_ports',
+    group.add_option('--keep_test_server_ports', action='store_true',
         help='Indicates the test server ports must be '
              'kept. When this is run via a sharder '
              'the test server ports should be kept and '
