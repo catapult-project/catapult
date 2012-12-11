@@ -77,7 +77,7 @@ class PageTest(object):
     self.options = options
     interaction = self.GetInteraction(page)
     if interaction:
-      tab.WaitForDocumentReadyStateToBeComplete()
+      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       self.WillRunInteraction(page, tab)
       interaction.PerformInteraction(page, tab)
       self.DidRunInteraction(page, tab)
