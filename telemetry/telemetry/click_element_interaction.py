@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import time
 
+from telemetry import inspector_runtime
 from telemetry import page_interaction
 from telemetry import util
 
@@ -15,7 +16,11 @@ class ClickElementInteraction(page_interaction.PageInteraction):
       assert hasattr(self, 'selector') or hasattr(self, 'text')
       if hasattr(self, 'selector'):
         code = 'document.querySelector(\'' + self.selector + '\').click();'
-        tab.runtime.Execute(code)
+        try:
+          tab.runtime.Execute(code)
+        except inspector_runtime.EvaluateException:
+          raise page_interaction.PageInteractionFailed(
+              'Cannot find element with selector ' + self.selector)
       else:
         click_element = """
             function clickElement(element, text) {
