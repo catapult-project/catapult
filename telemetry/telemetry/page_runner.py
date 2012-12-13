@@ -79,7 +79,7 @@ The page set archive %s does not exist, benchmarking against live sites!
 Results won't be repeatable or comparable.
 
 To fix this, either add svn-internal to your .gclient using
-http://goto/read-src-internal, or create a new archive using --record.
+http://goto/read-src-internal, or create a new archive using record_wpr.
 """, os.path.relpath(archive_path))
 
     # Verify credentials path.
