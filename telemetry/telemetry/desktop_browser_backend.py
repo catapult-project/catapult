@@ -20,8 +20,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
-    self._devnull = None
     self._tmpdir = None
+    self._tmp_output_file = None
 
     self._executable = executable
     if not self._executable:
@@ -31,11 +31,10 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if not options.show_stdout:
-      self._devnull = open(os.devnull, 'w')
+      self._tmp_output_file = tempfile.NamedTemporaryFile()
       self._proc = subprocess.Popen(
-        args, stdout=self._devnull, stderr=self._devnull)
+          args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
     else:
-      self._devnull = None
       self._proc = subprocess.Popen(args)
 
     try:
@@ -57,6 +56,12 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
   def IsBrowserRunning(self):
     return self._proc.poll() == None
+
+  def GetStandardOutput(self):
+    assert self._tmp_output_file, "Can't get standard output with show_stdout"
+    self._tmp_output_file.flush()
+    with open(self._tmp_output_file.name) as f:
+      return f.read()
 
   def __del__(self):
     self.Close()
@@ -91,9 +96,9 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       shutil.rmtree(self._tmpdir, ignore_errors=True)
       self._tmpdir = None
 
-    if self._devnull:
-      self._devnull.close()
-      self._devnull = None
+    if self._tmp_output_file:
+      self._tmp_output_file.close()
+      self._tmp_output_file = None
 
   def CreateForwarder(self, *ports):
     return DoNothingForwarder(ports[0])

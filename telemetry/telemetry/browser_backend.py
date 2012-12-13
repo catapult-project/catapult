@@ -95,8 +95,11 @@ class TabController(object):
       raise BrowserConnectionGoneException()
 
   def _UpdateTabList(self):
-    new_tab_list = map(lambda tab_info: tab_info['webSocketDebuggerUrl'],
-                       self._ListTabs())
+    def GetDebuggerUrl(tab_info):
+      if 'webSocketDebuggerUrl' not in tab_info:
+        return None
+      return tab_info['webSocketDebuggerUrl']
+    new_tab_list = map(GetDebuggerUrl, self._ListTabs())
     self._tab_list = [t for t in self._tab_list if t in new_tab_list]
     self._tab_list += [t for t in new_tab_list if t not in self._tab_list]
 
@@ -187,4 +190,7 @@ class BrowserBackend(object):
     raise NotImplementedError()
 
   def IsBrowserRunning(self):
+    raise NotImplementedError()
+
+  def GetStandardOutput(self):
     raise NotImplementedError()

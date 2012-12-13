@@ -127,13 +127,14 @@ http://goto/read-src-internal, or create a new archive using --record.
             try:
               self._RunPage(options, page, state.tab, test, results)
             except tab_crash_exception.TabCrashException:
-              # Close the crashed tab. We'll open another before the next run.
-              if state.browser.supports_tab_control:
-                state.tab.Close()
-                state.tab = None
-              # If we don't support tab control, just restart the browser.
-              else:
-                state.Close()
+              if not options.show_stdout:
+                stdout = state.browser.GetStandardOutput()
+                stdout = (('\nStandard Output:\n') +
+                          ('*' * 80) +
+                          '\n\t' + stdout.replace('\n', '\n\t') + '\n' +
+                          ('*' * 80))
+              logging.warning('Tab crashed: %s%s', page.url, stdout)
+              state.Close()
 
             if options.trace_dir and state.trace_tab:
               self._EndTracing(state, options, page)
@@ -164,11 +165,10 @@ http://goto/read-src-internal, or create a new archive using --record.
       results.AddFailure(page, ex, traceback.format_exc())
       return
     except tab_crash_exception.TabCrashException, ex:
-      logging.warning('Tab crashed: %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       raise
     except browser_gone_exception.BrowserGoneException:
-      raise browser_gone_exception.BrowserGoneException()
+      raise
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())
@@ -190,11 +190,10 @@ http://goto/read-src-internal, or create a new archive using --record.
       results.AddFailure(page, ex, traceback.format_exc())
       return
     except tab_crash_exception.TabCrashException, ex:
-      logging.warning('Tab crashed: %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       raise
     except browser_gone_exception.BrowserGoneException:
-      raise browser_gone_exception.BrowserGoneException()
+      raise
     except Exception, ex:
       logging.error('Unexpected failure while running %s: %s',
                     page.url, traceback.format_exc())

@@ -115,6 +115,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
         return True
     return False
 
+  def GetStandardOutput(self):
+    return 'Cannot get standard output on CrOS'
+
   def CreateForwarder(self, *ports):
     assert self._cri
     return SSHForwarder(self._cri, 'R', *ports)

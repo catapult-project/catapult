@@ -129,5 +129,9 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     pids = self._adb.ExtractPid(self._package)
     return len(pids) != 0
 
+  def GetStandardOutput(self):
+    # Return the last 100 lines of logcat.
+    return '\n'.join(self._adb.RunShellCommand('logcat -d -t 100'))
+
   def CreateForwarder(self, *ports):
     return adb_commands.Forwarder(self._adb, *ports)

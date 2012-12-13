@@ -106,3 +106,6 @@ class Browser(object):
 
     self._wpr_server = wpr_server.ReplayServer(
       self._backend, archive_path, use_record_mode)
+
+  def GetStandardOutput(self):
+    return self._backend.GetStandardOutput()
