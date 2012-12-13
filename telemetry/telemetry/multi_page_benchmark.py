@@ -81,9 +81,11 @@ results! You must return the same dict keys every time."""
         self.results_summary.iteritems()):
       measurement, units, data_type = measurement_units_type
       if data_type == 'histogram':
-        unimportant_data_type = 'unimportant-histogram'
+        # For histograms, the _by_url data is important.
+        by_url_data_type = 'histogram'
       else:
-        unimportant_data_type = 'unimportant'
+        # For non-histograms, the _by_url data is unimportant.
+        by_url_data_type = 'unimportant'
       if '.' in measurement:
         measurement, trace = measurement.split('.', 1)
         trace += (trace_tag or '')
@@ -94,8 +96,10 @@ results! You must return the same dict keys every time."""
         assert len(self.urls) == len(values)
         for i, value in enumerate(values):
           PrintPerfResult(measurement + '_by_url', self.urls[i], [value], units,
-                          unimportant_data_type)
-      PrintPerfResult(measurement, trace, values, units, data_type)
+                          by_url_data_type)
+      # For histograms, we don't print the average data, only the _by_url.
+      if not data_type == 'histogram':
+        PrintPerfResult(measurement, trace, values, units, data_type)
 
 
 class IncrementalBenchmarkResults(BenchmarkResults):
