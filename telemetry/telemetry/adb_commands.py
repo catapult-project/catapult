@@ -45,6 +45,10 @@ def ResetTestServerPortAllocation():
   return ports.ResetTestServerPortAllocation()
 
 
+def GetOutDirectory():
+  return cmd_helper.OutDirectory.get()
+
+
 class AdbCommands(object):
   """A thin wrapper around ADB"""
 
@@ -136,9 +140,9 @@ def HasForwarder(buildtype=None):
   if not buildtype:
     return (HasForwarder(buildtype='Release') or
             HasForwarder(buildtype='Debug'))
-  return (os.path.exists(os.path.join(cmd_helper.OutDirectory.get(), buildtype,
+  return (os.path.exists(os.path.join(GetOutDirectory(), buildtype,
                                       'device_forwarder')) and
-          os.path.exists(os.path.join(cmd_helper.OutDirectory.get(), buildtype,
+          os.path.exists(os.path.join(GetOutDirectory(), buildtype,
                                       'host_forwarder')))
 
 class Forwarder(object):

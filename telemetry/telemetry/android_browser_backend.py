@@ -1,9 +1,11 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import logging
-import tempfile
 import json
+import logging
+import os
+import subprocess
+import tempfile
 
 from telemetry import adb_commands
 from telemetry import browser_backend
@@ -98,7 +100,8 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
             f.write(txt)
           self._adb.Push(raw_f.name, prefs_file)
 
-    # Start it up!
+    # Start it up with a fresh log.
+    self._adb.RunShellCommand('logcat -c')
     self._adb.StartActivity(self._package,
                             self._activity,
                             True,
@@ -130,7 +133,28 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     return len(pids) != 0
 
   def GetStandardOutput(self):
-    # Return the last 100 lines of logcat.
+    # If we can find symbols and there is a stack, output the symbolized stack.
+    symbol_paths = [
+        os.path.join(adb_commands.GetOutDirectory(), 'Release', 'lib.target'),
+        os.path.join(adb_commands.GetOutDirectory(), 'Debug', 'lib.target')]
+    for symbol_path in symbol_paths:
+      if not os.path.isdir(symbol_path):
+        continue
+      with tempfile.NamedTemporaryFile() as f:
+        lines = self._adb.RunShellCommand('logcat -d')
+        for line in lines:
+          f.write(line + '\n')
+        symbolized_stack = None
+        try:
+          logging.info('Symbolizing stack...')
+          symbolized_stack = subprocess.Popen([
+              'ndk-stack', '-sym', symbol_path,
+              '-dump', f.name], stdout=subprocess.PIPE).communicate()[0]
+        except Exception:
+          pass
+        if symbolized_stack:
+          return symbolized_stack
+    # Otherwise, just return the last 100 lines of logcat.
     return '\n'.join(self._adb.RunShellCommand('logcat -d -t 100'))
 
   def CreateForwarder(self, *ports):
