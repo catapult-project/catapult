@@ -54,6 +54,19 @@ class Browser(object):
   def tabs(self):
     return self._backend.tabs
 
+  @property
+  def supports_tracing(self):
+    return self._backend.supports_tracing
+
+  def StartTracing(self):
+    return self._backend.StartTracing()
+
+  def StopTracing(self):
+    return self._backend.StopTracing()
+
+  def GetTrace(self):
+    return self._backend.GetTrace()
+
   def Close(self):
     """Closes this browser."""
     if self._wpr_server:

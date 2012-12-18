@@ -23,13 +23,9 @@ class _RunState(object):
     self.first_browser = True
     self.browser = None
     self.tab = None
-    self.trace_tab = None
+    self.is_tracing = False
 
   def Close(self):
-    if self.trace_tab:
-      self.trace_tab.Disconnect()
-      self.trace_tab = None
-
     if self.tab:
       self.tab.Disconnect()
       self.tab = None
@@ -136,7 +132,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
               logging.warning('Tab crashed: %s%s', page.url, stdout)
               state.Close()
 
-            if options.trace_dir and state.trace_tab:
+            if options.trace_dir:
               self._EndTracing(state, options, page)
             break
           except browser_gone_exception.BrowserGoneException:
@@ -228,56 +224,33 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
     state.browser.SetReplayArchivePath(archive_path)
 
   def _SetupTracingTab(self, state):
-    if not state.trace_tab:
-      # Swap the two tabs because new tabs open to about:blank, and we
-      # can't navigate across protocols to chrome://tracing. The initial
-      # tab starts at chrome://newtab, so it works for that tab.
-      # TODO(dtu): If the trace_tab crashes, we're hosed.
-      state.trace_tab = state.tab
-      state.tab = state.browser.tabs.New()
-
-      state.trace_tab.page.Navigate('chrome://tracing')
-      state.trace_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-
-    # Start tracing.
-    state.trace_tab.runtime.Execute('tracingController.beginTracing('
-        'tracingController.supportsSystemTracing);')
+    if state.browser.supports_tracing:
+      state.is_tracing = True
+      state.browser.StartTracing()
 
   def _EndTracing(self, state, options, page):
-    def IsTracingRunning():
-      return state.trace_tab.runtime.Evaluate(
-          'tracingController.isTracingEnabled')
-    # Tracing might have ended already if the buffer filled up.
-    if IsTracingRunning():
-      state.trace_tab.runtime.Execute('tracingController.endTracing()')
-    util.WaitFor(lambda: not IsTracingRunning(), 10)
+    if state.is_tracing:
+      state.is_tracing = False
+      state.browser.StopTracing()
+      trace = state.browser.GetTrace()
+      logging.info('Processing trace...')
 
-    logging.info('Processing trace...')
+      trace_file_base = os.path.join(
+          options.trace_dir, page.url_as_file_safe_name)
 
-    trace_file_base = os.path.join(
-        options.trace_dir, page.url_as_file_safe_name)
+      if options.page_repeat != 1 or options.pageset_repeat != 1:
+        trace_file_index = 0
 
-    if options.page_repeat != 1 or options.pageset_repeat != 1:
-      trace_file_index = 0
-
-      while True:
-        trace_file = '%s_%03d.json' % (trace_file_base, trace_file_index)
-        if not os.path.exists(trace_file):
-          break
-        trace_file_index = trace_file_index + 1
-    else:
-      trace_file = '%s.json' % trace_file_base
-
-    with open(trace_file, 'w') as trace_file:
-      trace_file.write(state.trace_tab.runtime.Evaluate("""
-        JSON.stringify({
-          traceEvents: tracingController.traceEvents,
-          systemTraceEvents: tracingController.systemTraceEvents,
-          clientInfo: tracingController.clientInfo_,
-          gpuInfo: tracingController.gpuInfo_
-        });
-      """))
-    logging.info('Trace saved.')
+        while True:
+          trace_file = '%s_%03d.json' % (trace_file_base, trace_file_index)
+          if not os.path.exists(trace_file):
+            break
+          trace_file_index = trace_file_index + 1
+      else:
+        trace_file = '%s.json' % trace_file_base
+      with open(trace_file, 'w') as trace_file:
+        trace_file.write(trace)
+      logging.info('Trace saved.')
 
   def _PreparePage(self, page, tab, page_state, results):
     parsed_url = urlparse.urlparse(page.url)

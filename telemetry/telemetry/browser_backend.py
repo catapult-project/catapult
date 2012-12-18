@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import urllib2
 import httplib
 import socket
@@ -10,6 +11,7 @@ import weakref
 
 from telemetry import browser_gone_exception
 from telemetry import tab
+from telemetry import tracing_backend
 from telemetry import user_agent
 from telemetry import util
 from telemetry import wpr_modes
@@ -123,6 +125,7 @@ class BrowserBackend(object):
     self._inspector_protocol_version = 0
     self._chrome_branch_number = 0
     self._webkit_base_revision = 0
+    self._tracing_backend = None
 
   def SetBrowser(self, browser):
     self.tabs = TabController(browser, self)
@@ -185,6 +188,23 @@ class BrowserBackend(object):
   @property
   def supports_tab_control(self):
     return self._chrome_branch_number >= 1303
+
+  @property
+  def supports_tracing(self):
+    return True
+
+  def StartTracing(self):
+    self._tracing_backend = tracing_backend.TracingBackend(self._port)
+    self._tracing_backend.BeginTracing()
+
+  def StopTracing(self):
+    self._tracing_backend.EndTracingAsync()
+
+  def GetTrace(self):
+    def IsTracingRunning(self):
+      return not self._tracing_backend.HasCompleted()
+    util.WaitFor(lambda: not IsTracingRunning(self), 10)
+    return self._tracing_backend.GetTraceAndReset()
 
   def CreateForwarder(self, host_port):
     raise NotImplementedError()
