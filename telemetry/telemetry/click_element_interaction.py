@@ -1,9 +1,8 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import time
-
 from telemetry import inspector_runtime
+from telemetry import page as page_module
 from telemetry import page_interaction
 from telemetry import util
 
@@ -22,21 +21,10 @@ class ClickElementInteraction(page_interaction.PageInteraction):
           raise page_interaction.PageInteractionFailed(
               'Cannot find element with selector ' + self.selector)
       else:
-        click_element = """
-            function clickElement(element, text) {
-              if (element.innerHTML == text) {
-                element.click();
-                return true;
-              }
-              for (var i in element.childNodes) {
-                if (clickElement(element.childNodes[i], text))
-                  return true;
-              }
-              return false;
-            }"""
-        tab.runtime.Execute(click_element)
-        code = 'clickElement(document, "' + self.text + '");'
-        if not tab.runtime.Evaluate(code):
+        callback_code = 'function(element) { element.click(); }'
+        try:
+          util.FindElementAndPerformAction(tab, self.text, callback_code)
+        except inspector_runtime.EvaluateException:
           raise page_interaction.PageInteractionFailed(
               'Cannot find element with text ' + self.text)
 
@@ -47,10 +35,8 @@ class ClickElementInteraction(page_interaction.PageInteraction):
       DoClick()
       util.WaitFor(lambda: tab.runtime.Evaluate(
           'document.location.href') != old_url, 60)
-    elif hasattr(self, 'wait_seconds'):
-      time.sleep(self.wait_seconds)
-      DoClick()
     else:
       DoClick()
 
-    tab.WaitForDocumentReadyStateToBeComplete()
+    page_module.Page.WaitForPageToLoad(self, tab, 60)
+    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

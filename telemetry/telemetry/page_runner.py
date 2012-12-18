@@ -202,14 +202,6 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
   def Close(self):
     pass
 
-  @staticmethod
-  def WaitForPageToLoad(expression, tab):
-    def IsPageLoaded():
-      return tab.runtime.Evaluate(expression)
-
-    # Wait until the form is submitted and the page completes loading.
-    util.WaitFor(IsPageLoaded, 60)
-
   def _SetupBrowser(self, state, test, possible_browser, credentials_path,
                     archive_path):
     assert not state.tab
@@ -276,9 +268,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
     # Wait for unpredictable redirects.
     if page.wait_time_after_navigate:
       time.sleep(page.wait_time_after_navigate)
-    if page.wait_for_javascript_expression is not None:
-      self.WaitForPageToLoad(page.wait_for_javascript_expression, tab)
-
+    page.WaitToLoad(tab, 60)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
     return True
 

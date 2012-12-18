@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 import os
 import re
+import time
 import urlparse
+
+from telemetry import util
 
 class Page(object):
   def __init__(self, url, attributes=None, base_dir=None):
@@ -18,7 +21,6 @@ class Page(object):
     self.base_dir = base_dir
     self.credentials = None
     self.wait_time_after_navigate = 2
-    self.wait_for_javascript_expression = None
 
     if attributes:
       for k, v in attributes.iteritems():
@@ -58,3 +60,26 @@ class Page(object):
 
   def __str__(self):
     return self.url
+
+  def WaitToLoad(self, tab, timeout, poll_interval=0.1):
+    Page.WaitForPageToLoad(self, tab, timeout, poll_interval)
+
+  @staticmethod
+  def WaitForPageToLoad(obj, tab, timeout, poll_interval=0.1):
+    """Waits for various wait conditions present in obj."""
+    if hasattr(obj, 'wait_seconds'):
+      time.sleep(obj.wait_seconds)
+    if hasattr(obj, 'wait_for_element_with_text'):
+      callback_code = 'function(element) { return element != null; }'
+      util.WaitFor(
+          lambda: util.FindElementAndPerformAction(
+              tab, obj.wait_for_element_with_text, callback_code),
+          timeout, poll_interval)
+    if hasattr(obj, 'wait_for_element_with_selector'):
+      util.WaitFor(lambda: tab.runtime.Evaluate(
+           'document.querySelector(\'' + obj.wait_for_element_with_selector +
+           '\') != null'), timeout, poll_interval)
+    if hasattr(obj, 'wait_for_javascript_expression'):
+      util.WaitFor(
+          lambda: tab.runtime.Evaluate(obj.wait_for_javascript_expression),
+          timeout, poll_interval)
