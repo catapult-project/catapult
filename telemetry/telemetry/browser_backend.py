@@ -62,7 +62,11 @@ class TabController(object):
 
   def GetTabUrl(self, debugger_url):
     tab_info = self._FindTabInfo(debugger_url)
-    assert tab_info is not None
+    # TODO(hartmanng): crbug.com/166886 (uncomment the following assert and
+    # remove the extra None check when _ListTabs is fixed):
+    # assert tab_info is not None
+    if tab_info is None:
+      return None
     return tab_info['url']
 
   def __iter__(self):

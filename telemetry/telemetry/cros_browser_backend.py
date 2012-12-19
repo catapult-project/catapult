@@ -69,9 +69,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       raise
 
-    # Make sure there's a tab open.
-    if len(self.tabs) == 0:
-      self.tabs.New()
 
     logging.info('Browser is up!')
 
@@ -91,6 +88,41 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--start-maximized'])
 
     return args
+
+  def SetBrowser(self, browser):
+    super(CrOSBrowserBackend, self).SetBrowser(browser)
+
+    # TODO(hartmanng): crbug.com/166886 (Remove these temporary hacks when
+    # _ListTabs is fixed)
+
+    # Wait for the oobe login screen to disappear. Unfortunately, once it does,
+    # our TabController needs to be refreshed to point at the new non-login tab.
+    tab_url = None
+
+    # When tab_url is None, we have to create or refresh the TabController
+    # and wait for the oobe login screen to disappear.
+    while tab_url is None:
+      self.tabs = browser_backend.TabController(browser, self)
+
+      if len(self.tabs) == 0:
+        break
+
+      # Wait for the login screen to disappear. This can cause tab_url to be
+      # None or to not be 'chrome://oobe/login'.
+      def IsTabNoneOrOobeLogin():
+        tab_url = self.tabs[0].url
+        return tab_url is None or tab_url != 'chrome://oobe/login'
+
+      util.WaitFor(lambda: IsTabNoneOrOobeLogin(), 60) # pylint: disable=W0108
+
+      # Refresh our tab_url variable with the current tab[0].url. If it is None
+      # at this point, we need to continue the loop to refresh TabController.
+      tab_url = self.tabs[0].url
+
+    # Once we're sure that the login screen is gone, we can close all open tabs
+    # to make sure the first-start window doesn't interfere.
+    for _ in range(len(self.tabs)):
+      self.tabs[0].Close()
 
   def __del__(self):
     self.Close()
