@@ -123,6 +123,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
             try:
               self._RunPage(options, page, state.tab, test, results)
             except tab_crash_exception.TabCrashException:
+              stdout = ''
               if not options.show_stdout:
                 stdout = state.browser.GetStandardOutput()
                 stdout = (('\nStandard Output:\n') +

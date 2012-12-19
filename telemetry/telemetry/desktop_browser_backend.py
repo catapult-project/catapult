@@ -31,7 +31,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if not options.show_stdout:
-      self._tmp_output_file = tempfile.NamedTemporaryFile()
+      self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
       self._proc = subprocess.Popen(
           args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
     else:
@@ -60,8 +60,11 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   def GetStandardOutput(self):
     assert self._tmp_output_file, "Can't get standard output with show_stdout"
     self._tmp_output_file.flush()
-    with open(self._tmp_output_file.name) as f:
-      return f.read()
+    try:
+      with open(self._tmp_output_file.name) as f:
+        return f.read()
+    except IOError:
+      return ''
 
   def __del__(self):
     self.Close()
