@@ -70,6 +70,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self.Close()
 
   def Close(self):
+    super(DesktopBrowserBackend, self).Close()
+
     if self._proc:
 
       def IsClosed():

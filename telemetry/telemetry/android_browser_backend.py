@@ -125,6 +125,8 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     self.Close()
 
   def Close(self):
+    super(AndroidBrowserBackend, self).Close()
+
     self._adb.RunShellCommand('rm %s' % self._cmdline_file)
     self._adb.KillAll(self._package)
 

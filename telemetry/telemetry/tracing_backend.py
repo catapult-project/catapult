@@ -35,6 +35,11 @@ class TracingBackend(object):
     r = self._SyncRequest(req)
     return '{"traceEvents":[' + r['response']['result'] + ']}'
 
+  def Close(self):
+    if self._socket:
+      self._socket.close()
+      self._socket = None
+
   def _SyncRequest(self, req, timeout=10):
     self._SetTimeout(timeout)
     req['id'] = self._next_request_id

@@ -128,6 +128,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     self.Close()
 
   def Close(self):
+    super(CrOSBrowserBackend, self).Close()
+
     self._RestartUI() # Logs out.
 
     if self._forwarder:

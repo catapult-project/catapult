@@ -198,7 +198,8 @@ class BrowserBackend(object):
     return True
 
   def StartTracing(self):
-    self._tracing_backend = tracing_backend.TracingBackend(self._port)
+    if self._tracing_backend is None:
+      self._tracing_backend = tracing_backend.TracingBackend(self._port)
     self._tracing_backend.BeginTracing()
 
   def StopTracing(self):
@@ -209,6 +210,11 @@ class BrowserBackend(object):
       return not self._tracing_backend.HasCompleted()
     util.WaitFor(lambda: not IsTracingRunning(self), 10)
     return self._tracing_backend.GetTraceAndReset()
+
+  def Close(self):
+    if self._tracing_backend:
+      self._tracing_backend.Close()
+      self._tracing_backend = None
 
   def CreateForwarder(self, host_port):
     raise NotImplementedError()
