@@ -94,7 +94,7 @@ class InspectorPage(object):
       return False
 
     if self._tab.runtime.Evaluate(
-        'window.chrome.gpuBenchmarking.windowSnapshot === undefined'):
+        'window.chrome.gpuBenchmarking.windowSnapshotPNG === undefined'):
       return False
 
     return True
@@ -107,7 +107,7 @@ class InspectorPage(object):
       raise Exception("Browser was not started with --enable-gpu-benchmarking")
 
     if self._tab.runtime.Evaluate(
-        'window.chrome.gpuBenchmarking.windowSnapshot === undefined'):
+        'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
       raise Exception("Browser does not support window snapshot API.")
 
     self._tab.runtime.Evaluate("""
@@ -116,10 +116,12 @@ class InspectorPage(object):
         }
         window.__telemetry.snapshotComplete = false;
         window.__telemetry.snapshotData = null;
-        window.chrome.gpuBenchmarking.windowSnapshot(function(snapshot) {
+        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG(
+          function(snapshot) {
             window.__telemetry.snapshotData = snapshot;
             window.__telemetry.snapshotComplete = true;
-        });
+          }
+        );
     """)
 
     def IsSnapshotComplete():
