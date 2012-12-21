@@ -27,13 +27,10 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
     ps.pages.append(page)
     return ps
 
-  def CustomizeOptionsForTest(self, options):
-    """Override to customize default options."""
-    pass
-
-  def RunBenchmark(self, benchmark, ps):
+  def RunBenchmark(self, benchmark, ps, options=None):
     """Runs a benchmark against a pageset, returning the rows its outputs."""
-    options = options_for_unittests.GetCopy()
+    if options is None:
+      options = options_for_unittests.GetCopy()
     assert options
     temp_parser = options.CreateParser()
     benchmark.AddCommandLineOptions(temp_parser)
@@ -44,7 +41,6 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
       setattr(options, k, v)
 
     benchmark.CustomizeBrowserOptions(options)
-    self.CustomizeOptionsForTest(options)
     possible_browser = browser_finder.FindBrowser(options)
 
     results = multi_page_benchmark.BenchmarkResults()
