@@ -48,12 +48,13 @@ base.exportTo('tracing', function() {
     // inside a container. E.g { ... , traceEvents: [ ] }
     // If we see that, just pull out the trace events.
     if (this.events_.traceEvents) {
+      var container = this.events_;
       this.events_ = this.events_.traceEvents;
-      for (fieldName in this.events_) {
+      for (fieldName in container) {
         if (fieldName == 'traceEvents')
           continue;
         this.model_.metadata.push({name: fieldName,
-          value: this.events_[fieldName]});
+          value: container[fieldName]});
       }
     }
 
