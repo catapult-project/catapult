@@ -232,7 +232,7 @@ base.exportTo('tracing', function() {
         var model = that.model;
         for (var data in model.metadata) {
           metadataStrings.push(JSON.stringify(model.metadata[data].name) +
-              ': ' + JSON.stringify(model.metadata[data].value));
+                               ': ' + JSON.stringify(model.metadata[data].value, undefined, ' '));
         }
         textEl.textContent = metadataStrings.join('\n');
       }
