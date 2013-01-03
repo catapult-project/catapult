@@ -6,8 +6,6 @@ thin(ish) wrapper around adb."""
 import os
 import sys
 
-from telemetry import util
-
 # This is currently a thin wrapper around Chrome Android's
 # build scripts, located in chrome/build/android. This file exists mainly to
 # deal with locating the module.
@@ -156,10 +154,9 @@ class Forwarder(object):
     new_port_pairs = []
     for port_pair in port_pairs:
       if port_pair.remote_port is None:
-        new_port_pairs.append(util.PortPair(
-            port_pair.local_port, port_pair.local_port))
+        new_port_pairs.append((port_pair.local_port, port_pair.local_port))
       else:
-        new_port_pairs.append(port_pair)
+        new_port_pairs.append((port_pair.local_port, port_pair.remote_port))
 
     buildtype = 'Debug'
     if HasForwarder('Release'):
