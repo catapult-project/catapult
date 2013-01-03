@@ -4,6 +4,8 @@
 import os
 import sys
 
+from telemetry import util
+
 # Get chrome/test/functional scripts into our path.
 # TODO(tonyg): Move webpagereplay.py to a common location.
 sys.path.append(
@@ -24,8 +26,10 @@ class ReplayServer(object):
     # Note: This can cause flake if server doesn't shut down properly and keeps
     # ports tied up. See crbug.com/157459.
     self._forwarder = browser_backend.CreateForwarder(
-        (webpagereplay.HTTP_PORT, webpagereplay.HTTP_PORT),
-        (webpagereplay.HTTPS_PORT, webpagereplay.HTTPS_PORT))
+        util.PortPair(webpagereplay.HTTP_PORT,
+                      webpagereplay.HTTP_PORT),
+        util.PortPair(webpagereplay.HTTPS_PORT,
+                      webpagereplay.HTTPS_PORT))
 
     options = []
     if self._is_record_mode:

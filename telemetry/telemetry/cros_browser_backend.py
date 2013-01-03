@@ -56,7 +56,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     # Forward the remote debugging port.
     logging.info('Forwarding remote debugging port')
     self._forwarder = SSHForwarder(
-      cri, 'L', (self._port, self._remote_debugging_port))
+      cri, 'L',
+      util.PortPair(self._port, self._remote_debugging_port))
 
     # Wait for the browser to come up.
     logging.info('Waiting for browser to be ready')
@@ -152,9 +153,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
   def GetStandardOutput(self):
     return 'Cannot get standard output on CrOS'
 
-  def CreateForwarder(self, *ports):
+  def CreateForwarder(self, *port_pairs):
     assert self._cri
-    return SSHForwarder(self._cri, 'R', *ports)
+    return SSHForwarder(self._cri, 'R', *port_pairs)
 
   def _RestartUI(self):
     if self._cri:
@@ -166,28 +167,35 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
 
 class SSHForwarder(object):
-  def __init__(self, cri, forwarding_flag, *ports):
+  def __init__(self, cri, forwarding_flag, *port_pairs):
     self._proc = None
-    self._host_port = ports[0][0]
 
-    port_pairs = []
+    new_port_pairs = []
 
-    for port in ports:
-      if port[1] is None:
-        port_pairs.append((port[0], cri.GetRemotePort()))
+    for port_pair in port_pairs:
+      if port_pair.remote_port is None:
+        new_port_pairs.append(
+            util.PortPair(port_pair.local_port, cri.GetRemotePort()))
       else:
-        port_pairs.append(port)
+        new_port_pairs.append(port_pair)
 
     if forwarding_flag == 'R':
-      self._device_port = port_pairs[0][0]
+      self._host_port = new_port_pairs[0].remote_port
+      command_line = ['-%s%i:localhost:%i' % (forwarding_flag,
+                                              port_pair.remote_port,
+                                              port_pair.local_port)
+                      for port_pair in new_port_pairs]
     else:
-      self._device_port = port_pairs[0][1]
+      self._host_port = new_port_pairs[0].local_port
+      command_line = ['-%s%i:localhost:%i' % (forwarding_flag,
+                                              port_pair.local_port,
+                                              port_pair.remote_port)
+                      for port_pair in new_port_pairs]
+
+    self._device_port = new_port_pairs[0].remote_port
 
     self._proc = subprocess.Popen(
-      cri.FormSSHCommandLine(
-        ['sleep', '999999999'],
-        ['-%s%i:localhost:%i' % (forwarding_flag, from_port, to_port)
-        for from_port, to_port in port_pairs]),
+      cri.FormSSHCommandLine(['sleep', '999999999'], command_line),
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       stdin=subprocess.PIPE,

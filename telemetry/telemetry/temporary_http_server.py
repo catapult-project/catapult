@@ -31,7 +31,8 @@ class TemporaryHTTPServer(object):
         cwd=self._path,
         stdout=self._devnull, stderr=self._devnull)
 
-    self._forwarder = browser_backend.CreateForwarder((self._host_port, None))
+    self._forwarder = browser_backend.CreateForwarder(
+        util.PortPair(self._host_port, None))
 
     def IsServerUp():
       return not socket.socket().connect_ex(('localhost', self._host_port))

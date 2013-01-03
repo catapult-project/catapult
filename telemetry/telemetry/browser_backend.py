@@ -216,7 +216,7 @@ class BrowserBackend(object):
       self._tracing_backend.Close()
       self._tracing_backend = None
 
-  def CreateForwarder(self, host_port):
+  def CreateForwarder(self, *port_pairs):
     raise NotImplementedError()
 
   def IsBrowserRunning(self):

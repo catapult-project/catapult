@@ -159,5 +159,5 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     # Otherwise, just return the last 100 lines of logcat.
     return '\n'.join(self._adb.RunShellCommand('logcat -d -t 100'))
 
-  def CreateForwarder(self, *ports):
-    return adb_commands.Forwarder(self._adb, *ports)
+  def CreateForwarder(self, *port_pairs):
+    return adb_commands.Forwarder(self._adb, *port_pairs)

@@ -52,3 +52,8 @@ def FindElementAndPerformAction(tab, text, callback_code):
         return callback_function(_element);
       })();"""
   return tab.runtime.Evaluate(code)
+
+class PortPair(object):
+  def __init__(self, local_port, remote_port):
+    self.local_port = local_port
+    self.remote_port = remote_port
