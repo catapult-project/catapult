@@ -8,6 +8,7 @@
  * @fileoverview Provides the Settings class.
  */
 base.exportTo('base', function() {
+  var alternativeStorageInstance = undefined;
 
   /**
    * Settings is a simple wrapper around local storage, to make it easier
@@ -16,15 +17,21 @@ base.exportTo('base', function() {
    * @constructor
    */
   function Settings() {
-    if ('G_testRunner' in global) {
+    if (alternativeStorageInstance) {
+      this.storage_ = alternativeStorageInstance;
+    } else if ('G_testRunner' in global) {
       /**
        * In unit tests, use a mock object for storage so we don't change
        * localStorage in tests.
        */
-      this.storage_ = FakeLocalStorage();
+      this.storage_ = new FakeLocalStorage();
     } else {
       this.storage_ = localStorage;
     }
+  }
+
+  Settings.setAlternativeStorageInstance = function(instance) {
+    alternativeStorageInstance = instance;
   }
 
   Settings.prototype = {
@@ -40,9 +47,10 @@ base.exportTo('base', function() {
      */
     get: function(key, opt_default, opt_namespace) {
       key = this.namespace_(key, opt_namespace);
-      if (!(key in this.storage_))
+      var val = this.storage_.getItem(key);
+      if (val === undefined)
         return opt_default;
-      return String(this.storage_[key]);
+      return String(val);
     },
 
     /**
@@ -55,7 +63,7 @@ base.exportTo('base', function() {
      * a set of related settings.
      */
     set: function(key, value, opt_namespace) {
-      this.storage_[this.namespace_(key, opt_namespace)] = String(value);
+      this.storage_.setItem(this.namespace_(key, opt_namespace), String(value));
     },
 
     /**
@@ -101,25 +109,34 @@ base.exportTo('base', function() {
 
   Settings.NAMESPACE = 'trace-viewer';
 
+  /**
+   * Create a Fake localStorage object which just stores to a dictionary
+   * instead of actually saving into localStorage. Only used in unit tests.
+   * @constructor
+   */
+  function FakeLocalStorage() {
+  }
+
+  FakeLocalStorage.prototype = {
+    __proto__: Object.prototype,
+
+    getItem: function(key) {
+      return this[key];
+    },
+
+    setItem: function(key, value) {
+      this[key] = value;
+    },
+
+    key: function(i) {
+      return Object.keys(this).sort()[i];
+    },
+    get length() {
+      return Object.keys(this).length;
+    }
+  };
+
   return {
     Settings: Settings
   };
 });
-
-
-
-/**
- * Create a Fake localStorage object which just stores to a dictionary
- * instead of actually saving into localStorage. Only used in unit tests.
- * @constructor
- */
-function FakeLocalStorage() {
-  return Object.create({}, {
-    key: { value: function(i) {
-      return Object.keys(this).sort()[i];
-    }},
-    length: { get: function() {
-      return Object.keys(this).length;
-    }}
-  });
-}
