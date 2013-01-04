@@ -36,6 +36,18 @@ base.exportTo('tracing', function() {
       return this.guid_;
     },
 
+    compareTo: function(that) {
+      return TimelineProcess.compare(this, that);
+    },
+
+    get userFriendlyName() {
+      return this.pid;
+    },
+
+    get userFriendlyDetails() {
+      return 'pid: ' + this.pid;
+    },
+
     /**
      * Gets the number of threads in this process.
      */

@@ -54,7 +54,7 @@ function testAndroidUserlandImport() {
   assertEquals(1, threads.length);
 
   var thread = threads[0];
-  assertEquals(4829, thread.pid);
+  assertEquals(4829, thread.parent.pid);
   assertEquals(4831, thread.tid);
   assertEquals('SurfaceFlinger', thread.name);
   assertEquals(11, thread.slices.length);
@@ -72,7 +72,7 @@ function testAndroidUserlandImportWithSpacesInThreadName() {
   assertEquals(1, threads.length);
 
   var thread = threads[0];
-  assertEquals(4829, thread.pid);
+  assertEquals(4829, thread.parent.pid);
   assertEquals(4831, thread.tid);
   assertEquals('Surface Flinger ', thread.name);
   assertEquals(1, thread.slices.length);
@@ -115,7 +115,7 @@ function testAndroidUserlandLegacyKernelImport() {
   assertEquals(1, threads.length);
 
   var thread = threads[0];
-  assertEquals(4829, thread.pid);
+  assertEquals(4829, thread.parent.pid);
   assertEquals(4831, thread.tid);
   assertEquals('SurfaceFlinger', thread.name);
   assertEquals(11, thread.slices.length);
@@ -143,7 +143,7 @@ function testAndroidUserlandChromiumImport() {
   assertEquals(1, threads.length);
 
   var thread = threads[0];
-  assertEquals(2867, thread.pid);
+  assertEquals(2867, thread.parent.pid);
   assertEquals(2894, thread.tid);
   assertEquals('SandboxedProces', thread.name);
   assertEquals(3, thread.slices.length);

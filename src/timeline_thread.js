@@ -59,7 +59,7 @@ base.exportTo('tracing', function() {
     this.guid_ = tracing.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
-    this.pid = parent.pid;
+    this.parent = parent;
     this.tid = tid;
     this.cpuSlices = undefined;
     this.asyncSlices = new TimelineAsyncSliceGroup();
@@ -74,6 +74,26 @@ base.exportTo('tracing', function() {
      */
     get guid() {
       return this.guid_;
+    },
+
+    compareTo: function(that) {
+      return TimelineThread.compare(this, that);
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'parent') {
+          obj[key] = this[key].guid;
+          continue;
+        }
+        obj[key] = this[key];
+      }
+      return obj;
     },
 
     /**
@@ -149,26 +169,27 @@ base.exportTo('tracing', function() {
      */
     get userFriendlyName() {
       var tname = this.name || this.tid;
-      return this.pid + ': ' + tname;
+      return this.parent.userFriendlyName + ': ' + tname;
     },
 
     /**
      * @return {String} User friendly details about this thread.
      */
     get userFriendlyDetails() {
-      return 'pid: ' + this.pid +
+      return this.parent.userFriendlyDetails +
           ', tid: ' + this.tid +
           (this.name ? ', name: ' + this.name : '');
     }
   };
 
   /**
-   * Comparison between threads that orders first by pid,
+   * Comparison between threads that orders first by parent.compareTo,
    * then by names, then by tid.
    */
   TimelineThread.compare = function(x, y) {
-    if (x.pid != y.pid)
-      return x.pid - y.pid;
+    var tmp  = x.parent.compareTo(y.parent);
+    if (tmp != 0)
+      return tmp;
 
     if (x.name && y.name) {
       var tmp = x.name.localeCompare(y.name);

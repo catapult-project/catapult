@@ -18,13 +18,7 @@ base.exportTo('tracing', function() {
   function TimelineCounter(parent, id, category, name) {
     this.guid_ = tracing.GUID.allocate();
 
-    if (parent == null) {
-      this.parent_id = null;
-    } else if (parent.pid != undefined) {
-      this.parent_id = parent.pid;
-    } else if (parent.cpuNumber != undefined) {
-      this.parent_id = parent.cpuNumber;
-    }
+    this.parent = parent;
     this.id = id;
     this.category = category || '';
     this.name = name;
@@ -42,6 +36,22 @@ base.exportTo('tracing', function() {
      */
     get guid() {
       return this.guid_;
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'parent') {
+          obj[key] = this[key].guid;
+          continue;
+        }
+        obj[key] = this[key];
+      }
+      return obj;
     },
 
     get numSeries() {
@@ -145,12 +155,12 @@ base.exportTo('tracing', function() {
   };
 
   /**
-   * Comparison between counters that orders by parent_id, then name.
+   * Comparison between counters that orders by parent.compareTo, then name.
    */
   TimelineCounter.compare = function(x, y) {
-    if (x.parent_id != y.parent_id) {
-      return x.parent_id - y.parent_id;
-    }
+    var tmp = x.parent.compareTo(y);
+    if (tmp != 0)
+      return tmp;
     var tmp = x.name.localeCompare(y.name);
     if (tmp == 0)
       return x.tid - y.tid;
