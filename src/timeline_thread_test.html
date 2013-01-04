@@ -28,16 +28,16 @@ found in the LICENSE file.
   function testThreadBounds_Empty() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
     t.updateBounds();
-    assertEquals(undefined, t.minTimestamp);
-    assertEquals(undefined, t.maxTimestamp);
+    assertEquals(undefined, t.bounds.min);
+    assertEquals(undefined, t.bounds.max);
   }
 
   function testThreadBounds_SubRow() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
     t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
     t.updateBounds();
-    assertEquals(1, t.minTimestamp);
-    assertEquals(4, t.maxTimestamp);
+    assertEquals(1, t.bounds.min);
+    assertEquals(4, t.bounds.max);
   }
 
   function testThreadBounds_AsyncSliceGroup() {
@@ -45,16 +45,16 @@ found in the LICENSE file.
     t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
     t.asyncSlices.push(newAsyncSlice(0.1, 5, t, t));
     t.updateBounds();
-    assertEquals(0.1, t.minTimestamp);
-    assertEquals(5.1, t.maxTimestamp);
+    assertEquals(0.1, t.bounds.min);
+    assertEquals(5.1, t.bounds.max);
   }
 
   function testThreadBounds_Cpu() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
     t.cpuSlices = [newSliceNamed('x', 0, 1)];
     t.updateBounds();
-    assertEquals(0, t.minTimestamp);
-    assertEquals(1, t.maxTimestamp);
+    assertEquals(0, t.bounds.min);
+    assertEquals(1, t.bounds.max);
   }
 
   function testShiftTimestampsForwardWithCpu() {

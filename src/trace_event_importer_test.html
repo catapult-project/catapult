@@ -172,7 +172,7 @@ function testAutoclosingWithSubTasks() {
   assertEquals(0.003, sB2.end);
 }
 
-function testAutoclosingWithEventsOutsideRange() {
+function testAutoclosingWithEventsOutsideBounds() {
   var events = [
     // Slice that begins before min and ends after max of the other threads.
     {name: 'a', args: {}, pid: 1, ts: 0, cat: 'foo', tid: 1, ph: 'B'},
@@ -200,8 +200,8 @@ function testAutoclosingWithEventsOutsideRange() {
   assertEquals(0.001, slice2.start);
   assertEquals(0.001, slice2.duration);
 
-  assertEquals(0.000, m.minTimestamp);
-  assertEquals(0.003, m.maxTimestamp);
+  assertEquals(0.000, m.bounds.min);
+  assertEquals(0.003, m.bounds.max);
 }
 
 function testNestedAutoclosing() {
@@ -493,8 +493,8 @@ function testMultiCounterUpdateBounds() {
                  3, 0,
                  3.1, 0.5];
   ctr.updateBounds();
-  assertEquals(0, ctr.minTimestamp);
-  assertEquals(7, ctr.maxTimestamp);
+  assertEquals(0, ctr.bounds.min);
+  assertEquals(7, ctr.bounds.max);
   assertEquals(8, ctr.maxTotal);
   assertArrayEquals([0, 0,
                      1, 1,

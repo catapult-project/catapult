@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineCpu class.
  */
+base.require('range');
 base.require('timeline_slice');
 base.require('timeline_counter');
 base.exportTo('tracing', function() {
@@ -21,6 +22,7 @@ base.exportTo('tracing', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
+    this.bounds = new base.Range();
   };
 
   TimelineCpu.prototype = {
@@ -51,19 +53,27 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * Updates the minTimestamp and maxTimestamp fields based on the
-     * current slices attached to the cpu.
+     * Updates the range based on the current slices attached to the cpu.
      */
     updateBounds: function() {
-      var values = [];
+      this.bounds.reset();
       if (this.slices.length) {
-        this.minTimestamp = this.slices[0].start;
-        this.maxTimestamp = this.slices[this.slices.length - 1].end;
-      } else {
-        this.minTimestamp = undefined;
-        this.maxTimestamp = undefined;
+        this.bounds.addValue(this.slices[0].start);
+        this.bounds.addValue(this.slices[this.slices.length - 1].end);
       }
-    }
+      for (var id in this.counters) {
+        this.counters[id].updateBounds();
+        this.bounds.addRange(this.counters[id].bounds);
+      }
+    },
+
+    addCategoriesToDict: function(categoriesDict) {
+      for (var i = 0; i < this.slices.length; i++)
+        categoriesDict[this.slices[i].category] = true;
+      for (var id in this.counters)
+        categoriesDict[this.counters[id].category] = true;
+    },
+
   };
 
   /**

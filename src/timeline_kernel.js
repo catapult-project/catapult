@@ -8,42 +8,42 @@
  * @fileoverview Provides the TimelineProcess class.
  */
 base.require('timeline_process_base');
+
 base.exportTo('tracing', function() {
 
   /**
-   * The TimelineProcess represents a single userland process in the
-   * trace.
+   * The TimelineKernel represents kernel-level objects in the
+   * model.
    * @constructor
    */
-  function TimelineProcess(pid) {
+  function TimelineKernel() {
     tracing.TimelineProcessBase.call(this);
-    this.pid = pid;
   };
 
   /**
-   * Comparison between processes that orders by pid.
+   * Comparison between kernels is pretty meaningless.
    */
-  TimelineProcess.compare = function(x, y) {
-    return x.pid - y.pid;
+  TimelineKernel.compare = function(x, y) {
+    return 0;
   };
 
-  TimelineProcess.prototype = {
+  TimelineKernel.prototype = {
     __proto__: tracing.TimelineProcessBase.prototype,
 
     compareTo: function(that) {
-      return TimelineProcess.compare(this, that);
+      return TimelineKernel.compare(this, that);
     },
 
     get userFriendlyName() {
-      return this.pid;
+      return 'kernel';
     },
 
     get userFriendlyDetails() {
-      return 'pid: ' + this.pid;
-    },
+      return 'kernel';
+    }
   };
 
   return {
-    TimelineProcess: TimelineProcess
+    TimelineKernel: TimelineKernel
   };
 });

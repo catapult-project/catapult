@@ -20,14 +20,17 @@
  * nesting tasks.
  *
  */
+base.require('range');
 base.require('event_target');
 base.require('timeline_process');
+base.require('timeline_kernel');
 base.require('timeline_cpu');
 base.require('timeline_filter');
 
 base.exportTo('tracing', function() {
 
   var TimelineProcess = tracing.TimelineProcess;
+  var TimelineKernel = tracing.TimelineKernel;
   var TimelineCpu = tracing.TimelineCpu;
 
   /**
@@ -40,11 +43,13 @@ base.exportTo('tracing', function() {
    * @constructor
    */
   function TimelineModel(opt_eventData, opt_shiftWorldToZero) {
+    this.kernel = new TimelineKernel();
     this.cpus = {};
     this.processes = {};
     this.importErrors = [];
     this.metadata = [];
     this.categories = [];
+    this.bounds = new base.Range();
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -62,30 +67,6 @@ base.exportTo('tracing', function() {
     importerConstructors.push(importerConstructor);
   };
 
-  function TimelineModelEmptyImporter(events) {
-    this.importPriority = 0;
-  };
-
-  TimelineModelEmptyImporter.canImport = function(eventData) {
-    if (eventData instanceof Array && eventData.length == 0)
-      return true;
-    if (typeof(eventData) === 'string' || eventData instanceof String) {
-      return eventData.length == 0;
-    }
-    return false;
-  };
-
-  TimelineModelEmptyImporter.prototype = {
-    __proto__: Object.prototype,
-
-    importEvents: function() {
-    },
-    finalizeImport: function() {
-    }
-  };
-
-  TimelineModel.registerImporter(TimelineModelEmptyImporter);
-
   TimelineModel.prototype = {
     __proto__: base.EventTarget.prototype,
 
@@ -97,7 +78,7 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @return {TimelineProcess} Gets a specific TimelineCpu or creates one if
+     * @return {TimelineCpu} Gets a specific TimelineCpu or creates one if
      * it does not exist.
      */
     getOrCreateCpu: function(cpuNumber) {
@@ -117,120 +98,44 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * Closes any slices that need closing
-     */
-    autoCloseOpenSlices_: function() {
-      this.updateBounds();
-      var maxTimestamp = this.maxTimestamp;
-      for (var pid in this.processes) {
-        var process = this.processes[pid];
-        for (var tid in process.threads) {
-          var thread = process.threads[tid];
-          thread.autoCloseOpenSlices(maxTimestamp);
-        }
-      }
-    },
-
-    /**
      * Generates the set of categories from the slices and counters.
      */
     updateCategories_: function() {
-      var threads = this.getAllThreads();
-      for (var tI = 0; tI < threads.length; tI++) {
-        var slices = threads[tI].slices;
-        for (var i = 0; i < slices.length; i++) {
-          var category = slices[i].category;
-          if (category && this.categories.indexOf(category) == -1) {
-            this.categories.push(category);
-          }
-        }
-      }
-      var counters = this.getAllCounters();
-      for (var tI = 0; tI < counters.length; tI++) {
-        var category = counters[tI].category;
-        if (category && this.categories.indexOf(category) == -1) {
-          this.categories.push(category);
-        }
-      }
-      for (var cpu in this.cpus) {
-        var slices = this.cpus[cpu].slices;
-        for (var i = 0; i < slices.length; i++) {
-          var category = slices[i].category;
-          if (category && this.categories.indexOf(category) == -1) {
-            this.categories.push(category);
-          }
-        }
-      }
-    },
+      var categoriesDict = {};
+      this.kernel.addCategoriesToDict(categoriesDict);
+      for (var pid in this.processes)
+        this.processes[pid].addCategoriesToDict(categoriesDict);
+      for (var cpuNumber in this.cpus)
+        this.cpus[cpuNumber].addCategoriesToDict(categoriesDict);
 
-    /**
-     * Removes threads from the model that are fully empty.
-     */
-    pruneEmptyThreads_: function() {
-      for (var pid in this.processes) {
-        var process = this.processes[pid];
-        var threadsToKeep = {};
-        for (var tid in process.threads) {
-          var thread = process.threads[tid];
-          if (!thread.isEmpty)
-            threadsToKeep[tid] = thread;
-        }
-        process.threads = threadsToKeep;
-      }
+      this.categories = [];
+      for (var category in categoriesDict)
+        if (category != '')
+          this.categories.push(category);
     },
 
     updateBounds: function() {
-      var wmin = Infinity;
-      var wmax = -wmin;
-      var hasData = false;
+      this.bounds.reset();
 
-      var threads = this.getAllThreads();
-      for (var tI = 0; tI < threads.length; tI++) {
-        var thread = threads[tI];
-        thread.updateBounds();
-        if (thread.minTimestamp != undefined &&
-            thread.maxTimestamp != undefined) {
-          wmin = Math.min(wmin, thread.minTimestamp);
-          wmax = Math.max(wmax, thread.maxTimestamp);
-          hasData = true;
-        }
-      }
-      var counters = this.getAllCounters();
-      for (var tI = 0; tI < counters.length; tI++) {
-        var counter = counters[tI];
-        counter.updateBounds();
-        if (counter.minTimestamp != undefined &&
-            counter.maxTimestamp != undefined) {
-          hasData = true;
-          wmin = Math.min(wmin, counter.minTimestamp);
-          wmax = Math.max(wmax, counter.maxTimestamp);
-        }
+      this.kernel.updateBounds();
+      this.bounds.addRange(this.kernel.bounds);
+
+      for (var pid in this.processes) {
+        this.processes[pid].updateBounds();
+        this.bounds.addRange(this.processes[pid].bounds);
       }
 
       for (var cpuNumber in this.cpus) {
-        var cpu = this.cpus[cpuNumber];
-        cpu.updateBounds();
-        if (cpu.minTimestamp != undefined &&
-            cpu.maxTimestamp != undefined) {
-          hasData = true;
-          wmin = Math.min(wmin, cpu.minTimestamp);
-          wmax = Math.max(wmax, cpu.maxTimestamp);
-        }
-      }
-
-      if (hasData) {
-        this.minTimestamp = wmin;
-        this.maxTimestamp = wmax;
-      } else {
-        this.maxTimestamp = undefined;
-        this.minTimestamp = undefined;
+        this.cpus[cpuNumber].updateBounds();
+        this.bounds.addRange(this.cpus[cpuNumber].bounds);
       }
     },
 
     shiftWorldToZero: function() {
-      if (this.minTimestamp === undefined)
+      if (this.bounds.isEmpty)
         return;
-      var timeBase = this.minTimestamp;
+      var timeBase = this.bounds.min;
+      this.kernel.shiftTimestampsForward(-timeBase);
       for (var pid in this.processes)
         this.processes[pid].shiftTimestampsForward(-timeBase);
       for (var cpuNumber in this.cpus)
@@ -240,6 +145,9 @@ base.exportTo('tracing', function() {
 
     getAllThreads: function() {
       var threads = [];
+      for (var tid in this.kernel.threads) {
+        threads.push(process.threads[tid]);
+      }
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.threads) {
@@ -294,11 +202,13 @@ base.exportTo('tracing', function() {
      */
     findAllThreadsNamed: function(name) {
       var namedThreads = [];
-      var threads = this.getAllThreads();
-      for (var i = 0; i < threads.length; i++) {
-        var thread = threads[i];
-        if (thread.name == name)
-          namedThreads.push(thread);
+      namedThreads.push.apply(
+        namedThreads,
+        this.kernel.findAllThreadsNamed(name));
+      for (var pid in this.processes) {
+        namedThreads.push.apply(
+          namedThreads,
+          this.processes[pid].findAllThreadsNamed(name));
       }
       return namedThreads;
     },
@@ -356,12 +266,23 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < importers.length; i++)
         importers[i].importEvents(i > 0);
 
-      this.autoCloseOpenSlices_();
+      // Autoclose open slices.
+      this.updateBounds();
+      this.kernel.autoCloseOpenSlices(this.bounds.max);
+      for (var pid in this.processes) {
+        this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+      }
 
+      // Finalize import.
       for (var i = 0; i < importers.length; i++)
         importers[i].finalizeImport();
 
-      this.pruneEmptyThreads_();
+      // Prune empty containers.
+      this.kernel.pruneEmptyContainers();
+      for (var pid in this.processes) {
+        this.processes[pid].pruneEmptyContainers();
+      }
+
       this.updateBounds();
 
       this.updateCategories_();
@@ -370,6 +291,37 @@ base.exportTo('tracing', function() {
         this.shiftWorldToZero();
     }
   };
+
+  /**
+   * Importer for empty strings and arrays.
+   * @constructor
+   */
+  function TimelineModelEmptyImporter(events) {
+    this.importPriority = 0;
+  };
+
+  TimelineModelEmptyImporter.canImport = function(eventData) {
+    if (eventData instanceof Array && eventData.length == 0)
+      return true;
+    if (typeof(eventData) === 'string' || eventData instanceof String) {
+      return eventData.length == 0;
+    }
+    return false;
+  };
+
+
+  TimelineModelEmptyImporter.prototype = {
+    __proto__: Object.prototype,
+
+    importEvents: function() {
+    },
+    finalizeImport: function() {
+    }
+  };
+
+  TimelineModel.registerImporter(TimelineModelEmptyImporter);
+
+
 
   return {
     TimelineModel: TimelineModel

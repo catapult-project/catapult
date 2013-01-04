@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineAsyncSliceGroup class.
  */
+base.require('range');
 base.require('timeline_slice');
 base.exportTo('tracing', function() {
 
@@ -57,6 +58,7 @@ base.exportTo('tracing', function() {
    */
   function TimelineAsyncSliceGroup() {
     this.slices = [];
+    this.bounds = new base.Range();
   }
 
   TimelineAsyncSliceGroup.prototype = {
@@ -93,20 +95,10 @@ base.exportTo('tracing', function() {
      * Updates the bounds for this group based on the slices it contains.
      */
     updateBounds: function() {
-      if (this.slices.length) {
-        var minTimestamp = Number.MAX_VALUE;
-        var maxTimestamp = -Number.MAX_VALUE;
-        for (var i = 0; i < this.slices.length; i++) {
-          if (this.slices[i].start < minTimestamp)
-            minTimestamp = this.slices[i].start;
-          if (this.slices[i].end > maxTimestamp)
-            maxTimestamp = this.slices[i].end;
-        }
-        this.minTimestamp = minTimestamp;
-        this.maxTimestamp = maxTimestamp;
-      } else {
-        this.minTimestamp = undefined;
-        this.maxTimestamp = undefined;
+      this.bounds.reset();
+      for (var i = 0; i < this.slices.length; i++) {
+        this.bounds.addValue(this.slices[i].start);
+        this.bounds.addValue(this.slices[i].end);
       }
     },
 

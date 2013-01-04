@@ -280,7 +280,7 @@ base.exportTo('tracing', function() {
 
     set model(model) {
       var modelInstanceChanged = model != this.model;
-      var modelValid = model && model.minTimestamp !== undefined;
+      var modelValid = model && !model.bounds.isEmpty;
 
       // Remove old timeline if the model has completely changed.
       if (modelInstanceChanged) {

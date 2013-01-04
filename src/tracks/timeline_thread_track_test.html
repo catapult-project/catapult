@@ -54,7 +54,7 @@ found in the LICENSE file.
     var wW = 10;
     var vW = track.firstCanvas.getBoundingClientRect().width;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, wW, vW);
+    track.viewport.xSetWorldBounds(0, wW, vW);
 
     var selection = new TimelineSelection();
     track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
@@ -87,7 +87,7 @@ found in the LICENSE file.
     track.toolTip = thread.userFriendlyDetails + ':';
     track.thread = thread;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 8.2, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 8.2, track.clientWidth);
   }
 
   function testTimelineThreadTrackWithTallSlices() {
@@ -111,7 +111,7 @@ found in the LICENSE file.
     track.toolTip = thread.userFriendlyDetails + ':';
     track.thread = thread;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 1.1, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 1.1, track.clientWidth);
   }
 
   function testTimelineThreadTrackWithRegularAndAsyncSlices() {
@@ -135,7 +135,7 @@ found in the LICENSE file.
     track.toolTip = thread.userFriendlyDetails + ':';
     track.thread = thread;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 8.15, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 8.15, track.clientWidth);
   }
 
   function testFilterThreadSlices() {

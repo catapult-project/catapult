@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineThread class.
  */
+base.require('range');
 base.require('timeline_guid');
 base.require('timeline_slice');
 base.require('timeline_slice_group');
@@ -63,6 +64,7 @@ base.exportTo('tracing', function() {
     this.tid = tid;
     this.cpuSlices = undefined;
     this.asyncSlices = new TimelineAsyncSliceGroup();
+    this.bounds = new base.Range();
   }
 
   TimelineThread.prototype = {
@@ -135,33 +137,27 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * Updates the minTimestamp and maxTimestamp fields based on the
+     * Updates the bounds based on the
      * current objects associated with the thread.
      */
     updateBounds: function() {
       TimelineSliceGroup.prototype.updateBounds.call(this);
-      var values = [];
-      if (this.minTimestamp !== undefined)
-        values.push(this.minTimestamp, this.maxTimestamp);
 
-      if (this.asyncSlices.slices.length) {
-        this.asyncSlices.updateBounds();
-        values.push(this.asyncSlices.minTimestamp);
-        values.push(this.asyncSlices.maxTimestamp);
-      }
+      this.asyncSlices.updateBounds();
+      this.bounds.addRange(this.asyncSlices.bounds);
 
       if (this.cpuSlices && this.cpuSlices.length) {
-        values.push(this.cpuSlices[0].start);
-        values.push(this.cpuSlices[this.cpuSlices.length - 1].end);
+        this.bounds.addValue(this.cpuSlices[0].start);
+        this.bounds.addValue(
+          this.cpuSlices[this.cpuSlices.length - 1].end);
       }
+    },
 
-      if (values.length) {
-        this.minTimestamp = Math.min.apply(Math, values);
-        this.maxTimestamp = Math.max.apply(Math, values);
-      } else {
-        this.minTimestamp = undefined;
-        this.maxTimestamp = undefined;
-      }
+    addCategoriesToDict: function(categoriesDict) {
+      for (var i = 0; i < this.slices.length; i++)
+        categoriesDict[this.slices[i].category] = true;
+      for (var i = 0; i < this.asyncSlices.length; i++)
+        categoriesDict[this.asyncSlices.slices[i].category] = true;
     },
 
     /**
@@ -187,7 +183,7 @@ base.exportTo('tracing', function() {
    * then by names, then by tid.
    */
   TimelineThread.compare = function(x, y) {
-    var tmp  = x.parent.compareTo(y.parent);
+    var tmp = x.parent.compareTo(y.parent);
     if (tmp != 0)
       return tmp;
 

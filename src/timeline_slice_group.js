@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineSliceGroup class.
  */
+base.require('range');
 base.require('timeline_slice');
 base.require('timeline_color_scheme');
 base.require('timeline_filter');
@@ -32,6 +33,7 @@ base.exportTo('tracing', function() {
     this.openPartialSlices_ = [];
 
     this.slices = [];
+    this.bounds = new base.Range();
   }
 
   TimelineSliceGroup.prototype = {
@@ -126,7 +128,7 @@ base.exportTo('tracing', function() {
     autoCloseOpenSlices: function(opt_maxTimestamp) {
       if (!opt_maxTimestamp) {
         this.updateBounds();
-        opt_maxTimestamp = this.maxTimestamp;
+        opt_maxTimestamp = this.bounds.max;
       }
       while (this.openSliceCount > 0) {
         var slice = this.endSlice(opt_maxTimestamp);
@@ -153,32 +155,16 @@ base.exportTo('tracing', function() {
      * Updates the bounds for this group based on the slices it contains.
      */
     updateBounds: function() {
-      var vals = [];
-      if (this.slices.length) {
-        var minTimestamp = Number.MAX_VALUE;
-        var maxTimestamp = -Number.MAX_VALUE;
-        for (var i = 0; i < this.slices.length; i++) {
-          if (this.slices[i].start < minTimestamp)
-            minTimestamp = this.slices[i].start;
-          if (this.slices[i].end > maxTimestamp)
-            maxTimestamp = this.slices[i].end;
-        }
-        vals.push(minTimestamp);
-        vals.push(maxTimestamp);
+      this.bounds.reset();
+      for (var i = 0; i < this.slices.length; i++) {
+        this.bounds.addValue(this.slices[i].start);
+        this.bounds.addValue(this.slices[i].end);
       }
 
       if (this.openPartialSlices_.length) {
-        vals.push(this.openPartialSlices_[0].start);
-        vals.push(
+        this.bounds.addValue(this.openPartialSlices_[0].start);
+        this.bounds.addValue(
             this.openPartialSlices_[this.openPartialSlices_.length - 1].start);
-      }
-
-      if (vals.length) {
-        this.minTimestamp = Math.min.apply(Math, vals);
-        this.maxTimestamp = Math.max.apply(Math, vals);
-      } else {
-        this.minTimestamp = undefined;
-        this.maxTimestamp = undefined;
       }
     }
   };

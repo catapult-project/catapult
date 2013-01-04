@@ -64,16 +64,16 @@ function createModelWithOneOfEverything() {
 function testModelBounds_EmptyModel() {
   var m = new TimelineModel();
   m.updateBounds();
-  assertEquals(undefined, m.minTimestamp);
-  assertEquals(undefined, m.maxTimestamp);
+  assertEquals(undefined, m.bounds.min);
+  assertEquals(undefined, m.bounds.max);
 }
 
 function testModelBounds_OneEmptyThread() {
   var m = new TimelineModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   m.updateBounds();
-  assertEquals(undefined, m.minTimestamp);
-  assertEquals(undefined, m.maxTimestamp);
+  assertEquals(undefined, m.bounds.min);
+  assertEquals(undefined, m.bounds.max);
 }
 
 function testModelBounds_OneThread() {
@@ -81,8 +81,8 @@ function testModelBounds_OneThread() {
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
   m.updateBounds();
-  assertEquals(1, m.minTimestamp);
-  assertEquals(4, m.maxTimestamp);
+  assertEquals(1, m.bounds.min);
+  assertEquals(4, m.bounds.max);
 }
 
 function testModelBounds_OneThreadAndOneEmptyThread() {
@@ -91,8 +91,8 @@ function testModelBounds_OneThreadAndOneEmptyThread() {
   t1.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 3));
   var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
   m.updateBounds();
-  assertEquals(1, m.minTimestamp);
-  assertEquals(4, m.maxTimestamp);
+  assertEquals(1, m.bounds.min);
+  assertEquals(4, m.bounds.max);
 }
 
 function testModelBounds_OneCpu() {
@@ -100,8 +100,8 @@ function testModelBounds_OneCpu() {
   var cpu = m.getOrCreateCpu(1);
   cpu.slices.push(test_utils.newSlice(1, 3));
   m.updateBounds();
-  assertEquals(1, m.minTimestamp);
-  assertEquals(4, m.maxTimestamp);
+  assertEquals(1, m.bounds.min);
+  assertEquals(4, m.bounds.max);
 }
 
 
@@ -114,8 +114,8 @@ function testModelBounds_OneCpuOneThread() {
   t.pushSlice(new TimelineThreadSlice('', 'a', 0, 1, {}, 4));
 
   m.updateBounds();
-  assertEquals(1, m.minTimestamp);
-  assertEquals(5, m.maxTimestamp);
+  assertEquals(1, m.bounds.min);
+  assertEquals(5, m.bounds.max);
 }
 
 function testModelCanImportEmpty() {

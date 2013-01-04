@@ -7,6 +7,7 @@
 /**
  * @fileoverview Code for the timeline viewport.
  */
+base.require('range');
 base.require('event_target');
 base.exportTo('tracing', function() {
 
@@ -47,35 +48,32 @@ base.exportTo('tracing', function() {
    * @constructor
    */
   function TimelineSelection() {
-    this.range_dirty_ = true;
-    this.range_ = {};
+    this.bounds_dirty_ = true;
+    this.bounds_ = new base.Range();
     this.length_ = 0;
   }
   TimelineSelection.prototype = {
     __proto__: Object.prototype,
 
-    get range() {
-      if (this.range_dirty_) {
-        var wmin = Infinity;
-        var wmax = -wmin;
+    get bounds() {
+      if (this.bounds_dirty_) {
+        this.bounds_.reset();
         for (var i = 0; i < this.length_; i++) {
           var hit = this[i];
           if (hit.slice) {
-            wmin = Math.min(wmin, hit.slice.start);
-            wmax = Math.max(wmax, hit.slice.end);
+            this.bounds_.addValue(hit.slice.start);
+            this.bounds_.addValue(hit.slice.end);
           }
         }
-        this.range_ = {
-          min: wmin,
-          max: wmax
-        };
-        this.range_dirty_ = false;
+        this.bounds_dirty_ = false;
       }
-      return this.range_;
+      return this.bounds_;
     },
 
     get duration() {
-      return this.range.max - this.range.min;
+      if (this.bounds_.isEmpty)
+        return 0;
+      return this.bounds_.max - this.bounds_.min;
     },
 
     get length() {
@@ -86,7 +84,7 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < this.length_; ++i)
         delete this[i];
       this.length_ = 0;
-      this.range_dirty_ = true;
+      this.bounds_dirty_ = true;
     },
 
     pushHit: function(hit) {
@@ -95,7 +93,7 @@ base.exportTo('tracing', function() {
 
     push_: function(hit) {
       this[this.length_++] = hit;
-      this.range_dirty_ = true;
+      this.bounds_dirty_ = true;
       return hit;
     },
 
@@ -113,7 +111,7 @@ base.exportTo('tracing', function() {
       count = count || 1;
 
       var selection = new TimelineSelection();
-      selection.range_dirty_ = true;
+      selection.bounds_dirty_ = true;
       if (index < 0 || index + count > this.length_)
         throw new Error('Index out of bounds');
 

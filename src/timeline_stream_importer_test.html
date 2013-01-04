@@ -120,8 +120,8 @@ found in the LICENSE file.
     var t3 = model.processes[1].threads[3];
     assertEquals(3, t3.slices.length);
 
-    assertEquals(model.minTimestamp, 10);
-    assertEquals(model.maxTimestamp, 18);
+    assertEquals(model.bounds.min, 10);
+    assertEquals(model.bounds.max, 18);
   }
 
   function testPause() {
@@ -223,8 +223,8 @@ found in the LICENSE file.
     assertEquals(counter.seriesColors.length, 1);
     assertEquals(counter.samples[2], 48);
     assertEquals(counter.timestamps[4], 64);
-    assertEquals(model.minTimestamp, 2);
-    assertEquals(model.maxTimestamp, 64);
+    assertEquals(model.bounds.min, 2);
+    assertEquals(model.bounds.max, 64);
   }
 
   function testCounterImportErrors() {

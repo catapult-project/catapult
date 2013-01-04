@@ -218,16 +218,16 @@ base.exportTo('tracing', function() {
       this.panX = (viewX / this.scaleX_) - worldX;
     },
 
-    xPanWorldRangeIntoView: function(worldMin, worldMax, viewWidth) {
+    xPanWorldBoundsIntoView: function(worldMin, worldMax, viewWidth) {
       if (this.xWorldToView(worldMin) < 0)
         this.xPanWorldPosToViewPos(worldMin, 'left', viewWidth);
       else if (this.xWorldToView(worldMax) > viewWidth)
         this.xPanWorldPosToViewPos(worldMax, 'right', viewWidth);
     },
 
-    xSetWorldRange: function(worldMin, worldMax, viewWidth) {
-      var worldRange = worldMax - worldMin;
-      var scaleX = viewWidth / worldRange;
+    xSetWorldBounds: function(worldMin, worldMax, viewWidth) {
+      var worldWidth = worldMax - worldMin;
+      var scaleX = viewWidth / worldWidth;
       var panX = -worldMin;
       this.setPanAndScale(panX, scaleX);
     },

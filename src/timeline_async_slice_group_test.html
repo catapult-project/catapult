@@ -28,8 +28,7 @@ found in the LICENSE file.
   function testAsyncSliceGroupBounds_Empty() {
     var g = new TimelineAsyncSliceGroup();
     g.updateBounds();
-    assertEquals(undefined, g.minTimestamp);
-    assertEquals(undefined, g.maxTimestamp);
+    assertTrue(g.bounds.isEmpty);
   }
 
   function testAsyncSliceGroupBounds_Basic() {
@@ -40,8 +39,8 @@ found in the LICENSE file.
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     assertEquals(2, g.length);
     g.updateBounds();
-    assertEquals(0, g.minTimestamp);
-    assertEquals(2.5, g.maxTimestamp);
+    assertEquals(0, g.bounds.min);
+    assertEquals(2.5, g.bounds.max);
   }
 
   function testAsyncSlice_toJSON() {

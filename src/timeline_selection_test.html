@@ -30,13 +30,13 @@ found in the LICENSE file.
       var sel = new tracing.TimelineSelection();
       sel.addSlice({}, t1.slices[0]);
 
-      assertEquals(1, sel.range.min);
-      assertEquals(4, sel.range.max);
+      assertEquals(1, sel.bounds.min);
+      assertEquals(4, sel.bounds.max);
       assertEquals(t1.slices[0], sel[0].slice);
 
       sel.addSlice({}, t1.slices[1]);
-      assertEquals(1, sel.range.min);
-      assertEquals(6, sel.range.max);
+      assertEquals(1, sel.bounds.min);
+      assertEquals(6, sel.bounds.max);
       assertEquals(t1.slices[1], sel[1].slice);
 
       sel.clear();

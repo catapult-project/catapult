@@ -169,9 +169,9 @@ base.exportTo('tracing', function() {
     setInitialViewport_: function() {
       var w = this.firstCanvas.width;
       var boost =
-          (this.model_.maxTimestamp - this.model_.minTimestamp) * 0.15;
-      this.viewport_.xSetWorldRange(this.model_.minTimestamp - boost,
-                                    this.model_.maxTimestamp + boost,
+          (this.model_.bounds.max - this.model_.bounds.min) * 0.15;
+      this.viewport_.xSetWorldBounds(this.model_.bounds.min - boost,
+                                    this.model_.bounds.max + boost,
                                     w);
     },
 
@@ -365,12 +365,12 @@ base.exportTo('tracing', function() {
     zoomToSelection_: function() {
       if (!this.selection)
         return;
-      var range = this.selection.range;
-      var worldCenter = range.min + (range.max - range.min) * 0.5;
-      var worldRange = (range.max - range.min) * 0.5;
-      var boost = worldRange * 0.15;
-      this.viewport_.xSetWorldRange(worldCenter - worldRange - boost,
-                                    worldCenter + worldRange + boost,
+      var bounds = this.selection.bounds;
+      var worldCenter = bounds.min + (bounds.max - bounds.min) * 0.5;
+      var worldBounds = (bounds.max - bounds.min) * 0.5;
+      var boost = worldBounds * 0.15;
+      this.viewport_.xSetWorldBounds(worldCenter - worldBounds - boost,
+                                    worldCenter + worldBounds + boost,
                                     this.firstCanvas.width);
     },
 
@@ -432,18 +432,18 @@ base.exportTo('tracing', function() {
       if (!(selection instanceof TimelineSelection))
         throw new Error('Expected TimelineSelection');
       this.selection = selection;
-      var range = this.selection.range;
-      var size = this.viewport_.xWorldVectorToView(range.max - range.min);
+      var bounds = this.selection.bounds;
+      var size = this.viewport_.xWorldVectorToView(bounds.max - bounds.min);
       if (zoomAllowed && size < 50) {
-        var worldCenter = range.min + (range.max - range.min) * 0.5;
-        var worldRange = (range.max - range.min) * 5;
-        this.viewport_.xSetWorldRange(worldCenter - worldRange * 0.5,
-                                      worldCenter + worldRange * 0.5,
+        var worldCenter = bounds.min + (bounds.max - bounds.min) * 0.5;
+        var worldBounds = (bounds.max - bounds.min) * 5;
+        this.viewport_.xSetWorldBounds(worldCenter - worldBounds * 0.5,
+                                      worldCenter + worldBounds * 0.5,
                                       this.firstCanvas.width);
         return;
       }
 
-      this.viewport_.xPanWorldRangeIntoView(range.min, range.max,
+      this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max,
                                             this.firstCanvas.width);
     },
 
@@ -517,12 +517,12 @@ base.exportTo('tracing', function() {
     onGridToggle_: function(left) {
       var tb;
       if (left)
-        tb = this.selection_.range.min;
+        tb = this.selection_.bounds.min;
       else
-        tb = this.selection_.range.max;
+        tb = this.selection_.bounds.max;
 
-      // Shift the timebase left until its just left of minTimestamp.
-      var numInterfvalsSinceStart = Math.ceil((tb - this.model_.minTimestamp) /
+      // Shift the timebase left until its just left of model_.bounds.min.
+      var numInterfvalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
           this.viewport_.gridStep_);
       this.viewport_.gridTimebase = tb -
           (numInterfvalsSinceStart + 1) * this.viewport_.gridStep_;

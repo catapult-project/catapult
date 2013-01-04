@@ -56,22 +56,22 @@ found in the LICENSE file.
   function testBounds() {
     var group = new TimelineSliceGroup();
     group.updateBounds();
-    assertEquals(group.minTimestamp, undefined);
-    assertEquals(group.maxTimestamp, undefined);
+    assertEquals(group.bounds.min, undefined);
+    assertEquals(group.bounds.max, undefined);
 
     group.pushSlice(newSlice(1, 3));
     group.pushSlice(newSlice(7, 2));
     group.updateBounds();
-    assertEquals(1, group.minTimestamp);
-    assertEquals(9, group.maxTimestamp);
+    assertEquals(1, group.bounds.min);
+    assertEquals(9, group.bounds.max);
   }
 
   function testBoundsWithPartial() {
     var group = new TimelineSliceGroup();
     group.beginSlice('', 'a', 7);
     group.updateBounds();
-    assertEquals(7, group.minTimestamp);
-    assertEquals(7, group.maxTimestamp);
+    assertEquals(7, group.bounds.min);
+    assertEquals(7, group.bounds.max);
   }
 
   function testBoundsWithTwoPartials() {
@@ -79,21 +79,21 @@ found in the LICENSE file.
     group.beginSlice('', 'a', 0);
     group.beginSlice('', 'a', 1);
     group.updateBounds();
-    assertEquals(0, group.minTimestamp);
-    assertEquals(1, group.maxTimestamp);
+    assertEquals(0, group.bounds.min);
+    assertEquals(1, group.bounds.max);
   }
 
   function testBoundsWithBothPartialAndRegular() {
     var group = new TimelineSliceGroup();
     group.updateBounds();
-    assertEquals(undefined, group.minTimestamp);
-    assertEquals(undefined, group.maxTimestamp);
+    assertEquals(undefined, group.bounds.min);
+    assertEquals(undefined, group.bounds.max);
 
     group.pushSlice(newSlice(1, 3));
     group.beginSlice('', 'a', 7);
     group.updateBounds();
-    assertEquals(1, group.minTimestamp);
-    assertEquals(7, group.maxTimestamp);
+    assertEquals(1, group.bounds.min);
+    assertEquals(7, group.bounds.max);
   }
 
   function testAutocloserBasic() {
@@ -109,8 +109,8 @@ found in the LICENSE file.
     group.autoCloseOpenSlices();
     group.updateBounds();
 
-    assertEquals(1, group.minTimestamp);
-    assertEquals(3, group.maxTimestamp);
+    assertEquals(1, group.bounds.min);
+    assertEquals(3, group.bounds.max);
     assertEquals(3, group.slices.length);
     assertEquals('a', group.slices[0].title);
     assertEquals('c', group.slices[1].title);

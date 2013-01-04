@@ -41,7 +41,7 @@ found in the LICENSE file.
       new TimelineSlice('', 'c', 2, 7.6, {}, 0.4)
     ];
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 8.8, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 8.8, track.clientWidth);
   }
 
   function testFindAllObjectsMatchingInSliceTrack() {
@@ -76,7 +76,7 @@ found in the LICENSE file.
     }
     track.slices = slices;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 1.1 * x, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
   }
 
   function testSelectionHitTesting() {
@@ -95,7 +95,7 @@ found in the LICENSE file.
     var wW = 10;
     var vW = track.firstCanvas.getBoundingClientRect().width;
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, wW, vW);
+    track.viewport.xSetWorldBounds(0, wW, vW);
 
     var selection = new TimelineSelection();
     track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
@@ -140,7 +140,7 @@ found in the LICENSE file.
           new TimelineSlice('', 'd', 2, 7.6, {}, 1.0)
       ];
       track.viewport = new TimelineViewport(testEl);
-      track.viewport.xSetWorldRange(0, 9.5, track.clientWidth);
+      track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
     }
   }
 
@@ -159,7 +159,7 @@ found in the LICENSE file.
         new TimelineSlice('', smalltitle, 1, 2, {}, 1)
     ];
     track.viewport = new TimelineViewport(testEl);
-    track.viewport.xSetWorldRange(0, 3.3, track.clientWidth);
+    track.viewport.xSetWorldBounds(0, 3.3, track.clientWidth);
     var stringWidthPair = undefined;
     var pixWidth = track.viewport_.xViewVectorToWorld(1);
 

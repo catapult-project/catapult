@@ -220,8 +220,8 @@ base.exportTo('tracing', function() {
         }
       }
     } else if (sliceHits.length > 1) {
-      var tsLo = sliceHits.range.min;
-      var tsHi = sliceHits.range.max;
+      var tsLo = sliceHits.bounds.min;
+      var tsHi = sliceHits.bounds.max;
 
       // compute total sliceHits duration
       var titles = sliceHits.map(function(i) { return i.slice.title; });

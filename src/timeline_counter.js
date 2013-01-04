@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('timeline_guid');
+base.require('range');
 
 /**
  * @fileoverview Provides the TimelineCounter class.
@@ -26,6 +27,7 @@ base.exportTo('tracing', function() {
     this.seriesColors = [];
     this.timestamps = [];
     this.samples = [];
+    this.bounds = new base.Range();
   }
 
   TimelineCounter.prototype = {
@@ -129,14 +131,13 @@ base.exportTo('tracing', function() {
         throw new Error('samples.length must be a multiple of numSamples.');
 
       this.totals = [];
-      if (this.samples.length == 0) {
-        this.minTimestamp = undefined;
-        this.maxTimestamp = undefined;
-        this.maxTotal = 0;
+      this.maxTotal = 0;
+      this.bounds.reset();
+      if (this.samples.length == 0)
         return;
-      }
-      this.minTimestamp = this.timestamps[0];
-      this.maxTimestamp = this.timestamps[this.timestamps.length - 1];
+
+      this.bounds.addValue(this.timestamps[0]);
+      this.bounds.addValue(this.timestamps[this.timestamps.length - 1]);
 
       var numSeries = this.numSeries;
       var maxTotal = -Infinity;
