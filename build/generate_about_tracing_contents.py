@@ -45,7 +45,7 @@ def generate_html():
   filenames = [os.path.join(srcdir, x) for x in ["base.js", "profiling_view.js"]]
   filenames = [os.path.relpath(x) for x in filenames]
 
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   style_sheet_contents = ""
   for module in load_sequence:
@@ -72,7 +72,7 @@ def generate_js():
   filenames = [os.path.relpath(x) for x in filenames]
 
   import parse_deps
-  load_sequence = parse_deps.calc_load_sequence(filenames)
+  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
   script_contents = ""
   script_contents += "window.FLATTENED = {};\n"
   for module in load_sequence:
