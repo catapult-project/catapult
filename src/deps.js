@@ -21,6 +21,9 @@ base.addModuleDependency(
     'timeline_slice');
 base.addModuleDependency(
     'timeline_thread',
+    'timeline_guid');
+base.addModuleDependency(
+    'timeline_thread',
     'timeline_slice');
 base.addModuleDependency(
     'timeline_thread',
@@ -28,6 +31,12 @@ base.addModuleDependency(
 base.addModuleDependency(
     'timeline_thread',
     'timeline_async_slice_group');
+base.addModuleDependency(
+    'timeline_counter',
+    'timeline_guid');
+base.addModuleDependency(
+    'timeline_process',
+    'timeline_guid');
 base.addModuleDependency(
     'timeline_process',
     'timeline_thread');

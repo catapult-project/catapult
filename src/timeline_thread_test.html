@@ -25,10 +25,6 @@ found in the LICENSE file.
   var newAsyncSlice = test_utils.newAsyncSlice;
   var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
 
-  function testPTIDFromPidAndTid() {
-    assertEquals('1:2', TimelineThread.getPTIDFromPidAndTid(1, 2));
-  }
-
   function testThreadBounds_Empty() {
     var t = new TimelineThread(new TimelineProcess(7), 1);
     t.updateBounds();

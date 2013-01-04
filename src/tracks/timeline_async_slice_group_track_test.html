@@ -33,7 +33,7 @@ found in the LICENSE file.
   function testAsyncSliceGroup_filterSubRows() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     var track = new TimelineAsyncSliceGroupTrack();
     track.group = g;
@@ -52,7 +52,7 @@ found in the LICENSE file.
   function testAsyncSliceGroup_rebuildSubRows_twoNonOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     g.slices.push(newAsyncSlice(1, 1, t1, t1));
     var track = new TimelineAsyncSliceGroupTrack();
@@ -68,7 +68,7 @@ found in the LICENSE file.
   function testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
     g.updateBounds();
@@ -86,7 +86,7 @@ found in the LICENSE file.
   function testAsyncSliceGroup_rebuildSubRows_threePartlyOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
     g.slices.push(newAsyncSlice(1, 1.5, t1, t1));
@@ -106,7 +106,7 @@ found in the LICENSE file.
   function testAsyncSliceGroup_rebuildSubRows_twoOverlappingSlices() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     g.slices.push(newAsyncSlice(0, 1.5, t1, t1));
     g.slices.push(newAsyncSlice(2, 1, t1, t1));
@@ -127,7 +127,7 @@ found in the LICENSE file.
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var t2 = new TimelineThread(p1, 2);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.slices.push(newAsyncSlice(0, 1, t1, t1));
     g.slices.push(newAsyncSlice(0, 1, t2, t2));
     var track = new TimelineAsyncSliceGroupTrack();

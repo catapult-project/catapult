@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineThread class.
  */
+base.require('timeline_guid');
 base.require('timeline_slice');
 base.require('timeline_slice_group');
 base.require('timeline_async_slice_group');
@@ -55,44 +56,30 @@ base.exportTo('tracing', function() {
    */
   function TimelineThread(parent, tid) {
     TimelineSliceGroup.call(this, TimelineThreadSlice);
+    this.guid_ = tracing.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
     this.pid = parent.pid;
     this.tid = tid;
     this.cpuSlices = undefined;
-    this.asyncSlices = new TimelineAsyncSliceGroup(this.ptid);
-  }
-
-  var ptidMap = {};
-
-  /**
-   * @return {String} A string that can be used as a unique key for a specific
-   * thread within a process.
-   */
-  TimelineThread.getPTIDFromPidAndTid = function(pid, tid) {
-    if (!ptidMap[pid])
-      ptidMap[pid] = {};
-    if (!ptidMap[pid][tid])
-      ptidMap[pid][tid] = pid + ':' + tid;
-    return ptidMap[pid][tid];
+    this.asyncSlices = new TimelineAsyncSliceGroup();
   }
 
   TimelineThread.prototype = {
 
     __proto__: TimelineSliceGroup.prototype,
 
+    /*
+     * @return {Number} A globally unique identifier for this counter.
+     */
+    get guid() {
+      return this.guid_;
+    },
+
     /**
      * Name of the thread, if present.
      */
     name: undefined,
-
-    /**
-     * @return {string} A concatenation of the pid and the thread's
-     * tid. Can be used to uniquely identify a thread.
-     */
-    get ptid() {
-      return TimelineThread.getPTIDFromPidAndTid(this.tid, this.pid);
-    },
 
     /**
      * Shifts all the timestamps inside this thread forward by the amount

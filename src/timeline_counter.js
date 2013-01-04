@@ -4,18 +4,20 @@
 
 'use strict';
 
+base.require('timeline_guid');
+
 /**
  * @fileoverview Provides the TimelineCounter class.
  */
 base.exportTo('tracing', function() {
-
-  var nextCounterGUID = 1;
 
   /**
    * Stores all the samples for a given counter.
    * @constructor
    */
   function TimelineCounter(parent, id, category, name) {
+    this.guid_ = tracing.GUID.allocate();
+
     if (parent == null) {
       this.parent_id = null;
     } else if (parent.pid != undefined) {
@@ -30,11 +32,11 @@ base.exportTo('tracing', function() {
     this.seriesColors = [];
     this.timestamps = [];
     this.samples = [];
-    this.guid_ = nextCounterGUID++;
   }
 
   TimelineCounter.prototype = {
     __proto__: Object.prototype,
+
     /*
      * @return {Number} A globally unique identifier for this counter.
      */

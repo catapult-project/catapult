@@ -24,6 +24,7 @@ base.require('event_target');
 base.require('timeline_process');
 base.require('timeline_cpu');
 base.require('timeline_filter');
+
 base.exportTo('tracing', function() {
 
   var TimelineProcess = tracing.TimelineProcess;

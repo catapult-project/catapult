@@ -26,7 +26,7 @@ found in the LICENSE file.
   var newAsyncSlice = test_utils.newAsyncSlice;
 
   function testAsyncSliceGroupBounds_Empty() {
-    var g = new TimelineAsyncSliceGroup(name);
+    var g = new TimelineAsyncSliceGroup();
     g.updateBounds();
     assertEquals(undefined, g.minTimestamp);
     assertEquals(undefined, g.maxTimestamp);
@@ -35,7 +35,7 @@ found in the LICENSE file.
   function testAsyncSliceGroupBounds_Basic() {
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
-    var g = new TimelineAsyncSliceGroup('a');
+    var g = new TimelineAsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     assertEquals(2, g.length);
@@ -53,8 +53,8 @@ found in the LICENSE file.
       '  "colorId" : 0,',
       '  "didNotFinish" : false,',
       '  "duration" : 1,',
-      '  "startThread" : "1:1",',
-      '  "endThread" : "1:1",',
+      '  "startThread" : __T1_GUID__,',
+      '  "endThread" : __T1_GUID__,',
       '  "subSlices" : [ {',
       '        "category" : "",',
       '        "title" : "a",',
@@ -62,17 +62,22 @@ found in the LICENSE file.
       '        "colorId" : 0,',
       '        "didNotFinish" : false,',
       '        "duration" : 1,',
-      '        "startThread" : "1:1",',
-      '        "endThread" : "1:1"',
+      '        "startThread" : __T1_GUID__,',
+      '        "endThread" : __T1_GUID__',
       '      } ]',
       '}'].join('\n');
-    // Modify whitespace of "js" so that string compare with another
-    // JSON.stringified version can succeed.
-    js = JSON.stringify(JSON.parse(js));
 
     var p1 = new TimelineProcess(1);
     var t1 = new TimelineThread(p1, 1);
     var s = newAsyncSlice(0, 1, t1, t1);
+
+    // Replace __T1_GUID__ with t1's actual GUID
+    js = js.replace(/__T1_GUID__/g, t1.guid);
+
+    // Modify whitespace of "js" so that string compare with another
+    // JSON.stringified version can succeed.
+    js = JSON.stringify(JSON.parse(js));
+
 
     assertEquals(js, JSON.stringify(s));
   }

@@ -34,7 +34,7 @@ base.exportTo('tracing', function() {
         if (typeof this[key] == 'function')
           continue;
         if (key == 'startThread' || key == 'endThread') {
-          obj[key] = this[key].ptid;
+          obj[key] = this[key].guid;
           continue;
         }
         obj[key] = this[key];
@@ -55,8 +55,7 @@ base.exportTo('tracing', function() {
    * A group of AsyncSlices.
    * @constructor
    */
-  function TimelineAsyncSliceGroup(name) {
-    this.name = name;
+  function TimelineAsyncSliceGroup() {
     this.slices = [];
   }
 
@@ -118,17 +117,17 @@ base.exportTo('tracing', function() {
      * slices that started on the same thread.
      */
     computeSubGroups: function() {
-      var subGroupsByPTID = {};
+      var subGroupsByGUID = {};
       for (var i = 0; i < this.slices.length; ++i) {
         var slice = this.slices[i];
-        var slicePTID = slice.startThread.ptid;
-        if (!subGroupsByPTID[slicePTID])
-          subGroupsByPTID[slicePTID] = new TimelineAsyncSliceGroup(this.name);
-        subGroupsByPTID[slicePTID].slices.push(slice);
+        var sliceGUID = slice.startThread.guid;
+        if (!subGroupsByGUID[sliceGUID])
+          subGroupsByGUID[sliceGUID] = new TimelineAsyncSliceGroup();
+        subGroupsByGUID[sliceGUID].slices.push(slice);
       }
       var groups = [];
-      for (var ptid in subGroupsByPTID) {
-        var group = subGroupsByPTID[ptid];
+      for (var guid in subGroupsByGUID) {
+        var group = subGroupsByGUID[guid];
         group.updateBounds();
         groups.push(group);
       }

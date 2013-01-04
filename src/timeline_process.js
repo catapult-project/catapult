@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the TimelineProcess class.
  */
+base.require('timeline_guid');
 base.require('timeline_thread');
 base.require('timeline_counter');
 base.exportTo('tracing', function() {
@@ -21,12 +22,23 @@ base.exportTo('tracing', function() {
    * @constructor
    */
   function TimelineProcess(pid) {
+    this.guid_ = tracing.GUID.allocate();
     this.pid = pid;
     this.threads = {};
     this.counters = {};
   };
 
   TimelineProcess.prototype = {
+    /*
+     * @return {Number} A globally unique identifier for this counter.
+     */
+    get guid() {
+      return this.guid_;
+    },
+
+    /**
+     * Gets the number of threads in this process.
+     */
     get numThreads() {
       var n = 0;
       for (var p in this.threads) {

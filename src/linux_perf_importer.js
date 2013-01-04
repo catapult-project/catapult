@@ -16,6 +16,8 @@
  * file, we the definition used in Linux traces, as it improves the importing
  * code's readability.
  */
+'use strict';
+
 base.require('timeline_model');
 base.require('timeline_color_scheme');
 base.require('linux_perf_bus_parser');
@@ -53,6 +55,7 @@ base.exportTo('tracing', function() {
       if (this.lastActivePid !== undefined && this.lastActivePid != 0) {
         var duration = ts - this.lastActiveTs;
         var thread = importer.threadsByLinuxPid[this.lastActivePid];
+        var name;
         if (thread)
           name = thread.userFriendlyName;
         else
