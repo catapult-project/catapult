@@ -119,6 +119,11 @@ class TabController(object):
 class BrowserBackend(object):
   """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
+
+  WEBPAGEREPLAY_HOST = '127.0.0.1'
+  WEBPAGEREPLAY_HTTP_PORT = 8080
+  WEBPAGEREPLAY_HTTPS_PORT = 8413
+
   def __init__(self, is_content_shell, options):
     self.tabs = None
     self.browser_type = options.browser_type
@@ -141,7 +146,9 @@ class BrowserBackend(object):
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
     if self.options.wpr_mode != wpr_modes.WPR_OFF:
-      args.extend(wpr_server.CHROME_FLAGS)
+      args.extend(wpr_server.GetChromeFlags(self.WEBPAGEREPLAY_HOST,
+                                            self.WEBPAGEREPLAY_HTTP_PORT,
+                                            self.WEBPAGEREPLAY_HTTPS_PORT))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.options.browser_user_agent_type))
     return args

@@ -118,7 +118,12 @@ class Browser(object):
       assert os.path.isfile(archive_path)
 
     self._wpr_server = wpr_server.ReplayServer(
-      self._backend, archive_path, use_record_mode)
+        self._backend,
+        archive_path,
+        use_record_mode,
+        self._backend.WEBPAGEREPLAY_HOST,
+        self._backend.WEBPAGEREPLAY_HTTP_PORT,
+        self._backend.WEBPAGEREPLAY_HTTPS_PORT)
 
   def GetStandardOutput(self):
     return self._backend.GetStandardOutput()
