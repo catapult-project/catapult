@@ -150,6 +150,59 @@ function testCanImport34AndLater() {
   assertTrue(tracing.LinuxPerfImporter.canImport(lines.join('\n')));
 }
 
+function testCanImportSystraceFile() {
+  var html_lines = [
+    '<!DOCTYPE HTML>',
+    '<html>',
+    '<head i18n-values="dir:textdirection;">',
+    '<title>Android System Trace</title>',
+    '<style type="text/css">tabbox{-webkit-box-orient:vertical;display:-webkit-box;}tabs{-webkit-padding-start</style>',
+    '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.TimelineModel;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.TimelineView);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;',
+    'this.cr=function(){function g(a,b,c,f){var e=new cr.Event(b+"Change");e.propertyName=b;e.newValue=c;e.oldValue=f;a.dispatchEvent(e)}function e(a){return a.replace(/([A-Z])/g,"-$1").toLowerCase()}function c(b,c){switch(c){case a.JS:var f=b+"_";return function(){return this[f]};case a.ATTR:var h=e(b);return function(){return this.getAttribute(h)};case a.BOOL_ATTR:return h=e(b),function(){return this.hasAttribute(h)}}}function f(b,c,f){switch(c){case a.JS:var h=b+"_";return function(a){var c=this[h];',
+    '  </div>',
+    '  <script>',
+    '  var linuxPerfData = "\\',
+    '# tracer: nop\\n\\',
+    '#\\n\\',
+    '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION\\n\\',
+    '#              | |       |          |         |\\n\\',
+    '          atrace-14662 [000] 50260.647576: sched_switch: prev_comm=atrace prev_pid=14662 prev_prio=120 prev_state=S ==> next_comm=kworker/0:0 next_pid=13696 next_prio=120\\n\\',
+    '     kworker/0:0-13696 [000] 50260.647590: sched_wakeup: comm=mmcqd/0 pid=95 prio=120 success=1 target_cpu=000\\n\\',
+    '     kworker/0:0-13696 [000] 50260.647602: sched_wakeup: comm=adbd pid=14582 prio=120 success=1 target_cpu=000\\n\\',
+    '     kworker/0:0-13696 [000] 50260.647610: sched_switch: prev_comm=kworker/0:0 prev_pid=13696 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14582 next_prio=120\\n\\',
+    '            adbd-14582 [000] 50260.647722: sched_wakeup: comm=adbd pid=14584 prio=120 success=1 target_cpu=000\\n\\',
+    '            adbd-14582 [000] 50260.647756: sched_switch: prev_comm=adbd prev_pid=14582 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14584 next_prio=120\\n\\',
+    '            adbd-14584 [000] 50260.647833: sched_switch: prev_comm=adbd prev_pid=14584 prev_prio=120 prev_state=S ==> next_comm=mmcqd/0 next_pid=95 next_prio=120\\n\\',
+    '         mmcqd/0-95    [000] 50260.647846: sched_switch: prev_comm=mmcqd/0 prev_pid=95 prev_prio=120 prev_state=S ==> next_comm=WebViewCoreThre next_pid=11043 next_prio=120\\n\\',
+    ' WebViewCoreThre-11043 [000] 50260.648275: sched_switch: prev_comm=WebViewCoreThre prev_pid=11043 prev_prio=120 prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120\\n";',
+    '  <\/script>',
+    '</body>',
+    '</html>'
+  ];
+  var html_text = html_lines.join('\n');
+  assertTrue(tracing.LinuxPerfImporter.canImport(html_text));
+
+  var expected_event_lines = [
+    '# tracer: nop',
+    '#',
+    '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+    '#              | |       |          |         |',
+    '          atrace-14662 [000] 50260.647576: sched_switch: prev_comm=atrace prev_pid=14662 prev_prio=120 prev_state=S ==> next_comm=kworker/0:0 next_pid=13696 next_prio=120',
+    '     kworker/0:0-13696 [000] 50260.647590: sched_wakeup: comm=mmcqd/0 pid=95 prio=120 success=1 target_cpu=000',
+    '     kworker/0:0-13696 [000] 50260.647602: sched_wakeup: comm=adbd pid=14582 prio=120 success=1 target_cpu=000',
+    '     kworker/0:0-13696 [000] 50260.647610: sched_switch: prev_comm=kworker/0:0 prev_pid=13696 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14582 next_prio=120',
+    '            adbd-14582 [000] 50260.647722: sched_wakeup: comm=adbd pid=14584 prio=120 success=1 target_cpu=000',
+    '            adbd-14582 [000] 50260.647756: sched_switch: prev_comm=adbd prev_pid=14582 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14584 next_prio=120',
+    '            adbd-14584 [000] 50260.647833: sched_switch: prev_comm=adbd prev_pid=14584 prev_prio=120 prev_state=S ==> next_comm=mmcqd/0 next_pid=95 next_prio=120',
+    '         mmcqd/0-95    [000] 50260.647846: sched_switch: prev_comm=mmcqd/0 prev_pid=95 prev_prio=120 prev_state=S ==> next_comm=WebViewCoreThre next_pid=11043 next_prio=120',
+    ' WebViewCoreThre-11043 [000] 50260.648275: sched_switch: prev_comm=WebViewCoreThre prev_pid=11043 prev_prio=120 prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
+  ];
+  var expected_event_text = expected_event_lines.join('\n');
+  var res = tracing.LinuxPerfImporter._extractEventsFromSystraceHTML(html_text, true);
+  var actual_event_text = res.lines.join('\n');
+  assertEquals(actual_event_text, expected_event_text);
+}
+
 function testImportOneSequence() {
   var lines = [
     '          <idle>-0     [001]  4467.843475: sched_switch: ' +

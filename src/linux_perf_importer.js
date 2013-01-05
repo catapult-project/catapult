@@ -93,6 +93,7 @@ base.exportTo('tracing', function() {
     this.cpuStates_ = {};
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToTimelineThreads();
+    this.lineNumberBase = 0;
     this.lineNumber = -1;
     this.pseudoThreadCounter = 1;
     this.parsers_ = [];
@@ -150,6 +151,9 @@ base.exportTo('tracing', function() {
     if (!(typeof(events) === 'string' || events instanceof String))
       return false;
 
+    if (LinuxPerfImporter._extractEventsFromSystraceHTML(events, false).ok)
+      return true;
+
     if (/^# tracer:/.test(events))
       return true;
 
@@ -161,6 +165,76 @@ base.exportTo('tracing', function() {
 
     return false;
   };
+
+  LinuxPerfImporter._extractEventsFromSystraceHTML = function(
+    incoming_events, produce_result) {
+    var failure = {ok: false};
+    if (produce_result === undefined)
+      produce_result = true;
+
+    if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
+      return failure;
+    var lines = incoming_events.split('\n');
+    var cur_line = 1;
+    function advanceToLineMatching(regex) {
+      for (; cur_line < lines.length; cur_line++) {
+        if (regex.test(lines[cur_line]))
+          return true;
+      }
+      return false;
+    }
+
+    // Try to find the data...
+    if (!advanceToLineMatching(/^  <script>$/))
+      return failure;
+    if (!advanceToLineMatching(/^  var linuxPerfData = "\\$/))
+      return failure;
+    var events_begin_at_line = cur_line + 1;
+
+    if (!advanceToLineMatching(/^  <\/script>$/))
+      return failure;
+    var events_end_at_line = cur_line;
+
+    if (!advanceToLineMatching(/^<\/body>$/))
+      return failure;
+    if (!advanceToLineMatching(/^<\/html>$/))
+      return failure;
+
+    var raw_events = lines.slice(events_begin_at_line,
+                                 events_end_at_line);
+    function endsWith(str, suffix) {
+      return str.indexOf(suffix, str.length - suffix.length) !== -1;
+    }
+    function stripSuffix(str, suffix) {
+      if (!endsWith(str, suffix))
+        return str;
+      return str.substring(str, str.length - suffix.length);
+    }
+
+    // Strip off escaping in the file needed to preserve linebreaks.
+    var events = [];
+    if (produce_result) {
+      for (var i = 0; i < raw_events.length; i++) {
+        var event = raw_events[i];
+        event = stripSuffix(event, '\\n\\');
+        events.push(event);
+      }
+    } else {
+      events = [raw_events[raw_events.length - 1]];
+    }
+
+    // Last event ends differently. Strip that off too,
+    // treating absence of that trailing stirng as a failure.
+    var oldLastEvent = events[events.length - 1];
+    var newLastEvent = stripSuffix(oldLastEvent, '\\n";');
+    if (newLastEvent == oldLastEvent)
+      return failure;
+    events[events.length - 1] = newLastEvent;
+
+    return {ok: true,
+            lines: produce_result ? events : undefined,
+            events_begin_at_line: events_begin_at_line};
+  }
 
   LinuxPerfImporter.prototype = {
     __proto__: Object.prototype,
@@ -463,7 +537,8 @@ base.exportTo('tracing', function() {
     },
 
     importError: function(message) {
-      this.model_.importErrors.push('Line ' + (this.lineNumber + 1) +
+      this.model_.importErrors.push(
+        'Line ' + (this.lineNumberBase + this.lineNumber + 1) +
           ': ' + message);
     },
 
@@ -511,10 +586,19 @@ base.exportTo('tracing', function() {
      * Walks the this.events_ structure and creates TimelineCpu objects.
      */
     importCpuData: function() {
-      this.lines_ = this.events_.split('\n');
+      var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
+        this.events_, true);
+      if (extractResult.ok) {
+        this.lineNumberBase = extractResult.events_begin_at_line;
+        this.lines_ = extractResult.lines;
+      } else {
+        this.lineNumberBase = 0;
+        this.lines_ = this.events_.split('\n');
+      }
 
       var lineRE = null;
-      for (this.lineNumber = 0; this.lineNumber < this.lines_.length;
+      for (this.lineNumber = 0;
+           this.lineNumber < this.lines_.length;
           ++this.lineNumber) {
         var line = this.lines_[this.lineNumber];
         if (line.length == 0 || /^#/.test(line))
