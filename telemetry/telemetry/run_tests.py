@@ -140,4 +140,4 @@ def Main(args, start_dir, top_level_dir):
     os.chdir(olddir)
     options_for_unittests.Set(None, None)
 
-  return max(num_errors, 255)
+  return min(num_errors, 255)
