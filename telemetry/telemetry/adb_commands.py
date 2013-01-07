@@ -78,6 +78,15 @@ class AdbCommands(object):
     """
     return self._adb.RunShellCommand(command, timeout_time, log_result)
 
+  def CloseApplication(self, package):
+    """Attempt to close down the application, using increasing violence.
+
+    Args:
+      package: Name of the process to kill off, e.g.
+      com.google.android.apps.chrome
+    """
+    self._adb.CloseApplication(package)
+
   def KillAll(self, process):
     """Android version of killall, connected via adb.
 

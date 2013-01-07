@@ -103,12 +103,6 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
 
   adb = adb_commands.AdbCommands(device=device)
 
-  # See if adb is root
-  if not adb.IsRootEnabled():
-    logging.warn('ADB is not root. Please make it root by doing:')
-    logging.warn(' adb root')
-    return []
-
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
   if 'package:' + CONTENT_SHELL_PACKAGE in packages:
