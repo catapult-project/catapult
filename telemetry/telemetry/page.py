@@ -67,6 +67,9 @@ class Page(object):
   @staticmethod
   def WaitForPageToLoad(obj, tab, timeout, poll_interval=0.1):
     """Waits for various wait conditions present in obj."""
+    if hasattr(obj, 'post_navigate_javascript_to_execute'):
+      tab.runtime.Evaluate(obj.post_navigate_javascript_to_execute)
+
     if hasattr(obj, 'wait_seconds'):
       time.sleep(obj.wait_seconds)
     if hasattr(obj, 'wait_for_element_with_text'):

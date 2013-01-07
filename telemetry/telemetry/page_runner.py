@@ -155,7 +155,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
 
     page_state = PageState()
     try:
-      did_prepare = self._PreparePage(page, tab, page_state, results)
+      did_prepare = self._PreparePage(page, tab, page_state, test, results)
     except util.TimeoutException, ex:
       logging.warning('Timed out waiting for reply on %s. This is unusual.',
                       page.url)
@@ -245,7 +245,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
         trace_file.write(trace)
       logging.info('Trace saved.')
 
-  def _PreparePage(self, page, tab, page_state, results):
+  def _PreparePage(self, page, tab, page_state, test, results):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
       dirname, filename = page.url_base_dir_and_file
@@ -264,13 +264,16 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
         results.AddFailure(page, msg, "")
         return False
 
+    test.WillNavigateToPage(page, tab)
     tab.page.Navigate(target_side_url)
+    test.DidNavigateToPage(page, tab)
 
     # Wait for unpredictable redirects.
     if page.wait_time_after_navigate:
       time.sleep(page.wait_time_after_navigate)
     page.WaitToLoad(tab, 60)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
     return True
 
   def _CleanUpPage(self, page, tab, page_state): # pylint: disable=R0201

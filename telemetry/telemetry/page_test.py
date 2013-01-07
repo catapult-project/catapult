@@ -65,6 +65,15 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
+  def WillNavigateToPage(self, page, tab):
+    """Override to do operations before the page is navigated."""
+    pass
+
+  def DidNavigateToPage(self, page, tab):
+    """Override to do operations right after the page is navigated, but before
+    any waiting for completion has occurred."""
+    pass
+
   def WillRunInteraction(self, page, tab):
     """Override to do operations before running the interaction on the page."""
     pass
