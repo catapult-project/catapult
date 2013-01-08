@@ -8,8 +8,10 @@ import sys
 def __init__():
   ws_path = os.path.join(os.path.dirname(__file__),
                          '../third_party/websocket-client')
+  ws_path = os.path.abspath(ws_path)
   assert os.path.exists(os.path.join(ws_path, 'websocket.py'))
-  sys.path.append(ws_path)
+  if ws_path not in sys.path:
+    sys.path.append(ws_path)
 
 __init__()
 

@@ -95,8 +95,10 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
 
     # Check tracing directory.
     if options.trace_dir:
+      if not os.path.exists(options.trace_dir):
+        os.mkdir(options.trace_dir)
       if not os.path.isdir(options.trace_dir):
-        raise Exception('Trace directory doesn\'t exist: %s' %
+        raise Exception('--trace-dir isn\'t a directory: %s' %
                         options.trace_dir)
       elif os.listdir(options.trace_dir):
         raise Exception('Trace directory isn\'t empty: %s' % options.trace_dir)

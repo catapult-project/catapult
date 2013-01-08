@@ -8,8 +8,10 @@ import os
 import sys
 
 from telemetry import all_page_interactions # pylint: disable=W0611
+from telemetry import block_page_benchmark_results
 from telemetry import browser_finder
 from telemetry import browser_options
+from telemetry import csv_page_benchmark_results
 from telemetry import discover
 from telemetry import multi_page_benchmark
 from telemetry import page_runner
@@ -37,7 +39,7 @@ def Main(benchmark_dir):
   parser.add_option('--output-format',
                     dest='output_format',
                     default='csv',
-                    help='Output format. Can be "csv" or "terminal-block". '
+                    help='Output format. Can be "csv" or "block". '
                     'Defaults to "%default".')
 
   benchmark = None
@@ -67,12 +69,14 @@ Use --browser=list to figure out which are available.\n"""
     sys.exit(1)
 
   if options.output_format == 'csv':
-    results = multi_page_benchmark.CsvBenchmarkResults(csv.writer(sys.stdout))
-  elif options.output_format == 'terminal-block':
-    results = multi_page_benchmark.TerminalBlockBenchmarkResults(sys.stdout)
+    results = csv_page_benchmark_results.CsvPageBenchmarkResults(
+      csv.writer(sys.stdout),
+      benchmark.results_are_the_same_on_every_page)
+  elif options.output_format in ('block', 'terminal-block'):
+    results = block_page_benchmark_results.BlockPageBenchmarkResults(sys.stdout)
   else:
     raise Exception('Invalid --output-format value: "%s". Valid values are '
-                    '"csv" and "terminal-block".'
+                    '"csv" and "block".'
                     % options.output_format)
 
   with page_runner.PageRunner(ps) as runner:
