@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 from telemetry import inspector_backend
 from telemetry import inspector_console
 from telemetry import inspector_page
@@ -68,6 +69,16 @@ class Tab(object):
     self.Disconnect()
     self._tab_controller.CloseTab(self._debugger_url)
 
+  def Activate(self):
+    """Brings this tab to the foreground asynchronously.
+
+    Please note: this is asynchronous. There is a delay between this call
+    and the page's documentVisibilityState becoming 'visible', and yet more
+    delay until the actual tab is visible to the user. None of these delays
+    are included in this call."""
+    self._Connect()
+    self._tab_controller.ActivateTab(self._debugger_url)
+
   @property
   def browser(self):
     """The browser in which this tab resides."""
@@ -112,3 +123,4 @@ class Tab(object):
       rs = self._runtime.Evaluate('document.readyState')
       return rs == 'complete' or rs == 'interactive'
     util.WaitFor(IsReadyStateInteractiveOrBetter, timeout)
+

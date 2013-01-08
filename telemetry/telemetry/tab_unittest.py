@@ -3,6 +3,14 @@
 # found in the LICENSE file.
 from telemetry import tab_test_case
 from telemetry import tab_crash_exception
+from telemetry import util
+
+
+def _IsDocumentVisible(tab):
+  state = tab.runtime.Evaluate('document.webkitVisibilityState')
+  tab.Disconnect()
+  return state == 'visible'
+
 
 class TabTest(tab_test_case.TabTestCase):
   def testNavigateAndWaitToForCompleteState(self):
@@ -21,4 +29,12 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.page.Navigate('chrome://crash',
                                                       timeout=5))
 
+  def testActivateTab(self):
+    self.assertTrue(_IsDocumentVisible(self._tab))
+    new_tab = self._browser.tabs.New()
+    util.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
+    self.assertFalse(_IsDocumentVisible(self._tab))
+    self._tab.Activate()
+    util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
+    self.assertFalse(_IsDocumentVisible(new_tab))
 

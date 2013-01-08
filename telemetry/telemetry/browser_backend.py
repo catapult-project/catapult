@@ -60,6 +60,16 @@ class TabController(object):
     util.WaitFor(lambda: not self._FindTabInfo(debugger_url), timeout=5)
     self._UpdateTabList()
 
+  def ActivateTab(self, debugger_url, timeout=None):
+    assert debugger_url in self._tab_dict
+    tab_id = debugger_url.split('/')[-1]
+    try:
+      response = self._browser_backend.Request('activate/%s' % tab_id,
+                                               timeout=timeout)
+    except urllib2.HTTPError:
+      raise Exception('Unable to activate tab, tab id not found: %s' % tab_id)
+    assert response == 'Target activated'
+
   def GetTabUrl(self, debugger_url):
     tab_info = self._FindTabInfo(debugger_url)
     # TODO(hartmanng): crbug.com/166886 (uncomment the following assert and
