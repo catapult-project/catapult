@@ -63,7 +63,7 @@ class InspectorTimeline(object):
     self._inspector_backend = inspector_backend
     self._tab = tab
     self._is_recording = False
-    self._timeline_events = TimelineEvents()
+    self._timeline_events = None
 
   @property
   def timeline_events(self):
@@ -72,6 +72,7 @@ class InspectorTimeline(object):
   def Start(self):
     if self._is_recording:
       return
+    self._timeline_events = TimelineEvents()
     self._is_recording = True
     self._inspector_backend.RegisterDomain('Timeline',
        self._OnNotification, self._OnClose)
