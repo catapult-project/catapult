@@ -1,12 +1,14 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import logging
 import os
 import subprocess
 import sys
 import tempfile
+import time
 
 from telemetry import adb_commands
 from telemetry import browser_backend
@@ -72,11 +74,23 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
       prefs_file = (app_data_dir +
                     '/app_chrome/Default/Preferences')
       if not self._adb.FileExistsOnDevice(prefs_file):
-        logging.critical(
-            'android_browser_backend: Could not find preferences file ' +
-            '%s for %s' % (prefs_file, self._package))
-        raise browser_gone_exception.BrowserGoneException(
-          'Missing preferences file.')
+        # Start it up the first time so we can tweak the prefs.
+        self._adb.StartActivity(self._package,
+                                self._activity,
+                                True,
+                                None,
+                                None)
+        retries = 0
+        while not self._adb.Adb().GetFileContents(prefs_file):
+          time.sleep(3)
+          retries += 1
+          if retries == 3:
+            logging.critical('android_browser_backend: Could not find '
+                             'preferences file %s for %s',
+                             prefs_file, self._package)
+            raise browser_gone_exception.BrowserGoneException(
+                'Missing preferences file.')
+        self._adb.KillAll(self._package)
 
       with tempfile.NamedTemporaryFile() as raw_f:
         self._adb.Pull(prefs_file, raw_f.name)
