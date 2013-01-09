@@ -65,7 +65,8 @@ class InspectorTimeline(object):
     record = msg.get('params', {}).get('record')
     if record:
       newly_created_event = InspectorTimeline.RawEventToTimelineEvent(record)
-      self._timeline_model.AddEvent(newly_created_event)
+      if newly_created_event:
+        self._timeline_model.AddEvent(newly_created_event)
 
   @staticmethod
   def RawEventToTimelineEvent(raw_inspector_event):
