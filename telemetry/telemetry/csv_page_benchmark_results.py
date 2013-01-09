@@ -37,8 +37,10 @@ class CsvPageBenchmarkResults(PageBenchmarkResults):
   def _ValidateOutputNamesForCurrentPage(self):
     assert self._did_output_header
     current_page_measurement_names = \
-        self.values_for_current_page.measurement_names
-    if self._header_names_written_to_writer == current_page_measurement_names:
+        set(self.values_for_current_page.measurement_names)
+    header_names_written_to_writer = \
+        set(self._header_names_written_to_writer)
+    if header_names_written_to_writer == current_page_measurement_names:
       return
     assert False, """To use CsvPageBenchmarkResults, you must add the same
 result names for every page. In this case, first page output:
@@ -50,7 +52,7 @@ output:
 
 Change your test to produce the same thing each time, or modify
 MultiPageBenchmark.results_are_the_same_on_every_page to return False.
-""" % (repr(self._header_names_written_to_writer),
+""" % (repr(header_names_written_to_writer),
        repr(current_page_measurement_names))
 
   def _OutputHeader(self):
