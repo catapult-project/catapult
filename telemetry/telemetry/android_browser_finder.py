@@ -81,11 +81,13 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
         logging.warn('  adb kill-server')
         logging.warn('  sudo `which adb` devices\n\n')
   except OSError:
-    if sys.platform.startswith('linux'):
-      os.environ['PATH'] = os.pathsep.join([
-          os.path.join(os.path.dirname(__file__),
-                       '../../../third_party/android_tools/sdk/platform-tools'),
-          os.environ['PATH']])
+    platform_tools_path = os.path.join(
+        os.path.dirname(__file__), '..', '..', '..',
+        'third_party', 'android_tools', 'sdk', 'platform-tools')
+    if (sys.platform.startswith('linux') and
+        os.path.exists(os.path.join(platform_tools_path, 'adb'))):
+      os.environ['PATH'] = os.pathsep.join([platform_tools_path,
+                                            os.environ['PATH']])
     else:
       logging.info('No adb command found. ' +
                    'Will not try searching for Android browsers.')
