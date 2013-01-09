@@ -24,9 +24,9 @@ class PageBenchmarkValue(object):
   @property
   def output_value(self):
     if self.data_type == 'histogram':
-      return GeomMeanAndStdDevFromHistogram(self.value)
+      (mean, _) = GeomMeanAndStdDevFromHistogram(self.value)
+      return mean
     elif isinstance(self.value, list):
       return _Mean(self.value)
     else:
       return self.value
-
