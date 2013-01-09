@@ -78,7 +78,8 @@ class MultiPageBenchmarkUnitTest(
     benchmark = BenchThatHasDefaults()
     all_results = self.RunBenchmark(benchmark, ps, options=self._options)
     self.assertEquals(len(all_results.page_results), 1)
-    self.assertEquals(all_results.page_results[0]['x'], 7)
+    self.assertEquals(
+      all_results.page_results[0].FindValueByTraceName('x').value, 7)
 
   def testRecordAndReplay(self):
     test_archive = '/tmp/google.wpr'

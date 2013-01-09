@@ -29,7 +29,7 @@ class CsvPageBenchmarkResults(PageBenchmarkResults):
   def PrintSummary(self, trace_tag):
     if not self._output_after_every_page:
       self._OutputHeader()
-      for page_values in self.all_values_for_all_pages:
+      for page_values in self.page_results:
         self._OutputValuesForPage(page_values)
 
     super(CsvPageBenchmarkResults, self).PrintSummary(trace_tag)

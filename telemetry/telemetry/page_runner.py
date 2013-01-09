@@ -150,6 +150,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
 
   def _RunPage(self, options, page, tab, test, results):
     if not test.CanRunForPage(page):
+      logging.warning('Skiping test: it cannot run for %s', page.url)
       results.AddSkippedPage(page, 'Test cannot run', '')
       return
 

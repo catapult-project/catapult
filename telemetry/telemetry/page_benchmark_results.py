@@ -26,22 +26,43 @@ class ValuesForSinglePage(object):
       return values[0]
     return None
 
+  def __getitem__(self, trace_name):
+    return self.FindValueByTraceName(trace_name)
+
+  def __contains__(self, trace_name):
+    return self.FindValueByTraceName(trace_name) != None
+
+  def FindValueByTraceName(self, trace_name):
+    values = [value for value in self.values
+              if value.trace_name == trace_name]
+    assert len(values) <= 1
+    if len(values):
+      return values[0]
+    return None
+
 class PageBenchmarkResults(PageTestResults):
   def __init__(self):
     super(PageBenchmarkResults, self).__init__()
-    self._all_values_for_all_pages = []
+    self._page_results = []
 
     self._all_measurements_that_have_been_seen = {}
 
     self._values_for_current_page = {}
+
+  def __getitem__(self, i):
+    """Shorthand for self.page_results[i]"""
+    return self._page_results[i]
+
+  def __len__(self):
+    return len(self._page_results)
 
   @property
   def values_for_current_page(self):
     return self._values_for_current_page
 
   @property
-  def all_values_for_all_pages(self):
-    return self._all_values_for_all_pages
+  def page_results(self):
+    return self._page_results
 
   def WillMeasurePage(self, page):
     self._values_for_current_page = ValuesForSinglePage(page)
@@ -74,7 +95,7 @@ class PageBenchmarkResults(PageTestResults):
 
   def DidMeasurePage(self):
     assert self._values_for_current_page, 'Failed to call WillMeasurePage'
-    self._all_values_for_all_pages.append(self._values_for_current_page)
+    self._page_results.append(self._values_for_current_page)
     self._values_for_current_page = None
 
   def _PrintPerfResult(self, measurement, trace, values, units,
@@ -89,7 +110,7 @@ class PageBenchmarkResults(PageTestResults):
     results_summary = defaultdict(list)
     for measurement_name in \
           self._all_measurements_that_have_been_seen.iterkeys():
-      for page_values in self._all_values_for_all_pages:
+      for page_values in self._page_results:
         value = page_values.FindValueByMeasurementName(measurement_name)
         if not value:
           continue

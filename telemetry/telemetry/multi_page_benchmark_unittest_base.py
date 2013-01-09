@@ -5,10 +5,10 @@ import os
 import unittest
 
 from telemetry import browser_finder
-from telemetry import multi_page_benchmark
 from telemetry import options_for_unittests
 from telemetry import page_runner
 from telemetry import page as page_module
+from telemetry import page_benchmark_results
 from telemetry import page_set
 
 class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
@@ -22,7 +22,7 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
   def CreatePageSet(self, test_filename):
     base_dir = os.path.dirname(__file__)
     page = page_module.Page(test_filename, base_dir=base_dir)
-    setattr(page, 'scrolling', {'action': 'scrolling_interaction'})
+    setattr(page, 'smoothness', {'action': 'scrolling_interaction'})
     ps = page_set.PageSet(base_dir=base_dir)
     ps.pages.append(page)
     return ps
@@ -43,7 +43,7 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
     benchmark.CustomizeBrowserOptions(options)
     possible_browser = browser_finder.FindBrowser(options)
 
-    results = multi_page_benchmark.BenchmarkResults()
+    results = page_benchmark_results.PageBenchmarkResults()
     with page_runner.PageRunner(ps) as runner:
       runner.Run(options, possible_browser, benchmark, results)
     return results
