@@ -7,6 +7,7 @@ import os
 import logging as real_logging
 import re
 import subprocess
+import sys
 
 from telemetry import adb_commands
 from telemetry import android_browser_backend
@@ -80,9 +81,15 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
         logging.warn('  adb kill-server')
         logging.warn('  sudo `which adb` devices\n\n')
   except OSError:
-    logging.info('No adb command found. ' +
-             'Will not try searching for Android browsers.')
-    return []
+    if sys.platform.startswith('linux'):
+      os.environ['PATH'] = os.pathsep.join([
+          os.path.join(os.path.dirname(__file__),
+                       '../../../third_party/android_tools/sdk/platform-tools'),
+          os.environ['PATH']])
+    else:
+      logging.info('No adb command found. ' +
+                   'Will not try searching for Android browsers.')
+      return []
 
   device = None
   if options.android_device:
