@@ -1,63 +1,102 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import os
 import unittest
 
-from telemetry import inspector_timeline
 from telemetry import tab_test_case
 from telemetry import util
+from telemetry.inspector_timeline import InspectorTimeline
 
+_SAMPLE_MESSAGE = {
+  'children': [
+    {'data': {},
+     'startTime': 1352783525921.823,
+     'type': 'BeginFrame',
+     'usedHeapSize': 1870736},
+    {'children': [],
+     'data': {'height': 723,
+              'width': 1272,
+              'x': 0,
+              'y': 0},
+     'endTime': 1352783525921.8992,
+     'frameId': '10.2',
+     'startTime': 1352783525921.8281,
+     'type': 'Layout',
+     'usedHeapSize': 1870736},
+    {'children': [
+        {'children': [],
+         'data': {'imageType': 'PNG'},
+         'endTime': 1352783525927.7939,
+         'startTime': 1352783525922.4241,
+         'type': 'DecodeImage',
+         'usedHeapSize': 1870736}
+        ],
+     'data': {'height': 432,
+              'width': 1272,
+              'x': 0,
+              'y': 8},
+     'endTime': 1352783525927.9822,
+     'frameId': '10.2',
+     'startTime': 1352783525921.9292,
+     'type': 'Paint',
+     'usedHeapSize': 1870736}
+    ],
+  'data': {},
+  'endTime': 1352783525928.041,
+  'startTime': 1352783525921.8049,
+  'type': 'Program'}
 
-_SAMPLE_STREAM = [
-{u'method': u'Timeline.eventRecorded',
-  u'params': {u'record': {u'children': [
-  {u'data': {},
-   u'startTime': 1352783525921.823,
-   u'type': u'BeginFrame',
-   u'usedHeapSize': 1870736},
-  {u'children': [],
-   u'data': {u'height': 723,
-             u'width': 1272,
-             u'x': 0,
-             u'y': 0},
-   u'endTime': 1352783525921.8992,
-   u'frameId': u'10.2',
-   u'startTime': 1352783525921.8281,
-   u'type': u'Layout',
-   u'usedHeapSize': 1870736},
-  {u'children': [{u'children': [],
-                  u'data': {u'imageType': u'PNG'},
-                  u'endTime': 1352783525927.7939,
-                  u'startTime': 1352783525922.4241,
-                  u'type': u'DecodeImage',
-                  u'usedHeapSize': 1870736}],
-   u'data': {u'height': 432,
-             u'width': 1272,
-             u'x': 0,
-             u'y': 8},
-   u'endTime': 1352783525927.9822,
-   u'frameId': u'10.2',
-   u'startTime': 1352783525921.9292,
-   u'type': u'Paint',
-   u'usedHeapSize': 1870736}],
-u'data': {},
-u'endTime': 1352783525928.041,
-u'startTime': 1352783525921.8049,
-u'type': u'Program'}}},
-]
+class InspectorEventParsingTest(unittest.TestCase):
+  def testParsingWithSampleData(self):
+    root_event = InspectorTimeline.RawEventToTimelineEvent(_SAMPLE_MESSAGE)
+    self.assertTrue(root_event)
+    decode_image_event = [
+      child for child in root_event.GetAllChildrenRecursive()
+      if child.name == 'DecodeImage'][0]
+    self.assertEquals(decode_image_event.args['data']['imageType'], 'PNG')
+    self.assertTrue(decode_image_event.duration_ms > 0)
 
+  def testParsingWithSimpleData(self):
+    raw_event = {'type': 'Foo',
+                 'startTime': 1,
+                 'endTime': 3,
+                 'children': []}
+    event = InspectorTimeline.RawEventToTimelineEvent(raw_event)
+    self.assertEquals('Foo', event.name)
+    self.assertEquals(1, event.start_time_ms)
+    self.assertEquals(3, event.end_time_ms)
+    self.assertEquals(2, event.duration_ms)
+    self.assertEquals([], event.children)
 
-class InspectorTimelineTest(unittest.TestCase):
-  def testTimelineEventParsing(self):
-    timeline_events = inspector_timeline.TimelineEvents()
-    for raw_events in _SAMPLE_STREAM:
-      timeline_events.AppendRawEvents(raw_events)
-    decode_image_events = timeline_events.GetAllOfType('DecodeImage')
-    self.assertEquals(len(decode_image_events), 1)
-    self.assertEquals(decode_image_events[0].data['imageType'], 'PNG')
-    self.assertTrue(decode_image_events[0].elapsed_time > 0)
+  def testParsingWithArgs(self):
+    raw_event = {'type': 'Foo',
+                 'startTime': 1,
+                 'endTime': 3,
+                 'foo': 7,
+                 'bar': {'x': 1}}
+    event = InspectorTimeline.RawEventToTimelineEvent(raw_event)
+    self.assertEquals('Foo', event.name)
+    self.assertEquals(1, event.start_time_ms)
+    self.assertEquals(3, event.end_time_ms)
+    self.assertEquals(2, event.duration_ms)
+    self.assertEquals([], event.children)
+    self.assertEquals(7, event.args['foo'])
+    self.assertEquals(1, event.args['bar']['x'])
+
+  def testEventsWithNoStartTimeAreDropped(self):
+    raw_event = {'type': 'Foo',
+                 'endTime': 1,
+                 'children': []}
+    event = InspectorTimeline.RawEventToTimelineEvent(raw_event)
+    self.assertEquals(None, event)
+
+  def testEventsWithNoEndTimeAreDropped(self):
+    raw_event = {'type': 'Foo',
+                 'endTime': 1,
+                 'children': []}
+    event = InspectorTimeline.RawEventToTimelineEvent(raw_event)
+    self.assertEquals(None, event)
 
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):
@@ -75,7 +114,7 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
   def testGotTimeline(self):
     self._StartServer()
     image_url = self._browser.http_server.UrlOf('image.png')
-    with inspector_timeline.InspectorTimeline.Recorder(self._tab.timeline):
+    with InspectorTimeline.Recorder(self._tab.timeline):
       self._tab.runtime.Execute(
 """
 var done = false;
@@ -86,7 +125,7 @@ window.webkitRequestAnimationFrame(function() { done = true; });
 """ % image_url)
       self._WaitForAnimationFrame()
 
-    r = self._tab.timeline.timeline_events.GetAllOfType('DecodeImage')
+    r = self._tab.timeline.timeline_model.GetAllOfName('DecodeImage')
     self.assertTrue(len(r) > 0)
-    self.assertEquals(r[0].data['imageType'], 'PNG')
-    self.assertTrue(r[0].elapsed_time > 0)
+    self.assertEquals(r[0].args['data']['imageType'], 'PNG')
+    self.assertTrue(r[0].duration_ms > 0)
