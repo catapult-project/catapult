@@ -7,6 +7,7 @@ import httplib
 import socket
 import json
 import re
+import sys
 import weakref
 
 from telemetry import browser_gone_exception
@@ -145,6 +146,12 @@ class BrowserBackend(object):
     self._chrome_branch_number = 0
     self._webkit_base_revision = 0
     self._tracing_backend = None
+
+    if options.dont_override_profile:
+      sys.stderr.write('Warning: Not overriding profile. This can cause '
+                       'unexpected effects due to profile-specific settings, '
+                       'such as about:flags settings, cookies, and '
+                       'extensions.\n')
 
   def SetBrowser(self, browser):
     self.tabs = TabController(browser, self)

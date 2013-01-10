@@ -15,8 +15,12 @@ class FacebookCredentialsBackend(
     return 'http://www.facebook.com/'
 
   @property
-  def form_id(self):
+  def login_form_id(self):
     return 'login_form'
+
+  @property
+  def already_logged_in_element_id(self):
+    return 'fbNotificationsList'
 
   @property
   def login_input_id(self):

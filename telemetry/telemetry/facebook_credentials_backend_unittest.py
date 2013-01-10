@@ -5,7 +5,7 @@ import os
 import unittest
 
 from telemetry import browser_finder
-from telemetry import google_credentials_backend
+from telemetry import facebook_credentials_backend
 from telemetry import simple_mock
 from telemetry import options_for_unittests
 
@@ -17,7 +17,7 @@ class MockTab(simple_mock.MockObject):
     self.runtime = simple_mock.MockObject(self)
     self.page = simple_mock.MockObject(self)
 
-class TestGoogleCredentialsBackend(unittest.TestCase):
+class TestFacebookCredentialsBackend(unittest.TestCase):
   def testRealLoginIfPossible(self):
     credentials_path = os.path.join(
       os.path.dirname(__file__),
@@ -28,9 +28,9 @@ class TestGoogleCredentialsBackend(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     with browser_finder.FindBrowser(options).Create() as b:
       b.credentials.credentials_path = credentials_path
-      if not b.credentials.CanLogin('google'):
+      if not b.credentials.CanLogin('facebook'):
         return
-      ret = b.credentials.LoginNeeded(b.tabs[0], 'google')
+      ret = b.credentials.LoginNeeded(b.tabs[0], 'facebook')
       self.assertTrue(ret)
 
   def testRealLoginWithDontOverrideProfileIfPossible(self):
@@ -46,40 +46,40 @@ class TestGoogleCredentialsBackend(unittest.TestCase):
     # Login once to make sure our default profile is logged in.
     with browser_finder.FindBrowser(options).Create() as b:
       b.credentials.credentials_path = credentials_path
-      if not b.credentials.CanLogin('google'):
+      if not b.credentials.CanLogin('facebook'):
         return
-      ret = b.credentials.LoginNeeded(b.tabs[0], 'google')
+      ret = b.credentials.LoginNeeded(b.tabs[0], 'facebook')
       self.assertTrue(ret)
 
     # Second time will test that we behave correctly if we're logged in,
     # but our b.credentials doesn't know yet.
     with browser_finder.FindBrowser(options).Create() as b:
       b.credentials.credentials_path = credentials_path
-      if not b.credentials.CanLogin('google'):
+      if not b.credentials.CanLogin('facebook'):
         return
-      ret = b.credentials.LoginNeeded(b.tabs[0], 'google')
+      ret = b.credentials.LoginNeeded(b.tabs[0], 'facebook')
       self.assertTrue(ret)
 
   def testLoginUsingMock(self): # pylint: disable=R0201
     tab = MockTab()
 
-    backend = google_credentials_backend.GoogleCredentialsBackend()
+    backend = facebook_credentials_backend.FacebookCredentialsBackend()
     config = {'username': 'blah',
               'password': 'blargh'}
 
-    tab.page.ExpectCall('Navigate', 'https://accounts.google.com/')
+    tab.page.ExpectCall('Navigate', 'http://www.facebook.com/')
     tab.runtime.ExpectCall('Evaluate', _).WillReturn(False)
     tab.runtime.ExpectCall('Evaluate', _).WillReturn(True)
     tab.runtime.ExpectCall('Evaluate', _).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
 
     def VerifyEmail(js):
-      assert 'Email' in js
+      assert 'email' in js
       assert 'blah' in js
     tab.runtime.ExpectCall('Execute', _).WhenCalled(VerifyEmail)
 
     def VerifyPw(js):
-      assert 'Passwd' in js
+      assert 'pass' in js
       assert 'largh' in js
     tab.runtime.ExpectCall('Execute', _).WhenCalled(VerifyPw)
 

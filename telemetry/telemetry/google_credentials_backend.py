@@ -15,8 +15,12 @@ class GoogleCredentialsBackend(
     return 'https://accounts.google.com/'
 
   @property
-  def form_id(self):
+  def login_form_id(self):
     return 'gaia_loginform'
+
+  @property
+  def already_logged_in_element_id(self):
+    return 'gb'
 
   @property
   def login_input_id(self):

@@ -7,13 +7,21 @@ import logging
 import telemetry
 from telemetry import util
 
-def _WaitForFormToLoad(form_id, tab):
-  def IsFormLoaded():
+
+def _IsAlreadyLoggedIn(already_logged_in_element_id, tab):
+  return tab.runtime.Evaluate(
+      'document.getElementById("%s")!== null' % \
+          already_logged_in_element_id)
+
+def _WaitForLoginFormToLoad(login_form_id, already_logged_in_element_id, tab):
+  def IsFormLoadedOrAlreadyLoggedIn():
     return tab.runtime.Evaluate(
-        'document.querySelector("#%s")!== null' % form_id)
+        'document.querySelector("#%s")!== null' % login_form_id) or \
+            _IsAlreadyLoggedIn(already_logged_in_element_id, tab)
 
   # Wait until the form is submitted and the page completes loading.
-  util.WaitFor(lambda: IsFormLoaded(), 60) # pylint: disable=W0108
+  util.WaitFor(lambda: IsFormLoadedOrAlreadyLoggedIn(), # pylint: disable=W0108
+               60)
 
 def _SubmitFormAndWait(form_id, tab):
   js = 'document.getElementById("%s").submit();' % form_id
@@ -39,11 +47,15 @@ class FormBasedCredentialsBackend(object):
     raise NotImplementedError()
 
   @property
-  def form_id(self):
+  def login_form_id(self):
     raise NotImplementedError()
 
   @property
   def login_input_id(self):
+    raise NotImplementedError()
+
+  @property
+  def already_logged_in_element_id(self):
     raise NotImplementedError()
 
   @property
@@ -69,7 +81,14 @@ class FormBasedCredentialsBackend(object):
     try:
       logging.info('Loading %s...', self.url)
       tab.page.Navigate(self.url)
-      _WaitForFormToLoad(self.form_id, tab)
+      _WaitForLoginFormToLoad(self.login_form_id,
+                              self.already_logged_in_element_id,
+                              tab)
+
+      if _IsAlreadyLoggedIn(self.already_logged_in_element_id, tab):
+        self._logged_in = True
+        return True
+
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       logging.info('Loaded page: %s', self.url)
 
@@ -80,7 +99,7 @@ class FormBasedCredentialsBackend(object):
       tab.runtime.Execute(email_id)
       tab.runtime.Execute(password)
 
-      _SubmitFormAndWait(self.form_id, tab)
+      _SubmitFormAndWait(self.login_form_id, tab)
 
       self._logged_in = True
       return True
