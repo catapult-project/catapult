@@ -12,4 +12,4 @@ class UserAgentTest(tab_test_case.TabTestCase):
 
   def testUserAgent(self):
     ua = self._tab.runtime.Evaluate('window.navigator.userAgent')
-    self.assertEquals(ua, '"%s"' % user_agent.UA_TYPE_MAPPING['tablet'])
+    self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['tablet'])

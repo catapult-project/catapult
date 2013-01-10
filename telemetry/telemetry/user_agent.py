@@ -24,5 +24,5 @@ def GetChromeUserAgentArgumentFromType(user_agent_type):
   https://developers.google.com/chrome/mobile/docs/user-agent
   """
   if user_agent_type:
-    return ['--user-agent="%s"' % UA_TYPE_MAPPING[user_agent_type]]
+    return ['--user-agent=%s' % UA_TYPE_MAPPING[user_agent_type]]
   return []
