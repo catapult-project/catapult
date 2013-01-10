@@ -72,6 +72,9 @@ class Tab(object):
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
 
+    Not all browsers or browser versions support this method.
+    Be sure to check browser.supports_tab_control.
+
     Please note: this is asynchronous. There is a delay between this call
     and the page's documentVisibilityState becoming 'visible', and yet more
     delay until the actual tab is visible to the user. None of these delays

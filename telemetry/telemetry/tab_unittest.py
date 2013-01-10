@@ -30,6 +30,8 @@ class TabTest(tab_test_case.TabTestCase):
                                                       timeout=5))
 
   def testActivateTab(self):
+    if not self._browser.supports_tab_control:
+      return
     self.assertTrue(_IsDocumentVisible(self._tab))
     new_tab = self._browser.tabs.New()
     util.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
