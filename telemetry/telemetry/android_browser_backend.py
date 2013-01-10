@@ -81,9 +81,12 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
                                 None,
                                 None)
         retries = 0
+        timeout = 3
+        time.sleep(timeout)
         while not self._adb.Adb().GetFileContents(prefs_file):
-          time.sleep(3)
+          time.sleep(timeout)
           retries += 1
+          timeout *= 2
           if retries == 3:
             logging.critical('android_browser_backend: Could not find '
                              'preferences file %s for %s',
