@@ -103,6 +103,8 @@ class BrowserOptions(optparse.Values):
         help='Filename of an output of a previously run test on the current ' +
         'pageset. The tests will run in the same order again, overriding ' +
         'what is specified by --page-repeat and --pageset-repeat.')
+    group.add_option('--page-filter', dest='page_filter',
+        help='Run only pages whose URLs match the given filter regexp.')
     parser.add_option_group(group)
 
     # Debugging options

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging
 import os
+import re
 import time
 import traceback
 import urlparse
@@ -34,7 +35,7 @@ class _RunState(object):
       self.browser.Close()
       self.browser = None
 
-def _ShufflePageSet(page_set, options):
+def _ShuffleAndFilterPageSet(page_set, options):
   if options.test_shuffle_order_file and not options.test_shuffle:
     raise Exception('--test-shuffle-order-file requires --test-shuffle.')
 
@@ -42,6 +43,13 @@ def _ShufflePageSet(page_set, options):
     return page_set.ReorderPageSet(options.test_shuffle_order_file)
 
   pages = page_set.pages[:]
+  if options.page_filter:
+    try:
+      page_regex = re.compile(options.page_filter)
+    except re.error:
+      raise Exception('--page-filter: invalid regex')
+    pages = [page for page in pages if page_regex.search(page.url)]
+
   if options.test_shuffle:
     random.Random().shuffle(pages)
   return [page
@@ -104,7 +112,7 @@ http://goto/read-src-internal, or create a new archive using record_wpr.
         raise Exception('Trace directory isn\'t empty: %s' % options.trace_dir)
 
     # Reorder page set based on options.
-    pages = _ShufflePageSet(self.page_set, options)
+    pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
     state = _RunState()
     try:
