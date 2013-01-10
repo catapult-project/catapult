@@ -103,4 +103,27 @@ class CsvPageBenchmarkResultsTest(unittest.TestCase):
       [[self._page_set[0].url, '-', '3'],
        [self._page_set[1].url, '4', '-']])
 
+  def test_histogram(self):
+    results = NonPrintingCsvPageBenchmarkResults(csv.writer(self._output),
+                                                 False)
+    results.WillMeasurePage(self._page_set[0])
+    results.Add('a', '',
+                '{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
+                data_type='histogram')
+    results.DidMeasurePage()
 
+    results.WillMeasurePage(self._page_set[1])
+    results.Add('a', '',
+                '{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
+                data_type='histogram')
+    results.DidMeasurePage()
+
+    results.PrintSummary('tag')
+
+    self.assertEquals(
+      self.output_header_row,
+      ['url', 'a ()'])
+    self.assertEquals(
+      self.output_data_rows,
+      [[self._page_set[0].url, '1.5'],
+       [self._page_set[1].url, '2.5']])
