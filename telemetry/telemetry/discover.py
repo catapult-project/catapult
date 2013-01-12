@@ -6,13 +6,15 @@ import logging
 import os
 import traceback
 
-def Discover(start_dir, suffix, clazz):
+def Discover(start_dir, suffix, clazz, import_error_should_raise=False):
   """Discover all classes in |start_dir| which subclass |clazz|.
 
   Args:
     start_dir: The directory to recursively search.
     suffix: file name suffix for files to import, without the '.py' ending.
     clazz: The base class to search for.
+    import_error_should_raise: If false, then import errors are logged but do
+      not stop discovery.
 
   Returns:
     dict of {module_name: class}.
@@ -29,6 +31,8 @@ def Discover(start_dir, suffix, clazz):
       try:
         module = __import__(fqn, fromlist=[True])
       except Exception:
+        if import_error_should_raise:
+          raise
         logging.error('While importing [%s]\n' % fqn)
         traceback.print_exc()
         continue

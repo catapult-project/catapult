@@ -8,7 +8,8 @@ from telemetry import page_interaction
 
 _page_interaction_classes = discover.Discover(os.path.dirname(__file__),
                                               'interaction',
-                                              page_interaction.PageInteraction)
+                                              page_interaction.PageInteraction,
+                                              import_error_should_raise=True)
 
 def GetAllClasses():
   return list(_page_interaction_classes.values())
