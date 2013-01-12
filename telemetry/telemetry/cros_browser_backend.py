@@ -111,6 +111,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       # Wait for the login screen to disappear. This can cause tab_url to be
       # None or to not be 'chrome://oobe/login'.
       def IsTabNoneOrOobeLogin():
+        if len(self.tabs) == 0:
+          return True
         tab_url = self.tabs[0].url
         return tab_url is None or tab_url != 'chrome://oobe/login'
 

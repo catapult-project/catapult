@@ -10,7 +10,7 @@ class ClickElementInteraction(page_interaction.PageInteraction):
   def __init__(self, attributes=None):
     super(ClickElementInteraction, self).__init__(attributes)
 
-  def PerformInteraction(self, page, tab):
+  def RunInteraction(self, page, tab):
     def DoClick():
       assert hasattr(self, 'selector') or hasattr(self, 'text')
       if hasattr(self, 'selector'):

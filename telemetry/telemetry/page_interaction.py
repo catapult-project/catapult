@@ -16,10 +16,16 @@ class PageInteraction(object):
         setattr(self, k, v)
 
   def CustomizeBrowserOptions(self, options):
-    """Override to add test-specific options to the BrowserOptions object"""
+    """Override to add interaction-specific options to the BrowserOptions
+    object"""
     pass
 
-  def PerformInteraction(self, page, tab):
+  def WillRunInteraction(self, page, tab):
+    """Override to do interaction-specific setup before
+    Test.WillRunInteraction is called"""
+    pass
+
+  def RunInteraction(self, page, tab):
     raise NotImplementedError()
 
   def CleanUp(self, page, tab):

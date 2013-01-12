@@ -18,7 +18,7 @@ class WaitInteractionTest(tab_test_case.TabTestCase):
                       '/blank.html')
 
     i = wait_interaction.WaitInteraction({ 'duration' : 1 })
-    i.PerformInteraction(self._tab.page, self._tab)
+    i.RunInteraction(self._tab.page, self._tab)
 
     rendering_stats_deltas = self._tab.runtime.Evaluate(
       'window.__renderingStatsDeltas')

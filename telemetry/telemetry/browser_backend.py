@@ -11,6 +11,7 @@ import sys
 import weakref
 
 from telemetry import browser_gone_exception
+from telemetry import options_for_unittests
 from telemetry import tab
 from telemetry import tracing_backend
 from telemetry import user_agent
@@ -147,7 +148,7 @@ class BrowserBackend(object):
     self._webkit_base_revision = 0
     self._tracing_backend = None
 
-    if options.dont_override_profile:
+    if options.dont_override_profile and not options_for_unittests.AreSet():
       sys.stderr.write('Warning: Not overriding profile. This can cause '
                        'unexpected effects due to profile-specific settings, '
                        'such as about:flags settings, cookies, and '

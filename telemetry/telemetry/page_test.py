@@ -1,6 +1,8 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import sys
+
 class Failure(Exception):
   """Exception that can be thrown from MultiPageBenchmark to indicate an
   undesired but designed-for problem."""
@@ -41,7 +43,7 @@ class PageTest(object):
     """Override to expose command-line options for this benchmark.
 
     The provided parser is an optparse.OptionParser instance and accepts all
-    normal results. The parsed options are available in MeasurePage as
+    normal results. The parsed options are available in Run as
     self.options."""
     pass
 
@@ -87,8 +89,9 @@ class PageTest(object):
     interaction = self.GetInteraction(page)
     if interaction:
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      interaction.WillRunInteraction(page, tab)
       self.WillRunInteraction(page, tab)
-      interaction.PerformInteraction(page, tab)
+      interaction.RunInteraction(page, tab)
       self.DidRunInteraction(page, tab)
     try:
       self._test_method(page, tab, results)
@@ -100,8 +103,15 @@ class PageTest(object):
       return None
     interaction_data = getattr(page, self._interaction_name_to_run)
     from telemetry import all_page_interactions
-    return all_page_interactions.FindClassWithName(
-        interaction_data['action'])(interaction_data)
+    cls = all_page_interactions.FindClassWithName(interaction_data['action'])
+    if not cls:
+      sys.stderr.write('Could not find interaction named %s\n' %
+                       interaction_data['action'])
+      sys.stderr.write('Check the pageset for a typo and check the error log' +
+                       'for possible python loading/compilation errors\n')
+      raise Exception('%s not found' % interaction_data['action'])
+    assert cls
+    return cls(interaction_data)
 
   @property
   def interaction_name_to_run(self):

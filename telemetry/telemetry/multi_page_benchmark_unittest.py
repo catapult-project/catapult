@@ -115,7 +115,7 @@ class MultiPageBenchmarkUnitTest(
   def testInteractions(self):
     interaction_called = [False]
     class MockInteraction(page_interaction.PageInteraction):
-      def PerformInteraction(self, page, tab):
+      def RunInteraction(self, page, tab):
         interaction_called[0] = True
     from telemetry import all_page_interactions
     all_page_interactions.RegisterClassForTest('mock', MockInteraction)

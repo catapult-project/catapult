@@ -10,34 +10,36 @@ class ScrollingInteraction(page_interaction.PageInteraction):
   def __init__(self, attributes=None):
     super(ScrollingInteraction, self).__init__(attributes)
 
-  def PerformInteraction(self, page, tab):
-    scroll_js_path = os.path.join(os.path.dirname(__file__), 'scroll.js')
-    scroll_js = open(scroll_js_path, 'r').read()
+  def WillRunInteraction(self, page, tab):
+    with open(
+      os.path.join(os.path.dirname(__file__),
+                   'scrolling_interaction.js')) as f:
+      js = f.read()
+      tab.runtime.Execute(js)
 
-    # Run scroll test.
-    tab.runtime.Execute(scroll_js)
+    tab.runtime.Execute("""
+        window.__scrollingInteractionDone = false;
+        window.__scrollingInteraction = new __ScrollingInteraction(function() {
+          window.__scrollingInteractionDone = true;
+        });
+     """)
 
+  def RunInteraction(self, page, tab):
     with tab.browser.platform.GetSurfaceCollector(''):
-
-      start_scroll_js = """
-        window.__renderingStatsDeltas = null;
-        new __ScrollTest(function(rendering_stats_deltas) {
-          window.__renderingStatsDeltas = rendering_stats_deltas;
-        }).start(element);
-      """
       # scrollable_element_function is a function that passes the scrollable
       # element on the page to a callback. For example:
       #   function (callback) {
       #     callback(document.getElementById('foo'));
       #   }
       if hasattr(self, 'scrollable_element_function'):
-        tab.runtime.Execute('(%s)(function(element) { %s });' %
-                            (self.scrollable_element_function, start_scroll_js))
+        tab.runtime.Execute("""
+            (%s)(function(element) {
+              window.__scrollingInteraction.start(element);
+            });""" % (self.scrollable_element_function))
       else:
         tab.runtime.Execute(
-            '(function() { var element = document.body; %s})();' %
-            start_scroll_js)
+          'window.__scrollingInteraction.start(document.body);')
 
       # Poll for scroll benchmark completion.
       util.WaitFor(lambda: tab.runtime.Evaluate(
-          'window.__renderingStatsDeltas'), 60)
+          'window.__scrollingInteractionDone'), 60)

@@ -8,7 +8,7 @@ class WaitInteraction(page_interaction.PageInteraction):
   def __init__(self, attributes=None):
     super(WaitInteraction, self).__init__(attributes)
 
-  def PerformInteraction(self, page, tab):
+  def RunInteraction(self, page, tab):
     duration = 10
     if hasattr(self, 'duration'):
       duration = self.duration

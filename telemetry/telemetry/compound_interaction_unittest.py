@@ -17,11 +17,11 @@ class CompoundInteractionTest(tab_test_case.TabTestCase):
   def testCompoundInteraction(self):
 
     class MockInteraction1(page_interaction.PageInteraction):
-      def PerformInteraction(self, page, tab):
+      def RunInteraction(self, page, tab):
         CompoundInteractionTest.interaction1_called = True
 
     class MockInteraction2(page_interaction.PageInteraction):
-      def PerformInteraction(self, page, tab):
+      def RunInteraction(self, page, tab):
         CompoundInteractionTest.interaction2_called = True
 
     all_page_interactions.RegisterClassForTest('mock1', MockInteraction1)
@@ -38,6 +38,6 @@ class CompoundInteractionTest(tab_test_case.TabTestCase):
             }
         ]
     })
-    i.PerformInteraction({}, self._tab)
+    i.RunInteraction({}, self._tab)
     self.assertTrue(CompoundInteractionTest.interaction1_called)
     self.assertTrue(CompoundInteractionTest.interaction2_called)

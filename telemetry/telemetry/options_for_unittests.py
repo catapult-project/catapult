@@ -24,5 +24,10 @@ def GetCopy():
 
   return _options.Copy()
 
+def AreSet():
+  if _options:
+    return True
+  return False
+
 def GetBrowserType():
   return _browser_type

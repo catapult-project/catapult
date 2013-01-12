@@ -19,7 +19,7 @@ class ClickElementInteractionTest(tab_test_case.TabTestCase):
 
     data = {'selector': 'a[id="clickme"]', 'wait_for_navigation': True}
     i = click_element_interaction.ClickElementInteraction(data)
-    i.PerformInteraction({}, self._tab)
+    i.RunInteraction({}, self._tab)
 
     self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
                       '/blank.html')
@@ -36,7 +36,7 @@ class ClickElementInteractionTest(tab_test_case.TabTestCase):
 
     data = {'text': 'Click me', 'wait_for_href_change': True}
     i = click_element_interaction.ClickElementInteraction(data)
-    i.PerformInteraction({}, self._tab)
+    i.RunInteraction({}, self._tab)
 
     self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
                       '/blank.html')

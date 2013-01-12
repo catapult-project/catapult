@@ -44,7 +44,8 @@ class RecordPage(page_test.PageTest):
       if should_reload:
         tab.page.Navigate(page.url)
         tab.WaitForDocumentReadyStateToBeComplete()
-      interaction.PerformInteraction(page, tab)
+      interaction.WillRunInteraction(page, tab)
+      interaction.RunInteraction(page, tab)
       should_reload = True
 
   def _InteractionsForPage(self, page):
