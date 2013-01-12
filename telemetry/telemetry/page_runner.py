@@ -70,21 +70,29 @@ class PageRunner(object):
 
   def Run(self, options, possible_browser, test, results):
     # Set up WPR mode.
-    archive_path = os.path.abspath(os.path.join(self.page_set.base_dir,
-                                                self.page_set.archive_path))
-    if options.wpr_mode == wpr_modes.WPR_OFF:
-      if os.path.isfile(archive_path):
-        possible_browser.options.wpr_mode = wpr_modes.WPR_REPLAY
-      else:
-        possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
-        if not self.page_set.ContainsOnlyFileURLs():
-          logging.warning("""
-The page set archive %s does not exist, benchmarking against live sites!
-Results won't be repeatable or comparable.
+    if not self.page_set.archive_path:
+      archive_path = ''
+      if not self.page_set.ContainsOnlyFileURLs():
+        logging.warning("""
+  No page set archive provided for the chosen page set. Benchmarking against
+  live sites! Results won't be repeatable or comparable.
+""")
+    else:
+      archive_path = os.path.abspath(os.path.join(self.page_set.base_dir,
+                                                  self.page_set.archive_path))
+      if options.wpr_mode == wpr_modes.WPR_OFF:
+        if os.path.isfile(archive_path):
+          possible_browser.options.wpr_mode = wpr_modes.WPR_REPLAY
+        else:
+          possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
+          if not self.page_set.ContainsOnlyFileURLs():
+            logging.warning("""
+  The page set archive %s does not exist, benchmarking against live sites!
+  Results won't be repeatable or comparable.
 
-To fix this, either add svn-internal to your .gclient using
-http://goto/read-src-internal, or create a new archive using record_wpr.
-""", os.path.relpath(archive_path))
+  To fix this, either add svn-internal to your .gclient using
+  http://goto/read-src-internal, or create a new archive using record_wpr.
+  """, os.path.relpath(archive_path))
 
     # Verify credentials path.
     credentials_path = None
