@@ -23,7 +23,7 @@ class InspectorPage(object):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
     if msg['method'] == 'Page.frameNavigated' and self._navigation_pending:
       url = msg['params']['frame']['url']
-      if not url == 'chrome://newtab/':
+      if not url == 'chrome://newtab/' and not url == 'about:blank':
         # Marks the navigation as complete and unblocks the
         # PerformActionAndWaitForNavigate call.
         self._navigation_pending = False
