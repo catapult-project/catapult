@@ -17,10 +17,7 @@ class CompoundInteraction(page_interaction.PageInteraction):
     for interaction in self._interaction_list:
       interaction.CustomizeBrowserOptions(options)
 
-  def WillRunInteraction(self, page, tab):
-    for interaction in self._interaction_list:
-      interaction.WillRunInteraction(page, tab)
-
   def RunInteraction(self, page, tab):
     for interaction in self._interaction_list:
+      interaction.WillRunInteraction(page, tab)
       interaction.RunInteraction(page, tab)
