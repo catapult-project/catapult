@@ -88,7 +88,6 @@ class PageTest(object):
     self.options = options
     interaction = self.GetInteraction(page)
     if interaction:
-      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       interaction.WillRunInteraction(page, tab)
       self.WillRunInteraction(page, tab)
       interaction.RunInteraction(page, tab)
