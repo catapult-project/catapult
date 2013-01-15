@@ -20,6 +20,7 @@ class Page(object):
     self.url = url
     self.base_dir = base_dir
     self.credentials = None
+    self.disabled = False
     self.wait_time_after_navigate = 2
 
     if attributes:

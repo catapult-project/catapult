@@ -48,7 +48,16 @@ def _ShuffleAndFilterPageSet(page_set, options):
       page_regex = re.compile(options.page_filter)
     except re.error:
       raise Exception('--page-filter: invalid regex')
-    pages = [page for page in pages if page_regex.search(page.url)]
+  else:
+    page_regex = None
+
+  def IsSelected(page):
+    if page.disabled:
+      return False
+    if page_regex:
+      return page_regex.search(page.url)
+    return True
+  pages = [page for page in pages if IsSelected(page)]
 
   if options.test_shuffle:
     random.Random().shuffle(pages)
