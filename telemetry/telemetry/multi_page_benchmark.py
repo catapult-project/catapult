@@ -39,8 +39,13 @@ class MultiPageBenchmark(page_test.PageTest):
               'document.querySelector('%s').children.length')
            results.Add('children', 'count', child_count)
   """
-  def __init__(self, interaction_name=''):
-    super(MultiPageBenchmark, self).__init__('_RunTest', interaction_name)
+  def __init__(self,
+               interaction_name_to_run='',
+               needs_browser_restart_after_each_run=False):
+    super(MultiPageBenchmark, self).__init__(
+      '_RunTest',
+      interaction_name_to_run,
+      needs_browser_restart_after_each_run)
 
   def _RunTest(self, page, tab, results):
     results.WillMeasurePage(page)

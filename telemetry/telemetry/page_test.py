@@ -30,7 +30,10 @@ class PageTestResults(object):
 class PageTest(object):
   """A class styled on unittest.TestCase for creating page-specific tests."""
 
-  def __init__(self, test_method_name, interaction_name_to_run=''):
+  def __init__(self,
+               test_method_name,
+               interaction_name_to_run='',
+               needs_browser_restart_after_each_run=False):
     self.options = None
     try:
       self._test_method = getattr(self, test_method_name)
@@ -38,6 +41,12 @@ class PageTest(object):
       raise ValueError, 'No such method %s.%s' % (
         self.__class_, test_method_name) # pylint: disable=E1101
     self._interaction_name_to_run = interaction_name_to_run
+    self._needs_browser_restart_after_each_run = (
+        needs_browser_restart_after_each_run)
+
+  @property
+  def needs_browser_restart_after_each_run(self):
+    return self._needs_browser_restart_after_each_run
 
   def AddCommandLineOptions(self, parser):
     """Override to expose command-line options for this benchmark.

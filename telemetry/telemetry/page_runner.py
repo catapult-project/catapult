@@ -162,6 +162,10 @@ class PageRunner(object):
 
             if options.trace_dir:
               self._EndTracing(state, options, page)
+
+            if test.needs_browser_restart_after_each_run:
+              state.Close()
+
             break
           except browser_gone_exception.BrowserGoneException:
             logging.warning('Lost connection to browser. Retrying.')
