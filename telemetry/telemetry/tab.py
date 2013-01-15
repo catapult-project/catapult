@@ -22,9 +22,10 @@ class Tab(object):
       # Evaluates 1+1 in the tab's javascript context.
       tab.runtime.Evaluate('1+1')
   """
-  def __init__(self, browser, tab_controller, debugger_url):
+  def __init__(self, browser, browser_backend, debugger_url):
+    assert debugger_url
     self._browser = browser
-    self._tab_controller = tab_controller
+    self._browser_backend = browser_backend
     self._debugger_url = debugger_url
 
     self._inspector_backend = None
@@ -41,7 +42,7 @@ class Tab(object):
       return
 
     self._inspector_backend = inspector_backend.InspectorBackend(
-        self._tab_controller, self._debugger_url)
+        self._browser_backend, self._debugger_url)
     self._console = inspector_console.InspectorConsole(
         self._inspector_backend, self)
     self._page = inspector_page.InspectorPage(self._inspector_backend, self)
@@ -67,7 +68,7 @@ class Tab(object):
     Not all browsers or browser versions support this method.
     Be sure to check browser.supports_tab_control."""
     self.Disconnect()
-    self._tab_controller.CloseTab(self._debugger_url)
+    self._browser_backend.tabs.CloseTab(self._debugger_url)
 
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
@@ -80,7 +81,7 @@ class Tab(object):
     delay until the actual tab is visible to the user. None of these delays
     are included in this call."""
     self._Connect()
-    self._tab_controller.ActivateTab(self._debugger_url)
+    self._browser_backend.tabs.ActivateTab(self._debugger_url)
 
   @property
   def browser(self):
@@ -89,7 +90,7 @@ class Tab(object):
 
   @property
   def url(self):
-    return self._tab_controller.GetTabUrl(self._debugger_url)
+    return self._browser_backend.tabs.GetTabUrl(self._debugger_url)
 
   @property
   def console(self):

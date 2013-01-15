@@ -96,7 +96,7 @@ class TabController(object):
     # Lazily get/create a Tab object.
     tab_object = self._tab_dict.get(debugger_url)
     if not tab_object:
-      tab_object = tab.Tab(self._browser, self, debugger_url)
+      tab_object = tab.Tab(self._browser, self._browser_backend, debugger_url)
       self._tab_dict[debugger_url] = tab_object
     return tab_object
 
@@ -213,6 +213,10 @@ class BrowserBackend(object):
       url += '/' + path
     req = urllib2.urlopen(url, timeout=timeout)
     return req.read()
+
+  @property
+  def chrome_branch_number(self):
+    return self._chrome_branch_number
 
   @property
   def supports_tab_control(self):
