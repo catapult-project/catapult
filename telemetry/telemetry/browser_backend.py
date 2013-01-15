@@ -228,12 +228,9 @@ class BrowserBackend(object):
     self._tracing_backend.BeginTracing()
 
   def StopTracing(self):
-    self._tracing_backend.EndTracingAsync()
+    self._tracing_backend.EndTracing()
 
   def GetTrace(self):
-    def IsTracingRunning(self):
-      return not self._tracing_backend.HasCompleted()
-    util.WaitFor(lambda: not IsTracingRunning(self), 10)
     return self._tracing_backend.GetTraceAndReset()
 
   def Close(self):
