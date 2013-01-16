@@ -5,9 +5,10 @@ import json
 import logging
 
 class InspectorConsole(object):
-  def __init__(self, tab_backend):
-    self._tab_backend = tab_backend
-    self._tab_backend.RegisterDomain(
+  def __init__(self, inspector_backend, tab):
+    self._tab = tab
+    self._inspector_backend = inspector_backend
+    self._inspector_backend.RegisterDomain(
         'Console',
         self._OnNotification,
         self._OnClose)
@@ -34,13 +35,12 @@ class InspectorConsole(object):
   def _OnClose(self):
     pass
 
-  # False positive in PyLint 0.25.1: http://www.logilab.org/89092
   @property
-  def message_output_stream(self):  # pylint: disable=E0202
+  def MessageOutputStream(self):
     return self._message_output_stream
 
-  @message_output_stream.setter
-  def message_output_stream(self, stream):  # pylint: disable=E0202
+  @MessageOutputStream.setter
+  def MessageOutputStream(self, stream):
     self._message_output_stream = stream
     self._UpdateConsoleEnabledState()
 
@@ -53,7 +53,7 @@ class InspectorConsole(object):
       method_name = 'enable'
     else:
       method_name = 'disable'
-    self._tab_backend.SyncRequest({
+    self._inspector_backend.SyncRequest({
         'method': 'Console.%s' % method_name
         })
     self._console_enabled = enabled

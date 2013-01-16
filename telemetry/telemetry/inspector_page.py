@@ -5,11 +5,15 @@ import json
 import logging
 
 from telemetry import util
+from telemetry import png_bitmap
+
+DEFAULT_SCREENSHOT_TIMEOUT = 60
 
 class InspectorPage(object):
-  def __init__(self, tab_backend):
-    self._tab_backend = tab_backend
-    self._tab_backend.RegisterDomain(
+  def __init__(self, inspector_backend, tab):
+    self._tab = tab
+    self._inspector_backend = inspector_backend
+    self._inspector_backend.RegisterDomain(
         'Page',
         self._OnNotification,
         self._OnClose)
@@ -38,14 +42,14 @@ class InspectorPage(object):
     request = {
         'method': 'Page.enable'
         }
-    res = self._tab_backend.SyncRequest(request, timeout)
+    res = self._inspector_backend.SyncRequest(request, timeout)
     assert len(res['result'].keys()) == 0
 
     def DisablePageNotifications():
       request = {
           'method': 'Page.disable'
           }
-      res = self._tab_backend.SyncRequest(request, timeout)
+      res = self._inspector_backend.SyncRequest(request, timeout)
       assert len(res['result'].keys()) == 0
 
     self._navigation_pending = True
@@ -56,7 +60,7 @@ class InspectorPage(object):
       raise
 
     def IsNavigationDone(time_left):
-      self._tab_backend.DispatchNotifications(time_left)
+      self._inspector_backend.DispatchNotifications(time_left)
       return not self._navigation_pending
     util.WaitFor(IsNavigationDone, timeout, pass_time_left_to_func=True)
 
@@ -78,16 +82,71 @@ class InspectorPage(object):
               'url': url,
               }
           }
-      self._tab_backend.SendAndIgnoreResponse(request)
+      self._inspector_backend.SendAndIgnoreResponse(request)
 
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
+
+  @property
+  def screenshot_supported(self):
+    """True if the browser instance is capable of capturing screenshots"""
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking === undefined'):
+      return False
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking.windowSnapshotPNG === undefined'):
+      return False
+
+    return True
+
+  def Screenshot(self, timeout=DEFAULT_SCREENSHOT_TIMEOUT):
+    """Capture a screenshot of the window for rendering validation"""
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking === undefined'):
+      raise Exception("Browser was not started with --enable-gpu-benchmarking")
+
+    if self._tab.runtime.Evaluate(
+        'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
+      raise Exception("Browser does not support window snapshot API.")
+
+    self._tab.runtime.Evaluate("""
+        if(!window.__telemetry) {
+          window.__telemetry = {}
+        }
+        window.__telemetry.snapshotComplete = false;
+        window.__telemetry.snapshotData = null;
+        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG(
+          function(snapshot) {
+            window.__telemetry.snapshotData = snapshot;
+            window.__telemetry.snapshotComplete = true;
+          }
+        );
+    """)
+
+    def IsSnapshotComplete():
+      return self._tab.runtime.Evaluate('window.__telemetry.snapshotComplete')
+
+    util.WaitFor(IsSnapshotComplete, timeout)
+
+    snap = self._tab.runtime.Evaluate("""
+      (function() {
+        var data = window.__telemetry.snapshotData;
+        delete window.__telemetry.snapshotComplete;
+        delete window.__telemetry.snapshotData;
+        return data;
+      })()
+    """)
+    if snap:
+      return png_bitmap.PngBitmap(snap['data'])
+    return None
 
   def GetCookieByName(self, name, timeout=60):
     """Returns the value of the cookie by the given |name|."""
     request = {
         'method': 'Page.getCookies'
         }
-    res = self._tab_backend.SyncRequest(request, timeout)
+    res = self._inspector_backend.SyncRequest(request, timeout)
     cookies = res['result']['cookies']
     for cookie in cookies:
       if cookie['name'] == name:

@@ -13,7 +13,6 @@ import weakref
 from telemetry import browser_gone_exception
 from telemetry import options_for_unittests
 from telemetry import tab
-from telemetry import tab_backend
 from telemetry import tracing_backend
 from telemetry import user_agent
 from telemetry import util
@@ -97,9 +96,7 @@ class TabController(object):
     # Lazily get/create a Tab object.
     tab_object = self._tab_dict.get(debugger_url)
     if not tab_object:
-      backend = tab_backend.TabBackend(
-          self._browser, self._browser_backend, debugger_url)
-      tab_object = tab.Tab(backend)
+      tab_object = tab.Tab(self._browser, self._browser_backend, debugger_url)
       self._tab_dict[debugger_url] = tab_object
     return tab_object
 
