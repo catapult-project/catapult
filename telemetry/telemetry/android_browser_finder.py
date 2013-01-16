@@ -30,7 +30,7 @@ CHROME_COMMAND_LINE = '/data/local/chrome-command-line'
 CHROME_DEVTOOLS_REMOTE_PORT = 'localabstract:chrome_devtools_remote'
 
 CONTENT_SHELL_PACKAGE = 'org.chromium.content_shell'
-CONTENT_SHELL_ACTIVITY = '.ContentShellActivity'
+CONTENT_SHELL_ACTIVITY = 'org.chromium.content_shell.ContentShellActivity'
 CONTENT_SHELL_COMMAND_LINE = '/data/local/tmp/content-shell-command-line'
 CONTENT_SHELL_DEVTOOLS_REMOTE_PORT = (
     'localabstract:content_shell_devtools_remote')
@@ -56,7 +56,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self._options, *self._args)
     platform = android_platform.AndroidPlatform(
         self._args[0].Adb(), self._args[1],
-        self._args[1] + self._args[4])
+        self._args[4])
     b = browser.Browser(backend, platform)
     backend.SetBrowser(b)
     return b
