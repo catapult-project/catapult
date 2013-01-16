@@ -15,7 +15,7 @@ class TabConsoleTest(tab_test_case.TabTestCase):
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
 
     stream = StringIO.StringIO()
-    self._tab.console.MessageOutputStream = stream
+    self._tab.console.message_output_stream = stream
 
     self._tab.page.Navigate(
       self._browser.http_server.UrlOf('page_that_logs_to_console.html'))

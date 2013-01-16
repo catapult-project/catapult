@@ -4,7 +4,7 @@
 from telemetry.timeline_event import TimelineEvent
 from telemetry.timeline_model import TimelineModel
 
-class InspectorBackendException(Exception):
+class TabBackendException(Exception):
   pass
 
 class InspectorTimeline(object):
@@ -20,9 +20,8 @@ class InspectorTimeline(object):
     def __exit__(self, *args):
       self._timeline.Stop()
 
-  def __init__(self, inspector_backend, tab):
-    self._inspector_backend = inspector_backend
-    self._tab = tab
+  def __init__(self, tab_backend):
+    self._tab_backend = tab_backend
     self._is_recording = False
     self._timeline_model = None
 
@@ -35,24 +34,24 @@ class InspectorTimeline(object):
       return
     self._is_recording = True
     self._timeline_model = TimelineModel()
-    self._inspector_backend.RegisterDomain('Timeline',
+    self._tab_backend.RegisterDomain('Timeline',
        self._OnNotification, self._OnClose)
     req = {'method': 'Timeline.start'}
     self._SendSyncRequest(req)
 
   def Stop(self):
     if not self._is_recording:
-      raise InspectorBackendException('Stop() called but not started')
+      raise TabBackendException('Stop() called but not started')
     self._is_recording = False
     self._timeline_model.DidFinishRecording()
     req = {'method': 'Timeline.stop'}
     self._SendSyncRequest(req)
-    self._inspector_backend.UnregisterDomain('Timeline')
+    self._tab_backend.UnregisterDomain('Timeline')
 
   def _SendSyncRequest(self, req, timeout=60):
-    res = self._inspector_backend.SyncRequest(req, timeout)
+    res = self._tab_backend.SyncRequest(req, timeout)
     if 'error' in res:
-      raise InspectorBackendException(res['error']['message'])
+      raise TabBackendException(res['error']['message'])
     return res['result']
 
   def _OnNotification(self, msg):
@@ -120,5 +119,5 @@ class InspectorTimeline(object):
 
   def _OnClose(self):
     if self._is_recording:
-      raise InspectorBackendException('InspectTimeline received OnClose whilst '
+      raise TabBackendException('InspectTimeline received OnClose whilst '
           'recording.')

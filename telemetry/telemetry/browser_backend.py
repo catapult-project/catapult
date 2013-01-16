@@ -13,6 +13,7 @@ import weakref
 from telemetry import browser_gone_exception
 from telemetry import options_for_unittests
 from telemetry import tab
+from telemetry import tab_backend
 from telemetry import tracing_backend
 from telemetry import user_agent
 from telemetry import util
@@ -38,6 +39,8 @@ class TabController(object):
     self._UpdateTabList()
 
   def New(self, timeout=None):
+    assert self._browser.supports_tab_control
+
     self._browser_backend.Request('new', timeout=timeout)
     return self[-1]
 
@@ -46,6 +49,8 @@ class TabController(object):
     return url in self._tab_list
 
   def CloseTab(self, debugger_url, timeout=None):
+    assert self._browser.supports_tab_control
+
     # TODO(dtu): crbug.com/160946, allow closing the last tab on some platforms.
     # For now, just create a new tab before closing the last tab.
     if len(self) <= 1:
@@ -63,6 +68,8 @@ class TabController(object):
     self._UpdateTabList()
 
   def ActivateTab(self, debugger_url, timeout=None):
+    assert self._browser.supports_tab_control
+
     assert debugger_url in self._tab_dict
     tab_id = debugger_url.split('/')[-1]
     try:
@@ -96,7 +103,9 @@ class TabController(object):
     # Lazily get/create a Tab object.
     tab_object = self._tab_dict.get(debugger_url)
     if not tab_object:
-      tab_object = tab.Tab(self._browser, self._browser_backend, debugger_url)
+      backend = tab_backend.TabBackend(
+          self._browser, self._browser_backend, debugger_url)
+      tab_object = tab.Tab(backend)
       self._tab_dict[debugger_url] = tab_object
     return tab_object
 
