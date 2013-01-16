@@ -28,6 +28,13 @@ class BrowserCredentials(object):
     assert backend.credentials_type not in self._backends
     self._backends[backend.credentials_type] = backend
 
+  def IsLoggedIn(self, credentials_type):
+    if credentials_type not in self._backends:
+      raise Exception('Unrecognized credentials type: %s', credentials_type)
+    if credentials_type not in self._credentials:
+      return False
+    return self._backends[credentials_type].IsLoggedIn()
+
   def CanLogin(self, credentials_type):
     if credentials_type not in self._backends:
       raise Exception('Unrecognized credentials type: %s', credentials_type)
@@ -61,6 +68,13 @@ class BrowserCredentials(object):
       assert k not in self._extra_credentials[credentials_type]
       self._extra_credentials[credentials_type][k] = v
     self._RebuildCredentials()
+
+  def _ResetLoggedInState(self):
+    """Makes the backends think we're not logged in even though we are.
+    Should only be used in unit tests to simulate --dont-override-profile.
+    """
+    for backend in self._backends.keys():
+      self._backends[backend]._ResetLoggedInState() # pylint: disable=W0212
 
   def _RebuildCredentials(self):
     credentials = {}

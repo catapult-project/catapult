@@ -62,6 +62,15 @@ class FormBasedCredentialsBackend(object):
   def password_input_id(self):
     raise NotImplementedError()
 
+  def IsLoggedIn(self):
+    return self._logged_in
+
+  def _ResetLoggedInState(self):
+    """Makes the backend think we're not logged in even though we are.
+    Should only be used in unit tests to simulate --dont-override-profile.
+    """
+    self._logged_in = False
+
   def LoginNeeded(self, tab, config):
     """Logs in to a test account.
 
