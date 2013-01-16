@@ -34,7 +34,7 @@ class TabTestCase(unittest.TestCase):
 
   def tearDown(self):
     if self._tab:
-      self._tab.Disconnect()
+      self._tab.Close()
     if self._browser:
       self._browser.Close()
 

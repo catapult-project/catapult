@@ -5,10 +5,9 @@ class EvaluateException(Exception):
   pass
 
 class InspectorRuntime(object):
-  def __init__(self, inspector_backend, tab):
-    self._tab = tab
-    self._inspector_backend = inspector_backend
-    self._inspector_backend.RegisterDomain(
+  def __init__(self, tab_backend):
+    self._tab_backend = tab_backend
+    self._tab_backend.RegisterDomain(
         'Runtime',
         self._OnNotification,
         self._OnClose)
@@ -45,7 +44,7 @@ class InspectorRuntime(object):
         'returnByValue': True
         }
       }
-    res = self._inspector_backend.SyncRequest(request, timeout)
+    res = self._tab_backend.SyncRequest(request, timeout)
     if 'error' in res:
       raise EvaluateException(res['error']['message'])
 

@@ -2,13 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import inspector_backend
-from telemetry import inspector_console
-from telemetry import inspector_page
-from telemetry import inspector_runtime
-from telemetry import inspector_timeline
-from telemetry import util
-
 DEFAULT_TAB_TIMEOUT = 60
 
 class Tab(object):
@@ -17,58 +10,39 @@ class Tab(object):
   The important parts of the Tab object are in the runtime and page objects.
   E.g.:
       # Navigates the tab to a given url.
-      tab.page.Navigate('http://www.google.com/')
+      tab.Navigate('http://www.google.com/')
 
       # Evaluates 1+1 in the tab's javascript context.
-      tab.runtime.Evaluate('1+1')
+      tab.Evaluate('1+1')
   """
-  def __init__(self, browser, browser_backend, debugger_url):
-    assert debugger_url
-    self._browser = browser
-    self._browser_backend = browser_backend
-    self._debugger_url = debugger_url
+  def __init__(self, backend):
+    self._backend = backend
 
-    self._inspector_backend = None
-    self._console = None
-    self._page = None
-    self._runtime = None
-    self._timeline = None
+  # TODO(dtu): Remove these property methods: console, page, runtime, timeline.
+  @property
+  def console(self):
+    return self._backend._console  # pylint: disable=W0212
 
-  def __del__(self):
-    self.Disconnect()
+  @property
+  def page(self):
+    return self._backend._page  # pylint: disable=W0212
 
-  def _Connect(self):
-    if self._inspector_backend:
-      return
+  @property
+  def runtime(self):
+    return self._backend._runtime  # pylint: disable=W0212
 
-    self._inspector_backend = inspector_backend.InspectorBackend(
-        self._browser_backend, self._debugger_url)
-    self._console = inspector_console.InspectorConsole(
-        self._inspector_backend, self)
-    self._page = inspector_page.InspectorPage(self._inspector_backend, self)
-    self._runtime = inspector_runtime.InspectorRuntime(
-        self._inspector_backend, self)
-    self._timeline = inspector_timeline.InspectorTimeline(
-        self._inspector_backend, self)
+  @property
+  def timeline(self):
+    return self._backend._timeline  # pylint: disable=W0212
 
-  def Disconnect(self):
-    """Closes the connection to this tab."""
-    self._console = None
-    self._page = None
-    self._runtime = None
-    self._timeline = None
-    if self._inspector_backend:
-      self._inspector_backend.Close()
-      self._inspector_backend = None
-    self._browser = None
+  @property
+  def browser(self):
+    """The browser in which this tab resides."""
+    return self._backend.browser
 
-  def Close(self):
-    """Closes this tab.
-
-    Not all browsers or browser versions support this method.
-    Be sure to check browser.supports_tab_control."""
-    self.Disconnect()
-    self._browser_backend.tabs.CloseTab(self._debugger_url)
+  @property
+  def url(self):
+    return self._backend.url
 
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
@@ -80,51 +54,84 @@ class Tab(object):
     and the page's documentVisibilityState becoming 'visible', and yet more
     delay until the actual tab is visible to the user. None of these delays
     are included in this call."""
-    self._Connect()
-    self._browser_backend.tabs.ActivateTab(self._debugger_url)
+    self._backend.Activate()
 
-  @property
-  def browser(self):
-    """The browser in which this tab resides."""
-    return self._browser
+  def Close(self):
+    """Closes this tab.
 
-  @property
-  def url(self):
-    return self._browser_backend.tabs.GetTabUrl(self._debugger_url)
-
-  @property
-  def console(self):
-    """Methods for interacting with the page's console object."""
-    self._Connect()
-    return self._console
-
-  @property
-  def page(self):
-    """Methods for interacting with the current page."""
-    self._Connect()
-    return self._page
-
-  @property
-  def runtime(self):
-    """Methods for interacting with the page's javascript runtime."""
-    self._Connect()
-    return self._runtime
-
-  @property
-  def timeline(self):
-    """Methods for interacting with the inspector timeline."""
-    self._Connect()
-    return self._timeline
+    Not all browsers or browser versions support this method.
+    Be sure to check browser.supports_tab_control."""
+    self._backend.Close()
 
   def WaitForDocumentReadyStateToBeComplete(self, timeout=DEFAULT_TAB_TIMEOUT):
-    util.WaitFor(
-        lambda: self._runtime.Evaluate('document.readyState') == 'complete',
-        timeout)
+    self._backend.WaitForDocumentReadyStateToBeComplete(timeout)
 
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(
       self, timeout=DEFAULT_TAB_TIMEOUT):
-    def IsReadyStateInteractiveOrBetter():
-      rs = self._runtime.Evaluate('document.readyState')
-      return rs == 'complete' or rs == 'interactive'
-    util.WaitFor(IsReadyStateInteractiveOrBetter, timeout)
+    self._backend.WaitForDocumentReadyStateToBeInteractiveOrBetter(timeout)
 
+  @property
+  def screenshot_supported(self):
+    """True if the browser instance is capable of capturing screenshots"""
+    return self._backend.screenshot_supported
+
+  def Screenshot(self, timeout=DEFAULT_TAB_TIMEOUT):
+    """Capture a screenshot of the window for rendering validation"""
+    return self._backend.Screenshot(timeout)
+
+  @property
+  def message_output_stream(self):
+    return self._backend.message_output_stream
+
+  @message_output_stream.setter
+  def message_output_stream(self, stream):
+    self._backend.message_output_stream = stream
+
+  def PerformActionAndWaitForNavigate(
+      self, action_function, timeout=DEFAULT_TAB_TIMEOUT):
+    """Executes action_function, and waits for the navigation to complete.
+
+    action_function must be a Python function that results in a navigation.
+    This function returns when the navigation is complete or when
+    the timeout has been exceeded.
+    """
+    self._backend.PerformActionAndWaitForNavigate(action_function, timeout)
+
+  def Navigate(self, url, timeout=DEFAULT_TAB_TIMEOUT):
+    """Navigates to url."""
+    self._backend.Navigate(url, timeout)
+
+  def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
+    """Returns the value of the cookie by the given |name|."""
+    return self._backend.GetCookieByName(name, timeout)
+
+  def ExecuteJavascript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
+    """Executes expr in javascript. Does not return the result.
+
+    If the expression failed to evaluate, EvaluateException will be raised.
+    """
+    self._backend.ExecuteJavascript(expr, timeout)
+
+  def EvaluateJavascript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
+    """Evalutes expr in javascript and returns the JSONized result.
+
+    Consider using ExecuteJavascript for cases where the result of the
+    expression is not needed.
+
+    If evaluation throws in javascript, a python EvaluateException will
+    be raised.
+
+    If the result of the evaluation cannot be JSONized, then an
+    EvaluationException will be raised.
+    """
+    return self._backend.EvaluateJavascript(expr, timeout)
+
+  @property
+  def timeline_events(self):
+    return self._backend.timeline_events
+
+  def StartTimelineRecording(self):
+    self._backend.StartTimelineRecording()
+
+  def StopTimelineRecording(self):
+    self._backend.StopTimelineRecording()

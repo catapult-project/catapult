@@ -28,7 +28,7 @@ class _RunState(object):
 
   def Close(self):
     if self.tab:
-      self.tab.Disconnect()
+      self.tab.Close()
       self.tab = None
 
     if self.browser:
