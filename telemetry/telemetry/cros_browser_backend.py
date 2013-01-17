@@ -97,13 +97,13 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     # _ListTabs is fixed)
 
     # Wait for the oobe login screen to disappear. Unfortunately, once it does,
-    # our TabController needs to be refreshed to point at the new non-login tab.
+    # our TabList needs to be refreshed to point at the new non-login tab.
     tab_url = None
 
-    # When tab_url is None, we have to create or refresh the TabController
+    # When tab_url is None, we have to create or refresh the TabList
     # and wait for the oobe login screen to disappear.
     while tab_url is None:
-      self.tabs = browser_backend.TabController(browser, self)
+      self._tab_list_backend.Reset()
 
       if len(self.tabs) == 0:
         break
@@ -119,7 +119,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       util.WaitFor(lambda: IsTabNoneOrOobeLogin(), 60) # pylint: disable=W0108
 
       # Refresh our tab_url variable with the current tab[0].url. If it is None
-      # at this point, we need to continue the loop to refresh TabController.
+      # at this point, we need to continue the loop to refresh TabListBackend.
       tab_url = self.tabs[0].url
 
     # Once we're sure that the login screen is gone, we can close all open tabs

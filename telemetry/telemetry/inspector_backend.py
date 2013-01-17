@@ -39,7 +39,8 @@ class InspectorBackend(object):
     try:
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
-      if self._browser_backend.tabs.DoesDebuggerUrlExist(self._socket_url):
+      tlb = self._browser_backend.tab_list_backend
+      if tlb.DoesDebuggerUrlExist(self._socket_url):
         return
       raise tab_crash_exception.TabCrashException()
 
@@ -83,7 +84,8 @@ class InspectorBackend(object):
       try:
         data = self._socket.recv()
       except (socket.error, websocket.WebSocketException):
-        if self._browser_backend.tabs.DoesDebuggerUrlExist(self._socket_url):
+        tlb = self._browser_backend.tab_list_backend
+        if tlb.DoesDebuggerUrlExist(self._socket_url):
           raise util.TimeoutException(
             'Timed out waiting for reply. This is unusual.')
         raise tab_crash_exception.TabCrashException()

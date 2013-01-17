@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 import os
 
-from telemetry import temporary_http_server
 from telemetry import browser_credentials
+from telemetry import tab_list
+from telemetry import temporary_http_server
 from telemetry import wpr_modes
 from telemetry import wpr_server
 
@@ -20,11 +21,12 @@ class Browser(object):
     with browser_to_create.Create() as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform):
-    self._backend = backend
+  def __init__(self, browser_backend, platform):
+    self._browser_backend = browser_backend
     self._http_server = None
     self._wpr_server = None
     self._platform = platform
+    self._tabs = tab_list.TabList(browser_backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
 
   def __enter__(self):
@@ -39,33 +41,33 @@ class Browser(object):
 
   @property
   def browser_type(self):
-    return self._backend.browser_type
+    return self._browser_backend.browser_type
 
   @property
   def is_content_shell(self):
     """Returns whether this browser is a content shell, only."""
-    return self._backend.is_content_shell
+    return self._browser_backend.is_content_shell
 
   @property
   def supports_tab_control(self):
-    return self._backend.supports_tab_control
+    return self._browser_backend.supports_tab_control
 
   @property
   def tabs(self):
-    return self._backend.tabs
+    return self._tabs
 
   @property
   def supports_tracing(self):
-    return self._backend.supports_tracing
+    return self._browser_backend.supports_tracing
 
   def StartTracing(self):
-    return self._backend.StartTracing()
+    return self._browser_backend.StartTracing()
 
   def StopTracing(self):
-    return self._backend.StopTracing()
+    return self._browser_backend.StopTracing()
 
   def GetTrace(self):
-    return self._backend.GetTrace()
+    return self._browser_backend.GetTrace()
 
   def Close(self):
     """Closes this browser."""
@@ -77,7 +79,7 @@ class Browser(object):
       self._http_server.Close()
       self._http_server = None
 
-    self._backend.Close()
+    self._browser_backend.Close()
     self.credentials = None
 
   @property
@@ -100,7 +102,7 @@ class Browser(object):
       return
 
     self._http_server = temporary_http_server.TemporaryHTTPServer(
-      self._backend, abs_path)
+      self._browser_backend, abs_path)
 
   def SetReplayArchivePath(self, archive_path):
     if self._wpr_server:
@@ -110,20 +112,20 @@ class Browser(object):
     if not archive_path:
       return None
 
-    if self._backend.wpr_mode == wpr_modes.WPR_OFF:
+    if self._browser_backend.wpr_mode == wpr_modes.WPR_OFF:
       return
 
-    use_record_mode = self._backend.wpr_mode == wpr_modes.WPR_RECORD
+    use_record_mode = self._browser_backend.wpr_mode == wpr_modes.WPR_RECORD
     if not use_record_mode:
       assert os.path.isfile(archive_path)
 
     self._wpr_server = wpr_server.ReplayServer(
-        self._backend,
+        self._browser_backend,
         archive_path,
         use_record_mode,
-        self._backend.WEBPAGEREPLAY_HOST,
-        self._backend.WEBPAGEREPLAY_HTTP_PORT,
-        self._backend.WEBPAGEREPLAY_HTTPS_PORT)
+        self._browser_backend.WEBPAGEREPLAY_HOST,
+        self._browser_backend.WEBPAGEREPLAY_HTTP_PORT,
+        self._browser_backend.WEBPAGEREPLAY_HTTPS_PORT)
 
   def GetStandardOutput(self):
-    return self._backend.GetStandardOutput()
+    return self._browser_backend.GetStandardOutput()

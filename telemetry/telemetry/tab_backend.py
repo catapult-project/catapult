@@ -69,15 +69,15 @@ class TabBackend(object):
   @property
   def url(self):
     self.Disconnect()
-    return self._browser_backend.tabs.GetTabUrl(self._debugger_url)
+    return self._browser_backend.tab_list_backend.GetTabUrl(self._debugger_url)
 
   def Activate(self):
     self._Connect()
-    self._browser_backend.tabs.ActivateTab(self._debugger_url)
+    self._browser_backend.tab_list_backend.ActivateTab(self._debugger_url)
 
   def Close(self):
     self.Disconnect()
-    self._browser_backend.tabs.CloseTab(self._debugger_url)
+    self._browser_backend.tab_list_backend.CloseTab(self._debugger_url)
 
   # Public methods implemented in JavaScript.
 
@@ -195,7 +195,8 @@ class TabBackend(object):
     try:
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
-      if self._browser_backend.tabs.DoesDebuggerUrlExist(self._debugger_url):
+      if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
+          self._debugger_url):
         return
       raise tab_crash_exception.TabCrashException()
 
@@ -241,7 +242,8 @@ class TabBackend(object):
       try:
         data = self._socket.recv()
       except (socket.error, websocket.WebSocketException):
-        if self._browser_backend.tabs.DoesDebuggerUrlExist(self._debugger_url):
+        if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
+            self._debugger_url):
           raise util.TimeoutException(
             'Timed out waiting for reply. This is unusual.')
         raise tab_crash_exception.TabCrashException()
