@@ -4,6 +4,7 @@
 import json
 import logging
 import socket
+import sys
 
 from telemetry import inspector_console
 from telemetry import inspector_page
@@ -24,9 +25,9 @@ class TabBackend(object):
     self._browser_backend = browser_backend
     self._debugger_url = debugger_url
     self._socket = None
-    self._next_request_id = 0
     self._domain_handlers = {}
     self._cur_socket_timeout = 0
+    self._next_request_id = 0
 
     self._console = inspector_console.InspectorConsole(self)
     self._page = inspector_page.InspectorPage(self)
@@ -40,6 +41,8 @@ class TabBackend(object):
     if self._socket:
       return
     self._socket = websocket.create_connection(self._debugger_url)
+    self._cur_socket_timeout = 0
+    self._next_request_id = 0
 
   def Disconnect(self):
     for _, handlers in self._domain_handlers.items():
@@ -206,6 +209,11 @@ class TabBackend(object):
       self._HandleNotification(res)
 
   def _HandleNotification(self, res):
+    if (res['method'] == 'Inspector.detached' and
+        res.get('params', {}).get('reason','') == 'replaced_with_devtools'):
+      self._WaitForInspectorToGoAwayAndReconnect()
+      return
+
     mname = res['method']
     dot_pos = mname.find('.')
     domain_name = mname[:dot_pos]
@@ -230,6 +238,19 @@ class TabBackend(object):
     if self._cur_socket_timeout != timeout:
       self._socket.settimeout(timeout)
       self._cur_socket_timeout = timeout
+
+  def _WaitForInspectorToGoAwayAndReconnect(self):
+    sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
+    sys.stderr.write('Telemetry is waiting for the inspector to be closed...\n')
+    self._socket.close()
+    self._socket = None
+    def IsBack():
+      return self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
+        self._debugger_url)
+    util.WaitFor(IsBack, 512, 0.5)
+    sys.stderr.write('\n')
+    sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
+    self._Connect()
 
   def SyncRequest(self, req, timeout=10):
     self._Connect()
