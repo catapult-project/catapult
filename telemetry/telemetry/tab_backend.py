@@ -28,10 +28,10 @@ class TabBackend(object):
     self._domain_handlers = {}
     self._cur_socket_timeout = 0
 
-    self.__console = None
-    self.__page = None
-    self.__runtime = None
-    self.__timeline = None
+    self._console = inspector_console.InspectorConsole(self)
+    self._page = inspector_page.InspectorPage(self)
+    self._runtime = inspector_runtime.InspectorRuntime(self)
+    self._timeline = inspector_timeline.InspectorTimeline(self)
 
   def __del__(self):
     self.Disconnect()
@@ -40,11 +40,6 @@ class TabBackend(object):
     if self._socket:
       return
     self._socket = websocket.create_connection(self._debugger_url)
-
-    self.__console = inspector_console.InspectorConsole(self)
-    self.__page = inspector_page.InspectorPage(self)
-    self.__runtime = inspector_runtime.InspectorRuntime(self)
-    self.__timeline = inspector_timeline.InspectorTimeline(self)
 
   def Disconnect(self):
     for _, handlers in self._domain_handlers.items():
@@ -56,30 +51,14 @@ class TabBackend(object):
       self._socket.close()
       self._socket = None
 
-    self.__console = None
-    self.__page = None
-    self.__runtime = None
-    self.__timeline = None
+  # TODO(dtu): Remove these property methods: page, runtime.
+  @property
+  def page(self):
+    return self._page
 
   @property
-  def _console(self):
-    self._Connect()
-    return self.__console
-
-  @property
-  def _page(self):
-    self._Connect()
-    return self.__page
-
-  @property
-  def _runtime(self):
-    self._Connect()
-    return self.__runtime
-
-  @property
-  def _timeline(self):
-    self._Connect()
-    return self.__timeline
+  def runtime(self):
+    return self._runtime
 
   # General public methods.
 
@@ -104,38 +83,38 @@ class TabBackend(object):
 
   def WaitForDocumentReadyStateToBeComplete(self, timeout):
     util.WaitFor(
-        lambda: self.__runtime.Evaluate('document.readyState') == 'complete',
+        lambda: self._runtime.Evaluate('document.readyState') == 'complete',
         timeout)
 
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(
       self, timeout):
     def IsReadyStateInteractiveOrBetter():
-      rs = self.__runtime.Evaluate('document.readyState')
+      rs = self._runtime.Evaluate('document.readyState')
       return rs == 'complete' or rs == 'interactive'
     util.WaitFor(IsReadyStateInteractiveOrBetter, timeout)
 
   @property
   def screenshot_supported(self):
-    if self.__runtime.Evaluate(
+    if self._runtime.Evaluate(
         'window.chrome.gpuBenchmarking === undefined'):
       return False
 
-    if self.__runtime.Evaluate(
+    if self._runtime.Evaluate(
         'window.chrome.gpuBenchmarking.windowSnapshotPNG === undefined'):
       return False
 
     return True
 
   def Screenshot(self, timeout):
-    if self.__runtime.Evaluate(
+    if self._runtime.Evaluate(
         'window.chrome.gpuBenchmarking === undefined'):
       raise Exception("Browser was not started with --enable-gpu-benchmarking")
 
-    if self.__runtime.Evaluate(
+    if self._runtime.Evaluate(
         'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
       raise Exception("Browser does not support window snapshot API.")
 
-    self.__runtime.Evaluate("""
+    self._runtime.Evaluate("""
         if(!window.__telemetry) {
           window.__telemetry = {}
         }
@@ -150,11 +129,11 @@ class TabBackend(object):
     """)
 
     def IsSnapshotComplete():
-      return self.__runtime.Evaluate('window.__telemetry.snapshotComplete')
+      return self._runtime.Evaluate('window.__telemetry.snapshotComplete')
 
     util.WaitFor(IsSnapshotComplete, timeout)
 
-    snap = self.__runtime.Evaluate("""
+    snap = self._runtime.Evaluate("""
       (function() {
         var data = window.__telemetry.snapshotData;
         delete window.__telemetry.snapshotComplete;
@@ -170,47 +149,49 @@ class TabBackend(object):
 
   @property
   def message_output_stream(self):  # pylint: disable=E0202
-    return self.__console.message_output_stream
+    return self._console.message_output_stream
 
   @message_output_stream.setter
   def message_output_stream(self, stream):  # pylint: disable=E0202
-    self.__console.message_output_stream = stream
+    self._console.message_output_stream = stream
 
   # Page public methods.
 
   def PerformActionAndWaitForNavigate(self, action_function, timeout):
-    self.__page.PerformActionAndWaitForNavigate(action_function, timeout)
+    self._page.PerformActionAndWaitForNavigate(action_function, timeout)
 
   def Navigate(self, url, timeout):
-    self.__page.Navigate(url, timeout)
+    self._page.Navigate(url, timeout)
 
   def GetCookieByName(self, name, timeout):
-    return self.__page.GetCookieByName(name, timeout)
+    return self._page.GetCookieByName(name, timeout)
 
   # Runtime public methods.
 
   def ExecuteJavascript(self, expr, timeout):
-    self.__runtime.Execute(expr, timeout)
+    self._runtime.Execute(expr, timeout)
 
   def EvaluateJavascript(self, expr, timeout):
-    return self.__runtime.Evaluate(expr, timeout)
+    return self._runtime.Evaluate(expr, timeout)
 
   # Timeline public methods.
 
   @property
-  def timeline_events(self):
-    return self.__timeline.timeline_events
+  def timeline_model(self):
+    return self._timeline.timeline_model
 
   def StartTimelineRecording(self):
-    self.__timeline.Start()
+    self._timeline.Start()
 
   def StopTimelineRecording(self):
-    self.__timeline.Stop()
+    self._timeline.Stop()
 
   # Methods used internally by other backends.
 
   def DispatchNotifications(self, timeout=10):
+    self._Connect()
     self._SetTimeout(timeout)
+
     try:
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
@@ -237,6 +218,7 @@ class TabBackend(object):
       logging.debug('Unhandled inspector message: %s', res)
 
   def SendAndIgnoreResponse(self, req):
+    self._Connect()
     req['id'] = self._next_request_id
     self._next_request_id += 1
     data = json.dumps(req)
@@ -249,6 +231,7 @@ class TabBackend(object):
       self._cur_socket_timeout = timeout
 
   def SyncRequest(self, req, timeout=10):
+    self._Connect()
     # TODO(nduca): Listen to the timeout argument
     # pylint: disable=W0613
     self._SetTimeout(timeout)

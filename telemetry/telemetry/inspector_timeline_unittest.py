@@ -114,7 +114,7 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
   def testGotTimeline(self):
     self._StartServer()
     image_url = self._browser.http_server.UrlOf('image.png')
-    with InspectorTimeline.Recorder(self._tab.timeline):
+    with InspectorTimeline.Recorder(self._tab):
       self._tab.runtime.Execute(
 """
 var done = false;
@@ -125,7 +125,7 @@ window.webkitRequestAnimationFrame(function() { done = true; });
 """ % image_url)
       self._WaitForAnimationFrame()
 
-    r = self._tab.timeline.timeline_model.GetAllOfName('DecodeImage')
+    r = self._tab.timeline_model.GetAllOfName('DecodeImage')
     self.assertTrue(len(r) > 0)
     self.assertEquals(r[0].args['data']['imageType'], 'PNG')
     self.assertTrue(r[0].duration_ms > 0)

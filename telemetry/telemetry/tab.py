@@ -21,22 +21,14 @@ class Tab(object):
   def Disconnect(self):
     self._backend.Disconnect()
 
-  # TODO(dtu): Remove these property methods: console, page, runtime, timeline.
-  @property
-  def console(self):
-    return self._backend._console  # pylint: disable=W0212
-
+  # TODO(dtu): Remove these property methods: page, runtime.
   @property
   def page(self):
-    return self._backend._page  # pylint: disable=W0212
+    return self._backend.page
 
   @property
   def runtime(self):
-    return self._backend._runtime  # pylint: disable=W0212
-
-  @property
-  def timeline(self):
-    return self._backend._timeline  # pylint: disable=W0212
+    return self._backend.runtime
 
   @property
   def browser(self):
@@ -130,8 +122,8 @@ class Tab(object):
     return self._backend.EvaluateJavascript(expr, timeout)
 
   @property
-  def timeline_events(self):
-    return self._backend.timeline_events
+  def timeline_model(self):
+    return self._backend.timeline_model
 
   def StartTimelineRecording(self):
     self._backend.StartTimelineRecording()

@@ -11,14 +11,14 @@ class InspectorTimeline(object):
   """Implementation of dev tools timeline."""
   class Recorder(object):
     """Utility class to Start / Stop recording timeline."""
-    def __init__(self, timeline):
-      self._timeline = timeline
+    def __init__(self, tab):
+      self._tab = tab
 
     def __enter__(self):
-      self._timeline.Start()
+      self._tab.StartTimelineRecording()
 
     def __exit__(self, *args):
-      self._timeline.Stop()
+      self._tab.StopTimelineRecording()
 
   def __init__(self, tab_backend):
     self._tab_backend = tab_backend
