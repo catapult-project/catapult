@@ -76,7 +76,7 @@ Use --browser=list to figure out which are available.\n"""
   elif options.output_file == '-':
     output_file = sys.stdout
   else:
-    output_file = open(options.output_file, 'w')
+    output_file = open(os.path.expanduser(options.output_file), 'w')
 
   if options.output_format == 'csv':
     results = csv_page_benchmark_results.CsvPageBenchmarkResults(
