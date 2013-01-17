@@ -17,7 +17,7 @@ class MultiPageBenchmark(page_test.PageTest):
 
      class BodyChildElementBenchmark(MultiPageBenchmark):
         def MeasurePage(self, page, tab, results):
-           body_child_count = tab.runtime.Evaluate(
+           body_child_count = tab.EvaluateJavaScript(
                'document.body.children.length')
            results.Add('body_children', 'count', body_child_count)
 
@@ -35,7 +35,7 @@ class MultiPageBenchmark(page_test.PageTest):
            parser.add_option('--element', action='store', default='body')
 
         def MeasurePage(self, page, tab, results):
-           body_child_count = tab.runtime.Evaluate(
+           body_child_count = tab.EvaluateJavaScript(
               'document.querySelector('%s').children.length')
            results.Add('children', 'count', child_count)
   """
@@ -78,7 +78,7 @@ class MultiPageBenchmark(page_test.PageTest):
     Put together:
 
        def MeasurePage(self, page, tab, results):
-         res = tab.runtime.Evaluate('2+2')
+         res = tab.EvaluateJavaScript('2+2')
          if res != 4:
            raise Exception('Oh, wow.')
          results.Add('two_plus_two', 'count', res)

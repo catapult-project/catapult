@@ -17,13 +17,13 @@ class TabConsoleTest(tab_test_case.TabTestCase):
     stream = StringIO.StringIO()
     self._tab.message_output_stream = stream
 
-    self._tab.page.Navigate(
+    self._tab.Navigate(
       self._browser.http_server.UrlOf('page_that_logs_to_console.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
-    initial = self._tab.runtime.Evaluate('window.__logCount')
+    initial = self._tab.EvaluateJavaScript('window.__logCount')
     def GotLog():
-      current = self._tab.runtime.Evaluate('window.__logCount')
+      current = self._tab.EvaluateJavaScript('window.__logCount')
       return current > initial
     util.WaitFor(GotLog, 5)
 

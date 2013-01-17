@@ -30,9 +30,10 @@ class BrowserTest(unittest.TestCase):
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
       t = b.tabs[0]
-      t.page.Navigate('http://www.google.com/')
+      t.Navigate('http://www.google.com/')
       t.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      self.assertEquals(t.runtime.Evaluate('navigator.userAgent'), 'telemetry')
+      self.assertEquals(t.EvaluateJavaScript('navigator.userAgent'),
+                        'telemetry')
 
   def testVersionDetection(self):
     options = options_for_unittests.GetCopy()

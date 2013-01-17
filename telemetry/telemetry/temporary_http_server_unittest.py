@@ -16,9 +16,9 @@ class TemporaryHTTPServerTest(unittest.TestCase):
     with browser_to_create.Create() as b:
       b.SetHTTPServerDirectory(unittest_data_dir)
       t = b.tabs[0]
-      t.page.Navigate(b.http_server.UrlOf('/blank.html'))
+      t.Navigate(b.http_server.UrlOf('/blank.html'))
       t.WaitForDocumentReadyStateToBeComplete()
-      x = t.runtime.Evaluate('document.body.innerHTML')
+      x = t.EvaluateJavaScript('document.body.innerHTML')
       x = x.strip()
 
       self.assertEquals(x, 'Hello world')

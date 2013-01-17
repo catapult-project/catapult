@@ -11,5 +11,5 @@ class UserAgentTest(tab_test_case.TabTestCase):
     options.browser_user_agent_type = 'tablet'
 
   def testUserAgent(self):
-    ua = self._tab.runtime.Evaluate('window.navigator.userAgent')
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['tablet'])

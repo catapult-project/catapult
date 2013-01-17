@@ -118,7 +118,7 @@ class PageRunnerTests(unittest.TestCase):
 
     class TestUserAgent(page_test.PageTest):
       def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
-        actual_user_agent = tab.runtime.Evaluate('window.navigator.userAgent')
+        actual_user_agent = tab.EvaluateJavaScript('window.navigator.userAgent')
         expected_user_agent = user_agent.UA_TYPE_MAPPING['tablet']
         assert actual_user_agent.strip() == expected_user_agent
 

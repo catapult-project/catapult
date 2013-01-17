@@ -24,7 +24,7 @@ def Main(args):
     times = []
     for i in range(1000):
       start = time.time()
-      tab.runtime.Evaluate('%i * 2' % i)
+      tab.EvaluateJavaScript('%i * 2' % i)
       times.append(time.time() - start)
     N = float(len(times))
     avg = sum(times, 0.0) / N

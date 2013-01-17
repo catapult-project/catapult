@@ -297,7 +297,7 @@ class PageRunner(object):
         return False
 
     test.WillNavigateToPage(page, tab)
-    tab.page.Navigate(target_side_url)
+    tab.Navigate(target_side_url)
     test.DidNavigateToPage(page, tab)
 
     # Wait for unpredictable redirects.
@@ -312,7 +312,7 @@ class PageRunner(object):
     if page.credentials and page_state.did_login:
       tab.browser.credentials.LoginNoLongerNeeded(tab, page.credentials)
     try:
-      tab.runtime.Evaluate("""window.chrome && chrome.benchmarking &&
+      tab.EvaluateJavaScript("""window.chrome && chrome.benchmarking &&
                               chrome.benchmarking.closeConnections()""")
     except Exception:
       pass

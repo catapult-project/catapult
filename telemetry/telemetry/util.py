@@ -51,7 +51,7 @@ def FindElementAndPerformAction(tab, text, callback_code):
         var _element = _findElement(document, \"""" + text + """\");
         return callback_function(_element);
       })();"""
-  return tab.runtime.Evaluate(code)
+  return tab.EvaluateJavaScript(code)
 
 class PortPair(object):
   def __init__(self, local_port, remote_port):

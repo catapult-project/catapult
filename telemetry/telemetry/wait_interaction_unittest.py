@@ -11,16 +11,17 @@ class WaitInteractionTest(tab_test_case.TabTestCase):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
-    self._tab.page.Navigate(
+    self._tab.Navigate(
       self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
-                      '/blank.html')
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/blank.html')
 
     i = wait_interaction.WaitInteraction({ 'duration' : 1 })
-    i.RunInteraction(self._tab.page, self._tab)
+    i.RunInteraction({}, self._tab)
 
-    rendering_stats_deltas = self._tab.runtime.Evaluate(
+    rendering_stats_deltas = self._tab.EvaluateJavaScript(
       'window.__renderingStatsDeltas')
 
     # TODO(vollick): This should really be checking numFramesSentToScreen. The

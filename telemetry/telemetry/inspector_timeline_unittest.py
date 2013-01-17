@@ -108,12 +108,12 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
   def _WaitForAnimationFrame(self):
     def _IsDone():
       js_is_done = """done"""
-      return bool(self._tab.runtime.Evaluate(js_is_done))
+      return bool(self._tab.EvaluateJavaScript(js_is_done))
     util.WaitFor(_IsDone, 5)
 
   def testGotTimeline(self):
     with InspectorTimeline.Recorder(self._tab):
-      self._tab.runtime.Execute(
+      self._tab.ExecuteJavaScript(
 """
 var done = false;
 window.webkitRequestAnimationFrame(function() { done = true; });

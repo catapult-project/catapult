@@ -54,15 +54,6 @@ class TabBackend(object):
       self._socket.close()
       self._socket = None
 
-  # TODO(dtu): Remove these property methods: page, runtime.
-  @property
-  def page(self):
-    return self._page
-
-  @property
-  def runtime(self):
-    return self._runtime
-
   # General public methods.
 
   @property
@@ -171,10 +162,10 @@ class TabBackend(object):
 
   # Runtime public methods.
 
-  def ExecuteJavascript(self, expr, timeout):
+  def ExecuteJavaScript(self, expr, timeout):
     self._runtime.Execute(expr, timeout)
 
-  def EvaluateJavascript(self, expr, timeout):
+  def EvaluateJavaScript(self, expr, timeout):
     return self._runtime.Evaluate(expr, timeout)
 
   # Timeline public methods.

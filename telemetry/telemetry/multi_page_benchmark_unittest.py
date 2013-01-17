@@ -25,19 +25,19 @@ class BenchThatHasDefaults(multi_page_benchmark.MultiPageBenchmark):
 
 class BenchForBlank(multi_page_benchmark.MultiPageBenchmark):
   def MeasurePage(self, page, tab, results):
-    contents = tab.runtime.Evaluate('document.body.textContent')
+    contents = tab.EvaluateJavaScript('document.body.textContent')
     assert contents.strip() == 'Hello world'
 
 class BenchForReplay(multi_page_benchmark.MultiPageBenchmark):
   def MeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
-    contents = tab.runtime.Evaluate('document.body.textContent')
+    contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
       raise multi_page_benchmark.MeasurementFailure('Page not in archive.')
 
 class BenchQueryParams(multi_page_benchmark.MultiPageBenchmark):
   def MeasurePage(self, page, tab, results):
-    query = tab.runtime.Evaluate('window.location.search')
+    query = tab.EvaluateJavaScript('window.location.search')
     assert query.strip() == '?foo=1'
 
 class BenchWithInteraction(multi_page_benchmark.MultiPageBenchmark):

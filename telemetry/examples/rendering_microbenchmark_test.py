@@ -36,15 +36,15 @@ def Main(args):
   with browser_to_create.Create() as b:
     tab = b.tabs[0]
     # Check browser for benchmark API. Can only be done on non-chrome URLs.
-    tab.page.Navigate('http://www.google.com')
+    tab.Navigate('http://www.google.com')
     import time
     time.sleep(2)
     tab.WaitForDocumentReadyStateToBeComplete()
-    if tab.runtime.Evaluate('window.chrome.gpuBenchmarking === undefined'):
+    if tab.EvaluateJavaScript('window.chrome.gpuBenchmarking === undefined'):
       print 'Browser does not support gpu benchmarks API.'
       return 255
 
-    if tab.runtime.Evaluate(
+    if tab.EvaluateJavaScript(
         'window.chrome.gpuBenchmarking.runRenderingBenchmarks === undefined'):
       print 'Browser does not support rendering benchmarks API.'
       return 255
@@ -64,9 +64,9 @@ def Main(args):
       print ','.join(cols)
 
     for u in urls:
-      tab.page.Navigate(u)
+      tab.Navigate(u)
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      results = tab.runtime.Evaluate(
+      results = tab.EvaluateJavaScript(
           'window.chrome.gpuBenchmarking.runRenderingBenchmarks();')
       DumpResults(url, results)
 

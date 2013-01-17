@@ -18,7 +18,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
   def _WaitForAnimationFrame(self):
     def _IsDone():
       js_is_done = """done"""
-      return bool(self._tab.runtime.Evaluate(js_is_done))
+      return bool(self._tab.EvaluateJavaScript(js_is_done))
     util.WaitFor(_IsDone, 5)
 
   def testGotTrace(self):

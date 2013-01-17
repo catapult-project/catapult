@@ -10,46 +10,48 @@ class InspectorPageTest(tab_test_case.TabTestCase):
     super(InspectorPageTest, self).__init__(*args)
 
   def testPageNavigateToNormalUrl(self):
-    self._tab.page.Navigate('http://www.google.com')
+    self._tab.Navigate('http://www.google.com')
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testPageNavigateToUrlChanger(self):
     # The Url that we actually load is http://www.youtube.com/.
-    self._tab.page.Navigate('http://youtube.com/')
+    self._tab.Navigate('http://youtube.com/')
 
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testPageNavigateToImpossibleURL(self):
-    self._tab.page.Navigate('http://23f09f0f9fsdflajsfaldfkj2f3f.com')
+    self._tab.Navigate('http://23f09f0f9fsdflajsfaldfkj2f3f.com')
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testCustomActionToNavigate(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
-    self._tab.page.Navigate(
+    self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
-                      '/page_with_link.html')
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/page_with_link.html')
 
     custom_action_called = [False]
     def CustomAction():
       custom_action_called[0] = True
-      self._tab.runtime.Execute('document.getElementById("clickme").click();')
+      self._tab.ExecuteJavaScript('document.getElementById("clickme").click();')
 
-    self._tab.page.PerformActionAndWaitForNavigate(CustomAction)
+    self._tab.PerformActionAndWaitForNavigate(CustomAction)
 
     self.assertTrue(custom_action_called[0])
-    self.assertEquals(self._tab.runtime.Evaluate('document.location.pathname;'),
-                      '/blank.html')
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/blank.html')
 
   def testGetCookieByName(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
-    self._tab.page.Navigate(
+    self._tab.Navigate(
       self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    self._tab.runtime.Execute('document.cookie="foo=bar"')
-    self.assertEquals(self._tab.page.GetCookieByName('foo'), 'bar')
+    self._tab.ExecuteJavaScript('document.cookie="foo=bar"')
+    self.assertEquals(self._tab.GetCookieByName('foo'), 'bar')

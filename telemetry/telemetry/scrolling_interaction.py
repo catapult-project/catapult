@@ -15,9 +15,9 @@ class ScrollingInteraction(page_interaction.PageInteraction):
       os.path.join(os.path.dirname(__file__),
                    'scrolling_interaction.js')) as f:
       js = f.read()
-      tab.runtime.Execute(js)
+      tab.ExecuteJavaScript(js)
 
-    tab.runtime.Execute("""
+    tab.ExecuteJavaScript("""
         window.__scrollingInteractionDone = false;
         window.__scrollingInteraction = new __ScrollingInteraction(function() {
           window.__scrollingInteractionDone = true;
@@ -32,14 +32,14 @@ class ScrollingInteraction(page_interaction.PageInteraction):
       #     callback(document.getElementById('foo'));
       #   }
       if hasattr(self, 'scrollable_element_function'):
-        tab.runtime.Execute("""
+        tab.ExecuteJavaScript("""
             (%s)(function(element) {
               window.__scrollingInteraction.start(element);
             });""" % (self.scrollable_element_function))
       else:
-        tab.runtime.Execute(
+        tab.ExecuteJavaScript(
           'window.__scrollingInteraction.start(document.body);')
 
       # Poll for scroll benchmark completion.
-      util.WaitFor(lambda: tab.runtime.Evaluate(
+      util.WaitFor(lambda: tab.EvaluateJavaScript(
           'window.__scrollingInteractionDone'), 60)

@@ -16,7 +16,7 @@ class ClickElementInteraction(page_interaction.PageInteraction):
       if hasattr(self, 'selector'):
         code = 'document.querySelector(\'' + self.selector + '\').click();'
         try:
-          tab.runtime.Execute(code)
+          tab.ExecuteJavaScript(code)
         except inspector_runtime.EvaluateException:
           raise page_interaction.PageInteractionFailed(
               'Cannot find element with selector ' + self.selector)
@@ -29,11 +29,11 @@ class ClickElementInteraction(page_interaction.PageInteraction):
               'Cannot find element with text ' + self.text)
 
     if hasattr(self, 'wait_for_navigate'):
-      tab.page.PerformActionAndWaitForNavigate(DoClick)
+      tab.PerformActionAndWaitForNavigate(DoClick)
     elif hasattr(self, 'wait_for_href_change'):
-      old_url = tab.runtime.Evaluate('document.location.href')
+      old_url = tab.EvaluateJavaScript('document.location.href')
       DoClick()
-      util.WaitFor(lambda: tab.runtime.Evaluate(
+      util.WaitFor(lambda: tab.EvaluateJavaScript(
           'document.location.href') != old_url, 60)
     else:
       DoClick()

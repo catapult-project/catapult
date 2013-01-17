@@ -17,7 +17,7 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
       self._browser.http_server.UrlOf(filename),
       attributes=page_attributes)
 
-    self._tab.page.Navigate(page.url)
+    self._tab.Navigate(page.url)
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
     return page
@@ -29,15 +29,16 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
           "action": "scrolling_interaction"
           }})
     # Make page bigger than window so it's scrollable.
-    self._tab.runtime.Execute("""document.body.style.height =
+    self._tab.ExecuteJavaScript("""document.body.style.height =
                               (2 * window.innerHeight + 1) + 'px';""")
 
-    self.assertEquals(self._tab.runtime.Evaluate('document.body.scrollTop'), 0)
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.body.scrollTop'), 0)
 
     i = scrolling_interaction.ScrollingInteraction()
     i.WillRunInteraction(page, self._tab)
 
-    self._tab.runtime.Execute("""
+    self._tab.ExecuteJavaScript("""
         window.__scrollingInteraction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
@@ -46,12 +47,12 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
         };""")
     i.RunInteraction(page, self._tab)
 
-    self.assertTrue(self._tab.runtime.Evaluate('window.__didBeginMeasuring'))
-    self.assertTrue(self._tab.runtime.Evaluate('window.__didEndMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
 
-    self.assertEquals(self._tab.runtime.Evaluate(
+    self.assertEquals(self._tab.EvaluateJavaScript(
         'document.body.scrollTop + window.innerHeight'),
-                      self._tab.runtime.Evaluate('document.body.scrollHeight'))
+        self._tab.EvaluateJavaScript('document.body.scrollHeight'))
 
   def testBoundingClientRect(self):
     self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})
@@ -59,7 +60,7 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
       os.path.join(os.path.dirname(__file__),
                    'scrolling_interaction.js')) as f:
       js = f.read()
-      self._tab.runtime.Execute(js)
+      self._tab.ExecuteJavaScript(js)
 
     # Verify that the rect returned by getBoundingVisibleRect() in
     # scroll.js is completely contained within the viewport. Scroll
@@ -70,17 +71,17 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
     # to the viewport bounds, then the instance used here (the scrollable
     # area being more than twice as tall as the viewport) would
     # result in a scroll location outside of the viewport bounds.
-    self._tab.runtime.Execute("""document.body.style.height =
+    self._tab.ExecuteJavaScript("""document.body.style.height =
                            (2 * window.innerHeight + 1) + 'px';""")
 
-    rect_bottom = int(self._tab.runtime.Evaluate("""
+    rect_bottom = int(self._tab.EvaluateJavaScript("""
         __ScrollingInteraction_GetBoundingVisibleRect(document.body).top +
         __ScrollingInteraction_GetBoundingVisibleRect(document.body).height"""))
-    rect_right = int(self._tab.runtime.Evaluate("""
+    rect_right = int(self._tab.EvaluateJavaScript("""
         __ScrollingInteraction_GetBoundingVisibleRect(document.body).left +
         __ScrollingInteraction_GetBoundingVisibleRect(document.body).width"""))
-    viewport_width = int(self._tab.runtime.Evaluate('window.innerWidth'))
-    viewport_height = int(self._tab.runtime.Evaluate('window.innerHeight'))
+    viewport_width = int(self._tab.EvaluateJavaScript('window.innerWidth'))
+    viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
 
     self.assertTrue(rect_bottom <= viewport_height)
     self.assertTrue(rect_right <= viewport_width)

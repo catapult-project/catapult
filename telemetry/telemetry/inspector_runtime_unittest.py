@@ -6,17 +6,17 @@ from telemetry import tab_test_case
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeEvaluateSimple(self):
-    res = self._tab.runtime.Evaluate('1+1')
+    res = self._tab.EvaluateJavaScript('1+1')
     assert res == 2
 
   def testRuntimeEvaluateThatFails(self):
     self.assertRaises(inspector_runtime.EvaluateException,
-                      lambda: self._tab.runtime.Evaluate('fsdfsdfsf'))
+                      lambda: self._tab.EvaluateJavaScript('fsdfsdfsf'))
 
   def testRuntimeEvaluateOfSomethingThatCantJSONize(self):
 
     def test():
-      self._tab.runtime.Evaluate("""
+      self._tab.EvaluateJavaScript("""
         var cur = {};
         var root = {next: cur};
         for (var i = 0; i < 1000; i++) {
@@ -28,4 +28,4 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self.assertRaises(inspector_runtime.EvaluateException, test)
 
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
-    self._tab.runtime.Execute('window')
+    self._tab.ExecuteJavaScript('window')

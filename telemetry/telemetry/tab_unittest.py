@@ -9,7 +9,7 @@ from telemetry import util
 
 
 def _IsDocumentVisible(tab):
-  state = tab.runtime.Evaluate('document.webkitVisibilityState')
+  state = tab.EvaluateJavaScript('document.webkitVisibilityState')
   # TODO(dtu): Remove when crbug.com/166243 is fixed.
   tab.Disconnect()
   return state == 'visible'
@@ -17,11 +17,11 @@ def _IsDocumentVisible(tab):
 
 class TabTest(tab_test_case.TabTestCase):
   def testNavigateAndWaitToForCompleteState(self):
-    self._tab.page.Navigate('http://www.google.com')
+    self._tab.Navigate('http://www.google.com')
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testNavigateAndWaitToForInteractiveState(self):
-    self._tab.page.Navigate('http://www.google.com')
+    self._tab.Navigate('http://www.google.com')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def testTabBrowserIsRightBrowser(self):
@@ -29,7 +29,7 @@ class TabTest(tab_test_case.TabTestCase):
 
   def testRendererCrash(self):
     self.assertRaises(tab_crash_exception.TabCrashException,
-                      lambda: self._tab.page.Navigate('chrome://crash',
+                      lambda: self._tab.Navigate('chrome://crash',
                                                       timeout=5))
 
   def testActivateTab(self):
@@ -53,7 +53,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
-    self._tab.page.Navigate(
+    self._tab.Navigate(
       self._browser.http_server.UrlOf('green_rect.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 

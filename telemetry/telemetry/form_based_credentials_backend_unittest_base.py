@@ -10,12 +10,6 @@ from telemetry import options_for_unittests
 
 _ = simple_mock.DONT_CARE
 
-class MockTab(simple_mock.MockObject):
-  def __init__(self):
-    super(MockTab, self).__init__()
-    self.runtime = simple_mock.MockObject(self)
-    self.page = simple_mock.MockObject(self)
-
 class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
   def setUp(self):
     self._credentials_type = None
@@ -88,32 +82,32 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
 
   def _LoginUsingMock(self, backend, login_page_url, email_element_id,
                       password_element_id): # pylint: disable=R0201
-    tab = MockTab()
+    tab = simple_mock.MockObject()
 
     config = {'username': 'blah',
               'password': 'blargh'}
 
-    tab.page.ExpectCall('Navigate', login_page_url)
-    tab.runtime.ExpectCall('Evaluate', _).WillReturn(False)
-    tab.runtime.ExpectCall('Evaluate', _).WillReturn(True)
-    tab.runtime.ExpectCall('Evaluate', _).WillReturn(False)
+    tab.ExpectCall('Navigate', login_page_url)
+    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
+    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(True)
+    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
 
     def VerifyEmail(js):
       assert email_element_id in js
       assert 'blah' in js
-    tab.runtime.ExpectCall('Execute', _).WhenCalled(VerifyEmail)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyEmail)
 
     def VerifyPw(js):
       assert password_element_id in js
       assert 'largh' in js
-    tab.runtime.ExpectCall('Execute', _).WhenCalled(VerifyPw)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyPw)
 
     def VerifySubmit(js):
       assert '.submit' in js
-    tab.runtime.ExpectCall('Execute', _).WhenCalled(VerifySubmit)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifySubmit)
 
     # Checking for form still up.
-    tab.runtime.ExpectCall('Evaluate', _).WillReturn(False)
+    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
 
     backend.LoginNeeded(tab, config)

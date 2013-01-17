@@ -9,13 +9,13 @@ from telemetry import util
 
 
 def _IsAlreadyLoggedIn(already_logged_in_element_id, tab):
-  return tab.runtime.Evaluate(
+  return tab.EvaluateJavaScript(
       'document.getElementById("%s")!== null' % \
           already_logged_in_element_id)
 
 def _WaitForLoginFormToLoad(login_form_id, already_logged_in_element_id, tab):
   def IsFormLoadedOrAlreadyLoggedIn():
-    return tab.runtime.Evaluate(
+    return tab.EvaluateJavaScript(
         'document.querySelector("#%s")!== null' % login_form_id) or \
             _IsAlreadyLoggedIn(already_logged_in_element_id, tab)
 
@@ -25,10 +25,10 @@ def _WaitForLoginFormToLoad(login_form_id, already_logged_in_element_id, tab):
 
 def _SubmitFormAndWait(form_id, tab):
   js = 'document.getElementById("%s").submit();' % form_id
-  tab.runtime.Execute(js)
+  tab.ExecuteJavaScript(js)
 
   def IsLoginStillHappening():
-    return tab.runtime.Evaluate(
+    return tab.EvaluateJavaScript(
         'document.querySelector("#%s")!== null' % form_id)
 
   # Wait until the form is submitted and the page completes loading.
@@ -89,7 +89,7 @@ class FormBasedCredentialsBackend(object):
 
     try:
       logging.info('Loading %s...', self.url)
-      tab.page.Navigate(self.url)
+      tab.Navigate(self.url)
       _WaitForLoginFormToLoad(self.login_form_id,
                               self.already_logged_in_element_id,
                               tab)
@@ -105,8 +105,8 @@ class FormBasedCredentialsBackend(object):
           self.login_input_id, config['username'])
       password = 'document.getElementById("%s").value = "%s"; ' % (
           self.password_input_id, config['password'])
-      tab.runtime.Execute(email_id)
-      tab.runtime.Execute(password)
+      tab.ExecuteJavaScript(email_id)
+      tab.ExecuteJavaScript(password)
 
       _SubmitFormAndWait(self.login_form_id, tab)
 

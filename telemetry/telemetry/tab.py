@@ -12,7 +12,7 @@ class Tab(object):
       # Navigates the tab to a given url.
       tab.Navigate('http://www.google.com/')
 
-      # Evaluates 1+1 in the tab's javascript context.
+      # Evaluates 1+1 in the tab's JavaScript context.
       tab.Evaluate('1+1')
   """
   def __init__(self, backend):
@@ -20,15 +20,6 @@ class Tab(object):
 
   def Disconnect(self):
     self._backend.Disconnect()
-
-  # TODO(dtu): Remove these property methods: page, runtime.
-  @property
-  def page(self):
-    return self._backend.page
-
-  @property
-  def runtime(self):
-    return self._backend.runtime
 
   @property
   def browser(self):
@@ -100,26 +91,26 @@ class Tab(object):
     """Returns the value of the cookie by the given |name|."""
     return self._backend.GetCookieByName(name, timeout)
 
-  def ExecuteJavascript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
-    """Executes expr in javascript. Does not return the result.
+  def ExecuteJavaScript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
+    """Executes expr in JavaScript. Does not return the result.
 
     If the expression failed to evaluate, EvaluateException will be raised.
     """
-    self._backend.ExecuteJavascript(expr, timeout)
+    self._backend.ExecuteJavaScript(expr, timeout)
 
-  def EvaluateJavascript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
-    """Evalutes expr in javascript and returns the JSONized result.
+  def EvaluateJavaScript(self, expr, timeout=DEFAULT_TAB_TIMEOUT):
+    """Evalutes expr in JavaScript and returns the JSONized result.
 
-    Consider using ExecuteJavascript for cases where the result of the
+    Consider using ExecuteJavaScript for cases where the result of the
     expression is not needed.
 
-    If evaluation throws in javascript, a python EvaluateException will
+    If evaluation throws in JavaScript, a Python EvaluateException will
     be raised.
 
     If the result of the evaluation cannot be JSONized, then an
     EvaluationException will be raised.
     """
-    return self._backend.EvaluateJavascript(expr, timeout)
+    return self._backend.EvaluateJavaScript(expr, timeout)
 
   @property
   def timeline_model(self):
