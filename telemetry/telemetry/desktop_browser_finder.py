@@ -51,9 +51,13 @@ def FindAllAvailableBrowsers(options):
 
   # Add the explicit browser executable if given.
   if options.browser_executable:
-    if os.path.exists(options.browser_executable):
+    normalized_executable = os.path.expanduser(options.browser_executable)
+    if os.path.exists(normalized_executable):
       browsers.append(PossibleDesktopBrowser('exact', options,
-                                      options.browser_executable, False))
+                                             normalized_executable, False))
+    else:
+      logging.warning('%s specified by browser_executable does not exist',
+                      normalized_executable)
 
   # Look for a browser in the standard chrome build locations.
   if options.chrome_root:
