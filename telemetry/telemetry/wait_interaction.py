@@ -29,7 +29,7 @@ class WaitInteraction(page_interaction.PageInteraction):
 
       var getRenderingStats = function() {
         var renderingStats = {};
-        if (chrome &&
+        if (window.chrome &&
             chrome.gpuBenchmarking &&
             chrome.gpuBenchmarking.renderingStats)
           renderingStats = chrome.gpuBenchmarking.renderingStats();
