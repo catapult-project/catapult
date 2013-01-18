@@ -50,9 +50,12 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
 
-    self.assertEquals(self._tab.EvaluateJavaScript(
-        'document.body.scrollTop + window.innerHeight'),
-        self._tab.EvaluateJavaScript('document.body.scrollHeight'))
+    # Allow for roundoff error in scaled viewport.
+    scroll_position = self._tab.EvaluateJavaScript(
+        'document.body.scrollTop + window.innerHeight')
+    scroll_height = self._tab.EvaluateJavaScript('document.body.scrollHeight')
+    difference = scroll_position - scroll_height
+    self.assertTrue(abs(difference) <= 1)
 
   def testBoundingClientRect(self):
     self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})

@@ -69,7 +69,7 @@
 
   SmoothScrollDownGesture.prototype.start = function(distance, callback) {
     this.callback_ = callback;
-    if (chrome &&
+    if (window.chrome &&
         chrome.gpuBenchmarking &&
         chrome.gpuBenchmarking.smoothScrollBy) {
       var rect = getBoundingVisibleRect(this.element_);
