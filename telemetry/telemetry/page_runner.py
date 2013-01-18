@@ -36,11 +36,11 @@ class _RunState(object):
       self.browser = None
 
 def _ShuffleAndFilterPageSet(page_set, options):
-  if options.test_shuffle_order_file and not options.test_shuffle:
-    raise Exception('--test-shuffle-order-file requires --test-shuffle.')
+  if options.pageset_shuffle_order_file and not options.pageset_shuffle:
+    raise Exception('--pageset-shuffle-order-file requires --pageset-shuffle.')
 
-  if options.test_shuffle_order_file:
-    return page_set.ReorderPageSet(options.test_shuffle_order_file)
+  if options.pageset_shuffle_order_file:
+    return page_set.ReorderPageSet(options.pageset_shuffle_order_file)
 
   pages = page_set.pages[:]
   if options.page_filter:
@@ -59,7 +59,7 @@ def _ShuffleAndFilterPageSet(page_set, options):
     return True
   pages = [page for page in pages if IsSelected(page)]
 
-  if options.test_shuffle:
+  if options.pageset_shuffle:
     random.Random().shuffle(pages)
   return [page
       for _ in xrange(int(options.pageset_repeat))

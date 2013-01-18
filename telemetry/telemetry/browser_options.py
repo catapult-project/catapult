@@ -96,10 +96,11 @@ class BrowserOptions(optparse.Values):
     group.add_option('--pageset-repeat', dest='pageset_repeat', default=1,
         help='Number of times to repeat the entire pageset ' +
         'before finishing.')
-    group.add_option('--test-shuffle', action='store_true', dest='test_shuffle',
+    group.add_option('--pageset-shuffle', action='store_true',
+        dest='pageset_shuffle',
         help='Shuffle the order of pages within a pageset.')
-    group.add_option('--test-shuffle-order-file',
-        dest='test_shuffle_order_file', default=None,
+    group.add_option('--pageset-shuffle-order-file',
+        dest='pageset_shuffle_order_file', default=None,
         help='Filename of an output of a previously run test on the current ' +
         'pageset. The tests will run in the same order again, overriding ' +
         'what is specified by --page-repeat and --pageset-repeat.')
