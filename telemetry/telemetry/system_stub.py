@@ -109,6 +109,9 @@ class OsModuleStub(object):
         tmp = os.path.join(*paths)
         return tmp.replace('\\', '/')
 
+    def expanduser(self, filename):
+      return os.path.expanduser(filename)
+
     def dirname(self, filename): # pylint: disable=R0201
       return os.path.dirname(filename)
 
