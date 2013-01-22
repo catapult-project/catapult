@@ -92,9 +92,12 @@ class TabListBackend(object):
     self._UpdateTabList()
     return len(self._tab_list)
 
-  def __getitem__(self, index):
+  def Get(self, index, ret):
+    """Returns self[index] if it exists, or ret if index is out of bounds.
+    """
     self._UpdateTabList()
-    # This dereference will propagate IndexErrors.
+    if len(self._tab_list) <= index:
+      return ret
     debugger_url = self._tab_list[index]
     # Lazily get/create a Tab object.
     tab_object = self._tab_dict.get(debugger_url)
@@ -104,6 +107,12 @@ class TabListBackend(object):
                                        debugger_url)
       tab_object = tab.Tab(backend)
       self._tab_dict[debugger_url] = tab_object
+    return tab_object
+
+  def __getitem__(self, index):
+    tab_object = self.Get(index, None)
+    if tab_object is None:
+      raise IndexError('list index out of range')
     return tab_object
 
   def _ListTabs(self, timeout=None):
