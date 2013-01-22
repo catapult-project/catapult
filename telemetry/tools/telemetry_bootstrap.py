@@ -22,9 +22,8 @@ import urllib
 import urlparse
 
 # Link to file containing the 'davclient' WebDAV client library.
-# TODO(wiltzius): Change this to point at Chromium SVN server after checkin.
-_DAVCLIENT_URL = ('http://svn.osafoundation.org/tools/davclient/trunk/src/'
-                  'davclient/davclient.py')
+_DAVCLIENT_URL = ('https://src.chromium.org/viewvc/chrome/trunk/src/tools/' +
+                  'telemetry/third_party/davclient/davclient.py')
 
 # Dummy module for Davclient.
 _davclient = None
@@ -49,20 +48,23 @@ class DAVClientWrapper():
     self.root_url = root_url
     self.client = _davclient.DAVClient(root_url)
 
-  def GetSubdirs(self, path):
-    """Returns string names of all subdirs of this path on the SVN server."""
-    props = self.client.propfind(path, depth=1)
-    return map(os.path.basename, props.keys())
+  @staticmethod
+  def __norm_path_keys(dict_with_path_keys):
+    """Returns a dictionary with os.path.normpath called on every key."""
+    return dict((os.path.normpath(k), v) for (k, v) in
+                dict_with_path_keys.items())
+
+  def GetDirList(self, path):
+    """Returns string names of all files and subdirs of path on the server."""
+    props = self.__norm_path_keys(self.client.propfind(path, depth=1))
+    # remove this path
+    del props[os.path.normpath(path)]
+    return [os.path.basename(p) for p in props.keys()]
 
   def IsFile(self, path):
     """Returns True if the path is a file on the server, False if directory."""
-    props = self.client.propfind(path, depth=1)
-    # Build up normalized path list since paths to directories may or may not
-    # have trailing slashes.
-    norm_keys = {}
-    for entry in props.keys():
-      norm_keys[os.path.normpath(entry)] = entry
-    return props[norm_keys[os.path.normpath(path)]]['resourcetype'] is None
+    props = self.__norm_path_keys(self.client.propfind(path, depth=1))
+    return props[os.path.normpath(path)]['resourcetype'] is None
 
   def Traverse(self, src_path, dst_path):
     """Walks the directory hierarchy pointed to by src_path download all files.
@@ -82,28 +84,34 @@ class DAVClientWrapper():
       urllib.urlretrieve(self.root_url + src_path, dst_path)
       return
     else:
-      for subdir in self.GetSubdirs(src_path):
-        if subdir:
-          self.Traverse(os.path.join(src_path, subdir),
-                        os.path.join(dst_path, subdir))
+      for subdir in self.GetDirList(src_path):
+        self.Traverse(os.path.join(src_path, subdir),
+                      os.path.join(dst_path, subdir))
 
 
-def DownloadDEPS(destination_dir, deps_path='DEPS'):
-  """Saves all the dependencies in deps_path.
-
-  Reads the file at deps_path, assuming this file in the standard gclient DEPS
-  format, and then download all files/directories listed in that DEPS file to
-  the destination_dir.
+def DownloadDepsURL(destination_dir, url):
+  """Wrapper around DownloadDeps that takes a string URL to the deps file.
 
   Args:
-    deps_path: String path to DEPS file. Defaults to ./DEPS.
+    destination_dir: String path to local directory to download files into.
+    url: URL of deps file (see DownloadDeps for format).
+  """
+  DownloadDeps(destination_dir, urllib.urlopen(url).read())
+
+
+def DownloadDeps(destination_dir, deps_content):
+  """Saves all the dependencies in deps_path.
+
+  Reads deps_content, assuming the contents are in the simple DEPS-like file
+  format specified in the header of this file, then download all
+  files/directories listed to the destination_dir.
+
+  Args:
     destination_dir: String path to directory to download files into.
+    deps_content: String containing deps information to be evaluated.
   """
   # TODO(wiltzius): Add a parameter for which revision to pull.
   _download_and_import_davclient_module()
-
-  with open(deps_path) as deps_file:
-    deps_content = deps_file.read()
 
   deps = imp.new_module('deps')
   exec deps_content in deps.__dict__
@@ -115,9 +123,4 @@ def DownloadDEPS(destination_dir, deps_path='DEPS'):
 
     dav_client = DAVClientWrapper(root_url)
     dav_client.Traverse(parsed_url.path, full_dst_path)
-
-    # Recursively fetch any DEPS defined in a subdirectory we just fetched.
-    for dirpath, _dirnames, filenames in os.walk(full_dst_path):
-      if 'DEPS' in filenames:
-        DownloadDEPS(os.path.join(dirpath, 'DEPS'), destination_dir)
 
