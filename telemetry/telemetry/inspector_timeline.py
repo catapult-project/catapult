@@ -118,6 +118,4 @@ class InspectorTimeline(object):
     return newly_created_event
 
   def _OnClose(self):
-    if self._is_recording:
-      raise TabBackendException('InspectTimeline received OnClose whilst '
-          'recording.')
+    pass
