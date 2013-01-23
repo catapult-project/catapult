@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
 import tempfile
 import unittest
 
@@ -111,7 +112,9 @@ class PageRunnerTests(unittest.TestCase):
     return did_run[0]
 
   def testUserAgent(self):
-    page = page_module.Page('about:blank')
+    page = page_module.Page(
+        'file:///' + os.path.join('..', 'unittest_data', 'blank.html'),
+        base_dir=os.path.dirname(__file__))
     ps = page_set.PageSet()
     ps.pages.append(page)
     ps.user_agent_type = 'tablet'
@@ -122,9 +125,16 @@ class PageRunnerTests(unittest.TestCase):
         expected_user_agent = user_agent.UA_TYPE_MAPPING['tablet']
         assert actual_user_agent.strip() == expected_user_agent
 
+        # This is so we can check later that the test actually made it into this
+        # function. Previously it was timing out before even getting here, which
+        # should fail, but since it skipped all the asserts, it slipped by.
+        self.hasRun = True # pylint: disable=W0201
+
     test = TestUserAgent('RunTest')
     with page_runner.PageRunner(ps) as runner:
       options = options_for_unittests.GetCopy()
       possible_browser = browser_finder.FindBrowser(options)
       results = page_test.PageTestResults()
       runner.Run(options, possible_browser, test, results)
+
+    self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
