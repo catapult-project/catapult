@@ -16,11 +16,7 @@ class TemporaryHTTPServer(object):
     self._path = path
     self._forwarder = None
 
-    tmp = socket.socket()
-    tmp.bind(('', 0))
-    port = tmp.getsockname()[1]
-    tmp.close()
-    self._host_port = port
+    self._host_port = util.GetAvailableLocalPort()
 
     assert os.path.exists(path), path
     assert os.path.isdir(path), path

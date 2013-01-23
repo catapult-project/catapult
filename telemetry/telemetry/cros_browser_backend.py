@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import logging
 import os
-import socket
 import subprocess
 
 from telemetry import browser_backend
@@ -48,10 +47,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     cri.GetCmdOutput(args)
 
     # Find a free local port.
-    tmp = socket.socket()
-    tmp.bind(('', 0))
-    self._port = tmp.getsockname()[1]
-    tmp.close()
+    self._port = util.GetAvailableLocalPort()
 
     # Forward the remote debugging port.
     logging.info('Forwarding remote debugging port')

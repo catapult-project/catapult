@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import inspect
+import socket
 import time
 
 class TimeoutException(Exception):
@@ -57,3 +58,11 @@ class PortPair(object):
   def __init__(self, local_port, remote_port):
     self.local_port = local_port
     self.remote_port = remote_port
+
+def GetAvailableLocalPort():
+  tmp = socket.socket()
+  tmp.bind(('', 0))
+  port = tmp.getsockname()[1]
+  tmp.close()
+
+  return port

@@ -9,8 +9,6 @@ import tempfile
 from telemetry import browser_backend
 from telemetry import util
 
-DEFAULT_PORT = 9273
-
 class DesktopBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
@@ -27,7 +25,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
 
-    self._port = DEFAULT_PORT
+    self._port = util.GetAvailableLocalPort()
+
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if not options.show_stdout:
