@@ -8,16 +8,11 @@ import telemetry
 from telemetry import util
 
 
-def _IsAlreadyLoggedIn(already_logged_in_element_id, tab):
-  return tab.EvaluateJavaScript(
-      'document.getElementById("%s")!== null' % \
-          already_logged_in_element_id)
-
-def _WaitForLoginFormToLoad(login_form_id, already_logged_in_element_id, tab):
+def _WaitForLoginFormToLoad(backend, login_form_id, tab):
   def IsFormLoadedOrAlreadyLoggedIn():
     return tab.EvaluateJavaScript(
         'document.querySelector("#%s")!== null' % login_form_id) or \
-            _IsAlreadyLoggedIn(already_logged_in_element_id, tab)
+            backend.IsAlreadyLoggedIn(tab)
 
   # Wait until the form is submitted and the page completes loading.
   util.WaitFor(lambda: IsFormLoadedOrAlreadyLoggedIn(), # pylint: disable=W0108
@@ -38,6 +33,9 @@ class FormBasedCredentialsBackend(object):
   def __init__(self):
     self._logged_in = False
 
+  def IsAlreadyLoggedIn(self, tab):
+    raise NotImplementedError()
+
   @property
   def credentials_type(self):
     raise NotImplementedError()
@@ -52,10 +50,6 @@ class FormBasedCredentialsBackend(object):
 
   @property
   def login_input_id(self):
-    raise NotImplementedError()
-
-  @property
-  def already_logged_in_element_id(self):
     raise NotImplementedError()
 
   @property
@@ -90,21 +84,19 @@ class FormBasedCredentialsBackend(object):
     try:
       logging.info('Loading %s...', self.url)
       tab.Navigate(self.url)
-      _WaitForLoginFormToLoad(self.login_form_id,
-                              self.already_logged_in_element_id,
-                              tab)
+      _WaitForLoginFormToLoad(self, self.login_form_id, tab)
 
-      if _IsAlreadyLoggedIn(self.already_logged_in_element_id, tab):
+      if self.IsAlreadyLoggedIn(tab):
         self._logged_in = True
         return True
 
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       logging.info('Loaded page: %s', self.url)
 
-      email_id = 'document.getElementById("%s").value = "%s"; ' % (
-          self.login_input_id, config['username'])
-      password = 'document.getElementById("%s").value = "%s"; ' % (
-          self.password_input_id, config['password'])
+      email_id = 'document.querySelector("#%s").%s.value = "%s"; ' % (
+          self.login_form_id, self.login_input_id, config['username'])
+      password = 'document.querySelector("#%s").%s.value = "%s"; ' % (
+          self.login_form_id, self.password_input_id, config['password'])
       tab.ExecuteJavaScript(email_id)
       tab.ExecuteJavaScript(password)
 
