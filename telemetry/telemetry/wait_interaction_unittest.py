@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import time
 
 from telemetry import wait_interaction
 from telemetry import tab_test_case
@@ -19,18 +20,7 @@ class WaitInteractionTest(tab_test_case.TabTestCase):
         '/blank.html')
 
     i = wait_interaction.WaitInteraction({ 'duration' : 1 })
+
+    start_time = time.time()
     i.RunInteraction({}, self._tab)
-
-    rendering_stats_deltas = self._tab.EvaluateJavaScript(
-      'window.__renderingStatsDeltas')
-
-    # TODO(vollick): This should really be checking numFramesSentToScreen. The
-    # reason that doesn't work is that chrome.gpuBenchmarking.renderingStats is
-    # not available during unit tests. The scrolling interaction unit test
-    # cheats to get this number. scroll.js, when it detects that there's no
-    # chrome.gpuBenchmarking.renderingStats, uses RafRenderingStats to generate
-    # its results. This is a completely different codepath than is used when the
-    # interactions are actually run, so I don't believe those numbers should be
-    # trusted. During unit tests, the only valid rendering stat, currently, is
-    # total time in seconds.
-    self.assertTrue(rendering_stats_deltas['totalTimeInSeconds'] > 0)
+    self.assertAlmostEqual(time.time() - start_time, 1, places=2)

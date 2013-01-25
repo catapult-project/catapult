@@ -85,11 +85,11 @@ class PageTest(object):
     any waiting for completion has occurred."""
     pass
 
-  def WillRunInteraction(self, page, tab):
+  def WillRunInteraction(self, page, tab, interaction):
     """Override to do operations before running the interaction on the page."""
     pass
 
-  def DidRunInteraction(self, page, tab):
+  def DidRunInteraction(self, page, tab, interaction):
     """Override to do operations after running the interaction on the page."""
     pass
 
@@ -98,9 +98,9 @@ class PageTest(object):
     interaction = self.GetInteraction(page)
     if interaction:
       interaction.WillRunInteraction(page, tab)
-      self.WillRunInteraction(page, tab)
+      self.WillRunInteraction(page, tab, interaction)
       interaction.RunInteraction(page, tab)
-      self.DidRunInteraction(page, tab)
+      self.DidRunInteraction(page, tab, interaction)
     try:
       self._test_method(page, tab, results)
     finally:

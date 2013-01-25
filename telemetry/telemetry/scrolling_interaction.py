@@ -43,3 +43,13 @@ class ScrollingInteraction(page_interaction.PageInteraction):
       # Poll for scroll benchmark completion.
       util.WaitFor(lambda: tab.EvaluateJavaScript(
           'window.__scrollingInteractionDone'), 60)
+
+  def CanBeBound(self):
+    return True
+
+  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
+    # Make the scrolling interaction start and stop measurement automatically.
+    tab.ExecuteJavaScript("""
+        window.__scrollingInteraction.beginMeasuringHook = function() { %s };
+        window.__scrollingInteraction.endMeasuringHook = function() { %s };
+    """ % (start_js, stop_js))
