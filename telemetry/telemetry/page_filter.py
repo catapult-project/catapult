@@ -29,6 +29,7 @@ class PageFilter(object):
       return False
     if self._page_regex:
       return self._page_regex.search(page.url)
+    return True
 
   @staticmethod
   def AddCommandLineOptions(parser):

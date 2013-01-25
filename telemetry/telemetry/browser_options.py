@@ -35,6 +35,9 @@ class BrowserOptions(optparse.Values):
     self.trace_dir = None
     self.verbosity = 0
 
+    self.page_filter = None
+    self.page_filter_exclude = None
+
   def Copy(self):
     return copy.deepcopy(self)
 
