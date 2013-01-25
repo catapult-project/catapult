@@ -36,6 +36,7 @@ def Main(benchmark_dir):
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog [options] <benchmark> <page_set>')
 
+  page_runner.PageRunner.AddCommandLineOptions(parser)
   parser.add_option('--output-format',
                     dest='output_format',
                     default='csv',

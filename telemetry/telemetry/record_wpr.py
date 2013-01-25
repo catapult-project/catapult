@@ -64,6 +64,7 @@ def Main(benchmark_dir):
                                  multi_page_benchmark.MultiPageBenchmark)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
+  page_runner.PageRunner.AddCommandLineOptions(parser)
 
   recorder = RecordPage(benchmarks)
   recorder.AddCommandLineOptions(parser)
