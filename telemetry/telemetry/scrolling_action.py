@@ -3,28 +3,28 @@
 # found in the LICENSE file.
 import os
 
-from telemetry import page_interaction
+from telemetry import page_action
 from telemetry import util
 
-class ScrollingInteraction(page_interaction.PageInteraction):
+class ScrollingAction(page_action.PageAction):
   def __init__(self, attributes=None):
-    super(ScrollingInteraction, self).__init__(attributes)
+    super(ScrollingAction, self).__init__(attributes)
 
-  def WillRunInteraction(self, page, tab):
+  def WillRunAction(self, page, tab):
     with open(
       os.path.join(os.path.dirname(__file__),
-                   'scrolling_interaction.js')) as f:
+                   'scrolling_action.js')) as f:
       js = f.read()
       tab.ExecuteJavaScript(js)
 
     tab.ExecuteJavaScript("""
-        window.__scrollingInteractionDone = false;
-        window.__scrollingInteraction = new __ScrollingInteraction(function() {
-          window.__scrollingInteractionDone = true;
+        window.__scrollingActionDone = false;
+        window.__scrollingAction = new __ScrollingAction(function() {
+          window.__scrollingActionDone = true;
         });
      """)
 
-  def RunInteraction(self, page, tab):
+  def RunAction(self, page, tab):
     with tab.browser.platform.GetSurfaceCollector(''):
       # scrollable_element_function is a function that passes the scrollable
       # element on the page to a callback. For example:
@@ -34,22 +34,22 @@ class ScrollingInteraction(page_interaction.PageInteraction):
       if hasattr(self, 'scrollable_element_function'):
         tab.ExecuteJavaScript("""
             (%s)(function(element) {
-              window.__scrollingInteraction.start(element);
+              window.__scrollingAction.start(element);
             });""" % (self.scrollable_element_function))
       else:
         tab.ExecuteJavaScript(
-          'window.__scrollingInteraction.start(document.body);')
+          'window.__scrollingAction.start(document.body);')
 
       # Poll for scroll benchmark completion.
       util.WaitFor(lambda: tab.EvaluateJavaScript(
-          'window.__scrollingInteractionDone'), 60)
+          'window.__scrollingActionDone'), 60)
 
   def CanBeBound(self):
     return True
 
   def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the scrolling interaction start and stop measurement automatically.
+    # Make the scrolling action start and stop measurement automatically.
     tab.ExecuteJavaScript("""
-        window.__scrollingInteraction.beginMeasuringHook = function() { %s };
-        window.__scrollingInteraction.endMeasuringHook = function() { %s };
+        window.__scrollingAction.beginMeasuringHook = function() { %s };
+        window.__scrollingAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))

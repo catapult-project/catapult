@@ -3,12 +3,12 @@
 # found in the LICENSE file.
 import time
 
-from telemetry import page_interaction
+from telemetry import page_action
 
-class WaitInteraction(page_interaction.PageInteraction):
+class WaitAction(page_action.PageAction):
   def __init__(self, attributes=None):
-    super(WaitInteraction, self).__init__(attributes)
+    super(WaitAction, self).__init__(attributes)
 
-  def RunInteraction(self, page, tab):
+  def RunAction(self, page, tab):
     assert hasattr(self, 'duration')
     time.sleep(self.duration)

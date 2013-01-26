@@ -32,7 +32,7 @@ class PageTest(object):
 
   def __init__(self,
                test_method_name,
-               interaction_name_to_run='',
+               action_name_to_run='',
                needs_browser_restart_after_each_run=False):
     self.options = None
     try:
@@ -40,7 +40,7 @@ class PageTest(object):
     except AttributeError:
       raise ValueError, 'No such method %s.%s' % (
         self.__class_, test_method_name) # pylint: disable=E1101
-    self._interaction_name_to_run = interaction_name_to_run
+    self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_run = (
         needs_browser_restart_after_each_run)
 
@@ -64,9 +64,9 @@ class PageTest(object):
     """Add options specific to the test and the given page."""
     if not self.CanRunForPage(page):
       return
-    interaction = self.GetInteraction(page)
-    if interaction:
-      interaction.CustomizeBrowserOptions(options)
+    action = self.GetAction(page)
+    if action:
+      action.CustomizeBrowserOptions(options)
 
   def SetUpBrowser(self, browser):
     """Override to customize the browser right after it has launched."""
@@ -85,42 +85,42 @@ class PageTest(object):
     any waiting for completion has occurred."""
     pass
 
-  def WillRunInteraction(self, page, tab, interaction):
-    """Override to do operations before running the interaction on the page."""
+  def WillRunAction(self, page, tab, action):
+    """Override to do operations before running the action on the page."""
     pass
 
-  def DidRunInteraction(self, page, tab, interaction):
-    """Override to do operations after running the interaction on the page."""
+  def DidRunAction(self, page, tab, action):
+    """Override to do operations after running the action on the page."""
     pass
 
   def Run(self, options, page, tab, results):
     self.options = options
-    interaction = self.GetInteraction(page)
-    if interaction:
-      interaction.WillRunInteraction(page, tab)
-      self.WillRunInteraction(page, tab, interaction)
-      interaction.RunInteraction(page, tab)
-      self.DidRunInteraction(page, tab, interaction)
+    action = self.GetAction(page)
+    if action:
+      action.WillRunAction(page, tab)
+      self.WillRunAction(page, tab, action)
+      action.RunAction(page, tab)
+      self.DidRunAction(page, tab, action)
     try:
       self._test_method(page, tab, results)
     finally:
       self.options = None
 
-  def GetInteraction(self, page):
-    if not self._interaction_name_to_run:
+  def GetAction(self, page):
+    if not self._action_name_to_run:
       return None
-    interaction_data = getattr(page, self._interaction_name_to_run)
-    from telemetry import all_page_interactions
-    cls = all_page_interactions.FindClassWithName(interaction_data['action'])
+    action_data = getattr(page, self._action_name_to_run)
+    from telemetry import all_page_actions
+    cls = all_page_actions.FindClassWithName(action_data['action'])
     if not cls:
-      sys.stderr.write('Could not find interaction named %s\n' %
-                       interaction_data['action'])
+      sys.stderr.write('Could not find action named %s\n' %
+                       action_data['action'])
       sys.stderr.write('Check the pageset for a typo and check the error log' +
                        'for possible python loading/compilation errors\n')
-      raise Exception('%s not found' % interaction_data['action'])
+      raise Exception('%s not found' % action_data['action'])
     assert cls
-    return cls(interaction_data)
+    return cls(action_data)
 
   @property
-  def interaction_name_to_run(self):
-    return self._interaction_name_to_run
+  def action_name_to_run(self):
+    return self._action_name_to_run

@@ -7,7 +7,7 @@ import logging
 import os
 import sys
 
-from telemetry import all_page_interactions # pylint: disable=W0611
+from telemetry import all_page_actions # pylint: disable=W0611
 from telemetry import block_page_benchmark_results
 from telemetry import browser_finder
 from telemetry import browser_options

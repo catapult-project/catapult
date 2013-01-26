@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import os
 
-from telemetry import click_element_interaction
+from telemetry import click_element_action
 from telemetry import tab_test_case
 
-class ClickElementInteractionTest(tab_test_case.TabTestCase):
+class ClickElementActionTest(tab_test_case.TabTestCase):
   def testClickWithSelectorWaitForNavigation(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
@@ -19,8 +19,8 @@ class ClickElementInteractionTest(tab_test_case.TabTestCase):
         '/page_with_link.html')
 
     data = {'selector': 'a[id="clickme"]', 'wait_for_navigation': True}
-    i = click_element_interaction.ClickElementInteraction(data)
-    i.RunInteraction({}, self._tab)
+    i = click_element_action.ClickElementAction(data)
+    i.RunAction({}, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -38,8 +38,8 @@ class ClickElementInteractionTest(tab_test_case.TabTestCase):
         '/page_with_link.html')
 
     data = {'text': 'Click me', 'wait_for_href_change': True}
-    i = click_element_interaction.ClickElementInteraction(data)
-    i.RunInteraction({}, self._tab)
+    i = click_element_action.ClickElementAction(data)
+    i.RunAction({}, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),

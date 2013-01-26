@@ -7,7 +7,7 @@ from telemetry import multi_page_benchmark
 from telemetry import multi_page_benchmark_unittest_base
 from telemetry import options_for_unittests
 from telemetry import page as page_module
-from telemetry import page_interaction
+from telemetry import page_action
 from telemetry import page_set
 from telemetry import wpr_modes
 
@@ -40,9 +40,9 @@ class BenchQueryParams(multi_page_benchmark.MultiPageBenchmark):
     query = tab.EvaluateJavaScript('window.location.search')
     assert query.strip() == '?foo=1'
 
-class BenchWithInteraction(multi_page_benchmark.MultiPageBenchmark):
+class BenchWithAction(multi_page_benchmark.MultiPageBenchmark):
   def __init__(self):
-    super(BenchWithInteraction, self).__init__('test_interaction')
+    super(BenchWithAction, self).__init__('test_action')
 
   def MeasurePage(self, page, tab, results):
     pass
@@ -112,16 +112,16 @@ class MultiPageBenchmarkUnitTest(
       if os.path.isfile(test_archive):
         os.remove(test_archive)
 
-  def testInteractions(self):
-    interaction_called = [False]
-    class MockInteraction(page_interaction.PageInteraction):
-      def RunInteraction(self, page, tab):
-        interaction_called[0] = True
-    from telemetry import all_page_interactions
-    all_page_interactions.RegisterClassForTest('mock', MockInteraction)
+  def testActions(self):
+    action_called = [False]
+    class MockAction(page_action.PageAction):
+      def RunAction(self, page, tab):
+        action_called[0] = True
+    from telemetry import all_page_actions
+    all_page_actions.RegisterClassForTest('mock', MockAction)
 
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
-    setattr(ps.pages[0], 'test_interaction', {'action': 'mock'})
-    benchmark = BenchWithInteraction()
+    setattr(ps.pages[0], 'test_action', {'action': 'mock'})
+    benchmark = BenchWithAction()
     self.RunBenchmark(benchmark, ps, options=self._options)
-    self.assertTrue(interaction_called[0])
+    self.assertTrue(action_called[0])

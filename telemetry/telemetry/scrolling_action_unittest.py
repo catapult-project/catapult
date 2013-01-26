@@ -4,10 +4,10 @@
 import os
 
 from telemetry.page import Page
-from telemetry import scrolling_interaction
+from telemetry import scrolling_action
 from telemetry import tab_test_case
 
-class ScrollingInteractionTest(tab_test_case.TabTestCase):
+class ScrollingActionTest(tab_test_case.TabTestCase):
   def CreateAndNavigateToPageFromUnittestDataDir(
     self, filename, page_attributes):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
@@ -22,11 +22,11 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
 
     return page
 
-  def testScrollingInteraction(self):
+  def testScrollingAction(self):
     page = self.CreateAndNavigateToPageFromUnittestDataDir(
         "blank.html",
         page_attributes={"smoothness": {
-          "action": "scrolling_interaction"
+          "action": "scrolling_action"
           }})
     # Make page bigger than window so it's scrollable.
     self._tab.ExecuteJavaScript("""document.body.style.height =
@@ -35,17 +35,17 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.body.scrollTop'), 0)
 
-    i = scrolling_interaction.ScrollingInteraction()
-    i.WillRunInteraction(page, self._tab)
+    i = scrolling_action.ScrollingAction()
+    i.WillRunAction(page, self._tab)
 
     self._tab.ExecuteJavaScript("""
-        window.__scrollingInteraction.beginMeasuringHook = function() {
+        window.__scrollingAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
-        window.__scrollingInteraction.endMeasuringHook = function() {
+        window.__scrollingAction.endMeasuringHook = function() {
             window.__didEndMeasuring = true;
         };""")
-    i.RunInteraction(page, self._tab)
+    i.RunAction(page, self._tab)
 
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
@@ -61,7 +61,7 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
     self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})
     with open(
       os.path.join(os.path.dirname(__file__),
-                   'scrolling_interaction.js')) as f:
+                   'scrolling_action.js')) as f:
       js = f.read()
       self._tab.ExecuteJavaScript(js)
 
@@ -78,11 +78,11 @@ class ScrollingInteractionTest(tab_test_case.TabTestCase):
                            (2 * window.innerHeight + 1) + 'px';""")
 
     rect_bottom = int(self._tab.EvaluateJavaScript("""
-        __ScrollingInteraction_GetBoundingVisibleRect(document.body).top +
-        __ScrollingInteraction_GetBoundingVisibleRect(document.body).height"""))
+        __ScrollingAction_GetBoundingVisibleRect(document.body).top +
+        __ScrollingAction_GetBoundingVisibleRect(document.body).height"""))
     rect_right = int(self._tab.EvaluateJavaScript("""
-        __ScrollingInteraction_GetBoundingVisibleRect(document.body).left +
-        __ScrollingInteraction_GetBoundingVisibleRect(document.body).width"""))
+        __ScrollingAction_GetBoundingVisibleRect(document.body).left +
+        __ScrollingAction_GetBoundingVisibleRect(document.body).width"""))
     viewport_width = int(self._tab.EvaluateJavaScript('window.innerWidth'))
     viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
 

@@ -22,7 +22,7 @@ class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
   def CreatePageSet(self, test_filename):
     base_dir = os.path.dirname(__file__)
     page = page_module.Page(test_filename, base_dir=base_dir)
-    setattr(page, 'smoothness', {'action': 'scrolling_interaction'})
+    setattr(page, 'smoothness', {'action': 'scrolling_action'})
     ps = page_set.PageSet(base_dir=base_dir)
     ps.pages.append(page)
     return ps

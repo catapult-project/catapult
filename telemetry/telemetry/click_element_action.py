@@ -3,14 +3,14 @@
 # found in the LICENSE file.
 from telemetry import inspector_runtime
 from telemetry import page as page_module
-from telemetry import page_interaction
+from telemetry import page_action
 from telemetry import util
 
-class ClickElementInteraction(page_interaction.PageInteraction):
+class ClickElementAction(page_action.PageAction):
   def __init__(self, attributes=None):
-    super(ClickElementInteraction, self).__init__(attributes)
+    super(ClickElementAction, self).__init__(attributes)
 
-  def RunInteraction(self, page, tab):
+  def RunAction(self, page, tab):
     def DoClick():
       assert hasattr(self, 'selector') or hasattr(self, 'text')
       if hasattr(self, 'selector'):
@@ -18,14 +18,14 @@ class ClickElementInteraction(page_interaction.PageInteraction):
         try:
           tab.ExecuteJavaScript(code)
         except inspector_runtime.EvaluateException:
-          raise page_interaction.PageInteractionFailed(
+          raise page_action.PageActionFailed(
               'Cannot find element with selector ' + self.selector)
       else:
         callback_code = 'function(element) { element.click(); }'
         try:
           util.FindElementAndPerformAction(tab, self.text, callback_code)
         except inspector_runtime.EvaluateException:
-          raise page_interaction.PageInteractionFailed(
+          raise page_action.PageActionFailed(
               'Cannot find element with text ' + self.text)
 
     if hasattr(self, 'wait_for_navigate'):

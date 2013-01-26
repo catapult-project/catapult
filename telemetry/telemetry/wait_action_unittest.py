@@ -4,11 +4,11 @@
 import os
 import time
 
-from telemetry import wait_interaction
+from telemetry import wait_action
 from telemetry import tab_test_case
 
-class WaitInteractionTest(tab_test_case.TabTestCase):
-  def testWaitInteraction(self):
+class WaitActionTest(tab_test_case.TabTestCase):
+  def testWaitAction(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
@@ -19,8 +19,8 @@ class WaitInteractionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-    i = wait_interaction.WaitInteraction({ 'duration' : 1 })
+    i = wait_action.WaitAction({ 'duration' : 1 })
 
     start_time = time.time()
-    i.RunInteraction({}, self._tab)
+    i.RunAction({}, self._tab)
     self.assertAlmostEqual(time.time() - start_time, 1, places=2)

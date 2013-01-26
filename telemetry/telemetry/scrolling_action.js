@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// This file provides the ScrollingInteraction object, which scrolls a page
+// This file provides the ScrollingAction object, which scrolls a page
 // from top to bottom:
-//   1. var interaction = new __ScrollingInteraction(callback)
-//   2. interaction.start(element_to_scroll)
+//   1. var action = new __ScrollingAction(callback)
+//   2. action.start(element_to_scroll)
 'use strict';
 
 (function() {
@@ -91,7 +91,7 @@
   //
   // start -> startPass_ -> ...scrolling... -> onGestureComplete_ ->
   //       -> startPass_ -> .. scrolling... -> onGestureComplete_ -> callback_
-  function ScrollingInteraction(opt_callback) {
+  function ScrollingAction(opt_callback) {
     var self = this;
 
     this.beginMeasuringHook = function() {}
@@ -100,7 +100,7 @@
     this.callback_ = opt_callback;
   }
 
-  ScrollingInteraction.prototype.getRemainingScrollDistance_ = function() {
+  ScrollingAction.prototype.getRemainingScrollDistance_ = function() {
     var clientHeight;
     // clientHeight is "special" for the body element.
     if (this.element_ == document.body)
@@ -111,7 +111,7 @@
     return this.scrollHeight_ - this.element_.scrollTop - clientHeight;
   }
 
-  ScrollingInteraction.prototype.start = function(opt_element) {
+  ScrollingAction.prototype.start = function(opt_element) {
     // Assign this.element_ here instead of constructor, because the constructor
     // ensures this method will be called after the document is loaded.
     this.element_ = opt_element || document.body;
@@ -123,7 +123,7 @@
     requestAnimationFrame(this.startPass_.bind(this));
   };
 
-  ScrollingInteraction.prototype.startPass_ = function() {
+  ScrollingAction.prototype.startPass_ = function() {
     this.element_.scrollTop = 0;
 
     this.beginMeasuringHook();
@@ -133,11 +133,11 @@
                         this.onGestureComplete_.bind(this));
   };
 
-  ScrollingInteraction.prototype.getResults = function() {
+  ScrollingAction.prototype.getResults = function() {
     return this.renderingStats_;
   }
 
-  ScrollingInteraction.prototype.onGestureComplete_ = function(timestamp) {
+  ScrollingAction.prototype.onGestureComplete_ = function(timestamp) {
     // If the scrollHeight went down, only scroll to the new scrollHeight.
     // -1 to allow for rounding errors on scaled viewports (like mobile).
     this.scrollHeight_ = Math.min(this.scrollHeight_,
@@ -156,6 +156,6 @@
       this.callback_();
   };
 
-  window.__ScrollingInteraction = ScrollingInteraction;
-  window.__ScrollingInteraction_GetBoundingVisibleRect = getBoundingVisibleRect;
+  window.__ScrollingAction = ScrollingAction;
+  window.__ScrollingAction_GetBoundingVisibleRect = getBoundingVisibleRect;
 })();
