@@ -27,6 +27,8 @@ class _RunState(object):
     self.is_tracing = False
 
   def Close(self):
+    self.is_tracing = False
+
     if self.tab:
       self.tab.Disconnect()
       self.tab = None
@@ -242,6 +244,7 @@ class PageRunner(object):
 
   def _EndTracing(self, state, options, page):
     if state.is_tracing:
+      assert state.browser
       state.is_tracing = False
       state.browser.StopTracing()
       trace = state.browser.GetTrace()

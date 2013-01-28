@@ -52,7 +52,7 @@ class TracingBackend(object):
       self._socket = None
 
   def _TracingReader(self):
-    while True:
+    while self._socket:
       try:
         data = self._socket.recv()
         if not data:
