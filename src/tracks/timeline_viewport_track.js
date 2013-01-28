@@ -44,7 +44,8 @@ base.exportTo('tracks', function() {
 
 
     placeAndBeginDraggingMarker: function(clientX) {
-      var viewX = clientX - this.canvasContainer_.offsetLeft;
+      var pixelRatio = window.devicePixelRatio || 1;
+      var viewX = (clientX - this.canvasContainer_.offsetLeft) * pixelRatio;
       var worldX = this.viewport_.xViewToWorld(viewX);
       var marker = this.viewport_.findMarkerNear(worldX, 6);
       var createdMarker = false;
@@ -57,7 +58,7 @@ base.exportTo('tracks', function() {
 
       var that = this;
       var onMouseMove = function(e) {
-        var viewX = e.clientX - that.canvasContainer_.offsetLeft;
+        var viewX = (e.clientX - that.canvasContainer_.offsetLeft) * pixelRatio;
         var worldX = that.viewport_.xViewToWorld(viewX);
         marker.positionWorld = worldX;
         movedMarker = true;
@@ -132,7 +133,8 @@ base.exportTo('tracks', function() {
                                     canvasH, rulerHeight, vp);
       }
 
-      var idealMajorMarkDistancePix = 150;
+      var pixelRatio = window.devicePixelRatio || 1;
+      var idealMajorMarkDistancePix = 150 * pixelRatio;
       var idealMajorMarkDistanceWorld =
           vp.xViewVectorToWorld(idealMajorMarkDistancePix);
 
