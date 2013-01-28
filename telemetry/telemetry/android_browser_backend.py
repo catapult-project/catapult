@@ -159,6 +159,9 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     pids = self._adb.ExtractPid(self._package)
     return len(pids) != 0
 
+  def GetRemotePort(self, local_port):
+    return local_port
+
   def GetStandardOutput(self):
     # If we can find symbols and there is a stack, output the symbolized stack.
     symbol_paths = [

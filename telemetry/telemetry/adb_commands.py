@@ -160,12 +160,8 @@ class Forwarder(object):
     tool = valgrind_tools.BaseTool()
     self._host_port = port_pairs[0].local_port
 
-    new_port_pairs = []
-    for port_pair in port_pairs:
-      if port_pair.remote_port is None:
-        new_port_pairs.append((port_pair.local_port, port_pair.local_port))
-      else:
-        new_port_pairs.append((port_pair.local_port, port_pair.remote_port))
+    new_port_pairs = [(port_pair.local_port, port_pair.remote_port)
+                      for port_pair in port_pairs]
 
     buildtype = 'Debug'
     if HasForwarder('Release'):

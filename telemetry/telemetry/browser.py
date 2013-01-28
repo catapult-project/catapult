@@ -124,8 +124,10 @@ class Browser(object):
         archive_path,
         use_record_mode,
         self._browser_backend.WEBPAGEREPLAY_HOST,
-        self._browser_backend.WEBPAGEREPLAY_HTTP_PORT,
-        self._browser_backend.WEBPAGEREPLAY_HTTPS_PORT)
+        self._browser_backend.webpagereplay_local_http_port,
+        self._browser_backend.webpagereplay_local_https_port,
+        self._browser_backend.webpagereplay_remote_http_port,
+        self._browser_backend.webpagereplay_remote_https_port)
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()

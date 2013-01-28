@@ -12,6 +12,7 @@ from telemetry import cros_browser_backend
 from telemetry import cros_interface
 from telemetry import options_for_unittests
 from telemetry import run_tests
+from telemetry import util
 
 class CrOSInterfaceTest(unittest.TestCase):
   @run_tests.RequiresBrowserOfType('cros-chrome')
@@ -130,7 +131,7 @@ class CrOSInterfaceTest(unittest.TestCase):
 
     # Forward local server's port to remote device's remote_port.
     forwarder = cros_browser_backend.SSHForwarder(
-        cri, 'R', (remote_port, port))
+        cri, 'R', util.PortPair(port, remote_port))
 
     # At this point, remote device should be able to connect to local server.
     self.assertTrue(cri.IsHTTPServerRunningOnPort(remote_port))
@@ -146,3 +147,17 @@ class CrOSInterfaceTest(unittest.TestCase):
     # Device should no longer be able to connect to remote_port since it is no
     # longer in use.
     self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
+
+  @run_tests.RequiresBrowserOfType('cros-chrome')
+  def testGetRemotePortReservedPorts(self):
+    remote = options_for_unittests.GetCopy().cros_remote
+    cri = cros_interface.CrOSInterface(
+      remote,
+      options_for_unittests.GetCopy().cros_ssh_identity)
+
+    # Should return 2 separate ports even though the first one isn't technically
+    # being used yet.
+    remote_port_1 = cri.GetRemotePort()
+    remote_port_2 = cri.GetRemotePort()
+
+    self.assertTrue(remote_port_1 != remote_port_2)

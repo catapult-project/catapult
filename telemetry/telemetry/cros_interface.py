@@ -204,6 +204,9 @@ class CrOSInterface(object):
     self._hostname = hostname
     self._ssh_identity = None
 
+    # List of ports generated from GetRemotePort() that may not be in use yet.
+    self._reserved_ports = []
+
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
 
@@ -382,7 +385,12 @@ class CrOSInterface(object):
       port_in_use = address_in_use.split(':')[-1]
       ports_in_use.append(int(port_in_use))
 
-    return sorted(ports_in_use)[-1] + 1
+    ports_in_use.extend(self._reserved_ports)
+
+    new_port = sorted(ports_in_use)[-1] + 1
+    self._reserved_ports.append(new_port)
+
+    return new_port
 
   def IsHTTPServerRunningOnPort(self, port):
     wget_output = self.GetAllCmdOutput(

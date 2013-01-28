@@ -23,8 +23,6 @@ class BrowserBackend(object):
   once a remote-debugger port has been established."""
 
   WEBPAGEREPLAY_HOST = '127.0.0.1'
-  WEBPAGEREPLAY_HTTP_PORT = 8080
-  WEBPAGEREPLAY_HTTPS_PORT = 8413
 
   def __init__(self, is_content_shell, options):
     self.browser_type = options.browser_type
@@ -37,6 +35,11 @@ class BrowserBackend(object):
     self._chrome_branch_number = 0
     self._webkit_base_revision = 0
     self._tracing_backend = None
+
+    self.webpagereplay_local_http_port = util.GetAvailableLocalPort()
+    self.webpagereplay_local_https_port = util.GetAvailableLocalPort()
+    self.webpagereplay_remote_http_port = self.webpagereplay_local_http_port
+    self.webpagereplay_remote_https_port = self.webpagereplay_local_https_port
 
     if options.dont_override_profile and not options_for_unittests.AreSet():
       sys.stderr.write('Warning: Not overriding profile. This can cause '
@@ -64,9 +67,10 @@ class BrowserBackend(object):
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
     if self.options.wpr_mode != wpr_modes.WPR_OFF:
-      args.extend(wpr_server.GetChromeFlags(self.WEBPAGEREPLAY_HOST,
-                                            self.WEBPAGEREPLAY_HTTP_PORT,
-                                            self.WEBPAGEREPLAY_HTTPS_PORT))
+      args.extend(wpr_server.GetChromeFlags(
+          self.WEBPAGEREPLAY_HOST,
+          self.webpagereplay_remote_http_port,
+          self.webpagereplay_remote_https_port))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.options.browser_user_agent_type))
     return args
@@ -136,6 +140,9 @@ class BrowserBackend(object):
 
   def GetTrace(self):
     return self._tracing_backend.GetTraceAndReset()
+
+  def GetRemotePort(self, _):
+    return util.GetAvailableLocalPort()
 
   def Close(self):
     if self._tracing_backend:
