@@ -28,6 +28,10 @@
     text-align: left;
 }
 
+.timeline-analysis-table-row {
+    vertical-align: top;
+}
+
 .timeline-analysis-table-row:nth-child(2n+0) {
     background-color: #e2e2e2;
 }

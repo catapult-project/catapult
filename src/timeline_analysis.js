@@ -90,7 +90,23 @@ base.exportTo('tracing', function() {
 
       this.appendTableCell_(table, row, 0, label);
       if (opt_text !== undefined) {
-        this.appendTableCell_(table, row, 1, opt_text);
+        if (opt_text[0] == '{' && opt_text[opt_text.length - 1] == '}') {
+          // Try to treat the opt_text as json.
+          var value;
+          try {
+            value = JSON.parse(opt_text)
+          } catch(e) {
+            value = undefined;
+          }
+          if (!value === undefined) {
+            this.appendTableCell_(table, row, 1, opt_text);
+          } else {
+            var pretty = JSON.stringify(value, null, ' ');
+            this.appendTableCell_(table, row, 1, pretty);
+          }
+        } else {
+          this.appendTableCell_(table, row, 1, opt_text);
+        }
         for (var i = 2; i < table.numColumns; i++)
           this.appendTableCell_(table, row, i, '');
       } else {
