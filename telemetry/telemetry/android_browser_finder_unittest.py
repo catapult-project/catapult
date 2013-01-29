@@ -79,7 +79,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
       assert args[0] == 'pm'
       assert args[1] == 'list'
       assert args[2] == 'packages'
-      return ['package:org.chromium.content_shell',
+      return ['package:org.chromium.content_shell_apk',
               'package.com.google.android.setupwizard']
 
     self._stubs.adb_commands.shell_command_handlers['pm'] = OnPM
