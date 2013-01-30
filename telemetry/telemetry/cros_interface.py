@@ -203,6 +203,13 @@ class CrOSInterface(object):
   def __init__(self, hostname, ssh_identity = None):
     self._hostname = hostname
     self._ssh_identity = None
+    self._hostfile = tempfile.NamedTemporaryFile()
+    self._hostfile.flush()
+    self._ssh_args = ['-o ConnectTimeout=5',
+                      '-o StrictHostKeyChecking=no',
+                      '-o KbdInteractiveAuthentication=no',
+                      '-o PreferredAuthentications=publickey',
+                      '-o UserKnownHostsFile=%s' % self._hostfile.name]
 
     # List of ports generated from GetRemotePort() that may not be in use yet.
     self._reserved_ports = []
@@ -216,13 +223,9 @@ class CrOSInterface(object):
 
   def FormSSHCommandLine(self, args, extra_ssh_args=None):
     full_args = ['ssh',
-                 '-o ConnectTimeout=5',
                  '-o ForwardX11=no',
                  '-o ForwardX11Trusted=no',
-                 '-o StrictHostKeyChecking=yes',
-                 '-o KbdInteractiveAuthentication=no',
-                 '-o PreferredAuthentications=publickey',
-                 '-n']
+                 '-n'] + self._ssh_args
     if self._ssh_identity is not None:
       full_args.extend(['-i', self._ssh_identity])
     if extra_ssh_args:
@@ -234,10 +237,26 @@ class CrOSInterface(object):
   def GetAllCmdOutput(self, args, cwd=None, quiet=False):
     return GetAllCmdOutput(self.FormSSHCommandLine(args), cwd, quiet=quiet)
 
+  def _RemoveSSHWarnings(self, toClean):
+    """Removes specific ssh warning lines from a string.
+
+    Args:
+      toClean: A string that may be containing multiple lines.
+
+    Returns:
+      A copy of toClean with all the Warning lines removed.
+    """
+    # Remove the Warning about connecting to a new host for the first time.
+    return re.sub('Warning: Permanently added [^\n]* to the list of known '
+                  'hosts.\s\n', '', toClean)
+
   def TryLogin(self):
     logging.debug('TryLogin()')
     stdout, stderr = self.GetAllCmdOutput(['echo', '$USER'], quiet=True)
 
+    # The initial login will add the host to the hosts file but will also print
+    # a warning to stderr that we need to remove.
+    stderr = self._RemoveSSHWarnings(stderr)
     if stderr != '':
       if 'Host key verification failed' in stderr:
         raise LoginException(('%s host key verification failed. ' +
@@ -277,13 +296,7 @@ class CrOSInterface(object):
     return exists
 
   def PushFile(self, filename, remote_filename):
-    args = ['scp',
-            '-r',
-            '-o ConnectTimeout=5',
-            '-o KbdInteractiveAuthentication=no',
-            '-o PreferredAuthentications=publickey',
-            '-o StrictHostKeyChecking=yes' ]
-
+    args = ['scp', '-r' ] + self._ssh_args
     if self._ssh_identity:
       args.extend(['-i', self._ssh_identity])
 
@@ -304,12 +317,7 @@ class CrOSInterface(object):
 
   def GetFileContents(self, filename):
     with tempfile.NamedTemporaryFile() as f:
-      args = ['scp',
-              '-o ConnectTimeout=5',
-              '-o KbdInteractiveAuthentication=no',
-              '-o PreferredAuthentications=publickey',
-              '-o StrictHostKeyChecking=yes' ]
-
+      args = ['scp'] + self._ssh_args
       if self._ssh_identity:
         args.extend(['-i', self._ssh_identity])
 
