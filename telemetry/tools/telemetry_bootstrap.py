@@ -89,6 +89,32 @@ class DAVClientWrapper():
                       os.path.join(dst_path, subdir))
 
 
+def ListAllDepsPaths(deps_content):
+  """Recursively returns a list of all paths indicated in this deps file.
+
+  Note that this discards information about where path dependencies come from,
+  so this is only useful in the context of a Chromium source checkout that has
+  used gclient to already fetch all dependencies.
+
+  Args:
+    deps_content: String containing deps information to be evaluated, in the
+                  format given in the header of this file.
+  Returns: A list of string paths starting under src that are required by the
+           given deps file, and all of its sub-dependencies. This amounts to
+           the keys of the 'deps' dictionary.
+  """
+  deps = imp.new_module('deps')
+  exec deps_content in deps.__dict__
+
+  deps_paths = deps.deps.keys()
+
+  if hasattr(deps, 'deps_includes'):
+    for url in deps.deps_includes:
+      deps_paths = deps_paths + ListAllDepsPaths(urllib.urlopen(url).read())
+
+  return deps_paths
+
+
 def DownloadDepsURL(destination_dir, url):
   """Wrapper around DownloadDeps that takes a string URL to the deps file.
 
@@ -96,6 +122,7 @@ def DownloadDepsURL(destination_dir, url):
     destination_dir: String path to local directory to download files into.
     url: URL of deps file (see DownloadDeps for format).
   """
+  logging.warning('Downloading deps from %s...', url)
   DownloadDeps(destination_dir, urllib.urlopen(url).read())
 
 
@@ -123,4 +150,8 @@ def DownloadDeps(destination_dir, deps_content):
 
     dav_client = DAVClientWrapper(root_url)
     dav_client.Traverse(parsed_url.path, full_dst_path)
+
+  if hasattr(deps, 'deps_includes'):
+    for url in deps.deps_includes:
+      DownloadDepsURL(destination_dir, url)
 
