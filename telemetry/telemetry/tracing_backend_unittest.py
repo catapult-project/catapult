@@ -27,7 +27,6 @@ class TracingBackendTest(tab_test_case.TabTestCase):
   def testGotTrace(self):
     self._StartServer()
     self._browser.StartTracing()
-    self._browser.http_server.UrlOf('image.png')
     self.assertTrue(self._browser.supports_tracing)
     self._browser.StopTracing()
     model = self._browser.GetTraceResultAndReset().AsTimelineModel()
