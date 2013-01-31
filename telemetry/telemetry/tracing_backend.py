@@ -2,11 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import cStringIO
 import json
 import logging
 import socket
 import threading
 
+
+from telemetry import trace_event_importer
+from telemetry import trace_result
 from telemetry import util
 from telemetry import websocket
 
@@ -14,7 +18,33 @@ from telemetry import websocket
 class TracingUnsupportedException(Exception):
   pass
 
+class TraceResultImpl(object):
+  def __init__(self, tracing_data):
+    self._tracing_data = tracing_data
 
+  def Serialize(self, f):
+    f.write('{"traceEvents": [')
+    d = self._tracing_data
+    # Note: we're not using ','.join here because the strings that are in the
+    # tracing data are typically many megabytes in size. In the fast case, f is
+    # just a file, so by skipping the in memory step we keep our memory
+    # footprint low and avoid additional processing.
+    if len(d) == 0:
+      pass
+    elif len(d) == 1:
+      f.write(d[0])
+    else:
+      f.write(d[0])
+      for i in range(1, len(d)):
+        f.write(',')
+        f.write(d[i])
+    f.write(']}')
+
+  def AsTimelineModel(self):
+    f = cStringIO.StringIO()
+    self.Serialize(f)
+    return trace_event_importer.Import(
+      f.getvalue())
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
@@ -40,9 +70,10 @@ class TracingBackend(object):
     self._thread.join()
     self._thread = None
 
-  def GetTraceAndReset(self):
+  def GetTraceResultAndReset(self):
     assert not self._thread
-    ret = '{"traceEvents": [' + ','.join(self._tracing_data) + ']}'
+    ret = trace_result.TraceResult(
+      TraceResultImpl(self._tracing_data))
     self._tracing_data = []
     return ret
 

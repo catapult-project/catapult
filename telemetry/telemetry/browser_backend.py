@@ -138,7 +138,7 @@ class BrowserBackend(object):
   def StopTracing(self):
     self._tracing_backend.EndTracing()
 
-  def GetTrace(self):
+  def GetTraceResultAndReset(self):
     return self._tracing_backend.GetTraceAndReset()
 
   def GetRemotePort(self, _):

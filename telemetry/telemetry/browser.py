@@ -66,8 +66,9 @@ class Browser(object):
   def StopTracing(self):
     return self._browser_backend.StopTracing()
 
-  def GetTrace(self):
-    return self._browser_backend.GetTrace()
+  def GetTraceResultAndReset(self):
+    """Returns the result of the trace, as TraceResult object."""
+    return self._browser_backend.GetTraceResultAndReset()
 
   def Close(self):
     """Closes this browser."""

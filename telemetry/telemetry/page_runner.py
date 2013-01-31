@@ -248,7 +248,7 @@ class PageRunner(object):
       assert state.browser
       state.is_tracing = False
       state.browser.StopTracing()
-      trace = state.browser.GetTrace()
+      trace_result = state.browser.GetTraceResultAndReset()
       logging.info('Processing trace...')
 
       trace_file_base = os.path.join(
@@ -266,7 +266,7 @@ class PageRunner(object):
         trace_file = '%s.json' % trace_file_base
       with codecs.open(trace_file, 'w',
                        encoding='utf-8') as trace_file:
-        trace_file.write(trace)
+        trace_result.WriteToFile(trace_file)
       logging.info('Trace saved.')
 
   def _PreparePage(self, page, tab, page_state, test, results):

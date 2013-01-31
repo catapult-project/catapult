@@ -17,12 +17,6 @@ def RequiresBrowserOfType(*types):
   return wrap
 
 def Discover(start_dir, pattern = 'test*.py', top_level_dir = None):
-  if hasattr(unittest.defaultTestLoader, 'discover'):
-    return unittest.defaultTestLoader.discover( # pylint: disable=E1101
-      start_dir,
-      pattern,
-      top_level_dir)
-
   modules = []
   for dirpath, _, filenames in os.walk(start_dir):
     for filename in filenames:

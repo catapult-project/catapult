@@ -2,10 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import cStringIO
 import json
 import os
+import unittest
 
 from telemetry import tab_test_case
+from telemetry import tracing_backend
 from telemetry import util
 
 
@@ -27,7 +30,43 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     self._browser.http_server.UrlOf('image.png')
     self.assertTrue(self._browser.supports_tracing)
     self._browser.StopTracing()
-    trace = self._browser.GetTrace()
-    json_trace = json.loads(trace)
-    self.assertTrue('traceEvents' in json_trace)
-    self.assertTrue(json_trace['traceEvents'])
+    model = self._browser.GetTraceResultAndReset().AsTimelineModel()
+    events = model.GetAllEvents()
+    assert len(events) > 0
+
+class TracingResultImplTest(unittest.TestCase):
+  def testWrite1(self):
+    ri = tracing_backend.TraceResultImpl([])
+    f = cStringIO.StringIO()
+    ri.Serialize(f)
+    v = f.getvalue()
+
+    j = json.loads(v)
+    assert 'traceEvents' in j
+    self.assertEquals(j['traceEvents'], [])
+
+  def testWrite2(self):
+    ri = tracing_backend.TraceResultImpl([
+        '"foo"',
+        '"bar"'])
+    f = cStringIO.StringIO()
+    ri.Serialize(f)
+    v = f.getvalue()
+
+    j = json.loads(v)
+    assert 'traceEvents' in j
+    self.assertEquals(j['traceEvents'], ['foo', 'bar'])
+
+  def testWrite3(self):
+    ri = tracing_backend.TraceResultImpl([
+        '"foo"',
+        '"bar"',
+        '"baz"'])
+    f = cStringIO.StringIO()
+    ri.Serialize(f)
+    v = f.getvalue()
+
+    j = json.loads(v)
+    assert 'traceEvents' in j
+    self.assertEquals(j['traceEvents'],
+                      ['foo', 'bar', 'baz'])
