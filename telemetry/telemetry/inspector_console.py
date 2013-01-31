@@ -5,9 +5,9 @@ import json
 import logging
 
 class InspectorConsole(object):
-  def __init__(self, tab_backend):
-    self._tab_backend = tab_backend
-    self._tab_backend.RegisterDomain(
+  def __init__(self, inspector_backend):
+    self._inspector_backend = inspector_backend
+    self._inspector_backend.RegisterDomain(
         'Console',
         self._OnNotification,
         self._OnClose)
@@ -53,7 +53,7 @@ class InspectorConsole(object):
       method_name = 'enable'
     else:
       method_name = 'disable'
-    self._tab_backend.SyncRequest({
+    self._inspector_backend.SyncRequest({
         'method': 'Console.%s' % method_name
         })
     self._console_enabled = enabled

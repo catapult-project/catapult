@@ -7,9 +7,9 @@ import logging
 from telemetry import util
 
 class InspectorPage(object):
-  def __init__(self, tab_backend):
-    self._tab_backend = tab_backend
-    self._tab_backend.RegisterDomain(
+  def __init__(self, inspector_backend):
+    self._inspector_backend = inspector_backend
+    self._inspector_backend.RegisterDomain(
         'Page',
         self._OnNotification,
         self._OnClose)
@@ -38,14 +38,14 @@ class InspectorPage(object):
     request = {
         'method': 'Page.enable'
         }
-    res = self._tab_backend.SyncRequest(request, timeout)
+    res = self._inspector_backend.SyncRequest(request, timeout)
     assert len(res['result'].keys()) == 0
 
     def DisablePageNotifications():
       request = {
           'method': 'Page.disable'
           }
-      res = self._tab_backend.SyncRequest(request, timeout)
+      res = self._inspector_backend.SyncRequest(request, timeout)
       assert len(res['result'].keys()) == 0
 
     self._navigation_pending = True
@@ -56,7 +56,7 @@ class InspectorPage(object):
       raise
 
     def IsNavigationDone(time_left):
-      self._tab_backend.DispatchNotifications(time_left)
+      self._inspector_backend.DispatchNotifications(time_left)
       return not self._navigation_pending
     util.WaitFor(IsNavigationDone, timeout, pass_time_left_to_func=True)
 
@@ -78,7 +78,7 @@ class InspectorPage(object):
               'url': url,
               }
           }
-      self._tab_backend.SendAndIgnoreResponse(request)
+      self._inspector_backend.SendAndIgnoreResponse(request)
 
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
 
@@ -87,7 +87,7 @@ class InspectorPage(object):
     request = {
         'method': 'Page.getCookies'
         }
-    res = self._tab_backend.SyncRequest(request, timeout)
+    res = self._inspector_backend.SyncRequest(request, timeout)
     cookies = res['result']['cookies']
     for cookie in cookies:
       if cookie['name'] == name:

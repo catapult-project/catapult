@@ -20,8 +20,8 @@ class InspectorTimeline(object):
     def __exit__(self, *args):
       self._tab.StopTimelineRecording()
 
-  def __init__(self, tab_backend):
-    self._tab_backend = tab_backend
+  def __init__(self, inspector_backend):
+    self._inspector_backend = inspector_backend
     self._is_recording = False
     self._timeline_model = None
 
@@ -34,7 +34,7 @@ class InspectorTimeline(object):
       return
     self._is_recording = True
     self._timeline_model = TimelineModel()
-    self._tab_backend.RegisterDomain('Timeline',
+    self._inspector_backend.RegisterDomain('Timeline',
        self._OnNotification, self._OnClose)
     req = {'method': 'Timeline.start'}
     self._SendSyncRequest(req)
@@ -46,10 +46,10 @@ class InspectorTimeline(object):
     self._timeline_model.DidFinishRecording()
     req = {'method': 'Timeline.stop'}
     self._SendSyncRequest(req)
-    self._tab_backend.UnregisterDomain('Timeline')
+    self._inspector_backend.UnregisterDomain('Timeline')
 
   def _SendSyncRequest(self, req, timeout=60):
-    res = self._tab_backend.SyncRequest(req, timeout)
+    res = self._inspector_backend.SyncRequest(req, timeout)
     if 'error' in res:
       raise TabBackendException(res['error']['message'])
     return res['result']

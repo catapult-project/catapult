@@ -18,7 +18,7 @@ from telemetry import websocket
 class InspectorException(Exception):
   pass
 
-class TabBackend(object):
+class InspectorBackend(object):
   def __init__(self, browser, browser_backend, debugger_url):
     assert debugger_url
     self._browser = browser
@@ -278,14 +278,14 @@ class TabBackend(object):
       domain_name, notification_handler, will_close_handler):
     """Registers a given domain for handling notification methods.
 
-    For example, given tab_backend:
+    For example, given inspector_backend:
        def OnConsoleNotification(msg):
           if msg['method'] == 'Console.messageAdded':
              print msg['params']['message']
           return
        def OnConsoleClose(self):
           pass
-       tab_backend.RegisterDomain('Console',
+       inspector_backend.RegisterDomain('Console',
                                         OnConsoleNotification, OnConsoleClose)
        """
     assert domain_name not in self._domain_handlers
