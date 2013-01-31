@@ -98,12 +98,24 @@ class BrowserBackend(object):
     resp = json.loads(data)
     if 'Protocol-Version' in resp:
       self._inspector_protocol_version = resp['Protocol-Version']
-      mU = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+ Safari', resp['User-Agent'])
-      mW = re.search('\((trunk)?\@(\d+)\)', resp['WebKit-Version'])
-      if mU:
-        self._chrome_branch_number = int(mU.group(1))
-      if mW:
-        self._webkit_base_revision = int(mW.group(2))
+      if 'Browser' in resp:
+        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
+                                        resp['Browser'])
+      else:
+        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+ Safari',
+                                        resp['User-Agent'])
+      webkit_version_match = re.search('\((trunk)?\@(\d+)\)',
+                                       resp['WebKit-Version'])
+
+      if branch_number_match:
+        self._chrome_branch_number = int(branch_number_match.group(1))
+      else:
+        # Content Shell returns '' for Browser, for now we have to
+        # fall-back and assume branch 1025.
+        self._chrome_branch_number = 1025
+
+      if webkit_version_match:
+        self._webkit_base_revision = int(webkit_version_match.group(2))
       return
 
     # Detection has failed: assume 18.0.1025.168 ~= Chrome Android.
