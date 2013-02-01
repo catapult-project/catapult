@@ -12,7 +12,6 @@ from telemetry.page_set import PageSet
 def _MakePageSet():
   return PageSet.FromDict({
       "description": "hello",
-      "archive_path": "foo.wpr",
       "pages": [
         {"url": "http://www.foo.com/"},
         {"url": "http://www.bar.com/"}

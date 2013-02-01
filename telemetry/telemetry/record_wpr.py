@@ -3,7 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
+import os
 import sys
+import tempfile
 import time
 
 from telemetry import all_page_actions # pylint: disable=W0611
@@ -77,6 +79,11 @@ def Main(benchmark_dir):
 
   ps = page_set.PageSet.FromFile(args[0])
 
+  # Set the archive path to something temporary.
+  temp_target_wpr_file_path = tempfile.mkstemp()[1]
+  ps.wpr_archive_info.AddNewTemporaryRecording(temp_target_wpr_file_path)
+
+  # Do the actual recording.
   options.wpr_mode = wpr_modes.WPR_RECORD
   recorder.CustomizeBrowserOptions(options)
   possible_browser = browser_finder.FindBrowser(options)
@@ -88,11 +95,23 @@ Use --browser=list to figure out which are available.\n"""
   with page_runner.PageRunner(ps) as runner:
     runner.Run(options, possible_browser, recorder, results)
 
-  if len(results.page_failures):
+  if results.page_failures:
+    logging.warning('Some pages failed. The recording has not been updated for '
+                    'these pages.')
     logging.warning('Failed pages: %s', '\n'.join(
         [failure['page'].url for failure in results.page_failures]))
 
-  if len(results.skipped_pages):
+  if results.skipped_pages:
+    logging.warning('Some pages were skipped. The recording has not been '
+                    'updated for these pages.')
     logging.warning('Skipped pages: %s', '\n'.join(
         [skipped['page'].url for skipped in results.skipped_pages]))
+
+  if results.page_successes:
+    # Update the metadata for the pages which were recorded.
+    ps.wpr_archive_info.AddRecordedPages(
+        [page['page'] for page in results.page_successes])
+  else:
+    os.remove(temp_target_wpr_file_path)
+
   return min(255, len(results.page_failures))

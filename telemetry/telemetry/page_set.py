@@ -7,12 +7,13 @@ import os
 import urlparse
 
 from telemetry import page as page_module
+from telemetry import page_set_archive_info
 
 class PageSet(object):
-  def __init__(self, base_dir='', attributes=None):
+  def __init__(self, file_path='', attributes=None):
     self.description = ''
-    self.archive_path = ''
-    self.base_dir = base_dir
+    self.archive_data_file = ''
+    self.file_path = file_path
     self.credentials_path = None
     self.user_agent_type = None
 
@@ -22,20 +23,27 @@ class PageSet(object):
 
     self.pages = []
 
+    if self.archive_data_file:
+      base_dir = os.path.dirname(file_path)
+      self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
+          os.path.join(base_dir, self.archive_data_file), file_path)
+    else:
+      self.wpr_archive_info = None
+
   @classmethod
   def FromFile(cls, file_path):
     with open(file_path, 'r') as f:
       contents = f.read()
       data = json.loads(contents)
-      return cls.FromDict(data, os.path.dirname(file_path))
+      return cls.FromDict(data, file_path)
 
   @classmethod
   def FromDict(cls, data, file_path=''):
     page_set = cls(file_path, data)
     for page_attributes in data['pages']:
       url = page_attributes.pop('url')
-      page = page_module.Page(url, attributes=page_attributes,
-                              base_dir=file_path)
+      page = page_module.Page(url, page_set, attributes=page_attributes,
+                              base_dir=os.path.dirname(file_path))
       page_set.pages.append(page)
     return page_set
 
@@ -69,6 +77,11 @@ class PageSet(object):
           raise Exception('Unusable results_file.')
 
     return pages
+
+  def WprFilePathForPage(self, page):
+    if not self.wpr_archive_info:
+      return None
+    return self.wpr_archive_info.WprFilePathForPage(page)
 
   def __iter__(self):
     return self.pages.__iter__()

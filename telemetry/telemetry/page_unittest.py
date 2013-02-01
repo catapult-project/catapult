@@ -8,6 +8,7 @@ from telemetry import page
 class TestPage(unittest.TestCase):
   def testGetUrlBaseDirAndFileForAbsolutePath(self):
     apage = page.Page('file:///somedir/otherdir/file.html',
+                      None, # In this test, we don't need a page set.
                       base_dir='basedir')
     dirname, filename = apage.url_base_dir_and_file
     self.assertEqual(dirname, 'basedir/somedir/otherdir')
@@ -15,6 +16,7 @@ class TestPage(unittest.TestCase):
 
   def testGetUrlBaseDirAndFileForRelativePath(self):
     apage = page.Page('file:///../../otherdir/file.html',
+                      None, # In this test, we don't need a page set.
                       base_dir='basedir')
     dirname, filename = apage.url_base_dir_and_file
     self.assertEqual(dirname, 'basedir/../../otherdir')
@@ -22,6 +24,7 @@ class TestPage(unittest.TestCase):
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     apage = page.Page('file:///../../somedir/otherdir/file.html',
+                      None, # In this test, we don't need a page set.
                       base_dir='basedir')
     setattr(apage, 'url_base_dir', 'file:///../../somedir/')
     dirname, filename = apage.url_base_dir_and_file
@@ -29,9 +32,10 @@ class TestPage(unittest.TestCase):
     self.assertEqual(filename, 'otherdir/file.html')
 
   def testDisplayUrlForHttp(self):
-    self.assertEquals(page.Page('http://www.foo.com/').display_url,
+    self.assertEquals(page.Page('http://www.foo.com/', None).display_url,
                       'www.foo.com/')
 
   def testDisplayUrlForFile(self):
-    self.assertEquals(page.Page('file:///../../otherdir/file.html').display_url,
-                      'file.html')
+    self.assertEquals(
+        page.Page('file:///../../otherdir/file.html', None).display_url,
+        'file.html')
