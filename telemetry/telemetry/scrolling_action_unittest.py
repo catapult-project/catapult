@@ -15,7 +15,6 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
     page = Page(
       self._browser.http_server.UrlOf(filename),
-      None, # In this test, we don't need a page set.
       attributes=page_attributes)
 
     self._tab.Navigate(page.url)
@@ -89,3 +88,4 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
 
     self.assertTrue(rect_bottom <= viewport_height)
     self.assertTrue(rect_right <= viewport_width)
+
