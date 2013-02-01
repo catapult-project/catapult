@@ -68,35 +68,31 @@ class PageRunner(object):
     self.Close()
 
   def Run(self, options, possible_browser, test, results):
-    # Set up WPR mode.
-    if not self.page_set.archive_path:
-      archive_path = ''
-      if not self.page_set.ContainsOnlyFileURLs():
+    # Check if we can run against WPR.
+    for page in self.page_set.pages:
+      parsed_url = urlparse.urlparse(page.url)
+      if parsed_url.scheme == 'file':
+        continue
+      if not page.archive_path:
         logging.warning("""
-  No page set archive provided for the chosen page set. Benchmarking against
-  live sites! Results won't be repeatable or comparable.
-""")
-    else:
-      archive_path = os.path.abspath(os.path.join(self.page_set.base_dir,
-                                                  self.page_set.archive_path))
-      if options.wpr_mode == wpr_modes.WPR_OFF:
-        if os.path.isfile(archive_path):
-          possible_browser.options.wpr_mode = wpr_modes.WPR_REPLAY
-        else:
-          possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
-          if not self.page_set.ContainsOnlyFileURLs():
-            logging.warning("""
-  The page set archive %s does not exist, benchmarking against live sites!
+  No page set archive provided for the page %s. Benchmarking against live sites!
   Results won't be repeatable or comparable.
+""", page.url)
+      elif options.wpr_mode != wpr_modes.WPR_RECORD:
+        # The page has an archive, and we're not recording.
+        if not os.path.isfile(page.archive_path):
+          logging.warning("""
+  The page set archive %s for page %s does not exist, benchmarking against live
+  sites! Results won't be repeatable or comparable.
 
   To fix this, either add svn-internal to your .gclient using
   http://goto/read-src-internal, or create a new archive using record_wpr.
-  """, os.path.relpath(archive_path))
+  """, os.path.relpath(page.archive_path), page.url)
 
     # Verify credentials path.
     credentials_path = None
     if self.page_set.credentials_path:
-      credentials_path = os.path.join(self.page_set.base_dir,
+      credentials_path = os.path.join(os.path.dirname(self.page_set.file_path),
                                       self.page_set.credentials_path)
       if not os.path.exists(credentials_path):
         credentials_path = None
@@ -122,14 +118,24 @@ class PageRunner(object):
     pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
     state = _RunState()
+    last_archive_path = None
     try:
       for page in pages:
+        if options.wpr_mode != wpr_modes.WPR_RECORD:
+          if page.archive_path and os.path.isfile(page.archive_path):
+            possible_browser.options.wpr_mode = wpr_modes.WPR_REPLAY
+          else:
+            possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
+        if last_archive_path != page.archive_path:
+          state.Close()
+          state = _RunState()
+          last_archive_path = page.archive_path
         tries = 3
         while tries:
           try:
             if not state.browser:
               self._SetupBrowser(state, test, possible_browser,
-                                 credentials_path, archive_path)
+                                 credentials_path, page.archive_path)
             if not state.tab:
               if len(state.browser.tabs) == 0:
                 state.browser.tabs.New()

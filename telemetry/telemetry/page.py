@@ -9,7 +9,7 @@ import urlparse
 from telemetry import util
 
 class Page(object):
-  def __init__(self, url, attributes=None, base_dir=None):
+  def __init__(self, url, page_set, attributes=None, base_dir=None):
     parsed_url = urlparse.urlparse(url)
     if not parsed_url.scheme:
       abspath = os.path.abspath(os.path.join(base_dir, parsed_url.path))
@@ -18,6 +18,7 @@ class Page(object):
       else:
         raise Exception('URLs must be fully qualified: %s' % url)
     self.url = url
+    self.page_set = page_set
     self.base_dir = base_dir
     self.credentials = None
     self.disabled = False
@@ -58,6 +59,10 @@ class Page(object):
     if self.url.startswith('file://'):
       return os.path.split(self.url)[1]
     return re.sub('https?://', '', self.url)
+
+  @property
+  def archive_path(self):
+    return self.page_set.WprFilePathForPage(self)
 
   def __str__(self):
     return self.url

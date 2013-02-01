@@ -43,9 +43,9 @@ class PageRunnerTests(unittest.TestCase):
   # multi_page_benchmark_unittest to here.
 
   def testHandlingOfCrashedTab(self):
-    page1 = page_module.Page('chrome://crash')
-    page2 = page_module.Page('http://www.google.com')
     ps = page_set.PageSet()
+    page1 = page_module.Page('chrome://crash', ps)
+    page2 = page_module.Page('http://www.google.com', ps)
     ps.pages.append(page1)
     ps.pages.append(page2)
     results = page_test.PageTestResults()
@@ -80,9 +80,9 @@ class PageRunnerTests(unittest.TestCase):
   def runCredentialsTest(self, # pylint: disable=R0201
                          credentials_backend,
                          results):
-    page = page_module.Page('http://www.google.com')
-    page.credentials = "test"
     ps = page_set.PageSet()
+    page = page_module.Page('http://www.google.com', ps)
+    page.credentials = "test"
     ps.pages.append(page)
 
     did_run = [False]
@@ -112,10 +112,11 @@ class PageRunnerTests(unittest.TestCase):
     return did_run[0]
 
   def testUserAgent(self):
+    ps = page_set.PageSet()
     page = page_module.Page(
         'file:///' + os.path.join('..', 'unittest_data', 'blank.html'),
+        ps,
         base_dir=os.path.dirname(__file__))
-    ps = page_set.PageSet()
     ps.pages.append(page)
     ps.user_agent_type = 'tablet'
 

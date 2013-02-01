@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import json
 import os
 
 from telemetry import multi_page_benchmark
@@ -9,6 +10,7 @@ from telemetry import options_for_unittests
 from telemetry import page as page_module
 from telemetry import page_action
 from telemetry import page_set
+from telemetry import page_set_archive_info
 from telemetry import wpr_modes
 
 class BenchThatFails(multi_page_benchmark.MultiPageBenchmark):
@@ -83,26 +85,42 @@ class MultiPageBenchmarkUnitTest(
 
   def testRecordAndReplay(self):
     test_archive = '/tmp/google.wpr'
+    google_url = 'http://www.google.com/'
+    foo_url = 'http://www.foo.com/'
+    archive_info_template = ("""
+{
+"archives": {
+  "%s": ["%s"]
+}
+}
+""")
     try:
       ps = page_set.PageSet()
-      ps.archive_path = test_archive
       benchmark = BenchForReplay()
 
       # First record an archive with only www.google.com.
       self._options.wpr_mode = wpr_modes.WPR_RECORD
 
-      ps.pages = [page_module.Page('http://www.google.com/')]
+      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+          '', '', json.loads(archive_info_template %
+                             (test_archive, google_url)))
+      ps.pages = [page_module.Page(google_url, ps)]
       all_results = self.RunBenchmark(benchmark, ps, options=self._options)
       self.assertEquals(0, len(all_results.page_failures))
 
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.wpr_mode = wpr_modes.WPR_REPLAY
 
-      ps.pages = [page_module.Page('http://www.foo.com/')]
+      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+          '', '', json.loads(archive_info_template % (test_archive, foo_url)))
+      ps.pages = [page_module.Page(foo_url, ps)]
       all_results = self.RunBenchmark(benchmark, ps, options=self._options)
       self.assertEquals(1, len(all_results.page_failures))
 
-      ps.pages = [page_module.Page('http://www.google.com/')]
+      ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
+          '', '', json.loads(archive_info_template %
+                             (test_archive, google_url)))
+      ps.pages = [page_module.Page(google_url, ps)]
       all_results = self.RunBenchmark(benchmark, ps, options=self._options)
       self.assertEquals(0, len(all_results.page_failures))
 
