@@ -89,7 +89,7 @@ class DAVClientWrapper():
                       os.path.join(dst_path, subdir))
 
 
-def ListAllDepsPaths(deps_content):
+def ListAllDepsPaths(chrome_root, deps_content):
   """Recursively returns a list of all paths indicated in this deps file.
 
   Note that this discards information about where path dependencies come from,
@@ -97,6 +97,7 @@ def ListAllDepsPaths(deps_content):
   used gclient to already fetch all dependencies.
 
   Args:
+    chrome_root: Path to the root directory of this chromium checkout.
     deps_content: String containing deps information to be evaluated, in the
                   format given in the header of this file.
   Returns: A list of string paths starting under src that are required by the
@@ -109,8 +110,10 @@ def ListAllDepsPaths(deps_content):
   deps_paths = deps.deps.keys()
 
   if hasattr(deps, 'deps_includes'):
-    for url in deps.deps_includes:
-      deps_paths = deps_paths + ListAllDepsPaths(urllib.urlopen(url).read())
+    for path in deps.deps_includes.keys():
+      # Need to localize the paths.
+      path = os.path.join(chrome_root, path)
+      deps_paths = deps_paths + ListAllDepsPaths(chrome_root, open(path).read())
 
   return deps_paths
 
@@ -152,6 +155,6 @@ def DownloadDeps(destination_dir, deps_content):
     dav_client.Traverse(parsed_url.path, full_dst_path)
 
   if hasattr(deps, 'deps_includes'):
-    for url in deps.deps_includes:
+    for url in deps.deps_includes.values():
       DownloadDepsURL(destination_dir, url)
 
