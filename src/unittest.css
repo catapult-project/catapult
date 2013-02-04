@@ -26,14 +26,14 @@ test-case > title {
 test-case-error,
 test-case-output {
   display: block;
-  margin-left: 16px;
   margin-bottom: 16px;
+  margin-left: 16px;
 }
 test-case-stack {
-  overflow-x: auto;
   display: block;
-  white-space: pre;
   font-family: monospace;
+  overflow-x: auto;
+  white-space: pre;
 }
 .unittest-green {
   color: darkgreen;
@@ -45,5 +45,6 @@ test-case-stack {
 
 .unittest-red {
   color: darkRed;
+  font-weight: bold;
 }
 

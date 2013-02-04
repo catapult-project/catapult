@@ -463,6 +463,55 @@ this.base = (function() {
     setModuleBasePath('/src');
   }
 
+  function concatenateArrays(/*arguments*/) {
+    var values = [];
+    for (var i = 0; i < arguments.length; i++) {
+      if(!(arguments[i] instanceof Array))
+        throw new Error('Arguments ' + i + 'is not an array');
+      values.push.apply(values, arguments[i]);
+    }
+    return values;
+  }
+
+  function dictionaryKeys(dict) {
+    var keys = [];
+    for (var key in dict)
+      keys.push(key);
+    return keys;
+  }
+
+  function dictionaryValues(dict) {
+    var values = [];
+    for (var key in dict)
+      values.push(dict[key]);
+    return values;
+  }
+
+  /**
+   * Maps types to a given value.
+   * @constructor
+   */
+  function TypeMap() {
+    this.types = [];
+    this.values = [];
+  }
+  TypeMap.prototype = {
+    __proto__: Object.prototype,
+
+    add: function(type, value) {
+      this.types.push(type);
+      this.values.push(value);
+    },
+
+    get: function(instance) {
+      for (var i = 0; i < this.types.length; i++) {
+        if (instance instanceof this.types[i])
+          return this.values[i];
+      }
+      return undefined;
+    }
+  };
+
   return {
     set moduleBasePath(path) {
       setModuleBasePath(path);
@@ -484,7 +533,11 @@ this.base = (function() {
     Event: Event,
     getUid: getUid,
     initialize: initialize,
-    PropertyKind: PropertyKind
+    PropertyKind: PropertyKind,
+    concatenateArrays: concatenateArrays,
+    dictionaryKeys: dictionaryKeys,
+    dictionaryValues: dictionaryValues,
+    TypeMap: TypeMap,
   };
 })();
 
