@@ -7,14 +7,17 @@ import os
 import traceback
 import unittest
 
+from telemetry import gtest_testrunner
 from telemetry import browser_options
 from telemetry import options_for_unittests
+
 
 def RequiresBrowserOfType(*types):
   def wrap(func):
     func._requires_browser_types = types
     return func
   return wrap
+
 
 def Discover(start_dir, pattern = 'test*.py', top_level_dir = None):
   modules = []
@@ -43,6 +46,7 @@ def Discover(start_dir, pattern = 'test*.py', top_level_dir = None):
       modules.append(module)
 
   loader = unittest.defaultTestLoader
+  loader.suiteClass = gtest_testrunner.GTestTestSuite
   subsuites = []
   for module in modules:
     if hasattr(module, 'suite'):
@@ -51,10 +55,11 @@ def Discover(start_dir, pattern = 'test*.py', top_level_dir = None):
       new_suite = loader.loadTestsFromModule(module)
     if new_suite.countTestCases():
       subsuites.append(new_suite)
-  return unittest.TestSuite(subsuites)
+  return gtest_testrunner.GTestTestSuite(subsuites)
+
 
 def FilterSuite(suite, predicate):
-  new_suite = unittest.TestSuite()
+  new_suite = suite.__class__()
   for x in suite:
     if isinstance(x, unittest.TestSuite):
       subsuite = FilterSuite(x, predicate)
@@ -70,7 +75,11 @@ def FilterSuite(suite, predicate):
 
   return new_suite
 
-def DiscoverAndRunTests(dir_name, args, top_level_dir):
+
+def DiscoverAndRunTests(dir_name, args, top_level_dir, runner=None):
+  if not runner:
+    runner = gtest_testrunner.GTestTestRunner(inner=True)
+
   suite = Discover(dir_name, '*_unittest.py', top_level_dir)
 
   def IsTestSelected(test):
@@ -94,11 +103,11 @@ def DiscoverAndRunTests(dir_name, args, top_level_dir):
     return True
 
   filtered_suite = FilterSuite(suite, IsTestSelected)
-  runner = unittest.TextTestRunner(verbosity = 2)
   test_result = runner.run(filtered_suite)
-  return len(test_result.errors) + len(test_result.failures)
+  return test_result
 
-def Main(args, start_dir, top_level_dir):
+
+def Main(args, start_dir, top_level_dir, runner=None):
   """Unit test suite that collects all test cases for telemetry."""
   default_options = browser_options.BrowserOptions()
   default_options.browser_type = 'any'
@@ -124,14 +133,17 @@ def Main(args, start_dir, top_level_dir):
   options_for_unittests.Set(default_options,
                             browser_to_create.browser_type)
   olddir = os.getcwd()
-  num_errors = 0
   try:
     os.chdir(top_level_dir)
+    success = True
     for _ in range(
         default_options.run_test_repeat_count): # pylint: disable=E1101
-      num_errors += DiscoverAndRunTests(start_dir, args, top_level_dir)
+      success = success and DiscoverAndRunTests(start_dir, args, top_level_dir,
+                                                runner)
+    if success:
+      return 0
   finally:
     os.chdir(olddir)
     options_for_unittests.Set(None, None)
 
-  return min(num_errors, 255)
+  return 1

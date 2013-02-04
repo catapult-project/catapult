@@ -5,12 +5,18 @@
 import os
 import sys
 
+import telemetry.gtest_testrunner
 import telemetry.run_tests
 
 if __name__ == '__main__':
   top_level_dir = os.path.abspath(
     os.path.dirname(__file__))
+  runner = telemetry.gtest_testrunner.GTestTestRunner(
+      print_result_after_run=False)
   start_dir = 'telemetry'
   ret = telemetry.run_tests.Main(
-    sys.argv[1:], start_dir, top_level_dir)
-  sys.exit(ret)
+    sys.argv[1:], start_dir, top_level_dir, runner)
+
+  runner.result.PrintSummary()
+
+  sys.exit(max(ret + runner.result.num_errors, 255))
