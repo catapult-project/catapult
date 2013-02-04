@@ -129,5 +129,5 @@ class TracingBackend(object):
       if res.get('response'):
         raise TracingUnsupportedException(
             'Tracing not supported for this browser')
-      elif res.get('error', {}).get('code') == -1:
+      elif 'error' in res:
         return
