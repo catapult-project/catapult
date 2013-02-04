@@ -625,6 +625,19 @@ function testImportStringWithEndingCommaButMissingCloseSquareBracketCRLF() {
   assertEquals(1, m.processes[52].threads[53].slices.length);
 }
 
+function testImportOldFormat() {
+  var lines = [
+    '[',
+    '{"cat":"a","pid":9,"tid":8,"ts":194,"ph":"E","name":"I","args":{}},',
+    '{"cat":"b","pid":9,"tid":8,"ts":194,"ph":"B","name":"I","args":{}}',
+    ']'
+    ];
+  var text = lines.join('\n');
+  var m = new tracing.TimelineModel(text);
+  assertEquals(1, m.numProcesses);
+  assertEquals(1, m.processes[9].threads[8].slices.length);
+}
+
 function testStartFinishOneSliceOneThread() {
   var events = [
     // Time is intentionally out of order.
