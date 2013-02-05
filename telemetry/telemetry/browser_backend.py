@@ -102,8 +102,9 @@ class BrowserBackend(object):
         branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
                                         resp['Browser'])
       else:
-        branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+ Safari',
-                                        resp['User-Agent'])
+        branch_number_match = re.search(
+            'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
+            resp['User-Agent'])
       webkit_version_match = re.search('\((trunk)?\@(\d+)\)',
                                        resp['WebKit-Version'])
 
@@ -140,7 +141,7 @@ class BrowserBackend(object):
 
   @property
   def supports_tracing(self):
-    return True
+    return self.is_content_shell or self._chrome_branch_number >= 1385
 
   def StartTracing(self):
     if self._tracing_backend is None:
