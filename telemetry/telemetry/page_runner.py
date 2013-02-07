@@ -272,7 +272,7 @@ class PageRunner(object):
         trace_file = '%s.json' % trace_file_base
       with codecs.open(trace_file, 'w',
                        encoding='utf-8') as trace_file:
-        trace_result.WriteToFile(trace_file)
+        trace_result.Serialize(trace_file)
       logging.info('Trace saved.')
 
   def _PreparePage(self, page, tab, page_state, test, results):
