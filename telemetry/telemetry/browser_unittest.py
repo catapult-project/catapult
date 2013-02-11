@@ -60,3 +60,10 @@ class BrowserTest(unittest.TestCase):
       new_tab.Close()
       self.assertEquals(1, len(b.tabs))
       self.assertEquals(existing_tab.url, existing_tab_url)
+
+  def testMultipleTabCalls(self):
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
+    with browser_to_create.Create() as b:
+      b.tabs[0].Navigate('http://www.google.com/')
+      b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()

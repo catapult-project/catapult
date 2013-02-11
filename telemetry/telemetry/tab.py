@@ -19,6 +19,9 @@ class Tab(web_contents.WebContents):
   def __init__(self, inspector_backend):
     super(Tab, self).__init__(inspector_backend)
 
+  def __del__(self):
+    self.Disconnect()
+
   def Disconnect(self):
     self._inspector_backend.Disconnect()
 
