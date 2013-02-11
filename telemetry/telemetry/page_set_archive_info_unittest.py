@@ -34,15 +34,13 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.tmp_dir = tempfile.mkdtemp()
     # Write the metadata.
     self.page_set_archive_info_file = os.path.join(self.tmp_dir, 'info.json')
-    f = open(self.page_set_archive_info_file, 'w')
-    f.write(archive_info_contents)
-    f.close()
+    with open(self.page_set_archive_info_file, 'w') as f:
+      f.write(archive_info_contents)
 
     # Write the existing .wpr files.
     for i in [1, 2]:
-      f = open(os.path.join(self.tmp_dir, ('data_00%d.wpr' % i)), 'w')
-      f.write(archive_info_contents)
-      f.close()
+      with open(os.path.join(self.tmp_dir, ('data_00%d.wpr' % i)), 'w') as f:
+        f.write(archive_info_contents)
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
@@ -62,9 +60,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
   def testModifications(self):
     new_recording1 = 'data_003.wpr'
     new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
-    f = open(new_temp_recording, 'w')
-    f.write('wpr data')
-    f.close()
+    with open(new_temp_recording, 'w') as f:
+      f.write('wpr data')
 
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
 
@@ -85,9 +82,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, recording2)))
 
     new_recording2 = 'data_004.wpr'
-    f = open(new_temp_recording, 'w')
-    f.write('wpr data')
-    f.close()
+    with open(new_temp_recording, 'w') as f:
+      f.write('wpr data')
 
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
     self.archive_info.AddRecordedPages([page3])
@@ -99,3 +95,52 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, recording1)))
     # recording2 is no longer needed, so it was deleted.
     self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, recording2)))
+
+  def testCreatingNewArchiveInfo(self):
+    # Write only the page set without the corresponding metadata file.
+    page_set_contents = ("""
+    {
+        archive_data_file": "new-metadata.json",
+        "pages": [
+            {
+                "url": "%s",
+            }
+        ]
+    }""" % url1)
+
+    page_set_file = os.path.join(self.tmp_dir, 'new.json')
+    with open(page_set_file, 'w') as f:
+      f.write(page_set_contents)
+
+    self.page_set_archive_info_file = os.path.join(self.tmp_dir,
+                                                   'new-metadata.json')
+
+    # Create the PageSetArchiveInfo object to be tested.
+    self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
+        self.page_set_archive_info_file, page_set_file)
+
+    # Add a recording for all the pages.
+    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
+    with open(new_temp_recording, 'w') as f:
+      f.write('wpr data')
+
+    self.archive_info.AddNewTemporaryRecording(new_temp_recording)
+
+    self.assertEquals(new_temp_recording,
+                      self.archive_info.WprFilePathForPage(page1))
+
+    self.archive_info.AddRecordedPages([page1])
+
+    # Expected name for the recording (decided by PageSetArchiveInfo).
+    new_recording = os.path.join(self.tmp_dir, 'new_000.wpr')
+
+    self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, new_recording)))
+    self.assertFalse(os.path.exists(
+        os.path.join(self.tmp_dir, new_temp_recording)))
+
+    # Check that the archive info was written correctly.
+    self.assertTrue(os.path.exists(self.page_set_archive_info_file))
+    read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
+        self.page_set_archive_info_file, '/tmp/pageset.json')
+    self.assertEquals(new_recording,
+                      read_archive_info.WprFilePathForPage(page1))

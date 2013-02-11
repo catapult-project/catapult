@@ -30,9 +30,11 @@ class PageSetArchiveInfo(object):
 
   @classmethod
   def FromFile(cls, file_path, page_set_file_path):
-    with open(file_path, 'r') as f:
-      data = json.load(f)
-      return cls(file_path, page_set_file_path, data)
+    if os.path.exists(file_path):
+      with open(file_path, 'r') as f:
+        data = json.load(f)
+        return cls(file_path, page_set_file_path, data)
+    return cls(file_path, page_set_file_path, {'archives': {}})
 
   def WprFilePathForPage(self, page):
     if self.temp_target_wpr_file_path:
@@ -109,6 +111,10 @@ class PageSetArchiveInfo(object):
         raise Exception('Illegal wpr file name ' + wpr_file +
                         ', doesn\'t begin with ' + base)
       base = match.groupdict()['BASE']
+    if not base:
+      # If we're creating a completely new info file, use the base name of the
+      # page set file.
+      base = os.path.splitext(os.path.basename(self._page_set_file_path))[0]
     new_filename = '%s_%03d.wpr' % (base, highest_number + 1)
     return new_filename, self._WprFileNameToPath(new_filename)
 
