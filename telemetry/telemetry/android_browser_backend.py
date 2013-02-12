@@ -67,8 +67,10 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
       f.flush()
       self._adb.Push(f.name, cmdline_file)
 
-    # Force devtools protocol on, if not already done.
-    if not is_content_shell and self._adb.IsRootEnabled():
+    # Force devtools protocol on, if not already done and we can access
+    # protected files.
+    if (not is_content_shell and
+       self._adb.Adb().CanAccessProtectedFileContents()):
       # Make sure we can find the apps' prefs file
       app_data_dir = '/data/data/%s' % self._package
       prefs_file = (app_data_dir +
@@ -83,7 +85,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
         retries = 0
         timeout = 3
         time.sleep(timeout)
-        while not self._adb.Adb().GetFileContents(prefs_file):
+        while not self._adb.Adb().GetProtectedFileContents(prefs_file):
           time.sleep(timeout)
           retries += 1
           timeout *= 2
@@ -93,30 +95,22 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
                              prefs_file, self._package)
             raise browser_gone_exception.BrowserGoneException(
                 'Missing preferences file.')
-        self._adb.KillAll(self._package)
+        self._adb.CloseApplication(self._package)
 
-      with tempfile.NamedTemporaryFile() as raw_f:
-        self._adb.Pull(prefs_file, raw_f.name)
-        with open(raw_f.name, 'r') as f:
-          txt_in = f.read()
-          preferences = json.loads(txt_in)
-        changed = False
-        if 'devtools' not in preferences:
-          preferences['devtools'] = {}
-          changed = True
-        if 'remote_enabled' not in preferences['devtools']:
-          preferences['devtools']['remote_enabled'] = True
-          changed = True
-        if preferences['devtools']['remote_enabled'] != True:
-          preferences['devtools']['remote_enabled'] = True
-          changed = True
-        if changed:
-          logging.warning('Manually enabled devtools protocol on %s' %
-                          self._package)
-          with open(raw_f.name, 'w') as f:
-            txt = json.dumps(preferences, indent=2)
-            f.write(txt)
-          self._adb.Push(raw_f.name, prefs_file)
+      preferences = json.loads(''.join(
+          self._adb.Adb().GetProtectedFileContents(prefs_file)))
+      changed = False
+      if 'devtools' not in preferences:
+        preferences['devtools'] = {}
+        changed = True
+      if not preferences['devtools'].get('remote_enabled'):
+        preferences['devtools']['remote_enabled'] = True
+        changed = True
+      if changed:
+        logging.warning('Manually enabled devtools protocol on %s' %
+                        self._package)
+        txt = json.dumps(preferences, indent=2)
+        self._adb.Adb().SetProtectedFileContents(prefs_file, txt)
 
     # Start it up with a fresh log.
     self._adb.RunShellCommand('logcat -c')
