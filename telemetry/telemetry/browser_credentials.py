@@ -122,7 +122,7 @@ class BrowserCredentials(object):
       files_to_tweak = []
       if page_set.credentials_path:
         files_to_tweak.append(
-          os.path.relpath(os.path.join(page_set.base_dir,
+          os.path.relpath(os.path.join(os.path.dirname(page_set.file_path),
                                        page_set.credentials_path)))
       files_to_tweak.append('~/.telemetry-credentials')
 
