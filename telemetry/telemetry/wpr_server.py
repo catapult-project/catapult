@@ -37,7 +37,7 @@ class ReplayServer(object):
         util.PortPair(self._webpagereplay_local_https_port,
                       self._webpagereplay_remote_https_port))
 
-    options = []
+    options = browser_backend.options.extra_wpr_args
     if self._is_record_mode:
       options.append('--record')
     if not browser_backend.options.wpr_make_javascript_deterministic:

@@ -24,6 +24,7 @@ class BrowserOptions(optparse.Values):
 
     self.dont_override_profile = False
     self.extra_browser_args = []
+    self.extra_wpr_args = []
     self.show_stdout = False
 
     self.cros_remote = None
@@ -86,6 +87,10 @@ class BrowserOptions(optparse.Values):
     group.add_option('--extra-browser-args',
         dest='extra_browser_args_as_string',
         help='Additional arguments to pass to the browser when it starts')
+    group.add_option('--extra-wpr-args',
+        dest='extra_wpr_args_as_string',
+        help=('Additional arguments to pass to Web Page Replay. '
+              'See third_party/webpagereplay/replay.py for usage.'))
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
@@ -151,6 +156,11 @@ class BrowserOptions(optparse.Values):
           self.extra_browser_args_as_string) # pylint: disable=E1101
         self.extra_browser_args.extend(tmp)
         delattr(self, 'extra_browser_args_as_string')
+      if self.extra_wpr_args_as_string: # pylint: disable=E1101
+        tmp = shlex.split(
+          self.extra_wpr_args_as_string) # pylint: disable=E1101
+        self.extra_wpr_args.extend(tmp)
+        delattr(self, 'extra_wpr_args_as_string')
       return ret
     parser.parse_args = ParseArgs
     return parser
