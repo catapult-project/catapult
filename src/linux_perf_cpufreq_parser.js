@@ -25,12 +25,26 @@ base.exportTo('tracing', function() {
         LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_notyet',
         LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
+    importer.registerEventHandler('cpufreq_interactive_setspeed',
+        LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_target',
         LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_boost',
         LinuxPerfCpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_unboost',
         LinuxPerfCpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
+  }
+
+  function splitData(input) {
+    // TODO(sleffler) split by cpu
+    var data = {};
+    var args = input.split(/\s+/);
+    var len = args.length;
+    for (var i = 0; i < len; i++) {
+      var item = args[i].split('=');
+      data[item[0]] = parseInt(item[1]);
+    }
+    return data;
   }
 
   LinuxPerfCpufreqParser.prototype = {
@@ -59,42 +73,15 @@ base.exportTo('tracing', function() {
      * Parses cpufreq events and sets up state in the importer.
      */
     cpufreqUpDownEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /cpu=(\d+) targ=(\d+) actual=(\d+)/.exec(eventBase[5]);
-      if (!event)
-        return false;
-
-      // TODO(sleffler) split by cpu
-      var cpu = parseInt(event[1]);
-      var targ = parseInt(event[2]);
-      var actual = parseInt(event[3]);
-      this.cpufreqSlice(ts, eventName, cpu,
-          {
-            cpu: cpu,
-            targ: targ,
-            actual: actual
-          });
+      var data = splitData(eventBase[5]);
+      this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
     cpufreqTargetEvent: function(eventName, cpuNumber, pid, ts,
                                  eventBase) {
-      var event = /cpu=(\d+) load=(\d+) cur=(\d+) targ=(\d+)/
-          .exec(eventBase[5]);
-      if (!event)
-        return false;
-
-      // TODO(sleffler) split by cpu
-      var cpu = parseInt(event[1]);
-      var load = parseInt(event[2]);
-      var cur = parseInt(event[3]);
-      var targ = parseInt(event[4]);
-      this.cpufreqSlice(ts, eventName, cpu,
-          {
-            cpu: cpu,
-            load: load,
-            cur: cur,
-            targ: targ
-          });
+      var data = splitData(eventBase[5]);
+      this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
