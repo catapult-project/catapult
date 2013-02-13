@@ -17,9 +17,14 @@ from telemetry import browser_gone_exception
 class AndroidBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
-  def __init__(self, options, adb, package,
-               is_content_shell, cmdline_file, activity, devtools_remote_port):
-    super(AndroidBrowserBackend, self).__init__(is_content_shell, options)
+  def __init__(self, options, adb, package, is_content_shell,
+               cmdline_file, activity, devtools_remote_port):
+    super(AndroidBrowserBackend, self).__init__(
+        is_content_shell=is_content_shell,
+        supports_extensions=False, options=options)
+    if len(options.extensions_to_load) > 0:
+      raise browser_backend.ExtensionsNotSupportedException(
+          'Android browser does not support extensions.')
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._options = options
     self._adb = adb

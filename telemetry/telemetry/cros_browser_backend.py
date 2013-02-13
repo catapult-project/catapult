@@ -9,11 +9,11 @@ from telemetry import browser_backend
 from telemetry import util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
-  def __init__(self, browser_type, options, is_content_shell, cri):
-    super(CrOSBrowserBackend, self).__init__(is_content_shell, options)
+  def __init__(self, browser_type, options, cri):
+    super(CrOSBrowserBackend, self).__init__(is_content_shell=False,
+        supports_extensions=True, options=options)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._options = options
-    assert not is_content_shell
     self._cri = cri
     self._browser_type = browser_type
 

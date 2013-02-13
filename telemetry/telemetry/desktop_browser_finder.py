@@ -40,6 +40,11 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     backend.SetBrowser(b)
     return b
 
+  def SupportsOptions(self, options):
+    if (len(options.extensions_to_load) != 0) and self._is_content_shell:
+      return False
+    return True
+
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
   browsers = []
@@ -122,8 +127,7 @@ def FindAllAvailableBrowsers(options):
       pass
     if found:
       browsers.append(
-          PossibleDesktopBrowser('system', options,
-                                 'google-chrome', False))
+          PossibleDesktopBrowser('system', options, 'google-chrome', False))
 
   # Win32-specific options.
   if sys.platform.startswith('win'):

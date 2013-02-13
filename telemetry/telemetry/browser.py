@@ -3,12 +3,13 @@
 # found in the LICENSE file.
 import os
 
+from telemetry import browser_backend
 from telemetry import browser_credentials
+from telemetry import extension_dict
 from telemetry import tab_list
 from telemetry import temporary_http_server
 from telemetry import wpr_modes
 from telemetry import wpr_server
-
 
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
@@ -21,12 +22,16 @@ class Browser(object):
     with browser_to_create.Create() as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, browser_backend, platform):
-    self._browser_backend = browser_backend
+  def __init__(self, backend, platform):
+    self._browser_backend = backend
     self._http_server = None
     self._wpr_server = None
     self._platform = platform
-    self._tabs = tab_list.TabList(browser_backend.tab_list_backend)
+    self._tabs = tab_list.TabList(backend.tab_list_backend)
+    self._extensions = None
+    if backend.supports_extensions:
+      self._extensions = extension_dict.ExtensionDict(
+          backend.extension_dict_backend)
     self.credentials = browser_credentials.BrowserCredentials()
 
   def __enter__(self):
@@ -49,12 +54,24 @@ class Browser(object):
     return self._browser_backend.is_content_shell
 
   @property
+  def supports_extensions(self):
+    return self._browser_backend.supports_extensions
+
+  @property
   def supports_tab_control(self):
     return self._browser_backend.supports_tab_control
 
   @property
   def tabs(self):
     return self._tabs
+
+  @property
+  def extensions(self):
+    """Returns the extension dictionary if it exists."""
+    if not self.supports_extensions:
+      raise browser_backend.ExtensionsNotSupportedException(
+          'Extensions not supported')
+    return self._extensions
 
   @property
   def supports_tracing(self):

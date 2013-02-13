@@ -10,6 +10,7 @@ import re
 import sys
 
 from telemetry import browser_gone_exception
+from telemetry import extension_dict_backend
 from telemetry import options_for_unittests
 from telemetry import tab_list_backend
 from telemetry import tracing_backend
@@ -18,15 +19,19 @@ from telemetry import util
 from telemetry import wpr_modes
 from telemetry import wpr_server
 
+class ExtensionsNotSupportedException(Exception):
+  pass
+
 class BrowserBackend(object):
   """A base class for browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
 
   WEBPAGEREPLAY_HOST = '127.0.0.1'
 
-  def __init__(self, is_content_shell, options):
+  def __init__(self, is_content_shell, supports_extensions, options):
     self.browser_type = options.browser_type
     self.is_content_shell = is_content_shell
+    self._supports_extensions = supports_extensions
     self.options = options
     self._browser = None
     self._port = None
@@ -47,6 +52,10 @@ class BrowserBackend(object):
                        'such as about:flags settings, cookies, and '
                        'extensions.\n')
     self._tab_list_backend = tab_list_backend.TabListBackend(self)
+    self._extension_dict_backend = None
+    if supports_extensions:
+      self._extension_dict_backend = \
+          extension_dict_backend.ExtensionDictBackend(self)
 
   def SetBrowser(self, browser):
     self._browser = browser
@@ -57,8 +66,17 @@ class BrowserBackend(object):
     return self._browser
 
   @property
+  def supports_extensions(self):
+    """True if this browser backend supports extensions."""
+    return self._supports_extensions
+
+  @property
   def tab_list_backend(self):
     return self._tab_list_backend
+
+  @property
+  def extension_dict_backend(self):
+    return self._extension_dict_backend
 
   def GetBrowserStartupArgs(self):
     args = []
@@ -73,6 +91,12 @@ class BrowserBackend(object):
           self.webpagereplay_remote_https_port))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.options.browser_user_agent_type))
+
+    extensions = ','.join(
+        [extension.path for extension in self.options.extensions_to_load])
+    if len(self.options.extensions_to_load) > 0:
+      args.append('--load-extension=%s' % extensions)
+
     return args
 
   @property
@@ -91,6 +115,17 @@ class BrowserBackend(object):
       util.WaitFor(IsBrowserUp, timeout=30)
     except util.TimeoutException:
       raise browser_gone_exception.BrowserGoneException()
+
+    def AllExtensionsLoaded():
+      for e in self.options.extensions_to_load:
+        extension_id = e.extension_id()
+        if not extension_id in self._extension_dict_backend:
+          return False
+        extension_object = self._extension_dict_backend[extension_id]
+        extension_object.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      return True
+    if self._supports_extensions:
+      util.WaitFor(AllExtensionsLoaded, timeout=30)
 
   def _PostBrowserStartupInitialization(self):
     # Detect version information.

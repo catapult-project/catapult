@@ -44,8 +44,7 @@ CONTENT_SHELL_DEVTOOLS_REMOTE_PORT = (
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
   def __init__(self, browser_type, options, *args):
-    super(PossibleAndroidBrowser, self).__init__(
-        browser_type, options)
+    super(PossibleAndroidBrowser, self).__init__(browser_type, options)
     self._args = args
 
   def __repr__(self):
@@ -60,6 +59,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     b = browser.Browser(backend, platform)
     backend.SetBrowser(b)
     return b
+
+  def SupportsOptions(self, options):
+    if len(options.extensions_to_load) != 0:
+      return False
+    return True
 
 def FindAllAvailableBrowsers(options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""

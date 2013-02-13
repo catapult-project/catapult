@@ -16,10 +16,9 @@ ALL_BROWSER_TYPES = ','.join([
     ])
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
-  """A launchable android browser instance."""
+  """A launchable chromeos browser instance."""
   def __init__(self, browser_type, options, *args):
-    super(PossibleCrOSBrowser, self).__init__(
-        browser_type, options)
+    super(PossibleCrOSBrowser, self).__init__(browser_type, options)
     self._args = args
 
   def __repr__(self):
@@ -31,6 +30,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     b = browser.Browser(backend, platform.Platform())
     backend.SetBrowser(b)
     return b
+
+  def SupportsOptions(self, options):
+    return True
 
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
@@ -75,4 +77,4 @@ def FindAllAvailableBrowsers(options):
   if not cri.FileExistsOnDevice('/opt/google/chrome/chrome'):
     logging.warn('Could not find a chrome on ' % cri.hostname)
 
-  return [PossibleCrOSBrowser('cros-chrome', options, False, cri)]
+  return [PossibleCrOSBrowser('cros-chrome', options, cri)]

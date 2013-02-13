@@ -20,3 +20,7 @@ class PossibleBrowser(object):
 
   def Create(self):
     raise NotImplementedError()
+
+  def SupportsOptions(self, options):
+    """Tests for extension support."""
+    raise NotImplementedError()

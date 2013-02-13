@@ -26,6 +26,7 @@ class BrowserOptions(optparse.Values):
     self.extra_browser_args = []
     self.extra_wpr_args = []
     self.show_stdout = False
+    self.extensions_to_load = []
 
     self.cros_remote = None
     self.wpr_mode = wpr_modes.WPR_OFF

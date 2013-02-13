@@ -14,7 +14,9 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   Mac or Windows.
   """
   def __init__(self, options, executable, is_content_shell):
-    super(DesktopBrowserBackend, self).__init__(is_content_shell, options)
+    super(DesktopBrowserBackend, self).__init__(
+        is_content_shell=is_content_shell,
+        supports_extensions=not is_content_shell, options=options)
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
@@ -24,6 +26,10 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self._executable = executable
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
+
+    if len(options.extensions_to_load) > 0 and is_content_shell:
+      raise browser_backend.ExtensionsNotSupportedException(
+          'Content shell does not support extensions.')
 
     self._port = util.GetAvailableLocalPort()
 
