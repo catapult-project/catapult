@@ -4,6 +4,7 @@
 
 import cStringIO
 import json
+import logging
 import os
 import unittest
 
@@ -25,9 +26,11 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     util.WaitFor(_IsDone, 5)
 
   def testGotTrace(self):
+    if not self._browser.supports_tracing:
+      logging.warning('Browser does not support tracing, skipping test.')
+      return
     self._StartServer()
     self._browser.StartTracing()
-    self.assertTrue(self._browser.supports_tracing)
     self._browser.StopTracing()
     model = self._browser.GetTraceResultAndReset().AsTimelineModel()
     events = model.GetAllEvents()
