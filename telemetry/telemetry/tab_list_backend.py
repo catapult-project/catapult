@@ -61,6 +61,9 @@ class TabListBackend(object):
     assert response == 'Target is closing'
 
     util.WaitFor(lambda: not self._FindTabInfo(debugger_url), timeout=5)
+
+    if debugger_url in self._tab_dict:
+      del self._tab_dict[debugger_url]
     self._UpdateTabList()
 
   def ActivateTab(self, debugger_url, timeout=None):
@@ -133,9 +136,11 @@ class TabListBackend(object):
       if 'webSocketDebuggerUrl' not in tab_info:
         return None
       return tab_info['webSocketDebuggerUrl']
-    newtab_list = map(GetDebuggerUrl, self._ListTabs())
-    self._tab_list = [t for t in self._tab_list if t in newtab_list]
-    self._tab_list += [t for t in newtab_list if t not in self._tab_list]
+    new_tab_list = map(GetDebuggerUrl, self._ListTabs())
+    self._tab_list = [t for t in self._tab_list
+                      if t in self._tab_dict or t in new_tab_list]
+    self._tab_list += [t for t in new_tab_list
+                       if t is not None and t not in self._tab_list]
 
   def _FindTabInfo(self, debugger_url):
     for tab_info in self._ListTabs():

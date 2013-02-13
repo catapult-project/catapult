@@ -67,3 +67,21 @@ class BrowserTest(unittest.TestCase):
     with browser_to_create.Create() as b:
       b.tabs[0].Navigate('http://www.google.com/')
       b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
+  def testTabCallByReference(self):
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
+    with browser_to_create.Create() as b:
+      tab = b.tabs[0]
+      tab.Navigate('http://www.google.com/')
+      b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
+  def testCloseReferencedTab(self):
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
+    with browser_to_create.Create() as b:
+      b.tabs.New()
+      tab = b.tabs[0]
+      tab.Navigate('http://www.google.com/')
+      tab.Close()
+      self.assertEquals(1, len(b.tabs))
