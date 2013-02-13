@@ -4,10 +4,18 @@
 
 DEFAULT_WEB_CONTENTS_TIMEOUT = 60
 
+# TODO(achuith, dtu, nduca): Add unit tests specifically for WebContents,
+# independent of Tab.
 class WebContents(object):
   """Represents web contents in the browser"""
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
+
+  def __del__(self):
+    self.Disconnect()
+
+  def Disconnect(self):
+    self._inspector_backend.Disconnect()
 
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):

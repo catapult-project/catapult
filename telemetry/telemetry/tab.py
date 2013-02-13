@@ -20,10 +20,7 @@ class Tab(web_contents.WebContents):
     super(Tab, self).__init__(inspector_backend)
 
   def __del__(self):
-    self.Disconnect()
-
-  def Disconnect(self):
-    self._inspector_backend.Disconnect()
+    super(Tab, self).__del__()
 
   @property
   def browser(self):
