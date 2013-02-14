@@ -12,10 +12,6 @@ from telemetry import tab
 from telemetry import inspector_backend
 from telemetry import util
 
-class BrowserConnectionGoneException(
-    browser_gone_exception.BrowserGoneException):
-  pass
-
 class TabListBackend(object):
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend
@@ -129,7 +125,7 @@ class TabListBackend(object):
     except (socket.error, httplib.BadStatusLine, urllib2.URLError):
       if not self._browser_backend.IsBrowserRunning():
         raise browser_gone_exception.BrowserGoneException()
-      raise BrowserConnectionGoneException()
+      raise browser_gone_exception.BrowserConnectionGoneException()
 
   def _UpdateTabList(self):
     def GetDebuggerUrl(tab_info):

@@ -2,8 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 class BrowserGoneException(Exception):
-  """Represnets a crash of the entire browser.
+  """Represents a crash of the entire browser.
 
   In this state, all bets are pretty much off."""
   pass
 
+class BrowserConnectionGoneException(BrowserGoneException):
+  pass

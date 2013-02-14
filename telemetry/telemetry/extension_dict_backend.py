@@ -12,8 +12,7 @@ from telemetry import browser_gone_exception
 from telemetry import extension_page
 from telemetry import inspector_backend
 
-class BrowserConnectionGoneException(
-    browser_gone_exception.BrowserGoneException):
+class ExtensionNotFoundException(Exception):
   pass
 
 class ExtensionDictBackend(object):
@@ -26,8 +25,8 @@ class ExtensionDictBackend(object):
     extension_object = self._extension_dict.get(extension_id)
     if not extension_object:
       extension_object = self._CreateExtensionObject(extension_id)
-      if extension_object:
-        self._extension_dict[extension_id] = extension_object
+      assert extension_object
+      self._extension_dict[extension_id] = extension_object
     return extension_object
 
   def __contains__(self, extension_id):
@@ -48,7 +47,7 @@ class ExtensionDictBackend(object):
   def _CreateExtensionObject(self, extension_id):
     extension_info = self._FindExtensionInfo(extension_id)
     if not extension_info or not 'webSocketDebuggerUrl' in extension_info:
-      return None
+      raise ExtensionNotFoundException()
     return extension_page.ExtensionPage(
         self._CreateInspectorBackendForDebuggerUrl(
             extension_info['webSocketDebuggerUrl']))
@@ -71,7 +70,7 @@ class ExtensionDictBackend(object):
     except (socket.error, httplib.BadStatusLine, urllib2.URLError):
       if not self._browser_backend.IsBrowserRunning():
         raise browser_gone_exception.BrowserGoneException()
-      raise BrowserConnectionGoneException()
+      raise browser_gone_exception.BrowserConnectionGoneException()
 
   def _FilterExtensions(self, all_pages):
     return [page_info for page_info in all_pages

@@ -7,11 +7,12 @@ import tempfile
 import unittest
 
 from telemetry import browser_finder
+from telemetry import extension_dict_backend
 from telemetry import extension_to_load
 from telemetry import options_for_unittests
 
 class ExtensionTest(unittest.TestCase):
-  def testExtension(self):
+  def setUp(self):
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', 'unittest_data', 'simple_extension')
     load_extension = extension_to_load.ExtensionToLoad(extension_path)
@@ -19,15 +20,55 @@ class ExtensionTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
-    if not browser_to_create:
-      # Could not find a browser that supports extensions.
-      return
 
+    self._browser = None
+    self._extension = None
+    if not browser_to_create:
+      # May not find a browser that supports extensions.
+      return
+    self._browser = browser_to_create.Create()
+    self._extension = self._browser.extensions[load_extension]
+    self.assertTrue(self._extension)
+
+  def tearDown(self):
+    if self._browser:
+      self._browser.Close()
+
+  def testExtensionBasic(self):
+    """Test ExtensionPage's ExecuteJavaScript and EvaluateJavaScript."""
+    if not self._extension:
+      return
+    self._extension.ExecuteJavaScript('setTestVar("abcdef")')
+    self.assertEquals('abcdef',
+                      self._extension.EvaluateJavaScript('_testVar'))
+
+  def testDisconnect(self):
+    """Test that ExtensionPage.Disconnect exists by calling it.
+    EvaluateJavaScript should reconnect."""
+    if not self._extension:
+      return
+    self._extension.Disconnect()
+    self.assertEquals(2, self._extension.EvaluateJavaScript('1+1'))
+
+class NonExistentExtensionTest(unittest.TestCase):
+  def testNonExistentExtensionPath(self):
+    """Test that a non-existent extension path will raise an exception."""
+    extension_path = os.path.join(os.path.dirname(__file__),
+        '..', 'unittest_data', 'foo')
+    self.assertRaises(extension_to_load.ExtensionPathNonExistentException,
+                      lambda: extension_to_load.ExtensionToLoad(extension_path))
+
+  def testExtensionNotLoaded(self):
+    """Querying an extension that was not loaded will return None"""
+    extension_path = os.path.join(os.path.dirname(__file__),
+        '..', 'unittest_data', 'simple_extension')
+    load_extension = extension_to_load.ExtensionToLoad(extension_path)
+    options = options_for_unittests.GetCopy()
+    browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
-      extension = b.extensions[load_extension]
-      assert extension
-      extension.ExecuteJavaScript("setTestVar('abcdef')")
-      self.assertEquals('abcdef', extension.EvaluateJavaScript("_testVar"))
+      if b.supports_extensions:
+        self.assertRaises(extension_dict_backend.ExtensionNotFoundException,
+                          lambda: b.extensions[load_extension])
 
 class MultipleExtensionTest(unittest.TestCase):
   def setUp(self):
@@ -70,5 +111,5 @@ class MultipleExtensionTest(unittest.TestCase):
     for load_extension in self._extensions_to_load:
       extension = self._browser.extensions[load_extension]
       assert extension
-      extension.ExecuteJavaScript("setTestVar('abcdef')")
-      self.assertEquals('abcdef', extension.EvaluateJavaScript("_testVar"))
+      extension.ExecuteJavaScript('setTestVar("abcdef")')
+      self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
