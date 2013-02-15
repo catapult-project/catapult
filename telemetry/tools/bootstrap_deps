@@ -18,5 +18,7 @@ deps = {
       "https://src.chromium.org/chrome/trunk/src/build/android",
     "src/third_party/android_testrunner":
       "https://src.chromium.org/chrome/trunk/src/third_party/android_testrunner",
+    "src/tools/crx_id":
+      "https://src.chromium.org/chrome/trunk/src/tools/crx_id",
     }
 
