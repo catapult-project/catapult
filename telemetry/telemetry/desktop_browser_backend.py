@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os as os
-import re
 import subprocess as subprocess
 import shutil
 import tempfile
@@ -53,15 +52,11 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--remote-debugging-port=%i' % self._port)
-    if not self.is_content_shell:
-      args.append('--window-size=1280,1024')
-      if self._GetChromeBranchNumber() >= 1404:
-        args.append('--enable-net-benchmarking')
-      else:
-        args.append('--enable-benchmarking')
-      if not self.options.dont_override_profile:
-        self._tmpdir = tempfile.mkdtemp()
-        args.append('--user-data-dir=%s' % self._tmpdir)
+    args.append('--window-size=1280,1024')
+    args.append('--enable-benchmarking')
+    if not self.options.dont_override_profile:
+      self._tmpdir = tempfile.mkdtemp()
+      args.append('--user-data-dir=%s' % self._tmpdir)
     return args
 
   def IsBrowserRunning(self):
@@ -117,12 +112,6 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
   def CreateForwarder(self, *port_pairs):
     return DoNothingForwarder(*port_pairs)
-
-  def _GetChromeBranchNumber(self):
-    version = subprocess.check_output([self._executable, '--version'])
-    match = re.match('[^\d]+\s+\d+\.\d+\.(\d+)\.\d+.*', version)
-    assert match
-    return int(match.group(1))
 
 class DoNothingForwarder(object):
   def __init__(self, *port_pairs):
