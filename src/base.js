@@ -452,13 +452,8 @@ this.base = (function() {
     Event.prototype = {__proto__: global.Event.prototype};
 
     base.doc = document;
-
     base.isMac = /Mac/.test(navigator.platform);
-    base.isWindows = /Win/.test(navigator.platform);
     base.isChromeOS = /CrOS/.test(navigator.userAgent);
-    base.isLinux = /Linux/.test(navigator.userAgent);
-    base.isGTK = /GTK/.test(chrome.toolkit);
-    base.isViews = /views/.test(chrome.toolkit);
 
     setModuleBasePath('/src');
   }
@@ -466,7 +461,7 @@ this.base = (function() {
   function concatenateArrays(/*arguments*/) {
     var values = [];
     for (var i = 0; i < arguments.length; i++) {
-      if(!(arguments[i] instanceof Array))
+      if (!(arguments[i] instanceof Array))
         throw new Error('Arguments ' + i + 'is not an array');
       values.push.apply(values, arguments[i]);
     }

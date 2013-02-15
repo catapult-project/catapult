@@ -643,8 +643,7 @@ base.exportTo('tracing', function() {
 
         // Activate the new selection, and zoom if ctrl key held down.
         this.selection = selection;
-        var isMac = navigator.platform.indexOf('Mac') == 0;
-        if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
+        if ((base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey)) {
           this.zoomToSelection_();
         }
       }
