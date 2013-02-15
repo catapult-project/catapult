@@ -19,8 +19,8 @@ class WaitActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-    i = wait_action.WaitAction({ 'duration' : 1 })
+    i = wait_action.WaitAction({ 'condition': 'duration', 'seconds': 1 })
 
     start_time = time.time()
-    i.RunAction({}, self._tab)
+    i.RunAction(None, self._tab, None)
     self.assertAlmostEqual(time.time() - start_time, 1, places=2)

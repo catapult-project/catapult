@@ -46,7 +46,7 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
         window.__scrollingAction.endMeasuringHook = function() {
             window.__didEndMeasuring = true;
         };""")
-    i.RunAction(page, self._tab)
+    i.RunAction(page, self._tab, None)
 
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))

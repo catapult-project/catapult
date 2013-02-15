@@ -24,7 +24,7 @@ class ScrollingAction(page_action.PageAction):
         });
      """)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, page, tab, previous_action):
     with tab.browser.platform.GetSurfaceCollector(''):
       # scrollable_element_function is a function that passes the scrollable
       # element on the page to a callback. For example:

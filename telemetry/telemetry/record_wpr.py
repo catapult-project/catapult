@@ -47,7 +47,7 @@ class RecordPage(page_test.PageTest):
         tab.Navigate(page.url)
         tab.WaitForDocumentReadyStateToBeComplete()
       action.WillRunAction(page, tab)
-      action.RunAction(page, tab)
+      action.RunAction(page, tab, None)
       should_reload = True
 
   def _ActionsForPage(self, page):

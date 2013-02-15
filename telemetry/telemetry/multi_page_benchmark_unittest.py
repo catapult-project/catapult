@@ -133,7 +133,7 @@ class MultiPageBenchmarkUnitTest(
   def testActions(self):
     action_called = [False]
     class MockAction(page_action.PageAction):
-      def RunAction(self, page, tab):
+      def RunAction(self, page, tab, previous_action):
         action_called[0] = True
     from telemetry import all_page_actions
     all_page_actions.RegisterClassForTest('mock', MockAction)

@@ -70,6 +70,8 @@ class Page(object):
   def WaitToLoad(self, tab, timeout, poll_interval=0.1):
     Page.WaitForPageToLoad(self, tab, timeout, poll_interval)
 
+  # TODO(dtu): Remove this method when no page sets use a click interaction
+  # with a wait condition. crbug.com/168431
   @staticmethod
   def WaitForPageToLoad(obj, tab, timeout, poll_interval=0.1):
     """Waits for various wait conditions present in obj."""

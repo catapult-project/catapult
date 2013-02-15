@@ -20,7 +20,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
 
     data = {'selector': 'a[id="clickme"]', 'wait_for_navigation': True}
     i = click_element_action.ClickElementAction(data)
-    i.RunAction({}, self._tab)
+    i.RunAction(None, self._tab, None)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -39,7 +39,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
 
     data = {'text': 'Click me', 'wait_for_href_change': True}
     i = click_element_action.ClickElementAction(data)
-    i.RunAction({}, self._tab)
+    i.RunAction(None, self._tab, None)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),

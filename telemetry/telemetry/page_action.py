@@ -25,8 +25,16 @@ class PageAction(object):
     Test.WillRunAction is called."""
     pass
 
-  def RunAction(self, page, tab):
+  def RunAction(self, page, tab, previous_action):
     raise NotImplementedError()
+
+  def RunsPreviousAction(self):
+    """Some actions require some initialization to be performed before the
+    previous action. For example, wait for href change needs to record the old
+    href before the previous action changes it. Therefore, we allow actions to
+    run the previous action. An action that does this should override this to
+    return True in order to prevent the previous action from being run twice."""
+    return False
 
   def CleanUp(self, page, tab):
     pass
