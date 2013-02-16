@@ -8,14 +8,15 @@ import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-import telemetry
+from telemetry.core import browser_finder
+from telemetry.core import browser_options
 
 def Main(args):
-  options = telemetry.BrowserOptions()
+  options = browser_options.BrowserOptions()
   parser = options.CreateParser('telemetry_perf_test.py')
   options, args = parser.parse_args(args)
 
-  browser_to_create = telemetry.FindBrowser(options)
+  browser_to_create = browser_finder.FindBrowser(options)
   assert browser_to_create
   with browser_to_create.Create() as b:
     tab = b.tabs[0]
