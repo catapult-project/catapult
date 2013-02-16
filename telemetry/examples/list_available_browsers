@@ -8,10 +8,10 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from telemetry.core import browser_options
+import telemetry
 
 def Main(args):
-  options = browser_options.BrowserOptions()
+  options = telemetry.BrowserOptions()
   options.browser_type = 'list';
   parser = options.CreateParser('list_available_browsers')
   parser.parse_args()
