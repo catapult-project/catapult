@@ -16,11 +16,11 @@ class ExtensionDict(object):
     if not isinstance(load_extension, extension_to_load.ExtensionToLoad):
       raise Exception("Input param must be of type ExtensionToLoad")
     return self._extension_dict_backend.__getitem__(
-        load_extension.extension_id())
+        load_extension.extension_id)
 
   def __contains__(self, load_extension):
     """Checks if this ExtensionToLoad instance has been loaded"""
     if not isinstance(load_extension, extension_to_load.ExtensionToLoad):
       raise Exception("Input param must be of type ExtensionToLoad")
     return self._extension_dict_backend.__contains__(
-        load_extension.extension_id())
+        load_extension.extension_id)

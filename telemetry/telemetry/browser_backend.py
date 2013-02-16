@@ -92,11 +92,17 @@ class BrowserBackend(object):
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.options.browser_user_agent_type))
 
-    extensions = ','.join(
-        [extension.path for extension in self.options.extensions_to_load])
-    if len(self.options.extensions_to_load) > 0:
-      args.append('--load-extension=%s' % extensions)
+    extensions = [extension.path for extension in
+                  self.options.extensions_to_load if not extension.is_component]
+    extension_str = ','.join(extensions)
+    if len(extensions) > 0:
+      args.append('--load-extension=%s' % extension_str)
 
+    component_extensions = [extension.path for extension in
+                  self.options.extensions_to_load if extension.is_component]
+    component_extension_str = ','.join(component_extensions)
+    if len(component_extensions) > 0:
+      args.append('--load-component-extension=%s' % component_extension_str)
     return args
 
   @property
@@ -118,10 +124,9 @@ class BrowserBackend(object):
 
     def AllExtensionsLoaded():
       for e in self.options.extensions_to_load:
-        extension_id = e.extension_id()
-        if not extension_id in self._extension_dict_backend:
+        if not e.extension_id in self._extension_dict_backend:
           return False
-        extension_object = self._extension_dict_backend[extension_id]
+        extension_object = self._extension_dict_backend[e.extension_id]
         extension_object.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       return True
     if self._supports_extensions:

@@ -113,3 +113,21 @@ class MultipleExtensionTest(unittest.TestCase):
       assert extension
       extension.ExecuteJavaScript('setTestVar("abcdef")')
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+
+class ComponentExtensionTest(unittest.TestCase):
+  def testComponentExtension(self):
+    extension_path = os.path.join(os.path.dirname(__file__),
+        '..', 'unittest_data', 'component_extension')
+    load_extension = extension_to_load.ExtensionToLoad(extension_path, False)
+
+    options = options_for_unittests.GetCopy()
+    options.extensions_to_load = [load_extension]
+    browser_to_create = browser_finder.FindBrowser(options)
+    if not browser_to_create:
+      # Some browsers don't support extensions.
+      return
+
+    with browser_to_create.Create() as b:
+      extension = b.extensions[load_extension]
+      extension.ExecuteJavaScript('setTestVar("abcdef")')
+      self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
