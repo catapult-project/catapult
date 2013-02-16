@@ -91,6 +91,7 @@ base.exportTo('tracing', function() {
     this.events_ = events;
     this.clockSyncRecords_ = [];
     this.cpuStates_ = {};
+    this.wakeups_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToTimelineThreads();
     this.lineNumberBase = 0;
@@ -355,19 +356,34 @@ base.exportTo('tracing', function() {
         }
       }
 
+      for (var i in this.wakeups_) {
+        var wakeup = this.wakeups_[i];
+        var thread = this.threadsByLinuxPid[wakeup.tid];
+        if (!thread)
+          continue;
+        thread.tempWakeups = thread.tempWakeups || [];
+        thread.tempWakeups.push(wakeup);
+      }
+
       // Create slices for when the thread is not running.
       var runningId = tracing.getColorIdByName('running');
       var runnableId = tracing.getColorIdByName('runnable');
       var sleepingId = tracing.getColorIdByName('sleeping');
       var ioWaitId = tracing.getColorIdByName('iowait');
       this.model_.getAllThreads().forEach(function(thread) {
-        if (!thread.tempCpuSlices)
+        if (thread.tempCpuSlices === undefined)
           return;
         var origSlices = thread.tempCpuSlices;
         delete thread.tempCpuSlices;
 
         origSlices.sort(function(x, y) {
           return x.start - y.start;
+        });
+
+        var wakeups = thread.tempWakeups || [];
+        delete thread.tempWakeups;
+        wakeups.sort(function(x, y) {
+          return x.ts - y.ts;
         });
 
         // Walk the slice list and put slices between each original slice
@@ -378,21 +394,40 @@ base.exportTo('tracing', function() {
           slices.push(new tracing.TimelineSlice('', 'Running', runningId,
               slice.start, {}, slice.duration));
         }
+        var wakeup = undefined;
         for (var i = 1; i < origSlices.length; i++) {
           var prevSlice = origSlices[i - 1];
           var nextSlice = origSlices[i];
           var midDuration = nextSlice.start - prevSlice.end;
+          while (wakeups.length && wakeups[0].ts < nextSlice.start) {
+            wakeup = wakeups.shift();
+          }
+
+          // Push a sleep slice onto the slices list, interrupting it with a
+          // wakeup if appropriate.
+          var pushSleep = function(title, id) {
+            if (wakeup !== undefined) {
+              midDuration = wakeup.ts - prevSlice.end;
+            }
+            slices.push(new tracing.TimelineSlice('', title, id, prevSlice.end,
+              {}, midDuration));
+            if (wakeup !== undefined) {
+              var wakeupDuration = nextSlice.start - wakeup.ts;
+              var args = {'wakeup from tid': wakeup.fromTid};
+              slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
+                  wakeup.ts, args, wakeupDuration));
+              wakeup = undefined;
+            }
+          }
+
           if (prevSlice.args.stateWhenDescheduled == 'S') {
-            slices.push(new tracing.TimelineSlice('', 'Sleeping', sleepingId,
-                prevSlice.end, {}, midDuration));
+            pushSleep('Sleeping', sleepingId);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
             slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
-            slices.push(new tracing.TimelineSlice(
-                '', 'Uninterruptible Sleep', ioWaitId,
-                prevSlice.end, {}, midDuration));
+            pushSleep('Uninterruptible Sleep', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
             slices.push(new tracing.TimelineSlice('', '__TASK_STOPPED',
                 ioWaitId, prevSlice.end, {}, midDuration));
@@ -412,9 +447,7 @@ base.exportTo('tracing', function() {
             slices.push(new tracing.TimelineSlice('', 'WakeKill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
-            slices.push(new tracing.TimelineSlice(
-                '', 'Uninterruptable Sleep | WakeKill', ioWaitId,
-                prevSlice.end, {}, midDuration));
+            pushSleep('Uninterruptable Sleep | WakeKill', ioWaitId);
           } else {
             throw new Error('Unrecognized state: ') +
                 prevSlice.args.stateWhenDescheduled;
@@ -532,8 +565,12 @@ base.exportTo('tracing', function() {
      * Records the fact that a pid has become runnable. This data will
      * eventually get used to derive each thread's cpuSlices array.
      */
-    markPidRunnable: function(ts, pid, comm, prio) {
-      // TODO(nduca): implement this functionality.
+    markPidRunnable: function(ts, pid, comm, prio, fromPid) {
+      // The the pids that get passed in to this function are Linux kernel
+      // pids, which identify threads.  The rest of trace-viewer refers to
+      // these as tids, so the change of nomenclature happens in the following
+      // construction of the wakeup object.
+      this.wakeups_.push({ts: ts, tid: pid, fromTid: fromPid});
     },
 
     importError: function(message) {

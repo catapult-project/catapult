@@ -64,10 +64,11 @@ base.exportTo('tracing', function() {
       if (!event)
         return false;
 
+      var fromPid = pid;
       var comm = event[1];
       var pid = parseInt(event[2]);
       var prio = parseInt(event[3]);
-      this.importer.markPidRunnable(ts, pid, comm, prio);
+      this.importer.markPidRunnable(ts, pid, comm, prio, fromPid);
       return true;
     }
   };
