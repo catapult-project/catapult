@@ -8,10 +8,11 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-import telemetry
+from telemetry.core import browser_finder
+from telemetry.core import browser_options
 
 def Main(args):
-  options = telemetry.BrowserOptions()
+  options = browser_options.BrowserOptions()
   parser = options.CreateParser('rendering_microbenchmark_test.py <sitelist>')
   # TODO(nduca): Add test specific options here, if any.
   options, args = parser.parse_args(args)
@@ -28,10 +29,10 @@ def Main(args):
       urls.append(url)
 
   options.extra_browser_args.append('--enable-gpu-benchmarking')
-  browser_to_create = telemetry.FindBrowser(options)
+  browser_to_create = browser_finder.FindBrowser(options)
   if not browser_to_create:
     sys.stderr.write('No browser found! Supported types: %s' %
-        telemetry.GetAllAvailableBrowserTypes(options))
+        browser_finder.GetAllAvailableBrowserTypes(options))
     return 255
   with browser_to_create.Create() as b:
     tab = b.tabs[0]
