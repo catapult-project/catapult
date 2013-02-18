@@ -59,17 +59,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     args = [pseudo_exec_name]
     args.extend(self.GetBrowserStartupArgs())
 
-    with tempfile.NamedTemporaryFile() as f:
-      def EscapeIfNeeded(arg):
-        params = arg.split('=')
-        if (len(params) == 2 and
-            params[1] and params[1][0] == '"' and params[1][-1] == '"'):
-          # CommandLine.java requires this extra escaping.
-          return '%s="\\%s\\"' % (params[0], params[1])
-        return arg.replace(' ', '" "')
-      f.write(' '.join([EscapeIfNeeded(arg) for arg in args]))
-      f.flush()
-      self._adb.Push(f.name, cmdline_file)
+    self._adb.Adb().SetProtectedFileContents(cmdline_file, ' '.join(args))
 
     # Force devtools protocol on, if not already done and we can access
     # protected files.
