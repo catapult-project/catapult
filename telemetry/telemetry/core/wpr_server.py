@@ -11,7 +11,7 @@ from telemetry.core import util
 sys.path.append(
     os.path.abspath(
         os.path.join(os.path.dirname(__file__),
-                     '../../../../chrome/test/functional')))
+                     '..', '..', '..', '..', 'chrome', 'test', 'functional')))
 import webpagereplay  # pylint: disable=F0401
 
 def GetChromeFlags(replay_host, http_port, https_port):

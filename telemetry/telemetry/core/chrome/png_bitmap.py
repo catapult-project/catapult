@@ -5,7 +5,8 @@ import sys
 import os
 import base64
 
-PNG_PATH = os.path.join(os.path.dirname(__file__), '../../../third_party/png')
+PNG_PATH = os.path.join(os.path.dirname(__file__),
+    '..', '..', '..', 'third_party', 'png')
 if PNG_PATH not in sys.path:
   sys.path.append(PNG_PATH)
 

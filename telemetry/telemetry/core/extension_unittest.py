@@ -117,7 +117,7 @@ class MultipleExtensionTest(unittest.TestCase):
 class ComponentExtensionTest(unittest.TestCase):
   def testComponentExtension(self):
     extension_path = os.path.join(os.path.dirname(__file__),
-        '..', 'unittest_data', 'component_extension')
+        '..', '..', 'unittest_data', 'component_extension')
     load_extension = extension_to_load.ExtensionToLoad(extension_path, False)
 
     options = options_for_unittests.GetCopy()

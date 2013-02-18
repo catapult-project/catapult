@@ -9,7 +9,7 @@ import sys
 sys.path.append(
     os.path.abspath(
         os.path.join(os.path.dirname(__file__),
-                     '../../../build/android')))
+                     '..', '..', '..', 'build', 'android')))
 try:
   from pylib import surface_stats_collector # pylint: disable=F0401
 except Exception:

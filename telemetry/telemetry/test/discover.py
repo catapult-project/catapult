@@ -27,7 +27,7 @@ def Discover(start_dir, top_level_dir, suffix, clazz,
         continue
       name, _ = os.path.splitext(filename)
       relpath = os.path.relpath(dirpath, top_level_dir)
-      fqn = relpath.replace('/', '.') + '.' + name
+      fqn = relpath.replace('/', '.').replace('\\', '.') + '.' + name
       try:
         module = __import__(fqn, fromlist=[True])
       except Exception:

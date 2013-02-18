@@ -8,7 +8,7 @@ import sys
 
 def __init__():
   path = os.path.join(os.path.dirname(__file__),
-                      '../../../../build/android')
+                      '..', '..', '..', '..', 'build', 'android')
   path = os.path.abspath(path)
   assert os.path.exists(os.path.join(path,
                                      'pylib', '__init__.py'))
