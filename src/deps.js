@@ -251,6 +251,12 @@ base.addModuleStylesheet(
     'analysis.selection_analysis',
     'analysis.selection_analysis');
 base.addModuleDependency(
+    'importer.timeline_stream_importer',
+    'timeline_model');
+base.addModuleDependency(
+    'importer.timeline_stream_importer',
+    'timeline_slice');
+base.addModuleDependency(
     'timeline_viewport',
     'event_target');
 base.addModuleDependency(
@@ -368,89 +374,89 @@ base.addModuleDependency(
     'timeline_find_control',
     'overlay');
 base.addModuleDependency(
-    'trace_event_importer',
+    'importer.trace_event_importer',
     'timeline_model');
 base.addModuleDependency(
-    'trace_event_importer',
+    'importer.trace_event_importer',
     'timeline_color_scheme');
 base.addModuleDependency(
-    'linux_perf_bus_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.bus_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_clock_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.clock_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_cpufreq_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.cpufreq_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_drm_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.drm_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_exynos_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.exynos_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_gesture_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.gesture_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_i915_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.i915_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_mali_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.mali_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_power_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.power_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_sched_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.sched_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_workqueue_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.workqueue_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_android_parser',
-    'linux_perf_parser');
+    'importer.linux_perf.android_parser',
+    'importer.linux_perf.parser');
 base.addModuleDependency(
-    'linux_perf_importer',
+    'importer.linux_perf_importer',
     'timeline_model');
 base.addModuleDependency(
-    'linux_perf_importer',
+    'importer.linux_perf_importer',
     'timeline_color_scheme');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_bus_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.bus_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_clock_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.clock_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_cpufreq_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.cpufreq_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_drm_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.drm_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_exynos_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.exynos_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_gesture_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.gesture_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_i915_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.i915_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_mali_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.mali_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_power_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.power_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_sched_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.sched_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_workqueue_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.workqueue_parser');
 base.addModuleDependency(
-    'linux_perf_importer',
-    'linux_perf_android_parser');
+    'importer.linux_perf_importer',
+    'importer.linux_perf.android_parser');
 base.addModuleDependency(
     'timeline_view',
     'timeline');
@@ -471,10 +477,10 @@ base.addModuleDependency(
     'overlay');
 base.addModuleDependency(
     'timeline_view',
-    'trace_event_importer');
+    'importer.trace_event_importer');
 base.addModuleDependency(
     'timeline_view',
-    'linux_perf_importer');
+    'importer.linux_perf_importer');
 base.addModuleDependency(
     'timeline_view',
     'settings');
@@ -496,12 +502,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'profiling_view',
     'profiling_view');
-base.addModuleDependency(
-    'timeline_stream_importer',
-    'timeline_model');
-base.addModuleDependency(
-    'timeline_stream_importer',
-    'timeline_slice');
 base.addModuleStylesheet(
     'unittest',
     'unittest');

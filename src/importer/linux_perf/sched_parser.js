@@ -5,7 +5,7 @@
 /**
  * @fileoverview Parses scheduler events in the Linux event trace format.
  */
-base.require('linux_perf_parser');
+base.require('importer.linux_perf.parser');
 base.exportTo('tracing', function() {
 
   var LinuxPerfParser = tracing.LinuxPerfParser;

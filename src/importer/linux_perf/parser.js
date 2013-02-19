@@ -48,10 +48,10 @@
  *
  *    this.registerEventHandler('tracing_mark_write:trace_event_clock_sync',
  *
- * All subclasses should depend on linux_perf_parser, e.g.
+ * All subclasses should depend on importer.linux_perf.parser, e.g.
  *
- * base.defineModule('linux_perf_workqueue_parser')
- *   .dependsOn('linux_perf_parser')
+ * base.defineModule('importer.linux_perf.workqueue_parser')
+ *   .dependsOn('importer.linux_perf.parser')
  *   .exportsTo('tracing', function()
  *
  * and be listed in the dependsOn of LinuxPerfImporter.  Beware that after

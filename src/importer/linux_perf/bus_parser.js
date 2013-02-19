@@ -6,7 +6,7 @@
  * @fileoverview Parses trace_marker events that were inserted in the trace by
  * userland.
  */
-base.require('linux_perf_parser');
+base.require('importer.linux_perf.parser');
 base.exportTo('tracing', function() {
 
   var LinuxPerfParser = tracing.LinuxPerfParser;

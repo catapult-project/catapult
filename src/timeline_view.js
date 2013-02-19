@@ -16,8 +16,8 @@ base.require('timeline_category_filter_dialog');
 base.require('timeline_filter');
 base.require('timeline_find_control');
 base.require('overlay');
-base.require('trace_event_importer');
-base.require('linux_perf_importer');
+base.require('importer.trace_event_importer');
+base.require('importer.linux_perf_importer');
 base.require('settings');
 
 base.exportTo('tracing', function() {
