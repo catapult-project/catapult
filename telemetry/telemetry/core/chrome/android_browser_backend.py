@@ -58,7 +58,21 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
 
     args = [pseudo_exec_name]
     args.extend(self.GetBrowserStartupArgs())
-
+    def QuoteIfNeeded(arg):
+      # Escape 'key=valueA valueB' to 'key="valueA valueB"'
+      # Already quoted values, or values without space are left untouched.
+      # This is required so CommandLine.java can parse valueB correctly rather
+      # than as a separate switch.
+      params = arg.split('=')
+      if len(params) != 2:
+        return arg
+      key, values = params
+      if ' ' not in values:
+        return arg
+      if values[0] in '"\'' and values[-1] == values[0]:
+        return arg
+      return '%s="%s"' % (key, values)
+    args = map(QuoteIfNeeded, args)
     self._adb.Adb().SetProtectedFileContents(cmdline_file, ' '.join(args))
 
     # Force devtools protocol on, if not already done and we can access
