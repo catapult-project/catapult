@@ -21,8 +21,8 @@ found in the LICENSE file.
 var findSliceNamed = test_utils.findSliceNamed;
 
 function testCanImportEmpty() {
-  self.assertFalse(tracing.TraceEventImporter.canImport([]));
-  self.assertFalse(tracing.TraceEventImporter.canImport(''));
+  self.assertFalse(tracing.importer.TraceEventImporter.canImport([]));
+  self.assertFalse(tracing.importer.TraceEventImporter.canImport(''));
 }
 
 function testBasicSingleThreadNonnestedParsing() {

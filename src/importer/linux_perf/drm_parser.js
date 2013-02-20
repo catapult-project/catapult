@@ -6,23 +6,23 @@
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux drm trace events.
    * @constructor
    */
-  function LinuxPerfDrmParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function DrmParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('drm_vblank_event',
-        LinuxPerfDrmParser.prototype.vblankEvent.bind(this));
+        DrmParser.prototype.vblankEvent.bind(this));
   }
 
-  LinuxPerfDrmParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  DrmParser.prototype = {
+    __proto__: Parser.prototype,
 
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
@@ -52,9 +52,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfDrmParser);
+  Parser.registerSubtype(DrmParser);
 
   return {
-    LinuxPerfDrmParser: LinuxPerfDrmParser
+    DrmParser: DrmParser
   };
 });

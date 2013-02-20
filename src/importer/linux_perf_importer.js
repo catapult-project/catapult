@@ -33,7 +33,7 @@ base.require('importer.linux_perf.sched_parser');
 base.require('importer.linux_perf.workqueue_parser');
 base.require('importer.linux_perf.android_parser');
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer', function() {
   /**
    * Represents the scheduling state for a single thread.
    * @constructor
@@ -536,7 +536,8 @@ base.exportTo('tracing', function() {
      */
     createParsers: function() {
       // Instantiate the parsers; this will register handlers for known events
-      var parserConstructors = tracing.LinuxPerfParser.getSubtypeConstructors();
+      var parserConstructors =
+          tracing.importer.linux_perf.Parser.getSubtypeConstructors();
       for (var i = 0; i < parserConstructors.length; ++i) {
         var parserConstructor = parserConstructors[i];
         this.parsers_.push(new parserConstructor(this));

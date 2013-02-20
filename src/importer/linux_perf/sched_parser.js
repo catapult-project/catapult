@@ -6,21 +6,21 @@
  * @fileoverview Parses scheduler events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux sched trace events.
    * @constructor
    */
-  function LinuxPerfSchedParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function SchedParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('sched_switch',
-        LinuxPerfSchedParser.prototype.schedSwitchEvent.bind(this));
+        SchedParser.prototype.schedSwitchEvent.bind(this));
     importer.registerEventHandler('sched_wakeup',
-        LinuxPerfSchedParser.prototype.schedWakeupEvent.bind(this));
+        SchedParser.prototype.schedWakeupEvent.bind(this));
   }
 
   TestExports = {};
@@ -37,8 +37,8 @@ base.exportTo('tracing', function() {
       /comm=(.+) pid=(\d+) prio=(\d+) success=(\d+) target_cpu=(\d+)/;
   TestExports.schedWakeupRE = schedWakeupRE;
 
-  LinuxPerfSchedParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  SchedParser.prototype = {
+    __proto__: Parser.prototype,
 
     /**
      * Parses scheduler events and sets up state in the importer.
@@ -73,10 +73,10 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfSchedParser);
+  Parser.registerSubtype(SchedParser);
 
   return {
-    LinuxPerfSchedParser: LinuxPerfSchedParser,
-    _LinuxPerfSchedParserTestExports: TestExports
+    SchedParser: SchedParser,
+    _SchedParserTestExports: TestExports
   };
 });

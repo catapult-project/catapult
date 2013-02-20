@@ -6,66 +6,66 @@
  * @fileoverview Parses i915 driver events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux i915 trace events.
    * @constructor
    */
-  function LinuxPerfI915Parser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function I915Parser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('i915_gem_object_create',
-        LinuxPerfI915Parser.prototype.gemObjectCreateEvent.bind(this));
+        I915Parser.prototype.gemObjectCreateEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_bind',
-        LinuxPerfI915Parser.prototype.gemObjectBindEvent.bind(this));
+        I915Parser.prototype.gemObjectBindEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_unbind',
-        LinuxPerfI915Parser.prototype.gemObjectBindEvent.bind(this));
+        I915Parser.prototype.gemObjectBindEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_change_domain',
-        LinuxPerfI915Parser.prototype.gemObjectChangeDomainEvent.bind(this));
+        I915Parser.prototype.gemObjectChangeDomainEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_pread',
-        LinuxPerfI915Parser.prototype.gemObjectPreadWriteEvent.bind(this));
+        I915Parser.prototype.gemObjectPreadWriteEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_pwrite',
-        LinuxPerfI915Parser.prototype.gemObjectPreadWriteEvent.bind(this));
+        I915Parser.prototype.gemObjectPreadWriteEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_fault',
-        LinuxPerfI915Parser.prototype.gemObjectFaultEvent.bind(this));
+        I915Parser.prototype.gemObjectFaultEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_clflush',
         // NB: reuse destroy handler
-        LinuxPerfI915Parser.prototype.gemObjectDestroyEvent.bind(this));
+        I915Parser.prototype.gemObjectDestroyEvent.bind(this));
     importer.registerEventHandler('i915_gem_object_destroy',
-        LinuxPerfI915Parser.prototype.gemObjectDestroyEvent.bind(this));
+        I915Parser.prototype.gemObjectDestroyEvent.bind(this));
     importer.registerEventHandler('i915_gem_ring_dispatch',
-        LinuxPerfI915Parser.prototype.gemRingDispatchEvent.bind(this));
+        I915Parser.prototype.gemRingDispatchEvent.bind(this));
     importer.registerEventHandler('i915_gem_ring_flush',
-        LinuxPerfI915Parser.prototype.gemRingFlushEvent.bind(this));
+        I915Parser.prototype.gemRingFlushEvent.bind(this));
     importer.registerEventHandler('i915_gem_request',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_request_add',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_request_complete',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_request_retire',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_request_wait_begin',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_request_wait_end',
-        LinuxPerfI915Parser.prototype.gemRequestEvent.bind(this));
+        I915Parser.prototype.gemRequestEvent.bind(this));
     importer.registerEventHandler('i915_gem_ring_wait_begin',
-        LinuxPerfI915Parser.prototype.gemRingWaitEvent.bind(this));
+        I915Parser.prototype.gemRingWaitEvent.bind(this));
     importer.registerEventHandler('i915_gem_ring_wait_end',
-        LinuxPerfI915Parser.prototype.gemRingWaitEvent.bind(this));
+        I915Parser.prototype.gemRingWaitEvent.bind(this));
     importer.registerEventHandler('i915_reg_rw',
-        LinuxPerfI915Parser.prototype.regRWEvent.bind(this));
+        I915Parser.prototype.regRWEvent.bind(this));
     importer.registerEventHandler('i915_flip_request',
-        LinuxPerfI915Parser.prototype.flipEvent.bind(this));
+        I915Parser.prototype.flipEvent.bind(this));
     importer.registerEventHandler('i915_flip_complete',
-        LinuxPerfI915Parser.prototype.flipEvent.bind(this));
+        I915Parser.prototype.flipEvent.bind(this));
   }
 
-  LinuxPerfI915Parser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  I915Parser.prototype = {
+    __proto__: Parser.prototype,
 
     i915FlipOpenSlice: function(ts, obj, plane) {
       // use i915_flip_obj_plane?
@@ -327,9 +327,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfI915Parser);
+  Parser.registerSubtype(I915Parser);
 
   return {
-    LinuxPerfI915Parser: LinuxPerfI915Parser
+    I915Parser: I915Parser
   };
 });

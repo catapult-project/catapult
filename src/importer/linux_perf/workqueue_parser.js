@@ -6,21 +6,21 @@
  * @fileoverview Parses workqueue events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux workqueue trace events.
    * @constructor
    */
-  function LinuxPerfWorkqueueParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function WorkqueueParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('workqueue_execute_start',
-        LinuxPerfWorkqueueParser.prototype.executeStartEvent.bind(this));
+        WorkqueueParser.prototype.executeStartEvent.bind(this));
     importer.registerEventHandler('workqueue_execute_end',
-        LinuxPerfWorkqueueParser.prototype.executeEndEvent.bind(this));
+        WorkqueueParser.prototype.executeEndEvent.bind(this));
   }
 
   // Matches the workqueue_execute_start record
@@ -31,8 +31,8 @@ base.exportTo('tracing', function() {
   //  workqueue_execute_end: work struct c7a8a89c
   var workqueueExecuteEndRE = /work struct (.+)/;
 
-  LinuxPerfWorkqueueParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  WorkqueueParser.prototype = {
+    __proto__: Parser.prototype,
 
     /**
      * Parses workqueue events and sets up state in the importer.
@@ -68,9 +68,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfWorkqueueParser);
+  Parser.registerSubtype(WorkqueueParser);
 
   return {
-    LinuxPerfWorkqueueParser: LinuxPerfWorkqueueParser
+    WorkqueueParser: WorkqueueParser
   };
 });

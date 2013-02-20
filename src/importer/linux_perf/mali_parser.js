@@ -6,24 +6,24 @@
  * @fileoverview Parses Mali DDK/kernel events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses Mali DDK/kernel trace events.
    * @constructor
    */
-  function LinuxPerfMaliParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function MaliParser(importer) {
+    Parser.call(this, importer);
 
     // kernel DVFS events
     importer.registerEventHandler('mali_dvfs_event',
-        LinuxPerfMaliParser.prototype.dvfsEventEvent.bind(this));
+        MaliParser.prototype.dvfsEventEvent.bind(this));
     importer.registerEventHandler('mali_dvfs_set_clock',
-        LinuxPerfMaliParser.prototype.dvfsSetClockEvent.bind(this));
+        MaliParser.prototype.dvfsSetClockEvent.bind(this));
     importer.registerEventHandler('mali_dvfs_set_voltage',
-        LinuxPerfMaliParser.prototype.dvfsSetVoltageEvent.bind(this));
+        MaliParser.prototype.dvfsSetVoltageEvent.bind(this));
 
     // kernel Mali hw counter events
     this.addJMCounter('mali_hwc_MESSAGES_SENT', 'Messages Sent');
@@ -207,13 +207,13 @@ base.exportTo('tracing', function() {
 
     // DDK events (from X server)
     importer.registerEventHandler('tracing_mark_write:mali_driver',
-        LinuxPerfMaliParser.prototype.maliDDKEvent.bind(this));
+        MaliParser.prototype.maliDDKEvent.bind(this));
 
     this.model_ = importer.model_;
   }
 
-  LinuxPerfMaliParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  MaliParser.prototype = {
+    __proto__: Parser.prototype,
 
     maliDDKOpenSlice: function(pid, tid, ts, func, blockinfo) {
       var thread = this.importer.model_.getOrCreateProcess(pid)
@@ -548,9 +548,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfMaliParser);
+  Parser.registerSubtype(MaliParser);
 
   return {
-    LinuxPerfMaliParser: LinuxPerfMaliParser
+    MaliParser: MaliParser
   };
 });

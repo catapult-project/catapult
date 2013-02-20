@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>LinuxPerfSchedParser tests</title>
+<title>importer.linux_perf.SchedParser tests</title>
 <script src="../../base.js"></script>
 </head>
 <body>
@@ -18,7 +18,7 @@ base.require('test_utils');
 base.require('importer.linux_perf_importer');
 
 function testSchedSwitchRE() {
-  var re = tracing._LinuxPerfSchedParserTestExports.schedSwitchRE;
+  var re = tracing.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
   var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
       '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
   assertNotNull(x);
@@ -51,7 +51,7 @@ function testSchedSwitchRE() {
 }
 
 function testSchedWakeupRE() {
-  var re = tracing._LinuxPerfSchedParserTestExports.schedWakeupRE;
+  var re = tracing.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
   var x = re.exec(
       'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
   assertNotNull(x);

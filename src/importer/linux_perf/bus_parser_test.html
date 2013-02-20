@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>LinuxPerfBusParser tests</title>
+<title>importer.linux_perf.BusParser tests</title>
 <script src="../../base.js"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@ base.require('importer.linux_perf_importer');
 
 function testExynos5Bus() {
   var lines = [
-  's3c-fb-vsync-85    [001] d..2  8116.730115: memory_bus_usage: ' + 
+  's3c-fb-vsync-85    [001] d..2  8116.730115: memory_bus_usage: ' +
   'bus=RIGHT rw_bytes=0 r_bytes=0 w_bytes=0 cycles=2681746 ns=16760792',
 
   's3c-fb-vsync-85    [001] d..2  8116.730118: memory_bus_usage: ' +
@@ -46,15 +46,15 @@ function testExynos5Bus() {
   'cycles=6672156 ns=16680458',
 
   's3c-fb-vsync-85    [001] d..2  8116.763521: memory_bus_usage: ' +
-  'bus=DDR_C rw_bytes=2408448 r_bytes=1968448 w_bytes=441456 ' + 
+  'bus=DDR_C rw_bytes=2408448 r_bytes=1968448 w_bytes=441456 ' +
   'cycles=6689562 ns=16723458',
 
-  's3c-fb-vsync-85    [001] d..2  8116.763523: memory_bus_usage: ' + 
-  'bus=DDR_R1 rw_bytes=31490048 r_bytes=31493360 w_bytes=0 ' + 
+  's3c-fb-vsync-85    [001] d..2  8116.763523: memory_bus_usage: ' +
+  'bus=DDR_R1 rw_bytes=31490048 r_bytes=31493360 w_bytes=0 ' +
   'cycles=6690012 ns=16725083',
 
-  's3c-fb-vsync-85    [001] d..2  8116.763525: memory_bus_usage: ' + 
-  'bus=DDR_L rw_bytes=16941056 r_bytes=16719136 w_bytes=223472 ' + 
+  's3c-fb-vsync-85    [001] d..2  8116.763525: memory_bus_usage: ' +
+  'bus=DDR_L rw_bytes=16941056 r_bytes=16719136 w_bytes=223472 ' +
   'cycles=6690156 ns=16725375'
 
   ];

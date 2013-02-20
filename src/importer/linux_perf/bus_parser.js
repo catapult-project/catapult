@@ -7,26 +7,26 @@
  * userland.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
    * @constructor
    */
-  function LinuxPerfBusParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function BusParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('memory_bus_usage',
-        LinuxPerfBusParser.prototype.traceMarkWriteBusEvent.bind(this));
+        BusParser.prototype.traceMarkWriteBusEvent.bind(this));
 
     this.model_ = importer.model_;
     this.ppids_ = {};
   }
 
-  LinuxPerfBusParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  BusParser.prototype = {
+    __proto__: Parser.prototype,
 
     traceMarkWriteBusEvent: function(eventName, cpuNumber, pid, ts,
                                   eventBase, threadName) {
@@ -77,9 +77,9 @@ base.exportTo('tracing', function() {
     },
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfBusParser);
+  Parser.registerSubtype(BusParser);
 
   return {
-    LinuxPerfBusParser: LinuxPerfBusParser
+    BusParser: BusParser
   };
 });

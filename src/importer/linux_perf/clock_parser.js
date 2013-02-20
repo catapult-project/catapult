@@ -7,26 +7,26 @@
  * userland.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
    * @constructor
    */
-  function LinuxPerfClockParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function ClockParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('clock_set_rate',
-        LinuxPerfClockParser.prototype.traceMarkWriteClockEvent.bind(this));
+        ClockParser.prototype.traceMarkWriteClockEvent.bind(this));
 
     this.model_ = importer.model_;
     this.ppids_ = {};
   }
 
-  LinuxPerfClockParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  ClockParser.prototype = {
+    __proto__: Parser.prototype,
 
     traceMarkWriteClockEvent: function(eventName, cpuNumber, pid, ts,
                                   eventBase, threadName) {
@@ -53,9 +53,9 @@ base.exportTo('tracing', function() {
     },
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfClockParser);
+  Parser.registerSubtype(ClockParser);
 
   return {
-    LinuxPerfClockParser: LinuxPerfClockParser
+    ClockParser: ClockParser
   };
 });

@@ -6,33 +6,33 @@
  * @fileoverview Parses cpufreq events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux cpufreq trace events.
    * @constructor
    */
-  function LinuxPerfCpufreqParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function CpufreqParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('cpufreq_interactive_up',
-        LinuxPerfCpufreqParser.prototype.cpufreqUpDownEvent.bind(this));
+        CpufreqParser.prototype.cpufreqUpDownEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_down',
-        LinuxPerfCpufreqParser.prototype.cpufreqUpDownEvent.bind(this));
+        CpufreqParser.prototype.cpufreqUpDownEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_already',
-        LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
+        CpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_notyet',
-        LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
+        CpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_setspeed',
-        LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
+        CpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_target',
-        LinuxPerfCpufreqParser.prototype.cpufreqTargetEvent.bind(this));
+        CpufreqParser.prototype.cpufreqTargetEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_boost',
-        LinuxPerfCpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
+        CpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
     importer.registerEventHandler('cpufreq_interactive_unboost',
-        LinuxPerfCpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
+        CpufreqParser.prototype.cpufreqBoostUnboostEvent.bind(this));
   }
 
   function splitData(input) {
@@ -47,8 +47,8 @@ base.exportTo('tracing', function() {
     return data;
   }
 
-  LinuxPerfCpufreqParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  CpufreqParser.prototype = {
+    __proto__: Parser.prototype,
 
     cpufreqSlice: function(ts, eventName, cpu, args) {
       // TODO(sleffler) should be per-cpu
@@ -95,9 +95,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfCpufreqParser);
+  Parser.registerSubtype(CpufreqParser);
 
   return {
-    LinuxPerfCpufreqParser: LinuxPerfCpufreqParser
+    CpufreqParser: CpufreqParser
   };
 });

@@ -13,7 +13,7 @@
 base.require('timeline_model');
 base.require('timeline_slice');
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer', function() {
 
   var STATE_PAUSED = 0x1;
   var STATE_CAPTURING = 0x2;

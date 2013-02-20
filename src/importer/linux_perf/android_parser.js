@@ -7,21 +7,21 @@
  * userland.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
    * @constructor
    */
-  function LinuxPerfAndroidParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function AndroidParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('tracing_mark_write:android',
-        LinuxPerfAndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
+        AndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
     importer.registerEventHandler('0:android',
-        LinuxPerfAndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
+        AndroidParser.prototype.traceMarkWriteAndroidEvent.bind(this));
 
     this.model_ = importer.model_;
     this.ppids_ = {};
@@ -40,8 +40,8 @@ base.exportTo('tracing', function() {
     return args;
   }
 
-  LinuxPerfAndroidParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  AndroidParser.prototype = {
+    __proto__: Parser.prototype,
 
     traceMarkWriteAndroidEvent: function(eventName, cpuNumber, pid, ts,
                                   eventBase, threadName) {
@@ -118,9 +118,9 @@ base.exportTo('tracing', function() {
     },
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfAndroidParser);
+  Parser.registerSubtype(AndroidParser);
 
   return {
-    LinuxPerfAndroidParser: LinuxPerfAndroidParser
+    AndroidParser: AndroidParser
   };
 });

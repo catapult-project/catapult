@@ -8,7 +8,7 @@
  */
 base.require('timeline_model');
 base.require('timeline_color_scheme');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer', function() {
 
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;

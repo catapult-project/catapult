@@ -44,7 +44,7 @@ found in the LICENSE file.
     view.tabIndex = 0;
     view.focusElement = view;
 
-    var streamer = new tracing.TimelineStreamImporter(model);
+    var streamer = new tracing.importer.TimelineStreamImporter(model);
     streamer.addEventListener('connect', function () {
       console.log('connected');
     });

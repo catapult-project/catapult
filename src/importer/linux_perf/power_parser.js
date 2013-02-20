@@ -6,31 +6,31 @@
  * @fileoverview Parses power events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux power trace events.
    * @constructor
    */
-  function LinuxPerfPowerParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function PowerParser(importer) {
+    Parser.call(this, importer);
 
     // NB: old-style power events, deprecated
     importer.registerEventHandler('power_start',
-        LinuxPerfPowerParser.prototype.powerStartEvent.bind(this));
+        PowerParser.prototype.powerStartEvent.bind(this));
     importer.registerEventHandler('power_frequency',
-        LinuxPerfPowerParser.prototype.powerFrequencyEvent.bind(this));
+        PowerParser.prototype.powerFrequencyEvent.bind(this));
 
     importer.registerEventHandler('cpu_frequency',
-        LinuxPerfPowerParser.prototype.cpuFrequencyEvent.bind(this));
+        PowerParser.prototype.cpuFrequencyEvent.bind(this));
     importer.registerEventHandler('cpu_idle',
-        LinuxPerfPowerParser.prototype.cpuIdleEvent.bind(this));
+        PowerParser.prototype.cpuIdleEvent.bind(this));
   }
 
-  LinuxPerfPowerParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  PowerParser.prototype = {
+    __proto__: Parser.prototype,
 
     cpuStateSlice: function(ts, targetCpuNumber, eventType, cpuState) {
       var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
@@ -128,9 +128,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfPowerParser);
+  Parser.registerSubtype(PowerParser);
 
   return {
-    LinuxPerfPowerParser: LinuxPerfPowerParser
+    PowerParser: PowerParser
   };
 });

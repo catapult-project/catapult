@@ -6,30 +6,30 @@
  * @fileoverview Parses exynos events in the Linux event trace format.
  */
 base.require('importer.linux_perf.parser');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
-  var LinuxPerfParser = tracing.LinuxPerfParser;
+  var Parser = tracing.importer.linux_perf.Parser;
 
   /**
    * Parses linux exynos trace events.
    * @constructor
    */
-  function LinuxPerfExynosParser(importer) {
-    LinuxPerfParser.call(this, importer);
+  function ExynosParser(importer) {
+    Parser.call(this, importer);
 
     importer.registerEventHandler('exynos_flip_request',
-        LinuxPerfExynosParser.prototype.flipEvent.bind(this));
+        ExynosParser.prototype.flipEvent.bind(this));
     importer.registerEventHandler('exynos_flip_complete',
-        LinuxPerfExynosParser.prototype.flipEvent.bind(this));
+        ExynosParser.prototype.flipEvent.bind(this));
 
     importer.registerEventHandler('exynos_busfreq_target_int',
-        LinuxPerfExynosParser.prototype.busfreqTargetIntEvent.bind(this));
+        ExynosParser.prototype.busfreqTargetIntEvent.bind(this));
     importer.registerEventHandler('exynos_busfreq_target_mif',
-        LinuxPerfExynosParser.prototype.busfreqTargetMifEvent.bind(this));
+        ExynosParser.prototype.busfreqTargetMifEvent.bind(this));
   }
 
-  LinuxPerfExynosParser.prototype = {
-    __proto__: LinuxPerfParser.prototype,
+  ExynosParser.prototype = {
+    __proto__: Parser.prototype,
 
     exynosFlipOpenSlice: function(ts, pipe) {
       // use pipe?
@@ -108,9 +108,9 @@ base.exportTo('tracing', function() {
     },
   };
 
-  LinuxPerfParser.registerSubtype(LinuxPerfExynosParser);
+  Parser.registerSubtype(ExynosParser);
 
   return {
-    LinuxPerfExynosParser: LinuxPerfExynosParser
+    ExynosParser: ExynosParser
   };
 });

@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>LinuxPerfExynosParser tests</title>
+<title>importer.linux_perf.ExynosParser tests</title>
 <script src="../../base.js"></script>
 </head>
 <body>
@@ -34,7 +34,7 @@ function testExynosImport() {
   assertEquals('exynos_flip', gfxFlipThread.name);
   assertEquals(1, gfxFlipThread.slices.length);
 }
- 
+
 function testExynosBusfreqImport() {
   var lines = [
     '     kworker/1:0-4177  [001] ....  2803.129806: ' +

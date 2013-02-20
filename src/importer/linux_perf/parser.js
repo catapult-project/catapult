@@ -6,25 +6,25 @@
  * @fileoverview Base class for linux perf event parsers.
  *
  * The linux perf trace event importer depends on subclasses of
- * LinuxPerfParser to parse event data.  Each subclass corresponds
- * to a group of trace events; e.g. LinuxPerfSchedParser implements
+ * Parser to parse event data.  Each subclass corresponds
+ * to a group of trace events; e.g. SchedParser implements
  * parsing of sched:* kernel trace events.  Parser subclasses must
- * call LinuxPerfParser.registerSubtype to arrange to be instantiated
+ * call Parser.registerSubtype to arrange to be instantiated
  * and their constructor must register their event handlers with the
  * importer.  For example,
  *
- * var LinuxPerfParser = tracing.LinuxPerfParser;
+ * var Parser = tracing.importer.linux_perf.Parser;
  *
- * function LinuxPerfWorkqueueParser(importer) {
- *   LinuxPerfParser.call(this, importer);
+ * function WorkqueueParser(importer) {
+ *   Parser.call(this, importer);
  *
  *   importer.registerEventHandler('workqueue_execute_start',
- *       LinuxPerfWorkqueueParser.prototype.executeStartEvent.bind(this));
+ *       WorkqueueParser.prototype.executeStartEvent.bind(this));
  *   importer.registerEventHandler('workqueue_execute_end',
- *       LinuxPerfWorkqueueParser.prototype.executeEndEvent.bind(this));
+ *       WorkqueueParser.prototype.executeEndEvent.bind(this));
  * }
  *
- * LinuxPerfParser.registerSubtype(LinuxPerfWorkqueueParser);
+ * Parser.registerSubtype(WorkqueueParser);
  *
  * When a registered event name is found in the data stream the associated
  * event handler is invoked:
@@ -58,7 +58,7 @@
  * adding a new subclass you must run build/generate_about_tracing_contents.py
  * to regenerate about_tracing.*.
  */
-base.exportTo('tracing', function() {
+base.exportTo('tracing.importer.linux_perf', function() {
 
   var subtypeConstructors = [];
 
@@ -69,11 +69,11 @@ base.exportTo('tracing', function() {
    *
    * @param {Function} subtypeConstructor The subtype's constructor function.
    */
-  LinuxPerfParser.registerSubtype = function(subtypeConstructor) {
+  Parser.registerSubtype = function(subtypeConstructor) {
     subtypeConstructors.push(subtypeConstructor);
   };
 
-  LinuxPerfParser.getSubtypeConstructors = function() {
+  Parser.getSubtypeConstructors = function() {
     return subtypeConstructors;
   };
 
@@ -81,17 +81,17 @@ base.exportTo('tracing', function() {
    * Parses linux perf events.
    * @constructor
    */
-  function LinuxPerfParser(importer) {
+  function Parser(importer) {
     this.importer = importer;
     this.model = importer.model;
   }
 
-  LinuxPerfParser.prototype = {
+  Parser.prototype = {
     __proto__: Object.prototype
   };
 
   return {
-    LinuxPerfParser: LinuxPerfParser
+    Parser: Parser
   };
 
 });
