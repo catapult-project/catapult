@@ -37,8 +37,7 @@ class TabListBackend(object):
     return self[-1]
 
   def DoesDebuggerUrlExist(self, url):
-    self._UpdateTabList()
-    return url in self._tab_list
+    return url in self._ListTabs()
 
   def CloseTab(self, debugger_url, timeout=None):
     assert self._browser_backend.supports_tab_control
