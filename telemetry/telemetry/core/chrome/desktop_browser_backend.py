@@ -1,7 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os as os
+import os
 import subprocess as subprocess
 import shutil
 import tempfile
@@ -32,7 +32,17 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
           'Content shell does not support extensions.')
 
     self._port = util.GetAvailableLocalPort()
+    self._supports_net_benchmarking = True
+    self._LaunchBrowser(options)
 
+    # For old chrome versions, might have to relaunch to have the
+    # correct benchmarking switch.
+    if self._chrome_branch_number < 1418:
+      self.Close()
+      self._supports_net_benchmarking = False
+      self._LaunchBrowser(options)
+
+  def _LaunchBrowser(self, options):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if not options.show_stdout:
@@ -52,11 +62,15 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--remote-debugging-port=%i' % self._port)
-    args.append('--window-size=1280,1024')
-    args.append('--enable-benchmarking')
-    if not self.options.dont_override_profile:
-      self._tmpdir = tempfile.mkdtemp()
-      args.append('--user-data-dir=%s' % self._tmpdir)
+    if not self.is_content_shell:
+      args.append('--window-size=1280,1024')
+      if self._supports_net_benchmarking:
+        args.append('--enable-net-benchmarking')
+      else:
+        args.append('--enable-benchmarking')
+      if not self.options.dont_override_profile:
+        self._tmpdir = tempfile.mkdtemp()
+        args.append('--user-data-dir=%s' % self._tmpdir)
     return args
 
   def IsBrowserRunning(self):
@@ -112,6 +126,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
   def CreateForwarder(self, *port_pairs):
     return DoNothingForwarder(*port_pairs)
+
 
 class DoNothingForwarder(object):
   def __init__(self, *port_pairs):
