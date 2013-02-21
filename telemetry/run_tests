@@ -14,6 +14,8 @@ if __name__ == '__main__':
   start_dir = 'telemetry'
   ret = run_tests.Main(sys.argv[1:], start_dir, top_level_dir, runner)
 
-  runner.result.PrintSummary()
-
-  sys.exit(max(ret + runner.result.num_errors, 255))
+  if runner.result:
+    runner.result.PrintSummary()
+    sys.exit(max(ret + runner.result.num_errors, 255))
+  else:
+    sys.exit(ret)
