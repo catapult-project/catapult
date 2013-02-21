@@ -71,7 +71,7 @@ base.exportTo('tracing', function() {
       this.viewport_ = new TimelineViewport(this);
 
       // Add the viewport track.
-      this.viewportTrack_ = new tracks.TimelineViewportTrack();
+      this.viewportTrack_ = new tracing.tracks.TimelineViewportTrack();
       this.viewportTrack_.viewport = this.viewport_;
       this.appendChild(this.viewportTrack_);
 
@@ -79,7 +79,7 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_.className = 'timeline-model-track-container';
       this.appendChild(this.modelTrackContainer_);
 
-      this.modelTrack_ = new tracks.TimelineModelTrack();
+      this.modelTrack_ = new tracing.tracks.TimelineModelTrack();
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');

@@ -10,7 +10,7 @@ base.require('tracks.timeline_canvas_based_track');
 base.require('timeline_color_scheme');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   var palette = tracing.getColorPalette();
 
@@ -20,11 +20,12 @@ base.exportTo('tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineCounterTrack = base.ui.define(tracks.TimelineCanvasBasedTrack);
+  var TimelineCounterTrack =
+      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   TimelineCounterTrack.prototype = {
 
-    __proto__: tracks.TimelineCanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.TimelineCanvasBasedTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-counter-track');

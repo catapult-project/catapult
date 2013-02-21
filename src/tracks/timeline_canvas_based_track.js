@@ -10,7 +10,7 @@ base.require('fast_rect_renderer');
 base.require('timeline_color_scheme');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * A canvas-based track constructed. Provides the basic heading and
@@ -19,10 +19,10 @@ base.exportTo('tracks', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineCanvasBasedTrack = base.ui.define(tracks.TimelineTrack);
+  var TimelineCanvasBasedTrack = base.ui.define(tracing.tracks.TimelineTrack);
 
   TimelineCanvasBasedTrack.prototype = {
-    __proto__: tracks.TimelineTrack.prototype,
+    __proto__: tracing.tracks.TimelineTrack.prototype,
 
     decorate: function() {
       this.className = 'timeline-canvas-based-track';

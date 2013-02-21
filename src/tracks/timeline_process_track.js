@@ -10,18 +10,19 @@ base.require('tracks.timeline_thread_track');
 base.require('timeline_filter');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a TimelineProcess by building TimelineThreadTracks and
    * TimelineCounterTracks.
    * @constructor
    */
-  var TimelineProcessTrack = base.ui.define(tracks.TimelineContainerTrack);
+  var TimelineProcessTrack =
+      base.ui.define(tracing.tracks.TimelineContainerTrack);
 
   TimelineProcessTrack.prototype = {
 
-    __proto__: tracks.TimelineContainerTrack.prototype,
+    __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-process-track');
@@ -54,7 +55,7 @@ base.exportTo('tracks', function() {
 
         // Create the counters for this process.
         counters.forEach(function(counter) {
-          var track = new tracks.TimelineCounterTrack();
+          var track = new tracing.tracks.TimelineCounterTrack();
           track.heading = counter.name + ':';
           track.counter = counter;
           this.addTrack_(track);
@@ -68,7 +69,7 @@ base.exportTo('tracks', function() {
 
         // Create the threads.
         threads.forEach(function(thread) {
-          var track = new tracks.TimelineThreadTrack();
+          var track = new tracing.tracks.TimelineThreadTrack();
           track.heading = thread.userFriendlyName + ':';
           track.tooltip = thread.userFriendlyDetails;
           track.thread = thread;

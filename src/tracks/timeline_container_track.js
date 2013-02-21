@@ -7,15 +7,15 @@
 base.require('tracks.timeline_track');
 base.require('timeline_filter');
 base.require('ui');
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var TimelineContainerTrack = base.ui.define(tracks.TimelineTrack);
+  var TimelineContainerTrack = base.ui.define(tracing.tracks.TimelineTrack);
   TimelineContainerTrack.prototype = {
-    __proto__: tracks.TimelineTrack.prototype,
+    __proto__: tracing.tracks.TimelineTrack.prototype,
 
     decorate: function() {
       this.categoryFilter_ = new tracing.TimelineFilter();

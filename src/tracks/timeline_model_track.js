@@ -10,18 +10,19 @@ base.require('tracks.timeline_cpu_track');
 base.require('tracks.timeline_process_track');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a TimelineModel by building TimelineProcessTracks and
    * TimelineCpuTracks.
    * @constructor
    */
-  var TimelineModelTrack = base.ui.define(tracks.TimelineContainerTrack);
+  var TimelineModelTrack =
+      base.ui.define(tracing.tracks.TimelineContainerTrack);
 
   TimelineModelTrack.prototype = {
 
-    __proto__: tracks.TimelineContainerTrack.prototype,
+    __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-model-track');
@@ -30,7 +31,7 @@ base.exportTo('tracks', function() {
     },
 
     detach: function() {
-      tracks.TimelineContainerTrack.prototype.detach.call(this);
+      tracing.tracks.TimelineContainerTrack.prototype.detach.call(this);
       this.measuringStick_.detach();
     },
 
@@ -83,7 +84,7 @@ base.exportTo('tracks', function() {
 
         for (var i = 0; i < cpus.length; ++i) {
           var cpu = cpus[i];
-          var track = new tracks.TimelineCpuTrack();
+          var track = new tracing.tracks.TimelineCpuTrack();
           track.heading = 'CPU ' + cpu.cpuNumber + ':';
           track.cpu = cpu;
           this.addTrack_(track);
@@ -95,7 +96,7 @@ base.exportTo('tracks', function() {
 
         for (var i = 0; i < processes.length; ++i) {
           var process = processes[i];
-          var track = new tracks.TimelineProcessTrack();
+          var track = new tracing.tracks.TimelineProcessTrack();
           track.process = process;
           this.addTrack_(track);
         }

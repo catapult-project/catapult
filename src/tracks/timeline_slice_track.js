@@ -12,7 +12,7 @@ base.require('fast_rect_renderer');
 base.require('timeline_color_scheme');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   var palette = tracing.getColorPalette();
 
@@ -22,11 +22,12 @@ base.exportTo('tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineSliceTrack = base.ui.define(tracks.TimelineCanvasBasedTrack);
+  var TimelineSliceTrack =
+      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   TimelineSliceTrack.prototype = {
 
-    __proto__: tracks.TimelineCanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.TimelineCanvasBasedTrack.prototype,
 
     /**
      * Should we elide text on trace labels?

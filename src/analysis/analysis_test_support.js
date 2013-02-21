@@ -68,12 +68,12 @@ base.exportTo('tracing', function() {
       ctr2.timestamps.push(0, 10, 20);
       ctr2.samples.push(0, 25, 10, 15, 20, 5);
 
-      var t1track = new tracks.TimelineThreadTrack();
+      var t1track = new tracing.tracks.TimelineThreadTrack();
       t1track.thread = t1;
-      var ctr1track = new tracks.TimelineCounterTrack();
+      var ctr1track = new tracing.tracks.TimelineCounterTrack();
       ctr1track.counter = ctr1;
 
-      var ctr2track = new tracks.TimelineCounterTrack();
+      var ctr2track = new tracing.tracks.TimelineCounterTrack();
       ctr2track.counter = ctr2;
 
       decorateTrackWithTestHelpers(t1track);

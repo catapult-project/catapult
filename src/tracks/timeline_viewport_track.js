@@ -10,7 +10,7 @@ base.require('tracks.timeline_track');
 base.require('tracks.timeline_canvas_based_track');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays the viewport size and scale.
@@ -18,7 +18,8 @@ base.exportTo('tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var TimelineViewportTrack = base.ui.define(tracks.TimelineCanvasBasedTrack);
+  var TimelineViewportTrack =
+      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -27,7 +28,7 @@ base.exportTo('tracks', function() {
 
   TimelineViewportTrack.prototype = {
 
-    __proto__: tracks.TimelineCanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.TimelineCanvasBasedTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-viewport-track');

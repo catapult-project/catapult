@@ -9,15 +9,15 @@ base.require('tracks.timeline_slice_track');
 base.require('timeline_filter');
 base.require('timeline_model');
 base.require('ui');
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a TimelineCpu using a series of of TimelineSliceTracks.
    * @constructor
    */
-  var TimelineCpuTrack = base.ui.define(tracks.TimelineContainerTrack);
+  var TimelineCpuTrack = base.ui.define(tracing.tracks.TimelineContainerTrack);
   TimelineCpuTrack.prototype = {
-    __proto__: tracks.TimelineContainerTrack.prototype,
+    __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-cpu-track');
@@ -63,7 +63,7 @@ base.exportTo('tracks', function() {
         var slices = tracing.filterSliceArray(this.categoryFilter_,
                                               this.cpu_.slices);
         if (slices.length) {
-          var track = new tracks.TimelineSliceTrack();
+          var track = new tracing.tracks.TimelineSliceTrack();
           track.slices = slices;
           track.heading = this.heading_;
           track.tooltip = this.tooltip_;
@@ -72,7 +72,7 @@ base.exportTo('tracks', function() {
 
         for (var counterName in this.cpu_.counters) {
           var counter = this.cpu_.counters[counterName];
-          track = new tracks.TimelineCounterTrack();
+          track = new tracing.tracks.TimelineCounterTrack();
           track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
               counter.name + ':';
           track.counter = counter;

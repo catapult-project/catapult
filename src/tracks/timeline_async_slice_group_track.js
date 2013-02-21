@@ -6,7 +6,7 @@
 
 base.require('tracks.timeline_slice_group_track');
 base.require('ui');
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays a TimelineAsyncSliceGroup.
@@ -15,19 +15,20 @@ base.exportTo('tracks', function() {
    */
 
   var TimelineAsyncSliceGroupTrack = base.ui.define(
-      tracks.TimelineSliceGroupTrack);
+      tracing.tracks.TimelineSliceGroupTrack);
 
   TimelineAsyncSliceGroupTrack.prototype = {
 
-    __proto__: tracks.TimelineSliceGroupTrack.prototype,
+    __proto__: tracing.tracks.TimelineSliceGroupTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-async-slice-group-track');
     },
 
     addSliceTrack_: function(slices) {
-      var track = tracks.TimelineSliceGroupTrack.prototype.addSliceTrack_.call(
-          this, slices);
+      var track =
+          tracing.tracks.TimelineSliceGroupTrack.prototype.addSliceTrack_.call(
+              this, slices);
       track.asyncStyle = true;
       return track;
     },

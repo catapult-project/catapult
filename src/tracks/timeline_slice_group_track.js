@@ -8,7 +8,7 @@ base.require('tracks.timeline_container_track');
 base.require('sorted_array_utils');
 base.require('ui');
 
-base.exportTo('tracks', function() {
+base.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays a TimelineSliceGroup.
@@ -16,11 +16,12 @@ base.exportTo('tracks', function() {
    * @extends {TimelineContainerTrack}
    */
 
-  var TimelineSliceGroupTrack = base.ui.define(tracks.TimelineContainerTrack);
+  var TimelineSliceGroupTrack =
+      base.ui.define(tracing.tracks.TimelineContainerTrack);
 
   TimelineSliceGroupTrack.prototype = {
 
-    __proto__: tracks.TimelineContainerTrack.prototype,
+    __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 
     decorate: function() {
       this.classList.add('timeline-slice-group-track');
@@ -55,7 +56,7 @@ base.exportTo('tracks', function() {
     },
 
     addSliceTrack_: function(slices) {
-      var track = new tracks.TimelineSliceTrack();
+      var track = new tracing.tracks.TimelineSliceTrack();
       track.slices = slices;
       track.decorateHit = this.decorateHit_;
       this.addTrack_(track);
