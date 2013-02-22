@@ -36,7 +36,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self._options, self._local_executable, self._is_content_shell)
-    b = browser.Browser(backend, platform.Platform())
+    b = browser.Browser(backend, platform.EmptyPlatform())
     backend.SetBrowser(b)
     return b
 

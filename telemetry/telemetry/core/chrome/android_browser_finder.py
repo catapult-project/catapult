@@ -13,7 +13,8 @@ from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core.chrome import adb_commands
 from telemetry.core.chrome import android_browser_backend
-from telemetry.core.chrome import android_platform
+from telemetry.core.chrome import android_platform_backend
+from telemetry.core.chrome import platform
 
 CHROME_PACKAGE_NAMES = {
   'android-chrome': 'com.google.android.apps.chrome',
@@ -53,10 +54,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = android_browser_backend.AndroidBrowserBackend(
         self._options, *self._args)
-    platform = android_platform.AndroidPlatform(
+    platform_backend = android_platform_backend.AndroidPlatformBackend(
         self._args[0].Adb(), self._args[1],
         self._args[4])
-    b = browser.Browser(backend, platform)
+    b = browser.Browser(backend, platform.Platform(platform_backend))
     backend.SetBrowser(b)
     return b
 

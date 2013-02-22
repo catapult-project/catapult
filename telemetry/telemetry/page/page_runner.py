@@ -142,6 +142,8 @@ class PageRunner(object):
             if options.trace_dir:
               self._SetupTracingTab(state)
 
+            self._WaitForThermalThrottlingIfNeeded(state.browser.platform)
+
             try:
               self._RunPage(options, page, state.tab, test, results)
             except exceptions.TabCrashException:
@@ -154,6 +156,8 @@ class PageRunner(object):
                           ('*' * 80))
               logging.warning('Tab crashed: %s%s', page.url, stdout)
               state.Close()
+
+            self._CheckThermalThrottling(state.browser.platform)
 
             if options.trace_dir:
               self._EndTracing(state, options, page)
@@ -313,6 +317,28 @@ class PageRunner(object):
                               chrome.benchmarking.closeConnections()""")
     except Exception:
       pass
+
+  def _WaitForThermalThrottlingIfNeeded(self, platform):
+    if not platform.CanMonitorThermalThrottling():
+      return
+    thermal_throttling_retry = 0
+    while (platform.IsThermallyThrottled() and
+           thermal_throttling_retry < 3):
+      logging.warning('Thermally throttled, waiting (%d)...',
+                      thermal_throttling_retry)
+      thermal_throttling_retry += 1
+      time.sleep(thermal_throttling_retry * 2)
+
+    if platform.IsThermallyThrottled():
+      logging.error('Device is thermally throttled before running '
+                    'performance tests, results will vary.')
+
+  def _CheckThermalThrottling(self, platform):
+    if not platform.CanMonitorThermalThrottling():
+      return
+    if platform.HasBeenThermallyThrottled():
+      logging.error('Device has been thermally throttled during '
+                    'performance tests, results will vary.')
 
   @staticmethod
   def AddCommandLineOptions(parser):

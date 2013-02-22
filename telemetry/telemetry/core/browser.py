@@ -33,6 +33,7 @@ class Browser(object):
       self._extensions = extension_dict.ExtensionDict(
           backend.extension_dict_backend)
     self.credentials = browser_credentials.BrowserCredentials()
+    self._platform.SetFullPerformanceModeEnabled(True)
 
   def __enter__(self):
     return self
@@ -89,6 +90,7 @@ class Browser(object):
 
   def Close(self):
     """Closes this browser."""
+    self._platform.SetFullPerformanceModeEnabled(False)
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None

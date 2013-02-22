@@ -25,24 +25,27 @@ class ScrollingAction(page_action.PageAction):
      """)
 
   def RunAction(self, page, tab, previous_action):
-    with tab.browser.platform.GetSurfaceCollector(''):
-      # scrollable_element_function is a function that passes the scrollable
-      # element on the page to a callback. For example:
-      #   function (callback) {
-      #     callback(document.getElementById('foo'));
-      #   }
-      if hasattr(self, 'scrollable_element_function'):
-        tab.ExecuteJavaScript("""
-            (%s)(function(element) {
-              window.__scrollingAction.start(element);
-            });""" % (self.scrollable_element_function))
-      else:
-        tab.ExecuteJavaScript(
-          'window.__scrollingAction.start(document.body);')
+    if tab.browser.platform.IsRawDisplayFrameRateSupported():
+      tab.browser.platform.StartRawDisplayFrameRateMeasurement('')
+    # scrollable_element_function is a function that passes the scrollable
+    # element on the page to a callback. For example:
+    #   function (callback) {
+    #     callback(document.getElementById('foo'));
+    #   }
+    if hasattr(self, 'scrollable_element_function'):
+      tab.ExecuteJavaScript("""
+          (%s)(function(element) {
+            window.__scrollingAction.start(element);
+          });""" % (self.scrollable_element_function))
+    else:
+      tab.ExecuteJavaScript(
+        'window.__scrollingAction.start(document.body);')
 
-      # Poll for scroll benchmark completion.
-      util.WaitFor(lambda: tab.EvaluateJavaScript(
-          'window.__scrollingActionDone'), 60)
+    # Poll for scroll benchmark completion.
+    util.WaitFor(lambda: tab.EvaluateJavaScript(
+        'window.__scrollingActionDone'), 60)
+    if tab.browser.platform.IsRawDisplayFrameRateSupported():
+      tab.browser.platform.StopRawDisplayFrameRateMeasurement()
 
   def CanBeBound(self):
     return True
