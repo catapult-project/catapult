@@ -24,12 +24,6 @@ class TabListBackend(object):
   def Init(self):
     self._UpdateTabList()
 
-  def Reset(self):
-    # TODO(hartmanng): Remove this method when crbug.com/166886 is fixed.
-    self.Init()
-    self._tab_list = []
-    self._tab_dict = weakref.WeakValueDictionary()
-
   def New(self, timeout):
     assert self._browser_backend.supports_tab_control
 
@@ -78,9 +72,7 @@ class TabListBackend(object):
     # TODO(hartmanng): crbug.com/166886 (uncomment the following assert and
     # remove the extra None check when _ListTabs is fixed):
     # assert tab_info is not None
-    if tab_info is None:
-      return None
-    return tab_info['url']
+    return tab_info['url'] if tab_info else None
 
   def __iter__(self):
     self._UpdateTabList()

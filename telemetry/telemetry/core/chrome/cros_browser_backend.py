@@ -93,11 +93,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
   def SetBrowser(self, browser):
     super(CrOSBrowserBackend, self).SetBrowser(browser)
 
-    # TODO(hartmanng): crbug.com/166886 (Remove these temporary hacks when
-    # _ListTabs is fixed)
-
-    self._tab_list_backend.Reset()
-
     # Wait for the login screen to disappear.
     def TabNotOobeLogin():
       tab = self._tab_list_backend.Get(0, None)
@@ -105,10 +100,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     util.WaitFor(TabNotOobeLogin, 20)
 
     # Wait for the startup window to launch.
-    def StartupWindowLaunched():
-      self._tab_list_backend.Reset()
-      return len(self._tab_list_backend) != 0
-    util.WaitFor(StartupWindowLaunched, 20)
+    util.WaitFor(lambda: len(self._tab_list_backend) != 0, 20)
 
     # Close the startup window.
     self._tab_list_backend[0].Close()
