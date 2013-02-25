@@ -27,7 +27,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = cros_browser_backend.CrOSBrowserBackend(
         self.browser_type, self._options, *self._args)
-    b = browser.Browser(backend, platform.Platform())
+    b = browser.Browser(backend, platform.EmptyPlatform())
     backend.SetBrowser(b)
     return b
 
