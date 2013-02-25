@@ -146,6 +146,7 @@ class PageRunner(object):
 
             try:
               self._RunPage(options, page, state.tab, test, results)
+              self._CheckThermalThrottling(state.browser.platform)
             except exceptions.TabCrashException:
               stdout = ''
               if not options.show_stdout:
@@ -156,8 +157,6 @@ class PageRunner(object):
                           ('*' * 80))
               logging.warning('Tab crashed: %s%s', page.url, stdout)
               state.Close()
-
-            self._CheckThermalThrottling(state.browser.platform)
 
             if options.trace_dir:
               self._EndTracing(state, options, page)
