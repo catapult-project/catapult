@@ -51,7 +51,7 @@ output:
 %s
 
 Change your test to produce the same thing each time, or modify
-MultiPageBenchmark.results_are_the_same_on_every_page to return False.
+PageBenchmark.results_are_the_same_on_every_page to return False.
 """ % (repr(header_names_written_to_writer),
        repr(current_page_measurement_names))
 

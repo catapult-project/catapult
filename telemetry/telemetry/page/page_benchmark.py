@@ -8,21 +8,20 @@ class MeasurementFailure(page_test.Failure):
   designed-for problem."""
   pass
 
-# TODO(nduca): Rename to page_benchmark
-class MultiPageBenchmark(page_test.PageTest):
+class PageBenchmark(page_test.PageTest):
   """Glue code for running a benchmark across a set of pages.
 
   To use this, subclass from the benchmark and override MeasurePage. For
   example:
 
-     class BodyChildElementBenchmark(MultiPageBenchmark):
+     class BodyChildElementBenchmark(PageBenchmark):
         def MeasurePage(self, page, tab, results):
            body_child_count = tab.EvaluateJavaScript(
                'document.body.children.length')
            results.Add('body_children', 'count', body_child_count)
 
      if __name__ == '__main__':
-         multi_page_benchmark.Main(BodyChildElementBenchmark())
+         page_benchmark.Main(BodyChildElementBenchmark())
 
   All benchmarks should include a unit test!
 
@@ -30,7 +29,7 @@ class MultiPageBenchmark(page_test.PageTest):
 
   To add test-specific options:
 
-     class BodyChildElementBenchmark(MultiPageBenchmark):
+     class BodyChildElementBenchmark(PageBenchmark):
         def AddCommandLineOptions(parser):
            parser.add_option('--element', action='store', default='body')
 
@@ -42,7 +41,7 @@ class MultiPageBenchmark(page_test.PageTest):
   def __init__(self,
                action_name_to_run='',
                needs_browser_restart_after_each_run=False):
-    super(MultiPageBenchmark, self).__init__(
+    super(PageBenchmark, self).__init__(
       '_RunTest',
       action_name_to_run,
       needs_browser_restart_after_each_run)

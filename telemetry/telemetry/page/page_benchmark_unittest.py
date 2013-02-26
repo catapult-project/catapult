@@ -5,19 +5,19 @@ import json
 import os
 
 from telemetry.core import wpr_modes
-from telemetry.page import multi_page_benchmark
-from telemetry.page import multi_page_benchmark_unittest_base
+from telemetry.page import page_benchmark
+from telemetry.page import page_benchmark_unittest_base
 from telemetry.page import page as page_module
 from telemetry.page import page_action
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
 from telemetry.test import options_for_unittests
 
-class BenchThatFails(multi_page_benchmark.MultiPageBenchmark):
+class BenchThatFails(page_benchmark.PageBenchmark):
   def MeasurePage(self, page, tab, results):
-    raise multi_page_benchmark.MeasurementFailure('Intentional failure.')
+    raise page_benchmark.MeasurementFailure('Intentional failure.')
 
-class BenchThatHasDefaults(multi_page_benchmark.MultiPageBenchmark):
+class BenchThatHasDefaults(page_benchmark.PageBenchmark):
   def AddCommandLineOptions(self, parser):
     parser.add_option('-x', dest='x', default=3)
 
@@ -25,32 +25,32 @@ class BenchThatHasDefaults(multi_page_benchmark.MultiPageBenchmark):
     assert self.options.x == 3
     results.Add('x', 'ms', 7)
 
-class BenchForBlank(multi_page_benchmark.MultiPageBenchmark):
+class BenchForBlank(page_benchmark.PageBenchmark):
   def MeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
     assert contents.strip() == 'Hello world'
 
-class BenchForReplay(multi_page_benchmark.MultiPageBenchmark):
+class BenchForReplay(page_benchmark.PageBenchmark):
   def MeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
-      raise multi_page_benchmark.MeasurementFailure('Page not in archive.')
+      raise page_benchmark.MeasurementFailure('Page not in archive.')
 
-class BenchQueryParams(multi_page_benchmark.MultiPageBenchmark):
+class BenchQueryParams(page_benchmark.PageBenchmark):
   def MeasurePage(self, page, tab, results):
     query = tab.EvaluateJavaScript('window.location.search')
     assert query.strip() == '?foo=1'
 
-class BenchWithAction(multi_page_benchmark.MultiPageBenchmark):
+class BenchWithAction(page_benchmark.PageBenchmark):
   def __init__(self):
     super(BenchWithAction, self).__init__('test_action')
 
   def MeasurePage(self, page, tab, results):
     pass
 
-class MultiPageBenchmarkUnitTest(
-  multi_page_benchmark_unittest_base.MultiPageBenchmarkUnitTestBase):
+class PageBenchmarkUnitTest(
+  page_benchmark_unittest_base.PageBenchmarkUnitTestBase):
 
   def setUp(self):
     self._options = options_for_unittests.GetCopy()

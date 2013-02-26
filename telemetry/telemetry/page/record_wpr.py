@@ -12,7 +12,7 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import wpr_modes
 from telemetry.page import all_page_actions # pylint: disable=W0611
-from telemetry.page import multi_page_benchmark
+from telemetry.page import page_benchmark
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -65,7 +65,7 @@ def Main(benchmark_dir):
   benchmarks = discover.Discover(benchmark_dir,
                                  os.path.join(benchmark_dir, '..'),
                                  '',
-                                 multi_page_benchmark.MultiPageBenchmark)
+                                 page_benchmark.PageBenchmark)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
   page_runner.PageRunner.AddCommandLineOptions(parser)

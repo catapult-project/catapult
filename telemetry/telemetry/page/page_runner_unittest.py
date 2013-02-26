@@ -40,7 +40,7 @@ class StubCredentialsBackend(object):
 
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
-  # multi_page_benchmark_unittest to here.
+  # page_benchmark_unittest to here.
 
   def testHandlingOfCrashedTab(self):
     ps = page_set.PageSet()

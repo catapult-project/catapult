@@ -4,7 +4,7 @@
 import sys
 
 class Failure(Exception):
-  """Exception that can be thrown from MultiPageBenchmark to indicate an
+  """Exception that can be thrown from PageBenchmark to indicate an
   undesired but designed-for problem."""
   pass
 

@@ -12,21 +12,21 @@ from telemetry.core import browser_options
 from telemetry.page import all_page_actions # pylint: disable=W0611
 from telemetry.page import block_page_benchmark_results
 from telemetry.page import csv_page_benchmark_results
-from telemetry.page import multi_page_benchmark
+from telemetry.page import page_benchmark
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.test import discover
 
 def Main(benchmark_dir):
-  """Turns a MultiPageBenchmark into a command-line program.
+  """Turns a PageBenchmark into a command-line program.
 
   Args:
-    benchmark_dir: Path to directory containing MultiPageBenchmarks.
+    benchmark_dir: Path to directory containing PageBenchmarks.
   """
   benchmarks = discover.Discover(benchmark_dir,
                                  os.path.join(benchmark_dir, '..'),
                                  '',
-                                 multi_page_benchmark.MultiPageBenchmark)
+                                 page_benchmark.PageBenchmark)
 
   # Naively find the benchmark. If we use the browser options parser, we run
   # the risk of failing to parse if we use a benchmark-specific parameter.

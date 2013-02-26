@@ -11,7 +11,7 @@ from telemetry.page import page_benchmark_results
 from telemetry.page import page_set
 from telemetry.test import options_for_unittests
 
-class MultiPageBenchmarkUnitTestBase(unittest.TestCase):
+class PageBenchmarkUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests
   for a benchmark."""
 
