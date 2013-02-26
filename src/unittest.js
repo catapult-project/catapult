@@ -418,6 +418,22 @@ base.exportTo('unittest', function() {
       throw new TestError(message);
     },
 
+    assertApproxEquals: function(a, b, opt_epsilon, opt_message) {
+      if (a == b)
+        return;
+      var epsilon = opt_epsilon || 0.000001; // 6 digits.
+      a = Math.abs(a);
+      b = Math.abs(b);
+      var delta = Math.abs(a - b);
+      var sum = a + b;
+      var relative_error = delta / sum;
+      if (relative_error < epsilon)
+        return;
+      var message = opt_message || 'Expect ' + a + ' and ' + b +
+        ' to be within ' + epsilon + ' was ' + relative_error;
+      throw new TestError(message);
+    },
+
     setUp: function() {
     },
 

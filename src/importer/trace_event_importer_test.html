@@ -821,6 +821,44 @@ function testAsyncStepsMissingFinish() {
   assertUndefined(t);
 }
 
+function testImportSamples() {
+  var events = [
+    {name: 'a', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+    {name: 'b', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+    {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'}
+  ];
+  var m = new tracing.TimelineModel(events);
+  var p = m.processes[52];
+  assertNotUndefined(p);
+  var t = p.threads[53];
+  assertNotUndefined(t);
+  assertEquals(3, t.samples_.length);
+  assertEquals(0.0, t.samples_[0].start);
+  assertEquals(0.0, t.samples_[1].start);
+  assertApproxEquals(0.01, t.samples_[2].start);
+  assertEquals('a', t.samples_[0].title);
+  assertEquals('b', t.samples_[1].title);
+  assertEquals('c', t.samples_[2].title);
+  assertEquals(0, m.importErrors.length);
+}
+
+function testImportSamplesMissingArgs() {
+  var events = [
+    {name: 'a', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+    {name: 'b', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
+    {name: 'c', pid: 52, ts: 549, cat: 'test', tid: 53, ph: 'P'}
+  ];
+  var m = new tracing.TimelineModel(events);
+  var p = m.processes[52];
+  assertNotUndefined(p);
+  var t = p.threads[53];
+  assertNotUndefined(t);
+  assertNotUndefined(t);
+  assertEquals(3, t.samples_.length);
+  assertEquals(0, m.importErrors.length);
+}
+
+
 // TODO(nduca): one slice, two threads
 // TODO(nduca): one slice, two pids
 </script>

@@ -203,6 +203,10 @@ base.exportTo('tracing.importer', function() {
             .getOrCreateThread(event.tid);
           thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
           thread.endSlice(event.ts / 1000);
+        } else if (event.ph == 'P') {
+          var thread = this.model_.getOrCreateProcess(event.pid)
+            .getOrCreateThread(event.tid);
+          thread.addSample(event.cat, event.name, event.ts / 1000, event.args);
         } else if (event.ph == 'C') {
           this.processCounterEvent(event);
         } else if (event.ph == 'M') {

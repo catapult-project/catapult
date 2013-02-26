@@ -88,6 +88,19 @@ base.exportTo('tracing.tracks', function() {
         track.group = this.thread_;
         this.addTrack_(track);
 
+        if (this.thread_.samples_.length) {
+          var samplesTrack = new tracing.tracks.TimelineSliceTrack();
+          samplesTrack.heading = 'Samples';
+          samplesTrack.group = this.thread_;
+          samplesTrack.slices = this.thread_.samples;
+          samplesTrack.decorateHit = function(hit) {
+            // TODO(johnmccutchan): Figure out what else should be associated
+            // with the hit.
+            hit.thread = this.thread_;
+          }
+          this.addTrack_(samplesTrack);
+        }
+
         this.updateVisibility_();
       }
       this.addControlButtonElements_(this.tracks_.length >= 4);

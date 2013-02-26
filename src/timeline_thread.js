@@ -12,6 +12,7 @@ base.require('timeline_guid');
 base.require('timeline_slice');
 base.require('timeline_slice_group');
 base.require('timeline_async_slice_group');
+base.require('timeline_sample');
 base.exportTo('tracing', function() {
 
   var TimelineSlice = tracing.TimelineSlice;
@@ -63,6 +64,7 @@ base.exportTo('tracing', function() {
     this.parent = parent;
     this.tid = tid;
     this.cpuSlices = undefined;
+    this.samples_ = [];
     this.asyncSlices = new TimelineAsyncSliceGroup();
     this.bounds = new base.Range();
   }
@@ -99,6 +101,33 @@ base.exportTo('tracing', function() {
     },
 
     /**
+     * Adds a new sample in the thread's samples.
+     *
+     * Calls to addSample must be made with non-monotonically-decreasing
+     * timestamps.
+     *
+     * @param {String} category Category of the sample to add.
+     * @param {String} title Title of the sample to add.
+     * @param {Number} ts The timetsamp of the sample, in milliseconds.
+     * @param {Object.<string, Object>} opt_args Arguments associated with
+     * the sample.
+     */
+    addSample: function(category, title, ts, opt_args) {
+      if (this.samples_.length) {
+        var lastSample = this.samples_[this.samples_.length - 1];
+        if (ts < lastSample.start) {
+          throw new
+            Error('Samples must be added in increasing timestamp order.');
+        }
+      }
+      var colorId = tracing.getStringColorId(title);
+      var sample = new tracing.TimelineSample(category, title, colorId, ts,
+                                              opt_args ? opt_args : {});
+      this.samples_.push(sample);
+      return sample;
+    },
+
+    /**
      * Name of the thread, if present.
      */
     name: undefined,
@@ -114,6 +143,13 @@ base.exportTo('tracing', function() {
         for (var i = 0; i < this.cpuSlices.length; i++) {
           var slice = this.cpuSlices[i];
           slice.start += amount;
+        }
+      }
+
+      if (this.samples_.length) {
+        for (var i = 0; i < this.samples_.length; i++) {
+          var sample = this.samples_[i];
+          sample.start += amount;
         }
       }
 
@@ -133,6 +169,8 @@ base.exportTo('tracing', function() {
         return false;
       if (this.asyncSlices.length)
         return false;
+      if (this.samples_.length)
+        return false;
       return true;
     },
 
@@ -151,6 +189,11 @@ base.exportTo('tracing', function() {
         this.bounds.addValue(
           this.cpuSlices[this.cpuSlices.length - 1].end);
       }
+      if (this.samples_.length) {
+        this.bounds.addValue(this.samples_[0].start);
+        this.bounds.addValue(
+          this.samples_[this.samples_.length - 1].end);
+      }
     },
 
     addCategoriesToDict: function(categoriesDict) {
@@ -158,6 +201,8 @@ base.exportTo('tracing', function() {
         categoriesDict[this.slices[i].category] = true;
       for (var i = 0; i < this.asyncSlices.length; i++)
         categoriesDict[this.asyncSlices.slices[i].category] = true;
+      for (var i = 0; i < this.samples_.length; i++)
+        categoriesDict[this.samples_[i].category] = true;
     },
 
     /**

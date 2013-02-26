@@ -41,6 +41,9 @@ base.addModuleDependency(
     'timeline_thread',
     'timeline_async_slice_group');
 base.addModuleDependency(
+    'timeline_thread',
+    'timeline_sample');
+base.addModuleDependency(
     'timeline_counter',
     'timeline_guid');
 base.addModuleDependency(

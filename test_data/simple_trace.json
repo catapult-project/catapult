@@ -47,6 +47,13 @@
   {"cat": "PERF", "pid": 22630, "tid": 22631, "ts": 854, "ph": "E",
       "name": "A", "args": {}},
 
+  {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 870, "ph": "P",
+      "name": "A", "args": {}},
+  {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 875, "ph": "P",
+      "name": "B", "args": {}},
+  {"cat": "SAMPLE", "pid": 22630, "tid": 22631, "ts": 880, "ph": "P",
+      "name": "C", "args": {}},
+
   {"cat": "__metadata", "pid": 22630, "tid": 22630, "ts": 0, "ph": "M",
       "name": "thread_name", "args": {"name": "threadA"}},
   {"cat": "__metadata", "pid": 22630, "tid": 22631, "ts": 0, "ph": "M",
