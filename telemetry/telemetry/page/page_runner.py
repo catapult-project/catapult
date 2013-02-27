@@ -67,8 +67,11 @@ class PageRunner(object):
     self.Close()
 
   def Run(self, options, possible_browser, test, results):
+    # Reorder page set based on options.
+    pages = _ShuffleAndFilterPageSet(self.page_set, options)
+
     # Check if we can run against WPR.
-    for page in self.page_set.pages:
+    for page in pages:
       parsed_url = urlparse.urlparse(page.url)
       if parsed_url.scheme == 'file':
         continue
@@ -100,7 +103,7 @@ class PageRunner(object):
     if self.page_set.user_agent_type:
       options.browser_user_agent_type = self.page_set.user_agent_type
 
-    for page in self.page_set:
+    for page in pages:
       test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 
     # Check tracing directory.
@@ -112,9 +115,6 @@ class PageRunner(object):
                         options.trace_dir)
       elif os.listdir(options.trace_dir):
         raise Exception('Trace directory isn\'t empty: %s' % options.trace_dir)
-
-    # Reorder page set based on options.
-    pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
     state = _RunState()
     last_archive_path = None
