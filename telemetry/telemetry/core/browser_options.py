@@ -132,6 +132,7 @@ class BrowserOptions(optparse.Values):
         'benchmark is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
+    parser.add_option_group(group)
 
     real_parse = parser.parse_args
     def ParseArgs(args=None):
