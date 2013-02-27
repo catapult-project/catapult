@@ -125,6 +125,14 @@ class BrowserOptions(optparse.Values):
       help='Increase verbosity level (repeat as needed)')
     parser.add_option_group(group)
 
+    # Platform options
+    group = optparse.OptionGroup(parser, 'Platform options')
+    group.add_option('--no-performance-mode', action='store_true',
+        help='Some platforms run on "full performance mode" where the '
+        'benchmark is executed at maximum CPU speed in order to minimize noise '
+        '(specially important for dashboards / continuous builds). '
+        'This option prevents Telemetry from tweaking such platform settings.')
+
     real_parse = parser.parse_args
     def ParseArgs(args=None):
       defaults = parser.get_default_values()

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import sys
 
@@ -21,7 +22,7 @@ except Exception:
 
 
 class AndroidPlatformBackend(object):
-  def __init__(self, adb, window_package, window_activity):
+  def __init__(self, adb, window_package, window_activity, no_performance_mode):
     super(AndroidPlatformBackend, self).__init__()
     self._adb = adb
     self._window_package = window_package
@@ -29,6 +30,9 @@ class AndroidPlatformBackend(object):
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_tests_helper.PerfTestSetup(self._adb)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
+    self._no_performance_mode = no_performance_mode
+    if self._no_performance_mode:
+      logging.warning('CPU governor will not be set!')
 
   def IsRawDisplayFrameRateSupported(self):
     return True
@@ -45,6 +49,8 @@ class AndroidPlatformBackend(object):
     self._surface_stats_collector = None
 
   def SetFullPerformanceModeEnabled(self, enabled):
+    if self._no_performance_mode:
+      return
     if enabled:
       self._perf_tests_setup.SetUp()
     else:
