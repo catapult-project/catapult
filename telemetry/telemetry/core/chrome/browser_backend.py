@@ -92,13 +92,13 @@ class BrowserBackend(object):
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.options.browser_user_agent_type))
 
-    extensions = [extension.path for extension in
+    extensions = [extension.local_path for extension in
                   self.options.extensions_to_load if not extension.is_component]
     extension_str = ','.join(extensions)
     if len(extensions) > 0:
       args.append('--load-extension=%s' % extension_str)
 
-    component_extensions = [extension.path for extension in
+    component_extensions = [extension.local_path for extension in
                   self.options.extensions_to_load if extension.is_component]
     component_extension_str = ','.join(component_extensions)
     if len(component_extensions) > 0:
