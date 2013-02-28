@@ -43,13 +43,6 @@ class Tab(web_contents.WebContents):
     are included in this call."""
     self._inspector_backend.Activate()
 
-  def Close(self):
-    """Closes this tab.
-
-    Not all browsers or browser versions support this method.
-    Be sure to check browser.supports_tab_control."""
-    self._inspector_backend.Close()
-
   @property
   def screenshot_supported(self):
     """True if the browser instance is capable of capturing screenshots"""

@@ -17,6 +17,13 @@ class WebContents(object):
   def Disconnect(self):
     self._inspector_backend.Disconnect()
 
+  def Close(self):
+    """Closes this page.
+
+    Not all browsers or browser versions support this method.
+    Be sure to check browser.supports_tab_control."""
+    self._inspector_backend.Close()
+
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     self._inspector_backend.WaitForDocumentReadyStateToBeComplete(timeout)
