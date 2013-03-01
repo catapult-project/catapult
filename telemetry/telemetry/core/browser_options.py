@@ -121,6 +121,14 @@ class BrowserOptions(optparse.Values):
         'what is specified by --page-repeat and --pageset-repeat.')
     parser.add_option_group(group)
 
+    group = optparse.OptionGroup(parser, 'Web Page Replay options')
+    group.add_option('--allow-live-sites',
+        dest='allow_live_sites', action='store_true',
+        help='Run against live sites if the Web Page Replay archives don\'t '
+             'exist. Without this flag, the benchmark will just fail instead '
+             'of running against live sites.')
+    parser.add_option_group(group)
+
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
     group.add_option(

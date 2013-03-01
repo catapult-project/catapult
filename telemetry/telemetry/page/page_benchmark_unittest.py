@@ -83,7 +83,9 @@ class PageBenchmarkUnitTest(
     self.assertEquals(
       all_results.page_results[0].FindValueByTraceName('x').value, 7)
 
-  def testRecordAndReplay(self):
+  def disabled_testRecordAndReplay(self):
+    # This test is disabled because it runs against live sites, and needs to be
+    # fixed. crbug.com/179038
     test_archive = '/tmp/google.wpr'
     google_url = 'http://www.google.com/'
     foo_url = 'http://www.foo.com/'

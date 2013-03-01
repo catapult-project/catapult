@@ -45,9 +45,7 @@ class PageRunnerTests(unittest.TestCase):
   def testHandlingOfCrashedTab(self):
     ps = page_set.PageSet()
     page1 = page_module.Page('chrome://crash', ps)
-    page2 = page_module.Page('http://www.google.com', ps)
     ps.pages.append(page1)
-    ps.pages.append(page2)
     results = page_test.PageTestResults()
 
     class Test(page_test.PageTest):
@@ -58,10 +56,12 @@ class PageRunnerTests(unittest.TestCase):
       options = options_for_unittests.GetCopy()
       possible_browser = browser_finder.FindBrowser(options)
       runner.Run(options, possible_browser, Test('RunTest'), results)
-    self.assertEquals(1, len(results.page_successes))
+    self.assertEquals(0, len(results.page_successes))
     self.assertEquals(1, len(results.page_failures))
 
-  def testCredentialsWhenLoginFails(self):
+  def disabled_testCredentialsWhenLoginFails(self):
+    # This test is disabled because it runs against live sites, and needs to be
+    # fixed. crbug.com/179038
     results = page_test.PageTestResults()
     credentials_backend = StubCredentialsBackend(login_return_value=False)
     did_run = self.runCredentialsTest(credentials_backend, results)
@@ -69,7 +69,9 @@ class PageRunnerTests(unittest.TestCase):
     assert credentials_backend.did_get_login_no_longer_needed == False
     assert did_run == False
 
-  def testCredentialsWhenLoginSucceeds(self):
+  def disabled_testCredentialsWhenLoginSucceeds(self):
+    # This test is disabled because it runs against live sites, and needs to be
+    # fixed. crbug.com/179038
     results = page_test.PageTestResults()
     credentials_backend = StubCredentialsBackend(login_return_value=True)
     did_run = self.runCredentialsTest(credentials_backend, results)

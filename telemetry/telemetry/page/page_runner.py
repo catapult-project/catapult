@@ -71,25 +71,47 @@ class PageRunner(object):
     pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
     # Check if we can run against WPR.
+    pages_without_archives = []
     for page in pages:
       parsed_url = urlparse.urlparse(page.url)
       if parsed_url.scheme == 'file':
         continue
       if not page.archive_path:
-        logging.warning("""
+        if options.allow_live_sites:
+          logging.warning("""
   No page set archive provided for the page %s. Benchmarking against live sites!
   Results won't be repeatable or comparable.
 """, page.url)
+        else:
+          logging.warning("""
+  No page set archive provided for the page %s. Not running the page. To run
+  against live sites, pass the flag --run-against-live-sites.
+""", page.url)
+          results.AddFailure(page, 'Page set archive not defined', '')
+          pages_without_archives.append(page)
       elif options.wpr_mode != wpr_modes.WPR_RECORD:
         # The page has an archive, and we're not recording.
         if not os.path.isfile(page.archive_path):
-          logging.warning("""
+          if options.allow_live_sites:
+            logging.warning("""
   The page set archive %s for page %s does not exist, benchmarking against live
   sites! Results won't be repeatable or comparable.
 
   To fix this, either add svn-internal to your .gclient using
   http://goto/read-src-internal, or create a new archive using record_wpr.
   """, os.path.relpath(page.archive_path), page.url)
+          else:
+            logging.warning("""
+  The page set archive %s for page %s does not exist. Not running the page.
+
+  To fix this, either add svn-internal to your .gclient using
+  http://goto/read-src-internal, or create a new archive using record_wpr.
+  To run against live sites, pass the flag --allow-live-sites.
+  """, os.path.relpath(page.archive_path), page.url)
+            results.AddFailure(page, 'Page set archive doesn\'t exist', '')
+            pages_without_archives.append(page)
+
+    pages = [page for page in pages if page not in pages_without_archives]
 
     # Verify credentials path.
     credentials_path = None
