@@ -7,6 +7,7 @@ import subprocess
 
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
+from telemetry.core.chrome import cros_util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
   def __init__(self, browser_type, options, cri):
@@ -20,6 +21,21 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._login_ext_dir = '/tmp/chromeos_login_ext'
 
+    # Push a dummy login extension to the device.
+    # This extension automatically logs in as test@test.test
+    logging.info('Copying dummy login extension to the device')
+    cri.PushFile(os.path.join(os.path.dirname(__file__), 'chromeos_login_ext'),
+                 '/tmp/')
+    cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
+
+    # Copy local extensions to temp directories on the device.
+    for e in options.extensions_to_load:
+      output = cri.GetAllCmdOutput(['mktemp', '-d', '/tmp/extension_XXXXX'])
+      extension_dir = output[0].rstrip()
+      cri.PushFile(e.path, extension_dir)
+      cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', extension_dir])
+      e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
+
     # Ensure the UI is running and logged out.
     self._RestartUI()
 
@@ -28,13 +44,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       logging.info('Deleting user\'s cryptohome vault (the user data dir)')
       self._cri.GetCmdOutput(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
-
-    # Push a dummy login extension to the device.
-    # This extension automatically logs in as test@test.test
-    logging.info('Copying dummy login extension to the device')
-    cri.PushFile(
-        os.path.join(os.path.dirname(__file__), 'chromeos_login_ext'), '/tmp/')
-    cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
 
     # Restart Chrome with the login extension and remote debugging.
     logging.info('Restarting Chrome with flags and login')
@@ -66,6 +75,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       raise
 
+    cros_util.NavigateLogin(self)
     logging.info('Browser is up!')
 
   def GetBrowserStartupArgs(self):
@@ -75,13 +85,11 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
 
     args.extend([
-            '--allow-webui-compositing',
-            '--aura-host-window-use-fullscreen',
             '--enable-smooth-scrolling',
             '--enable-threaded-compositing',
             '--enable-per-tile-painting',
-            '--enable-gpu-sandboxing',
             '--force-compositing-mode',
+            '--login-screen=login',
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             '--auth-ext-path=%s' % self._login_ext_dir,
             '--start-maximized'])
@@ -89,21 +97,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def GetRemotePort(self, _):
     return self._cri.GetRemotePort()
-
-  def SetBrowser(self, browser):
-    super(CrOSBrowserBackend, self).SetBrowser(browser)
-
-    # Wait for the login screen to disappear.
-    def TabNotOobeLogin():
-      tab = self._tab_list_backend.Get(0, None)
-      return not (tab and tab.url and tab.url == 'chrome://oobe/login')
-    util.WaitFor(TabNotOobeLogin, 20)
-
-    # Wait for the startup window to launch.
-    util.WaitFor(lambda: len(self._tab_list_backend) != 0, 20)
-
-    # Close the startup window.
-    self._tab_list_backend[0].Close()
 
   def __del__(self):
     self.Close()
@@ -120,6 +113,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     if self._login_ext_dir:
       self._cri.RmRF(self._login_ext_dir)
       self._login_ext_dir = None
+
+    for e in self._options.extensions_to_load:
+      self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
 

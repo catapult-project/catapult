@@ -8,6 +8,7 @@ import tempfile
 
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
+from telemetry.core.chrome import cros_util
 
 class DesktopBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
@@ -42,6 +43,9 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       self._supports_net_benchmarking = False
       self._LaunchBrowser(options)
 
+    if self.options.cros_desktop:
+      cros_util.NavigateLogin(self)
+
   def _LaunchBrowser(self, options):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
@@ -71,6 +75,11 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       if not self.options.dont_override_profile:
         self._tmpdir = tempfile.mkdtemp()
         args.append('--user-data-dir=%s' % self._tmpdir)
+      if self.options.cros_desktop:
+        ext_path = os.path.join(os.path.dirname(__file__), 'chromeos_login_ext')
+        args.extend(['--login-manager', '--login-profile=user',
+                     '--stub-cros', '--login-screen=login',
+                     '--auth-ext-path=%s' % ext_path])
     return args
 
   def IsBrowserRunning(self):

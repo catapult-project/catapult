@@ -27,6 +27,7 @@ class BrowserOptions(optparse.Values):
     self.extra_wpr_args = []
     self.show_stdout = False
     self.extensions_to_load = []
+    self.cros_desktop = False
 
     self.cros_remote = None
     self.wpr_mode = wpr_modes.WPR_OFF
@@ -95,6 +96,11 @@ class BrowserOptions(optparse.Values):
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
+    # --cros-desktop is linux only.
+    if sys.platform.startswith('linux'):
+      group.add_option('--cros-desktop',
+          action='store_true',
+          help='Run ChromeOS desktop')
     parser.add_option_group(group)
 
     # Page set options
