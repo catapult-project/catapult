@@ -115,10 +115,10 @@ class MultipleExtensionTest(unittest.TestCase):
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
 
 class ComponentExtensionTest(unittest.TestCase):
-  def testComponentExtension(self):
+  def testComponentExtensionBasic(self):
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'component_extension')
-    load_extension = extension_to_load.ExtensionToLoad(extension_path, False)
+    load_extension = extension_to_load.ExtensionToLoad(extension_path, True)
 
     options = options_for_unittests.GetCopy()
     options.extensions_to_load = [load_extension]
@@ -131,3 +131,11 @@ class ComponentExtensionTest(unittest.TestCase):
       extension = b.extensions[load_extension]
       extension.ExecuteJavaScript('setTestVar("abcdef")')
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+
+  def testComponentExtensionNoPublicKey(self):
+    # simple_extension does not have a public key.
+    extension_path = os.path.join(os.path.dirname(__file__),
+        '..', '..', 'unittest_data', 'simple_extension')
+    self.assertRaises(extension_to_load.MissingPublicKeyException,
+                      lambda: extension_to_load.ExtensionToLoad(extension_path,
+                                                                True))

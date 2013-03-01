@@ -15,3 +15,4 @@ __init__()
 
 from crx_id import crx_id # pylint: disable=F0401
 GetCRXAppID = crx_id.GetCRXAppID
+HasPublicKey = crx_id.HasPublicKey
