@@ -16,6 +16,6 @@ if __name__ == '__main__':
 
   if runner.result:
     runner.result.PrintSummary()
-    sys.exit(max(ret + runner.result.num_errors, 255))
+    sys.exit(min(ret + runner.result.num_errors, 255))
   else:
     sys.exit(ret)
