@@ -141,3 +141,35 @@ class PageRunnerTests(unittest.TestCase):
       runner.Run(options, possible_browser, test, results)
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
+
+  # Ensure that page_runner forces exactly 1 tab before running a page.
+  def testOneTab(self):
+    ps = page_set.PageSet()
+    page = page_module.Page(
+        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        ps,
+        base_dir=os.path.dirname(__file__))
+    ps.pages.append(page)
+
+    class TestOneTab(page_test.PageTest):
+      def __init__(self,
+                   test_method_name,
+                   action_name_to_run='',
+                   needs_browser_restart_after_each_run=False):
+        super(TestOneTab, self).__init__(test_method_name, action_name_to_run,
+                                         needs_browser_restart_after_each_run)
+        self._browser = None
+
+      def SetUpBrowser(self, browser):
+        self._browser = browser
+        self._browser.tabs.New()
+
+      def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
+        assert len(self._browser.tabs) == 1
+
+    test = TestOneTab('RunTest')
+    with page_runner.PageRunner(ps) as runner:
+      options = options_for_unittests.GetCopy()
+      possible_browser = browser_finder.FindBrowser(options)
+      results = page_test.PageTestResults()
+      runner.Run(options, possible_browser, test, results)

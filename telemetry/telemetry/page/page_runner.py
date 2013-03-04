@@ -161,6 +161,11 @@ class PageRunner(object):
               if len(state.browser.tabs) == 0:
                 state.browser.tabs.New()
               state.tab = state.browser.tabs[0]
+
+            if state.browser.supports_tab_control:
+              while len(state.browser.tabs) > 1:
+                state.browser.tabs[-1].Close()
+
             if options.trace_dir:
               self._SetupTracingTab(state)
 
