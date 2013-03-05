@@ -1,6 +1,7 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import unittest
 
@@ -10,15 +11,25 @@ from telemetry.test import options_for_unittests
 
 _ = simple_mock.DONT_CARE
 
+
+def _GetCredentialsPath():
+  # TODO: This shouldn't depend on tools/perf.
+  credentials_path = os.path.join(
+      os.path.dirname(__file__),
+      '..', '..', '..', '..', 'perf', 'data', 'credentials.json')
+  if not os.path.exists(credentials_path):
+    return None
+  return credentials_path
+
+
 class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
   def setUp(self):
     self._credentials_type = None
 
   def testRealLoginIfPossible(self):
-    credentials_path = os.path.join(
-      os.path.dirname(__file__),
-      '..', '..', 'perf', 'data', 'credentials.json')
-    if not os.path.exists(credentials_path):
+    credentials_path = _GetCredentialsPath()
+    if not credentials_path:
+      logging.warning('Credentials file not found, skipping test.')
       return
 
     options = options_for_unittests.GetCopy()
@@ -30,10 +41,9 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
       self.assertTrue(ret)
 
   def testRealLoginWithDontOverrideProfileIfPossible(self):
-    credentials_path = os.path.join(
-      os.path.dirname(__file__),
-      '..', '..', 'perf', 'data', 'credentials.json')
-    if not os.path.exists(credentials_path):
+    credentials_path = _GetCredentialsPath()
+    if not credentials_path:
+      logging.warning('Credentials file not found, skipping test.')
       return
 
     options = options_for_unittests.GetCopy()
