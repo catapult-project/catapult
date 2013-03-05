@@ -95,6 +95,13 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--start-maximized'])
     return args
 
+  @property
+  def pid(self):
+    for pid, process in self._cri.ListProcesses():
+      if process.startswith('/opt/google/chrome/chrome '):
+        return int(pid)
+    return None
+
   def GetRemotePort(self, _):
     return self._cri.GetRemotePort()
 
@@ -121,10 +128,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def IsBrowserRunning(self):
     # On ChromeOS, there should always be a browser running.
-    for _, process in self._cri.ListProcesses():
-      if process.startswith('/opt/google/chrome/chrome'):
-        return True
-    return False
+    return bool(self.pid)
 
   def GetStandardOutput(self):
     return 'Cannot get standard output on CrOS'

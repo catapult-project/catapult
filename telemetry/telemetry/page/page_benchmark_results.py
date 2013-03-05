@@ -143,7 +143,7 @@ class PageBenchmarkResults(page_test.PageTestResults):
       else:
         trace = measurement + (trace_tag or '')
 
-      if not trace_tag:
+      if not trace_tag and len(value_url_list) > 1:
         for value, url in value_url_list:
           self._PrintPerfResult(measurement + '_by_url', url, [value], units,
                                 by_url_data_type)

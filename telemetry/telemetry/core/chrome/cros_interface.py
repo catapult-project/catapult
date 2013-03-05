@@ -376,7 +376,7 @@ class CrOSInterface(object):
 
   def GetCmdOutput(self, args, quiet=False):
     stdout, stderr = self.GetAllCmdOutput(args, quiet=True)
-    assert stderr == ''
+    assert stderr == '', stderr
     if not quiet:
       logging.debug("GetCmdOutput(%s)->%s" % (repr(args), stdout))
     return stdout

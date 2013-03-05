@@ -7,7 +7,7 @@ import logging
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core.chrome import platform
+from telemetry.core.chrome import cros_platform_backend
 from telemetry.core.chrome import cros_browser_backend
 from telemetry.core.chrome import cros_interface
 
@@ -27,7 +27,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = cros_browser_backend.CrOSBrowserBackend(
         self.browser_type, self._options, *self._args)
-    b = browser.Browser(backend, platform.EmptyPlatform())
+    b = browser.Browser(backend,
+                        cros_platform_backend.CrosPlatformBackend(*self._args))
     backend.SetBrowser(b)
     return b
 

@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import collections
 import os
 
 from telemetry.core import browser_credentials
@@ -10,6 +11,7 @@ from telemetry.core import temporary_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.chrome import browser_backend
+from telemetry.core.chrome import platform
 
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
@@ -22,11 +24,12 @@ class Browser(object):
     with browser_to_create.Create() as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform):
+  def __init__(self, backend, platform_backend):
     self._browser_backend = backend
     self._http_server = None
     self._wpr_server = None
-    self._platform = platform
+    self._platform = platform.Platform(platform_backend)
+    self._platform_backend = platform_backend
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self._extensions = None
     if backend.supports_extensions:
@@ -77,6 +80,69 @@ class Browser(object):
   @property
   def supports_tracing(self):
     return self._browser_backend.supports_tracing
+
+  @property
+  def memory_stats(self):
+    """Returns a dict of memory statistics for the browser:
+    { 'Browser': {
+        'VM': S,
+        'VMPeak': T,
+        'WorkingSetSize': U,
+        'WorkingSetSizePeak': V,
+        'ProportionalSetSize': W,
+        'PrivateDirty': X
+      },
+      'Renderer': {
+        'VM': S,
+        'VMPeak': T,
+        'WorkingSetSize': U,
+        'WorkingSetSizePeak': V,
+        'ProportionalSetSize': W,
+        'PrivateDirty': X
+      }
+      'SystemCommitCharge': Y,
+      'ProcessCount': Z
+    }
+    Any of the above keys may be missing on a per-platform basis.
+    """
+    browser_pid = self._browser_backend.pid
+    renderer_totals = collections.defaultdict(int)
+    process_count = 1
+    for renderer_pid in self._platform_backend.GetChildPids(browser_pid):
+      process_count += 1
+      for k, v in self._platform_backend.GetMemoryStats(
+          renderer_pid).iteritems():
+        renderer_totals[k] += v
+    return {'Browser': self._platform_backend.GetMemoryStats(browser_pid),
+            'Renderer': renderer_totals,
+            'SystemCommitCharge':
+                self._platform_backend.GetSystemCommitCharge(),
+            'ProcessCount': process_count}
+
+  @property
+  def io_stats(self):
+    """Returns a dict of IO statistics for the browser:
+    { 'Browser': {
+        'ReadOperationCount': W,
+        'WriteOperationCount': X,
+        'ReadTransferCount': Y,
+        'WriteTransferCount': Z
+      },
+      'Renderer': {
+        'ReadOperationCount': W,
+        'WriteOperationCount': X,
+        'ReadTransferCount': Y,
+        'WriteTransferCount': Z
+      }
+    }
+    """
+    browser_pid = self._browser_backend.pid
+    renderer_totals = collections.defaultdict(int)
+    for renderer_pid in self._platform_backend.GetChildPids(browser_pid):
+      for k, v in self._platform_backend.GetIOStats(renderer_pid).iteritems():
+        renderer_totals[k] += v
+    return {'Browser': self._platform_backend.GetIOStats(browser_pid),
+            'Renderer': renderer_totals}
 
   def StartTracing(self):
     return self._browser_backend.StartTracing()

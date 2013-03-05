@@ -50,29 +50,3 @@ class Platform(object):
   def HasBeenThermallyThrottled(self):
     """Returns True if the device has been thermally throttled."""
     return self._platform_backend.HasBeenThermallyThrottled()
-
-
-def EmptyPlatform():
-  class EmptyPlatformBackend(object):
-    def IsRawDisplayFrameRateSupported(self):
-      return False
-
-    def StartRawDisplayFrameRateMeasurement(self, _):
-      return NotImplementedError()
-
-    def StopRawDisplayFrameRateMeasurement(self):
-      return NotImplementedError()
-
-    def SetFullPerformanceModeEnabled(self, enabled):
-      pass
-
-    def CanMonitorThermalThrottling(self):
-      return False
-
-    def IsThermallyThrottled(self):
-      return NotImplementedError()
-
-    def HasBeenThermallyThrottled(self):
-      return NotImplementedError()
-
-  return Platform(EmptyPlatformBackend())

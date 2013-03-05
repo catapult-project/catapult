@@ -82,6 +82,12 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
                      '--auth-ext-path=%s' % ext_path])
     return args
 
+  @property
+  def pid(self):
+    if self._proc:
+      return self._proc.pid
+    return None
+
   def IsBrowserRunning(self):
     return self._proc.poll() == None
 

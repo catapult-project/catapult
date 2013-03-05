@@ -150,6 +150,10 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     args.append('--disable-fre')
     return args
 
+  @property
+  def pid(self):
+    return int(self._adb.ExtractPid(self._package)[0])
+
   def __del__(self):
     self.Close()
 

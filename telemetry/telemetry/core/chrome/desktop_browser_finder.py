@@ -11,7 +11,9 @@ import sys
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core.chrome import desktop_browser_backend
-from telemetry.core.chrome import platform
+from telemetry.core.chrome import linux_platform_backend
+from telemetry.core.chrome import mac_platform_backend
+from telemetry.core.chrome import win_platform_backend
 
 ALL_BROWSER_TYPES = ','.join([
     'exact',
@@ -36,7 +38,15 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self._options, self._local_executable, self._is_content_shell)
-    b = browser.Browser(backend, platform.EmptyPlatform())
+    if sys.platform.startswith('linux'):
+      p = linux_platform_backend.LinuxPlatformBackend()
+    elif sys.platform == 'darwin':
+      p = mac_platform_backend.MacPlatformBackend()
+    elif sys.platform == 'win32':
+      p = win_platform_backend.WinPlatformBackend()
+    else:
+      raise NotImplementedError()
+    b = browser.Browser(backend, p)
     backend.SetBrowser(b)
     return b
 
