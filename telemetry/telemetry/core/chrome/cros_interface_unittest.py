@@ -54,7 +54,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     cri = cros_interface.CrOSInterface(
       remote,
       options_for_unittests.GetCopy().cros_ssh_identity)
-    cri.GetCmdOutput(['rm', '-rf', '/tmp/testPushContents'])
+    cri.RunCmdOnDevice(['rm', '-rf', '/tmp/testPushContents'])
     cri.PushContents('hello world', '/tmp/testPushContents')
     contents = cri.GetFileContents('/tmp/testPushContents')
     self.assertEquals(contents, 'hello world')

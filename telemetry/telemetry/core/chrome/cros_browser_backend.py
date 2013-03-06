@@ -26,14 +26,14 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     logging.info('Copying dummy login extension to the device')
     cri.PushFile(os.path.join(os.path.dirname(__file__), 'chromeos_login_ext'),
                  '/tmp/')
-    cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
+    cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
 
     # Copy local extensions to temp directories on the device.
     for e in options.extensions_to_load:
-      output = cri.GetAllCmdOutput(['mktemp', '-d', '/tmp/extension_XXXXX'])
+      output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
       extension_dir = output[0].rstrip()
       cri.PushFile(e.path, extension_dir)
-      cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', extension_dir])
+      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', extension_dir])
       e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
     # Ensure the UI is running and logged out.
@@ -42,7 +42,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     # Delete test@test.test's cryptohome vault (user data directory).
     if not options.dont_override_profile:
       logging.info('Deleting user\'s cryptohome vault (the user data dir)')
-      self._cri.GetCmdOutput(
+      self._cri.RunCmdOnDevice(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
 
     # Restart Chrome with the login extension and remote debugging.
@@ -53,7 +53,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
             'array:string:"%s"' % '","'.join(self.GetBrowserStartupArgs())]
-    cri.GetCmdOutput(args)
+    cri.RunCmdOnDevice(args)
 
     # Find a free local port.
     self._port = util.GetAvailableLocalPort()
@@ -141,9 +141,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     if self._cri:
       logging.info('(Re)starting the ui (logs the user out)')
       if self._cri.IsServiceRunning('ui'):
-        self._cri.GetCmdOutput(['restart', 'ui'])
+        self._cri.RunCmdOnDevice(['restart', 'ui'])
       else:
-        self._cri.GetCmdOutput(['start', 'ui'])
+        self._cri.RunCmdOnDevice(['start', 'ui'])
 
 
 class SSHForwarder(object):

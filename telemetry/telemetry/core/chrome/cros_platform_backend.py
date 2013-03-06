@@ -17,7 +17,7 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
 
   def _GetFileContents(self, filename):
     try:
-      return self._cri.GetCmdOutput(['cat', filename])
+      return self._cri.RunCmdOnDevice(['cat', filename])
     except AssertionError:
       return ''
 
@@ -64,7 +64,7 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""
     child_pids = []
-    pid_ppid_list = self._cri.GetCmdOutput(
+    pid_ppid_list = self._cri.RunCmdOnDevice(
         ['ps', '-e', '-o', 'pid=', '-o', 'ppid='])
     for pid_ppid in pid_ppid_list.splitlines():
       curr_pid, curr_ppid = pid_ppid.split()
