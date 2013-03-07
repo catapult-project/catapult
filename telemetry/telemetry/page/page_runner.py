@@ -85,7 +85,7 @@ class PageRunner(object):
         else:
           logging.warning("""
   No page set archive provided for the page %s. Not running the page. To run
-  against live sites, pass the flag --run-against-live-sites.
+  against live sites, pass the flag --allow-live-sites.
 """, page.url)
           results.AddFailure(page, 'Page set archive not defined', '')
           pages_without_archives.append(page)
