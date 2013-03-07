@@ -54,8 +54,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     backend = android_browser_backend.AndroidBrowserBackend(
         self._options, *self._args)
     platform_backend = android_platform_backend.AndroidPlatformBackend(
-        self._args[0].Adb(), self._args[1],
-        self._args[4], self._options.no_performance_mode)
+        self._args[0].Adb(), self._options.no_performance_mode)
     b = browser.Browser(backend, platform_backend)
     backend.SetBrowser(b)
     return b

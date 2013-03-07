@@ -24,11 +24,9 @@ except Exception:
 
 
 class AndroidPlatformBackend(platform_backend.PlatformBackend):
-  def __init__(self, adb, window_package, window_activity, no_performance_mode):
+  def __init__(self, adb, no_performance_mode):
     super(AndroidPlatformBackend, self).__init__()
     self._adb = adb
-    self._window_package = window_package
-    self._window_activity = window_activity
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_tests_helper.PerfTestSetup(self._adb)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
@@ -42,8 +40,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
   def StartRawDisplayFrameRateMeasurement(self, trace_tag):
     assert not self._surface_stats_collector
     self._surface_stats_collector = \
-        surface_stats_collector.SurfaceStatsCollector(
-            self._adb, self._window_package, self._window_activity, trace_tag)
+        surface_stats_collector.SurfaceStatsCollector(self._adb, trace_tag)
     self._surface_stats_collector.__enter__()
 
   def StopRawDisplayFrameRateMeasurement(self):
