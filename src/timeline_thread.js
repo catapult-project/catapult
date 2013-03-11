@@ -128,6 +128,16 @@ base.exportTo('tracing', function() {
     },
 
     /**
+     * Returns the array of samples added to this thread. If no samples
+     * have been added, an empty array is returned.
+     *
+     * @return {Array<TimelineSample>} array of samples.
+     */
+    get samples() {
+      return this.samples_;
+    },
+
+    /**
      * Name of the thread, if present.
      */
     name: undefined,

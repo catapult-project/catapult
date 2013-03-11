@@ -161,6 +161,20 @@ found in the LICENSE file.
     assertTrue(t.tracks_[1].visible);
     assertEquals(1, t.tracks_[2].tracks_.length);
   }
+
+  function testSampleThreadSlices() {
+    var thread = new TimelineThread(new TimelineProcess(7), 1);
+    thread.addSample('a', 'b', 0);
+    thread.addSample('a', 'c', 5);
+    thread.addSample('aa', 'd', 10);
+    thread.addSample('aa', 'e', 15);
+    var t = new TimelineThreadTrack();
+    t.thread = thread;
+    // Track is visible.
+    assertTrue(t.tracks_[3].visible);
+    // Track has 4 slices.
+    assertEquals(t.tracks_[3].slices.length, 4);
+  }
 </script>
 </body>
 </html>
