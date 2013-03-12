@@ -34,7 +34,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       for (var i = 0; i < argsArray.length; ++i) {
         var parts = argsArray[i].split('=');
         if (parts[0])
-          args[parts[0]] = parts[1];
+          args[parts.shift()] = parts.join('=');
       }
     }
     return args;
@@ -49,7 +49,8 @@ base.exportTo('tracing.importer.linux_perf', function() {
       switch (eventData[0]) {
         case 'B':
           var ppid = parseInt(eventData[1]);
-          var name = eventData[2];
+          var category = eventData[4];
+          var title = eventData[2];
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
           thread.name = threadName;
@@ -60,7 +61,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
           }
 
           this.ppids_[pid] = ppid;
-          thread.beginSlice(null, name, ts, parseArgs(eventData[3]));
+          thread.beginSlice(category, title, ts, parseArgs(eventData[3]));
 
           break;
         case 'E':
@@ -83,7 +84,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
           for (var arg in args) {
             if (slice.args[arg] !== undefined) {
               this.model_.importErrors.push(
-                  'Both the B and E events of ' + slice.name +
+                  'Both the B and E events of ' + slice.title +
                   'provided values for argument ' + arg + '. ' +
                   'The value of the E event will be used.');
             }
