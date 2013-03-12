@@ -119,7 +119,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses i915 driver events and sets up state in the importer.
      */
     gemObjectCreateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /obj=(\w+), size=(\d+)/.exec(eventBase[5]);
+      var event = /obj=(\w+), size=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -135,7 +135,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     gemObjectBindEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) mappable
-      var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase[5]);
+      var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -154,7 +154,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     gemObjectChangeDomainEvent: function(eventName, cpuNumber, pid, ts,
                                          eventBase) {
       var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
-          .exec(eventBase[5]);
+          .exec(eventBase.details);
       if (!event)
         return false;
 
@@ -172,7 +172,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     gemObjectPreadWriteEvent: function(eventName, cpuNumber, pid, ts,
                                        eventBase) {
-      var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase[5]);
+      var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -190,7 +190,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     gemObjectFaultEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) writable
-      var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase[5]);
+      var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -207,7 +207,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     gemObjectDestroyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /obj=(\w+)/.exec(eventBase[5]);
+      var event = /obj=(\w+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -220,7 +220,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     gemRingDispatchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase[5]);
+      var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -238,7 +238,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     gemRingFlushEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\w+), invalidate=(\w+), flush=(\w+)/
-          .exec(eventBase[5]);
+          .exec(eventBase.details);
       if (!event)
         return false;
 
@@ -257,7 +257,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     gemRequestEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase[5]);
+      var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -274,7 +274,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     gemRingWaitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev=(\d+), ring=(\d+)/.exec(eventBase[5]);
+      var event = /dev=(\d+), ring=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -290,7 +290,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     regRWEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /(\w+) reg=(\w+), len=(\d+), val=(\(\w+, \w+\))/
-          .exec(eventBase[5]);
+          .exec(eventBase.details);
       if (!event)
         return false;
 
@@ -309,7 +309,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /plane=(\d+), obj=(\w+)/.exec(eventBase[5]);
+      var event = /plane=(\d+), obj=(\w+)/.exec(eventBase.details);
       if (!event)
         return false;
 

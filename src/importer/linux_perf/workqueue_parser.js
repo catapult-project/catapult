@@ -21,6 +21,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
         WorkqueueParser.prototype.executeStartEvent.bind(this));
     importer.registerEventHandler('workqueue_execute_end',
         WorkqueueParser.prototype.executeEndEvent.bind(this));
+    importer.registerEventHandler('workqueue_queue_work',
+        WorkqueueParser.prototype.executeQueueWork.bind(this));
+    importer.registerEventHandler('workqueue_activate_work',
+        WorkqueueParser.prototype.executeActivateWork.bind(this));
   }
 
   // Matches the workqueue_execute_start record
@@ -38,22 +42,24 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses workqueue events and sets up state in the importer.
      */
     executeStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = workqueueExecuteStartRE.exec(eventBase[5]);
+      var event = workqueueExecuteStartRE.exec(eventBase.details);
       if (!event)
         return false;
 
-      var kthread = this.importer.getOrCreateKernelThread(eventBase[1]);
+      var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
+        pid, pid);
       kthread.openSliceTS = ts;
       kthread.openSlice = event[2];
       return true;
     },
 
     executeEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = workqueueExecuteEndRE.exec(eventBase[5]);
+      var event = workqueueExecuteEndRE.exec(eventBase.details);
       if (!event)
         return false;
 
-      var kthread = this.importer.getOrCreateKernelThread(eventBase[1]);
+      var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
+        pid, pid);
       if (kthread.openSlice) {
         var slice = new tracing.TimelineSlice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
@@ -65,7 +71,18 @@ base.exportTo('tracing.importer.linux_perf', function() {
       }
       kthread.openSlice = undefined;
       return true;
-    }
+    },
+
+    executeQueueWork: function(eventName, cpuNumber, pid, ts, eventBase) {
+      // TODO: Do something with this event?
+      return true;
+    },
+
+    executeActivateWork: function(eventName, cpuNumber, pid, ts, eventBase) {
+      // TODO: Do something with this event?
+      return true;
+    },
+
   };
 
   Parser.registerSubtype(WorkqueueParser);

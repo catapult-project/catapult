@@ -44,8 +44,8 @@ base.exportTo('tracing.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     traceMarkWriteAndroidEvent: function(eventName, cpuNumber, pid, ts,
-                                  eventBase, threadName) {
-      var eventData = eventBase[2].split('|');
+                                  eventBase) {
+      var eventData = eventBase.details.split('|');
       switch (eventData[0]) {
         case 'B':
           var ppid = parseInt(eventData[1]);
@@ -53,7 +53,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var title = eventData[2];
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
-          thread.name = threadName;
+          thread.name = eventBase.threadName;
           if (!thread.isTimestampValidForBeginOrEnd(ts)) {
             this.model_.importErrors.push(
                 'Timestamps are moving backward.');

@@ -56,7 +56,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses exynos events and sets up state in the importer.
      */
     flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /pipe=(\d+)/.exec(eventBase[5]);
+      var event = /pipe=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -87,7 +87,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses exynos_busfreq_target_int events and sets up state.
      */
     busfreqTargetIntEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase[5]);
+      var event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -99,7 +99,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses exynos_busfreq_target_mif events and sets up state.
      */
     busfreqTargetMifEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase[5]);
+      var event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 

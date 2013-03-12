@@ -83,7 +83,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses power events and sets up state in the importer.
      */
     powerStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /type=(\d+) state=(\d) cpu_id=(\d)+/.exec(eventBase[5]);
+      var event = /type=(\d+) state=(\d) cpu_id=(\d)+/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -95,7 +95,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     powerFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /type=(\d+) state=(\d+) cpu_id=(\d)+/
-          .exec(eventBase[5]);
+          .exec(eventBase.details);
       if (!event)
         return false;
 
@@ -106,7 +106,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     cpuFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase[5]);
+      var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -117,7 +117,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     cpuIdleEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase[5]);
+      var event = /state=(\d+) cpu_id=(\d)+/.exec(eventBase.details);
       if (!event)
         return false;
 

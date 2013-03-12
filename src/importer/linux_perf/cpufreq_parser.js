@@ -73,14 +73,14 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses cpufreq events and sets up state in the importer.
      */
     cpufreqUpDownEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var data = splitData(eventBase[5]);
+      var data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
     cpufreqTargetEvent: function(eventName, cpuNumber, pid, ts,
                                  eventBase) {
-      var data = splitData(eventBase[5]);
+      var data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
@@ -89,7 +89,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
                                        eventBase) {
       this.cpufreqBoostSlice(ts, eventName,
           {
-            type: eventBase[5]
+            type: eventBase.details
           });
       return true;
     }

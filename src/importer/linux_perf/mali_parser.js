@@ -271,11 +271,11 @@ base.exportTo('tracing.importer.linux_perf', function() {
      */
     maliDDKEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       if (this.lineRE == null) {
-        this.lineRE = this.autoDetectLineRE(eventBase[2]);
+        this.lineRE = this.autoDetectLineRE(eventBase.details);
         if (this.lineRE == null)
           return false;
       }
-      var maliEvent = this.lineRE.exec(eventBase[2]);
+      var maliEvent = this.lineRE.exec(eventBase.details);
       // Old-style Mali perf events have no thread id, so make one.
       var tid = (maliEvent[1] === '' ? 'mali' : maliEvent[1]);
       switch (maliEvent[2]) {
@@ -306,7 +306,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     dvfsEventEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /utilization=(\d+)/.exec(eventBase[5]);
+      var event = /utilization=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -315,7 +315,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     dvfsSetClockEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase[5]);
+      var event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -324,7 +324,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     dvfsSetVoltageEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /voltage=(\d+)/.exec(eventBase[5]);
+      var event = /voltage=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -333,7 +333,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     hwcSample: function(cat, counterName, seriesName, ts, eventBase) {
-      var event = /val=(\d+)/.exec(eventBase[5]);
+      var event = /val=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
       var value = parseInt(event[1]);

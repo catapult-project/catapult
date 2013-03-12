@@ -37,7 +37,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses drm driver events and sets up state in the importer.
      */
     vblankEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase[5]);
+      var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
 

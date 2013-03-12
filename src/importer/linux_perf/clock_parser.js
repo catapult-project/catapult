@@ -30,7 +30,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
     traceMarkWriteClockEvent: function(eventName, cpuNumber, pid, ts,
                                   eventBase, threadName) {
-        var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase[5]);
+        var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
 
 
         var name = event[1];

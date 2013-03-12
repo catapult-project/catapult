@@ -44,7 +44,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * Parses scheduler events and sets up state in the importer.
      */
     schedSwitchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = schedSwitchRE.exec(eventBase[5]);
+      var event = schedSwitchRE.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -60,7 +60,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     schedWakeupEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = schedWakeupRE.exec(eventBase[5]);
+      var event = schedWakeupRE.exec(eventBase.details);
       if (!event)
         return false;
 

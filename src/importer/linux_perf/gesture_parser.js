@@ -63,7 +63,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      */
     logEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var innerEvent =
-          /^\s*(\w+):\s*(\w+)$/.exec(eventBase[2]);
+          /^\s*(\w+):\s*(\w+)$/.exec(eventBase.details);
       switch (innerEvent[1]) {
         case 'start':
           this.gestureOpenSlice('GestureLog', ts, {name: innerEvent[2]});
@@ -86,7 +86,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * of the SyncInterpret function inside ClickWiggleFilterInterpreter
      */
     syncEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var innerEvent = /^\s*(\w+):\s*(\w+)$/.exec(eventBase[2]);
+      var innerEvent = /^\s*(\w+):\s*(\w+)$/.exec(eventBase.details);
       switch (innerEvent[1]) {
         case 'start':
           this.gestureOpenSlice('SyncInterpret', ts,
@@ -110,7 +110,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      * of the HandleTimer function inside LookaheadFilterInterpreter
      */
     timerEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var innerEvent = /^\s*(\w+):\s*(\w+)$/.exec(eventBase[2]);
+      var innerEvent = /^\s*(\w+):\s*(\w+)$/.exec(eventBase.details);
       switch (innerEvent[1]) {
         case 'start':
           this.gestureOpenSlice('HandleTimer', ts,

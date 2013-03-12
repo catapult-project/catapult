@@ -103,17 +103,79 @@ base.exportTo('tracing.importer', function() {
 
   TestExports = {};
 
+  // Matches the trace record in 3.2 and later with the print-tgid option:
+  //          <idle>-0    0 [001] d...  1.23: sched_switch
+  //
+  // A TGID (Thread Group ID) is basically what the Linux kernel calls what
+  // userland refers to as a process ID (as opposed to a Linux pid, which is
+  // what userland calls a thread ID).
+  var lineREWithTGID = new RegExp(
+      '^\\s*(.+)-(\\d+)\\s+\\(\\s*(\\d+|-+)\\)\\s\\[(\\d+)\\]' +
+      '\\s+[dX.][N.][Hhs.][0-9a-f.]' +
+      '\\s+(\\d+\\.\\d+):\\s+(\\S+):\\s(.*)$');
+  var lineParserWithTGID = function(line) {
+    var groups = lineREWithTGID.exec(line);
+    if (!groups) {
+      return groups;
+    }
+
+    var tgid = groups[3];
+    if (tgid[0] === '-')
+      tgid = undefined;
+
+    return {
+      threadName: groups[1],
+      pid: groups[2],
+      tgid: tgid,
+      cpuNumber: groups[4],
+      timestamp: groups[5],
+      eventName: groups[6],
+      details: groups[7]
+    };
+  }
+  TestExports.lineParserWithTGID = lineParserWithTGID;
+
   // Matches the default trace record in 3.2 and later (includes irq-info):
   //          <idle>-0     [001] d...  1.23: sched_switch
   var lineREWithIRQInfo = new RegExp(
-      '^\\s*(.+?)\\s+\\[(\\d+)\\]' + '\\s+[dX.][N.][Hhs.][0-9a-f.]' +
+      '^\\s*(.+)-(\\d+)\\s+\\[(\\d+)\\]' +
+      '\\s+[dX.][N.][Hhs.][0-9a-f.]' +
       '\\s+(\\d+\\.\\d+):\\s+(\\S+):\\s(.*)$');
-  TestExports.lineREWithIRQInfo = lineREWithIRQInfo;
+  var lineParserWithIRQInfo = function(line) {
+    var groups = lineREWithIRQInfo.exec(line);
+    if (!groups) {
+      return groups;
+    }
+    return {
+      threadName: groups[1],
+      pid: groups[2],
+      cpuNumber: groups[3],
+      timestamp: groups[4],
+      eventName: groups[5],
+      details: groups[6]
+    };
+  }
+  TestExports.lineParserWithIRQInfo = lineParserWithIRQInfo;
 
   // Matches the default trace record pre-3.2:
   //          <idle>-0     [001]  1.23: sched_switch
-  var lineRE = /^\s*(.+?)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
-  TestExports.lineRE = lineRE;
+  var lineREWithLegacyFmt =
+    /^\s*(.+)-(\d+)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
+  var lineParserWithLegacyFmt = function(line) {
+    var groups = lineREWithLegacyFmt.exec(line);
+    if (!groups) {
+      return groups;
+    }
+    return {
+      threadName: groups[1],
+      pid: groups[2],
+      cpuNumber: groups[3],
+      timestamp: groups[4],
+      eventName: groups[5],
+      details: groups[6]
+    };
+  }
+  TestExports.lineParserWithLegacyFmt = lineParserWithLegacyFmt;
 
   // Matches the trace_event_clock_sync record
   //  0: trace_event_clock_sync: parent_ts=19581477508
@@ -125,20 +187,23 @@ base.exportTo('tracing.importer', function() {
   var pseudoKernelPID = 0;
 
   /**
-   * Deduce the format of trace data. Linix kernels prior to 3.3 used
-   * one format (by default); 3.4 and later used another.
+   * Deduce the format of trace data. Linix kernels prior to 3.3 used one
+   * format (by default); 3.4 and later used another.  Additionally, newer
+   * kernels can optionally trace the TGID.
    *
-   * @return {string} the regular expression for parsing data when
-   * the format is recognized; otherwise null.
+   * @return {function} the function for parsing data when the format is
+   * recognized; otherwise null.
    */
-  function autoDetectLineRE(line) {
+  function autoDetectLineParser(line) {
+    if (lineREWithTGID.test(line))
+      return lineParserWithTGID;
     if (lineREWithIRQInfo.test(line))
-      return lineREWithIRQInfo;
-    if (lineRE.test(line))
-      return lineRE;
+      return lineParserWithIRQInfo;
+    if (lineREWithLegacyFmt.test(line))
+      return lineParserWithLegacyFmt;
     return null;
   };
-  TestExports.autoDetectLineRE = autoDetectLineRE;
+  TestExports.autoDetectLineParser = autoDetectLineParser;
 
   /**
    * Guesses whether the provided events is a Linux perf string.
@@ -161,7 +226,7 @@ base.exportTo('tracing.importer', function() {
     var m = /^(.+)\n/.exec(events);
     if (m)
       events = m[1];
-    if (autoDetectLineRE(events))
+    if (autoDetectLineParser(events))
       return true;
 
     return false;
@@ -272,17 +337,8 @@ base.exportTo('tracing.importer', function() {
     /**
      * @return {TimelinThread} A thread corresponding to the kernelThreadName.
      */
-    getOrCreateKernelThread: function(kernelThreadName, opt_pid, opt_tid) {
+    getOrCreateKernelThread: function(kernelThreadName, pid, tid) {
       if (!this.kernelThreadStates_[kernelThreadName]) {
-        var pid = opt_pid;
-        if (pid == undefined) {
-          pid = /.+-(\d+)/.exec(kernelThreadName)[1];
-          pid = parseInt(pid, 10);
-        }
-        var tid = opt_tid;
-        if (tid == undefined)
-          tid = pid;
-
         var thread = this.model_.getOrCreateProcess(pid).getOrCreateThread(tid);
         thread.name = kernelThreadName;
         this.kernelThreadStates_[kernelThreadName] = {
@@ -584,7 +640,7 @@ base.exportTo('tracing.importer', function() {
      * Processes a trace_event_clock_sync event.
      */
     traceClockSyncEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /parent_ts=(\d+\.?\d*)/.exec(eventBase[2]);
+      var event = /parent_ts=(\d+\.?\d*)/.exec(eventBase.details);
       if (!event)
         return false;
 
@@ -600,24 +656,27 @@ base.exportTo('tracing.importer', function() {
      */
     traceMarkingWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase,
                                      threadName) {
-      var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase[5]);
+      var event = /^\s*(\w+):\s*(.*)$/.exec(eventBase.details);
       if (!event) {
         // Check if the event matches events traced by the Android framework
-        var tag = eventBase[5].substring(0, 2);
-        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'C|')
-          event = [eventBase[5], 'android', eventBase[5]];
-        else
+        var tag = eventBase.details.substring(0, 2);
+        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'C|') {
+          eventBase.subEventName = 'android';
+        } else {
           return false;
+        }
+      } else {
+        eventBase.subEventName = event[1];
+        eventBase.details = event[2];
       }
 
-      var writeEventName = eventName + ':' + event[1];
-      var threadName = (/(.+)-\d+/.exec(eventBase[1]))[1];
+      var writeEventName = eventName + ':' + eventBase.subEventName;
       var handler = this.eventHandlers_[writeEventName];
       if (!handler) {
         this.importError('Unknown trace_marking_write event ' + writeEventName);
         return true;
       }
-      return handler(writeEventName, cpuNumber, pid, ts, event, threadName);
+      return handler(writeEventName, cpuNumber, pid, ts, eventBase, threadName);
     },
 
     /**
@@ -634,30 +693,30 @@ base.exportTo('tracing.importer', function() {
         this.lines_ = this.events_.split('\n');
       }
 
-      var lineRE = null;
+      var lineParser = null;
       for (this.lineNumber = 0;
            this.lineNumber < this.lines_.length;
           ++this.lineNumber) {
         var line = this.lines_[this.lineNumber];
         if (line.length == 0 || /^#/.test(line))
           continue;
-        if (lineRE == null) {
-          lineRE = autoDetectLineRE(line);
-          if (lineRE == null) {
+        if (lineParser == null) {
+          lineParser = autoDetectLineParser(line);
+          if (lineParser == null) {
             this.importError('Cannot parse line: ' + line);
             continue;
           }
         }
-        var eventBase = lineRE.exec(line);
+        var eventBase = lineParser(line);
         if (!eventBase) {
           this.importError('Unrecognized line: ' + line);
           continue;
         }
 
-        var pid = parseInt((/.+-(\d+)/.exec(eventBase[1]))[1]);
-        var cpuNumber = parseInt(eventBase[2]);
-        var ts = parseFloat(eventBase[3]) * 1000;
-        var eventName = eventBase[4];
+        var pid = parseInt(eventBase.pid);
+        var cpuNumber = parseInt(eventBase.cpuNumber);
+        var ts = parseFloat(eventBase.timestamp) * 1000;
+        var eventName = eventBase.eventName;
 
         var handler = this.eventHandlers_[eventName];
         if (!handler) {

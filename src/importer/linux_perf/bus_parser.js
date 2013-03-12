@@ -32,7 +32,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
                                   eventBase, threadName) {
         var re = new RegExp('bus=(\\S+) rw_bytes=(\\d+) r_bytes=(\\d+) ' +
                             'w_bytes=(\\d+) cycles=(\\d+) ns=(\\d+)');
-        var event = re.exec(eventBase[5]);
+        var event = re.exec(eventBase.details);
 
         var name = event[1];
         var rw_bytes = parseInt(event[2]);
