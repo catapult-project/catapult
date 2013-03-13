@@ -19,25 +19,30 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     self._browser_type = browser_type
 
     self._remote_debugging_port = self._cri.GetRemotePort()
-    self._login_ext_dir = '/tmp/chromeos_login_ext'
+    self._port = self._remote_debugging_port
 
-    # Push a dummy login extension to the device.
-    # This extension automatically logs in as test@test.test
-    logging.info('Copying dummy login extension to the device')
-    cri.PushFile(os.path.join(os.path.dirname(__file__), 'chromeos_login_ext'),
-                 '/tmp/')
-    cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', self._login_ext_dir])
+    self._login_ext_dir = os.path.join(os.path.dirname(__file__),
+                                       'chromeos_login_ext')
+    if not cri.local:
+      # Push a dummy login extension to the device.
+      # This extension automatically logs in as test@test.test
+      logging.info('Copying dummy login extension to the device')
+      cri.PushFile(self._login_ext_dir, '/tmp/')
+      self._login_ext_dir = '/tmp/chromeos_login_ext'
+      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos',
+                          self._login_ext_dir])
 
-    # Copy local extensions to temp directories on the device.
-    for e in options.extensions_to_load:
-      output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
-      extension_dir = output[0].rstrip()
-      cri.PushFile(e.path, extension_dir)
-      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', extension_dir])
-      e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
+      # Copy local extensions to temp directories on the device.
+      for e in options.extensions_to_load:
+        output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
+        extension_dir = output[0].rstrip()
+        cri.PushFile(e.path, extension_dir)
+        cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', extension_dir])
+        e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
     # Ensure the UI is running and logged out.
     self._RestartUI()
+    util.WaitFor(lambda: self.IsBrowserRunning(), 20)  # pylint: disable=W0108
 
     # Delete test@test.test's cryptohome vault (user data directory).
     if not options.dont_override_profile:
@@ -52,17 +57,18 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '/org/chromium/SessionManager',
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
-            'array:string:"%s"' % '","'.join(self.GetBrowserStartupArgs())]
+            'array:string:"%s"' % ','.join(self.GetBrowserStartupArgs())]
     cri.RunCmdOnDevice(args)
 
-    # Find a free local port.
-    self._port = util.GetAvailableLocalPort()
+    if not cri.local:
+      # Find a free local port.
+      self._port = util.GetAvailableLocalPort()
 
-    # Forward the remote debugging port.
-    logging.info('Forwarding remote debugging port')
-    self._forwarder = SSHForwarder(
-      cri, 'L',
-      util.PortPair(self._port, self._remote_debugging_port))
+      # Forward the remote debugging port.
+      logging.info('Forwarding remote debugging port')
+      self._forwarder = SSHForwarder(
+        cri, 'L',
+        util.PortPair(self._port, self._remote_debugging_port))
 
     # Wait for the browser to come up.
     logging.info('Waiting for browser to be ready')
@@ -113,21 +119,21 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     self._RestartUI() # Logs out.
 
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
+    if not self._cri.local:
+      if self._forwarder:
+        self._forwarder.Close()
+        self._forwarder = None
 
-    if self._login_ext_dir:
-      self._cri.RmRF(self._login_ext_dir)
-      self._login_ext_dir = None
+      if self._login_ext_dir:
+        self._cri.RmRF(self._login_ext_dir)
+        self._login_ext_dir = None
 
-    for e in self._options.extensions_to_load:
-      self._cri.RmRF(os.path.dirname(e.local_path))
+      for e in self._options.extensions_to_load:
+        self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
 
   def IsBrowserRunning(self):
-    # On ChromeOS, there should always be a browser running.
     return bool(self.pid)
 
   def GetStandardOutput(self):
@@ -135,7 +141,8 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def CreateForwarder(self, *port_pairs):
     assert self._cri
-    return SSHForwarder(self._cri, 'R', *port_pairs)
+    return (DoNothingForwarder(*port_pairs) if self._cri.local
+        else SSHForwarder(self._cri, 'R', *port_pairs))
 
   def _RestartUI(self):
     if self._cri:
@@ -183,3 +190,16 @@ class SSHForwarder(object):
     if self._proc:
       self._proc.kill()
       self._proc = None
+
+
+class DoNothingForwarder(object):
+  def __init__(self, *port_pairs):
+    self._host_port = port_pairs[0].local_port
+
+  @property
+  def url(self):
+    assert self._host_port
+    return 'http://localhost:%i' % self._host_port
+
+  def Close(self):
+    self._host_port = None

@@ -1,9 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Finds android browsers that can be controlled by telemetry."""
+"""Finds CrOS browsers that can be controlled by telemetry."""
 
 import logging
+import sys
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
@@ -13,22 +14,23 @@ from telemetry.core.chrome import cros_interface
 
 ALL_BROWSER_TYPES = ','.join([
     'cros-chrome',
+    'system-cros',
     ])
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable chromeos browser instance."""
-  def __init__(self, browser_type, options, *args):
+  def __init__(self, browser_type, options, cri):
     super(PossibleCrOSBrowser, self).__init__(browser_type, options)
-    self._args = args
+    self._cri = cri
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
   def Create(self):
     backend = cros_browser_backend.CrOSBrowserBackend(
-        self.browser_type, self._options, *self._args)
+        self.browser_type, self._options, self._cri)
     b = browser.Browser(backend,
-                        cros_platform_backend.CrosPlatformBackend(*self._args))
+                        cros_platform_backend.CrosPlatformBackend(self._cri))
     backend.SetBrowser(b)
     return b
 
@@ -36,7 +38,15 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     return True
 
 def FindAllAvailableBrowsers(options):
-  """Finds all the desktop browsers available on this machine."""
+  """Finds all available chromeos browsers, locally and remotely."""
+  # Check if we are on a chromeos device.
+  if sys.platform.startswith('linux'):
+    with open('/etc/lsb-release', 'r') as f:
+      res = f.read()
+      if res.count('CHROMEOS_RELEASE_NAME'):
+        return [PossibleCrOSBrowser('system-cros', options,
+                                    cros_interface.CrOSInterface())]
+
   if options.cros_remote == None:
     logging.debug('No --remote specified, will not probe for CrOS.')
     return []
