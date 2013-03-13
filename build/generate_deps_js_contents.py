@@ -34,6 +34,11 @@ def generate_deps_js():
   filenames = [os.path.relpath(x) for x in filenames]
   filenames = [x for x in filenames
                if x not in FILES_TO_IGNORE]
+  def ignored(x):
+    if os.path.basename(x).startswith('.'):
+      return True
+    return False
+  filenames = [x for x in filenames if not ignored(x)]
 
   if "deps.js" in filenames:
     filenames.remove("deps.js")

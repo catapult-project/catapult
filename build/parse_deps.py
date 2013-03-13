@@ -38,12 +38,11 @@ class ResourceFinder(object):
     self._root_dir = root_dir
     pass
 
-  def _find_and_load(self, current_module, requested_name, extension):
-    assert current_module.filename
-    pathy_name = requested_name.replace(".", os.sep)
-    filename = pathy_name + extension
-    absolute_path = os.path.join(self._root_dir, filename)
+  @property
+  def root_dir(self):
+    return self._root_dir
 
+  def _find_and_load_filename(self, absolute_path):
     if not os.path.exists(absolute_path):
       return None, None
 
@@ -53,8 +52,19 @@ class ResourceFinder(object):
 
     return absolute_path, contents
 
+  def _find_and_load(self, current_module, requested_name, extension):
+    assert current_module.filename
+    pathy_name = requested_name.replace(".", os.sep)
+    filename = pathy_name + extension
+    absolute_path = os.path.join(self._root_dir, filename)
+    return self._find_and_load_filename(absolute_path)
+
   def find_and_load_module(self, current_module, requested_module_name):
     return self._find_and_load(current_module, requested_module_name, ".js")
+
+  def find_and_load_raw_script(self, current_module, filename):
+    absolute_path = os.path.join(self._root_dir, filename)
+    return self._find_and_load_filename(absolute_path)
 
   def find_and_load_style_sheet(self,
                                 current_module, requested_style_sheet_name):
@@ -72,6 +82,17 @@ class StyleSheet(object):
 
   def __repr__(self):
     return "StyleSheet(%s)" % self.name
+
+class RawScript(object):
+  """Represents a raw script resource referenced by a module via the
+  base.requireRawScript(xxx) directive."""
+  def __init__(self, name, filename, contents):
+    self.name = name
+    self.filename = filename
+    self.contents = contents
+
+  def __repr__(self):
+    return "RawScript(%s)" % self.name
 
 def _tokenize_js(text):
   rest = text
@@ -128,6 +149,12 @@ def _strip_js_comments(text):
       result_tokens.append(t)
   return "".join(result_tokens)
 
+def _MangleRawScriptFilenameToModuleName(filename):
+  name = filename
+  name = name.replace(os.sep, ':')
+  name = name.replace('..', '!!')
+  return name
+
 class Module(object):
   """Represents a javascript module. It can either be directly requested, e.g.
   passed in by name to calc_load_sequence, or created by being referenced a
@@ -148,6 +175,8 @@ class Module(object):
 
     self.dependent_module_names = []
     self.dependent_modules = []
+    self.dependent_raw_script_names = []
+    self.dependent_raw_scripts = []
     self.style_sheet_names = []
     self.style_sheets = []
 
@@ -171,6 +200,8 @@ class Module(object):
       all_resources["scripts"] = {}
     if "style_sheets" not in all_resources:
       all_resources["style_sheets"] = {}
+    if "raw_scripts" not in all_resources:
+      all_resources["raw_scripts"] = {}
 
     assert self.filename
 
@@ -189,6 +220,20 @@ class Module(object):
       self.dependent_modules.append(module)
       module.load_and_parse(filename, contents)
       module.resolve(all_resources, resource_finder)
+
+    for name in self.dependent_raw_script_names:
+      filename, contents = resource_finder.find_and_load_raw_script(self, name)
+      if not filename:
+        raise DepsException("Could not find a file for module %s" % name)
+
+      if name in all_resources["raw_scripts"]:
+        assert all_resources["raw_scripts"][name].contents
+        self.dependent_raw_scripts.append(all_resources["raw_scripts"][name])
+        continue
+
+      raw_script = RawScript(name, filename, contents)
+      all_resources["raw_scripts"][name] = raw_script
+      self.dependent_raw_scripts.append(raw_script)
 
     for name in self.style_sheet_names:
       if name in all_resources["style_sheets"]:
@@ -217,7 +262,6 @@ class Module(object):
       raise Exception("Module.name must be set for decl_required to be false.")
 
     stripped_text = _strip_js_comments(text)
-
     rest = stripped_text
     while True:
       # Things to search for.
@@ -225,17 +269,14 @@ class Module(object):
                       rest, re.DOTALL)
       m_s = re.search("""base\s*\.\s*requireStylesheet\((["'])(.+?)\\1\)""",
                       rest, re.DOTALL)
+      m_irs = re.search("""base\s*\.\s*requireRawScript\((["'])(.+?)\\1\)""",
+                      rest, re.DOTALL)
+      matches = [m for m in [m_r, m_s, m_irs] if m]
 
       # Figure out which was first.
-      if m_r and m_s:
-        if m_r.start() < m_s.start():
-          m = m_r
-        else:
-          m = m_s
-      elif m_r:
-        m = m_r
-      elif m_s:
-        m = m_s
+      matches.sort(key=lambda x: x.start())
+      if len(matches):
+        m = matches[0]
       else:
         break
 
@@ -244,9 +285,24 @@ class Module(object):
         if '/' in dependent_module_name:
           raise DepsException("Slashes are not allowed in module names. "
                               "Use '.' instead: %s" % dependent_module_name)
+        if dependent_module_name.endswith('js'):
+          raise DepsException("module names shouldn't end with .js"
+                              "The module system will append that for you: %s" %
+                              dependent_module_name)
         self.dependent_module_names.append(dependent_module_name)
       elif m == m_s:
-        self.style_sheet_names.append(m.group(2))
+        style_sheet_name = m.group(2)
+        if '/' in style_sheet_name:
+          raise DepsException("Slashes are not allowed in style sheet names. "
+                              "Use '.' instead: %s" % style_sheet_name)
+        if style_sheet_name.endswith('.css'):
+          raise DepsException("Style sheets should not end in .css. "
+                              "The module system will append that for you" %
+                              style_sheet_name)
+        self.style_sheet_names.append(style_sheet_name)
+      elif m == m_irs:
+        name = m.group(2)
+        self.dependent_raw_script_names.append(name)
 
       rest = rest[m.end():]
 

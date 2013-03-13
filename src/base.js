@@ -69,6 +69,7 @@ this.base = (function() {
   var didLoadModules = false;
   var moduleDependencies = {};
   var moduleStylesheets = {};
+  var moduleRawScripts = {};
 
   function addModuleDependency(moduleName, dependentModuleName) {
     if (!moduleDependencies[moduleName])
@@ -79,8 +80,21 @@ this.base = (function() {
     for (var i = 0; i < dependentModules.length; i++)
       if (dependentModules[i] == dependentModuleName)
         found = true;
-      if (!found)
-        dependentModules.push(dependentModuleName);
+    if (!found)
+      dependentModules.push(dependentModuleName);
+  }
+
+  function addModuleRawScriptDependency(moduleName, rawScriptName) {
+    if (!moduleRawScripts[moduleName])
+      moduleRawScripts[moduleName] = [];
+
+    var dependentRawScripts = moduleRawScripts[moduleName];
+    var found = false;
+    for (var i = 0; i < moduleRawScripts.length; i++)
+      if (dependentRawScripts[i] == rawScriptName)
+        found = true;
+    if (!found)
+      dependentRawScripts.push(rawScriptName);
   }
 
   function addModuleStylesheet(moduleName, stylesheetName) {
@@ -109,27 +123,32 @@ this.base = (function() {
       throw new Error('Could not find ' + src +
                       '. Run calcdeps.py and try again.');
 
-    base.addModuleStylesheet = addModuleStylesheet;
     base.addModuleDependency = addModuleDependency;
+    base.addModuleRawScriptDependency = addModuleRawScriptDependency;
+    base.addModuleStylesheet = addModuleStylesheet;
     try {
       // By construction, the deps file should call addModuleDependency.
       eval(req.responseText);
     } catch (e) {
       throw new Error('When loading deps, got ' + e.stack ? e.stack : e);
     }
-    delete base.addModuleDependency;
     delete base.addModuleStylesheet;
+    delete base.addModuleRawScriptDependency;
+    delete base.addModuleDependency;
+
   }
 
   var moduleLoadStatus = {};
+  var rawScriptLoadStatus = {};
   function require(dependentModuleName, opt_indentLevel) {
     var indentLevel = opt_indentLevel || 0;
 
     if (window.FLATTENED) {
-      if (!window.FLATTENED[dependentModuleName])
+      if (!window.FLATTENED[dependentModuleName]) {
         throw new Error('Somehow, module ' + dependentModuleName +
                         ' didn\'t get stored in the flattened js file! ' +
-                        'You may need to rerun build/flatten.py');
+                        'You may need to rerun build/calcdeps.py');
+      }
       return;
     }
     ensureDepsLoaded();
@@ -147,6 +166,21 @@ this.base = (function() {
     for (var i = 0; i < stylesheets.length; i++)
       requireStylesheet(stylesheets[i]);
 
+    // Load the module raw scripts next
+    var rawScripts = moduleRawScripts[dependentModuleName] || [];
+    for (var i = 0; i < rawScripts.length; i++) {
+      var rawScriptName = rawScripts[i];
+      if (rawScriptLoadStatus[rawScriptName])
+        continue;
+
+      mLog('load(' + rawScriptName + ')', indentLevel);
+      var src = moduleBasePath + '/' + rawScriptName;
+      var text = '<script type="text/javascript" src="' + src +
+        '"></' + 'script>';
+      base.doc.write(text);
+      rawScriptLoadStatus[rawScriptName] = 'APPENDED';
+    }
+
     // Load the module's dependent scripts after.
     var dependentModules =
         moduleDependencies[dependentModuleName] || [];
@@ -161,6 +195,28 @@ this.base = (function() {
         '"></' + 'script>';
     base.doc.write(text);
     moduleLoadStatus[dependentModuleName] = 'APPENDED';
+  }
+
+  /**
+   * Adds a dependency on a raw javascript file, e.g. a third party
+   * library.
+   * @param {String} rawScriptName The path to the script file, relative to
+   * moduleBasePath.
+   */
+  function requireRawScript(rawScriptPath) {
+    if (window.FLATTENED_RAW_SCRIPTS) {
+      if (!window.FLATTENED_RAW_SCRIPTS[rawScriptPath]) {
+        throw new Error('Somehow, ' + rawScriptPath +
+                        ' didn\'t get stored in the flattened js file! ' +
+                        'You may need to rerun build/calcdeps.py');
+      }
+      return;
+    }
+
+    if (rawScriptLoadStatus[rawScriptPath])
+      return;
+    throw new Error(rawScriptPath + ' should already have been loaded.' +
+                    ' Did you forget to run calcdeps.py?');
   }
 
   var stylesheetLoadStatus = {};
@@ -452,16 +508,28 @@ this.base = (function() {
     Event.prototype = {__proto__: global.Event.prototype};
 
     base.doc = document;
+
     base.isMac = /Mac/.test(navigator.platform);
+    base.isWindows = /Win/.test(navigator.platform);
     base.isChromeOS = /CrOS/.test(navigator.userAgent);
+    base.isLinux = /Linux/.test(navigator.userAgent);
+    base.isGTK = /GTK/.test(chrome.toolkit);
+    base.isViews = /views/.test(chrome.toolkit);
 
     setModuleBasePath('/src');
+  }
+
+  function asArray(arrayish) {
+    var values = [];
+    for (var i = 0; i < arrayish.length; i++)
+      values.push(arrayish[i]);
+    return values;
   }
 
   function concatenateArrays(/*arguments*/) {
     var values = [];
     for (var i = 0; i < arguments.length; i++) {
-      if (!(arguments[i] instanceof Array))
+      if(!(arguments[i] instanceof Array))
         throw new Error('Arguments ' + i + 'is not an array');
       values.push.apply(values, arguments[i]);
     }
@@ -518,6 +586,7 @@ this.base = (function() {
 
     require: require,
     requireStylesheet: requireStylesheet,
+    requireRawScript: requireRawScript,
     exportTo: exportTo,
 
     addSingletonGetter: addSingletonGetter,
@@ -529,6 +598,7 @@ this.base = (function() {
     getUid: getUid,
     initialize: initialize,
     PropertyKind: PropertyKind,
+    asArray: asArray,
     concatenateArrays: concatenateArrays,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,

@@ -7,12 +7,15 @@ import sys
 import generate_about_tracing_contents
 import generate_deps_js_contents
 
-def main(argv):
-  if generate_deps_js_contents.main([argv[0]]):
+def regenerate_deps():
+  if generate_deps_js_contents.main([sys.argv[0]]):
     return 255
-  if generate_about_tracing_contents.main([argv[0]]):
+  if generate_about_tracing_contents.main([sys.argv[0]]):
     return 255
   return 0
 
+def main(args):
+  return regenerate_deps()
+
 if __name__ == "__main__":
-  sys.exit(main(sys.argv))
+  sys.exit(main(sys.argv[1:]))
