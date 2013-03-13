@@ -96,9 +96,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var ppid = parseInt(eventData[1]);
           var name = eventData[2];
           var value = parseInt(eventData[3]);
+          var category = eventData[4];
 
           var ctr = this.model_.getOrCreateProcess(ppid)
-              .getOrCreateCounter(null, name);
+              .getOrCreateCounter(category, name);
           // Initialize the counter's series fields if needed.
           if (ctr.numSeries == 0) {
             ctr.seriesNames.push('value');
