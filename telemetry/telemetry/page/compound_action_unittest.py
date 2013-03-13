@@ -7,14 +7,14 @@ from telemetry.page import page_action
 from telemetry.test import tab_test_case
 
 class AppendAction(page_action.PageAction):
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     self.var.append(True)
 
 class WrapAppendAction(page_action.PageAction):
   def RunsPreviousAction(self):
     return True
 
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     self.var.append('before')
     previous_action.WillRunAction(page, tab)
     previous_action.RunAction(page, tab, None)

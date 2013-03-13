@@ -20,7 +20,7 @@ class CompoundAction(page_action.PageAction):
   def RunsPreviousAction(self):
     return self._actions and self._actions[0].RunsPreviousAction()
 
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     for i, action in enumerate(self._actions):
       prev_action = self._actions[i - 1] if i > 0 else previous_action
       next_action = self._actions[i + 1] if i < len(self._actions) - 1 else None

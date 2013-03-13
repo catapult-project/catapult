@@ -24,7 +24,7 @@ class ScrollingAction(page_action.PageAction):
         });
      """)
 
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     try:
       if tab.browser.platform.IsRawDisplayFrameRateSupported():
         tab.browser.platform.StartRawDisplayFrameRateMeasurement('')

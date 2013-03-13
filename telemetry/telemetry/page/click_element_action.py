@@ -10,7 +10,7 @@ class ClickElementAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(ClickElementAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     def DoClick():
       assert hasattr(self, 'selector') or hasattr(self, 'text')
       if hasattr(self, 'selector'):
