@@ -200,8 +200,14 @@ class KeylessLoginRequiredException(LoginException):
 
 class CrOSInterface(object):
   # pylint: disable=R0923
-  def __init__(self, hostname, ssh_identity = None):
+  def __init__(self, hostname = None, ssh_identity = None):
     self._hostname = hostname
+    # List of ports generated from GetRemotePort() that may not be in use yet.
+    self._reserved_ports = []
+
+    if self.local:
+      return
+
     self._ssh_identity = None
     self._hostfile = tempfile.NamedTemporaryFile()
     self._hostfile.flush()
@@ -211,17 +217,21 @@ class CrOSInterface(object):
                       '-o PreferredAuthentications=publickey',
                       '-o UserKnownHostsFile=%s' % self._hostfile.name]
 
-    # List of ports generated from GetRemotePort() that may not be in use yet.
-    self._reserved_ports = []
-
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
+
+  @property
+  def local(self):
+    return not self._hostname
 
   @property
   def hostname(self):
     return self._hostname
 
   def FormSSHCommandLine(self, args, extra_ssh_args=None):
+    if self.local:
+      return args
+
     full_args = ['ssh',
                  '-o ForwardX11=no',
                  '-o ForwardX11Trusted=no',
@@ -257,6 +267,7 @@ class CrOSInterface(object):
 
   def TryLogin(self):
     logging.debug('TryLogin()')
+    assert not self.local
     stdout, stderr = self.RunCmdOnDevice(['echo', '$USER'], quiet=True)
     if stderr != '':
       if 'Host key verification failed' in stderr:
@@ -280,6 +291,9 @@ class CrOSInterface(object):
           self._hostname, stdout))
 
   def FileExistsOnDevice(self, file_name, quiet=False):
+    if self.local:
+      return os.path.exists(file_name)
+
     stdout, stderr = self.RunCmdOnDevice([
         'if', 'test', '-a', file_name, ';',
         'then', 'echo', '1', ';',
@@ -297,6 +311,7 @@ class CrOSInterface(object):
     return exists
 
   def PushFile(self, filename, remote_filename):
+    assert not self.local
     args = ['scp', '-r' ] + self._ssh_args
     if self._ssh_identity:
       args.extend(['-i', self._ssh_identity])
@@ -317,6 +332,7 @@ class CrOSInterface(object):
       self.PushFile(f.name, remote_filename)
 
   def GetFileContents(self, filename):
+    assert not self.local
     with tempfile.NamedTemporaryFile() as f:
       args = ['scp'] + self._ssh_args
       if self._ssh_identity:

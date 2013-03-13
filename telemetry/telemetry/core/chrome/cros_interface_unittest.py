@@ -7,6 +7,7 @@
 # a bit.
 import unittest
 import socket
+import sys
 
 from telemetry.core import util
 from telemetry.core.chrome import cros_browser_backend
@@ -69,6 +70,15 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
+  def testExistsLocal(self):
+    if not sys.platform.startswith('linux'):
+      return
+
+    cri = cros_interface.CrOSInterface()
+    self.assertTrue(cri.FileExistsOnDevice('/proc/cpuinfo'))
+    self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
+    self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
+
   @run_tests.RequiresBrowserOfType('cros-chrome')
   def testGetFileContents(self): # pylint: disable=R0201
     remote = options_for_unittests.GetCopy().cros_remote
@@ -111,6 +121,12 @@ class CrOSInterfaceTest(unittest.TestCase):
       options_for_unittests.GetCopy().cros_ssh_identity)
 
     self.assertTrue(cri.IsServiceRunning('openssh-server'))
+
+  def testIsServiceRunningLocal(self):
+    if not sys.platform.startswith('linux'):
+      return
+    cri = cros_interface.CrOSInterface()
+    self.assertTrue(cri.IsServiceRunning('dbus'))
 
   @run_tests.RequiresBrowserOfType('cros-chrome')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
