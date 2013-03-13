@@ -12,6 +12,11 @@
 base.requireStylesheet('unittest');
 base.exportTo('unittest', function() {
 
+  var NOCATCH_MODE = false;
+
+  // Uncomment the line below to make unit test failures throw exceptions.
+  //NOCATCH_MODE = true;
+
   function createTestCaseDiv(testName, opt_href, opt_alwaysShowErrorLink) {
     var el = document.createElement('test-case');
 
@@ -86,7 +91,6 @@ base.exportTo('unittest', function() {
       el.appendChild(titleEl);
     }
     var contentEl = opt_element || document.createElement('div');
-    contentEl.style.border = '1px  solid black';
     el.appendChild(contentEl);
 
     el.__defineGetter__('contents', function() {
@@ -443,28 +447,34 @@ base.exportTo('unittest', function() {
         this.results_ = results;
         results.willRunTest(this);
 
-        // Set up.
-        try {
+        if (NOCATCH_MODE) {
           this.setUp();
-        } catch (e) {
-          results.addError(e);
-          return;
-        }
-
-        // Run.
-        try {
           this.testMethod_();
-        } catch (e) {
-          results.addError(e);
-        }
-
-        // Tear down.
-        try {
           this.tearDown();
-        } catch (e) {
-          if (typeof e == 'string')
-            e = new TestError(e);
-          results.addError(e);
+        } else {
+          // Set up.
+          try {
+            this.setUp();
+          } catch (e) {
+            results.addError(e);
+            return;
+          }
+
+          // Run.
+          try {
+            this.testMethod_();
+          } catch (e) {
+            results.addError(e);
+          }
+
+          // Tear down.
+          try {
+            this.tearDown();
+          } catch (e) {
+            if (typeof e == 'string')
+              e = new TestError(e);
+            results.addError(e);
+          }
         }
       } finally {
         this.unbindGlobals_();
