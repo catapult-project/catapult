@@ -9,6 +9,7 @@ import sys
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.core.chrome import inspector_console
+from telemetry.core.chrome import inspector_memory
 from telemetry.core.chrome import inspector_page
 from telemetry.core.chrome import inspector_runtime
 from telemetry.core.chrome import inspector_timeline
@@ -30,6 +31,7 @@ class InspectorBackend(object):
     self._next_request_id = 0
 
     self._console = inspector_console.InspectorConsole(self)
+    self._memory = inspector_memory.InspectorMemory(self)
     self._page = inspector_page.InspectorPage(self)
     self._runtime = inspector_runtime.InspectorRuntime(self)
     self._timeline = inspector_timeline.InspectorTimeline(self)
@@ -151,6 +153,16 @@ class InspectorBackend(object):
   @message_output_stream.setter
   def message_output_stream(self, stream):  # pylint: disable=E0202
     self._console.message_output_stream = stream
+
+  # Memory public methods.
+
+  def GetDOMStats(self, timeout):
+    dom_counters = self._memory.GetDOMCounters(timeout)
+    return {
+      'document_count': dom_counters['documents'],
+      'node_count': dom_counters['nodes'],
+      'event_listener_count': dom_counters['jsEventListeners']
+    }
 
   # Page public methods.
 

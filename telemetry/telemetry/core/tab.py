@@ -31,6 +31,25 @@ class Tab(web_contents.WebContents):
   def url(self):
     return self._inspector_backend.url
 
+  @property
+  def dom_stats(self):
+    """A dictionary populated with measured DOM statistics.
+
+    Currently this dictionary contains:
+    {
+      'document_count': integer,
+      'node_count': integer,
+      'event_listener_count': integer
+    }
+    """
+    dom_counters = self._inspector_backend.GetDOMStats(
+        timeout=DEFAULT_TAB_TIMEOUT)
+    assert (len(dom_counters) == 3 and
+            all([x in dom_counters for x in ['document_count', 'node_count',
+                                             'event_listener_count']]))
+    return dom_counters
+
+
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
 
