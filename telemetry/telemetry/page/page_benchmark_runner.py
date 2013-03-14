@@ -47,6 +47,9 @@ def Main(benchmark_dir):
   parser.add_option('-o', '--output',
                     dest='output_file',
                     help='Redirects output to a file. Defaults to stdout.')
+  parser.add_option('--output-trace-tag',
+                    dest='output_trace_tag',
+                    help='Append a tag to the key of each result trace.')
 
   benchmark = None
   if benchmark_name is not None:
@@ -95,9 +98,16 @@ Use --browser=list to figure out which are available.\n"""
 
   with page_runner.PageRunner(ps) as runner:
     runner.Run(options, possible_browser, benchmark, results)
-  # When using an exact executable, assume it is a reference build for the
-  # purpose of outputting the perf results.
-  results.PrintSummary(options.browser_executable and '_ref' or '')
+
+  output_trace_tag = ''
+  if options.output_trace_tag:
+    output_trace_tag = options.output_trace_tag
+  elif options.browser_executable:
+    # When using an exact executable, assume it is a reference build for the
+    # purpose of outputting the perf results.
+    # TODO(tonyg): Remove this branch once the perfbots use --output-trace-tag.
+    output_trace_tag = '_ref'
+  results.PrintSummary(output_trace_tag)
 
   if len(results.page_failures):
     logging.warning('Failed pages: %s', '\n'.join(
