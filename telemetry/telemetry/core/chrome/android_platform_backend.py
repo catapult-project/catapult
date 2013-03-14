@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 
+from telemetry.core.chrome import platform
 from telemetry.core.chrome import platform_backend
 
 # Get build/android scripts into our path.
@@ -31,21 +32,31 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     self._perf_tests_setup = perf_tests_helper.PerfTestSetup(self._adb)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
     self._no_performance_mode = no_performance_mode
+    self._raw_display_frame_rate_measurements = []
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
   def IsRawDisplayFrameRateSupported(self):
     return True
 
-  def StartRawDisplayFrameRateMeasurement(self, trace_tag):
+  def StartRawDisplayFrameRateMeasurement(self):
     assert not self._surface_stats_collector
     self._surface_stats_collector = \
-        surface_stats_collector.SurfaceStatsCollector(self._adb, trace_tag)
+        surface_stats_collector.SurfaceStatsCollector(self._adb, '')
+    self._surface_stats_collector.SuppressPrintingResults()
     self._surface_stats_collector.__enter__()
 
   def StopRawDisplayFrameRateMeasurement(self):
     self._surface_stats_collector.__exit__()
+    for r in self._surface_stats_collector.GetResults():
+      self._raw_display_frame_rate_measurements.append(
+          platform.Platform.RawDisplayFrameRateMeasurement(
+              r.name, r.value, r.unit))
+
     self._surface_stats_collector = None
+
+  def GetRawDisplayFrameRateMeasurements(self):
+    return self._raw_display_frame_rate_measurements
 
   def SetFullPerformanceModeEnabled(self, enabled):
     if self._no_performance_mode:

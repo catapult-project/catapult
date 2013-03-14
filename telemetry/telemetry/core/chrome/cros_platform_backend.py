@@ -34,10 +34,13 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
     return retval
 
   # pylint: disable=W0613
-  def StartRawDisplayFrameRateMeasurement(self, trace_tag):
+  def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
   def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
     raise NotImplementedError()
 
   def IsThermallyThrottled(self):

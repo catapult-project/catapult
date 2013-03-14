@@ -13,10 +13,13 @@ from telemetry.core.chrome import platform_backend
 
 class MacPlatformBackend(platform_backend.PlatformBackend):
   # pylint: disable=W0613
-  def StartRawDisplayFrameRateMeasurement(self, trace_tag):
+  def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
   def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
     raise NotImplementedError()
 
   def IsThermallyThrottled(self):

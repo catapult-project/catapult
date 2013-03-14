@@ -7,10 +7,13 @@ class PlatformBackend(object):
     return False
 
   # pylint: disable=W0613
-  def StartRawDisplayFrameRateMeasurement(self, trace_tag):
+  def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
   def StopRawDisplayFrameRateMeasurement(self):
+    raise NotImplementedError()
+
+  def GetRawDisplayFrameRateMeasurements(self):
     raise NotImplementedError()
 
   def SetFullPerformanceModeEnabled(self, enabled):  # pylint: disable=W0613

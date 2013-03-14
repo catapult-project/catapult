@@ -99,8 +99,10 @@ class PageTest(object):
     if action:
       action.WillRunAction(page, tab)
       self.WillRunAction(page, tab, action)
-      action.RunAction(page, tab, None)
-      self.DidRunAction(page, tab, action)
+      try:
+        action.RunAction(page, tab, None)
+      finally:
+        self.DidRunAction(page, tab, action)
     try:
       self._test_method(page, tab, results)
     finally:
