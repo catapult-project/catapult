@@ -42,12 +42,11 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
   def StartRawDisplayFrameRateMeasurement(self):
     assert not self._surface_stats_collector
     self._surface_stats_collector = \
-        surface_stats_collector.SurfaceStatsCollector(self._adb, '')
-    self._surface_stats_collector.SuppressPrintingResults()
-    self._surface_stats_collector.__enter__()
+        surface_stats_collector.SurfaceStatsCollector(self._adb)
+    self._surface_stats_collector.Start()
 
   def StopRawDisplayFrameRateMeasurement(self):
-    self._surface_stats_collector.__exit__()
+    self._surface_stats_collector.Stop()
     for r in self._surface_stats_collector.GetResults():
       self._raw_display_frame_rate_measurements.append(
           platform.Platform.RawDisplayFrameRateMeasurement(
