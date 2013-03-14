@@ -19,7 +19,8 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineCanvasBasedTrack = base.ui.define(tracing.tracks.TimelineTrack);
+  var TimelineCanvasBasedTrack =
+      tracing.ui.define(tracing.tracks.TimelineTrack);
 
   TimelineCanvasBasedTrack.prototype = {
     __proto__: tracing.tracks.TimelineTrack.prototype,

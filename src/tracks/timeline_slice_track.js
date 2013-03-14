@@ -23,7 +23,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var TimelineSliceTrack =
-      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
+      tracing.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   TimelineSliceTrack.prototype = {
 

@@ -12,7 +12,7 @@ base.require('analysis.util');
  *
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
@@ -20,7 +20,7 @@ base.exportTo('tracing', function() {
    * @extends {HTMLDivElement}
    */
   var SliceGroupSelectionAnalysis =
-                              base.ui.define('group-slice-selection-analysis');
+      tracing.ui.define('group-slice-selection-analysis');
   SliceGroupSelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -80,7 +80,7 @@ base.exportTo('tracing', function() {
           groupEnd = sliceEnd;
       }
 
-      this.roundedSelectionDuration_ = tracing.tsRound(totalDuration);
+      this.roundedSelectionDuration_ = tracing.analysis.tsRound(totalDuration);
       this.selectionStartTime_ = groupStart;
       this.selectionEndTime_ = groupEnd;
       this.occurrences_ = numOccurrences;

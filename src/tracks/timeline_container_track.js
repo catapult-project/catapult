@@ -13,7 +13,7 @@ base.exportTo('tracing.tracks', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var TimelineContainerTrack = base.ui.define(tracing.tracks.TimelineTrack);
+  var TimelineContainerTrack = tracing.ui.define(tracing.tracks.TimelineTrack);
   TimelineContainerTrack.prototype = {
     __proto__: tracing.tracks.TimelineTrack.prototype,
 

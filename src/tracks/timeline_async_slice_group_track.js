@@ -14,7 +14,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {TimelineSliceGroup}
    */
 
-  var TimelineAsyncSliceGroupTrack = base.ui.define(
+  var TimelineAsyncSliceGroupTrack = tracing.ui.define(
       tracing.tracks.TimelineSliceGroupTrack);
 
   TimelineAsyncSliceGroupTrack.prototype = {

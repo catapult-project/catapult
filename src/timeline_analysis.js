@@ -8,20 +8,17 @@
  * @fileoverview TimelineAnalysis summarizes info about the selected slices
  * to the analysis panel.
  */
+base.require('analysis.util');
 base.require('ui');
 base.requireStylesheet('timeline_analysis');
 base.exportTo('tracing', function() {
 
-  var AnalysisResults = base.ui.define('div');
+  var AnalysisResults = tracing.ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-    },
-
-    tsRound_: function(ts) {
-      return Math.round(ts * 1000.0) / 1000.0;
     },
 
     appendElement_: function(parent, tagName, opt_text) {
@@ -131,7 +128,8 @@ base.exportTo('tracing', function() {
      * column.
      */
     appendSummaryRowTime: function(table, label, time) {
-      this.appendSummaryRow(table, label, this.tsRound_(time) + ' ms');
+      this.appendSummaryRow(table, label,
+                            tracing.analysis.tsRound(time) + ' ms');
     },
 
     /**
@@ -148,26 +146,28 @@ base.exportTo('tracing', function() {
 
       var tooltip = undefined;
       if (opt_statistics) {
-        tooltip = 'Min Duration:\u0009' + this.tsRound_(opt_statistics.min) +
+        tooltip = 'Min Duration:\u0009' +
+                  tracing.analysis.tsRound(opt_statistics.min) +
                   ' ms \u000DMax Duration:\u0009' +
-                  this.tsRound_(opt_statistics.max) +
+                  tracing.analysis.tsRound(opt_statistics.max) +
                   ' ms \u000DAvg Duration:\u0009' +
-                  this.tsRound_(opt_statistics.avg) + ' ms (\u03C3 = ' +
-                  this.tsRound_(opt_statistics.avg_stddev) + ')';
+                  tracing.analysis.tsRound(opt_statistics.avg) +
+                  ' ms (\u03C3 = ' +
+                  tracing.analysis.tsRound(opt_statistics.avg_stddev) + ')';
 
         if (opt_statistics.start) {
           tooltip += '\u000DStart Time:\u0009' +
-              this.tsRound_(opt_statistics.start) + ' ms';
+              tracing.analysis.tsRound(opt_statistics.start) + ' ms';
         }
         if (opt_statistics.end) {
           tooltip += '\u000DEnd Time:\u0009' +
-              this.tsRound_(opt_statistics.end) + ' ms';
+              tracing.analysis.tsRound(opt_statistics.end) + ' ms';
         }
         if (opt_statistics.frequency && opt_statistics.frequency_stddev) {
           tooltip += '\u000DFrequency:\u0009' +
-              this.tsRound_(opt_statistics.frequency) +
+              tracing.analysis.tsRound(opt_statistics.frequency) +
               ' occurrences/s (\u03C3 = ' +
-              this.tsRound_(opt_statistics.frequency_stddev) + ')';
+              tracing.analysis.tsRound(opt_statistics.frequency_stddev) + ')';
         }
       }
 
@@ -178,7 +178,7 @@ base.exportTo('tracing', function() {
 
       if (opt_duration !== undefined) {
         this.appendTableCellWithTooltip_(table, row, 1,
-            this.tsRound_(opt_duration) + ' ms', tooltip);
+            tracing.analysis.tsRound(opt_duration) + ' ms', tooltip);
       } else {
         this.appendTableCell_(table, row, 1, '');
       }
@@ -374,7 +374,7 @@ base.exportTo('tracing', function() {
     }
   }
 
-  var TimelineAnalysisView = base.ui.define('div');
+  var TimelineAnalysisView = tracing.ui.define('div');
 
   TimelineAnalysisView.prototype = {
     __proto__: HTMLDivElement.prototype,

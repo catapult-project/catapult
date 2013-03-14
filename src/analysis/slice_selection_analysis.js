@@ -12,14 +12,14 @@ base.require('analysis.slice_group_selection_analysis');
  *
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var SliceSelectionAnalysis = base.ui.define('slice-selection-analysis');
+  var SliceSelectionAnalysis = tracing.ui.define('slice-selection-analysis');
   SliceSelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -59,7 +59,7 @@ base.exportTo('tracing', function() {
       var sliceHitsSelection = this.selection_.getSliceHitsAsSelection();
 
       if (sliceHitsSelection.length == 1) {
-        var childEl = new tracing.SingleSliceSelectionAnalysis();
+        var childEl = new tracing.analysis.SingleSliceSelectionAnalysis();
         childEl.verticalDisplay_ = true;
         childEl.selection = sliceHitsSelection;
         this.appendChild(childEl);
@@ -80,7 +80,7 @@ base.exportTo('tracing', function() {
 
         var addedHeader = false;
         for (var groupTitle in selectionsByTitle) {
-          var childEl = new tracing.SliceGroupSelectionAnalysis();
+          var childEl = new tracing.analysis.SliceGroupSelectionAnalysis();
           if (!addedHeader) {
             this.appendChild(childEl.createColumnTitleRow());
             addedHeader = true;
@@ -104,11 +104,11 @@ base.exportTo('tracing', function() {
         // Construct and append the groups summary.
         var groupSummaryEl = document.createElement('group-totals-summary');
         this.appendDataRow_(groupSummaryEl, 'Totals',
-            tracing.tsRound(allGroupsDuration), allGroupsOccurrences);
+            tracing.analysis.tsRound(allGroupsDuration), allGroupsOccurrences);
         this.appendDataRow_(groupSummaryEl, 'Selection Start',
-            tracing.tsRound(allGroupsStart));
+            tracing.analysis.tsRound(allGroupsStart));
         this.appendDataRow_(groupSummaryEl, 'Selection End',
-            tracing.tsRound(allGroupsEnd));
+            tracing.analysis.tsRound(allGroupsEnd));
         this.appendChild(groupSummaryEl);
       }
     },

@@ -56,7 +56,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Timeline = base.ui.define('div');
+  var Timeline = tracing.ui.define('div');
 
   Timeline.prototype = {
     __proto__: HTMLDivElement.prototype,

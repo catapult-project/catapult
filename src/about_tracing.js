@@ -49,6 +49,7 @@ window.FLATTENED['tracks.timeline_process_track'] = true;
 window.FLATTENED['tracks.timeline_model_track'] = true;
 window.FLATTENED['tracks.timeline_viewport_track'] = true;
 window.FLATTENED['timeline'] = true;
+window.FLATTENED['analysis.util'] = true;
 window.FLATTENED['timeline_analysis'] = true;
 window.FLATTENED['overlay'] = true;
 window.FLATTENED['timeline_category_filter_dialog'] = true;
@@ -108,6 +109,7 @@ window.FLATTENED['profiling_view'] = true;
 <include src="tracks/timeline_model_track.js">
 <include src="tracks/timeline_viewport_track.js">
 <include src="timeline.js">
+<include src="analysis/util.js">
 <include src="timeline_analysis.js">
 <include src="overlay.js">
 <include src="timeline_category_filter_dialog.js">
@@ -141,6 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.send.bind(chrome));
 
   profilingView = document.body.querySelector('#profiling-view');
-  base.ui.decorate(profilingView, tracing.ProfilingView);
+  tracing.ui.decorate(profilingView, tracing.ProfilingView);
   profilingView.tracingController = tracingController;
 });

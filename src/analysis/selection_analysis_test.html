@@ -7,7 +7,7 @@ found in the LICENSE file.
 -->
 <head>
 <title>Selection Analysis Tests</title>
-<script src="/src/base.js"></script>
+<script src="../base.js"></script>
 </head>
 <body>
   <script>
@@ -15,28 +15,29 @@ found in the LICENSE file.
     base.require('test_utils');
     base.require('timeline');
     base.require('analysis.selection_analysis');
-    base.require('analysis.analysis_test_support');
-    base.requireStylesheet('analysis.analysis_test_support');
+    base.require('analysis.test.analysis_test_support');
+    base.requireStylesheet('analysis.test.analysis_test_support');
   </script>
   <script>
     'use strict';
 
     function testSelectionAnalysisWithSingleSlice() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('f', selection);
 
-      var analysis = new tracing.SelectionAnalysis();
+      var analysis = new tracing.analysis.SelectionAnalysis();
       analysis.selection = selection;
 
       var selectionEl = analysis;
       var sliceSelectionEl = selectionEl.children[0];
       var singleSliceEl = sliceSelectionEl.children[0];
 
-      assertEquals(true, analysis instanceof tracing.SelectionAnalysis);
+      assertEquals(true,
+          analysis instanceof tracing.analysis.SelectionAnalysis);
       assertEquals(true, sliceSelectionEl instanceof
-          tracing.SliceSelectionAnalysis);
+          tracing.analysis.SliceSelectionAnalysis);
       assertEquals(1, sliceSelectionEl.children.length);
       assertEquals(4, singleSliceEl.children.length);
 
@@ -44,12 +45,12 @@ found in the LICENSE file.
     }
 
     function testSelectionAnalysisWithSingleSliceArgsAndCategory() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('D', selection);
 
-      var analysis = new tracing.SelectionAnalysis();
+      var analysis = new tracing.analysis.SelectionAnalysis();
       analysis.selection = selection;
 
       var selectionEl = analysis;
@@ -59,11 +60,12 @@ found in the LICENSE file.
       var argEl1 = singleSliceEl.children[5];
       var argEl2 = singleSliceEl.children[6];
 
-      assertEquals(true, analysis instanceof tracing.SelectionAnalysis);
+      assertEquals(true,
+          analysis instanceof tracing.analysis.SelectionAnalysis);
       assertEquals(true, sliceSelectionEl instanceof
-          tracing.SliceSelectionAnalysis);
+          tracing.analysis.SliceSelectionAnalysis);
       assertEquals(true, singleSliceEl instanceof
-          tracing.SingleSliceSelectionAnalysis);
+          tracing.analysis.SingleSliceSelectionAnalysis);
       assertEquals(1, sliceSelectionEl.children.length);
       assertEquals(7, singleSliceEl.children.length);
 
@@ -72,13 +74,13 @@ found in the LICENSE file.
 
     function testSelectionAnalysisWithSlicesAndCounters() {
 
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('b', selection);
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
 
-      var analysis = new tracing.SelectionAnalysis();
+      var analysis = new tracing.analysis.SelectionAnalysis();
       analysis.selection = selection;
 
       var selectionEl = analysis;
@@ -86,9 +88,9 @@ found in the LICENSE file.
       var counterSelectionEl = selectionEl.children[1];
 
       assertEquals(true, sliceSelectionEl instanceof
-          tracing.SliceSelectionAnalysis);
+          tracing.analysis.SliceSelectionAnalysis);
       assertEquals(true, counterSelectionEl instanceof
-          tracing.CounterSelectionAnalysis);
+          tracing.analysis.CounterSelectionAnalysis);
       assertEquals(2, selectionEl.children.length);
       assertEquals(3, sliceSelectionEl.children.length);
       assertEquals(2, counterSelectionEl.children.length);
@@ -98,23 +100,24 @@ found in the LICENSE file.
     }
 
     function testSelectionAnalysisWithSingleCounter() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
 
-      var analysis = new tracing.SelectionAnalysis();
+      var analysis = new tracing.analysis.SelectionAnalysis();
       analysis.selection = selection;
 
       var selectionEl = analysis;
       var counterSelectionEl = selectionEl.children[0];
       var singleCounterEl = counterSelectionEl.children[1];
 
-      assertEquals(true, analysis instanceof tracing.SelectionAnalysis);
+      assertEquals(true,
+          analysis instanceof tracing.analysis.SelectionAnalysis);
       assertEquals(true, counterSelectionEl instanceof
-          tracing.CounterSelectionAnalysis);
+          tracing.analysis.CounterSelectionAnalysis);
       assertEquals(true, singleCounterEl instanceof
-          tracing.SingleCounterSelectionAnalysis);
+          tracing.analysis.SingleCounterSelectionAnalysis);
       assertEquals(2, counterSelectionEl.children.length);
       assertEquals(1, singleCounterEl.children.length);
 
@@ -122,13 +125,13 @@ found in the LICENSE file.
     }
 
     function testSelectionAnalysisWithMultipleCounters() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
       selection.addCounterSample(data.ctr2track, data.ctr2track.counter, 3);
 
-      var analysis = new tracing.SelectionAnalysis();
+      var analysis = new tracing.analysis.SelectionAnalysis();
       analysis.selection = selection;
 
       var selectionEl = analysis;
@@ -136,13 +139,14 @@ found in the LICENSE file.
       var singleCounterEl = counterSelectionEl.children[1];
       var singleCounterEl2 = counterSelectionEl.children[2];
 
-      assertEquals(true, analysis instanceof tracing.SelectionAnalysis);
+      assertEquals(true,
+          analysis instanceof tracing.analysis.SelectionAnalysis);
       assertEquals(true, counterSelectionEl instanceof
-          tracing.CounterSelectionAnalysis);
+          tracing.analysis.CounterSelectionAnalysis);
       assertEquals(true, singleCounterEl instanceof
-          tracing.SingleCounterSelectionAnalysis);
+          tracing.analysis.SingleCounterSelectionAnalysis);
       assertEquals(true, singleCounterEl2 instanceof
-          tracing.SingleCounterSelectionAnalysis);
+          tracing.analysis.SingleCounterSelectionAnalysis);
       assertEquals(3, counterSelectionEl.children.length);
       assertEquals(1, singleCounterEl.children.length);
       assertEquals(1, singleCounterEl2.children.length);

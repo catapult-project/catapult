@@ -8,6 +8,48 @@
  *        Do not edit directly.
  */
 base.addModuleDependency(
+    'analysis.single_slice_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.single_slice_selection_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.slice_group_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.slice_group_selection_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.slice_selection_analysis',
+    'analysis.single_slice_selection_analysis');
+base.addModuleDependency(
+    'analysis.slice_selection_analysis',
+    'analysis.slice_group_selection_analysis');
+base.addModuleDependency(
+    'analysis.single_counter_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.single_counter_selection_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.counter_selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.counter_selection_analysis',
+    'analysis.single_counter_selection_analysis');
+base.addModuleDependency(
+    'analysis.selection_analysis',
+    'analysis.slice_selection_analysis');
+base.addModuleDependency(
+    'analysis.selection_analysis',
+    'analysis.counter_selection_analysis');
+base.addModuleDependency(
+    'analysis.selection_analysis',
+    'ui');
+base.addModuleStylesheet(
+    'analysis.selection_analysis',
+    'analysis.selection_analysis');
+base.addModuleDependency(
     'timeline_slice_group',
     'range');
 base.addModuleDependency(
@@ -197,62 +239,20 @@ base.addModuleStylesheet(
     'tracks.timeline_counter_track',
     'tracks.timeline_counter_track');
 base.addModuleDependency(
-    'analysis.analysis_test_support',
+    'analysis.test.analysis_test_support',
     'test_utils');
 base.addModuleDependency(
-    'analysis.analysis_test_support',
+    'analysis.test.analysis_test_support',
     'timeline_model');
 base.addModuleDependency(
-    'analysis.analysis_test_support',
+    'analysis.test.analysis_test_support',
     'timeline_selection');
 base.addModuleDependency(
-    'analysis.analysis_test_support',
+    'analysis.test.analysis_test_support',
     'tracks.timeline_thread_track');
 base.addModuleDependency(
-    'analysis.analysis_test_support',
+    'analysis.test.analysis_test_support',
     'tracks.timeline_counter_track');
-base.addModuleDependency(
-    'analysis.single_slice_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.single_slice_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.slice_group_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.slice_group_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.slice_selection_analysis',
-    'analysis.single_slice_selection_analysis');
-base.addModuleDependency(
-    'analysis.slice_selection_analysis',
-    'analysis.slice_group_selection_analysis');
-base.addModuleDependency(
-    'analysis.single_counter_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.single_counter_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.counter_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.counter_selection_analysis',
-    'analysis.single_counter_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'analysis.slice_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'analysis.counter_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'ui');
-base.addModuleStylesheet(
-    'analysis.selection_analysis',
-    'analysis.selection_analysis');
 base.addModuleDependency(
     'importer.timeline_stream_importer',
     'timeline_model');
@@ -346,6 +346,9 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'timeline',
     'timeline');
+base.addModuleDependency(
+    'timeline_analysis',
+    'analysis.util');
 base.addModuleDependency(
     'timeline_analysis',
     'ui');

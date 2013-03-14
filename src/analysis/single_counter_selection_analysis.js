@@ -11,7 +11,7 @@ base.require('analysis.util');
  * @fileoverview Conains classes for single counter selections.
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
@@ -19,7 +19,7 @@ base.exportTo('tracing', function() {
    * @extends {HTMLDivElement}
    */
   var SingleCounterSelectionAnalysis =
-      base.ui.define('single-counter-selection');
+      tracing.ui.define('single-counter-selection');
 
   SingleCounterSelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,

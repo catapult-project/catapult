@@ -13,6 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.send.bind(chrome));
 
   profilingView = document.body.querySelector('#profiling-view');
-  base.ui.decorate(profilingView, tracing.ProfilingView);
+  tracing.ui.decorate(profilingView, tracing.ProfilingView);
   profilingView.tracingController = tracingController;
 });

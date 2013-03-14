@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var TimelineSliceGroupTrack =
-      base.ui.define(tracing.tracks.TimelineContainerTrack);
+      tracing.ui.define(tracing.tracks.TimelineContainerTrack);
 
   TimelineSliceGroupTrack.prototype = {
 

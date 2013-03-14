@@ -17,7 +17,7 @@ found in the LICENSE file.
 <script>
     'use strict';
 
-    var TestElement = base.ui.define('div');
+    var TestElement = tracing.ui.define('div');
     TestElement.prototype = {
       __proto__: HTMLDivElement.prototype,
 
@@ -35,7 +35,7 @@ found in the LICENSE file.
 
     function testDecorateOnceDirectly() {
       var testElement = document.createElement('div');
-      base.ui.decorate(testElement, TestElement);
+      tracing.ui.decorate(testElement, TestElement);
       assertEquals(1, testElement.decorateCallCount);
     }
 </script>

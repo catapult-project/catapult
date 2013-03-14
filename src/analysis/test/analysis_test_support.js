@@ -14,9 +14,7 @@ base.require('tracks.timeline_counter_track');
  * @fileoverview Helper functions for use in analysis tests.
  */
 
-base.exportTo('tracing', function() {
-
-    var TimelineSelection = tracing.TimelineSelection;
+base.exportTo('tracing.analysis.test', function() {
 
     var newSliceNamed = test_utils.newSliceNamed;
     var newSliceCategory = test_utils.newSliceCategory;
@@ -76,7 +74,10 @@ base.exportTo('tracing', function() {
       var ctr2track = new tracing.tracks.TimelineCounterTrack();
       ctr2track.counter = ctr2;
 
-      decorateTrackWithTestHelpers(t1track);
+      t1track.selectByTitle = function(title, selection) {
+        t1track.addAllObjectsMatchingFilterToSelection(
+            new tracing.TimelineTitleFilter(title), selection);
+      }
 
       return {model: model,
               t1track: t1track,
@@ -84,16 +85,8 @@ base.exportTo('tracing', function() {
               ctr2track: ctr2track};
     }
 
-    function decorateTrackWithTestHelpers(track) {
-      track.selectByTitle = function(title, selection) {
-        track.addAllObjectsMatchingFilterToSelection(
-            new tracing.TimelineTitleFilter(title), selection);
-      }
-    }
-
     return {
-      createReferenceData: createReferenceData,
-      decorateTrackWithTestHelpers: decorateTrackWithTestHelpers
+      createReferenceData: createReferenceData
     };
 });
 

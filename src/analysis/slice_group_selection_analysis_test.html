@@ -14,23 +14,23 @@ found in the LICENSE file.
     base.require('unittest');
     base.require('test_utils');
     base.require('analysis.slice_group_selection_analysis');
-    base.require('analysis.analysis_test_support');
+    base.require('analysis.test.analysis_test_support');
   </script>
   <script>
     'use strict';
 
     function testSliceGroupSelectionAnalysisWithOneSlice() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('f', selection);
 
-      var analysis = new tracing.SliceGroupSelectionAnalysis();
+      var analysis = new tracing.analysis.SliceGroupSelectionAnalysis();
       analysis.selection = selection;
       var rowEl = analysis.children[0];
 
       assertEquals(true, analysis instanceof
-          tracing.SliceGroupSelectionAnalysis);
+          tracing.analysis.SliceGroupSelectionAnalysis);
       assertEquals(1, analysis.children.length);
       assertEquals(3, rowEl.children.length);
       assertEquals('f', rowEl.children[0].textContent);
@@ -39,17 +39,17 @@ found in the LICENSE file.
     }
 
     function testSliceGroupSelectionAnalysisWithTwoSlicesSameTitle() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('b', selection);
 
-      var analysis = new tracing.SliceGroupSelectionAnalysis();
+      var analysis = new tracing.analysis.SliceGroupSelectionAnalysis();
       analysis.selection = selection;
       var rowEl = analysis.children[0];
 
       assertEquals(true, analysis instanceof
-          tracing.SliceGroupSelectionAnalysis);
+          tracing.analysis.SliceGroupSelectionAnalysis);
       assertEquals(1, analysis.children.length);
       assertEquals('b', rowEl.children[0].textContent);
       assertEquals('0.004', rowEl.children[1].textContent);
@@ -57,13 +57,13 @@ found in the LICENSE file.
     }
 
     function testSliceGroupSelectionAnalysisWithTwoSlicesDifferentTitles() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('b', selection);
       data.t1track.selectByTitle('c', selection);
 
-      var analysis = new tracing.SliceGroupSelectionAnalysis();
+      var analysis = new tracing.analysis.SliceGroupSelectionAnalysis();
       assertThrows(function() {
         analysis.selection = selection;
       });

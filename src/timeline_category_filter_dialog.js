@@ -12,13 +12,13 @@ base.require('timeline_filter');
 base.require('overlay');
 base.exportTo('tracing', function() {
 
-  var TimelineCategoryFilterDialog = base.ui.define('div');
+  var TimelineCategoryFilterDialog = tracing.ui.define('div');
 
   TimelineCategoryFilterDialog.prototype = {
-    __proto__: tracing.Overlay.prototype,
+    __proto__: tracing.ui.Overlay.prototype,
 
     decorate: function() {
-      tracing.Overlay.prototype.decorate.call(this);
+      tracing.ui.Overlay.prototype.decorate.call(this);
 
       this.className = 'timeline-view-category-filter-overlay';
       this.autoClose = true;

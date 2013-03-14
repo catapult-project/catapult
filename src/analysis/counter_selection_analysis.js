@@ -12,14 +12,15 @@ base.require('analysis.single_counter_selection_analysis');
  *
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var CounterSelectionAnalysis = base.ui.define('counter-selection-analysis');
+  var CounterSelectionAnalysis =
+      tracing.ui.define('counter-selection-analysis');
   CounterSelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -54,7 +55,7 @@ base.exportTo('tracing', function() {
       var addedHeader = false;
       for (var i = 0; i < counters.length; i++) {
         var counterHit = counters[i];
-        var childEl = new tracing.SingleCounterSelectionAnalysis();
+        var childEl = new tracing.analysis.SingleCounterSelectionAnalysis();
         if (!addedHeader) {
           this.appendChild(childEl.createColumnTitleRow());
           addedHeader = true;

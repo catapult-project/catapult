@@ -17,7 +17,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var ProfilingView = base.ui.define('div');
+  var ProfilingView = tracing.ui.define('div');
 
   ProfilingView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -128,7 +128,7 @@ base.exportTo('tracing', function() {
     ///////////////////////////////////////////////////////////////////////////
 
     onSave_: function() {
-      this.overlayEl_ = new tracing.Overlay();
+      this.overlayEl_ = new tracing.ui.Overlay();
       this.overlayEl_.className = 'profiling-overlay';
 
       var labelEl = document.createElement('div');
@@ -155,7 +155,7 @@ base.exportTo('tracing', function() {
     ///////////////////////////////////////////////////////////////////////////
 
     onLoad_: function() {
-      this.overlayEl_ = new tracing.Overlay();
+      this.overlayEl_ = new tracing.ui.Overlay();
       this.overlayEl_.className = 'profiling-overlay';
 
       var labelEl = document.createElement('div');

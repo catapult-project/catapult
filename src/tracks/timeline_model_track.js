@@ -18,7 +18,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var TimelineModelTrack =
-      base.ui.define(tracing.tracks.TimelineContainerTrack);
+      tracing.ui.define(tracing.tracks.TimelineContainerTrack);
 
   TimelineModelTrack.prototype = {
 

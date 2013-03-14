@@ -11,14 +11,15 @@ base.require('analysis.util');
  * @fileoverview Conains classes for single slice selection.
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var SingleSliceSelectionAnalysis = base.ui.define('single-slice-selection');
+  var SingleSliceSelectionAnalysis =
+      tracing.ui.define('single-slice-selection');
   SingleSliceSelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -64,14 +65,16 @@ base.exportTo('tracing', function() {
       if (this.verticalDisplay) {
         this.appendDataRow_('Title', slice.title);
         this.appendDataRow_('Category', slice.category);
-        this.appendDataRow_('Start Time', tracing.tsRound(slice.start));
-        this.appendDataRow_('Duration', tracing.tsRound(slice.duration));
+        this.appendDataRow_('Start Time',
+                            tracing.analysis.tsRound(slice.start));
+        this.appendDataRow_('Duration',
+                            tracing.analysis.tsRound(slice.duration));
       }else {
         var rowEl = document.createElement('div');
         rowEl.classList.add('analysis-table-row');
         this.appendData_(rowEl, slice.category);
-        this.appendData_(rowEl, tracing.tsRound(slice.start));
-        this.appendData_(rowEl, tracing.tsRound(slice.duration));
+        this.appendData_(rowEl, tracing.analysis.tsRound(slice.start));
+        this.appendData_(rowEl, tracing.analysis.tsRound(slice.duration));
         this.appendChild(rowEl);
       }
 

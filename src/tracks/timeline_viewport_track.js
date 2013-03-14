@@ -19,7 +19,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var TimelineViewportTrack =
-      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
+      tracing.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {

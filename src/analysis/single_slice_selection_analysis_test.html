@@ -14,18 +14,18 @@ found in the LICENSE file.
     base.require('unittest');
     base.require('test_utils');
     base.require('analysis.single_slice_selection_analysis');
-    base.require('analysis.analysis_test_support');
+    base.require('analysis.test.analysis_test_support');
   </script>
   <script>
     'use strict';
 
     function testSelectionAnalysisWithSingleSliceArgsAndCategory() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('D', selection);
 
-      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
       analysis.selection = selection;
       analysis.verticalDisplay = true;
 
@@ -35,7 +35,7 @@ found in the LICENSE file.
       var argEl2 = singleSliceEl.children[6];
 
       assertEquals(true, analysis instanceof
-          tracing.SingleSliceSelectionAnalysis);
+          tracing.analysis.SingleSliceSelectionAnalysis);
       assertEquals(7, singleSliceEl.children.length);
       assertEquals('category', categoryEl.children[1].textContent);
       assertEquals('Arg D src_file', argEl1.children[1].textContent);
@@ -43,12 +43,12 @@ found in the LICENSE file.
     }
 
     function testSingleSliceSelectionWithMissingCategoryAndArgs() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('f', selection);
 
-      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
       analysis.selection = selection;
       analysis.verticalDisplay = true;
 
@@ -65,24 +65,24 @@ found in the LICENSE file.
     }
 
     function testSingleSliceSelectionWithMultipleSlices() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('b', selection);
 
-      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
       assertThrows(function() {
         analysis.selection = selection;
       });
     }
 
     function testSingleSliceSelectionWithFalseArgs() {
-      var data = tracing.createReferenceData(true);
+      var data = tracing.analysis.test.createReferenceData(true);
 
       var selection = new tracing.TimelineSelection();
       data.t1track.selectByTitle('F', selection);
 
-      var analysis = new tracing.SingleSliceSelectionAnalysis();
+      var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
       analysis.selection = selection;
       analysis.verticalDisplay = true;
 
@@ -92,7 +92,7 @@ found in the LICENSE file.
       var argEl2 = singleSliceEl.children[6];
 
       assertEquals(true, singleSliceEl instanceof
-          tracing.SingleSliceSelectionAnalysis);
+          tracing.analysis.SingleSliceSelectionAnalysis);
       assertEquals(7, singleSliceEl.children.length);
       assertEquals('0', argEl1.children[1].textContent);
       assertEquals('false', argEl2.children[1].textContent);

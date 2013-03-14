@@ -23,6 +23,7 @@ found in the LICENSE file.
   base.require('unittest');
   base.require('test_utils');
   base.require('timeline_find_control');
+  base.require('ui');
 </script>
 </head>
 <body>
@@ -34,7 +35,7 @@ found in the LICENSE file.
     /*
      * Just enough of the Timeline to support the tests below.
      */
-    var FakeTimeline = base.ui.define('div');
+    var FakeTimeline = tracing.ui.define('div');
 
     FakeTimeline.prototype = {
       __proto__: HTMLDivElement.prototype,

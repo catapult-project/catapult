@@ -15,7 +15,8 @@ base.exportTo('tracing.tracks', function() {
    * Visualizes a TimelineCpu using a series of of TimelineSliceTracks.
    * @constructor
    */
-  var TimelineCpuTrack = base.ui.define(tracing.tracks.TimelineContainerTrack);
+  var TimelineCpuTrack =
+      tracing.ui.define(tracing.tracks.TimelineContainerTrack);
   TimelineCpuTrack.prototype = {
     __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 

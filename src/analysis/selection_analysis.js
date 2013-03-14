@@ -14,14 +14,14 @@ base.require('ui');
  *
  */
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
   /**
    *
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var SelectionAnalysis = base.ui.define('selection-analysis');
+  var SelectionAnalysis = tracing.ui.define('selection-analysis');
   SelectionAnalysis.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -44,12 +44,12 @@ base.exportTo('tracing', function() {
       var counterHits = this.selection_.getCounterSampleHitsAsSelection();
 
       if (sliceHits.length) {
-        var childEl = new tracing.SliceSelectionAnalysis();
+        var childEl = new tracing.analysis.SliceSelectionAnalysis();
         childEl.selection = sliceHits;
         this.appendChild(childEl);
       }
       if (counterHits.length) {
-        var childEl = new tracing.CounterSelectionAnalysis();
+        var childEl = new tracing.analysis.CounterSelectionAnalysis();
         childEl.selection = counterHits;
         this.appendChild(childEl);
       }

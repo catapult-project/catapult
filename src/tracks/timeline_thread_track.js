@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var TimelineThreadTrack =
-      base.ui.define(tracing.tracks.TimelineContainerTrack);
+      tracing.ui.define(tracing.tracks.TimelineContainerTrack);
   TimelineThreadTrack.prototype = {
     __proto__: tracing.tracks.TimelineContainerTrack.prototype,
 

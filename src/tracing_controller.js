@@ -22,7 +22,7 @@ base.exportTo('tracing', function() {
     this.overlay_ = document.createElement('div');
     this.overlay_.className = 'tracing-overlay';
 
-    base.ui.decorate(this.overlay_, tracing.Overlay);
+    tracing.ui.decorate(this.overlay_, tracing.ui.Overlay);
 
     this.statusDiv_ = document.createElement('div');
     this.overlay_.appendChild(this.statusDiv_);

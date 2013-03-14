@@ -15,15 +15,15 @@ base.exportTo('tracing', function() {
   /**
    * TimelineFindControl
    * @constructor
-   * @extends {tracing.Overlay}
+   * @extends {tracing.ui.Overlay}
    */
-  var TimelineFindControl = base.ui.define('div');
+  var TimelineFindControl = tracing.ui.define('div');
 
   TimelineFindControl.prototype = {
-    __proto__: tracing.Overlay.prototype,
+    __proto__: tracing.ui.Overlay.prototype,
 
     decorate: function() {
-      tracing.Overlay.prototype.decorate.call(this);
+      tracing.ui.Overlay.prototype.decorate.call(this);
 
       this.className = 'timeline-find-control';
 

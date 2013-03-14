@@ -27,7 +27,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineView = base.ui.define('div');
+  var TimelineView = tracing.ui.define('div');
 
   TimelineView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -96,7 +96,7 @@ base.exportTo('tracing', function() {
     },
 
     createImportErrorsButton_: function() {
-      var dlg = new tracing.Overlay();
+      var dlg = new tracing.ui.Overlay();
       dlg.classList.add('timeline-view-import-errors-overlay');
       dlg.autoClose = true;
 
@@ -171,7 +171,7 @@ base.exportTo('tracing', function() {
     },
 
     createHelpButton_: function() {
-      var dlg = new tracing.Overlay();
+      var dlg = new tracing.ui.Overlay();
       dlg.classList.add('timeline-view-help-overlay');
       dlg.autoClose = true;
       dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
@@ -204,7 +204,7 @@ base.exportTo('tracing', function() {
     },
 
     createMetadataButton_: function() {
-      var dlg = new tracing.Overlay();
+      var dlg = new tracing.ui.Overlay();
       dlg.classList.add('timeline-view-metadata-overlay');
       dlg.autoClose = true;
 
@@ -434,7 +434,7 @@ base.exportTo('tracing', function() {
    * @extends {HTMLDivElement}
    * You will need to set target to be the draggable element
    */
-  var TimelineDragHandle = base.ui.define('div');
+  var TimelineDragHandle = tracing.ui.define('div');
 
   TimelineDragHandle.prototype = {
     __proto__: HTMLDivElement.prototype,

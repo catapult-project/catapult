@@ -21,7 +21,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var TimelineCounterTrack =
-      base.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
+      tracing.ui.define(tracing.tracks.TimelineCanvasBasedTrack);
 
   TimelineCounterTrack.prototype = {
 
