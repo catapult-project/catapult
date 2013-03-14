@@ -34,21 +34,25 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
       adb_commands.ResetTestServerPortAllocation()
     self._port = adb_commands.AllocateTestServerPort()
     self._devtools_remote_port = devtools_remote_port
+    self._profile_dir = '/data/data/%s/' % self._package
+    if is_content_shell:
+      self._profile_dir += 'app_content_shell/'
+    else:
+      self._profile_dir += 'app_chrome/'
 
     # Kill old browser.
     self._adb.CloseApplication(self._package)
     self._adb.KillAll('device_forwarder')
     self._adb.Forward('tcp:%d' % self._port, self._devtools_remote_port)
 
-    # Chrome Android doesn't listen to --user-data-dir.
-    # TODO: symlink the app's Default, files and cache dir
-    # to somewhere safe.
-    if not is_content_shell and not options.dont_override_profile:
-      # Set up the temp dir
-      # self._tmpdir = '/sdcard/telemetry_data'
-      # self._adb.RunShellCommand('rm -r %s' %  self._tmpdir)
-      # args.append('--user-data-dir=%s' % self._tmpdir)
-      pass
+    if self._adb.Adb().CanAccessProtectedFileContents():
+      if not options.dont_override_profile:
+        self._adb.RunShellCommand('su -c rm -r "%s"' % self._profile_dir)
+      if options.profile_dir:
+        if is_content_shell:
+          logging.critical('Profiles cannot be used with content shell')
+          sys.exit(1)
+        self._adb.Push(options.profile_dir, self._profile_dir)
 
     # Set up the command line.
     if is_content_shell:
@@ -82,9 +86,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     if (not is_content_shell and
        self._adb.Adb().CanAccessProtectedFileContents()):
       # Make sure we can find the apps' prefs file
-      app_data_dir = '/data/data/%s' % self._package
-      prefs_file = (app_data_dir +
-                    '/app_chrome/Default/Preferences')
+      prefs_file = self._profile_dir + 'Default/Preferences'
       if not self._adb.FileExistsOnDevice(prefs_file):
         # Start it up the first time so we can tweak the prefs.
         self._adb.StartActivity(self._package,

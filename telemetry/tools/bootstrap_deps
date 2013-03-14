@@ -20,5 +20,7 @@ deps = {
       "https://src.chromium.org/chrome/trunk/src/third_party/android_testrunner",
     "src/tools/crx_id":
       "https://src.chromium.org/chrome/trunk/src/tools/crx_id",
+    "src/chrome/test/data/extensions/profiles":
+      "https://src.chromium.org/chrome/trunk/src/chrome/test/data/extensions/profiles",
     }
 

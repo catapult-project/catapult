@@ -49,6 +49,11 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       logging.info('Deleting user\'s cryptohome vault (the user data dir)')
       self._cri.RunCmdOnDevice(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
+    if options.profile_dir:
+      profile_dir = '/home/chronos/Default'
+      cri.GetCmdOutput(['rm', '-rf', profile_dir])
+      cri.PushFile(options.profile_dir + '/Default', profile_dir)
+      cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', profile_dir])
 
     # Restart Chrome with the login extension and remote debugging.
     logging.info('Restarting Chrome with flags and login')

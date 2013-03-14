@@ -1,9 +1,11 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import subprocess as subprocess
 import shutil
+import sys
 import tempfile
 
 from telemetry.core import util
@@ -74,6 +76,12 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
         args.append('--enable-benchmarking')
       if not self.options.dont_override_profile:
         self._tmpdir = tempfile.mkdtemp()
+        if self.options.profile_dir:
+          if self.is_content_shell:
+            logging.critical('Profiles cannot be used with content shell')
+            sys.exit(1)
+          shutil.rmtree(self._tmpdir)
+          shutil.copytree(self.options.profile_dir, self._tmpdir)
         args.append('--user-data-dir=%s' % self._tmpdir)
       if self.options.cros_desktop:
         ext_path = os.path.join(os.path.dirname(__file__), 'chromeos_login_ext')
