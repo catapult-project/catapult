@@ -29,6 +29,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     self._adb = adb
     self._package = package
     self._cmdline_file = cmdline_file
+    self._saved_cmdline = None
     self._activity = activity
     if not options.keep_test_server_ports:
       adb_commands.ResetTestServerPortAllocation()
@@ -55,6 +56,8 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
         self._adb.Push(options.profile_dir, self._profile_dir)
 
     # Set up the command line.
+    self._saved_cmdline = ''.join(
+        self._adb.Adb().GetProtectedFileContents(cmdline_file) or [])
     if is_content_shell:
       pseudo_exec_name = 'content_shell'
     else:
@@ -162,7 +165,11 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
 
-    self._adb.RunShellCommand('rm %s' % self._cmdline_file)
+    if self._saved_cmdline:
+      self._adb.Adb().SetProtectedFileContents(self._cmdline_file,
+                                               self._saved_cmdline)
+    else:
+      self._adb.RunShellCommand('rm %s' % self._cmdline_file)
     self._adb.CloseApplication(self._package)
 
   def IsBrowserRunning(self):
