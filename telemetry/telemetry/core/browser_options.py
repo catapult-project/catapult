@@ -144,6 +144,9 @@ class BrowserOptions(optparse.Values):
     group.add_option(
       '-v', '--verbose', action='count', dest='verbosity',
       help='Increase verbosity level (repeat as needed)')
+    group.add_option('--print-bootstrap-deps',
+                     action='store_true',
+                     help='Output bootstrap deps list.')
     parser.add_option_group(group)
 
     # Platform options

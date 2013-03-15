@@ -89,21 +89,23 @@ class DAVClientWrapper():
                       os.path.join(dst_path, subdir))
 
 
-def ListAllDepsPaths(chrome_root, deps_content):
+def ListAllDepsPaths(deps_content):
   """Recursively returns a list of all paths indicated in this deps file.
 
   Note that this discards information about where path dependencies come from,
   so this is only useful in the context of a Chromium source checkout that has
-  used gclient to already fetch all dependencies.
+  already fetched all dependencies.
 
   Args:
-    chrome_root: Path to the root directory of this chromium checkout.
     deps_content: String containing deps information to be evaluated, in the
                   format given in the header of this file.
   Returns: A list of string paths starting under src that are required by the
            given deps file, and all of its sub-dependencies. This amounts to
            the keys of the 'deps' dictionary.
   """
+  chrome_root = os.path.dirname(__file__)
+  while os.path.basename(chrome_root) != 'src':
+    chrome_root = os.path.abspath(os.path.join(chrome_root, '..'))
   deps = imp.new_module('deps')
   exec deps_content in deps.__dict__
 
@@ -112,8 +114,8 @@ def ListAllDepsPaths(chrome_root, deps_content):
   if hasattr(deps, 'deps_includes'):
     for path in deps.deps_includes.keys():
       # Need to localize the paths.
-      path = os.path.join(chrome_root, path)
-      deps_paths = deps_paths + ListAllDepsPaths(chrome_root, open(path).read())
+      path = os.path.join(chrome_root, '..', path)
+      deps_paths = deps_paths + ListAllDepsPaths(open(path).read())
 
   return deps_paths
 
