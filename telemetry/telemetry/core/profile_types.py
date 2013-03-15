@@ -6,7 +6,7 @@ import os
 
 PROFILE_TYPE_MAPPING = {
   'typical_user': 'chrome/test/data/extensions/profiles/content_scripts1',
-  'power_user': 'chrome/test/data/extensions/profiles/content_scripts10',
+  'power_user': 'chrome/test/data/extensions/profiles/extension_webrequest',
 }
 PROFILE_TYPES = PROFILE_TYPE_MAPPING.keys()
 
