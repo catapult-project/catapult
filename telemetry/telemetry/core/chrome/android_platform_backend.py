@@ -55,7 +55,9 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     self._surface_stats_collector = None
 
   def GetRawDisplayFrameRateMeasurements(self):
-    return self._raw_display_frame_rate_measurements
+    ret = self._raw_display_frame_rate_measurements
+    self._raw_display_frame_rate_measurements = []
+    return ret
 
   def SetFullPerformanceModeEnabled(self, enabled):
     if self._no_performance_mode:
