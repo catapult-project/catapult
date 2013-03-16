@@ -16,7 +16,7 @@ class WaitAction(page_action.PageAction):
     assert hasattr(self, 'condition')
     return self.condition == 'navigate' or self.condition == 'href_change'
 
-  def RunAction(self, page, tab, previous_action):
+  def RunActionOnce(self, page, tab, previous_action):
     assert hasattr(self, 'condition')
 
     if self.condition == 'duration':

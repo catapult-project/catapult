@@ -11,6 +11,7 @@ class PageActionFailed(Exception):
 class PageAction(object):
   """Represents an action that a user might try to perform to a page."""
   def __init__(self, attributes=None):
+    self.repeat = 1
     if attributes:
       for k, v in attributes.iteritems():
         setattr(self, k, v)
@@ -26,6 +27,13 @@ class PageAction(object):
     pass
 
   def RunAction(self, page, tab, previous_action):
+    if self.RunsPreviousAction() and self.repeat > 1:
+      raise PageActionFailed('Repeated actions cannot have '
+                             'RunsPreviousAction() == True.')
+    for _ in xrange(self.repeat):
+      self.RunActionOnce(page, tab, previous_action)
+
+  def RunActionOnce(self, page, tab, previous_action):
     raise NotImplementedError()
 
   def RunsPreviousAction(self):
