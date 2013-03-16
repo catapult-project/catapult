@@ -46,17 +46,28 @@ base.exportTo('tracing', function() {
       this.systemTracingBn_.type = 'checkbox';
       this.systemTracingBn_.checked = false;
 
+      this.continuousTracingBn_ = document.createElement('input');
+      this.continuousTracingBn_.type = 'checkbox';
+      this.continuousTracingBn_.checked = true;
+
       this.systemTracingLabelEl_ = document.createElement('label');
       this.systemTracingLabelEl_.textContent = 'System events';
       this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
       this.systemTracingLabelEl_.style.display = 'none';
       this.systemTracingLabelEl_.style.marginLeft = '16px';
 
+      this.continuousTracingLabelEl_ = document.createElement('label');
+      this.continuousTracingLabelEl_.textContent = 'Continuous tracing';
+      this.continuousTracingLabelEl_.appendChild(this.continuousTracingBn_);
+      this.continuousTracingLabelEl_.style.marginLeft = '16px';
+
       this.timelineView_ = new tracing.TimelineView();
       this.timelineView_.leftControls.appendChild(this.recordBn_);
       this.timelineView_.leftControls.appendChild(this.saveBn_);
       this.timelineView_.leftControls.appendChild(this.loadBn_);
       this.timelineView_.leftControls.appendChild(this.systemTracingLabelEl_);
+      this.timelineView_.leftControls.appendChild(
+          this.continuousTracingLabelEl_);
 
       this.appendChild(this.timelineView_);
 
@@ -115,7 +126,8 @@ base.exportTo('tracing', function() {
     onRecord_: function() {
       var that = this;
       var tc = this.tracingController_;
-      tc.beginTracing(this.systemTracingBn_.checked);
+      tc.beginTracing(this.systemTracingBn_.checked,
+                      this.continuousTracingBn_.checked);
       function response() {
         that.refresh_();
         setTimeout(function() {

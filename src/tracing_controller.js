@@ -90,7 +90,8 @@ base.exportTo('tracing', function() {
      * Example: beginTracing("test_MyTest*,test_OtherStuff");
      * Example: beginTracing("-excluded_category1,-excluded_category2");
      */
-    beginTracing: function(opt_systemTracingEnabled, opt_trace_categories) {
+    beginTracing: function(opt_systemTracingEnabled, opt_trace_continuous,
+                           opt_trace_categories) {
       if (this.tracingEnabled_)
         throw new Error('Tracing already begun.');
 
@@ -104,13 +105,17 @@ base.exportTo('tracing', function() {
       console.log('Beginning to trace...');
       this.statusDiv_.textContent = 'Tracing active.';
 
+      var trace_options = (opt_trace_continuous ? 'record-continuously' :
+                                                  'record-until-full');
+
       this.traceEvents_ = [];
       this.systemTraceEvents_ = [];
       this.sendFn_(
           'beginTracing',
           [
            opt_systemTracingEnabled || false,
-           opt_trace_categories || '-test_*'
+           opt_trace_categories || '-test_*',
+           trace_options
           ]
       );
       this.beginRequestBufferPercentFull_();
