@@ -128,11 +128,9 @@ class PageBenchmarkResults(page_test.PageTestResults):
         results_summary.iteritems()):
       measurement, units, data_type = measurement_units_type
 
-      if data_type == 'histogram':
-        # For histograms, the _by_url data is important.
-        by_url_data_type = 'histogram'
+      if 'histogram' in data_type:
+        by_url_data_type = 'unimportant-histogram'
       else:
-        # For non-histograms, the _by_url data is unimportant.
         by_url_data_type = 'unimportant'
       if '.' in measurement:
         measurement, trace = measurement.split('.', 1)
@@ -147,6 +145,6 @@ class PageBenchmarkResults(page_test.PageTestResults):
 
       # For histograms, we don't print the average data, only the _by_url,
       # unless there is only 1 page in which case the _by_urls are omitted.
-      if data_type != 'histogram' or len(value_url_list) == 1:
+      if 'histogram' not in data_type or len(value_url_list) == 1:
         values = [i[0] for i in value_url_list]
         self._PrintPerfResult(measurement, trace, values, units, data_type)

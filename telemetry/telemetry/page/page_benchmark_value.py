@@ -23,7 +23,7 @@ class PageBenchmarkValue(object):
 
   @property
   def output_value(self):
-    if self.data_type == 'histogram':
+    if 'histogram' in self.data_type:
       (mean, _) = perf_tests_helper.GeomMeanAndStdDevFromHistogram(self.value)
       return mean
     elif isinstance(self.value, list):
