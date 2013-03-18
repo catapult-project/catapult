@@ -120,10 +120,7 @@ class PageBenchmarkResults(page_test.PageTestResults):
         measurement_units_type = (measurement_name,
                                   value.units,
                                   value.data_type)
-        if value.data_type == 'histogram':
-          value_url = (value.value, page_values.page.url)
-        else:
-          value_url = (value.output_value, page_values.page.url)
+        value_url = (value.value, page_values.page.url)
         results_summary[measurement_units_type].append(value_url)
 
     # Output the results summary sorted by name, then units, then data type.
