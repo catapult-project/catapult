@@ -148,7 +148,8 @@ class PageBenchmarkResults(page_test.PageTestResults):
           self._PrintPerfResult(measurement + '_by_url', url, [value], units,
                                 by_url_data_type)
 
-      # For histograms, we don't print the average data, only the _by_url.
-      if not data_type == 'histogram':
+      # For histograms, we don't print the average data, only the _by_url,
+      # unless there is only 1 page in which case the _by_urls are omitted.
+      if data_type != 'histogram' or len(value_url_list) == 1:
         values = [i[0] for i in value_url_list]
         self._PrintPerfResult(measurement, trace, values, units, data_type)
