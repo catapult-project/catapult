@@ -11,7 +11,6 @@ import time
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import wpr_modes
-from telemetry.page import all_page_actions # pylint: disable=W0611
 from telemetry.page import page_benchmark
 from telemetry.page import page_runner
 from telemetry.page import page_set
@@ -29,11 +28,12 @@ class RecordPage(page_test.PageTest):
          if benchmark().action_name_to_run])
 
   def CanRunForPage(self, page):
-    return not not self._ActionsForPage(page)
+    return bool(self._CompoundActionsForPage(page))
 
   def CustomizeBrowserOptionsForPage(self, page, options):
-    for action in self._ActionsForPage(page):
-      action.CustomizeBrowserOptions(options)
+    for compound_action in self._CompoundActionsForPage(page):
+      for action in compound_action:
+        action.CustomizeBrowserOptions(options)
 
   def Run(self, options, page, tab, results):
     # When recording, sleep to catch any resources that load post-onload.
@@ -42,22 +42,19 @@ class RecordPage(page_test.PageTest):
     # Run the actions for all benchmarks. Reload the page between
     # actions.
     should_reload = False
-    for action in self._ActionsForPage(page):
+    for compound_action in self._CompoundActionsForPage(page):
       if should_reload:
         tab.Navigate(page.url)
         tab.WaitForDocumentReadyStateToBeComplete()
-      action.WillRunAction(page, tab)
-      action.RunAction(page, tab, None)
+      self._RunCompoundAction(page, tab, compound_action)
       should_reload = True
 
-  def _ActionsForPage(self, page):
+  def _CompoundActionsForPage(self, page):
     actions = []
     for action_name in self._action_names:
       if not hasattr(page, action_name):
         continue
-      action_data = getattr(page, action_name)
-      actions.append(all_page_actions.FindClassWithName(
-          action_data['action'])(action_data))
+      actions.append(page_test.GetCompoundActionFromPage(page, action_name))
     return actions
 
 
