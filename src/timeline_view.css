@@ -2,12 +2,12 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
-.timeline-view * {
+.view * {
   -webkit-user-select: none;
   box-sizing: border-box;
 }
 
-.timeline-view {
+.view {
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;
   cursor: default;
@@ -16,7 +16,7 @@
   padding: 0;
 }
 
-.timeline-view > .control > .title {
+.view > .control > .title {
   font-size: 14px;
   height: 19px;
   padding-left: 2px;
@@ -24,44 +24,44 @@
   padding-top: 2px;
 }
 
-.timeline-view > .control {
+.view > .control {
   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#E5E5E5), to(#D1D1D1));
   background-color: #e6e6e6;
   border-bottom: 1px solid #8e8e8e;
   display: -webkit-box;
 }
 
-.timeline-view > .control > .controls {
+.view > .control > .controls {
   display: -webkit-box;
 }
 
-.timeline-view > .control > span {
+.view > .control > span {
   padding-left: 5px;
   padding-right: 10px;
 }
 
-.timeline-view > .control > .controls > button,
-.timeline-view > .control > .controls > label {
+.view > .control > .controls > button,
+.view > .control > .controls > label {
   font-size: 11px;
   margin: 1px 2px 1px 2px;
   height: 19px;
 }
 
-.timeline-view > .control > .spacer {
+.view > .control > .spacer {
   -webkit-box-flex: 1;
 }
 
-.timeline-view > .timeline-container {
+.view > .container {
   -webkit-box-flex: 1;
   display: -webkit-box;
   border-bottom: 1px solid #8e8e8e;
 }
 
-.timeline-view > .timeline-container > * {
+.view > .container > * {
   -webkit-box-flex: 1;
 }
 
-.timeline-drag-handle {
+.drag-handle {
   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#E5E5E5), to(#D1D1D1));
   height: 8px;
   border-top: 1px solid white;
@@ -69,28 +69,28 @@
   cursor: ns-resize;
 }
 
-.timeline-view > .analysis-container {
+.view > .analysis-container {
   height: 250px;
   overflow: auto;
   padding-left: 2px;
   padding-right: 2px;
 }
 
-.timeline-view .selection {
+.view .selection {
   margin: 2px;
 }
 
-.timeline-view .selection ul {
+.view .selection ul {
   margin: 0;
 }
 
-.timeline-find-control {
+.find-control {
   -webkit-user-select: none;
   display: -webkit-box;
   position: relative;
 }
 
-.timeline-find-control .hit-count-label {
+.find-control .hit-count-label {
   left: 0;
   opacity: 0.25;
   pointer-events: none;
@@ -101,7 +101,7 @@
   z-index: 1;
 }
 
-.timeline-find-control input {
+.find-control input {
   -webkit-user-select: auto;
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
@@ -114,25 +114,25 @@
   padding: 0;
   width: 170px;
 }
-.timeline-find-control input:focus {
+.find-control input:focus {
   background-color: white;
 }
 
-.timeline-button.find-previous {
+.button.find-previous {
   border-left: none;
   margin-left: 0;
   margin-right: 0;
 }
-.timeline-button.find-next {
+.button.find-next {
   border-left: none;
   margin-left: 0;
 }
 
-.timeline-view-help-overlay {
+.view-help-overlay {
   padding: 6px;
 }
 
-.timeline-button {
+.button {
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
   color: rgba(0,0,0,0.8);
@@ -143,29 +143,29 @@
   width: 23px;
 }
 
-.timeline-button:hover {
+.button:hover {
   background-color: rgba(255, 255, 255, 1.0);
   border: 1px solid rgba(0, 0, 0, 0.8);
   box-shadow: 0 0 .05em rgba(0, 0, 0, 0.4);
   color: rgba(0, 0, 0, 1);
 }
 
-.timeline-view-info-button {
+.view-info-button {
   width: auto;
   padding-left: 4px;
   padding-right: 4px;
 }
 
-.timeline-view-info-button:hover {
+.view-info-button:hover {
   border: solid 1px;
 }
 
-.timeline-view-import-errors-button {
+.view-import-errors-button {
   color: darkred;
   border: solid 1px rgba(128, 0, 0, 0.2);
 }
 
-.timeline-view-import-errors-button:hover {
+.view-import-errors-button:hover {
   color: red;
   border: solid 1px red;
 }

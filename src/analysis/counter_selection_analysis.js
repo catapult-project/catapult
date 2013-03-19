@@ -60,7 +60,7 @@ base.exportTo('tracing.analysis', function() {
           this.appendChild(childEl.createColumnTitleRow());
           addedHeader = true;
         }
-        var childSelection = new tracing.TimelineSelection();
+        var childSelection = new tracing.Selection();
         childSelection.pushHit(counterHit);
         childEl.selection = childSelection;
         this.appendChild(childEl);

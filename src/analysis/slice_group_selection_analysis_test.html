@@ -22,7 +22,7 @@ found in the LICENSE file.
     function testSliceGroupSelectionAnalysisWithOneSlice() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('f', selection);
 
       var analysis = new tracing.analysis.SliceGroupSelectionAnalysis();
@@ -41,7 +41,7 @@ found in the LICENSE file.
     function testSliceGroupSelectionAnalysisWithTwoSlicesSameTitle() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
 
       var analysis = new tracing.analysis.SliceGroupSelectionAnalysis();
@@ -59,7 +59,7 @@ found in the LICENSE file.
     function testSliceGroupSelectionAnalysisWithTwoSlicesDifferentTitles() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
       data.t1track.selectByTitle('c', selection);
 

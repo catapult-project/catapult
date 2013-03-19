@@ -50,275 +50,275 @@ base.addModuleStylesheet(
     'analysis.selection_analysis',
     'analysis.selection_analysis');
 base.addModuleDependency(
-    'timeline_slice_group',
+    'slice_group',
     'range');
 base.addModuleDependency(
-    'timeline_slice_group',
-    'timeline_slice');
+    'slice_group',
+    'slice');
 base.addModuleDependency(
-    'timeline_slice_group',
-    'timeline_color_scheme');
+    'slice_group',
+    'color_scheme');
 base.addModuleDependency(
-    'timeline_slice_group',
-    'timeline_filter');
+    'slice_group',
+    'filter');
 base.addModuleDependency(
-    'timeline_async_slice_group',
+    'async_slice_group',
     'range');
 base.addModuleDependency(
-    'timeline_async_slice_group',
-    'timeline_slice');
+    'async_slice_group',
+    'slice');
 base.addModuleDependency(
-    'timeline_thread',
+    'thread',
     'range');
 base.addModuleDependency(
-    'timeline_thread',
-    'timeline_guid');
+    'thread',
+    'guid');
 base.addModuleDependency(
-    'timeline_thread',
-    'timeline_slice');
+    'thread',
+    'slice');
 base.addModuleDependency(
-    'timeline_thread',
-    'timeline_slice_group');
+    'thread',
+    'slice_group');
 base.addModuleDependency(
-    'timeline_thread',
-    'timeline_async_slice_group');
+    'thread',
+    'async_slice_group');
 base.addModuleDependency(
-    'timeline_thread',
-    'timeline_sample');
+    'thread',
+    'sample');
 base.addModuleDependency(
-    'timeline_counter',
-    'timeline_guid');
+    'counter',
+    'guid');
 base.addModuleDependency(
-    'timeline_counter',
+    'counter',
     'range');
 base.addModuleDependency(
-    'timeline_process_base',
+    'process_base',
     'range');
 base.addModuleDependency(
-    'timeline_process_base',
-    'timeline_guid');
+    'process_base',
+    'guid');
 base.addModuleDependency(
-    'timeline_process_base',
-    'timeline_thread');
+    'process_base',
+    'thread');
 base.addModuleDependency(
-    'timeline_process_base',
-    'timeline_counter');
+    'process_base',
+    'counter');
 base.addModuleDependency(
-    'timeline_process',
-    'timeline_process_base');
+    'process',
+    'process_base');
 base.addModuleDependency(
-    'timeline_kernel',
-    'timeline_process_base');
+    'kernel',
+    'process_base');
 base.addModuleDependency(
-    'timeline_cpu',
+    'cpu',
     'range');
 base.addModuleDependency(
-    'timeline_cpu',
-    'timeline_slice');
+    'cpu',
+    'slice');
 base.addModuleDependency(
-    'timeline_cpu',
-    'timeline_counter');
+    'cpu',
+    'counter');
 base.addModuleDependency(
-    'timeline_model',
+    'model',
     'range');
 base.addModuleDependency(
-    'timeline_model',
+    'model',
     'event_target');
 base.addModuleDependency(
-    'timeline_model',
-    'timeline_process');
+    'model',
+    'process');
 base.addModuleDependency(
-    'timeline_model',
-    'timeline_kernel');
+    'model',
+    'kernel');
 base.addModuleDependency(
-    'timeline_model',
-    'timeline_cpu');
+    'model',
+    'cpu');
 base.addModuleDependency(
-    'timeline_model',
-    'timeline_filter');
+    'model',
+    'filter');
 base.addModuleDependency(
-    'timeline_selection',
+    'selection',
     'range');
 base.addModuleDependency(
-    'timeline_selection',
+    'selection',
     'event_target');
 base.addModuleDependency(
-    'tracks.timeline_track',
+    'tracks.track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.timeline_track',
-    'tracks.timeline_track');
+    'tracks.track',
+    'tracks.track');
 base.addModuleDependency(
-    'tracks.timeline_container_track',
-    'tracks.timeline_track');
+    'tracks.container_track',
+    'tracks.track');
 base.addModuleDependency(
-    'tracks.timeline_container_track',
-    'timeline_filter');
+    'tracks.container_track',
+    'filter');
 base.addModuleDependency(
-    'tracks.timeline_container_track',
+    'tracks.container_track',
     'ui');
 base.addModuleDependency(
-    'tracks.timeline_canvas_based_track',
-    'tracks.timeline_track');
+    'tracks.canvas_based_track',
+    'tracks.track');
 base.addModuleDependency(
-    'tracks.timeline_canvas_based_track',
+    'tracks.canvas_based_track',
     'fast_rect_renderer');
 base.addModuleDependency(
-    'tracks.timeline_canvas_based_track',
-    'timeline_color_scheme');
+    'tracks.canvas_based_track',
+    'color_scheme');
 base.addModuleDependency(
-    'tracks.timeline_canvas_based_track',
+    'tracks.canvas_based_track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.timeline_canvas_based_track',
-    'tracks.timeline_canvas_based_track');
+    'tracks.canvas_based_track',
+    'tracks.canvas_based_track');
 base.addModuleDependency(
-    'tracks.timeline_slice_track',
-    'tracks.timeline_canvas_based_track');
+    'tracks.slice_track',
+    'tracks.canvas_based_track');
 base.addModuleDependency(
-    'tracks.timeline_slice_track',
+    'tracks.slice_track',
     'sorted_array_utils');
 base.addModuleDependency(
-    'tracks.timeline_slice_track',
+    'tracks.slice_track',
     'fast_rect_renderer');
 base.addModuleDependency(
-    'tracks.timeline_slice_track',
-    'timeline_color_scheme');
+    'tracks.slice_track',
+    'color_scheme');
 base.addModuleDependency(
-    'tracks.timeline_slice_track',
+    'tracks.slice_track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.timeline_slice_track',
-    'tracks.timeline_slice_track');
+    'tracks.slice_track',
+    'tracks.slice_track');
 base.addModuleDependency(
-    'tracks.timeline_slice_group_track',
-    'tracks.timeline_container_track');
+    'tracks.slice_group_track',
+    'tracks.container_track');
 base.addModuleDependency(
-    'tracks.timeline_slice_group_track',
+    'tracks.slice_group_track',
     'sorted_array_utils');
 base.addModuleDependency(
-    'tracks.timeline_slice_group_track',
+    'tracks.slice_group_track',
     'ui');
 base.addModuleDependency(
-    'tracks.timeline_async_slice_group_track',
-    'tracks.timeline_slice_group_track');
+    'tracks.async_slice_group_track',
+    'tracks.slice_group_track');
 base.addModuleDependency(
-    'tracks.timeline_async_slice_group_track',
+    'tracks.async_slice_group_track',
     'ui');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'tracks.timeline_container_track');
+    'tracks.thread_track',
+    'tracks.container_track');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'tracks.timeline_slice_track');
+    'tracks.thread_track',
+    'tracks.slice_track');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'tracks.timeline_slice_group_track');
+    'tracks.thread_track',
+    'tracks.slice_group_track');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'tracks.timeline_async_slice_group_track');
+    'tracks.thread_track',
+    'tracks.async_slice_group_track');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'timeline_filter');
+    'tracks.thread_track',
+    'filter');
 base.addModuleDependency(
-    'tracks.timeline_thread_track',
-    'ui');
-base.addModuleStylesheet(
-    'tracks.timeline_thread_track',
-    'tracks.timeline_thread_track');
-base.addModuleDependency(
-    'tracks.timeline_counter_track',
-    'tracks.timeline_canvas_based_track');
-base.addModuleDependency(
-    'tracks.timeline_counter_track',
-    'timeline_color_scheme');
-base.addModuleDependency(
-    'tracks.timeline_counter_track',
+    'tracks.thread_track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.timeline_counter_track',
-    'tracks.timeline_counter_track');
+    'tracks.thread_track',
+    'tracks.thread_track');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'tracks.canvas_based_track');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'color_scheme');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'ui');
+base.addModuleStylesheet(
+    'tracks.counter_track',
+    'tracks.counter_track');
 base.addModuleDependency(
     'analysis.test.analysis_test_support',
     'test_utils');
 base.addModuleDependency(
     'analysis.test.analysis_test_support',
-    'timeline_model');
+    'model');
 base.addModuleDependency(
     'analysis.test.analysis_test_support',
-    'timeline_selection');
+    'selection');
 base.addModuleDependency(
     'analysis.test.analysis_test_support',
-    'tracks.timeline_thread_track');
+    'tracks.thread_track');
 base.addModuleDependency(
     'analysis.test.analysis_test_support',
-    'tracks.timeline_counter_track');
+    'tracks.counter_track');
 base.addModuleDependency(
     'importer.timeline_stream_importer',
-    'timeline_model');
+    'model');
 base.addModuleDependency(
     'importer.timeline_stream_importer',
-    'timeline_slice');
+    'slice');
 base.addModuleDependency(
     'timeline_viewport',
     'event_target');
 base.addModuleDependency(
-    'tracks.timeline_cpu_track',
-    'tracks.timeline_container_track');
+    'tracks.cpu_track',
+    'tracks.container_track');
 base.addModuleDependency(
-    'tracks.timeline_cpu_track',
-    'tracks.timeline_slice_track');
+    'tracks.cpu_track',
+    'tracks.slice_track');
 base.addModuleDependency(
-    'tracks.timeline_cpu_track',
-    'timeline_filter');
+    'tracks.cpu_track',
+    'filter');
 base.addModuleDependency(
-    'tracks.timeline_cpu_track',
-    'timeline_model');
+    'tracks.cpu_track',
+    'model');
 base.addModuleDependency(
-    'tracks.timeline_cpu_track',
+    'tracks.cpu_track',
     'ui');
 base.addModuleDependency(
-    'tracks.timeline_process_track',
-    'tracks.timeline_container_track');
+    'tracks.process_track',
+    'tracks.container_track');
 base.addModuleDependency(
-    'tracks.timeline_process_track',
-    'tracks.timeline_counter_track');
+    'tracks.process_track',
+    'tracks.counter_track');
 base.addModuleDependency(
-    'tracks.timeline_process_track',
-    'tracks.timeline_thread_track');
+    'tracks.process_track',
+    'tracks.thread_track');
 base.addModuleDependency(
-    'tracks.timeline_process_track',
-    'timeline_filter');
+    'tracks.process_track',
+    'filter');
 base.addModuleDependency(
-    'tracks.timeline_process_track',
+    'tracks.process_track',
     'ui');
 base.addModuleDependency(
-    'tracks.timeline_model_track',
-    'tracks.timeline_container_track');
+    'tracks.model_track',
+    'tracks.container_track');
 base.addModuleDependency(
-    'tracks.timeline_model_track',
-    'tracks.timeline_cpu_track');
+    'tracks.model_track',
+    'tracks.cpu_track');
 base.addModuleDependency(
-    'tracks.timeline_model_track',
-    'tracks.timeline_process_track');
+    'tracks.model_track',
+    'tracks.process_track');
 base.addModuleDependency(
-    'tracks.timeline_model_track',
-    'ui');
-base.addModuleStylesheet(
-    'tracks.timeline_model_track',
-    'tracks.timeline_model_track');
-base.addModuleDependency(
-    'tracks.timeline_viewport_track',
-    'tracks.timeline_track');
-base.addModuleDependency(
-    'tracks.timeline_viewport_track',
-    'tracks.timeline_canvas_based_track');
-base.addModuleDependency(
-    'tracks.timeline_viewport_track',
+    'tracks.model_track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.timeline_viewport_track',
-    'tracks.timeline_viewport_track');
+    'tracks.model_track',
+    'tracks.model_track');
+base.addModuleDependency(
+    'tracks.viewport_track',
+    'tracks.track');
+base.addModuleDependency(
+    'tracks.viewport_track',
+    'tracks.canvas_based_track');
+base.addModuleDependency(
+    'tracks.viewport_track',
+    'ui');
+base.addModuleStylesheet(
+    'tracks.viewport_track',
+    'tracks.viewport_track');
 base.addModuleDependency(
     'timeline',
     'event_target');
@@ -327,19 +327,19 @@ base.addModuleDependency(
     'measuring_stick');
 base.addModuleDependency(
     'timeline',
-    'timeline_filter');
+    'filter');
 base.addModuleDependency(
     'timeline',
-    'timeline_selection');
+    'selection');
 base.addModuleDependency(
     'timeline',
     'timeline_viewport');
 base.addModuleDependency(
     'timeline',
-    'tracks.timeline_model_track');
+    'tracks.model_track');
 base.addModuleDependency(
     'timeline',
-    'tracks.timeline_viewport_track');
+    'tracks.viewport_track');
 base.addModuleDependency(
     'timeline',
     'ui');
@@ -347,14 +347,14 @@ base.addModuleStylesheet(
     'timeline',
     'timeline');
 base.addModuleDependency(
-    'timeline_analysis',
+    'timeline_analysis_view',
     'analysis.util');
 base.addModuleDependency(
-    'timeline_analysis',
+    'timeline_analysis_view',
     'ui');
 base.addModuleStylesheet(
-    'timeline_analysis',
-    'timeline_analysis');
+    'timeline_analysis_view',
+    'timeline_analysis_view');
 base.addModuleDependency(
     'overlay',
     'ui');
@@ -365,26 +365,26 @@ base.addModuleStylesheet(
     'overlay',
     'overlay');
 base.addModuleDependency(
-    'timeline_category_filter_dialog',
-    'timeline_filter');
+    'category_filter_dialog',
+    'filter');
 base.addModuleDependency(
-    'timeline_category_filter_dialog',
+    'category_filter_dialog',
     'overlay');
 base.addModuleDependency(
-    'timeline_find_control',
+    'find_control',
     'timeline');
 base.addModuleDependency(
-    'timeline_find_control',
-    'timeline_filter');
+    'find_control',
+    'filter');
 base.addModuleDependency(
-    'timeline_find_control',
+    'find_control',
     'overlay');
 base.addModuleDependency(
     'importer.trace_event_importer',
-    'timeline_model');
+    'model');
 base.addModuleDependency(
     'importer.trace_event_importer',
-    'timeline_color_scheme');
+    'color_scheme');
 base.addModuleDependency(
     'importer.linux_perf.bus_parser',
     'importer.linux_perf.parser');
@@ -423,10 +423,10 @@ base.addModuleDependency(
     'importer.linux_perf.parser');
 base.addModuleDependency(
     'importer.linux_perf_importer',
-    'timeline_model');
+    'model');
 base.addModuleDependency(
     'importer.linux_perf_importer',
-    'timeline_color_scheme');
+    'color_scheme');
 base.addModuleDependency(
     'importer.linux_perf_importer',
     'importer.linux_perf.bus_parser');
@@ -468,16 +468,16 @@ base.addModuleDependency(
     'timeline');
 base.addModuleDependency(
     'timeline_view',
-    'timeline_analysis');
+    'timeline_analysis_view');
 base.addModuleDependency(
     'timeline_view',
-    'timeline_category_filter_dialog');
+    'category_filter_dialog');
 base.addModuleDependency(
     'timeline_view',
-    'timeline_filter');
+    'filter');
 base.addModuleDependency(
     'timeline_view',
-    'timeline_find_control');
+    'find_control');
 base.addModuleDependency(
     'timeline_view',
     'overlay');

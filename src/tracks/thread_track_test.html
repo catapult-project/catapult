@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Track tests</title>
+<style>
+.container {
+  border: 1px solid red;
+}
+</style>
+<script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+  base.require('tracks.thread_track');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var Process = tracing.Process;
+  var Selection = tracing.Selection;
+  var Thread = tracing.Thread;
+  var ThreadSlice = tracing.ThreadSlice;
+  var ThreadTrack = tracing.tracks.ThreadTrack;
+  var Viewport = tracing.TimelineViewport;
+  var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
+  var newSliceNamed = test_utils.newSliceNamed;
+
+  function testSelectionHitTestingWithThreadTrack() {
+    var model = new tracing.Model();
+    var p1 = model.getOrCreateProcess(1);
+    var t1 = p1.getOrCreateThread(1);
+    t1.pushSlice(new tracing.ThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.pushSlice(new tracing.ThreadSlice('', 'b', 0, 5.1, {}, 4));
+
+    var testEl = this.addHTMLOutput();
+    testEl.style.width = '600px';
+    var track = new ThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testSelectionHitTestingWithThreadTrack';
+    track.headingWidth = '100px';
+    track.thread = t1;
+
+    var y = track.getBoundingClientRect().top;
+    var h = track.getBoundingClientRect().height;
+    var wW = 10;
+    var vW = track.firstCanvas.getBoundingClientRect().width;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, wW, vW);
+
+    var selection = new Selection();
+    track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
+    assertEquals(t1.slices[0], selection[0].slice);
+
+    var selection = new Selection();
+    track.addIntersectingItemsInRangeToSelection(
+        (1.5/wW)*vW, (1.8/wW)*vW,
+        y, y + h, selection);
+    assertEquals(t1.slices[0], selection[0].slice);
+  }
+
+  function testThreadTrackWithRegularSlices() {
+    var testEl = this.addHTMLOutput();
+    var track = ThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testThreadTrackWithRegularSlices';
+    var thread = new Thread(new Process(7), 1);
+    thread.pushSlices([
+        new ThreadSlice('', 'a', 0, 1, {}, 1),
+        new ThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new ThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new ThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new ThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new ThreadSlice('', 'e', 4, 7.1, {}, 0.3)
+    ]);
+    thread.updateBounds();
+    track.heading = 'thread regular';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 8.2, track.clientWidth);
+  }
+
+  function testThreadTrackWithTallSlices() {
+    var testEl = this.addHTMLOutput();
+    var track = ThreadTrack();
+    testEl.appendChild(track);
+    track.heading = 'testThreadTrackWithTallSlices';
+    var thread = new Thread(new Process(7), 1);
+    thread.pushSlices([
+      new ThreadSlice('', 'a', 1, 0, {}, 1),
+      new ThreadSlice('', 'b', 2, 0.1, {}, 0.8),
+      new ThreadSlice('', 'c', 3, 0.15, {}, 0.70),
+      new ThreadSlice('', 'd', 4, 0.20, {}, 0.50),
+      new ThreadSlice('', 'e', 5, 0.30, {}, 0.28),
+      new ThreadSlice('', 'e', 6, 0.35, {}, 0.20),
+      new ThreadSlice('', 'f', 7, 0.40, {}, 0.10)
+    ]);
+    thread.updateBounds();
+    track.heading = 'thread tall';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 1.1, track.clientWidth);
+  }
+
+  function testThreadTrackWithRegularAndAsyncSlices() {
+    var testEl = this.addHTMLOutput();
+    var track = ThreadTrack();
+    testEl.appendChild(track);
+    var thread = new Thread(new Process(7), 1);
+    thread.pushSlices([
+        new ThreadSlice('', 'a', 0, 1, {}, 1),
+        new ThreadSlice('', 'b', 1, 2.1, {}, 4.8),
+        new ThreadSlice('', 'b', 1, 7, {}, 0.5),
+        new ThreadSlice('', 'c', 2, 7.6, {}, 0.4),
+        new ThreadSlice('', 'd', 3, 1.1, {}, 0.8),
+        new ThreadSlice('', 'e', 4, 7.1, {}, 0.3)
+    ]);
+    thread.asyncSlices.push(newAsyncSlice(1.2, 7.2 - 1.2, thread, thread));
+    thread.asyncSlices.push(newAsyncSlice(1.3, 7.3 - 1.3, thread, thread));
+    thread.updateBounds();
+    track.heading = 'thread regular + async';
+    track.headingWidth = '150px';
+    track.toolTip = thread.userFriendlyDetails + ':';
+    track.thread = thread;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 8.15, track.clientWidth);
+  }
+
+  function testFilterThreadSlices() {
+    var thread = new Thread(new Process(7), 1);
+    thread.pushSlice(newSliceNamed('a', 0, 0));
+    thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
+
+    var t = new ThreadTrack();
+    t.thread = thread;
+
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[1].tracks_.length);
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[2].tracks_.length);
+
+    t.categoryFilter = new tracing.TitleFilter('x');
+    assertFalse(t.tracks_[1].visible);
+    assertFalse(t.tracks_[1].visible);
+
+    t.categoryFilter = new tracing.TitleFilter('a');
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[1].tracks_.length);
+    assertTrue(t.tracks_[1].visible);
+    assertEquals(1, t.tracks_[2].tracks_.length);
+  }
+
+  function testSampleThreadSlices() {
+    var thread = new Thread(new Process(7), 1);
+    thread.addSample('a', 'b', 0);
+    thread.addSample('a', 'c', 5);
+    thread.addSample('aa', 'd', 10);
+    thread.addSample('aa', 'e', 15);
+    var t = new ThreadTrack();
+    t.thread = thread;
+    // Track is visible.
+    assertTrue(t.tracks_[3].visible);
+    // Track has 4 slices.
+    assertEquals(t.tracks_[3].slices.length, 4);
+  }
+</script>
+</body>
+</html>

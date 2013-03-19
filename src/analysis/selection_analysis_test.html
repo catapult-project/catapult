@@ -24,7 +24,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithSingleSlice() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('f', selection);
 
       var analysis = new tracing.analysis.SelectionAnalysis();
@@ -47,7 +47,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithSingleSliceArgsAndCategory() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('D', selection);
 
       var analysis = new tracing.analysis.SelectionAnalysis();
@@ -76,7 +76,7 @@ found in the LICENSE file.
 
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
 
@@ -102,7 +102,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithSingleCounter() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
 
       var analysis = new tracing.analysis.SelectionAnalysis();
@@ -127,7 +127,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithMultipleCounters() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
       selection.addCounterSample(data.ctr2track, data.ctr2track.counter, 3);
 

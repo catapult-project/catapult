@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview TimelineModel is a parsed representation of the
+ * @fileoverview Model is a parsed representation of the
  * TraceEvents obtained from base/trace_event in which the begin-end
  * tokens are converted into a hierarchy of processes, threads,
  * subrows, and slices.

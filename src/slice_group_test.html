@@ -1,0 +1,147 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>SliceGroup tests</title>
+<script src="base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('slice_group');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var Slice = tracing.Slice;
+  var SliceGroup = tracing.SliceGroup;
+  var newSlice = test_utils.newSlice;
+  var newSliceNamed = test_utils.newSliceNamed;
+
+  function testBasicBeginEnd() {
+    var group = new SliceGroup();
+    assertEquals(group.openSliceCount, 0);
+    var sliceA = group.beginSlice('', 'a', 1, {a: 1});
+    assertEquals(1, group.openSliceCount);
+    assertEquals('a', sliceA.title);
+    assertEquals(1, sliceA.start);
+    assertEquals(1, sliceA.args.a);
+
+    var sliceB = group.endSlice(3);
+    assertEquals(sliceA, sliceB);
+    assertEquals(2, sliceB.duration);
+  }
+
+  function testNestedBeginEnd() {
+    var group = new SliceGroup();
+    assertEquals(group.openSliceCount, 0);
+    group.beginSlice('', 'a', 1);
+    group.beginSlice('', 'b', 2);
+    group.endSlice(2.5);
+    group.endSlice(3);
+
+    assertEquals(2, group.slices.length);
+    assertEquals('b', group.slices[0].title);
+    assertEquals(0.5, group.slices[0].duration);
+
+    assertEquals('a', group.slices[1].title);
+    assertEquals(2, group.slices[1].duration);
+  }
+
+  function testBounds() {
+    var group = new SliceGroup();
+    group.updateBounds();
+    assertEquals(group.bounds.min, undefined);
+    assertEquals(group.bounds.max, undefined);
+
+    group.pushSlice(newSlice(1, 3));
+    group.pushSlice(newSlice(7, 2));
+    group.updateBounds();
+    assertEquals(1, group.bounds.min);
+    assertEquals(9, group.bounds.max);
+  }
+
+  function testBoundsWithPartial() {
+    var group = new SliceGroup();
+    group.beginSlice('', 'a', 7);
+    group.updateBounds();
+    assertEquals(7, group.bounds.min);
+    assertEquals(7, group.bounds.max);
+  }
+
+  function testBoundsWithTwoPartials() {
+    var group = new SliceGroup();
+    group.beginSlice('', 'a', 0);
+    group.beginSlice('', 'a', 1);
+    group.updateBounds();
+    assertEquals(0, group.bounds.min);
+    assertEquals(1, group.bounds.max);
+  }
+
+  function testBoundsWithBothPartialAndRegular() {
+    var group = new SliceGroup();
+    group.updateBounds();
+    assertEquals(undefined, group.bounds.min);
+    assertEquals(undefined, group.bounds.max);
+
+    group.pushSlice(newSlice(1, 3));
+    group.beginSlice('', 'a', 7);
+    group.updateBounds();
+    assertEquals(1, group.bounds.min);
+    assertEquals(7, group.bounds.max);
+  }
+
+  function testAutocloserBasic() {
+    var group = new SliceGroup();
+    assertEquals(group.openSliceCount, 0);
+
+    group.pushSlice(newSliceNamed('a', 1, 0.5));
+
+    group.beginSlice('', 'b', 2);
+    group.beginSlice('', 'c', 2.5);
+    group.endSlice(3);
+
+    group.autoCloseOpenSlices();
+    group.updateBounds();
+
+    assertEquals(1, group.bounds.min);
+    assertEquals(3, group.bounds.max);
+    assertEquals(3, group.slices.length);
+    assertEquals('a', group.slices[0].title);
+    assertEquals('c', group.slices[1].title);
+    assertEquals('b', group.slices[2].title);
+    assertTrue(group.slices[2].didNotFinish);
+    assertEquals(1, group.slices[2].duration);
+  }
+
+  function testAutocloserWithSubTasks() {
+    var group = new SliceGroup();
+    assertEquals(group.openSliceCount, 0);
+
+    group.beginSlice('', 'a', 1);
+    group.beginSlice('', 'b1', 2);
+    group.endSlice(3);
+    group.beginSlice('', 'b2', 3);
+
+    group.autoCloseOpenSlices();
+    assertEquals(3, group.slices.length);
+    assertEquals('b1', group.slices[0].title);
+
+    assertEquals('b2', group.slices[1].title);
+    assertTrue(group.slices[1].didNotFinish);
+    assertEquals(0, group.slices[1].duration);
+
+    assertEquals('a', group.slices[2].title);
+    assertTrue(group.slices[2].didNotFinish);
+    assertEquals(2, group.slices[2].duration);
+  }
+
+  // TODO: test cretion of subSlices
+</script>
+</body>
+</html>

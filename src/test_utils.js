@@ -28,11 +28,11 @@ base.exportTo('test_utils', function() {
   }
 
   function newAsyncSliceNamed(name, start, duration, startThread, endThread) {
-    var s = new tracing.TimelineAsyncSlice('', name, 0, start);
+    var s = new tracing.AsyncSlice('', name, 0, start);
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;
-    var subSlice = new tracing.TimelineAsyncSlice('', name, 0, start);
+    var subSlice = new tracing.AsyncSlice('', name, 0, start);
     subSlice.duration = duration;
     subSlice.startThread = startThread;
     subSlice.endThread = endThread;
@@ -45,12 +45,12 @@ base.exportTo('test_utils', function() {
   }
 
   function newCounterNamed(parent, name) {
-    var s = new tracing.TimelineCounter(parent, name, null, name);
+    var s = new tracing.Counter(parent, name, null, name);
     return s;
   }
 
   function newCounterCategory(parent, category, name) {
-    var s = new tracing.TimelineCounter(parent, name, category, name);
+    var s = new tracing.Counter(parent, name, category, name);
     return s;
   }
 
@@ -59,12 +59,12 @@ base.exportTo('test_utils', function() {
   }
 
   function newSliceNamed(name, start, duration) {
-    var s = new tracing.TimelineSlice('', name, 0, start, {}, duration);
+    var s = new tracing.Slice('', name, 0, start, {}, duration);
     return s;
   }
 
   function newSliceCategory(category, name, start, duration) {
-    var s = new tracing.TimelineSlice(category, name, 0, start, {}, duration);
+    var s = new tracing.Slice(category, name, 0, start, {}, duration);
     return s;
   }
 

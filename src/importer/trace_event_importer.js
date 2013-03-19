@@ -4,10 +4,10 @@
 
 /**
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
- * into the provided timeline model.
+ * into the provided model.
  */
-base.require('timeline_model');
-base.require('timeline_color_scheme');
+base.require('model');
+base.require('color_scheme');
 base.exportTo('tracing.importer', function() {
 
   function TraceEventImporter(model, eventData) {
@@ -93,7 +93,7 @@ base.exportTo('tracing.importer', function() {
 
     /**
      * Helper to process an 'async finish' event, which will close an open slice
-     * on a TimelineAsyncSliceGroup object.
+     * on a AsyncSliceGroup object.
      */
     processAsyncEvent: function(index, event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
@@ -104,7 +104,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Helper that creates and adds samples to a TimelineCounter object based on
+     * Helper that creates and adds samples to a Counter object based on
      * 'C' phase events.
      */
     processCounterEvent: function(event) {
@@ -198,7 +198,7 @@ base.exportTo('tracing.importer', function() {
           this.processAsyncEvent(eI, event);
         } else if (event.ph == 'I') {
           // Treat an Instant event as a duration 0 slice.
-          // TimelineSliceTrack's redraw() knows how to handle this.
+          // SliceTrack's redraw() knows how to handle this.
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
           thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
@@ -233,7 +233,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Called by the TimelineModel after all other importers have imported their
+     * Called by the Model after all other importers have imported their
      * events.
      */
     finalizeImport: function() {
@@ -300,7 +300,7 @@ base.exportTo('tracing.importer', function() {
 
           if (event.ph == 'F') {
             // Create a slice from start to end.
-            var slice = new tracing.TimelineAsyncSlice(
+            var slice = new tracing.AsyncSlice(
                 events[0].event.cat,
                 name,
                 tracing.getStringColorId(name),
@@ -319,7 +319,7 @@ base.exportTo('tracing.importer', function() {
               var subName = name;
               if (events[j - 1].event.ph == 'T')
                 subName = name + ':' + events[j - 1].event.args.step;
-              var subSlice = new tracing.TimelineAsyncSlice(
+              var subSlice = new tracing.AsyncSlice(
                   events[0].event.cat,
                   subName,
                   tracing.getStringColorId(name + j),
@@ -350,7 +350,7 @@ base.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TimelineModel.registerImporter(TraceEventImporter);
+  tracing.Model.registerImporter(TraceEventImporter);
 
   return {
     TraceEventImporter: TraceEventImporter

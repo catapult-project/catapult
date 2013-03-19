@@ -5,16 +5,16 @@
 'use strict';
 
 /**
- * @fileoverview TimelineView visualizes TRACE_EVENT events using the
+ * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
 base.requireStylesheet('timeline_view');
 
 base.require('timeline');
-base.require('timeline_analysis');
-base.require('timeline_category_filter_dialog');
-base.require('timeline_filter');
-base.require('timeline_find_control');
+base.require('timeline_analysis_view');
+base.require('category_filter_dialog');
+base.require('filter');
+base.require('find_control');
 base.require('overlay');
 base.require('importer.trace_event_importer');
 base.require('importer.linux_perf_importer');
@@ -23,7 +23,7 @@ base.require('settings');
 base.exportTo('tracing', function() {
 
   /**
-   * TimelineView
+   * View
    * @constructor
    * @extends {HTMLDivElement}
    */
@@ -33,7 +33,7 @@ base.exportTo('tracing', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.classList.add('timeline-view');
+      this.classList.add('view');
 
       // Create individual elements.
       this.titleEl_ = document.createElement('div');
@@ -52,18 +52,18 @@ base.exportTo('tracing', function() {
       spacingEl.className = 'spacer';
 
       this.timelineContainer_ = document.createElement('div');
-      this.timelineContainer_.className = 'timeline-container';
+      this.timelineContainer_.className = 'container';
 
       var analysisContainer_ = document.createElement('div');
       analysisContainer_.className = 'analysis-container';
 
       this.analysisEl_ = new tracing.TimelineAnalysisView();
 
-      this.dragEl_ = new TimelineDragHandle();
+      this.dragEl_ = new DragHandle();
       this.dragEl_.target = analysisContainer_;
 
-      this.findCtl_ = new tracing.TimelineFindControl();
-      this.findCtl_.controller = new tracing.TimelineFindController();
+      this.findCtl_ = new tracing.FindControl();
+      this.findCtl_.controller = new tracing.FindController();
 
       this.importErrorsButton_ = this.createImportErrorsButton_();
       this.categoryFilterButton_ = this.createCategoryFilterButton_();
@@ -97,12 +97,11 @@ base.exportTo('tracing', function() {
 
     createImportErrorsButton_: function() {
       var dlg = new tracing.ui.Overlay();
-      dlg.classList.add('timeline-view-import-errors-overlay');
+      dlg.classList.add('view-import-errors-overlay');
       dlg.autoClose = true;
 
       var showEl = document.createElement('div');
-      showEl.className = 'timeline-button timeline-view-import-errors-button' +
-          ' timeline-view-info-button';
+      showEl.className = 'button view-import-errors-button view-info-button';
       showEl.textContent = 'Import errors!';
 
       var textEl = document.createElement('div');
@@ -141,7 +140,7 @@ base.exportTo('tracing', function() {
       var callback;
 
       var showEl = document.createElement('div');
-      showEl.className = 'timeline-button timeline-view-info-button';
+      showEl.className = 'button view-info-button';
       showEl.textContent = 'Categories';
       showEl.__defineSetter__('callback', function(value) {
         callback = value;
@@ -150,7 +149,7 @@ base.exportTo('tracing', function() {
 
       var that = this;
       function onClick() {
-        var dlg = new tracing.TimelineCategoryFilterDialog();
+        var dlg = new tracing.CategoryFilterDialog();
         dlg.model = that.model;
         dlg.settings = that.settings;
         dlg.settingUpdatedCallback = callback;
@@ -172,12 +171,12 @@ base.exportTo('tracing', function() {
 
     createHelpButton_: function() {
       var dlg = new tracing.ui.Overlay();
-      dlg.classList.add('timeline-view-help-overlay');
+      dlg.classList.add('view-help-overlay');
       dlg.autoClose = true;
       dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
 
       var showEl = document.createElement('div');
-      showEl.className = 'timeline-button timeline-view-help-button';
+      showEl.className = 'button view-help-button';
       showEl.textContent = '?';
 
       var helpTextEl = document.createElement('div');
@@ -205,12 +204,11 @@ base.exportTo('tracing', function() {
 
     createMetadataButton_: function() {
       var dlg = new tracing.ui.Overlay();
-      dlg.classList.add('timeline-view-metadata-overlay');
+      dlg.classList.add('view-metadata-overlay');
       dlg.autoClose = true;
 
       var showEl = document.createElement('div');
-      showEl.className = 'timeline-button timeline-view-metadata-button' +
-          ' timeline-view-info-button';
+      showEl.className = 'button view-metadata-button view-info-button';
       showEl.textContent = 'Metadata';
 
       var textEl = document.createElement('div');
@@ -269,7 +267,7 @@ base.exportTo('tracing', function() {
     },
 
     set traceData(traceData) {
-      this.model = new tracing.TimelineModel(traceData);
+      this.model = new tracing.Model(traceData);
     },
 
     get model() {
@@ -377,7 +375,7 @@ base.exportTo('tracing', function() {
         event.preventDefault();
         return;
       } else if (e.keyCode == '?'.charCodeAt(0)) {
-        this.querySelector('.timeline-view-help-button').click();
+        this.querySelector('.view-help-button').click();
         e.preventDefault();
       }
     },
@@ -386,8 +384,8 @@ base.exportTo('tracing', function() {
       if (this.findInProgress_)
         return;
       this.findInProgress_ = true;
-      var dlg = tracing.TimelineFindControl();
-      dlg.controller = new tracing.TimelineFindController();
+      var dlg = tracing.FindControl();
+      dlg.controller = new tracing.FindController();
       dlg.controller.timeline = this.timeline;
       dlg.visible = true;
       dlg.addEventListener('close', function() {
@@ -404,7 +402,7 @@ base.exportTo('tracing', function() {
 
       var selection = this.timeline_ ?
           this.timeline_.selection :
-          new tracing.TimelineSelection();
+          new tracing.Selection();
       this.analysisEl_.selection = selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
     },
@@ -422,7 +420,7 @@ base.exportTo('tracing', function() {
       }
 
       this.timeline_.categoryFilter =
-          new tracing.TimelineCategoryFilter(disabledCategories);
+          new tracing.CategoryFilter(disabledCategories);
     }
   };
 
@@ -434,13 +432,13 @@ base.exportTo('tracing', function() {
    * @extends {HTMLDivElement}
    * You will need to set target to be the draggable element
    */
-  var TimelineDragHandle = tracing.ui.define('div');
+  var DragHandle = tracing.ui.define('div');
 
-  TimelineDragHandle.prototype = {
+  DragHandle.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.className = 'timeline-drag-handle';
+      this.className = 'drag-handle';
       this.lastMousePosY = 0;
       this.dragAnalysis = this.dragAnalysis.bind(this);
       this.onMouseUp = this.onMouseUp.bind(this);

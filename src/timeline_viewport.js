@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview Code for the timeline viewport.
+ * @fileoverview Code for the viewport.
  */
 base.require('event_target');
 
@@ -263,7 +263,7 @@ base.exportTo('tracing', function() {
     },
 
     addMarker: function(positionWorld) {
-      var marker = new TimelineViewportMarker(this, positionWorld);
+      var marker = new ViewportMarker(this, positionWorld);
       this.markers.push(marker);
       this.dispatchChangeEvent();
       this.dispatchMarkersChangeEvent_();
@@ -300,13 +300,13 @@ base.exportTo('tracing', function() {
    * Represents a marked position in the world, at a viewport level.
    * @constructor
    */
-  function TimelineViewportMarker(vp, positionWorld) {
+  function ViewportMarker(vp, positionWorld) {
     this.viewport_ = vp;
     this.positionWorld_ = positionWorld;
     this.selected_ = false;
   }
 
-  TimelineViewportMarker.prototype = {
+  ViewportMarker.prototype = {
     get positionWorld() {
       return this.positionWorld_;
     },
@@ -370,6 +370,6 @@ base.exportTo('tracing', function() {
 
   return {
     TimelineViewport: TimelineViewport,
-    TimelineViewportMarker: TimelineViewportMarker
+    ViewportMarker: ViewportMarker
   };
 });

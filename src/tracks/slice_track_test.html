@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Track tests</title>
+<style>
+.container {
+  border: 1px solid red;
+}
+</style>
+<script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('slice');
+  base.require('timeline');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var Selection = tracing.Selection;
+  var SliceTrack = tracing.tracks.SliceTrack;
+  var Slice = tracing.Slice;
+  var Viewport = tracing.TimelineViewport;
+
+  function testBasicSlices() {
+    var testEl = this.addHTMLOutput();
+    var track = SliceTrack();
+    testEl.appendChild(track);
+    track.heading = 'testBasicSlices';
+    track.slices = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 8.8, track.clientWidth);
+  }
+
+  function testFindAllObjectsMatchingInSliceTrack() {
+    var track = SliceTrack();
+    track.slices = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+    var selection = new Selection();
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TitleFilter('b'), selection);
+
+    assertEquals(2, selection.length);
+    assertEquals(track.slices[1], selection[0].slice);
+    assertEquals(track.slices[2], selection[1].slice);
+  }
+
+  function testShrinkingSliceSizes() {
+    var testEl = this.addHTMLOutput();
+    var track = SliceTrack();
+    testEl.appendChild(track);
+    track.heading = 'testShrinkingSliceSizes';
+    var x = 0;
+    var widths = [10, 5, 4, 3, 2, 1, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05];
+    var slices = [];
+    for (var i = 0; i < widths.length; i++) {
+      var s = new Slice('', 'a', 1, x, {}, widths[i]);
+      x += s.duration + 0.5;
+      slices.push(s);
+    }
+    track.slices = slices;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
+  }
+
+  function testSelectionHitTesting() {
+    var testEl = this.addHTMLOutput();
+    var track = new SliceTrack();
+    testEl.style.width = '600px';
+
+    testEl.appendChild(track);
+    track.heading = 'testSelectionHitTesting';
+    track.headingWidth = '100px';
+    track.slices = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 5, {}, 4.8)
+    ];
+    var y = track.getBoundingClientRect().top + 5;
+    var wW = 10;
+    var vW = track.firstCanvas.getBoundingClientRect().width;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, wW, vW);
+
+    var selection = new Selection();
+    track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
+    assertEquals(track.slices[0], selection[0].slice);
+
+    var selection = new Selection();
+    track.addIntersectingItemsToSelection((2/wW)*vW, y, selection);
+    assertEquals(0, selection.length);
+
+    var selection = new Selection();
+    track.addIntersectingItemsToSelection((6.8/wW)*vW, y, selection);
+    assertEquals(track.slices[1], selection[0].slice);
+
+    var selection = new Selection();
+    track.addIntersectingItemsToSelection((9.9/wW)*vW, y, selection);
+    assertEquals(0, selection.length);
+  }
+
+  /* You'll need visual inspection to test eliding with this one. */
+  function testElideVisualInspection() {
+    var optDicts = [{ trackName: 'elideOff', elide: false },
+                    { trackName: 'elideOn', elide: true }];
+    for (var dictIndex in optDicts) {
+      var dict = optDicts[dictIndex];
+      var testEl = this.addHTMLOutput(dict.trackName);
+      var track = new SliceTrack();
+      if (dict.elide) {
+        track.SHOULD_ELIDE_TEXT = true;
+      } else {
+        track.SHOULD_ELIDE_TEXT = false;
+      }
+      var tooLongTitle = 'Unless eliding this SHOULD NOT BE DISPLAYED.  ';
+      var bigTitle = 'Very big title name that goes on longer ' +
+                     'than you may expect';
+      testEl.appendChild(track);
+      track.heading = 'Visual: ' + dict.trackName;
+      track.slices = [
+          // title, colorId, start, args, opt_duration
+          new Slice('', 'a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
+          new Slice('', bigTitle, 1, 2.1, {}, 4.8),
+          new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
+          new Slice('', 'd', 2, 7.6, {}, 1.0)
+      ];
+      track.viewport = new Viewport(testEl);
+      track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
+    }
+  }
+
+  function testElide() {
+    var testEl = this.addHTMLOutput();
+    var track = new SliceTrack();
+    testEl.appendChild(track);
+    var bigtitle = 'Super duper long long title ' +
+      'holy moly when did you get so verbose?';
+    var smalltitle = 'small';
+    track.viewport = new Viewport(testEl);
+    track.heading = 'testElide';
+    track.slices = [
+        // title, colorId, start, args, opt_duration
+        new Slice('', bigtitle, 0, 1, {}, 1),
+        new Slice('', smalltitle, 1, 2, {}, 1)
+    ];
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 3.3, track.clientWidth);
+    var stringWidthPair = undefined;
+    var pixWidth = track.viewport_.xViewVectorToWorld(1);
+
+    // Small titles on big slices are not elided.
+    stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
+      track.labelWidth(smalltitle), 1);
+    assertEquals(smalltitle, stringWidthPair.string);
+    // Keep shrinking the slice until eliding starts.
+    var elidedWhenSmallEnough = false;
+    for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
+      stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
+        track.labelWidth(smalltitle), sliceLength);
+      if (stringWidthPair.string.length < smalltitle.length) {
+        elidedWhenSmallEnough = true;
+        break;
+      }
+    }
+    assertTrue(elidedWhenSmallEnough);
+
+    // Big titles are elided immediately.
+    var superBigTitle = '';
+    for (var x = 0; x < 10; x++) {
+      superBigTitle += bigtitle;
+    }
+    stringWidthPair = track.elidedTitleCache.get(track, pixWidth,
+      superBigTitle, track.labelWidth(superBigTitle), 1);
+    assertTrue(stringWidthPair.string.length < superBigTitle.length);
+    // And elided text ends with ...
+    var len = stringWidthPair.string.length;
+    assertEquals('...', stringWidthPair.string.substring(len - 3, len));
+  }
+
+  function testSliceTrackAddItemNearToProvidedHit() {
+    var track = new SliceTrack();
+    track.slices = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+    var sel = new tracing.Selection();
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TitleFilter('b'), sel);
+    var ret;
+
+    // Select to the right of B.
+    var selRight = new tracing.Selection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], 1, selRight);
+    assertTrue(ret);
+    assertEquals(track.slices[2], selRight[0].slice);
+
+    // Select to the right of the 2nd b.
+    var selRight2 = new tracing.Selection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], 2, selRight2);
+    assertTrue(ret);
+    assertEquals(track.slices[3], selRight2[0].slice);
+
+    // Select to 2 to the right of the 2nd b.
+    var selRightOfRight = new tracing.Selection();
+    ret = track.addItemNearToProvidedHitToSelection(
+       selRight[0], 1, selRightOfRight);
+    assertTrue(ret);
+    assertEquals(track.slices[3], selRightOfRight[0].slice);
+
+    // Select to the right of the rightmost slice.
+    var selNone = new tracing.Selection();
+    ret = track.addItemNearToProvidedHitToSelection(
+       selRightOfRight[0], 1, selNone);
+    assertFalse(ret);
+    assertEquals(0, selNone.length);
+
+    // Select A and then select left.
+    var sel = new tracing.Selection();
+    track.addAllObjectsMatchingFilterToSelection(
+        new tracing.TitleFilter('a'), sel);
+    var ret;
+
+    selNone = new tracing.Selection();
+    ret = track.addItemNearToProvidedHitToSelection(sel[0], -1, selNone);
+    assertFalse(ret);
+    assertEquals(0, selNone.length);
+  }
+</script>
+</body>
+</html>

@@ -10,34 +10,34 @@ found in the LICENSE file.
 <script src="base.js"></script>
 </head>
 <body>
-  <div class="timeline-test" src="../test_data/trivial_trace.json" create-detached=1>
+  <div class="test" src="../test_data/trivial_trace.json" create-detached=1>
   </div>
 
-  <div class="timeline-test" src="../test_data/trivial_trace.json">
+  <div class="test" src="../test_data/trivial_trace.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/simple_trace.json">
+  <div class="test" src="../test_data/simple_trace.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/instance_counters.json">
+  <div class="test" src="../test_data/instance_counters.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/tall_trace.json">
+  <div class="test" src="../test_data/tall_trace.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/big_trace.json">
+  <div class="test" src="../test_data/big_trace.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/huge_trace.json">
+  <div class="test" src="../test_data/huge_trace.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/main_thread_has_unclosed_slices.json">
+  <div class="test" src="../test_data/main_thread_has_unclosed_slices.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/async_begin_end.json">
+  <div class="test" src="../test_data/async_begin_end.json">
   </div>
 
-  <div class="timeline-test" src="../test_data/android_systrace.html">
+  <div class="test" src="../test_data/android_systrace.html">
   </div>
 
   <script>
@@ -75,7 +75,7 @@ found in the LICENSE file.
     // setup code.
     var create_detached = parentEl.getAttribute('create-attached') == 1;
     function createModel(data) {
-      timelineViewEl.model = new tracing.TimelineModel(data);
+      timelineViewEl.model = new tracing.Model(data);
       if (!create_detached)
         containerEl.appendChild(timelineViewEl);
     }
@@ -85,7 +85,7 @@ found in the LICENSE file.
   }
 
   function onLoad() {
-    Array.prototype.forEach.call(document.querySelectorAll('.timeline-test'),
+    Array.prototype.forEach.call(document.querySelectorAll('.test'),
                                  load);
   }
   document.addEventListener('DOMContentLoaded', onLoad);

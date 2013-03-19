@@ -5,10 +5,10 @@
 'use strict';
 
 base.require('test_utils');
-base.require('timeline_model');
-base.require('timeline_selection');
-base.require('tracks.timeline_thread_track');
-base.require('tracks.timeline_counter_track');
+base.require('model');
+base.require('selection');
+base.require('tracks.thread_track');
+base.require('tracks.counter_track');
 
 /**
  * @fileoverview Helper functions for use in analysis tests.
@@ -20,7 +20,7 @@ base.exportTo('tracing.analysis.test', function() {
     var newSliceCategory = test_utils.newSliceCategory;
 
     function createReferenceData(withCategory) {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
       if (withCategory)
@@ -44,13 +44,13 @@ base.exportTo('tracing.analysis.test', function() {
       t1.pushSlice(newSliceNamed('Slice with a really, really long name.',
                                   0, 0.005));
 
-      t1.slices.push(new tracing.TimelineSlice('category', 'D', 0, 1.15,
+      t1.slices.push(new tracing.Slice('category', 'D', 0, 1.15,
                                             {src_file: 'Arg D src_file',
                                             src_func: 'Arg D src_func'}, .5));
-      t1.slices.push(new tracing.TimelineSlice('cat', 'E', 0, 1,
+      t1.slices.push(new tracing.Slice('cat', 'E', 0, 1,
                                             {src_file: 'Arg E src_file',
                                             src_func: 'Arg E src_func'}, .4));
-      t1.slices.push(new tracing.TimelineSlice('cat', 'F', 0, 1,
+      t1.slices.push(new tracing.Slice('cat', 'F', 0, 1,
                                             {src_file: '0',
                                             src_func: 'false'}, .4));
 
@@ -66,17 +66,17 @@ base.exportTo('tracing.analysis.test', function() {
       ctr2.timestamps.push(0, 10, 20);
       ctr2.samples.push(0, 25, 10, 15, 20, 5);
 
-      var t1track = new tracing.tracks.TimelineThreadTrack();
+      var t1track = new tracing.tracks.ThreadTrack();
       t1track.thread = t1;
-      var ctr1track = new tracing.tracks.TimelineCounterTrack();
+      var ctr1track = new tracing.tracks.CounterTrack();
       ctr1track.counter = ctr1;
 
-      var ctr2track = new tracing.tracks.TimelineCounterTrack();
+      var ctr2track = new tracing.tracks.CounterTrack();
       ctr2track.counter = ctr2;
 
       t1track.selectByTitle = function(title, selection) {
         t1track.addAllObjectsMatchingFilterToSelection(
-            new tracing.TimelineTitleFilter(title), selection);
+            new tracing.TitleFilter(title), selection);
       }
 
       return {model: model,

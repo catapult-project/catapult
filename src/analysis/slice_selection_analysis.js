@@ -119,7 +119,7 @@ base.exportTo('tracing.analysis', function() {
         var sliceHit = sliceHits[i];
         var title = sliceHit.slice.title;
         if (!selectionsByTitle[title])
-          selectionsByTitle[title] = new tracing.TimelineSelection();
+          selectionsByTitle[title] = new tracing.Selection();
         selectionsByTitle[title].pushHit(sliceHit);
       }
       return selectionsByTitle;

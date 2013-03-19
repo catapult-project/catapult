@@ -6,16 +6,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-  <title>TimelineStreamImporter tests</title>
+  <title>StreamImporter tests</title>
   <script src="/src/base.js"></script>
   <style>
-    .timeline-view {
+    .view {
       border: 1px solid black;
       margin: 10px;
       height: 350px;
     }
 
-    .timeline-find-dialog {
+    .find-dialog {
       border: 1px solid black;
       margin: 10px;
     }
@@ -26,7 +26,7 @@ found in the LICENSE file.
   base.require('unittest');
   base.require('test_utils');
   base.require('timeline_view');
-  base.require('timeline_stream_importer');
+  base.require('importer.timeline_stream_importer');
 </script>
 <script>
   'use strict';
@@ -36,7 +36,7 @@ found in the LICENSE file.
     var testIndex = 0;
     var startTime = 0;
 
-    var model = new tracing.TimelineModel();
+    var model = new tracing.Model();
 
     var view = new tracing.TimelineView();
     view.style.height = '800px';

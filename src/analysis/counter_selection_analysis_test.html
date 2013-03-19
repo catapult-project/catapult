@@ -19,7 +19,7 @@ found in the LICENSE file.
     'use strict';
 
     function testEmptySelection() {
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       var analysis = new tracing.analysis.CounterSelectionAnalysis();
       assertThrows(function() {
         analysis.selection = selection;
@@ -29,7 +29,7 @@ found in the LICENSE file.
     function testCounterSelectionAnalysisWithSlice() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
 
       var analysis = new tracing.analysis.CounterSelectionAnalysis();
@@ -41,7 +41,7 @@ found in the LICENSE file.
     function testCounterSelectionAnalysisWithOneCounter() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
 
       var analysis = new tracing.analysis.CounterSelectionAnalysis();
@@ -61,7 +61,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithTwoCounters() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       selection.addCounterSample(data.ctr1track, data.ctr1track.counter, 0);
       selection.addCounterSample(data.ctr2track, data.ctr2track.counter, 3);
 

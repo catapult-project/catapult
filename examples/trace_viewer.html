@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
-<title>Simple Embedded Timeline Viewer</title>
+<title>Simple Embedded Viewer</title>
 <script src="../src/base.js"></script>
 <style>
   .view {
@@ -51,7 +51,7 @@ found in the LICENSE file.
   }
 
   function createViewFromTraces(traces) {
-    var m = new tracing.TimelineModel();
+    var m = new tracing.Model();
     m.importTraces(traces, true);
 
     timelineViewEl = document.querySelector('.view');

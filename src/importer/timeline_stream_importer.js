@@ -10,8 +10,8 @@
  *
  */
 
-base.require('timeline_model');
-base.require('timeline_slice');
+base.require('model');
+base.require('slice');
 
 base.exportTo('tracing.importer', function() {
 
@@ -19,8 +19,7 @@ base.exportTo('tracing.importer', function() {
   var STATE_CAPTURING = 0x2;
 
   /**
-   * Converts a stream of trace data from a websocket into a
-   * timeline model.
+   * Converts a stream of trace data from a websocket into a model.
    *
    * Events consumed by this importer have the following JSON structure:
    *
@@ -62,7 +61,7 @@ base.exportTo('tracing.importer', function() {
    *           ]
    *       }
    * }
-   * @param {TimelineModel} model that will be updated
+   * @param {Model} model that will be updated
    * when events are received.
    * @constructor
    */
@@ -124,7 +123,7 @@ base.exportTo('tracing.importer', function() {
         var thread = process.getOrCreateThread(threadName);
         for (var s = 0; s < threadSlices.length; s++) {
           var slice = threadSlices[s];
-          thread.slices.push(new tracing.TimelineSlice('streamed',
+          thread.slices.push(new tracing.Slice('streamed',
             slice['l'],
             0,
             slice['s'],

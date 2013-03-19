@@ -20,7 +20,7 @@ found in the LICENSE file.
     'use strict';
 
     function testEmptySelection() {
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       var analysis = new tracing.analysis.SliceSelectionAnalysis();
       assertThrows(function() {
         analysis.selection = selection;
@@ -30,7 +30,7 @@ found in the LICENSE file.
     function testSliceSelectionAnalysisWithMultipleSlicesSameTitle() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
 
       var analysis = new tracing.analysis.SliceSelectionAnalysis();
@@ -53,7 +53,7 @@ found in the LICENSE file.
     function testSliceSelectionAnalysisWithMultipleSlicesSameTitle2() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
 
       var analysis = new tracing.analysis.SliceSelectionAnalysis();
@@ -75,7 +75,7 @@ found in the LICENSE file.
     function testSliceSelectionAnalysisWithMultipleSlicesDifferentTitles() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
       data.t1track.selectByTitle('c', selection);
       data.t1track.selectByTitle('d', selection);

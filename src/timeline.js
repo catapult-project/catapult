@@ -5,10 +5,10 @@
 'use strict';
 
 /**
- * @fileoverview Interactive visualizaiton of TimelineModel objects
- * based loosely on gantt charts. Each thread in the TimelineModel is given a
- * set of TimelineTracks, one per subrow in the thread. The Timeline class
- * acts as a controller, creating the individual tracks, while TimelineTracks
+ * @fileoverview Interactive visualizaiton of Model objects
+ * based loosely on gantt charts. Each thread in the Model is given a
+ * set of Tracks, one per subrow in the thread. The Timeline class
+ * acts as a controller, creating the individual tracks, while Tracks
  * do actual drawing.
  *
  * Visually, the Timeline produces (prettier) visualizations like the following:
@@ -20,17 +20,17 @@
 base.requireStylesheet('timeline');
 base.require('event_target');
 base.require('measuring_stick');
-base.require('timeline_filter');
-base.require('timeline_selection');
+base.require('filter');
+base.require('selection');
 base.require('timeline_viewport');
-base.require('tracks.timeline_model_track');
-base.require('tracks.timeline_viewport_track');
+base.require('tracks.model_track');
+base.require('tracks.viewport_track');
 base.require('ui');
 
 base.exportTo('tracing', function() {
 
-  var TimelineSelection = tracing.TimelineSelection;
-  var TimelineViewport = tracing.TimelineViewport;
+  var Selection = tracing.Selection;
+  var Viewport = tracing.TimelineViewport;
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -48,8 +48,8 @@ base.exportTo('tracing', function() {
   }
 
   /**
-   * Renders a TimelineModel into a div element, making one
-   * TimelineTrack for each subrow in each thread of the model, managing
+   * Renders a Model into a div element, making one
+   * Track for each subrow in each thread of the model, managing
    * overall track layout, and handling user interaction with the
    * viewport.
    *
@@ -66,24 +66,24 @@ base.exportTo('tracing', function() {
     decorate: function() {
       this.classList.add('timeline');
 
-      this.categoryFilter_ = new tracing.TimelineCategoryFilter();
+      this.categoryFilter_ = new tracing.CategoryFilter();
 
-      this.viewport_ = new TimelineViewport(this);
+      this.viewport_ = new Viewport(this);
 
       // Add the viewport track.
-      this.viewportTrack_ = new tracing.tracks.TimelineViewportTrack();
+      this.viewportTrack_ = new tracing.tracks.ViewportTrack();
       this.viewportTrack_.viewport = this.viewport_;
       this.appendChild(this.viewportTrack_);
 
       this.modelTrackContainer_ = document.createElement('div');
-      this.modelTrackContainer_.className = 'timeline-model-track-container';
+      this.modelTrackContainer_.className = 'model-track-container';
       this.appendChild(this.modelTrackContainer_);
 
-      this.modelTrack_ = new tracing.tracks.TimelineModelTrack();
+      this.modelTrack_ = new tracing.tracks.ModelTrack();
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
-      this.dragBox_.className = 'timeline-drag-box';
+      this.dragBox_.className = 'drag-box';
       this.appendChild(this.dragBox_);
       this.hideDragBox_();
 
@@ -100,7 +100,7 @@ base.exportTo('tracing', function() {
       this.lastMouseViewPos_ = {x: 0, y: 0};
       this.maxHeadingWidth_ = 0;
 
-      this.selection_ = new TimelineSelection();
+      this.selection_ = new Selection();
     },
 
     /**
@@ -176,10 +176,10 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @param {TimelineFilter} filter The filter to use for finding matches.
-     * @param {TimelineSelection} selection The selection to add matches to.
+     * @param {Filter} filter The filter to use for finding matches.
+     * @param {Selection} selection The selection to add matches to.
      * @return {Array} An array of objects that match the provided
-     * TimelineTitleFilter.
+     * TitleFilter.
      */
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
@@ -208,7 +208,7 @@ base.exportTo('tracing', function() {
     get listenToKeys_() {
       if (!this.viewport_.isAttachedToDocument_)
         return false;
-      if (this.activeElement instanceof tracing.TimelineFindControl)
+      if (this.activeElement instanceof tracing.FindControl)
         return false;
       if (!this.focusElement_)
         return true;
@@ -412,8 +412,8 @@ base.exportTo('tracing', function() {
     },
 
     set selection(selection) {
-      if (!(selection instanceof TimelineSelection))
-        throw new Error('Expected TimelineSelection');
+      if (!(selection instanceof Selection))
+        throw new Error('Expected Selection');
 
       // Clear old selection.
       var i;
@@ -429,8 +429,8 @@ base.exportTo('tracing', function() {
     },
 
     setSelectionAndMakeVisible: function(selection, zoomAllowed) {
-      if (!(selection instanceof TimelineSelection))
-        throw new Error('Expected TimelineSelection');
+      if (!(selection instanceof Selection))
+        throw new Error('Expected Selection');
       this.selection = selection;
       var bounds = this.selection.bounds;
       var size = this.viewport_.xWorldVectorToView(bounds.max - bounds.min);
@@ -637,7 +637,7 @@ base.exportTo('tracing', function() {
         var hiVX = hiX - canv.offsetLeft;
 
         // Figure out what has been hit.
-        var selection = new TimelineSelection();
+        var selection = new Selection();
         this.modelTrack_.addIntersectingItemsInRangeToSelection(
             loVX, hiVX, loY, hiY, selection);
 
@@ -673,8 +673,8 @@ base.exportTo('tracing', function() {
   };
 
   /**
-   * The TimelineModel being viewed by the timeline
-   * @type {TimelineModel}
+   * The Model being viewed by the timeline
+   * @type {Model}
    */
   base.defineProperty(Timeline, 'model', base.PropertyKind.JS);
 

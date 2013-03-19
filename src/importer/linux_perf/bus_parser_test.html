@@ -58,7 +58,7 @@ function testExynos5Bus() {
   'cycles=6690156 ns=16725375'
 
   ];
-  var m = new tracing.TimelineModel(lines.join('\n'), false);
+  var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
   console.log(m);
 

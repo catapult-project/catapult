@@ -4,7 +4,7 @@
 
 /**
  * @fileoverview Imports text files in the Linux event trace format into the
- * timeline model. This format is output both by sched_trace and by Linux's perf
+ * model. This format is output both by sched_trace and by Linux's perf
  * tool.
  *
  * This importer assumes the events arrive as a string. The unit tests provide
@@ -18,8 +18,8 @@
  */
 'use strict';
 
-base.require('timeline_model');
-base.require('timeline_color_scheme');
+base.require('model');
+base.require('color_scheme');
 base.require('importer.linux_perf.bus_parser');
 base.require('importer.linux_perf.clock_parser');
 base.require('importer.linux_perf.cpufreq_parser');
@@ -46,7 +46,7 @@ base.exportTo('tracing.importer', function() {
     __proto__: Object.prototype,
 
     /**
-     * Switches the active pid on this Cpu. If necessary, add a TimelineSlice
+     * Switches the active pid on this Cpu. If necessary, add a Slice
      * to the cpu representing the time spent on that Cpu since the last call to
      * switchRunningLinuxPid.
      */
@@ -61,16 +61,16 @@ base.exportTo('tracing.importer', function() {
         else
           name = this.lastActiveComm;
 
-        var slice = new tracing.TimelineSlice('', name,
-                                              tracing.getStringColorId(name),
-                                              this.lastActiveTs,
-                                              {
-                                                comm: this.lastActiveComm,
-                                                tid: this.lastActivePid,
-                                                prio: this.lastActivePrio,
-                                                stateWhenDescheduled: prevState
-                                              },
-                                              duration);
+        var slice = new tracing.Slice('', name,
+                                      tracing.getStringColorId(name),
+                                      this.lastActiveTs,
+                                      {
+                                        comm: this.lastActiveComm,
+                                        tid: this.lastActivePid,
+                                        prio: this.lastActivePrio,
+                                        stateWhenDescheduled: prevState
+                                      },
+                                      duration);
         this.cpu.slices.push(slice);
       }
 
@@ -93,7 +93,7 @@ base.exportTo('tracing.importer', function() {
     this.cpuStates_ = {};
     this.wakeups_ = [];
     this.kernelThreadStates_ = {};
-    this.buildMapFromLinuxPidsToTimelineThreads();
+    this.buildMapFromLinuxPidsToThreads();
     this.lineNumberBase = 0;
     this.lineNumber = -1;
     this.pseudoThreadCounter = 1;
@@ -311,11 +311,11 @@ base.exportTo('tracing.importer', function() {
 
     /**
      * Precomputes a lookup table from linux pids back to existing
-     * TimelineThreads. This is used during importing to add information to each
-     * timeline thread about whether it was running, descheduled, sleeping, et
+     * Threads. This is used during importing to add information to each
+     * thread about whether it was running, descheduled, sleeping, et
      * cetera.
      */
-    buildMapFromLinuxPidsToTimelineThreads: function() {
+    buildMapFromLinuxPidsToThreads: function() {
       this.threadsByLinuxPid = {};
       this.model_.getAllThreads().forEach(
           function(thread) {
@@ -377,12 +377,12 @@ base.exportTo('tracing.importer', function() {
       this.importCpuData();
       if (!this.alignClocks(isSecondaryImport))
         return;
-      this.buildMapFromLinuxPidsToTimelineThreads();
+      this.buildMapFromLinuxPidsToThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
     },
 
     /**
-     * Called by the TimelineModel after all other importers have imported their
+     * Called by the Model after all other importers have imported their
      * events.
      */
     finalizeImport: function() {
@@ -390,7 +390,7 @@ base.exportTo('tracing.importer', function() {
 
     /**
      * Builds the cpuSlices array on each thread based on our knowledge of what
-     * each Cpu is doing.  This is done only for TimelineThreads that are
+     * each Cpu is doing.  This is done only for Threads that are
      * already in the model, on the assumption that not having any traced data
      * on a thread means that it is not of interest to the user.
      */
@@ -447,7 +447,7 @@ base.exportTo('tracing.importer', function() {
         var slices = [];
         if (origSlices.length) {
           var slice = origSlices[0];
-          slices.push(new tracing.TimelineSlice('', 'Running', runningId,
+          slices.push(new tracing.Slice('', 'Running', runningId,
               slice.start, {}, slice.duration));
         }
         var wakeup = undefined;
@@ -465,12 +465,12 @@ base.exportTo('tracing.importer', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tracing.TimelineSlice('', title, id, prevSlice.end,
+            slices.push(new tracing.Slice('', title, id, prevSlice.end,
               {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
-              slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
+              slices.push(new tracing.Slice('', 'Runnable', runnableId,
                   wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
             }
@@ -480,27 +480,27 @@ base.exportTo('tracing.importer', function() {
             pushSleep('Sleeping', sleepingId);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
-            slices.push(new tracing.TimelineSlice('', 'Runnable', runnableId,
+            slices.push(new tracing.Slice('', 'Runnable', runnableId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             pushSleep('Uninterruptible Sleep', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tracing.TimelineSlice('', '__TASK_STOPPED',
+            slices.push(new tracing.Slice('', '__TASK_STOPPED',
                 ioWaitId, prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tracing.TimelineSlice('', 'debug', ioWaitId,
+            slices.push(new tracing.Slice('', 'debug', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tracing.TimelineSlice('', 'Zombie', ioWaitId,
+            slices.push(new tracing.Slice('', 'Zombie', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tracing.TimelineSlice('', 'Exit Dead', ioWaitId,
+            slices.push(new tracing.Slice('', 'Exit Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tracing.TimelineSlice('', 'Task Dead', ioWaitId,
+            slices.push(new tracing.Slice('', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tracing.TimelineSlice('', 'WakeKill', ioWaitId,
+            slices.push(new tracing.Slice('', 'WakeKill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep('Uninterruptable Sleep | WakeKill', ioWaitId);
@@ -509,7 +509,7 @@ base.exportTo('tracing.importer', function() {
                 prevSlice.args.stateWhenDescheduled;
           }
 
-          slices.push(new tracing.TimelineSlice('', 'Running', runningId,
+          slices.push(new tracing.Slice('', 'Running', runningId,
               nextSlice.start, {}, nextSlice.duration));
         }
         thread.cpuSlices = slices;
@@ -680,7 +680,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Walks the this.events_ structure and creates TimelineCpu objects.
+     * Walks the this.events_ structure and creates Cpu objects.
      */
     importCpuData: function() {
       var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
@@ -729,7 +729,7 @@ base.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.TimelineModel.registerImporter(LinuxPerfImporter);
+  tracing.Model.registerImporter(LinuxPerfImporter);
 
   return {
     LinuxPerfImporter: LinuxPerfImporter,

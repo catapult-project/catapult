@@ -22,7 +22,7 @@ found in the LICENSE file.
     function testSelectionAnalysisWithSingleSliceArgsAndCategory() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('D', selection);
 
       var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
@@ -45,7 +45,7 @@ found in the LICENSE file.
     function testSingleSliceSelectionWithMissingCategoryAndArgs() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('f', selection);
 
       var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
@@ -67,7 +67,7 @@ found in the LICENSE file.
     function testSingleSliceSelectionWithMultipleSlices() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('b', selection);
 
       var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();
@@ -79,7 +79,7 @@ found in the LICENSE file.
     function testSingleSliceSelectionWithFalseArgs() {
       var data = tracing.analysis.test.createReferenceData(true);
 
-      var selection = new tracing.TimelineSelection();
+      var selection = new tracing.Selection();
       data.t1track.selectByTitle('F', selection);
 
       var analysis = new tracing.analysis.SingleSliceSelectionAnalysis();

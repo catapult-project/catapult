@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>Track tests</title>
+<style>
+.container {
+  border: 1px solid red;
+}
+</style>
+<script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('timeline');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var Counter = tracing.Counter;
+  var Viewport = tracing.TimelineViewport;
+  var CounterTrack = tracing.tracks.CounterTrack;
+
+
+  function testBasicCounter() {
+    var testEl = this.addHTMLOutput();
+
+    var ctr = new Counter(undefined,
+                          'testBasicCounter', '', 'testBasicCounter');
+    ctr.seriesNames = ['value1', 'value2'];
+    ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
+                        tracing.getStringColorId('testBasicCounter.value2')];
+    ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    ctr.samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    ctr.updateBounds();
+
+    var track = new CounterTrack();
+    testEl.appendChild(track);
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 7.7, track.clientWidth);
+  }
+
+  function runTest(timestamps, samples, testFn) {
+    var testEl = document.createElement('div');
+    var ctr = new Counter(undefined,
+                                  'foo', '', 'foo');
+    var n = samples.length / timestamps.length;
+    ctr.timestamps = timestamps;
+    ctr.samples = samples;
+    ctr.seriesNames = []
+    ctr.seriesColors = []
+    for (var i = 0; i < n; ++i) {
+      ctr.seriesNames.push('value' + i);
+      ctr.seriesColors.push(tracing.getStringColorId(ctr.seriesNames[i]));
+    }
+    ctr.updateBounds();
+
+    var track = new CounterTrack();
+    testEl.appendChild(track);
+    this.addHTMLOutput(undefined, testEl);
+
+    track.heading = ctr.name;
+    track.counter = ctr;
+    track.viewport = new Viewport(testEl);
+    track.viewport.xSetWorldBounds(0, 10,
+        track.firstCanvas.getBoundingClientRect().width);
+
+    testFn(ctr, track);
+  }
+
+  function testBasicCounterXPointPicking() {
+    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    var samples = [0, 5,
+                   3, 3,
+                   1, 1,
+                   2, 1.1,
+                   3, 0,
+                   1, 7,
+                   3, 0,
+                   3.1, 0.5];
+    runTest.call(this, timestamps, samples, function(ctr, track) {
+      var clientRect = track.firstCanvas.getBoundingClientRect();
+      var y75 = clientRect.top + 0.75 * clientRect.height;
+      var sel;
+      var vW = 10;
+      var wW = clientRect.width;
+
+      // In bounds.
+      sel = new tracing.Selection();
+      track.addIntersectingItemsToSelection((1.5/vW)*wW, y75, sel);
+      assertEquals(1, sel.length);
+      assertEquals(track, sel[0].track);
+      assertEquals(ctr, sel[0].counter);
+      assertEquals(1, sel[0].sampleIndex);
+
+      // Outside bouds.
+      sel = new tracing.Selection();
+      track.addIntersectingItemsToSelection((-1/vW)*wW, y75, sel);
+      assertEquals(0, sel.length);
+
+      sel = new tracing.Selection();
+      track.addIntersectingItemsToSelection((8/vW)*wW, y75, sel);
+      assertEquals(0, sel.length);
+    });
+  }
+</script>
+</body>
+</html>

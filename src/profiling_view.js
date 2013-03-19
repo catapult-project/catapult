@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview ProfilingView glues the TimelineView control to
+ * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
 base.requireStylesheet('profiling_view');
@@ -105,7 +105,7 @@ base.exportTo('tracing', function() {
       if (this.tracingController_.systemTraceEvents.length)
         traces.push(this.tracingController_.systemTraceEvents);
 
-      var m = new tracing.TimelineModel();
+      var m = new tracing.Model();
       m.importTraces(traces, true);
       this.timelineView_.model = m;
     },

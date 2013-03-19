@@ -1,0 +1,56 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+.analysis {
+    font-family: monospace;
+    white-space: pre;
+}
+.analysis * {
+   -webkit-user-select: text !important;
+   cursor: text;
+}
+
+.analysis-table {
+    border-collapse: collapse;
+    border-width: 0;
+}
+
+.analysis-table > tr > td:first-child {
+    padding-left: 2px;
+}
+
+.analysis-table > tr > td {
+    padding: 2px 4px 2px 4px;
+}
+
+.analysis-table-header {
+    text-align: left;
+}
+
+.analysis-table-row {
+    vertical-align: top;
+}
+
+.analysis-table-row:nth-child(2n+0) {
+    background-color: #e2e2e2;
+}
+
+.analysis-slice-table-col-0 {
+}
+.analysis-slice-table-col-1 {
+}
+
+.analysis-slices-table-col-0 {
+}
+.analysis-slices-table-col-1 {
+    text-align: right;
+}
+.analysis-slices-table-col-2 {
+    text-align: right;
+}
+
+.analysis-counter-table-col-0 {
+}
+.analysis-counter-table-col-0 {
+}

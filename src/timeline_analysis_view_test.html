@@ -1,0 +1,627 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head i18n-values="dir:textdirection;">
+<title>TimelineAnalysisView tests</title>
+<script src="base.js"></script>
+<style>
+  .view {
+    border: 1px solid black;
+    margin: 10px;
+  }
+  .find-dialog {
+    border: 1px solid black;
+    margin: 10px;
+  }
+</style>
+</head>
+<body>
+  <script>
+    base.require('unittest');
+    base.require('tracing_controller');
+    base.require('test_utils');
+    base.require('model');
+    base.require('importer.trace_event_importer');
+    base.require('timeline_analysis_view');
+    base.require('filter');
+    base.require('tracks.counter_track');
+    base.require('tracks.slice_track');
+    base.require('tracks.thread_track');
+    base.require('timeline'); /* TODO(nduca): reduce dependency */
+  </script>
+  <script>
+    'use strict';
+
+    var Counter = tracing.Counter;
+    var Thread = tracing.Thread;
+    var AnalysisView = tracing.TimelineAnalysisView;
+    var Model = tracing.Model;
+    var ThreadTrack = tracing.tracks.ThreadTrack;
+    var Selection = tracing.Selection;
+    var TitleFilter = tracing.TitleFilter;
+    var CounterTrack = tracing.tracks.CounterTrack;
+    var SliceTrack = tracing.tracks.SliceTrack;
+    var newSliceNamed = test_utils.newSliceNamed;
+    var newSliceCategory = test_utils.newSliceCategory;
+
+    function createSelectionWithSingleSlice(withCategory) {
+      var model = new Model();
+      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      if (withCategory)
+        t53.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
+      else
+        t53.pushSlice(newSliceNamed('b', 0, 0.002));
+
+      var t53track = new ThreadTrack();
+      t53track.thread = t53;
+
+      var selection = new Selection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('b'), selection);
+      assertEquals(1, selection.length);
+
+      return selection;
+    }
+
+    function createSelectionWithTwoSlices() {
+      var events = [
+        {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'aa', args: {}, pid: 52, ts: 640, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'aa', args: {}, pid: 52, ts: 700, cat: 'foo', tid: 53, ph: 'E'}
+      ];
+      var model = new Model(events);
+
+      var t53track = new ThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new Selection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('a'), selection);
+      assertEquals(2, selection.length);
+
+      return selection;
+    }
+
+    function createSelectionWithTwoSlicesSameTitle() {
+      var events = [
+        {name: 'c', args: {}, pid: 52, ts: 620, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'c', args: {}, pid: 52, ts: 660, cat: 'foo', tid: 53, ph: 'E'},
+        {name: 'c', args: {}, pid: 52, ts: 740, cat: 'foo', tid: 53, ph: 'B'},
+        {name: 'c', args: {}, pid: 52, ts: 800, cat: 'foo', tid: 53, ph: 'E'}
+      ];
+      var model = new Model(events);
+
+      var t53track = new ThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new Selection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('c'), selection);
+      assertEquals(2, selection.length);
+
+      return selection;
+    }
+
+    function createSelectionWithCounters(numSamples) {
+      if (numSamples > 2 || numSamples < 1)
+        throw new Error('This function only supports 1 or 2 samples');
+      var events = [
+        {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
+         ph: 'C', id: 0},
+        {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
+         ph: 'C', id: 0}
+      ];
+      var model = new Model(events);
+      var p = model.processes[1];
+      var ctr = model.processes[1].counters['foo.ctr[0]'];
+      assertEquals('ctr[0]', ctr.name);
+      assertEquals(2, ctr.numSamples);
+      assertEquals(1, ctr.numSeries);
+      assertArrayEquals([0, 0.01], ctr.timestamps);
+      assertArrayEquals([0, 10], ctr.samples);
+
+      var selection = new Selection();
+      var t1track = new ThreadTrack();
+      selection.addCounterSample(t1track, ctr, 1);
+
+      if (numSamples == 1)
+        return selection;
+
+      selection.addCounterSample(t1track, ctr, 0);
+      return selection;
+    }
+
+    function createSelectionWithTwoSeriesSingleCounter() {
+      var events = [
+        {name: 'ctr', args: {'bytesallocated': 0, 'bytesfree': 25}, pid: 1,
+         ts: 0, cat: 'foo', tid: 1, ph: 'C', id: 0},
+        {name: 'ctr', args: {'bytesallocated': 10, 'bytesfree': 15}, pid: 1,
+         ts: 10, cat: 'foo', tid: 1, ph: 'C', id: 0},
+        {name: 'ctr', args: {'bytesallocated': 20, 'bytesfree': 5}, pid: 1,
+         ts: 20, cat: 'foo', tid: 1, ph: 'C', id: 0}
+      ];
+      var model = new Model(events);
+      var p = model.processes[1];
+      var ctr = model.processes[1].counters['foo.ctr[0]'];
+      assertEquals('ctr[0]', ctr.name);
+      assertEquals(3, ctr.numSamples);
+      assertEquals(2, ctr.numSeries);
+
+      var selection = new Selection();
+      var t1track = new ThreadTrack();
+      selection.addCounterSample(t1track, ctr, 1);
+
+      return selection;
+    }
+
+    function createSelectionWithTwoSeriesTwoCounters() {
+      var ctr1 = new Counter(null, 0, '', 'ctr1');
+      ctr1.seriesNames.push('bytesallocated', 'bytesfree');
+      ctr1.seriesColors.push(0, 1);
+      ctr1.timestamps.push(0, 10, 20);
+      ctr1.samples.push(0, 25, 10, 15, 20, 5);
+
+      var ctr2 = new Counter(null, 0, '', 'ctr2');
+      ctr2.seriesNames.push('bytesallocated', 'bytesfree');
+      ctr2.seriesColors.push(0, 1);
+      ctr2.timestamps.push(0, 10, 20);
+      ctr2.samples.push(0, 25, 10, 15, 20, 5);
+
+      var selection = new Selection();
+      var t1track = new ThreadTrack();
+      selection.addCounterSample(t1track, ctr1, 1);
+      selection.addCounterSample(t1track, ctr2, 2);
+
+      return selection;
+    }
+
+    function createSelectionWithTwoCountersDiffSeriesDiffHits() {
+      var ctr1 = new Counter(null, 0, '', 'a');
+      ctr1.seriesNames.push('bytesallocated');
+      ctr1.seriesColors.push(0);
+      ctr1.timestamps.push(0, 10, 20);
+      ctr1.samples.push(0, 25, 10);
+      assertEquals('a', ctr1.name);
+      assertEquals(3, ctr1.numSamples);
+      assertEquals(1, ctr1.numSeries);
+
+      var ctr2 = new Counter(null, 0, '', 'b');
+      ctr2.seriesNames.push('bytesallocated', 'bytesfree');
+      ctr2.seriesColors.push(0, 1);
+      ctr2.timestamps.push(0, 10, 20, 30);
+      ctr2.samples.push(0, 25, 10, 15, 20, 5, 25, 0);
+      assertEquals('b', ctr2.name);
+      assertEquals(4, ctr2.numSamples);
+      assertEquals(2, ctr2.numSeries);
+
+      var selection = new Selection();
+      var t1track = new ThreadTrack();
+      selection.addCounterSample(t1track, ctr1, 1);
+      selection.addCounterSample(t1track, ctr2, 2);
+
+      return selection;
+    }
+
+    function createSelectionWithSingleSliceSingleCounter() {
+      var model = new Model();
+      var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      thread.pushSlice(newSliceNamed('b', 1, 5));
+
+      var ctr1 = model.getOrCreateProcess(1).getOrCreateCounter('cat', 'ctr1');
+      ctr1.seriesNames.push('bytesallocated', 'bytesfree');
+      ctr1.seriesColors.push(0, 1);
+      ctr1.timestamps.push(0, 10, 20);
+      ctr1.samples.push(0, 25, 10, 15, 20, 5);
+      assertEquals('ctr1', ctr1.name);
+      assertEquals(3, ctr1.numSamples);
+      assertEquals(2, ctr1.numSeries);
+
+      var ctr1track = new CounterTrack();
+      ctr1track.counter = ctr1;
+
+      var threadTrack = new SliceTrack();
+      threadTrack.slices = thread.slices;
+
+      var selection = new Selection();
+      selection.addCounterSample(ctr1track, ctr1, 1);
+      threadTrack.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('b'), selection);
+      assertEquals(2, selection.length);
+      return selection;
+    }
+
+    function createSelectionWithNormallyDistributedSamples(numSlices) {
+      // Distance between start times is normally distributed, with mu = 16ms
+      // and sigma = 3ms.
+      var startTimes = [
+        0, 18.4362262859, 32.5378088645, 44.8978868054,
+        63.4772725504, 77.438888345, 92.0102867913, 99.6208686689,
+        119.150576393, 137.54545468, 153.991587743, 175.456095568,
+        193.395772651, 205.691644582, 218.740054982, 239.308480724,
+        250.880949151, 268.528689601, 281.950478133, 296.791635722,
+        315.862427391, 333.954888221, 342.392899581, 362.364373939,
+        377.593380892, 392.296896748, 415.779941407, 435.517713864,
+        454.581222491, 470.329018858, 488.37029095, 502.283017166,
+        521.15141113, 534.36224697, 554.425018316, 574.89913248,
+        589.60294439, 604.780562233, 615.481610668, 630.055628965,
+        645.908449096, 661.776084055, 673.276049017, 689.776401428,
+        704.440135004, 716.33262401, 732.380086528, 743.970715322,
+        756.506690025, 772.391485532, 794.636984401, 803.801415494,
+        819.006502926, 837.610127549, 854.551103283, 875.170613672,
+        891.508235124, 905.263299017, 929.309555683, 943.417968804,
+        957.289319239, 972.302910569, 986.669355637, 1002.71558868,
+        1013.83359637, 1030.16840733, 1040.39503139, 1057.61583325,
+        1075.64709686, 1086.67671319, 1100.4617455, 1118.4871842,
+        1129.98143488, 1144.52318588, 1160.36966285, 1179.50049042,
+        1195.03088169, 1215.98199401, 1226.66591838, 1245.83650314,
+        1268.18058265, 1285.11047342, 1301.71570575, 1316.40723345,
+        1329.94342488, 1343.7569577, 1358.28267513, 1371.17560308,
+        1386.42247119, 1401.51767749, 1417.52489051, 1440.98712348,
+        1457.80113781, 1475.66079406, 1494.64137536, 1509.52941903,
+        1524.54762552, 1545.42960714, 1565.19444597, 1580.56308936,
+        1596.72211651];
+
+      var durations = [
+        1.56308936, 1.4362262859, 1.5378088645, 1.8978868054,
+        1.4772725504, 1.438888345, 1.0102867913, 1.6208686689,
+        1.150576393, 1.54545468, 1.991587743, 1.456095568,
+        1.395772651, 1.691644582, 1.740054982, 1.308480724,
+        1.880949151, 1.528689601, 1.950478133, 1.791635722,
+        1.862427391, 1.954888221, 1.392899581, 1.364373939,
+        1.593380892, 1.296896748, 1.779941407, 1.517713864,
+        1.581222491, 1.329018858, 1.37029095, 1.283017166,
+        1.15141113, 1.36224697, 1.425018316, 1.89913248,
+        1.60294439, 1.780562233, 1.481610668, 1.055628965,
+        1.908449096, 1.776084055, 1.276049017, 1.776401428,
+        1.440135004, 1.33262401, 1.380086528, 1.970715322,
+        1.506690025, 1.391485532, 1.636984401, 1.801415494,
+        1.006502926, 1.610127549, 1.551103283, 1.170613672,
+        1.508235124, 1.263299017, 1.309555683, 1.417968804,
+        1.289319239, 1.302910569, 1.669355637, 1.71558868,
+        1.83359637, 1.16840733, 1.39503139, 1.61583325,
+        1.64709686, 1.67671319, 1.4617455, 1.4871842,
+        1.98143488, 1.52318588, 1.36966285, 1.50049042,
+        1.03088169, 1.98199401, 1.66591838, 1.83650314,
+        1.18058265, 1.11047342, 1.71570575, 1.40723345,
+        1.94342488, 1.7569577, 1.28267513, 1.17560308,
+        1.42247119, 1.51767749, 1.52489051, 1.98712348,
+        1.80113781, 1.66079406, 1.64137536, 1.52941903,
+        1.54762552, 1.42960714, 1.19444597, 1.56308936,
+        1.72211651];
+
+      var events = [];
+
+      var model = new Model();
+      var thread = model.getOrCreateProcess(52).getOrCreateThread(53);
+
+      for (var i = 0; i < startTimes.length; ++i) {
+        for (var j = 0; j < numSlices; ++j) {
+          var name = 'slice' + String(numSlices - 1 - j);
+          thread.slices.push(newSliceNamed(name, startTimes[i], durations[i]));
+        }
+      }
+
+      var t53track = new ThreadTrack();
+      t53track.thread = model.processes[52].threads[53];
+
+      var selection = new Selection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('slice'), selection);
+      assertEquals(101 * numSlices, selection.length);
+
+      return selection;
+    }
+
+    function testAnalysisViewWithSingleSlice() {
+      var selection = createSelectionWithSingleSlice();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithSingleSliceCategory() {
+      var selection = createSelectionWithSingleSlice(true);
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithMultipleSlices() {
+      var selection = createSelectionWithTwoSlices();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithMultipleSlicesSameTitle() {
+      var selection = createSelectionWithTwoSlicesSameTitle();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithSingleCounterWithTwoSeries() {
+      var selection = createSelectionWithTwoSeriesSingleCounter();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithTwoCountersWithTwoSeries() {
+      var selection = createSelectionWithTwoSeriesTwoCounters();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalysisViewWithSingleSliceSingleCounter() {
+      var selection = createSelectionWithSingleSliceSingleCounter();
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testSelectionWithNormallyDistributedSamples() {
+      var numSlices = 1;
+      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function StubAnalysisResults() {
+      this.tables = [];
+    }
+    StubAnalysisResults.prototype = {
+      __proto__: Object.protoype,
+
+      appendTable: function(parent, className) {
+        var table = {
+          className: className,
+          rows: []
+        };
+        table.className = className;
+        this.tables.push(table);
+        return table;
+      },
+
+      appendTableHeader: function(table, label) {
+        if (table.tableHeader)
+          throw new Error('Only one summary header allowed.');
+        table.tableHeader = label;
+      },
+
+      appendSummaryRow: function(table, label, opt_text) {
+        table.rows.push({label: label,
+                         text: opt_text});
+      },
+
+      appendSpacingRow: function(table) {
+        table.rows.push({spacing: true});
+      },
+
+      appendSummaryRowTime: function(table, label, time) {
+        table.rows.push({label: label,
+                         time: time});
+      },
+
+      appendDataRow: function(table, label, duration, occurences, details) {
+        table.rows.push({label: label,
+                         duration: duration,
+                         occurences: occurences,
+                         details: details});
+      }
+    };
+
+    function testAnalyzeSelectionWithSingleSlice() {
+      var selection = createSelectionWithSingleSlice();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected slice:', table.tableHeader);
+      assertEquals(3, table.rows.length);
+
+      assertEquals('b', table.rows[0].text);
+      assertEquals(0, table.rows[1].time);
+      assertAlmostEquals(0.002, table.rows[2].time);
+    }
+
+    function testAnalyzeSelectionWithFalsyArgs() {
+      var model = new Model();
+      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      var slice = newSliceNamed('b', 0, 0.002);
+      slice.args.bar = 0;
+      slice.args.foo = false;
+      t53.pushSlice(slice);
+      var t53track = new ThreadTrack();
+      t53track.thread = t53;
+      var selection = new Selection();
+      t53track.addAllObjectsMatchingFilterToSelection(
+        new TitleFilter('b'), selection);
+      assertEquals(1, selection.length);
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+      var rows = analysisEl.querySelectorAll('tr');
+      assertEquals(rows.length, 7);
+      assertEquals(' bar', rows[5].children[0].textContent);
+      assertEquals('0', rows[5].children[1].textContent);
+      assertEquals(' foo', rows[6].children[0].textContent);
+      assertEquals('false', rows[6].children[1].textContent);
+    }
+
+    function testAnalyzeSelectionWithSingleSliceCategory() {
+      var selection = createSelectionWithSingleSlice(true);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected slice:', table.tableHeader);
+      assertEquals(4, table.rows.length);
+
+      assertEquals('b', table.rows[0].text);
+      assertEquals('foo', table.rows[1].text);
+      assertEquals(0, table.rows[2].time);
+      assertAlmostEquals(0.002, table.rows[3].time);
+    }
+
+    function testAnalyzeSelectionWithTwoSlices() {
+      var selection = createSelectionWithTwoSlices();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Slices:', table.tableHeader);
+      assertEquals(6, table.rows.length);
+
+      assertEquals('a', table.rows[0].label);
+      assertEquals(1, table.rows[0].occurences);
+      assertAlmostEquals(0.04, table.rows[0].duration);
+      assertEquals('aa', table.rows[1].label);
+      assertEquals(1, table.rows[1].occurences);
+      assertAlmostEquals(0.06, table.rows[1].duration);
+      assertEquals('*Totals', table.rows[2].label);
+      assertEquals(2, table.rows[2].occurences);
+      assertAlmostEquals(0.1, table.rows[2].duration);
+
+      assertEquals('Selection start', table.rows[4].label);
+      assertAlmostEquals(0, table.rows[4].time);
+
+      assertEquals('Selection extent', table.rows[5].label);
+      assertAlmostEquals(0.18, table.rows[5].time);
+    }
+
+    function testAnalyzeSelectionWithTwoSlicesSameTitle() {
+      var selection = createSelectionWithTwoSlicesSameTitle();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+
+      assertEquals('Slices:', table.tableHeader);
+      assertEquals(5, table.rows.length);
+
+      assertEquals('c', table.rows[0].label);
+      assertEquals('2', table.rows[0].occurences);
+      assertAlmostEquals(0.04, table.rows[0].details.min);
+      assertAlmostEquals(0.05, table.rows[0].details.avg);
+      assertAlmostEquals(0.06, table.rows[0].details.max);
+      assertAlmostEquals(0.1, table.rows[0].duration);
+      assertEquals('*Totals', table.rows[1].label);
+      assertAlmostEquals(0.1, table.rows[1].duration);
+      assertEquals('Selection start', table.rows[3].label);
+      assertAlmostEquals(0, table.rows[3].time);
+      assertEquals('Selection extent', table.rows[4].label);
+      assertAlmostEquals(0.18, table.rows[4].time);
+    }
+
+    function testAnalyzeSelectionWithSingleCounter() {
+      var selection = createSelectionWithCounters(1);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Selected counter:', table.tableHeader);
+      assertEquals(3, table.rows.length);
+
+      assertEquals('Title', table.rows[0].label);
+      assertEquals('Timestamp', table.rows[1].label);
+      assertEquals('value', table.rows[2].label);
+      assertEquals(10, table.rows[2].text);
+    }
+
+    function testAnalyzeSelectionWithBasicTwoSeriesTwoCounters() {
+      var selection = createSelectionWithTwoSeriesTwoCounters();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Counters:', table.tableHeader);
+      assertEquals(4, table.rows.length);
+
+      assertEquals('ctr1: bytesallocated', table.rows[0].label);
+      assertEquals('ctr1: bytesfree', table.rows[1].label);
+      assertEquals('ctr2: bytesallocated', table.rows[2].label);
+      assertEquals('ctr2: bytesfree', table.rows[3].label);
+    }
+
+    function testAnalyzeSelectionWithComplexSeriesTwoCounters() {
+      var selection = createSelectionWithTwoCountersDiffSeriesDiffHits();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+      var table = results.tables[0];
+      assertEquals('Counters:', table.tableHeader);
+      assertEquals(3, table.rows.length);
+
+      assertEquals('a: bytesallocated', table.rows[0].label);
+      assertEquals('b: bytesallocated', table.rows[1].label);
+      assertEquals('b: bytesfree', table.rows[2].label);
+    }
+
+    function testAnalyzeSelectionWithCounterAndSlices() {
+      var selection = createSelectionWithSingleSliceSingleCounter();
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(2, results.tables.length);
+      var sliceTable = results.tables[0];
+      var counterTable = results.tables[1];
+
+      assertEquals('Selected slice:', sliceTable.tableHeader);
+      assertEquals(3, sliceTable.rows.length);
+
+      assertEquals('Selected counter:', counterTable.tableHeader);
+      assertEquals(4, counterTable.rows.length);
+    }
+
+    function testAnalyzeSelectionWithNormallyDistributedSamples() {
+      var numSlices = 2;
+      var selection = createSelectionWithNormallyDistributedSamples(numSlices);
+
+      var results = new StubAnalysisResults();
+      tracing.analyzeSelection_(results, selection);
+      assertEquals(1, results.tables.length);
+
+      assertEquals('slice0', results.tables[0].rows[0].label);
+      assertEquals(
+          63, Math.round(results.tables[0].rows[0].details.frequency));
+      assertEquals(
+          16, Math.round(results.tables[0].rows[0].details.frequency_stddev));
+      assertEquals(
+          250, Math.round(results.tables[0].rows[0].details.avg_stddev * 1000));
+
+
+      assertEquals('slice1', results.tables[0].rows[1].label);
+      assertEquals(
+          63, Math.round(results.tables[0].rows[1].details.frequency));
+      assertEquals(
+          16, Math.round(results.tables[0].rows[1].details.frequency_stddev));
+      assertEquals(
+          250, Math.round(results.tables[0].rows[1].details.avg_stddev * 1000));
+    }
+  </script>
+</body>
+</html>

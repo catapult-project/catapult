@@ -20,7 +20,7 @@ found in the LICENSE file.
     'use strict';
 
     /*
-     * This test just instantiates a TimelineView and adds it to the DOM
+     * This test just instantiates a View and adds it to the DOM
      * to help with non-unittest UI work.
      */
     function testInstantiateTimeline() {
@@ -30,7 +30,7 @@ found in the LICENSE file.
         {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
       ];
-      var model = new tracing.TimelineModel(events);
+      var model = new tracing.Model(events);
       var timeline = new tracing.Timeline();
       timeline.model = model;
       timeline.focusElement = timeline;
@@ -40,12 +40,12 @@ found in the LICENSE file.
     }
 
     function testAddAllObjectsMatchingFilterToSelection() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'a', 0, 1, {}, 3));
-      t1.pushSlice(new tracing.TimelineThreadSlice('', 'b', 0, 1.1, {}, 2.8));
+      t1.pushSlice(new tracing.ThreadSlice('', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
       var t1asg = t1.asyncSlices;
       t1asg.slices.push(test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
@@ -56,25 +56,25 @@ found in the LICENSE file.
 
       var expected = [{slice: t1asg.slices[0].subSlices[0]},
                       {slice: t1.slices[0]}];
-      var result = new tracing.TimelineSelection();
+      var result = new tracing.Selection();
       timeline.addAllObjectsMatchingFilterToSelection(
-          new tracing.TimelineTitleFilter('a'), result);
+          new tracing.TitleFilter('a'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
 
       var expected = [{slice: t1asg.slices[1].subSlices[0]},
                       {slice: t1.slices[1]}];
-      var result = new tracing.TimelineSelection();
+      var result = new tracing.Selection();
       timeline.addAllObjectsMatchingFilterToSelection(
-          new tracing.TimelineTitleFilter('b'), result);
+          new tracing.TitleFilter('b'), result);
       assertEquals(2, result.length);
       assertEquals(expected[0].slice, result[0].slice);
       assertEquals(expected[1].slice, result[1].slice);
     }
 
     function testEmptyThreadsDeleted() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
@@ -87,14 +87,14 @@ found in the LICENSE file.
     function NoCountersFilter() {
     }
     NoCountersFilter.prototype = {
-      __proto__: tracing.TimelineFilter.prototype,
+      __proto__: tracing.Filter.prototype,
       matchCounter: function(c) {
         return false;
       }
     };
 
     function testFilteredCounters() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var c1 = model.getOrCreateCpu(0);
       c1.getOrCreateCounter('', 'b');
       var p1 = model.getOrCreateProcess(1);
@@ -111,14 +111,14 @@ found in the LICENSE file.
 
     function NoCpusFilter() {}
     NoCpusFilter.prototype = {
-      __proto__: tracing.TimelineFilter.prototype,
+      __proto__: tracing.Filter.prototype,
       matchCpu: function(c) {
         return false;
       }
     };
 
     function testFilteredCpus() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var c1 = model.getOrCreateCpu(1);
       c1.getOrCreateCounter('', 'a');
 
@@ -134,14 +134,14 @@ found in the LICENSE file.
     function NoProcessesFilter() {
     }
     NoProcessesFilter.prototype = {
-      __proto__: tracing.TimelineFilter.prototype,
+      __proto__: tracing.Filter.prototype,
       matchProcess: function(c) {
         return false;
       }
     };
 
     function testFilteredProcesses() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       p1.getOrCreateCounter('', 'a');
 
@@ -157,14 +157,14 @@ found in the LICENSE file.
     function NoThreadsFilter() {
     }
     NoThreadsFilter.prototype = {
-      __proto__: tracing.TimelineFilter.prototype,
+      __proto__: tracing.Filter.prototype,
       matchThread: function(c) {
         return false;
       }
     };
 
     function testFilteredThreads() {
-      var model = new tracing.TimelineModel();
+      var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(2);
       t1.pushSlice(test_utils.newSlice(0, 1));

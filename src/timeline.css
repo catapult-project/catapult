@@ -12,12 +12,12 @@
   display: -webkit-box;
 }
 
-.timeline-model-track-container {
+.model-track-container {
   -webkit-box-flex: 1;
   overflow: auto;
 }
 
-.timeline-drag-box {
+.drag-box {
   background-color: rgba(0, 0, 255, 0.25);
   border: 1px solid rgb(0, 0, 96);
   font-size: 75%;
