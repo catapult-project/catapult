@@ -134,7 +134,7 @@ class PageBenchmarkResults(page_test.PageTestResults):
         by_url_data_type = 'unimportant-histogram'
       else:
         by_url_data_type = 'unimportant'
-      if '.' in measurement:
+      if '.' in measurement and 'histogram' not in data_type:
         measurement, trace = measurement.split('.', 1)
         trace += (trace_tag or '')
       else:
