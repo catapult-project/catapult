@@ -87,12 +87,13 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
     """Retunds a list of child pids of |pid|."""
     child_pids = []
     pid_ppid_list = subprocess.Popen(['wmic', 'process', 'get',
-                                      'ProcessId,ParentProcessId'],
+                                      'ParentProcessId,ProcessId'],
                                      stdout=subprocess.PIPE).communicate()[0]
     for pid_ppid in pid_ppid_list.splitlines()[1:]:  #skip header
       if not pid_ppid:
         continue
-      pid_ppid = pid_ppid.split()
-      if int(pid_ppid[1].strip()) == pid:
-        child_pids.append(int(pid_ppid[0].strip()))
+      curr_ppid, curr_pid = pid_ppid.split()
+      if int(curr_ppid) == pid:
+        child_pids.append(int(curr_pid))
+        child_pids.extend(self.GetChildPids(int(curr_pid)))
     return child_pids
