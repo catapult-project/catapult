@@ -58,8 +58,8 @@ class LinuxPlatformBackend(platform_backend.PlatformBackend):
     io = self._GetProcFileDict('/proc/%s/io' % pid)
     return {'ReadOperationCount': io['syscr'],
             'WriteOperationCount': io['syscw'],
-            'ReadTransferCount': io['rchar'] / 1024,
-            'WriteTransferCount': io['wchar'] / 1024}
+            'ReadTransferCount': io['rchar'],
+            'WriteTransferCount': io['wchar']}
 
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""

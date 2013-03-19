@@ -80,8 +80,8 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
         self._GetProcessHandle(pid))
     return {'ReadOperationCount': io_stats['ReadOperationCount'],
             'WriteOperationCount': io_stats['WriteOperationCount'],
-            'ReadTransferCount': io_stats['ReadTransferCount'] / 1024,
-            'WriteTransferCount': io_stats['WriteTransferCount'] / 1024}
+            'ReadTransferCount': io_stats['ReadTransferCount'],
+            'WriteTransferCount': io_stats['WriteTransferCount']}
 
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""
