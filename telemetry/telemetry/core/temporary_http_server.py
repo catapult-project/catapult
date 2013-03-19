@@ -22,6 +22,7 @@ class TemporaryHTTPServer(object):
     assert os.path.isdir(path), path
 
     self._devnull = open(os.devnull, 'w')
+    self._WarmDiskCache()
     self._server = subprocess.Popen(
         [sys.executable, '-m', 'SimpleHTTPServer', str(self._host_port)],
         cwd=self._path,
@@ -47,6 +48,18 @@ class TemporaryHTTPServer(object):
 
   def __del__(self):
     self.Close()
+
+  def _WarmDiskCache(self):
+    """Warm the disk cache for all files in self._path. This decreases the
+    likelyhood of disk paging at serving time.
+    """
+    for root, _, files in os.walk(self._path):
+      for f in files:
+        file_path = os.path.join(root, f)
+        if not os.path.exists(file_path):  # Allow for '.#' files
+          continue
+        with open(file_path, 'r') as fd:
+          self._devnull.write(fd.read())
 
   def Close(self):
     if self._forwarder:
