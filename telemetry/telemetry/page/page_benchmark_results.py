@@ -1,7 +1,9 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 from collections import defaultdict
+from itertools import chain
 
 from telemetry.page import page_test
 from telemetry.page import perf_tests_helper
@@ -147,4 +149,6 @@ class PageBenchmarkResults(page_test.PageTestResults):
       # unless there is only 1 page in which case the _by_urls are omitted.
       if 'histogram' not in data_type or len(value_url_list) == 1:
         values = [i[0] for i in value_url_list]
+        if isinstance(values[0], list):
+          values = list(chain.from_iterable(values))
         self._PrintPerfResult(measurement, trace, values, units, data_type)
