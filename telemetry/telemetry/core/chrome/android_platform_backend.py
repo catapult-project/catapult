@@ -29,7 +29,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     super(AndroidPlatformBackend, self).__init__()
     self._adb = adb
     self._surface_stats_collector = None
-    self._perf_tests_setup = perf_tests_helper.PerfTestSetup(self._adb)
+    self._perf_tests_setup = perf_tests_helper.PerfControl(self._adb)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
@@ -63,9 +63,9 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     if self._no_performance_mode:
       return
     if enabled:
-      self._perf_tests_setup.SetUp()
+      self._perf_tests_setup.SetHighPerfMode()
     else:
-      self._perf_tests_setup.TearDown()
+      self._perf_tests_setup.SetDefaultPerfMode()
 
   def CanMonitorThermalThrottling(self):
     return True
