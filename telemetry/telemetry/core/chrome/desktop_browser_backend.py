@@ -72,8 +72,10 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       args.append('--window-size=1280,1024')
       if self._supports_net_benchmarking:
         args.append('--enable-net-benchmarking')
-      else:
-        args.append('--enable-benchmarking')
+      # TODO(tonyg): Experiment with always setting --enable-benchmarking on the
+      # bots. If it reduces noise, then try just disabling gpu. If it doesn't
+      # reduce noise, then restore this to only happen in the else-case.
+      args.append('--enable-benchmarking')
       if not self.options.dont_override_profile:
         self._tmpdir = tempfile.mkdtemp()
         if self.options.profile_dir:
