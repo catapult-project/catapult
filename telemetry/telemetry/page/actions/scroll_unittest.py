@@ -4,14 +4,14 @@
 import os
 
 from telemetry.page import page as page_module
-from telemetry.page import scrolling_action
+from telemetry.page.actions import scroll
 from telemetry.test import tab_test_case
 
-class ScrollingActionTest(tab_test_case.TabTestCase):
+class ScrollActionTest(tab_test_case.TabTestCase):
   def CreateAndNavigateToPageFromUnittestDataDir(
     self, filename, page_attributes):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', 'unittest_data')
+                                     '..', '..', '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
     page = page_module.Page(
       self._browser.http_server.UrlOf(filename),
@@ -23,11 +23,11 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
 
     return page
 
-  def testScrollingAction(self):
+  def testScrollAction(self):
     page = self.CreateAndNavigateToPageFromUnittestDataDir(
         "blank.html",
         page_attributes={"smoothness": {
-          "action": "scrolling_action"
+          "action": "scroll"
           }})
     # Make page bigger than window so it's scrollable.
     self._tab.ExecuteJavaScript("""document.body.style.height =
@@ -36,14 +36,14 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.body.scrollTop'), 0)
 
-    i = scrolling_action.ScrollingAction()
+    i = scroll.ScrollAction()
     i.WillRunAction(page, self._tab)
 
     self._tab.ExecuteJavaScript("""
-        window.__scrollingAction.beginMeasuringHook = function() {
+        window.__scrollAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
-        window.__scrollingAction.endMeasuringHook = function() {
+        window.__scrollAction.endMeasuringHook = function() {
             window.__didEndMeasuring = true;
         };""")
     i.RunAction(page, self._tab, None)
@@ -62,7 +62,7 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
     self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})
     with open(
       os.path.join(os.path.dirname(__file__),
-                   'scrolling_action.js')) as f:
+                   'scroll.js')) as f:
       js = f.read()
       self._tab.ExecuteJavaScript(js)
 
@@ -71,7 +71,7 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
     # events dispatched by the benchmarks use the center of this rect
     # as their location, and this location needs to be within the
     # viewport bounds to correctly decide between main-thread and
-    # impl-thread scrolling. If the scrollable area were not clipped
+    # impl-thread scroll. If the scrollable area were not clipped
     # to the viewport bounds, then the instance used here (the scrollable
     # area being more than twice as tall as the viewport) would
     # result in a scroll location outside of the viewport bounds.
@@ -79,11 +79,11 @@ class ScrollingActionTest(tab_test_case.TabTestCase):
                            (2 * window.innerHeight + 1) + 'px';""")
 
     rect_bottom = int(self._tab.EvaluateJavaScript("""
-        __ScrollingAction_GetBoundingVisibleRect(document.body).top +
-        __ScrollingAction_GetBoundingVisibleRect(document.body).height"""))
+        __ScrollAction_GetBoundingVisibleRect(document.body).top +
+        __ScrollAction_GetBoundingVisibleRect(document.body).height"""))
     rect_right = int(self._tab.EvaluateJavaScript("""
-        __ScrollingAction_GetBoundingVisibleRect(document.body).left +
-        __ScrollingAction_GetBoundingVisibleRect(document.body).width"""))
+        __ScrollAction_GetBoundingVisibleRect(document.body).left +
+        __ScrollAction_GetBoundingVisibleRect(document.body).width"""))
     viewport_width = int(self._tab.EvaluateJavaScript('window.innerWidth'))
     viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
 

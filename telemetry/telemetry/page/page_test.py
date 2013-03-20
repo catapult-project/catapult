@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 import logging
 
-from telemetry.page import all_page_actions
-from telemetry.page import page_action
+from telemetry.page.actions import all_page_actions
+from telemetry.page.actions import page_action
 
 def _GetActionFromData(action_data):
   action_name = action_data['action']

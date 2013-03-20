@@ -4,7 +4,7 @@
 import time
 
 from telemetry.core import util
-from telemetry.page import page_action
+from telemetry.page.actions import page_action
 
 class WaitAction(page_action.PageAction):
   DEFAULT_TIMEOUT = 60

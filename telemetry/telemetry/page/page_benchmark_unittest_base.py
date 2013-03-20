@@ -23,7 +23,7 @@ class PageBenchmarkUnitTestBase(unittest.TestCase):
     base_dir = os.path.dirname(__file__)
     ps = page_set.PageSet(file_path=os.path.join(base_dir, 'foo.json'))
     page = page_module.Page(test_filename, ps, base_dir=base_dir)
-    setattr(page, 'smoothness', {'action': 'scrolling_action'})
+    setattr(page, 'smoothness', {'action': 'scroll'})
     ps.pages.append(page)
     return ps
 

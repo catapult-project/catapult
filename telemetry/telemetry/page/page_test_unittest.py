@@ -4,10 +4,10 @@
 import os
 import unittest
 
-from telemetry.page import all_page_actions
 from telemetry.page import page as page_module
-from telemetry.page import page_action
 from telemetry.page import page_test
+from telemetry.page.actions import all_page_actions
+from telemetry.page.actions import page_action
 
 def _CreatePage(test_filename):
   url = 'file:///' + os.path.join('..', '..', 'unittest_data', test_filename)

@@ -4,23 +4,23 @@
 import os
 
 from telemetry.core import util
-from telemetry.page import page_action
+from telemetry.page.actions import page_action
 
-class ScrollingAction(page_action.PageAction):
+class ScrollAction(page_action.PageAction):
   def __init__(self, attributes=None):
-    super(ScrollingAction, self).__init__(attributes)
+    super(ScrollAction, self).__init__(attributes)
 
   def WillRunAction(self, page, tab):
     with open(
       os.path.join(os.path.dirname(__file__),
-                   'scrolling_action.js')) as f:
+                   'scroll.js')) as f:
       js = f.read()
       tab.ExecuteJavaScript(js)
 
     tab.ExecuteJavaScript("""
-        window.__scrollingActionDone = false;
-        window.__scrollingAction = new __ScrollingAction(function() {
-          window.__scrollingActionDone = true;
+        window.__scrollActionDone = false;
+        window.__scrollAction = new __ScrollAction(function() {
+          window.__scrollActionDone = true;
         });
      """)
 
@@ -33,22 +33,22 @@ class ScrollingAction(page_action.PageAction):
     if hasattr(self, 'scrollable_element_function'):
       tab.ExecuteJavaScript("""
           (%s)(function(element) {
-            window.__scrollingAction.start(element);
+            window.__scrollAction.start(element);
           });""" % (self.scrollable_element_function))
     else:
       tab.ExecuteJavaScript(
-        'window.__scrollingAction.start(document.body);')
+        'window.__scrollAction.start(document.body);')
 
     # Poll for scroll benchmark completion.
     util.WaitFor(lambda: tab.EvaluateJavaScript(
-        'window.__scrollingActionDone'), 60)
+        'window.__scrollActionDone'), 60)
 
   def CanBeBound(self):
     return True
 
   def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the scrolling action start and stop measurement automatically.
+    # Make the scroll action start and stop measurement automatically.
     tab.ExecuteJavaScript("""
-        window.__scrollingAction.beginMeasuringHook = function() { %s };
-        window.__scrollingAction.endMeasuringHook = function() { %s };
+        window.__scrollAction.beginMeasuringHook = function() { %s };
+        window.__scrollAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))

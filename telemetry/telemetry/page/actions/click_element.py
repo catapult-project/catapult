@@ -4,7 +4,7 @@
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.page import page as page_module
-from telemetry.page import page_action
+from telemetry.page.actions import page_action
 
 class ClickElementAction(page_action.PageAction):
   def __init__(self, attributes=None):

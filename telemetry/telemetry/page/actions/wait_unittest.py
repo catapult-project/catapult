@@ -4,13 +4,13 @@
 import os
 import time
 
-from telemetry.page import wait_action
+from telemetry.page.actions import wait
 from telemetry.test import tab_test_case
 
 class WaitActionTest(tab_test_case.TabTestCase):
   def testWaitAction(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', 'unittest_data')
+                                     '..', '..', '..', 'unittest_data')
     self._browser.SetHTTPServerDirectory(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('blank.html'))
@@ -19,7 +19,7 @@ class WaitActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-    i = wait_action.WaitAction({ 'condition': 'duration', 'seconds': 1 })
+    i = wait.WaitAction({ 'condition': 'duration', 'seconds': 1 })
 
     start_time = time.time()
     i.RunAction(None, self._tab, None)
