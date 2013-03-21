@@ -126,12 +126,10 @@ class PageBenchmarkResultsTest(unittest.TestCase):
     benchmark_results.PrintSummary(None)
 
     expected = [
-        '*HISTOGRAM a_by_url.http___www.foo.com_: ' +
-        'a_by_url.http___www.foo.com_= ' +
+        'HISTOGRAM a_by_url: http___www.foo.com_= ' +
         '{"buckets": [{"low": 1, "high": 2, "count": 1}]}\n' +
-        'Avg a_by_url.http___www.foo.com_: 1.500000',
-        '*HISTOGRAM a_by_url.http___www.bar.com_: ' +
-        'a_by_url.http___www.bar.com_= ' +
+        'Avg a_by_url: 1.500000',
+        'HISTOGRAM a_by_url: http___www.bar.com_= ' +
         '{"buckets": [{"low": 2, "high": 3, "count": 1}]}\n' +
-        'Avg a_by_url.http___www.bar.com_: 2.500000']
+        'Avg a_by_url: 2.500000']
     self.assertEquals(benchmark_results.results, expected)
