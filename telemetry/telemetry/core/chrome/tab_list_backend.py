@@ -107,11 +107,16 @@ class TabListBackend(object):
     return tab_object
 
   def _ListTabs(self, timeout=None):
+    def _IsTab(context):
+      if 'type' in context:
+        return context['type'] == 'page'
+      # TODO: For compatibility with Chrome before r177683.
+      # This check is not completely correct, see crbug.com/190592.
+      return not context['url'].startswith('chrome-extension://')
     try:
       data = self._browser_backend.Request('', timeout=timeout)
       all_contexts = json.loads(data)
-      tabs = [ctx for ctx in all_contexts
-              if not ctx['url'].startswith('chrome-extension://')]
+      tabs = filter(_IsTab, all_contexts)
       return tabs
     except (socket.error, httplib.BadStatusLine, urllib2.URLError):
       if not self._browser_backend.IsBrowserRunning():
