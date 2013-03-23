@@ -6,10 +6,9 @@ import os
 from telemetry.page.actions import page_action
 from telemetry.test import discover
 
-_page_action_classes = discover.Discover(
+_page_action_classes = discover.DiscoverClasses(
     os.path.dirname(__file__),
     os.path.join(os.path.dirname(__file__), '..', '..', '..'),
-    '',
     page_action.PageAction,
     import_error_should_raise=True)
 

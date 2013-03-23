@@ -1,13 +1,12 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import fnmatch
 import logging
 import os
-import traceback
 import unittest
 
 from telemetry.core import browser_options
+from telemetry.test import discover
 from telemetry.test import gtest_testrunner
 from telemetry.test import options_for_unittests
 
@@ -19,35 +18,12 @@ def RequiresBrowserOfType(*types):
   return wrap
 
 
-def Discover(start_dir, pattern = 'test*.py', top_level_dir = None):
-  modules = []
-  for dirpath, _, filenames in os.walk(start_dir):
-    for filename in filenames:
-      if not filename.endswith('.py'):
-        continue
-
-      if not fnmatch.fnmatch(filename, pattern):
-        continue
-
-      if filename.startswith('.') or filename.startswith('_'):
-        continue
-      name, _ = os.path.splitext(filename)
-
-      relpath = os.path.relpath(dirpath, top_level_dir)
-      fqn = relpath.replace('/', '.') + '.' + name
-
-      # load the module
-      try:
-        module = __import__(fqn, fromlist=[True])
-      except Exception:
-        print 'While importing [%s]\n' % fqn
-        traceback.print_exc()
-        continue
-      modules.append(module)
-
+def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
   loader.suiteClass = gtest_testrunner.GTestTestSuite
   subsuites = []
+
+  modules = discover.DiscoverModules(start_dir, top_level_dir, pattern)
   for module in modules:
     if hasattr(module, 'suite'):
       new_suite = module.suite()
@@ -80,7 +56,7 @@ def DiscoverAndRunTests(dir_name, args, top_level_dir, runner=None):
   if not runner:
     runner = gtest_testrunner.GTestTestRunner(inner=True)
 
-  suite = Discover(dir_name, '*_unittest.py', top_level_dir)
+  suite = Discover(dir_name, top_level_dir, '*_unittest.py')
 
   def IsTestSelected(test):
     if len(args) != 0:

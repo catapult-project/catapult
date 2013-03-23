@@ -18,10 +18,9 @@ def Main(test_dir, page_set_filenames):
   Args:
     test_dir: Path to directory containing PageTests.
   """
-  tests = discover.Discover(test_dir,
-                            os.path.join(test_dir, '..'),
-                            '',
-                            page_test.PageTest)
+  tests = discover.DiscoverClasses(test_dir,
+                                   os.path.join(test_dir, '..'),
+                                   page_test.PageTest)
 
   # Naively find the test. If we use the browser options parser, we run
   # the risk of failing to parse if we use a test-specific parameter.

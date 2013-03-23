@@ -59,10 +59,9 @@ class RecordPage(page_test.PageTest):
 
 
 def Main(benchmark_dir):
-  benchmarks = discover.Discover(benchmark_dir,
-                                 os.path.join(benchmark_dir, '..'),
-                                 '',
-                                 page_benchmark.PageBenchmark)
+  benchmarks = discover.DiscoverClasses(benchmark_dir,
+                                        os.path.join(benchmark_dir, '..'),
+                                        page_benchmark.PageBenchmark)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
   page_runner.PageRunner.AddCommandLineOptions(parser)
