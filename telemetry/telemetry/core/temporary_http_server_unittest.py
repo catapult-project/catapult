@@ -14,7 +14,7 @@ class TemporaryHTTPServerTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
-      b.SetHTTPServerDirectory(unittest_data_dir)
+      b.SetHTTPServerDirectories(unittest_data_dir)
       t = b.tabs[0]
       t.Navigate(b.http_server.UrlOf('/blank.html'))
       t.WaitForDocumentReadyStateToBeComplete()

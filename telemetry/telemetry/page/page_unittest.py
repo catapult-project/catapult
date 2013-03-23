@@ -10,25 +10,25 @@ class TestPage(unittest.TestCase):
     apage = page.Page('file:///somedir/otherdir/file.html',
                       None, # In this test, we don't need a page set.
                       base_dir='basedir')
-    dirname, filename = apage.url_base_dir_and_file
-    self.assertEqual(dirname, 'basedir/somedir/otherdir')
+    serving_dirs, filename = apage.serving_dirs_and_file
+    self.assertEqual(serving_dirs, 'basedir/somedir/otherdir')
     self.assertEqual(filename, 'file.html')
 
   def testGetUrlBaseDirAndFileForRelativePath(self):
     apage = page.Page('file:///../../otherdir/file.html',
                       None, # In this test, we don't need a page set.
                       base_dir='basedir')
-    dirname, filename = apage.url_base_dir_and_file
-    self.assertEqual(dirname, 'basedir/../../otherdir')
+    serving_dirs, filename = apage.serving_dirs_and_file
+    self.assertEqual(serving_dirs, 'basedir/../../otherdir')
     self.assertEqual(filename, 'file.html')
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     apage = page.Page('file:///../../somedir/otherdir/file.html',
                       None, # In this test, we don't need a page set.
                       base_dir='basedir')
-    setattr(apage, 'url_base_dir', 'file:///../../somedir/')
-    dirname, filename = apage.url_base_dir_and_file
-    self.assertEqual(dirname, 'basedir/../../somedir/')
+    setattr(apage, 'serving_dirs', ['../../somedir/'])
+    serving_dirs, filename = apage.serving_dirs_and_file
+    self.assertEqual(serving_dirs, ['basedir/../../somedir/'])
     self.assertEqual(filename, 'otherdir/file.html')
 
   def testDisplayUrlForHttp(self):

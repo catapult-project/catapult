@@ -12,7 +12,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self, filename, page_attributes):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     page = page_module.Page(
       self._browser.http_server.UrlOf(filename),
       None, # In this test, we don't need a page set.

@@ -10,7 +10,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
   def testClickWithSelectorWaitForNavigation(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
@@ -29,7 +29,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
   def testClickWithTextWaitForRefChange(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()

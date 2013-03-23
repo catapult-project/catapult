@@ -52,7 +52,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
   def testScreenshot(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('green_rect.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()

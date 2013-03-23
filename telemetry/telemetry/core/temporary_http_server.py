@@ -10,23 +10,28 @@ import urlparse
 from telemetry.core import util
 
 class TemporaryHTTPServer(object):
-  def __init__(self, browser_backend, path):
+  def __init__(self, browser_backend, paths):
     self._server = None
     self._devnull = None
-    self._path = path
+    self._paths = []
     self._forwarder = None
-
     self._host_port = util.GetAvailableLocalPort()
 
-    assert os.path.exists(path), path
-    assert os.path.isdir(path), path
+    if not isinstance(paths, list):
+      paths = [paths]
+    for path in paths:
+      assert os.path.exists(path), path
+      assert os.path.isdir(path), path
+      self._paths.append(os.path.abspath(path))
 
     self._devnull = open(os.devnull, 'w')
-    self._WarmDiskCache()
-    self._server = subprocess.Popen(
-        [sys.executable, '-m', 'SimpleHTTPServer', str(self._host_port)],
-        cwd=self._path,
-        stdout=self._devnull, stderr=self._devnull)
+    cmd = [sys.executable, '-m', 'memory_cache_http_server',
+           str(self._host_port)]
+    cmd.extend(self._paths)
+    self._server = subprocess.Popen(cmd, cwd=os.path.commonprefix(self._paths),
+         env={'PYTHONPATH':
+                os.path.abspath(os.path.join(os.path.dirname(__file__)))},
+         stdout=self._devnull, stderr=self._devnull)
 
     self._forwarder = browser_backend.CreateForwarder(
         util.PortPair(self._host_port,
@@ -37,8 +42,8 @@ class TemporaryHTTPServer(object):
     util.WaitFor(IsServerUp, 5)
 
   @property
-  def path(self):
-    return self._path
+  def paths(self):
+    return self._paths
 
   def __enter__(self):
     return self
@@ -48,18 +53,6 @@ class TemporaryHTTPServer(object):
 
   def __del__(self):
     self.Close()
-
-  def _WarmDiskCache(self):
-    """Warm the disk cache for all files in self._path. This decreases the
-    likelyhood of disk paging at serving time.
-    """
-    for root, _, files in os.walk(self._path):
-      for f in files:
-        file_path = os.path.join(root, f)
-        if not os.path.exists(file_path):  # Allow for '.#' files
-          continue
-        with open(file_path, 'r') as fd:
-          self._devnull.write(fd.read())
 
   def Close(self):
     if self._forwarder:

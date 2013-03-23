@@ -307,8 +307,8 @@ class PageRunner(object):
   def _PreparePage(self, page, tab, page_state, test, results):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
-      dirname, filename = page.url_base_dir_and_file
-      tab.browser.SetHTTPServerDirectory(dirname)
+      serving_dirs, filename = page.serving_dirs_and_file
+      tab.browser.SetHTTPServerDirectories(serving_dirs)
       target_side_url = tab.browser.http_server.UrlOf(filename)
     else:
       target_side_url = page.url

@@ -16,7 +16,7 @@ from telemetry.test import tab_test_case
 class TracingBackendTest(tab_test_case.TabTestCase):
   def _StartServer(self):
     base_dir = os.path.dirname(__file__)
-    self._browser.SetHTTPServerDirectory(
+    self._browser.SetHTTPServerDirectories(
         os.path.join(base_dir, '..', '..', '..', 'unittest_data'))
 
   def _WaitForAnimationFrame(self):

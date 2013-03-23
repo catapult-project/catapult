@@ -32,7 +32,7 @@ class Page(object):
   # otherwise the '/' will be missing between page_set.base_dir and
   # parsed_url.path.
   @property
-  def url_base_dir_and_file(self):
+  def serving_dirs_and_file(self):
     parsed_url = urlparse.urlparse(self.url)
 
     # Don't use os.path.join otherwise netloc and path can't point to relative
@@ -41,10 +41,11 @@ class Page(object):
 
     path = self.base_dir + parsed_url.netloc + parsed_url.path
 
-    if hasattr(self, 'url_base_dir'):
-      parsed_url = urlparse.urlparse(self.url_base_dir)
-      base_path = self.base_dir + parsed_url.netloc + parsed_url.path
-      return (base_path, path.replace(base_path, ''))
+    if hasattr(self, 'serving_dirs'):
+      url_base_dir = os.path.commonprefix(self.serving_dirs)
+      base_path = self.base_dir + '/' + url_base_dir
+      return ([self.base_dir + '/' + d for d in self.serving_dirs],
+              path.replace(base_path, ''))
 
     return os.path.split(path)
 

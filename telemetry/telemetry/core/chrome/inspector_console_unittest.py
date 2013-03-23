@@ -12,7 +12,7 @@ class TabConsoleTest(tab_test_case.TabTestCase):
   def testConsoleOutputStream(self):
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectory(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
 
     stream = StringIO.StringIO()
     self._tab.message_output_stream = stream

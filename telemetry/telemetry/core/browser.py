@@ -172,23 +172,19 @@ class Browser(object):
   def http_server(self):
     return self._http_server
 
-  def SetHTTPServerDirectory(self, path):
-    if path:
-      abs_path = os.path.abspath(path)
-      if self._http_server and self._http_server.path == path:
-        return
-    else:
-      abs_path = None
+  def SetHTTPServerDirectories(self, paths):
+    if paths and self._http_server and self._http_server.paths == paths:
+      return
 
     if self._http_server:
       self._http_server.Close()
       self._http_server = None
 
-    if not abs_path:
+    if not paths:
       return
 
     self._http_server = temporary_http_server.TemporaryHTTPServer(
-      self._browser_backend, abs_path)
+      self._browser_backend, paths)
 
   def SetReplayArchivePath(self, archive_path):
     if self._wpr_server:
