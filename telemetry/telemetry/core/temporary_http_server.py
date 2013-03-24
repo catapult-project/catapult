@@ -28,10 +28,10 @@ class TemporaryHTTPServer(object):
     cmd = [sys.executable, '-m', 'memory_cache_http_server',
            str(self._host_port)]
     cmd.extend(self._paths)
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.path.abspath(os.path.dirname(__file__))
     self._server = subprocess.Popen(cmd, cwd=os.path.commonprefix(self._paths),
-         env={'PYTHONPATH':
-                os.path.abspath(os.path.join(os.path.dirname(__file__)))},
-         stdout=self._devnull, stderr=self._devnull)
+        env=env, stdout=self._devnull, stderr=self._devnull)
 
     self._forwarder = browser_backend.CreateForwarder(
         util.PortPair(self._host_port,
