@@ -52,7 +52,11 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
 
   def LoadResourceMap(self, cwd):
     """Loads all files in cwd into the in-memory resource map."""
-    for root, _, files in os.walk(cwd):
+    for root, dirs, files in os.walk(cwd):
+      # Skip hidden files and folders (like .svn and .git).
+      files = [f for f in files if f[0] != '.']
+      dirs[:] = [d for d in dirs if d[0] != '.']
+
       for f in files:
         file_path = os.path.join(root, f)
         if not os.path.exists(file_path):  # Allow for '.#' files
