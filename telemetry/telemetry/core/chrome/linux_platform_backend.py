@@ -64,10 +64,13 @@ class LinuxPlatformBackend(platform_backend.PlatformBackend):
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""
     child_pids = []
-    pid_ppid_list = subprocess.Popen(['ps', '-e', '-o', 'pid=', '-o', 'ppid='],
-                                     stdout=subprocess.PIPE).communicate()[0]
-    for pid_ppid in pid_ppid_list.splitlines():
-      curr_pid, curr_ppid = pid_ppid.split()
+    pid_ppid_state_list = subprocess.Popen(
+        ['ps', '-e', '-o', 'pid,ppid,state'],
+        stdout=subprocess.PIPE).communicate()[0]
+    for pid_ppid_state in pid_ppid_state_list.splitlines()[1:]:  # Skip header
+      curr_pid, curr_ppid, state = pid_ppid_state.split()
+      if 'Z' in state:
+        continue  # Ignore zombie processes
       if int(curr_ppid) == pid:
         child_pids.append(int(curr_pid))
         child_pids.extend(self.GetChildPids(int(curr_pid)))
