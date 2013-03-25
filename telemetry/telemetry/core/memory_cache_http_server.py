@@ -72,7 +72,7 @@ def Main():
 
   port = int(sys.argv[1])
   directories = sys.argv[2:]
-  server_address = ('', port)
+  server_address = ('127.0.0.1', port)
   MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.0'
   httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,
                                 directories)
