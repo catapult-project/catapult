@@ -2,10 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import BaseHTTPServer
+import mimetypes
 import os
 import SimpleHTTPServer
 import SocketServer
 import sys
+import zlib
 
 
 class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
@@ -29,9 +31,11 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     resource = self.server.resource_map[path]
     self.send_response(200)
     self.send_header('Content-Type', ctype)
-    self.send_header('Content-Length', resource['content-length'])
+    self.send_header('Content-Length', str(resource['content-length']))
     self.send_header('Last-Modified',
                      self.date_time_string(resource['last-modified']))
+    if resource['zipped']:
+      self.send_header('Content-Encoding', 'deflate')
     self.end_headers()
     return resource
 
@@ -64,10 +68,16 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
         with open(file_path, 'rb') as fd:
           response = fd.read()
           fs = os.fstat(fd.fileno())
+          content_type = mimetypes.guess_type(file_path)[0]
+          zipped = False
+          if content_type and content_type.startswith('text/'):
+            zipped = True
+            response = zlib.compress(response, 9)
           self.resource_map[file_path] = {
-            'content-length': str(fs[6]),
+            'content-length': len(response),
             'last-modified': fs.st_mtime,
-            'response': response
+            'response': response,
+            'zipped': zipped
             }
 
 
