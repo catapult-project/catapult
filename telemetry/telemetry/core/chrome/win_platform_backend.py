@@ -5,10 +5,12 @@
 import ctypes
 import subprocess
 try:
+  import pywintypes  # pylint: disable=F0401
   import win32api  # pylint: disable=F0401
   import win32con  # pylint: disable=F0401
   import win32process  # pylint: disable=F0401
 except ImportError:
+  pywintypes = None
   win32api = None
   win32con = None
   win32process = None
@@ -68,16 +70,28 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
     return performance_info.CommitTotal * performance_info.PageSize / 1024
 
   def GetMemoryStats(self, pid):
-    memory_info = win32process.GetProcessMemoryInfo(
-        self._GetProcessHandle(pid))
+    try:
+      memory_info = win32process.GetProcessMemoryInfo(
+          self._GetProcessHandle(pid))
+    except pywintypes.error, e:
+      errcode = e[0]
+      if errcode == 87:  # The process may have been closed.
+        return {}
+      raise
     return {'VM': memory_info['PagefileUsage'],
             'VMPeak': memory_info['PeakPagefileUsage'],
             'WorkingSetSize': memory_info['WorkingSetSize'],
             'WorkingSetSizePeak': memory_info['PeakWorkingSetSize']}
 
   def GetIOStats(self, pid):
-    io_stats = win32process.GetProcessIoCounters(
-        self._GetProcessHandle(pid))
+    try:
+      io_stats = win32process.GetProcessIoCounters(
+          self._GetProcessHandle(pid))
+    except pywintypes.error, e:
+      errcode = e[0]
+      if errcode == 87:  # The process may have been closed.
+        return {}
+      raise
     return {'ReadOperationCount': io_stats['ReadOperationCount'],
             'WriteOperationCount': io_stats['WriteOperationCount'],
             'ReadTransferCount': io_stats['ReadTransferCount'],
