@@ -70,7 +70,8 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
           fs = os.fstat(fd.fileno())
           content_type = mimetypes.guess_type(file_path)[0]
           zipped = False
-          if content_type and content_type.startswith('text/'):
+          if content_type in ['text/html', 'text/css',
+                              'application/javascript']:
             zipped = True
             response = zlib.compress(response, 9)
           self.resource_map[file_path] = {
