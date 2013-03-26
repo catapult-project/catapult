@@ -18,6 +18,7 @@ base.require('find_control');
 base.require('overlay');
 base.require('importer.trace_event_importer');
 base.require('importer.linux_perf_importer');
+base.require('v8_log_importer');
 base.require('settings');
 
 base.exportTo('tracing', function() {
