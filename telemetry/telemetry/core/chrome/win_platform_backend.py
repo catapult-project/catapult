@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
 import ctypes
 import subprocess
 try:
@@ -99,15 +100,22 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
 
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""
-    child_pids = []
     pid_ppid_list = subprocess.Popen(['wmic', 'process', 'get',
                                       'ParentProcessId,ProcessId'],
                                      stdout=subprocess.PIPE).communicate()[0]
+    ppid_map = collections.defaultdict(list)
     for pid_ppid in pid_ppid_list.splitlines()[1:]:  #skip header
       if not pid_ppid:
         continue
       curr_ppid, curr_pid = pid_ppid.split()
-      if int(curr_ppid) == pid:
-        child_pids.append(int(curr_pid))
-        child_pids.extend(self.GetChildPids(int(curr_pid)))
-    return child_pids
+      ppid_map[int(curr_ppid)].append(int(curr_pid))
+
+    def _GetChildrenPids(ppid_map, pid):
+      if not pid or pid not in ppid_map:
+        return []
+      ret = ppid_map[pid]
+      for child in ppid_map[pid]:
+        ret.extend(_GetChildrenPids(ppid_map, child))
+      return ret
+
+    return _GetChildrenPids(ppid_map, pid)
