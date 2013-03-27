@@ -32,7 +32,7 @@ base.exportTo('tracing', function() {
       this.recordBn_ = document.createElement('button');
       this.recordBn_.className = 'record';
       this.recordBn_.textContent = 'Record';
-      this.recordBn_.addEventListener('click', this.onSelectCategories_.bind(this));
+      this.recordBn_.addEventListener('click', this.onRecord_.bind(this));
 
       this.saveBn_ = document.createElement('button');
       this.saveBn_.textContent = 'Save';
@@ -73,10 +73,6 @@ base.exportTo('tracing', function() {
 
       document.addEventListener('keypress', this.onKeypress_.bind(this));
 
-      this.onCategoriesCollectedBoundToThis_ =
-        this.onCategoriesCollected_.bind(this);
-      this.onTraceEndedBoundToThis_ = this.onTraceEnded_.bind(this);
-
       this.refresh_();
     },
 
@@ -115,10 +111,14 @@ base.exportTo('tracing', function() {
     },
 
     onKeypress_: function(event) {
-      if (event.keyCode === 114 &&  // r
-          !this.tracingController_.isTracingEnabled &&
-          document.activeElement.nodeName !== 'INPUT') {
-        this.onSelectCategories_();
+      if (this.tracingController_.isTracingEnabled ||
+          document.activeElement.nodeName === 'INPUT')
+        return;
+
+      if (event.keyCode == 114) {  // r
+        this.onRecord_();
+      } else if (event.keyCode == 82) {  // R
+        this.onRecordWithCategories_();
       }
     },
 
@@ -128,64 +128,68 @@ base.exportTo('tracing', function() {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    onSelectCategories_: function() {
-      var tc = this.tracingController_;
-      tc.collectCategories();
-      tc.addEventListener('categoriesCollected',
-                          this.onCategoriesCollectedBoundToThis_);
-    },
-
-    onCategoriesCollected_: function(event) {
-      var tc = this.tracingController_;
-      var dlg = new tracing.CategoryFilterDialog();
-
-      var categories = event.categories;
-      categories.concat(this.timelineView_.settings.keys('record_categories'));
-      dlg.categories = categories;
-
-      var that = this;
-      dlg.isCheckedCallback = function(category) {
-        return that.timelineView_.settings.get(category, 'true', 'record_categories') === 'true';
-      };
-      dlg.onChangeCallback = function(e) {
-        that.timelineView_.settings.set(e.target.value, e.target.checked, 'record_categories');
-      };
-
-      var buttonEl = document.createElement('button');
-      buttonEl.innerText = 'Record';
-      buttonEl.className = 'record_categories';
-      buttonEl.onclick = this.onRecord_.bind(this);
-
-      dlg.appendChild(buttonEl);
-      dlg.visible = true;
-      this.categorySelectionDialog_ = dlg;
-
-      setTimeout(function() {
-        tc.removeEventListener('categoriesCollected',
-                               this.onCategoriesCollectedBoundToThis_);
-      }, 0);
-    },
-
     onRecord_: function() {
+      var that = this;
       var tc = this.tracingController_;
-
-      this.categorySelectionDialog_.visible = false;
-
-      var categories = this.timelineView_.settings.keys('record_categories');
-      categories = categories.join(',');
       tc.beginTracing(this.systemTracingBn_.checked,
-                      this.continuousTracingBn_.checked,
-                      categories);
-
-      tc.addEventListener('traceEnded', this.onTraceEndedBoundToThis_);
+                      this.continuousTracingBn_.checked);
+      function response() {
+        that.refresh_();
+        setTimeout(function() {
+          tc.removeEventListener('traceEnded', response);
+        }, 0);
+      }
+      tc.addEventListener('traceEnded', response);
     },
 
-    onTraceEnded_: function() {
+    ///////////////////////////////////////////////////////////////////////////
+
+    onRecordWithCategories_: function() {
+      var that = this;
       var tc = this.tracingController_;
-      this.refresh_();
-      setTimeout(function() {
-        tc.removeEventListener('traceEnded', this.onTraceEndedBoundToThis_);
-      }, 0);
+
+      tc.collectCategories();
+      function response(event) {
+        var selectedCategories = [];
+        var dlg = new tracing.CategoryFilterDialog();
+        dlg.categories = event.categories;
+        dlg.onChangeCallback = function(e) {
+          if (e.target.checked) {
+            selectedCategories.push(e.target.value);
+          } else {
+            var length = selectedCategories.length;
+            for (var i = 0; i < length; ++i) {
+              if (selectedCategories[i] === e.target.value) {
+                selectedCategories.splice(i, 1);
+                break;
+              }
+            }
+          }
+        }
+
+        var buttonEl = document.createElement('button');
+        buttonEl.innerText = 'Record';
+        buttonEl.onclick = function() {
+          dlg.visible = false;
+          selectedCategories = selectedCategories.join(',');
+          tc.beginTracing(that.systemTracingBn_.checked, selectedCategories);
+          function response() {
+            that.refresh_();
+            setTimeout(function() {
+              tc.removeEventListener('traceEnded', response);
+            }, 0);
+          }
+          tc.addEventListener('traceEnded', response);
+        };
+
+        dlg.appendChild(buttonEl);
+        dlg.visible = true;
+
+        setTimeout(function() {
+          tc.removeEventListener('categoriesCollected', response);
+        }, 0);
+      };
+      tc.addEventListener('categoriesCollected', response);
     },
 
     ///////////////////////////////////////////////////////////////////////////

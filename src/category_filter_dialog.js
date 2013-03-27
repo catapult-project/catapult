@@ -55,7 +55,7 @@ base.exportTo('tracing', function() {
 
     set onChangeCallback(c) {
       this.onChangeCallback_ = c;
-    },
+    }
 
     onVisibleChange_: function() {
       if (this.visible) {
