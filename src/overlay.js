@@ -102,7 +102,7 @@ base.exportTo('tracing.ui', function() {
      * Prevent the user from shift-tabbing backwards out of the overlay.
      */
     onKeydown_: function(e) {
-      if (e.keyCode == 9 &&  // tab
+      if (e.keyCode == 9 &&
           e.shiftKey &&
           e.target == this.contentHost.firstChild) {
         e.preventDefault();
@@ -188,7 +188,7 @@ base.exportTo('tracing.ui', function() {
       if (!this.autoClose)
         return;
 
-      if (e.keyCode == 27) {  // escape
+      if (e.keyCode == 27) {
         this.visible = false;
         e.preventDefault();
         return;

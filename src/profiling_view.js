@@ -111,14 +111,9 @@ base.exportTo('tracing', function() {
     },
 
     onKeypress_: function(event) {
-      if (this.tracingController_.isTracingEnabled ||
-          document.activeElement.nodeName === 'INPUT')
-        return;
-
-      if (event.keyCode == 114) {  // r
+      if (event.keyCode == 114 && !this.tracingController_.isTracingEnabled &&
+          document.activeElement.nodeName != 'INPUT') {
         this.onRecord_();
-      } else if (event.keyCode == 82) {  // R
-        this.onRecordWithCategories_();
       }
     },
 
@@ -140,50 +135,6 @@ base.exportTo('tracing', function() {
         }, 0);
       }
       tc.addEventListener('traceEnded', response);
-    },
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    onRecordWithCategories_: function() {
-      var that = this;
-      var tc = this.tracingController_;
-
-      tc.collectCategories();
-      function response(event) {
-        var selectedCategories = [];
-        var dlg = new tracing.CategoryFilterDialog();
-        dlg.categories = event.categories;
-        dlg.onChangeCallback = function(e) {
-          if (e.target.checked) {
-            selectedCategories.push(e.target.value);
-          } else {
-            console.log("HANDLE UNCHECK");
-          }
-        }
-
-        var buttonEl = document.createElement('button');
-        buttonEl.innerText = 'Record';
-        buttonEl.onclick = function() {
-          dlg.visible = false;
-          selectedCategories = selectedCategories.join(',');
-          tc.beginTracing(that.systemTracingBn_.checked, selectedCategories);
-          function response() {
-            that.refresh_();
-            setTimeout(function() {
-              tc.removeEventListener('traceEnded', response);
-            }, 0);
-          }
-          tc.addEventListener('traceEnded', response);
-        };
-
-        dlg.appendChild(buttonEl);
-        dlg.visible = true;
-
-        setTimeout(function() {
-          tc.removeEventListener('categoriesCollected', response);
-        }, 0);
-      };
-      tc.addEventListener('categoriesCollected', response);
     },
 
     ///////////////////////////////////////////////////////////////////////////
