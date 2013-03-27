@@ -157,7 +157,13 @@ base.exportTo('tracing', function() {
           if (e.target.checked) {
             selectedCategories.push(e.target.value);
           } else {
-            console.log("HANDLE UNCHECK");
+            var length = selectedCategories.length;
+            for (var i = 0; i < length; ++i) {
+              if (selectedCategories[i] === e.target.value) {
+                selectedCategories.splice(i, 1);
+                break;
+              }
+            }
           }
         }
 
