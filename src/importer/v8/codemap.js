@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('v8_splaytree');
+base.require('importer.v8.splaytree');
 
 /**
  * @fileoverview Map addresses to dynamically created functions.
  */
 
-base.exportTo('tracing.v8', function() {
+base.exportTo('tracing.importer.v8', function() {
   /**
    * Constructs a mapper that maps addresses into code entries.
    *
@@ -18,22 +18,22 @@ base.exportTo('tracing.v8', function() {
     /**
      * Dynamic code entries. Used for JIT compiled code.
      */
-    this.dynamics_ = new tracing.v8.SplayTree();
+    this.dynamics_ = new tracing.importer.v8.SplayTree();
 
     /**
      * Name generator for entries having duplicate names.
      */
-    this.dynamicsNameGen_ = new tracing.v8.CodeMap.NameGenerator();
+    this.dynamicsNameGen_ = new tracing.importer.v8.CodeMap.NameGenerator();
 
     /**
      * Static code entries. Used for statically compiled code.
      */
-    this.statics_ = new tracing.v8.SplayTree();
+    this.statics_ = new tracing.importer.v8.SplayTree();
 
     /**
      * Libraries entries. Used for the whole static code libraries.
      */
-    this.libraries_ = new tracing.v8.SplayTree();
+    this.libraries_ = new tracing.importer.v8.SplayTree();
 
     /**
      * Map of memory pages occupied with static code.

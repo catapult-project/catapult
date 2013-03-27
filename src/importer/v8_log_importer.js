@@ -8,9 +8,9 @@
 base.require('model');
 base.require('slice');
 base.require('color_scheme');
-base.require('v8_log_reader');
-base.require('v8_codemap');
-base.exportTo('tracing', function() {
+base.require('importer.v8.log_reader');
+base.require('importer.v8.codemap');
+base.exportTo('tracing.importer', function() {
 
   function V8LogImporter(model, eventData) {
 
@@ -19,7 +19,7 @@ base.exportTo('tracing', function() {
 
     this.logData_ = eventData;
 
-    this.code_map_ = new tracing.v8.CodeMap();
+    this.code_map_ = new tracing.importer.v8.CodeMap();
     this.v8_timer_thread_ = undefined;
     this.v8_stack_thread_ = undefined;
     this.v8_samples_thread_ = undefined;
@@ -85,7 +85,7 @@ base.exportTo('tracing', function() {
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name) {
-      var code_entry = new tracing.v8.CodeMap.CodeEntry(size, name);
+      var code_entry = new tracing.importer.v8.CodeMap.CodeEntry(size, name);
       code_entry.kind = kind;
       this.code_map_.addCode(address, code_entry);
     },
@@ -99,7 +99,8 @@ base.exportTo('tracing', function() {
     },
 
     processSharedLibrary_: function(name, start, end) {
-      var code_entry = new tracing.v8.CodeMap.CodeEntry(end - start, name);
+      var code_entry = new tracing.importer.v8.CodeMap.CodeEntry(
+          end - start, name);
       code_entry.kind = -3;  // External code kind.
       for (var i = 0; i < kV8BinarySuffixes.length; i++) {
         var suffix = kV8BinarySuffixes[i];
@@ -157,7 +158,7 @@ base.exportTo('tracing', function() {
      * model_.
      */
     importEvents: function() {
-      var logreader = new tracing.v8.LogReader(
+      var logreader = new tracing.importer.v8.LogReader(
         { 'timer-event' : {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)

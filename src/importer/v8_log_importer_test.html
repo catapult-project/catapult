@@ -7,11 +7,11 @@ found in the LICENSE file.
 -->
 <head>
 <title>V8LogImporter tests</title>
-<script src="base.js"></script>
+<script src="../base.js"></script>
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('v8_log_importer');
+  base.require('importer.v8_log_importer');
 </script>
 </head>
 <body>
@@ -19,7 +19,7 @@ found in the LICENSE file.
 'use strict';
 
 var findSliceNamed = test_utils.findSliceNamed;
-var V8LogImporter = tracing.V8LogImporter;
+var V8LogImporter = tracing.importer.V8LogImporter;
 
 function testTickEventInSharedLibrary() {
   var lines = ['shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',

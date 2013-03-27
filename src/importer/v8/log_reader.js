@@ -5,7 +5,7 @@
 /**
  * @fileoverview Log Reader is used to process log file produced by V8.
  */
-base.exportTo('tracing.v8', function() {
+base.exportTo('tracing.importer.v8', function() {
   /**
    * Creates a CSV lines parser.
    */

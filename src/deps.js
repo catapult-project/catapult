@@ -464,23 +464,23 @@ base.addModuleDependency(
     'importer.linux_perf_importer',
     'importer.linux_perf.android_parser');
 base.addModuleDependency(
-    'v8_codemap',
-    'v8_splaytree');
+    'importer.v8.codemap',
+    'importer.v8.splaytree');
 base.addModuleDependency(
-    'v8_log_importer',
+    'importer.v8_log_importer',
     'model');
 base.addModuleDependency(
-    'v8_log_importer',
+    'importer.v8_log_importer',
     'slice');
 base.addModuleDependency(
-    'v8_log_importer',
+    'importer.v8_log_importer',
     'color_scheme');
 base.addModuleDependency(
-    'v8_log_importer',
-    'v8_log_reader');
+    'importer.v8_log_importer',
+    'importer.v8.log_reader');
 base.addModuleDependency(
-    'v8_log_importer',
-    'v8_codemap');
+    'importer.v8_log_importer',
+    'importer.v8.codemap');
 base.addModuleDependency(
     'timeline_view',
     'timeline');
@@ -507,7 +507,7 @@ base.addModuleDependency(
     'importer.linux_perf_importer');
 base.addModuleDependency(
     'timeline_view',
-    'v8_log_importer');
+    'importer.v8_log_importer');
 base.addModuleDependency(
     'timeline_view',
     'settings');
