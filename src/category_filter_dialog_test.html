@@ -13,31 +13,20 @@ found in the LICENSE file.
   <script>
     base.require('unittest');
     base.require('test_utils');
-    base.require('settings');
     base.require('category_filter_dialog');
-    base.require('model');
+    base.require('settings');
   </script>
   <script>
     'use strict';
-
-    var testModel = new tracing.Model();
-    var p1 = testModel.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(new tracing.ThreadSlice('one', 'a', 0, 1, {}, 3));
-    t1.pushSlice(new tracing.ThreadSlice('two', 'b', 0, 1, {}, 3));
-    t1.pushSlice(new tracing.ThreadSlice('three', 'c', 0, 1, {}, 3));
-    t1.pushSlice(new tracing.ThreadSlice('', 'd', 0, 1, {}, 3));
-    t1.pushSlice(new tracing.ThreadSlice('one', 'e', 0, 1, {}, 3));
-    testModel.updateCategories_();
-
-
 
     function testCategoryFilterDialog_UpdateForm_NoSettings() {
       var settings = new base.Settings();
 
       var dlg = new tracing.CategoryFilterDialog();
-      dlg.model = testModel;
+      dlg.categories = ['one', 'two', 'three'];
       dlg.settings = settings;
+      dlg.settings_key = 'key';
+      dlg.isCheckedCallback = function(category) { return true; }
       dlg.updateForm_();
 
       var checkboxes = dlg.formEl_.getElementsByTagName('input');
@@ -45,27 +34,28 @@ found in the LICENSE file.
       assertEquals('one', checkboxes[0].id);
       assertEquals('one', checkboxes[0].value);
       assertEquals(true, checkboxes[0].checked);
-      assertEquals('two', checkboxes[1].id);
-      assertEquals('two', checkboxes[1].value);
+      assertEquals('three', checkboxes[1].id);
+      assertEquals('three', checkboxes[1].value);
       assertEquals(true, checkboxes[1].checked);
-      assertEquals('three', checkboxes[2].id);
-      assertEquals('three', checkboxes[2].value);
+      assertEquals('two', checkboxes[2].id);
+      assertEquals('two', checkboxes[2].value);
       assertEquals(true, checkboxes[2].checked);
       var labels = dlg.formEl_.getElementsByTagName('label');
       assertEquals(3, labels.length);
       assertEquals('one', labels[0].textContent);
-      assertEquals('two', labels[1].textContent);
-      assertEquals('three', labels[2].textContent);
+      assertEquals('three', labels[1].textContent);
+      assertEquals('two', labels[2].textContent);
     }
 
     function testCategoryFilterDialog_UpdateForm_Settings() {
       var settings = new base.Settings();
-      settings.set('one', true, 'categories');
-      settings.set('two', false, 'categories');
+      settings.set('two', true, 'categories');
+      settings.set('three', false, 'categories');
 
       var dlg = new tracing.CategoryFilterDialog();
-      dlg.model = testModel;
+      dlg.categories = ['one'];
       dlg.settings = settings;
+      dlg.settings_key = 'categories';
       dlg.updateForm_();
 
       var checkboxes = dlg.formEl_.getElementsByTagName('input');
@@ -73,19 +63,18 @@ found in the LICENSE file.
       assertEquals('one', checkboxes[0].id);
       assertEquals('one', checkboxes[0].value);
       assertEquals(true, checkboxes[0].checked);
-      assertEquals('two', checkboxes[1].id);
-      assertEquals('two', checkboxes[1].value);
+      assertEquals('three', checkboxes[1].id);
+      assertEquals('three', checkboxes[1].value);
       assertEquals(false, checkboxes[1].checked);
-      assertEquals('three', checkboxes[2].id);
-      assertEquals('three', checkboxes[2].value);
+      assertEquals('two', checkboxes[2].id);
+      assertEquals('two', checkboxes[2].value);
       assertEquals(true, checkboxes[2].checked);
       var labels = dlg.formEl_.getElementsByTagName('label');
       assertEquals(3, labels.length);
       assertEquals('one', labels[0].textContent);
-      assertEquals('two', labels[1].textContent);
-      assertEquals('three', labels[2].textContent);
+      assertEquals('three', labels[1].textContent);
+      assertEquals('two', labels[2].textContent);
     }
-
   </script>
 </body>
 </html>

@@ -217,6 +217,17 @@ base.exportTo('tracing', function() {
       this.dispatchEvent(e);
     },
 
+    collectCategories: function() {
+      this.sendFn_('getKnownCategories');
+    },
+
+    onKnownCategoriesCollected: function(categories) {
+      var e = new base.Event('categoriesCollected');
+      e.categories = categories;
+      this.dispatchEvent(e);
+    },
+
+
     /**
      * Called by tracing c++ code when new system trace data arrives.
      */

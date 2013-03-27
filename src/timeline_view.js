@@ -151,8 +151,9 @@ base.exportTo('tracing', function() {
       var that = this;
       function onClick() {
         var dlg = new tracing.CategoryFilterDialog();
-        dlg.model = that.model;
+        dlg.categories = that.model.categories;
         dlg.settings = that.settings;
+        dlg.settings_key = 'categories';
         dlg.settingUpdatedCallback = callback;
         dlg.visible = true;
       }
