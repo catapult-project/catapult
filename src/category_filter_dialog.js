@@ -41,20 +41,20 @@ base.exportTo('tracing', function() {
       this.isCheckedCallback_ = undefined;
     },
 
+    get categories() {
+      return this.categories_;
+    },
+
     set categories(c) {
       this.categories_ = c;
     },
 
-    set settings_key(k) {
-      this.settings_key_ = k;
+    set isCheckedCallback(c) {
+      this.isCheckedCallback_ = c;
     },
 
-    set settings(s) {
-      this.settings_ = s;
-    },
-
-    set settingUpdatedCallback(c) {
-      this.settingUpdatedCallback_ = c;
+    set onChangeCallback(c) {
+      this.onChangeCallback_ = c;
     },
 
     onVisibleChange_: function() {
@@ -66,28 +66,16 @@ base.exportTo('tracing', function() {
     updateForm_: function() {
       this.categoriesEl_.innerHTML = ''; // Clear old categories
 
-      // Dedup the categories. We may have things in settings that are also
-      // returned when we query the category list.
-      var set = {};
-      var allCategories = this.categories_.concat(this.settings_.keys(this.settings_key_));
-      var allCategoriesLength = allCategories.length;
-      for (var i = 0; i < allCategoriesLength; ++i) {
-        set[allCategories[i]] = true;
-      }
-      var categories = [];
-      for (var category in set) {
-        categories.push(category);
-      }
-      categories = categories.sort();
-
-      for (var i = 0; i < categories.length; i++) {
-        var category = categories[i];
+      for (var i = 0; i < this.categories_.length; i++) {
+        var category = this.categories_[i];
         var inputEl = document.createElement('input');
         inputEl.type = 'checkbox';
         inputEl.id = inputEl.value = category;
-        inputEl.checked =
-            this.settings_.get(category, 'true', this.settings_key_) === 'true';
-        inputEl.onchange = this.updateSetting_.bind(this);
+
+        if (this.isCheckedCallback_ !== undefined)
+          inputEl.checked = this.isCheckedCallback_(category);
+        if (this.onChangeCallback_ !== undefined)
+          inputEl.onchange = this.onChangeCallback_;
 
         var labelEl = document.createElement('label');
         labelEl.textContent = category;
@@ -99,13 +87,6 @@ base.exportTo('tracing', function() {
         this.categoriesEl_.appendChild(divEl);
       }
     },
-
-    updateSetting_: function(e) {
-      var checkbox = e.target;
-      this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
-      if (this.settingUpdatedCallback_ !== undefined)
-        this.settingUpdatedCallback_();
-    }
   };
 
   return {

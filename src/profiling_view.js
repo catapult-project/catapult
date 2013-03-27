@@ -137,16 +137,25 @@ base.exportTo('tracing', function() {
 
     onCategoriesCollected_: function(event) {
       var tc = this.tracingController_;
+      var dlg = new tracing.CategoryFilterDialog();
+
+      var categories = event.categories;
+      categories.concat(this.timelineView_.settings.keys('record_categories'));
+      dlg.categories = categories;
+
+      var that = this;
+      dlg.isCheckedCallback = function(category) {
+        return that.timelineView_.settings.get(category, 'true', 'record_categories') === 'true';
+      };
+      dlg.onChangeCallback = function(e) {
+        that.timelineView_.settings.set(e.target.value, e.target.checked, 'record_categories');
+      };
 
       var buttonEl = document.createElement('button');
       buttonEl.innerText = 'Record';
       buttonEl.className = 'record_categories';
       buttonEl.onclick = this.onRecord_.bind(this);
 
-      var dlg = new tracing.CategoryFilterDialog();
-      dlg.categories = event.categories;
-      dlg.settings = this.timelineView_.settings;
-      dlg.settings_key = 'record_categories';
       dlg.appendChild(buttonEl);
       dlg.visible = true;
       this.categorySelectionDialog_ = dlg;
@@ -162,17 +171,8 @@ base.exportTo('tracing', function() {
 
       this.categorySelectionDialog_.visible = false;
 
-      var settings = this.timelineView_.settings;
-      var allCategories = settings.keys('record_categories');
-      var allCategoriesLength = allCategories.length;
-      var categories = [];
-      for (var i = 0; i < allCategoriesLength; ++i) {
-        if (settings.get(allCategories[i], 'true', 'record_categories') === 'true') {
-          categories.push(allCategories[i]);
-        }
-      }
+      var categories = this.timelineView_.settings.keys('record_categories');
       categories = categories.join(',');
-
       tc.beginTracing(this.systemTracingBn_.checked,
                       this.continuousTracingBn_.checked,
                       categories);

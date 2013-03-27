@@ -150,11 +150,18 @@ base.exportTo('tracing', function() {
 
       var that = this;
       function onClick() {
+        var categories = that.model.categories;
+        categories.concat(that.settings.keys('categories'));
+
         var dlg = new tracing.CategoryFilterDialog();
-        dlg.categories = that.model.categories;
-        dlg.settings = that.settings;
-        dlg.settings_key = 'categories';
-        dlg.settingUpdatedCallback = callback;
+        dlg.categories = categories;
+        dlg.isCheckedCallback = function(category) {
+          return that.settings.get(category, 'true', 'categories') === 'true';
+        };
+        dlg.onChangeCallback = function(e) {
+          that.settings.set(e.target.value, e.target.checked, 'categories');
+          callback();
+        };
         dlg.visible = true;
       }
 
