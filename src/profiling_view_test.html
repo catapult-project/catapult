@@ -111,6 +111,10 @@ found in the LICENSE file.
             opt_systemTracingEnabled;
       },
 
+      collectCategories: function() {
+        this.wasCollectCategoriesCalled = true;
+      },
+
       get traceEvents() {
         if (!this.wasBeginTracingCalled)
           return undefined;
@@ -132,12 +136,19 @@ found in the LICENSE file.
       var tracingController = new FakeTracingController();
       view.tracingController = tracingController;
       view.querySelector('button.record').click();
+      assertTrue(tracingController.wasCollectCategoriesCalled);
+
+      var e = new base.Event('categoriesCollected');
+      e.categories = ['skia', 'gpu'];
+      tracingController.dispatchEvent(e);
+
+      view.categorySelectionDialog_.querySelector('button.record_categories').click();
+
       assertTrue(tracingController.wasBeginTracingCalled);
       assertEquals(base.isChromeOS,
           tracingController.wasBeginTracingCalledWithSystemTracingEnabled);
 
       var e = new base.Event('traceEnded');
-      var didRefresh = false;
       e.events = tracingController.traceEvents;
       tracingController.dispatchEvent(e);
       assertTrue(!!view.timelineView.model);
