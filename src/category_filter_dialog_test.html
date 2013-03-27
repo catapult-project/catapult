@@ -14,13 +14,18 @@ found in the LICENSE file.
     base.require('unittest');
     base.require('test_utils');
     base.require('category_filter_dialog');
+    base.require('settings');
   </script>
   <script>
     'use strict';
 
-    function testCategoryFilterDialog_UpdateForm() {
+    function testCategoryFilterDialog_UpdateForm_NoSettings() {
+      var settings = new base.Settings();
+
       var dlg = new tracing.CategoryFilterDialog();
       dlg.categories = ['one', 'two', 'three'];
+      dlg.settings = settings;
+      dlg.settings_key = 'key';
       dlg.isCheckedCallback = function(category) { return true; }
       dlg.updateForm_();
 
@@ -29,17 +34,46 @@ found in the LICENSE file.
       assertEquals('one', checkboxes[0].id);
       assertEquals('one', checkboxes[0].value);
       assertEquals(true, checkboxes[0].checked);
-      assertEquals('two', checkboxes[1].id);
-      assertEquals('two', checkboxes[1].value);
+      assertEquals('three', checkboxes[1].id);
+      assertEquals('three', checkboxes[1].value);
       assertEquals(true, checkboxes[1].checked);
-      assertEquals('three', checkboxes[2].id);
-      assertEquals('three', checkboxes[2].value);
+      assertEquals('two', checkboxes[2].id);
+      assertEquals('two', checkboxes[2].value);
       assertEquals(true, checkboxes[2].checked);
       var labels = dlg.formEl_.getElementsByTagName('label');
       assertEquals(3, labels.length);
       assertEquals('one', labels[0].textContent);
-      assertEquals('two', labels[1].textContent);
-      assertEquals('three', labels[2].textContent);
+      assertEquals('three', labels[1].textContent);
+      assertEquals('two', labels[2].textContent);
+    }
+
+    function testCategoryFilterDialog_UpdateForm_Settings() {
+      var settings = new base.Settings();
+      settings.set('two', true, 'categories');
+      settings.set('three', false, 'categories');
+
+      var dlg = new tracing.CategoryFilterDialog();
+      dlg.categories = ['one'];
+      dlg.settings = settings;
+      dlg.settings_key = 'categories';
+      dlg.updateForm_();
+
+      var checkboxes = dlg.formEl_.getElementsByTagName('input');
+      assertEquals(3, checkboxes.length);
+      assertEquals('one', checkboxes[0].id);
+      assertEquals('one', checkboxes[0].value);
+      assertEquals(true, checkboxes[0].checked);
+      assertEquals('three', checkboxes[1].id);
+      assertEquals('three', checkboxes[1].value);
+      assertEquals(false, checkboxes[1].checked);
+      assertEquals('two', checkboxes[2].id);
+      assertEquals('two', checkboxes[2].value);
+      assertEquals(true, checkboxes[2].checked);
+      var labels = dlg.formEl_.getElementsByTagName('label');
+      assertEquals(3, labels.length);
+      assertEquals('one', labels[0].textContent);
+      assertEquals('three', labels[1].textContent);
+      assertEquals('two', labels[2].textContent);
     }
   </script>
 </body>
