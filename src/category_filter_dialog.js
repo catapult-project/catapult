@@ -31,28 +31,31 @@ base.exportTo('tracing', function() {
       containerEl.appendChild(this.formEl_);
       this.appendChild(containerEl);
 
+      this.categoriesEl_ = document.createElement('div');
+      this.categoriesEl_.className = 'categories';
+      this.formEl_.appendChild(this.categoriesEl_);
+
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
+
+      this.onChangeCallback_ = undefined;
+      this.isCheckedCallback_ = undefined;
     },
 
-    get model() {
-      return this.model_;
+    get categories() {
+      return this.categories_;
     },
 
-    set model(m) {
-      this.model_ = m;
+    set categories(c) {
+      this.categories_ = c;
     },
 
-    get settings() {
-      return this.settings_;
+    set isCheckedCallback(c) {
+      this.isCheckedCallback_ = c;
     },
 
-    set settings(s) {
-      this.settings_ = s;
-    },
-
-    set settingUpdatedCallback(c) {
-      this.settingUpdatedCallback_ = c;
-    },
+    set onChangeCallback(c) {
+      this.onChangeCallback_ = c;
+    }
 
     onVisibleChange_: function() {
       if (this.visible) {
@@ -61,35 +64,30 @@ base.exportTo('tracing', function() {
     },
 
     updateForm_: function() {
-      // Clear and update the form every time the dialog is shown, in case
-      // the model or settings have changed with new categories.
-      this.formEl_.innerHTML = ''; // Clear old categories
-      var categories = this.model_.categories;
-      categories.concat(this.settings_.keys('categories'));
-      for (var i = 0; i < categories.length; i++) {
-        var category = categories[i];
+      this.categoriesEl_.innerHTML = ''; // Clear old categories
+
+      for (var i = 0; i < this.categories_.length; i++) {
+        var category = this.categories_[i];
         var inputEl = document.createElement('input');
         inputEl.type = 'checkbox';
         inputEl.id = inputEl.value = category;
-        inputEl.checked =
-            this.settings_.get(category, 'true', 'categories') == 'true';
-        inputEl.onchange = this.updateSetting_.bind(this);
+
+        if (this.isCheckedCallback_ !== undefined)
+          inputEl.checked = this.isCheckedCallback_(category);
+        if (this.onChangeCallback_ !== undefined)
+          inputEl.onchange = this.onChangeCallback_;
+
         var labelEl = document.createElement('label');
         labelEl.textContent = category;
         labelEl.setAttribute('for', category);
-        this.formEl_.appendChild(inputEl);
-        this.formEl_.appendChild(labelEl);
-        this.formEl_.appendChild(document.createElement('br'));
+
+        var divEl = document.createElement('div');
+        divEl.appendChild(inputEl);
+        divEl.appendChild(labelEl);
+        this.categoriesEl_.appendChild(divEl);
       }
     },
-
-    updateSetting_: function(e) {
-      var checkbox = e.target;
-      this.settings_.set(checkbox.value, checkbox.checked, 'categories');
-      this.settingUpdatedCallback_();
-    }
   };
-
 
   return {
     CategoryFilterDialog: CategoryFilterDialog
