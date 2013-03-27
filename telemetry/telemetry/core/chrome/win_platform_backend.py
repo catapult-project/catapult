@@ -115,6 +115,8 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
         return []
       ret = ppid_map[pid]
       for child in ppid_map[pid]:
+        if child == pid:
+          continue
         ret.extend(_GetChildrenPids(ppid_map, child))
       return ret
 
