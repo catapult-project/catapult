@@ -32,8 +32,7 @@ base.exportTo('tracing', function() {
       this.recordBn_ = document.createElement('button');
       this.recordBn_.className = 'record';
       this.recordBn_.textContent = 'Record';
-      this.recordBn_.addEventListener('click',
-                                      this.onSelectCategories_.bind(this));
+      this.recordBn_.addEventListener('click', this.onSelectCategories_.bind(this));
 
       this.saveBn_ = document.createElement('button');
       this.saveBn_.textContent = 'Save';
@@ -168,8 +167,7 @@ base.exportTo('tracing', function() {
       var allCategoriesLength = allCategories.length;
       var categories = [];
       for (var i = 0; i < allCategoriesLength; ++i) {
-        if (settings.get(allCategories[i], 'true',
-                         'record_categories') === 'true') {
+        if (settings.get(allCategories[i], 'true', 'record_categories') === 'true') {
           categories.push(allCategories[i]);
         }
       }

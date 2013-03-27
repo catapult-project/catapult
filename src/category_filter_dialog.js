@@ -69,8 +69,7 @@ base.exportTo('tracing', function() {
       // Dedup the categories. We may have things in settings that are also
       // returned when we query the category list.
       var set = {};
-      var allCategories =
-          this.categories_.concat(this.settings_.keys(this.settings_key_));
+      var allCategories = this.categories_.concat(this.settings_.keys(this.settings_key_));
       var allCategoriesLength = allCategories.length;
       for (var i = 0; i < allCategoriesLength; ++i) {
         set[allCategories[i]] = true;
