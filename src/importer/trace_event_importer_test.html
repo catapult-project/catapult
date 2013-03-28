@@ -384,18 +384,19 @@ function testImmediateParsing() {
     // recentering/zeroing doesn't clobber their timestamp.
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'immediate', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'I'},
+    {name: 'slower', args: {}, pid: 1, ts: 4, cat: 'baz', tid: 1, ph: 'i'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
   var m = new tracing.Model(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
-  assertEquals(2, t.slices.length);
+  assertEquals(3, t.slices.length);
   assertEquals(0.002, t.slices[0].start);
   assertEquals(0, t.slices[0].duration);
-  assertEquals(0.001, t.slices[1].start);
-  assertEquals(0.003, t.slices[1].duration);
+  assertEquals(0.004, t.slices[1].start);
+  assertEquals(0.001, t.slices[2].start);
+  assertEquals(0.003, t.slices[2].duration);
 
-  assertEquals(2, t.slices.length);
   var slice = findSliceNamed(t.slices, 'a');
   assertEquals('a', slice.title);
   assertEquals('foo', slice.category);
@@ -407,6 +408,13 @@ function testImmediateParsing() {
   assertEquals(0.002, immed.start);
   assertEquals(0, immed.duration);
   assertEquals(0, immed.subSlices.length);
+
+  var slower = findSliceNamed(t.slices, 'slower');
+  assertEquals('slower', slower.title);
+  assertEquals('baz', slower.category);
+  assertEquals(0.004, slower.start);
+  assertEquals(0, slower.duration);
+  assertEquals(0, slower.subSlices.length);
 }
 
 function testSimpleCounter() {

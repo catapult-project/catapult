@@ -196,7 +196,7 @@ base.exportTo('tracing.importer', function() {
           this.processAsyncEvent(eI, event);
         } else if (event.ph == 'T') {
           this.processAsyncEvent(eI, event);
-        } else if (event.ph == 'I') {
+        } else if (event.ph == 'I' || event.ph == 'i') {
           // Treat an Instant event as a duration 0 slice.
           // SliceTrack's redraw() knows how to handle this.
           var thread = this.model_.getOrCreateProcess(event.pid)
