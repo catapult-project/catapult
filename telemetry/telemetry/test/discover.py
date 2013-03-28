@@ -10,7 +10,7 @@ import traceback
 
 
 def DiscoverModules(start_dir, top_level_dir, pattern='*',
-                    import_error_should_raise=False):
+                    import_error_should_raise=True):
   """Discover all modules in |start_dir| which match |pattern|.
 
   Args:
@@ -54,7 +54,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*',
 
 
 def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
-                    import_error_should_raise=False):
+                    import_error_should_raise=True):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
   Args:

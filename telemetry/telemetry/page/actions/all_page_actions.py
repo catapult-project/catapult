@@ -9,8 +9,7 @@ from telemetry.test import discover
 _page_action_classes = discover.DiscoverClasses(
     os.path.dirname(__file__),
     os.path.join(os.path.dirname(__file__), '..', '..', '..'),
-    page_action.PageAction,
-    import_error_should_raise=True)
+    page_action.PageAction)
 
 def GetAllClasses():
   return list(_page_action_classes.values())

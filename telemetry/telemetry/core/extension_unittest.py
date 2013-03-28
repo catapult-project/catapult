@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import shutil
 import tempfile
@@ -37,6 +38,8 @@ class ExtensionTest(unittest.TestCase):
   def testExtensionBasic(self):
     """Test ExtensionPage's ExecuteJavaScript and EvaluateJavaScript."""
     if not self._extension:
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
       return
     self._extension.ExecuteJavaScript('setTestVar("abcdef")')
     self.assertEquals('abcdef',
@@ -46,6 +49,8 @@ class ExtensionTest(unittest.TestCase):
     """Test that ExtensionPage.Disconnect exists by calling it.
     EvaluateJavaScript should reconnect."""
     if not self._extension:
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
       return
     self._extension.Disconnect()
     self.assertEquals(2, self._extension.EvaluateJavaScript('1+1'))
@@ -101,6 +106,8 @@ class MultipleExtensionTest(unittest.TestCase):
 
   def testMultipleExtensions(self):
     if not self._browser:
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
       return
 
     # Test contains.
@@ -124,7 +131,8 @@ class ComponentExtensionTest(unittest.TestCase):
     options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
-      # Some browsers don't support extensions.
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
       return
 
     with browser_to_create.Create() as b:
