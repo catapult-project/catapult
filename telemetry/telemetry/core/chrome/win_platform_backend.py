@@ -4,6 +4,7 @@
 
 import collections
 import ctypes
+import logging
 import subprocess
 try:
   import pywintypes  # pylint: disable=F0401
@@ -103,6 +104,7 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
     pid_ppid_list = subprocess.Popen(['wmic', 'process', 'get',
                                       'ParentProcessId,ProcessId'],
                                      stdout=subprocess.PIPE).communicate()[0]
+    logging.info('wmic process output:\n' + pid_ppid_list)
     ppid_map = collections.defaultdict(list)
     for pid_ppid in pid_ppid_list.splitlines()[1:]:  #skip header
       if not pid_ppid:
@@ -118,6 +120,7 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
         if child == pid:
           continue
         ret.extend(_GetChildrenPids(ppid_map, child))
+      logging.info('Found child pids %s for %d' % (ret, pid))
       return ret
 
     return _GetChildrenPids(ppid_map, pid)
