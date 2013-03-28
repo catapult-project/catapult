@@ -24,7 +24,7 @@ base.require('filter');
 base.require('selection');
 base.require('timeline_viewport');
 base.require('tracks.model_track');
-base.require('tracks.viewport_track');
+base.require('tracks.ruler_track');
 base.require('ui');
 
 base.exportTo('tracing', function() {
@@ -71,9 +71,9 @@ base.exportTo('tracing', function() {
       this.viewport_ = new Viewport(this);
 
       // Add the viewport track.
-      this.viewportTrack_ = new tracing.tracks.ViewportTrack();
-      this.viewportTrack_.viewport = this.viewport_;
-      this.appendChild(this.viewportTrack_);
+      this.rulerTrack_ = new tracing.tracks.RulerTrack();
+      this.rulerTrack_.viewport = this.viewport_;
+      this.appendChild(this.rulerTrack_);
 
       this.modelTrackContainer_ = document.createElement('div');
       this.modelTrackContainer_.className = 'model-track-container';
@@ -155,7 +155,7 @@ base.exportTo('tracing', function() {
       this.modelTrack_.model = model;
       this.modelTrack_.viewport = this.viewport_;
       this.modelTrack_.categoryFilter = this.categoryFilter;
-      this.viewportTrack_.headingWidth = this.modelTrack_.headingWidth;
+      this.rulerTrack_.headingWidth = this.modelTrack_.headingWidth;
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
@@ -448,8 +448,8 @@ base.exportTo('tracing', function() {
     },
 
     get firstCanvas() {
-      if (this.viewportTrack_)
-        return this.viewportTrack_.firstCanvas;
+      if (this.rulerTrack_)
+        return this.rulerTrack_.firstCanvas;
       if (this.modelTrack_)
         return this.modelTrack_.firstCanvas;
       return undefined;
@@ -548,7 +548,7 @@ base.exportTo('tracing', function() {
         return;
 
       if (e.shiftKey) {
-        this.viewportTrack_.placeAndBeginDraggingMarker(e.clientX);
+        this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
         return;
       }
 

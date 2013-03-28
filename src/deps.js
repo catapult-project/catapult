@@ -308,17 +308,17 @@ base.addModuleStylesheet(
     'tracks.model_track',
     'tracks.model_track');
 base.addModuleDependency(
-    'tracks.viewport_track',
+    'tracks.ruler_track',
     'tracks.track');
 base.addModuleDependency(
-    'tracks.viewport_track',
+    'tracks.ruler_track',
     'tracks.canvas_based_track');
 base.addModuleDependency(
-    'tracks.viewport_track',
+    'tracks.ruler_track',
     'ui');
 base.addModuleStylesheet(
-    'tracks.viewport_track',
-    'tracks.viewport_track');
+    'tracks.ruler_track',
+    'tracks.ruler_track');
 base.addModuleDependency(
     'timeline',
     'event_target');
@@ -339,7 +339,7 @@ base.addModuleDependency(
     'tracks.model_track');
 base.addModuleDependency(
     'timeline',
-    'tracks.viewport_track');
+    'tracks.ruler_track');
 base.addModuleDependency(
     'timeline',
     'ui');

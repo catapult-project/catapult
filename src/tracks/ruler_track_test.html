@@ -17,7 +17,7 @@ found in the LICENSE file.
   base.require('unittest');
   base.require('test_utils');
   base.require('timeline_viewport');
-  base.require('tracks.viewport_track');
+  base.require('tracks.ruler_track');
 </script>
 </head>
 <body>
@@ -25,12 +25,12 @@ found in the LICENSE file.
   'use strict';
 
   var Viewport = tracing.TimelineViewport;
-  var ViewportTrack = tracing.tracks.ViewportTrack;
+  var RulerTrack = tracing.tracks.RulerTrack;
 
   function testViewport() {
     var testEl = this.addHTMLOutput();
 
-    var track = ViewportTrack();
+    var track = RulerTrack();
     testEl.appendChild(track);
     track.viewport = new Viewport(testEl);
     track.viewport.setPanAndScale(0,

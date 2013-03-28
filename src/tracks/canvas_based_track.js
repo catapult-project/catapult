@@ -102,11 +102,9 @@ base.exportTo('tracing.tracks', function() {
 
     viewportMarkersChange_: function() {
       if (this.viewport_.markers.length < 2)
-        this.classList.remove('viewport-track-with' +
-            '-distance-measurements');
+        this.classList.remove('ruler-track-with-distance-measurements');
       else
-        this.classList.add('viewport-track-with' +
-            '-distance-measurements');
+        this.classList.add('ruler-track-with-distance-measurements');
     },
 
     invalidate: function() {

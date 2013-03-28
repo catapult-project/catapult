@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.requireStylesheet('tracks.viewport_track');
+base.requireStylesheet('tracks.ruler_track');
 
 base.require('tracks.track');
 base.require('tracks.canvas_based_track');
@@ -13,24 +13,24 @@ base.require('ui');
 base.exportTo('tracing.tracks', function() {
 
   /**
-   * A track that displays the viewport size and scale.
+   * A track that displays the ruler.
    * @constructor
    * @extends {CanvasBasedTrack}
    */
 
-  var ViewportTrack = tracing.ui.define(tracing.tracks.CanvasBasedTrack);
+  var RulerTrack = tracing.ui.define(tracing.tracks.CanvasBasedTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
     return Math.log(x) / logOf10;
   }
 
-  ViewportTrack.prototype = {
+  RulerTrack.prototype = {
 
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
     decorate: function() {
-      this.classList.add('viewport-track');
+      this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
       this.addEventListener('mousedown', this.onMouseDown);
@@ -123,8 +123,8 @@ base.exportTo('tracing.tracks', function() {
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);
 
-      var measurements = this.classList.contains('viewport' +
-          '-track-with-distance-measurements');
+      var measurements = this.classList.contains(
+          'ruler-track-with-distance-measurements');
 
       var rulerHeight = measurements ? canvasH / 2 : canvasH;
 
@@ -326,7 +326,7 @@ base.exportTo('tracing.tracks', function() {
      * @return {boolean} true if a slice was found, otherwise false.
      */
     addIntersectingItemsToSelection: function(vX, vY, selection) {
-      // Does nothing. There's nothing interesting to pick on the viewport
+      // Does nothing. There's nothing interesting to pick on the ruler
       // track.
     },
 
@@ -344,7 +344,7 @@ base.exportTo('tracing.tracks', function() {
      */
     addIntersectingItemsInRangeToSelection: function(
         loVX, hiVX, loY, hiY, selection) {
-      // Does nothing. There's nothing interesting to pick on the viewport
+      // Does nothing. There's nothing interesting to pick on the ruler
       // track.
     },
 
@@ -353,6 +353,6 @@ base.exportTo('tracing.tracks', function() {
   };
 
   return {
-    ViewportTrack: ViewportTrack
+    RulerTrack: RulerTrack
   };
 });
