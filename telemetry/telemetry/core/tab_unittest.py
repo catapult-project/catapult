@@ -56,11 +56,15 @@ class GpuTabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(
       self._browser.http_server.UrlOf('green_rect.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
+    pixel_ratio = self._tab.EvaluateJavaScript('window.devicePixelRatio || 1')
 
     # Skip this test if running against a browser without screenshot support
     if self._tab.screenshot_supported:
       screenshot = self._tab.Screenshot(5)
       assert screenshot
-      screenshot.GetPixelColor(0, 0).AssertIsRGB(0, 255, 0)
-      screenshot.GetPixelColor(31, 31).AssertIsRGB(0, 255, 0)
-      screenshot.GetPixelColor(32, 32).AssertIsRGB(255, 255, 255)
+      screenshot.GetPixelColor(0 * pixel_ratio, 0 * pixel_ratio).AssertIsRGB(
+          0, 255, 0, tolerance=2)
+      screenshot.GetPixelColor(31 * pixel_ratio, 31 * pixel_ratio).AssertIsRGB(
+          0, 255, 0, tolerance=2)
+      screenshot.GetPixelColor(32 * pixel_ratio, 32 * pixel_ratio).AssertIsRGB(
+          255, 255, 255, tolerance=2)
