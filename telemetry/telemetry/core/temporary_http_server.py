@@ -13,16 +13,13 @@ class TemporaryHTTPServer(object):
   def __init__(self, browser_backend, paths):
     self._server = None
     self._devnull = None
-    self._paths = []
+    self._paths = paths
     self._forwarder = None
     self._host_port = util.GetAvailableLocalPort()
 
-    if not isinstance(paths, list):
-      paths = [paths]
-    for path in paths:
+    for path in self._paths:
       assert os.path.exists(path), path
       assert os.path.isdir(path), path
-      self._paths.append(os.path.abspath(path))
 
     self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', 'memory_cache_http_server',

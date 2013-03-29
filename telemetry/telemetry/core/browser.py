@@ -173,6 +173,10 @@ class Browser(object):
     return self._http_server
 
   def SetHTTPServerDirectories(self, paths):
+    if not isinstance(paths, list):
+      paths = [paths]
+    paths = [os.path.abspath(p) for p in paths]
+
     if paths and self._http_server and self._http_server.paths == paths:
       return
 
