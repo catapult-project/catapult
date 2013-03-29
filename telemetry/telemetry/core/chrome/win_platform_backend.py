@@ -4,7 +4,6 @@
 
 import collections
 import ctypes
-import logging
 import subprocess
 try:
   import pywintypes  # pylint: disable=F0401
@@ -101,31 +100,29 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
 
   def GetChildPids(self, pid):
     """Retunds a list of child pids of |pid|."""
-    creation_pid_ppid_list = subprocess.Popen(
+    creation_ppid_pid_list = subprocess.Popen(
           ['wmic', 'process', 'get', 'CreationDate,ParentProcessId,ProcessId',
            '/format:csv'],
           stdout=subprocess.PIPE).communicate()[0]
-    logging.info('wmic process output:\n' + creation_pid_ppid_list)
     ppid_map = collections.defaultdict(list)
     creation_map = {}
     # [3:] To skip 2 blank lines and header.
-    for creation_pid_ppid in creation_pid_ppid_list.splitlines()[3:]:
-      if not creation_pid_ppid:
+    for creation_ppid_pid in creation_ppid_pid_list.splitlines()[3:]:
+      if not creation_ppid_pid:
         continue
-      _, creation, curr_ppid, curr_pid = creation_pid_ppid.split(',')
+      _, creation, curr_ppid, curr_pid = creation_ppid_pid.split(',')
       ppid_map[int(curr_ppid)].append(int(curr_pid))
       if creation:
         creation_map[int(curr_pid)] = float(creation.split('-')[0])
 
-    def _GetChildrenPids(ppid_map, pid):
+    def _InnerGetChildPids(pid):
       if not pid or pid not in ppid_map:
         return []
       ret = [p for p in ppid_map[pid] if creation_map[p] >= creation_map[pid]]
-      for child in ppid_map[pid]:
+      for child in ret:
         if child == pid:
           continue
-        ret.extend(_GetChildrenPids(ppid_map, child))
-      logging.info('Found child pids %s for %d' % (ret, pid))
+        ret.extend(_InnerGetChildPids(child))
       return ret
 
-    return _GetChildrenPids(ppid_map, pid)
+    return _InnerGetChildPids(pid)
