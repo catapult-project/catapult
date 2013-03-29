@@ -152,6 +152,8 @@ base.exportTo('tracing', function() {
       dlg.visible = true;
       this.categorySelectionDialog_ = dlg;
 
+      buttonEl.focus();
+
       setTimeout(function() {
         tc.removeEventListener('categoriesCollected',
                                this.onCategoriesCollectedBoundToThis_);
