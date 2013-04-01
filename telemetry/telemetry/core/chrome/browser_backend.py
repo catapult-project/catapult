@@ -210,3 +210,15 @@ class BrowserBackend(object):
 
   def GetStandardOutput(self):
     raise NotImplementedError()
+
+class DoNothingForwarder(object):
+  def __init__(self, *port_pairs):
+    self._host_port = port_pairs[0].local_port
+
+  @property
+  def url(self):
+    assert self._host_port
+    return 'http://127.0.0.1:%i' % self._host_port
+
+  def Close(self):
+    self._host_port = None

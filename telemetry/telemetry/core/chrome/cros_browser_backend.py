@@ -146,7 +146,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def CreateForwarder(self, *port_pairs):
     assert self._cri
-    return (DoNothingForwarder(*port_pairs) if self._cri.local
+    return (browser_backend.DoNothingForwarder(*port_pairs) if self._cri.local
         else SSHForwarder(self._cri, 'R', *port_pairs))
 
   def _RestartUI(self):
@@ -196,15 +196,3 @@ class SSHForwarder(object):
       self._proc.kill()
       self._proc = None
 
-
-class DoNothingForwarder(object):
-  def __init__(self, *port_pairs):
-    self._host_port = port_pairs[0].local_port
-
-  @property
-  def url(self):
-    assert self._host_port
-    return 'http://localhost:%i' % self._host_port
-
-  def Close(self):
-    self._host_port = None

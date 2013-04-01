@@ -148,17 +148,4 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       self._tmp_output_file = None
 
   def CreateForwarder(self, *port_pairs):
-    return DoNothingForwarder(*port_pairs)
-
-
-class DoNothingForwarder(object):
-  def __init__(self, *port_pairs):
-    self._host_port = port_pairs[0].local_port
-
-  @property
-  def url(self):
-    assert self._host_port
-    return 'http://127.0.0.1:%i' % self._host_port
-
-  def Close(self):
-    self._host_port = None
+    return browser_backend.DoNothingForwarder(*port_pairs)
