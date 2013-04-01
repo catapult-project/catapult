@@ -57,9 +57,9 @@ class Page(object):
 
   @property
   def display_url(self):
-    if self.url.startswith('file://'):
-      return os.path.split(self.url)[1]
-    return re.sub('https?://', '', self.url)
+    common_prefix = os.path.commonprefix([p.url for p in self.page_set
+                                          if p.url.startswith('file://')])
+    return self.url[len(common_prefix):]
 
   @property
   def archive_path(self):

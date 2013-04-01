@@ -71,7 +71,7 @@ PageBenchmark.results_are_the_same_on_every_page to return False.
     self._results_writer.writerow(row)
 
   def _OutputValuesForPage(self, page_values):
-    row = [page_values.page.url]
+    row = [page_values.page.display_url]
     for measurement_name in self._header_names_written_to_writer:
       value = page_values.FindValueByMeasurementName(measurement_name)
       if value:

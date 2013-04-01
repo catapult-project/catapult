@@ -1,9 +1,11 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
 import unittest
 
 from telemetry.page import page
+from telemetry.page import page_set
 
 class TestPage(unittest.TestCase):
   def testGetUrlBaseDirAndFileForAbsolutePath(self):
@@ -32,10 +34,25 @@ class TestPage(unittest.TestCase):
     self.assertEqual(filename, 'otherdir/file.html')
 
   def testDisplayUrlForHttp(self):
-    self.assertEquals(page.Page('http://www.foo.com/', None).display_url,
-                      'www.foo.com/')
+    ps = page_set.PageSet.FromDict({
+      "description": "hello",
+      "archive_path": "foo.wpr",
+      "pages": [
+        {"url": "http://www.foo.com/"},
+        {"url": "http://www.bar.com/"}
+        ]
+      }, os.path.dirname(__file__))
+    self.assertEquals(ps[0].display_url, 'http://www.foo.com/')
+    self.assertEquals(ps[1].display_url, 'http://www.bar.com/')
 
   def testDisplayUrlForFile(self):
-    self.assertEquals(
-        page.Page('file:///../../otherdir/file.html', None).display_url,
-        'file.html')
+    ps = page_set.PageSet.FromDict({
+      "description": "hello",
+      "archive_path": "foo.wpr",
+      "pages": [
+        {"url": "file:///../../otherdir/foo.html"},
+        {"url": "file:///../../otherdir/bar.html"},
+        ]
+      }, os.path.dirname(__file__))
+    self.assertEquals(ps[0].display_url, 'foo.html')
+    self.assertEquals(ps[1].display_url, 'bar.html')
