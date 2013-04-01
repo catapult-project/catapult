@@ -52,7 +52,7 @@ function testGetUnset() {
 
 function testGetDefault() {
   var settings = new base.Settings();
-  // Null should be returned if value isn't set.
+  // default_val should be returned if value isn't set.
   assertEquals('default_val', settings.get('my_key', 'default_val'));
 }
 

@@ -48,7 +48,7 @@ base.exportTo('base', function() {
     get: function(key, opt_default, opt_namespace) {
       key = this.namespace_(key, opt_namespace);
       var val = this.storage_.getItem(key);
-      if (val === undefined)
+      if (val === null || val === undefined)
         return opt_default;
       return String(val);
     },
@@ -121,6 +121,9 @@ base.exportTo('base', function() {
     __proto__: Object.prototype,
 
     getItem: function(key) {
+      // LocalStorage returns null if the key isn't found, not undefined.
+      if (this[key] === undefined || this[key] === null)
+        return null;
       return this[key];
     },
 
