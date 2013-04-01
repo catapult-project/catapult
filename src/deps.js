@@ -395,6 +395,9 @@ base.addModuleDependency(
     'importer.linux_perf.cpufreq_parser',
     'importer.linux_perf.parser');
 base.addModuleDependency(
+    'importer.linux_perf.disk_parser',
+    'importer.linux_perf.parser');
+base.addModuleDependency(
     'importer.linux_perf.drm_parser',
     'importer.linux_perf.parser');
 base.addModuleDependency(
@@ -436,6 +439,9 @@ base.addModuleDependency(
 base.addModuleDependency(
     'importer.linux_perf_importer',
     'importer.linux_perf.cpufreq_parser');
+base.addModuleDependency(
+    'importer.linux_perf_importer',
+    'importer.linux_perf.disk_parser');
 base.addModuleDependency(
     'importer.linux_perf_importer',
     'importer.linux_perf.drm_parser');

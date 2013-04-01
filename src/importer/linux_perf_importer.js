@@ -23,6 +23,7 @@ base.require('color_scheme');
 base.require('importer.linux_perf.bus_parser');
 base.require('importer.linux_perf.clock_parser');
 base.require('importer.linux_perf.cpufreq_parser');
+base.require('importer.linux_perf.disk_parser');
 base.require('importer.linux_perf.drm_parser');
 base.require('importer.linux_perf.exynos_parser');
 base.require('importer.linux_perf.gesture_parser');
