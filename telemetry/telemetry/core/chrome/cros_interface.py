@@ -6,11 +6,7 @@ import logging
 import os
 import re
 import subprocess
-import sys
-import time
 import tempfile
-
-from telemetry.core import util
 
 # TODO(nduca): This whole file is built up around making individual ssh calls
 # for each operation. It really could get away with a single ssh session built
@@ -58,129 +54,6 @@ def GetAllCmdOutput(args, cwd=None, quiet=False):
     if not quiet:
       logging.debug(' > stdout=[%s], stderr=[%s]', stdout, stderr)
     return stdout, stderr
-
-class DeviceSideProcess(object):
-  def __init__(self,
-               cri,
-               device_side_args,
-               prevent_output=True,
-               extra_ssh_args=None,
-               leave_ssh_alive=False,
-               env=None,
-               login_shell=False):
-
-    # Init members first so that Close will always succeed.
-    self._cri = cri
-    self._proc = None
-    self._devnull = open(os.devnull, 'w')
-
-    if prevent_output:
-      out = self._devnull
-    else:
-      out = sys.stderr
-
-    cri.RmRF('/tmp/cros_interface_remote_device_pid')
-    cmd_str = ' '.join(device_side_args)
-    if env:
-      env_str = ' '.join(['%s=%s' % (k, v) for k, v in env.items()])
-      cmd = env_str + ' ' + cmd_str
-    else:
-      cmd = cmd_str
-    contents = """%s&\n""" % cmd
-    contents += 'echo $! > /tmp/cros_interface_remote_device_pid\n'
-    cri.PushContents(contents, '/tmp/cros_interface_remote_device_bootstrap.sh')
-
-    cmdline = ['/bin/bash']
-    if login_shell:
-      cmdline.append('-l')
-    cmdline.append('/tmp/cros_interface_remote_device_bootstrap.sh')
-    proc = subprocess.Popen(
-      cri.FormSSHCommandLine(cmdline,
-                              extra_ssh_args=extra_ssh_args),
-      stdout=out,
-      stderr=out,
-      stdin=self._devnull,
-      shell=False)
-
-    time.sleep(0.1)
-    def TryGetResult():
-      try:
-        self._pid = cri.GetFileContents(
-            '/tmp/cros_interface_remote_device_pid').strip()
-        return True
-      except OSError:
-        return False
-    try:
-      util.WaitFor(TryGetResult, 5)
-    except util.TimeoutException:
-      raise Exception('Something horrible has happened!')
-
-    # Killing the ssh session leaves the process running. We dont
-    # need it anymore, unless we have port-forwards.
-    if not leave_ssh_alive:
-      proc.kill()
-    else:
-      self._proc = proc
-
-    self._pid = int(self._pid)
-    if not self.IsAlive():
-      raise OSError('Process did not come up or did not stay alive very long!')
-    self._cri = cri
-
-  def Close(self, try_sigint_first=False):
-    if self.IsAlive():
-      # Try to politely shutdown, first.
-      if try_sigint_first:
-        logging.debug("kill -INT %i" % self._pid)
-        self._cri.RunCmdOnDevice(
-          ['kill', '-INT', str(self._pid)], quiet=True)
-        try:
-          self.Wait(timeout=0.5)
-        except util.TimeoutException:
-          pass
-
-      if self.IsAlive():
-        logging.debug("kill -KILL %i" % self._pid)
-        self._cri.RunCmdOnDevice(
-          ['kill', '-KILL', str(self._pid)], quiet=True)
-        try:
-          self.Wait(timeout=5)
-        except util.TimeoutException:
-          pass
-
-      if self.IsAlive():
-        raise Exception('Could not shutdown the process.')
-
-    self._cri = None
-    if self._proc:
-      self._proc.kill()
-      self._proc = None
-
-    if self._devnull:
-      self._devnull.close()
-      self._devnull = None
-
-  def __enter__(self):
-    return self
-
-  def __exit__(self, *args):
-    self.Close()
-    return
-
-  def Wait(self, timeout=1):
-    if not self._pid:
-      raise Exception('Closed')
-    def IsDone():
-      return not self.IsAlive()
-    util.WaitFor(IsDone, timeout)
-    self._pid = None
-
-  def IsAlive(self, quiet=True):
-    if not self._pid:
-      return False
-    exists = self._cri.FileExistsOnDevice('/proc/%i/cmdline' % self._pid,
-                                          quiet=quiet)
-    return exists
 
 def HasSSH():
   try:

@@ -17,39 +17,6 @@ from telemetry.test import run_tests
 
 class CrOSInterfaceTest(unittest.TestCase):
   @run_tests.RequiresBrowserOfType('cros-chrome')
-  def testDeviceSideProcessFailureToLaunch(self):
-    remote = options_for_unittests.GetCopy().cros_remote
-    cri = cros_interface.CrOSInterface(
-      remote,
-      options_for_unittests.GetCopy().cros_ssh_identity)
-
-    def WillFail():
-      dsp = cros_interface.DeviceSideProcess(
-        cri,
-        ['sfsdfskjflwejfweoij'])
-      dsp.Close()
-    self.assertRaises(OSError, WillFail)
-
-  @run_tests.RequiresBrowserOfType('cros-chrome')
-  def testDeviceSideProcessCloseDoesClose(self):
-    remote = options_for_unittests.GetCopy().cros_remote
-    cri = cros_interface.CrOSInterface(
-      remote,
-      options_for_unittests.GetCopy().cros_ssh_identity)
-
-    with cros_interface.DeviceSideProcess(
-        cri,
-        ['sleep', '111']) as dsp:
-      procs = cri.ListProcesses()
-      sleeps = [x for x in procs
-                if x[1] == 'sleep 111']
-      assert dsp.IsAlive()
-    procs = cri.ListProcesses()
-    sleeps = [x for x in procs
-              if x[1] == 'sleep 111']
-    self.assertEquals(len(sleeps), 0)
-
-  @run_tests.RequiresBrowserOfType('cros-chrome')
   def testPushContents(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -97,21 +64,6 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertRaises(
       OSError,
       lambda: cri.GetFileContents('/tmp/209fuslfskjf/dfsfsf'))
-
-  @run_tests.RequiresBrowserOfType('cros-chrome')
-  def testListProcesses(self): # pylint: disable=R0201
-    remote = options_for_unittests.GetCopy().cros_remote
-    cri = cros_interface.CrOSInterface(
-      remote,
-      options_for_unittests.GetCopy().cros_ssh_identity)
-    with cros_interface.DeviceSideProcess(
-        cri,
-        ['sleep', '11']):
-      procs = cri.ListProcesses()
-      sleeps = [x for x in procs
-                if x[1] == 'sleep 11']
-
-      assert len(sleeps) == 1
 
   @run_tests.RequiresBrowserOfType('cros-chrome')
   def testIsServiceRunning(self):
