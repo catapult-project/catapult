@@ -19,7 +19,6 @@ class TemporaryHTTPServer(object):
 
     for path in self._paths:
       assert os.path.exists(path), path
-      assert os.path.isdir(path), path
 
     self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', 'memory_cache_http_server',

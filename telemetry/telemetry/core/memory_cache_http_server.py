@@ -58,7 +58,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       self.send_response(200)
 
     self.send_header('Content-Length', str(total_num_of_bytes))
-    self.send_header('Content-Type', self.guess_type(path))
+    self.send_header('Content-Type', resource['content-type'])
     self.send_header('Last-Modified',
                      self.date_time_string(resource['last-modified']))
     if resource['zipped']:
@@ -124,13 +124,16 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
   # it is quite possible to get more than 5 concurrent requests.
   request_queue_size = 128
 
-  def __init__(self, host_port, handler, directories):
+  def __init__(self, host_port, handler, paths):
     BaseHTTPServer.HTTPServer.__init__(self, host_port, handler)
     self.resource_map = {}
-    for path in directories:
-      self.LoadResourceMap(path)
+    for path in paths:
+      if os.path.isdir(path):
+        self.AddDirectoryToResourceMap(path)
+      else:
+        self.AddFileToResourceMap(path)
 
-  def LoadResourceMap(self, cwd):
+  def AddDirectoryToResourceMap(self, cwd):
     """Loads all files in cwd into the in-memory resource map."""
     for root, dirs, files in os.walk(cwd):
       # Skip hidden files and folders (like .svn and .git).
@@ -141,32 +144,39 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
         file_path = os.path.join(root, f)
         if not os.path.exists(file_path):  # Allow for '.#' files
           continue
-        with open(file_path, 'rb') as fd:
-          response = fd.read()
-          fs = os.fstat(fd.fileno())
-          content_type = mimetypes.guess_type(file_path)[0]
-          zipped = False
-          if content_type in ['text/html', 'text/css',
-                              'application/javascript']:
-            zipped = True
-            response = zlib.compress(response, 9)
-          self.resource_map[file_path] = {
-              'content-length': len(response),
-              'last-modified': fs.st_mtime,
-              'response': response,
-              'zipped': zipped
-              }
+        self.AddFileToResourceMap(file_path)
+
+  def AddFileToResourceMap(self, file_path):
+    """Loads file_path into the in-memory resource map."""
+    with open(file_path, 'rb') as fd:
+      response = fd.read()
+      fs = os.fstat(fd.fileno())
+      content_type = mimetypes.guess_type(file_path)[0]
+      zipped = False
+      if content_type in ['text/html', 'text/css', 'application/javascript']:
+        zipped = True
+        response = zlib.compress(response, 9)
+      self.resource_map[file_path] = {
+          'content-type': content_type,
+          'content-length': len(response),
+          'last-modified': fs.st_mtime,
+          'response': response,
+          'zipped': zipped
+          }
+      if file_path.endswith('/index.html'):
+        self.resource_map[
+            file_path[:-len('/index.html')]] = self.resource_map[file_path]
 
 
 def Main():
   assert len(sys.argv) > 2, 'usage: %prog <port> [<path1>, <path2>, ...]'
 
   port = int(sys.argv[1])
-  directories = sys.argv[2:]
+  paths = sys.argv[2:]
   server_address = ('127.0.0.1', port)
   MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
   httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,
-                                directories)
+                                paths)
   httpd.serve_forever()
 
 
