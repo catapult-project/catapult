@@ -324,7 +324,7 @@ class PageRunner(object):
         return False
 
     test.WillNavigateToPage(page, tab)
-    tab.Navigate(target_side_url)
+    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     test.DidNavigateToPage(page, tab)
 
     # Wait for unpredictable redirects.

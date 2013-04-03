@@ -169,8 +169,8 @@ class InspectorBackend(object):
   def PerformActionAndWaitForNavigate(self, action_function, timeout):
     self._page.PerformActionAndWaitForNavigate(action_function, timeout)
 
-  def Navigate(self, url, timeout):
-    self._page.Navigate(url, timeout)
+  def Navigate(self, url, script_to_evaluate_on_commit, timeout):
+    self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
 
   def GetCookieByName(self, name, timeout):
     return self._page.GetCookieByName(name, timeout)

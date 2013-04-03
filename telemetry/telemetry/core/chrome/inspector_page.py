@@ -62,8 +62,13 @@ class InspectorPage(object):
 
     DisablePageNotifications()
 
-  def Navigate(self, url, timeout=60):
-    """Navigates to url"""
+  def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=60):
+    """Navigates to |url|.
+
+    If |script_to_evaluate_on_commit| is given, the script source string will be
+    evaluated when the navigation is committed. This is after the context of
+    the page exists, but before any script on the page itself has executed.
+    """
 
     def DoNavigate():
       # Navigate the page. However, there seems to be a bug in chrome devtools
@@ -79,7 +84,14 @@ class InspectorPage(object):
               }
           }
       self._inspector_backend.SendAndIgnoreResponse(request)
-
+      if script_to_evaluate_on_commit:
+        request = {
+            'method': 'Page.addScriptToEvaluateOnLoad',
+            'params': {
+                'scriptSource': script_to_evaluate_on_commit,
+                }
+            }
+        self._inspector_backend.SendAndIgnoreResponse(request)
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
 
   def GetCookieByName(self, name, timeout=60):

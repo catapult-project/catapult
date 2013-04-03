@@ -26,6 +26,7 @@ class Page(object):
     self._attributes['credentials'] = None
     self._attributes['disabled'] = False
     self._attributes['wait_time_after_navigate'] = 2
+    self._attributes['script_to_evaluate_on_commit'] = None
     if attributes:
       self._attributes.update(attributes)
 
