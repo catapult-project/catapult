@@ -7,17 +7,18 @@
 /**
  * @fileoverview Interactive visualizaiton of Model objects
  * based loosely on gantt charts. Each thread in the Model is given a
- * set of Tracks, one per subrow in the thread. The Timeline class
+ * set of Tracks, one per subrow in the thread. The TimelineTrackView class
  * acts as a controller, creating the individual tracks, while Tracks
  * do actual drawing.
  *
- * Visually, the Timeline produces (prettier) visualizations like the following:
+ * Visually, the TimelineTrackView produces (prettier) visualizations like the
+ * following:
  *    Thread1:  AAAAAAAAAA         AAAAA
  *                  BBBB              BB
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-base.requireStylesheet('timeline');
+base.requireStylesheet('timeline_track_view');
 base.require('event_target');
 base.require('measuring_stick');
 base.require('filter');
@@ -56,15 +57,15 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Timeline = tracing.ui.define('div');
+  var TimelineTrackView = tracing.ui.define('div');
 
-  Timeline.prototype = {
+  TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     model_: null,
 
     decorate: function() {
-      this.classList.add('timeline');
+      this.classList.add('timeline-track-view');
 
       this.categoryFilter_ = new tracing.CategoryFilter();
 
@@ -676,9 +677,9 @@ base.exportTo('tracing', function() {
    * The Model being viewed by the timeline
    * @type {Model}
    */
-  base.defineProperty(Timeline, 'model', base.PropertyKind.JS);
+  base.defineProperty(TimelineTrackView, 'model', base.PropertyKind.JS);
 
   return {
-    Timeline: Timeline
+    TimelineTrackView: TimelineTrackView
   };
 });

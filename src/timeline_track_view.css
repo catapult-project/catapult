@@ -2,12 +2,12 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
-.timeline * {
+.timeline-track-view * {
   -webkit-user-select: none;
   cursor: default;
 }
 
-.timeline {
+.timeline-track-view {
   -webkit-box-orient: vertical;
   display: -webkit-box;
 }

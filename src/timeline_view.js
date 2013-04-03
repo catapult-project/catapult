@@ -10,7 +10,7 @@
  */
 base.requireStylesheet('timeline_view');
 
-base.require('timeline');
+base.require('timeline_track_view');
 base.require('timeline_analysis_view');
 base.require('category_filter_dialog');
 base.require('filter');
@@ -296,7 +296,7 @@ base.exportTo('tracing', function() {
 
       // Create new timeline if needed.
       if (modelValid && !this.timeline_) {
-        this.timeline_ = new tracing.Timeline();
+        this.timeline_ = new tracing.TimelineTrackView();
         this.timeline_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
         this.timelineContainer_.appendChild(this.timeline_);

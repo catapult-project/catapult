@@ -323,32 +323,32 @@ base.addModuleStylesheet(
     'tracks.ruler_track',
     'tracks.ruler_track');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'event_target');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'measuring_stick');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'filter');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'selection');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'timeline_viewport');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'tracks.model_track');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'tracks.ruler_track');
 base.addModuleDependency(
-    'timeline',
+    'timeline_track_view',
     'ui');
 base.addModuleStylesheet(
-    'timeline',
-    'timeline');
+    'timeline_track_view',
+    'timeline_track_view');
 base.addModuleDependency(
     'timeline_analysis_view',
     'analysis.util');
@@ -375,7 +375,7 @@ base.addModuleDependency(
     'overlay');
 base.addModuleDependency(
     'find_control',
-    'timeline');
+    'timeline_track_view');
 base.addModuleDependency(
     'find_control',
     'filter');
@@ -492,7 +492,7 @@ base.addModuleDependency(
     'importer.v8.codemap');
 base.addModuleDependency(
     'timeline_view',
-    'timeline');
+    'timeline_track_view');
 base.addModuleDependency(
     'timeline_view',
     'timeline_analysis_view');

@@ -7,7 +7,7 @@
 /**
  * @fileoverview FindControl and FindController.
  */
-base.require('timeline');
+base.require('timeline_track_view');
 base.require('filter');
 base.require('overlay');
 base.exportTo('tracing', function() {

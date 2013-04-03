@@ -110,10 +110,11 @@ base.require('dependency1');
 
 /**
  * @fileoverview TimelineView visualizes TRACE_EVENT events using the
- * tracing.Timeline component and adds in selection summary and control buttons.
+ * tracing.TimelineTrackView component and adds in selection summary and
+ * control buttons.
  */
 base.requireStylesheet('timeline_view')
-base.require('timeline');
+base.require('timeline_track_view');
 base.require('timeline_analysis');
 base.require('overlay');
 base.require('trace_event_importer');
@@ -123,7 +124,7 @@ base.exportsTo('tracing', function() {"""
     module = parse_deps.Module("timeline_view")
     module.parse_definition_(text)
     self.assertEquals(["timeline_view"], module.style_sheet_names);
-    self.assertEquals(["timeline",
+    self.assertEquals(["timeline_track_view",
                        "timeline_analysis",
                        "overlay",
                        "trace_event_importer",
@@ -240,11 +241,11 @@ class ResourceFinderTest(unittest.TestCase):
     module = parse_deps.Module("unittest")
     module.load_and_parse(os.path.join(srcdir, "unittest.js"))
     filename, contents = resource_finder.find_and_load_module(
-        module, "tracks.timeline_track")
+        module, "tracks.track")
 
-    self.assertTrue(os.path.samefile(filename, os.path.join(srcdir, "tracks/timeline_track.js")))
+    self.assertTrue(os.path.samefile(filename, os.path.join(srcdir, "tracks/track.js")))
     expected_contents = ''
-    with open(os.path.join(srcdir, "tracks/timeline_track.js")) as f:
+    with open(os.path.join(srcdir, "tracks/track.js")) as f:
       expected_contents = f.read()
     self.assertEquals(contents, expected_contents)
 
