@@ -24,10 +24,10 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  var Process = tracing.Process;
+  var Process = tracing.model.Process;
   var Selection = tracing.Selection;
-  var Thread = tracing.Thread;
-  var ThreadSlice = tracing.ThreadSlice;
+  var Thread = tracing.model.Thread;
+  var ThreadSlice = tracing.model.ThreadSlice;
   var ThreadTrack = tracing.tracks.ThreadTrack;
   var Viewport = tracing.TimelineViewport;
   var newAsyncSlice = test_utils.newAsyncSlice;
@@ -38,8 +38,8 @@ found in the LICENSE file.
     var model = new tracing.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(new tracing.ThreadSlice('', 'a', 0, 1, {}, 4));
-    t1.pushSlice(new tracing.ThreadSlice('', 'b', 0, 5.1, {}, 4));
+    t1.pushSlice(new tracing.model.ThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.pushSlice(new tracing.model.ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = this.addHTMLOutput();
     testEl.style.width = '600px';

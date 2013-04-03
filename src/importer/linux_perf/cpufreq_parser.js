@@ -54,7 +54,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       // TODO(sleffler) should be per-cpu
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);
@@ -63,7 +63,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     cpufreqBoostSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);

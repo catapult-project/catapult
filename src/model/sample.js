@@ -7,7 +7,7 @@
 /**
  * @fileoverview Provides the Sample class.
  */
-base.exportTo('tracing', function() {
+base.exportTo('tracing.model', function() {
 
   /**
    * A Sample represents a sample taken at an instant in time

@@ -9,12 +9,12 @@
  */
 base.require('range');
 base.require('guid');
-base.require('thread');
-base.require('counter');
-base.exportTo('tracing', function() {
+base.require('model.thread');
+base.require('model.counter');
+base.exportTo('tracing.model', function() {
 
-  var Thread = tracing.Thread;
-  var Counter = tracing.Counter;
+  var Thread = tracing.model.Thread;
+  var Counter = tracing.model.Counter;
 
   /**
    * The ProcessBase is an partial base class, upon which Kernel

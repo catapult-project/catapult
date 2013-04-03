@@ -62,16 +62,16 @@ base.exportTo('tracing.importer', function() {
         else
           name = this.lastActiveComm;
 
-        var slice = new tracing.Slice('', name,
-                                      tracing.getStringColorId(name),
-                                      this.lastActiveTs,
-                                      {
-                                        comm: this.lastActiveComm,
-                                        tid: this.lastActivePid,
-                                        prio: this.lastActivePrio,
-                                        stateWhenDescheduled: prevState
-                                      },
-                                      duration);
+        var slice = new tracing.model.Slice('', name,
+                                            tracing.getStringColorId(name),
+                                            this.lastActiveTs,
+                                            {
+                                              comm: this.lastActiveComm,
+                                              tid: this.lastActivePid,
+                                              prio: this.lastActivePrio,
+                                              stateWhenDescheduled: prevState
+                                            },
+                                            duration);
         this.cpu.slices.push(slice);
       }
 
@@ -448,7 +448,7 @@ base.exportTo('tracing.importer', function() {
         var slices = [];
         if (origSlices.length) {
           var slice = origSlices[0];
-          slices.push(new tracing.Slice('', 'Running', runningId,
+          slices.push(new tracing.model.Slice('', 'Running', runningId,
               slice.start, {}, slice.duration));
         }
         var wakeup = undefined;
@@ -466,12 +466,12 @@ base.exportTo('tracing.importer', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tracing.Slice('', title, id, prevSlice.end,
+            slices.push(new tracing.model.Slice('', title, id, prevSlice.end,
               {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
-              slices.push(new tracing.Slice('', 'Runnable', runnableId,
+              slices.push(new tracing.model.Slice('', 'Runnable', runnableId,
                   wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
             }
@@ -481,27 +481,27 @@ base.exportTo('tracing.importer', function() {
             pushSleep('Sleeping', sleepingId);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
-            slices.push(new tracing.Slice('', 'Runnable', runnableId,
+            slices.push(new tracing.model.Slice('', 'Runnable', runnableId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             pushSleep('Uninterruptible Sleep', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tracing.Slice('', '__TASK_STOPPED',
+            slices.push(new tracing.model.Slice('', '__TASK_STOPPED',
                 ioWaitId, prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tracing.Slice('', 'debug', ioWaitId,
+            slices.push(new tracing.model.Slice('', 'debug', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tracing.Slice('', 'Zombie', ioWaitId,
+            slices.push(new tracing.model.Slice('', 'Zombie', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tracing.Slice('', 'Exit Dead', ioWaitId,
+            slices.push(new tracing.model.Slice('', 'Exit Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tracing.Slice('', 'Task Dead', ioWaitId,
+            slices.push(new tracing.model.Slice('', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tracing.Slice('', 'WakeKill', ioWaitId,
+            slices.push(new tracing.model.Slice('', 'WakeKill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep('Uninterruptable Sleep | WakeKill', ioWaitId);
@@ -510,7 +510,7 @@ base.exportTo('tracing.importer', function() {
                 prevSlice.args.stateWhenDescheduled;
           }
 
-          slices.push(new tracing.Slice('', 'Running', runningId,
+          slices.push(new tracing.model.Slice('', 'Running', runningId,
               nextSlice.start, {}, nextSlice.duration));
         }
         thread.cpuSlices = slices;

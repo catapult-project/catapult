@@ -17,18 +17,18 @@ found in the LICENSE file.
     margin: 10px;
   }
 </style>
-<script src="base.js"></script>
+<script src="/src/base.js"></script>
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('process');
+  base.require('model.process');
 </script>
 </head>
 <body>
 <script>
   'use strict';
 
-  var Process = tracing.Process;
+  var Process = tracing.model.Process;
 
   function testGetOrCreateCounter() {
     var process = new Process(7);

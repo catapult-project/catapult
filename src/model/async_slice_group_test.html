@@ -7,7 +7,7 @@ found in the LICENSE file.
 -->
 <head>
 <title>AsyncSliceGroup tests</title>
-<script src="base.js"></script>
+<script src="/src/base.js"></script>
 </head>
 <body>
   <script>
@@ -18,11 +18,11 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-  var Process = tracing.Process;
-  var Thread = tracing.Thread;
   var Model = tracing.Model;
-  var AsyncSlice = tracing.AsyncSlice;
-  var AsyncSliceGroup = tracing.AsyncSliceGroup;
+  var Process = tracing.model.Process;
+  var Thread = tracing.model.Thread;
+  var AsyncSlice = tracing.model.AsyncSlice;
+  var AsyncSliceGroup = tracing.model.AsyncSliceGroup;
   var newAsyncSlice = test_utils.newAsyncSlice;
 
   function testAsyncSliceGroupBounds_Empty() {

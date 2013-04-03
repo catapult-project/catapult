@@ -34,7 +34,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     openAsyncSlice: function(ts, category, threadName, pid, key, name) {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
-      var slice = new tracing.AsyncSlice(
+      var slice = new tracing.model.AsyncSlice(
           category, name, tracing.getStringColorId(name), ts);
       slice.startThread = kthread.thread;
 
@@ -53,7 +53,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
           slice.duration = ts - slice.start;
           slice.args = args;
           slice.endThread = kthread.thread;
-          slice.subSlices = [new tracing.Slice(category, slice.title,
+          slice.subSlices = [new tracing.model.Slice(category, slice.title,
               slice.colorId, slice.start, slice.args, slice.duration)];
           kthread.thread.asyncSlices.push(slice);
           delete kthread.openAsyncSlices[key];

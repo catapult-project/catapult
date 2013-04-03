@@ -7,19 +7,19 @@ found in the LICENSE file.
 -->
 <head>
 <title>SliceGroup tests</title>
-<script src="base.js"></script>
+<script src="/src/base.js"></script>
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('slice_group');
+  base.require('model.slice_group');
 </script>
 </head>
 <body>
 <script>
   'use strict';
 
-  var Slice = tracing.Slice;
-  var SliceGroup = tracing.SliceGroup;
+  var Slice = tracing.model.Slice;
+  var SliceGroup = tracing.model.SliceGroup;
   var newSlice = test_utils.newSlice;
   var newSliceNamed = test_utils.newSliceNamed;
 

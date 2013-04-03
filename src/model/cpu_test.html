@@ -7,19 +7,19 @@ found in the LICENSE file.
 -->
 <head>
 <title>Cpu tests</title>
-<script src="base.js"></script>
+<script src="/src/base.js"></script>
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('cpu');
+  base.require('model.cpu');
 </script>
 </head>
 <body>
 <script>
   'use strict';
 
-  var Cpu = tracing.Cpu;
-  var Slice = tracing.Slice;
+  var Cpu = tracing.model.Cpu;
+  var Slice = tracing.model.Slice;
 
   function testCpuBounds_Empty() {
     var cpu = new Cpu(undefined, 1);

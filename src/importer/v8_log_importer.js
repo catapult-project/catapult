@@ -6,7 +6,7 @@
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 base.require('model');
-base.require('slice');
+base.require('model.slice');
 base.require('color_scheme');
 base.require('importer.v8.log_reader');
 base.require('importer.v8.codemap');
@@ -66,7 +66,8 @@ base.exportTo('tracing.importer', function() {
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
       var colorId = tracing.getStringColorId(name);
-      var slice = new tracing.Slice('v8', name, colorId, start, args, length);
+      var slice = new tracing.model.Slice('v8', name, colorId, start,
+                                          args, length);
       this.v8_timer_thread_.pushSlice(slice);
     },
 
@@ -138,7 +139,8 @@ base.exportTo('tracing.importer', function() {
           entry = this.code_map_.findEntry(stack[i]);
           name = this.nameForCodeEntry_(entry);
           var colorId = tracing.getStringColorId(name);
-          var slice = new tracing.Slice('v8', name, colorId, start, {}, 0);
+          var slice = new tracing.model.Slice('v8', name, colorId, start,
+                                              {}, 0);
           this.v8_stack_thread_.pushSlice(slice);
         }
       }

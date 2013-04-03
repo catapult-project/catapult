@@ -77,7 +77,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     i915FlipCloseSlice: function(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
-        var slice = new tracing.Slice('', kthread.openSlice,
+        var slice = new tracing.model.Slice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             args,
@@ -91,7 +91,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     i915GemObjectSlice: function(ts, eventName, obj, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);
@@ -100,7 +100,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);
@@ -109,7 +109,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     i915RegSlice: function(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);

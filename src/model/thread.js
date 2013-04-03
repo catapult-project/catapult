@@ -9,16 +9,16 @@
  */
 base.require('range');
 base.require('guid');
-base.require('slice');
-base.require('slice_group');
-base.require('async_slice_group');
-base.require('sample');
-base.exportTo('tracing', function() {
+base.require('model.slice');
+base.require('model.slice_group');
+base.require('model.async_slice_group');
+base.require('model.sample');
+base.exportTo('tracing.model', function() {
 
-  var Slice = tracing.Slice;
-  var SliceGroup = tracing.SliceGroup;
-  var AsyncSlice = tracing.AsyncSlice;
-  var AsyncSliceGroup = tracing.AsyncSliceGroup;
+  var Slice = tracing.model.Slice;
+  var SliceGroup = tracing.model.SliceGroup;
+  var AsyncSlice = tracing.model.AsyncSlice;
+  var AsyncSliceGroup = tracing.model.AsyncSliceGroup;
 
   /**
    * A ThreadSlice represents an interval of time on a thread resource
@@ -121,8 +121,8 @@ base.exportTo('tracing', function() {
         }
       }
       var colorId = tracing.getStringColorId(title);
-      var sample = new tracing.Sample(category, title, colorId, ts,
-                                              opt_args ? opt_args : {});
+      var sample = new tracing.model.Sample(category, title, colorId, ts,
+                                            opt_args ? opt_args : {});
       this.samples_.push(sample);
       return sample;
     },

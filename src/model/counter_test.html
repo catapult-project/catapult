@@ -7,18 +7,18 @@ found in the LICENSE file.
 -->
 <head>
 <title>Counter tests</title>
-<script src="base.js"></script>
+<script src="/src/base.js"></script>
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('counter');
+  base.require('model.counter');
 </script>
 </head>
 <body>
 <script>
   'use strict';
 
-  var Counter = tracing.Counter;
+  var Counter = tracing.model.Counter;
 
   function createCounterWithTwoSeries() {
     var ctr = new Counter(null, 0, '', 'myCounter');

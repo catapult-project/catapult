@@ -8,11 +8,11 @@
  * @fileoverview Provides the Cpu class.
  */
 base.require('range');
-base.require('slice');
-base.require('counter');
-base.exportTo('tracing', function() {
+base.require('model.slice');
+base.require('model.counter');
+base.exportTo('tracing.model', function() {
 
-  var Counter = tracing.Counter;
+  var Counter = tracing.model.Counter;
 
   /**
    * The Cpu represents a Cpu from the kernel's point of view.

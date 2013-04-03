@@ -7,9 +7,9 @@
 /**
  * @fileoverview Provides the Process class.
  */
-base.require('process_base');
+base.require('model.process_base');
 
-base.exportTo('tracing', function() {
+base.exportTo('tracing.model', function() {
 
   /**
    * The Kernel represents kernel-level objects in the
@@ -17,7 +17,7 @@ base.exportTo('tracing', function() {
    * @constructor
    */
   function Kernel() {
-    tracing.ProcessBase.call(this);
+    tracing.model.ProcessBase.call(this);
   };
 
   /**
@@ -28,7 +28,7 @@ base.exportTo('tracing', function() {
   };
 
   Kernel.prototype = {
-    __proto__: tracing.ProcessBase.prototype,
+    __proto__: tracing.model.ProcessBase.prototype,
 
     compareTo: function(that) {
       return Kernel.compare(this, that);

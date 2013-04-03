@@ -44,15 +44,15 @@ base.exportTo('tracing.analysis.test', function() {
       t1.pushSlice(newSliceNamed('Slice with a really, really long name.',
                                   0, 0.005));
 
-      t1.slices.push(new tracing.Slice('category', 'D', 0, 1.15,
-                                            {src_file: 'Arg D src_file',
-                                            src_func: 'Arg D src_func'}, .5));
-      t1.slices.push(new tracing.Slice('cat', 'E', 0, 1,
-                                            {src_file: 'Arg E src_file',
-                                            src_func: 'Arg E src_func'}, .4));
-      t1.slices.push(new tracing.Slice('cat', 'F', 0, 1,
-                                            {src_file: '0',
-                                            src_func: 'false'}, .4));
+      t1.slices.push(new tracing.model.Slice('category', 'D', 0, 1.15,
+                                             {src_file: 'Arg D src_file',
+                                              src_func: 'Arg D src_func'}, .5));
+      t1.slices.push(new tracing.model.Slice('cat', 'E', 0, 1,
+                                             {src_file: 'Arg E src_file',
+                                              src_func: 'Arg E src_func'}, .4));
+      t1.slices.push(new tracing.model.Slice('cat', 'F', 0, 1,
+                                             {src_file: '0',
+                                              src_func: 'false'}, .4));
 
       var ctr1 = p1.getOrCreateCounter('foo', 'ctr1');
       ctr1.seriesNames.push('bytesallocated', 'bytesfree');

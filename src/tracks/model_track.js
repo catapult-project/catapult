@@ -79,7 +79,7 @@ base.exportTo('tracing.tracks', function() {
       this.detachAllChildren();
       if (this.model_) {
         var cpus = this.model_.getAllCpus();
-        cpus.sort(tracing.Cpu.compare);
+        cpus.sort(tracing.model.Cpu.compare);
 
         for (var i = 0; i < cpus.length; ++i) {
           var cpu = cpus[i];
@@ -91,7 +91,7 @@ base.exportTo('tracing.tracks', function() {
 
         // Get a sorted list of processes.
         var processes = this.model_.getAllProcesses();
-        processes.sort(tracing.Process.compare);
+        processes.sort(tracing.model.Process.compare);
 
         for (var i = 0; i < processes.length; ++i) {
           var process = processes[i];

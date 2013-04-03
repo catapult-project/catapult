@@ -61,7 +61,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
         pid, pid);
       if (kthread.openSlice) {
-        var slice = new tracing.Slice('', kthread.openSlice,
+        var slice = new tracing.model.Slice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             {},

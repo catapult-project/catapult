@@ -50,74 +50,77 @@ base.addModuleStylesheet(
     'analysis.selection_analysis',
     'analysis.selection_analysis');
 base.addModuleDependency(
-    'slice_group',
+    'model.counter',
+    'guid');
+base.addModuleDependency(
+    'model.counter',
     'range');
 base.addModuleDependency(
-    'slice_group',
-    'slice');
+    'test_utils',
+    'model.counter');
 base.addModuleDependency(
-    'slice_group',
+    'model.slice_group',
+    'range');
+base.addModuleDependency(
+    'model.slice_group',
+    'model.slice');
+base.addModuleDependency(
+    'model.slice_group',
     'color_scheme');
 base.addModuleDependency(
-    'slice_group',
+    'model.slice_group',
     'filter');
 base.addModuleDependency(
-    'async_slice_group',
+    'model.async_slice_group',
     'range');
 base.addModuleDependency(
-    'async_slice_group',
-    'slice');
+    'model.async_slice_group',
+    'model.slice');
 base.addModuleDependency(
-    'thread',
+    'model.thread',
     'range');
 base.addModuleDependency(
-    'thread',
+    'model.thread',
     'guid');
 base.addModuleDependency(
-    'thread',
-    'slice');
+    'model.thread',
+    'model.slice');
 base.addModuleDependency(
-    'thread',
-    'slice_group');
+    'model.thread',
+    'model.slice_group');
 base.addModuleDependency(
-    'thread',
-    'async_slice_group');
+    'model.thread',
+    'model.async_slice_group');
 base.addModuleDependency(
-    'thread',
-    'sample');
+    'model.thread',
+    'model.sample');
 base.addModuleDependency(
-    'counter',
+    'model.process_base',
+    'range');
+base.addModuleDependency(
+    'model.process_base',
     'guid');
 base.addModuleDependency(
-    'counter',
+    'model.process_base',
+    'model.thread');
+base.addModuleDependency(
+    'model.process_base',
+    'model.counter');
+base.addModuleDependency(
+    'model.process',
+    'model.process_base');
+base.addModuleDependency(
+    'model.kernel',
+    'model.process_base');
+base.addModuleDependency(
+    'model.cpu',
     'range');
 base.addModuleDependency(
-    'process_base',
-    'range');
+    'model.cpu',
+    'model.slice');
 base.addModuleDependency(
-    'process_base',
-    'guid');
-base.addModuleDependency(
-    'process_base',
-    'thread');
-base.addModuleDependency(
-    'process_base',
-    'counter');
-base.addModuleDependency(
-    'process',
-    'process_base');
-base.addModuleDependency(
-    'kernel',
-    'process_base');
-base.addModuleDependency(
-    'cpu',
-    'range');
-base.addModuleDependency(
-    'cpu',
-    'slice');
-base.addModuleDependency(
-    'cpu',
-    'counter');
+    'model.cpu',
+    'model.counter');
 base.addModuleDependency(
     'model',
     'range');
@@ -126,13 +129,13 @@ base.addModuleDependency(
     'event_target');
 base.addModuleDependency(
     'model',
-    'process');
+    'model.process');
 base.addModuleDependency(
     'model',
-    'kernel');
+    'model.kernel');
 base.addModuleDependency(
     'model',
-    'cpu');
+    'model.cpu');
 base.addModuleDependency(
     'model',
     'filter');
@@ -258,7 +261,7 @@ base.addModuleDependency(
     'model');
 base.addModuleDependency(
     'importer.timeline_stream_importer',
-    'slice');
+    'model.slice');
 base.addModuleDependency(
     'timeline_viewport',
     'event_target');
@@ -477,7 +480,7 @@ base.addModuleDependency(
     'model');
 base.addModuleDependency(
     'importer.v8_log_importer',
-    'slice');
+    'model.slice');
 base.addModuleDependency(
     'importer.v8_log_importer',
     'color_scheme');

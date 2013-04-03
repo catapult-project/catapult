@@ -487,7 +487,7 @@ function testInstanceCounter() {
 }
 
 function testMultiCounterUpdateBounds() {
-  var ctr = new tracing.Counter(undefined, 'testBasicCounter',
+  var ctr = new tracing.model.Counter(undefined, 'testBasicCounter',
       '', 'testBasicCounter');
   ctr.seriesNames = ['value1', 'value2'];
   ctr.seriesColors = ['testBasicCounter.value1', 'testBasicCounter.value2'];

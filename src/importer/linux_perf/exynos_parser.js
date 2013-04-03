@@ -41,7 +41,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     exynosFlipCloseSlice: function(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('exynos_flip');
       if (kthread.openSlice) {
-        var slice = new tracing.Slice('', kthread.openSlice,
+        var slice = new tracing.model.Slice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             args,

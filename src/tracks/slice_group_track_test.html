@@ -17,14 +17,14 @@ found in the LICENSE file.
   base.require('unittest');
   base.require('test_utils');
   base.require('timeline');
-  base.require('slice_group');
+  base.require('model.slice_group');
 </script>
 </head>
 <body>
 <script>
   'use strict';
 
-  var SliceGroup = tracing.SliceGroup;
+  var SliceGroup = tracing.model.SliceGroup;
   var SliceGroupTrack = tracing.tracks.SliceGroupTrack;
   var newSliceNamed = test_utils.newSliceNamed;
 

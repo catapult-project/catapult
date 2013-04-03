@@ -50,7 +50,7 @@ base.exportTo('tracing.tracks', function() {
         for (var tid in this.process.counters) {
           counters.push(this.process.counters[tid]);
         }
-        counters.sort(tracing.Counter.compare);
+        counters.sort(tracing.model.Counter.compare);
 
         // Create the counters for this process.
         counters.forEach(function(counter) {
@@ -64,7 +64,7 @@ base.exportTo('tracing.tracks', function() {
         var threads = [];
         for (var tid in this.process.threads)
           threads.push(this.process.threads[tid]);
-        threads.sort(tracing.Thread.compare);
+        threads.sort(tracing.model.Thread.compare);
 
         // Create the threads.
         threads.forEach(function(thread) {

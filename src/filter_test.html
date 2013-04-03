@@ -21,8 +21,7 @@ found in the LICENSE file.
 <script>
   base.require('unittest');
   base.require('test_utils');
-  base.require('counter');
-  base.require('slice');
+  base.require('model.slice');
   base.require('filter');
 </script>
 </head>
@@ -30,7 +29,7 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  var Slice = tracing.Slice;
+  var Slice = tracing.model.Slice;
   var TitleFilter = tracing.TitleFilter;
   var CategoryFilter = tracing.CategoryFilter;
 

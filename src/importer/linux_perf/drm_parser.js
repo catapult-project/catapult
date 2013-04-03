@@ -27,7 +27,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
-      var slice = new tracing.Slice('', kthread.openSlice,
+      var slice = new tracing.model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.pushSlice(slice);

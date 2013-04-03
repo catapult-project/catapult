@@ -300,7 +300,7 @@ base.exportTo('tracing.importer', function() {
 
           if (event.ph == 'F') {
             // Create a slice from start to end.
-            var slice = new tracing.AsyncSlice(
+            var slice = new tracing.model.AsyncSlice(
                 events[0].event.cat,
                 name,
                 tracing.getStringColorId(name),
@@ -319,7 +319,7 @@ base.exportTo('tracing.importer', function() {
               var subName = name;
               if (events[j - 1].event.ph == 'T')
                 subName = name + ':' + events[j - 1].event.args.step;
-              var subSlice = new tracing.AsyncSlice(
+              var subSlice = new tracing.model.AsyncSlice(
                   events[0].event.cat,
                   subName,
                   tracing.getStringColorId(name + j),
