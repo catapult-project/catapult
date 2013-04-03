@@ -14,7 +14,6 @@ from telemetry.core.chrome import cros_interface
 
 ALL_BROWSER_TYPES = ','.join([
     'cros-chrome',
-    'system-cros',
     ])
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
@@ -44,7 +43,7 @@ def FindAllAvailableBrowsers(options):
     with open('/etc/lsb-release', 'r') as f:
       res = f.read()
       if res.count('CHROMEOS_RELEASE_NAME'):
-        return [PossibleCrOSBrowser('system-cros', options,
+        return [PossibleCrOSBrowser('system', options,
                                     cros_interface.CrOSInterface())]
 
   if options.cros_remote == None:
