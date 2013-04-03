@@ -23,10 +23,16 @@ class Page(object):
     self.credentials = None
     self.disabled = False
     self.wait_time_after_navigate = 2
+    self._attributes = attributes
 
-    if attributes:
-      for k, v in attributes.iteritems():
-        setattr(self, k, v)
+  def __getattr__(self, name):
+    if name in self._attributes:
+      return self._attributes[name]
+
+    if self.page_set and hasattr(self.page_set, name):
+      return getattr(self._page_set, name)
+
+    raise AttributeError()
 
   # NOTE: This assumes the page_set file uses 'file:///' instead of 'file://',
   # otherwise the '/' will be missing between page_set.base_dir and
