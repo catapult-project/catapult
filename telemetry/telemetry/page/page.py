@@ -30,7 +30,7 @@ class Page(object):
       return self._attributes[name]
 
     if self.page_set and hasattr(self.page_set, name):
-      return getattr(self._page_set, name)
+      return getattr(self.page_set, name)
 
     raise AttributeError()
 
