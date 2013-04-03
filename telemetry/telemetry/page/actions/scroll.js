@@ -73,13 +73,9 @@
         chrome.gpuBenchmarking &&
         chrome.gpuBenchmarking.smoothScrollBy) {
       var rect = getBoundingVisibleRect(this.element_);
-      var scrolled = chrome.gpuBenchmarking.smoothScrollBy(
-          distance, function() {
-              callback();
-          },
-          rect.left + rect.width / 2, rect.top + rect.height / 2);
-      if (!scrolled)
-        console.log('Unable to start smooth scrolling');
+      chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
+        callback();
+      }, rect.left + rect.width / 2, rect.top + rect.height / 2);
       return;
     }
 
