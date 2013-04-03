@@ -59,7 +59,11 @@ class Page(object):
   def display_url(self):
     common_prefix = os.path.commonprefix([p.url for p in self.page_set
                                           if p.url.startswith('file://')])
-    return self.url[len(common_prefix):]
+    url = self.url
+    # Trim trailing slash from file URLs.
+    if url.startswith('file://') and url.endswith('/'):
+      url = url[:-1]
+    return url[len(common_prefix):]
 
   @property
   def archive_path(self):
