@@ -20,10 +20,14 @@ class Page(object):
     self.url = url
     self.page_set = page_set
     self.base_dir = base_dir
-    self.credentials = None
-    self.disabled = False
-    self.wait_time_after_navigate = 2
-    self._attributes = attributes
+
+    # These _attributes can be set dynamically by the page.
+    self._attributes = {}
+    self._attributes['credentials'] = None
+    self._attributes['disabled'] = False
+    self._attributes['wait_time_after_navigate'] = 2
+    if attributes:
+      self._attributes.update(attributes)
 
   def __getattr__(self, name):
     if name in self._attributes:
