@@ -105,10 +105,15 @@ found in the LICENSE file.
         return base.isChromeOS;
       },
 
-      beginTracing: function(opt_systemTracingEnabled) {
+      beginTracing: function(opt_systemTracingEnabled,
+                             opt_continuousTracingEnabled,
+                             opt_traceCategories) {
         this.wasBeginTracingCalled = true;
         this.wasBeginTracingCalledWithSystemTracingEnabled =
             opt_systemTracingEnabled;
+        this.wasBeginTracingCalledWithContinuousTracingEnabled =
+            opt_continuousTracingEnabled;
+        this.beginTracingCategories = opt_traceCategories;
       },
 
       collectCategories: function() {
@@ -128,13 +133,13 @@ found in the LICENSE file.
           return [];
         return systemTraceTestData;
       }
-
     };
 
     function recordTestCommon() {
       var view = new tracing.ProfilingView();
       var tracingController = new FakeTracingController();
       view.tracingController = tracingController;
+
       view.querySelector('button.record').click();
       assertTrue(tracingController.wasCollectCategoriesCalled);
 
@@ -142,7 +147,8 @@ found in the LICENSE file.
       e.categories = ['skia', 'gpu'];
       tracingController.dispatchEvent(e);
 
-      view.categorySelectionDialog_.querySelector('button.record_categories').click();
+      view.categorySelectionDialog_.querySelector(
+          'button.record-categories').click();
 
       assertTrue(tracingController.wasBeginTracingCalled);
       assertEquals(base.isChromeOS,
@@ -152,6 +158,30 @@ found in the LICENSE file.
       e.events = tracingController.traceEvents;
       tracingController.dispatchEvent(e);
       assertTrue(!!view.timelineView.model);
+    }
+
+    function testSelectedCategoriesSentToTracing() {
+      var view = new tracing.ProfilingView();
+      view.timelineView_.settings.set('cc', 'true', 'record_categories');
+      view.timelineView_.settings.set('renderer', 'false', 'record_categories');
+
+      var tracingController = new FakeTracingController();
+      view.tracingController = tracingController;
+
+      view.querySelector('button.record').click();
+      assertTrue(tracingController.wasCollectCategoriesCalled);
+
+      var e = new base.Event('categoriesCollected');
+      e.categories = ['skia', 'gpu', 'cc', 'renderer'];
+      tracingController.dispatchEvent(e);
+
+      view.categorySelectionDialog_.querySelector(
+          'button.record-categories').click();
+
+      var categories = tracingController.beginTracingCategories;
+      // cc is selected by settings, gpu and skia are set by default since
+      // they aren't in settings. renderer is not there as it's off in settings.
+      assertEquals('cc,gpu,skia', categories);
     }
 
     function testRecordNonCros() {

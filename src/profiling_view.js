@@ -141,7 +141,7 @@ base.exportTo('tracing', function() {
 
       var buttonEl = document.createElement('button');
       buttonEl.innerText = 'Record';
-      buttonEl.className = 'record_categories';
+      buttonEl.className = 'record-categories';
       buttonEl.onclick = this.onRecord_.bind(this);
 
       var dlg = new tracing.CategoryFilterDialog();
@@ -162,20 +162,10 @@ base.exportTo('tracing', function() {
 
     onRecord_: function() {
       var tc = this.tracingController_;
-
       this.categorySelectionDialog_.visible = false;
 
-      var settings = this.timelineView_.settings;
-      var allCategories = settings.keys('record_categories');
-      var allCategoriesLength = allCategories.length;
-      var categories = [];
-      for (var i = 0; i < allCategoriesLength; ++i) {
-        if (settings.get(allCategories[i], 'true',
-                         'record_categories') === 'true') {
-          categories.push(allCategories[i]);
-        }
-      }
-      categories = categories.join(',');
+      var categories =
+          this.categorySelectionDialog_.selectedCategories().join(',');
 
       tc.beginTracing(this.systemTracingBn_.checked,
                       this.continuousTracingBn_.checked,

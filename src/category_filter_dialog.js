@@ -57,6 +57,20 @@ base.exportTo('tracing', function() {
       this.settingUpdatedCallback_ = c;
     },
 
+    selectedCategories: function() {
+      // TODO(dsinclair): This can be made smarter by just storing an array
+      // of selected categories when they're clicked.
+      var inputs = this.categoriesEl_.querySelectorAll('input');
+      var inputs_length = inputs.length;
+      var categories = [];
+      for (var i = 0; i < inputs_length; ++i) {
+        var input = inputs[i];
+        if (input.checked)
+          categories.push(input.value);
+      }
+      return categories;
+    },
+
     onVisibleChange_: function() {
       if (this.visible) {
         this.updateForm_();
