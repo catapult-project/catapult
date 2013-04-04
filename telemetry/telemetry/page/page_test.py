@@ -106,6 +106,15 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
+  def WillRunPageSet(self, tab, results):
+    """Override to do operations before the page set is navigated."""
+    pass
+
+  def DidRunPageSet(self, tab, results):
+    """Override to do operations after page set is completed, but before browser
+    is torn down."""
+    pass
+
   def WillNavigateToPage(self, page, tab):
     """Override to do operations before the page is navigated."""
     pass

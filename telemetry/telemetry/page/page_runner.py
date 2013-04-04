@@ -140,6 +140,7 @@ class PageRunner(object):
 
     state = _RunState()
     last_archive_path = None
+    is_first_run = True
     try:
       for page in pages:
         if options.wpr_mode != wpr_modes.WPR_RECORD:
@@ -171,6 +172,10 @@ class PageRunner(object):
 
             self._WaitForThermalThrottlingIfNeeded(state.browser.platform)
 
+            if is_first_run:
+              is_first_run = False
+              test.WillRunPageSet(state.tab, results)
+
             try:
               self._RunPage(options, page, state.tab, test, results)
               self._CheckThermalThrottling(state.browser.platform)
@@ -199,6 +204,7 @@ class PageRunner(object):
             if not tries:
               logging.error('Lost connection to browser 3 times. Failing.')
               raise
+      test.DidRunPageSet(state.tab, results)
     finally:
       state.Close()
 

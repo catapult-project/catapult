@@ -139,6 +139,34 @@ class PageBenchmarkResultsTest(unittest.TestCase):
       benchmark_results.results,
       expected)
 
+  def test_overall_results(self):
+    test_page_set = _MakePageSet()
+
+    benchmark_results = SummarySavingPageBenchmarkResults()
+
+    benchmark_results.AddSummary('a', 'seconds', 1)
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[0])
+    benchmark_results.Add('b', 'seconds', 2)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[1])
+    benchmark_results.Add('b', 'seconds', 3)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.AddSummary('c', 'seconds', 4)
+
+    benchmark_results.PrintSummary(None)
+    expected = ['RESULT b_by_url: http___www.foo.com_= 2 seconds',
+                'RESULT b_by_url: http___www.bar.com_= 3 seconds',
+                '*RESULT b: b= [2,3] seconds\n' +
+                'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
+                '*RESULT a: a= 1 seconds',
+                '*RESULT c: c= 4 seconds']
+    self.assertEquals(
+      benchmark_results.results,
+      expected)
+
   def test_histogram(self):
     test_page_set = _MakePageSet()
 

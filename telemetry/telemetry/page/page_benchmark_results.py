@@ -47,6 +47,7 @@ class PageBenchmarkResults(page_test.PageTestResults):
   def __init__(self):
     super(PageBenchmarkResults, self).__init__()
     self._page_results = []
+    self._overall_results = []
 
     self._all_measurements_that_have_been_seen = {}
 
@@ -75,6 +76,18 @@ class PageBenchmarkResults(page_test.PageTestResults):
     return self._all_measurements_that_have_been_seen
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
+    value = self._GetPageBenchmarkValue(trace_name, units, value, chart_name,
+                                        data_type)
+    self._values_for_current_page.AddValue(value)
+
+  def AddSummary(self, trace_name, units, value, chart_name=None,
+                 data_type='default'):
+    value = self._GetPageBenchmarkValue(trace_name, units, value, chart_name,
+                                        data_type)
+    self._overall_results.append(value)
+
+  def _GetPageBenchmarkValue(self, trace_name, units, value, chart_name,
+                             data_type):
     value = page_benchmark_value.PageBenchmarkValue(
         trace_name, units, value, chart_name, data_type)
     measurement_name = value.measurement_name
@@ -94,8 +107,7 @@ class PageBenchmarkResults(page_test.PageTestResults):
       self._all_measurements_that_have_been_seen[measurement_name] = {
         'units': units,
         'type': data_type}
-
-    self._values_for_current_page.AddValue(value)
+    return value
 
   def DidMeasurePage(self):
     assert self._values_for_current_page, 'Failed to call WillMeasurePage'
@@ -167,3 +179,14 @@ class PageBenchmarkResults(page_test.PageTestResults):
         if isinstance(values[0], list):
           values = list(chain.from_iterable(values))
         self._PrintPerfResult(measurement, trace, values, units, data_type)
+
+    # Output the overall results (results not associated with a page).
+    for value in self._overall_results:
+      values = value.value
+      if not isinstance(values, list):
+        values = [values]
+      measurement_name = value.chart_name
+      if not measurement_name:
+        measurement_name = value.trace_name
+      self._PrintPerfResult(measurement_name, value.trace_name,
+                            values, value.units, value.data_type)
