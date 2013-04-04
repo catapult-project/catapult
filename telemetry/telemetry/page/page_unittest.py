@@ -68,3 +68,13 @@ class TestPage(unittest.TestCase):
       }, os.path.dirname(__file__))
     self.assertEquals(ps[0].display_url, 'foo')
     self.assertEquals(ps[1].display_url, 'bar')
+
+  def testDisplayUrlForSingleFile(self):
+    ps = page_set.PageSet.FromDict({
+      "description": "hello",
+      "archive_path": "foo.wpr",
+      "pages": [
+        {"url": "file:///../../otherdir/foo.html"},
+        ]
+      }, os.path.dirname(__file__))
+    self.assertEquals(ps[0].display_url, 'file:///../../otherdir/foo.html')

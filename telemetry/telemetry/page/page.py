@@ -68,8 +68,10 @@ class Page(object):
 
   @property
   def display_url(self):
-    common_prefix = os.path.commonprefix([p.url for p in self.page_set
-                                          if p.url.startswith('file://')])
+    file_urls = [p.url for p in self.page_set if p.url.startswith('file://')]
+    common_prefix = ''
+    if len(file_urls) > 1:
+      common_prefix = os.path.commonprefix(file_urls)
     url = self.url
     # Trim trailing slash from file URLs.
     if url.startswith('file://') and url.endswith('/'):
