@@ -111,6 +111,13 @@ class PageBenchmarkResults(page_test.PageTestResults):
     if self.page_failures:
       return
 
+    unique_page_urls = []
+    for page_values in self._page_results:
+      url = page_values.page.display_url
+      if unique_page_urls and unique_page_urls[0] == url:
+        break
+      unique_page_urls.append(url)
+
     # Build the results summary.
     results_summary = defaultdict(list)
     for measurement_name in \
@@ -141,9 +148,17 @@ class PageBenchmarkResults(page_test.PageTestResults):
         trace = measurement + (trace_tag or '')
 
       if not trace_tag and len(value_url_list) > 1:
+        url_value_map = defaultdict(list)
         for value, url in value_url_list:
-          self._PrintPerfResult(measurement + '_by_url', url, [value], units,
-                                by_url_data_type)
+          if 'histogram' in data_type and url_value_map[url]:
+            # TODO(tonyg/marja): The histogram processing code only accepts one
+            # histogram, so we only report the first histogram. Once histograms
+            # support aggregating multiple values, this can be removed.
+            continue
+          url_value_map[url].append(value)
+        for url in unique_page_urls:
+          self._PrintPerfResult(measurement + '_by_url', url,
+                                url_value_map[url], units, by_url_data_type)
 
       # For histograms, we don't print the average data, only the _by_url,
       # unless there is only 1 page in which case the _by_urls are omitted.
