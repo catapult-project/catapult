@@ -333,9 +333,6 @@ class PageRunner(object):
     tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     test.DidNavigateToPage(page, tab)
 
-    # Wait for unpredictable redirects.
-    if page.wait_time_after_navigate:
-      time.sleep(page.wait_time_after_navigate)
     page.WaitToLoad(tab, 60)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
