@@ -283,6 +283,11 @@ base.exportTo('tracing', function() {
         this.processes[pid].pruneEmptyContainers();
       }
 
+      // Merge kernel and userland slices on each thread.
+      for (var pid in this.processes) {
+        this.processes[pid].mergeKernelWithUserland();
+      }
+
       this.updateBounds();
 
       this.updateCategories_();

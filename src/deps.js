@@ -428,6 +428,9 @@ base.addModuleDependency(
     'importer.linux_perf.android_parser',
     'importer.linux_perf.parser');
 base.addModuleDependency(
+    'importer.linux_perf.kfunc_parser',
+    'importer.linux_perf.parser');
+base.addModuleDependency(
     'importer.linux_perf_importer',
     'model');
 base.addModuleDependency(
@@ -472,6 +475,9 @@ base.addModuleDependency(
 base.addModuleDependency(
     'importer.linux_perf_importer',
     'importer.linux_perf.android_parser');
+base.addModuleDependency(
+    'importer.linux_perf_importer',
+    'importer.linux_perf.kfunc_parser');
 base.addModuleDependency(
     'importer.v8.codemap',
     'importer.v8.splaytree');

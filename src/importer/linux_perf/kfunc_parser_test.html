@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>importer.linux_perf.KernelFuncParser tests</title>
+<script src="../../base.js"></script>
+</head>
+<body>
+<script>
+'use strict';
+
+base.require('unittest');
+base.require('test_utils');
+base.require('importer.linux_perf_importer');
+
+function testKernelFunctionParser() {
+  var lines = [
+    'Binder_2-127   (  127) [001] ....  3431.906759: graph_ent: func=sys_write',
+    'Binder_2-127   (  127) [001] ....  3431.906769: graph_ret: func=sys_write',
+    'Binder_2-127   (  127) [001] ....  3431.906785: graph_ent: func=sys_write',
+    'Binder_2-127   (  127) [001] ...1  3431.906798: tracing_mark_write: B|' +
+      '127|dequeueBuffer',
+    'Binder_2-127   (  127) [001] ....  3431.906802: graph_ret: func=sys_write',
+    'Binder_2-127   (  127) [001] ....  3431.906842: graph_ent: func=sys_write',
+    'Binder_2-127   (  127) [001] ...1  3431.906849: tracing_mark_write: E',
+    'Binder_2-127   (  127) [001] ....  3431.906853: graph_ret: func=sys_write',
+    'Binder_2-127   (  127) [001] ....  3431.906896: graph_ent: func=sys_write',
+    'Binder_2-127   (  127) [001] ....  3431.906906: graph_ret: func=sys_write'
+  ];
+  var m = new tracing.Model(lines.join('\n'), false);
+  assertEquals(0, m.importErrors.length);
+  console.log(m);
+
+  var process = m.processes[127];
+  assertNotNull(process);
+
+  var thread = process.threads[127];
+  assertNotNull(thread);
+
+  var slices = thread.slices;
+  assertEquals(7, thread.slices.length);
+
+  // Slice 0 is an un-split sys_write
+  assertEquals("sys_write", slices[0].title);
+
+  // Slices 1 & 2 are a split sys_write
+  assertEquals("sys_write", slices[1].title);
+  assertEquals("sys_write (cont.)", slices[2].title);
+
+  // Slices 3 & 5 are a split sys_write with the dequeueBuffer in between
+  assertEquals("sys_write", slices[3].title);
+  assertEquals("dequeueBuffer", slices[4].title);
+  assertEquals("sys_write (cont.)", slices[5].title);
+
+  // Slice 6 is another un-split sys_write
+  assertEquals("sys_write", slices[6].title);
+}
+
+</script>
+</body>
+</html>

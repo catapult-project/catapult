@@ -69,6 +69,16 @@ base.exportTo('tracing.model', function() {
       }
     },
 
+    /**
+     * Merge slices from the kernel with those from userland for each thread.
+     */
+    mergeKernelWithUserland: function() {
+      for (var tid in this.threads) {
+        var thread = this.threads[tid];
+        thread.mergeKernelWithUserland();
+      }
+    },
+
     updateBounds: function() {
       this.bounds.reset();
       for (var tid in this.threads) {
