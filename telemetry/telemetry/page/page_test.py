@@ -64,7 +64,8 @@ class PageTest(object):
   def __init__(self,
                test_method_name,
                action_name_to_run='',
-               needs_browser_restart_after_each_run=False):
+               needs_browser_restart_after_each_run=False,
+               discard_first_result=False):
     self.options = None
     try:
       self._test_method = getattr(self, test_method_name)
@@ -74,10 +75,18 @@ class PageTest(object):
     self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_run = (
         needs_browser_restart_after_each_run)
+    self._discard_first_result = discard_first_result
 
   @property
   def needs_browser_restart_after_each_run(self):
     return self._needs_browser_restart_after_each_run
+
+  @property
+  def discard_first_result(self):
+    """When set to True, the first run of the test is discarded.  This is
+    useful for cases where it's desirable to have some test resource cached so
+    the first run of the test can warm things up. """
+    return self._discard_first_result
 
   def AddCommandLineOptions(self, parser):
     """Override to expose command-line options for this benchmark.

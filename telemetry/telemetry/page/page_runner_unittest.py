@@ -59,6 +59,29 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.page_successes))
     self.assertEquals(1, len(results.page_failures))
 
+  def testDiscardFirstResult(self):
+    ps = page_set.PageSet()
+    page = page_module.Page(
+        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        ps,
+        base_dir=os.path.dirname(__file__))
+    ps.pages.append(page)
+    results = page_test.PageTestResults()
+
+    class Test(page_test.PageTest):
+      @property
+      def discard_first_result(self):
+        return True
+      def RunTest(self, *args):
+        pass
+
+    with page_runner.PageRunner(ps) as runner:
+      options = options_for_unittests.GetCopy()
+      possible_browser = browser_finder.FindBrowser(options)
+      runner.Run(options, possible_browser, Test('RunTest'), results)
+    self.assertEquals(0, len(results.page_successes))
+    self.assertEquals(0, len(results.page_failures))
+
   def disabled_testCredentialsWhenLoginFails(self):
     # This test is disabled because it runs against live sites, and needs to be
     # fixed. crbug.com/179038

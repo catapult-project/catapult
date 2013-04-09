@@ -12,6 +12,7 @@ import random
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core import exceptions
+from telemetry.page import page_benchmark_results
 from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_test
 
@@ -66,7 +67,7 @@ class PageRunner(object):
   def __exit__(self, *args):
     self.Close()
 
-  def Run(self, options, possible_browser, test, results):
+  def Run(self, options, possible_browser, test, out_results):
     # Reorder page set based on options.
     pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
@@ -87,7 +88,7 @@ class PageRunner(object):
   No page set archive provided for the page %s. Not running the page. To run
   against live sites, pass the flag --allow-live-sites.
 """, page.url)
-          results.AddFailure(page, 'Page set archive not defined', '')
+          out_results.AddFailure(page, 'Page set archive not defined', '')
           pages_without_archives.append(page)
       elif options.wpr_mode != wpr_modes.WPR_RECORD:
         # The page has an archive, and we're not recording.
@@ -108,7 +109,7 @@ class PageRunner(object):
   http://goto/read-src-internal, or create a new archive using record_wpr.
   To run against live sites, pass the flag --allow-live-sites.
   """, os.path.relpath(page.archive_path), page.url)
-            results.AddFailure(page, 'Page set archive doesn\'t exist', '')
+            out_results.AddFailure(page, 'Page set archive doesn\'t exist', '')
             pages_without_archives.append(page)
 
     pages = [page for page in pages if page not in pages_without_archives]
@@ -141,6 +142,8 @@ class PageRunner(object):
     state = _RunState()
     last_archive_path = None
     is_first_run = True
+    results_for_current_run = out_results
+
     try:
       for page in pages:
         if options.wpr_mode != wpr_modes.WPR_RECORD:
@@ -152,6 +155,12 @@ class PageRunner(object):
           state.Close()
           state = _RunState()
           last_archive_path = page.archive_path
+        if (test.discard_first_result and is_first_run):
+          # If discarding results, substitute a dummy object.
+          results_for_current_run = (
+            page_benchmark_results.PageBenchmarkResults())
+        else:
+          results_for_current_run = out_results
         tries = 3
         while tries:
           try:
@@ -174,10 +183,11 @@ class PageRunner(object):
 
             if is_first_run:
               is_first_run = False
-              test.WillRunPageSet(state.tab, results)
+              test.WillRunPageSet(state.tab, results_for_current_run)
 
             try:
-              self._RunPage(options, page, state.tab, test, results)
+              self._RunPage(options, page, state.tab, test,
+                            results_for_current_run)
               self._CheckThermalThrottling(state.browser.platform)
             except exceptions.TabCrashException:
               stdout = ''
@@ -204,7 +214,7 @@ class PageRunner(object):
             if not tries:
               logging.error('Lost connection to browser 3 times. Failing.')
               raise
-      test.DidRunPageSet(state.tab, results)
+      test.DidRunPageSet(state.tab, results_for_current_run)
     finally:
       state.Close()
 

@@ -40,11 +40,13 @@ class PageBenchmark(page_test.PageTest):
   """
   def __init__(self,
                action_name_to_run='',
-               needs_browser_restart_after_each_run=False):
+               needs_browser_restart_after_each_run=False,
+               discard_first_result=False):
     super(PageBenchmark, self).__init__(
       '_RunTest',
       action_name_to_run,
-      needs_browser_restart_after_each_run)
+      needs_browser_restart_after_each_run,
+      discard_first_result)
 
   def _RunTest(self, page, tab, results):
     results.WillMeasurePage(page)
