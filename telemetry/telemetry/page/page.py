@@ -51,10 +51,10 @@ class Page(object):
 
     path = self.base_dir + parsed_url.netloc + parsed_url.path
 
-    if hasattr(self, 'serving_dirs'):
-      url_base_dir = os.path.commonprefix(self.serving_dirs)
+    if hasattr(self.page_set, 'serving_dirs'):
+      url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
       base_path = self.base_dir + '/' + url_base_dir
-      return ([self.base_dir + '/' + d for d in self.serving_dirs],
+      return ([self.base_dir + '/' + d for d in self.page_set.serving_dirs],
               path.replace(base_path, ''))
 
     return os.path.split(path)
@@ -67,15 +67,13 @@ class Page(object):
 
   @property
   def display_url(self):
-    file_urls = [p.url for p in self.page_set if p.url.startswith('file://')]
-    common_prefix = ''
-    if len(file_urls) > 1:
-      common_prefix = os.path.commonprefix(file_urls)
-    url = self.url
-    # Trim trailing slash from file URLs.
-    if url.startswith('file://') and url.endswith('/'):
-      url = url[:-1]
-    return url[len(common_prefix):]
+    if self.url.startswith('http'):
+      return self.url
+    url_paths = ['/'.join(p.url.strip('/').split('/')[:-1])
+                 for p in self.page_set
+                 if p.url.startswith('file://')]
+    common_prefix = os.path.commonprefix(url_paths)
+    return self.url[len(common_prefix):].strip('/')
 
   @property
   def archive_path(self):
