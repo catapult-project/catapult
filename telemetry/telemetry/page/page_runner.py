@@ -60,7 +60,6 @@ class PageRunner(object):
   """Runs a given test against a given test."""
   def __init__(self, page_set):
     self.page_set = page_set
-    self.has_called_will_run_page_set = False
 
   def __enter__(self):
     return self
@@ -142,6 +141,7 @@ class PageRunner(object):
 
     state = _RunState()
     last_archive_path = None
+    is_first_run = True
     results_for_current_run = out_results
 
     try:
@@ -155,8 +155,7 @@ class PageRunner(object):
           state.Close()
           state = _RunState()
           last_archive_path = page.archive_path
-        if (test.discard_first_result and
-            not self.has_called_will_run_page_set):
+        if (test.discard_first_result and is_first_run):
           # If discarding results, substitute a dummy object.
           results_for_current_run = (
             page_benchmark_results.PageBenchmarkResults())
@@ -181,6 +180,10 @@ class PageRunner(object):
               self._SetupTracingTab(state)
 
             self._WaitForThermalThrottlingIfNeeded(state.browser.platform)
+
+            if is_first_run:
+              is_first_run = False
+              test.WillRunPageSet(state.tab, results_for_current_run)
 
             try:
               self._RunPage(options, page, state.tab, test,
@@ -335,10 +338,6 @@ class PageRunner(object):
         logging.info(msg)
         results.AddFailure(page, msg, "")
         return False
-
-    if not self.has_called_will_run_page_set:
-      self.has_called_will_run_page_set = True
-      test.WillRunPageSet(tab, results)
 
     test.WillNavigateToPage(page, tab)
     tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)

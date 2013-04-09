@@ -123,14 +123,12 @@ class PageBenchmarkResults(page_test.PageTestResults):
     if self.page_failures:
       return
 
-    # Print out the list of unique pages.
     unique_page_urls = []
     for page_values in self._page_results:
       url = page_values.page.display_url
       if unique_page_urls and unique_page_urls[0] == url:
         break
       unique_page_urls.append(url)
-    print 'Pages: [%s]' % ','.join(unique_page_urls)
 
     # Build the results summary.
     results_summary = defaultdict(list)
