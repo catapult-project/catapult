@@ -21,7 +21,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     """Serve a GET request."""
     resource_range = self.SendHead()
 
-    if not resource_range.resource:
+    if not resource_range or not resource_range.resource:
       return
     response = resource_range.resource['response']
 
@@ -163,9 +163,11 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
           'response': response,
           'zipped': zipped
           }
-      if file_path.endswith('/index.html'):
+
+      index = os.path.sep + 'index.html'
+      if file_path.endswith(index):
         self.resource_map[
-            file_path[:-len('/index.html')]] = self.resource_map[file_path]
+            file_path[:-len(index)]] = self.resource_map[file_path]
 
 
 def Main():
