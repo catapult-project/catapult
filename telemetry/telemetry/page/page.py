@@ -67,15 +67,13 @@ class Page(object):
 
   @property
   def display_url(self):
-    file_urls = [p.url for p in self.page_set if p.url.startswith('file://')]
-    common_prefix = ''
-    if len(file_urls) > 1:
-      common_prefix = os.path.commonprefix(file_urls)
-    url = self.url
-    # Trim trailing slash from file URLs.
-    if url.startswith('file://') and url.endswith('/'):
-      url = url[:-1]
-    return url[len(common_prefix):]
+    if self.url.startswith('http'):
+      return self.url
+    url_paths = ['/'.join(p.url.strip('/').split('/')[:-1])
+                 for p in self.page_set
+                 if p.url.startswith('file://')]
+    common_prefix = os.path.commonprefix(url_paths)
+    return self.url[len(common_prefix):].strip('/')
 
   @property
   def archive_path(self):
