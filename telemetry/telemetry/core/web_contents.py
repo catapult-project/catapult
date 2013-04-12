@@ -24,6 +24,15 @@ class WebContents(object):
     Be sure to check browser.supports_tab_control."""
     self._inspector_backend.Close()
 
+  @property
+  def browser(self):
+    """The browser in which this WebContents resides."""
+    return self._inspector_backend.browser
+
+  @property
+  def url(self):
+    return self._inspector_backend.url
+
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     self._inspector_backend.WaitForDocumentReadyStateToBeComplete(timeout)
