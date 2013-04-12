@@ -447,18 +447,32 @@ base.exportTo('tracing.importer', function() {
         // Walk the slice list and put slices between each original slice
         // to show when the thread isn't running
         var slices = [];
+
         if (origSlices.length) {
           var slice = origSlices[0];
+
+          if (wakeups.length && wakeups[0].ts < slice.start) {
+            var wakeup = wakeups.shift();
+            var wakeupDuration = slice.start - wakeup.ts;
+            var args = {'wakeup from tid': wakeup.fromTid};
+            slices.push(new tracing.model.Slice('', 'Runnable', runnableId,
+                wakeup.ts, args, wakeupDuration));
+          }
+
           slices.push(new tracing.model.Slice('', 'Running', runningId,
               slice.start, {}, slice.duration));
         }
+
         var wakeup = undefined;
         for (var i = 1; i < origSlices.length; i++) {
           var prevSlice = origSlices[i - 1];
           var nextSlice = origSlices[i];
           var midDuration = nextSlice.start - prevSlice.end;
           while (wakeups.length && wakeups[0].ts < nextSlice.start) {
-            wakeup = wakeups.shift();
+            var w = wakeups.shift();
+            if (wakeup === undefined && w.ts > prevSlice.end) {
+              wakeup = w;
+            }
           }
 
           // Push a sleep slice onto the slices list, interrupting it with a
