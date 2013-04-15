@@ -25,11 +25,14 @@ class TestPage(unittest.TestCase):
     self.assertEqual(filename, 'file.html')
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
-    apage = page.Page('file:///../../somedir/otherdir/file.html',
-                      None, # In this test, we don't need a page set.
-                      base_dir='basedir')
-    setattr(apage, 'serving_dirs', ['../../somedir/'])
-    serving_dirs, filename = apage.serving_dirs_and_file
+    ps = page_set.PageSet.FromDict({
+        'description': 'hello',
+        'archive_path': 'foo.wpr',
+        'serving_dirs': ['../../somedir/'],
+        'pages': [
+          {'url': 'file:///../../somedir/otherdir/file.html'}
+        ]}, 'basedir/')
+    serving_dirs, filename = ps[0].serving_dirs_and_file
     self.assertEqual(serving_dirs, ['basedir/../../somedir/'])
     self.assertEqual(filename, 'otherdir/file.html')
 
