@@ -175,13 +175,13 @@ found in the LICENSE file.
       e.categories = ['skia', 'gpu', 'cc', 'renderer'];
       tracingController.dispatchEvent(e);
 
+      view.categorySelectionDialog_.querySelector('input#skia').click();
       view.categorySelectionDialog_.querySelector(
           'button.record-categories').click();
 
       var categories = tracingController.beginTracingCategories;
-      // cc is selected by settings, gpu and skia are set by default since
-      // they aren't in settings. renderer is not there as it's off in settings.
-      assertEquals('cc,gpu,skia', categories);
+      // Renderer is disabled in settings, skia is clicked off.
+      assertEquals('-renderer,-skia', categories);
     }
 
     function testRecordNonCros() {

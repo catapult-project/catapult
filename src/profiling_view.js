@@ -164,8 +164,12 @@ base.exportTo('tracing', function() {
       var tc = this.tracingController_;
       this.categorySelectionDialog_.visible = false;
 
-      var categories =
-          this.categorySelectionDialog_.selectedCategories().join(',');
+      var categories = this.categorySelectionDialog_.unselectedCategories();
+      var categories_length = categories.length;
+      for (var i = 0; i < categories_length; ++i) {
+        categories[i] = '-' + categories[i];
+      }
+      categories = categories.join(',');
 
       tc.beginTracing(this.systemTracingBn_.checked,
                       this.continuousTracingBn_.checked,

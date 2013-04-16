@@ -71,6 +71,19 @@ base.exportTo('tracing', function() {
       return categories;
     },
 
+    unselectedCategories: function() {
+      var inputs = this.categoriesEl_.querySelectorAll('input');
+      var inputs_length = inputs.length;
+      var categories = [];
+      for (var i = 0; i < inputs_length; ++i) {
+        var input = inputs[i];
+        if (input.checked)
+          continue;
+        categories.push(input.value);
+      }
+      return categories;
+    },
+
     onVisibleChange_: function() {
       if (this.visible) {
         this.updateForm_();
