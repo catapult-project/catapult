@@ -51,10 +51,10 @@ class Page(object):
 
     path = self.base_dir + parsed_url.netloc + parsed_url.path
 
-    if hasattr(self, 'serving_dirs'):
-      url_base_dir = os.path.commonprefix(self.serving_dirs)
+    if hasattr(self.page_set, 'serving_dirs'):
+      url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
       base_path = self.base_dir + '/' + url_base_dir
-      return ([self.base_dir + '/' + d for d in self.serving_dirs],
+      return ([self.base_dir + '/' + d for d in self.page_set.serving_dirs],
               path.replace(base_path, ''))
 
     return os.path.split(path)
