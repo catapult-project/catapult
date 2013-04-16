@@ -37,6 +37,7 @@ class RecordPage(page_test.PageTest):
 
   def Run(self, options, page, tab, results):
     # When recording, sleep to catch any resources that load post-onload.
+    tab.WaitForDocumentReadyStateToBeComplete()
     time.sleep(3)
 
     # Run the actions for all benchmarks. Reload the page between
