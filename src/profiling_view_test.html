@@ -184,6 +184,35 @@ found in the LICENSE file.
       assertEquals('-renderer,-skia', categories);
     }
 
+    function testBadCategories() {
+      var view = new tracing.ProfilingView();
+      view.timelineView_.settings.set('foo,bar', 'false', 'record_categories');
+
+      var tracingController = new FakeTracingController();
+      view.tracingController = tracingController;
+
+      view.querySelector('button.record').click();
+      assertTrue(tracingController.wasCollectCategoriesCalled);
+
+      var e = new base.Event('categoriesCollected');
+      e.categories = ['baz,zap', 'gpu'];
+      tracingController.dispatchEvent(e);
+
+      view.categorySelectionDialog_.querySelector(
+          'button.record-categories').click();
+
+      var inputs = view.categorySelectionDialog_.querySelectorAll('input');
+      var inputs_length = inputs.length;
+      for (var i = 0; i < inputs_length; ++i) {
+        // Comes from categories and should be split before getting
+        // to the category selection dialog.
+        assertNotEquals('baz,zap', inputs[i].id);
+      }
+
+      var categories = tracingController.beginTracingCategories;
+      assertEquals('', categories);
+    }
+
     function testRecordNonCros() {
       var old = base.isChromeOS;
       base.isChromeOS = false;
