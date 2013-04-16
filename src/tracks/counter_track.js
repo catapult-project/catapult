@@ -145,14 +145,24 @@ base.exportTo('tracing.tracks', function() {
             break;
           }
 
-          if (x - xLast < skipDistanceWorld) {
-            iLast = i;
-            continue;
+          if (i + 1 < numSamples) {
+            var xNext = ctr.timestamps[i + 1];
+            if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld) {
+              iLast = i;
+              continue;
+            }
           }
 
           if (!hasMoved) {
             ctx.moveTo(viewLWorld, canvasH);
             hasMoved = true;
+          }
+          if (x - xLast < skipDistanceWorld) {
+            // We know that xNext > xLast + skipDistanceWorld, so we can
+            // safely move this sample's x over that much without passing
+            // xNext.  This ensure that the previous sample is visible when
+            // zoomed out very far.
+            x = xLast + skipDistanceWorld;
           }
           ctx.lineTo(x, yLastView);
           ctx.lineTo(x, yView);
