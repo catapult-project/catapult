@@ -16,7 +16,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """
-  def __init__(self, options, executable, is_content_shell):
+  def __init__(self, options, executable, is_content_shell, use_login):
     super(DesktopBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=not is_content_shell, options=options)
@@ -25,6 +25,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self._proc = None
     self._tmpdir = None
     self._tmp_output_file = None
+
+    self._use_login = use_login
 
     self._executable = executable
     if not self._executable:
@@ -45,7 +47,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       self._supports_net_benchmarking = False
       self._LaunchBrowser(options)
 
-    if self.options.cros_desktop:
+    if self._use_login:
       cros_util.NavigateLogin(self)
 
   def _LaunchBrowser(self, options):
@@ -83,7 +85,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
           shutil.rmtree(self._tmpdir)
           shutil.copytree(self.options.profile_dir, self._tmpdir)
         args.append('--user-data-dir=%s' % self._tmpdir)
-      if self.options.cros_desktop:
+      if self._use_login:
         ext_path = os.path.join(os.path.dirname(__file__), 'chromeos_login_ext')
         args.extend(['--login-manager', '--login-profile=user',
                      '--stub-cros', '--login-screen=login',
