@@ -71,6 +71,14 @@ class InspectorPage(object):
     """
 
     def DoNavigate():
+      if script_to_evaluate_on_commit:
+        request = {
+            'method': 'Page.addScriptToEvaluateOnLoad',
+            'params': {
+                'scriptSource': script_to_evaluate_on_commit,
+                }
+            }
+        self._inspector_backend.SendAndIgnoreResponse(request)
       # Navigate the page. However, there seems to be a bug in chrome devtools
       # protocol where the request id for this event gets held on the browser
       # side pretty much indefinitely.
@@ -84,14 +92,6 @@ class InspectorPage(object):
               }
           }
       self._inspector_backend.SendAndIgnoreResponse(request)
-      if script_to_evaluate_on_commit:
-        request = {
-            'method': 'Page.addScriptToEvaluateOnLoad',
-            'params': {
-                'scriptSource': script_to_evaluate_on_commit,
-                }
-            }
-        self._inspector_backend.SendAndIgnoreResponse(request)
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
 
   def GetCookieByName(self, name, timeout=60):
