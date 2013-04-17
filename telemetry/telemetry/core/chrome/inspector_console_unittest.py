@@ -30,7 +30,8 @@ class TabConsoleTest(tab_test_case.TabTestCase):
     lines = [l for l in stream.getvalue().split('\n') if len(l)]
 
     self.assertTrue(len(lines) >= 1)
-    for l in lines:
-      u_l = 'http://localhost:(\d+)/page_that_logs_to_console.html:9'
-      self.assertTrue(re.match('At %s: Hello, world' % u_l, l))
+    for line in lines:
+      prefix = 'http://(.+)/page_that_logs_to_console.html:9'
+      expected_line = 'At %s: Hello, world' % prefix
+      self.assertTrue(re.match(expected_line, line))
 
