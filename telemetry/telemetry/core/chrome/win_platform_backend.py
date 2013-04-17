@@ -4,6 +4,7 @@
 
 import collections
 import ctypes
+import re
 import subprocess
 try:
   import pywintypes  # pylint: disable=F0401
@@ -113,7 +114,7 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
       _, creation, curr_ppid, curr_pid = creation_ppid_pid.split(',')
       ppid_map[int(curr_ppid)].append(int(curr_pid))
       if creation:
-        creation_map[int(curr_pid)] = float(creation.split('-')[0])
+        creation_map[int(curr_pid)] = float(re.split('[+-]', creation)[0])
 
     def _InnerGetChildPids(pid):
       if not pid or pid not in ppid_map:
