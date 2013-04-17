@@ -107,6 +107,69 @@ class PageBenchmarkResultsTest(unittest.TestCase):
       benchmark_results.results,
       expected)
 
+  def test_basic_summary_pass_and_fail_page(self):
+    """If a page failed, only print summary for individual passing pages."""
+    test_page_set = _MakePageSet()
+
+    benchmark_results = SummarySavingPageBenchmarkResults()
+    benchmark_results.WillMeasurePage(test_page_set.pages[0])
+    benchmark_results.Add('a', 'seconds', 3)
+    benchmark_results.DidMeasurePage()
+    benchmark_results.AddFailure(test_page_set.pages[0], 'message', 'details')
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[1])
+    benchmark_results.Add('a', 'seconds', 7)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.PrintSummary(None)
+    expected = ['RESULT a_by_url: http___www.bar.com_= 7 seconds']
+    self.assertEquals(benchmark_results.results, expected)
+
+  def test_basic_summary_all_pages_fail(self):
+    """If all pages fail, no summary is printed."""
+    test_page_set = _MakePageSet()
+
+    benchmark_results = SummarySavingPageBenchmarkResults()
+    benchmark_results.WillMeasurePage(test_page_set.pages[0])
+    benchmark_results.Add('a', 'seconds', 3)
+    benchmark_results.DidMeasurePage()
+    benchmark_results.AddFailure(test_page_set.pages[0], 'message', 'details')
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[1])
+    benchmark_results.Add('a', 'seconds', 7)
+    benchmark_results.DidMeasurePage()
+    benchmark_results.AddFailure(test_page_set.pages[1], 'message', 'details')
+
+    benchmark_results.PrintSummary(None)
+    self.assertEquals(benchmark_results.results, [])
+
+  def test_repeated_pageset_one_iteration_one_page_fails(self):
+    """Page fails on one iteration, no results for that page should print."""
+    test_page_set = _MakePageSet()
+
+    benchmark_results = SummarySavingPageBenchmarkResults()
+    benchmark_results.WillMeasurePage(test_page_set.pages[0])
+    benchmark_results.Add('a', 'seconds', 3)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[1])
+    benchmark_results.Add('a', 'seconds', 7)
+    benchmark_results.DidMeasurePage()
+    benchmark_results.AddFailure(test_page_set.pages[1], 'message', 'details')
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[0])
+    benchmark_results.Add('a', 'seconds', 4)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.WillMeasurePage(test_page_set.pages[1])
+    benchmark_results.Add('a', 'seconds', 8)
+    benchmark_results.DidMeasurePage()
+
+    benchmark_results.PrintSummary(None)
+    expected = ['RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
+                'Avg a_by_url: 3.500000seconds\nSd  a_by_url: 0.707107seconds']
+    self.assertEquals(benchmark_results.results, expected)
+
   def test_repeated_pageset(self):
     test_page_set = _MakePageSet()
 
