@@ -23,6 +23,15 @@ class Tab(web_contents.WebContents):
     super(Tab, self).__del__()
 
   @property
+  def browser(self):
+    """The browser in which this tab resides."""
+    return self._inspector_backend.browser
+
+  @property
+  def url(self):
+    return self._inspector_backend.url
+
+  @property
   def dom_stats(self):
     """A dictionary populated with measured DOM statistics.
 
