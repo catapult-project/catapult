@@ -17,6 +17,7 @@ from telemetry.core import wpr_server
 from telemetry.core.chrome import extension_dict_backend
 from telemetry.core.chrome import tab_list_backend
 from telemetry.core.chrome import tracing_backend
+from telemetry.core.chrome import misc_web_contents_backend
 from telemetry.test import options_for_unittests
 
 class ExtensionsNotSupportedException(Exception):
@@ -51,11 +52,13 @@ class BrowserBackend(object):
                        'unexpected effects due to profile-specific settings, '
                        'such as about:flags settings, cookies, and '
                        'extensions.\n')
+    self._misc_web_contents_backend = (
+        misc_web_contents_backend.MiscWebContentsBackend(self))
     self._tab_list_backend = tab_list_backend.TabListBackend(self)
     self._extension_dict_backend = None
     if supports_extensions:
-      self._extension_dict_backend = \
-          extension_dict_backend.ExtensionDictBackend(self)
+      self._extension_dict_backend = (
+          extension_dict_backend.ExtensionDictBackend(self))
 
   def SetBrowser(self, browser):
     self._browser = browser
@@ -69,6 +72,12 @@ class BrowserBackend(object):
   def supports_extensions(self):
     """True if this browser backend supports extensions."""
     return self._supports_extensions
+
+  @property
+  def misc_web_contents_backend(self):
+    """Access to chrome://oobe/login page which is neither a tab nor an
+    extension."""
+    return self._misc_web_contents_backend
 
   @property
   def tab_list_backend(self):

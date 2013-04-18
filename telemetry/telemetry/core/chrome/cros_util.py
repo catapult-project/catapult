@@ -5,14 +5,14 @@
 from telemetry.core import exceptions
 from telemetry.core import util
 
-def _TabNotOobeScreen(browser_backend):
+def _WebContentsNotOobe(browser_backend):
   """Returns true if we're still on the oobe login screen. As a side-effect,
-  clicks the ok button on the user image selection screen"""
-  tab = browser_backend.tab_list_backend.Get(0, None)
-  if not (tab and tab.url and tab.url == 'chrome://oobe/login'):
+  clicks the ok button on the user image selection screen."""
+  oobe = browser_backend.misc_web_contents_backend.GetOobe()
+  if oobe is None:
     return True
   try:
-    tab.ExecuteJavaScript("""
+    oobe.EvaluateJavaScript("""
         var ok = document.getElementById("ok-button");
         if (ok) {
           ok.click();
@@ -31,9 +31,13 @@ def _StartupWindow(browser_backend):
       else browser_backend.tab_list_backend.Get(0, None))
 
 def NavigateLogin(browser_backend):
-  """Navigates through login screen"""
-  # Wait for login screen to disappear.
-  util.WaitFor(lambda: _TabNotOobeScreen(browser_backend), 20)
+  """Navigates through oobe login screen"""
+  # Wait to connect to oobe.
+  misc_wc = browser_backend.misc_web_contents_backend
+  util.WaitFor(lambda: misc_wc.GetOobe(), # pylint: disable=W0108
+               10)
+  # Dismiss the user image selection screen.
+  util.WaitFor(lambda: _WebContentsNotOobe(browser_backend), 15)
 
   # Wait for the startup window, then close it.
   util.WaitFor(lambda: _StartupWindow(browser_backend) is not None, 20)
