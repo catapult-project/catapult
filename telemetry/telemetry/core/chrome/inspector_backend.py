@@ -42,7 +42,14 @@ class InspectorBackend(object):
   def _Connect(self):
     if self._socket:
       return
-    self._socket = websocket.create_connection(self._debugger_url)
+    try:
+      self._socket = websocket.create_connection(self._debugger_url)
+    except (websocket.WebSocketException):
+      if self._browser_backend.IsBrowserRunning():
+        raise exceptions.TabCrashException()
+      else:
+        raise exceptions.BrowserGoneException()
+
     self._cur_socket_timeout = 0
     self._next_request_id = 0
 
