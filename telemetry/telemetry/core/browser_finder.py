@@ -29,8 +29,11 @@ def FindBrowser(options):
 
   if options.browser_type == 'cros-chrome' and options.cros_remote == None:
     raise Exception('browser_type=cros-chrome requires cros_remote be set.')
-  if options.browser_type != 'cros-chrome' and options.cros_remote != None:
-    raise Exception('cros_remote requires browser_type=cros-chrome.')
+  if (options.browser_type != 'cros-chrome' and
+      options.browser_type != 'cros-chrome-guest' and
+      options.cros_remote != None):
+    raise Exception(
+        'cros_remote requires browser_type=cros-chrome or cros-chrome-guest.')
 
   if options.browser_type == None:
     raise BrowserTypeRequiredException('browser_type must be specified')

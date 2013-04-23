@@ -10,13 +10,14 @@ from telemetry.core.chrome import browser_backend
 from telemetry.core.chrome import cros_util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
-  def __init__(self, browser_type, options, cri):
+  def __init__(self, browser_type, options, cri, is_guest):
     super(CrOSBrowserBackend, self).__init__(is_content_shell=False,
         supports_extensions=True, options=options)
     # Initialize fields so that an explosion during init doesn't break in Close.
+    self._browser_type = browser_type
     self._options = options
     self._cri = cri
-    self._browser_type = browser_type
+    self._is_guest = is_guest
 
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
@@ -86,7 +87,10 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       raise
 
-    cros_util.NavigateLogin(self)
+    cros_util.NavigateLogin(self, self._is_guest)
+    # Guest browsing shuts down the current browser and launches a new browser.
+    if self._is_guest:
+      self._WaitForBrowserToComeUp()
     logging.info('Browser is up!')
 
   def GetBrowserStartupArgs(self):
@@ -102,8 +106,11 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--force-compositing-mode',
             '--login-screen=login',
             '--remote-debugging-port=%i' % self._remote_debugging_port,
-            '--auth-ext-path=%s' % self._login_ext_dir,
             '--start-maximized'])
+
+    if not self._is_guest:
+      args.append('--auth-ext-path=%s' % self._login_ext_dir)
+
     return args
 
   @property

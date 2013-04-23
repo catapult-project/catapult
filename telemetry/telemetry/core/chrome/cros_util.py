@@ -22,6 +22,21 @@ def _WebContentsNotOobe(browser_backend):
     pass
   return False
 
+def _ClickBrowseAsGuest(browser_backend):
+  try:
+    oobe = browser_backend.misc_web_contents_backend.GetOobe()
+    assert oobe
+    oobe.EvaluateJavaScript("""
+        var guest = document.getElementById("guest-user-button");
+        if (guest) {
+          guest.click();
+        }
+    """)
+  except (exceptions.TabCrashException,
+          exceptions.BrowserConnectionGoneException):
+    return True
+  return False
+
 def _StartupWindow(browser_backend):
   """Closes the startup window, which is an extension on official builds,
   and a webpage on chromiumos"""
@@ -30,12 +45,17 @@ def _StartupWindow(browser_backend):
       if startup_window_ext_id in browser_backend.extension_dict_backend
       else browser_backend.tab_list_backend.Get(0, None))
 
-def NavigateLogin(browser_backend):
+def NavigateLogin(browser_backend, is_guest = False):
   """Navigates through oobe login screen"""
   # Wait to connect to oobe.
   misc_wc = browser_backend.misc_web_contents_backend
   util.WaitFor(lambda: misc_wc.GetOobe(), # pylint: disable=W0108
                10)
+
+  if is_guest:
+    util.WaitFor(lambda:_ClickBrowseAsGuest(browser_backend), 25)
+    return
+
   # Dismiss the user image selection screen.
   util.WaitFor(lambda: _WebContentsNotOobe(browser_backend), 15)
 

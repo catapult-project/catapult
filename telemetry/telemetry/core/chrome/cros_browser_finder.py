@@ -14,20 +14,22 @@ from telemetry.core.chrome import cros_interface
 
 ALL_BROWSER_TYPES = ','.join([
     'cros-chrome',
+    'cros-chrome-guest',
     ])
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable chromeos browser instance."""
-  def __init__(self, browser_type, options, cri):
+  def __init__(self, browser_type, options, cri, is_guest):
     super(PossibleCrOSBrowser, self).__init__(browser_type, options)
     self._cri = cri
+    self._is_guest = is_guest
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
   def Create(self):
     backend = cros_browser_backend.CrOSBrowserBackend(
-        self.browser_type, self._options, self._cri)
+        self.browser_type, self._options, self._cri, self._is_guest)
     b = browser.Browser(backend,
                         cros_platform_backend.CrosPlatformBackend(self._cri))
     backend.SetBrowser(b)
@@ -87,4 +89,5 @@ def FindAllAvailableBrowsers(options):
   if not cri.FileExistsOnDevice('/opt/google/chrome/chrome'):
     logging.warn('Could not find a chrome on ' % cri.hostname)
 
-  return [PossibleCrOSBrowser('cros-chrome', options, cri)]
+  return [PossibleCrOSBrowser('cros-chrome', options, cri, is_guest=False),
+          PossibleCrOSBrowser('cros-chrome-guest', options, cri, is_guest=True)]
