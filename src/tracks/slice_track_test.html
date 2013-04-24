@@ -92,10 +92,11 @@ found in the LICENSE file.
       new Slice('', 'b', 1, 5, {}, 4.8)
     ];
     var y = track.getBoundingClientRect().top + 5;
+    var pixelRatio = window.devicePixelRatio || 1;
     var wW = 10;
     var vW = track.firstCanvas.getBoundingClientRect().width;
     track.viewport = new Viewport(testEl);
-    track.viewport.xSetWorldBounds(0, wW, vW);
+    track.viewport.xSetWorldBounds(0, wW, vW * pixelRatio);
 
     var selection = new Selection();
     track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);

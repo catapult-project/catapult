@@ -74,11 +74,13 @@ found in the LICENSE file.
     testEl.appendChild(track);
     this.addHTMLOutput(undefined, testEl);
 
+    var pixelRatio = window.devicePixelRatio || 1;
+
     track.heading = ctr.name;
     track.counter = ctr;
     track.viewport = new Viewport(testEl);
     track.viewport.xSetWorldBounds(0, 10,
-        track.firstCanvas.getBoundingClientRect().width);
+        track.firstCanvas.getBoundingClientRect().width * pixelRatio);
 
     testFn(ctr, track);
   }
