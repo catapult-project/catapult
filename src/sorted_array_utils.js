@@ -64,7 +64,7 @@ base.exportTo('tracing', function() {
    *     nonoverlapping ranges [x,y) using the mapLoFn and mapWidth.
    * @param {function():*} mapLoFn Callback that produces the low value for the
    *     interval represented by an  element in the array.
-   * @param {function():*} mapLoFn Callback that produces the width for the
+   * @param {function():*} mapWidthFn Callback that produces the width for the
    *     interval represented by an  element in the array.
    * @param {number} loVal The low value for the search.
    * @return {Number} An index in the array that intersects or is first-above
@@ -75,15 +75,28 @@ base.exportTo('tracing', function() {
     var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (first == 0) {
       if (loVal >= mapLoFn(ary[0]) &&
-          loVal < mapLoFn(ary[0] + mapWidthFn(ary[0]))) {
+          loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0])) {
         return 0;
       } else {
         return -1;
       }
-    } else if (first <= ary.length &&
-               loVal >= mapLoFn(ary[first - 1]) &&
-               loVal < mapLoFn(ary[first - 1]) + mapWidthFn(ary[first - 1])) {
-      return first - 1;
+    } else if (first < ary.length) {
+      if (loVal >= mapLoFn(ary[first]) &&
+          loVal < mapLoFn(ary[first]) + mapWidthFn(ary[first])) {
+        return first;
+      } else if (loVal >= mapLoFn(ary[first - 1]) &&
+                 loVal < mapLoFn(ary[first - 1]) + mapWidthFn(ary[first - 1])) {
+        return first - 1;
+      } else {
+        return ary.length;
+      }
+    } else if (first == ary.length) {
+      if (loVal >= mapLoFn(ary[first - 1]) &&
+          loVal < mapLoFn(ary[first - 1]) + mapWidthFn(ary[first - 1])) {
+        return first - 1;
+      } else {
+        return ary.length;
+      }
     } else {
       return ary.length;
     }

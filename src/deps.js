@@ -59,6 +59,30 @@ base.addModuleDependency(
     'test_utils',
     'model.counter');
 base.addModuleDependency(
+    'model.object_instance',
+    'range');
+base.addModuleDependency(
+    'model.object_instance',
+    'sorted_array_utils');
+base.addModuleDependency(
+    'model.time_to_object_instance_map',
+    'range');
+base.addModuleDependency(
+    'model.time_to_object_instance_map',
+    'sorted_array_utils');
+base.addModuleDependency(
+    'model.object_collection',
+    'range');
+base.addModuleDependency(
+    'model.object_collection',
+    'sorted_array_utils');
+base.addModuleDependency(
+    'model.object_collection',
+    'model.object_instance');
+base.addModuleDependency(
+    'model.object_collection',
+    'model.time_to_object_instance_map');
+base.addModuleDependency(
     'model.slice_group',
     'range');
 base.addModuleDependency(
@@ -102,10 +126,13 @@ base.addModuleDependency(
     'guid');
 base.addModuleDependency(
     'model.process_base',
-    'model.thread');
+    'model.counter');
 base.addModuleDependency(
     'model.process_base',
-    'model.counter');
+    'model.object_collection');
+base.addModuleDependency(
+    'model.process_base',
+    'model.thread');
 base.addModuleDependency(
     'model.process',
     'model.process_base');

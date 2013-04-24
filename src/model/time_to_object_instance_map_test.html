@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Object instance tests</title>
+<script src="/src/base.js"></script>
+<script>
+  base.require('unittest');
+  base.require('test_utils');
+  base.require('model.time_to_object_instance_map');
+  base.require('model.object_instance');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  function testTimeToObjectInstanceMap() {
+    function createInstance(ts) {
+      return new tracing.model.ObjectInstance(
+        {}, 'id', 'cat', 'name', ts);
+    }
+
+    var m = new tracing.model.TimeToObjectInstanceMap(createInstance);
+    m.addSnapshot(10, 'a1');
+    m.addSnapshot(20, 'a2');
+    m.idWasDeleted(30);
+    m.addSnapshot(40, 'b');
+
+    assertEquals(2, m.instances.length);
+
+    var i0 = m.getInstanceAt(0);
+    assertUndefined(i0);
+
+    var i10 = m.getInstanceAt(10);
+    assertNotUndefined(i10);
+    assertEquals(2, i10.snapshots.length);
+    assertEquals('a1', i10.snapshots[0].args);
+    assertEquals('a2', i10.snapshots[1].args);
+
+    assertEquals(30, i10.deletionTs);
+
+    var i15 = m.getInstanceAt(15);
+    assertEquals(i10, i15);
+
+    var i20 = m.getInstanceAt(20);
+    assertEquals(i10, i20);
+
+    var i30 = m.getInstanceAt(30);
+    assertUndefined(i30);
+
+    var i35 = m.getInstanceAt(35);
+    assertUndefined(i35);
+
+    var i40 = m.getInstanceAt(40);
+    assertNotUndefined(i40);
+    assertNotEquals(i10, i40);
+    assertEquals(1, i40.snapshots.length);
+    assertEquals(40, i40.creationTs);
+    assertEquals(Number.MAX_VALUE, i40.deletionTs);
+
+    var i41 = m.getInstanceAt(41);
+    assertEquals(i41, i40);
+  }
+
+  function testTimeToObjectInstanceMapsBoundsLogic() {
+    function createInstance(ts) {
+      return new tracing.model.ObjectInstance(
+        {}, 'cat', 'id', 'name', ts);
+    }
+
+    var m = new tracing.model.TimeToObjectInstanceMap(createInstance);
+    m.addSnapshot(10, 'a1');
+    m.addSnapshot(20, 'a2');
+    m.idWasDeleted(30);
+    m.addSnapshot(40, 'b');
+    m.addSnapshot(41, 'b');
+    m.instances.forEach(function(i) { i.updateBounds(); });
+
+    var iA = m.getInstanceAt(10);
+    assertEquals(10, iA.bounds.min);
+    assertEquals(30, iA.bounds.max);
+
+    var iB = m.getInstanceAt(40);
+    assertEquals(40, iB.bounds.min);
+    assertEquals(41, iB.bounds.max);
+  }
+</script>
+</body>
+</html>

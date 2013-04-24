@@ -9,8 +9,9 @@
  */
 base.require('range');
 base.require('guid');
-base.require('model.thread');
 base.require('model.counter');
+base.require('model.object_collection');
+base.require('model.thread');
 base.exportTo('tracing.model', function() {
 
   var Thread = tracing.model.Thread;
@@ -26,6 +27,7 @@ base.exportTo('tracing.model', function() {
     this.guid_ = tracing.GUID.allocate();
     this.threads = {};
     this.counters = {};
+    this.objects = new tracing.model.ObjectCollection(this);
     this.bounds = new base.Range();
   };
 
@@ -57,6 +59,7 @@ base.exportTo('tracing.model', function() {
         this.threads[tid].shiftTimestampsForward(amount);
       for (var id in this.counters)
         this.counters[id].shiftTimestampsForward(amount);
+      this.objects.shiftTimestampsForward(amount);
     },
 
     /**
@@ -89,6 +92,8 @@ base.exportTo('tracing.model', function() {
         this.counters[id].updateBounds();
         this.bounds.addRange(this.counters[id].bounds);
       }
+      this.objects.updateBounds();
+      this.bounds.addRange(this.objects.bounds);
     },
 
     addCategoriesToDict: function(categoriesDict) {
@@ -96,6 +101,7 @@ base.exportTo('tracing.model', function() {
         this.threads[tid].addCategoriesToDict(categoriesDict);
       for (var id in this.counters)
         categoriesDict[this.counters[id].category] = true;
+      this.objects.addCategoriesToDict(categoriesDict);
     },
 
     /**
