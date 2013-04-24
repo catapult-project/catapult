@@ -45,17 +45,12 @@ def _StartupWindow(browser_backend):
       if startup_window_ext_id in browser_backend.extension_dict_backend
       else browser_backend.tab_list_backend.Get(0, None))
 
-def NavigateLogin(browser_backend, is_guest = False):
+def NavigateGuestLogin(browser_backend):
+  """Navigates through oobe login screen as guest"""
+  util.WaitFor(lambda:_ClickBrowseAsGuest(browser_backend), 25)
+
+def NavigateLogin(browser_backend):
   """Navigates through oobe login screen"""
-  # Wait to connect to oobe.
-  misc_wc = browser_backend.misc_web_contents_backend
-  util.WaitFor(lambda: misc_wc.GetOobe(), # pylint: disable=W0108
-               10)
-
-  if is_guest:
-    util.WaitFor(lambda:_ClickBrowseAsGuest(browser_backend), 25)
-    return
-
   # Dismiss the user image selection screen.
   util.WaitFor(lambda: _WebContentsNotOobe(browser_backend), 15)
 

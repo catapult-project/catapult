@@ -93,10 +93,14 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       raise
 
-    cros_util.NavigateLogin(self, self._is_guest)
-    # Guest browsing shuts down the current browser and launches a new browser.
     if self._is_guest:
+      cros_util.NavigateGuestLogin(self)
+      # Guest browsing shuts down the current browser and launches an incognito
+      # browser, which we need to wait for.
       self._WaitForBrowserToComeUp()
+    else:
+      cros_util.NavigateLogin(self)
+
     logging.info('Browser is up!')
 
   def GetBrowserStartupArgs(self):
