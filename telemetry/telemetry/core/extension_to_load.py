@@ -28,10 +28,10 @@ class ExtensionToLoad(object):
     """Unique extension id of this extension."""
     if crx_id.HasPublicKey(self._path):
       # Calculate extension id from the public key.
-      return crx_id.GetCRXAppID(os.path.abspath(self._path))
+      return crx_id.GetCRXAppID(os.path.realpath(self._path))
     else:
       # Calculate extension id based on the path on the device.
-      return crx_id.GetCRXAppID(os.path.abspath(self._local_path),
+      return crx_id.GetCRXAppID(os.path.realpath(self._local_path),
                                 from_file_path=True)
 
   @property
