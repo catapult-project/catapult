@@ -18,63 +18,135 @@ def Main(test_dir, page_set_filenames):
   Args:
     test_dir: Path to directory containing PageTests.
   """
-  tests = discover.DiscoverClasses(test_dir,
-                                   os.path.join(test_dir, '..'),
-                                   page_test.PageTest)
+  runner = PageTestRunner()
+  sys.exit(runner.Run(test_dir, page_set_filenames))
 
-  # Naively find the test. If we use the browser options parser, we run
-  # the risk of failing to parse if we use a test-specific parameter.
-  test_name = None
-  for arg in sys.argv:
-    if arg in tests:
-      test_name = arg
+class PageTestRunner(object):
+  def __init__(self):
+    self._parser = None
+    self._options = None
+    self._args = None
 
-  options = browser_options.BrowserOptions()
-  parser = options.CreateParser('%prog [options] <test> <page_set>')
+  def AddCommandLineOptions(self, parser):
+    pass
 
-  page_runner.PageRunner.AddCommandLineOptions(parser)
+  @property
+  def test_class(self):
+    return page_test.PageTest
 
-  test = None
-  if test_name is not None:
+  @property
+  def test_class_name(self):
+    return 'test'
+
+  def Run(self, test_dir, page_set_filenames):
+    test, ps = self.ParseCommandLine(sys.argv, test_dir, page_set_filenames)
+    results = self.PrepareResults(test)
+    self.RunTestOnPageSet(test, ps, results)
+    return self.OutputResults(results)
+
+  def AttemptToFindTest(self, args, test_dir):
+    """Find the test by matching the arguments against the known test names.
+
+    We can't use the optparse parser, because the test may add its own
+    command-line options. If the user passed in any of those, the
+    optparse parsing will fail.
+
+    Returns:
+      An instance of the test class on success.
+      None on failure.
+    """
+    tests = discover.DiscoverClasses(
+        test_dir, os.path.join(test_dir, '..'), self.test_class)
+
+    test_name = None
+    for arg in args:
+      if arg in tests:
+        test_name = arg
+
+    if test_name:
+      return tests[test_name]()
+    else:
+      return None
+
+  def GetTest(self, test_dir):
+    tests = discover.DiscoverClasses(
+        test_dir, os.path.join(test_dir, '..'), self.test_class)
+
+    if len(self._args) < 1:
+      error_message = 'No %s specified.\nAvailable %ss:\n' % (
+          self.test_class_name, self.test_class_name)
+      test_list_string = ',\n'.join(sorted(tests.keys()))
+      self.PrintParseError(error_message + test_list_string)
+
+    test_name = self._args[0]
     if test_name not in tests:
-      sys.stderr.write('No test name %s found' % test_name)
-      sys.exit(1)
-    test = tests[test_name]()
-    test.AddCommandLineOptions(parser)
+      error_message = 'No %s named %s.\nAvailable %ss:\n' % (
+          self.test_class_name, self._args[0], self.test_class_name)
+      test_list_string = ',\n'.join(sorted(tests.keys()))
+      self.PrintParseError(error_message + test_list_string)
 
-  _, args = parser.parse_args()
+    return tests[test_name]()
 
-  if test is None or len(args) != 2:
-    parser.print_usage()
-    print >> sys.stderr, 'Available tests:\n%s\n' % ',\n'.join(
-        sorted(tests.keys()))
-    print >> sys.stderr, 'Available page_sets:\n%s\n' % ',\n'.join(
-        sorted([os.path.relpath(f)
-                for f in page_set_filenames]))
-    sys.exit(1)
+  def GetPageSet(self, test, page_set_filenames):
+    ps = test.CreatePageSet(self._options)
+    if ps:
+      return ps
 
-  ps = page_set.PageSet.FromFile(args[1])
-  results = page_test.PageTestResults()
+    if len(self._args) < 2:
+      page_set_list = ',\n'.join(
+          sorted([os.path.relpath(f) for f in page_set_filenames]))
+      self.PrintParseError(
+          'No page set specified.\n'
+          'Available page sets:\n'
+          '%s' % page_set_list)
 
-  return RunTestOnPageSet(options, ps, test, results)
+    return page_set.PageSet.FromFile(self._args[1])
 
-def RunTestOnPageSet(options, ps, test, results):
-  test.CustomizeBrowserOptions(options)
-  possible_browser = browser_finder.FindBrowser(options)
-  if not possible_browser:
-    print >> sys.stderr, """No browser found.\n
-Use --browser=list to figure out which are available.\n"""
-    sys.exit(1)
+  def ParseCommandLine(self, args, test_dir, page_set_filenames):
+    self._options = browser_options.BrowserOptions()
+    self._parser = self._options.CreateParser(
+        '%%prog [options] %s page_set' % self.test_class_name)
 
-  with page_runner.PageRunner(ps) as runner:
-    runner.Run(options, possible_browser, test, results)
+    self.AddCommandLineOptions(self._parser)
+    page_runner.PageRunner.AddCommandLineOptions(self._parser)
+    test = self.AttemptToFindTest(args, test_dir)
+    if test:
+      test.AddCommandLineOptions(self._parser)
 
-  print '%i pages succeed\n' % len(results.page_successes)
-  if len(results.page_failures):
-    logging.warning('Failed pages: %s', '\n'.join(
-        [failure['page'].url for failure in results.page_failures]))
+    _, self._args = self._parser.parse_args()
 
-  if len(results.skipped_pages):
-    logging.warning('Skipped pages: %s', '\n'.join(
-        [skipped['page'].url for skipped in results.skipped_pages]))
-  return min(255, len(results.page_failures))
+    test = self.GetTest(test_dir)
+    ps = self.GetPageSet(test, page_set_filenames)
+
+    if len(self._args) > 2:
+      self.PrintParseError('Too many arguments.')
+
+    return test, ps
+
+  def PrepareResults(self, test):  #pylint: disable=W0613
+    return page_test.PageTestResults()
+
+  def RunTestOnPageSet(self, test, ps, results):
+    test.CustomizeBrowserOptions(self._options)
+    possible_browser = browser_finder.FindBrowser(self._options)
+    if not possible_browser:
+      self.PrintParseError(
+          'No browser found.\n'
+          'Use --browser=list to figure out which are available.')
+
+    with page_runner.PageRunner(ps) as runner:
+      runner.Run(self._options, possible_browser, test, results)
+
+  def OutputResults(self, results):
+    if len(results.page_failures):
+      logging.warning('Failed pages: %s', '\n'.join(
+          [failure['page'].url for failure in results.page_failures]))
+
+    if len(results.skipped_pages):
+      logging.warning('Skipped pages: %s', '\n'.join(
+          [skipped['page'].url for skipped in results.skipped_pages]))
+
+    return min(255, len(results.page_failures))
+
+  def PrintParseError(self, message):
+    self._parser.error(message)

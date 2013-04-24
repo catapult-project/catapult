@@ -141,6 +141,11 @@ class PageTest(object):
     """Override to do operations after running the action on the page."""
     pass
 
+  def CreatePageSet(self, options):  # pylint: disable=W0613
+    """Override to make this test generate its own page set instead of
+    allowing arbitrary page sets entered from the command-line."""
+    return None
+
   def Run(self, options, page, tab, results):
     self.options = options
     compound_action = GetCompoundActionFromPage(page, self._action_name_to_run)
