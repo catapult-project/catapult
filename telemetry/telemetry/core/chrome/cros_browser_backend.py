@@ -10,6 +10,12 @@ from telemetry.core.chrome import browser_backend
 from telemetry.core.chrome import cros_util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
+  # Some developers' workflow includes running the Chrome process from
+  # /usr/local/... instead of the default location. We have to check for both
+  # paths in order to support this workflow.
+  CHROME_PATHS = ['/opt/google/chrome/chrome ',
+                  '/usr/local/opt/google/chrome/chrome ']
+
   def __init__(self, browser_type, options, cri, is_guest):
     super(CrOSBrowserBackend, self).__init__(is_content_shell=False,
         supports_extensions=True, options=options)
@@ -116,8 +122,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
   @property
   def pid(self):
     for pid, process in self._cri.ListProcesses():
-      if process.startswith('/opt/google/chrome/chrome '):
-        return int(pid)
+      for path in self.CHROME_PATHS:
+        if process.startswith(path):
+          return int(pid)
     return None
 
   def GetRemotePort(self, _):
