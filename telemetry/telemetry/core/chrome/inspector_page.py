@@ -19,7 +19,8 @@ class InspectorPage(object):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
     if msg['method'] == 'Page.frameNavigated' and self._navigation_pending:
       url = msg['params']['frame']['url']
-      if not url == 'chrome://newtab/' and not url == 'about:blank':
+      if (not url == 'chrome://newtab/' and not url == 'about:blank'
+          and not 'parentId' in msg['params']['frame']):
         # Marks the navigation as complete and unblocks the
         # PerformActionAndWaitForNavigate call.
         self._navigation_pending = False
@@ -78,7 +79,9 @@ class InspectorPage(object):
                 'scriptSource': script_to_evaluate_on_commit,
                 }
             }
-        self._inspector_backend.SendAndIgnoreResponse(request)
+        res = self._inspector_backend.SyncRequest(request)
+        assert res['result']['identifier'] == '1', ('Unexpected response from '
+                                                    'addScriptToEvaluateOnLoad')
       # Navigate the page. However, there seems to be a bug in chrome devtools
       # protocol where the request id for this event gets held on the browser
       # side pretty much indefinitely.
