@@ -79,9 +79,7 @@ class InspectorPage(object):
                 'scriptSource': script_to_evaluate_on_commit,
                 }
             }
-        res = self._inspector_backend.SyncRequest(request)
-        assert res['result']['identifier'] == '1', ('Unexpected response from '
-                                                    'addScriptToEvaluateOnLoad')
+        self._inspector_backend.SyncRequest(request)
       # Navigate the page. However, there seems to be a bug in chrome devtools
       # protocol where the request id for this event gets held on the browser
       # side pretty much indefinitely.
