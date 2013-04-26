@@ -106,10 +106,7 @@ class InspectorBackend(object):
         'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
       return False
 
-    # TODO(dtu): Also check for Chrome branch number, because of a bug in
-    # beginWindowSnapshotPNG in older versions. crbug.com/171592
-
-    return True
+    return self._browser_backend.chrome_branch_number >= 1391
 
   def Screenshot(self, timeout):
     if self._runtime.Evaluate(
