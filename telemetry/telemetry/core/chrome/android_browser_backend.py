@@ -16,6 +16,8 @@ from telemetry.core.chrome import browser_backend
 class AndroidBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
+  # Stores a default Preferences file, re-used to speed up "--page-repeat".
+  _default_preferences_file = None
   def __init__(self, options, adb, package, is_content_shell,
                cmdline_file, activity, devtools_remote_port):
     super(AndroidBrowserBackend, self).__init__(
@@ -82,49 +84,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     args = map(QuoteIfNeeded, args)
     self._adb.Adb().SetProtectedFileContents(cmdline_file, ' '.join(args))
 
-    # TODO: Once --enable-remote-debugging flag makes its way to the oldest
-    # version under test (m27 goes to stable), remove this hack.
-    # Force devtools protocol on, if not already done and we can access
-    # protected files.
-    if (not is_content_shell and
-       self._adb.Adb().CanAccessProtectedFileContents()):
-      # Make sure we can find the apps' prefs file
-      prefs_file = self._profile_dir + 'Default/Preferences'
-      if not self._adb.FileExistsOnDevice(prefs_file):
-        # Start it up the first time so we can tweak the prefs.
-        self._adb.StartActivity(self._package,
-                                self._activity,
-                                True,
-                                None,
-                                None)
-        retries = 0
-        timeout = 3
-        time.sleep(timeout)
-        while not self._adb.Adb().GetProtectedFileContents(prefs_file):
-          time.sleep(timeout)
-          retries += 1
-          timeout *= 2
-          if retries == 3:
-            logging.critical('android_browser_backend: Could not find '
-                             'preferences file %s for %s',
-                             prefs_file, self._package)
-            raise exceptions.BrowserGoneException('Missing preferences file.')
-        self._adb.CloseApplication(self._package)
-
-      preferences = json.loads(''.join(
-          self._adb.Adb().GetProtectedFileContents(prefs_file)))
-      changed = False
-      if 'devtools' not in preferences:
-        preferences['devtools'] = {}
-        changed = True
-      if not preferences['devtools'].get('remote_enabled'):
-        preferences['devtools']['remote_enabled'] = True
-        changed = True
-      if changed:
-        logging.warning('Manually enabled devtools protocol on %s' %
-                        self._package)
-        txt = json.dumps(preferences, indent=2)
-        self._adb.Adb().SetProtectedFileContents(prefs_file, txt)
+    self._SetPreferencesIfNeeded(is_content_shell)
 
     # Start it up with a fresh log.
     self._adb.RunShellCommand('logcat -c')
@@ -148,6 +108,62 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
       traceback.print_exc()
       self.Close()
       raise
+
+  def _SetPreferencesIfNeeded(self, is_content_shell):
+    # TODO(bulach): Once --enable-remote-debugging flag makes its way to the
+    # oldest version under test (m27 goes to stable), remove this function.
+    if (is_content_shell or
+        not self._adb.Adb().CanAccessProtectedFileContents()):
+      return
+
+    prefs_file = self._profile_dir + 'Default/Preferences'
+    # Reuse the previous preferences if available, otherwise take the slow path
+    # (launch chrome and wait for it to be created).
+    if AndroidBrowserBackend._default_preferences_file:
+      self._adb.Adb().SetProtectedFileContents(
+          prefs_file,
+          AndroidBrowserBackend._default_preferences_file)
+      return
+
+    # Make sure we can find the apps' prefs file
+    if not self._adb.FileExistsOnDevice(prefs_file):
+      # Start it up the first time so we can tweak the prefs.
+      self._adb.StartActivity(self._package,
+                              self._activity,
+                              True,
+                              None,
+                              None)
+      retries = 0
+      timeout = 3
+      time.sleep(timeout)
+      while not self._adb.Adb().GetProtectedFileContents(prefs_file):
+        time.sleep(timeout)
+        retries += 1
+        timeout *= 2
+        if retries == 3:
+          logging.critical('android_browser_backend: Could not find '
+                           'preferences file %s for %s',
+                           prefs_file, self._package)
+          raise exceptions.BrowserGoneException('Missing preferences file.')
+      self._adb.CloseApplication(self._package)
+
+    preferences = json.loads(''.join(
+        self._adb.Adb().GetProtectedFileContents(prefs_file)))
+    changed = False
+    if 'devtools' not in preferences:
+      preferences['devtools'] = {}
+      changed = True
+    if not preferences['devtools'].get('remote_enabled'):
+      preferences['devtools']['remote_enabled'] = True
+      changed = True
+    AndroidBrowserBackend._default_preferences_file = json.dumps(
+        preferences, indent=2)
+    if changed:
+      logging.warning('Manually enabled devtools protocol on %s' %
+                      self._package)
+      self._adb.Adb().SetProtectedFileContents(
+          prefs_file,
+          AndroidBrowserBackend._default_preferences_file)
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
