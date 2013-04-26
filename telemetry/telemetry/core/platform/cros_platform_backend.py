@@ -7,7 +7,7 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
-from telemetry.core.chrome import platform_backend
+from telemetry.core.platform import platform_backend
 
 
 class CrosPlatformBackend(platform_backend.PlatformBackend):

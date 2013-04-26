@@ -17,7 +17,7 @@ except ImportError:
   win32con = None
   win32process = None
 
-from telemetry.core.chrome import platform_backend
+from telemetry.core.platform import platform_backend
 
 
 class WinPlatformBackend(platform_backend.PlatformBackend):

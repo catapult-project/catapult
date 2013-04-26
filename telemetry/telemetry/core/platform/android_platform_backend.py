@@ -6,8 +6,8 @@ import logging
 import os
 import sys
 
-from telemetry.core.chrome import platform
-from telemetry.core.chrome import platform_backend
+from telemetry.core import platform
+from telemetry.core.platform import platform_backend
 
 # Get build/android scripts into our path.
 sys.path.append(

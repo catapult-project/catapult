@@ -8,9 +8,9 @@ import sys
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core.chrome import cros_platform_backend
 from telemetry.core.chrome import cros_browser_backend
 from telemetry.core.chrome import cros_interface
+from telemetry.core.platform import cros_platform_backend
 
 ALL_BROWSER_TYPES = ','.join([
     'cros-chrome',

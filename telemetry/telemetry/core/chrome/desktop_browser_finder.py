@@ -11,9 +11,9 @@ import sys
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core.chrome import desktop_browser_backend
-from telemetry.core.chrome import linux_platform_backend
-from telemetry.core.chrome import mac_platform_backend
-from telemetry.core.chrome import win_platform_backend
+from telemetry.core.platform import linux_platform_backend
+from telemetry.core.platform import mac_platform_backend
+from telemetry.core.platform import win_platform_backend
 
 ALL_BROWSER_TYPES = ','.join([
     'exact',

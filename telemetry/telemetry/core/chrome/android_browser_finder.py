@@ -13,7 +13,7 @@ from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core.chrome import adb_commands
 from telemetry.core.chrome import android_browser_backend
-from telemetry.core.chrome import android_platform_backend
+from telemetry.core.platform import android_platform_backend
 
 CHROME_PACKAGE_NAMES = {
   'android-chrome': 'com.google.android.apps.chrome',

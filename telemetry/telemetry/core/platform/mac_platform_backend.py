@@ -8,7 +8,7 @@ except ImportError:
   resource = None  # Not available on all platforms
 import subprocess
 
-from telemetry.core.chrome import platform_backend
+from telemetry.core.platform import platform_backend
 
 
 class MacPlatformBackend(platform_backend.PlatformBackend):

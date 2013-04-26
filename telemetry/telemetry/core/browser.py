@@ -6,12 +6,12 @@ import os
 
 from telemetry.core import browser_credentials
 from telemetry.core import extension_dict
+from telemetry.core import platform
 from telemetry.core import tab_list
 from telemetry.core import temporary_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.chrome import browser_backend
-from telemetry.core.chrome import platform
 
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
