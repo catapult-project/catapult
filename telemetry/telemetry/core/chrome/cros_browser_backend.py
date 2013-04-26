@@ -94,7 +94,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       raise
 
     if self._is_guest:
-      cros_util.NavigateGuestLogin(self)
+      cros_util.NavigateGuestLogin(self, cri)
       # Guest browsing shuts down the current browser and launches an incognito
       # browser, which we need to wait for.
       self._WaitForBrowserToComeUp()

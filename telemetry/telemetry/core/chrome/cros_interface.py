@@ -291,3 +291,14 @@ class CrOSInterface(object):
       return False
 
     return True
+
+  def FilesystemMountedAt(self, path):
+    """Returns the filesystem mounted at |path|"""
+    df_out, _ = self.RunCmdOnDevice(['/bin/df', path])
+    df_ary = df_out.split('\n')
+    # 3 lines for title, mount info, and empty line.
+    if len(df_ary) == 3:
+      line_ary = df_ary[1].split()
+      if line_ary:
+        return line_ary[0]
+    return None
