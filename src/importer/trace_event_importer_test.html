@@ -866,6 +866,37 @@ function testImportSamplesMissingArgs() {
   assertEquals(0, m.importErrors.length);
 }
 
+function testImportSimpleObject() {
+  var events = [
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 15}},
+    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 20}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+  ];
+  var m = new tracing.Model();
+  m.importTraces([events], false);
+  assertEquals(10, m.bounds.min);
+  assertEquals(50, m.bounds.max);
+  assertEquals(0, m.importErrors.length);
+
+  var p = m.processes[1];
+  assertNotUndefined(p);
+
+  var i10 = p.objects.getSnapshot('0x1000', 15).objectInstance;
+  assertEquals('c', i10.category);
+  assertEquals(10, i10.creationTs);
+  assertEquals(50, i10.deletionTs);
+  assertEquals(2, i10.snapshots.length);
+
+  var s15 = i10.snapshots[0];
+  assertEquals(15, s15.ts);
+  assertEquals(15, s15.args);
+
+  var s20 = i10.snapshots[1];
+  assertEquals(20, s20.ts);
+  assertEquals(20, s20.args);
+}
+
 
 // TODO(nduca): one slice, two threads
 // TODO(nduca): one slice, two pids

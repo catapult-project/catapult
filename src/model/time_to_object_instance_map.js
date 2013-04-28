@@ -27,6 +27,22 @@ base.exportTo('tracing.model', function() {
   }
 
   TimeToObjectInstanceMap.prototype = {
+    idWasCreated: function(ts) {
+      if (this.instances.length == 0) {
+        this.instances.push(this.createInstanceCallback(ts));
+        return this.instances[0];
+      }
+
+      var lastInstance = this.instances[this.instances.length - 1];
+      if (ts < lastInstance.deletionTs) {
+        throw new Error('Mutation of the TimeToObjectInstanceMap must be ' +
+                        'done in ascending timestamp order.');
+      }
+      lastInstance = this.createInstanceCallback(ts);
+      this.instances.push(lastInstance);
+      return lastInstance;
+    },
+
     addSnapshot: function(ts, args) {
       if (this.instances.length == 0)
         this.instances.push(this.createInstanceCallback(ts));
@@ -51,7 +67,7 @@ base.exportTo('tracing.model', function() {
         throw new Error('Cannot delete a id before it was crated');
       if (lastInstance.deletionTs == Number.MAX_VALUE) {
         lastInstance.wasDeleted(ts);
-        return;
+        return lastInstance;
       }
 
       if (lastInstance.deletionTs != Number.MAX_VALUE &&
@@ -60,6 +76,7 @@ base.exportTo('tracing.model', function() {
 
       // The item was deleted a few times, with no snapshots in-between.
       // No action is needed.
+      return undefined;
     },
 
     getInstanceAt: function(ts) {

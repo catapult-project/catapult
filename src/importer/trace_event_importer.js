@@ -58,8 +58,9 @@ base.exportTo('tracing.importer', function() {
       }
     }
 
-    // Async events need to be processed durign finalizeEvents
+    // Some events need to be processed during finalizeEvents
     this.allAsyncEvents_ = [];
+    this.allObjectEvents_ = [];
   }
 
   /**
@@ -144,6 +145,14 @@ base.exportTo('tracing.importer', function() {
       }
     },
 
+    processObjectEvent: function(eI, event) {
+      var thread = this.model_.getOrCreateProcess(event.pid).
+          getOrCreateThread(event.tid);
+      this.allObjectEvents_.push({
+        event: event,
+        thread: thread});
+    },
+
     /**
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
@@ -224,6 +233,12 @@ base.exportTo('tracing.importer', function() {
           // NB: toss until there's proper support
         } else if (event.ph == 'f') {
           // NB: toss until there's proper support
+        } else if (event.ph == 'N') {
+          this.processObjectEvent(eI, event);
+        } else if (event.ph == 'D') {
+          this.processObjectEvent(eI, event);
+        } else if (event.ph == 'O') {
+          this.processObjectEvent(eI, event);
         } else {
           this.model_.importErrors.push(
               'Unrecognized event phase: ' + event.ph +
@@ -238,6 +253,7 @@ base.exportTo('tracing.importer', function() {
      */
     finalizeImport: function() {
       this.createAsyncSlices_();
+      this.createObjects_();
     },
 
     createAsyncSlices_: function() {
@@ -345,6 +361,50 @@ base.exportTo('tracing.importer', function() {
             slice.startThread.asyncSlices.push(slice);
             delete asyncEventStatesByNameThenID[name][id];
           }
+        }
+      }
+    },
+
+    createObjects_: function() {
+      if (this.allObjectEvents_.length == 0)
+        return;
+
+      function processEvent(objectEventState) {
+        var event = objectEventState.event;
+        var thread = objectEventState.thread;
+        if (event.name === undefined)
+          throw new Error('Object events require a name parameter.');
+
+        if (event.id === undefined)
+          throw new Error('Object events require an id parameter.');
+
+        var process = thread.parent;
+        var ts = event.ts / 1000;
+        if (event.ph == 'N') {
+          process.objects.idWasCreated(
+            event.id, event.cat, event.name, ts);
+        } else if (event.ph == 'O') {
+          if (event.args.snapshot === undefined)
+            throw new Error('Snapshots must have args: {snapshot: ...}');
+          process.objects.addSnapshot(
+            event.id, event.cat, event.name, ts, event.args.snapshot);
+        } else if (event.ph == 'D') {
+          process.objects.idWasDeleted(
+            event.id, event.cat, event.name, ts);
+        }
+      }
+
+      this.allObjectEvents_.sort(function(x, y) {
+        return x.event.ts - y.event.ts;
+      });
+
+      var allObjectEvents = this.allObjectEvents_;
+      for (var i = 0; i < allObjectEvents.length; i++) {
+        var objectEventState = allObjectEvents[i];
+        try {
+          processEvent(objectEventState);
+        } catch (e) {
+          this.model_.importErrors.push(e.message);
         }
       }
     }

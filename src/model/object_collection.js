@@ -28,25 +28,54 @@ base.exportTo('tracing.model', function() {
   ObjectCollection.prototype = {
     __proto__: Object.prototype,
 
-    addSnapshot: function(id, category, name, ts, args) {
+    getOrCreateInstanceMap_: function(id, category, name, ts) {
       var instanceMap = this.instanceMapsById[id];
-      if (!instanceMap) {
-        var that = this;
-        instanceMap = new tracing.model.TimeToObjectInstanceMap(function(ts) {
-          return new tracing.model.ObjectInstance(
-            that.parent, id, category, name, ts);
-        });
-        this.instanceMapsById[id] = instanceMap;
-      }
+      if (instanceMap)
+        return instanceMap;
 
-      return instanceMap.addSnapshot(ts, args);
+      var that = this;
+      instanceMap = new tracing.model.TimeToObjectInstanceMap(function(ts) {
+        return new tracing.model.ObjectInstance(
+          that.parent, id, category, name, ts);
+      });
+      this.instanceMapsById[id] = instanceMap;
+      return instanceMap;
     },
 
-    idWasDeleted: function(id, ts) {
+    idWasCreated: function(id, category, name, ts) {
+      var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
+      return instanceMap.idWasCreated(ts);
+    },
+
+    addSnapshot: function(id, category, name, ts, args) {
+      var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
+      var snapshot = instanceMap.addSnapshot(ts, args);
+      if (snapshot.objectInstance.category != category) {
+        throw new Error('Added snapshot with different category ' +
+                        'than when it was created');
+      }
+      if (snapshot.objectInstance.name != name) {
+        throw new Error('Added snapshot with different name than ' +
+                        'when it was created');
+      }
+      return snapshot;
+    },
+
+    idWasDeleted: function(id, category, name, ts) {
       var instanceMap = this.instanceMapsById[id];
       if (!instanceMap)
+        return undefined;
+      var deletedInstance = instanceMap.idWasDeleted(ts);
+      if (!deletedInstance)
         return;
-      instanceMap.idWasDeleted(id, ts);
+      if (deletedInstance.category != category) {
+        throw new Error('Deleting an object with a different category ' +
+                        'than when it was created');
+      }
+      if (deletedInstance.name != name) {
+        throw new Error('Deleting an object with a different name than ' +
+                        'when it was created');
+      }
     },
 
     getSnapshot: function(id, ts) {
@@ -61,7 +90,7 @@ base.exportTo('tracing.model', function() {
 
     getAllObjectInstances: function() {
       var instances = [];
-      base.dictionaryValues(this.idToInstanceMaps).forEach(function(i2iMap) {
+      base.dictionaryValues(this.instanceMapsById).forEach(function(i2iMap) {
         instances.push.apply(instances, i2iMap.instances);
       });
       return instances;
@@ -71,8 +100,8 @@ base.exportTo('tracing.model', function() {
       this.bounds.reset();
       this.getAllObjectInstances().forEach(function(instance) {
         instance.updateBounds();
-        this.bounds.addRange(instance);
-      });
+        this.bounds.addRange(instance.bounds);
+      }, this);
     },
 
     shiftTimestampsForward: function(amount) {
