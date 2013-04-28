@@ -75,7 +75,7 @@ function runAllTests() {
   for (var i = 0; i < testMethodNames.length; i++) {
     var testMethodName = testMethodNames[i];
     var testMethod = tests[testMethodName];
-    var testCaseEl = unittest.createTestCaseDiv_(testMethodName);
+    var testCaseEl = new unittest.TestCaseElement(testMethodName);
     resultsEl.appendChild(testCaseEl);
     testCaseEl.status = 'RUNNING';
 

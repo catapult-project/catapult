@@ -8,7 +8,7 @@ found in the LICENSE file.
 <head>
 <title>All Tracing Tests</title>
 <script>
-  tests = [
+  G_allTests = [
     'category_filter_dialog_test.html',
     'filter_test.html',
     'find_control_test.html',
@@ -90,85 +90,155 @@ found in the LICENSE file.
   <br>
 
   <script>
-  function runTest(runner, testCaseEl, test) {
-    testCaseEl.status = 'RUNNING'
+  function IFrameTestCase(test) {
+    var testCaseEl = new unittest.TestCaseElement(test, test, true);
+    testCaseEl.__proto__ = IFrameTestCase.prototype;
+    testCaseEl.decorate(test);
+    return testCaseEl;
+  }
 
-    var iframe = document.createElement('iframe');
-    iframe.src = test;
-    iframe.style.position = 'fixed';
-    iframe.style.visibility = 'hidden';
-    document.body.appendChild(iframe);
-    iframe.contentWindow.addEventListener('error', function(msg, url, lineNumber) {
-      if (iframe.contentWindow.G_testRunner)
-        return false;
+  IFrameTestCase.prototype = {
+    __proto__: unittest.TestCaseElement.prototype,
 
-      if (iframe.contentWindow.errorsCaughtByTestHarness)
-        return false;
+    decorate: function(test) {
+      this.status = 'READY';
+      this.iframe = document.createElement('iframe');
+      this.iframe.src = test;
+      this.iframe.style.position = 'fixed';
+      this.iframe.style.visibility = 'hidden';
+    },
 
-      iframe.contentWindow.errorsCaughtByTestHarness = [
+    begin: function() {
+      this.status = 'RUNNING';
+      this.appendChild(this.iframe);
+      this.iframe.contentWindow.addEventListener('error', function(msg, url, lineNumber) {
+        if (iframe.contentWindow.G_testRunner)
+          return false;
+
+        if (iframe.contentWindow.errorsCaughtByTestHarness)
+          return false;
+
+        iframe.contentWindow.errorsCaughtByTestHarness = [
           {msg: msg, url: url, lineNumber: lineNumber}];
-      return false;
-    });
+        return false;
+      });
+    },
 
-    function checkForDone() {
-      if (!iframe.contentWindow) {
-        setTimeout(checkForDone, 100);
+    get done() {
+      if (this.status == 'READY' ||
+          this.status == 'RUNNING')
+        return false;
+      return true;
+    },
+
+    checkForDone: function() {
+      var iframe = this.iframe;
+      if (!iframe.contentWindow)
         return;
-      }
 
       if (iframe.contentWindow.errorsCaughtByTestHarness &&
         iframe.contentWindow.errorsCaughtByTestHarness.length) {
-        testCaseEl.status = 'FAILED'
+        this.status = 'FAILED'
         return;
       }
 
-      if (!iframe.contentWindow.G_testRunner) {
-        setTimeout(checkForDone, 100);
+      if (!iframe.contentWindow.G_testRunner)
         return;
-      }
 
-      var runner = iframe.contentWindow.G_testRunner;
-      if (!runner.done) {
-        setTimeout(checkForDone, 100);
+      var childRunner = iframe.contentWindow.G_testRunner;
+      if (!childRunner.done)
         return;
-      }
 
-      var stats = runner.computeResultStats();
+      var stats = childRunner.computeResultStats();
       if (stats.numTestsRun && !stats.numTestsWithErrors)
-        testCaseEl.status = 'PASSED'
+        this.status = 'PASSED'
       else
-        testCaseEl.status = 'FAILED'
+        this.status = 'FAILED'
     }
-    setTimeout(checkForDone, 0);
-  }
+  };
 
-  function run() {
+  function AsyncTestRunner() {
     var resultsEl = document.createElement('div');
-    resultsEl.className = 'unittest';
-    document.body.appendChild(resultsEl);
-
-    var numPassed = 0;
-    var numFailures = 0;
-    var runner = {
-      addFailedTest: function() {
-        numFailures++;
-      },
-      addPassedTest: function() {
-        numPassed++;
-      }
-    };
-    function begin() {
-      for (var i = 0; i < tests.length; i++) {
-        (function() {
-          var testCaseEl = unittest.createTestCaseDiv_(tests[i], tests[i], true);
-          resultsEl.appendChild(testCaseEl);
-          runTest(runner, testCaseEl, tests[i]);
-        })();
-      }
-    }
-    begin();
+    resultsEl.__proto__ = AsyncTestRunner.prototype
+    resultsEl.decorate();
+    return resultsEl;
   }
-  document.addEventListener('DOMContentLoaded', run);
+
+  AsyncTestRunner.prototype = {
+    __proto__: HTMLDivElement.prototype,
+
+    decorate: function() {
+      this.className = 'unittest';
+      this.maxNumTestsToRunAtOnce_ = 1;
+      this.processTestQueuesScheduled_ = false;
+      this.readyTests_ = [];
+      this.runningTests_ = [];
+    },
+
+    get maxNumTestsToRunAtOnce() {
+      return this.maxNumTestsToRunAtOnce_;
+    },
+
+    set maxNumTestsToRunAtOnce(value) {
+      this.maxNumTestsToRunAtOnce_ = value;
+      processTestQueues_();
+    },
+
+    enqueueTests: function(tests) {
+      for (var i = 0; i < tests.length; i++) {
+        var test = new IFrameTestCase(tests[i]);
+        if (test.done)
+          throw new Error('Cannot enqueue test that is done.');
+        this.readyTests_.push(test);
+        this.appendChild(test);
+      }
+      if (this.readyTests_.length)
+        this.scheduleProcessTestQueues_();
+    },
+
+    scheduleProcessTestQueues_: function() {
+      if (this.processTestQueuesScheduled_)
+        return;
+      setTimeout(this.processTestQueues_.bind(this), 100);
+      this.processTestQueuesScheduled_ = true;
+    },
+
+    processTestQueues_: function() {
+      this.processTestQueuesScheduled_ = false;
+
+      var stillRunningTests = [];
+      this.runningTests_.forEach(function(test) {
+        test.checkForDone();
+        if (!test.done) {
+          stillRunningTests.push(test);
+          return;
+        }
+      }, this);
+      this.runningTests_ = stillRunningTests;
+
+      while (this.readyTests_.length > 0 &&
+             this.runningTests_.length < this.maxNumTestsToRunAtOnce_) {
+        var test = this.readyTests_.shift();
+        test.begin();
+        this.runningTests_.push(test);
+      }
+
+      if (!this.readyTests_.length && !this.runningTests_.length)
+        this.onDone_();
+      else
+        this.scheduleProcessTestQueues_();
+    },
+
+    onDone_: function() {
+      /* all tests are done */;
+    },
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var runner = new AsyncTestRunner();
+    document.body.appendChild(runner);
+    runner.enqueueTests(G_allTests);
+  });
   </script>
 </body>
 </html>

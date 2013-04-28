@@ -17,50 +17,65 @@ base.exportTo('unittest', function() {
   // Uncomment the line below to make unit test failures throw exceptions.
   //NOCATCH_MODE = true;
 
-  function createTestCaseDiv(testName, opt_href, opt_alwaysShowErrorLink) {
+  function TestCaseElement(testName, opt_href, opt_alwaysShowErrorLink) {
     var el = document.createElement('test-case');
-
-    var titleBlockEl = document.createElement('title');
-    titleBlockEl.style.display = 'inline';
-    el.appendChild(titleBlockEl);
-
-    var titleEl = document.createElement('span');
-    titleEl.style.marginRight = '20px';
-    titleBlockEl.appendChild(titleEl);
-
-    var errorLink = document.createElement('a');
-    errorLink.textContent = 'Run individually...';
-    if (opt_href)
-      errorLink.href = opt_href;
-    else
-      errorLink.href = '#' + testName;
-    errorLink.style.display = 'none';
-    titleBlockEl.appendChild(errorLink);
-
-    el.__defineSetter__('status', function(status) {
-      titleEl.textContent = testName + ': ' + status;
-      updateClassListGivenStatus(titleEl, status);
-      if (status == 'FAILED' || opt_alwaysShowErrorLink)
-        errorLink.style.display = '';
-      else
-        errorLink.style.display = 'none';
-    });
-
-    el.addError = function(test, e) {
-      var errorEl = createErrorDiv(test, e);
-      el.appendChild(errorEl);
-      return errorEl;
-    };
-
-    el.addHTMLOutput = function(opt_title, opt_element) {
-      var outputEl = createOutputDiv(opt_title, opt_element);
-      el.appendChild(outputEl);
-      return outputEl.contents;
-    };
-
-    el.status = 'READY';
+    el.__proto__ = TestCaseElement.prototype;
+    el.decorate(testName, opt_href, opt_alwaysShowErrorLink);
     return el;
   }
+  TestCaseElement.prototype = {
+    __proto__: HTMLElement.prototype,
+
+    decorate: function(testName, opt_href, opt_alwaysShowErrorLink) {
+      this.testName = testName;
+      this.alwaysShowErrorLink = opt_alwaysShowErrorLink || false;
+
+      var titleBlockEl = document.createElement('title');
+      titleBlockEl.style.display = 'inline';
+        this.appendChild(titleBlockEl);
+
+      this.titleEl = document.createElement('span');
+      this.titleEl.style.marginRight = '20px';
+      titleBlockEl.appendChild(this.titleEl);
+
+      this.errorLink = document.createElement('a');
+      this.errorLink.textContent = 'Run individually...';
+      if (opt_href)
+        this.errorLink.href = opt_href;
+      else
+        this.errorLink.href = '#' + testName;
+      this.errorLink.style.display = 'none';
+      titleBlockEl.appendChild(this.errorLink);
+
+      this.status_ = undefined;
+      this.status = 'READY';
+    },
+
+    get status() {
+      return this.status_;
+    },
+    set status(status) {
+      this.status_ = status;
+      this.titleEl.textContent = this.testName + ': ' + this.status_;
+      updateClassListGivenStatus(this.titleEl, this.status_);
+      if (this.status_ == 'FAILED' || this.alwaysShowErrorLink)
+        this.errorLink.style.display = '';
+      else
+        this.errorLink.style.display = 'none';
+    },
+
+    addError: function(test, e) {
+      var errorEl = createErrorDiv(test, e);
+      this.appendChild(errorEl);
+      return errorEl;
+    },
+
+    addHTMLOutput: function(opt_title, opt_element) {
+      var outputEl = createOutputDiv(opt_title, opt_element);
+      this.appendChild(outputEl);
+      return outputEl.contents;
+    },
+  };
 
   function createErrorDiv(test, e) {
     var el = document.createElement('test-case-error');
@@ -219,7 +234,7 @@ base.exportTo('unittest', function() {
         errors: []};
       this.results.push(this.currentResults_);
 
-      this.currentTestCaseEl_ = createTestCaseDiv(test.testName);
+      this.currentTestCaseEl_ = new TestCaseElement(test.testName);
       this.currentTestCaseEl_.status = 'RUNNING';
       this.resultsEl_.appendChild(this.currentTestCaseEl_);
     },
@@ -568,6 +583,6 @@ base.exportTo('unittest', function() {
     discoverTests: discoverTests,
     runAllTests: runAllTests,
     createErrorDiv_: createErrorDiv,
-    createTestCaseDiv_: createTestCaseDiv
+    TestCaseElement: TestCaseElement
   };
 });
