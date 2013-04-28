@@ -60,10 +60,8 @@ function testExynos5Bus() {
   ];
   var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
-  console.log(m);
 
   var counters = m.getAllCounters();
-  console.log(counters);
   assertEquals(10, counters.length);
 
   assertEquals(2, counters[0].samples.length);

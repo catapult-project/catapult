@@ -33,7 +33,6 @@ function testKernelFunctionParser() {
   ];
   var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
-  console.log(m);
 
   var process = m.processes[127];
   assertNotNull(process);

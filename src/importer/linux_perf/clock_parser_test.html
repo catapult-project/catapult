@@ -52,10 +52,8 @@ function testClock() {
 
   var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
-  console.log(m);
 
   var counters = m.getAllCounters();
-  console.log(counters);
   assertEquals(1, counters.length);
 
   assertEquals(10, counters[0].samples.length);
