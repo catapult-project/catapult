@@ -882,7 +882,7 @@ function testImportSimpleObject() {
   var p = m.processes[1];
   assertNotUndefined(p);
 
-  var i10 = p.objects.getSnapshot('0x1000', 15).objectInstance;
+  var i10 = p.objects.getObjectInstanceAt('0x1000', 10);
   assertEquals('c', i10.category);
   assertEquals(10, i10.creationTs);
   assertEquals(50, i10.deletionTs);

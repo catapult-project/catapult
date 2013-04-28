@@ -7,10 +7,13 @@
 /**
  * @fileoverview Provides the TimeToObjectInstanceMap class.
  */
+base.require('model.object_instance');
 base.require('range');
 base.require('sorted_array_utils');
 
 base.exportTo('tracing.model', function() {
+
+  var ObjectInstance = tracing.model.ObjectInstance;
 
   /**
    * Tracks all the instances associated with a given ID over its lifetime.
@@ -21,15 +24,17 @@ base.exportTo('tracing.model', function() {
    *
    * @constructor
    */
-  function TimeToObjectInstanceMap(createInstanceCallback) {
+  function TimeToObjectInstanceMap(parent, id) {
+    this.parent = parent;
+    this.id = id;
     this.instances = [];
-    this.createInstanceCallback = createInstanceCallback;
   }
 
   TimeToObjectInstanceMap.prototype = {
-    idWasCreated: function(ts) {
+    idWasCreated: function(category, name, ts) {
       if (this.instances.length == 0) {
-        this.instances.push(this.createInstanceCallback(ts));
+        this.instances.push(new ObjectInstance(
+            this.parent, this.id, category, name, ts));
         return this.instances[0];
       }
 
@@ -38,14 +43,17 @@ base.exportTo('tracing.model', function() {
         throw new Error('Mutation of the TimeToObjectInstanceMap must be ' +
                         'done in ascending timestamp order.');
       }
-      lastInstance = this.createInstanceCallback(ts);
+      lastInstance = new ObjectInstance(
+          this.parent, this.id, category, name, ts);
       this.instances.push(lastInstance);
       return lastInstance;
     },
 
-    addSnapshot: function(ts, args) {
-      if (this.instances.length == 0)
-        this.instances.push(this.createInstanceCallback(ts));
+    addSnapshot: function(category, name, ts, args) {
+      if (this.instances.length == 0) {
+        this.instances.push(new ObjectInstance(
+            this.parent, this.id, category, name, ts));
+      }
 
       var lastInstance = this.instances[this.instances.length - 1];
       if (ts < lastInstance.creationTs) {
@@ -53,15 +61,18 @@ base.exportTo('tracing.model', function() {
                         'done in ascending timestamp order.');
       }
       if (ts >= lastInstance.deletionTs) {
-        lastInstance = this.createInstanceCallback(ts);
+        lastInstance = new ObjectInstance(
+            this.parent, this.id, category, name, ts);
         this.instances.push(lastInstance);
       }
       return lastInstance.addSnapshot(ts, args);
     },
 
-    idWasDeleted: function(ts) {
-      if (this.instances.length == 0)
-        this.instances.push(this.createInstanceCallback(ts));
+    idWasDeleted: function(category, name, ts) {
+      if (this.instances.length == 0) {
+        this.instances.push(new ObjectInstance(
+            this.parent, this.id, category, name, ts));
+      }
       var lastInstance = this.instances[this.instances.length - 1];
       if (ts < lastInstance.creationTs)
         throw new Error('Cannot delete a id before it was crated');

@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>Object instance tests</title>
+<title>TimeToObjectInstanceMap tests</title>
 <script src="/src/base.js"></script>
 <script>
   base.require('unittest');
@@ -20,16 +20,11 @@ found in the LICENSE file.
   'use strict';
 
   function testTimeToObjectInstanceMap() {
-    function createInstance(ts) {
-      return new tracing.model.ObjectInstance(
-        {}, 'id', 'cat', 'name', ts);
-    }
-
-    var m = new tracing.model.TimeToObjectInstanceMap(createInstance);
-    m.addSnapshot(10, 'a1');
-    m.addSnapshot(20, 'a2');
-    m.idWasDeleted(30);
-    m.addSnapshot(40, 'b');
+    var m = new tracing.model.TimeToObjectInstanceMap({}, 7);
+    m.addSnapshot('cat', 'name', 10, 'a1');
+    m.addSnapshot('cat', 'name', 20, 'a2');
+    m.idWasDeleted('cat', 'name', 30);
+    m.addSnapshot('cat', 'name', 40, 'b');
 
     assertEquals(2, m.instances.length);
 
@@ -68,17 +63,13 @@ found in the LICENSE file.
   }
 
   function testTimeToObjectInstanceMapsBoundsLogic() {
-    function createInstance(ts) {
-      return new tracing.model.ObjectInstance(
-        {}, 'cat', 'id', 'name', ts);
-    }
+    var m = new tracing.model.TimeToObjectInstanceMap({}, 7);
+    m.addSnapshot('cat', 'name', 10, 'a1');
+    m.addSnapshot('cat', 'name', 20, 'a2');
+    m.idWasDeleted('cat', 'name', 30);
+    m.addSnapshot('cat', 'name', 40, 'b');
+    m.addSnapshot('cat', 'name', 41, 'b');
 
-    var m = new tracing.model.TimeToObjectInstanceMap(createInstance);
-    m.addSnapshot(10, 'a1');
-    m.addSnapshot(20, 'a2');
-    m.idWasDeleted(30);
-    m.addSnapshot(40, 'b');
-    m.addSnapshot(41, 'b');
     m.instances.forEach(function(i) { i.updateBounds(); });
 
     var iA = m.getInstanceAt(10);

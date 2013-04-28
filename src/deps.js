@@ -66,6 +66,9 @@ base.addModuleDependency(
     'sorted_array_utils');
 base.addModuleDependency(
     'model.time_to_object_instance_map',
+    'model.object_instance');
+base.addModuleDependency(
+    'model.time_to_object_instance_map',
     'range');
 base.addModuleDependency(
     'model.time_to_object_instance_map',
