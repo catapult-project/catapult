@@ -75,24 +75,26 @@ base.exportTo('tracing', function() {
     var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (first == 0) {
       if (loVal >= mapLoFn(ary[0]) &&
-          loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0])) {
+          loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0], 0)) {
         return 0;
       } else {
         return -1;
       }
     } else if (first < ary.length) {
       if (loVal >= mapLoFn(ary[first]) &&
-          loVal < mapLoFn(ary[first]) + mapWidthFn(ary[first])) {
+          loVal < mapLoFn(ary[first]) + mapWidthFn(ary[first], first)) {
         return first;
       } else if (loVal >= mapLoFn(ary[first - 1]) &&
-                 loVal < mapLoFn(ary[first - 1]) + mapWidthFn(ary[first - 1])) {
+                 loVal < mapLoFn(ary[first - 1]) +
+                 mapWidthFn(ary[first - 1], first - 1)) {
         return first - 1;
       } else {
         return ary.length;
       }
     } else if (first == ary.length) {
       if (loVal >= mapLoFn(ary[first - 1]) &&
-          loVal < mapLoFn(ary[first - 1]) + mapWidthFn(ary[first - 1])) {
+          loVal < mapLoFn(ary[first - 1]) +
+          mapWidthFn(ary[first - 1], first - 1)) {
         return first - 1;
       } else {
         return ary.length;

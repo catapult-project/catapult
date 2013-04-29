@@ -201,31 +201,6 @@ base.exportTo('tracing.tracks', function() {
     },
 
     /**
-     * Finds slices intersecting the given interval.
-     * @param {number} vX X location to search at, in viewspace.
-     * @param {number} vY Y location to search at, in viewspace.
-     * @param {Selection} selection Selection to which to add hits.
-     * @return {boolean} true if a slice was found, otherwise false.
-     */
-    addIntersectingItemsToSelection: function(vX, vY, selection) {
-      var clientRect = this.getBoundingClientRect();
-      if (vY < clientRect.top || vY >= clientRect.bottom)
-        return false;
-      var pixelRatio = window.devicePixelRatio || 1;
-      var wX = this.viewport_.xViewVectorToWorld(vX * devicePixelRatio);
-      var x = tracing.findLowIndexInSortedIntervals(this.slices_,
-          function(x) { return x.start; },
-          function(x) { return x.duration; },
-          wX);
-      if (x >= 0 && x < this.slices_.length) {
-        var hit = selection.addSlice(this, this.slices_[x]);
-        this.decorateHit(hit);
-        return true;
-      }
-      return false;
-    },
-
-    /**
      * Adds items intersecting the given range to a selection.
      * @param {number} loVX Lower X bound of the interval to search, in
      *     viewspace.

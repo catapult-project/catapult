@@ -104,7 +104,8 @@ found in the LICENSE file.
 
       // In bounds.
       sel = new tracing.Selection();
-      track.addIntersectingItemsToSelection((1.5/vW)*wW, y75, sel);
+      var x = (1.5/vW)*wW;
+      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(1, sel.length);
       assertEquals(track, sel[0].track);
       assertEquals(ctr, sel[0].counter);
@@ -112,11 +113,13 @@ found in the LICENSE file.
 
       // Outside bouds.
       sel = new tracing.Selection();
-      track.addIntersectingItemsToSelection((-1/vW)*wW, y75, sel);
+      var x = (-5/vW)*wW;
+      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
 
       sel = new tracing.Selection();
-      track.addIntersectingItemsToSelection((8/vW)*wW, y75, sel);
+      var x = (8/vW)*wW
+      track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
     });
   }

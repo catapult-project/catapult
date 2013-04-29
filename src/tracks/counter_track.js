@@ -193,58 +193,6 @@ base.exportTo('tracing.tracks', function() {
     },
 
     /**
-     * Adds items intersecting a point to a selection.
-     * @param {number} vX X location to search at, in viewspace.
-     * @param {number} vY Y location to search at, in viewspace.
-     * @param {Selection} selection Selection to which to add hits.
-     * @return {boolean} true if a slice was found, otherwise false.
-     */
-    addIntersectingItemsToSelection: function(vX, vY, selection) {
-      var clientRect = this.getBoundingClientRect();
-      if (vY < clientRect.top || vY >= clientRect.bottom)
-        return false;
-
-      var pixelRatio = window.devicePixelRatio || 1;
-      var wX = this.viewport_.xViewVectorToWorld(vX * devicePixelRatio);
-
-      var ctr = this.counter_;
-      if (vX < this.counter_.timestamps[0])
-        return false;
-      var i = tracing.findLowIndexInSortedArray(ctr.timestamps,
-                                                function(x) { return x; },
-                                                wX);
-      if (i < 0 || i >= ctr.timestamps.length)
-        return false;
-
-      // Sample i is going to either be exactly at wX or slightly above it,
-      // E.g. asking for 7.5 in [7,8] gives i=1. So bump i back by 1 if needed.
-      if (i > 0 && wX > this.counter_.timestamps[i - 1])
-        i--;
-
-      // Some preliminaries.
-      var canvasH = this.getBoundingClientRect().height;
-      var yScale = canvasH / ctr.maxTotal;
-
-      /*
-      // Figure out which sample we hit
-      var seriesIndexHit;
-      for (var seriesIndex = 0; seriesIndex < ctr.numSeries; seriesIndex++) {
-        var y = ctr.totals[i * ctr.numSeries + seriesIndex];
-        var yView = canvasH - (yScale * y) + clientRect.top;
-        if (wY >= yView) {
-          seriesIndexHit = seriesIndex;
-          break;
-        }
-      }
-      if (seriesIndexHit === undefined)
-        return false;
-      */
-      var hit = selection.addCounterSample(this, this.counter, i);
-      this.decorateHit(hit);
-      return true;
-    },
-
-    /**
      * Adds items intersecting the given range to a selection.
      * @param {number} loVX Lower X bound of the interval to search, in
      *     viewspace.
@@ -271,22 +219,25 @@ base.exportTo('tracing.tracks', function() {
       var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
       var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
 
-      var iLo = tracing.findLowIndexInSortedArray(ctr.timestamps,
-                                                  function(x) { return x; },
-                                                  loWX);
-      var iHi = tracing.findLowIndexInSortedArray(ctr.timestamps,
-                                                  function(x) { return x; },
-                                                  hiWX);
+      function getSampleWidth(x, i) {
+        if (i == ctr.timestamps.length)
+          return 0;
+        return ctr.timestamps[i + 1] - ctr.timestamps[i];
+      }
 
-      // Sample i is going to either be exactly at wX or slightly above it,
-      // E.g. asking for 7.5 in [7,8] gives i=1. So bump i back by 1 if needed.
-      if (iLo > 0 && loWX > ctr.timestamps[iLo - 1])
-        iLo--;
-      if (iHi > 0 && hiWX > ctr.timestamps[iHi - 1])
-        iHi--;
+      var iLo = tracing.findLowIndexInSortedIntervals(ctr.timestamps,
+                                                      function(x) { return x; },
+                                                      getSampleWidth,
+                                                      loWX);
+      var iHi = tracing.findLowIndexInSortedIntervals(ctr.timestamps,
+                                                      function(x) { return x; },
+                                                      getSampleWidth,
+                                                      hiWX);
 
       // Iterate over every sample intersecting..
       for (var i = iLo; i <= iHi; i++) {
+        if (i < 0)
+          continue;
         if (i >= ctr.timestamps.length)
           continue;
 

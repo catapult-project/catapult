@@ -319,18 +319,6 @@ base.exportTo('tracing.tracks', function() {
     },
 
     /**
-     * Adds items intersecting a point to a selection.
-     * @param {number} vX X location to search at, in viewspace.
-     * @param {number} vY Y location to search at, in viewspace.
-     * @param {Selection} selection Selection to which to add hits.
-     * @return {boolean} true if a slice was found, otherwise false.
-     */
-    addIntersectingItemsToSelection: function(vX, vY, selection) {
-      // Does nothing. There's nothing interesting to pick on the ruler
-      // track.
-    },
-
-    /**
      * Adds items intersecting the given range to a selection.
      * @param {number} loVX Lower X bound of the interval to search, in
      *     viewspace.

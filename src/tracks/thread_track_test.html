@@ -57,7 +57,8 @@ found in the LICENSE file.
     track.viewport.xSetWorldBounds(0, wW, vW);
 
     var selection = new Selection();
-    track.addIntersectingItemsToSelection((1.5/wW)*vW, y, selection);
+    var x = (1.5/wW)*vW;
+    track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
     assertEquals(t1.slices[0], selection[0].slice);
 
     var selection = new Selection();
