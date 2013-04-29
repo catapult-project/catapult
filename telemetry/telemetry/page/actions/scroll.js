@@ -137,7 +137,7 @@
     return this.renderingStats_;
   }
 
-  ScrollAction.prototype.onGestureComplete_ = function(timestamp) {
+  ScrollAction.prototype.onGestureComplete_ = function() {
     // If the scrollHeight went down, only scroll to the new scrollHeight.
     // -1 to allow for rounding errors on scaled viewports (like mobile).
     this.scrollHeight_ = Math.min(this.scrollHeight_,
