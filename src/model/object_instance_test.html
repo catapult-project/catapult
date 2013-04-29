@@ -18,35 +18,6 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  function testValidBeforeTsWhenDeleted() {
-    var instance = new tracing.model.ObjectInstance();
-    var sA = instance.addSnapshot(10, 'a');
-    var sB = instance.addSnapshot(40, 'b');
-    instance.wasDeleted(60);
-    assertEquals(10, sA.ts);
-    assertEquals(40, sA.validBeforeTs);
-
-    assertEquals(40, sB.ts);
-    assertEquals(60, sB.validBeforeTs);
-  }
-
-  function testValidBeforeTsWhenNotDeleted() {
-    var instance = new tracing.model.ObjectInstance();
-    var sA = instance.addSnapshot(10, 'a');
-    var sB = instance.addSnapshot(40, 'b');
-    assertEquals(10, sA.ts);
-    assertEquals(40, sA.validBeforeTs);
-
-    assertEquals(40, sB.ts);
-
-    // Should be MAX_VALUE when the instance is alive, but when deleted, should
-    // become the deletion time.
-    assertEquals(Number.MAX_VALUE, sB.validBeforeTs);
-
-    instance.wasDeleted(50);
-    assertEquals(50, sB.validBeforeTs);
-  }
-
   function testGetSnapshotAt() {
     var instance = new tracing.model.ObjectInstance();
     instance.addSnapshot(10, 'a');

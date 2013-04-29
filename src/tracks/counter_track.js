@@ -220,7 +220,7 @@ base.exportTo('tracing.tracks', function() {
       var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
 
       function getSampleWidth(x, i) {
-        if (i == ctr.timestamps.length)
+        if (i == ctr.timestamps.length - 1)
           return 0;
         return ctr.timestamps[i + 1] - ctr.timestamps[i];
       }

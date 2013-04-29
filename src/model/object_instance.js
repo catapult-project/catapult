@@ -21,7 +21,6 @@ base.exportTo('tracing.model', function() {
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
-    this.validBeforeTs = Number.MAX_VALUE;
   }
 
   ObjectInstanceSnapshot.prototype = {
@@ -71,8 +70,6 @@ base.exportTo('tracing.model', function() {
       }
 
       var snapshot = new ObjectInstanceSnapshot(this, ts, args);
-      if (lastSnapshot)
-        lastSnapshot.validBeforeTs = ts;
       this.snapshots.push(snapshot);
       return snapshot;
     },
@@ -87,18 +84,21 @@ base.exportTo('tracing.model', function() {
               ts + '. A snapshot exists that is older.');
       }
       this.deletionTs = ts;
-      if (lastSnapshot)
-        lastSnapshot.validBeforeTs = this.deletionTs;
     },
 
     getSnapshotAt: function(ts) {
       if (ts < this.creationTs || ts > this.deletionTs)
         throw new Error('ts must be within lifetime of this instance');
 
+      var snapshots = this.snapshots;
       var i = tracing.findLowIndexInSortedIntervals(
-        this.snapshots,
+        snapshots,
         function(snapshot) { return snapshot.ts; },
-        function(snapshot) { return snapshot.validBeforeTs - snapshot.ts; },
+        function(snapshot, i) {
+          if (i == snapshots.length - 1)
+            return snapshots[i].objectInstance.deletionTs;
+          return snapshots[i+1].ts - snapshots[i].ts;
+        },
         ts);
       if (i < 0 || i >= this.snapshots.length)
         return undefined;
