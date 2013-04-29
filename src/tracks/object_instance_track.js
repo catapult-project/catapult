@@ -216,14 +216,14 @@ base.exportTo('tracing.tracks', function() {
       if (hit instanceof tracing.SelectionObjectSnapshotHit) {
         var index = this.objectSnapshots_.indexOf(hit.objectSnapshot);
         var newIndex = index + offset;
-        if (newIndex > 0 && newIndex < this.objectSnapshots_.length) {
+        if (newIndex >= 0 && newIndex < this.objectSnapshots_.length) {
           selection.addObjectSnapshot(this, this.objectSnapshots_[newIndex]);
           return true;
         }
       } else if (hit instanceof tracing.SelectionObjectInstanceHit) {
         var index = this.objectInstances_.indexOf(hit.objectInstance);
         var newIndex = index + offset;
-        if (newIndex > 0 && newIndex < this.objectInstances_.length) {
+        if (newIndex >= 0 && newIndex < this.objectInstances_.length) {
           selection.addObjectInstance(this, this.objectInstances_[newIndex]);
           return true;
         }
