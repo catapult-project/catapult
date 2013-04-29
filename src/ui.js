@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.exportTo('tracing.ui', function() {
+base.exportTo('ui', function() {
 
   /**
    * Decorates elements as an instance of a class.
@@ -43,7 +43,7 @@ base.exportTo('tracing.ui', function() {
    *
    * Usage:
    * <pre>
-   * var List = tracing.ui.define('list');
+   * var List = ui.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {

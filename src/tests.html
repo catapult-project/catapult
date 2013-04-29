@@ -9,64 +9,67 @@ found in the LICENSE file.
 <title>All Tracing Tests</title>
 <script>
   G_allTests = [
-    'category_filter_dialog_test.html',
-    'filter_test.html',
-    'find_control_test.html',
-    'overlay_test.html',
-    'profiling_view_test.html',
-    'range_test.html',
-    'selection_test.html',
-    'settings_test.html',
-    'sorted_array_utils_test.html',
-    'timeline_analysis_view_test.html',
-    'timeline_test.html',
-    'timeline_view_test.html',
-    'timeline_viewport_test.html',
+    'base/range_test.html',
+    'base/unittest_test.html',
+    'base/sorted_array_utils_test.html',
+
     'ui_test.html',
-    'unittest_test.html',
+    'ui/overlay_test.html',
 
-    'model_test.html',
-    'model/async_slice_group_test.html',
-    'model/counter_test.html',
-    'model/cpu_test.html',
-    'model/object_collection_test.html',
-    'model/object_instance_test.html',
-    'model/process_base_test.html',
-    'model/process_test.html',
-    'model/slice_group_test.html',
-    'model/thread_test.html',
-    'model/time_to_object_instance_map_test.html',
+    'about_tracing/profiling_view_test.html',
 
-    'importer/linux_perf_importer_test.html',
-    'importer/linux_perf/android_parser_test.html',
-    'importer/linux_perf/bus_parser_test.html',
-    'importer/linux_perf/clock_parser_test.html',
-    'importer/linux_perf/cpufreq_parser_test.html',
-    'importer/linux_perf/disk_parser_test.html',
-    'importer/linux_perf/drm_parser_test.html',
-    'importer/linux_perf/exynos_parser_test.html',
-    'importer/linux_perf/gesture_parser_test.html',
-    'importer/linux_perf/i915_parser_test.html',
-    'importer/linux_perf/kfunc_parser_test.html',
-    'importer/linux_perf/mali_parser_test.html',
-    'importer/linux_perf/power_parser_test.html',
-    'importer/linux_perf/sched_parser_test.html',
-    'importer/linux_perf/workqueue_parser_test.html',
-    'importer/timeline_stream_importer_test.html',
-    'importer/trace_event_importer_test.html',
-    'importer/v8_log_importer_test.html',
+    'tracing/category_filter_dialog_test.html',
+    'tracing/filter_test.html',
+    'tracing/find_control_test.html',
+    'tracing/selection_test.html',
+    'tracing/settings_test.html',
+    'tracing/timeline_analysis_view_test.html',
+    'tracing/timeline_track_view_test.html',
+    'tracing/timeline_view_test.html',
+    'tracing/timeline_viewport_test.html',
 
-    'tracks/async_slice_group_track_test.html',
-    'tracks/cpu_track_test.html',
-    'tracks/counter_track_test.html',
-    'tracks/object_instance_track_test.html',
-    'tracks/slice_group_track_test.html',
-    'tracks/slice_track_test.html',
-    'tracks/thread_track_test.html',
-    'tracks/ruler_track_test.html',
+    'tracing/analysis/counter_analysis_test.html',
+    'tracing/analysis/slice_analysis_test.html',
 
-    'analysis/counter_analysis_test.html',
-    'analysis/slice_analysis_test.html',
+    'tracing/model_test.html',
+    'tracing/model/async_slice_group_test.html',
+    'tracing/model/counter_test.html',
+    'tracing/model/cpu_test.html',
+    'tracing/model/object_collection_test.html',
+    'tracing/model/object_instance_test.html',
+    'tracing/model/process_base_test.html',
+    'tracing/model/process_test.html',
+    'tracing/model/slice_group_test.html',
+    'tracing/model/thread_test.html',
+    'tracing/model/time_to_object_instance_map_test.html',
+
+    'tracing/importer/linux_perf_importer_test.html',
+    'tracing/importer/linux_perf/android_parser_test.html',
+    'tracing/importer/linux_perf/bus_parser_test.html',
+    'tracing/importer/linux_perf/clock_parser_test.html',
+    'tracing/importer/linux_perf/cpufreq_parser_test.html',
+    'tracing/importer/linux_perf/disk_parser_test.html',
+    'tracing/importer/linux_perf/drm_parser_test.html',
+    'tracing/importer/linux_perf/exynos_parser_test.html',
+    'tracing/importer/linux_perf/gesture_parser_test.html',
+    'tracing/importer/linux_perf/i915_parser_test.html',
+    'tracing/importer/linux_perf/kfunc_parser_test.html',
+    'tracing/importer/linux_perf/mali_parser_test.html',
+    'tracing/importer/linux_perf/power_parser_test.html',
+    'tracing/importer/linux_perf/sched_parser_test.html',
+    'tracing/importer/linux_perf/workqueue_parser_test.html',
+    'tracing/importer/timeline_stream_importer_test.html',
+    'tracing/importer/trace_event_importer_test.html',
+    'tracing/importer/v8_log_importer_test.html',
+
+    'tracing/tracks/async_slice_group_track_test.html',
+    'tracing/tracks/cpu_track_test.html',
+    'tracing/tracks/counter_track_test.html',
+    'tracing/tracks/object_instance_track_test.html',
+    'tracing/tracks/slice_group_track_test.html',
+    'tracing/tracks/slice_track_test.html',
+    'tracing/tracks/thread_track_test.html',
+    'tracing/tracks/ruler_track_test.html',
   ];
 </script>
 <style>
@@ -77,7 +80,7 @@ found in the LICENSE file.
 </style>
 <script src="base.js"></script>
 <script>
-  base.require('unittest');
+  base.require('base.unittest');
 </script>
 </head>
 <body>
@@ -88,14 +91,14 @@ found in the LICENSE file.
 
   <script>
   function IFrameTestCase(test) {
-    var testCaseEl = new unittest.TestCaseElement(test, test, true);
+    var testCaseEl = new base.unittest.TestCaseElement(test, test, true);
     testCaseEl.__proto__ = IFrameTestCase.prototype;
     testCaseEl.decorate(test);
     return testCaseEl;
   }
 
   IFrameTestCase.prototype = {
-    __proto__: unittest.TestCaseElement.prototype,
+    __proto__: base.unittest.TestCaseElement.prototype,
 
     decorate: function(test) {
       this.status = 'READY';

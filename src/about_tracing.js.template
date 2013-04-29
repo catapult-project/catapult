@@ -9,10 +9,10 @@ var tracingController;
 var profilingView;  // Made global for debugging purposes only.
 
 document.addEventListener('DOMContentLoaded', function() {
-  tracingController = new tracing.TracingController(
+  tracingController = new about_tracing.TracingController(
       chrome.send.bind(chrome));
 
   profilingView = document.body.querySelector('#profiling-view');
-  tracing.ui.decorate(profilingView, tracing.ProfilingView);
+  ui.decorate(profilingView, about_tracing.ProfilingView);
   profilingView.tracingController = tracingController;
 });

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Unittest Tests</title>
+<script src="/src/base.js"></script>
+<script>
+  base.require('base.unittest');
+</script>
+</head>
+<body>
+
+<script>
+'use strict';
+
+
+var TestCase = base.unittest.TestCase;
+var HTMLTestRunner = base.unittest.HTMLTestRunner;
+
+function rawAssertTrue(a) {
+  if (a) return;
+  throw new Error('Expected true, got ' + a);
+}
+
+function rawAssertFalse(a) {
+  if (!a) return;
+  throw new Error('Expected true, got ' + a);
+}
+
+function rawAssertEquals(a, b) {
+  if (a == b) return;
+  throw new Error('Expected <' + a + '>, got <' + b + '>');
+}
+
+function rawAssertThrows(fn) {
+  try {
+    fn();
+  } catch (e) {
+    return;
+  }
+  throw new Error('Expected <' + fn + '> to throw');
+}
+
+function rawAssertNotThrows(fn) {
+  try {
+    fn();
+  } catch (e) {
+    throw new Error('Expected <' + fn + '> to not throw');
+  }
+}
+
+/**
+ * Runs all methods in the window that start with test_.
+ * @return {undefined} Nothing.
+ */
+function runAllTests() {
+  var testMethodNames = [];
+  for (var name in tests) {
+    if (name.indexOf('test') != 0)
+      continue;
+    var value = tests[name];
+    if (typeof value != 'function')
+      continue;
+    testMethodNames.push(name);
+  }
+  var resultsEl = document.createElement('unittest-test-runner');
+  document.body.appendChild(resultsEl);
+
+  var numFailures = 0;
+  for (var i = 0; i < testMethodNames.length; i++) {
+    var testMethodName = testMethodNames[i];
+    var testMethod = tests[testMethodName];
+    var testCaseEl = new base.unittest.TestCaseElement(testMethodName);
+    resultsEl.appendChild(testCaseEl);
+    testCaseEl.status = 'RUNNING';
+
+    var testStub = {
+      get testName() {
+        return testMethodName;
+      },
+
+      addHTMLOutput: function(opt_title, opt_element) {
+        return testCaseEl.addHTMLOutput(opt_title, opt_element);
+      }
+    };
+
+    try {
+      testMethod.call(testStub);
+      testCaseEl.status = 'PASSED';
+    } catch (e) {
+      testCaseEl.status = 'FAILED';
+      e.testName = testMethodName;
+      testCaseEl.addError(testStub, e);
+      numFailures += 1;
+    }
+  }
+  window.G_testRunner = {
+    computeResultStats: function() {
+      return {
+        get numTestsRun() {
+          return testMethodName.length;
+        },
+        get numTestsPassed() {
+          return this.numTestsRun - numFailures;
+        },
+        get numTestsWithErrors() {
+          return numFailures;
+        }
+      };
+    },
+
+    get done() {
+      return true;
+    }
+  };
+}
+
+// Simple assertions for use in testing the test harness. :)
+function FakeTest(testMethod, opt_testMethodName) {
+  TestCase.call(this, testMethod, opt_testMethodName);
+}
+
+FakeTest.prototype = {
+  __proto__: TestCase.prototype,
+
+  setUp: function() {
+    this.didSetUp = true;
+  },
+
+  tearDown: function() {
+    this.didTearDown = true;
+  }
+};
+
+
+function FakeResults() {
+}
+
+FakeResults.prototype = {
+  willRunTest: function(test) {
+    this.didWillRunTest = true;
+    this.willRunTestArg1 = test;
+  },
+
+  addError: function(e) {
+    this.didAddError = true;
+    this.addErrorArg1 = e;
+  },
+
+  didRunTest: function(test) {
+    this.didDidRunTest = true;
+    this.didRunTestArg1 = test;
+  }
+};
+
+function testTestCaseRun() {
+  var didRunTestMethod = false;
+  var test = new FakeTest(function() {
+    didRunTestMethod = true;
+  }, 'test_testcase_run');
+  var results = new FakeResults();
+  test.run(results);
+
+  rawAssertTrue(results.didWillRunTest);
+  rawAssertEquals(test, results.willRunTestArg1);
+
+  rawAssertTrue(test.didSetUp);
+  rawAssertTrue(didRunTestMethod);
+
+  rawAssertFalse(results.didAddError);
+  rawAssertTrue(test.didTearDown);
+
+  rawAssertTrue(results.didDidRunTest);
+  rawAssertEquals(test, results.didRunTestArg1);
+
+  rawAssertTrue(window.assertEquals == undefined);
+}
+
+function testTestCaseRun_TestThatFails() {
+  var didRunTestMethod = false;
+  var test = new FakeTest(function() {
+    didRunTestMethod = true;
+    assertTrue(false);
+  }, 'test_testcase_run_test_that_fails');
+  var results = new FakeResults();
+  test.run(results);
+
+  rawAssertTrue(results.didWillRunTest);
+  rawAssertEquals(test, results.willRunTestArg1);
+
+  rawAssertTrue(test.didSetUp);
+  rawAssertTrue(didRunTestMethod);
+  rawAssertTrue(results.didAddError);
+  rawAssertTrue(results.addErrorArg1 instanceof base.unittest.TestError);
+  rawAssertTrue(test.didTearDown);
+
+  rawAssertTrue(results.didDidRunTest);
+  rawAssertEquals(test, results.didRunTestArg1);
+
+  rawAssertTrue(window.assertEquals == undefined);
+}
+
+function testObjectThatHasErrorInSetUp() {
+  var didRunTestMethod = false;
+  var test = new FakeTest(function() {
+    didRunTestMethod = true;
+  }, 'test_object_that_has_error_in_setUp');
+  test.setUp = function() {
+    throw Error('Intentional setUp error');
+  };
+
+  var results = new FakeResults();
+  test.run(results);
+
+  rawAssertTrue(results.didWillRunTest);
+  rawAssertEquals(test, results.willRunTestArg1);
+
+  rawAssertFalse(didRunTestMethod);
+  rawAssertTrue(results.didAddError);
+  rawAssertTrue(results.addErrorArg1 instanceof Error);
+  rawAssertFalse(test.didTearDown);
+
+  rawAssertTrue(results.didDidRunTest);
+  rawAssertEquals(test, results.didRunTestArg1);
+
+  rawAssertTrue(window.assertEquals == undefined);
+}
+
+function testObjectThatThrowsInCleanup() {
+  var didRunTestMethod = false;
+  var test = new FakeTest(function() {
+    didRunTestMethod = true;
+  }, 'test_object_that_throws_in_cleanup');
+  test.setUp = function() {
+    throw Error('Intentional setUp error');
+  };
+
+  var results = new FakeResults();
+  test.run(results);
+
+  rawAssertTrue(results.didWillRunTest);
+  rawAssertEquals(test, results.willRunTestArg1);
+
+  rawAssertFalse(didRunTestMethod);
+  rawAssertTrue(results.didAddError);
+  rawAssertTrue(results.addErrorArg1 instanceof Error);
+  rawAssertFalse(test.didTearDown);
+
+  rawAssertTrue(results.didDidRunTest);
+  rawAssertEquals(test, results.didRunTestArg1);
+
+  rawAssertTrue(window.assertEquals == undefined);
+}
+
+function testAssertTrue() {
+  var test = new TestCase(function() {
+    rawAssertThrows(function() {
+      assertTrue(false);
+    });
+    rawAssertNotThrows(function() {
+      assertTrue(true);
+    });
+  }, 'test_assert_true');
+  var results = new FakeResults();
+  test.run(results);
+}
+
+function testAssertThrows() {
+  var test = new TestCase(function() {
+    rawAssertThrows(function() {
+      assertThrows(function() {
+      });
+    });
+    rawAssertNotThrows(function() {
+      assertThrows(function() {
+        throw new Error('expected_error');
+      });
+    });
+  }, 'test_assert_throws');
+  var results = new FakeResults();
+  test.run(results);
+}
+
+function testTestRunnerAllPassed() {
+  var runner = new HTMLTestRunner('foo');
+  var test1 = new TestCase(function() {
+    assertTrue(true);
+  }, 'test1');
+  var test2 = new TestCase(function() {
+    assertTrue(true);
+  }, 'test2');
+
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result');
+  testRunnerEl.appendChild(runner);
+  runner.run([test1, test2]);
+
+  var stats = runner.computeResultStats();
+  rawAssertEquals(2, stats.numTestsRun);
+  rawAssertEquals(2, stats.numTestsPassed);
+  rawAssertEquals(0, stats.numTestsWithErrors);
+}
+
+function testTestErrorConstruction() {
+  var err = new base.unittest.TestError();
+  rawAssertTrue(err instanceof base.unittest.TestError);
+  rawAssertTrue(err instanceof Error);
+  rawAssertTrue(err.stack);
+
+  var err = new base.unittest.TestError('foo');
+  rawAssertTrue(err instanceof base.unittest.TestError);
+  rawAssertTrue(err instanceof Error);
+  rawAssertTrue(err.stack);
+  rawAssertEquals('foo', err.message);
+}
+
+function testTestRunnerOneFailed() {
+  var runner = new HTMLTestRunner('foo', '');
+  var test1 = new TestCase(function() {
+    assertTrue(true);
+  }, 'test1');
+  var test2 = new TestCase(function() {
+    assertTrue(false);
+  }, 'test2');
+
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
+  testRunnerEl.appendChild(runner);
+  runner.run([test1, test2]);
+
+  var stats = runner.computeResultStats();
+  rawAssertEquals(2, stats.numTestsRun);
+  rawAssertEquals(1, stats.numTestsPassed);
+  rawAssertEquals(1, stats.numTestsWithErrors);
+}
+
+function testTestRunnerOneFailedWithHashFilter() {
+  var runner = new HTMLTestRunner('foo', '#test2');
+
+  var test1 = new TestCase(function() {
+    assertTrue(true);
+  }, 'test1');
+  var test2 = new TestCase(function() {
+    assertTrue(false);
+  }, 'test2');
+
+  var testRunnerEl = this.addHTMLOutput('Hypothetical result:');
+  testRunnerEl.appendChild(runner);
+  runner.run([test1, test2]);
+
+  var stats = runner.computeResultStats();
+  rawAssertEquals(1, stats.numTestsRun);
+  rawAssertEquals(0, stats.numTestsPassed);
+  rawAssertEquals(1, stats.numTestsWithErrors);
+}
+
+function testTestDiscovery() {
+  var object = {
+    test1: function() {
+    },
+    test_2: function() {
+    },
+    notATest: function() {
+    },
+    alsoNotATest: 3
+  };
+  var tests = base.unittest.discoverTests(object, undefined);
+  rawAssertEquals(2, tests.length);
+  rawAssertEquals('test_2', tests[0].testName);
+  rawAssertEquals('test1', tests[1].testName);
+}
+
+function testTestRunnerFilter() {
+  var object = {
+    test1: function() {
+    },
+    test_2: function() {
+    }
+  };
+  var tests = base.unittest.discoverTests(object, /test_2/);
+  rawAssertEquals(1, tests.length);
+  rawAssertEquals('test_2', tests[0].testName);
+}
+
+</script>
+</body>
+</html>
