@@ -61,6 +61,13 @@ found in the LICENSE file.
                                         startTime + 1.1, {}, .7));
         }
       }
+      var p1000 = model.getOrCreateProcess(1000);
+      var objects = p1000.objects;
+      objects.idWasCreated('0x1000', 'cc', 'LayerTreeHostImpl', 10);
+      objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 10, "snapshot-1");
+      objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 25, "snapshot-2");
+      objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 40, "snapshot-3");
+      objects.idWasDeleted('0x1000', 'cc', 'LayerTreeHostImpl', 45);
       model.updateCategories_();
 
       // Add a known problematic piece of data to test the import errors UI.

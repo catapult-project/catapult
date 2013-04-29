@@ -6,6 +6,7 @@
 
 base.require('tracks.container_track');
 base.require('tracks.counter_track');
+base.require('tracks.object_instance_track');
 base.require('tracks.thread_track');
 base.require('filter');
 base.require('ui');

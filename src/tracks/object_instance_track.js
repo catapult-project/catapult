@@ -66,7 +66,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     get snapshotRadiusView() {
-      return 7*(window.devicePixelRatio||1);
+      return 7*(window.devicePixelRatio || 1);
     },
 
     redraw: function() {
@@ -75,6 +75,7 @@ base.exportTo('tracing.tracks', function() {
       var canvasH = this.canvas_.height;
       var halfCanvasH = canvasH * 0.5;
       var twoPi = Math.PI * 2;
+      var pixelRatio = window.devicePixelRatio || 1;
 
       ctx.clearRect(0, 0, canvasW, canvasH);
 
@@ -103,6 +104,7 @@ base.exportTo('tracing.tracks', function() {
         },
         viewLWorld);
       ctx.globalAlpha = 0.25;
+      ctx.strokeStyle = 'rgb(0,0,0)';
       for (var i = loI; i < objectInstances.length; ++i) {
         var instance = objectInstances[i];
         var x = instance.creationTs;
@@ -116,7 +118,7 @@ base.exportTo('tracing.tracks', function() {
         var right = instance.deletionTs == Number.MAX_VALUE ?
           viewRWorld : instance.deletionTs;
         ctx.fillStyle = palette[colorId];
-        ctx.fillRect(x, 0, right - x, canvasH);
+        ctx.fillRect(x, pixelRatio, right - x, canvasH - 2*pixelRatio);
       }
       ctx.globalAlpha = 1;
       ctx.restore();
