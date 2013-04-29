@@ -192,32 +192,8 @@ base.exportTo('tracing.tracks', function() {
       vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
-    /**
-     * Adds items intersecting the given range to a selection.
-     * @param {number} loVX Lower X bound of the interval to search, in
-     *     viewspace.
-     * @param {number} hiVX Upper X bound of the interval to search, in
-     *     viewspace.
-     * @param {number} loVY Lower Y bound of the interval to search, in
-     *     viewspace.
-     * @param {number} hiVY Upper Y bound of the interval to search, in
-     *     viewspace.
-     * @param {Selection} selection Selection to which to add hits.
-     */
-    addIntersectingItemsInRangeToSelection: function(
-        loVX, hiVX, loVY, hiVY, selection) {
-
-      var clientRect = this.getBoundingClientRect();
-      var a = Math.max(loVY, clientRect.top);
-      var b = Math.min(hiVY, clientRect.bottom);
-      if (a > b)
-        return;
-
-      var ctr = this.counter_;
-
-      var pixelRatio = window.devicePixelRatio || 1;
-      var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
-      var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, selection) {
 
       function getSampleWidth(x, i) {
         if (i == ctr.timestamps.length - 1)
@@ -225,6 +201,7 @@ base.exportTo('tracing.tracks', function() {
         return ctr.timestamps[i + 1] - ctr.timestamps[i];
       }
 
+      var ctr = this.counter_;
       var iLo = tracing.findLowIndexInSortedIntervals(ctr.timestamps,
                                                       function(x) { return x; },
                                                       getSampleWidth,

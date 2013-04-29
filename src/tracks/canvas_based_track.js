@@ -133,7 +133,6 @@ base.exportTo('tracing.tracks', function() {
       return cur == this.ownerDocument;
     },
 
-
     updateCanvasSizeIfNeeded_: function() {
       var style = window.getComputedStyle(this.canvasContainer_);
       var innerWidth = parseInt(style.width) -
@@ -152,9 +151,27 @@ base.exportTo('tracing.tracks', function() {
         this.canvas_.style.height = innerHeight + 'px';
       }
     },
+
     get firstCanvas() {
       return this.canvas_;
-    }
+    },
+
+    addIntersectingItemsInRangeToSelection: function(
+        loVX, hiVX, loVY, hiVY, selection) {
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
+      var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
+
+      var clientRect = this.getBoundingClientRect();
+      var a = Math.max(loVY, clientRect.top);
+      var b = Math.min(hiVY, clientRect.bottom);
+      if (a > b)
+        return;
+
+      this.addIntersectingItemsInRangeToSelectionInWorldSpace(
+        loWX, hiWX, selection);
+    },
   };
 
   return {

@@ -45,6 +45,18 @@ base.exportTo('tracing.tracks', function() {
     updateChildTracks_: function() {
       this.detach();
       if (this.process_) {
+        // Create the object instance tracks for this process.
+        var instancesByTypeName = this.process_.objects.getAllInstancesByTypeName();
+        var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
+        instanceTypeNames.sort();
+        instanceTypeNames.forEach(function(typeName) {
+          var track = new tracing.tracks.ObjectInstanceTrack();
+          track.heading = typeName + ':';
+          track.objectInstances = instancesByTypeName[typeName];
+          this.addTrack_(track);
+        }.bind(this));
+
+
         // Add counter tracks for this process.
         var counters = [];
         for (var tid in this.process.counters) {
