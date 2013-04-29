@@ -312,3 +312,6 @@ class InspectorBackend(object):
     """Unregisters a previously registered domain."""
     assert domain_name in self._domain_handlers
     self._domain_handlers.pop(domain_name)
+
+  def CollectGarbage(self):
+    self._page.CollectGarbage()

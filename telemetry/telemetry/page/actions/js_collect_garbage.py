@@ -7,8 +7,5 @@ class JsCollectGarbageAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(JsCollectGarbageAction, self).__init__(attributes)
 
-  def CustomizeBrowserOptions(self, options):
-    options.AppendExtraBrowserArg('--js-flags=--expose-gc')
-
   def RunAction(self, page, tab, previous_action):
-    tab.EvaluateJavaScript('window.gc(); window.gc();')
+    tab.CollectGarbage()

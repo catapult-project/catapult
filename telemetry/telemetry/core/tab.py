@@ -95,3 +95,6 @@ class Tab(web_contents.WebContents):
   def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
     """Returns the value of the cookie by the given |name|."""
     return self._inspector_backend.GetCookieByName(name, timeout)
+
+  def CollectGarbage(self):
+    self._inspector_backend.CollectGarbage()

@@ -106,3 +106,9 @@ class InspectorPage(object):
       if cookie['name'] == name:
         return cookie['value']
     return None
+
+  def CollectGarbage(self, timeout=60):
+    request = {
+        'method': 'HeapProfiler.CollectGarbage'
+        }
+    self._inspector_backend.SyncRequest(request, timeout)
