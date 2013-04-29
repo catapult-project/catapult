@@ -24,18 +24,33 @@ base.exportTo('tracing.model', function() {
   function ObjectCollection(parent) {
     this.parent = parent;
     this.bounds = new base.Range();
-    this.instanceMapsById = {}; // id -> TimeToObjectInstanceMap
+    this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
+    this.instancesByTypeName_ = {};
+    this.createObjectInstance_ = this.createObjectInstance_.bind(this);
   }
 
   ObjectCollection.prototype = {
     __proto__: Object.prototype,
 
+    createObjectInstance_: function(parent, id, category, name, creationTs) {
+      var instance = new tracing.model.ObjectInstance(parent, id, category, name, creationTs);
+      var typeName = instance.typeName;
+      var instancesOfTypeName = this.instancesByTypeName_[typeName];
+      if (!instancesOfTypeName) {
+        instancesOfTypeName = [];
+        this.instancesByTypeName_[typeName] = instancesOfTypeName;
+      }
+      instancesOfTypeName.push(instance);
+      return instance;
+    },
+
     getOrCreateInstanceMap_: function(id) {
-      var instanceMap = this.instanceMapsById[id];
+      var instanceMap = this.instanceMapsById_[id];
       if (instanceMap)
         return instanceMap;
-      instanceMap = new tracing.model.TimeToObjectInstanceMap(this.parent, id);
-      this.instanceMapsById[id] = instanceMap;
+      instanceMap = new tracing.model.TimeToObjectInstanceMap(
+        this.createObjectInstance_, this.parent, id);
+      this.instanceMapsById_[id] = instanceMap;
       return instanceMap;
     },
 
@@ -59,7 +74,7 @@ base.exportTo('tracing.model', function() {
     },
 
     idWasDeleted: function(id, category, name, ts) {
-      var instanceMap = this.instanceMapsById[id];
+      var instanceMap = this.instanceMapsById_[id];
       if (!instanceMap)
         return undefined;
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
@@ -76,7 +91,7 @@ base.exportTo('tracing.model', function() {
     },
 
     getObjectInstanceAt: function(id, ts) {
-      var instanceMap = this.instanceMapsById[id];
+      var instanceMap = this.instanceMapsById_[id];
       if (!instanceMap)
         return undefined;
       return instanceMap.getInstanceAt(ts);
@@ -91,10 +106,14 @@ base.exportTo('tracing.model', function() {
 
     getAllObjectInstances: function() {
       var instances = [];
-      base.dictionaryValues(this.instanceMapsById).forEach(function(i2iMap) {
+      base.dictionaryValues(this.instanceMapsById_).forEach(function(i2iMap) {
         instances.push.apply(instances, i2iMap.instances);
       });
       return instances;
+    },
+
+    getAllInstancesByTypeName: function() {
+      return this.instancesByTypeName_;
     },
 
     updateBounds: function() {

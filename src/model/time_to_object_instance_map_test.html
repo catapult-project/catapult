@@ -19,8 +19,12 @@ found in the LICENSE file.
 <script>
   'use strict';
 
+  function createObjectInstance(parent, id, category, name, creationTs) {
+    return new tracing.model.ObjectInstance(parent, id, category, name, creationTs);
+  }
+
   function testTimeToObjectInstanceMap() {
-    var m = new tracing.model.TimeToObjectInstanceMap({}, 7);
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
     m.idWasDeleted('cat', 'name', 30);
@@ -63,7 +67,7 @@ found in the LICENSE file.
   }
 
   function testTimeToObjectInstanceMapsBoundsLogic() {
-    var m = new tracing.model.TimeToObjectInstanceMap({}, 7);
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
     m.idWasDeleted('cat', 'name', 30);

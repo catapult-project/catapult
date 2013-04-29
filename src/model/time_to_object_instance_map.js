@@ -7,7 +7,6 @@
 /**
  * @fileoverview Provides the TimeToObjectInstanceMap class.
  */
-base.require('model.object_instance');
 base.require('range');
 base.require('sorted_array_utils');
 
@@ -24,7 +23,8 @@ base.exportTo('tracing.model', function() {
    *
    * @constructor
    */
-  function TimeToObjectInstanceMap(parent, id) {
+  function TimeToObjectInstanceMap(createObjectInstanceFunction, parent, id) {
+    this.createObjectInstanceFunction_ = createObjectInstanceFunction;
     this.parent = parent;
     this.id = id;
     this.instances = [];
@@ -33,7 +33,7 @@ base.exportTo('tracing.model', function() {
   TimeToObjectInstanceMap.prototype = {
     idWasCreated: function(category, name, ts) {
       if (this.instances.length == 0) {
-        this.instances.push(new ObjectInstance(
+        this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.id, category, name, ts));
         return this.instances[0];
       }
@@ -43,7 +43,7 @@ base.exportTo('tracing.model', function() {
         throw new Error('Mutation of the TimeToObjectInstanceMap must be ' +
                         'done in ascending timestamp order.');
       }
-      lastInstance = new ObjectInstance(
+      lastInstance = this.createObjectInstanceFunction_(
           this.parent, this.id, category, name, ts);
       this.instances.push(lastInstance);
       return lastInstance;
@@ -51,7 +51,7 @@ base.exportTo('tracing.model', function() {
 
     addSnapshot: function(category, name, ts, args) {
       if (this.instances.length == 0) {
-        this.instances.push(new ObjectInstance(
+        this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.id, category, name, ts));
       }
 
@@ -61,7 +61,7 @@ base.exportTo('tracing.model', function() {
                         'done in ascending timestamp order.');
       }
       if (ts >= lastInstance.deletionTs) {
-        lastInstance = new ObjectInstance(
+        lastInstance = this.createObjectInstanceFunction_(
             this.parent, this.id, category, name, ts);
         this.instances.push(lastInstance);
       }
@@ -70,7 +70,7 @@ base.exportTo('tracing.model', function() {
 
     idWasDeleted: function(category, name, ts) {
       if (this.instances.length == 0) {
-        this.instances.push(new ObjectInstance(
+        this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.id, category, name, ts));
       }
       var lastInstance = this.instances[this.instances.length - 1];

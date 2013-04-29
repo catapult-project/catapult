@@ -65,6 +65,16 @@ found in the LICENSE file.
     var picture = collection.getObjectInstanceAt('0x1000', 20);
     assertEquals('skia', picture.category);
     assertEquals('Picture', picture.name);
+
+    assertArrayEquals(
+        ['cc::Frame', 'skia::Picture'],
+        base.dictionaryKeys(collection.getAllInstancesByTypeName()));
+    assertArrayEquals(
+        [frame],
+        collection.getAllInstancesByTypeName()['cc::Frame']);
+    assertArrayEquals(
+        [picture],
+        collection.getAllInstancesByTypeName()['skia::Picture']);
   }
 
   function testCreateSnapDelete() {

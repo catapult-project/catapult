@@ -48,6 +48,10 @@ base.exportTo('tracing.model', function() {
   ObjectInstance.prototype = {
     __proto__: Object.prototype,
 
+    get typeName() {
+      return this.category + '::' + this.name;
+    },
+
     addSnapshot: function(ts, args) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');
