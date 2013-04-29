@@ -1,13 +1,14 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 'use strict';
 
 /**
- * @fileoverview Analysis summarizes info about the selected slices
- * to the analysis panel.
+ * @fileoverview Displays an analysis of the selection.
  */
+base.require('analysis.counter_analysis');
+base.require('analysis.slice_analysis');
 base.require('analysis.util');
 base.require('ui');
 base.requireStylesheet('timeline_analysis_view');
@@ -41,6 +42,10 @@ base.exportTo('tracing', function() {
       return td;
     },
 
+    appendTableCell: function(table, row, text) {
+      return this.appendTableCell_(table, row, row.children.length, text);
+    },
+
     appendTableCellWithTooltip_: function(table, row, cellnum, text, tooltip) {
       if (tooltip) {
         var td = this.appendElement_(row, 'td');
@@ -60,6 +65,7 @@ base.exportTo('tracing', function() {
      */
     appendTable: function(className, numColumns) {
       var table = this.appendElement_(this, 'table');
+      table.headerRow = this.appendElement_(table, 'tr');
       table.className = className + ' analysis-table';
       table.numColumns = numColumns;
       return table;
@@ -70,10 +76,12 @@ base.exportTo('tracing', function() {
      * header that spans all columns.
      */
     appendTableHeader: function(table, label) {
-      var row = this.appendElement_(table, 'tr');
-
-      var th = this.appendElement_(row, 'th', label);
+      var th = this.appendElement_(table.headerRow, 'th', label);
       th.className = 'analysis-table-header';
+    },
+
+    appendTableRow: function(table) {
+      return this.appendElement_(table, 'tr');
     },
 
     /**
@@ -201,177 +209,72 @@ base.exportTo('tracing', function() {
    * @param {Selection} selection What to analyze.
    */
   function analyzeSelection(results, selection) {
+    analyzeHitsByType(results, selection.getHitsOrganizedByType());
+  }
 
-    var sliceHits = selection.getSliceHitsAsSelection();
-    var counterSampleHits = selection.getCounterSampleHitsAsSelection();
+  function analyzeHitsByType(results, hitsByType) {
+    var sliceHits = hitsByType.slices;
+    var counterSampleHits = hitsByType.counterSamples;
+    var objectHits = new tracing.Selection();
+    objectHits.addSelection(hitsByType.objectSnapshots);
+    objectHits.addSelection(hitsByType.objectInstances);
 
     if (sliceHits.length == 1) {
-      var slice = sliceHits[0].slice;
-      var table = results.appendTable('analysis-slice-table', 2);
-
-      results.appendTableHeader(table, 'Selected slice:');
-      results.appendSummaryRow(table, 'Title', slice.title);
-
-      if (slice.category)
-        results.appendSummaryRow(table, 'Category', slice.category);
-
-      results.appendSummaryRowTime(table, 'Start', slice.start);
-      results.appendSummaryRowTime(table, 'Duration', slice.duration);
-
-      if (slice.durationInUserTime) {
-        results.appendSummaryRowTime(
-            table, 'Duration (U)', slice.durationInUserTime);
-      }
-
-      var n = 0;
-      for (var argName in slice.args) {
-        n += 1;
-      }
-      if (n > 0) {
-        results.appendSummaryRow(table, 'Args');
-        for (var argName in slice.args) {
-          var argVal = slice.args[argName];
-          // TODO(sleffler) use span instead?
-          results.appendSummaryRow(table, ' ' + argName, argVal);
-        }
-      }
+      tracing.analysis.analyzeSingleSliceHit(
+        results, sliceHits[0]);
     } else if (sliceHits.length > 1) {
-      var tsLo = sliceHits.bounds.min;
-      var tsHi = sliceHits.bounds.max;
-
-      // compute total sliceHits duration
-      var titles = sliceHits.map(function(i) { return i.slice.title; });
-
-      var numTitles = 0;
-      var slicesByTitle = {};
-      for (var i = 0; i < sliceHits.length; i++) {
-        var slice = sliceHits[i].slice;
-        if (!slicesByTitle[slice.title]) {
-          slicesByTitle[slice.title] = {
-            slices: []
-          };
-          numTitles++;
-        }
-        slicesByTitle[slice.title].slices.push(slice);
-      }
-
-      var table;
-      table = results.appendTable('analysis-slices-table', 3);
-      results.appendTableHeader(table, 'Slices:');
-
-      var totalDuration = 0;
-      for (var sliceGroupTitle in slicesByTitle) {
-        var sliceGroup = slicesByTitle[sliceGroupTitle];
-        var duration = 0;
-        var avg = 0;
-        var startOfFirstOccurrence = Number.MAX_VALUE;
-        var startOfLastOccurrence = -Number.MAX_VALUE;
-        var frequencyDetails = undefined;
-        var min = Number.MAX_VALUE;
-        var max = -Number.MAX_VALUE;
-        for (var i = 0; i < sliceGroup.slices.length; i++) {
-          duration += sliceGroup.slices[i].duration;
-          startOfFirstOccurrence = Math.min(sliceGroup.slices[i].start,
-                                            startOfFirstOccurrence);
-          startOfLastOccurrence = Math.max(sliceGroup.slices[i].start,
-              startOfLastOccurrence);
-          min = Math.min(sliceGroup.slices[i].duration, min);
-          max = Math.max(sliceGroup.slices[i].duration, max);
-        }
-
-        totalDuration += duration;
-
-        if (sliceGroup.slices.length == 0)
-          avg = 0;
-        avg = duration / sliceGroup.slices.length;
-
-        var details = {min: min,
-          max: max,
-          avg: avg,
-          avg_stddev: undefined,
-          frequency: undefined,
-          frequency_stddev: undefined};
-
-        // Compute the stddev of the slice durations.
-        var sumOfSquaredDistancesToMean = 0;
-        for (var i = 0; i < sliceGroup.slices.length; i++) {
-          var signedDistance = details.avg - sliceGroup.slices[i].duration;
-          sumOfSquaredDistancesToMean += signedDistance * signedDistance;
-        }
-
-        details.avg_stddev = Math.sqrt(
-            sumOfSquaredDistancesToMean / (sliceGroup.slices.length - 1));
-
-        // We require at least 3 samples to compute the stddev.
-        var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
-        if (sliceGroup.slices.length > 2 && elapsed > 0) {
-          var numDistances = sliceGroup.slices.length - 1;
-          details.frequency = (1000 * numDistances) / elapsed;
-
-          // Compute the stddev.
-          sumOfSquaredDistancesToMean = 0;
-          for (var i = 1; i < sliceGroup.slices.length; i++) {
-            var currentFrequency = 1000 /
-                (sliceGroup.slices[i].start - sliceGroup.slices[i - 1].start);
-            var signedDistance = details.frequency - currentFrequency;
-            sumOfSquaredDistancesToMean += signedDistance * signedDistance;
-          }
-
-          details.frequency_stddev = Math.sqrt(
-              sumOfSquaredDistancesToMean / (numDistances - 1));
-        }
-        results.appendDataRow(
-            table, sliceGroupTitle, duration, sliceGroup.slices.length,
-            details);
-      }
-      results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
-      results.appendSpacingRow(table);
-      results.appendSummaryRowTime(table, 'Selection start', tsLo);
-      results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
+      tracing.analysis.analyzeMultipleSliceHits(
+        results, sliceHits);
     }
 
     if (counterSampleHits.length == 1) {
-      var hit = counterSampleHits[0];
-      var ctr = hit.counter;
-      var sampleIndex = hit.sampleIndex;
-      var values = [];
-      for (var i = 0; i < ctr.numSeries; ++i)
-        values.push(ctr.samples[ctr.numSeries * sampleIndex + i]);
-
-      var table = results.appendTable('analysis-counter-table', 2);
-      results.appendTableHeader(table, 'Selected counter:');
-      results.appendSummaryRow(table, 'Title', ctr.name);
-      results.appendSummaryRowTime(
-          table, 'Timestamp', ctr.timestamps[sampleIndex]);
-
-      for (var i = 0; i < ctr.numSeries; i++)
-        results.appendSummaryRow(table, ctr.seriesNames[i], values[i]);
+      tracing.analysis.analyzeSingleCounterSampleHit(
+          results, counterSampleHits[0]);
     } else if (counterSampleHits.length > 1) {
-      var hitsByCounter = {};
-      for (var i = 0; i < counterSampleHits.length; i++) {
-        var ctr = counterSampleHits[i].counter;
-        if (!hitsByCounter[ctr.guid])
-          hitsByCounter[ctr.guid] = [];
-        hitsByCounter[ctr.guid].push(counterSampleHits[i]);
-      }
-
-      var table = results.appendTable('analysis-counter-table', 7);
-      results.appendTableHeader(table, 'Counters:');
-      for (var id in hitsByCounter) {
-        var hits = hitsByCounter[id];
-        var ctr = hits[0].counter;
-        var sampleIndices = [];
-        for (var i = 0; i < hits.length; i++)
-          sampleIndices.push(hits[i].sampleIndex);
-
-        var stats = ctr.getSampleStatistics(sampleIndices);
-        for (var i = 0; i < stats.length; i++) {
-          results.appendDataRow(
-              table, ctr.name + ': ' + ctr.seriesNames[i], undefined,
-              undefined, stats[i]);
-        }
-      }
+      tracing.analysis.analyzeMultipleCounterSampleHits(
+          results, counterSampleHits);
     }
+
+    if (objectHits.length)
+      analyzeObjectHits(results, objectHits);
+  }
+
+  /**
+   * Extremely simplistic analysis of objects. Mainly exists to provide
+   * click-through to the main object's analysis view.
+   */
+  function analyzeObjectHits(results, objectHits) {
+    objectHits = base.asArray(objectHits).sort(base.Range.compareByMinTimes);
+
+    var table = results.appendTable('analysis-object-sample-table', 2);
+    results.appendTableHeader(table, 'Selected Objects:');
+
+    objectHits.forEach(function(hit) {
+      var row = results.appendTableRow(table);
+      var ts;
+      var objectText;
+      if (hit instanceof tracing.SelectionObjectSnapshotHit) {
+        var objectSnapshot = hit.objectSnapshot;
+        ts = tracing.analysis.tsRound(objectSnapshot.ts);
+        objectText = objectSnapshot.objectInstance.typeName + ' ' +
+          objectSnapshot.objectInstance.id;
+      } else {
+        var objectInstance = hit.objectInstance;
+
+        var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
+          '' : tracing.analysis.tsRound(objectInstance.deletionTs);
+        ts = tracing.analysis.tsRound(objectInstance.creationTs) + '-' + deletionTs;
+
+        objectText = objectInstance.typeName + ' '
+          objectInstance.id;
+      }
+
+      results.appendTableCell(table, row, ts);
+      var linkContainer = results.appendTableCell(table, row, '');
+      var aEl = document.createElement('a');
+      aEl.textContent = objectText;
+      linkContainer.appendChild(aEl);
+    });
   }
 
   var TimelineAnalysisView = tracing.ui.define('div');
@@ -385,8 +288,17 @@ base.exportTo('tracing', function() {
 
     set selection(selection) {
       this.textContent = '';
+
+      var hitsByType = selection.getHitsOrganizedByType();
+      if (false &&
+          hitsByType.objectInstanceHits + hitsByType.objectSnapshots != 0 &&
+          hitsByType.sliceHits == 0 && hitsByType.counterSampleHits == 0) {
+        // TODO(nduca): Find analysis object for that specific object.
+        return;
+      }
+
       var results = new AnalysisResults();
-      analyzeSelection(results, selection);
+      analyzeHitsByType(results, hitsByType);
       this.appendChild(results);
     }
   };

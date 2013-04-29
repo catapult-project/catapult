@@ -335,6 +335,27 @@ base.addModuleStylesheet(
     'timeline_track_view',
     'timeline_track_view');
 base.addModuleDependency(
+    'analysis.counter_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.counter_analysis',
+    'ui');
+base.addModuleDependency(
+    'analysis.slice_analysis',
+    'analysis.util');
+base.addModuleDependency(
+    'analysis.slice_analysis',
+    'ui');
+base.addModuleStylesheet(
+    'analysis.slice_analysis',
+    'analysis.slice_analysis');
+base.addModuleDependency(
+    'timeline_analysis_view',
+    'analysis.counter_analysis');
+base.addModuleDependency(
+    'timeline_analysis_view',
+    'analysis.slice_analysis');
+base.addModuleDependency(
     'timeline_analysis_view',
     'analysis.util');
 base.addModuleDependency(

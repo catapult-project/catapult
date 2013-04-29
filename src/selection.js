@@ -81,6 +81,29 @@ base.exportTo('tracing', function() {
     }
   };
 
+  var HIT_TYPES = [
+    {
+      constructor: SelectionSliceHit,
+      name: 'slice',
+      pluralName: 'slices'
+    },
+    {
+      constructor: SelectionCounterSampleHit,
+      name: 'counterSample',
+      pluralName: 'counterSamples'
+    },
+    {
+      constructor: SelectionObjectSnapshotHit,
+      name: 'objectSnapshot',
+      pluralName: 'objectSnapshots'
+    },
+    {
+      constructor: SelectionObjectInstanceHit,
+      name: 'objectInstance',
+      pluralName: 'objectInstances'
+    }
+  ];
+
   /**
    * Represents a selection within a  and its associated set of tracks.
    * @constructor
@@ -138,18 +161,23 @@ base.exportTo('tracing', function() {
 
     addCounterSample: function(track, counter, sampleIndex) {
       return this.push_(
-          new SelectionCounterSampleHit(
+        new SelectionCounterSampleHit(
           track, counter, sampleIndex));
     },
 
     addObjectSnapshot: function(track, objectSnapshot) {
       return this.push_(
-          new SelectionObjectSnapshotHit(track, objectSnapshot));
+        new SelectionObjectSnapshotHit(track, objectSnapshot));
     },
 
     addObjectInstance: function(track, objectInstance) {
       return this.push_(
-          new SelectionObjectInstanceHit(track, objectInstance));
+        new SelectionObjectInstanceHit(track, objectInstance));
+    },
+
+    addSelection: function(selection) {
+      for (var i = 0; i < selection.length; i++)
+        this.push_(selection[i]);
     },
 
     subSelection: function(index, count) {
@@ -176,6 +204,21 @@ base.exportTo('tracing', function() {
       var selection = new Selection();
       this.enumHitsOfType(SelectionSliceHit, selection.push_.bind(selection));
       return selection;
+    },
+
+    getHitsOrganizedByType: function() {
+      var hits = {};
+      HIT_TYPES.forEach(function(hitType) {
+        hits[hitType.pluralName] = new Selection();
+      });
+      for (var i = 0; i < this.length_; i++) {
+        var hit = this[i];
+        HIT_TYPES.forEach(function(hitType) {
+          if (hit instanceof hitType.constructor)
+            hits[hitType.pluralName].push_(hit);
+        });
+      }
+      return hits;
     },
 
     enumHitsOfType: function(type, func) {

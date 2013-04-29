@@ -73,6 +73,19 @@ base.exportTo('base', function() {
     },
   };
 
+  Range.compareByMinTimes = function(a, b) {
+    if (!a.isEmpty && !b.isEmpty)
+      return a.min_ - b.min_;
+
+    if (a.isEmpty && !b.isEmpty)
+      return -1;
+
+    if (!a.isEmpty && b.isEmpty)
+      return 1;
+
+    return 0;
+  };
+
   return {
     Range: Range
   };

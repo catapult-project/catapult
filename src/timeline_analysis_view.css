@@ -16,6 +16,12 @@
     border-width: 0;
 }
 
+.analysis-table a {
+    color: -webkit-link;
+    cursor: pointer;
+    textDecoration: underline;
+}
+
 .analysis-table > tr > td:first-child {
     padding-left: 2px;
 }
@@ -34,23 +40,4 @@
 
 .analysis-table-row:nth-child(2n+0) {
     background-color: #e2e2e2;
-}
-
-.analysis-slice-table-col-0 {
-}
-.analysis-slice-table-col-1 {
-}
-
-.analysis-slices-table-col-0 {
-}
-.analysis-slices-table-col-1 {
-    text-align: right;
-}
-.analysis-slices-table-col-2 {
-    text-align: right;
-}
-
-.analysis-counter-table-col-0 {
-}
-.analysis-counter-table-col-0 {
 }
