@@ -8,56 +8,11 @@
  *        Do not edit directly.
  */
 base.addModuleDependency(
-    'analysis.single_slice_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.single_slice_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.slice_group_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.slice_group_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.slice_selection_analysis',
-    'analysis.single_slice_selection_analysis');
-base.addModuleDependency(
-    'analysis.slice_selection_analysis',
-    'analysis.slice_group_selection_analysis');
-base.addModuleDependency(
-    'analysis.single_counter_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.single_counter_selection_analysis',
-    'analysis.util');
-base.addModuleDependency(
-    'analysis.counter_selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'analysis.counter_selection_analysis',
-    'analysis.single_counter_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'analysis.slice_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'analysis.counter_selection_analysis');
-base.addModuleDependency(
-    'analysis.selection_analysis',
-    'ui');
-base.addModuleStylesheet(
-    'analysis.selection_analysis',
-    'analysis.selection_analysis');
-base.addModuleDependency(
     'model.counter',
     'guid');
 base.addModuleDependency(
     'model.counter',
     'range');
-base.addModuleDependency(
-    'test_utils',
-    'model.counter');
 base.addModuleDependency(
     'model.object_instance',
     'range');
@@ -167,10 +122,19 @@ base.addModuleDependency(
     'model',
     'filter');
 base.addModuleDependency(
+    'importer.timeline_stream_importer',
+    'model');
+base.addModuleDependency(
+    'importer.timeline_stream_importer',
+    'model.slice');
+base.addModuleDependency(
     'selection',
     'range');
 base.addModuleDependency(
     'selection',
+    'event_target');
+base.addModuleDependency(
+    'timeline_viewport',
     'event_target');
 base.addModuleDependency(
     'tracks.track',
@@ -220,6 +184,48 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'tracks.slice_track',
     'tracks.slice_track');
+base.addModuleDependency(
+    'tracks.cpu_track',
+    'tracks.container_track');
+base.addModuleDependency(
+    'tracks.cpu_track',
+    'tracks.slice_track');
+base.addModuleDependency(
+    'tracks.cpu_track',
+    'filter');
+base.addModuleDependency(
+    'tracks.cpu_track',
+    'model');
+base.addModuleDependency(
+    'tracks.cpu_track',
+    'ui');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'tracks.canvas_based_track');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'color_scheme');
+base.addModuleDependency(
+    'tracks.counter_track',
+    'ui');
+base.addModuleStylesheet(
+    'tracks.counter_track',
+    'tracks.counter_track');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'tracks.canvas_based_track');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'sorted_array_utils');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'color_scheme');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'ui');
+base.addModuleStylesheet(
+    'tracks.object_instance_track',
+    'tracks.object_instance_track');
 base.addModuleDependency(
     'tracks.slice_group_track',
     'tracks.container_track');
@@ -256,72 +262,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'tracks.thread_track',
     'tracks.thread_track');
-base.addModuleDependency(
-    'tracks.counter_track',
-    'tracks.canvas_based_track');
-base.addModuleDependency(
-    'tracks.counter_track',
-    'color_scheme');
-base.addModuleDependency(
-    'tracks.counter_track',
-    'ui');
-base.addModuleStylesheet(
-    'tracks.counter_track',
-    'tracks.counter_track');
-base.addModuleDependency(
-    'analysis.test.analysis_test_support',
-    'test_utils');
-base.addModuleDependency(
-    'analysis.test.analysis_test_support',
-    'model');
-base.addModuleDependency(
-    'analysis.test.analysis_test_support',
-    'selection');
-base.addModuleDependency(
-    'analysis.test.analysis_test_support',
-    'tracks.thread_track');
-base.addModuleDependency(
-    'analysis.test.analysis_test_support',
-    'tracks.counter_track');
-base.addModuleDependency(
-    'importer.timeline_stream_importer',
-    'model');
-base.addModuleDependency(
-    'importer.timeline_stream_importer',
-    'model.slice');
-base.addModuleDependency(
-    'timeline_viewport',
-    'event_target');
-base.addModuleDependency(
-    'tracks.cpu_track',
-    'tracks.container_track');
-base.addModuleDependency(
-    'tracks.cpu_track',
-    'tracks.slice_track');
-base.addModuleDependency(
-    'tracks.cpu_track',
-    'filter');
-base.addModuleDependency(
-    'tracks.cpu_track',
-    'model');
-base.addModuleDependency(
-    'tracks.cpu_track',
-    'ui');
-base.addModuleDependency(
-    'tracks.object_instance_track',
-    'tracks.canvas_based_track');
-base.addModuleDependency(
-    'tracks.object_instance_track',
-    'sorted_array_utils');
-base.addModuleDependency(
-    'tracks.object_instance_track',
-    'color_scheme');
-base.addModuleDependency(
-    'tracks.object_instance_track',
-    'ui');
-base.addModuleStylesheet(
-    'tracks.object_instance_track',
-    'tracks.object_instance_track');
 base.addModuleDependency(
     'tracks.process_track',
     'tracks.container_track');
@@ -589,6 +529,9 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'profiling_view',
     'profiling_view');
+base.addModuleDependency(
+    'test_utils',
+    'model.counter');
 base.addModuleStylesheet(
     'unittest',
     'unittest');
