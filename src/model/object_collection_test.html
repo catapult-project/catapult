@@ -66,15 +66,17 @@ found in the LICENSE file.
     assertEquals('skia', picture.category);
     assertEquals('Picture', picture.name);
 
+    var typeNames = base.dictionaryKeys(collection.getAllInstancesByTypeName());
+    typeNames.sort();
     assertArrayEquals(
-        ['cc::Frame', 'skia::Picture'],
-        base.dictionaryKeys(collection.getAllInstancesByTypeName()));
+        ['cc.Frame', 'skia.Picture'],
+        typeNames);
     assertArrayEquals(
         [frame],
-        collection.getAllInstancesByTypeName()['cc::Frame']);
+        collection.getAllInstancesByTypeName()['cc.Frame']);
     assertArrayEquals(
         [picture],
-        collection.getAllInstancesByTypeName()['skia::Picture']);
+        collection.getAllInstancesByTypeName()['skia.Picture']);
   }
 
   function testCreateSnapDelete() {

@@ -380,18 +380,23 @@ base.exportTo('tracing.importer', function() {
 
         var process = thread.parent;
         var ts = event.ts / 1000;
+        var instance;
         if (event.ph == 'N') {
-          process.objects.idWasCreated(
+          instance = process.objects.idWasCreated(
             event.id, event.cat, event.name, ts);
         } else if (event.ph == 'O') {
           if (event.args.snapshot === undefined)
             throw new Error('Snapshots must have args: {snapshot: ...}');
-          process.objects.addSnapshot(
+          var snapshot = process.objects.addSnapshot(
             event.id, event.cat, event.name, ts, event.args.snapshot);
+          instance = snapshot.objectInstance;
         } else if (event.ph == 'D') {
-          process.objects.idWasDeleted(
+          instance = process.objects.idWasDeleted(
             event.id, event.cat, event.name, ts);
         }
+
+        if (instance)
+          instance.colorId = tracing.getStringColorId(instance.typeName);
       }
 
       this.allObjectEvents_.sort(function(x, y) {

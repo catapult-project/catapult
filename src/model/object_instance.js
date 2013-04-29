@@ -21,6 +21,7 @@ base.exportTo('tracing.model', function() {
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
+    this.selected = false;
   }
 
   ObjectInstanceSnapshot.prototype = {
@@ -40,6 +41,8 @@ base.exportTo('tracing.model', function() {
     this.name = name;
     this.creationTs = creationTs;
     this.deletionTs = Number.MAX_VALUE;
+    this.selected = false;
+    this.colorId = 0;
     this.bounds = new base.Range();
     this.snapshots = [];
   }
@@ -48,7 +51,7 @@ base.exportTo('tracing.model', function() {
     __proto__: Object.prototype,
 
     get typeName() {
-      return this.category + '::' + this.name;
+      return this.category + '.' + this.name;
     },
 
     addSnapshot: function(ts, args) {
