@@ -160,7 +160,7 @@ base.exportTo('tracing.tracks', function() {
         loVX, hiVX, loVY, hiVY, selection) {
 
       var pixelRatio = window.devicePixelRatio || 1;
-      var viewPixWidthWorld = this.viewport_.xViewVectorToWorld(pixelRatio);
+      var viewPixWidthWorld = this.viewport_.xViewVectorToWorld(1);
       var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
       var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
 

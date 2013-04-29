@@ -571,6 +571,21 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'profiling_view',
     'profiling_view');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'tracks.canvas_based_track');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'sorted_array_utils');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'color_scheme');
+base.addModuleDependency(
+    'tracks.object_instance_track',
+    'ui');
+base.addModuleStylesheet(
+    'tracks.object_instance_track',
+    'tracks.object_instance_track');
 base.addModuleStylesheet(
     'unittest',
     'unittest');

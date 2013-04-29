@@ -21,6 +21,10 @@ base.exportTo('tracing', function() {
     },
     set selected(v) {
       this.slice.selected = v;
+    },
+    addBoundsToRange: function(range) {
+      range.addValue(this.slice.start);
+      range.addValue(this.slice.end);
     }
   };
 
@@ -39,9 +43,43 @@ base.exportTo('tracing', function() {
       else
         this.track.selectedSamples[this.sampleIndex] = false;
       this.track.invalidate();
+    },
+    addBoundsToRange: function(range) {
+      range.addValue(this.track.timestamps[this.sampleIndex]);
     }
   };
 
+  function SelectionObjectSnapshotHit(track, objectSnapshot) {
+    this.track = track;
+    this.objectSnapshot = objectSnapshot;
+  }
+  SelectionObjectSnapshotHit.prototype = {
+    get selected() {
+      return this.objectSnapshot.selected;
+    },
+    set selected(v) {
+      this.objectSnapshot.selected = v;
+    },
+    addBoundsToRange: function(range) {
+      range.addValue(this.objectSnapshot.ts);
+    }
+  };
+
+  function SelectionObjectInstanceHit(track, objectInstance) {
+    this.track = track;
+    this.objectInstance = objectInstance;
+  }
+  SelectionObjectInstanceHit.prototype = {
+    get selected() {
+      return this.objectInstance.selected;
+    },
+    set selected(v) {
+      this.objectInstance.selected = v;
+    },
+    addBoundsToRange: function(range) {
+      range.addRange(this.objectInstance.bounds);
+    }
+  };
 
   /**
    * Represents a selection within a  and its associated set of tracks.
@@ -60,10 +98,7 @@ base.exportTo('tracing', function() {
         this.bounds_.reset();
         for (var i = 0; i < this.length_; i++) {
           var hit = this[i];
-          if (hit.slice) {
-            this.bounds_.addValue(hit.slice.start);
-            this.bounds_.addValue(hit.slice.end);
-          }
+          hit.addBoundsToRange(this.bounds_);
         }
         this.bounds_dirty_ = false;
       }
@@ -107,6 +142,16 @@ base.exportTo('tracing', function() {
           track, counter, sampleIndex));
     },
 
+    addObjectSnapshot: function(track, objectSnapshot) {
+      return this.push_(
+          new SelectionObjectSnapshotHit(track, objectSnapshot));
+    },
+
+    addObjectInstance: function(track, objectInstance) {
+      return this.push_(
+          new SelectionObjectInstanceHit(track, objectInstance));
+    },
+
     subSelection: function(index, count) {
       count = count || 1;
 
@@ -123,33 +168,43 @@ base.exportTo('tracing', function() {
 
     getCounterSampleHitsAsSelection: function() {
       var selection = new Selection();
-      for (var i = 0; i < this.length_; i++)
-        if (this[i] instanceof SelectionCounterSampleHit)
-          selection.push_(this[i]);
+      this.enumHitsOfType(SelectionCounterSampleHit, selection.push_.bind(selection));
       return selection;
     },
 
     getSliceHitsAsSelection: function() {
       var selection = new Selection();
-      for (var i = 0; i < this.length_; i++)
-        if (this[i] instanceof SelectionSliceHit)
-          selection.push_(this[i]);
+      this.enumHitsOfType(SelectionSliceHit, selection.push_.bind(selection));
       return selection;
+    },
+
+    enumHitsOfType: function(type, func) {
+      for (var i = 0; i < this.length_; i++)
+        if (this[i] instanceof type)
+          func(this[i]);
     },
 
     getNumSliceHits: function() {
       var numHits = 0;
-      for (var i = 0; i < this.length_; i++)
-        if (this[i] instanceof SelectionSliceHit)
-          numHits++;
+      this.enumHitsOfType(SelectionSliceHit, function(hit) { numHits++; });
       return numHits;
     },
 
     getNumCounterHits: function() {
       var numHits = 0;
-      for (var i = 0; i < this.length_; i++)
-        if (this[i] instanceof SelectionCounterSampleHit)
-          numHits++;
+      this.enumHitsOfType(SelectionCounterSampleHit, function(hit) { numHits++; });
+      return numHits;
+    },
+
+    getNumObjectSnapshotHits: function() {
+      var numHits = 0;
+      this.enumHitsOfType(SelectionObjectSnapshotHit, function(hit) { numHits++; });
+      return numHits;
+    },
+
+    getNumObjectInstanceHits: function() {
+      var numHits = 0;
+      this.enumHitsOfType(SelectionObjectInstanceHit, function(hit) { numHits++; });
       return numHits;
     },
 
@@ -181,6 +236,8 @@ base.exportTo('tracing', function() {
   return {
     SelectionSliceHit: SelectionSliceHit,
     SelectionCounterSampleHit: SelectionCounterSampleHit,
+    SelectionObjectSnapshotHit: SelectionObjectSnapshotHit,
+    SelectionObjectInstanceHit: SelectionObjectInstanceHit,
     Selection: Selection
   };
 });

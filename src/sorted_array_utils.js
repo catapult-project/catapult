@@ -135,7 +135,7 @@ base.exportTo('tracing', function() {
       return;
     }
     if (i > 0) {
-      var hi = mapLoFn(ary[i - 1]) + mapWidthFn(ary[i - 1]);
+      var hi = mapLoFn(ary[i - 1]) + mapWidthFn(ary[i - 1], i - 1);
       if (hi >= loVal) {
         cb(ary[i - 1]);
       }
