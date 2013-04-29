@@ -108,10 +108,12 @@ base.exportTo('tracing', function() {
    * Represents a selection within a  and its associated set of tracks.
    * @constructor
    */
-  function Selection() {
+  function Selection(opt_hits) {
     this.bounds_dirty_ = true;
     this.bounds_ = new base.Range();
     this.length_ = 0;
+    if (opt_hits)
+      this.pushHits(opt_hits);
   }
   Selection.prototype = {
     __proto__: Object.prototype,
@@ -147,6 +149,11 @@ base.exportTo('tracing', function() {
 
     pushHit: function(hit) {
       this.push_(hit);
+    },
+
+    pushHits: function(hits) {
+      for (var i = 0; i < hits.length; i++)
+        this.pushHit(hits[i]);
     },
 
     push_: function(hit) {

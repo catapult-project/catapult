@@ -50,16 +50,17 @@ base.exportTo('tracing.analysis', function() {
     var titles = sliceHits.map(function(i) { return i.slice.title; });
 
     var numTitles = 0;
-    var slicesByTitle = {};
+    var sliceHitsByTitle = {};
     for (var i = 0; i < sliceHits.length; i++) {
       var slice = sliceHits[i].slice;
-      if (!slicesByTitle[slice.title]) {
-        slicesByTitle[slice.title] = {
-          slices: []
+      if (!sliceHitsByTitle[slice.title]) {
+        sliceHitsByTitle[slice.title] = {
+          hits: []
         };
         numTitles++;
       }
-      slicesByTitle[slice.title].slices.push(slice);
+      var sliceGroup = sliceHitsByTitle[slice.title];
+      sliceGroup.hits.push(sliceHits[i]);
     }
 
     var table;
@@ -67,8 +68,8 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableHeader(table, 'Slices:');
 
     var totalDuration = 0;
-    for (var sliceGroupTitle in slicesByTitle) {
-      var sliceGroup = slicesByTitle[sliceGroupTitle];
+    base.iterItems(
+        sliceHitsByTitle, function(sliceHitGroupTitle, sliceHitGroup) {
       var duration = 0;
       var avg = 0;
       var startOfFirstOccurrence = Number.MAX_VALUE;
@@ -76,23 +77,24 @@ base.exportTo('tracing.analysis', function() {
       var frequencyDetails = undefined;
       var min = Number.MAX_VALUE;
       var max = -Number.MAX_VALUE;
-      for (var i = 0; i < sliceGroup.slices.length; i++) {
-        duration += sliceGroup.slices[i].duration;
-        startOfFirstOccurrence = Math.min(sliceGroup.slices[i].start,
+      for (var i = 0; i < sliceHitGroup.hits.length; i++) {
+        var slice = sliceHitGroup.hits[i].slice;
+        duration += slice.duration;
+        startOfFirstOccurrence = Math.min(slice.start,
                                           startOfFirstOccurrence);
-        startOfLastOccurrence = Math.max(sliceGroup.slices[i].start,
+        startOfLastOccurrence = Math.max(slice.start,
             startOfLastOccurrence);
-        min = Math.min(sliceGroup.slices[i].duration, min);
-        max = Math.max(sliceGroup.slices[i].duration, max);
+        min = Math.min(slice.duration, min);
+        max = Math.max(slice.duration, max);
       }
 
       totalDuration += duration;
 
-      if (sliceGroup.slices.length == 0)
+      if (sliceHitGroup.hits.length == 0)
         avg = 0;
-      avg = duration / sliceGroup.slices.length;
+      avg = duration / sliceHitGroup.hits.length;
 
-      var details = {min: min,
+      var statistics = {min: min,
         max: max,
         avg: avg,
         avg_stddev: undefined,
@@ -101,36 +103,41 @@ base.exportTo('tracing.analysis', function() {
 
       // Compute the stddev of the slice durations.
       var sumOfSquaredDistancesToMean = 0;
-      for (var i = 0; i < sliceGroup.slices.length; i++) {
-        var signedDistance = details.avg - sliceGroup.slices[i].duration;
+      for (var i = 0; i < sliceHitGroup.hits.length; i++) {
+        var signedDistance =
+            statistics.avg - sliceHitGroup.hits[i].slice.duration;
         sumOfSquaredDistancesToMean += signedDistance * signedDistance;
       }
 
-      details.avg_stddev = Math.sqrt(
-          sumOfSquaredDistancesToMean / (sliceGroup.slices.length - 1));
+      statistics.avg_stddev = Math.sqrt(
+          sumOfSquaredDistancesToMean / (sliceHitGroup.hits.length - 1));
 
       // We require at least 3 samples to compute the stddev.
       var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
-      if (sliceGroup.slices.length > 2 && elapsed > 0) {
-        var numDistances = sliceGroup.slices.length - 1;
-        details.frequency = (1000 * numDistances) / elapsed;
+      if (sliceHitGroup.hits.length > 2 && elapsed > 0) {
+        var numDistances = sliceHitGroup.hits.length - 1;
+        statistics.frequency = (1000 * numDistances) / elapsed;
 
         // Compute the stddev.
         sumOfSquaredDistancesToMean = 0;
-        for (var i = 1; i < sliceGroup.slices.length; i++) {
+        for (var i = 1; i < sliceHitGroup.hits.length; i++) {
           var currentFrequency = 1000 /
-              (sliceGroup.slices[i].start - sliceGroup.slices[i - 1].start);
-          var signedDistance = details.frequency - currentFrequency;
+              (sliceHitGroup.hits[i].slice.start -
+               sliceHitGroup.hits[i - 1].slice.start);
+          var signedDistance = statistics.frequency - currentFrequency;
           sumOfSquaredDistancesToMean += signedDistance * signedDistance;
         }
 
-        details.frequency_stddev = Math.sqrt(
+        statistics.frequency_stddev = Math.sqrt(
             sumOfSquaredDistancesToMean / (numDistances - 1));
       }
       results.appendDataRow(
-          table, sliceGroupTitle, duration, sliceGroup.slices.length,
-          details);
-    }
+          table, sliceHitGroupTitle, duration, sliceHitGroup.hits.length,
+          statistics,
+          function() {
+            return new tracing.Selection(sliceHitGroup.hits);
+          });
+    });
     results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
     results.appendSpacingRow(table);
     results.appendSummaryRowTime(table, 'Selection start', tsLo);

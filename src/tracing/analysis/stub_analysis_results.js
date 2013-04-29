@@ -41,11 +41,13 @@ base.exportTo('tracing.analysis', function() {
                        time: time});
     },
 
-    appendDataRow: function(table, label, duration, occurences, details) {
+    appendDataRow: function(table, label, duration, occurences,
+                            details, selectionGenerator) {
       table.rows.push({label: label,
                        duration: duration,
                        occurences: occurences,
-                       details: details});
+                       details: details,
+                       selectionGenerator: selectionGenerator});
     }
   };
 

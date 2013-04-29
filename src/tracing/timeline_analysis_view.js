@@ -15,12 +15,26 @@ base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing', function() {
 
+  var RequestSelectionChangeEvent = base.Event.bind(
+    undefined, 'requestSelectionChange', true, false);
+
   var AnalysisResults = ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+    },
+
+    createSelectionChangingLink: function(text, selectionGenerator) {
+      var el = this.ownerDocument.createElement('a');
+      el.textContent = text;
+      el.addEventListener('click', function() {
+        var event = new RequestSelectionChangeEvent();
+        event.selection = selectionGenerator();
+        this.dispatchEvent(event);
+      });
+      return el;
     },
 
     appendElement_: function(parent, tagName, opt_text) {
@@ -100,8 +114,8 @@ base.exportTo('tracing', function() {
           // Try to treat the opt_text as json.
           var value;
           try {
-            value = JSON.parse(opt_text)
-          } catch(e) {
+            value = JSON.parse(opt_text);
+          } catch (e) {
             value = undefined;
           }
           if (!value === undefined) {
@@ -151,7 +165,8 @@ base.exportTo('tracing', function() {
      * min/max/avg/start/end for counters.
      */
     appendDataRow: function(
-        table, label, opt_duration, opt_occurences, opt_statistics) {
+        table, label, opt_duration, opt_occurences,
+        opt_statistics, opt_selectionGenerator) {
 
       var tooltip = undefined;
       if (opt_statistics) {
@@ -183,7 +198,15 @@ base.exportTo('tracing', function() {
       var row = this.appendElement_(table, 'tr');
       row.className = 'analysis-table-row';
 
-      this.appendTableCellWithTooltip_(table, row, 0, label, tooltip);
+      if (!opt_selectionGenerator) {
+        this.appendTableCellWithTooltip_(table, row, 0, label, tooltip);
+      } else {
+        var labelEl = this.appendTableCellWithTooltip_(
+          table, row, 0, label, tooltip);
+        labelEl.textContent = '';
+        labelEl.appendChild(
+          this.createSelectionChangingLink(label, opt_selectionGenerator));
+      }
 
       if (opt_duration !== undefined) {
         this.appendTableCellWithTooltip_(table, row, 1,
@@ -254,11 +277,17 @@ base.exportTo('tracing', function() {
       var row = results.appendTableRow(table);
       var ts;
       var objectText;
+      var selectionGenerator;
       if (hit instanceof tracing.SelectionObjectSnapshotHit) {
         var objectSnapshot = hit.objectSnapshot;
         ts = tracing.analysis.tsRound(objectSnapshot.ts);
         objectText = objectSnapshot.objectInstance.typeName + ' ' +
           objectSnapshot.objectInstance.id;
+        selectionGenerator = function() {
+          var selection = new tracing.Selection();
+          selection.addObjectSnapshot(hit.track, objectSnapshot);
+          return selection;
+        };
       } else {
         var objectInstance = hit.objectInstance;
 
@@ -266,15 +295,20 @@ base.exportTo('tracing', function() {
           '' : tracing.analysis.tsRound(objectInstance.deletionTs);
         ts = tracing.analysis.tsRound(objectInstance.creationTs) + '-' + deletionTs;
 
-        objectText = objectInstance.typeName + ' '
+        objectText = objectInstance.typeName + ' ' +
           objectInstance.id;
+
+        selectionGenerator = function() {
+          var selection = new tracing.Selection();
+          selection.addObjectInstance(hit.track, objectInstance);
+          return selection;
+        };
       }
 
       results.appendTableCell(table, row, ts);
       var linkContainer = results.appendTableCell(table, row, '');
-      var aEl = document.createElement('a');
-      aEl.textContent = objectText;
-      linkContainer.appendChild(aEl);
+      linkContainer.appendChild(
+        results.createSelectionChangingLink(objectText, selectionGenerator));
     });
   }
 
@@ -306,6 +340,7 @@ base.exportTo('tracing', function() {
 
   return {
     TimelineAnalysisView: TimelineAnalysisView,
+    RequestSelectionChangeEvent: RequestSelectionChangeEvent,
     analyzeSelection_: analyzeSelection
   };
 });

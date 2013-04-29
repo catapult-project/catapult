@@ -529,7 +529,7 @@ this.base = (function() {
   function concatenateArrays(/*arguments*/) {
     var values = [];
     for (var i = 0; i < arguments.length; i++) {
-      if(!(arguments[i] instanceof Array))
+      if (!(arguments[i] instanceof Array))
         throw new Error('Arguments ' + i + 'is not an array');
       values.push.apply(values, arguments[i]);
     }
@@ -548,6 +548,12 @@ this.base = (function() {
     for (var key in dict)
       values.push(dict[key]);
     return values;
+  }
+
+
+  function iterItems(dict, fn) {
+    for (var key in dict)
+      fn(key, dict[key]);
   }
 
   /**
@@ -602,6 +608,7 @@ this.base = (function() {
     concatenateArrays: concatenateArrays,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
+    iterItems: iterItems,
     TypeMap: TypeMap,
   };
 })();

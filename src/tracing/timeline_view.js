@@ -59,6 +59,9 @@ base.exportTo('tracing', function() {
       analysisContainer_.className = 'analysis-container';
 
       this.analysisEl_ = new tracing.TimelineAnalysisView();
+      this.analysisEl_.addEventListener(
+        'requestSelectionChange',
+        this.onRequestSelectionChange_.bind(this));
 
       this.dragEl_ = new DragHandle();
       this.dragEl_.target = analysisContainer_;
@@ -407,6 +410,11 @@ base.exportTo('tracing', function() {
           new tracing.Selection();
       this.analysisEl_.selection = selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
+    },
+
+    onRequestSelectionChange_: function(e) {
+      this.timeline_.selection = e.selection;
+      e.stopPropagation();
     },
 
     updateCategoryFilterFromSettings_: function() {
