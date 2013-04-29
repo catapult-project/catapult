@@ -193,7 +193,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
-        loWX, hiWX, selection) {
+        loWX, hiWX, viewPixWidthWorld, selection) {
 
       function getSampleWidth(x, i) {
         if (i == ctr.timestamps.length - 1)

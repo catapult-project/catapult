@@ -201,7 +201,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
-        loWX, hiWX, selection) {
+        loWX, hiWX, viewPixWidthWorld, selection) {
 
       var that = this;
       function onPickHit(slice) {
