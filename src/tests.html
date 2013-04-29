@@ -112,17 +112,20 @@ found in the LICENSE file.
     begin: function() {
       this.status = 'RUNNING';
       this.appendChild(this.iframe);
-      this.iframe.contentWindow.addEventListener('error', function(msg, url, lineNumber) {
-        if (iframe.contentWindow.G_testRunner)
-          return false;
+      this.iframe.contentWindow.addEventListener(
+          'error', this.onErrorInIFrame_.bind(this));
+    },
 
-        if (iframe.contentWindow.errorsCaughtByTestHarness)
-          return false;
-
-        iframe.contentWindow.errorsCaughtByTestHarness = [
-          {msg: msg, url: url, lineNumber: lineNumber}];
+    onErrorInIFrame_: function(msg, url, lineNumber) {
+      if (this.iframe.contentWindow.G_testRunner)
         return false;
-      });
+
+      if (this.iframe.contentWindow.errorsCaughtByTestHarness)
+        return false;
+
+      this.iframe.contentWindow.errorsCaughtByTestHarness = [
+        {msg: msg, url: url, lineNumber: lineNumber}];
+      return false;
     },
 
     get done() {
