@@ -131,7 +131,7 @@ found in the LICENSE file.
       var selection = createSelectionWithCounters(1);
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Selected counter:', table.tableHeader);
@@ -147,7 +147,7 @@ found in the LICENSE file.
       var selection = createSelectionWithTwoSeriesTwoCounters();
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Counters:', table.tableHeader);
@@ -163,7 +163,7 @@ found in the LICENSE file.
       var selection = createSelectionWithTwoCountersDiffSeriesDiffHits();
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Counters:', table.tableHeader);

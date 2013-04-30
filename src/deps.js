@@ -491,11 +491,32 @@ base.addModuleStylesheet(
     'tracing.analysis.slice_analysis',
     'tracing.analysis.slice_analysis');
 base.addModuleDependency(
-    'tracing.timeline_analysis_view',
+    'tracing.analysis.selection_analysis',
     'tracing.analysis.counter_analysis');
 base.addModuleDependency(
-    'tracing.timeline_analysis_view',
+    'tracing.analysis.selection_analysis',
     'tracing.analysis.slice_analysis');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.analysis_results');
+base.addModuleDependency(
+    'tracing.timeline_analysis_view',
+    'tracing.analysis.selection_analysis');
+base.addModuleDependency(
+    'tracing.timeline_analysis_view',
+    'tracing.analysis.analysis_results');
 base.addModuleDependency(
     'tracing.timeline_analysis_view',
     'tracing.analysis.util');

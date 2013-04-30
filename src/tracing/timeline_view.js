@@ -13,13 +13,19 @@ base.requireStylesheet('tracing.timeline_view');
 base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
-base.require('tracing.importer.linux_perf_importer');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.importer.v8_log_importer');
 base.require('tracing.settings');
 base.require('tracing.timeline_analysis_view');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
+
+/*
+ * Importers, object handlers
+ */
+base.require('tracing.importer.linux_perf_importer');
+base.require('tracing.importer.trace_event_importer');
+base.require('tracing.importer.v8_log_importer');
+base.require('tracing.handlers.v8_log_importer');
+
 
 base.exportTo('tracing', function() {
 

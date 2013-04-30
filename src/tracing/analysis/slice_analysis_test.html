@@ -115,7 +115,7 @@ found in the LICENSE file.
       var selection = createSelectionWithSingleSlice();
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Selected slice:', table.tableHeader);
@@ -130,7 +130,7 @@ found in the LICENSE file.
       var selection = createSelectionWithSingleSlice(true);
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Selected slice:', table.tableHeader);
@@ -146,7 +146,7 @@ found in the LICENSE file.
       var selection = createSelectionWithTwoSlices();
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
       assertEquals('Slices:', table.tableHeader);
@@ -173,7 +173,7 @@ found in the LICENSE file.
       var selection = createSelectionWithTwoSlicesSameTitle();
 
       var results = new StubAnalysisResults();
-      tracing.analyzeSelection_(results, selection);
+      tracing.analysis.analyzeSelection(results, selection);
       assertEquals(1, results.tables.length);
       var table = results.tables[0];
 
