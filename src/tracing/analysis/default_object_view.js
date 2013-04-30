@@ -4,9 +4,15 @@
 
 'use strict';
 
+base.requireStylesheet('tracing.analysis.default_object_view');
+
+base.require('tracing.analysis.analysis_link');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
+base.require('tracing.analysis.util');
 base.exportTo('tracing.analysis', function() {
+  var tsRound = tracing.analysis.tsRound;
+
   /*
    * Displays an object instance in a human readable form.
    * @constructor
@@ -18,23 +24,41 @@ base.exportTo('tracing.analysis', function() {
     __proto__: tracing.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
+      this.classList.add('default-object-view');
+      this.classList.add('default-object-snapshot-view');
     },
 
     updateContents: function() {
       var snapshot = this.objectSnapshot;
       if (!snapshot) {
-        this.textContents = '';
+        this.textContent = '';
         return;
       }
       var instance = snapshot.objectInstance;
 
-      this.textContent =
-        'Snapshot of ' + instance.typeName + '\n' +
-        'TS: ' + snapshot.ts + '\n' +
-        'ID: ' + snapshot.id + '\n';
+      var html = ''
+      html += '<div class="title">Snapshot of <a id="instance-link"></a> @ ' +
+        tsRound(snapshot.ts) + 'ms</div>\n';
+      html += '<table>';
+      html += '<tr>';
+      html += '<tr><td>args:</td><td id="args"></td></tr>\n';
+      html += '</table>';
+      this.innerHTML = html;
+
+      // TODO(nduca): ui.decoreate doesn't work when subclassed. So,
+      // replace the template element.
+      var instanceLinkEl = new tracing.analysis.ObjectInstanceLink();
+      instanceLinkEl.objectInstance = instance;
+      var tmp = this.querySelector('#instance-link');
+      tmp.parentElement.replaceChild(instanceLinkEl, tmp);
+
+      var argsEl = this.querySelector('#args');
+      argsEl.textContent = JSON.stringify(
+        snapshot.args,
+        null,
+        2);
     },
   };
-
 
   /**
    * Displays an object instance in a human readable form.
@@ -47,6 +71,8 @@ base.exportTo('tracing.analysis', function() {
     __proto__: tracing.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
+      this.classList.add('default-object-view');
+      this.classList.add('default-object-instance-view');
     },
 
     updateContents: function() {
@@ -56,9 +82,24 @@ base.exportTo('tracing.analysis', function() {
         return;
       }
 
-      this.textContent =
-        'Type: ' + instance.typeName + '\n' +
-        'ID: ' + instance.id + '\n';
+      var html = ''
+      html += '<div class="title">' + instance.typeName + ' ' + instance.id + '</div>\n';
+      html += '<table>';
+      html += '<tr>';
+      html += '<tr><td>creationTs:</td><td>' + instance.creationTs + '</td></tr>\n';
+      if (instance.deletionTs != Number.MAX_VALUE)
+        html += '<tr><td>deletionTs:</td><td>' + instance.deletionTs + '</td></tr>\n';
+      else
+        html += '<tr><td>deletionTs:</td><td>not deleted</td></tr>\n';
+      html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
+      html += '</table>'
+      this.innerHTML = html;
+      var snapshotsEl = this.querySelector('#snapshots');
+      instance.snapshots.forEach(function(snapshot) {
+        var snapshotLink = new tracing.analysis.ObjectSnapshotLink();
+        snapshotLink.objectSnapshot = snapshot;
+        snapshotsEl.appendChild(snapshotLink);
+      });
     },
   };
 

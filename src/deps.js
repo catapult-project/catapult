@@ -53,8 +53,29 @@ base.addModuleDependency(
     'tracing.analysis.analyze_selection',
     'ui');
 base.addModuleDependency(
+    'tracing.selection',
+    'base.range');
+base.addModuleDependency(
+    'tracing.selection',
+    'base.event_target');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'tracing.selection');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.analysis_link',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
     'tracing.analysis.analysis_results',
     'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.analysis_link');
 base.addModuleDependency(
     'tracing.analysis.analysis_results',
     'ui');
@@ -66,10 +87,19 @@ base.addModuleDependency(
     'ui');
 base.addModuleDependency(
     'tracing.analysis.default_object_view',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.default_object_view',
     'tracing.analysis.object_instance_view');
 base.addModuleDependency(
     'tracing.analysis.default_object_view',
     'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'tracing.analysis.default_object_view',
+    'tracing.analysis.util');
+base.addModuleStylesheet(
+    'tracing.analysis.default_object_view',
+    'tracing.analysis.default_object_view');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'tracing.analysis.analyze_selection');
@@ -100,12 +130,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.category_filter_dialog',
     'ui.overlay');
-base.addModuleDependency(
-    'tracing.selection',
-    'base.range');
-base.addModuleDependency(
-    'tracing.selection',
-    'base.event_target');
 base.addModuleDependency(
     'tracing.timeline_viewport',
     'base.event_target');

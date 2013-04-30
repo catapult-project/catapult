@@ -7,11 +7,9 @@
 base.requireStylesheet('tracing.analysis.analysis_results');
 
 base.require('tracing.analysis.util');
+base.require('tracing.analysis.analysis_link');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
-  var RequestSelectionChangeEvent = base.Event.bind(
-    undefined, 'requestSelectionChange', true, false);
-
   var AnalysisResults = ui.define('div');
 
   AnalysisResults.prototype = {
@@ -27,12 +25,9 @@ base.exportTo('tracing.analysis', function() {
 
     createSelectionChangingLink: function(text, selectionGenerator) {
       var el = this.ownerDocument.createElement('a');
+      tracing.analysis.AnalysisLink.decorate(el);
       el.textContent = text;
-      el.addEventListener('click', function() {
-        var event = new RequestSelectionChangeEvent();
-        event.selection = selectionGenerator();
-        this.dispatchEvent(event);
-      });
+      el.selectionGenerator = selectionGenerator;
       return el;
     },
 
@@ -224,7 +219,6 @@ base.exportTo('tracing.analysis', function() {
     }
   };
   return {
-    AnalysisResults: AnalysisResults,
-    RequestSelectionChangeEvent: RequestSelectionChangeEvent
+    AnalysisResults: AnalysisResults
   };
 });
