@@ -86,11 +86,12 @@ window.FLATTENED['tracing.importer.linux_perf.android_parser'] = true;
 window.FLATTENED['tracing.importer.linux_perf.kfunc_parser'] = true;
 window.FLATTENED['tracing.importer.linux_perf_importer'] = true;
 window.FLATTENED['tracing.importer.trace_event_importer'] = true;
+window.FLATTENED['tracing.timeline_view'] = true;
 window.FLATTENED['tracing.importer.v8.log_reader'] = true;
 window.FLATTENED['tracing.importer.v8.splaytree'] = true;
 window.FLATTENED['tracing.importer.v8.codemap'] = true;
 window.FLATTENED['tracing.importer.v8_log_importer'] = true;
-window.FLATTENED['tracing.timeline_view'] = true;
+window.FLATTENED['cc.layer_tree_host_impl_view'] = true;
 window.FLATTENED['about_tracing.profiling_view'] = true;
 <include src="base.js">
 <include src="base/event_target.js">
@@ -165,11 +166,12 @@ window.FLATTENED['about_tracing.profiling_view'] = true;
 <include src="tracing/importer/linux_perf/kfunc_parser.js">
 <include src="tracing/importer/linux_perf_importer.js">
 <include src="tracing/importer/trace_event_importer.js">
+<include src="tracing/timeline_view.js">
 <include src="tracing/importer/v8/log_reader.js">
 <include src="tracing/importer/v8/splaytree.js">
 <include src="tracing/importer/v8/codemap.js">
 <include src="tracing/importer/v8_log_importer.js">
-<include src="tracing/timeline_view.js">
+<include src="cc/layer_tree_host_impl_view.js">
 <include src="about_tracing/profiling_view.js">
 
 

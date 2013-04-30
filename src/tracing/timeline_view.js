@@ -24,7 +24,6 @@ base.require('ui.drag_handle');
  */
 base.require('tracing.importer.linux_perf_importer');
 base.require('tracing.importer.trace_event_importer');
-base.require('tracing.importer.v8_log_importer');
 
 base.exportTo('tracing', function() {
 

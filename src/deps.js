@@ -86,6 +86,9 @@ base.addModuleDependency(
     'tracing.analysis.object_instance_view',
     'ui');
 base.addModuleDependency(
+    'tracing.analysis.object_snapshot_view',
+    'ui');
+base.addModuleDependency(
     'tracing.analysis.default_object_view',
     'tracing.analysis.analysis_link');
 base.addModuleDependency(
@@ -557,24 +560,6 @@ base.addModuleDependency(
     'tracing.importer.trace_event_importer',
     'tracing.color_scheme');
 base.addModuleDependency(
-    'tracing.importer.v8.codemap',
-    'tracing.importer.v8.splaytree');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.color_scheme');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.importer.v8.log_reader');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.importer.v8.codemap');
-base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.analysis.analysis_view');
 base.addModuleDependency(
@@ -604,12 +589,36 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.importer.trace_event_importer');
-base.addModuleDependency(
-    'tracing.timeline_view',
-    'tracing.importer.v8_log_importer');
 base.addModuleStylesheet(
     'tracing.timeline_view',
     'tracing.timeline_view');
+base.addModuleDependency(
+    'tracing.importer.v8.codemap',
+    'tracing.importer.v8.splaytree');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.color_scheme');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.importer.v8.log_reader');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.importer.v8.codemap');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'tracing.analysis.util');
+base.addModuleStylesheet(
+    'cc.layer_tree_host_impl_view',
+    'cc.layer_tree_host_impl_view');
 base.addModuleDependency(
     'about_tracing.profiling_view',
     'about_tracing.tracing_controller');
@@ -622,6 +631,12 @@ base.addModuleDependency(
 base.addModuleDependency(
     'about_tracing.profiling_view',
     'ui.overlay');
+base.addModuleDependency(
+    'about_tracing.profiling_view',
+    'tracing.importer.v8_log_importer');
+base.addModuleDependency(
+    'about_tracing.profiling_view',
+    'cc.layer_tree_host_impl_view');
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
@@ -646,6 +661,12 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
+base.addModuleDependency(
+    'cc.color_mappings',
+    'base.color');
+base.addModuleDependency(
+    'cc.color_mappings',
+    'cc.constants');
 base.addModuleDependency(
     'cc.quad_view_viewport',
     'base.range');

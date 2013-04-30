@@ -44,8 +44,10 @@ found in the LICENSE file.
   </div>
 
   <script>
-  base.require('tracing.timeline_view');
-
+    base.require('about_tracing.profiling_view'); /* For deps */
+    base.require('tracing.timeline_view');
+  </script>
+  <script>
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
     req.open('GET', url, true);

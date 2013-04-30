@@ -4,6 +4,8 @@
 
 'use strict';
 
+base.require('ui');
+
 base.exportTo('tracing.analysis', function() {
   var ObjectSnapshotView = ui.define('div');
 
