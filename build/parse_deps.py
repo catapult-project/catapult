@@ -323,11 +323,8 @@ def calc_load_sequence(filenames, toplevel_dir):
   """
   all_resources = {}
   all_resources["scripts"] = {}
-  toplevel_modules = []
-  root_dir = ''
-  if filenames:
-    root_dir = os.path.abspath(os.path.dirname(filenames[0]))
-  resource_finder = ResourceFinder(root_dir)
+  resource_finder = ResourceFinder(os.path.abspath(toplevel_dir))
+  initial_module_name_indices = {}
   for filename in filenames:
     if not os.path.exists(filename):
       raise Exception("Could not find %s" % filename)
@@ -344,6 +341,7 @@ def calc_load_sequence(filenames, toplevel_dir):
       continue
 
     module = Module(name)
+    initial_module_name_indices[module.name] = len(initial_module_name_indices)
     module.load_and_parse(filename, decl_required = False)
     all_resources["scripts"][module.name] = module
     module.resolve(all_resources, resource_finder)
@@ -363,7 +361,16 @@ def calc_load_sequence(filenames, toplevel_dir):
                   for name, ref_count in module_ref_counts.items()
                   if ref_count == 0]
 
-  root_modules.sort(lambda x, y: cmp(x.name, y.name))
+  # Sort root_modules by the order they were originally requested,
+  # then sort everything else by name.
+  def compare_root_module(x, y):
+    n = len(initial_module_name_indices);
+    iX = initial_module_name_indices.get(x.name, n)
+    iY = initial_module_name_indices.get(y.name, n)
+    if cmp(iX, iY) != 0:
+      return cmp(iX, iY)
+    return cmp(x.name, y.name)
+  root_modules.sort(compare_root_module)
 
   already_loaded_set = set()
   load_sequence = []

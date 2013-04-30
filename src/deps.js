@@ -629,14 +629,14 @@ base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
 base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
     'tracing.importer.timeline_stream_importer',
     'tracing.model');
 base.addModuleDependency(
     'tracing.importer.timeline_stream_importer',
     'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
 base.addModuleDependency(
     'ui.list_view',
     'ui');

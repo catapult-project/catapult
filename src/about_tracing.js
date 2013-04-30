@@ -13,6 +13,7 @@
 */
 
 window.FLATTENED = {};
+window.FLATTENED['base'] = true;
 window.FLATTENED['base.event_target'] = true;
 window.FLATTENED['ui'] = true;
 window.FLATTENED['ui.overlay'] = true;
@@ -91,7 +92,7 @@ window.FLATTENED['tracing.importer.v8.codemap'] = true;
 window.FLATTENED['tracing.importer.v8_log_importer'] = true;
 window.FLATTENED['tracing.timeline_view'] = true;
 window.FLATTENED['about_tracing.profiling_view'] = true;
-window.FLATTENED['base'] = true;
+<include src="base.js">
 <include src="base/event_target.js">
 <include src="ui.js">
 <include src="ui/overlay.js">
@@ -170,7 +171,6 @@ window.FLATTENED['base'] = true;
 <include src="tracing/importer/v8_log_importer.js">
 <include src="tracing/timeline_view.js">
 <include src="about_tracing/profiling_view.js">
-<include src="base.js">
 
 
 var tracingController;

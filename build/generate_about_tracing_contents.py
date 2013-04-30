@@ -69,7 +69,7 @@ def generate_js():
   assert template.find("<SCRIPT_CONTENTS></SCRIPT_CONTENTS>") != -1
 
   filenames = [os.path.join(srcdir, x) for x in ["base.js", "about_tracing/profiling_view.js"]]
-  filenames = [os.path.relpath(x) for x in filenames]
+  filenames = [os.path.relpath(x, srcdir) for x in filenames]
 
   import parse_deps
   load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
