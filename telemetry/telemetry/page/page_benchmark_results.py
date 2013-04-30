@@ -206,5 +206,6 @@ class PageBenchmarkResults(page_test.PageTestResults):
         measurement_name = value.chart_name
         if not measurement_name:
           measurement_name = value.trace_name
-        self._PrintPerfResult(measurement_name, value.trace_name,
+        self._PrintPerfResult(measurement_name,
+                              value.trace_name + (trace_tag or ''),
                               values, value.units, value.data_type)

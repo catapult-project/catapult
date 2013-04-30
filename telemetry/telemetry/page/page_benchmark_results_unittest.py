@@ -220,15 +220,24 @@ class PageBenchmarkResultsTest(unittest.TestCase):
     benchmark_results.AddSummary('c', 'seconds', 4)
 
     benchmark_results.PrintSummary(None)
-    expected = ['RESULT b_by_url: http___www.foo.com_= 2 seconds',
-                'RESULT b_by_url: http___www.bar.com_= 3 seconds',
-                '*RESULT b: b= [2,3] seconds\n' +
-                'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
-                '*RESULT a: a= 1 seconds',
-                '*RESULT c: c= 4 seconds']
     self.assertEquals(
-      benchmark_results.results,
-      expected)
+        benchmark_results.results,
+        ['RESULT b_by_url: http___www.foo.com_= 2 seconds',
+         'RESULT b_by_url: http___www.bar.com_= 3 seconds',
+         '*RESULT b: b= [2,3] seconds\n' +
+         'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
+         '*RESULT a: a= 1 seconds',
+         '*RESULT c: c= 4 seconds'])
+
+    benchmark_results.results = []
+    benchmark_results.PrintSummary(trace_tag='_ref')
+
+    self.assertEquals(
+        benchmark_results.results,
+        ['*RESULT b: b_ref= [2,3] seconds\n' +
+         'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
+         '*RESULT a: a_ref= 1 seconds',
+         '*RESULT c: c_ref= 4 seconds'])
 
   def test_histogram(self):
     test_page_set = _MakePageSet()
