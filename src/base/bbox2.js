@@ -4,7 +4,7 @@
 'use strict';
 
 /**
- * @fileoverview Quick range computations.
+ * @fileoverview 2D bounding box computations.
  */
 base.require('base.gl_matrix');
 base.require('base.rect2');
