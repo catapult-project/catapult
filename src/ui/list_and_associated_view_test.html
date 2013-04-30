@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="../base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('ui.list_and_associated_view');
+</script>
+</head>
+<body>
+<script>
+    'use strict';
+
+    var ListAndAssociatedView = ui.ListAndAssociatedView;
+
+    var SimpleView = ui.define('div');
+    SimpleView.prototype = {
+      __proto__: HTMLDivElement.prototype,
+
+      decorate: function() {
+        this.item_ = undefined;
+      },
+
+      set item(item) {
+        this.item_ = item;
+      },
+      get item() {
+        return this.item_;
+      }
+    };
+
+    function testListViewNamingWithField() {
+      var lav = new ListAndAssociatedView();
+      var list = [
+        {x: '1'},
+        {x: '2'},
+        {x: '3'}
+      ];
+      var view = new SimpleView();
+
+      lav.list = list;
+      lav.listProperty = 'x';
+      lav.view = view;
+      lav.viewProperty = 'item';
+
+      var lavListView = lav.listView;
+      assertEquals(3, lavListView.children.length);
+      assertEquals('1', lavListView.children[0].textContent);
+    }
+
+    function testListViewNamingWithProperty() {
+      var lav = new ListAndAssociatedView();
+
+      function X(x) {
+        this.x = x;
+      }
+      X.prototype = {
+        get title() {
+          return this.x;
+        }
+      };
+
+      var list = [
+        new X('1'),
+        new X('2'),
+        new X('3')
+      ];
+      var view = new SimpleView();
+
+      lav.list = list;
+      lav.listProperty = 'title';
+      lav.view = view;
+      lav.viewProperty = 'item';
+
+      var lavListView = lav.listView;
+      assertEquals(3, lavListView.children.length);
+      assertEquals('1', lavListView.children[0].textContent);
+    }
+
+    function testSelectionChangesView() {
+      var lav = new ListAndAssociatedView();
+      var list = [
+        {x: '1'},
+        {x: '2'},
+        {x: '3'}
+      ];
+      var view = new SimpleView();
+
+      lav.list = list;
+      lav.listProperty = 'x';
+      lav.view = view;
+      lav.viewProperty = 'item';
+      var lavListView = lav.listView;
+
+      assertEquals(list[0], view.item);
+      lavListView.children[1].selected = true;
+      assertEquals(list[1], view.item);
+    }
+</script>
+</body>
+</html>

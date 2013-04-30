@@ -17,6 +17,7 @@ base.require('tracing.find_control');
 base.require('tracing.settings');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
+base.require('ui.drag_handle');
 
 /*
  * Importers, object handlers
@@ -67,7 +68,7 @@ base.exportTo('tracing', function() {
         'requestSelectionChange',
         this.onRequestSelectionChange_.bind(this));
 
-      this.dragEl_ = new DragHandle();
+      this.dragEl_ = new ui.DragHandle();
       this.dragEl_.target = analysisContainer_;
 
       this.findCtl_ = new tracing.FindControl();
@@ -435,52 +436,6 @@ base.exportTo('tracing', function() {
 
       this.timeline_.categoryFilter =
           new tracing.CategoryFilter(disabledCategories);
-    }
-  };
-
-  /**
-   * Timeline Drag Handle
-   * Detects when user clicks handle determines new height of container based
-   * on user's vertical mouse move and resizes the target.
-   * @constructor
-   * @extends {HTMLDivElement}
-   * You will need to set target to be the draggable element
-   */
-  var DragHandle = ui.define('div');
-
-  DragHandle.prototype = {
-    __proto__: HTMLDivElement.prototype,
-
-    decorate: function() {
-      this.className = 'drag-handle';
-      this.lastMousePosY = 0;
-      this.dragAnalysis = this.dragAnalysis.bind(this);
-      this.onMouseUp = this.onMouseUp.bind(this);
-      this.addEventListener('mousedown', this.onMouseDown);
-    },
-
-    dragAnalysis: function(e) {
-      // Compute the difference in height position.
-      var dy = this.lastMousePosY - e.clientY;
-      // If style is not set, start off with computed height.
-      if (!this.target.style.height)
-        this.target.style.height = window.getComputedStyle(this.target).height;
-      // Calculate new height of the container.
-      this.target.style.height = parseInt(this.target.style.height) + dy + 'px';
-      this.lastMousePosY = e.clientY;
-    },
-
-    onMouseDown: function(e) {
-      this.lastMousePosY = e.clientY;
-      document.addEventListener('mousemove', this.dragAnalysis);
-      document.addEventListener('mouseup', this.onMouseUp);
-      e.stopPropagation();
-      return false;
-    },
-
-    onMouseUp: function(e) {
-      document.removeEventListener('mousemove', this.dragAnalysis);
-      document.removeEventListener('mouseup', this.onMouseUp);
     }
   };
 

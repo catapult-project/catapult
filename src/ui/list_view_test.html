@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="../base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('ui.list_view');
+</script>
+</head>
+<body>
+<script>
+    'use strict';
+
+    var ListView = ui.ListView;
+
+    function testInstantiate() {
+      var view = new ListView();
+      var i1 = view.addItem('item 1');
+      var i2 = view.addItem('item 2');
+      var i3 = view.addItem('item 3');
+      this.addHTMLOutput('basic-list-view', view);
+      i1.click();
+    }
+
+    function testProgrammaticSelection() {
+      var view = new ListView();
+      var i1 = view.addItem('item 1');
+      var i2 = view.addItem('item 2');
+      var i3 = view.addItem('item 3');
+      this.addHTMLOutput('programmatic selection', view);
+      i2.selected = true;
+      assertTrue(i2.hasAttribute('selected'));
+      i3.selected = true;
+      assertFalse(i2.hasAttribute('selected'));
+      assertTrue(i3.hasAttribute('selected'));
+    }
+
+    function testSelectionEvents() {
+      var view = new ListView();
+      var didSelectionChange = 0;
+      view.addEventListener('selection-changed', function() {
+        didSelectionChange = true;
+      });
+      var i1 = view.addItem('item 1');
+      var i2 = view.addItem('item 2');
+      var i3 = view.addItem('item 3');
+
+      didSelectionChange = false;
+      i2.selected = true;
+      assertTrue(didSelectionChange);
+
+      didSelectionChange = false;
+      view.removeChild(i2);
+      assertTrue(didSelectionChange);
+    }
+
+</script>
+</body>
+</html>

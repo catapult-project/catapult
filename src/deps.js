@@ -431,6 +431,12 @@ base.addModuleDependency(
     'tracing.find_control',
     'ui.overlay');
 base.addModuleDependency(
+    'ui.drag_handle',
+    'ui');
+base.addModuleStylesheet(
+    'ui.drag_handle',
+    'ui.drag_handle');
+base.addModuleDependency(
     'tracing.importer.linux_perf.bus_parser',
     'tracing.importer.linux_perf.parser');
 base.addModuleDependency(
@@ -567,6 +573,9 @@ base.addModuleDependency(
     'ui.overlay');
 base.addModuleDependency(
     'tracing.timeline_view',
+    'ui.drag_handle');
+base.addModuleDependency(
+    'tracing.timeline_view',
     'tracing.importer.linux_perf_importer');
 base.addModuleDependency(
     'tracing.timeline_view',
@@ -604,3 +613,18 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');
+base.addModuleDependency(
+    'ui.list_view',
+    'ui');
+base.addModuleStylesheet(
+    'ui.list_view',
+    'ui.list_view');
+base.addModuleDependency(
+    'ui.list_and_associated_view',
+    'ui');
+base.addModuleDependency(
+    'ui.list_and_associated_view',
+    'ui.list_view');
+base.addModuleStylesheet(
+    'ui.list_and_associated_view',
+    'ui.list_and_associated_view');
