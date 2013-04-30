@@ -51,6 +51,11 @@ def generate_deps_js():
       chunks.append("base.addModuleDependency(\n    '%s',\n    '%s');\n" % (
           module.name, dependent_module_name));
 
+    for dependent_raw_script_name in module.dependent_raw_script_names:
+      chunks.append(
+          "base.addModuleRawScriptDependency(\n    '%s',\n    '%s');\n" % (
+          module.name, dependent_raw_script_name));
+
     for style_sheet in module.style_sheets:
       chunks.append("base.addModuleStylesheet(\n    '%s',\n    '%s');\n" % (
           module.name, style_sheet.name));
