@@ -103,7 +103,9 @@ class BrowserBackend(object):
 
     extensions = [extension.local_path for extension in
                   self.options.extensions_to_load if not extension.is_component]
-    extension_str = ','.join(extensions)
+    # join extension paths with ';' rather than ',' due
+    # to a tokenization issue with dbus-send
+    extension_str = ';'.join(extensions)
     if len(extensions) > 0:
       args.append('--load-extension=%s' % extension_str)
 
