@@ -69,14 +69,14 @@ found in the LICENSE file.
     var typeNames = base.dictionaryKeys(collection.getAllInstancesByTypeName());
     typeNames.sort();
     assertArrayEquals(
-        ['cc.Frame', 'skia.Picture'],
+        ['Frame', 'Picture'],
         typeNames);
     assertArrayEquals(
         [frame],
-        collection.getAllInstancesByTypeName()['cc.Frame']);
+        collection.getAllInstancesByTypeName()['Frame']);
     assertArrayEquals(
         [picture],
-        collection.getAllInstancesByTypeName()['skia.Picture']);
+        collection.getAllInstancesByTypeName()['Picture']);
   }
 
   function testCreateSnapDelete() {

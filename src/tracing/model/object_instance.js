@@ -51,7 +51,7 @@ base.exportTo('tracing.model', function() {
     __proto__: Object.prototype,
 
     get typeName() {
-      return this.category + '.' + this.name;
+      return this.name;
     },
 
     addSnapshot: function(ts, args) {

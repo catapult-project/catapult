@@ -43,7 +43,7 @@ found in the LICENSE file.
     var testEl = this.addHTMLOutput();
 
     var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName()['cc.Frame'];
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
     frames[0].snapshots[1].selected = true;
 
     var track = ObjectInstanceTrack();
@@ -58,7 +58,7 @@ found in the LICENSE file.
 
   function testSelectionHitTestingWithThreadTrack() {
     var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName()['cc.Frame'];
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
 
     var track = ObjectInstanceTrack();
     track.objectInstances = frames;

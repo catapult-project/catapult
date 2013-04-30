@@ -112,7 +112,7 @@ found in the LICENSE file.
       var view = new AnalysisView();
       view.snapshotViewRegistry = {
         getViewConstructor: function(typeName) {
-          if (typeName == 'cat.name')
+          if (typeName == 'name')
             return MyView;
         }
       };
@@ -162,7 +162,7 @@ found in the LICENSE file.
       var view = new AnalysisView();
       view.instanceViewRegistry = {
         getViewConstructor: function(typeName) {
-          if (typeName == 'cat.name')
+          if (typeName == 'name')
             return MyView;
         }
       };
