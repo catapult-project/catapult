@@ -142,7 +142,7 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
     logging.warn('telemetry detected an android device. However,')
     logging.warn('Chrome\'s port-forwarder app is not available.')
     logging.warn('To build:')
-    logging.warn('  make -j16 host_forwarder device_forwarder')
+    logging.warn('  ninja -C out/Release forwarder2 md5sum')
     logging.warn('')
     logging.warn('')
     return []
