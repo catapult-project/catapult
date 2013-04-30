@@ -7,7 +7,7 @@
 /**
  * @fileoverview Displays an analysis of the selection.
  */
-base.requireStylesheet('tracing.timeline_analysis_view');
+base.requireStylesheet('tracing.analysis.analysis_view');
 
 base.require('tracing.analysis.selection_analysis');
 base.require('tracing.analysis.analysis_results');
@@ -16,15 +16,15 @@ base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.default_object_view');
 base.require('tracing.analysis.util');
 base.require('ui');
-base.exportTo('tracing', function() {
+base.exportTo('tracing.analysis', function() {
 
-  var TimelineAnalysisView = ui.define('div');
+  var AnalysisView = ui.define('div');
 
-  TimelineAnalysisView.prototype = {
+  AnalysisView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.className = 'analysis';
+      this.className = 'analysis-view';
       this.snapshotViewRegistry = tracing.analysis.ObjectSnapshotView;
       this.instanceViewRegistry = tracing.analysis.ObjectInstanceView;
 
@@ -82,6 +82,6 @@ base.exportTo('tracing', function() {
   };
 
   return {
-    TimelineAnalysisView: TimelineAnalysisView
+    AnalysisView: AnalysisView
   };
 });

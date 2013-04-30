@@ -10,11 +10,11 @@
  */
 base.requireStylesheet('tracing.timeline_view');
 
+base.require('tracing.analysis.analysis_view');
 base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
 base.require('tracing.settings');
-base.require('tracing.timeline_analysis_view');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
 
@@ -62,7 +62,7 @@ base.exportTo('tracing', function() {
       var analysisContainer_ = document.createElement('div');
       analysisContainer_.className = 'analysis-container';
 
-      this.analysisEl_ = new tracing.TimelineAnalysisView();
+      this.analysisEl_ = new tracing.analysis.AnalysisView();
       this.analysisEl_.addEventListener(
         'requestSelectionChange',
         this.onRequestSelectionChange_.bind(this));

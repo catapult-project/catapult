@@ -6,15 +6,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head i18n-values="dir:textdirection;">
-<title>TimelineAnalysisView tests</title>
+<title>AnalysisView tests</title>
 <script src="/src/base.js"></script>
 </head>
 <body>
   <script>
     base.require('base.unittest');
+    base.require('tracing.analysis.analysis_view');
     base.require('tracing.test_utils');
     base.require('tracing.model');
-    base.require('tracing.timeline_analysis_view');
     base.require('tracing.selection');
   </script>
   <script>
@@ -22,7 +22,7 @@ found in the LICENSE file.
 
     var Model = tracing.Model;
     var Selection = tracing.Selection;
-    var TimelineAnalysisView = tracing.TimelineAnalysisView;
+    var AnalysisView = tracing.analysis.AnalysisView;
     var newSliceNamed = test_utils.newSliceNamed;
 
     function testAnalyzeSelectionWithFalsyArgs() {
@@ -38,7 +38,7 @@ found in the LICENSE file.
       var selection = new Selection();
       selection.addSlice(t53track, slice);
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
       var rows = analysisEl.querySelectorAll('tr');
@@ -66,7 +66,7 @@ found in the LICENSE file.
       selection.addObjectSnapshot(track, s25);
       selection.addObjectSnapshot(track, s40);
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }
@@ -78,7 +78,7 @@ found in the LICENSE file.
       var selection = new tracing.Selection();
       selection.addObjectSnapshot({}, s10);
 
-      var view = new TimelineAnalysisView();
+      var view = new AnalysisView();
       view.snapshotViewRegistry = {
         getViewConstructor: function(typeName) {
           return undefined;
@@ -109,7 +109,7 @@ found in the LICENSE file.
         }
       };
 
-      var view = new TimelineAnalysisView();
+      var view = new AnalysisView();
       view.snapshotViewRegistry = {
         getViewConstructor: function(typeName) {
           if (typeName == 'cat.name')
@@ -129,7 +129,7 @@ found in the LICENSE file.
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
 
-      var view = new TimelineAnalysisView();
+      var view = new AnalysisView();
       view.instanceViewRegistry = {
         getViewConstructor: function(typeName) {
           return undefined;
@@ -159,7 +159,7 @@ found in the LICENSE file.
         }
       };
 
-      var view = new TimelineAnalysisView();
+      var view = new AnalysisView();
       view.instanceViewRegistry = {
         getViewConstructor: function(typeName) {
           if (typeName == 'cat.name')

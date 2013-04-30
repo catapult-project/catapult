@@ -13,9 +13,10 @@ found in the LICENSE file.
   <script>
     base.require('base.unittest');
     base.require('tracing.test_utils');
+    base.require('tracing.analysis.analysis_view');
     base.require('tracing.analysis.stub_analysis_results');
     base.require('tracing.analysis.counter_analysis');
-    base.require('tracing.timeline_analysis_view');
+    base.require('tracing.analysis.selection_analysis');
     base.require('tracing.selection');
     base.require('tracing.model');
   </script>
@@ -26,7 +27,7 @@ found in the LICENSE file.
     var Model = tracing.Model;
     var Thread = tracing.model.Thread;
     var Selection = tracing.Selection;
-    var TimelineAnalysisView = tracing.TimelineAnalysisView;
+    var AnalysisView = tracing.analysis.AnalysisView;
     var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
 
     function createSelectionWithCounters(numSamples) {
@@ -114,7 +115,7 @@ found in the LICENSE file.
     function testAnalysisViewWithSingleCounterWithTwoSeries() {
       var selection = createSelectionWithTwoSeriesSingleCounter();
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }
@@ -122,7 +123,7 @@ found in the LICENSE file.
     function testAnalysisViewWithTwoCountersWithTwoSeries() {
       var selection = createSelectionWithTwoSeriesTwoCounters();
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }

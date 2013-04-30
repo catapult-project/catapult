@@ -13,9 +13,10 @@ found in the LICENSE file.
   <script>
     base.require('base.unittest');
     base.require('tracing.test_utils');
-    base.require('tracing.analysis.stub_analysis_results');
+    base.require('tracing.analysis.analysis_view');
+    base.require('tracing.analysis.selection_analysis');
     base.require('tracing.analysis.slice_analysis');
-    base.require('tracing.timeline_analysis_view');
+    base.require('tracing.analysis.stub_analysis_results');
     base.require('tracing.selection');
     base.require('tracing.model');
   </script>
@@ -25,7 +26,7 @@ found in the LICENSE file.
     var Model = tracing.Model;
     var Thread = tracing.model.Thread;
     var Selection = tracing.Selection;
-    var TimelineAnalysisView = tracing.TimelineAnalysisView;
+    var AnalysisView = tracing.analysis.AnalysisView;
     var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
     var newSliceNamed = test_utils.newSliceNamed;
     var newSliceCategory = test_utils.newSliceCategory;
@@ -82,7 +83,7 @@ found in the LICENSE file.
     function testAnalysisViewWithSingleSlice() {
       var selection = createSelectionWithSingleSlice();
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }
@@ -90,7 +91,7 @@ found in the LICENSE file.
     function testAnalysisViewWithSingleSliceCategory() {
       var selection = createSelectionWithSingleSlice(true);
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }
@@ -98,7 +99,7 @@ found in the LICENSE file.
     function testAnalysisViewWithMultipleSlices() {
       var selection = createSelectionWithTwoSlices();
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }
@@ -106,7 +107,7 @@ found in the LICENSE file.
     function testAnalysisViewWithMultipleSlicesSameTitle() {
       var selection = createSelectionWithTwoSlicesSameTitle();
 
-      var analysisEl = new TimelineAnalysisView();
+      var analysisEl = new AnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
     }

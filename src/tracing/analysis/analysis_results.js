@@ -18,6 +18,7 @@ base.exportTo('tracing.analysis', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+      this.className = 'analysis-results';
     },
 
     clear: function() {

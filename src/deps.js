@@ -26,6 +26,75 @@ base.addModuleStylesheet(
     'about_tracing.tracing_controller',
     'about_tracing.tracing_controller');
 base.addModuleDependency(
+    'tracing.analysis.counter_analysis',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.counter_analysis',
+    'ui');
+base.addModuleDependency(
+    'tracing.analysis.slice_analysis',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.slice_analysis',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.slice_analysis',
+    'tracing.analysis.slice_analysis');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'tracing.analysis.counter_analysis');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'tracing.analysis.slice_analysis');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.selection_analysis',
+    'ui');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.analysis_results');
+base.addModuleDependency(
+    'tracing.analysis.object_instance_view',
+    'ui');
+base.addModuleDependency(
+    'tracing.analysis.default_object_view',
+    'tracing.analysis.object_instance_view');
+base.addModuleDependency(
+    'tracing.analysis.default_object_view',
+    'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.selection_analysis');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.analysis_results');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.object_instance_view');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.default_object_view');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.analysis_view',
+    'tracing.analysis.analysis_view');
+base.addModuleDependency(
     'tracing.category_filter_dialog',
     'tracing.filter');
 base.addModuleDependency(
@@ -362,75 +431,6 @@ base.addModuleDependency(
     'tracing.find_control',
     'ui.overlay');
 base.addModuleDependency(
-    'tracing.analysis.counter_analysis',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.counter_analysis',
-    'ui');
-base.addModuleDependency(
-    'tracing.analysis.slice_analysis',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.slice_analysis',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.analysis.slice_analysis',
-    'tracing.analysis.slice_analysis');
-base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'tracing.analysis.counter_analysis');
-base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'tracing.analysis.slice_analysis');
-base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'ui');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.analysis_results');
-base.addModuleDependency(
-    'tracing.analysis.object_instance_view',
-    'ui');
-base.addModuleDependency(
-    'tracing.analysis.default_object_view',
-    'tracing.analysis.object_instance_view');
-base.addModuleDependency(
-    'tracing.analysis.default_object_view',
-    'tracing.analysis.object_snapshot_view');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.selection_analysis');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.analysis_results');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.object_instance_view');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.object_snapshot_view');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.default_object_view');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.timeline_analysis_view',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.timeline_analysis_view',
-    'tracing.timeline_analysis_view');
-base.addModuleDependency(
     'tracing.importer.linux_perf.bus_parser',
     'tracing.importer.linux_perf.parser');
 base.addModuleDependency(
@@ -546,6 +546,9 @@ base.addModuleDependency(
     'tracing.importer.v8.codemap');
 base.addModuleDependency(
     'tracing.timeline_view',
+    'tracing.analysis.analysis_view');
+base.addModuleDependency(
+    'tracing.timeline_view',
     'tracing.category_filter_dialog');
 base.addModuleDependency(
     'tracing.timeline_view',
@@ -556,9 +559,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.settings');
-base.addModuleDependency(
-    'tracing.timeline_view',
-    'tracing.timeline_analysis_view');
 base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.timeline_track_view');
