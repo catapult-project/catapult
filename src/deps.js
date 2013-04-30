@@ -26,31 +26,31 @@ base.addModuleStylesheet(
     'about_tracing.tracing_controller',
     'about_tracing.tracing_controller');
 base.addModuleDependency(
-    'tracing.analysis.counter_analysis',
+    'tracing.analysis.analyze_counters',
     'tracing.analysis.util');
 base.addModuleDependency(
-    'tracing.analysis.counter_analysis',
+    'tracing.analysis.analyze_counters',
     'ui');
 base.addModuleDependency(
-    'tracing.analysis.slice_analysis',
+    'tracing.analysis.analyze_slices',
     'tracing.analysis.util');
 base.addModuleDependency(
-    'tracing.analysis.slice_analysis',
+    'tracing.analysis.analyze_slices',
     'ui');
 base.addModuleStylesheet(
-    'tracing.analysis.slice_analysis',
-    'tracing.analysis.slice_analysis');
+    'tracing.analysis.analyze_slices',
+    'tracing.analysis.analyze_slices');
 base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'tracing.analysis.counter_analysis');
+    'tracing.analysis.analyze_selection',
+    'tracing.analysis.analyze_counters');
 base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
-    'tracing.analysis.slice_analysis');
+    'tracing.analysis.analyze_selection',
+    'tracing.analysis.analyze_slices');
 base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
+    'tracing.analysis.analyze_selection',
     'tracing.analysis.util');
 base.addModuleDependency(
-    'tracing.analysis.selection_analysis',
+    'tracing.analysis.analyze_selection',
     'ui');
 base.addModuleDependency(
     'tracing.analysis.analysis_results',
@@ -72,7 +72,7 @@ base.addModuleDependency(
     'tracing.analysis.object_snapshot_view');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
-    'tracing.analysis.selection_analysis');
+    'tracing.analysis.analyze_selection');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'tracing.analysis.analysis_results');

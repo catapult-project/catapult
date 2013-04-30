@@ -9,7 +9,7 @@
  */
 base.requireStylesheet('tracing.analysis.analysis_view');
 
-base.require('tracing.analysis.selection_analysis');
+base.require('tracing.analysis.analyze_selection');
 base.require('tracing.analysis.analysis_results');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');

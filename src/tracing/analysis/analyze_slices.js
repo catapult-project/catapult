@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.slice_analysis');
+base.requireStylesheet('tracing.analysis.analyze_slices');
 
 base.require('tracing.analysis.util');
 base.require('ui');

@@ -4,8 +4,8 @@
 
 'use strict';
 
-base.require('tracing.analysis.counter_analysis');
-base.require('tracing.analysis.slice_analysis');
+base.require('tracing.analysis.analyze_counters');
+base.require('tracing.analysis.analyze_slices');
 base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
