@@ -11,11 +11,15 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
                                      '..', '..', '..', 'unittest_data')
     self._browser.SetHTTPServerDirectories(unittest_data_dir)
 
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('dom_counter_sample.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    # Due to an issue with CrOS, we create a new tab here rather than
+    # using self._tab to get a consistent starting page on all platforms
+    tab = self._browser.tabs.New()
 
-    counts = self._tab.dom_stats
-    self.assertEqual(counts['document_count'], 1)
-    self.assertEqual(counts['node_count'], 14)
+    tab.Navigate(
+      self._browser.http_server.UrlOf('dom_counter_sample.html'))
+    tab.WaitForDocumentReadyStateToBeComplete()
+
+    counts = tab.dom_stats
+    self.assertEqual(counts['document_count'], 2)
+    self.assertEqual(counts['node_count'], 18)
     self.assertEqual(counts['event_listener_count'], 2)
