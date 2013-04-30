@@ -1,0 +1,22 @@
+/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+x-quad-view {
+    display: block;
+}
+
+x-quad-view,
+x-quad-view > * {
+    cursor: default;
+    -webkit-user-select: none;
+}
+x-quad-view .header {
+    display: block;
+}
+
+x-quad-view canvas {
+    outline: none;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    box-shadow: rgba(0,0,0,0.2) 3px 3px 8px;
+}

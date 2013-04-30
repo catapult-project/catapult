@@ -647,6 +647,21 @@ base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
 base.addModuleDependency(
+    'cc.quad_view_viewport',
+    'base.range');
+base.addModuleDependency(
+    'cc.quad_view_viewport',
+    'base.event_target');
+base.addModuleDependency(
+    'cc.quad_view',
+    'ui');
+base.addModuleDependency(
+    'cc.quad_view',
+    'cc.quad_view_viewport');
+base.addModuleStylesheet(
+    'cc.quad_view',
+    'cc.quad_view');
+base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');
 base.addModuleDependency(

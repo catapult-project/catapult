@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="/src/base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('base.bbox2');
+  base.require('cc.quad_view');
+  base.require('cc.quad_view_viewport');
+</script>
+</head>
+<body>
+<script>
+    'use strict';
+
+    var QuadView = cc.QuadView;
+    var QuadViewViewport = cc.QuadViewViewport;
+
+    function QuadFromXYWH(x, y, w, h) {
+      return {p1: {x: x, y: y},
+              p2: {x: x+w, y: y},
+              p3: {x: x+w, y: y+h},
+              p4: {x: x, y: y+h}};
+    }
+
+    function testInstantiate() {
+      var quadView = new QuadView();
+      // Something causes this to go crazy in an iframe.
+      if (window == window.top)
+        this.addHTMLOutput(undefined, quadView);
+
+      var quads = [
+        QuadFromXYWH(0, 0, 10, 10),
+        QuadFromXYWH(10, 10, 10, 10),
+        QuadFromXYWH(20, 4, 10, 10),
+        QuadFromXYWH(30, 10, 20, 20),
+        QuadFromXYWH(20, 20, 10, 10),
+        QuadFromXYWH(15, 15, 10, 10)
+        ];
+      quads[2].selected = true;
+      var quadsBBox = new base.BBox2();
+      for (var i = 0; i < quads.length; i++)
+        quadsBBox.addQuad(quads[i]);
+
+      quadView.title = 'Test Tree';
+      quadView.quads = quads;
+      quadView.viewport = new QuadViewViewport(quadsBBox, 10.0)
+      quadView.deviceViewportSizeForFrame = {widht: 50,
+                                             height: 30};
+    }
+
+    function testFindTiles() {
+      var quadView = new QuadView();
+
+      var quads = [
+        QuadFromXYWH(0, 0, 10, 10),
+        QuadFromXYWH(10, 10, 10, 10),
+        QuadFromXYWH(20, 4, 10, 10),
+        QuadFromXYWH(30, 10, 20, 20),
+        QuadFromXYWH(20, 20, 10, 10),
+        QuadFromXYWH(15, 15, 10, 10)
+        ];
+      var quadsBBox = new base.BBox2();
+      for (var i = 0; i < quads.length; i++)
+        quadsBBox.addQuad(quads[i]);
+
+      quadView.title = 'Test Tree';
+      quadView.quads = quads;
+      quadView.viewport = new QuadViewViewport(quadsBBox, 10.0, true, 2);
+      quadView.deviceViewportSizeForFrame = {widht: 50,
+                                             height: 30};
+
+      document.body.appendChild(quadView);
+      try {
+        var rect = quadView.canvas_.getBoundingClientRect();
+        var hitIndices = quadView.findQuadsAtCanvasClientPoint(rect.left + 75,
+                                                               rect.top + 75);
+      } finally {
+        document.body.removeChild(quadView);
+      }
+
+      assertEquals(2, hitIndices.length);
+      assertArrayEquals(hitIndices, [1, 5]);
+    }
+
+</script>
+</body>
+</html>
