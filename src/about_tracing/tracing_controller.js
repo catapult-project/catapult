@@ -65,10 +65,12 @@ base.exportTo('about_tracing', function() {
       if (!this.overlay_.visible)
         return;
 
-      window.setTimeout(this.beginRequestBufferPercentFull_.bind(this), 250);
+      window.setTimeout(this.beginRequestBufferPercentFull_.bind(this), 500);
 
-      this.bufferPercentDiv_.textContent = 'Buffer usage: ' +
+      var newText = 'Buffer usage: ' +
           Math.round(100 * percent_full) + '%';
+      if (this.bufferPercentDiv_.textContent != newText)
+        this.bufferPercentDiv_.textContent = newText;
     },
 
     /**
