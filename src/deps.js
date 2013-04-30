@@ -625,6 +625,24 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/common.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.addModuleDependency(
+    'base.rect2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.rect2');
 base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');

@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="../base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('base.bbox2');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var BBox2 = base.BBox2;
+
+  function testAddVec2() {
+    var bbox = new BBox2();
+    var x = vec2.create();
+    vec2.set(x, 10, 10);
+    bbox.addVec2(x);
+    assertTrue(bbox.minPoint.x == 10);
+    assertTrue(bbox.minPoint.y == 10);
+    assertTrue(bbox.maxPoint.x == 10);
+    assertTrue(bbox.maxPoint.y == 10);
+    // Mutate x.
+    vec2.set(x, 11, 11);
+
+    // Bbox shouldn't have changed.
+    assertTrue(bbox.minPoint.x == 10);
+    assertTrue(bbox.minPoint.y == 10);
+    assertTrue(bbox.maxPoint.x == 10);
+    assertTrue(bbox.maxPoint.y == 10);
+  }
+</script>
+</body>
+</html>

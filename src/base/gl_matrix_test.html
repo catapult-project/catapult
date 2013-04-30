@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="../base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('base.gl_matrix');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  function testPointInTri() {
+    var res = base.pointInTriangle2Pt(
+      {x: 0.25, y: 0.25},
+      {x: 0, y: 0},
+      {x: 1, y: 0},
+      {x: 0, y: 1});
+    assertTrue(res);
+  }
+
+  function testPointNotInTri() {
+    var res = base.pointInTriangle2Pt(
+      {x: 0.75, y: 0.75},
+      {x: 0, y: 0},
+      {x: 1, y: 0},
+      {x: 0, y: 1});
+    assertFalse(res);
+  }
+
+  function testPointInQuad() {
+    var res = base.pointInQuad2Pt(
+      {x: 0.5, y: 0.5},
+      {p1: {x: 0, y: 0},
+       p2: {x: 1, y: 0},
+       p3: {x: 1, y: 1},
+       p4: {x: 0, y: 1}});
+    assertTrue(res);
+  }
+
+  function testPointNotInQuad() {
+    var res = base.pointInQuad2Pt(
+      {x: 1.5, y: 0.5},
+      {p1: {x: 0, y: 0},
+       p2: {x: 1, y: 0},
+       p3: {x: 1, y: 1},
+       p4: {x: 0, y: 1}});
+    assertFalse(res);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<script src="../base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('base.color');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  var Color = base.Color;
+
+  function testFromRGB() {
+    var c = Color.fromString('rgb(1, 2, 3)');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(undefined, c.a);
+  }
+  function testFromString() {
+    var c = Color.fromString('rgba(1, 2, 3, 0.5)');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(0.5, c.a);
+  }
+  function testFromString() {
+    var c = Color.fromString('#010203');
+    assertEquals(1, c.r);
+    assertEquals(2, c.g);
+    assertEquals(3, c.b);
+    assertEquals(undefined, c.a);
+  }
+
+  function testToStringRGB() {
+    var c = new Color(1, 2, 3);
+    assertEquals('rgb(1,2,3)', c.toString());
+  }
+
+  function testToStringRGBA() {
+    var c = new Color(1, 2, 3, 0.5);
+    assertEquals('rgba(1,2,3,0.5)', c.toString());
+  }
+
+  function testLerpRGB() {
+    var a = new Color(0, 127, 191);
+    var b = new Color(255, 255, 255);
+    var x = Color.lerpRGB(a, b, 0.25);
+    assertEquals(63, x.r);
+    assertEquals(159, x.g);
+    assertEquals(207, x.b);
+  }
+
+  function testLerpRGBA() {
+    var a = new Color(0, 127, 191, 0.5);
+    var b = new Color(255, 255, 255, 1);
+    var x = Color.lerpRGBA(a, b, 0.25);
+    assertEquals(63, x.r);
+    assertEquals(159, x.g);
+    assertEquals(207, x.b);
+    assertEquals(0.625, x.a);
+  }
+</script>
+</body>
+</html>
