@@ -49,7 +49,7 @@ found in the LICENSE file.
       assertEquals('false', rows[6].children[1].textContent);
     }
 
-    function testAnalyzeSelectionWithFalsyArgs() {
+    function testInstantiateAnalysisWithObjects() {
       var model = new Model();
       var p1 = model.getOrCreateProcess(1);
       var objects = p1.objects;
@@ -69,6 +69,108 @@ found in the LICENSE file.
       var analysisEl = new TimelineAnalysisView();
       analysisEl.selection = selection;
       this.addHTMLOutput(undefined, analysisEl);
+    }
+
+    function testAnalyzeSelectionWithObjectSnapshotUnknownType() {
+      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var s10 = i10.addSnapshot(10, {foo: 1});
+
+      var selection = new tracing.Selection();
+      selection.addObjectSnapshot({}, s10);
+
+      var view = new TimelineAnalysisView();
+      view.snapshotViewRegistry = {
+        getViewConstructor: function(typeName) {
+          return undefined;
+        }
+      };
+
+      view.selection = selection;
+      assertTrue(view.currentView instanceof tracing.analysis.DefaultObjectSnapshotView);
+      assertEquals(s10, view.currentView.objectSnapshot);
+    }
+
+    function testAnalyzeSelectionWithObjectSnapshotKnownType() {
+      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var s10 = i10.addSnapshot(10, {foo: 1});
+
+      var selection = new tracing.Selection();
+      selection.addObjectSnapshot({}, s10);
+
+      var MyView = ui.define(tracing.analysis.ObjectSnapshotView);
+      MyView.prototype = {
+        __proto__: tracing.analysis.ObjectSnapshotView.prototype,
+
+        decorate: function() {
+        },
+
+        updateContents: function() {
+          this.textContent = 'hello';
+        }
+      };
+
+      var view = new TimelineAnalysisView();
+      view.snapshotViewRegistry = {
+        getViewConstructor: function(typeName) {
+          if (typeName == 'cat.name')
+            return MyView;
+        }
+      };
+
+      view.selection = selection;
+      assertTrue(view.currentView instanceof MyView);
+      assertEquals(s10, view.currentView.objectSnapshot);
+      assertEquals('hello', view.currentView.textContent);
+    }
+
+    function testAnalyzeSelectionWithObjectInstanceUnknownType() {
+      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+
+      var selection = new tracing.Selection();
+      selection.addObjectInstance({}, i10);
+
+      var view = new TimelineAnalysisView();
+      view.instanceViewRegistry = {
+        getViewConstructor: function(typeName) {
+          return undefined;
+        }
+      };
+
+      view.selection = selection;
+      assertTrue(view.currentView instanceof tracing.analysis.DefaultObjectInstanceView);
+      assertEquals(i10, view.currentView.objectInstance);
+    }
+
+    function testAnalyzeSelectionWithObjectInstanceKnownType() {
+      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+
+      var selection = new tracing.Selection();
+      selection.addObjectInstance({}, i10);
+
+      var MyView = ui.define(tracing.analysis.ObjectInstanceView);
+      MyView.prototype = {
+        __proto__: tracing.analysis.ObjectInstanceView.prototype,
+
+        decorate: function() {
+        },
+
+        updateContents: function() {
+          this.textContent = 'hello';
+        }
+      };
+
+      var view = new TimelineAnalysisView();
+      view.instanceViewRegistry = {
+        getViewConstructor: function(typeName) {
+          if (typeName == 'cat.name')
+            return MyView;
+        }
+      };
+
+      view.selection = selection;
+      assertTrue(view.currentView instanceof MyView);
+      assertEquals(i10, view.currentView.objectInstance);
+      assertEquals('hello', view.currentView.textContent);
     }
   </script>
 </body>

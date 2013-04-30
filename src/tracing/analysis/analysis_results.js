@@ -9,12 +9,19 @@ base.requireStylesheet('tracing.analysis.analysis_results');
 base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
+  var RequestSelectionChangeEvent = base.Event.bind(
+    undefined, 'requestSelectionChange', true, false);
+
   var AnalysisResults = ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+    },
+
+    clear: function() {
+      this.textContent = '';
     },
 
     createSelectionChangingLink: function(text, selectionGenerator) {
@@ -216,6 +223,7 @@ base.exportTo('tracing.analysis', function() {
     }
   };
   return {
-    AnalysisResults: AnalysisResults
+    AnalysisResults: AnalysisResults,
+    RequestSelectionChangeEvent: RequestSelectionChangeEvent
   };
 });

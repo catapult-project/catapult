@@ -17,14 +17,14 @@ base.exportTo('tracing.model', function() {
    *
    * @constructor
    */
-  function ObjectInstanceSnapshot(objectInstance, ts, args) {
+  function ObjectSnapshot(objectInstance, ts, args) {
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
     this.selected = false;
   }
 
-  ObjectInstanceSnapshot.prototype = {
+  ObjectSnapshot.prototype = {
     __proto__: Object.prototype,
   };
 
@@ -72,7 +72,7 @@ base.exportTo('tracing.model', function() {
         }
       }
 
-      var snapshot = new ObjectInstanceSnapshot(this, ts, args);
+      var snapshot = new ObjectSnapshot(this, ts, args);
       this.snapshots.push(snapshot);
       return snapshot;
     },
@@ -100,7 +100,7 @@ base.exportTo('tracing.model', function() {
         function(snapshot, i) {
           if (i == snapshots.length - 1)
             return snapshots[i].objectInstance.deletionTs;
-          return snapshots[i+1].ts - snapshots[i].ts;
+          return snapshots[i + 1].ts - snapshots[i].ts;
         },
         ts);
       if (i < 0 || i >= this.snapshots.length)
@@ -128,7 +128,7 @@ base.exportTo('tracing.model', function() {
   };
 
   return {
-    ObjectInstanceSnapshot: ObjectInstanceSnapshot,
+    ObjectSnapshot: ObjectSnapshot,
     ObjectInstance: ObjectInstance,
   };
 });

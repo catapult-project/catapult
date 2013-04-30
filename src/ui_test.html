@@ -38,6 +38,43 @@ found in the LICENSE file.
       ui.decorate(testElement, TestElement);
       assertEquals(1, testElement.decorateCallCount);
     }
+
+    function testSubclassing() {
+      var Base = ui.define('div');
+
+      Base.prototype = {
+        __proto__: HTMLDivElement.prototype,
+        decorate: function() {
+          this.decoratedAsBase = true;
+        },
+        set baseProperty(v) {
+          this.basePropertySet = v;
+        }
+      };
+
+      var baseInstance = new Base();
+      assertTrue(baseInstance instanceof Base);
+      assertTrue(baseInstance.decoratedAsBase);
+
+      var Sub = ui.define(Base);
+      Sub.prototype = {
+        __proto__: Base.prototype,
+        decorate: function() {
+          this.decoratedAsSub = true;
+        },
+      };
+
+      var subInstance = new Sub();
+      assertTrue(subInstance instanceof Sub);
+      assertTrue(subInstance.decoratedAsSub);
+
+      assertTrue(subInstance instanceof Base);
+      assertTrue(subInstance.decoratedAsBase);
+
+      subInstance.baseProperty = true;
+      assertTrue(subInstance.basePropertySet);
+    }
+
 </script>
 </body>
 </html>

@@ -11,12 +11,12 @@ base.requireStylesheet('tracing.timeline_analysis_view');
 
 base.require('tracing.analysis.selection_analysis');
 base.require('tracing.analysis.analysis_results');
+base.require('tracing.analysis.object_instance_view');
+base.require('tracing.analysis.object_snapshot_view');
+base.require('tracing.analysis.default_object_view');
 base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing', function() {
-
-  var RequestSelectionChangeEvent = base.Event.bind(
-    undefined, 'requestSelectionChange', true, false);
 
   var TimelineAnalysisView = ui.define('div');
 
@@ -25,31 +25,63 @@ base.exportTo('tracing', function() {
 
     decorate: function() {
       this.className = 'analysis';
+      this.snapshotViewRegistry = tracing.analysis.ObjectSnapshotView;
+      this.instanceViewRegistry = tracing.analysis.ObjectInstanceView;
+
+      this.currentView_ = undefined;
+    },
+
+    changeViewType: function(viewConstructor) {
+      if (this.currentView_ instanceof viewConstructor)
+        return;
+      this.textContent = '';
+      this.currentView_ = new viewConstructor();
+      this.appendChild(this.currentView_);
+    },
+
+    get currentView() {
+      return this.currentView_;
     },
 
     set selection(selection) {
-      this.textContent = '';
-
       var hitsByType = selection.getHitsOrganizedByType();
       if (selection.length == 1 &&
-          hitsByType.sliceHits == 0 && hitsByType.counterSampleHits == 0) {
-        if (hitsByType.objectSnapshotHits == 1) {
-          // TODO(nduca): Put something here.
+          hitsByType.slices.length == 0 &&
+          hitsByType.counterSamples.length == 0) {
+        if (hitsByType.objectSnapshots.length == 1) {
+          var snapshot = hitsByType.objectSnapshots[0].objectSnapshot;
+          var viewConstructor = this.snapshotViewRegistry.getViewConstructor(
+            snapshot.objectInstance.typeName);
+
+          if (!viewConstructor)
+            viewConstructor = tracing.analysis.DefaultObjectSnapshotView;
+
+          this.changeViewType(viewConstructor);
+          this.currentView.objectSnapshot = snapshot;
+          return;
         }
 
-        if (hitsByType.objectInstanceHits == 1) {
-          // TODO(nduca): Put something here.
+        if (hitsByType.objectInstances.length == 1) {
+          var instance = hitsByType.objectInstances[0].objectInstance;
+          var viewConstructor = this.instanceViewRegistry.getViewConstructor(
+            instance.typeName);
+
+          if (!viewConstructor)
+            viewConstructor = tracing.analysis.DefaultObjectInstanceView;
+
+          this.changeViewType(viewConstructor);
+          this.currentView.objectInstance = instance;
+          return;
         }
       }
 
-      var results = new tracing.analysis.AnalysisResults();
-      tracing.analysis.analyzeHitsByType(results, hitsByType);
-      this.appendChild(results);
+      this.changeViewType(tracing.analysis.AnalysisResults);
+      this.currentView.clear();
+      tracing.analysis.analyzeHitsByType(this.currentView, hitsByType);
     }
   };
 
   return {
-    TimelineAnalysisView: TimelineAnalysisView,
-    RequestSelectionChangeEvent: RequestSelectionChangeEvent,
+    TimelineAnalysisView: TimelineAnalysisView
   };
 });

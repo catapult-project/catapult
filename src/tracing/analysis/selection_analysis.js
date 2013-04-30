@@ -77,8 +77,9 @@ base.exportTo('tracing.analysis', function() {
         var objectInstance = hit.objectInstance;
 
         var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
-          '' : tracing.analysis.tsRound(objectInstance.deletionTs);
-        ts = tracing.analysis.tsRound(objectInstance.creationTs) + '-' + deletionTs;
+            '' : tracing.analysis.tsRound(objectInstance.deletionTs);
+        ts = tracing.analysis.tsRound(objectInstance.creationTs) +
+            '-' + deletionTs;
 
         objectText = objectInstance.typeName + ' ' +
           objectInstance.id;
