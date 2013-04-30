@@ -4,14 +4,17 @@
  */
 .default-object-snapshot-view {
 }
+
 .default-object-snapshot-view #args {
-   whitespace: pre;
+   white-space: pre;
 }
 
-.default-object-instance-view {
-}
 .default-object-instance-view #snapshots > * {
     display: block;
+}
+
+.default-object-view * {
+   -webkit-user-select: text;
 }
 
 .default-object-view .title,
