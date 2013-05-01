@@ -191,8 +191,9 @@
 }
 
 .category-filter-dialog {
+  max-height: 500px;
   min-width: 400px;
-  min-height: 200px;
+  overflow-y: auto;
   padding: 20px;
 }
 
