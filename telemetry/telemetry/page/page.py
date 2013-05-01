@@ -90,9 +90,6 @@ class Page(object):
   @staticmethod
   def WaitForPageToLoad(obj, tab, timeout, poll_interval=0.1):
     """Waits for various wait conditions present in obj."""
-    if hasattr(obj, 'post_navigate_javascript_to_execute'):
-      tab.EvaluateJavaScript(obj.post_navigate_javascript_to_execute)
-
     if hasattr(obj, 'wait_seconds'):
       time.sleep(obj.wait_seconds)
     if hasattr(obj, 'wait_for_element_with_text'):
@@ -105,6 +102,8 @@ class Page(object):
       util.WaitFor(lambda: tab.EvaluateJavaScript(
            'document.querySelector(\'' + obj.wait_for_element_with_selector +
            '\') != null'), timeout, poll_interval)
+    if hasattr(obj, 'post_navigate_javascript_to_execute'):
+      tab.EvaluateJavaScript(obj.post_navigate_javascript_to_execute)
     if hasattr(obj, 'wait_for_javascript_expression'):
       util.WaitFor(
           lambda: tab.EvaluateJavaScript(obj.wait_for_javascript_expression),
