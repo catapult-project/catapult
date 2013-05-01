@@ -17,22 +17,30 @@ ALL_BROWSER_TYPES = (
 class BrowserTypeRequiredException(Exception):
   pass
 
+class BrowserFinderException(Exception):
+  pass
+
 def FindBrowser(options):
   """Finds the best PossibleBrowser object to run given the provided
   BrowserOptions object. The returned possiblity object can then be used to
-  connect to and control the located browser.
+  connect to and control the located browser. A BrowserFinderException will
+  be raised if the BrowserOptions argument is improperly set or if an error
+  occurs when finding a browser.
   """
   if options.browser_type == 'exact' and options.browser_executable == None:
-    raise Exception('--browser=exact requires --browser-executable to be set.')
+    raise BrowserFinderException(
+        '--browser=exact requires --browser-executable to be set.')
   if options.browser_type != 'exact' and options.browser_executable != None:
-    raise Exception('--browser-executable requires --browser=exact.')
+    raise BrowserFinderException(
+        '--browser-executable requires --browser=exact.')
 
   if options.browser_type == 'cros-chrome' and options.cros_remote == None:
-    raise Exception('browser_type=cros-chrome requires cros_remote be set.')
+    raise BrowserFinderException(
+        'browser_type=cros-chrome requires cros_remote be set.')
   if (options.browser_type != 'cros-chrome' and
       options.browser_type != 'cros-chrome-guest' and
       options.cros_remote != None):
-    raise Exception(
+    raise BrowserFinderException(
         'cros_remote requires browser_type=cros-chrome or cros-chrome-guest.')
 
   if options.browser_type == None:
@@ -68,7 +76,10 @@ def FindBrowser(options):
     return None
 
 def GetAllAvailableBrowserTypes(options):
-  """Returns an array of browser types supported on this system."""
+  """Returns an array of browser types supported on this system.
+  A BrowserFinderException will be raised if the BrowserOptions argument is
+  improperly set or if an error occurs when finding a browser.
+  """
   browsers = []
   browsers.extend(desktop_browser_finder.FindAllAvailableBrowsers(options))
   browsers.extend(android_browser_finder.FindAllAvailableBrowsers(options))

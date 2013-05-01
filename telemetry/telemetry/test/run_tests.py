@@ -99,7 +99,12 @@ def Main(args, start_dir, top_level_dir, runner=None):
     logging.getLogger().setLevel(logging.ERROR)
 
   from telemetry.core import browser_finder
-  browser_to_create = browser_finder.FindBrowser(default_options)
+  try:
+    browser_to_create = browser_finder.FindBrowser(default_options)
+  except browser_finder.BrowserFinderException, ex:
+    logging.error(str(ex))
+    return 1
+
   if browser_to_create == None:
     logging.error('No browser found of type %s. Cannot run tests.',
                   default_options.browser_type)

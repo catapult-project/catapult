@@ -175,10 +175,14 @@ class BrowserOptions(optparse.Values):
                          'Use --browser=list for valid options.\n')
         sys.exit(1)
       if self.browser_type == 'list':
-        types = browser_finder.GetAllAvailableBrowserTypes(self)
-        sys.stderr.write('Available browsers:\n')
+        try:
+          types = browser_finder.GetAllAvailableBrowserTypes(self)
+        except browser_finder.BrowserFinderException, ex:
+          sys.stderr.write('ERROR: ' + str(ex))
+          sys.exit(1)
+        sys.stdout.write('Available browsers:\n')
         sys.stdout.write('  %s\n' % '\n  '.join(types))
-        sys.exit(1)
+        sys.exit(0)
       if self.extra_browser_args_as_string: # pylint: disable=E1101
         tmp = shlex.split(
           self.extra_browser_args_as_string) # pylint: disable=E1101

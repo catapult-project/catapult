@@ -82,9 +82,9 @@ def FindAllAvailableBrowsers(options):
       logging.warn('There, that was easy!')
       logging.warn('')
       logging.warn('P.S. Please, tell your manager how INANE this is.')
-    else:
-      logging.warn(str(ex))
-    return []
+
+    from telemetry.core import browser_finder
+    raise browser_finder.BrowserFinderException(str(ex))
 
   if not cri.FileExistsOnDevice('/opt/google/chrome/chrome'):
     logging.warn('Could not find a chrome on ' % cri.hostname)
