@@ -6,7 +6,7 @@
  * @fileoverview Helper functions for use in tracing tests.
  */
 base.require('tracing.model.counter');
-base.exportTo('test_utils', function() {
+base.exportTo('tracing.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }

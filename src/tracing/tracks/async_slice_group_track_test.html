@@ -29,7 +29,7 @@ found in the LICENSE file.
       tracing.tracks.AsyncSliceGroupTrack;
   var Process = tracing.model.Process;
   var Thread = tracing.model.Thread;
-  var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
 
   function testAsyncSliceGroup_filterSubRows() {
     var p1 = new Process(1);

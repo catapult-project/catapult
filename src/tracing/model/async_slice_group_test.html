@@ -23,7 +23,7 @@ found in the LICENSE file.
   var Thread = tracing.model.Thread;
   var AsyncSlice = tracing.model.AsyncSlice;
   var AsyncSliceGroup = tracing.model.AsyncSliceGroup;
-  var newAsyncSlice = test_utils.newAsyncSlice;
+  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
 
   function testAsyncSliceGroupBounds_Empty() {
     var g = new AsyncSliceGroup();

@@ -21,9 +21,9 @@ found in the LICENSE file.
   var ThreadSlice = tracing.model.ThreadSlice;
   var Process = tracing.model.Process;
   var Thread = tracing.model.Thread;
-  var newSliceNamed = test_utils.newSliceNamed;
-  var newAsyncSlice = test_utils.newAsyncSlice;
-  var newAsyncSliceNamed = test_utils.newAsyncSliceNamed;
+  var newSliceNamed = tracing.test_utils.newSliceNamed;
+  var newAsyncSlice = tracing.test_utils.newAsyncSlice;
+  var newAsyncSliceNamed = tracing.test_utils.newAsyncSliceNamed;
 
   function testThreadBounds_Empty() {
     var t = new Thread(new Process(7), 1);

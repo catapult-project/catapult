@@ -48,8 +48,10 @@ found in the LICENSE file.
       t1.pushSlice(new tracing.model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
       var t1asg = t1.asyncSlices;
-      t1asg.slices.push(test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
-      t1asg.slices.push(test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
+      t1asg.slices.push(
+          tracing.test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
+      t1asg.slices.push(
+          tracing.test_utils.newAsyncSliceNamed('b', 1, 2, t1, t1));
 
       var timeline = new tracing.TimelineTrackView();
       timeline.model = model;
@@ -167,7 +169,7 @@ found in the LICENSE file.
       var model = new tracing.Model();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(2);
-      t1.pushSlice(test_utils.newSlice(0, 1));
+      t1.pushSlice(tracing.test_utils.newSlice(0, 1));
 
       var timeline = new tracing.TimelineTrackView();
       timeline.model = model;
