@@ -29,11 +29,9 @@ base.exportTo('tracing.analysis', function() {
     objectHits.addSelection(hitsByType.objectInstances);
 
     if (sliceHits.length == 1) {
-      tracing.analysis.analyzeSingleSliceHit(
-        results, sliceHits[0]);
+      tracing.analysis.analyzeSingleSliceHit(results, sliceHits[0]);
     } else if (sliceHits.length > 1) {
-      tracing.analysis.analyzeMultipleSliceHits(
-        results, sliceHits);
+      tracing.analysis.analyzeMultipleSliceHits(results, sliceHits);
     }
 
     if (counterSampleHits.length == 1) {

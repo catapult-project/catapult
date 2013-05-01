@@ -37,7 +37,7 @@ base.exportTo('tracing.analysis', function() {
       event.selection = this.selectionGenerator();
       this.dispatchEvent(event);
     }
-  }
+  };
 
   /**
    * Changes the selection to the given ObjectSnapshot when clicked.

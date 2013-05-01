@@ -14,6 +14,7 @@
 .analysis-table {
     border-collapse: collapse;
     border-width: 0;
+    margin-bottom: 25px;
 }
 
 .analysis-table > tr > td:first-child {

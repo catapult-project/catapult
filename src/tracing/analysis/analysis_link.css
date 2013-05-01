@@ -3,8 +3,12 @@
  * found in the LICENSE file.
  */
 .analysis-link {
-    color: -webkit-link;
-    cursor: pointer;
-    text-decoration: underline;
+  color: -webkit-link;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.analysis-link:hover {
+  cursor: pointer;
 }
 

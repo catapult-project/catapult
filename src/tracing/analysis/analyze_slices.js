@@ -68,8 +68,8 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableHeader(table, 'Slices:');
 
     var totalDuration = 0;
-    base.iterItems(
-        sliceHitsByTitle, function(sliceHitGroupTitle, sliceHitGroup) {
+    base.iterItems(sliceHitsByTitle,
+        function(sliceHitGroupTitle, sliceHitGroup) {
       var duration = 0;
       var avg = 0;
       var startOfFirstOccurrence = Number.MAX_VALUE;
@@ -137,9 +137,22 @@ base.exportTo('tracing.analysis', function() {
           function() {
             return new tracing.Selection(sliceHitGroup.hits);
           });
+
+      // The whole selection is a single type so list out the information for
+      // each sub slice.
+      if (numTitles === 1) {
+        for (var i = 0; i < sliceHitGroup.hits.length; i++) {
+          analyzeSingleSliceHit(results, sliceHitGroup.hits[i]);
+        }
+      }
     });
-    results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
-    results.appendSpacingRow(table);
+
+    // Only one row so we already know the totals.
+    if (numTitles !== 1) {
+      results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
+      results.appendSpacingRow(table);
+    }
+
     results.appendSummaryRowTime(table, 'Selection start', tsLo);
     results.appendSummaryRowTime(table, 'Selection extent', tsHi - tsLo);
   }
