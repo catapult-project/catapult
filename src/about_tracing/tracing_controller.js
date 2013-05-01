@@ -111,6 +111,7 @@ base.exportTo('about_tracing', function() {
       var trace_options = (opt_trace_continuous ? 'record-continuously' :
                                                   'record-until-full');
 
+      this.failedTraceDataString_ = undefined;
       this.traceEvents_ = [];
       this.systemTraceEvents_ = [];
       this.sendFn_(
@@ -176,12 +177,8 @@ base.exportTo('about_tracing', function() {
       return this.traceEvents_;
     },
 
-    /**
-     * Called by tracing c++ code when new trace data arrives.
-     */
-    onTraceDataCollected: function(events) {
-      this.statusDiv_.textContent = 'Processing trace...';
-      this.traceEvents_.push.apply(this.traceEvents_, events);
+    get failedTraceDataString() {
+      return this.failedTraceDataString_;
     },
 
     /**
@@ -207,17 +204,91 @@ base.exportTo('about_tracing', function() {
     /**
      * Called by the browser when all processes complete tracing.
      */
-    onEndTracingComplete: function() {
+    onEndTracingComplete: function(traceDataString) {
       window.removeEventListener('keydown', this.onKeydownBoundToThis_);
       window.removeEventListener('keypress', this.onKeypressBoundToThis_);
       this.overlay_.visible = false;
       this.tracingEnabled_ = false;
       this.tracingEnding_ = false;
-      console.log('onEndTracingComplete p1 with ' +
-                  this.traceEvents_.length + ' events.');
-      var e = new base.Event('traceEnded');
-      e.events = this.traceEvents_;
-      this.dispatchEvent(e);
+
+      if (traceDataString[traceDataString.length - 1] == ',')
+        traceDataString = traceDataString.substr(0, traceDataString.length - 1);
+      if (traceDataString[0] != '[')
+        traceDataString = '[' + traceDataString;
+      if (traceDataString[traceDataString.length - 1] != ']')
+        traceDataString = traceDataString + ']';
+
+      var ok = false;
+      var errorMessage = undefined;
+      try {
+        this.traceEvents_ = JSON.parse(traceDataString);
+        ok = true;
+      } catch (e) {
+        errorMessage = e;
+      }
+
+      if (ok) {
+        console.log('onEndTracingComplete p1 with ' +
+                    this.traceEvents_.length + ' events.');
+        var e = new base.Event('traceEnded');
+        e.events = this.traceEvents_;
+        this.dispatchEvent(e);
+        return;
+      }
+
+      // Load error
+      console.log('Error while importing traceData: ' + errorMessage);
+      this.failedTraceDataString_ = traceDataString;
+      this.traceEvents_ = [];
+      var overlay = new ui.Overlay();
+
+      var statusDiv = document.createElement('div');
+      statusDiv.textContent =
+        'There was an error while importing the traceData: ' + errorMessage +
+        'Would you like to save it?';
+      statusDiv.style.maxWidth = '350px';
+
+      var saveButton = document.createElement('button');
+      saveButton.textContent = 'Save it';
+
+      var cancelButton = document.createElement('button');
+      cancelButton.textContent = 'Cancel';
+
+      var buttonContainer = document.createElement('div');
+      buttonContainer.style.display = '-webkit-flex';
+      buttonContainer.style.webkitFlexDirection = 'row-reverse';
+      buttonContainer.appendChild(cancelButton);
+      buttonContainer.appendChild(saveButton);
+      overlay.appendChild(statusDiv);
+      overlay.appendChild(buttonContainer);
+      overlay.visible = true;
+      overlay.autoClose = true;
+      function cancel() {
+        if (overlay.visible)
+          overlay.visible = false;
+        var e = new base.Event('traceEnded');
+        e.events = this.traceEvents_;
+        this.dispatchEvent(e);
+      }
+      cancel = cancel.bind(this);
+
+      cancelButton.addEventListener('click', cancel);
+      overlay.addEventListener('visibleChange', cancel);
+      function onSaveDone() {
+        setTimeout(function() {
+          this.removeEventListener('saveTraceFileComplete', onSaveDone);
+        }.bind(this));
+
+        var e = new base.Event('traceEnded');
+        e.events = this.traceEvents_;
+        this.dispatchEvent(e);
+      }
+      onSaveDone = onSaveDone.bind(this);
+      this.addEventListener('saveTraceFileComplete', onSaveDone);
+      saveButton.addEventListener('click', function() {
+        overlay.visible = false;
+        this.beginSaveTraceFile();
+      }.bind(this));
     },
 
     collectCategories: function() {
@@ -258,7 +329,15 @@ base.exportTo('about_tracing', function() {
     /**
      * Called by the browser when a trace file is loaded.
      */
-    onLoadTraceFileComplete: function(data) {
+    onLoadTraceFileComplete: function(traceDataString) {
+      var data;
+      this.failedTraceDataString_ = undefined;
+      try {
+        data = JSON.parse(traceDataString);
+      } catch (e) {
+        console.log('Trace file did not parse.', e);
+        data = [];
+      }
       if (data.traceEvents) {
         this.traceEvents_ = data.traceEvents;
       } else { // path for loading traces saved without metadata
@@ -288,7 +367,12 @@ base.exportTo('about_tracing', function() {
     /**
      * Tells browser to put up a save dialog and save the trace file
      */
-    beginSaveTraceFile: function(traceEvents, systemTraceEvents) {
+    beginSaveTraceFile: function() {
+      if (this.failedTraceDataString_) {
+        this.sendFn_('saveTraceFile', [this.failedTraceDataString_]);
+        return;
+      }
+
       var data = {
         traceEvents: this.traceEvents_,
         systemTraceEvents: this.systemTraceEvents_,

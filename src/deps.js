@@ -662,12 +662,6 @@ base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
 base.addModuleDependency(
-    'cc.color_mappings',
-    'base.color');
-base.addModuleDependency(
-    'cc.color_mappings',
-    'cc.constants');
-base.addModuleDependency(
     'cc.quad_view_viewport',
     'base.range');
 base.addModuleDependency(

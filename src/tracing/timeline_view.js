@@ -266,12 +266,18 @@ base.exportTo('tracing', function() {
       return this.rightControlsEl_;
     },
 
-    get title() {
+    get viewTitle() {
       return this.titleEl_.textContent.substring(
           this.titleEl_.textContent.length - 2);
     },
 
-    set title(text) {
+    set viewTitle(text) {
+      if (text === undefined) {
+        this.titleEl_.textContent = '';
+        this.titleEl_.hidden = true;
+        return;
+      }
+      this.titleEl_.hidden = false;
       this.titleEl_.textContent = text + ':';
     },
 

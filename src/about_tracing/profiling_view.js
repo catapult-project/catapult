@@ -45,6 +45,7 @@ base.exportTo('about_tracing', function() {
                                       this.onSelectCategories_.bind(this));
 
       this.saveBn_ = document.createElement('button');
+      this.saveBn_.className = 'save';
       this.saveBn_.textContent = 'Save';
       this.saveBn_.addEventListener('click', this.onSave_.bind(this));
 
@@ -64,20 +65,21 @@ base.exportTo('about_tracing', function() {
       this.systemTracingLabelEl_.textContent = 'System events';
       this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
       this.systemTracingLabelEl_.style.display = 'none';
-      this.systemTracingLabelEl_.style.marginLeft = '16px';
+      this.systemTracingLabelEl_.style.marginLeft = '8px';
 
       this.continuousTracingLabelEl_ = document.createElement('label');
       this.continuousTracingLabelEl_.textContent = 'Continuous tracing';
       this.continuousTracingLabelEl_.appendChild(this.continuousTracingBn_);
-      this.continuousTracingLabelEl_.style.marginLeft = '16px';
+      this.continuousTracingLabelEl_.style.marginLeft = '8px';
 
       this.timelineView_ = new tracing.TimelineView();
       this.timelineView_.leftControls.appendChild(this.recordBn_);
-      this.timelineView_.leftControls.appendChild(this.saveBn_);
-      this.timelineView_.leftControls.appendChild(this.loadBn_);
       this.timelineView_.leftControls.appendChild(this.systemTracingLabelEl_);
       this.timelineView_.leftControls.appendChild(
           this.continuousTracingLabelEl_);
+      this.timelineView_.leftControls.appendChild(this.saveBn_);
+      this.timelineView_.leftControls.appendChild(this.loadBn_);
+      this.timelineView_.viewTitle = undefined;
 
       this.appendChild(this.timelineView_);
 
@@ -110,7 +112,6 @@ base.exportTo('about_tracing', function() {
 
       var traceEvents = this.tracingController_.traceEvents;
       var hasEvents = traceEvents && traceEvents.length;
-
       this.saveBn_.disabled = !hasEvents;
 
       if (!hasEvents) return;

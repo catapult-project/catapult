@@ -56,7 +56,12 @@ found in the LICENSE file.
       var systemTraceRequested = false;
       function send(message, opt_args) {
         var args = opt_args || [];
-        if (message == 'beginTracing') {
+        if (message == 'getKnownCategories') {
+          setTimeout(function() {
+            view.tracingController.onKnownCategoriesCollected(
+              ['a', 'b', 'c']);
+          }, 1);
+        } else if (message == 'beginTracing') {
           systemTraceRequested = opt_args[0];
         } else if (message == 'beginRequestBufferPercentFull') {
           setTimeout(function() {
@@ -68,8 +73,11 @@ found in the LICENSE file.
               view.tracingController.onSystemTraceDataCollected(
                   systemTraceTestData);
             }
-            view.tracingController.onTraceDataCollected(testData);
-            view.tracingController.onEndTracingComplete();
+            var testDataString = JSON.stringify(testData);
+            // Strip off [] and add a ,
+            var n = testDataString.length - 1;
+            testDataString = testDataString.substr(1, n - 1) + ',';
+            view.tracingController.onEndTracingComplete(testDataString);
           }, 1);
         } else if (message == 'loadTraceFile') {
           setTimeout(function() {
