@@ -33,7 +33,8 @@ base.exportTo('tracing.model', function() {
     __proto__: Object.prototype,
 
     createObjectInstance_: function(parent, id, category, name, creationTs) {
-      var instance = new tracing.model.ObjectInstance(parent, id, category, name, creationTs);
+      var constructor = tracing.model.ObjectInstance.getConstructor(name);
+      var instance = new constructor(parent, id, category, name, creationTs);
       var typeName = instance.typeName;
       var instancesOfTypeName = this.instancesByTypeName_[typeName];
       if (!instancesOfTypeName) {

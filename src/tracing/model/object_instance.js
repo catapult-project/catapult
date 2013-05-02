@@ -127,6 +127,23 @@ base.exportTo('tracing.model', function() {
     }
   };
 
+  ObjectInstance.categoryToConstructorMap = {};
+  ObjectInstance.register = function(name, constructor) {
+    if (ObjectInstance.categoryToConstructorMap[name])
+      throw new Error('Constructor already registerd for ' + name);
+    ObjectInstance.categoryToConstructorMap[name] = constructor;
+  };
+
+  ObjectInstance.unregister = function(name) {
+    ObjectInstance.categoryToConstructorMap[name] = undefined;
+  };
+
+  ObjectInstance.getConstructor = function(name) {
+    if (ObjectInstance.categoryToConstructorMap[name])
+      return ObjectInstance.categoryToConstructorMap[name];
+    return ObjectInstance;
+  };
+
   return {
     ObjectSnapshot: ObjectSnapshot,
     ObjectInstance: ObjectInstance,

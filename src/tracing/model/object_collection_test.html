@@ -18,6 +18,40 @@ found in the LICENSE file.
 <script>
   'use strict';
 
+  // Create a mock object instance for the testObjectInstanceSubtype test.
+  function TestObjectInstance(parent, id, category, name, creationTs) {
+    tracing.model.ObjectInstance.call(
+      this, parent, id, category, name, creationTs);
+  }
+  TestObjectInstance.prototype = {
+    __proto__: tracing.model.ObjectInstance.prototype,
+  }
+
+  function testObjectInstanceSubtype() {
+    // Register that TestObjects are bound to TestObjectInstance.
+    tracing.model.ObjectInstance.register('TestObject', TestObjectInstance);
+
+    var collection = new tracing.model.ObjectCollection({ });
+    collection.idWasCreated(
+      '0x1000', 'cc', 'Frame', 10);
+    collection.idWasDeleted(
+      '0x1000', 'cc', 'Frame', 15);
+    collection.idWasCreated(
+      '0x1000', 'skia', 'TestObject', 20);
+    collection.idWasDeleted(
+      '0x1000', 'skia', 'TestObject', 25);
+
+    var testFrame = collection.getObjectInstanceAt('0x1000', 10);
+    assertTrue(testFrame instanceof tracing.model.ObjectInstance);
+    assertFalse(testFrame instanceof TestObjectInstance);
+
+    var testObject = collection.getObjectInstanceAt('0x1000', 20);
+    assertTrue(testObject instanceof tracing.model.ObjectInstance);
+    assertTrue(testObject instanceof TestObjectInstance);
+
+    tracing.model.ObjectInstance.unregister('TestObject');
+  }
+
   function testTwoSnapshots() {
     var collection = new tracing.model.ObjectCollection({});
     collection.addSnapshot(
