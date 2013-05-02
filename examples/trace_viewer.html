@@ -12,7 +12,7 @@ found in the LICENSE file.
   .view {
     overflow: hidden;
     position: absolute;
-    top: 0;
+    top: 40px;
     bottom: 0;
     left: 0;
     right: 0;
@@ -21,7 +21,26 @@ found in the LICENSE file.
 </style>
 </head>
 <body>
-  <div class="view">
+  <div class="header">
+  <select id="trace_file">
+    <option value="simple_trace.json">simple trace</option>
+    <option value="android_systrace.html">android systrace</option>
+    <option value="async_begin_end.json">async begin/end</option>
+    <option value="big_trace.json">big trace</option>
+    <option value="huge_trace.json">huge trace</option>
+    <option value="instance_counters.json">instance counters</option>
+    <option value="lthi_cats.json">lthi cats</option>
+    <option value="main_thread_has_unclosed_slices.json">
+        main thread unclosed slices</option>
+    <option value="tall_trace.json">tall trace</option>
+    <option value="trivial_trace.json">trivial trace</option>
+    <option value="v8.log">v8</option>
+  </select>
+  </div>
+
+  <div class="main">
+    <div class="view">
+    </div>
   </div>
 
   <script>
@@ -78,9 +97,12 @@ found in the LICENSE file.
   }
 
   function onLoad() {
-    var filenames = ['../test_data/simple_trace.json'];
-    loadTraces(filenames,
-               createViewFromTraces);
+    var select = document.getElementById('trace_file');
+    select.onchange = onLoad;
+
+    var file = select[select.selectedIndex].value;
+    var filenames = ['../test_data/' + file];
+    loadTraces(filenames, createViewFromTraces);
   }
 
   document.addEventListener('DOMContentLoaded', onLoad);
