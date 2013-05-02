@@ -46,7 +46,8 @@ def FindAllAvailableBrowsers(options):
       res = f.read()
       if res.count('CHROMEOS_RELEASE_NAME'):
         return [PossibleCrOSBrowser('system', options,
-                                    cros_interface.CrOSInterface())]
+                                    cros_interface.CrOSInterface(),
+                                    is_guest=False)]
 
   if options.cros_remote == None:
     logging.debug('No --remote specified, will not probe for CrOS.')
