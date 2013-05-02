@@ -16,14 +16,28 @@ DEFAULT_PORT = 8003
 DEPS_CHECK_DELAY = 5
 
 class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+  def __init__(self, *args, **kwargs):
+    SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
+    self._last_request_path = None
+
   def do_GET(self):
     if self.path == '/src/deps.js':
       current_time = time.time()
       if self.server.next_deps_check < current_time:
-        self.log_message('Regenerating deps')
+        self.log_message('Regenerating /src/deps.js')
         self.server.next_deps_check = current_time + DEPS_CHECK_DELAY
         calcdeps.regenerate_deps()
     return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+
+  def log_error(self, format, *args):
+    if self.path == '/favicon.ico':
+      return
+    self.log_message("While processing %s: ", self.path)
+
+  def log_request(self, code='-', size='-'):
+    # Dont spam the console unless it is important.
+    pass
+
 
 class Server(BaseHTTPServer.HTTPServer):
   def __init__(self, *args, **kwargs):
