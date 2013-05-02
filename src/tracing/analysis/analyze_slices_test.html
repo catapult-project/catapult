@@ -173,24 +173,34 @@ found in the LICENSE file.
 
       var results = new StubAnalysisResults();
       tracing.analysis.analyzeSelection(results, selection);
-      assertEquals(1, results.tables.length);
-      var table = results.tables[0];
+      assertEquals(3, results.tables.length);
 
-      assertEquals('Slices:', table.tableHeader);
-      assertEquals(5, table.rows.length);
+      var t;
+      // Table 1.
+      t = results.tables[0];
+      assertEquals('Slices:', t.tableHeader);
+      assertObjectEquals(
+        {label: 'c',
+         duration: 0.1,
+         occurences: 2,
+         details: {min: 0.04, max: 0.06, avg: 0.05,
+                   avg_stddev: 0.014142135623730947},
+        },
+        t.rows[0]);
+      assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
+      assertObjectEquals({label: 'Selection extent', time: 0.18}, t.rows[2]);
 
-      assertEquals('c', table.rows[0].label);
-      assertEquals('2', table.rows[0].occurences);
-      assertAlmostEquals(0.04, table.rows[0].details.min);
-      assertAlmostEquals(0.05, table.rows[0].details.avg);
-      assertAlmostEquals(0.06, table.rows[0].details.max);
-      assertAlmostEquals(0.1, table.rows[0].duration);
-      assertEquals('*Totals', table.rows[1].label);
-      assertAlmostEquals(0.1, table.rows[1].duration);
-      assertEquals('Selection start', table.rows[3].label);
-      assertAlmostEquals(0, table.rows[3].time);
-      assertEquals('Selection extent', table.rows[4].label);
-      assertAlmostEquals(0.18, table.rows[4].time);
+      // Table 2.
+      var t = results.tables[1];
+      assertObjectEquals({label: 'Title', text: 'c'}, t.rows[0]);
+      assertObjectEquals({label: 'Start', time: 0}, t.rows[1]);
+      assertObjectEquals({label: 'Duration', time: 0.04}, t.rows[2]);
+
+      // Table 3.
+      var t = results.tables[2];
+      assertObjectEquals({label: 'Title', text: 'c'}, t.rows[0]);
+      assertObjectEquals({label: 'Start', time: 0.12}, t.rows[1]);
+      assertObjectEquals({label: 'Duration', time: 0.06}, t.rows[2]);
     }
   </script>
 </body>
