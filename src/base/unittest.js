@@ -427,6 +427,17 @@ base.exportTo('base', function() {
       throw new TestError(message);
     },
 
+    assertObjectEquals: function(a, b, opt_message) {
+      // TODO(nduca): This is an expedient implementation. We can of course do
+      // better.
+      var a_ = JSON.stringify(a);
+      var b_ = JSON.stringify(b);
+      if (a_ == b_)
+        return;
+      var message = opt_message || 'Expected ' + a_ + ', got ' + b_;
+      throw new TestError(message);
+    },
+
     assertThrows: function(fn, opt_message) {
       try {
         fn();
