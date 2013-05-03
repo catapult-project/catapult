@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Tracing Controller Tests</title>
+<script src="/src/base.js"></script>
+<script>
+base.require('base.unittest');
+base.require('tracing.test_utils');
+base.require('about_tracing.tracing_controller');
+</script>
+</head>
+<body>
+<script>
+  'use strict';
+
+  function testLoadTraceFileCompleteWithJSONfiles() {
+    var callbackFired = false;
+
+    var tc = new about_tracing.TracingController(undefined);
+    tc.addEventListener('loadTraceFileComplete', function(event) {
+      assertNotNull(event.events);
+      assertEquals(1, event.events[0].a);
+      assertEquals(2, event.events[0].b);
+      callbackFired = true;
+    });
+    tc.onLoadTraceFileComplete('[{"a":1, "b":2}]');
+
+    assertEquals(1, tc.traceEvents[0].a);
+    assertEquals(2, tc.traceEvents[0].b);
+    assertTrue(callbackFired);
+  }
+
+  function testLoadTraceFileCompleteWithNonJSONfiles() {
+    var callbackFired = false;
+
+    var tc = new about_tracing.TracingController(undefined);
+    tc.addEventListener('loadTraceFileComplete', function(event) {
+      assertNotNull(event.events);
+      assertEquals("<DOCTYPE>", event.events);
+      callbackFired = true;
+    });
+    tc.onLoadTraceFileComplete("<DOCTYPE>");
+
+    assertEquals("<DOCTYPE>", tc.traceEvents);
+    assertTrue(callbackFired);
+  }
+</script>
+
