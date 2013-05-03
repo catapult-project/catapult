@@ -17,6 +17,8 @@ base.require('ui.overlay');
 /*
  * Here is where we bring in modules that are used in about:tracing UI only.
  */
+base.require('tracing.importer.linux_perf_importer');
+base.require('tracing.importer.trace_event_importer');
 base.require('tracing.importer.v8_log_importer');
 base.require('cc.layer_tree_host_impl_view');
 

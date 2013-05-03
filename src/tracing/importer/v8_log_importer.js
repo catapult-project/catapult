@@ -73,7 +73,6 @@ base.exportTo('tracing.importer', function() {
     },
 
     processTimerEventStart_: function(name, start) {
-      debugger;
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
@@ -81,7 +80,6 @@ base.exportTo('tracing.importer', function() {
     },
 
     processTimerEventEnd_: function(name, end) {
-      debugger;
       end /= 1000;  // Convert to milliseconds.
       this.v8_timer_thread_.endSlice(end);
     },

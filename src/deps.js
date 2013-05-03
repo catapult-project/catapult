@@ -7,6 +7,27 @@
  *
  *        Do not edit directly.
  */
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/common.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.addModuleDependency(
+    'base.rect2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.rect2');
 base.addModuleDependency(
     'ui.overlay',
     'base.event_target');
@@ -639,6 +660,12 @@ base.addModuleDependency(
     'ui.overlay');
 base.addModuleDependency(
     'about_tracing.profiling_view',
+    'tracing.importer.linux_perf_importer');
+base.addModuleDependency(
+    'about_tracing.profiling_view',
+    'tracing.importer.trace_event_importer');
+base.addModuleDependency(
+    'about_tracing.profiling_view',
     'tracing.importer.v8_log_importer');
 base.addModuleDependency(
     'about_tracing.profiling_view',
@@ -646,51 +673,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/common.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
-base.addModuleDependency(
-    'base.rect2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.rect2');
-base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
-base.addModuleDependency(
-    'cc.quad_view_viewport',
-    'base.range');
-base.addModuleDependency(
-    'cc.quad_view_viewport',
-    'base.event_target');
-base.addModuleDependency(
-    'cc.quad_view',
-    'ui');
-base.addModuleDependency(
-    'cc.quad_view',
-    'cc.quad_view_viewport');
-base.addModuleStylesheet(
-    'cc.quad_view',
-    'cc.quad_view');
-base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model.slice');
 base.addModuleDependency(
     'ui.list_view',
     'ui');
@@ -706,3 +688,27 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'ui.list_and_associated_view',
     'ui.list_and_associated_view');
+base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'cc.quad_view_viewport',
+    'base.range');
+base.addModuleDependency(
+    'cc.quad_view_viewport',
+    'base.event_target');
+base.addModuleDependency(
+    'cc.quad_view',
+    'ui');
+base.addModuleDependency(
+    'cc.quad_view',
+    'cc.quad_view_viewport');
+base.addModuleStylesheet(
+    'cc.quad_view',
+    'cc.quad_view');

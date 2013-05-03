@@ -332,25 +332,34 @@ base.exportTo('about_tracing', function() {
     onLoadTraceFileComplete: function(traceDataString) {
       var data;
       this.failedTraceDataString_ = undefined;
-      try {
-        data = JSON.parse(traceDataString);
-      } catch (e) {
-        console.log('Trace file did not parse.', e);
-        data = [];
-      }
-      if (data.traceEvents) {
-        this.traceEvents_ = data.traceEvents;
-      } else { // path for loading traces saved without metadata
-        if (!data.length)
-          console.log('Expected an array when loading the trace file');
-        else
-          this.traceEvents_ = data;
-      }
 
-      if (data.systemTraceEvents)
-        this.systemTraceEvents_ = data.systemTraceEvents;
-      else
-        this.systemTraceEvents_ = [];
+      // If the data isn't JSON we pass the string straight through. The
+      // model importer will handle correctly. This is needed for both v8
+      // and android imports.
+      if ((traceDataString[0] !== '[') &&
+          (traceDataString[0] !== '{')) {
+        this.traceEvents_ = traceDataString;
+      } else {
+        try {
+          data = JSON.parse(traceDataString);
+        } catch (e) {
+          console.log('Trace file did not parse.', e);
+          data = [];
+        }
+        if (data.traceEvents) {
+          this.traceEvents_ = data.traceEvents;
+        } else { // path for loading traces saved without metadata
+          if (!data.length)
+            console.log('Expected an array when loading the trace file');
+          else
+            this.traceEvents_ = data;
+        }
+
+        if (data.systemTraceEvents)
+          this.systemTraceEvents_ = data.systemTraceEvents;
+        else
+          this.systemTraceEvents_ = [];
+      }
 
       var e = new base.Event('loadTraceFileComplete');
       e.events = this.traceEvents_;
