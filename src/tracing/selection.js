@@ -9,6 +9,7 @@
  */
 base.require('base.range');
 base.require('base.event_target');
+base.require('tracing.guid');
 base.exportTo('tracing', function() {
 
   function SelectionSliceHit(track, slice) {
@@ -112,6 +113,8 @@ base.exportTo('tracing', function() {
     this.bounds_dirty_ = true;
     this.bounds_ = new base.Range();
     this.length_ = 0;
+    this.guid_ = tracing.GUID.allocate();
+
     if (opt_hits)
       this.pushHits(opt_hits);
   }
@@ -138,6 +141,10 @@ base.exportTo('tracing', function() {
 
     get length() {
       return this.length_;
+    },
+
+    get guid() {
+      return this.guid_;
     },
 
     clear: function() {

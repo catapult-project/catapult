@@ -317,6 +317,8 @@ base.exportTo('tracing', function() {
         this.timeline_.addEventListener(
             'selectionChange', this.onSelectionChangedBoundToThis_);
         this.updateCategoryFilterFromSettings_();
+
+        this.analysisEl_.clearSelectionHistory();
       }
 
       // Set the model.

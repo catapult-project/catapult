@@ -15,6 +15,7 @@ base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.default_object_view');
 base.require('tracing.analysis.util');
+base.require('tracing.guid');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
 
@@ -29,6 +30,10 @@ base.exportTo('tracing.analysis', function() {
       this.instanceViewRegistry = tracing.analysis.ObjectInstanceView;
 
       this.currentView_ = undefined;
+      this.selections_ = [];
+      this.guid_ = tracing.GUID.allocate();
+
+      window.addEventListener('popstate', this.onPopState.bind(this));
     },
 
     changeViewType: function(viewConstructor) {
@@ -44,6 +49,40 @@ base.exportTo('tracing.analysis', function() {
     },
 
     set selection(selection) {
+      this.selections_.push(selection);
+
+      var state = {
+        view_guid: this.guid_,
+        selection_guid: selection.guid
+      };
+      window.history.pushState(state);
+
+      this.processSelection(selection);
+    },
+
+    clearSelectionHistory: function() {
+      this.selections_ = [];
+    },
+
+    onPopState: function(event) {
+      if ((event.state === null) ||
+          (event.state.view_guid !== this.guid_))
+        return;
+
+      var idx;
+      for (idx = 0; idx < this.selections_.length; ++idx) {
+        if (this.selections_[idx].guid === event.state.selection_guid)
+          break;
+      }
+
+      if (idx >= this.selections_.length)
+        return;
+
+      this.processSelection(this.selections_[idx]);
+      event.stopPropagation();
+    },
+
+    processSelection: function(selection) {
       var hitsByType = selection.getHitsOrganizedByType();
       if (selection.length == 1 &&
           hitsByType.slices.length == 0 &&

@@ -273,12 +273,12 @@ function testAssertObjectEquals() {
   var test = new TestCase(function() {
     rawAssertThrows(function() {
       assertObjectEquals({a: 1}, {a: 2});
-      assertObjectEquals({a: 1}, []});
+      assertObjectEquals({a: 1}, []);
     });
     rawAssertNotThrows(function() {
       assertObjectEquals({}, {});
       assertObjectEquals({a: 1}, {a: 1});
-      assertObjectEquals({a: 1, b: {}}, {a: 1, {}, b: {}});
+      assertObjectEquals({a: 1, b: {}}, {a: 1, c: {}, b: {}});
     });
   }, 'test_assert_true');
   var results = new FakeResults();

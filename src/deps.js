@@ -59,6 +59,9 @@ base.addModuleDependency(
     'tracing.selection',
     'base.event_target');
 base.addModuleDependency(
+    'tracing.selection',
+    'tracing.guid');
+base.addModuleDependency(
     'tracing.analysis.analysis_link',
     'tracing.selection');
 base.addModuleDependency(
@@ -121,6 +124,9 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
+    'tracing.guid');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'ui');
