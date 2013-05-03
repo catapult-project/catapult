@@ -8,28 +8,24 @@ class MeasurementFailure(page_test.Failure):
   designed-for problem."""
   pass
 
-class PageBenchmark(page_test.PageTest):
-  """Glue code for running a benchmark across a set of pages.
+class PageMeasurement(page_test.PageTest):
+  """Glue code for running a measurement across a set of pages.
 
-  To use this, subclass from the benchmark and override MeasurePage. For
+  To use this, subclass from the measurement and override MeasurePage. For
   example:
 
-     class BodyChildElementBenchmark(PageBenchmark):
+     class BodyChildElementMeasurement(PageMeasurement):
         def MeasurePage(self, page, tab, results):
            body_child_count = tab.EvaluateJavaScript(
                'document.body.children.length')
            results.Add('body_children', 'count', body_child_count)
 
      if __name__ == '__main__':
-         page_benchmark.Main(BodyChildElementBenchmark())
-
-  All benchmarks should include a unit test!
-
-     TODO(nduca): Add explanation of how to write the unit test.
+         page_measurement.Main(BodyChildElementMeasurement())
 
   To add test-specific options:
 
-     class BodyChildElementBenchmark(PageBenchmark):
+     class BodyChildElementMeasurement(PageMeasurement):
         def AddCommandLineOptions(parser):
            parser.add_option('--element', action='store', default='body')
 
@@ -42,7 +38,7 @@ class PageBenchmark(page_test.PageTest):
                action_name_to_run='',
                needs_browser_restart_after_each_run=False,
                discard_first_result=False):
-    super(PageBenchmark, self).__init__(
+    super(PageMeasurement, self).__init__(
       '_RunTest',
       action_name_to_run,
       needs_browser_restart_after_each_run,
@@ -55,9 +51,9 @@ class PageBenchmark(page_test.PageTest):
 
   @property
   def results_are_the_same_on_every_page(self):
-    """By default, benchmarks are assumed to output the same values for every
+    """By default, measurements are assumed to output the same values for every
     page. This allows incremental output, for example in CSV. If, however, the
-    benchmark discovers what values it can report as it goes, and those values
+    measurement discovers what values it can report as it goes, and those values
     may vary from page to page, you need to override this function and return
     False. Output will not appear in this mode until the entire pageset has
     run."""

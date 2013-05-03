@@ -7,13 +7,13 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
-from telemetry.page import page_benchmark_results
+from telemetry.page import page_measurement_results
 from telemetry.page import page_set
 from telemetry.test import options_for_unittests
 
-class PageBenchmarkUnitTestBase(unittest.TestCase):
+class PageMeasurementUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests
-  for a benchmark."""
+  for a measurement."""
 
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
     return self.CreatePageSet('file:///' + os.path.join(
@@ -27,23 +27,23 @@ class PageBenchmarkUnitTestBase(unittest.TestCase):
     ps.pages.append(page)
     return ps
 
-  def RunBenchmark(self, benchmark, ps, options=None):
-    """Runs a benchmark against a pageset, returning the rows its outputs."""
+  def RunMeasurement(self, measurement, ps, options=None):
+    """Runs a measurement against a pageset, returning the rows its outputs."""
     if options is None:
       options = options_for_unittests.GetCopy()
     assert options
     temp_parser = options.CreateParser()
-    benchmark.AddCommandLineOptions(temp_parser)
+    measurement.AddCommandLineOptions(temp_parser)
     defaults = temp_parser.get_default_values()
     for k, v in defaults.__dict__.items():
       if hasattr(options, k):
         continue
       setattr(options, k, v)
 
-    benchmark.CustomizeBrowserOptions(options)
+    measurement.CustomizeBrowserOptions(options)
     possible_browser = browser_finder.FindBrowser(options)
 
-    results = page_benchmark_results.PageBenchmarkResults()
+    results = page_measurement_results.PageMeasurementResults()
     with page_runner.PageRunner(ps) as runner:
-      runner.Run(options, possible_browser, benchmark, results)
+      runner.Run(options, possible_browser, measurement, results)
     return results

@@ -6,7 +6,7 @@ from telemetry.page import perf_tests_helper
 def _Mean(l):
   return float(sum(l)) / len(l) if len(l) > 0 else 0.0
 
-class PageBenchmarkValue(object):
+class PageMeasurementValue(object):
   def __init__(self, trace_name, units, value, chart_name, data_type):
     self.trace_name = trace_name
     self.units = units

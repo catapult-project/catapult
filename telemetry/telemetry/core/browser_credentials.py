@@ -133,7 +133,7 @@ class BrowserCredentials(object):
             '..', 'examples', 'credentials_example.json')))
 
       logging.warning("""
-        Credentials for %s were not found. %i pages will not be benchmarked.
+        Credentials for %s were not found. %i pages will not be tested.
 
         To fix this, either add svn-internal to your .gclient using
         http://goto/read-src-internal, or add your own credentials to:

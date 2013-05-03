@@ -41,14 +41,14 @@ class PageAction(object):
 
   def CanBeBound(self):
     """If this class implements BindMeasurementJavaScript, override CanBeBound
-    to return True so that a benchmark knows it can bind measurements."""
+    to return True so that a test knows it can bind measurements."""
     return False
 
   def BindMeasurementJavaScript(
       self, tab, start_js, stop_js):  # pylint: disable=W0613
     """Let this action determine when measurements should start and stop.
 
-    A benchmark or measurement can call this method to provide the action
+    A measurement can call this method to provide the action
     with JavaScript code that starts and stops measurements. The action
     determines when to execute the provided JavaScript code, for more accurate
     timings.

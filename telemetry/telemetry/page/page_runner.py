@@ -12,7 +12,7 @@ import random
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core import exceptions
-from telemetry.page import page_benchmark_results
+from telemetry.page import page_measurement_results
 from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_test
 
@@ -81,7 +81,7 @@ class PageRunner(object):
       if not page.archive_path:
         if options.allow_live_sites:
           logging.warning("""
-  No page set archive provided for the page %s. Benchmarking against live sites!
+  No page set archive provided for the page %s. Running against live sites!
   Results won't be repeatable or comparable.
 """, page.url)
         else:
@@ -96,7 +96,7 @@ class PageRunner(object):
         if not os.path.isfile(page.archive_path):
           if options.allow_live_sites:
             logging.warning("""
-  The page set archive %s for page %s does not exist, benchmarking against live
+  The page set archive %s for page %s does not exist, running against live
   sites! Results won't be repeatable or comparable.
 
   To fix this, either add svn-internal to your .gclient using
@@ -159,7 +159,7 @@ class PageRunner(object):
             not self.has_called_will_run_page_set):
           # If discarding results, substitute a dummy object.
           results_for_current_run = (
-            page_benchmark_results.PageBenchmarkResults())
+            page_measurement_results.PageMeasurementResults())
         else:
           results_for_current_run = out_results
         tries = 3

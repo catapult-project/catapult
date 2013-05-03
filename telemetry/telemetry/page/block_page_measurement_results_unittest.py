@@ -5,11 +5,11 @@ import StringIO
 import os
 import unittest
 
-from telemetry.page import block_page_benchmark_results
+from telemetry.page import block_page_measurement_results
 from telemetry.page import page_set
 
-BlockPageBenchmarkResults = \
-    block_page_benchmark_results.BlockPageBenchmarkResults
+BlockPageMeasurementResults = \
+    block_page_measurement_results.BlockPageMeasurementResults
 
 def _MakePageSet():
   return page_set.PageSet.FromDict({
@@ -21,14 +21,14 @@ def _MakePageSet():
         ]
       }, os.path.dirname(__file__))
 
-class NonPrintingBlockPageBenchmarkResults(BlockPageBenchmarkResults):
+class NonPrintingBlockPageMeasurementResults(BlockPageMeasurementResults):
   def __init__(self, *args):
-    super(NonPrintingBlockPageBenchmarkResults, self).__init__(*args)
+    super(NonPrintingBlockPageMeasurementResults, self).__init__(*args)
 
   def _PrintPerfResult(self, *args):
     pass
 
-class BlockPageBenchmarkResultsTest(unittest.TestCase):
+class BlockPageMeasurementResultsTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
@@ -43,7 +43,7 @@ class BlockPageBenchmarkResultsTest(unittest.TestCase):
     return [line.split(': ', 1) for line in self.lines]
 
   def test_with_output_after_every_page(self):
-    results = NonPrintingBlockPageBenchmarkResults(self._output)
+    results = NonPrintingBlockPageMeasurementResults(self._output)
     results.WillMeasurePage(self._page_set[0])
     results.Add('foo', 'seconds', 3)
     results.DidMeasurePage()

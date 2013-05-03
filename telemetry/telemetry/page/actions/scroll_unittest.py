@@ -66,14 +66,13 @@ class ScrollActionTest(tab_test_case.TabTestCase):
       js = f.read()
       self._tab.ExecuteJavaScript(js)
 
-    # Verify that the rect returned by getBoundingVisibleRect() in
-    # scroll.js is completely contained within the viewport. Scroll
-    # events dispatched by the benchmarks use the center of this rect
-    # as their location, and this location needs to be within the
-    # viewport bounds to correctly decide between main-thread and
-    # impl-thread scroll. If the scrollable area were not clipped
-    # to the viewport bounds, then the instance used here (the scrollable
-    # area being more than twice as tall as the viewport) would
+    # Verify that the rect returned by getBoundingVisibleRect() in scroll.js is
+    # completely contained within the viewport. Scroll events dispatched by the
+    # scrolling API use the center of this rect as their location, and this
+    # location needs to be within the viewport bounds to correctly decide
+    # between main-thread and impl-thread scroll. If the scrollable area were
+    # not clipped to the viewport bounds, then the instance used here (the
+    # scrollable area being more than twice as tall as the viewport) would
     # result in a scroll location outside of the viewport bounds.
     self._tab.ExecuteJavaScript("""document.body.style.height =
                            (2 * window.innerHeight + 1) + 'px';""")

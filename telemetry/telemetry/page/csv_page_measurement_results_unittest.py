@@ -6,7 +6,7 @@ import csv
 import os
 import unittest
 
-from telemetry.page import csv_page_benchmark_results
+from telemetry.page import csv_page_measurement_results
 from telemetry.page import page_set
 
 def _MakePageSet():
@@ -18,15 +18,15 @@ def _MakePageSet():
         ]
       }, os.path.dirname(__file__))
 
-class NonPrintingCsvPageBenchmarkResults(
-    csv_page_benchmark_results.CsvPageBenchmarkResults):
+class NonPrintingCsvPageMeasurementResults(
+    csv_page_measurement_results.CsvPageMeasurementResults):
   def __init__(self, *args):
-    super(NonPrintingCsvPageBenchmarkResults, self).__init__(*args)
+    super(NonPrintingCsvPageMeasurementResults, self).__init__(*args)
 
   def _PrintPerfResult(self, *args):
     pass
 
-class CsvPageBenchmarkResultsTest(unittest.TestCase):
+class CsvPageMeasurementResultsTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._page_set = _MakePageSet()
@@ -47,7 +47,8 @@ class CsvPageBenchmarkResultsTest(unittest.TestCase):
     return rows[1:]
 
   def test_with_output_after_every_page(self):
-    results = NonPrintingCsvPageBenchmarkResults(csv.writer(self._output), True)
+    results = NonPrintingCsvPageMeasurementResults(
+      csv.writer(self._output), True)
     results.WillMeasurePage(self._page_set[0])
     results.Add('foo', 'seconds', 3)
     results.DidMeasurePage()
@@ -69,7 +70,8 @@ class CsvPageBenchmarkResultsTest(unittest.TestCase):
       [self._page_set[1].url, '4'])
 
   def test_with_output_after_every_page_and_inconsistency(self):
-    results = NonPrintingCsvPageBenchmarkResults(csv.writer(self._output), True)
+    results = NonPrintingCsvPageMeasurementResults(
+      csv.writer(self._output), True)
     results.WillMeasurePage(self._page_set[0])
     results.Add('foo', 'seconds', 3)
     results.DidMeasurePage()
@@ -83,7 +85,7 @@ class CsvPageBenchmarkResultsTest(unittest.TestCase):
       lambda: results.DidMeasurePage()) # pylint: disable=W0108
 
   def test_with_output_at_print_summary_time(self):
-    results = NonPrintingCsvPageBenchmarkResults(csv.writer(self._output),
+    results = NonPrintingCsvPageMeasurementResults(csv.writer(self._output),
                                                  False)
     results.WillMeasurePage(self._page_set[0])
     results.Add('foo', 'seconds', 3)
@@ -104,7 +106,7 @@ class CsvPageBenchmarkResultsTest(unittest.TestCase):
        [self._page_set[1].url, '4', '-']])
 
   def test_histogram(self):
-    results = NonPrintingCsvPageBenchmarkResults(csv.writer(self._output),
+    results = NonPrintingCsvPageMeasurementResults(csv.writer(self._output),
                                                  False)
     results.WillMeasurePage(self._page_set[0])
     results.Add('a', '',

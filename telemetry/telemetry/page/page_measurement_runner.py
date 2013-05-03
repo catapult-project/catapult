@@ -6,21 +6,21 @@ import csv
 import os
 import sys
 
-from telemetry.page import block_page_benchmark_results
-from telemetry.page import csv_page_benchmark_results
-from telemetry.page import page_benchmark
+from telemetry.page import block_page_measurement_results
+from telemetry.page import csv_page_measurement_results
+from telemetry.page import page_measurement
 from telemetry.page import page_test_runner
 
-def Main(benchmark_dir, page_set_filenames):
-  """Turns a PageBenchmark into a command-line program.
+def Main(measurement_dir, page_set_filenames):
+  """Turns a PageMeasurement into a command-line program.
 
   Args:
-    benchmark_dir: Path to directory containing PageBenchmarks.
+    measurement_dir: Path to directory containing PageMeasurements.
   """
-  runner = PageBenchmarkRunner()
-  sys.exit(runner.Run(benchmark_dir, page_set_filenames))
+  runner = PageMeasurementRunner()
+  sys.exit(runner.Run(measurement_dir, page_set_filenames))
 
-class PageBenchmarkRunner(page_test_runner.PageTestRunner):
+class PageMeasurementRunner(page_test_runner.PageTestRunner):
   def AddCommandLineOptions(self, parser):
     parser.add_option('--output-format',
                       dest='output_format',
@@ -36,24 +36,24 @@ class PageBenchmarkRunner(page_test_runner.PageTestRunner):
 
   @property
   def test_class(self):
-    return page_benchmark.PageBenchmark
+    return page_measurement.PageMeasurement
 
   @property
   def test_class_name(self):
-    return 'benchmark'
+    return 'measurement'
 
-  def PrepareResults(self, benchmark):
+  def PrepareResults(self, measurement):
     if not self._options.output_file or self._options.output_file == '-':
       output_file = sys.stdout
     else:
       output_file = open(os.path.expanduser(self._options.output_file), 'w')
 
     if self._options.output_format == 'csv':
-      results = csv_page_benchmark_results.CsvPageBenchmarkResults(
+      results = csv_page_measurement_results.CsvPageMeasurementResults(
         csv.writer(output_file),
-        benchmark.results_are_the_same_on_every_page)
+        measurement.results_are_the_same_on_every_page)
     elif self._options.output_format in ('block', 'terminal-block'):
-      results = block_page_benchmark_results.BlockPageBenchmarkResults(
+      results = block_page_measurement_results.BlockPageMeasurementResults(
         output_file)
     else:
       raise Exception('Invalid --output-format value: "%s". Valid values are '
@@ -72,4 +72,4 @@ class PageBenchmarkRunner(page_test_runner.PageTestRunner):
       output_trace_tag = '_ref'
     results.PrintSummary(output_trace_tag)
 
-    return super(PageBenchmarkRunner, self).OutputResults(results)
+    return super(PageMeasurementRunner, self).OutputResults(results)

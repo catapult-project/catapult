@@ -44,48 +44,34 @@ class PageTestRunner(object):
     self.RunTestOnPageSet(test, ps, results)
     return self.OutputResults(results)
 
-  def AttemptToFindTest(self, args, test_dir):
-    """Find the test by matching the arguments against the known test names.
+  def FindTestConstructors(self, test_dir):
+    return discover.DiscoverClasses(
+        test_dir, os.path.join(test_dir, '..'), self.test_class)
+
+  def FindTestName(self, test_constructors, args):
+    """Find the test name in an arbitrary argument list.
 
     We can't use the optparse parser, because the test may add its own
     command-line options. If the user passed in any of those, the
     optparse parsing will fail.
 
     Returns:
-      An instance of the test class on success.
-      None on failure.
+      test_name or none
     """
-    tests = discover.DiscoverClasses(
-        test_dir, os.path.join(test_dir, '..'), self.test_class)
-
     test_name = None
-    for arg in args:
-      if arg in tests:
+    for arg in [self.GetModernizedTestName(a) for a in args]:
+      if arg in test_constructors:
         test_name = arg
 
-    if test_name:
-      return tests[test_name]()
-    else:
-      return None
+    return test_name
 
-  def GetTest(self, test_dir):
-    tests = discover.DiscoverClasses(
-        test_dir, os.path.join(test_dir, '..'), self.test_class)
+  def GetModernizedTestName(self, arg):
+    """Sometimes tests change names but buildbots keep calling the old name.
 
-    if len(self._args) < 1:
-      error_message = 'No %s specified.\nAvailable %ss:\n' % (
-          self.test_class_name, self.test_class_name)
-      test_list_string = ',\n'.join(sorted(tests.keys()))
-      self.PrintParseError(error_message + test_list_string)
-
-    test_name = self._args[0]
-    if test_name not in tests:
-      error_message = 'No %s named %s.\nAvailable %ss:\n' % (
-          self.test_class_name, self._args[0], self.test_class_name)
-      test_list_string = ',\n'.join(sorted(tests.keys()))
-      self.PrintParseError(error_message + test_list_string)
-
-    return tests[test_name]()
+    If arg matches an old test name, return the new test name instead.
+    Otherwise, return the arg.
+    """
+    return arg
 
   def GetPageSet(self, test, page_set_filenames):
     ps = test.CreatePageSet(self._options)
@@ -109,13 +95,27 @@ class PageTestRunner(object):
 
     self.AddCommandLineOptions(self._parser)
     page_runner.PageRunner.AddCommandLineOptions(self._parser)
-    test = self.AttemptToFindTest(args, test_dir)
-    if test:
+    test_constructors = self.FindTestConstructors(test_dir)
+    test_name = self.FindTestName(test_constructors, args)
+    test = None
+    if test_name:
+      test = test_constructors[test_name]()
       test.AddCommandLineOptions(self._parser)
 
     _, self._args = self._parser.parse_args()
 
-    test = self.GetTest(test_dir)
+    if len(self._args) < 1:
+      error_message = 'No %s specified.\nAvailable %ss:\n' % (
+          self.test_class_name, self.test_class_name)
+      test_list_string = ',\n'.join(sorted(test_constructors.keys()))
+      self.PrintParseError(error_message + test_list_string)
+
+    if not test:
+      error_message = 'No %s named %s.\nAvailable %ss:\n' % (
+          self.test_class_name, self._args[0], self.test_class_name)
+      test_list_string = ',\n'.join(sorted(test_constructors.keys()))
+      self.PrintParseError(error_message + test_list_string)
+
     ps = self.GetPageSet(test, page_set_filenames)
 
     if len(self._args) > 2:

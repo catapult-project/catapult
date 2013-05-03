@@ -3,11 +3,12 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page import page_benchmark_results
+from telemetry.page import page_measurement_results
 
-class BlockPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
+class BlockPageMeasurementResults(
+    page_measurement_results.PageMeasurementResults):
   def __init__(self, output_file):
-    super(BlockPageBenchmarkResults, self).__init__()
+    super(BlockPageMeasurementResults, self).__init__()
     self._output_file = output_file
 
   def DidMeasurePage(self):
@@ -29,4 +30,4 @@ class BlockPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
       self._output_file.write(os.linesep)
     self._output_file.write(os.linesep)
 
-    super(BlockPageBenchmarkResults, self).DidMeasurePage()
+    super(BlockPageMeasurementResults, self).DidMeasurePage()

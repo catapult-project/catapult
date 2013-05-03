@@ -11,21 +11,21 @@ import time
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import wpr_modes
-from telemetry.page import page_benchmark
+from telemetry.page import page_measurement
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.test import discover
 
 class RecordPage(page_test.PageTest):
-  def __init__(self, benchmarks):
+  def __init__(self, measurements):
     # This class overwrites PageTest.Run, so that the test method name is not
     # really used (except for throwing an exception if it doesn't exist).
     super(RecordPage, self).__init__('Run')
     self._action_names = set(
-        [benchmark().action_name_to_run
-         for benchmark in benchmarks.values()
-         if benchmark().action_name_to_run])
+        [measurement().action_name_to_run
+         for measurement in measurements.values()
+         if measurement().action_name_to_run])
 
   def CanRunForPage(self, page):
     return bool(self._CompoundActionsForPage(page))
@@ -40,7 +40,7 @@ class RecordPage(page_test.PageTest):
     tab.WaitForDocumentReadyStateToBeComplete()
     time.sleep(3)
 
-    # Run the actions for all benchmarks. Reload the page between
+    # Run the actions for all measurements. Reload the page between
     # actions.
     should_reload = False
     for compound_action in self._CompoundActionsForPage(page):
@@ -59,15 +59,15 @@ class RecordPage(page_test.PageTest):
     return actions
 
 
-def Main(benchmark_dir):
-  benchmarks = discover.DiscoverClasses(benchmark_dir,
-                                        os.path.join(benchmark_dir, '..'),
-                                        page_benchmark.PageBenchmark)
+def Main(measurement_dir):
+  measurements = discover.DiscoverClasses(measurement_dir,
+                                        os.path.join(measurement_dir, '..'),
+                                        page_measurement.PageMeasurement)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
   page_runner.PageRunner.AddCommandLineOptions(parser)
 
-  recorder = RecordPage(benchmarks)
+  recorder = RecordPage(measurements)
   recorder.AddCommandLineOptions(parser)
 
   _, args = parser.parse_args()

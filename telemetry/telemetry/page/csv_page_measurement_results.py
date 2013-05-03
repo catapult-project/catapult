@@ -1,11 +1,12 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-from telemetry.page import page_benchmark_results
+from telemetry.page import page_measurement_results
 
-class CsvPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
+class CsvPageMeasurementResults(
+    page_measurement_results.PageMeasurementResults):
   def __init__(self, results_writer, output_after_every_page):
-    super(CsvPageBenchmarkResults, self).__init__()
+    super(CsvPageMeasurementResults, self).__init__()
     self._results_writer = results_writer
     self._did_output_header = False
     self._header_names_written_to_writer = None
@@ -14,7 +15,7 @@ class CsvPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
   def DidMeasurePage(self):
     assert self.values_for_current_page, 'Failed to call WillMeasurePage'
     if not self._output_after_every_page:
-      super(CsvPageBenchmarkResults, self).DidMeasurePage()
+      super(CsvPageMeasurementResults, self).DidMeasurePage()
       return
 
     if not self._did_output_header:
@@ -24,7 +25,7 @@ class CsvPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
 
     self._OutputValuesForPage(self.values_for_current_page)
 
-    super(CsvPageBenchmarkResults, self).DidMeasurePage()
+    super(CsvPageMeasurementResults, self).DidMeasurePage()
 
   def PrintSummary(self, trace_tag):
     if not self._output_after_every_page:
@@ -32,7 +33,7 @@ class CsvPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
       for page_values in self.page_results:
         self._OutputValuesForPage(page_values)
 
-    super(CsvPageBenchmarkResults, self).PrintSummary(trace_tag)
+    super(CsvPageMeasurementResults, self).PrintSummary(trace_tag)
 
   def _ValidateOutputNamesForCurrentPage(self):
     assert self._did_output_header
@@ -42,7 +43,7 @@ class CsvPageBenchmarkResults(page_benchmark_results.PageBenchmarkResults):
         set(self._header_names_written_to_writer)
     if header_names_written_to_writer == current_page_measurement_names:
       return
-    assert False, """To use CsvPageBenchmarkResults, you must add the same
+    assert False, """To use CsvPageMeasurementResults, you must add the same
 result names for every page. In this case, first page output:
 %s
 
@@ -51,7 +52,7 @@ output:
 %s
 
 Change your test to produce the same thing each time, or modify
-PageBenchmark.results_are_the_same_on_every_page to return False.
+PageMeasurement.results_are_the_same_on_every_page to return False.
 """ % (repr(header_names_written_to_writer),
        repr(current_page_measurement_names))
 

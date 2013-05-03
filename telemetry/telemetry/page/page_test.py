@@ -35,7 +35,7 @@ def GetCompoundActionFromPage(page, action_name):
   return action_list
 
 class Failure(Exception):
-  """Exception that can be thrown from PageBenchmark to indicate an
+  """Exception that can be thrown from PageMeasurement to indicate an
   undesired but designed-for problem."""
   pass
 
@@ -89,7 +89,7 @@ class PageTest(object):
     return self._discard_first_result
 
   def AddCommandLineOptions(self, parser):
-    """Override to expose command-line options for this benchmark.
+    """Override to expose command-line options for this test.
 
     The provided parser is an optparse.OptionParser instance and accepts all
     normal results. The parsed options are available in Run as

@@ -39,7 +39,7 @@ class ScrollAction(page_action.PageAction):
       tab.ExecuteJavaScript(
         'window.__scrollAction.start(document.body);')
 
-    # Poll for scroll benchmark completion.
+    # Poll for scroll action completion.
     util.WaitFor(lambda: tab.EvaluateJavaScript(
         'window.__scrollActionDone'), 60)
 

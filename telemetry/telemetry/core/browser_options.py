@@ -126,7 +126,7 @@ class BrowserOptions(optparse.Values):
     group.add_option('--allow-live-sites',
         dest='allow_live_sites', action='store_true',
         help='Run against live sites if the Web Page Replay archives don\'t '
-             'exist. Without this flag, the benchmark will just fail instead '
+             'exist. Without this flag, the test will just fail instead '
              'of running against live sites.')
     parser.add_option_group(group)
 
@@ -147,7 +147,7 @@ class BrowserOptions(optparse.Values):
     group = optparse.OptionGroup(parser, 'Platform options')
     group.add_option('--no-performance-mode', action='store_true',
         help='Some platforms run on "full performance mode" where the '
-        'benchmark is executed at maximum CPU speed in order to minimize noise '
+        'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
     parser.add_option_group(group)

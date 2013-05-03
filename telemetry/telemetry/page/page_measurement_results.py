@@ -7,7 +7,7 @@ from itertools import chain
 
 from telemetry.page import page_test
 from telemetry.page import perf_tests_helper
-from telemetry.page import page_benchmark_value
+from telemetry.page import page_measurement_value
 
 class ValuesForSinglePage(object):
   def __init__(self, page):
@@ -43,9 +43,9 @@ class ValuesForSinglePage(object):
       return values[0]
     return None
 
-class PageBenchmarkResults(page_test.PageTestResults):
+class PageMeasurementResults(page_test.PageTestResults):
   def __init__(self):
-    super(PageBenchmarkResults, self).__init__()
+    super(PageMeasurementResults, self).__init__()
     self._page_results = []
     self._overall_results = []
 
@@ -76,19 +76,19 @@ class PageBenchmarkResults(page_test.PageTestResults):
     return self._all_measurements_that_have_been_seen
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
-    value = self._GetPageBenchmarkValue(trace_name, units, value, chart_name,
+    value = self._GetPageMeasurementValue(trace_name, units, value, chart_name,
                                         data_type)
     self._values_for_current_page.AddValue(value)
 
   def AddSummary(self, trace_name, units, value, chart_name=None,
                  data_type='default'):
-    value = self._GetPageBenchmarkValue(trace_name, units, value, chart_name,
+    value = self._GetPageMeasurementValue(trace_name, units, value, chart_name,
                                         data_type)
     self._overall_results.append(value)
 
-  def _GetPageBenchmarkValue(self, trace_name, units, value, chart_name,
+  def _GetPageMeasurementValue(self, trace_name, units, value, chart_name,
                              data_type):
-    value = page_benchmark_value.PageBenchmarkValue(
+    value = page_measurement_value.PageMeasurementValue(
         trace_name, units, value, chart_name, data_type)
     measurement_name = value.measurement_name
 
