@@ -227,8 +227,7 @@ class PageRunner(object):
     try:
       did_prepare = self._PreparePage(page, tab, page_state, test, results)
     except util.TimeoutException, ex:
-      logging.warning('Timed out waiting for reply on %s. This is unusual.',
-                      page.url)
+      logging.error(str(ex) + ' Timeout occurred during page %s', page.url)
       results.AddFailure(page, ex, traceback.format_exc())
       return
     except exceptions.TabCrashException, ex:

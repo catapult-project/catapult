@@ -35,7 +35,7 @@ class TemporaryHTTPServer(object):
 
     def IsServerUp():
       return not socket.socket().connect_ex(('localhost', self._host_port))
-    util.WaitFor(IsServerUp, 5)
+    util.WaitFor(IsServerUp, 10)
 
   @property
   def paths(self):
