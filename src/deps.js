@@ -75,13 +75,13 @@ base.addModuleDependency(
     'ui');
 base.addModuleDependency(
     'tracing.selection',
-    'base.range');
-base.addModuleDependency(
-    'tracing.selection',
     'base.event_target');
 base.addModuleDependency(
     'tracing.selection',
-    'tracing.guid');
+    'base.guid');
+base.addModuleDependency(
+    'tracing.selection',
+    'base.range');
 base.addModuleDependency(
     'tracing.analysis.analysis_link',
     'tracing.selection');
@@ -129,6 +129,9 @@ base.addModuleStylesheet(
     'tracing.analysis.default_object_view');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.analysis.analysis_view',
     'tracing.analysis.analyze_selection');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
@@ -145,9 +148,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.analysis_view',
-    'tracing.guid');
 base.addModuleDependency(
     'tracing.analysis.analysis_view',
     'ui');
@@ -213,10 +213,10 @@ base.addModuleStylesheet(
     'tracing.tracks.slice_track');
 base.addModuleDependency(
     'tracing.model.counter',
-    'base.range');
+    'base.guid');
 base.addModuleDependency(
     'tracing.model.counter',
-    'tracing.guid');
+    'base.range');
 base.addModuleDependency(
     'tracing.model.object_instance',
     'base.range');
@@ -261,10 +261,10 @@ base.addModuleDependency(
     'tracing.model.slice');
 base.addModuleDependency(
     'tracing.model.thread',
-    'base.range');
+    'base.guid');
 base.addModuleDependency(
     'tracing.model.thread',
-    'tracing.guid');
+    'base.range');
 base.addModuleDependency(
     'tracing.model.thread',
     'tracing.model.slice');
@@ -279,10 +279,10 @@ base.addModuleDependency(
     'tracing.model.sample');
 base.addModuleDependency(
     'tracing.model.process_base',
-    'base.range');
+    'base.guid');
 base.addModuleDependency(
     'tracing.model.process_base',
-    'tracing.guid');
+    'base.range');
 base.addModuleDependency(
     'tracing.model.process_base',
     'tracing.model.counter');
@@ -588,6 +588,9 @@ base.addModuleDependency(
     'tracing.color_scheme');
 base.addModuleDependency(
     'tracing.timeline_view',
+    'base.settings');
+base.addModuleDependency(
+    'tracing.timeline_view',
     'tracing.analysis.analysis_view');
 base.addModuleDependency(
     'tracing.timeline_view',
@@ -598,9 +601,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.find_control');
-base.addModuleDependency(
-    'tracing.timeline_view',
-    'tracing.settings');
 base.addModuleDependency(
     'tracing.timeline_view',
     'tracing.timeline_track_view');

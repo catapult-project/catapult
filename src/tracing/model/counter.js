@@ -4,8 +4,8 @@
 
 'use strict';
 
+base.require('base.guid');
 base.require('base.range');
-base.require('tracing.guid');
 
 /**
  * @fileoverview Provides the Counter class.
@@ -17,7 +17,7 @@ base.exportTo('tracing.model', function() {
    * @constructor
    */
   function Counter(parent, id, category, name) {
-    this.guid_ = tracing.GUID.allocate();
+    this.guid_ = base.GUID.allocate();
 
     this.parent = parent;
     this.id = id;

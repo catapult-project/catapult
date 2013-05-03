@@ -7,8 +7,8 @@
 /**
  * @fileoverview Provides the ProcessBase class.
  */
+base.require('base.guid');
 base.require('base.range');
-base.require('tracing.guid');
 base.require('tracing.model.counter');
 base.require('tracing.model.object_collection');
 base.require('tracing.model.thread');
@@ -24,7 +24,7 @@ base.exportTo('tracing.model', function() {
    * @constructor
    */
   function ProcessBase() {
-    this.guid_ = tracing.GUID.allocate();
+    this.guid_ = base.GUID.allocate();
     this.threads = {};
     this.counters = {};
     this.objects = new tracing.model.ObjectCollection(this);

@@ -7,8 +7,8 @@
 /**
  * @fileoverview Provides the Thread class.
  */
+base.require('base.guid');
 base.require('base.range');
-base.require('tracing.guid');
 base.require('tracing.model.slice');
 base.require('tracing.model.slice_group');
 base.require('tracing.model.async_slice_group');
@@ -59,7 +59,7 @@ base.exportTo('tracing.model', function() {
    */
   function Thread(parent, tid) {
     SliceGroup.call(this, ThreadSlice);
-    this.guid_ = tracing.GUID.allocate();
+    this.guid_ = base.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;

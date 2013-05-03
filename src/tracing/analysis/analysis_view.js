@@ -9,13 +9,13 @@
  */
 base.requireStylesheet('tracing.analysis.analysis_view');
 
+base.require('base.guid');
 base.require('tracing.analysis.analyze_selection');
 base.require('tracing.analysis.analysis_results');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.default_object_view');
 base.require('tracing.analysis.util');
-base.require('tracing.guid');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
 
@@ -31,7 +31,7 @@ base.exportTo('tracing.analysis', function() {
 
       this.currentView_ = undefined;
       this.selections_ = [];
-      this.guid_ = tracing.GUID.allocate();
+      this.guid_ = base.GUID.allocate();
 
       window.addEventListener('popstate', this.onPopState.bind(this));
     },

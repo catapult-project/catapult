@@ -7,9 +7,9 @@
 /**
  * @fileoverview Code for the viewport.
  */
-base.require('base.range');
 base.require('base.event_target');
-base.require('tracing.guid');
+base.require('base.guid');
+base.require('base.range');
 base.exportTo('tracing', function() {
 
   function SelectionSliceHit(track, slice) {
@@ -113,7 +113,7 @@ base.exportTo('tracing', function() {
     this.bounds_dirty_ = true;
     this.bounds_ = new base.Range();
     this.length_ = 0;
-    this.guid_ = tracing.GUID.allocate();
+    this.guid_ = base.GUID.allocate();
 
     if (opt_hits)
       this.pushHits(opt_hits);

@@ -21,7 +21,7 @@
  *
  */
 'use strict';
-base.exportTo('tracing', function() {
+base.exportTo('base', function() {
 
   var nextGUID = 1;
   var GUID = {
@@ -33,5 +33,4 @@ base.exportTo('tracing', function() {
   return {
     GUID: GUID
   };
-
 });

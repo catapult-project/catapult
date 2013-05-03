@@ -10,11 +10,11 @@
  */
 base.requireStylesheet('tracing.timeline_view');
 
+base.require('base.settings');
 base.require('tracing.analysis.analysis_view');
 base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
-base.require('tracing.settings');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
