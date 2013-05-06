@@ -118,14 +118,21 @@ base.exportTo('tracing.model', function() {
       return instances;
     },
 
+    getAllInstancesNamed: function(name) {
+      return this.instancesByTypeName_[name];
+    },
+
     getAllInstancesByTypeName: function() {
       return this.instancesByTypeName_;
     },
 
-    finalizeImport: function() {
+    preInitializeAllObjects: function() {
       this.iterObjectInstances(function(instance) {
         instance.preInitialize();
       });
+    },
+
+    initializeAllObjects: function() {
       this.iterObjectInstances(function(instance) {
         instance.initialize();
       });

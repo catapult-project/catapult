@@ -21,14 +21,16 @@ base.exportTo('tracing.model', function() {
    *    importing. Little should be done here, because the object's data
    *    are still being used by the importer to reconstruct object references.
    *
-   * 2. Instances and snapshtos are preinitialized. This happens
-   *    after all references have been constructed, but with the caveat that
-   *    instances are initialized in an arbitrary order. This is a good time
-   *    to rename arguments.
+   * 2. Instances and snapshtos are preinitialized. This happens after implicit
+   *    objects have been found, but before any references have been found and
+   *    switched to direct references. Thus, every snapshot stands on its own.
+   *    This is a good time to do global field renaming and type conversion,
+   *    e.g. recognizing domain-specific types and converting from C++ naming
+   *    convention to JS.
    *
-   * 3. Instances and snapshtos are initialized. This happens right after
-   *    preinitialization. Now that all objects have pre initialized,
-   *    global operations are more safe to perform.
+   * 3. Instances and snapshtos are initialized. At this point, {id_ref: '0x1000'} fields
+   *    have been converted to snapshot references. This is a good time to generic
+   *    initialization steps and argument verification.
    *
    * @constructor
    */

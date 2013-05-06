@@ -287,7 +287,15 @@ base.exportTo('tracing.importer', function() {
     finalizeImport: function() {
       this.createAsyncSlices_();
       this.createExplicitObjects_();
-      this.createImplicitObjectsAndJoinRefs_();
+      this.createImplicitObjects_();
+    },
+
+    /**
+     * Called by the model to join references between objects, after final model
+     * bounds have been computed.
+     */
+    joinRefs: function() {
+      this.joinObjectRefs_();
     },
 
     createAsyncSlices_: function() {
@@ -453,13 +461,13 @@ base.exportTo('tracing.importer', function() {
       }
     },
 
-    createImplicitObjectsAndJoinRefs_: function() {
+    createImplicitObjects_: function() {
       base.iterItems(this.model_.processes, function(pid, process) {
-        this.createImplicitObjectsAndJoinRefsForProcess_(process);
+        this.createImplicitObjectsForProcess_(process);
       }, this);
     },
 
-    createImplicitObjectsAndJoinRefsForProcess_: function(process) {
+    createImplicitObjectsForProcess_: function(process) {
       var implicitSnaps = [];
       // Here, we collect all the snapshots that internally contain a
       // Javascript-level object inside their args list that has an "id" field.
@@ -496,7 +504,15 @@ base.exportTo('tracing.importer', function() {
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
       }
+    },
 
+    joinObjectRefs_: function() {
+      base.iterItems(this.model_.processes, function(pid, process) {
+        this.joinObjectRefsForProcess_(process);
+      }, this);
+    },
+
+    joinObjectRefsForProcess_: function(process) {
       // Iterate the world, looking for id_refs
       var patchupsToApply = [];
       base.iterItems(process.threads, function(tid, thread) {

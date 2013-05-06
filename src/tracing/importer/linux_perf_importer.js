@@ -391,6 +391,13 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
+     * Called by the model to join references between objects, after final model
+     * bounds have been computed.
+     */
+    joinRefs: function() {
+    },
+
+    /**
      * Builds the cpuSlices array on each thread based on our knowledge of what
      * each Cpu is doing.  This is done only for Threads that are
      * already in the model, on the assumption that not having any traced data

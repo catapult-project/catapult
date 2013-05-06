@@ -73,11 +73,18 @@ base.exportTo('tracing.model', function() {
     },
 
     /**
-     * Called by the model after importing all traces,
-     * finalizing the importers, but before finalizing world bounds.
+     * Called by the model after finalizing imports,
+     * but before joining refs.
      */
-    finalizeImport: function() {
-      this.objects.finalizeImport();
+    preInitializeObjects: function() {
+      this.objects.preInitializeAllObjects();
+    },
+
+    /**
+     * Called by the model after joining refs.
+     */
+    initializeObjects: function() {
+      this.objects.initializeAllObjects();
     },
 
     /**

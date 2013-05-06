@@ -277,8 +277,9 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < importers.length; i++)
         importers[i].finalizeImport();
 
+      // Run preinit.
       for (var pid in this.processes)
-        this.processes[pid].finalizeImport();
+        this.processes[pid].preInitializeObjects();
 
       // Prune empty containers.
       this.kernel.pruneEmptyContainers();
@@ -297,6 +298,14 @@ base.exportTo('tracing', function() {
 
       if (opt_shiftWorldToZero)
         this.shiftWorldToZero();
+
+      // Join refs.
+      for (var i = 0; i < importers.length; i++)
+        importers[i].joinRefs();
+
+      // Run initializers.
+      for (var pid in this.processes)
+        this.processes[pid].initializeObjects();
     }
   };
 
@@ -323,6 +332,8 @@ base.exportTo('tracing', function() {
     importEvents: function() {
     },
     finalizeImport: function() {
+    },
+    joinRefs: function() {
     }
   };
 

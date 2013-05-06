@@ -225,6 +225,13 @@ base.exportTo('tracing.importer', function() {
      */
     finalizeImport: function() {
     },
+
+    /**
+     * Called by the model to join references between objects, after final model
+     * bounds have been computed.
+     */
+    joinRefs: function() {
+    }
   };
 
   tracing.Model.registerImporter(V8LogImporter);
