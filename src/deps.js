@@ -74,11 +74,23 @@ base.addModuleStylesheet(
     'tracing.analysis.analysis_link',
     'tracing.analysis.analysis_link');
 base.addModuleDependency(
+    'tracing.analysis.generic_object_view',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.generic_object_view',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.generic_object_view',
+    'tracing.analysis.generic_object_view');
+base.addModuleDependency(
     'tracing.analysis.analysis_results',
     'tracing.analysis.util');
 base.addModuleDependency(
     'tracing.analysis.analysis_results',
     'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.generic_object_view');
 base.addModuleDependency(
     'tracing.analysis.analysis_results',
     'ui');

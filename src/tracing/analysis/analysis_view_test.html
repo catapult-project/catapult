@@ -25,30 +25,6 @@ found in the LICENSE file.
     var AnalysisView = tracing.analysis.AnalysisView;
     var newSliceNamed = tracing.test_utils.newSliceNamed;
 
-    function testAnalyzeSelectionWithFalsyArgs() {
-      var model = new Model();
-      var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-      var slice = newSliceNamed('b', 0, 0.002);
-      slice.args.bar = 0;
-      slice.args.foo = false;
-      t53.pushSlice(slice);
-      var t53track = {};
-      t53track.thread = t53;
-
-      var selection = new Selection();
-      selection.addSlice(t53track, slice);
-
-      var analysisEl = new AnalysisView();
-      analysisEl.selection = selection;
-      this.addHTMLOutput(undefined, analysisEl);
-      var rows = analysisEl.querySelectorAll('tr');
-      assertEquals(rows.length, 7);
-      assertEquals(' bar', rows[5].children[0].textContent);
-      assertEquals('0', rows[5].children[1].textContent);
-      assertEquals(' foo', rows[6].children[0].textContent);
-      assertEquals('false', rows[6].children[1].textContent);
-    }
-
     function testInstantiateAnalysisWithObjects() {
       var model = new Model();
       var p1 = model.getOrCreateProcess(1);

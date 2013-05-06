@@ -8,6 +8,7 @@ base.requireStylesheet('tracing.analysis.analysis_results');
 
 base.require('tracing.analysis.util');
 base.require('tracing.analysis.analysis_link');
+base.require('tracing.analysis.generic_object_view');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
   var AnalysisResults = ui.define('div');
@@ -95,44 +96,22 @@ base.exportTo('tracing.analysis', function() {
 
     /**
      * Creates and appends a row to |table| with a left-aligned |label]
-     * in the first column and an optional |opt_text| value in the second
+     * in the first column and an optional |opt_value| in the second
      * column.
      */
-    appendSummaryRow: function(table, label, opt_text) {
+    appendSummaryRow: function(table, label, opt_value) {
       var row = this.appendElement_(table, 'tr');
       row.className = 'analysis-table-row';
 
       this.appendTableCell_(table, row, 0, label);
-      if (opt_text !== undefined) {
-        if (opt_text instanceof tracing.model.ObjectSnapshot) {
-          var td = this.appendTableCell_(table, row, 1);
-          var link = new tracing.analysis.ObjectSnapshotLink(opt_text);
-          link.objectSnapshot = opt_text;
-          td.appendChild(link);
-        } else if (opt_text[0] == '{' &&
-                   opt_text[opt_text.length - 1] == '}') {
-          // Try to treat the opt_text as json.
-          var value;
-          try {
-            value = JSON.parse(opt_text);
-          } catch (e) {
-            value = undefined;
-          }
-          if (!value === undefined) {
-            this.appendTableCell_(table, row, 1, opt_text);
-          } else {
-            var pretty = JSON.stringify(value, null, ' ');
-            this.appendTableCell_(table, row, 1, pretty);
-          }
-        } else {
-          this.appendTableCell_(table, row, 1, opt_text);
-        }
-        for (var i = 2; i < table.numColumns; i++)
-          this.appendTableCell_(table, row, i, '');
-      } else {
-        for (var i = 1; i < table.numColumns; i++)
-          this.appendTableCell_(table, row, 1, '');
-      }
+
+      var objectView = new tracing.analysis.GenericObjectView();
+      objectView.object = opt_value;
+      objectView.classList.add('analysis-table-col-1');
+      objectView.style.display = 'table-cell';
+      row.appendChild(objectView);
+      for (var i = 2; i < table.numColumns; i++)
+        this.appendTableCell_(table, row, i, '');
     },
 
     /**

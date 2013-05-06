@@ -1,0 +1,164 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('tracing.model.object_instance');
+  base.require('tracing.analysis.generic_object_view');
+</script>
+<script>
+  'use strict';
+
+  var GenericObjectView = tracing.analysis.GenericObjectView;
+
+  function testUndefinedValue() {
+    var view = new GenericObjectView();
+    view.object = undefined;
+    this.addHTMLOutput(undefined, view);
+    assertEquals('undefined', view.children[0].dataElement.textContent)
+  }
+
+  function testNullValue() {
+    var view = new GenericObjectView();
+    view.object = null;
+    this.addHTMLOutput(undefined, view);
+    assertEquals('null', view.children[0].dataElement.textContent)
+  }
+
+  function testStringValue() {
+    var view = new GenericObjectView();
+    view.object = 'string value';
+    this.addHTMLOutput(undefined, view);
+    assertEquals('"string value"', view.children[0].textContent);
+  }
+
+  function testBooleanValue() {
+    var view = new GenericObjectView();
+    view.object = false;
+    this.addHTMLOutput(undefined, view);
+    assertEquals('false', view.children[0].dataElement.textContent)
+  }
+
+  function testNumberValue() {
+    var view = new GenericObjectView();
+    view.object = 3.14159;
+    this.addHTMLOutput(undefined, view);
+    assertEquals('3.14159', view.children[0].textContent)
+  }
+
+  function testObjectSnapshotValue() {
+    var view = new GenericObjectView();
+
+    var i10 = new tracing.model.ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    view.object = s10;
+
+    this.addHTMLOutput(undefined, view);
+    assertTrue(
+        view.children[0].dataElement instanceof tracing.analysis.ObjectSnapshotLink)
+  }
+
+  function testObjectInstanceValue() {
+    var view = new GenericObjectView();
+
+    var i10 = new tracing.model.ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+    var s10 = i10.addSnapshot(10, {foo: 1});
+
+    view.object = i10;
+
+    this.addHTMLOutput(undefined, view);
+    assertTrue(
+        view.children[0].dataElement instanceof tracing.analysis.ObjectInstanceLink)
+  }
+
+  function testEmptyArrayValue() {
+    var view = new GenericObjectView();
+
+    view.object = [];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testTwoValueArrayValue() {
+    var view = new GenericObjectView();
+
+    view.object = [1, 2];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testTwoValueBArrayValue() {
+    var view = new GenericObjectView();
+
+    view.object = [1, {x: 1}];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testArrayValue() {
+    var view = new GenericObjectView();
+
+    view.object = [1, 2, 'three'];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testArrayWithSimpleObjectValue() {
+    var view = new GenericObjectView();
+
+    view.object = [{simple: 'object'}];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testArrayWithComplexObjectValue() {
+    var view = new GenericObjectView();
+
+    view.object = [{complex: 'object', field: 'two'}];
+
+    this.addHTMLOutput(undefined, view);
+  }
+
+  function testObjectValue() {
+    var view = new GenericObjectView();
+
+    view.object = {
+      'entry_one': 'entry_one_value',
+      'entry_two': 2,
+      'entry_three': [3, 4, 5]
+    };
+    this.addHTMLOutput(undefined, view);
+  }
+
+  /*
+  function testObjectWithFalsies() {
+    var args = {
+      zero: 0,
+      false: false
+      undefined: undefined,
+      null: null
+    };
+
+    var view = new GenericObjectView();
+    this.addHTMLOutput(undefined, view);
+
+    assertEquals('0', view.children[0].textContent);
+    assertEquals('0', view.children[0].textContent);
+    assertEquals(rows.length, 7);
+    assertEquals(' bar', rows[5].children[0].textContent);
+    assertEquals('0', rows[5].children[1].textContent);
+    assertEquals(' foo', rows[6].children[0].textContent);
+    assertEquals('false', rows[6].children[1].textContent);
+  }
+  */
+</script>
+</body>
+</html>
