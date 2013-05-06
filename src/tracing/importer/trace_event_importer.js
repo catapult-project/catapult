@@ -480,6 +480,38 @@ base.exportTo('tracing.importer', function() {
           implicitSnapshotName, containingSnapshot.ts,
           implicitSnapshot);
       }
+
+      // Iterate the world, looking for id_refs
+      base.iterItems(process.threads, function(tid, thread) {
+        thread.asyncSlices.slices.forEach(function(item) {
+          this.searchItemForIDRefs_(process.objects, 'start', item);
+        }, this);
+        thread.slices.forEach(function(item) {
+          this.searchItemForIDRefs_(process.objects, 'start', item);
+        }, this);
+      }, this);
+      process.objects.iterObjectInstances(function(instance) {
+        instance.snapshots.forEach(function(item) {
+          this.searchItemForIDRefs_(process.objects, 'ts', item);
+        }, this);
+      }, this);
+    },
+
+    searchItemForIDRefs_: function(objectCollection, itemTimestampField, item) {
+      if (!item.args)
+        throw new Error('');
+      iterObjectFieldsRecursively(
+        item.args,
+        function(object,fieldName,fieldValue) {
+          if (!fieldValue.id_ref && !fieldValue.idRef)
+            return;
+          var id = fieldValue.id_ref || fieldValue.idRef;
+          var ts = item[itemTimestampField];
+          var snapshot = objectCollection.getSnapshotAt(id, ts);
+          if (!snapshot)
+            return;
+          object[fieldName] = snapshot;
+        });
     },
   };
 
