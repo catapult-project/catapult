@@ -55,7 +55,7 @@ base.exportTo('tracing', function() {
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
   }
 
-  var importerConstructors = [];
+  Model.importerConstructors_ = [];
 
   /**
    * Registers an importer. All registered importers are considered
@@ -64,7 +64,7 @@ base.exportTo('tracing', function() {
    * @param {Function} importerConstructor The importer's constructor function.
    */
   Model.registerImporter = function(importerConstructor) {
-    importerConstructors.push(importerConstructor);
+    Model.importerConstructors_.push(importerConstructor);
   };
 
   Model.prototype = {
@@ -215,9 +215,9 @@ base.exportTo('tracing', function() {
 
     createImporter_: function(eventData) {
       var importerConstructor;
-      for (var i = 0; i < importerConstructors.length; ++i) {
-        if (importerConstructors[i].canImport(eventData)) {
-          importerConstructor = importerConstructors[i];
+      for (var i = 0; i < Model.importerConstructors_.length; ++i) {
+        if (Model.importerConstructors_[i].canImport(eventData)) {
+          importerConstructor = Model.importerConstructors_[i];
           break;
         }
       }
