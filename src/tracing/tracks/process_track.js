@@ -4,6 +4,8 @@
 
 'use strict';
 
+base.require('tracing.analysis.object_snapshot_view');
+base.require('tracing.analysis.object_instance_view');
 base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.counter_track');
 base.require('tracing.tracks.object_instance_track');
@@ -51,6 +53,10 @@ base.exportTo('tracing.tracks', function() {
         var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
         instanceTypeNames.sort();
         instanceTypeNames.forEach(function(typeName) {
+          // Dont show snapshot tracks for types that dont have viewers.
+          if (!ObjectSnapshotView.getViewConstructor(typeName) &&
+              !ObjectInstanceView.getViewConstructor(typeName))
+            return;
           var track = new tracing.tracks.ObjectInstanceTrack();
           track.heading = typeName + ':';
           track.objectInstances = instancesByTypeName[typeName];
