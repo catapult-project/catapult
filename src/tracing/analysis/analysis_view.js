@@ -42,10 +42,11 @@ base.exportTo('tracing.analysis', function() {
       this.textContent = '';
       try {
         this.currentView_ = new viewConstructor();
+        this.appendChild(this.currentView_);
       } catch(e) {
         this.currentView_ = undefined;
+        throw e;
       }
-      this.appendChild(this.currentView_);
     },
 
     get currentView() {
