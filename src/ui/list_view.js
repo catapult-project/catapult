@@ -6,8 +6,10 @@
 /**
  * @fileoverview Simple list view.
  */
-base.require('ui');
 base.requireStylesheet('ui.list_view');
+
+base.require('ui');
+
 base.exportTo('ui', function() {
 
   /**
@@ -69,7 +71,7 @@ base.exportTo('ui', function() {
 
     decorateItem_: function(item) {
       item.classList.add('list-item');
-      item.addEventListener('click', this.onItemClicked_);
+      item.addEventListener('click', this.onItemClicked_, true);
 
       var listView = this;
       Object.defineProperty(
@@ -131,7 +133,10 @@ base.exportTo('ui', function() {
       var currentSelectedElement = this.selectedElement;
       if (currentSelectedElement)
         currentSelectedElement.removeAttribute('selected');
-      e.target.setAttribute('selected', 'selected');
+      var element = e.target;
+      while (element.parentElement != this)
+        element = element.parentElement;
+      element.setAttribute('selected', 'selected');
       base.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
