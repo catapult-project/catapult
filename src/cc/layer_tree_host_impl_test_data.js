@@ -41,7 +41,7 @@ var g_catLTHIEvent = {
                     0,
                     1604
                   ],
-                  "id": "cc::PictureLayerImpl/0x7b438800"
+                  "id": "cc::PictureLayerImpl/0x7b0d7400"
                 },
                 {
                   "tilings": [],
@@ -58,7 +58,7 @@ var g_catLTHIEvent = {
                       "layer_id": 11,
                       "bounds": {
                         "width": 980,
-                        "height": 1625
+                        "height": 1742
                       },
                       "children": [
                         {
@@ -67,15 +67,15 @@ var g_catLTHIEvent = {
                               "content_scale": 2,
                               "content_bounds": {
                                 "width": 1960,
-                                "height": 3250
+                                "height": 3484
                               },
-                              "num_tiles": 104
+                              "num_tiles": 112
                             },
                             {
                               "content_scale": 0.25,
                               "content_bounds": {
                                 "width": 245,
-                                "height": 407
+                                "height": 436
                               },
                               "num_tiles": 1
                             }
@@ -84,7 +84,7 @@ var g_catLTHIEvent = {
                           "layer_id": 6,
                           "bounds": {
                             "width": 980,
-                            "height": 1625
+                            "height": 1742
                           },
                           "children": [],
                           "ideal_contents_scale": 2,
@@ -94,11 +94,11 @@ var g_catLTHIEvent = {
                             1960,
                             0,
                             1960,
-                            3250,
+                            3484,
                             0,
-                            3250
+                            3484
                           ],
-                          "id": "cc::PictureLayerImpl/0x7b447600"
+                          "id": "cc::PictureLayerImpl/0x7b0d9200"
                         },
                         {
                           "tilings": [],
@@ -125,11 +125,11 @@ var g_catLTHIEvent = {
                                 1960,
                                 0,
                                 1960,
-                                3250,
+                                3484,
                                 0,
-                                3250
+                                3484
                               ],
-                              "id": "cc::PictureLayerImpl/0x7b448a00"
+                              "id": "cc::PictureLayerImpl/0x7b0da600"
                             }
                           ],
                           "ideal_contents_scale": 0,
@@ -139,11 +139,11 @@ var g_catLTHIEvent = {
                             1960,
                             0,
                             1960,
-                            3250,
+                            3484,
                             0,
-                            3250
+                            3484
                           ],
-                          "id": "cc::PictureLayerImpl/0x7b448000"
+                          "id": "cc::PictureLayerImpl/0x7b0d9c00"
                         }
                       ],
                       "ideal_contents_scale": 0,
@@ -153,11 +153,11 @@ var g_catLTHIEvent = {
                         1960,
                         0,
                         1960,
-                        3250,
+                        3484,
                         0,
-                        3250
+                        3484
                       ],
-                      "id": "cc::PictureLayerImpl/0x7b446c00"
+                      "id": "cc::PictureLayerImpl/0x7b0d8800"
                     }
                   ],
                   "ideal_contents_scale": 0,
@@ -171,7 +171,7 @@ var g_catLTHIEvent = {
                     0,
                     1604
                   ],
-                  "id": "cc::PictureLayerImpl/0x7b446200"
+                  "id": "cc::PictureLayerImpl/0x7b0d7e00"
                 },
                 {
                   "tilings": [
@@ -193,7 +193,7 @@ var g_catLTHIEvent = {
                     }
                   ],
                   "draws_content": 1,
-                  "layer_id": 14,
+                  "layer_id": 15,
                   "bounds": {
                     "width": 16,
                     "height": 786
@@ -210,7 +210,7 @@ var g_catLTHIEvent = {
                     1724,
                     1572
                   ],
-                  "id": "cc::PictureLayerImpl/0x7b449400"
+                  "id": "cc::PictureLayerImpl/0x7a87c000"
                 },
                 {
                   "tilings": [
@@ -232,7 +232,7 @@ var g_catLTHIEvent = {
                     }
                   ],
                   "draws_content": 1,
-                  "layer_id": 15,
+                  "layer_id": 16,
                   "bounds": {
                     "width": 862,
                     "height": 16
@@ -249,7 +249,7 @@ var g_catLTHIEvent = {
                     0,
                     1604
                   ],
-                  "id": "cc::PictureLayerImpl/0x7b449e00"
+                  "id": "cc::PictureLayerImpl/0x7a879000"
                 }
               ],
               "ideal_contents_scale": 0,
@@ -263,19 +263,20 @@ var g_catLTHIEvent = {
                 0,
                 0
               ],
-              "id": "cc::PictureLayerImpl/0x7b438200"
+              "id": "cc::PictureLayerImpl/0x7b0d6a00"
             },
             "render_surface_layer_list": [
               {
-                "id_ref": "0x7b447600"
+                "id_ref": "0x7b0d9200"
               },
               {
-                "id_ref": "0x7b449400"
+                "id_ref": "0x7a87c000"
               },
               {
-                "id_ref": "0x7b449e00"
+                "id_ref": "0x7a879000"
               }
-            ]
+            ],
+            "id": "cc::LayerTreeImpl/0x7c456640"
           },
           "tiles": [
             {
@@ -295,64 +296,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7b878a20",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    255,
-                    0,
-                    255,
-                    255,
-                    0,
-                    255
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NOW_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 0.25,
-              "id": "cc::Tile/0x79ea4930",
+              "id": "cc::Tile/0x7a48eaa0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -377,9 +324,9 @@ var g_catLTHIEvent = {
                     1960,
                     0,
                     1960,
-                    3256,
+                    3488,
                     0,
-                    3256
+                    3488
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 0
@@ -403,10 +350,280 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x79ebfa50",
+              "id": "cc::Tile/0x7968ac60",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    255,
+                    0,
+                    255,
+                    255,
+                    0,
+                    255
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2867f0"
+              },
+              "contents_scale": 0.25,
+              "id": "cc::Tile/0x7a284fe0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    0,
+                    1572,
+                    1728,
+                    1572,
+                    1728,
+                    1604,
+                    0,
+                    1604
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2867f0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a284be0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    0,
+                    1572,
+                    511,
+                    1572,
+                    511,
+                    1604,
+                    0,
+                    1604
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a282450"
+              },
+              "contents_scale": 0.25,
+              "id": "cc::Tile/0x7a6a9e40",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1724,
+                    0,
+                    1756,
+                    0,
+                    1756,
+                    1576,
+                    1724,
+                    1576
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a282450"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a6a9a40",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1724,
+                    0,
+                    1756,
+                    0,
+                    1756,
+                    511,
+                    1724,
+                    511
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a48de90",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -457,10 +674,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x79ea5d00",
+              "id": "cc::Tile/0x7a48dfc0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -511,10 +728,64 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2867f0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x79ea9740",
+              "id": "cc::Tile/0x7a284ce0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    511,
+                    1572,
+                    1021,
+                    1572,
+                    1021,
+                    1604,
+                    511,
+                    1604
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a48e0d0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -565,10 +836,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x79ea4290",
+              "id": "cc::Tile/0x7a48e1e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -619,10 +890,64 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2867f0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x79ea2000",
+              "id": "cc::Tile/0x7a284de0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1021,
+                    1572,
+                    1531,
+                    1572,
+                    1531,
+                    1604,
+                    1021,
+                    1604
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a48e2f0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -673,10 +998,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86cd50",
+              "id": "cc::Tile/0x7969ee30",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -727,10 +1052,64 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2867f0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86d930",
+              "id": "cc::Tile/0x7a284ee0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1531,
+                    1572,
+                    1724,
+                    1572,
+                    1724,
+                    1604,
+                    1531,
+                    1604
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7968aff0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -781,10 +1160,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86da30",
+              "id": "cc::Tile/0x7969ce00",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -835,10 +1214,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86db30",
+              "id": "cc::Tile/0x7969cf00",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -889,10 +1268,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86dc30",
+              "id": "cc::Tile/0x796a2670",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -943,10 +1322,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86dd30",
+              "id": "cc::Tile/0x796a2770",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -997,10 +1376,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86de30",
+              "id": "cc::Tile/0x796a2870",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1051,10 +1430,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86f700",
+              "id": "cc::Tile/0x796a1b40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1105,10 +1484,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86f900",
+              "id": "cc::Tile/0x796a1d40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1159,10 +1538,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86fa00",
+              "id": "cc::Tile/0x796a1e40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1213,10 +1592,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86fb00",
+              "id": "cc::Tile/0x796a1f40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1267,10 +1646,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86fc00",
+              "id": "cc::Tile/0x796a2040",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1321,10 +1700,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86fd00",
+              "id": "cc::Tile/0x796a2140",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1375,10 +1754,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86fe00",
+              "id": "cc::Tile/0x796a03d0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1429,10 +1808,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86ff00",
+              "id": "cc::Tile/0x796a04d0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1483,10 +1862,64 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a282450"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870100",
+              "id": "cc::Tile/0x7a6a9b40",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1724,
+                    511,
+                    1756,
+                    511,
+                    1756,
+                    1021,
+                    1724,
+                    1021
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_RELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7969f190",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1527,7 +1960,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1537,10 +1970,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870200",
+              "id": "cc::Tile/0x7969f290",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1581,7 +2014,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1591,10 +2024,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870300",
+              "id": "cc::Tile/0x7969f390",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1635,7 +2068,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1645,10 +2078,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870400",
+              "id": "cc::Tile/0x7969f490",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1689,7 +2122,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1699,10 +2132,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870500",
+              "id": "cc::Tile/0x7969f590",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1743,7 +2176,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1753,10 +2186,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870600",
+              "id": "cc::Tile/0x7969f690",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1797,7 +2230,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1807,10 +2240,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870700",
+              "id": "cc::Tile/0x7969f790",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1851,7 +2284,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1861,10 +2294,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870900",
+              "id": "cc::Tile/0x7969f990",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1905,7 +2338,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1915,10 +2348,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870a00",
+              "id": "cc::Tile/0x7969e280",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -1959,7 +2392,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -1969,10 +2402,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877750",
+              "id": "cc::Tile/0x7969e380",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2013,7 +2446,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2023,10 +2456,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877850",
+              "id": "cc::Tile/0x7969fe40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2067,7 +2500,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2077,10 +2510,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877950",
+              "id": "cc::Tile/0x7969ff40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2121,7 +2554,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2131,10 +2564,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877a50",
+              "id": "cc::Tile/0x796a2a20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2185,10 +2618,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877b50",
+              "id": "cc::Tile/0x796a2b20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2229,7 +2662,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2239,10 +2672,64 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a282450"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877d50",
+              "id": "cc::Tile/0x7a6a9c40",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1724,
+                    1021,
+                    1756,
+                    1021,
+                    1756,
+                    1531,
+                    1724,
+                    1531
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a2d20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2283,7 +2770,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2293,10 +2780,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e370",
+              "id": "cc::Tile/0x796a2e20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2337,7 +2824,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 0,
                 "is_transparent": false,
@@ -2347,10 +2834,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e470",
+              "id": "cc::Tile/0x796a2f20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2401,10 +2888,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e570",
+              "id": "cc::Tile/0x796a3020",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2455,10 +2942,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e670",
+              "id": "cc::Tile/0x796a3120",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2509,10 +2996,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e770",
+              "id": "cc::Tile/0x796a3220",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2563,10 +3050,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e870",
+              "id": "cc::Tile/0x796a3320",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2617,10 +3104,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85ea70",
+              "id": "cc::Tile/0x796a3520",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2671,10 +3158,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85eb70",
+              "id": "cc::Tile/0x796a3620",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2725,10 +3212,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85ec70",
+              "id": "cc::Tile/0x796a3720",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2779,10 +3266,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85d5c0",
+              "id": "cc::Tile/0x796a3820",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2833,10 +3320,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85d6c0",
+              "id": "cc::Tile/0x796a3920",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2887,10 +3374,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85d7c0",
+              "id": "cc::Tile/0x796a3a20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2941,10 +3428,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85d8c0",
+              "id": "cc::Tile/0x796a3b20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -2972,6 +3459,60 @@ var g_catLTHIEvent = {
                     1779,
                     1525,
                     1779
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 0
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NOW_BIN",
+                  "0": "NOW_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 0,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 0,
+                "has_resource": true,
+                "gpu_memmgr_stats_bin": "NOW_BIN",
+                "is_picture_pile_analyzed": true
+              },
+              "picture_pile": {
+                "id_ref": "0x7a282450"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x7a6a9d40",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 0,
+                  "current_screen_quad": [
+                    1724,
+                    1531,
+                    1756,
+                    1531,
+                    1756,
+                    1572,
+                    1724,
+                    1572
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 0
@@ -2995,10 +3536,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b8773a0",
+              "id": "cc::Tile/0x7969ebe0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3049,10 +3590,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86f800",
+              "id": "cc::Tile/0x796a1c40",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3103,10 +3644,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870000",
+              "id": "cc::Tile/0x7969f090",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3147,7 +3688,7 @@ var g_catLTHIEvent = {
                   "0": "NOW_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_RELEASABLE_MEMORY",
+                "memory_state": "USING_UNRELEASABLE_MEMORY",
                 "is_solid_color": false,
                 "time_to_needed_in_seconds": 3.4028234663852886e+38,
                 "is_transparent": false,
@@ -3157,10 +3698,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b870800",
+              "id": "cc::Tile/0x7969f890",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3211,10 +3752,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b877c50",
+              "id": "cc::Tile/0x796a2c20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3265,10 +3806,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85e970",
+              "id": "cc::Tile/0x796a3420",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3319,10 +3860,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b85d9c0",
+              "id": "cc::Tile/0x796a3c20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3373,10 +3914,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87ac60",
+              "id": "cc::Tile/0x796a3d20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3427,10 +3968,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87ad60",
+              "id": "cc::Tile/0x796a3e20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3481,10 +4022,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87a400",
+              "id": "cc::Tile/0x796a3f20",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3535,10 +4076,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87a500",
+              "id": "cc::Tile/0x796a40e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3589,10 +4130,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b879f00",
+              "id": "cc::Tile/0x796a41e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3643,10 +4184,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87a000",
+              "id": "cc::Tile/0x796a42e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3697,10 +4238,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86e3e0",
+              "id": "cc::Tile/0x796a43e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3751,10 +4292,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": true
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86e4e0",
+              "id": "cc::Tile/0x796a44e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -3792,654 +4333,6 @@ var g_catLTHIEvent = {
               "managed_state": {
                 "bin": {
                   "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6a460"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa66a90",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    0,
-                    1756,
-                    0,
-                    1756,
-                    511,
-                    1724,
-                    511
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6a460"
-              },
-              "contents_scale": 0.25,
-              "id": "cc::Tile/0x7aa6b150",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    0,
-                    1756,
-                    0,
-                    1756,
-                    1576,
-                    1724,
-                    1576
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6b5e0"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa66bc0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    0,
-                    1572,
-                    511,
-                    1572,
-                    511,
-                    1604,
-                    0,
-                    1604
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6b5e0"
-              },
-              "contents_scale": 0.25,
-              "id": "cc::Tile/0x7aa62d40",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    0,
-                    1572,
-                    1728,
-                    1572,
-                    1728,
-                    1604,
-                    0,
-                    1604
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6b5e0"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa66cc0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    511,
-                    1572,
-                    1021,
-                    1572,
-                    1021,
-                    1604,
-                    511,
-                    1604
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6b5e0"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa66dc0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1021,
-                    1572,
-                    1531,
-                    1572,
-                    1531,
-                    1604,
-                    1021,
-                    1604
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6b5e0"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa62c40",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1531,
-                    1572,
-                    1724,
-                    1572,
-                    1724,
-                    1604,
-                    1531,
-                    1604
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6a460"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa682f0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    511,
-                    1756,
-                    511,
-                    1756,
-                    1021,
-                    1724,
-                    1021
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6a460"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa66270",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    1021,
-                    1756,
-                    1021,
-                    1756,
-                    1531,
-                    1724,
-                    1531
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
-                  "0": "NOW_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 0,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 0,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NOW_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x7aa6a460"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x7aa68cc0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    1531,
-                    1756,
-                    1531,
-                    1756,
-                    1572,
-                    1724,
-                    1572
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NOW_BIN",
-                  "0": "NEVER_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 3.4028234663852886e+38,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 3.4028234663852886e+38,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NEVER_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x79ea4a90"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x79ebfdb0",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    1021,
-                    1756,
-                    1021,
-                    1756,
-                    1531,
-                    1724,
-                    1531
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NOW_BIN",
-                  "0": "NEVER_BIN"
-                },
-                "resolution": "NON_IDEAL_RESOLUTION",
-                "memory_state": "USING_UNRELEASABLE_MEMORY",
-                "is_solid_color": false,
-                "time_to_needed_in_seconds": 3.4028234663852886e+38,
-                "is_transparent": false,
-                "distance_to_visible_in_pixels": 3.4028234663852886e+38,
-                "has_resource": true,
-                "gpu_memmgr_stats_bin": "NEVER_BIN",
-                "is_picture_pile_analyzed": true
-              },
-              "picture_pile": {
-                "id_ref": "0x79ea4a90"
-              },
-              "contents_scale": 2,
-              "id": "cc::Tile/0x79ea2980",
-              "priority": {
-                "1": {
-                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
-                  "current_screen_quad": [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
-                },
-                "0": {
-                  "time_to_visible_in_seconds": 0,
-                  "current_screen_quad": [
-                    1724,
-                    1531,
-                    1756,
-                    1531,
-                    1756,
-                    1572,
-                    1724,
-                    1572
-                  ],
-                  "resolution": "NON_IDEAL_RESOLUTION",
-                  "distance_to_visible_in_pixels": 0
-                }
-              }
-            },
-            {
-              "managed_state": {
-                "bin": {
-                  "1": "NEVER_BIN",
                   "0": "NEVER_BIN"
                 },
                 "resolution": "NON_IDEAL_RESOLUTION",
@@ -4453,10 +4346,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86ee70",
+              "id": "cc::Tile/0x796a45e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4507,10 +4400,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86ef70",
+              "id": "cc::Tile/0x796a46e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4561,10 +4454,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86e040",
+              "id": "cc::Tile/0x796a47e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4615,10 +4508,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86e140",
+              "id": "cc::Tile/0x796a48e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4669,10 +4562,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b86e240",
+              "id": "cc::Tile/0x796a49e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4723,10 +4616,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87af10",
+              "id": "cc::Tile/0x796a4ae0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4777,10 +4670,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b010",
+              "id": "cc::Tile/0x796a4be0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4831,10 +4724,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b110",
+              "id": "cc::Tile/0x796a4ce0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4885,10 +4778,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b210",
+              "id": "cc::Tile/0x796a4de0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4939,10 +4832,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b310",
+              "id": "cc::Tile/0x796a4ee0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -4993,10 +4886,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b410",
+              "id": "cc::Tile/0x796a4fe0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5047,10 +4940,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b510",
+              "id": "cc::Tile/0x796a50e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5101,10 +4994,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b610",
+              "id": "cc::Tile/0x796a51e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5155,10 +5048,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b710",
+              "id": "cc::Tile/0x796a52e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5209,10 +5102,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b810",
+              "id": "cc::Tile/0x796a53e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5263,10 +5156,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87b910",
+              "id": "cc::Tile/0x796a54e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5317,10 +5210,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87ba10",
+              "id": "cc::Tile/0x796a55e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5371,10 +5264,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87bb10",
+              "id": "cc::Tile/0x796a56e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5425,10 +5318,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87bc10",
+              "id": "cc::Tile/0x796a57e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5479,10 +5372,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87bd10",
+              "id": "cc::Tile/0x796a58e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5533,10 +5426,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87be10",
+              "id": "cc::Tile/0x796a59e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5587,10 +5480,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87bf10",
+              "id": "cc::Tile/0x796a5ae0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5641,10 +5534,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c010",
+              "id": "cc::Tile/0x796a5be0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5695,10 +5588,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c110",
+              "id": "cc::Tile/0x796a5ce0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5749,10 +5642,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c210",
+              "id": "cc::Tile/0x796a5de0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5803,10 +5696,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c310",
+              "id": "cc::Tile/0x796a5ee0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5857,10 +5750,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c410",
+              "id": "cc::Tile/0x796a5fe0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5911,10 +5804,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c510",
+              "id": "cc::Tile/0x796a60e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -5965,10 +5858,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c610",
+              "id": "cc::Tile/0x796a61e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6019,10 +5912,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c710",
+              "id": "cc::Tile/0x796a62e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6073,10 +5966,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c810",
+              "id": "cc::Tile/0x796a63e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6127,10 +6020,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87c910",
+              "id": "cc::Tile/0x796a64e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6181,10 +6074,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87ca10",
+              "id": "cc::Tile/0x796a65e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6209,9 +6102,9 @@ var g_catLTHIEvent = {
                     255,
                     3049,
                     255,
-                    3250,
+                    3303,
                     0,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6235,10 +6128,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87cb10",
+              "id": "cc::Tile/0x796a66e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6263,9 +6156,9 @@ var g_catLTHIEvent = {
                     509,
                     3049,
                     509,
-                    3250,
+                    3303,
                     255,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6289,10 +6182,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87cc10",
+              "id": "cc::Tile/0x796a67e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6317,9 +6210,9 @@ var g_catLTHIEvent = {
                     763,
                     3049,
                     763,
-                    3250,
+                    3303,
                     509,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6343,10 +6236,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87cd10",
+              "id": "cc::Tile/0x796a68e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6371,9 +6264,9 @@ var g_catLTHIEvent = {
                     1017,
                     3049,
                     1017,
-                    3250,
+                    3303,
                     763,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6397,10 +6290,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87ce10",
+              "id": "cc::Tile/0x796a69e0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6425,9 +6318,9 @@ var g_catLTHIEvent = {
                     1271,
                     3049,
                     1271,
-                    3250,
+                    3303,
                     1017,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6451,10 +6344,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87cf10",
+              "id": "cc::Tile/0x796a6ae0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6479,9 +6372,9 @@ var g_catLTHIEvent = {
                     1525,
                     3049,
                     1525,
-                    3250,
+                    3303,
                     1271,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6505,10 +6398,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87d010",
+              "id": "cc::Tile/0x796a6be0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6533,9 +6426,9 @@ var g_catLTHIEvent = {
                     1779,
                     3049,
                     1779,
-                    3250,
+                    3303,
                     1525,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1446
@@ -6559,10 +6452,10 @@ var g_catLTHIEvent = {
                 "is_picture_pile_analyzed": false
               },
               "picture_pile": {
-                "id_ref": "0x7aa6ac10"
+                "id_ref": "0x7a2898e0"
               },
               "contents_scale": 2,
-              "id": "cc::Tile/0x7b87d110",
+              "id": "cc::Tile/0x796a6ce0",
               "priority": {
                 "1": {
                   "time_to_visible_in_seconds": 3.4028234663852886e+38,
@@ -6587,22 +6480,454 @@ var g_catLTHIEvent = {
                     1960,
                     3049,
                     1960,
-                    3250,
+                    3303,
                     1779,
-                    3250
+                    3303
                   ],
                   "resolution": "NON_IDEAL_RESOLUTION",
                   "distance_to_visible_in_pixels": 1470
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a6de0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    3303,
+                    255,
+                    3303,
+                    255,
+                    3484,
+                    0,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a6ee0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    255,
+                    3303,
+                    509,
+                    3303,
+                    509,
+                    3484,
+                    255,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a6fe0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    509,
+                    3303,
+                    763,
+                    3303,
+                    763,
+                    3484,
+                    509,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a70e0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    763,
+                    3303,
+                    1017,
+                    3303,
+                    1017,
+                    3484,
+                    763,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a71e0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    1017,
+                    3303,
+                    1271,
+                    3303,
+                    1271,
+                    3484,
+                    1017,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a72e0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    1271,
+                    3303,
+                    1525,
+                    3303,
+                    1525,
+                    3484,
+                    1271,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1700,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a73e0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    1525,
+                    3303,
+                    1779,
+                    3303,
+                    1779,
+                    3484,
+                    1525,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1700
+                }
+              }
+            },
+            {
+              "managed_state": {
+                "bin": {
+                  "1": "NEVER_BIN",
+                  "0": "NEVER_BIN"
+                },
+                "resolution": "NON_IDEAL_RESOLUTION",
+                "memory_state": "NOT_ALLOWED_TO_USE_MEMORY",
+                "is_solid_color": false,
+                "time_to_needed_in_seconds": 3.4028234663852886e+38,
+                "is_transparent": false,
+                "distance_to_visible_in_pixels": 1724,
+                "has_resource": false,
+                "gpu_memmgr_stats_bin": "NEVER_BIN",
+                "is_picture_pile_analyzed": false
+              },
+              "picture_pile": {
+                "id_ref": "0x7a2898e0"
+              },
+              "contents_scale": 2,
+              "id": "cc::Tile/0x796a74e0",
+              "priority": {
+                "1": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 3.4028234663852886e+38
+                },
+                "0": {
+                  "time_to_visible_in_seconds": 3.4028234663852886e+38,
+                  "current_screen_quad": [
+                    1779,
+                    3303,
+                    1960,
+                    3303,
+                    1960,
+                    3484,
+                    1779,
+                    3484
+                  ],
+                  "resolution": "NON_IDEAL_RESOLUTION",
+                  "distance_to_visible_in_pixels": 1724
                 }
               }
             }
           ]
         }
       },
-      "pid": 44161,
-      "ts": 176258517059,
+      "pid": 62037,
+      "ts": 194657402959,
       "cat": "cc.debug",
-      "tid": 28163,
+      "tid": 28419,
       "ph": "O",
-      "id": "0x79e749d0"
+      "id": "0x7c456950"
     };
