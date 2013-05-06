@@ -157,7 +157,7 @@ base.exportTo('tracing.model', function() {
   };
 
   ObjectInstance.unregister = function(name) {
-    ObjectInstance.categoryToConstructorMap[name] = undefined;
+    delete ObjectInstance.categoryToConstructorMap[name];
   };
 
   ObjectInstance.getConstructor = function(name) {
