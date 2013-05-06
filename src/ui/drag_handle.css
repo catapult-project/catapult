@@ -2,15 +2,28 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 x-drag-handle {
+  box-sizing: border-box;
   display: block;
+  -webkit-user-select: none;
+}
+x-drag-handle.horizontal-drag-handle {
   background-image: -webkit-gradient(linear,
                                      0% 0%, 0% 100%,
                                      from(#E5E5E5),
                                      to(#D1D1D1));
-  height: 8px;
+  height: 7px;
   border-top: 1px solid white;
   border-bottom: 1px solid #8e8e8e;
   cursor: ns-resize;
-  -webkit-user-select: none;
 }
 
+x-drag-handle.vertical-drag-handle {
+  background-image: -webkit-gradient(linear,
+                                     0% 0%, 100% 0%,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  width: 7px;
+  border-left: 1px solid white;
+  border-right: 1px solid #8e8e8e;
+  cursor: ew-resize;
+}
