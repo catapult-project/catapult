@@ -61,7 +61,7 @@ base.exportTo('tracing.tracks', function() {
           track.heading = typeName + ':';
           track.objectInstances = instancesByTypeName[typeName];
           this.addTrack_(track);
-        }.bind(this));
+        }, this);
 
 
         // Add counter tracks for this process.
