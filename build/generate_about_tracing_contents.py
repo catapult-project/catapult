@@ -44,7 +44,7 @@ def generate_html():
 
   filenames = [os.path.join(srcdir, x) for x in ["base.js", "about_tracing/profiling_view.js"]]
   filenames = [os.path.relpath(x, srcdir) for x in filenames]
-  
+
   load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
   style_sheet_contents = ""
@@ -75,12 +75,22 @@ def generate_js():
   load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
   script_contents = ""
   script_contents += "window.FLATTENED = {};\n"
+  script_contents += "window.FLATTENED_RAW_SCRIPTS = {};\n"
   for module in load_sequence:
+    for dependent_raw_script_name in module.dependent_raw_script_names:
+      script_contents += (
+        "window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
+        dependent_raw_script_name)
     script_contents += "window.FLATTENED['%s'] = true;\n" % module.name
 
   for module in load_sequence:
+    for dependent_raw_script in module.dependent_raw_scripts:
+      rel_filename = os.path.relpath(dependent_raw_script.filename, srcdir)
+      script_contents += """<include src="%s">\n""" % rel_filename
+
     rel_filename = os.path.relpath(module.filename, srcdir)
     script_contents += """<include src="%s">\n""" % rel_filename
+
 
   result = template
   result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>",
