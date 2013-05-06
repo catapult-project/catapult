@@ -897,6 +897,51 @@ function testImportSimpleObject() {
   assertEquals(20, s20.args);
 }
 
+function testImportImplicitObjects() {
+  var events = [
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a',
+     args: { snapshot: [
+       { id: "subObject/0x1",
+         foo: 1
+       },
+     ]}},
+    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a',
+     args: { snapshot: [
+       { id: "subObject/0x1",
+         foo: 2
+       },
+       { id: "subObject/0x2",
+         foo: 1
+       },
+     ]}},
+  ];
+
+  var m = new tracing.Model();
+  m.importTraces([events], false);
+  var p1 = m.processes[1];
+
+  var iA = p1.objects.getObjectInstanceAt('0x1000', 10)
+  var subObjectInstances = p1.objects.getAllInstancesByTypeName()['subObject'];
+
+  assertEquals(2, subObjectInstances.length);
+  var subObject1 = p1.objects.getObjectInstanceAt('subObject/0x1', 15);
+  assertEquals('subObject', subObject1.name);
+  assertEquals(15, subObject1.creationTs);
+
+  assertEquals(2, subObject1.snapshots.length);
+  assertEquals(15, subObject1.snapshots[0].ts);
+  assertEquals(1, subObject1.snapshots[0].args.foo);
+  assertEquals(20, subObject1.snapshots[1].ts);
+  assertEquals(2, subObject1.snapshots[1].args.foo);
+
+  var subObject2 = p1.objects.getObjectInstanceAt('subObject/0x2', 20);
+  assertEquals('subObject', subObject2.name);
+  assertEquals(20, subObject2.creationTs);
+  assertEquals(1, subObject2.snapshots.length);
+  assertEquals(20, subObject2.snapshots[0].ts);
+}
+
 
 // TODO(nduca): one slice, two threads
 // TODO(nduca): one slice, two pids

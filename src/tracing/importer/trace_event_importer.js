@@ -10,6 +10,26 @@ base.require('tracing.model');
 base.require('tracing.color_scheme');
 base.exportTo('tracing.importer', function() {
 
+  function iterObjectFieldsRecursively(object, func) {
+    if (!(object instanceof Object))
+      return;
+
+    if (object instanceof Array) {
+      for (var i = 0; i < object.length; i++)
+        iterObjectFieldsRecursively(object[i], func);
+      return;
+    }
+
+    for (var key in object) {
+      var value = object[key];
+
+      func(object, key, value)
+
+      iterObjectFieldsRecursively(value, func);
+    }
+  }
+
+
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
@@ -253,7 +273,8 @@ base.exportTo('tracing.importer', function() {
      */
     finalizeImport: function() {
       this.createAsyncSlices_();
-      this.createObjects_();
+      this.createExplicitObjects_();
+      this.createImplicitObjectsAndJoinRefs_();
     },
 
     createAsyncSlices_: function() {
@@ -365,7 +386,11 @@ base.exportTo('tracing.importer', function() {
       }
     },
 
-    createObjects_: function() {
+    /**
+     * This function creates objects described via the N, D, and O phase
+     * events.
+     */
+    createExplicitObjects_: function() {
       if (this.allObjectEvents_.length == 0)
         return;
 
@@ -412,7 +437,50 @@ base.exportTo('tracing.importer', function() {
           this.model_.importErrors.push(e.message);
         }
       }
-    }
+    },
+
+    createImplicitObjectsAndJoinRefs_: function() {
+      base.iterItems(this.model_.processes, function(pid, process) {
+        this.createImplicitObjectsAndJoinRefsForProcess_(process);
+      }, this);
+    },
+
+    createImplicitObjectsAndJoinRefsForProcess_: function(process) {
+      var implicitSnaps = [];
+      // Here, we collect all the snapshots that internally contain a
+      // Javascript-level object inside their args list that has an "id" field.
+      process.objects.iterObjectInstances(function(instance) {
+        instance.snapshots.forEach(function(snapshot) {
+          iterObjectFieldsRecursively(
+            snapshot.args,
+            function(object,fieldName,fieldValue) {
+              if (fieldName != 'id')
+                return;
+              implicitSnaps.push({containingSnapshot: snapshot,
+                                  implicitSnapshot: object});
+            }, this);
+        }, this);
+      }, this);
+
+      // Now, create the snaps in sorted order of discovery.
+      implicitSnaps.sort(function(x, y) {
+        return x.containingSnapshot.ts - y.containingSnapshot.ts;
+      });
+      for (var i = 0; i < implicitSnaps.length; i++) {
+        var containingSnapshot = implicitSnaps[i].containingSnapshot;
+        var implicitSnapshot = implicitSnaps[i].implicitSnapshot;
+
+        var implicitSnapshotName;
+        var m = /((.+)\/)?.+/.exec(implicitSnapshot.id);
+        if (!m)
+          throw new Error('Implicit snapshots must have names.');
+        implicitSnapshotName = m[2];
+        var res = process.objects.addSnapshot(
+          implicitSnapshot.id, containingSnapshot.cat,
+          implicitSnapshotName, containingSnapshot.ts,
+          implicitSnapshot);
+      }
+    },
   };
 
   tracing.Model.registerImporter(TraceEventImporter);
