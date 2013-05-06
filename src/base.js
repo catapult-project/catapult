@@ -587,9 +587,4 @@ this.base = (function() {
   };
 })();
 
-
-/**
- * TODO(kgr): Move this to another file which is to be loaded last.
- * This will be done as part of future work to make this code pre-compilable.
- */
 base.initialize();
