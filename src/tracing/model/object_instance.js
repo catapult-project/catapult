@@ -54,6 +54,14 @@ base.exportTo('tracing.model', function() {
       return this.name;
     },
 
+    /**
+     * Creates a snapshot for the current instance.
+     * Override to have custom snapshot subtypes.
+     */
+    createSnapshot: function(ts, args) {
+      return new ObjectSnapshot(this, ts, args);
+    },
+
     addSnapshot: function(ts, args) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');
@@ -72,7 +80,7 @@ base.exportTo('tracing.model', function() {
         }
       }
 
-      var snapshot = new ObjectSnapshot(this, ts, args);
+      var snapshot = this.createSnapshot(ts, args);
       this.snapshots.push(snapshot);
       return snapshot;
     },
