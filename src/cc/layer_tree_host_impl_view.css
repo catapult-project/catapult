@@ -2,3 +2,69 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+.lthi-s-view {
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+}
+
+.lthi-s-view > layer-picker {
+}
+
+.lthi-s-view > x-drag-handle {
+  -webkit-flex: 0 0 auto;
+}
+
+.lthi-s-view > layer-viewer {
+  -webkit-flex: 1 0 auto;
+}
+
+/******************************************************************************/
+
+layer-picker {
+  display: -webkit-flex;
+  -webkit-flex-direction: column;
+}
+
+layer-picker > top-controls {
+  -webkit-flex: 0 0 auto;
+  display: inline;
+  background-image: -webkit-gradient(linear,
+                                     0% 0%, 100% 0%,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-top: 1px solid white;
+  border-bottom: 1px solid #8e8e8e;
+}
+
+layer-picker > x-list-view {
+  -webkit-flex: 1 1 auto;
+  overflow: auto;
+}
+
+layer-picker > x-list-view {
+  font-family: monospace;
+}
+
+/******************************************************************************/
+
+layer-viewer {
+  display: -webkit-flex;
+  -webkit-flex-direction: column;
+}
+
+layer-viewer > top-controls {
+  -webkit-flex: 0 0 auto;
+  display: inline;
+  background-image: -webkit-gradient(linear,
+                                     0% 0%, 100% 0%,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-top: 1px solid white;
+  border-bottom: 1px solid #8e8e8e;
+}
+
+layer-viewer > x-quad-view {
+  -webkit-flex: 1 1 auto;
+  overflow: auto;
+  padding: 10px 10px 10px 10px;
+}

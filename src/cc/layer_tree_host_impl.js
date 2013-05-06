@@ -7,11 +7,14 @@
 /**
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
+base.require('base.bbox2');
 base.require('tracing.model.object_instance');
+base.require('cc.constants');
 base.require('cc.layer_tree_impl');
 base.require('cc.util');
 
 base.exportTo('cc', function() {
+  var constants = cc.constants;
   var ObjectSnapshot = tracing.model.ObjectSnapshot;
   var ObjectInstance = tracing.model.ObjectInstance;
 
@@ -34,6 +37,20 @@ base.exportTo('cc', function() {
 
       cc.assertHasField(this, 'deviceViewportSize');
       cc.assertHasField(this, 'activeTree');
+      this.activeTree.layerTreeHostImpl = this;
+      this.activeTree.whichTree = constants.ACTIVE_TREE;
+      if (this.pendingTree) {
+        this.pendingTree.layerTreeHostImpl = this;
+        this.pendingTree.whichTree = constants.PENDING_TREE;
+      }
+    },
+
+    getTree: function(whichTree) {
+      if (whichTree == constants.ACTIVE_TREE)
+        return this.activeTree;
+      if (whichTree == constants.PENDING_TREE)
+        return this.activeTree;
+      throw new Exception('Unknown tree type + ' + whichTree);
     }
   };
 
@@ -45,16 +62,11 @@ base.exportTo('cc', function() {
   function LayerTreeHostImplInstance() {
     ObjectInstance.apply(this, arguments);
 
-    this.allContentsScales_ = undefined;
-    this.allTilesBBox_ = undefined;
+    this.allLayersBBox_ = undefined;
   }
 
   LayerTreeHostImplInstance.prototype = {
     __proto__: ObjectInstance.prototype,
-
-    get allTileInstances() {
-      /** */
-    },
 
     get allContentsScales() {
       if (this.allContentsScales_)
@@ -69,11 +81,22 @@ base.exportTo('cc', function() {
       return this.allContentsScales_;
     },
 
-    get allTilesBBox() {
-      if (this.allTilesBBox_)
-        return this.allTilesBBox_;
+    get allLayersBBox() {
+      if (this.allLayersBBox_)
+        return this.allLayersBBox_;
       var bbox = new base.BBox2();
-      this.allTilesBBox_ = bbox;
+      function handleTree(tree) {
+        tree.renderSurfaceLayerList.forEach(function(layer) {
+          bbox.addQuad(layer.layerQuad);
+        });
+      }
+      this.snapshots.forEach(function(lthi) {
+        handleTree(lthi.activeTree);
+        if (lthi.pendingTree)
+          handleTree(lthi.pendingTree);
+      });
+      this.allLayersBBox_ = bbox;
+      return this.allLayersBBox_;
     },
   };
 

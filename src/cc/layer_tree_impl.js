@@ -22,12 +22,15 @@ base.exportTo('cc', function() {
 
     preInitialize: function() {
       cc.preInitializeObject(this);
+      this.layerTreeHostImpl = undefined;
+      this.whichTree = undefined;
     },
 
     initialize: function() {
       cc.moveFieldsFromArgsToToplevel(this);
       cc.assertHasField(this, 'rootLayer');
-      cc.assertHasField(this, 'renderPassLayerList');
+      cc.assertHasField(this, 'renderSurfaceLayerList');
+      this.rootLayer.layerTreeImpl = this;
     }
   };
 

@@ -634,12 +634,99 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.importer.v8_log_importer',
     'tracing.importer.v8.codemap');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/common.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.addModuleDependency(
+    'base.rect2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.rect2');
+base.addModuleDependency(
+    'cc.layer_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'cc.layer_impl');
+base.addModuleDependency(
+    'base.quad',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'cc.util',
+    'base.quad');
+base.addModuleDependency(
+    'cc.util',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'base.bbox2');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.constants');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.layer_tree_impl');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.util');
+base.addModuleDependency(
+    'ui.list_view',
+    'ui');
+base.addModuleStylesheet(
+    'ui.list_view',
+    'ui.list_view');
+base.addModuleDependency(
+    'ui.quad_view_viewport',
+    'base.range');
+base.addModuleDependency(
+    'ui.quad_view_viewport',
+    'base.event_target');
+base.addModuleDependency(
+    'ui.quad_view',
+    'ui');
+base.addModuleDependency(
+    'ui.quad_view',
+    'ui.quad_view_viewport');
+base.addModuleStylesheet(
+    'ui.quad_view',
+    'ui.quad_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'cc.constants');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'cc.layer_tree_host_impl');
 base.addModuleDependency(
     'cc.layer_tree_host_impl_view',
     'tracing.analysis.object_snapshot_view');
 base.addModuleDependency(
     'cc.layer_tree_host_impl_view',
     'tracing.analysis.util');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.drag_handle');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.list_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.quad_view');
 base.addModuleStylesheet(
     'cc.layer_tree_host_impl_view',
     'cc.layer_tree_host_impl_view');
@@ -670,54 +757,9 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/common.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
-base.addModuleDependency(
-    'base.rect2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.rect2');
 base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
-base.addModuleDependency(
-    'cc.layer_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_impl',
-    'cc.layer_impl');
-base.addModuleDependency(
-    'base.quad',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'cc.util',
-    'base.quad');
-base.addModuleDependency(
-    'cc.util',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.layer_tree_impl');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.util');
 base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');
@@ -728,12 +770,6 @@ base.addModuleDependency(
     'tracing.importer.timeline_stream_importer',
     'tracing.model.slice');
 base.addModuleDependency(
-    'ui.list_view',
-    'ui');
-base.addModuleStylesheet(
-    'ui.list_view',
-    'ui.list_view');
-base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');
 base.addModuleDependency(
@@ -742,18 +778,3 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'ui.list_and_associated_view',
     'ui.list_and_associated_view');
-base.addModuleDependency(
-    'ui.quad_view_viewport',
-    'base.range');
-base.addModuleDependency(
-    'ui.quad_view_viewport',
-    'base.event_target');
-base.addModuleDependency(
-    'ui.quad_view',
-    'ui');
-base.addModuleDependency(
-    'ui.quad_view',
-    'ui.quad_view_viewport');
-base.addModuleStylesheet(
-    'ui.quad_view',
-    'ui.quad_view');
