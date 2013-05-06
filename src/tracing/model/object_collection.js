@@ -124,6 +124,15 @@ base.exportTo('tracing.model', function() {
 
     finalizeImport: function() {
       this.iterObjectInstances(function(instance) {
+        instance.preInitialize();
+      });
+      this.iterObjectInstances(function(instance) {
+        instance.initialize();
+      });
+    },
+
+    initializeInstances: function() {
+      this.iterObjectInstances(function(instance) {
         instance.initialize();
       });
     },

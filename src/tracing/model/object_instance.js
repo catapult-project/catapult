@@ -15,6 +15,21 @@ base.exportTo('tracing.model', function() {
   /**
    * A snapshot of an object instance, at a given moment in time.
    *
+   * Initialization of snapshots and instances is three phased:
+   *
+   * 1. Instances and snapshots are constructed. This happens during event
+   *    importing. Little should be done here, because the object's data
+   *    are still being used by the importer to reconstruct object references.
+   *
+   * 2. Instances and snapshtos are preinitialized. This happens
+   *    after all references have been constructed, but with the caveat that
+   *    instances are initialized in an arbitrary order. This is a good time
+   *    to rename arguments.
+   *
+   * 3. Instances and snapshtos are initialized. This happens right after
+   *    preinitialization. Now that all objects have pre initialized,
+   *    global operations are more safe to perform.
+   *
    * @constructor
    */
   function ObjectSnapshot(objectInstance, ts, args) {
@@ -28,12 +43,16 @@ base.exportTo('tracing.model', function() {
     __proto__: Object.prototype,
 
     /**
-     * Called by the instance when the trace is loaded, but before finalizing
-     * world bounds. Override this function to set up custom data structures
-     * relating to this instance.
+     * See ObjectSnapshot constructor notes on object initialization.
+     */
+    preInitialize: function() {
+    },
+
+    /**
+     * See ObjectSnapshot constructor notes on object initialization.
      */
     initialize: function() {
-    }
+    },
   };
 
   ObjectSnapshot.categoryToConstructorMap = {};
@@ -117,9 +136,15 @@ base.exportTo('tracing.model', function() {
     },
 
     /**
-     * Called by the model when the trace is loaded, but before finalizing world
-     * bounds. Override this function to set up custom data structures relating
-     * to this instance.
+     * See ObjectSnapshot constructor notes on object initialization.
+     */
+    preInitialize: function() {
+      for (var i = 0; i < this.snapshots.length; i++)
+        this.snapshots[i].preInitialize();
+    },
+
+    /**
+     * See ObjectSnapshot constructor notes on object initialization.
      */
     initialize: function() {
       for (var i = 0; i < this.snapshots.length; i++)
