@@ -26,6 +26,26 @@ base.exportTo('tracing.model', function() {
 
   ObjectSnapshot.prototype = {
     __proto__: Object.prototype,
+
+    finalizeImport: function() {
+    }
+  };
+
+  ObjectSnapshot.categoryToConstructorMap = {};
+  ObjectSnapshot.register = function(name, constructor) {
+    if (ObjectSnapshot.categoryToConstructorMap[name])
+      throw new Error('Constructor already registerd for ' + name);
+    ObjectSnapshot.categoryToConstructorMap[name] = constructor;
+  };
+
+  ObjectSnapshot.unregister = function(name) {
+    delete ObjectSnapshot.categoryToConstructorMap[name];
+  };
+
+  ObjectSnapshot.getConstructor = function(name) {
+    if (ObjectSnapshot.categoryToConstructorMap[name])
+      return ObjectSnapshot.categoryToConstructorMap[name];
+    return ObjectSnapshot;
   };
 
   /**
@@ -54,14 +74,6 @@ base.exportTo('tracing.model', function() {
       return this.name;
     },
 
-    /**
-     * Creates a snapshot for the current instance.
-     * Override to have custom snapshot subtypes.
-     */
-    createSnapshot: function(ts, args) {
-      return new ObjectSnapshot(this, ts, args);
-    },
-
     addSnapshot: function(ts, args) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');
@@ -80,7 +92,9 @@ base.exportTo('tracing.model', function() {
         }
       }
 
-      var snapshot = this.createSnapshot(ts, args);
+      var snapshotConstructor = tracing.model.ObjectSnapshot.getConstructor(
+        this.name);
+      var snapshot = new snapshotConstructor(this, ts, args);
       this.snapshots.push(snapshot);
       return snapshot;
     },
