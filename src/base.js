@@ -530,6 +530,24 @@ this.base = (function() {
   function iterItems(dict, fn) {
     for (var key in dict)
       fn(key, dict[key]);
+
+  function iterObjectFieldsRecursively(object, func) {
+    if (!(object instanceof Object))
+      return;
+
+    if (object instanceof Array) {
+      for (var i = 0; i < object.length; i++)
+        iterObjectFieldsRecursively(object[i], func);
+      return;
+    }
+
+    for (var key in object) {
+      var value = object[key];
+
+      func(object, key, value);
+
+      iterObjectFieldsRecursively(value, func);
+    }
   }
 
   /**
@@ -583,6 +601,7 @@ this.base = (function() {
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
+    iterObjectFieldsRecursively: iterObjectFieldsRecursively,
     TypeMap: TypeMap,
   };
 })();
