@@ -396,6 +396,12 @@ base.addModuleStylesheet(
     'tracing.tracks.thread_track');
 base.addModuleDependency(
     'tracing.tracks.process_track',
+    'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'tracing.tracks.process_track',
+    'tracing.analysis.object_instance_view');
+base.addModuleDependency(
+    'tracing.tracks.process_track',
     'tracing.tracks.container_track');
 base.addModuleDependency(
     'tracing.tracks.process_track',
@@ -685,18 +691,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
-base.addModuleDependency(
-    'cc.color_mappings',
-    'base.color');
-base.addModuleDependency(
-    'cc.color_mappings',
-    'cc.constants');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.util');
 base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');
