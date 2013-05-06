@@ -105,11 +105,16 @@ base.exportTo('tracing.model', function() {
       return instance.getSnapshotAt(ts);
     },
 
+    iterObjectInstances: function(iter, opt_this) {
+      opt_this = opt_this || this;
+      base.iterItems(this.instanceMapsById_, function(id, i2imap) {
+        i2imap.instances.forEach(iter, opt_this);
+      });
+    },
+
     getAllObjectInstances: function() {
       var instances = [];
-      base.dictionaryValues(this.instanceMapsById_).forEach(function(i2iMap) {
-        instances.push.apply(instances, i2iMap.instances);
-      });
+      this.iterObjectInstances(function(i) { instances.push(i); });
       return instances;
     },
 
@@ -119,20 +124,20 @@ base.exportTo('tracing.model', function() {
 
     updateBounds: function() {
       this.bounds.reset();
-      this.getAllObjectInstances().forEach(function(instance) {
+      this.iterObjectInstances(function(instance) {
         instance.updateBounds();
         this.bounds.addRange(instance.bounds);
       }, this);
     },
 
     shiftTimestampsForward: function(amount) {
-      this.getAllObjectInstances().forEach(function(instance) {
+      this.iterObjectInstances(function(instance) {
           instance.shiftTimestampsForward(amount);
       });
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      this.getAllObjectInstances().forEach(function(instance) {
+      this.iterObjectInstances(function(instance) {
         categoriesDict[instance.category] = true;
       });
     },
