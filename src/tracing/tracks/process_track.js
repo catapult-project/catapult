@@ -15,6 +15,9 @@ base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
 
+  var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
+  var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
+
   /**
    * Visualizes a Process by building ThreadTracks and CounterTracks.
    * @constructor
