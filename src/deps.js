@@ -692,6 +692,12 @@ base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
 base.addModuleDependency(
+base.addModuleDependency(
+    'base.quad',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'cc.util',
+    'base.quad');
     'tracing.test_utils',
     'tracing.model.counter');
 base.addModuleDependency(

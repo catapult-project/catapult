@@ -23,18 +23,18 @@ found in the LICENSE file.
     var x = vec2.create();
     vec2.set(x, 10, 10);
     bbox.addVec2(x);
-    assertTrue(bbox.minPoint.x == 10);
-    assertTrue(bbox.minPoint.y == 10);
-    assertTrue(bbox.maxPoint.x == 10);
-    assertTrue(bbox.maxPoint.y == 10);
+    assertTrue(bbox.minVec2[0] == 10);
+    assertTrue(bbox.minVec2[1] == 10);
+    assertTrue(bbox.maxVec2[0] == 10);
+    assertTrue(bbox.maxVec2[1] == 10);
     // Mutate x.
     vec2.set(x, 11, 11);
 
     // Bbox shouldn't have changed.
-    assertTrue(bbox.minPoint.x == 10);
-    assertTrue(bbox.minPoint.y == 10);
-    assertTrue(bbox.maxPoint.x == 10);
-    assertTrue(bbox.maxPoint.y == 10);
+    assertTrue(bbox.minVec2[0] == 10);
+    assertTrue(bbox.minVec2[1] == 10);
+    assertTrue(bbox.maxVec2[0] == 10);
+    assertTrue(bbox.maxVec2[1] == 10);
   }
 </script>
 </body>

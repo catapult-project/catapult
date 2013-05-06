@@ -137,10 +137,10 @@ base.exportTo('ui', function() {
           ctx.fillStyle = lastBackgroundColor;
         }
         ctx.beginPath();
-        ctx.moveTo(quad.p1.x, quad.p1.y);
-        ctx.lineTo(quad.p2.x, quad.p2.y);
-        ctx.lineTo(quad.p3.x, quad.p3.y);
-        ctx.lineTo(quad.p4.x, quad.p4.y);
+        ctx.moveTo(quad.p1[0], quad.p1[1]);
+        ctx.lineTo(quad.p2[0], quad.p2[1]);
+        ctx.lineTo(quad.p3[0], quad.p3[1]);
+        ctx.lineTo(quad.p4[0], quad.p4[1]);
         ctx.closePath();
         ctx.fill();
       }
@@ -150,10 +150,10 @@ base.exportTo('ui', function() {
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
         ctx.beginPath();
-        ctx.moveTo(quad.p1.x, quad.p1.y);
-        ctx.lineTo(quad.p2.x, quad.p2.y);
-        ctx.lineTo(quad.p3.x, quad.p3.y);
-        ctx.lineTo(quad.p4.x, quad.p4.y);
+        ctx.moveTo(quad.p1[0], quad.p1[1]);
+        ctx.lineTo(quad.p2[0], quad.p2[1]);
+        ctx.lineTo(quad.p3[0], quad.p3[1]);
+        ctx.lineTo(quad.p4[0], quad.p4[1]);
         ctx.closePath();
         ctx.stroke();
       }
@@ -173,10 +173,10 @@ base.exportTo('ui', function() {
         if (!quad.selected)
           continue;
         ctx.beginPath();
-        ctx.moveTo(quad.p1.x, quad.p1.y);
-        ctx.lineTo(quad.p2.x, quad.p2.y);
-        ctx.lineTo(quad.p3.x, quad.p3.y);
-        ctx.lineTo(quad.p4.x, quad.p4.y);
+        ctx.moveTo(quad.p1[0], quad.p1[1]);
+        ctx.lineTo(quad.p2[0], quad.p2[1]);
+        ctx.lineTo(quad.p3[0], quad.p3[1]);
+        ctx.lineTo(quad.p4[0], quad.p4[1]);
         ctx.closePath();
         ctx.stroke();
       }
@@ -207,14 +207,11 @@ base.exportTo('ui', function() {
                                       clientY - bounds.top);
       var vecInWorldPixels =
         this.viewport_.layoutPixelsToWorldPixels2(vecInLayout);
-      var pointInWorldPixels = vec2.asPoint(vecInWorldPixels);
 
       var quads = this.quads_;
       var hitIndices = [];
       for (var i = 0; i < quads.length; i++) {
-        var quad = quads[i];
-        var hit = base.pointInQuad2Pt(pointInWorldPixels,
-                                       quad);
+        var hit = quads[i].vecInside(vecInWorldPixels);
         if (hit)
           hitIndices.push(i);
       }
@@ -246,4 +243,3 @@ base.exportTo('ui', function() {
     QuadView: QuadView
   }
 });
-

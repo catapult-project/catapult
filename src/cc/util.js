@@ -4,6 +4,8 @@
 
 'use strict';
 
+base.require('base.quad');
+
 base.exportTo('cc', function() {
   function convertNameToJSConvention(name) {
     var words = name.split('_');
@@ -23,11 +25,36 @@ base.exportTo('cc', function() {
           return;
         delete object[fieldName];
         object[newFieldName] = fieldValue;
+        return newFieldName;
       });
   }
 
+  function convertQuadSuffixedTypesToQuads(object) {
+    base.iterObjectFieldsRecursively(
+      object,
+      function(object, fieldName, fieldValue) {
+        if (! /Quad$/.test(fieldName))
+          return;
+        var q;
+        try {
+          q = base.QuadFrom8Array(fieldValue);
+        } catch(e) {
+          console.log(e);
+          return;
+        }
+        object[fieldName] = q;
+      });
+  }
+
+  function convertObject(object) {
+    convertObjectFieldNamesToJSConventions(object);
+    convertQuadSuffixedTypesToQuads(object);
+  }
+
   return {
+    convertObject: convertObject,
     convertNameToJSConvention: convertNameToJSConvention,
-    convertObjectFieldNamesToJSConventions: convertObjectFieldNamesToJSConventions
+    convertObjectFieldNamesToJSConventions: convertObjectFieldNamesToJSConventions,
+    convertQuadSuffixedTypesToQuads: convertQuadSuffixedTypesToQuads
   };
 });

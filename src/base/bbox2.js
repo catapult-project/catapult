@@ -83,29 +83,11 @@ base.exportTo('base', function() {
       this.min_[1] = Math.min(this.min_[1], value[1]);
     },
 
-    /**
-     * Adds value_x, value_y in the form {x: value_x, y: value_y} to the range.
-     */
-    addPoint: function(value) {
-      if (this.isEmpty_) {
-        this.max_ = vec2.create();
-        this.min_ = vec2.create();
-        vec2.set(this.max_, value.x, value.y);
-        vec2.set(this.min_, value.x, value.y);
-        this.isEmpty_ = false;
-        return;
-      }
-      this.max_[0] = Math.max(this.max_[0], value.x);
-      this.max_[1] = Math.max(this.max_[1], value.y);
-      this.min_[0] = Math.min(this.min_[0], value.x);
-      this.min_[1] = Math.min(this.min_[1], value.y);
-    },
-
     addQuad: function(quad) {
-      this.addPoint(quad.p1);
-      this.addPoint(quad.p2);
-      this.addPoint(quad.p3);
-      this.addPoint(quad.p4);
+      this.addVec2(quad.p1);
+      this.addVec2(quad.p2);
+      this.addVec2(quad.p3);
+      this.addVec2(quad.p4);
     },
 
     get minVec2() {
@@ -118,20 +100,6 @@ base.exportTo('base', function() {
       if (this.isEmpty_)
         return undefined;
       return this.max_;
-    },
-
-    get minPoint() {
-      if (this.isEmpty_)
-        return undefined;
-      return {x: this.min_[0],
-              y: this.min_[1]};
-    },
-
-    get maxPoint() {
-      if (this.isEmpty_)
-        return undefined;
-      return {x: this.max_[0],
-              y: this.max_[1]};
     },
 
     get sizeAsVec2() {

@@ -10,6 +10,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('base.bbox2');
+  base.require('base.quad');
   base.require('ui.quad_view');
   base.require('ui.quad_view_viewport');
 </script>
@@ -18,15 +19,11 @@ found in the LICENSE file.
 <script>
     'use strict';
 
+    var Quad = base.Quad;
+    var QuadFromXYWH = base.QuadFromXYWH;
+
     var QuadView = ui.QuadView;
     var QuadViewViewport = ui.QuadViewViewport;
-
-    function QuadFromXYWH(x, y, w, h) {
-      return {p1: {x: x, y: y},
-              p2: {x: x+w, y: y},
-              p3: {x: x+w, y: y+h},
-              p4: {x: x, y: y+h}};
-    }
 
     function testInstantiate() {
       var quadView = new QuadView();
