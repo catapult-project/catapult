@@ -8,6 +8,10 @@ base.require('base.quad');
 
 base.exportTo('cc', function() {
   function convertNameToJSConvention(name) {
+    if (name[0] == '_' ||
+        name[name.length - 1] == '_')
+      return name;
+
     var words = name.split('_');
     if (words.length == 1)
       return words[0];

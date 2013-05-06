@@ -16,6 +16,8 @@
     'use strict';
 
     function testNameConvert() {
+      assertEquals('_foo', cc.convertNameToJSConvention('foo'));
+      assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
       assertEquals('foo', cc.convertNameToJSConvention('foo'));
       assertEquals('fooBar', cc.convertNameToJSConvention('foo_bar'));
       assertEquals('fooBarBaz', cc.convertNameToJSConvention('foo_bar_baz'));
