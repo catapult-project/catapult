@@ -968,6 +968,40 @@ function testImportIDRefs() {
   assertEquals(s15, taskSlice.args.my_object);
 }
 
+function testImportIDRefsThatPointAtEachOther() {
+  var events = [
+    // An object.
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {
+      snapshot: {
+        id: "foo/0x1001",
+        value: "bar"
+      }}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+
+    // A slice that references the object.
+    {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
+      my_object: {id_ref: '0x1001'}
+    }},
+    {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
+  ];
+
+  var m = new tracing.Model();
+  m.importTraces([events], false);
+  var p1 = m.processes[1];
+
+  var iA = p1.objects.getObjectInstanceAt('0x1000', 15)
+  var iFoo = p1.objects.getObjectInstanceAt('0x1001', 15)
+  assertNotUndefined(iA);
+  assertNotUndefined(iFoo);
+
+  var a15 = iA.getSnapshotAt(15);
+  var foo15 = iFoo.getSnapshotAt(15);
+
+  var taskSlice = p1.threads[1].slices[0];
+  assertEquals(foo15, taskSlice.args.my_object);
+}
+
 // TODO(nduca): one slice, two threads
 // TODO(nduca): one slice, two pids
 </script>

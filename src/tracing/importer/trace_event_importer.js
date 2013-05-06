@@ -451,14 +451,14 @@ base.exportTo('tracing.importer', function() {
       // Javascript-level object inside their args list that has an "id" field.
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(snapshot) {
-          iterObjectFieldsRecursively(
+          base.iterObjectFieldsRecursively(
             snapshot.args,
-            function(object,fieldName,fieldValue) {
+            function(object, fieldName, fieldValue) {
               if (fieldName != 'id')
                 return;
               implicitSnaps.push({containingSnapshot: snapshot,
                                   implicitSnapshot: object});
-            }, this);
+            }, snapshot);
         }, this);
       }, this);
 
@@ -482,27 +482,34 @@ base.exportTo('tracing.importer', function() {
       }
 
       // Iterate the world, looking for id_refs
+      var patchupsToApply = [];
       base.iterItems(process.threads, function(tid, thread) {
         thread.asyncSlices.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(process.objects, 'start', item);
+          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'start', item);
         }, this);
         thread.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(process.objects, 'start', item);
+          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'start', item);
         }, this);
       }, this);
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(item) {
-          this.searchItemForIDRefs_(process.objects, 'ts', item);
+          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'ts', item);
         }, this);
       }, this);
+
+      // Change all the fields pointing at id_refs to their real values.
+      patchupsToApply.forEach(function(patchup) {
+        patchup.object[patchup.field] = patchup.value;
+      });
     },
 
-    searchItemForIDRefs_: function(objectCollection, itemTimestampField, item) {
+    searchItemForIDRefs_: function(patchupsToApply, objectCollection,
+                                   itemTimestampField, item) {
       if (!item.args)
         throw new Error('');
-      iterObjectFieldsRecursively(
+      base.iterObjectFieldsRecursively(
         item.args,
-        function(object,fieldName,fieldValue) {
+        function(object, fieldName, fieldValue) {
           if (!fieldValue.id_ref && !fieldValue.idRef)
             return;
           var id = fieldValue.id_ref || fieldValue.idRef;
@@ -510,7 +517,13 @@ base.exportTo('tracing.importer', function() {
           var snapshot = objectCollection.getSnapshotAt(id, ts);
           if (!snapshot)
             return;
-          object[fieldName] = snapshot;
+
+          // We have to delay the actual change to the new value until after all
+          // refs have been located. Otherwise, we could end up recursing in
+          // ways we definitely didn't intend.
+          patchupsToApply.push({object: object,
+                                field: fieldName,
+                                value: snapshot});
         });
     },
   };
