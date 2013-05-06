@@ -467,13 +467,13 @@ this.base = (function() {
     // If 'document' isn't defined, then we must be being pre-compiled,
     // so set a trap so that we're initialized on first access at run-time.
     if (!global.document) {
-      var originalCr = cr;
+      var originalBase = base;
 
-      Object.defineProperty(global, 'cr', {
+      Object.defineProperty(global, 'base', {
         get: function() {
-          Object.defineProperty(global, 'cr', {value: originalCr});
+          Object.defineProperty(global, 'base', {value: originalBase});
           originalBase.initialize();
-          return originalCr;
+          return originalBase;
         },
         configurable: true
       });
