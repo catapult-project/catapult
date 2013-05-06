@@ -473,13 +473,23 @@ base.exportTo('tracing.importer', function() {
       // Javascript-level object inside their args list that has an "id" field.
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(snapshot) {
+          if (snapshot.args.id !== undefined)
+            throw new Error('args cannot have an id field inside it');
           base.iterObjectFieldsRecursively(
             snapshot.args,
             function(object, fieldName, fieldValue) {
-              if (fieldName != 'id')
+              if (!fieldValue)
+                return;
+
+              if (fieldValue.id === undefined)
+                return;
+              if (fieldValue instanceof tracing.model.ObjectSnapshot)
                 return;
               implicitSnaps.push({containingSnapshot: snapshot,
-                                  implicitSnapshot: object});
+                                  implicitSnapshot: fieldValue,
+                                  referencingObject: object,
+                                  referencingObjectFieldName: fieldName
+                                 });
             }, snapshot);
         }, this);
       }, this);
@@ -491,18 +501,23 @@ base.exportTo('tracing.importer', function() {
       for (var i = 0; i < implicitSnaps.length; i++) {
         var containingSnapshot = implicitSnaps[i].containingSnapshot;
         var implicitSnapshot = implicitSnaps[i].implicitSnapshot;
+        var referencingObject = implicitSnaps[i].referencingObject;
+        var referencingObjectFieldName = implicitSnaps[i].referencingObjectFieldName;
 
         var m = /(.+)\/(.+)/.exec(implicitSnapshot.id);
         if (!m)
           throw new Error('Implicit snapshots must have names.');
+        delete implicitSnapshot.id;
         var name = m[1];
         var id = m[2];
         var res = process.objects.addSnapshot(
           id, containingSnapshot.cat,
           name, containingSnapshot.ts,
-          deepCopy(implicitSnapshot));
+          implicitSnapshot);
+        referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
+
       }
     },
 
@@ -539,24 +554,48 @@ base.exportTo('tracing.importer', function() {
                                    itemTimestampField, item) {
       if (!item.args)
         throw new Error('');
-      base.iterObjectFieldsRecursively(
-        item.args,
-        function(object, fieldName, fieldValue) {
-          if (!fieldValue.id_ref && !fieldValue.idRef)
-            return;
-          var id = fieldValue.id_ref || fieldValue.idRef;
-          var ts = item[itemTimestampField];
-          var snapshot = objectCollection.getSnapshotAt(id, ts);
-          if (!snapshot)
-            return;
 
-          // We have to delay the actual change to the new value until after all
-          // refs have been located. Otherwise, we could end up recursing in
-          // ways we definitely didn't intend.
-          patchupsToApply.push({object: object,
-                                field: fieldName,
-                                value: snapshot});
-        });
+      function handleField(object, fieldName, fieldValue) {
+        if (!fieldValue.id_ref && !fieldValue.idRef)
+          return;
+        var id = fieldValue.id_ref || fieldValue.idRef;
+        var ts = item[itemTimestampField];
+        var snapshot = objectCollection.getSnapshotAt(id, ts);
+        if (!snapshot)
+          return;
+
+        // We have to delay the actual change to the new value until after all
+        // refs have been located. Otherwise, we could end up recursing in
+        // ways we definitely didn't intend.
+        patchupsToApply.push({object: object,
+                              field: fieldName,
+                              value: snapshot});
+      }
+      function iterObjectFieldsRecursively(object) {
+        if (!(object instanceof Object))
+          return;
+
+        if (object instanceof tracing.model.ObjectSnapshot)
+          return;
+
+        if (object instanceof Array) {
+          for (var i = 0; i < object.length; i++) {
+            handleField(object, i, object[i]);
+            iterObjectFieldsRecursively(object[i]);
+          }
+          return;
+        }
+
+        for (var key in object) {
+          var value = object[key];
+
+          handleField(object, key, value);
+
+          iterObjectFieldsRecursively(value);
+        }
+      }
+
+      iterObjectFieldsRecursively(item.args);
     },
   };
 
