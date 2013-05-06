@@ -40,7 +40,11 @@ base.exportTo('tracing.analysis', function() {
       if (this.currentView_ instanceof viewConstructor)
         return;
       this.textContent = '';
-      this.currentView_ = new viewConstructor();
+      try {
+        this.currentView_ = new viewConstructor();
+      } catch(e) {
+        this.currentView_ = undefined;
+      }
       this.appendChild(this.currentView_);
     },
 
