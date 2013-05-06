@@ -537,8 +537,10 @@ this.base = (function() {
       return;
 
     if (object instanceof Array) {
-      for (var i = 0; i < object.length; i++)
+      for (var i = 0; i < object.length; i++) {
+        func(object, i, object[i]);
         iterObjectFieldsRecursively(object[i], func);
+      }
       return;
     }
 
