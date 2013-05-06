@@ -416,30 +416,6 @@ this.base = (function() {
   }
 
   /**
-   * Counter for use with createUid
-   */
-  var uidCounter = 1;
-
-  /**
-   * @return {number} A new unique ID.
-   */
-  function createUid() {
-    return uidCounter++;
-  }
-
-  /**
-   * Returns a unique ID for the item. This mutates the item so it needs to be
-   * an object
-   * @param {!Object} item The item to get the unique ID for.
-   * @return {number} The unique ID for the item.
-   */
-  function getUid(item) {
-    if (item.hasOwnProperty('uid'))
-      return item.uid;
-    return item.uid = createUid();
-  }
-
-  /**
    * Dispatches a simple event on an event target.
    * @param {!EventTarget} target The event target to dispatch the event on.
    * @param {string} type The type of the event.
@@ -596,12 +572,10 @@ this.base = (function() {
     exportTo: exportTo,
 
     addSingletonGetter: addSingletonGetter,
-    createUid: createUid,
     defineProperty: defineProperty,
     dispatchPropertyChange: dispatchPropertyChange,
     dispatchSimpleEvent: dispatchSimpleEvent,
     Event: Event,
-    getUid: getUid,
     initialize: initialize,
     PropertyKind: PropertyKind,
     asArray: asArray,
