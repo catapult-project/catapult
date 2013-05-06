@@ -47,6 +47,10 @@ base.exportTo('tracing.analysis', function() {
         this.currentView_ = undefined;
         throw e;
       }
+      if (this.currentView_ instanceof tracing.analysis. AnalysisResults)
+        this.classList.remove('.viewing-object');
+      else
+        this.classList.add('.viewing-object');
     },
 
     get currentView() {

@@ -38,7 +38,7 @@ base.exportTo('tracing', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.classList.add('view');
+      this.classList.add('timeline-view');
 
       // Create individual elements.
       this.titleEl_ = document.createElement('div');
@@ -59,16 +59,13 @@ base.exportTo('tracing', function() {
       this.timelineContainer_ = document.createElement('div');
       this.timelineContainer_.className = 'container';
 
-      var analysisContainer_ = document.createElement('div');
-      analysisContainer_.className = 'analysis-container';
-
       this.analysisEl_ = new tracing.analysis.AnalysisView();
       this.analysisEl_.addEventListener(
         'requestSelectionChange',
         this.onRequestSelectionChange_.bind(this));
 
       this.dragEl_ = new ui.DragHandle();
-      this.dragEl_.target = analysisContainer_;
+      this.dragEl_.target = this.analysisEl_;
 
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
@@ -93,8 +90,7 @@ base.exportTo('tracing', function() {
       this.appendChild(this.timelineContainer_);
       this.appendChild(this.dragEl_);
 
-      analysisContainer_.appendChild(this.analysisEl_);
-      this.appendChild(analysisContainer_);
+      this.appendChild(this.analysisEl_);
 
       this.rightControls.appendChild(this.createHelpButton_());
 
