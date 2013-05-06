@@ -10,25 +10,35 @@ base.require('tracing.model');
 base.require('tracing.color_scheme');
 base.exportTo('tracing.importer', function() {
 
-  function iterObjectFieldsRecursively(object, func) {
-    if (!(object instanceof Object))
-      return;
+  function deepCopy(value) {
+    if (!(value instanceof Object)) {
+      if (value === undefined || value === null)
+        return value;
+      if (typeof value == 'string')
+        return value.substring();
+      if (typeof value == 'boolean')
+        return value;
+      if (typeof value == 'number')
+        return value;
+      throw new Error('Unrecognized: ' + typeof value);
+    }
 
+    var object = value;
     if (object instanceof Array) {
+      var res = new Array(object.length);
       for (var i = 0; i < object.length; i++)
-        iterObjectFieldsRecursively(object[i], func);
-      return;
+        res[i] = deepCopy(object[i]);
+      return res;
     }
 
+    if (object.__proto__ != Object.prototype)
+      throw new Error('Can only clone simple types');
+    var res = {};
     for (var key in object) {
-      var value = object[key];
-
-      func(object, key, value)
-
-      iterObjectFieldsRecursively(value, func);
+      res[key] = deepCopy(object[key]);
     }
+    return res;
   }
-
 
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
@@ -193,7 +203,8 @@ base.exportTo('tracing.importer', function() {
                 'Timestamps are moving backward.');
             continue;
           }
-          thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
+          thread.beginSlice(event.cat, event.name, event.ts / 1000,
+                            deepCopy(event.args));
         } else if (event.ph == 'E') {
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
@@ -216,7 +227,7 @@ base.exportTo('tracing.importer', function() {
                   'provided values for argument ' + arg + '. ' +
                   'The value of the E phase event will be used.');
             }
-            slice.args[arg] = event.args[arg];
+            slice.args[arg] = deepCopy(event.args[arg]);
           }
 
         } else if (event.ph == 'S') {
@@ -230,12 +241,14 @@ base.exportTo('tracing.importer', function() {
           // SliceTrack's redraw() knows how to handle this.
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
-          thread.beginSlice(event.cat, event.name, event.ts / 1000, event.args);
+          thread.beginSlice(event.cat, event.name, event.ts / 1000,
+                            deepCopy(event.args));
           thread.endSlice(event.ts / 1000);
         } else if (event.ph == 'P') {
           var thread = this.model_.getOrCreateProcess(event.pid)
             .getOrCreateThread(event.tid);
-          thread.addSample(event.cat, event.name, event.ts / 1000, event.args);
+          thread.addSample(event.cat, event.name, event.ts / 1000,
+                           deepCopy(event.args));
         } else if (event.ph == 'C') {
           this.processCounterEvent(event);
         } else if (event.ph == 'M') {
@@ -348,7 +361,7 @@ base.exportTo('tracing.importer', function() {
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;
-            slice.args = events[0].event.args;
+            slice.args = deepCopy(events[0].event.args);
             slice.subSlices = [];
 
             // Create subSlices for each step.
@@ -368,7 +381,7 @@ base.exportTo('tracing.importer', function() {
               subSlice.startThread = events[j - 1].thread;
               subSlice.endThread = events[j].thread;
               subSlice.id = id;
-              subSlice.args = events[j - 1].event.args;
+              subSlice.args = deepCopy(events[j - 1].event.args);
 
               slice.subSlices.push(subSlice);
             }
@@ -376,7 +389,7 @@ base.exportTo('tracing.importer', function() {
             // The args for the finish event go in the last subSlice.
             var lastSlice = slice.subSlices[slice.subSlices.length - 1];
             for (var arg in event.args)
-              lastSlice.args[arg] = event.args[arg];
+              lastSlice.args[arg] = deepCopy(event.args[arg]);
 
             // Add |slice| to the start-thread's asyncSlices.
             slice.startThread.asyncSlices.push(slice);
@@ -413,7 +426,8 @@ base.exportTo('tracing.importer', function() {
           if (event.args.snapshot === undefined)
             throw new Error('Snapshots must have args: {snapshot: ...}');
           var snapshot = process.objects.addSnapshot(
-            event.id, event.cat, event.name, ts, event.args.snapshot);
+            event.id, event.cat, event.name, ts,
+            deepCopy(event.args.snapshot));
           instance = snapshot.objectInstance;
         } else if (event.ph == 'D') {
           instance = process.objects.idWasDeleted(
