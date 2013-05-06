@@ -212,8 +212,11 @@ base.exportTo('tracing', function() {
         return false;
       if (!this.focusElement_)
         return true;
-      if (this.focusElement.tabIndex >= 0)
-        return document.activeElement == this.focusElement;
+      if (this.focusElement.tabIndex >= 0) {
+        if (document.activeElement == this.focusElement)
+          return true;
+        return ui.elementIsChildOf(document.activeElement, this.focusElement);
+      }
       return true;
     },
 
@@ -527,20 +530,6 @@ base.exportTo('tracing', function() {
       this.viewport_.gridTimebase = tb -
           (numInterfvalsSinceStart + 1) * this.viewport_.gridStep_;
       this.viewport_.gridEnabled = true;
-    },
-
-    isChildOfThis_: function(el) {
-      if (el == this)
-        return;
-
-      var isChildOfThis = false;
-      var cur = el;
-      while (cur.parentNode) {
-        if (cur == this)
-          return true;
-        cur = cur.parentNode;
-      }
-      return false;
     },
 
     onMouseDown_: function(e) {
