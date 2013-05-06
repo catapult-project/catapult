@@ -57,20 +57,20 @@ base.exportTo('tracing.model', function() {
     },
   };
 
-  ObjectSnapshot.categoryToConstructorMap = {};
+  ObjectSnapshot.nameToConstructorMap_ = {};
   ObjectSnapshot.register = function(name, constructor) {
-    if (ObjectSnapshot.categoryToConstructorMap[name])
+    if (ObjectSnapshot.nameToConstructorMap_[name])
       throw new Error('Constructor already registerd for ' + name);
-    ObjectSnapshot.categoryToConstructorMap[name] = constructor;
+    ObjectSnapshot.nameToConstructorMap_[name] = constructor;
   };
 
   ObjectSnapshot.unregister = function(name) {
-    delete ObjectSnapshot.categoryToConstructorMap[name];
+    delete ObjectSnapshot.nameToConstructorMap_[name];
   };
 
   ObjectSnapshot.getConstructor = function(name) {
-    if (ObjectSnapshot.categoryToConstructorMap[name])
-      return ObjectSnapshot.categoryToConstructorMap[name];
+    if (ObjectSnapshot.nameToConstructorMap_[name])
+      return ObjectSnapshot.nameToConstructorMap_[name];
     return ObjectSnapshot;
   };
 
@@ -191,20 +191,20 @@ base.exportTo('tracing.model', function() {
     }
   };
 
-  ObjectInstance.categoryToConstructorMap = {};
+  ObjectInstance.nameToConstructorMap_ = {};
   ObjectInstance.register = function(name, constructor) {
-    if (ObjectInstance.categoryToConstructorMap[name])
+    if (ObjectInstance.nameToConstructorMap_[name])
       throw new Error('Constructor already registerd for ' + name);
-    ObjectInstance.categoryToConstructorMap[name] = constructor;
+    ObjectInstance.nameToConstructorMap_[name] = constructor;
   };
 
   ObjectInstance.unregister = function(name) {
-    delete ObjectInstance.categoryToConstructorMap[name];
+    delete ObjectInstance.nameToConstructorMap_[name];
   };
 
   ObjectInstance.getConstructor = function(name) {
-    if (ObjectInstance.categoryToConstructorMap[name])
-      return ObjectInstance.categoryToConstructorMap[name];
+    if (ObjectInstance.nameToConstructorMap_[name])
+      return ObjectInstance.nameToConstructorMap_[name];
     return ObjectInstance;
   };
 
