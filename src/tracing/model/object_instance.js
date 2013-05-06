@@ -65,9 +65,9 @@ base.exportTo('tracing.model', function() {
     addSnapshot: function(ts, args) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');
-      if (this.deletionTs != Number.MAX_VALUE)
-        throw new Error('The instance has been deleted. ' +
-                        'No more snapshots can be added.');
+      if (ts >= this.deletionTs)
+        throw new Error('Snapshots cannot be added after ' +
+                        'an objects deletion timestamp.');
 
       var lastSnapshot;
       if (this.snapshots.length > 0) {
