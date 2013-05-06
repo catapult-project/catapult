@@ -526,10 +526,11 @@ this.base = (function() {
     return values;
   }
 
-
-  function iterItems(dict, fn) {
+  function iterItems(dict, fn, opt_this) {
+    opt_this = opt_this || this;
     for (var key in dict)
-      fn(key, dict[key]);
+      fn.call(opt_this, key, dict[key]);
+  }
 
   function iterObjectFieldsRecursively(object, func) {
     if (!(object instanceof Object))
