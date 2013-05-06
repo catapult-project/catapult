@@ -165,10 +165,60 @@ base.exportTo('ui', function() {
     return Math.round(pixels) + 'px';
   }
 
+
+  function createSpan(opt_text) {
+    var spanEl = document.createElement('span');
+    if (opt_text)
+      spanEl.textContent = opt_text;
+    return spanEl;
+  };
+
+  function createLabel(text, child) {
+    var labelEl = document.createElement('label');
+    labelEl.textContent = text;
+    labelEl.appendChild(child);
+    return labelEl;
+  };
+
+  function createSelector(targetEl, targetElProperty,
+                          items) {
+    var selectorEl = document.createElement('select');
+    selectorEl.addEventListener('change', onChange);
+    items.forEach(function(item) {
+      var optionEl = document.createElement('option');
+      optionEl.textContent = item.label;
+      optionEl.targetPropertyValue = item.value;
+      selectorEl.appendChild(optionEl);
+    });
+    function onChange(e) {
+      targetEl[targetElProperty] = selectorEl.selectedOptions[0].targetPropertyValue;
+    }
+    return selectorEl;
+  }
+
+  function elementIsChildOf(el, potentialParent) {
+    if (el == potentialParent)
+      return false;
+
+    var cur = el;
+    while (cur.parentNode) {
+      if (cur == potentialParent)
+        return true;
+      cur = cur.parentNode;
+    }
+    return false;
+  };
+
   return {
     decorate: decorate,
     define: define,
     limitInputWidth: limitInputWidth,
-    toCssPx: toCssPx
+    toCssPx: toCssPx,
+
+    createSpan: createSpan,
+    createLabel: createLabel,
+    createSelector: createSelector,
+
+    elementIsChildOf: elementIsChildOf
   };
 });
