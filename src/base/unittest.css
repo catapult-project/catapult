@@ -18,6 +18,13 @@ unittest-test-runner > title {
   width: 100%;
 }
 
+.unittest-test-case-title-test-name {
+  text-decoration: none;
+}
+.unittest-test-case-title-test-status:before {
+  content: ': ';
+}
+
 test-case > title {
   display: block;
   font-family: monospace;
@@ -35,6 +42,7 @@ test-case-stack {
   overflow-x: auto;
   white-space: pre;
 }
+
 .unittest-green {
   color: darkgreen;
 }
@@ -47,4 +55,3 @@ test-case-stack {
   color: darkRed;
   font-weight: bold;
 }
-

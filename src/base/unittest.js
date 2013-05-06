@@ -28,6 +28,10 @@ base.exportTo('base', function() {
 
     decorate: function(testName, opt_href, opt_alwaysShowErrorLink) {
       this.testName = testName;
+      if (opt_href)
+        this.href_ = opt_href;
+      else
+        this.href_ = '#' + testName;
       this.alwaysShowErrorLink = opt_alwaysShowErrorLink || false;
 
       var titleBlockEl = document.createElement('title');
@@ -36,14 +40,12 @@ base.exportTo('base', function() {
 
       this.titleEl = document.createElement('span');
       this.titleEl.style.marginRight = '20px';
+      this.titleEl.className = 'unittest-test-case-title';
       titleBlockEl.appendChild(this.titleEl);
 
       this.errorLink = document.createElement('a');
       this.errorLink.textContent = 'Run individually...';
-      if (opt_href)
-        this.errorLink.href = opt_href;
-      else
-        this.errorLink.href = '#' + testName;
+      this.errorLink.href = this.href_;
       this.errorLink.style.display = 'none';
       titleBlockEl.appendChild(this.errorLink);
 
@@ -56,7 +58,20 @@ base.exportTo('base', function() {
     },
     set status(status) {
       this.status_ = status;
-      this.titleEl.textContent = this.testName + ': ' + this.status_;
+      this.titleEl.textContent = '';
+
+      var testNameSpan = this.ownerDocument.createElement('a');
+      testNameSpan.className = 'unittest-test-case-title-test-name';
+      testNameSpan.textContent = this.testName;
+      testNameSpan.setAttribute('href', this.href_);
+      updateClassListGivenStatus(testNameSpan, this.status_);
+      this.titleEl.appendChild(testNameSpan);
+
+      var statusSpan = this.ownerDocument.createElement('span');
+      statusSpan.className = 'unittest-test-case-title-test-status';
+      statusSpan.textContent = this.status_;
+      this.titleEl.appendChild(statusSpan);
+
       updateClassListGivenStatus(this.titleEl, this.status_);
       if (this.status_ == 'FAILED' || this.alwaysShowErrorLink)
         this.errorLink.style.display = '';
