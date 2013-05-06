@@ -10,16 +10,16 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('base.bbox2');
-  base.require('cc.quad_view');
-  base.require('cc.quad_view_viewport');
+  base.require('ui.quad_view');
+  base.require('ui.quad_view_viewport');
 </script>
 </head>
 <body>
 <script>
     'use strict';
 
-    var QuadView = cc.QuadView;
-    var QuadViewViewport = cc.QuadViewViewport;
+    var QuadView = ui.QuadView;
+    var QuadViewViewport = ui.QuadViewViewport;
 
     function QuadFromXYWH(x, y, w, h) {
       return {p1: {x: x, y: y},

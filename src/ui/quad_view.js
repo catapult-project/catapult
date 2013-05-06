@@ -4,17 +4,12 @@
  */
 'use strict';
 
-base.requireStylesheet('cc.quad_view');
+base.requireStylesheet('ui.quad_view');
 
 base.require('ui');
-base.require('cc.quad_view_viewport');
+base.require('ui.quad_view_viewport');
 
-base.exportTo('cc', function() {
-
-  function QuadViewSelection(quadView, quadIndices) {
-    this.view = quadView;
-    this.quadIndices = quadIndices;
-  }
+base.exportTo('ui', function() {
 
   var QuadView = ui.define('x-quad-view');
 
@@ -198,14 +193,10 @@ base.exportTo('cc', function() {
       ctx.restore();
     },
 
-    createSelection_: function(quadIndices) {
-      return new QuadViewSelection(this, quadIndices);
-    },
     selectQuadsAtCanvasClientPoint: function(clientX, clientY) {
-      var selection = this.createSelection_(
-        this.findQuadsAtCanvasClientPoint(clientX, clientY));
-      var e = new base.Event('selection-changed');
-      e.selection = selection;
+      var selectedQuadIndices = this.findQuadsAtCanvasClientPoint(clientX, clientY);
+      var e = new base.Event('selectionChanged');
+      e.selectedQuadIndices = selectedQuadIndices;
       this.dispatchEvent(e);
       this.viewport_.forceRedrawAll();
     },
@@ -252,8 +243,7 @@ base.exportTo('cc', function() {
   };
 
   return {
-    QuadView: QuadView,
-    QuadViewSelection: QuadViewSelection,
+    QuadView: QuadView
   }
 });
 

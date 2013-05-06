@@ -7,7 +7,7 @@
 base.require('base.range');
 base.require('base.event_target');
 
-base.exportTo('cc', function() {
+base.exportTo('ui', function() {
   function QuadViewViewport(bbox,
                             opt_scale,
                             opt_dontPadBbox, opt_devicePixelRatio) {
