@@ -27,7 +27,12 @@ base.exportTo('tracing.model', function() {
   ObjectSnapshot.prototype = {
     __proto__: Object.prototype,
 
-    finalizeImport: function() {
+    /**
+     * Called by the instance when the trace is loaded, but before finalizing
+     * world bounds. Override this function to set up custom data structures
+     * relating to this instance.
+     */
+    initialize: function() {
     }
   };
 
@@ -109,6 +114,16 @@ base.exportTo('tracing.model', function() {
               ts + '. A snapshot exists that is older.');
       }
       this.deletionTs = ts;
+    },
+
+    /**
+     * Called by the model when the trace is loaded, but before finalizing world
+     * bounds. Override this function to set up custom data structures relating
+     * to this instance.
+     */
+    initialize: function() {
+      for (var i = 0; i < this.snapshots.length; i++)
+        this.snapshots[i].initialize();
     },
 
     getSnapshotAt: function(ts) {

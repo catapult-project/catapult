@@ -73,6 +73,14 @@ base.exportTo('tracing.model', function() {
     },
 
     /**
+     * Called by the model after importing all traces,
+     * finalizing the importers, but before finalizing world bounds.
+     */
+    finalizeImport: function() {
+      this.objects.finalizeImport();
+    },
+
+    /**
      * Merge slices from the kernel with those from userland for each thread.
      */
     mergeKernelWithUserland: function() {

@@ -277,6 +277,9 @@ base.exportTo('tracing', function() {
       for (var i = 0; i < importers.length; i++)
         importers[i].finalizeImport();
 
+      for (var pid in this.processes)
+        this.processes[pid].finalizeImport();
+
       // Prune empty containers.
       this.kernel.pruneEmptyContainers();
       for (var pid in this.processes) {

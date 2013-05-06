@@ -122,6 +122,12 @@ base.exportTo('tracing.model', function() {
       return this.instancesByTypeName_;
     },
 
+    finalizeImport: function() {
+      this.iterObjectInstances(function(instance) {
+        instance.initialize();
+      });
+    },
+
     updateBounds: function() {
       this.bounds.reset();
       this.iterObjectInstances(function(instance) {
