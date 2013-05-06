@@ -104,7 +104,13 @@ base.exportTo('tracing.analysis', function() {
 
       this.appendTableCell_(table, row, 0, label);
       if (opt_text !== undefined) {
-        if (opt_text[0] == '{' && opt_text[opt_text.length - 1] == '}') {
+        if (opt_text instanceof tracing.model.ObjectSnapshot) {
+          var td = this.appendTableCell_(table, row, 1);
+          var link = new tracing.analysis.ObjectSnapshotLink(opt_text);
+          link.objectSnapshot = opt_text;
+          td.appendChild(link);
+        } else if (opt_text[0] == '{' &&
+                   opt_text[opt_text.length - 1] == '}') {
           // Try to treat the opt_text as json.
           var value;
           try {

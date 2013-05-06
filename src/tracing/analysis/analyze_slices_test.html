@@ -202,6 +202,29 @@ found in the LICENSE file.
       assertObjectEquals({label: 'Start', time: 0.12}, t.rows[1]);
       assertObjectEquals({label: 'Duration', time: 0.06}, t.rows[2]);
     }
+
+    function testAnalysisViewWithSingleSliceContainingIDRef() {
+      var model = new Model();
+      var p1 = model.getOrCreateProcess(1);
+      var myObjectSlice = p1.objects.addSnapshot(
+           '0x1000', 'cat', 'my_object', 0);
+
+      var t1 = p1.getOrCreateThread(1);
+      t1.pushSlice(newSliceCategory('cat', 'b', 0, 2));
+      t1.slices[0].args.my_object = myObjectSlice;
+
+      var t1track = {};
+      t1track.thread = t1;
+
+      var selection = new Selection();
+      selection.addSlice(t1track, t1.slices[0]);
+      assertEquals(1, selection.length);
+
+      var analysisEl = new AnalysisView();
+      analysisEl.selection = selection;
+      this.addHTMLOutput(undefined, analysisEl);
+    }
+
   </script>
 </body>
 </html>
