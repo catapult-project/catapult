@@ -17,14 +17,10 @@ base.exportTo('ui', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.title_ = '';
       this.quads_ = undefined;
       this.viewport_ = undefined;
       this.deviceViewportSizeForFrame_ = undefined;
-      this.header_ = document.createElement('div');
-      this.header_.className = 'header';
       this.canvas_ = document.createElement('canvas');
-      this.appendChild(this.header_);
       this.appendChild(this.canvas_);
 
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
@@ -36,15 +32,6 @@ base.exportTo('ui', function() {
       this.canvas_.addEventListener('focus', this.redrawCanvas_.bind(this));
       this.canvas_.addEventListener('blur', this.redrawCanvas_.bind(this));
       this.canvas_.tabIndex = 0;
-    },
-
-    get headerText() {
-      return this.headerText_;
-    },
-
-    set headerText(headerText) {
-      this.headerText_ = headerText;
-      this.updateChildren_();
     },
 
     get viewport() {
@@ -90,7 +77,6 @@ base.exportTo('ui', function() {
     },
 
     updateChildren_: function() {
-      this.header_.textContent = this.headerText_;
       var canvas = this.canvas_;
       if (!this.hasRequiredProprties_) {
         canvas.width = 0;
