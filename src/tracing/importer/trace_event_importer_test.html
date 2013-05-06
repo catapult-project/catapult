@@ -925,7 +925,7 @@ function testImportImplicitObjects() {
   var subObjectInstances = p1.objects.getAllInstancesByTypeName()['subObject'];
 
   assertEquals(2, subObjectInstances.length);
-  var subObject1 = p1.objects.getObjectInstanceAt('subObject/0x1', 15);
+  var subObject1 = p1.objects.getObjectInstanceAt('0x1', 15);
   assertEquals('subObject', subObject1.name);
   assertEquals(15, subObject1.creationTs);
 
@@ -935,7 +935,7 @@ function testImportImplicitObjects() {
   assertEquals(20, subObject1.snapshots[1].ts);
   assertEquals(2, subObject1.snapshots[1].args.foo);
 
-  var subObject2 = p1.objects.getObjectInstanceAt('subObject/0x2', 20);
+  var subObject2 = p1.objects.getObjectInstanceAt('0x2', 20);
   assertEquals('subObject', subObject2.name);
   assertEquals(20, subObject2.creationTs);
   assertEquals(1, subObject2.snapshots.length);

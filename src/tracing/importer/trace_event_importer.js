@@ -470,15 +470,17 @@ base.exportTo('tracing.importer', function() {
         var containingSnapshot = implicitSnaps[i].containingSnapshot;
         var implicitSnapshot = implicitSnaps[i].implicitSnapshot;
 
-        var implicitSnapshotName;
-        var m = /((.+)\/)?.+/.exec(implicitSnapshot.id);
+        var m = /(.+)\/(.+)/.exec(implicitSnapshot.id);
         if (!m)
           throw new Error('Implicit snapshots must have names.');
-        implicitSnapshotName = m[2];
+        var name = m[1];
+        var id = m[2];
         var res = process.objects.addSnapshot(
-          implicitSnapshot.id, containingSnapshot.cat,
-          implicitSnapshotName, containingSnapshot.ts,
-          implicitSnapshot);
+          id, containingSnapshot.cat,
+          name, containingSnapshot.ts,
+          deepCopy(implicitSnapshot));
+        if (!(res instanceof tracing.model.ObjectSnapshot))
+          throw new Error('Created object must be instanceof snapshot');
       }
 
       // Iterate the world, looking for id_refs
