@@ -30,26 +30,27 @@ found in the LICENSE file.
   function testObjectInstanceSubtype() {
     // Register that TestObjects are bound to TestObjectInstance.
     tracing.model.ObjectInstance.register('TestObject', TestObjectInstance);
+    try {
+      var collection = new tracing.model.ObjectCollection({ });
+      collection.idWasCreated(
+        '0x1000', 'cc', 'Frame', 10);
+      collection.idWasDeleted(
+        '0x1000', 'cc', 'Frame', 15);
+      collection.idWasCreated(
+        '0x1000', 'skia', 'TestObject', 20);
+      collection.idWasDeleted(
+        '0x1000', 'skia', 'TestObject', 25);
 
-    var collection = new tracing.model.ObjectCollection({ });
-    collection.idWasCreated(
-      '0x1000', 'cc', 'Frame', 10);
-    collection.idWasDeleted(
-      '0x1000', 'cc', 'Frame', 15);
-    collection.idWasCreated(
-      '0x1000', 'skia', 'TestObject', 20);
-    collection.idWasDeleted(
-      '0x1000', 'skia', 'TestObject', 25);
+      var testFrame = collection.getObjectInstanceAt('0x1000', 10);
+      assertTrue(testFrame instanceof tracing.model.ObjectInstance);
+      assertFalse(testFrame instanceof TestObjectInstance);
 
-    var testFrame = collection.getObjectInstanceAt('0x1000', 10);
-    assertTrue(testFrame instanceof tracing.model.ObjectInstance);
-    assertFalse(testFrame instanceof TestObjectInstance);
-
-    var testObject = collection.getObjectInstanceAt('0x1000', 20);
-    assertTrue(testObject instanceof tracing.model.ObjectInstance);
-    assertTrue(testObject instanceof TestObjectInstance);
-
-    tracing.model.ObjectInstance.unregister('TestObject');
+      var testObject = collection.getObjectInstanceAt('0x1000', 20);
+      assertTrue(testObject instanceof tracing.model.ObjectInstance);
+      assertTrue(testObject instanceof TestObjectInstance);
+    } finally {
+      tracing.model.ObjectInstance.unregister('TestObject');
+    }
   }
 
   function testTwoSnapshots() {
