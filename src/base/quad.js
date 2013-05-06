@@ -55,6 +55,14 @@ base.exportTo('base', function() {
     {
       return vecInTriangle2(vec, this.p1, this.p2, this.p3) ||
         vecInTriangle2(vec, this.p1, this.p3, this.p4);
+    },
+    copy: function() {
+      var q = new Quad();
+      vec2.copy(q.p1, this.p1);
+      vec2.copy(q.p2, this.p2);
+      vec2.copy(q.p3, this.p3);
+      vec2.copy(q.p4, this.p4);
+      return q;
     }
   };
 
