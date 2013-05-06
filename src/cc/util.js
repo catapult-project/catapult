@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('base.quad');
+base.require('tracing.model.object_instance');
 
 base.exportTo('cc', function() {
   function convertNameToJSConvention(name) {
@@ -24,9 +25,6 @@ base.exportTo('cc', function() {
     base.iterObjectFieldsRecursively(
       object,
       function(object, fieldName, fieldValue) {
-        var newFieldName = convertNameToJSConvention(fieldName);
-        if (newFieldName == fieldName)
-          return;
         delete object[fieldName];
         object[newFieldName] = fieldValue;
         return newFieldName;
@@ -37,16 +35,6 @@ base.exportTo('cc', function() {
     base.iterObjectFieldsRecursively(
       object,
       function(object, fieldName, fieldValue) {
-        if (! /Quad$/.test(fieldName))
-          return;
-        var q;
-        try {
-          q = base.QuadFrom8Array(fieldValue);
-        } catch(e) {
-          console.log(e);
-          return;
-        }
-        object[fieldName] = q;
       });
   }
 
@@ -55,10 +43,68 @@ base.exportTo('cc', function() {
     convertQuadSuffixedTypesToQuads(object);
   }
 
+  function moveFieldsFromArgsToToplevel(object) {
+    for (var key in object.args) {
+      if (object[key] !== undefined)
+        throw Error('Field ' + key + ' already in object');
+      object[key] = object.args[key];
+    }
+    object.args = {};
+  }
+
+  function assertHasField(object, fieldName) {
+    if (object[fieldName] !== undefined)
+      return;
+    throw new Error('Expected ' + fieldName);
+  }
+
+  function preInitializeObject(object) {
+    preInitializeObjectInner(object, false);
+  }
+
+  function preInitializeObjectInner(object, hasRecursed) {
+    if (!(object instanceof Object))
+      return;
+
+    if (object instanceof Array) {
+      for (var i = 0; i < object.length; i++)
+        preInitializeObjectInner(object[i], true);
+      return;
+    }
+
+    if (hasRecursed &&
+        (object instanceof tracing.model.ObjectSnapshot ||
+         object instanceof tracing.model.ObjectInstance))
+      return;
+
+    for (var key in object) {
+      var newKey = convertNameToJSConvention(key);
+      if (newKey != key) {
+        var value = object[key];
+        delete object[key];
+        object[newKey] = value;
+        key = newKey;
+      }
+
+      if (/Quad$/.test(key)) {
+        var q;
+        try {
+          q = base.QuadFrom8Array(object[key]);
+        } catch(e) {
+          console.log(e);
+        }
+        object[key] = q;
+        continue;
+      }
+
+      preInitializeObjectInner(object[key], true);
+    }
+  }
+
   return {
-    convertObject: convertObject,
+    assertHasField: assertHasField,
+    preInitializeObject: preInitializeObject,
     convertNameToJSConvention: convertNameToJSConvention,
-    convertObjectFieldNamesToJSConventions: convertObjectFieldNamesToJSConventions,
-    convertQuadSuffixedTypesToQuads: convertQuadSuffixedTypesToQuads
+    moveFieldsFromArgsToToplevel: moveFieldsFromArgsToToplevel,
   };
 });

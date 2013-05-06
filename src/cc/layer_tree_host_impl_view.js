@@ -8,7 +8,7 @@ base.requireStylesheet('cc.layer_tree_host_impl_view');
 
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
-base.exportTo('tracing.analysis', function() {
+base.exportTo('cc', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /*

@@ -692,11 +692,32 @@ base.addModuleStylesheet(
     'base.unittest',
     'base.unittest');
 base.addModuleDependency(
+    'cc.layer_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'cc.layer_impl');
+base.addModuleDependency(
     'base.quad',
     'base.gl_matrix');
 base.addModuleDependency(
     'cc.util',
     'base.quad');
+base.addModuleDependency(
+    'cc.util',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.layer_tree_impl');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.util');
 base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');

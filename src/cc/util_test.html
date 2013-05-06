@@ -16,21 +16,11 @@
     'use strict';
 
     function testNameConvert() {
-      assertEquals('_foo', cc.convertNameToJSConvention('foo'));
+      assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
       assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
       assertEquals('foo', cc.convertNameToJSConvention('foo'));
       assertEquals('fooBar', cc.convertNameToJSConvention('foo_bar'));
       assertEquals('fooBarBaz', cc.convertNameToJSConvention('foo_bar_baz'));
-    }
-
-    function testObjectConvertBasic() {
-      var object = {
-        foo: 1
-      };
-      var expected = {
-        foo: 1
-      };
-      assertObjectEquals(expected, object);
     }
 
     function testObjectConvertNested() {
@@ -44,7 +34,7 @@
           aField: 7
         }
       };
-      cc.convertObjectFieldNamesToJSConventions(object);
+      cc.preInitializeObject(object);
       assertObjectEquals(expected, object);
     }
 
@@ -57,7 +47,7 @@
         {fooBar: 7},
         {fooBar: 8},
       ];
-      cc.convertObjectFieldNamesToJSConventions(object);
+      cc.preInitializeObject(object);
       assertObjectEquals(expected, object);
     }
 

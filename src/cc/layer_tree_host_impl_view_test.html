@@ -12,14 +12,29 @@ found in the LICENSE file.
 <body>
   <script>
     base.require('base.unittest');
+    base.require('cc.layer_tree_host_impl');
     base.require('cc.layer_tree_host_impl_view');
-    base.require('tracing.selection');
+    base.require('tracing.importer.trace_event_importer');
+    base.require('tracing.model');
   </script>
+  <script src="layer_tree_host_impl_test_data.js"></script>
   <script>
     'use strict';
 
-    function testSnapshotView() {
-      /* TODO: instantiate it somehow */
+    var LayerTreeHostImplSnapshot = cc.LayerTreeHostImplSnapshot;
+    var LayerTreeHostImplInstance = cc.LayerTreeHostImplInstance;
+    var LayerTreeHostImplSnapshotView = cc.LayerTreeHostImplSnapshotView;
+
+    function testBasic() {
+      var m = new tracing.Model([g_catLTHIEvent]);
+      var p = base.dictionaryValues(m.processes)[0];
+
+      var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+      var snapshot = instance.snapshots[0];
+
+      var view = new LayerTreeHostImplSnapshotView();
+      this.addHTMLOutput(undefined, view);
+      view.objectSnapshot = snapshot;
     }
   </script>
 </body>
