@@ -396,7 +396,7 @@ base.exportTo('base', function() {
     assertEquals: function(a, b, opt_message) {
       if (a == b)
         return;
-      var message = opt_message || 'Expected ' + a + ', got ' + b;
+      var message = opt_message || 'Expected "' + a + '", got "' + b + '"';
       throw new TestError(message);
     },
 

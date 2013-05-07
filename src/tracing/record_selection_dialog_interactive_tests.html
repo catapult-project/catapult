@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <title>Record Selection Interactive Tests</title>
+  <script src="/src/base.js"></script>
+  <script>
+    base.require('base.settings');
+    base.require('tracing.record_selection_dialog');
+  </script>
+  <script>
+  function onLoad() {
+     var settings = new base.Settings();
+
+     var dlg = new tracing.RecordSelectionDialog();
+     dlg.categories =
+     ['disabled-by-default-one', 'disabled-by-default-two', 'three', 'four',
+     'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+     'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
+     'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three'];
+     dlg.settings = settings;
+     dlg.settings_key = 'key';
+     dlg.visible = true;
+     dlg.recordCallback = function() {
+       var el = document.querySelector('.record-output');
+       el.innerText = "Category filter: " + dlg.categoryFilter();
+     }
+     dlg.updateForm_();
+  }
+  </script>
+</head>
+
+<body>
+  <a href="javascript:onLoad()">Run Dialog</a>
+  <div class='record-output'> </div>
+</body>
+</html>

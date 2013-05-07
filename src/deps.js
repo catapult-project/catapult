@@ -7,6 +7,9 @@
  *
  *        Do not edit directly.
  */
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
 base.addModuleDependency(
     'ui.overlay',
     'base.event_target');
@@ -617,6 +620,15 @@ base.addModuleStylesheet(
     'tracing.timeline_view',
     'tracing.timeline_view');
 base.addModuleDependency(
+    'tracing.record_selection_dialog',
+    'tracing.filter');
+base.addModuleDependency(
+    'tracing.record_selection_dialog',
+    'ui.overlay');
+base.addModuleStylesheet(
+    'tracing.record_selection_dialog',
+    'tracing.record_selection_dialog');
+base.addModuleDependency(
     'tracing.importer.v8.codemap',
     'tracing.importer.v8.splaytree');
 base.addModuleDependency(
@@ -738,6 +750,9 @@ base.addModuleDependency(
     'tracing.timeline_view');
 base.addModuleDependency(
     'about_tracing.profiling_view',
+    'tracing.record_selection_dialog');
+base.addModuleDependency(
+    'about_tracing.profiling_view',
     'ui');
 base.addModuleDependency(
     'about_tracing.profiling_view',
@@ -757,18 +772,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
-base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
-base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model.slice');
 base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');
@@ -778,3 +781,12 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'ui.list_and_associated_view',
     'ui.list_and_associated_view');
+base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model.slice');

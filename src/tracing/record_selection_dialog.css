@@ -1,0 +1,41 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.record-selection-dialog {
+  max-height: 500px;
+  min-width: 400px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.record-selection-dialog .default-enabled-categories {
+  padding-right: 10px;
+}
+
+.record-selection-dialog .default-disabled-categories {
+  border-left: 2px solid #ddd;
+  margin-left: 10px;
+  padding-left: 10px;
+}
+
+.record-selection-dialog .categories {
+  font-size: 80%;
+  padding: 10px;
+}
+
+.record-selection-dialog form {
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.record-selection-dialog .options {
+  border-top: 2px solid #ddd;
+  clear: both;
+  padding-top: 10px;
+}
+
+.record-selection-dialog td {
+  vertical-align: top;
+}

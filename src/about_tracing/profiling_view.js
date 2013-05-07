@@ -11,6 +11,7 @@
 base.requireStylesheet('about_tracing.profiling_view');
 base.require('about_tracing.tracing_controller');
 base.require('tracing.timeline_view');
+base.require('tracing.record_selection_dialog');
 base.require('ui');
 base.require('ui.overlay');
 
@@ -151,11 +152,6 @@ base.exportTo('about_tracing', function() {
     onCategoriesCollected_: function(event) {
       var tc = this.tracingController_;
 
-      var buttonEl = document.createElement('button');
-      buttonEl.innerText = 'Record';
-      buttonEl.className = 'record-categories';
-      buttonEl.onclick = this.onRecord_.bind(this);
-
       var categories = event.categories;
       var categories_length = categories.length;
       // Do not allow categories with ,'s in their name.
@@ -166,15 +162,13 @@ base.exportTo('about_tracing', function() {
           categories = categories.concat(split);
       }
 
-      var dlg = new tracing.CategoryFilterDialog();
+      var dlg = new tracing.RecordSelectionDialog();
       dlg.categories = categories;
       dlg.settings = this.timelineView_.settings;
       dlg.settings_key = 'record_categories';
-      dlg.appendChild(buttonEl);
+      dlg.recordCallback = this.onRecord_.bind(this);
       dlg.visible = true;
-      this.categorySelectionDialog_ = dlg;
-
-      buttonEl.focus();
+      this.recordSelectionDialog_ = dlg;
 
       setTimeout(function() {
         tc.removeEventListener('categoriesCollected',
@@ -184,21 +178,9 @@ base.exportTo('about_tracing', function() {
 
     onRecord_: function() {
       var tc = this.tracingController_;
-      this.categorySelectionDialog_.visible = false;
 
-      var categories = this.categorySelectionDialog_.unselectedCategories();
-      var categories_length = categories.length;
-
-      var negated_categories = [];
-      for (var i = 0; i < categories_length; ++i) {
-        // Skip any category with a , as it will cause issues when we negate.
-        // Both sides should have been added as separate categories, these can
-        // only come from settings.
-        if (categories[i].match(/,/))
-          continue;
-        negated_categories.push('-' + categories[i]);
-      }
-      categories = negated_categories.join(',');
+      var categories = this.recordSelectionDialog_.categoryFilter();
+      console.log('Recording: ' + categories);
 
       tc.beginTracing(this.systemTracingBn_.checked,
                       this.continuousTracingBn_.checked,
