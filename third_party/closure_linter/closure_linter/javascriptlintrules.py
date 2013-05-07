@@ -533,6 +533,7 @@ class JavaScriptLintRules(ecmalintrules.EcmaScriptLintRules):
   def GetLongLineExceptions(self):
     """Gets a list of regexps for lines which can be longer than the limit."""
     return [
+        re.compile('.*// @suppress longLineCheck$'),
         re.compile('goog\.require\(.+\);?\s*$'),
         re.compile('goog\.provide\(.+\);?\s*$')
         ]
