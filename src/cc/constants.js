@@ -13,7 +13,7 @@ base.exportTo('cc', function() {
   constants.LOW_PRIORITY_BIN = 1;
 
   return {
-    constants: constants,
-  }
+    constants: constants
+  };
 });
 

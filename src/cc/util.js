@@ -23,19 +23,19 @@ base.exportTo('cc', function() {
 
   function convertObjectFieldNamesToJSConventions(object) {
     base.iterObjectFieldsRecursively(
-      object,
-      function(object, fieldName, fieldValue) {
-        delete object[fieldName];
-        object[newFieldName] = fieldValue;
-        return newFieldName;
-      });
+        object,
+        function(object, fieldName, fieldValue) {
+          delete object[fieldName];
+          object[newFieldName] = fieldValue;
+          return newFieldName;
+        });
   }
 
   function convertQuadSuffixedTypesToQuads(object) {
     base.iterObjectFieldsRecursively(
-      object,
-      function(object, fieldName, fieldValue) {
-      });
+        object,
+        function(object, fieldName, fieldValue) {
+        });
   }
 
   function convertObject(object) {
@@ -90,7 +90,7 @@ base.exportTo('cc', function() {
         var q;
         try {
           q = base.QuadFrom8Array(object[key]);
-        } catch(e) {
+        } catch (e) {
           console.log(e);
         }
         object[key] = q;
@@ -105,6 +105,6 @@ base.exportTo('cc', function() {
     assertHasField: assertHasField,
     preInitializeObject: preInitializeObject,
     convertNameToJSConvention: convertNameToJSConvention,
-    moveFieldsFromArgsToToplevel: moveFieldsFromArgsToToplevel,
+    moveFieldsFromArgsToToplevel: moveFieldsFromArgsToToplevel
   };
 });

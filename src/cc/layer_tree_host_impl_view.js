@@ -30,19 +30,19 @@ base.exportTo('cc', function() {
       this.whichTree_ = constants.ACTIVE_TREE;
 
       this.controls_ = document.createElement('top-controls');
-      this.layerList_ = new ui.ListView()
+      this.layerList_ = new ui.ListView();
       this.appendChild(this.controls_);
       this.appendChild(this.layerList_);
       this.layerList_.addEventListener(
-        'selection-changed', this.onLayerSelectionChanged_.bind(this));
+          'selection-changed', this.onLayerSelectionChanged_.bind(this));
 
       this.titleEl_ = document.createElement('span');
       this.controls_.appendChild(this.titleEl_);
 
       this.controls_.appendChild(ui.createSelector(
-        this, 'whichTree',
-        [{label: 'Active tree', value: constants.ACTIVE_TREE},
-         {label: 'Pending tree', value: constants.ACTIVE_TREE}]));
+          this, 'whichTree',
+          [{label: 'Active tree', value: constants.ACTIVE_TREE},
+           {label: 'Pending tree', value: constants.ACTIVE_TREE}]));
     },
 
     get lthiSnapshot() {
@@ -87,7 +87,7 @@ base.exportTo('cc', function() {
       var layerInfos = [];
       function visitLayer(layer, depth, note) {
         var info = {layer: layer,
-                    depth: depth};
+          depth: depth};
         layerInfos.push(info);
 
         var childInfo;
@@ -111,7 +111,8 @@ base.exportTo('cc', function() {
     },
 
     updateContents_: function() {
-      this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' + this.lthiSnapshot_.objectInstance.id;
+      this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
+          this.lthiSnapshot_.objectInstance.id;
       this.layerList_.clear();
 
       var layerInfos = this.getLayerInfos_();
@@ -126,7 +127,8 @@ base.exportTo('cc', function() {
           indentEl.textContent = indentEl.textContent + ' ';
 
         var labelEl = item.appendChild(ui.createSpan());
-        labelEl.textContent = layer.objectInstance.name + ' ' + layer.objectInstance.id;
+        labelEl.textContent = layer.objectInstance.name + ' ' +
+            layer.objectInstance.id;
 
         var notesEl = item.appendChild(ui.createSpan());
         if (layerInfo.isMaskLayer)
@@ -163,7 +165,7 @@ base.exportTo('cc', function() {
       this.lastLthiInstance_ = undefined;
 
       this.controls_ = document.createElement('top-controls');
-      this.quadView_ = new ui.QuadView()
+      this.quadView_ = new ui.QuadView();
       this.appendChild(this.controls_);
       this.appendChild(this.quadView_);
 
@@ -226,8 +228,8 @@ base.exportTo('cc', function() {
 
       this.layerPicker_ = new LayerPicker();
       this.layerPicker_.addEventListener(
-        'selection-changed',
-        this.onLayerSelectionChanged_.bind(this));
+          'selection-changed',
+          this.onLayerSelectionChanged_.bind(this));
 
       this.dragHandle_ = new ui.DragHandle();
       this.dragHandle_.horizontal = false;
@@ -248,13 +250,13 @@ base.exportTo('cc', function() {
       var instance = snapshot.objectInstance;
       this.layerPicker_.lthiSnapshot = snapshot;
       this.layerViewer_.layer = this.layerPicker_.selectedLayer;
-    },
+    }
   };
 
   tracing.analysis.ObjectSnapshotView.register(
-    'cc::LayerTreeHostImpl', LayerTreeHostImplSnapshotView);
+      'cc::LayerTreeHostImpl', LayerTreeHostImplSnapshotView);
 
   return {
-    LayerTreeHostImplSnapshotView: LayerTreeHostImplSnapshotView,
+    LayerTreeHostImplSnapshotView: LayerTreeHostImplSnapshotView
   };
 });

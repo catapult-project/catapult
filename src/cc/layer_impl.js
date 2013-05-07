@@ -49,8 +49,8 @@ base.exportTo('cc', function() {
     },
     set layerTreeImpl(layerTreeImpl) {
       this.layerTreeImpl_ = layerTreeImpl;
-    },
-  }
+    }
+  };
 
   ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
 

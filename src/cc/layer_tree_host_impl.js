@@ -97,7 +97,7 @@ base.exportTo('cc', function() {
       });
       this.allLayersBBox_ = bbox;
       return this.allLayersBBox_;
-    },
+    }
   };
 
   ObjectInstance.register('cc::LayerTreeHostImpl', LayerTreeHostImplInstance);
@@ -106,5 +106,5 @@ base.exportTo('cc', function() {
     LayerTreeHostImplSnapshot: LayerTreeHostImplSnapshot,
     LayerTreeHostImplInstance: LayerTreeHostImplInstance
 
-  }
+  };
 });
