@@ -10,6 +10,7 @@
  */
 base.requireStylesheet('tracing.tracks.track');
 base.require('ui');
+base.require('ui.toggle_button');
 base.exportTo('tracing.tracks', function() {
 
   /**
@@ -35,32 +36,15 @@ base.exportTo('tracing.tracks', function() {
       return (this.visible ? 1 : 0);
     },
 
-    addControlButtonElements_: function(canCollapse) {
-      var closeEl = document.createElement('div');
-      closeEl.classList.add('track-button');
-      closeEl.classList.add('track-close-button');
-      closeEl.textContent = String.fromCharCode(215); // &times;
-      var that = this;
-      closeEl.addEventListener('click', function() {
-        that.style.display = 'None';
-      });
-      this.appendChild(closeEl);
+    addControlButtonElements_: function() {
+      var toggleButton = new ui.ToggleButton();
+      toggleButton.classList.add('track-button');
+      toggleButton.classList.add('track-collapse-button');
+      this.insertBefore(toggleButton, this.firstChild);
 
-      var collapseEl = document.createElement('div');
-      collapseEl.classList.add('track-button');
-      collapseEl.classList.add('track-collapse-button');
-      var minus = '\u2212'; // minus sign;
-      var plus = '\u002b'; // plus sign;
-      collapseEl.textContent = minus;
-      var collapsed = false;
-      collapseEl.addEventListener('click', function() {
-        collapsed = !collapsed;
-        this.collapsedDidChange(collapsed);
-        collapseEl.textContent = collapsed ? plus : minus;
-      });
-      this.appendChild(collapseEl);
-      if (!canCollapse)
-        collapseEl.style.display = 'None';
+      toggleButton.addEventListener('click', function() {
+        this.style.display = 'none';
+      }.bind(this));
     }
   };
 

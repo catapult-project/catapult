@@ -101,7 +101,7 @@ base.exportTo('tracing.tracks', function() {
 
         this.updateVisibility_();
       }
-      this.addControlButtonElements_(this.tracks_.length >= 4);
+      this.addControlButtonElements_();
     },
 
     updateVisibility_: function() {
