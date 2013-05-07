@@ -24,11 +24,14 @@ base.exportTo('tracing.analysis', function() {
       this.textContent = '';
     },
 
-    createSelectionChangingLink: function(text, selectionGenerator) {
+    createSelectionChangingLink: function(text, selectionGenerator,
+                                          opt_tooltip) {
       var el = this.ownerDocument.createElement('a');
       tracing.analysis.AnalysisLink.decorate(el);
       el.textContent = text;
       el.selectionGenerator = selectionGenerator;
+      if (opt_tooltip)
+        el.title = opt_tooltip;
       return el;
     },
 
@@ -184,7 +187,8 @@ base.exportTo('tracing.analysis', function() {
           table, row, 0, label, tooltip);
         labelEl.textContent = '';
         labelEl.appendChild(
-          this.createSelectionChangingLink(label, opt_selectionGenerator));
+          this.createSelectionChangingLink(label, opt_selectionGenerator,
+              tooltip));
       }
 
       if (opt_duration !== undefined) {
