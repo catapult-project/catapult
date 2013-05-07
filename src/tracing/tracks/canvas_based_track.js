@@ -172,8 +172,8 @@ base.exportTo('tracing.tracks', function() {
         return;
 
       this.addIntersectingItemsInRangeToSelectionInWorldSpace(
-        loWX, hiWX, viewPixWidthWorld, selection);
-    },
+          loWX, hiWX, viewPixWidthWorld, selection);
+    }
   };
 
   return {

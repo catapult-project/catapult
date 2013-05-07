@@ -52,7 +52,8 @@ base.exportTo('tracing.tracks', function() {
       this.detach();
       if (this.process_) {
         // Create the object instance tracks for this process.
-        var instancesByTypeName = this.process_.objects.getAllInstancesByTypeName();
+        var instancesByTypeName =
+            this.process_.objects.getAllInstancesByTypeName();
         var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
         instanceTypeNames.sort();
         instanceTypeNames.forEach(function(typeName) {

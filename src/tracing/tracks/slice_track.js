@@ -118,7 +118,7 @@ base.exportTo('tracing.tracks', function() {
       var lowSlice = base.findLowIndexInSortedArray(slices,
                                                     function(slice) {
                                                       return slice.start +
-                                                        slice.duration;
+                slice.duration;
                                                     },
                                                     viewLWorld);
       for (var i = lowSlice; i < slices.length; ++i) {

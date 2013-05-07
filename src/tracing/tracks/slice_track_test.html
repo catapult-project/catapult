@@ -99,22 +99,22 @@ found in the LICENSE file.
     track.viewport.xSetWorldBounds(0, wW, vW * pixelRatio);
 
     var selection = new Selection();
-    var x = (1.5/wW)*vW;
+    var x = (1.5 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
     assertEquals(track.slices[0], selection[0].slice);
 
     var selection = new Selection();
-    x = (2.1/wW)*vW;
+    x = (2.1 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
     assertEquals(0, selection.length);
 
     var selection = new Selection();
-    x = (6.8/wW)*vW;
+    x = (6.8 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
     assertEquals(track.slices[1], selection[0].slice);
 
     var selection = new Selection();
-    x = (9.9/wW)*vW
+    x = (9.9 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
     assertEquals(0, selection.length);
   }

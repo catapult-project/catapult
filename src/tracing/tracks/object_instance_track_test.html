@@ -28,16 +28,16 @@ found in the LICENSE file.
   function createObjects() {
     var objects = new tracing.model.ObjectCollection({});
     objects.idWasCreated('0x1000', 'cc', 'Frame', 10);
-    objects.addSnapshot('0x1000', 'cc', 'Frame', 10, "snapshot-1");
-    objects.addSnapshot('0x1000', 'cc', 'Frame', 25, "snapshot-2");
-    objects.addSnapshot('0x1000', 'cc', 'Frame', 40, "snapshot-3");
+    objects.addSnapshot('0x1000', 'cc', 'Frame', 10, 'snapshot-1');
+    objects.addSnapshot('0x1000', 'cc', 'Frame', 25, 'snapshot-2');
+    objects.addSnapshot('0x1000', 'cc', 'Frame', 40, 'snapshot-3');
     objects.idWasDeleted('0x1000', 'cc', 'Frame', 45);
 
     objects.idWasCreated('0x1001', 'skia', 'Picture', 20);
-    objects.addSnapshot('0x1001', 'skia', 'Picture', 20, "snapshot-1");
+    objects.addSnapshot('0x1001', 'skia', 'Picture', 20, 'snapshot-1');
     objects.idWasDeleted('0x1001', 'skia', 'Picture', 25);
     return objects;
-  };
+  }
 
   function testBasic() {
     var testEl = this.addHTMLOutput();

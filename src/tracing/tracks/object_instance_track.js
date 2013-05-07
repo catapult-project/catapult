@@ -52,7 +52,7 @@ base.exportTo('tracing.tracks', function() {
       this.objectSnapshots_ = [];
       this.objectInstances_.forEach(function(instance) {
         this.objectSnapshots_.push.apply(
-          this.objectSnapshots_, instance.snapshots);
+            this.objectSnapshots_, instance.snapshots);
       }, this);
     },
 
@@ -66,7 +66,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     get snapshotRadiusView() {
-      return 7*(window.devicePixelRatio || 1);
+      return 7 * (window.devicePixelRatio || 1);
     },
 
     redraw: function() {
@@ -98,11 +98,11 @@ base.exportTo('tracing.tracks', function() {
       // Instances
       var objectInstances = this.objectInstances_;
       var loI = base.findLowIndexInSortedArray(
-        objectInstances,
-        function(instance) {
-          return instance.deletionTs;
-        },
-        viewLWorld);
+          objectInstances,
+          function(instance) {
+            return instance.deletionTs;
+          },
+          viewLWorld);
       ctx.globalAlpha = 0.25;
       ctx.strokeStyle = 'rgb(0,0,0)';
       for (var i = loI; i < objectInstances.length; ++i) {
@@ -116,9 +116,9 @@ base.exportTo('tracing.tracks', function() {
             instance.colorId;
 
         var right = instance.deletionTs == Number.MAX_VALUE ?
-          viewRWorld : instance.deletionTs;
+            viewRWorld : instance.deletionTs;
         ctx.fillStyle = palette[colorId];
-        ctx.fillRect(x, pixelRatio, right - x, canvasH - 2*pixelRatio);
+        ctx.fillRect(x, pixelRatio, right - x, canvasH - 2 * pixelRatio);
       }
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -126,12 +126,12 @@ base.exportTo('tracing.tracks', function() {
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       var objectSnapshots = this.objectSnapshots_;
       loI = base.findLowIndexInSortedArray(
-        objectSnapshots,
-        function(snapshot) {
-          return snapshot.ts +
-            snapshotRadiusWorld;
-        },
-        viewLWorld);
+          objectSnapshots,
+          function(snapshot) {
+            return snapshot.ts +
+                snapshotRadiusWorld;
+          },
+          viewLWorld);
       for (var i = loI; i < objectSnapshots.length; ++i) {
         var snapshot = objectSnapshots[i];
         var x = snapshot.ts;
@@ -170,7 +170,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
-      loWX, hiWX, viewPixWidthWorld, selection) {
+        loWX, hiWX, viewPixWidthWorld, selection) {
       var that = this;
 
       // Pick snapshots first.
@@ -182,11 +182,11 @@ base.exportTo('tracing.tracks', function() {
       var snapshotRadiusView = this.snapshotRadiusView;
       var snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
       base.iterateOverIntersectingIntervals(
-        this.objectSnapshots_,
-        function(x) { return x.ts - snapshotRadiusWorld; },
-        function(x) { return 2*snapshotRadiusWorld; },
-        loWX, hiWX,
-        onSnapshotHit);
+          this.objectSnapshots_,
+          function(x) { return x.ts - snapshotRadiusWorld; },
+          function(x) { return 2 * snapshotRadiusWorld; },
+          loWX, hiWX,
+          onSnapshotHit);
       if (foundSnapshot)
         return;
 
@@ -195,11 +195,11 @@ base.exportTo('tracing.tracks', function() {
         selection.addObjectInstance(that, instance);
       }
       base.iterateOverIntersectingIntervals(
-        this.objectInstances_,
-        function(x) { return x.creationTs; },
-        function(x) { return x.deletionTs - x.creationTs; },
-        loWX, hiWX,
-        onInstanceHit);
+          this.objectInstances_,
+          function(x) { return x.creationTs; },
+          function(x) { return x.deletionTs - x.creationTs; },
+          loWX, hiWX,
+          onInstanceHit);
     },
 
     /**

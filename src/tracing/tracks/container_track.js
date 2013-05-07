@@ -49,7 +49,7 @@ base.exportTo('tracing.tracks', function() {
       for (var i = 0; i < this.tracks_.length; i++)
         if (this.tracks_[i].visible)
           return this.tracks_[i].firstCanvas;
-      return undefined;
+        return undefined;
     },
 
     // The number of tracks actually displayed.
