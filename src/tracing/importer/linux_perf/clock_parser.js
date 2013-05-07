@@ -29,28 +29,28 @@ base.exportTo('tracing.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     traceMarkWriteClockEvent: function(eventName, cpuNumber, pid, ts,
-                                  eventBase, threadName) {
-        var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+                                       eventBase, threadName) {
+      var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
 
 
-        var name = event[1];
-        var rate = parseInt(event[2]);
+      var name = event[1];
+      var rate = parseInt(event[2]);
 
-        var ctr = this.model_.getOrCreateProcess(0)
+      var ctr = this.model_.getOrCreateProcess(0)
               .getOrCreateCounter(null, name);
-        // Initialize the counter's series fields if needed.
-        if (ctr.numSeries == 0) {
-            ctr.seriesNames.push('value');
-            ctr.seriesColors.push(
-                tracing.getStringColorId(ctr.name + '.' + 'value'));
-        }
+      // Initialize the counter's series fields if needed.
+      if (ctr.numSeries == 0) {
+        ctr.seriesNames.push('value');
+        ctr.seriesColors.push(
+            tracing.getStringColorId(ctr.name + '.' + 'value'));
+      }
 
-        // Add the sample value.
-        ctr.timestamps.push(ts);
-        ctr.samples.push(rate);
+      // Add the sample value.
+      ctr.timestamps.push(ts);
+      ctr.samples.push(rate);
 
-        return true;
-    },
+      return true;
+    }
   };
 
   Parser.registerSubtype(ClockParser);

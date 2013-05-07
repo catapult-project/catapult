@@ -24,7 +24,7 @@ found in the LICENSE file.
     this.sendHook_ = undefined;
     this.messages_ = [];
     this.connected_ = false;
-  };
+  }
 
   FakeWebSocket.prototype = {
     __proto__: base.EventTarget.prototype,
@@ -109,7 +109,7 @@ found in the LICENSE file.
               s: [
                 {s: 10, e: 11, l: 'alligator'},
                 {s: 14, e: 15, l: 'bandicoot'},
-                {s: 17, e: 18, l: 'cheetah'},
+                {s: 17, e: 18, l: 'cheetah'}
               ]
             }
         });
@@ -169,7 +169,7 @@ found in the LICENSE file.
     assertTrue(importer.connected);
 
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
@@ -189,7 +189,7 @@ found in the LICENSE file.
     });
 
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
@@ -241,20 +241,20 @@ found in the LICENSE file.
     assertTrue(importer.connected);
 
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
         sn: ['Bytes', 'Nibbles', 'Bits'],
-        sc: [4,3,2],
+        sc: [4, 3, 2],
         c: [
           {
             t: 2,
-            v: [16,12,2]
+            v: [16, 12, 2]
           },
           {
             t: 16,
-            v: [32,3,4]
+            v: [32, 3, 4]
           }
         ]
       }
@@ -262,20 +262,20 @@ found in the LICENSE file.
 
     // Test for name change import error
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
         sn: ['Bytes', 'NotNibbles', 'Bits'],
-        sc: [4,3,2],
+        sc: [4, 3, 2],
         c: [
           {
             t: 18,
-            v: [16,12,2]
+            v: [16, 12, 2]
           },
           {
             t: 24,
-            v: [32,3,4]
+            v: [32, 3, 4]
           }
         ]
       }
@@ -287,20 +287,20 @@ found in the LICENSE file.
     assertEquals(model.importErrors.length, 1);
     // test for series number change
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
         sn: ['Bytes', 'Bits'],
-        sc: [4,3],
+        sc: [4, 3],
         c: [
           {
             t: 26,
-            v: [16,12]
+            v: [16, 12]
           },
           {
             t: 32,
-            v: [32,3]
+            v: [32, 3]
           }
         ]
       }
@@ -311,20 +311,20 @@ found in the LICENSE file.
 
     // test for sn.length != sc.length
     socket.pushMessage({
-      cmd: "pcd",
+      cmd: 'pcd',
       pid: 1,
       cd: {
         n: 'Allocator',
         sn: ['Bytes', 'Nibbles', 'Bits'],
-        sc: [4,3,2,5],
+        sc: [4, 3, 2, 5],
         c: [
           {
             t: 2,
-            v: [16,12,2]
+            v: [16, 12, 2]
           },
           {
             t: 16,
-            v: [32,3,4]
+            v: [32, 3, 4]
           }
         ]
       }

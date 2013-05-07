@@ -162,7 +162,7 @@ base.exportTo('tracing.importer', function() {
   // Matches the default trace record pre-3.2:
   //          <idle>-0     [001]  1.23: sched_switch
   var lineREWithLegacyFmt =
-    /^\s*(.+)-(\d+)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
+      /^\s*(.+)-(\d+)\s+\[(\d+)\]\s*(\d+\.\d+):\s+(\S+):\s(.*)$/;
   var lineParserWithLegacyFmt = function(line) {
     var groups = lineREWithLegacyFmt.exec(line);
     if (!groups) {
@@ -235,7 +235,7 @@ base.exportTo('tracing.importer', function() {
   };
 
   LinuxPerfImporter._extractEventsFromSystraceHTML = function(
-    incoming_events, produce_result) {
+      incoming_events, produce_result) {
     var failure = {ok: false};
     if (produce_result === undefined)
       produce_result = true;
@@ -300,8 +300,8 @@ base.exportTo('tracing.importer', function() {
     events[events.length - 1] = newLastEvent;
 
     return {ok: true,
-            lines: produce_result ? events : undefined,
-            events_begin_at_line: events_begin_at_line};
+      lines: produce_result ? events : undefined,
+      events_begin_at_line: events_begin_at_line};
   }
 
   LinuxPerfImporter.prototype = {
@@ -489,7 +489,7 @@ base.exportTo('tracing.importer', function() {
               midDuration = wakeup.ts - prevSlice.end;
             }
             slices.push(new tracing.model.Slice('', title, id, prevSlice.end,
-              {}, midDuration));
+                {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
@@ -655,7 +655,7 @@ base.exportTo('tracing.importer', function() {
 
     importError: function(message) {
       this.model_.importErrors.push(
-        'Line ' + (this.lineNumberBase + this.lineNumber + 1) +
+          'Line ' + (this.lineNumberBase + this.lineNumber + 1) +
           ': ' + message);
     },
 
@@ -707,7 +707,7 @@ base.exportTo('tracing.importer', function() {
      */
     importCpuData: function() {
       var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
-        this.events_, true);
+          this.events_, true);
       if (extractResult.ok) {
         this.lineNumberBase = extractResult.events_begin_at_line;
         this.lines_ = extractResult.lines;

@@ -429,17 +429,17 @@ base.exportTo('tracing.importer', function() {
         var instance;
         if (event.ph == 'N') {
           instance = process.objects.idWasCreated(
-            event.id, event.cat, event.name, ts);
+              event.id, event.cat, event.name, ts);
         } else if (event.ph == 'O') {
           if (event.args.snapshot === undefined)
             throw new Error('Snapshots must have args: {snapshot: ...}');
           var snapshot = process.objects.addSnapshot(
-            event.id, event.cat, event.name, ts,
-            deepCopy(event.args.snapshot));
+              event.id, event.cat, event.name, ts,
+              deepCopy(event.args.snapshot));
           instance = snapshot.objectInstance;
         } else if (event.ph == 'D') {
           instance = process.objects.idWasDeleted(
-            event.id, event.cat, event.name, ts);
+              event.id, event.cat, event.name, ts);
         }
 
         if (instance)
@@ -476,21 +476,21 @@ base.exportTo('tracing.importer', function() {
           if (snapshot.args.id !== undefined)
             throw new Error('args cannot have an id field inside it');
           base.iterObjectFieldsRecursively(
-            snapshot.args,
-            function(object, fieldName, fieldValue) {
-              if (!fieldValue)
-                return;
+              snapshot.args,
+              function(object, fieldName, fieldValue) {
+                if (!fieldValue)
+                  return;
 
-              if (fieldValue.id === undefined)
-                return;
-              if (fieldValue instanceof tracing.model.ObjectSnapshot)
-                return;
-              implicitSnaps.push({containingSnapshot: snapshot,
-                                  implicitSnapshot: fieldValue,
-                                  referencingObject: object,
-                                  referencingObjectFieldName: fieldName
-                                 });
-            }, snapshot);
+                if (fieldValue.id === undefined)
+                  return;
+                if (fieldValue instanceof tracing.model.ObjectSnapshot)
+                  return;
+                implicitSnaps.push({containingSnapshot: snapshot,
+                  implicitSnapshot: fieldValue,
+                  referencingObject: object,
+                  referencingObjectFieldName: fieldName
+                });
+              }, snapshot);
         }, this);
       }, this);
 
@@ -502,7 +502,8 @@ base.exportTo('tracing.importer', function() {
         var containingSnapshot = implicitSnaps[i].containingSnapshot;
         var implicitSnapshot = implicitSnaps[i].implicitSnapshot;
         var referencingObject = implicitSnaps[i].referencingObject;
-        var referencingObjectFieldName = implicitSnaps[i].referencingObjectFieldName;
+        var referencingObjectFieldName =
+            implicitSnaps[i].referencingObjectFieldName;
 
         var m = /(.+)\/(.+)/.exec(implicitSnapshot.id);
         if (!m)
@@ -511,9 +512,9 @@ base.exportTo('tracing.importer', function() {
         var name = m[1];
         var id = m[2];
         var res = process.objects.addSnapshot(
-          id, containingSnapshot.cat,
-          name, containingSnapshot.ts,
-          implicitSnapshot);
+            id, containingSnapshot.cat,
+            name, containingSnapshot.ts,
+            implicitSnapshot);
         referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
@@ -532,15 +533,18 @@ base.exportTo('tracing.importer', function() {
       var patchupsToApply = [];
       base.iterItems(process.threads, function(tid, thread) {
         thread.asyncSlices.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'start', item);
+          this.searchItemForIDRefs_(
+              patchupsToApply, process.objects, 'start', item);
         }, this);
         thread.slices.forEach(function(item) {
-          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'start', item);
+          this.searchItemForIDRefs_(
+              patchupsToApply, process.objects, 'start', item);
         }, this);
       }, this);
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(item) {
-          this.searchItemForIDRefs_(patchupsToApply, process.objects, 'ts', item);
+          this.searchItemForIDRefs_(
+              patchupsToApply, process.objects, 'ts', item);
         }, this);
       }, this);
 
@@ -568,8 +572,8 @@ base.exportTo('tracing.importer', function() {
         // refs have been located. Otherwise, we could end up recursing in
         // ways we definitely didn't intend.
         patchupsToApply.push({object: object,
-                              field: fieldName,
-                              value: snapshot});
+          field: fieldName,
+          value: snapshot});
       }
       function iterObjectFieldsRecursively(object) {
         if (!(object instanceof Object))
@@ -596,7 +600,7 @@ base.exportTo('tracing.importer', function() {
       }
 
       iterObjectFieldsRecursively(item.args);
-    },
+    }
   };
 
   tracing.Model.registerImporter(TraceEventImporter);

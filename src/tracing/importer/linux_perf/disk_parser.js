@@ -91,10 +91,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var key = device + '-' + inode;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
-          device: device,
-          inode: inode,
-          error: error
-      });
+            device: device,
+            inode: inode,
+            error: error
+          });
       return true;
     },
 
@@ -160,13 +160,13 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var key = device + '-' + sector + '-' + numSectors;
       this.closeAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
           key, {
-          device: device,
-          sector: sector,
-          numSectors: numSectors,
-          error: error
-      });
+            device: device,
+            sector: sector,
+            numSectors: numSectors,
+            error: error
+          });
       return true;
-    },
+    }
   };
 
   Parser.registerSubtype(DiskParser);

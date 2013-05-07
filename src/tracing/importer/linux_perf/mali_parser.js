@@ -243,7 +243,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     autoDetectLineRE: function(line) {
       // Matches Mali perf events with thread info
       var lineREWithThread =
-        /^\s*\(([\w\-]*)\)\s*(\w+):\s*([\w\\\/\.\-]*@\d*):?\s*(.*)$/;
+          /^\s*\(([\w\-]*)\)\s*(\w+):\s*([\w\\\/\.\-]*@\d*):?\s*(.*)$/;
       if (lineREWithThread.test(line))
         return lineREWithThread;
 

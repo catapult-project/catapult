@@ -63,7 +63,7 @@ function testAndroidUserlandImport() {
 function testAndroidUserlandImportWithSpacesInThreadName() {
   var lines = [
     'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer',
-    'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E',
+    'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E'
   ];
   var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);

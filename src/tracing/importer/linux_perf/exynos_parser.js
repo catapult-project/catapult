@@ -105,7 +105,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
       this.exynosBusfreqSample('MIF Frequency', ts, parseInt(event[1]));
       return true;
-    },
+    }
   };
 
   Parser.registerSubtype(ExynosParser);

@@ -47,7 +47,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
         return false;
 
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
-        pid, pid);
+          pid, pid);
       kthread.openSliceTS = ts;
       kthread.openSlice = event[2];
       return true;
@@ -59,7 +59,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
         return false;
 
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
-        pid, pid);
+          pid, pid);
       if (kthread.openSlice) {
         var slice = new tracing.model.Slice('', kthread.openSlice,
             tracing.getStringColorId(kthread.openSlice),
@@ -81,7 +81,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     executeActivateWork: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO: Do something with this event?
       return true;
-    },
+    }
 
   };
 

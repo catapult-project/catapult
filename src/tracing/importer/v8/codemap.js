@@ -241,7 +241,7 @@ base.exportTo('tracing.importer.v8', function() {
    * Creates a code entry object.
    *
    * @param {number} size Code entry size in bytes.
-   * @param {string} opt_name Code entry name.
+   * @param {string=} opt_name Code entry name.
    * @constructor
    */
   CodeMap.CodeEntry = function(size, opt_name) {

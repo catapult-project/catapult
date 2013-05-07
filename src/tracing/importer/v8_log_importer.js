@@ -41,7 +41,7 @@ base.exportTo('tracing.importer', function() {
     'V8.ParseLazy': { pause: true, no_execution: true},
     'V8.GCScavenger': { pause: true, no_execution: true},
     'V8.GCCompactor': { pause: true, no_execution: true},
-    'V8.GCContext': { pause: true, no_execution: true},
+    'V8.GCContext': { pause: true, no_execution: true}
   };
 
   /**
@@ -160,7 +160,7 @@ base.exportTo('tracing.importer', function() {
      */
     importEvents: function() {
       var logreader = new tracing.importer.v8.LogReader(
-        { 'timer-event' : {
+          { 'timer-event' : {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)
           },
@@ -200,17 +200,17 @@ base.exportTo('tracing.importer', function() {
           'plot-range': {
             parsers: [parseInt, parseInt],
             processor: this.processPlotRange_.bind(this)
-          },
-        });
+          }
+          });
 
       this.v8_timer_thread_ =
-        this.model_.getOrCreateProcess(-32).getOrCreateThread(1);
+          this.model_.getOrCreateProcess(-32).getOrCreateThread(1);
       this.v8_timer_thread_.name = 'V8 Timers';
       this.v8_stack_thread_ =
-        this.model_.getOrCreateProcess(-32).getOrCreateThread(2);
+          this.model_.getOrCreateProcess(-32).getOrCreateThread(2);
       this.v8_stack_thread_.name = 'V8 JavaScript';
       this.v8_samples_thread_ =
-        this.model_.getOrCreateProcess(-32).getOrCreateThread(3);
+          this.model_.getOrCreateProcess(-32).getOrCreateThread(3);
       this.v8_samples_thread_.name = 'V8 PC';
 
       var lines = this.logData_.split('\n');

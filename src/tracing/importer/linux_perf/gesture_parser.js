@@ -35,7 +35,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
      */
     gestureOpenSlice: function(title, ts, opt_args) {
       this.importer.getOrCreatePseudoThread('gesture').thread.beginSlice(
-              'touchpad_gesture', title, ts, opt_args);
+          'touchpad_gesture', title, ts, opt_args);
     },
 
     gestureCloseSlice: function(title, ts) {
@@ -43,9 +43,9 @@ base.exportTo('tracing.importer.linux_perf', function() {
       if (thread.openSliceCount) {
         var slice = thread.openPartialSlices_[thread.openSliceCount - 1];
         if (slice.title != title) {
-           this.importer.importError('Titles do not match. Title is ' +
-                                     slice.title + ' in openSlice, and is ' +
-                                     title + ' in endSlice');
+          this.importer.importError('Titles do not match. Title is ' +
+              slice.title + ' in openSlice, and is ' +
+              title + ' in endSlice');
         } else {
           thread.endSlice(ts);
         }

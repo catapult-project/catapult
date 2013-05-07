@@ -39,7 +39,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     __proto__: LinuxPerfParser.prototype,
 
     traceKernelFuncEnterEvent: function(eventName, cpuNumber, pid, ts,
-                                  eventBase) {
+                                        eventBase) {
       var eventData = funcEnterRE.exec(eventBase.details);
       if (!eventData)
         return false;
@@ -66,7 +66,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
     },
 
     traceKernelFuncReturnEvent: function(eventName, cpuNumber, pid, ts,
-                                  eventBase) {
+                                         eventBase) {
       if (eventBase.tgid === undefined) {
         return false;
       }
@@ -87,7 +87,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       }
 
       return true;
-    },
+    }
   };
 
   LinuxPerfParser.registerSubtype(KernelFuncParser);

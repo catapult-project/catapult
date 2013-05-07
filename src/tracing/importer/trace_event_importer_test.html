@@ -597,7 +597,7 @@ function testImportStringWithEndingCommaButMissingCloseSquareBracket() {
     '[',
     '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},',
     '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},'
-    ]
+    ];
   var text = lines.join('\n');
 
   var m = new tracing.Model(text);
@@ -625,7 +625,7 @@ function testImportStringWithEndingCommaButMissingCloseSquareBracketCRLF() {
     '[',
     '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},',
     '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},'
-    ]
+    ];
   var text = lines.join('\r\n');
 
   var m = new tracing.Model(text);
@@ -868,10 +868,10 @@ function testImportSamplesMissingArgs() {
 
 function testImportSimpleObject() {
   var events = [
-    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
-    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 15}},
-    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 20}},
-    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 15}},
+    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}
   ];
   var m = new tracing.Model();
   m.importTraces([events], false);
@@ -899,29 +899,29 @@ function testImportSimpleObject() {
 
 function testImportImplicitObjects() {
   var events = [
-    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
-    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a',
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
      args: { snapshot: [
-       { id: "subObject/0x1",
+       { id: 'subObject/0x1',
          foo: 1
-       },
+       }
      ]}},
-    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a',
+    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
      args: { snapshot: [
-       { id: "subObject/0x1",
+       { id: 'subObject/0x1',
          foo: 2
        },
-       { id: "subObject/0x2",
+       { id: 'subObject/0x2',
          foo: 1
-       },
-     ]}},
+       }
+     ]}}
   ];
 
   var m = new tracing.Model();
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
-  var iA = p1.objects.getObjectInstanceAt('0x1000', 10)
+  var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
   var subObjectInstances = p1.objects.getAllInstancesByTypeName()['subObject'];
 
   assertEquals(2, subObjectInstances.length);
@@ -945,10 +945,10 @@ function testImportImplicitObjects() {
 function testImportIDRefs() {
   var events = [
     // An object with two snapshots.
-    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
-    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 15}},
-    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {snapshot: 20}},
-    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 15}},
+    {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}},
 
     // A slice that references the object.
     {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
@@ -961,7 +961,7 @@ function testImportIDRefs() {
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
-  var iA = p1.objects.getObjectInstanceAt('0x1000', 10)
+  var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
   var s15 = iA.getSnapshotAt(15);
 
   var taskSlice = p1.threads[1].slices[0];
@@ -971,13 +971,13 @@ function testImportIDRefs() {
 function testImportIDRefsThatPointAtEachOther() {
   var events = [
     // An object.
-    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
-    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {
       snapshot: { x: {
-        id: "foo/0x1001",
-        value: "bar"
+        id: 'foo/0x1001',
+        value: 'bar'
       }}}},
-    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}},
 
     // A slice that references the object.
     {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
@@ -990,8 +990,8 @@ function testImportIDRefsThatPointAtEachOther() {
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
-  var iA = p1.objects.getObjectInstanceAt('0x1000', 15)
-  var iFoo = p1.objects.getObjectInstanceAt('0x1001', 15)
+  var iA = p1.objects.getObjectInstanceAt('0x1000', 15);
+  var iFoo = p1.objects.getObjectInstanceAt('0x1001', 15);
   assertNotUndefined(iA);
   assertNotUndefined(iFoo);
 
@@ -1005,10 +1005,10 @@ function testImportIDRefsThatPointAtEachOther() {
 function testImportDoesNotMutateEventList() {
   var events = [
     // An object.
-    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
-    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {
+    {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}},
+    {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {
       snapshot: {foo: 15}}},
-    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
+    {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}},
 
     // A slice that references the object.
     {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
@@ -1024,7 +1024,7 @@ function testImportDoesNotMutateEventList() {
     this.args.foo = 7;
   }
   ASnapshot.prototype = {
-    __proto__: tracing.model.ObjectSnapshot.prototype,
+    __proto__: tracing.model.ObjectSnapshot.prototype
   };
 
   // Import event while the A types are registered, causing the

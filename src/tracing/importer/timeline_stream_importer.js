@@ -71,13 +71,13 @@ base.exportTo('tracing.importer', function() {
     this.connection_ = undefined;
     this.state_ = STATE_CAPTURING;
     this.connectionOpenHandler_ =
-      this.connectionOpenHandler_.bind(this);
+        this.connectionOpenHandler_.bind(this);
     this.connectionCloseHandler_ =
-      this.connectionCloseHandler_.bind(this);
+        this.connectionCloseHandler_.bind(this);
     this.connectionErrorHandler_ =
-      this.connectionErrorHandler_.bind(this);
+        this.connectionErrorHandler_.bind(this);
     this.connectionMessageHandler_ =
-      this.connectionMessageHandler_.bind(this);
+        this.connectionMessageHandler_.bind(this);
   }
 
   TimelineStreamImporter.prototype = {
@@ -87,13 +87,13 @@ base.exportTo('tracing.importer', function() {
       if (!this.connection_)
         return;
       this.connection_.removeEventListener('open',
-        this.connectionOpenHandler_);
+          this.connectionOpenHandler_);
       this.connection_.removeEventListener('close',
-        this.connectionCloseHandler_);
+          this.connectionCloseHandler_);
       this.connection_.removeEventListener('error',
-        this.connectionErrorHandler_);
+          this.connectionErrorHandler_);
       this.connection_.removeEventListener('message',
-        this.connectionMessageHandler_);
+          this.connectionMessageHandler_);
     },
 
     connectionOpenHandler_: function() {
@@ -124,11 +124,11 @@ base.exportTo('tracing.importer', function() {
         for (var s = 0; s < threadSlices.length; s++) {
           var slice = threadSlices[s];
           thread.slices.push(new tracing.model.Slice('streamed',
-            slice['l'],
-            0,
-            slice['s'],
-            {},
-            slice['e'] - slice['s']));
+              slice['l'],
+              0,
+              slice['s'],
+              {},
+              slice['e'] - slice['s']));
         }
         modelDirty = true;
       } else if (command == 'pcd') {
@@ -153,7 +153,7 @@ base.exportTo('tracing.importer', function() {
         } else {
           if (counter.seriesNames.length != counterSeriesNames.length) {
             var importError = 'Streamed counter ' + counterName +
-              'changed number of seriesNames';
+                'changed number of seriesNames';
             this.model_.importErrors.push(importError);
             return;
           } else {
@@ -162,9 +162,9 @@ base.exportTo('tracing.importer', function() {
               var newSeriesName = counterSeriesNames[i];
               if (oldSeriesName != newSeriesName) {
                 var importError = 'Streamed counter ' + counterName +
-                  'series name changed from ' +
-                  oldSeriesName + ' to ' +
-                  newSeriesName;
+                    'series name changed from ' +
+                    oldSeriesName + ' to ' +
+                    newSeriesName;
                 this.model_.importErrors.push(importError);
                 return;
               }
@@ -189,7 +189,7 @@ base.exportTo('tracing.importer', function() {
 
     get connected() {
       if (this.connection_ !== undefined &&
-        this.connection_.readyState == WebSocket.OPEN) {
+          this.connection_.readyState == WebSocket.OPEN) {
         return true;
       }
       return false;
@@ -201,18 +201,18 @@ base.exportTo('tracing.importer', function() {
 
     /**
      * Connects the stream to a websocket.
-     * @param {WebSocket} wsConnection The websocket to use for the stream
+     * @param {WebSocket} wsConnection The websocket to use for the stream.
      */
     connect: function(wsConnection) {
       this.connection_ = wsConnection;
       this.connection_.addEventListener('open',
-        this.connectionOpenHandler_);
+          this.connectionOpenHandler_);
       this.connection_.addEventListener('close',
-        this.connectionCloseHandler_);
+          this.connectionCloseHandler_);
       this.connection_.addEventListener('error',
-        this.connectionErrorHandler_);
+          this.connectionErrorHandler_);
       this.connection_.addEventListener('message',
-        this.connectionMessageHandler_);
+          this.connectionMessageHandler_);
     },
 
     pause: function() {

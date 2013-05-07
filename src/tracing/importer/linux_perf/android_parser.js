@@ -117,7 +117,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       }
 
       return true;
-    },
+    }
   };
 
   Parser.registerSubtype(AndroidParser);
