@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview Helper functions for use in selection_analysis files
+ * @fileoverview Helper functions for use in selection_analysis files.
  */
 
 base.exportTo('tracing.analysis', function() {

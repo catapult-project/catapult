@@ -38,9 +38,11 @@ base.exportTo('tracing.analysis', function() {
       this.appendElementsForType_('', this.object_, 0, 0, 5, '');
     },
 
-    appendElementsForType_: function(label, object, indent, depth, maxDepth, suffix) {
+    appendElementsForType_: function(
+        label, object, indent, depth, maxDepth, suffix) {
       if (depth > maxDepth) {
-        this.appendSimpleText_(label, indent, '<recursion limit reached>', suffix);
+        this.appendSimpleText_(
+            label, indent, '<recursion limit reached>', suffix);
         return;
       }
 
@@ -79,35 +81,39 @@ base.exportTo('tracing.analysis', function() {
       }
 
       if (object instanceof Array) {
-        this.appendElementsForArray_(label, object, indent, depth, maxDepth, suffix);
+        this.appendElementsForArray_(
+            label, object, indent, depth, maxDepth, suffix);
         return;
       }
 
-      this.appendElementsForObject_(label, object, indent, depth, maxDepth, suffix);
+      this.appendElementsForObject_(
+          label, object, indent, depth, maxDepth, suffix);
     },
 
-    appendElementsForArray_: function(label, object, indent, depth, maxDepth, suffix) {
+    appendElementsForArray_: function(
+        label, object, indent, depth, maxDepth, suffix) {
       if (object.length == 0) {
         this.appendSimpleText_(label, indent, '[]', suffix);
         return;
       }
 
       this.appendElementsForType_(
-        label + '[',
-        object[0],
-        indent, depth + 1, maxDepth,
-        object.length > 1 ? ',' : ']' + suffix);
+          label + '[',
+          object[0],
+          indent, depth + 1, maxDepth,
+          object.length > 1 ? ',' : ']' + suffix);
       for (var i = 1; i < object.length; i++) {
         this.appendElementsForType_(
-          '',
-          object[i],
-          indent + label.length + 1, depth + 1, maxDepth,
-          i < object.length - 1 ? ',' : ']' + suffix);
+            '',
+            object[i],
+            indent + label.length + 1, depth + 1, maxDepth,
+            i < object.length - 1 ? ',' : ']' + suffix);
       }
       return;
     },
 
-    appendElementsForObject_: function(label, object, indent, depth, maxDepth, suffix) {
+    appendElementsForObject_: function(
+        label, object, indent, depth, maxDepth, suffix) {
       var keys = base.dictionaryKeys(object);
       if (keys.length == 0) {
         this.appendSimpleText_(label, indent, '{}', suffix);
@@ -115,16 +121,16 @@ base.exportTo('tracing.analysis', function() {
       }
 
       this.appendElementsForType_(
-        label + '{' + keys[0] + ': ',
-        object[keys[0]],
-        indent, depth, maxDepth,
-        keys.length > 1 ? ',' : '}' + suffix);
+          label + '{' + keys[0] + ': ',
+          object[keys[0]],
+          indent, depth, maxDepth,
+          keys.length > 1 ? ',' : '}' + suffix);
       for (var i = 1; i < keys.length; i++) {
         this.appendElementsForType_(
-          keys[i] + ': ',
-          object[keys[i]],
-          indent + label.length + 1, depth + 1, maxDepth,
-          i < keys.length - 1 ? ',' : '}' + suffix);
+            keys[i] + ': ',
+            object[keys[i]],
+            indent + label.length + 1, depth + 1, maxDepth,
+            i < keys.length - 1 ? ',' : '}' + suffix);
       }
     },
 
@@ -155,7 +161,7 @@ base.exportTo('tracing.analysis', function() {
       el.textContent = text;
       this.appendElementWithLabel_(label, indent, el, suffix);
       return el;
-    },
+    }
 
   };
 

@@ -29,7 +29,7 @@ base.exportTo('tracing.analysis', function() {
 
     appendSummaryRow: function(table, label, opt_text) {
       table.rows.push({label: label,
-                       text: opt_text});
+        text: opt_text});
     },
 
     appendSpacingRow: function(table) {
@@ -38,16 +38,16 @@ base.exportTo('tracing.analysis', function() {
 
     appendSummaryRowTime: function(table, label, time) {
       table.rows.push({label: label,
-                       time: time});
+        time: time});
     },
 
     appendDataRow: function(table, label, duration, occurences,
                             details, selectionGenerator) {
       table.rows.push({label: label,
-                       duration: duration,
-                       occurences: occurences,
-                       details: details,
-                       selectionGenerator: selectionGenerator});
+        duration: duration,
+        occurences: occurences,
+        details: details,
+        selectionGenerator: selectionGenerator});
     }
   };
 

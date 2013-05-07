@@ -20,7 +20,8 @@ found in the LICENSE file.
     'use strict';
 
     function testSnapshotView() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new tracing.model.ObjectInstance(
+          {}, '0x1000', 'cat', 'name', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
       i10.updateBounds();
 
@@ -30,7 +31,8 @@ found in the LICENSE file.
     }
 
     function testInstanceView() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new tracing.model.ObjectInstance(
+          {}, '0x1000', 'cat', 'name', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
       var s20 = i10.addSnapshot(20, {foo: 2});
       i10.updateBounds();

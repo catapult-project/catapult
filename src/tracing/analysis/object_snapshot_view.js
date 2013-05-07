@@ -35,7 +35,7 @@ base.exportTo('tracing.analysis', function() {
     if (ObjectSnapshotView.typeNameToViewConstructorMap[typeName])
       throw new Error('Handler already registerd for ' + typeName);
     ObjectSnapshotView.typeNameToViewConstructorMap[typeName] =
-      viewConstructor;
+        viewConstructor;
   };
 
   ObjectSnapshotView.getViewConstructor = function(typeName) {
@@ -43,6 +43,6 @@ base.exportTo('tracing.analysis', function() {
   };
 
   return {
-    ObjectSnapshotView: ObjectSnapshotView,
+    ObjectSnapshotView: ObjectSnapshotView
   };
 });

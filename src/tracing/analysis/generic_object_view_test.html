@@ -22,14 +22,14 @@ found in the LICENSE file.
     var view = new GenericObjectView();
     view.object = undefined;
     this.addHTMLOutput(undefined, view);
-    assertEquals('undefined', view.children[0].dataElement.textContent)
+    assertEquals('undefined', view.children[0].dataElement.textContent);
   }
 
   function testNullValue() {
     var view = new GenericObjectView();
     view.object = null;
     this.addHTMLOutput(undefined, view);
-    assertEquals('null', view.children[0].dataElement.textContent)
+    assertEquals('null', view.children[0].dataElement.textContent);
   }
 
   function testStringValue() {
@@ -43,14 +43,14 @@ found in the LICENSE file.
     var view = new GenericObjectView();
     view.object = false;
     this.addHTMLOutput(undefined, view);
-    assertEquals('false', view.children[0].dataElement.textContent)
+    assertEquals('false', view.children[0].dataElement.textContent);
   }
 
   function testNumberValue() {
     var view = new GenericObjectView();
     view.object = 3.14159;
     this.addHTMLOutput(undefined, view);
-    assertEquals('3.14159', view.children[0].textContent)
+    assertEquals('3.14159', view.children[0].textContent);
   }
 
   function testObjectSnapshotValue() {
@@ -63,7 +63,8 @@ found in the LICENSE file.
 
     this.addHTMLOutput(undefined, view);
     assertTrue(
-        view.children[0].dataElement instanceof tracing.analysis.ObjectSnapshotLink)
+        view.children[0].dataElement instanceof
+        tracing.analysis.ObjectSnapshotLink);
   }
 
   function testObjectInstanceValue() {
@@ -76,7 +77,8 @@ found in the LICENSE file.
 
     this.addHTMLOutput(undefined, view);
     assertTrue(
-        view.children[0].dataElement instanceof tracing.analysis.ObjectInstanceLink)
+        view.children[0].dataElement instanceof
+        tracing.analysis.ObjectInstanceLink);
   }
 
   function testEmptyArrayValue() {

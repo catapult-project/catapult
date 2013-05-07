@@ -35,7 +35,7 @@ base.exportTo('tracing.analysis', function() {
     if (ObjectInstanceView.typeNameToViewConstructorMap[typeName])
       throw new Error('Handler already registerd for ' + typeName);
     ObjectInstanceView.typeNameToViewConstructorMap[typeName] =
-      viewConstructor;
+        viewConstructor;
   };
 
   ObjectInstanceView.getViewConstructor = function(typeName) {

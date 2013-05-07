@@ -65,7 +65,7 @@ base.exportTo('tracing.analysis', function() {
         var objectSnapshot = hit.objectSnapshot;
         ts = tracing.analysis.tsRound(objectSnapshot.ts);
         objectText = objectSnapshot.objectInstance.typeName + ' ' +
-          objectSnapshot.objectInstance.id;
+            objectSnapshot.objectInstance.id;
         selectionGenerator = function() {
           var selection = new tracing.Selection();
           selection.addObjectSnapshot(hit.track, objectSnapshot);
@@ -80,7 +80,7 @@ base.exportTo('tracing.analysis', function() {
             '-' + deletionTs;
 
         objectText = objectInstance.typeName + ' ' +
-          objectInstance.id;
+            objectInstance.id;
 
         selectionGenerator = function() {
           var selection = new tracing.Selection();
@@ -92,7 +92,7 @@ base.exportTo('tracing.analysis', function() {
       results.appendTableCell(table, row, ts);
       var linkContainer = results.appendTableCell(table, row, '');
       linkContainer.appendChild(
-        results.createSelectionChangingLink(objectText, selectionGenerator));
+          results.createSelectionChangingLink(objectText, selectionGenerator));
     });
   }
 

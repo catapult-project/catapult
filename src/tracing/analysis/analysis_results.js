@@ -142,7 +142,7 @@ base.exportTo('tracing.analysis', function() {
      * or one or more counters.
      * The row has a left-aligned |label| in the first column, the |duration|
      * of the data in the second, the number of |occurrences| in the third.
-     * @param {object} opt_statistics May be undefined, or an object which
+     * @param {object=} opt_statistics May be undefined, or an object which
      * contains calculated staistics containing min/max/avg for slices, or
      * min/max/avg/start/end for counters.
      */
@@ -184,11 +184,11 @@ base.exportTo('tracing.analysis', function() {
         this.appendTableCellWithTooltip_(table, row, 0, label, tooltip);
       } else {
         var labelEl = this.appendTableCellWithTooltip_(
-          table, row, 0, label, tooltip);
+            table, row, 0, label, tooltip);
         labelEl.textContent = '';
         labelEl.appendChild(
-          this.createSelectionChangingLink(label, opt_selectionGenerator,
-              tooltip));
+            this.createSelectionChangingLink(label, opt_selectionGenerator,
+            tooltip));
       }
 
       if (opt_duration !== undefined) {

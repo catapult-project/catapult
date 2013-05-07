@@ -43,7 +43,7 @@ base.exportTo('tracing.analysis', function() {
       try {
         this.currentView_ = new viewConstructor();
         this.appendChild(this.currentView_);
-      } catch(e) {
+      } catch (e) {
         this.currentView_ = undefined;
         throw e;
       }
@@ -99,7 +99,7 @@ base.exportTo('tracing.analysis', function() {
         if (hitsByType.objectSnapshots.length == 1) {
           var snapshot = hitsByType.objectSnapshots[0].objectSnapshot;
           var viewConstructor = this.snapshotViewRegistry.getViewConstructor(
-            snapshot.objectInstance.typeName);
+              snapshot.objectInstance.typeName);
 
           if (!viewConstructor)
             viewConstructor = tracing.analysis.DefaultObjectSnapshotView;
@@ -112,7 +112,7 @@ base.exportTo('tracing.analysis', function() {
         if (hitsByType.objectInstances.length == 1) {
           var instance = hitsByType.objectInstances[0].objectInstance;
           var viewConstructor = this.instanceViewRegistry.getViewConstructor(
-            instance.typeName);
+              instance.typeName);
 
           if (!viewConstructor)
             viewConstructor = tracing.analysis.DefaultObjectInstanceView;

@@ -36,9 +36,9 @@ base.exportTo('tracing.analysis', function() {
       }
       var instance = snapshot.objectInstance;
 
-      var html = ''
+      var html = '';
       html += '<div class="title">Snapshot of <a id="instance-link"></a> @ ' +
-        tsRound(snapshot.ts) + 'ms</div>\n';
+          tsRound(snapshot.ts) + 'ms</div>\n';
       html += '<table>';
       html += '<tr>';
       html += '<tr><td>args:</td><td id="args"></td></tr>\n';
@@ -54,10 +54,10 @@ base.exportTo('tracing.analysis', function() {
 
       var argsEl = this.querySelector('#args');
       argsEl.textContent = JSON.stringify(
-        snapshot.args,
-        null,
-        2);
-    },
+          snapshot.args,
+          null,
+          2);
+    }
   };
 
   /**
@@ -82,17 +82,22 @@ base.exportTo('tracing.analysis', function() {
         return;
       }
 
-      var html = ''
-      html += '<div class="title">' + instance.typeName + ' ' + instance.id + '</div>\n';
+      var html = '';
+      html += '<div class="title">' +
+          instance.typeName + ' ' +
+          instance.id + '</div>\n';
       html += '<table>';
       html += '<tr>';
-      html += '<tr><td>creationTs:</td><td>' + instance.creationTs + '</td></tr>\n';
-      if (instance.deletionTs != Number.MAX_VALUE)
-        html += '<tr><td>deletionTs:</td><td>' + instance.deletionTs + '</td></tr>\n';
-      else
+      html += '<tr><td>creationTs:</td><td>' +
+          instance.creationTs + '</td></tr>\n';
+      if (instance.deletionTs != Number.MAX_VALUE) {
+        html += '<tr><td>deletionTs:</td><td>' +
+            instance.deletionTs + '</td></tr>\n';
+      } else {
         html += '<tr><td>deletionTs:</td><td>not deleted</td></tr>\n';
+      }
       html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
-      html += '</table>'
+      html += '</table>';
       this.innerHTML = html;
       var snapshotsEl = this.querySelector('#snapshots');
       instance.snapshots.forEach(function(snapshot) {
@@ -100,7 +105,7 @@ base.exportTo('tracing.analysis', function() {
         snapshotLink.objectSnapshot = snapshot;
         snapshotsEl.appendChild(snapshotLink);
       });
-    },
+    }
   };
 
   return {

@@ -23,16 +23,22 @@ found in the LICENSE file.
     var Model = tracing.Model;
     var Selection = tracing.Selection;
     var AnalysisView = tracing.analysis.AnalysisView;
+    var ObjectInstance = tracing.model.ObjectInstance;
     var newSliceNamed = tracing.test_utils.newSliceNamed;
+    var DefaultObjectSnapshotView = tracing.analysis.DefaultObjectSnapshotView;
+    var DefaultObjectInstanceView = tracing.analysis.DefaultObjectInstanceView;
 
     function testInstantiateAnalysisWithObjects() {
       var model = new Model();
       var p1 = model.getOrCreateProcess(1);
       var objects = p1.objects;
       var i10 = objects.idWasCreated('0x1000', 'cc', 'LayerTreeHostImpl', 10);
-      var s10 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 10, "snapshot-1");
-      var s25 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 25, "snapshot-2");
-      var s40 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 40, "snapshot-3");
+      var s10 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 10,
+                                    'snapshot-1');
+      var s25 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 25,
+                                    'snapshot-2');
+      var s40 = objects.addSnapshot('0x1000', 'cc', 'LayerTreeHostImpl', 40,
+                                    'snapshot-3');
       objects.idWasDeleted('0x1000', 'cc', 'LayerTreeHostImpl', 45);
 
       var track = {};
@@ -48,7 +54,7 @@ found in the LICENSE file.
     }
 
     function testAnalyzeSelectionWithObjectSnapshotUnknownType() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
 
       var selection = new tracing.Selection();
@@ -62,12 +68,12 @@ found in the LICENSE file.
       };
 
       view.selection = selection;
-      assertTrue(view.currentView instanceof tracing.analysis.DefaultObjectSnapshotView);
+      assertTrue(view.currentView instanceof DefaultObjectSnapshotView);
       assertEquals(s10, view.currentView.objectSnapshot);
     }
 
     function testAnalyzeSelectionWithObjectSnapshotKnownType() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
 
       var selection = new tracing.Selection();
@@ -100,7 +106,7 @@ found in the LICENSE file.
     }
 
     function testAnalyzeSelectionWithObjectInstanceUnknownType() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
 
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
@@ -113,12 +119,12 @@ found in the LICENSE file.
       };
 
       view.selection = selection;
-      assertTrue(view.currentView instanceof tracing.analysis.DefaultObjectInstanceView);
+      assertTrue(view.currentView instanceof DefaultObjectInstanceView);
       assertEquals(i10, view.currentView.objectInstance);
     }
 
     function testAnalyzeSelectionWithObjectInstanceKnownType() {
-      var i10 = new tracing.model.ObjectInstance({}, "0x1000", "cat", "name", 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
 
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
