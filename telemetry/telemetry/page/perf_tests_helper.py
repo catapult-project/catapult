@@ -22,4 +22,6 @@ GeomMeanAndStdDevFromHistogram = \
     perf_tests_helper.GeomMeanAndStdDevFromHistogram
 PrintPerfResult = \
     perf_tests_helper.PrintPerfResult
+PrintPages = \
+    perf_tests_helper.PrintPages
 

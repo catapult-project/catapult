@@ -139,7 +139,7 @@ class PageMeasurementResults(page_test.PageTestResults):
       if unique_page_urls and unique_page_urls[0] == url:
         break
       unique_page_urls.append(url)
-    print 'Pages: [%s]' % ','.join(unique_page_urls)
+    perf_tests_helper.PrintPages(unique_page_urls)
 
     # Build the results summary.
     results_summary = defaultdict(list)
