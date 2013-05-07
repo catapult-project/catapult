@@ -66,6 +66,25 @@ base.exportTo('tracing', function() {
       this.buttonEl_.onclick = this.onRecord_.bind(this);
       opts.appendChild(this.buttonEl_);
 
+      this.continuousTracingBn_ = document.createElement('input');
+      this.continuousTracingBn_.type = 'checkbox';
+      this.continuousTracingBn_.checked = true;
+
+      var continuousTracingLabelEl = document.createElement('label');
+      continuousTracingLabelEl.textContent = 'Continuous tracing';
+      continuousTracingLabelEl.appendChild(this.continuousTracingBn_);
+      opts.appendChild(continuousTracingLabelEl);
+
+      this.systemTracingBn_ = document.createElement('input');
+      this.systemTracingBn_.type = 'checkbox';
+      this.systemTracingBn_.checked = false;
+
+      this.systemTracingLabelEl_ = document.createElement('label');
+      this.systemTracingLabelEl_.textContent = 'System events';
+      this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
+      this.systemTracingLabelEl_.style.display = 'none';
+      opts.appendChild(this.systemTracingLabelEl_);
+
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
 
@@ -83,6 +102,20 @@ base.exportTo('tracing', function() {
 
     set recordCallback(cb) {
       this.recordCallback_ = cb;
+    },
+
+    set showSystemTracing(isEnabled) {
+      this.systemTracingBn_.checked = isEnabled;
+      this.systemTracingLabelEl_.style.display =
+          isEnabled ? 'inline-block' : 'none';
+    },
+
+    isContinuousTracingEnabled: function() {
+      return this.continuousTracingBn_.checked;
+    },
+
+    isSystemTracingEnabled: function() {
+      return this.systemTracingBn_.checked;
     },
 
     categoryFilter: function() {

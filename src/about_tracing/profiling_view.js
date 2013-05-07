@@ -56,40 +56,17 @@ base.exportTo('about_tracing', function() {
       this.loadBn_.textContent = 'Load';
       this.loadBn_.addEventListener('click', this.onLoad_.bind(this));
 
-      this.systemTracingBn_ = document.createElement('input');
-      this.systemTracingBn_.type = 'checkbox';
-      this.systemTracingBn_.checked = false;
-
-      this.continuousTracingBn_ = document.createElement('input');
-      this.continuousTracingBn_.type = 'checkbox';
-      this.continuousTracingBn_.checked = true;
-
-      this.systemTracingLabelEl_ = document.createElement('label');
-      this.systemTracingLabelEl_.textContent = 'System events';
-      this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
-      this.systemTracingLabelEl_.style.display = 'none';
-      this.systemTracingLabelEl_.style.marginLeft = '8px';
-
-      this.continuousTracingLabelEl_ = document.createElement('label');
-      this.continuousTracingLabelEl_.textContent = 'Continuous tracing';
-      this.continuousTracingLabelEl_.appendChild(this.continuousTracingBn_);
-      this.continuousTracingLabelEl_.style.marginLeft = '8px';
-
       this.timelineView_ = new tracing.TimelineView();
       this.timelineView_.leftControls.appendChild(this.recordBn_);
-      this.timelineView_.leftControls.appendChild(this.systemTracingLabelEl_);
-      this.timelineView_.leftControls.appendChild(
-          this.continuousTracingLabelEl_);
       this.timelineView_.leftControls.appendChild(this.saveBn_);
       this.timelineView_.leftControls.appendChild(this.loadBn_);
       this.timelineView_.viewTitle = undefined;
-
       this.appendChild(this.timelineView_);
 
       document.addEventListener('keypress', this.onKeypress_.bind(this));
 
       this.onCategoriesCollectedBoundToThis_ =
-        this.onCategoriesCollected_.bind(this);
+          this.onCategoriesCollected_.bind(this);
       this.onTraceEndedBoundToThis_ = this.onTraceEnded_.bind(this);
 
       this.refresh_();
@@ -98,13 +75,6 @@ base.exportTo('about_tracing', function() {
     didSetTracingController_: function(value, oldValue) {
       if (oldValue)
         throw new Error('Can only set tracing controller once.');
-
-      if (this.tracingController_.supportsSystemTracing) {
-        this.systemTracingLabelEl_.style.display = 'block';
-        this.systemTracingBn_.checked = true;
-      } else {
-        this.systemTracingLabelEl_.style.display = 'none';
-      }
 
       this.refresh_();
     },
@@ -167,6 +137,7 @@ base.exportTo('about_tracing', function() {
       dlg.settings = this.timelineView_.settings;
       dlg.settings_key = 'record_categories';
       dlg.recordCallback = this.onRecord_.bind(this);
+      dlg.showSystemTracing = this.tracingController_.supportsSystemTracing;
       dlg.visible = true;
       this.recordSelectionDialog_ = dlg;
 
@@ -182,8 +153,8 @@ base.exportTo('about_tracing', function() {
       var categories = this.recordSelectionDialog_.categoryFilter();
       console.log('Recording: ' + categories);
 
-      tc.beginTracing(this.systemTracingBn_.checked,
-                      this.continuousTracingBn_.checked,
+      tc.beginTracing(this.recordSelectionDialog_.isSystemTracingEnabled(),
+                      this.recordSelectionDialog_.isContinuousTracingEnabled(),
                       categories);
 
       tc.addEventListener('traceEnded', this.onTraceEndedBoundToThis_);

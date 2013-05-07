@@ -25,9 +25,12 @@ found in the LICENSE file.
      dlg.settings = settings;
      dlg.settings_key = 'key';
      dlg.visible = true;
+     dlg.showSystemTracing = true;
      dlg.recordCallback = function() {
        var el = document.querySelector('.record-output');
-       el.innerText = "Category filter: " + dlg.categoryFilter();
+       el.innerText = "Category filter: " + dlg.categoryFilter() + "\n" +
+           "System Tracing: " + dlg.isSystemTracingEnabled() + "\n" +
+           "Continuous Tracing: " + dlg.isContinuousTracingEnabled();
      }
      dlg.updateForm_();
   }

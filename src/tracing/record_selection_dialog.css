@@ -39,3 +39,10 @@
 .record-selection-dialog td {
   vertical-align: top;
 }
+
+.record-selection-dialog .options label {
+  display: inline-block;
+  float: right;
+  font-size: 11px;
+  margin-left: 8px;
+}
