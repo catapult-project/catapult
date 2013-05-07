@@ -108,7 +108,7 @@ base.exportTo('tracing', function() {
   /**
    * @constructor A filter that filters objects by their category.
    * Objects match if they are NOT in the list of categories
-   * @param {Array<string>} opt_categories Categories to blacklist.
+   * @param {Array<string>=} opt_categories Categories to blacklist.
    */
   function CategoryFilter(opt_categories) {
     Filter.call(this);

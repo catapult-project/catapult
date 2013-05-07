@@ -89,7 +89,7 @@ found in the LICENSE file.
     'tracing/tracks/slice_group_track_test.html',
     'tracing/tracks/slice_track_test.html',
     'tracing/tracks/thread_track_test.html',
-    'tracing/tracks/ruler_track_test.html',
+    'tracing/tracks/ruler_track_test.html'
   ];
 </script>
 <style>
@@ -163,8 +163,8 @@ found in the LICENSE file.
         return;
 
       if (iframe.contentWindow.errorsCaughtByTestHarness &&
-        iframe.contentWindow.errorsCaughtByTestHarness.length) {
-        this.status = 'FAILED'
+          iframe.contentWindow.errorsCaughtByTestHarness.length) {
+        this.status = 'FAILED';
         return;
       }
 
@@ -177,15 +177,15 @@ found in the LICENSE file.
 
       var stats = childRunner.computeResultStats();
       if (stats.numTestsRun && !stats.numTestsWithErrors)
-        this.status = 'PASSED'
+        this.status = 'PASSED';
       else
-        this.status = 'FAILED'
+        this.status = 'FAILED';
     }
   };
 
   function AsyncTestRunner() {
     var resultsEl = document.createElement('div');
-    resultsEl.__proto__ = AsyncTestRunner.prototype
+    resultsEl.__proto__ = AsyncTestRunner.prototype;
     resultsEl.decorate();
     return resultsEl;
   }
@@ -257,7 +257,7 @@ found in the LICENSE file.
 
     onDone_: function() {
       /* all tests are done */;
-    },
+    }
   };
 
   document.addEventListener('DOMContentLoaded', function() {

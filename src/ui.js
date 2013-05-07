@@ -191,7 +191,8 @@ base.exportTo('ui', function() {
       selectorEl.appendChild(optionEl);
     });
     function onChange(e) {
-      targetEl[targetElProperty] = selectorEl.selectedOptions[0].targetPropertyValue;
+      targetEl[targetElProperty] =
+          selectorEl.selectedOptions[0].targetPropertyValue;
     }
     return selectorEl;
   }

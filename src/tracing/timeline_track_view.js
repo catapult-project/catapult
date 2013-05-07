@@ -35,7 +35,7 @@ base.exportTo('tracing', function() {
   function intersectRect_(r1, r2) {
     var results = new Object;
     if (r2.left > r1.right || r2.right < r1.left ||
-         r2.top > r1.bottom || r2.bottom < r1.top) {
+        r2.top > r1.bottom || r2.bottom < r1.top) {
       return false;
     }
     results.left = Math.max(r1.left, r2.left);
@@ -326,11 +326,11 @@ base.exportTo('tracing', function() {
           break;
       }
       if (e.shiftKey && this.dragBeginEvent_) {
-          var vertical = e.shiftKey;
-          if (this.dragBeginEvent_) {
-            this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-                               this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
-          }
+        var vertical = e.shiftKey;
+        if (this.dragBeginEvent_) {
+          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+              this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+        }
       }
     },
 
@@ -341,8 +341,8 @@ base.exportTo('tracing', function() {
         if (this.dragBeginEvent_) {
           var vertical = e.shiftKey;
           this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-                                this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
-          }
+              this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+        }
       }
     },
 
@@ -392,14 +392,14 @@ base.exportTo('tracing', function() {
 
       if (this.focusElement.tabIndex) {
         help +=
-          ' <-            : Select previous event on current timeline\n' +
-          ' ->            : Select next event on current timeline\n';
+            ' <-            : Select previous event on current timeline\n' +
+            ' ->            : Select next event on current timeline\n';
       } else {
         help += 'General Navigation\n' +
-          ' g/General     : Shows grid at the start/end of the selected' +
-                                                                  ' task\n' +
-          ' <-,^TAB       : Select previous event on current timeline\n' +
-          ' ->, TAB       : Select next event on current timeline\n';
+            ' g/General     : Shows grid at the start/end of the selected' +
+            ' task\n' +
+            ' <-,^TAB       : Select previous event on current timeline\n' +
+            ' ->, TAB       : Select next event on current timeline\n';
       }
       help +=
           '\n' +
@@ -447,7 +447,7 @@ base.exportTo('tracing', function() {
       }
 
       this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max,
-                                            this.firstCanvas.width);
+          this.firstCanvas.width);
     },
 
     get firstCanvas() {
@@ -484,12 +484,12 @@ base.exportTo('tracing', function() {
       dragRect.right = dragRect.left + dragRect.width;
       dragRect.bottom = dragRect.top + dragRect.height;
       var modelTrackContainerRect =
-                              this.modelTrackContainer_.getBoundingClientRect();
+          this.modelTrackContainer_.getBoundingClientRect();
       var clipRect = {
         left: modelTrackContainerRect.left,
         top: modelTrackContainerRect.top,
         right: modelTrackContainerRect.right,
-        bottom: modelTrackContainerRect.bottom,
+        bottom: modelTrackContainerRect.bottom
       };
       var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
       clipRect.left = clipRect.left + trackTitleWidth;
@@ -591,7 +591,7 @@ base.exportTo('tracing', function() {
         this.dragBoxYEnd_ = e.clientY;
         var vertical = e.shiftKey;
         this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-                                this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+            this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
       }
     },
 
@@ -640,10 +640,10 @@ base.exportTo('tracing', function() {
 
     onDblClick_: function(e) {
       var modelTrackContainerRect =
-                              this.modelTrackContainer_.getBoundingClientRect();
+          this.modelTrackContainer_.getBoundingClientRect();
       var clipBounds = {
         left: modelTrackContainerRect.left,
-        right: modelTrackContainerRect.right,
+        right: modelTrackContainerRect.right
       };
       var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
       clipBounds.left = clipBounds.left + trackTitleWidth;

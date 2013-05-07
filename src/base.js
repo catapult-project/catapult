@@ -79,8 +79,8 @@ this.base = (function() {
     for (var i = 0; i < dependentModules.length; i++)
       if (dependentModules[i] == dependentModuleName)
         found = true;
-    if (!found)
-      dependentModules.push(dependentModuleName);
+      if (!found)
+        dependentModules.push(dependentModuleName);
   }
 
   function addModuleRawScriptDependency(moduleName, rawScriptName) {
@@ -92,8 +92,8 @@ this.base = (function() {
     for (var i = 0; i < moduleRawScripts.length; i++)
       if (dependentRawScripts[i] == rawScriptName)
         found = true;
-    if (!found)
-      dependentRawScripts.push(rawScriptName);
+      if (!found)
+        dependentRawScripts.push(rawScriptName);
   }
 
   function addModuleStylesheet(moduleName, stylesheetName) {
@@ -175,7 +175,7 @@ this.base = (function() {
       mLog('load(' + rawScriptName + ')', indentLevel);
       var src = moduleBasePath + '/' + rawScriptName;
       var text = '<script type="text/javascript" src="' + src +
-        '"></' + 'script>';
+          '"></' + 'script>';
       base.doc.write(text);
       rawScriptLoadStatus[rawScriptName] = 'APPENDED';
     }
@@ -341,7 +341,7 @@ this.base = (function() {
    *     for.
    * @param {base.PropertyKind} kind The kind of property we are getting the
    *     setter for.
-   * @param {function(*):void} opt_setHook A function to run after the property
+   * @param {function(*):void=} opt_setHook A function to run after the property
    *     is set, but before the propertyChange event is fired.
    * @return {function(*):void} The function to use as a setter.
    */
@@ -398,7 +398,7 @@ this.base = (function() {
    * @param {string} name The name of the property.
    * @param {base.PropertyKind=} opt_kind What kind of underlying storage to
    * use.
-   * @param {function(*):void} opt_setHook A function to run after the
+   * @param {function(*):void=} opt_setHook A function to run after the
    *     property is set, but before the propertyChange event is fired.
    */
   function defineProperty(obj, name, opt_kind, opt_setHook) {
@@ -604,7 +604,7 @@ this.base = (function() {
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
-    TypeMap: TypeMap,
+    TypeMap: TypeMap
   };
 })();
 

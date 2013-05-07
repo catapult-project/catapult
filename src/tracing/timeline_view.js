@@ -61,8 +61,8 @@ base.exportTo('tracing', function() {
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
       this.analysisEl_.addEventListener(
-        'requestSelectionChange',
-        this.onRequestSelectionChange_.bind(this));
+          'requestSelectionChange',
+          this.onRequestSelectionChange_.bind(this));
 
       this.dragEl_ = new ui.DragHandle();
       this.dragEl_.target = this.analysisEl_;
@@ -234,8 +234,10 @@ base.exportTo('tracing', function() {
 
         var model = that.model;
         for (var data in model.metadata) {
-          metadataStrings.push(JSON.stringify(model.metadata[data].name) +
-                               ': ' + JSON.stringify(model.metadata[data].value, undefined, ' '));
+          metadataStrings.push(
+              JSON.stringify(
+                  model.metadata[data].name) + ': ' +
+                  JSON.stringify(model.metadata[data].value, undefined, ' '));
         }
         textEl.textContent = metadataStrings.join('\n');
       }

@@ -203,12 +203,12 @@ base.exportTo('tracing', function() {
     findAllThreadsNamed: function(name) {
       var namedThreads = [];
       namedThreads.push.apply(
-        namedThreads,
-        this.kernel.findAllThreadsNamed(name));
+          namedThreads,
+          this.kernel.findAllThreadsNamed(name));
       for (var pid in this.processes) {
         namedThreads.push.apply(
-          namedThreads,
-          this.processes[pid].findAllThreadsNamed(name));
+            namedThreads,
+            this.processes[pid].findAllThreadsNamed(name));
       }
       return namedThreads;
     },

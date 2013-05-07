@@ -41,12 +41,12 @@ base.require('about_tracing.tracing_controller');
     var tc = new about_tracing.TracingController(undefined);
     tc.addEventListener('loadTraceFileComplete', function(event) {
       assertNotNull(event.events);
-      assertEquals("<DOCTYPE>", event.events);
+      assertEquals('<DOCTYPE>', event.events);
       callbackFired = true;
     });
-    tc.onLoadTraceFileComplete("<DOCTYPE>");
+    tc.onLoadTraceFileComplete('<DOCTYPE>');
 
-    assertEquals("<DOCTYPE>", tc.traceEvents);
+    assertEquals('<DOCTYPE>', tc.traceEvents);
     assertTrue(callbackFired);
   }
 </script>

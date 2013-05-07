@@ -175,18 +175,18 @@ base.exportTo('tracing', function() {
 
     addCounterSample: function(track, counter, sampleIndex) {
       return this.push_(
-        new SelectionCounterSampleHit(
+          new SelectionCounterSampleHit(
           track, counter, sampleIndex));
     },
 
     addObjectSnapshot: function(track, objectSnapshot) {
       return this.push_(
-        new SelectionObjectSnapshotHit(track, objectSnapshot));
+          new SelectionObjectSnapshotHit(track, objectSnapshot));
     },
 
     addObjectInstance: function(track, objectInstance) {
       return this.push_(
-        new SelectionObjectInstanceHit(track, objectInstance));
+          new SelectionObjectInstanceHit(track, objectInstance));
     },
 
     addSelection: function(selection) {
@@ -210,13 +210,15 @@ base.exportTo('tracing', function() {
 
     getCounterSampleHitsAsSelection: function() {
       var selection = new Selection();
-      this.enumHitsOfType(SelectionCounterSampleHit, selection.push_.bind(selection));
+      this.enumHitsOfType(SelectionCounterSampleHit,
+                          selection.push_.bind(selection));
       return selection;
     },
 
     getSliceHitsAsSelection: function() {
       var selection = new Selection();
-      this.enumHitsOfType(SelectionSliceHit, selection.push_.bind(selection));
+      this.enumHitsOfType(SelectionSliceHit,
+                          selection.push_.bind(selection));
       return selection;
     },
 
@@ -249,19 +251,25 @@ base.exportTo('tracing', function() {
 
     getNumCounterHits: function() {
       var numHits = 0;
-      this.enumHitsOfType(SelectionCounterSampleHit, function(hit) { numHits++; });
+      this.enumHitsOfType(SelectionCounterSampleHit, function(hit) {
+        numHits++;
+      });
       return numHits;
     },
 
     getNumObjectSnapshotHits: function() {
       var numHits = 0;
-      this.enumHitsOfType(SelectionObjectSnapshotHit, function(hit) { numHits++; });
+      this.enumHitsOfType(SelectionObjectSnapshotHit, function(hit) {
+        numHits++;
+      });
       return numHits;
     },
 
     getNumObjectInstanceHits: function() {
       var numHits = 0;
-      this.enumHitsOfType(SelectionObjectInstanceHit, function(hit) { numHits++; });
+      this.enumHitsOfType(SelectionObjectInstanceHit, function(hit) {
+        numHits++;
+      });
       return numHits;
     },
 

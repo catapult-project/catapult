@@ -243,8 +243,8 @@ base.exportTo('about_tracing', function() {
 
       var statusDiv = document.createElement('div');
       statusDiv.textContent =
-        'There was an error while importing the traceData: ' + errorMessage +
-        'Would you like to save it?';
+          'There was an error while importing the traceData: ' + errorMessage +
+          'Would you like to save it?';
       statusDiv.style.maxWidth = '350px';
 
       var saveButton = document.createElement('button');
