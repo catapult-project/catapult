@@ -4,43 +4,42 @@
  */
 
 .analysis-results {
-    font-family: monospace;
-    white-space: pre;
+  font-family: monospace;
+  white-space: pre;
 }
 
 .analysis-results * {
-   -webkit-user-select: text !important;
-   cursor: text;
+  -webkit-user-select: text !important;
+  cursor: text;
 }
 .analysis-table {
-    border-collapse: collapse;
-    border-width: 0;
-    margin-bottom: 25px;
+  border-collapse: collapse;
+  border-width: 0;
+  margin-bottom: 25px;
 }
 
 .analysis-table > tr > td:first-child {
-    padding-left: 2px;
+  padding-left: 2px;
 }
 
 .analysis-table > tr > td {
-    padding: 2px 4px 2px 4px;
+  padding: 2px 4px 2px 4px;
 }
 
 .analysis-table-header {
-    text-align: left;
+  text-align: left;
 }
 
 .analysis-table-row {
-    vertical-align: top;
+  vertical-align: top;
 }
 
 .analysis-table-row:nth-child(2n+0) {
-    background-color: #e2e2e2;
+  background-color: #e2e2e2;
 }
 
-
 .selection-changing-link {
-    color: -webkit-link;
-    cursor: pointer;
-    text-decoration: underline;
+  color: -webkit-link;
+  cursor: pointer;
+  text-decoration: underline;
 }

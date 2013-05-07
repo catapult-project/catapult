@@ -4,20 +4,20 @@
  */
 
 x-quad-view {
-    display: block;
+  display: block;
 }
 
 x-quad-view,
 x-quad-view > * {
-    cursor: default;
-    -webkit-user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
 }
 x-quad-view .header {
-    display: block;
+  display: block;
 }
 
 x-quad-view canvas {
-    outline: none;
-    border: 1px solid rgba(0, 0, 0, 0.5);
-    box-shadow: rgba(0,0,0,0.2) 3px 3px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: rgba(0,0,0,0.2) 3px 3px 8px;
+  outline: none;
 }

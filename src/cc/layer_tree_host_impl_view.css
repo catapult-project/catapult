@@ -4,11 +4,8 @@
  */
 
 .lthi-s-view {
-  display: -webkit-flex;
   -webkit-flex-direction: row;
-}
-
-.lthi-s-view > layer-picker {
+  display: -webkit-flex;
 }
 
 .lthi-s-view > x-drag-handle {
@@ -22,19 +19,19 @@
 /******************************************************************************/
 
 layer-picker {
-  display: -webkit-flex;
   -webkit-flex-direction: column;
+  display: -webkit-flex;
 }
 
 layer-picker > top-controls {
   -webkit-flex: 0 0 auto;
-  display: inline;
   background-image: -webkit-gradient(linear,
-                                     0% 0%, 100% 0%,
+                                     0 0, 100% 0,
                                      from(#E5E5E5),
                                      to(#D1D1D1));
-  border-top: 1px solid white;
   border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
 }
 
 layer-picker > x-list-view {
@@ -49,19 +46,19 @@ layer-picker > x-list-view {
 /******************************************************************************/
 
 layer-viewer {
-  display: -webkit-flex;
   -webkit-flex-direction: column;
+  display: -webkit-flex;
 }
 
 layer-viewer > top-controls {
   -webkit-flex: 0 0 auto;
-  display: inline;
   background-image: -webkit-gradient(linear,
-                                     0% 0%, 100% 0%,
+                                     0 0, 100% 0,
                                      from(#E5E5E5),
                                      to(#D1D1D1));
-  border-top: 1px solid white;
   border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
 }
 
 layer-viewer > x-quad-view {

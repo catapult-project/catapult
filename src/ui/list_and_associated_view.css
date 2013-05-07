@@ -4,14 +4,14 @@
  */
 
 x-list-and-associated-view {
-    display: -webkit-flex;
-    -webkit-flex-direction: row;
+  -webkit-flex-direction: row;
+  display: -webkit-flex;
 }
 
 x-list-and-associated-view > x-list-view {
-    min-width: 100px;
+  min-width: 100px;
 }
 
 x-list-and-associated-view > :nth-child(2) {
-    -webkit-flex: 1;
+  -webkit-flex: 1;
 }

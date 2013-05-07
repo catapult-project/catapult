@@ -3,11 +3,7 @@
  * found in the LICENSE file.
  */
 
-.analysis-slices-table-col-0 {
-}
-.analysis-slices-table-col-1 {
-    text-align: right;
-}
+.analysis-slices-table-col-1,
 .analysis-slices-table-col-2 {
     text-align: right;
 }

@@ -5,7 +5,6 @@
 
 .analysis-view {
   display: -webkit-flex;
-
 }
 
 .analysis-view:not(.viewing-object) {
