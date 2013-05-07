@@ -973,10 +973,10 @@ function testImportIDRefsThatPointAtEachOther() {
     // An object.
     {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: "0x1000", name: 'a', args: {}},
     {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: "0x1000", name: 'a', args: {
-      snapshot: {
+      snapshot: { x: {
         id: "foo/0x1001",
         value: "bar"
-      }}},
+      }}}},
     {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: "0x1000", name: 'a', args: {}},
 
     // A slice that references the object.
