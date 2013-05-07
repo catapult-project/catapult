@@ -19,29 +19,29 @@ base.require('tracing.importer.linux_perf_importer');
 
 function testAndroidUserlandImport() {
   var lines = [
-    'SurfaceFlinger-4831  [001] ...1 80909.598554: tracing_mark_write: B|4829|onMessageReceived',
-    'SurfaceFlinger-4831  [001] ...1 80909.598572: tracing_mark_write: B|4829|handleMessageInvalidate',
-    'SurfaceFlinger-4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598554: tracing_mark_write: B|4829|onMessageReceived', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598572: tracing_mark_write: B|4829|handleMessageInvalidate', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
     'SurfaceFlinger-4831  [001] ...1 80909.598604: tracing_mark_write: E',
-    'SurfaceFlinger-4831  [001] ...1 80909.598627: tracing_mark_write: B|4829|latchBuffer',
-    'SurfaceFlinger-4831  [001] ...1 80909.598651: tracing_mark_write: B|4829|updateTexImage',
-    'SurfaceFlinger-4831  [001] ...1 80909.598675: tracing_mark_write: B|4829|acquireBuffer',
-    'SurfaceFlinger-4831  [001] ...1 80909.598695: tracing_mark_write: B|4829|' +
+    'SurfaceFlinger-4831  [001] ...1 80909.598627: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598651: tracing_mark_write: B|4829|updateTexImage', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598675: tracing_mark_write: B|4829|acquireBuffer', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598695: tracing_mark_write: B|4829|' + // @suppress longLineCheck
       'com.android.launcher/com.android.launcher2.Launcher: 0',
     'SurfaceFlinger-4831  [001] ...1 80909.598709: tracing_mark_write: E',
-    'SurfaceFlinger-4831  [001] ...1 80909.598733: tracing_mark_write: C|4829|' +
+    'SurfaceFlinger-4831  [001] ...1 80909.598733: tracing_mark_write: C|4829|' + // @suppress longLineCheck
       'com.android.launcher/com.android.launcher2.Launcher|0',
     'SurfaceFlinger-4831  [001] ...1 80909.598746: tracing_mark_write: E',
-    'SurfaceFlinger-4831  [001] ...1 80909.598844: tracing_mark_write: B|4829|releaseBuffer',
-    'SurfaceFlinger-4831  [001] ...1 80909.598862: tracing_mark_write: B|4829|' +
+    'SurfaceFlinger-4831  [001] ...1 80909.598844: tracing_mark_write: B|4829|releaseBuffer', // @suppress longLineCheck
+    'SurfaceFlinger-4831  [001] ...1 80909.598862: tracing_mark_write: B|4829|' + // @suppress longLineCheck
       'com.android.launcher/com.android.launcher2.Launcher: 2',
     'SurfaceFlinger-4831  [001] ...1 80909.598876: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.598892: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.598925: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.598955: tracing_mark_write: E',
-    'SurfaceFlinger-4831  [001] ...1 80909.598988: tracing_mark_write: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.598988: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
     'SurfaceFlinger-4831  [001] ...1 80909.599001: tracing_mark_write: E',
-    'SurfaceFlinger-4831  [001] ...1 80909.599021: tracing_mark_write: B|4829|latchBuffer',
+    'SurfaceFlinger-4831  [001] ...1 80909.599021: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
     'SurfaceFlinger-4831  [001] ...1 80909.599036: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599068: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599087: tracing_mark_write: E',
@@ -62,7 +62,7 @@ function testAndroidUserlandImport() {
 
 function testAndroidUserlandImportWithSpacesInThreadName() {
   var lines = [
-    'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer',
+    'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
     'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E'
   ];
   var m = new tracing.Model(lines.join('\n'), false);
@@ -81,7 +81,7 @@ function testAndroidUserlandImportWithSpacesInThreadName() {
 function testAndroidUserlandLegacyKernelImport() {
   var lines = [
     'SurfaceFlinger-4831  [001] ...1 80909.598554: 0: B|4829|onMessageReceived',
-    'SurfaceFlinger-4831  [001] ...1 80909.598572: 0: B|4829|handleMessageInvalidate',
+    'SurfaceFlinger-4831  [001] ...1 80909.598572: 0: B|4829|handleMessageInvalidate', // @suppress longLineCheck
     'SurfaceFlinger-4831  [001] ...1 80909.598590: 0: B|4829|latchBuffer',
     'SurfaceFlinger-4831  [001] ...1 80909.598604: 0: E',
     'SurfaceFlinger-4831  [001] ...1 80909.598627: 0: B|4829|latchBuffer',
@@ -123,20 +123,13 @@ function testAndroidUserlandLegacyKernelImport() {
 
 function testAndroidUserlandChromiumImport() {
   var lines = [
-    'SandboxedProces-2894  [001] ...1   253.780659: tracing_mark_write: B|2867|' +
-      'DoWorkLoop|arg1=1|cat1',
-    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: B|2867|' +
-      'DeferOrRunPendingTask|source=test=test;task=xyz|cat2',
-    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: E|2867|' +
-      'DeferOrRunPendingTask||cat1',
-    'SandboxedProces-2894  [001] ...1   253.780686: tracing_mark_write: B|2867|' +
-      'MessageLoop::RunTask|source=ipc/ipc_sync_message_filter.cc:Send|cat2',
-    'SandboxedProces-2894  [001] ...1   253.780700: tracing_mark_write: E|2867|' +
-      'MessageLoop::RunTask||cat1',
-    'SandboxedProces-2894  [001] ...1   253.780750: tracing_mark_write: C|2867|' +
-      'counter1|10|cat1',
-    'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|' +
-      'DoWorkLoop|arg2=2|cat2'
+    'SandboxedProces-2894  [001] ...1   253.780659: tracing_mark_write: B|2867|DoWorkLoop|arg1=1|cat1', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: B|2867|DeferOrRunPendingTask|source=test=test;task=xyz|cat2', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780671: tracing_mark_write: E|2867|DeferOrRunPendingTask||cat1', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780686: tracing_mark_write: B|2867|MessageLoop::RunTask|source=ipc/ipc_sync_message_filter.cc:Send|cat2', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780700: tracing_mark_write: E|2867|MessageLoop::RunTask||cat1', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780750: tracing_mark_write: C|2867|counter1|10|cat1', // @suppress longLineCheck
+    'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2' // @suppress longLineCheck
   ];
   var m = new tracing.Model(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
@@ -154,7 +147,7 @@ function testAndroidUserlandChromiumImport() {
   assertEquals('cat2', thread.slices[0].category);
   assertEquals('DeferOrRunPendingTask', thread.slices[0].title);
   assertEquals('xyz', thread.slices[0].args['task']);
-  assertEquals('ipc/ipc_sync_message_filter.cc:Send', thread.slices[1].args['source']);
+  assertEquals('ipc/ipc_sync_message_filter.cc:Send', thread.slices[1].args['source']); // @suppress longLineCheck
   assertEquals('1', thread.slices[2].args['arg1']);
   assertEquals('2', thread.slices[2].args['arg2']);
 

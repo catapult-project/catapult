@@ -18,7 +18,7 @@ base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
 function testLineParserWithLegacyFmt() {
-  var p = tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt;
+  var p = tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
   var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
       'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
       'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
@@ -49,7 +49,7 @@ function testLineParserWithIRQInfo() {
   assertEquals('001', x.cpuNumber);
   assertEquals('1031.091570', x.timestamp);
   assertEquals('sched_wakeup', x.eventName);
-  assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details);
+  assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
 }
 
 function testLineParserWithTGID() {
@@ -63,7 +63,7 @@ function testLineParserWithTGID() {
   assertEquals('001', x.cpuNumber);
   assertEquals('1031.091570', x.timestamp);
   assertEquals('sched_wakeup', x.eventName);
-  assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details);
+  assertEquals('comm=debugd pid=4978 prio=120 success=1 target_cpu=000', x.details); // @suppress longLineCheck
 
   var x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
@@ -210,8 +210,8 @@ function testCanImportSystraceFile() {
     '<head i18n-values="dir:textdirection;">',
     '<title>Android System Trace</title>',
     '<style type="text/css">tabbox{-webkit-box-orient:vertical;display:-webkit-box;}tabs{-webkit-padding-start</style>',
-    '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.Model;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.View);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;',
-    'this.cr=function(){function g(a,b,c,f){var e=new cr.Event(b+"Change");e.propertyName=b;e.newValue=c;e.oldValue=f;a.dispatchEvent(e)}function e(a){return a.replace(/([A-Z])/g,"-$1").toLowerCase()}function c(b,c){switch(c){case a.JS:var f=b+"_";return function(){return this[f]};case a.ATTR:var h=e(b);return function(){return this.getAttribute(h)};case a.BOOL_ATTR:return h=e(b),function(){return this.hasAttribute(h)}}}function f(b,c,f){switch(c){case a.JS:var h=b+"_";return function(a){var c=this[h];',
+    '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.Model;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.View);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;', // @suppress longLineCheck
+    'this.cr=function(){function g(a,b,c,f){var e=new cr.Event(b+"Change");e.propertyName=b;e.newValue=c;e.oldValue=f;a.dispatchEvent(e)}function e(a){return a.replace(/([A-Z])/g,"-$1").toLowerCase()}function c(b,c){switch(c){case a.JS:var f=b+"_";return function(){return this[f]};case a.ATTR:var h=e(b);return function(){return this.getAttribute(h)};case a.BOOL_ATTR:return h=e(b),function(){return this.hasAttribute(h)}}}function f(b,c,f){switch(c){case a.JS:var h=b+"_";return function(a){var c=this[h];', // @suppress longLineCheck
     '  </div>',
     '  <script>',
     '  var linuxPerfData = "\\',
@@ -219,15 +219,15 @@ function testCanImportSystraceFile() {
     '#\\n\\',
     '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION\\n\\',
     '#              | |       |          |         |\\n\\',
-    '          atrace-14662 [000] 50260.647576: sched_switch: prev_comm=atrace prev_pid=14662 prev_prio=120 prev_state=S ==> next_comm=kworker/0:0 next_pid=13696 next_prio=120\\n\\',
-    '     kworker/0:0-13696 [000] 50260.647590: sched_wakeup: comm=mmcqd/0 pid=95 prio=120 success=1 target_cpu=000\\n\\',
-    '     kworker/0:0-13696 [000] 50260.647602: sched_wakeup: comm=adbd pid=14582 prio=120 success=1 target_cpu=000\\n\\',
-    '     kworker/0:0-13696 [000] 50260.647610: sched_switch: prev_comm=kworker/0:0 prev_pid=13696 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14582 next_prio=120\\n\\',
-    '            adbd-14582 [000] 50260.647722: sched_wakeup: comm=adbd pid=14584 prio=120 success=1 target_cpu=000\\n\\',
-    '            adbd-14582 [000] 50260.647756: sched_switch: prev_comm=adbd prev_pid=14582 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14584 next_prio=120\\n\\',
-    '            adbd-14584 [000] 50260.647833: sched_switch: prev_comm=adbd prev_pid=14584 prev_prio=120 prev_state=S ==> next_comm=mmcqd/0 next_pid=95 next_prio=120\\n\\',
-    '         mmcqd/0-95    [000] 50260.647846: sched_switch: prev_comm=mmcqd/0 prev_pid=95 prev_prio=120 prev_state=S ==> next_comm=WebViewCoreThre next_pid=11043 next_prio=120\\n\\',
-    ' WebViewCoreThre-11043 [000] 50260.648275: sched_switch: prev_comm=WebViewCoreThre prev_pid=11043 prev_prio=120 prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120\\n";',
+    '          atrace-14662 [000] 50260.647576: sched_switch: prev_comm=atrace prev_pid=14662 prev_prio=120 prev_state=S ==> next_comm=kworker/0:0 next_pid=13696 next_prio=120\\n\\', // @suppress longLineCheck
+    '     kworker/0:0-13696 [000] 50260.647590: sched_wakeup: comm=mmcqd/0 pid=95 prio=120 success=1 target_cpu=000\\n\\', // @suppress longLineCheck
+    '     kworker/0:0-13696 [000] 50260.647602: sched_wakeup: comm=adbd pid=14582 prio=120 success=1 target_cpu=000\\n\\', // @suppress longLineCheck
+    '     kworker/0:0-13696 [000] 50260.647610: sched_switch: prev_comm=kworker/0:0 prev_pid=13696 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14582 next_prio=120\\n\\', // @suppress longLineCheck
+    '            adbd-14582 [000] 50260.647722: sched_wakeup: comm=adbd pid=14584 prio=120 success=1 target_cpu=000\\n\\', // @suppress longLineCheck
+    '            adbd-14582 [000] 50260.647756: sched_switch: prev_comm=adbd prev_pid=14582 prev_prio=120 prev_state=S ==> next_comm=adbd next_pid=14584 next_prio=120\\n\\', // @suppress longLineCheck
+    '            adbd-14584 [000] 50260.647833: sched_switch: prev_comm=adbd prev_pid=14584 prev_prio=120 prev_state=S ==> next_comm=mmcqd/0 next_pid=95 next_prio=120\\n\\', // @suppress longLineCheck
+    '         mmcqd/0-95    [000] 50260.647846: sched_switch: prev_comm=mmcqd/0 prev_pid=95 prev_prio=120 prev_state=S ==> next_comm=WebViewCoreThre next_pid=11043 next_prio=120\\n\\', // @suppress longLineCheck
+    ' WebViewCoreThre-11043 [000] 50260.648275: sched_switch: prev_comm=WebViewCoreThre prev_pid=11043 prev_prio=120 prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120\\n";', // @suppress longLineCheck
     '  <\/script>',
     '</body>',
     '</html>'
