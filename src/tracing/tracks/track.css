@@ -1,6 +1,7 @@
 /* Copyright (c) 2012 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file. */
+ * found in the LICENSE file.
+ */
 
 .track-button {
   background-color: rgba(255, 255, 255, 0.5);
@@ -30,5 +31,3 @@
   position: absolute;
   top: 2px;
 }
-
-

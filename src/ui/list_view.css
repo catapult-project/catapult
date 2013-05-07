@@ -1,6 +1,8 @@
 /* Copyright (c) 2012 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file. */
+ * found in the LICENSE file.
+ */
+
 x-list-view {
     display: block;
     -webkit-user-select: none;
@@ -24,5 +26,5 @@ x-list-view:focus > .list-item[selected] {
 }
 
 x-list-view > .list-item[selected] {
-    background-color: rgb(103, 199, 165);
+   background-color: rgb(103, 199, 165);
 }

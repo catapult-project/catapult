@@ -2,6 +2,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+
 .analysis-link {
   color: -webkit-link;
   cursor: pointer;
@@ -11,4 +12,3 @@
 .analysis-link:hover {
   cursor: pointer;
 }
-

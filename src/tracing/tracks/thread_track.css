@@ -1,6 +1,7 @@
 /* Copyright (c) 2012 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file. */
+ * found in the LICENSE file.
+ */
 
 .thread-track {
   -webkit-box-orient: vertical;
@@ -42,5 +43,3 @@
 .thread-track > .slice-group-track.first-visible-child .canvas-based-track:first-child:last-child {
   height: 22px;
 }
-
-

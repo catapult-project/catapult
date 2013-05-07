@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 /**
  * The global object.
  * @type {!Object}
