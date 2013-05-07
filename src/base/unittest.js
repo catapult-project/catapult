@@ -36,7 +36,7 @@ base.exportTo('base', function() {
 
       var titleBlockEl = document.createElement('title');
       titleBlockEl.style.display = 'inline';
-        this.appendChild(titleBlockEl);
+      this.appendChild(titleBlockEl);
 
       this.titleEl = document.createElement('span');
       this.titleEl.style.marginRight = '20px';
@@ -89,7 +89,7 @@ base.exportTo('base', function() {
       var outputEl = createOutputDiv(opt_title, opt_element);
       this.appendChild(outputEl);
       return outputEl.contents;
-    },
+    }
   };
 
   function createErrorDiv(test, e) {
@@ -256,8 +256,8 @@ base.exportTo('base', function() {
 
     /**
      * Adds some html content to the currently running test
-     * @param {String} opt_title The title for the output.
-     * @param {HTMLElement} opt_element The element to add. If not added, then.
+     * @param {String=} opt_title The title for the output.
+     * @param {HTMLElement=} opt_element The element to add. If not added, then.
      * @return {HTMLElement} The element added, or if !opt_element, the element
      * created.
      */
@@ -342,8 +342,8 @@ base.exportTo('base', function() {
 
     /**
      * Adds some html content to the currently running test
-     * @param {String} opt_title The title for the output.
-     * @param {HTMLElement} opt_element The element to add. If not added, then.
+     * @param {String=} opt_title The title for the output.
+     * @param {HTMLElement=} opt_element The element to add. If not added, then.
      * @return {HTMLElement} The element added, or if !opt_element, the element
      * created.
      */
@@ -475,7 +475,7 @@ base.exportTo('base', function() {
       if (relative_error < epsilon)
         return;
       var message = opt_message || 'Expect ' + a + ' and ' + b +
-        ' to be within ' + epsilon + ' was ' + relative_error;
+          ' to be within ' + epsilon + ' was ' + relative_error;
       throw new TestError(message);
     },
 
@@ -534,9 +534,9 @@ base.exportTo('base', function() {
    * found in the given object. This considers any functions beginning with test
    * as a potential test.
    *
-   * @param {object} opt_objectToEnumerate The object to enumerate, or global if
-   * not specified.
-   * @param {RegExp} opt_filter Return only tests that match this regexp.
+   * @param {object=} opt_objectToEnumerate The object to enumerate, or global
+   * if not specified.
+   * @param {RegExp=} opt_filter Return only tests that match this regexp.
    */
   function discoverTests(opt_objectToEnumerate, opt_filter) {
     var objectToEnumerate = opt_objectToEnumerate || global;

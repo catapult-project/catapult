@@ -40,8 +40,8 @@ base.exportTo('base', function() {
      * Get the setting with the given name.
      *
      * @param {string} key The name of the setting.
-     * @param {string} opt_default The default value to return if not set.
-     * @param {string} opt_namespace If set, the setting name will be prefixed
+     * @param {string=} opt_default The default value to return if not set.
+     * @param {string=} opt_namespace If set, the setting name will be prefixed
      * with this namespace, e.g. "categories.settingName". This is useful for
      * a set of related settings.
      */
@@ -58,7 +58,7 @@ base.exportTo('base', function() {
      *
      * @param {string} key The name of the setting.
      * @param {string} value The value of the setting.
-     * @param {string} opt_namespace If set, the setting name will be prefixed
+     * @param {string=} opt_namespace If set, the setting name will be prefixed
      * with this namespace, e.g. "categories.settingName". This is useful for
      * a set of related settings.
      */
@@ -70,7 +70,7 @@ base.exportTo('base', function() {
      * Return a list of all the keys, or all the keys in the given namespace
      * if one is provided.
      *
-     * @param {string} opt_namespace If set, only return settings which
+     * @param {string=} opt_namespace If set, only return settings which
      * begin with this prefix.
      */
     keys: function(opt_namespace) {

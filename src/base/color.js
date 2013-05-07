@@ -23,9 +23,9 @@ base.exportTo('base', function() {
       if (values.length != 3)
         throw new Error('Malformatted rgb-expression');
       return new Color(
-        parseInt(values[0]),
-        parseInt(values[1]),
-        parseInt(values[2]));
+          parseInt(values[0]),
+          parseInt(values[1]),
+          parseInt(values[2]));
     } else if (str.substr(0, 4) == 'rgba(') {
       tmp = str.substr(5, str.length - 6);
       values = tmp.split(',').map(function(v) {
@@ -34,15 +34,15 @@ base.exportTo('base', function() {
       if (values.length != 3)
         throw new Error('Malformatted rgb-expression');
       return new Color(
-        parseInt(values[0]),
-        parseInt(values[1]),
-        parseInt(values[2]),
-        parseFloat(values[3]));
+          parseInt(values[0]),
+          parseInt(values[1]),
+          parseInt(values[2]),
+          parseFloat(values[3]));
     } else if (str[0] == '#' && str.length == 7) {
       return new Color(
-        parseInt(str.substr(1, 2), 16),
-        parseInt(str.substr(3, 2), 16),
-        parseInt(str.substr(5, 2), 16));
+          parseInt(str.substr(1, 2), 16),
+          parseInt(str.substr(3, 2), 16),
+          parseInt(str.substr(5, 2), 16));
     } else {
       throw new Error('Unrecognized string format.');
     }
@@ -55,17 +55,17 @@ base.exportTo('base', function() {
   }
   Color.lerpRGB = function(a, b, percent) {
     return new Color(
-      ((b.r - a.r) * percent) + a.r,
-      ((b.g - a.g) * percent) + a.g,
-      ((b.b - a.b) * percent) + a.b);
+        ((b.r - a.r) * percent) + a.r,
+        ((b.g - a.g) * percent) + a.g,
+        ((b.b - a.b) * percent) + a.b);
   }
 
   Color.lerpRGBA = function(a, b, percent) {
     return new Color(
-      ((b.r - a.r) * percent) + a.r,
-      ((b.g - a.g) * percent) + a.g,
-      ((b.b - a.b) * percent) + a.b,
-      ((b.a - a.a) * percent) + a.a);
+        ((b.r - a.r) * percent) + a.r,
+        ((b.g - a.g) * percent) + a.g,
+        ((b.b - a.b) * percent) + a.b,
+        ((b.a - a.a) * percent) + a.a);
   }
 
   Color.prototype = {
@@ -74,9 +74,9 @@ base.exportTo('base', function() {
       k = opt_k || 0.45;
 
       return new Color(
-        Math.min(255, this.r + Math.floor(this.r * k)),
-        Math.min(255, this.g + Math.floor(this.g * k)),
-        Math.min(255, this.b + Math.floor(this.b * k)));
+          Math.min(255, this.r + Math.floor(this.r * k)),
+          Math.min(255, this.g + Math.floor(this.g * k)),
+          Math.min(255, this.b + Math.floor(this.b * k)));
     },
 
     toString: function() {
@@ -90,7 +90,7 @@ base.exportTo('base', function() {
   };
 
   return {
-    Color: Color,
-  }
+    Color: Color
+  };
 });
 

@@ -10,18 +10,18 @@ base.exportTo('base', function() {
   function QuadFromXYWH(x, y, w, h) {
     var q = new Quad();
     vec2.set(q.p1, x, y);
-    vec2.set(q.p2, x+w, y);
-    vec2.set(q.p3, x+w, y+h);
-    vec2.set(q.p4, x, y+h);
+    vec2.set(q.p2, x + w, y);
+    vec2.set(q.p3, x + w, y + h);
+    vec2.set(q.p4, x, y + h);
     return q;
   }
 
   function QuadFrom4Vecs(p1, p2, p3, p4) {
     var q = new Quad();
-    vec2.set(q.p1, p1[0], p1[1])
-    vec2.set(q.p2, p2[0], p2[1])
-    vec2.set(q.p3, p3[0], p3[1])
-    vec2.set(q.p4, p4[0], p4[1])
+    vec2.set(q.p1, p1[0], p1[1]);
+    vec2.set(q.p2, p2[0], p2[1]);
+    vec2.set(q.p3, p3[0], p3[1]);
+    vec2.set(q.p4, p4[0], p4[1]);
     return q;
   }
 
@@ -54,7 +54,7 @@ base.exportTo('base', function() {
     vecInside: function(vec)
     {
       return vecInTriangle2(vec, this.p1, this.p2, this.p3) ||
-        vecInTriangle2(vec, this.p1, this.p3, this.p4);
+          vecInTriangle2(vec, this.p1, this.p3, this.p4);
     },
     copy: function() {
       var q = new Quad();
@@ -68,7 +68,8 @@ base.exportTo('base', function() {
 
   function sign(p1, p2, p3)
   {
-    return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    return (p1[0] - p3[0]) * (p2[1] - p3[1]) -
+        (p2[0] - p3[0]) * (p1[1] - p3[1]);
   }
 
   function vecInTriangle2(pt, p1, p2, p3)

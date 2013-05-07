@@ -114,7 +114,7 @@ base.exportTo('base', function() {
       if (this.isEmpty_)
         throw new Error('Empty BBox2 has no size');
       return {width: this.max_[0] - this.min_[0],
-              height: this.max_[1] - this.min_[1]};
+        height: this.max_[1] - this.min_[1]};
     },
 
     get width() {
@@ -133,16 +133,16 @@ base.exportTo('base', function() {
       if (this.isEmpty_)
         return 'empty';
       return 'min=(' + this.min_[0] + ',' + this.min_[1] + ') ' +
-        'max=(' + this.max_[0] + ',' + this.max_[1] + ')';
+          'max=(' + this.max_[0] + ',' + this.max_[1] + ')';
     },
 
     asRect: function() {
       return base.Rect2.FromXYWH(
-        this.min_[0],
-        this.min_[1],
-        this.max_[0] - this.min_[0],
-        this.max_[1] - this.min_[1]);
-    },
+          this.min_[0],
+          this.min_[1],
+          this.max_[0] - this.min_[0],
+          this.max_[1] - this.min_[1]);
+    }
   };
 
   return {

@@ -8,132 +8,6 @@
  *        Do not edit directly.
  */
 base.addModuleDependency(
-    'tracing.model.counter',
-    'base.guid');
-base.addModuleDependency(
-    'tracing.model.counter',
-    'base.range');
-base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.model.object_instance',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.object_instance',
-    'base.sorted_array_utils');
-base.addModuleDependency(
-    'tracing.model.time_to_object_instance_map',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.time_to_object_instance_map',
-    'base.sorted_array_utils');
-base.addModuleDependency(
-    'tracing.model.object_collection',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.object_collection',
-    'base.sorted_array_utils');
-base.addModuleDependency(
-    'tracing.model.object_collection',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'tracing.model.object_collection',
-    'tracing.model.time_to_object_instance_map');
-base.addModuleDependency(
-    'tracing.model.slice_group',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.slice_group',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.model.slice_group',
-    'tracing.color_scheme');
-base.addModuleDependency(
-    'tracing.model.slice_group',
-    'tracing.filter');
-base.addModuleDependency(
-    'tracing.model.async_slice_group',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.async_slice_group',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'base.guid');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'tracing.model.slice_group');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'tracing.model.async_slice_group');
-base.addModuleDependency(
-    'tracing.model.thread',
-    'tracing.model.sample');
-base.addModuleDependency(
-    'tracing.model.process_base',
-    'base.guid');
-base.addModuleDependency(
-    'tracing.model.process_base',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.process_base',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.model.process_base',
-    'tracing.model.object_collection');
-base.addModuleDependency(
-    'tracing.model.process_base',
-    'tracing.model.thread');
-base.addModuleDependency(
-    'tracing.model.process',
-    'tracing.model.process_base');
-base.addModuleDependency(
-    'tracing.model.kernel',
-    'tracing.model.process_base');
-base.addModuleDependency(
-    'tracing.model.cpu',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.cpu',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.model.cpu',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.model',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model',
-    'base.event_target');
-base.addModuleDependency(
-    'tracing.model',
-    'tracing.model.process');
-base.addModuleDependency(
-    'tracing.model',
-    'tracing.model.kernel');
-base.addModuleDependency(
-    'tracing.model',
-    'tracing.model.cpu');
-base.addModuleDependency(
-    'tracing.model',
-    'tracing.filter');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model.slice');
-base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
-base.addModuleDependency(
     'ui.overlay',
     'base.event_target');
 base.addModuleDependency(
@@ -328,6 +202,120 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'tracing.tracks.slice_track',
     'tracing.tracks.slice_track');
+base.addModuleDependency(
+    'tracing.model.counter',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.model.counter',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.object_instance',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.object_instance',
+    'base.sorted_array_utils');
+base.addModuleDependency(
+    'tracing.model.time_to_object_instance_map',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.time_to_object_instance_map',
+    'base.sorted_array_utils');
+base.addModuleDependency(
+    'tracing.model.object_collection',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.object_collection',
+    'base.sorted_array_utils');
+base.addModuleDependency(
+    'tracing.model.object_collection',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'tracing.model.object_collection',
+    'tracing.model.time_to_object_instance_map');
+base.addModuleDependency(
+    'tracing.model.slice_group',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.slice_group',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.model.slice_group',
+    'tracing.color_scheme');
+base.addModuleDependency(
+    'tracing.model.slice_group',
+    'tracing.filter');
+base.addModuleDependency(
+    'tracing.model.async_slice_group',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.async_slice_group',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'tracing.model.slice_group');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'tracing.model.async_slice_group');
+base.addModuleDependency(
+    'tracing.model.thread',
+    'tracing.model.sample');
+base.addModuleDependency(
+    'tracing.model.process_base',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.model.process_base',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.process_base',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.model.process_base',
+    'tracing.model.object_collection');
+base.addModuleDependency(
+    'tracing.model.process_base',
+    'tracing.model.thread');
+base.addModuleDependency(
+    'tracing.model.process',
+    'tracing.model.process_base');
+base.addModuleDependency(
+    'tracing.model.kernel',
+    'tracing.model.process_base');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.model',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model',
+    'base.event_target');
+base.addModuleDependency(
+    'tracing.model',
+    'tracing.model.process');
+base.addModuleDependency(
+    'tracing.model',
+    'tracing.model.kernel');
+base.addModuleDependency(
+    'tracing.model',
+    'tracing.model.cpu');
+base.addModuleDependency(
+    'tracing.model',
+    'tracing.filter');
 base.addModuleDependency(
     'tracing.tracks.cpu_track',
     'tracing.tracks.container_track');
@@ -781,6 +769,18 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
+base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model.slice');
 base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');

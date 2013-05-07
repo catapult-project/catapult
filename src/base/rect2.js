@@ -40,8 +40,8 @@ base.exportTo('base', function() {
     enlarge: function(pad) {
       this.left -= pad;
       this.top -= pad;
-      this.width += 2*pad;
-      this.height += 2*pad;
+      this.width += 2 * pad;
+      this.height += 2 * pad;
     },
 
     get right() {
