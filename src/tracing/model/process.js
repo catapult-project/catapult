@@ -40,7 +40,7 @@ base.exportTo('tracing.model', function() {
 
     get userFriendlyDetails() {
       return 'pid: ' + this.pid;
-    },
+    }
   };
 
   return {

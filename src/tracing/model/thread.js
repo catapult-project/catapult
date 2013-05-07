@@ -111,7 +111,7 @@ base.exportTo('tracing.model', function() {
      * @param {String} category Category of the sample to add.
      * @param {String} title Title of the sample to add.
      * @param {Number} ts The timetsamp of the sample, in milliseconds.
-     * @param {Object.<string, Object>} opt_args Arguments associated with
+     * @param {Object.<string, Object>=} opt_args Arguments associated with
      * the sample.
      */
     addSample: function(category, title, ts, opt_args) {
@@ -119,7 +119,7 @@ base.exportTo('tracing.model', function() {
         var lastSample = this.samples_[this.samples_.length - 1];
         if (ts < lastSample.start) {
           throw new
-            Error('Samples must be added in increasing timestamp order.');
+              Error('Samples must be added in increasing timestamp order.');
         }
       }
       var colorId = tracing.getStringColorId(title);
@@ -205,12 +205,12 @@ base.exportTo('tracing.model', function() {
       if (this.cpuSlices && this.cpuSlices.length) {
         this.bounds.addValue(this.cpuSlices[0].start);
         this.bounds.addValue(
-          this.cpuSlices[this.cpuSlices.length - 1].end);
+            this.cpuSlices[this.cpuSlices.length - 1].end);
       }
       if (this.samples_.length) {
         this.bounds.addValue(this.samples_[0].start);
         this.bounds.addValue(
-          this.samples_[this.samples_.length - 1].end);
+            this.samples_[this.samples_.length - 1].end);
       }
     },
 

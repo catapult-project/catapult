@@ -90,10 +90,10 @@ base.exportTo('tracing.model', function() {
 
     getInstanceAt: function(ts) {
       var i = base.findLowIndexInSortedIntervals(
-        this.instances,
-        function(inst) { return inst.creationTs; },
-        function(inst) { return inst.deletionTs - inst.creationTs; },
-        ts);
+          this.instances,
+          function(inst) { return inst.creationTs; },
+          function(inst) { return inst.deletionTs - inst.creationTs; },
+          ts);
       if (i < 0 || i >= this.instances.length)
         return undefined;
       return this.instances[i];

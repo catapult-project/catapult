@@ -50,7 +50,7 @@ base.exportTo('tracing.model', function() {
       if (instanceMap)
         return instanceMap;
       instanceMap = new tracing.model.TimeToObjectInstanceMap(
-        this.createObjectInstance_, this.parent, id);
+          this.createObjectInstance_, this.parent, id);
       this.instanceMapsById_[id] = instanceMap;
       return instanceMap;
     },
@@ -154,7 +154,7 @@ base.exportTo('tracing.model', function() {
 
     shiftTimestampsForward: function(amount) {
       this.iterObjectInstances(function(instance) {
-          instance.shiftTimestampsForward(amount);
+        instance.shiftTimestampsForward(amount);
       });
     },
 
@@ -167,10 +167,10 @@ base.exportTo('tracing.model', function() {
     toJSON: function() {
       // TODO(nduca): Implement this if we need it.
       return {};
-    },
+    }
   };
 
   return {
-    ObjectCollection: ObjectCollection,
+    ObjectCollection: ObjectCollection
   };
 });

@@ -23,7 +23,7 @@ base.exportTo('tracing.model', function() {
    * SliceGroup mutation methods.
    *
    * @constructor
-   * @param {function(new:Slice, category, title, colorId, start, args)}
+   * @param {function(new:Slice, category, title, colorId, start, args)=}
    *     opt_sliceConstructor The constructor to use when creating slices.
    */
   function SliceGroup(opt_sliceConstructor) {
@@ -71,7 +71,7 @@ base.exportTo('tracing.model', function() {
      *
      * @param {String} title Title of the slice to add.
      * @param {Number} ts The timetsamp of the slice, in milliseconds.
-     * @param {Object.<string, Object>} opt_args Arguments associated with
+     * @param {Object.<string, Object>=} opt_args Arguments associated with
      * the slice.
      */
     beginSlice: function(category, title, ts, opt_args) {
@@ -130,7 +130,7 @@ base.exportTo('tracing.model', function() {
 
     /**
      * Closes any open slices.
-     * @param {Number} opt_maxTimestamp The end time to use for the closed
+     * @param {Number=} opt_maxTimestamp The end time to use for the closed
      * slices. If not provided,
      * the max timestamp for this slice is provided.
      */
@@ -178,11 +178,11 @@ base.exportTo('tracing.model', function() {
     },
 
     copySlice: function(slice) {
-        var newSlice = new this.sliceConstructor(slice.category, slice.title,
-                                                 slice.colorId, slice.start,
-                                                 slice.args, slice.duration);
-        newSlice.didNotFinish = slice.didNotFinish;
-        return newSlice;
+      var newSlice = new this.sliceConstructor(slice.category, slice.title,
+          slice.colorId, slice.start,
+          slice.args, slice.duration);
+      newSlice.didNotFinish = slice.didNotFinish;
+      return newSlice;
     }
   };
 

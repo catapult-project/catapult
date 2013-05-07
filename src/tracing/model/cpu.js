@@ -72,7 +72,7 @@ base.exportTo('tracing.model', function() {
         categoriesDict[this.slices[i].category] = true;
       for (var id in this.counters)
         categoriesDict[this.counters[id].category] = true;
-    },
+    }
 
   };
 

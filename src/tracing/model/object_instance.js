@@ -28,9 +28,9 @@ base.exportTo('tracing.model', function() {
    *    e.g. recognizing domain-specific types and converting from C++ naming
    *    convention to JS.
    *
-   * 3. Instances and snapshtos are initialized. At this point, {id_ref: '0x1000'} fields
-   *    have been converted to snapshot references. This is a good time to generic
-   *    initialization steps and argument verification.
+   * 3. Instances and snapshtos are initialized. At this point, {id_ref:
+   *    '0x1000'} fields have been converted to snapshot references. This is a
+   *    good time to generic initialization steps and argument verification.
    *
    * @constructor
    */
@@ -54,7 +54,7 @@ base.exportTo('tracing.model', function() {
      * See ObjectSnapshot constructor notes on object initialization.
      */
     initialize: function() {
-    },
+    }
   };
 
   ObjectSnapshot.nameToConstructorMap_ = {};
@@ -114,12 +114,12 @@ base.exportTo('tracing.model', function() {
           throw new Error('Snapshots already exists at this time!');
         if (ts < lastSnapshot.ts) {
           throw new Error(
-            'Snapshots must be added in increasing timestamp order');
+              'Snapshots must be added in increasing timestamp order');
         }
       }
 
       var snapshotConstructor = tracing.model.ObjectSnapshot.getConstructor(
-        this.name);
+          this.name);
       var snapshot = new snapshotConstructor(this, ts, args);
       this.snapshots.push(snapshot);
       return snapshot;
@@ -131,7 +131,7 @@ base.exportTo('tracing.model', function() {
         lastSnapshot = this.snapshots[this.snapshots.length - 1];
         if (lastSnapshot.ts > ts)
           throw new Error(
-            'Instance cannot be deleted at ts=' +
+              'Instance cannot be deleted at ts=' +
               ts + '. A snapshot exists that is older.');
       }
       this.deletionTs = ts;
@@ -159,14 +159,14 @@ base.exportTo('tracing.model', function() {
 
       var snapshots = this.snapshots;
       var i = base.findLowIndexInSortedIntervals(
-        snapshots,
-        function(snapshot) { return snapshot.ts; },
-        function(snapshot, i) {
-          if (i == snapshots.length - 1)
-            return snapshots[i].objectInstance.deletionTs;
-          return snapshots[i + 1].ts - snapshots[i].ts;
-        },
-        ts);
+          snapshots,
+          function(snapshot) { return snapshot.ts; },
+          function(snapshot, i) {
+            if (i == snapshots.length - 1)
+              return snapshots[i].objectInstance.deletionTs;
+            return snapshots[i + 1].ts - snapshots[i].ts;
+          },
+          ts);
       if (i < 0 || i >= this.snapshots.length)
         return undefined;
       return this.snapshots[i];
@@ -210,6 +210,6 @@ base.exportTo('tracing.model', function() {
 
   return {
     ObjectSnapshot: ObjectSnapshot,
-    ObjectInstance: ObjectInstance,
+    ObjectInstance: ObjectInstance
   };
 });

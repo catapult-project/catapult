@@ -24,8 +24,8 @@ found in the LICENSE file.
       this, parent, id, category, name, creationTs);
   }
   TestObjectInstance.prototype = {
-    __proto__: tracing.model.ObjectInstance.prototype,
-  }
+    __proto__: tracing.model.ObjectInstance.prototype
+  };
 
   function testObjectInstanceSubtype() {
     // Register that TestObjects are bound to TestObjectInstance.
@@ -64,21 +64,21 @@ found in the LICENSE file.
     assertEquals(10, collection.bounds.min);
     assertEquals(20, collection.bounds.max);
 
-    var s0 = collection.getSnapshotAt('0x1000', 1)
+    var s0 = collection.getSnapshotAt('0x1000', 1);
     assertUndefined(s0);
 
-    var s1 = collection.getSnapshotAt('0x1000', 10)
+    var s1 = collection.getSnapshotAt('0x1000', 10);
     assertEquals(s1.args.foo, 1);
 
-    var s2 = collection.getSnapshotAt('0x1000', 15)
+    var s2 = collection.getSnapshotAt('0x1000', 15);
     assertEquals(s2.args.foo, 1);
     assertEquals(s1, s2);
 
-    var s3 = collection.getSnapshotAt('0x1000', 20)
+    var s3 = collection.getSnapshotAt('0x1000', 20);
     assertEquals(s3.args.foo, 2);
     assertEquals(s1.object, s3.object);
 
-    var s4 = collection.getSnapshotAt('0x1000', 25)
+    var s4 = collection.getSnapshotAt('0x1000', 25);
     assertEquals(s4, s3);
   }
 
