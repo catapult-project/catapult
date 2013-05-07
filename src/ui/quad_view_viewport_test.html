@@ -32,17 +32,17 @@ found in the LICENSE file.
       assertEquals(125, vp.layoutHeight);
 
       // Top left.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0));
       assertEquals(0, tmp[0]);
       assertEquals(0, tmp[1]);
 
       // World center.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(125, 62.5))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(125, 62.5));
       assertEquals(2000, tmp[0]);
       assertEquals(1000, tmp[1]);
 
       // Bottom right.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(250, 125))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(250, 125));
       assertEquals(4000, tmp[0]);
       assertEquals(2000, tmp[1]);
     }
@@ -60,17 +60,17 @@ found in the LICENSE file.
       assertEquals(150, vp.layoutHeight);
 
       // Top left.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0));
       assertEquals(-200, tmp[0]);
       assertEquals(-200, tmp[1]);
 
       // World center.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(137.5, 75))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(137.5, 75));
       assertEquals(2000, tmp[0]);
       assertEquals(1000, tmp[1]);
 
       // Bottom right.
-      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(275, 150))
+      var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(275, 150));
       assertEquals(4200, tmp[0]);
       assertEquals(2200, tmp[1]);
     }

@@ -74,9 +74,9 @@ base.exportTo('ui', function() {
 
     updateChildren_: function() {
       var complete = this.list_ &&
-        this.listProperty_ &&
-        this.view_ &&
-        this.viewProperty_;
+          this.listProperty_ &&
+          this.view_ &&
+          this.viewProperty_;
       if (!complete) {
         this.replaceChild(this.placeholder_,
                           this.children[1]);

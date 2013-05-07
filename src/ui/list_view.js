@@ -75,25 +75,25 @@ base.exportTo('ui', function() {
 
       var listView = this;
       Object.defineProperty(
-        item,
-        "selected", {
-          configurable: true,
-          set: function(value) {
-            var oldSelection = listView.selectedElement;
-            if (oldSelection && oldSelection != this && value)
-              listView.selectedElement.removeAttribute('selected');
-            if (value)
-              this.setAttribute('selected', 'selected');
-            else
-              this.removeAttribute('selected');
-            var newSelection = listView.selectedElement;
-            if (newSelection != oldSelection)
-              base.dispatchSimpleEvent(listView, 'selection-changed', false);
-          },
-          get: function() {
-            return this.hasAttribute('selected');
-          }
-        });
+          item,
+          'selected', {
+            configurable: true,
+            set: function(value) {
+              var oldSelection = listView.selectedElement;
+              if (oldSelection && oldSelection != this && value)
+                listView.selectedElement.removeAttribute('selected');
+              if (value)
+                this.setAttribute('selected', 'selected');
+              else
+                this.removeAttribute('selected');
+              var newSelection = listView.selectedElement;
+              if (newSelection != oldSelection)
+                base.dispatchSimpleEvent(listView, 'selection-changed', false);
+            },
+            get: function() {
+              return this.hasAttribute('selected');
+            }
+          });
     },
 
     undecorateItem_: function(item) {
@@ -149,7 +149,7 @@ base.exportTo('ui', function() {
           e.preventDefault();
           return true;
         }
-      } else if(e.keyCode == 40) { // Down arrow.
+      } else if (e.keyCode == 40) { // Down arrow.
         var next = this.selectedElement.nextSibling;
         if (next) {
           next.selected = true;
@@ -165,7 +165,7 @@ base.exportTo('ui', function() {
       item.textContent = textContent;
       this.appendChild(item);
       return item;
-    },
+    }
 
   };
 

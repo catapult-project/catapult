@@ -57,16 +57,20 @@ base.exportTo('ui', function() {
       var targetKey = this.horizontal_ ? 'height' : 'width';
 
       // If style is not set, start off with computed height.
-      if (!this.target.style[targetKey])
-        this.target.style[targetKey] = window.getComputedStyle(this.target)[targetKey];
+      if (!this.target.style[targetKey]) {
+        this.target.style[targetKey] =
+            window.getComputedStyle(this.target)[targetKey];
+      }
 
       // Apply new size to the container.
       if (this.target == this.nextSibling) {
-        this.target.style[targetKey] = parseInt(this.target.style[targetKey]) + delta + 'px';
+        this.target.style[targetKey] =
+            parseInt(this.target.style[targetKey]) + delta + 'px';
       } else {
         if (this.target != this.previousSibling)
           throw Error('Must be next sibling');
-        this.target.style[targetKey] = parseInt(this.target.style[targetKey]) - delta + 'px';
+        this.target.style[targetKey] =
+            parseInt(this.target.style[targetKey]) - delta + 'px';
       }
 
 

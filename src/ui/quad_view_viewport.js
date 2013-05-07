@@ -55,9 +55,9 @@ base.exportTo('ui', function() {
       this.devicePixelsPerLayoutPixel_ = 1 / devicePixelRatio;
 
       this.deviceWidth =
-        this.worldRect.width * this.worldPixelsPerDevicePixel_;
+          this.worldRect.width * this.worldPixelsPerDevicePixel_;
       this.deviceHeight =
-        this.worldRect.height * this.worldPixelsPerDevicePixel_;
+          this.worldRect.height * this.worldPixelsPerDevicePixel_;
 
       this.layoutWidth = this.deviceWidth * this.devicePixelsPerLayoutPixel_;
       this.layoutHeight = this.deviceHeight * this.devicePixelsPerLayoutPixel_;
@@ -90,7 +90,7 @@ base.exportTo('ui', function() {
 
       mat2d.identity(this.transformWorldToDevicePixels_);
       mat2d.translateInplaceXY(
-        this.transformWorldToDevicePixels_,
+          this.transformWorldToDevicePixels_,
           -this.worldRect.left, -this.worldRect.top);
       mat2d.scaleInplaceXY(this.transformWorldToDevicePixels_,
                            this.worldPixelsPerDevicePixel_,
@@ -141,7 +141,7 @@ base.exportTo('ui', function() {
   };
 
   return {
-    QuadViewViewport: QuadViewViewport,
-  }
+    QuadViewViewport: QuadViewViewport
+  };
 });
 

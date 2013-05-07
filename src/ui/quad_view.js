@@ -73,7 +73,7 @@ base.exportTo('ui', function() {
 
     get hasRequiredProprties_() {
       return this.quads_ &&
-        this.viewport_;
+          this.viewport_;
     },
 
     updateChildren_: function() {
@@ -101,8 +101,8 @@ base.exportTo('ui', function() {
       var vp = this.viewport_;
       ctx.fillStyle = 'rgb(255,255,255)';
       ctx.fillRect(
-        0, 0,
-        this.canvas_.width, this.canvas_.height);
+          0, 0,
+          this.canvas_.width, this.canvas_.height);
 
       ctx.save();
 
@@ -180,7 +180,8 @@ base.exportTo('ui', function() {
     },
 
     selectQuadsAtCanvasClientPoint: function(clientX, clientY) {
-      var selectedQuadIndices = this.findQuadsAtCanvasClientPoint(clientX, clientY);
+      var selectedQuadIndices = this.findQuadsAtCanvasClientPoint(
+          clientX, clientY);
       var e = new base.Event('selectionChanged');
       e.selectedQuadIndices = selectedQuadIndices;
       this.dispatchEvent(e);
@@ -192,7 +193,7 @@ base.exportTo('ui', function() {
       var vecInLayout = vec2.createXY(clientX - bounds.left,
                                       clientY - bounds.top);
       var vecInWorldPixels =
-        this.viewport_.layoutPixelsToWorldPixels2(vecInLayout);
+          this.viewport_.layoutPixelsToWorldPixels2(vecInLayout);
 
       var quads = this.quads_;
       var hitIndices = [];
@@ -227,5 +228,5 @@ base.exportTo('ui', function() {
 
   return {
     QuadView: QuadView
-  }
+  };
 });
