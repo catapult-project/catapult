@@ -213,7 +213,8 @@ class Module(object):
 
       filename, contents = resource_finder.find_and_load_module(self, name)
       if not filename:
-        raise DepsException("Could not find a file for module %s" % name)
+        raise DepsException("No file for module %(name)s needed by %(dep)s" %
+          {"name": name, "dep": self.filename})
 
       module = Module(name)
       all_resources["scripts"][name] = module
@@ -224,7 +225,7 @@ class Module(object):
     for name in self.dependent_raw_script_names:
       filename, contents = resource_finder.find_and_load_raw_script(self, name)
       if not filename:
-        raise DepsException("Could not find a file for module %s" % name)
+        raise DepsException("Could not find a file for raw script %s" % name)
 
       if name in all_resources["raw_scripts"]:
         assert all_resources["raw_scripts"][name].contents
