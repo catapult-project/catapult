@@ -7,6 +7,9 @@
  *
  *        Do not edit directly.
  */
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
 base.addModuleDependency(
     'ui.overlay',
     'base.event_target');
@@ -778,18 +781,6 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
-base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
-base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
-    'tracing.model.slice');
 base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');
@@ -799,3 +790,12 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'ui.list_and_associated_view',
     'ui.list_and_associated_view');
+base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model.slice');

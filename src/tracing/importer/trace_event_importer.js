@@ -50,24 +50,12 @@ base.exportTo('tracing.importer', function() {
       // cannot guarantee that a ']' gets written to the trace file. So, we are
       // forgiving and if this is obviously the case, we fix it up before
       // throwing the string at JSON.parse.
-      if (eventData[0] == '[') {
-        n = eventData.length;
-        if (eventData[n - 1] == '\n') {
-          eventData = eventData.substring(0, n - 1);
-          n--;
-
-          if (eventData[n - 1] == '\r') {
-            eventData = eventData.substring(0, n - 1);
-            n--;
-          }
-        }
-
-        if (eventData[n - 1] == ',')
-          eventData = eventData.substring(0, n - 1);
-        if (eventData[n - 1] != ']')
+      if (eventData[0] === '[') {
+        eventData = eventData.replace(/[\r|\n]*$/, '')
+                             .replace(/\s*,\s*$/, '');
+        if (eventData[eventData.length - 1] !== ']')
           eventData = eventData + ']';
       }
-
       this.events_ = JSON.parse(eventData);
 
     } else {
