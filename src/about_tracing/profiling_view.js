@@ -69,6 +69,13 @@ base.exportTo('about_tracing', function() {
           this.onCategoriesCollected_.bind(this);
       this.onTraceEndedBoundToThis_ = this.onTraceEnded_.bind(this);
 
+      document.addEventListener('dragstart', this.ignoreHandler_, false);
+      document.addEventListener('dragend', this.ignoreHandler_, false);
+      document.addEventListener('dragenter', this.ignoreHandler_, false);
+      document.addEventListener('dragleave', this.ignoreHandler_, false);
+      document.addEventListener('dragover', this.ignoreHandler_, false);
+      document.addEventListener('drop', this.dropHandler_.bind(this), false);
+
       this.refresh_();
     },
 
@@ -223,6 +230,35 @@ base.exportTo('about_tracing', function() {
 
       tc.addEventListener('loadTraceFileComplete', response);
       tc.addEventListener('loadTraceFileCanceled', response);
+    },
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    ignoreHandler_: function(e) {
+      e.preventDefault();
+      return false;
+    },
+
+    dropHandler_: function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var that = this;
+      var files = e.dataTransfer.files;
+      var files_len = files.length;
+      for (var i = 0; i < files_len; ++i) {
+        var reader = new FileReader();
+        reader.onload = function(data) {
+          try {
+            that.tracingController.onLoadTraceFileComplete(data.target.result);
+            that.refresh_();
+          } catch (e) {
+            console.log('Unable to import the provided trace file.', e.message);
+          }
+        };
+        reader.readAsText(files[i]);
+      }
+      return false;
     }
   };
 
