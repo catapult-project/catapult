@@ -8,6 +8,10 @@
   display: -webkit-flex;
 }
 
+.lthi-s-view > layer-picker {
+  width: 350px;
+}
+
 .lthi-s-view > x-drag-handle {
   -webkit-flex: 0 0 auto;
 }
@@ -37,10 +41,14 @@ layer-picker > top-controls {
 layer-picker > x-list-view {
   -webkit-flex: 1 1 auto;
   overflow: auto;
+  font-family: monospace;
 }
 
-layer-picker > x-list-view {
-  font-family: monospace;
+layer-picker > x-generic-object-view {
+  -webkit-flex: 0 0 auto;
+  overflow: auto;
+  height: 200px;
+  /*font-family: monospace;*/
 }
 
 /******************************************************************************/

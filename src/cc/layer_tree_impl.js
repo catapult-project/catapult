@@ -27,9 +27,9 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
-      cc.moveFieldsFromArgsToToplevel(this);
-      cc.assertHasField(this, 'rootLayer');
-      cc.assertHasField(this, 'renderSurfaceLayerList');
+      cc.moveRequiredFieldsFromArgsToToplevel(
+        this, ['rootLayer',
+               'renderSurfaceLayerList']);
       this.rootLayer.layerTreeImpl = this;
     }
   };

@@ -43,19 +43,28 @@ base.exportTo('cc', function() {
     convertQuadSuffixedTypesToQuads(object);
   }
 
-  function moveFieldsFromArgsToToplevel(object) {
-    for (var key in object.args) {
+  function moveRequiredFieldsFromArgsToToplevel(object, fields) {
+    for (var i = 0; i < fields.length; i++) {
+      var key = fields[i];
+      if (object.args[key] === undefined)
+        throw Error('Expected field ' + key + ' not found in args');
       if (object[key] !== undefined)
         throw Error('Field ' + key + ' already in object');
       object[key] = object.args[key];
+      delete object.args[key];
     }
-    object.args = {};
   }
 
-  function assertHasField(object, fieldName) {
-    if (object[fieldName] !== undefined)
-      return;
-    throw new Error('Expected ' + fieldName);
+  function moveOptionalFieldsFromArgsToToplevel(object, fields) {
+    for (var i = 0; i < fields.length; i++) {
+      var key = fields[i];
+      if (object.args[key] === undefined)
+        continue;
+      if (object[key] !== undefined)
+        throw Error('Field ' + key + ' already in object');
+      object[key] = object.args[key];
+      delete object.args[key];
+    }
   }
 
   function preInitializeObject(object) {
@@ -102,9 +111,9 @@ base.exportTo('cc', function() {
   }
 
   return {
-    assertHasField: assertHasField,
     preInitializeObject: preInitializeObject,
     convertNameToJSConvention: convertNameToJSConvention,
-    moveFieldsFromArgsToToplevel: moveFieldsFromArgsToToplevel
+    moveRequiredFieldsFromArgsToToplevel: moveRequiredFieldsFromArgsToToplevel,
+    moveOptionalFieldsFromArgsToToplevel: moveOptionalFieldsFromArgsToToplevel,
   };
 });

@@ -33,10 +33,13 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
-      cc.moveFieldsFromArgsToToplevel(this);
+      cc.moveRequiredFieldsFromArgsToToplevel(
+        this, ['deviceViewportSize',
+               'activeTree']);
+      cc.moveOptionalFieldsFromArgsToToplevel(
+        this, ['pendingTree',
+               'tiles']);
 
-      cc.assertHasField(this, 'deviceViewportSize');
-      cc.assertHasField(this, 'activeTree');
       this.activeTree.layerTreeHostImpl = this;
       this.activeTree.whichTree = constants.ACTIVE_TREE;
       if (this.pendingTree) {

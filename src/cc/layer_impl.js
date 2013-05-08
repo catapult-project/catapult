@@ -28,9 +28,11 @@ base.exportTo('cc', function() {
 
     initialize: function() {
       // Import & validate this.args
-      cc.moveFieldsFromArgsToToplevel(this);
-      cc.assertHasField(this, 'children');
-      cc.assertHasField(this, 'layerQuad');
+      cc.moveRequiredFieldsFromArgsToToplevel(
+        this, ['children',
+               'layerQuad']);
+      cc.moveOptionalFieldsFromArgsToToplevel(
+        this, ['maskLayer', 'replicaLayer']);
 
       for (var i = 0; i < this.children.length; i++)
         this.children[i].parentLayer = this;

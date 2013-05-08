@@ -729,6 +729,9 @@ base.addModuleDependency(
     'cc.layer_tree_host_impl');
 base.addModuleDependency(
     'cc.layer_tree_host_impl_view',
+    'tracing.analysis.generic_object_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
     'tracing.analysis.object_snapshot_view');
 base.addModuleDependency(
     'cc.layer_tree_host_impl_view',

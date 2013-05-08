@@ -8,6 +8,7 @@ base.requireStylesheet('cc.layer_tree_host_impl_view');
 
 base.require('cc.constants');
 base.require('cc.layer_tree_host_impl');
+base.require('tracing.analysis.generic_object_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
 base.require('ui.drag_handle');
@@ -31,8 +32,15 @@ base.exportTo('cc', function() {
 
       this.controls_ = document.createElement('top-controls');
       this.layerList_ = new ui.ListView();
+      this.layerDataView_ = new tracing.analysis.GenericObjectView();
       this.appendChild(this.controls_);
       this.appendChild(this.layerList_);
+      var dragHandle = new ui.DragHandle();
+      dragHandle.horizontal = true;
+      dragHandle.target = this.layerDataView_;
+      this.appendChild(dragHandle);
+      this.appendChild(this.layerDataView_);
+
       this.layerList_.addEventListener(
           'selection-changed', this.onLayerSelectionChanged_.bind(this));
 
@@ -143,6 +151,7 @@ base.exportTo('cc', function() {
 
     onLayerSelectionChanged_: function(e) {
       base.dispatchSimpleEvent(this, 'selection-changed', false);
+      this.layerDataView_.object = this.selectedLayer.args;
     },
 
     get selectedLayer() {
