@@ -265,8 +265,10 @@ this.base = (function() {
    * @param {*} newValue The new value for the property.
    * @param {*} oldValue The old value for the property.
    */
-  function dispatchPropertyChange(target, propertyName, newValue, oldValue) {
-    var e = new base.Event(propertyName + 'Change');
+  function dispatchPropertyChange(target, propertyName, newValue, oldValue,
+    opt_bubbles, opt_cancelable) {
+    var e = new base.Event(propertyName + 'Change',
+      opt_bubbles, opt_cancelable);
     e.propertyName = propertyName;
     e.newValue = newValue;
     e.oldValue = oldValue;
@@ -343,9 +345,12 @@ this.base = (function() {
    *     setter for.
    * @param {function(*):void=} opt_setHook A function to run after the property
    *     is set, but before the propertyChange event is fired.
+   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
+   * @param {boolean=} opt_cancelable Whether the default action of the event
+   *     can be prevented.
    * @return {function(*):void} The function to use as a setter.
    */
-  function getSetter(name, kind, opt_setHook) {
+  function getSetter(name, kind, opt_setHook, opt_bubbles, opt_cancelable) {
     switch (kind) {
       case PropertyKind.JS:
         var privateName = name + '_';
@@ -355,14 +360,15 @@ this.base = (function() {
             this[privateName] = value;
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue);
+            dispatchPropertyChange(this, name, value, oldValue,
+              opt_bubbles, opt_cancelable);
           }
         };
 
       case PropertyKind.ATTR:
         var attributeName = getAttributeName(name);
         return function(value) {
-          var oldValue = this[attributeName];
+          var oldValue = this.getAttribute(attributeName);
           if (value !== oldValue) {
             if (value == undefined)
               this.removeAttribute(attributeName);
@@ -370,14 +376,15 @@ this.base = (function() {
               this.setAttribute(attributeName, value);
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue);
+            dispatchPropertyChange(this, name, value, oldValue,
+              opt_bubbles, opt_cancelable);
           }
         };
 
       case PropertyKind.BOOL_ATTR:
         var attributeName = getAttributeName(name);
         return function(value) {
-          var oldValue = this[attributeName];
+          var oldValue = (this.getAttribute(attributeName) === name);
           if (value !== oldValue) {
             if (value)
               this.setAttribute(attributeName, name);
@@ -385,7 +392,8 @@ this.base = (function() {
               this.removeAttribute(attributeName);
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue);
+            dispatchPropertyChange(this, name, value, oldValue,
+              opt_bubbles, opt_cancelable);
           }
         };
     }
@@ -400,8 +408,12 @@ this.base = (function() {
    * use.
    * @param {function(*):void=} opt_setHook A function to run after the
    *     property is set, but before the propertyChange event is fired.
+   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
+   * @param {boolean=} opt_cancelable Whether the default action of the event
+   *     can be prevented.
    */
-  function defineProperty(obj, name, opt_kind, opt_setHook) {
+  function defineProperty(obj, name, opt_kind, opt_setHook,
+    opt_bubbles, opt_cancelable) {
     if (typeof obj == 'function')
       obj = obj.prototype;
 
@@ -411,13 +423,17 @@ this.base = (function() {
       obj.__defineGetter__(name, getGetter(name, kind));
 
     if (!obj.__lookupSetter__(name))
-      obj.__defineSetter__(name, getSetter(name, kind, opt_setHook));
+      obj.__defineSetter__(name, getSetter(name, kind, opt_setHook,
+        opt_bubbles, opt_cancelable));
   }
 
   /**
    * Dispatches a simple event on an event target.
    * @param {!EventTarget} target The event target to dispatch the event on.
    * @param {string} type The type of the event.
+   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
+   * @param {boolean=} opt_cancelable Whether the default action of the event
+   *     can be prevented.
    * @param {boolean=} opt_bubbles Whether the event bubbles or not.
    * @param {boolean=} opt_cancelable Whether the default action of the event
    *     can be prevented.

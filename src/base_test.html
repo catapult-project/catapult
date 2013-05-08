@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>base tests</title>
+<script src="/src/base.js"></script>
+</head>
+<body>
+  <script>
+        base.require('ui');
+        base.require('base.unittest');
+  </script>
+  <script>
+    'use strict';
+
+    function testBaseDefineProperties() {
+      var ASpan = ui.define('span');
+      
+      ASpan.prototype = {
+        __proto__: HTMLSpanElement.prototype,
+        decorate: function() {
+          this.boolProp = false;
+        }
+      };
+
+      var propName = 'boolProp';
+      base.defineProperty(ASpan, propName, base.PropertyKind.BOOL_ATTR);
+
+      var aSpan = new ASpan();
+
+      var stateChanges;
+      aSpan.addEventListener('boolPropChange', function(event) {
+        stateChanges = event.oldValue + ' to ' + event.newValue;
+      });
+
+      aSpan.boolProp = true;
+      assertTrue(stateChanges === 'false to true');
+      aSpan.boolProp = false;
+      assertTrue(stateChanges === 'true to false');
+    }
+
+  </script>
+</body>
+</html>
