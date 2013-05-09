@@ -199,6 +199,15 @@ class BrowserBackend(object):
   def GetTraceResultAndReset(self):
     return self._tracing_backend.GetTraceResultAndReset()
 
+  def GetProcessName(self, cmd_line):
+    """Returns a user-friendly name for the process of the given |cmd_line|."""
+    if 'nacl_helper_bootstrap' in cmd_line:
+      return 'nacl_helper_bootstrap'
+    m = re.match(r'.* --type=([^\s]*) .*', cmd_line)
+    if not m:
+      return 'browser'
+    return m.group(1)
+
   def GetRemotePort(self, _):
     return util.GetAvailableLocalPort()
 

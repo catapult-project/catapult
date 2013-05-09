@@ -107,3 +107,6 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
             child_pids.append(int(curr_pid))
         break
     return child_pids
+
+  def GetCommandLine(self, pid):
+    raise NotImplementedError()
