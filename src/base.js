@@ -285,6 +285,14 @@ this.base = (function() {
     return jsName.replace(/([A-Z])/g, '-$1').toLowerCase();
   }
 
+  /* Creates a private name unlikely to collide with object properties names
+   * @param {string} name The defineProperty name
+   * @return {string} an obfuscated name
+   */
+   function getPrivateName(name) {
+    return name + '_base_';
+   }
+
   /**
    * The kind of property to define in {@code defineProperty}.
    * @enum {number}
@@ -319,7 +327,7 @@ this.base = (function() {
   function getGetter(name, kind) {
     switch (kind) {
       case PropertyKind.JS:
-        var privateName = name + '_';
+        var privateName = getPrivateName(name);
         return function() {
           return this[privateName];
         };
@@ -353,7 +361,7 @@ this.base = (function() {
   function getSetter(name, kind, opt_setHook, opt_bubbles, opt_cancelable) {
     switch (kind) {
       case PropertyKind.JS:
-        var privateName = name + '_';
+        var privateName = getPrivateName(name);
         return function(value) {
           var oldValue = this[privateName];
           if (value !== oldValue) {
