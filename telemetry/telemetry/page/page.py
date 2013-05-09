@@ -63,7 +63,7 @@ class Page(object):
   @property
   def url_as_file_safe_name(self):
     # Just replace all special characters in the url with underscore.
-    return re.sub('[^a-zA-Z0-9]', '_', self.display_url)
+    return re.sub('[^a-zA-Z0-9]', '_', self.url)
 
   @property
   def display_url(self):

@@ -75,6 +75,3 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
         child_pids.append(int(curr_pid))
         child_pids.extend(self.GetChildPids(int(curr_pid)))
     return child_pids
-
-  def GetCommandLine(self, pid):
-    raise NotImplementedError()

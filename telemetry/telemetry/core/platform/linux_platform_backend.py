@@ -75,7 +75,3 @@ class LinuxPlatformBackend(platform_backend.PlatformBackend):
         child_pids.append(int(curr_pid))
         child_pids.extend(self.GetChildPids(int(curr_pid)))
     return child_pids
-
-  def GetCommandLine(self, pid):
-    with open('/proc/%s/cmdline' % pid, 'r') as f:
-      return f.read()

@@ -127,6 +127,3 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
       return ret
 
     return _InnerGetChildPids(pid)
-
-  def GetCommandLine(self, pid):
-    raise NotImplementedError()
