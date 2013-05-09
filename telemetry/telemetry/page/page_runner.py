@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import codecs
+import glob
 import logging
 import os
 import time
@@ -130,15 +131,8 @@ class PageRunner(object):
     for page in pages:
       test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 
-    # Check tracing directory.
-    if options.trace_dir:
-      if not os.path.exists(options.trace_dir):
-        os.mkdir(options.trace_dir)
-      if not os.path.isdir(options.trace_dir):
-        raise Exception('--trace-dir isn\'t a directory: %s' %
-                        options.trace_dir)
-      elif os.listdir(options.trace_dir):
-        raise Exception('Trace directory isn\'t empty: %s' % options.trace_dir)
+    self._ValidateOrCreateEmptyDirectory('--trace-dir', options.trace_dir)
+    self._ValidateOrCreateEmptyDirectory('--profiler-dir', options.profiler_dir)
 
     state = _RunState()
     last_archive_path = None
@@ -177,10 +171,12 @@ class PageRunner(object):
               while len(state.browser.tabs) > 1:
                 state.browser.tabs[-1].Close()
 
+            self._WaitForThermalThrottlingIfNeeded(state.browser.platform)
+
             if options.trace_dir:
               self._SetupTracingTab(state)
-
-            self._WaitForThermalThrottlingIfNeeded(state.browser.platform)
+            if options.profiler_dir:
+              self._SetupProfiling(state, options, page)
 
             try:
               self._RunPage(options, page, state.tab, test,
@@ -199,6 +195,8 @@ class PageRunner(object):
 
             if options.trace_dir:
               self._EndTracing(state, options, page)
+            if options.profiler_dir:
+              self._EndProfiling(state)
 
             if test.needs_browser_restart_after_each_run:
               state.Close()
@@ -272,6 +270,27 @@ class PageRunner(object):
   def Close(self):
     pass
 
+  def _GetSequentialFileName(self, base_name):
+    """Returns the next sequential file name based on |base_name| and the
+    existing files."""
+    index = 0
+    while True:
+      output_name = '%s_%03d' % (base_name, index)
+      if not glob.glob(output_name + '.*'):
+        break
+      index = index + 1
+    return output_name
+
+  def _ValidateOrCreateEmptyDirectory(self, name, path):
+    if not path:
+      return
+    if not os.path.exists(path):
+      os.mkdir(path)
+    if not os.path.isdir(path):
+      raise Exception('%s isn\'t a directory: %s' % (name, path))
+    elif os.listdir(path):
+      raise Exception('%s isn\'t empty: %s' % (name, path))
+
   def _SetupBrowser(self, state, test, possible_browser, credentials_path,
                     archive_path):
     assert not state.tab
@@ -284,6 +303,15 @@ class PageRunner(object):
       state.first_browser = False
 
     state.browser.SetReplayArchivePath(archive_path)
+
+  def _SetupProfiling(self, state, options, page):
+    output_file = os.path.join(options.profiler_dir, page.url_as_file_safe_name)
+    if options.page_repeat != 1 or options.pageset_repeat != 1:
+      output_file = self._GetSequentialFileName(output_file)
+    state.browser.StartProfiling(options, output_file)
+
+  def _EndProfiling(self, state):
+    state.browser.StopProfiling()
 
   def _SetupTracingTab(self, state):
     if state.browser.supports_tracing:
@@ -298,19 +326,11 @@ class PageRunner(object):
       trace_result = state.browser.GetTraceResultAndReset()
       logging.info('Processing trace...')
 
-      trace_file_base = os.path.join(
-          options.trace_dir, page.url_as_file_safe_name)
-
+      trace_file = os.path.join(options.trace_dir, page.url_as_file_safe_name)
       if options.page_repeat != 1 or options.pageset_repeat != 1:
-        trace_file_index = 0
+        trace_file = self._GetSequentialFileName(trace_file)
+      trace_file += '.json'
 
-        while True:
-          trace_file = '%s_%03d.json' % (trace_file_base, trace_file_index)
-          if not os.path.exists(trace_file):
-            break
-          trace_file_index = trace_file_index + 1
-      else:
-        trace_file = '%s.json' % trace_file_base
       with codecs.open(trace_file, 'w',
                        encoding='utf-8') as trace_file:
         trace_result.Serialize(trace_file)

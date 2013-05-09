@@ -12,6 +12,7 @@ from telemetry.core import temporary_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.chrome import browser_backend
+from telemetry.core.platform.profiler import profiler_finder
 
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
@@ -37,6 +38,7 @@ class Browser(object):
           backend.extension_dict_backend)
     self.credentials = browser_credentials.BrowserCredentials()
     self._platform.SetFullPerformanceModeEnabled(True)
+    self._profilers = []
 
   def __enter__(self):
     return self
@@ -143,6 +145,32 @@ class Browser(object):
         renderer_totals[k] += v
     return {'Browser': self._platform_backend.GetIOStats(browser_pid),
             'Renderer': renderer_totals}
+
+  def StartProfiling(self, options, base_output_file):
+    assert not self._profilers
+
+    all_pids = ([self._browser_backend.pid] +
+                self._platform_backend.GetChildPids(self._browser_backend.pid))
+    profiler_class = profiler_finder.FindProfiler(options.profiler_tool)
+
+    if not profiler_class.is_supported(options):
+      raise Exception('The %s profiler is not ' +
+                      'supported on this platform.' % options.profiler_tool)
+
+    process_name_counts = collections.defaultdict(int)
+
+    for pid in all_pids:
+      cmd_line = self._platform_backend.GetCommandLine(pid)
+      process_name = self._browser_backend.GetProcessName(cmd_line)
+      output_file = '%s.%s%s' % (base_output_file, process_name,
+                                 process_name_counts[process_name])
+      process_name_counts[process_name] += 1
+      self._profilers.append(profiler_class(pid, output_file))
+
+  def StopProfiling(self):
+    for profiler in self._profilers:
+      profiler.CollectProfile()
+    self._profilers = []
 
   def StartTracing(self):
     return self._browser_backend.StartTracing()
