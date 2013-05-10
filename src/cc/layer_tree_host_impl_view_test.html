@@ -35,7 +35,8 @@ found in the LICENSE file.
       var view = new LayerTreeHostImplSnapshotView();
       view.style.width = '800px';
       view.style.height = '400px';
-      this.addHTMLOutput(undefined, view);
+      if (window == window.top)
+        this.addHTMLOutput(undefined, view);
       view.objectSnapshot = snapshot;
     }
   </script>
