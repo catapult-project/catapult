@@ -8,20 +8,224 @@
  *        Do not edit directly.
  */
 base.addModuleDependency(
-    'tracing.model.counter',
-    'base.guid');
+    'ui.overlay',
+    'base.event_target');
 base.addModuleDependency(
-    'tracing.model.counter',
-    'base.range');
+    'ui.overlay',
+    'ui');
+base.addModuleStylesheet(
+    'ui.overlay',
+    'ui.overlay');
 base.addModuleDependency(
-    'tracing.test_utils',
-    'tracing.model.counter');
+    'about_tracing.tracing_controller',
+    'base.event_target');
+base.addModuleDependency(
+    'about_tracing.tracing_controller',
+    'ui.overlay');
+base.addModuleStylesheet(
+    'about_tracing.tracing_controller',
+    'about_tracing.tracing_controller');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/common.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
+base.addModuleRawScriptDependency(
+    'base.gl_matrix',
+    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.addModuleDependency(
+    'base.rect2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'base.bbox2',
+    'base.rect2');
 base.addModuleDependency(
     'tracing.model.object_instance',
     'base.range');
 base.addModuleDependency(
     'tracing.model.object_instance',
     'base.sorted_array_utils');
+base.addModuleDependency(
+    'cc.layer_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_impl',
+    'cc.layer_impl');
+base.addModuleDependency(
+    'base.quad',
+    'base.gl_matrix');
+base.addModuleDependency(
+    'cc.util',
+    'base.quad');
+base.addModuleDependency(
+    'cc.util',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'base.bbox2');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'tracing.model.object_instance');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.constants');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.layer_tree_impl');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl',
+    'cc.util');
+base.addModuleDependency(
+    'tracing.selection',
+    'base.event_target');
+base.addModuleDependency(
+    'tracing.selection',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.selection',
+    'base.range');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'tracing.selection');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'tracing.analysis.analysis_link',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.analysis_link',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.generic_object_view',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.generic_object_view',
+    'ui');
+base.addModuleStylesheet(
+    'tracing.analysis.generic_object_view',
+    'tracing.analysis.generic_object_view');
+base.addModuleDependency(
+    'tracing.analysis.object_snapshot_view',
+    'ui');
+base.addModuleDependency(
+    'ui.drag_handle',
+    'ui');
+base.addModuleStylesheet(
+    'ui.drag_handle',
+    'ui.drag_handle');
+base.addModuleDependency(
+    'ui.list_view',
+    'ui');
+base.addModuleStylesheet(
+    'ui.list_view',
+    'ui.list_view');
+base.addModuleDependency(
+    'ui.quad_view_viewport',
+    'base.range');
+base.addModuleDependency(
+    'ui.quad_view_viewport',
+    'base.event_target');
+base.addModuleDependency(
+    'ui.quad_view',
+    'ui');
+base.addModuleDependency(
+    'ui.quad_view',
+    'ui.quad_view_viewport');
+base.addModuleStylesheet(
+    'ui.quad_view',
+    'ui.quad_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'cc.constants');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'cc.layer_tree_host_impl');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'tracing.analysis.generic_object_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'tracing.analysis.object_snapshot_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'tracing.analysis.util');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.drag_handle');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.list_view');
+base.addModuleDependency(
+    'cc.layer_tree_host_impl_view',
+    'ui.quad_view');
+base.addModuleStylesheet(
+    'cc.layer_tree_host_impl_view',
+    'cc.layer_tree_host_impl_view');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.android_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.bus_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.clock_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.cpufreq_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.disk_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.drm_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.exynos_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.gesture_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.i915_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.kfunc_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.mali_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.power_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.sched_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf.workqueue_parser',
+    'tracing.importer.linux_perf.parser');
+base.addModuleDependency(
+    'tracing.model.counter',
+    'base.guid');
+base.addModuleDependency(
+    'tracing.model.counter',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.model.cpu',
+    'tracing.model.counter');
 base.addModuleDependency(
     'tracing.model.time_to_object_instance_map',
     'base.range');
@@ -41,6 +245,12 @@ base.addModuleDependency(
     'tracing.model.object_collection',
     'tracing.model.time_to_object_instance_map');
 base.addModuleDependency(
+    'tracing.model.async_slice_group',
+    'base.range');
+base.addModuleDependency(
+    'tracing.model.async_slice_group',
+    'tracing.model.slice');
+base.addModuleDependency(
     'tracing.model.slice_group',
     'base.range');
 base.addModuleDependency(
@@ -52,12 +262,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.model.slice_group',
     'tracing.filter');
-base.addModuleDependency(
-    'tracing.model.async_slice_group',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.async_slice_group',
-    'tracing.model.slice');
 base.addModuleDependency(
     'tracing.model.thread',
     'base.guid');
@@ -92,20 +296,11 @@ base.addModuleDependency(
     'tracing.model.process_base',
     'tracing.model.thread');
 base.addModuleDependency(
-    'tracing.model.process',
-    'tracing.model.process_base');
-base.addModuleDependency(
     'tracing.model.kernel',
     'tracing.model.process_base');
 base.addModuleDependency(
-    'tracing.model.cpu',
-    'base.range');
-base.addModuleDependency(
-    'tracing.model.cpu',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.model.cpu',
-    'tracing.model.counter');
+    'tracing.model.process',
+    'tracing.model.process_base');
 base.addModuleDependency(
     'tracing.model',
     'base.range');
@@ -125,32 +320,101 @@ base.addModuleDependency(
     'tracing.model',
     'tracing.filter');
 base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
+    'tracing.importer.linux_perf_importer',
     'tracing.model');
 base.addModuleDependency(
-    'tracing.importer.timeline_stream_importer',
+    'tracing.importer.linux_perf_importer',
+    'tracing.color_scheme');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.bus_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.clock_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.cpufreq_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.disk_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.drm_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.exynos_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.gesture_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.i915_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.mali_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.power_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.sched_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.workqueue_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.android_parser');
+base.addModuleDependency(
+    'tracing.importer.linux_perf_importer',
+    'tracing.importer.linux_perf.kfunc_parser');
+base.addModuleDependency(
+    'tracing.importer.trace_event_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.trace_event_importer',
+    'tracing.color_scheme');
+base.addModuleDependency(
+    'tracing.importer.v8.codemap',
+    'tracing.importer.v8.splaytree');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
     'tracing.model.slice');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.color_scheme');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.importer.v8.log_reader');
+base.addModuleDependency(
+    'tracing.importer.v8_log_importer',
+    'tracing.importer.v8.codemap');
+base.addModuleDependency(
+    'tracing.record_selection_dialog',
+    'tracing.filter');
+base.addModuleDependency(
+    'tracing.record_selection_dialog',
+    'ui.overlay');
 base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
+    'tracing.record_selection_dialog',
+    'tracing.record_selection_dialog');
 base.addModuleDependency(
-    'ui.overlay',
-    'base.event_target');
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.util');
 base.addModuleDependency(
-    'ui.overlay',
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.analysis_link');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.generic_object_view');
+base.addModuleDependency(
+    'tracing.analysis.analysis_results',
     'ui');
 base.addModuleStylesheet(
-    'ui.overlay',
-    'ui.overlay');
-base.addModuleDependency(
-    'about_tracing.tracing_controller',
-    'base.event_target');
-base.addModuleDependency(
-    'about_tracing.tracing_controller',
-    'ui.overlay');
-base.addModuleStylesheet(
-    'about_tracing.tracing_controller',
-    'about_tracing.tracing_controller');
+    'tracing.analysis.analysis_results',
+    'tracing.analysis.analysis_results');
 base.addModuleDependency(
     'tracing.analysis.analyze_counters',
     'tracing.analysis.util');
@@ -179,55 +443,7 @@ base.addModuleDependency(
     'tracing.analysis.analyze_selection',
     'ui');
 base.addModuleDependency(
-    'tracing.selection',
-    'base.event_target');
-base.addModuleDependency(
-    'tracing.selection',
-    'base.guid');
-base.addModuleDependency(
-    'tracing.selection',
-    'base.range');
-base.addModuleDependency(
-    'tracing.analysis.analysis_link',
-    'tracing.selection');
-base.addModuleDependency(
-    'tracing.analysis.analysis_link',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.analysis_link',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.analysis.analysis_link',
-    'tracing.analysis.analysis_link');
-base.addModuleDependency(
-    'tracing.analysis.generic_object_view',
-    'tracing.analysis.analysis_link');
-base.addModuleDependency(
-    'tracing.analysis.generic_object_view',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.analysis.generic_object_view',
-    'tracing.analysis.generic_object_view');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.analysis_link');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.generic_object_view');
-base.addModuleDependency(
-    'tracing.analysis.analysis_results',
-    'ui');
-base.addModuleStylesheet(
-    'tracing.analysis.analysis_results',
-    'tracing.analysis.analysis_results');
-base.addModuleDependency(
     'tracing.analysis.object_instance_view',
-    'ui');
-base.addModuleDependency(
-    'tracing.analysis.object_snapshot_view',
     'ui');
 base.addModuleDependency(
     'tracing.analysis.default_object_view',
@@ -500,108 +716,6 @@ base.addModuleDependency(
     'tracing.find_control',
     'ui.overlay');
 base.addModuleDependency(
-    'ui.drag_handle',
-    'ui');
-base.addModuleStylesheet(
-    'ui.drag_handle',
-    'ui.drag_handle');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.bus_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.clock_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.cpufreq_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.disk_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.drm_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.exynos_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.gesture_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.i915_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.mali_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.power_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.sched_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.workqueue_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.android_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf.kfunc_parser',
-    'tracing.importer.linux_perf.parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.color_scheme');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.bus_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.clock_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.cpufreq_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.disk_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.drm_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.exynos_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.gesture_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.i915_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.mali_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.power_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.sched_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.workqueue_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.android_parser');
-base.addModuleDependency(
-    'tracing.importer.linux_perf_importer',
-    'tracing.importer.linux_perf.kfunc_parser');
-base.addModuleDependency(
-    'tracing.importer.trace_event_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.trace_event_importer',
-    'tracing.color_scheme');
-base.addModuleDependency(
     'tracing.timeline_view',
     'base.settings');
 base.addModuleDependency(
@@ -635,132 +749,6 @@ base.addModuleStylesheet(
     'tracing.timeline_view',
     'tracing.timeline_view');
 base.addModuleDependency(
-    'tracing.record_selection_dialog',
-    'tracing.filter');
-base.addModuleDependency(
-    'tracing.record_selection_dialog',
-    'ui.overlay');
-base.addModuleStylesheet(
-    'tracing.record_selection_dialog',
-    'tracing.record_selection_dialog');
-base.addModuleDependency(
-    'tracing.importer.v8.codemap',
-    'tracing.importer.v8.splaytree');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.model');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.model.slice');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.color_scheme');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.importer.v8.log_reader');
-base.addModuleDependency(
-    'tracing.importer.v8_log_importer',
-    'tracing.importer.v8.codemap');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/common.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/mat2d.js');
-base.addModuleRawScriptDependency(
-    'base.gl_matrix',
-    '../third_party/gl-matrix/src/gl-matrix/vec2.js');
-base.addModuleDependency(
-    'base.rect2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'base.bbox2',
-    'base.rect2');
-base.addModuleDependency(
-    'cc.layer_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_impl',
-    'cc.layer_impl');
-base.addModuleDependency(
-    'base.quad',
-    'base.gl_matrix');
-base.addModuleDependency(
-    'cc.util',
-    'base.quad');
-base.addModuleDependency(
-    'cc.util',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'base.bbox2');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'tracing.model.object_instance');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.constants');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.layer_tree_impl');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl',
-    'cc.util');
-base.addModuleDependency(
-    'ui.list_view',
-    'ui');
-base.addModuleStylesheet(
-    'ui.list_view',
-    'ui.list_view');
-base.addModuleDependency(
-    'ui.quad_view_viewport',
-    'base.range');
-base.addModuleDependency(
-    'ui.quad_view_viewport',
-    'base.event_target');
-base.addModuleDependency(
-    'ui.quad_view',
-    'ui');
-base.addModuleDependency(
-    'ui.quad_view',
-    'ui.quad_view_viewport');
-base.addModuleStylesheet(
-    'ui.quad_view',
-    'ui.quad_view');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'cc.constants');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'cc.layer_tree_host_impl');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'tracing.analysis.generic_object_view');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'tracing.analysis.object_snapshot_view');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'tracing.analysis.util');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'ui.drag_handle');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'ui.list_view');
-base.addModuleDependency(
-    'cc.layer_tree_host_impl_view',
-    'ui.quad_view');
-base.addModuleStylesheet(
-    'cc.layer_tree_host_impl_view',
-    'cc.layer_tree_host_impl_view');
-base.addModuleDependency(
     'about_tracing.profiling_view',
     'about_tracing.tracing_controller');
 base.addModuleDependency(
@@ -790,6 +778,18 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
+base.addModuleDependency(
+    'tracing.test_utils',
+    'tracing.model.counter');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model');
+base.addModuleDependency(
+    'tracing.importer.timeline_stream_importer',
+    'tracing.model.slice');
 base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');

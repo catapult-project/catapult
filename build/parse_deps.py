@@ -347,9 +347,11 @@ def calc_load_sequence(filenames, toplevel_dir):
     all_resources["scripts"][module.name] = module
     module.resolve(all_resources, resource_finder)
 
-  # Find the root modules: ones who have no dependencies.
+  # Find the root modules: ones that have no dependencies. While doing that,
+  # sort the dependent module list so that the computed load order is stable.
   module_ref_counts = {}
   for module in all_resources["scripts"].values():
+    module.dependent_modules.sort(lambda x, y: cmp(x.name, y.name))
     module_ref_counts[module.name] = 0
 
   def inc_ref_count(name):
