@@ -129,4 +129,17 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
     return _InnerGetChildPids(pid)
 
   def GetCommandLine(self, pid):
-    raise NotImplementedError()
+    command_pid_list = subprocess.Popen(
+          ['wmic', 'process', 'get', 'CommandLine,ProcessId',
+           '/format:csv'],
+          stdout=subprocess.PIPE).communicate()[0]
+    # [3:] To skip 2 blank lines and header.
+    for command_pid in command_pid_list.splitlines()[3:]:
+      if not command_pid:
+        continue
+      parts = command_pid.split(',')
+      curr_pid = parts[-1]
+      if pid == int(curr_pid):
+        command = ','.join(parts[1:-1])
+        return command
+    raise Exception('Could not get command line for %d' % pid)
