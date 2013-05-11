@@ -87,18 +87,18 @@ base.exportTo('about_tracing', function() {
     },
 
     refresh_: function() {
-      if (!this.tracingController_)
+      if (!this.tracingController)
         return;
 
-      var traceEvents = this.tracingController_.traceEvents;
+      var traceEvents = this.tracingController.traceEvents;
       var hasEvents = traceEvents && traceEvents.length;
       this.saveBn_.disabled = !hasEvents;
 
       if (!hasEvents) return;
 
       var traces = [traceEvents];
-      if (this.tracingController_.systemTraceEvents.length)
-        traces.push(this.tracingController_.systemTraceEvents);
+      if (this.tracingController.systemTraceEvents.length)
+        traces.push(this.tracingController.systemTraceEvents);
 
       var m = new tracing.Model();
       m.importTraces(traces, true);
@@ -107,7 +107,7 @@ base.exportTo('about_tracing', function() {
 
     onKeypress_: function(event) {
       if (event.keyCode === 114 &&  // r
-          !this.tracingController_.isTracingEnabled &&
+          !this.tracingController.isTracingEnabled &&
           document.activeElement.nodeName !== 'INPUT') {
         this.onSelectCategories_();
       }
@@ -120,14 +120,14 @@ base.exportTo('about_tracing', function() {
     ///////////////////////////////////////////////////////////////////////////
 
     onSelectCategories_: function() {
-      var tc = this.tracingController_;
+      var tc = this.tracingController;
       tc.collectCategories();
       tc.addEventListener('categoriesCollected',
                           this.onCategoriesCollectedBoundToThis_);
     },
 
     onCategoriesCollected_: function(event) {
-      var tc = this.tracingController_;
+      var tc = this.tracingController;
 
       var categories = event.categories;
       var categories_length = categories.length;
@@ -144,7 +144,7 @@ base.exportTo('about_tracing', function() {
       dlg.settings = this.timelineView_.settings;
       dlg.settings_key = 'record_categories';
       dlg.recordCallback = this.onRecord_.bind(this);
-      dlg.showSystemTracing = this.tracingController_.supportsSystemTracing;
+      dlg.showSystemTracing = this.tracingController.supportsSystemTracing;
       dlg.visible = true;
       this.recordSelectionDialog_ = dlg;
 
@@ -155,7 +155,7 @@ base.exportTo('about_tracing', function() {
     },
 
     onRecord_: function() {
-      var tc = this.tracingController_;
+      var tc = this.tracingController;
 
       var categories = this.recordSelectionDialog_.categoryFilter();
       console.log('Recording: ' + categories);
@@ -168,7 +168,7 @@ base.exportTo('about_tracing', function() {
     },
 
     onTraceEnded_: function() {
-      var tc = this.tracingController_;
+      var tc = this.tracingController;
       this.refresh_();
       setTimeout(function() {
         tc.removeEventListener('traceEnded', this.onTraceEndedBoundToThis_);
@@ -188,7 +188,7 @@ base.exportTo('about_tracing', function() {
       this.overlayEl_.visible = true;
 
       var that = this;
-      var tc = this.tracingController_;
+      var tc = this.tracingController;
       function response() {
         that.overlayEl_.visible = false;
         that.overlayEl_ = undefined;
@@ -215,8 +215,8 @@ base.exportTo('about_tracing', function() {
       this.overlayEl_.visible = true;
 
       var that = this;
-      var tc = this.tracingController_;
-      this.tracingController_.beginLoadTraceFile();
+      var tc = this.tracingController;
+      this.tracingController.beginLoadTraceFile();
       function response(e) {
         that.overlayEl_.visible = false;
         that.overlayEl_ = undefined;
