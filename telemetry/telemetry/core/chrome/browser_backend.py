@@ -203,6 +203,8 @@ class BrowserBackend(object):
     """Returns a user-friendly name for the process of the given |cmd_line|."""
     if 'nacl_helper_bootstrap' in cmd_line:
       return 'nacl_helper_bootstrap'
+    if ':sandboxed_process' in cmd_line:
+      return 'renderer'
     m = re.match(r'.* --type=([^\s]*) .*', cmd_line)
     if not m:
       return 'browser'

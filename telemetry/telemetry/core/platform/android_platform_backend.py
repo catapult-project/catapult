@@ -109,4 +109,11 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     return child_pids
 
   def GetCommandLine(self, pid):
-    raise NotImplementedError()
+    ps = self._adb.RunShellCommand('ps', log_result=False)[1:]
+    for line in ps:
+      data = line.split()
+      curr_pid = data[1]
+      curr_name = data[-1]
+      if int(curr_pid) == pid:
+        return curr_name
+    raise Exception("Could not get command line for %d" % pid)
