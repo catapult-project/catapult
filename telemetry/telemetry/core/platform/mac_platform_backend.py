@@ -61,4 +61,5 @@ class MacPlatformBackend(platform_backend.PlatformBackend):
     return child_pids
 
   def GetCommandLine(self, pid):
-    raise NotImplementedError()
+    return subprocess.Popen(['ps', '-p', str(pid), '-o', 'command='],
+                            stdout=subprocess.PIPE).communicate()[0]
