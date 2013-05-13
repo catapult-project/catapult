@@ -54,10 +54,23 @@ base.exportTo('cc', function() {
     }
   };
 
-  ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
-
   // For now, handle PictureLayerImpl's using LayerImpl classes.
+  // Deprecated.
+  ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::PictureLayerImpl', LayerImplSnapshot);
+
+  ObjectSnapshot.register('ContentLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('DelegatedRendererLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('HeadsUpDisplayLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('IOSurfaceLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('Layer', LayerImplSnapshot);
+  ObjectSnapshot.register('NinePatchLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('PictureImageLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('PictureLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('ScrollbarLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('SolidColorLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('TextureLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('VideoLayer', LayerImplSnapshot);
 
   return {
     LayerImplSnapshot: LayerImplSnapshot
