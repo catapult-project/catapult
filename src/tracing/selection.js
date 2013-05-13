@@ -34,10 +34,12 @@ base.exportTo('tracing', function() {
     this.counter = counter;
     this.sampleIndex = sampleIndex;
   }
+
   SelectionCounterSampleHit.prototype = {
     get selected() {
       return this.track.selectedSamples[this.sampleIndex] == true;
     },
+
     set selected(v) {
       if (v)
         this.track.selectedSamples[this.sampleIndex] = true;
@@ -45,7 +47,10 @@ base.exportTo('tracing', function() {
         this.track.selectedSamples[this.sampleIndex] = false;
       this.track.invalidate();
     },
+
     addBoundsToRange: function(range) {
+      if (!this.track.timestamps)
+        return;
       range.addValue(this.track.timestamps[this.sampleIndex]);
     }
   };

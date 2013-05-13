@@ -518,18 +518,28 @@ base.exportTo('tracing', function() {
     },
 
     onGridToggle_: function(left) {
-      var tb;
-      if (left)
-        tb = this.selection_.bounds.min;
-      else
-        tb = this.selection_.bounds.max;
+      var tb = left ? this.selection_.bounds.min : this.selection_.bounds.max;
+
+      // Toggle the grid off if the grid is on, the marker position is the same
+      // and the same element is selected (same timebase).
+      if (this.viewport_.gridEnabled &&
+          this.viewport_.gridSide === left &&
+          this.viewport_.gridTimebase === tb) {
+        this.viewport_.gridside = undefined;
+        this.viewport_.gridEnabled = false;
+        this.viewport_.gridTimebase = undefined;
+        return;
+      }
 
       // Shift the timebase left until its just left of model_.bounds.min.
       var numInterfvalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
           this.viewport_.gridStep_);
       this.viewport_.gridTimebase = tb -
           (numInterfvalsSinceStart + 1) * this.viewport_.gridStep_;
+
       this.viewport_.gridEnabled = true;
+      this.viewport_.gridSide = left;
+      this.viewport_.gridTimebase = tb;
     },
 
     onMouseDown_: function(e) {
