@@ -7,7 +7,10 @@ found in the LICENSE file.
 -->
 <head>
 <title>All Tracing Tests</title>
+<script src="/src/base.js"></script>
 <script>
+  base.require('base.unittest');
+
   G_allTests = [
     'base_test.html',
     'base/bbox2_test.html',
@@ -93,179 +96,36 @@ found in the LICENSE file.
     'tracing/tracks/ruler_track_test.html'
   ];
 </script>
-<style>
-  h1 {
-      font-family: sans-serif;
-      font-size: 18pt;
-  }
-</style>
-<script src="base.js"></script>
-<script>
-  base.require('base.unittest');
-</script>
 </head>
-<body>
+<body id="test_harness">
   <h1>Trace-Viewer Tests</h3>
 
-  <div class="unittest">Interactive tests: <a href="interactive_tests.html" class="unittest-error-link">Run manually</a></div>
-  <div class="unittest">Record Selection Interactive Tests:
-    <a href="tracing/record_selection_dialog_interactive_tests.html"
-        class="unittest-error-link">Run manually</a></div>
-  <br>
+  <div id="stats">
+    <br />
+  </div>
+
+  <div id='individual_tests'>
+    <div class="unittest">
+      Interactive tests:
+      <a href="interactive_tests.html"
+          class="unittest-error-link">Run manually</a>
+    </div>
+    <div class="unittest">
+      Record Selection Interactive Tests:
+      <a href="tracing/record_selection_dialog_interactive_tests.html"
+          class="unittest-error-link">Run manually</a>
+    </div>
+  </div>
 
   <script>
-  function IFrameTestCase(test) {
-    var testCaseEl = new base.unittest.TestCaseElement(test, test, true);
-    testCaseEl.__proto__ = IFrameTestCase.prototype;
-    testCaseEl.decorate(test);
-    return testCaseEl;
-  }
+    document.addEventListener('DOMContentLoaded', function() {
+      var stats = document.getElementById('stats');
 
-  IFrameTestCase.prototype = {
-    __proto__: base.unittest.TestCaseElement.prototype,
-
-    decorate: function(test) {
-      this.status = 'READY';
-      this.iframe = document.createElement('iframe');
-      this.iframe.src = test;
-      this.iframe.style.position = 'fixed';
-      this.iframe.style.visibility = 'hidden';
-    },
-
-    begin: function() {
-      this.status = 'RUNNING';
-      this.appendChild(this.iframe);
-      this.iframe.contentWindow.addEventListener(
-          'error', this.onErrorInIFrame_.bind(this));
-    },
-
-    onErrorInIFrame_: function(msg, url, lineNumber) {
-      if (this.iframe.contentWindow.G_testRunner)
-        return false;
-
-      if (this.iframe.contentWindow.errorsCaughtByTestHarness)
-        return false;
-
-      this.iframe.contentWindow.errorsCaughtByTestHarness = [
-        {msg: msg, url: url, lineNumber: lineNumber}];
-      return false;
-    },
-
-    get done() {
-      if (this.status == 'READY' ||
-          this.status == 'RUNNING')
-        return false;
-      return true;
-    },
-
-    checkForDone: function() {
-      var iframe = this.iframe;
-      if (!iframe.contentWindow)
-        return;
-
-      if (iframe.contentWindow.errorsCaughtByTestHarness &&
-          iframe.contentWindow.errorsCaughtByTestHarness.length) {
-        this.status = 'FAILED';
-        return;
-      }
-
-      if (!iframe.contentWindow.G_testRunner)
-        return;
-
-      var childRunner = iframe.contentWindow.G_testRunner;
-      if (!childRunner.done)
-        return;
-
-      var stats = childRunner.computeResultStats();
-      if (stats.numTestsRun && !stats.numTestsWithErrors)
-        this.status = 'PASSED';
-      else
-        this.status = 'FAILED';
-    }
-  };
-
-  function AsyncTestRunner() {
-    var resultsEl = document.createElement('div');
-    resultsEl.__proto__ = AsyncTestRunner.prototype;
-    resultsEl.decorate();
-    return resultsEl;
-  }
-
-  AsyncTestRunner.prototype = {
-    __proto__: HTMLDivElement.prototype,
-
-    decorate: function() {
-      this.className = 'unittest';
-      this.maxNumTestsToRunAtOnce_ = 1;
-      this.processTestQueuesScheduled_ = false;
-      this.readyTests_ = [];
-      this.runningTests_ = [];
-    },
-
-    get maxNumTestsToRunAtOnce() {
-      return this.maxNumTestsToRunAtOnce_;
-    },
-
-    set maxNumTestsToRunAtOnce(value) {
-      this.maxNumTestsToRunAtOnce_ = value;
-      processTestQueues_();
-    },
-
-    enqueueTests: function(tests) {
-      for (var i = 0; i < tests.length; i++) {
-        var test = new IFrameTestCase(tests[i]);
-        if (test.done)
-          throw new Error('Cannot enqueue test that is done.');
-        this.readyTests_.push(test);
-        this.appendChild(test);
-      }
-      if (this.readyTests_.length)
-        this.scheduleProcessTestQueues_();
-    },
-
-    scheduleProcessTestQueues_: function() {
-      if (this.processTestQueuesScheduled_)
-        return;
-      setTimeout(this.processTestQueues_.bind(this), 100);
-      this.processTestQueuesScheduled_ = true;
-    },
-
-    processTestQueues_: function() {
-      this.processTestQueuesScheduled_ = false;
-
-      var stillRunningTests = [];
-      this.runningTests_.forEach(function(test) {
-        test.checkForDone();
-        if (!test.done) {
-          stillRunningTests.push(test);
-          return;
-        }
-      }, this);
-      this.runningTests_ = stillRunningTests;
-
-      while (this.readyTests_.length > 0 &&
-             this.runningTests_.length < this.maxNumTestsToRunAtOnce_) {
-        var test = this.readyTests_.shift();
-        test.begin();
-        this.runningTests_.push(test);
-      }
-
-      if (!this.readyTests_.length && !this.runningTests_.length)
-        this.onDone_();
-      else
-        this.scheduleProcessTestQueues_();
-    },
-
-    onDone_: function() {
-      /* all tests are done */;
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', function() {
-    var runner = new AsyncTestRunner();
-    document.body.appendChild(runner);
-    runner.enqueueTests(G_allTests);
-  });
+      var runner = new base.unittest.AsyncTestRunner();
+      runner.statsBlock = stats;
+      document.body.appendChild(runner);
+      runner.enqueueTests(G_allTests);
+    });
   </script>
 </body>
 </html>

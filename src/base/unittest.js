@@ -23,6 +23,7 @@ base.exportTo('base', function() {
     el.decorate(testName, opt_href, opt_alwaysShowErrorLink);
     return el;
   }
+
   TestCaseElement.prototype = {
     __proto__: HTMLElement.prototype,
 
@@ -56,6 +57,7 @@ base.exportTo('base', function() {
     get status() {
       return this.status_;
     },
+
     set status(status) {
       this.status_ = status;
       this.titleEl.textContent = '';
@@ -89,6 +91,71 @@ base.exportTo('base', function() {
       var outputEl = createOutputDiv(opt_title, opt_element);
       this.appendChild(outputEl);
       return outputEl.contents;
+    }
+  };
+
+  function IFrameTestCase(test) {
+    var testCaseEl = new TestCaseElement(test, test, true);
+    testCaseEl.__proto__ = IFrameTestCase.prototype;
+    testCaseEl.decorate(test);
+    return testCaseEl;
+  }
+
+  IFrameTestCase.prototype = {
+    __proto__: TestCaseElement.prototype,
+
+    decorate: function(test) {
+      this.status = 'READY';
+      this.iframe = document.createElement('iframe');
+      this.iframe.src = test;
+      this.iframe.style.position = 'fixed';
+      this.iframe.style.top = '-10000px';
+      this.iframe.style.right = '-10000px';
+      this.iframe.style.visibility = 'hidden';
+    },
+
+    begin: function() {
+      this.status = 'RUNNING';
+      this.appendChild(this.iframe);
+    },
+
+    get done() {
+      if (this.status == 'READY' ||
+          this.status == 'RUNNING')
+        return false;
+      return true;
+    },
+
+    get stats() {
+      return this.stats_;
+    },
+
+    checkForDone: function() {
+      var iframe = this.iframe;
+      if (!iframe.contentWindow)
+        return;
+
+      if (!iframe.contentWindow.G_testRunner)
+        return;
+
+      var childRunner = iframe.contentWindow.G_testRunner;
+      if (!childRunner.done)
+        return;
+
+      this.stats_ = childRunner.computeResultStats();
+      if (this.stats_.numTestsRun && !this.stats_.numTestsWithErrors)
+        this.status = 'PASSED';
+      else
+        this.status = 'FAILED';
+
+      if (this.status === 'FAILED') {
+        iframe.removeAttribute('style');
+        iframe.style.position = 'relative';
+        iframe.style.width = '100%';
+        iframe.style.height =
+            iframe.contentWindow.document.body.scrollHeight + 'px';
+        iframe.style.visibility = 'visible';
+      }
     }
   };
 
@@ -220,7 +287,6 @@ base.exportTo('base', function() {
         else
           status = 'FAILED';
       }
-
       updateClassListGivenStatus(this.statusEl_, status);
       this.statusEl_.textContent = this.title_ + ' [' + status + ']';
     },
@@ -278,6 +344,106 @@ base.exportTo('base', function() {
 
       this.currentResults_ = undefined;
       this.currentTest_ = undefined;
+    }
+  };
+
+  function AsyncTestRunner() {
+    var resultsEl = document.createElement('div');
+    resultsEl.__proto__ = AsyncTestRunner.prototype;
+    resultsEl.decorate();
+    return resultsEl;
+  }
+
+  AsyncTestRunner.prototype = {
+    __proto__: HTMLDivElement.prototype,
+
+    decorate: function() {
+      this.className = 'unittest';
+      this.maxNumTestsToRunAtOnce_ = 1;
+      this.processTestQueuesScheduled_ = false;
+      this.readyTests_ = [];
+      this.runningTests_ = [];
+
+      this.start_ = new Date().getTime() / 1000;
+      this.stats_ = {
+        numTestsRun: 0,
+        numTestsPassed: 0,
+        numWithErrors: 0
+      };
+    },
+
+    get maxNumTestsToRunAtOnce() {
+      return this.maxNumTestsToRunAtOnce_;
+    },
+
+    set maxNumTestsToRunAtOnce(value) {
+      this.maxNumTestsToRunAtOnce_ = value;
+      processTestQueues_();
+    },
+
+    set statsBlock(value) {
+      this.statsBlock_ = value;
+    },
+
+    enqueueTests: function(tests) {
+      for (var i = 0; i < tests.length; i++) {
+        var test = new IFrameTestCase(tests[i]);
+        if (test.done)
+          throw new Error('Cannot enqueue test that is done.');
+        this.readyTests_.push(test);
+        this.appendChild(test);
+      }
+      if (this.readyTests_.length)
+        this.scheduleProcessTestQueues_();
+    },
+
+    scheduleProcessTestQueues_: function() {
+      if (this.processTestQueuesScheduled_)
+        return;
+      setTimeout(this.processTestQueues_.bind(this), 100);
+      this.processTestQueuesScheduled_ = true;
+    },
+
+    processTestQueues_: function() {
+      this.processTestQueuesScheduled_ = false;
+
+      var stillRunningTests = [];
+      this.runningTests_.forEach(function(test) {
+        test.checkForDone();
+        if (!test.done) {
+          stillRunningTests.push(test);
+          return;
+        }
+
+        this.stats_.numTestsRun += test.stats.numTestsRun;
+        this.stats_.numTestsPassed += test.stats.numTestsPassed;
+        this.stats_.numWithErrors += test.stats.numTestsWithErrors;
+      }, this);
+      this.runningTests_ = stillRunningTests;
+
+      while (this.readyTests_.length > 0 &&
+             this.runningTests_.length < this.maxNumTestsToRunAtOnce_) {
+        var test = this.readyTests_.shift();
+        test.begin();
+        this.runningTests_.push(test);
+      }
+
+      if (!this.readyTests_.length && !this.runningTests_.length)
+        this.onDone_();
+      else
+        this.scheduleProcessTestQueues_();
+    },
+
+    onDone_: function() {
+      var end = new Date().getTime() / 1000;
+      var stats = this.stats_;
+      this.statsBlock_.innerHTML = 'Ran ' +
+          '<span id="test_count">' + stats.numTestsRun + '</span> tests, ' +
+          '<span id="pass_count">' + stats.numTestsPassed + '</span> passed ' +
+          'and <span id="fail_count">' + stats.numWithErrors + '</span> ' +
+          'failed in <span id="test_time">' +
+          (end - this.start_).toFixed(2) +
+          '</span> seconds.';
     }
   };
 
@@ -604,13 +770,14 @@ base.exportTo('base', function() {
 
   return {
     unittest: {
-      HTMLTestRunner: HTMLTestRunner,
+      AsyncTestRunner: AsyncTestRunner,
       TestError: TestError,
       TestCase: TestCase,
-      discoverTests: discoverTests,
-      runAllTests: runAllTests,
+
+      discoverTests_: discoverTests,
       createErrorDiv_: createErrorDiv,
-      TestCaseElement: TestCaseElement
+      HTMLTestRunner_: HTMLTestRunner,
+      TestCaseElement_: TestCaseElement
     }
   };
 });

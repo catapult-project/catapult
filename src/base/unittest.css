@@ -56,3 +56,24 @@ test-case-stack {
   color: darkRed;
   font-weight: bold;
 }
+
+#test_harness h1 {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+#stats {
+  margin-bottom: 10px;
+}
+
+#pass_count {
+  color: darkgreen;
+}
+
+#fail_count {
+  color: darkRed;
+}
+
+#individual_tests {
+  margin-bottom: 20px;
+}

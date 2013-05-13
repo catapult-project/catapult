@@ -778,6 +778,9 @@ base.addModuleDependency(
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
+base.addModuleStylesheet(
+    'base.unittest',
+    'base.unittest');
 base.addModuleDependency(
     'tracing.test_utils',
     'tracing.model.counter');
@@ -787,9 +790,6 @@ base.addModuleDependency(
 base.addModuleDependency(
     'tracing.importer.timeline_stream_importer',
     'tracing.model.slice');
-base.addModuleStylesheet(
-    'base.unittest',
-    'base.unittest');
 base.addModuleDependency(
     'ui.list_and_associated_view',
     'ui');

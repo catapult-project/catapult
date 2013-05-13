@@ -19,7 +19,7 @@ found in the LICENSE file.
 
 
 var TestCase = base.unittest.TestCase;
-var HTMLTestRunner = base.unittest.HTMLTestRunner;
+var HTMLTestRunner = base.unittest.HTMLTestRunner_;
 
 function rawAssertTrue(a) {
   if (a) return;
@@ -74,7 +74,7 @@ function runAllTests() {
   for (var i = 0; i < testMethodNames.length; i++) {
     var testMethodName = testMethodNames[i];
     var testMethod = tests[testMethodName];
-    var testCaseEl = new base.unittest.TestCaseElement(testMethodName);
+    var testCaseEl = new base.unittest.TestCaseElement_(testMethodName);
     resultsEl.appendChild(testCaseEl);
     testCaseEl.status = 'RUNNING';
 
@@ -382,7 +382,7 @@ function testTestDiscovery() {
     },
     alsoNotATest: 3
   };
-  var tests = base.unittest.discoverTests(object, undefined);
+  var tests = base.unittest.discoverTests_(object, undefined);
   rawAssertEquals(2, tests.length);
   rawAssertEquals('test_2', tests[0].testName);
   rawAssertEquals('test1', tests[1].testName);
@@ -395,7 +395,7 @@ function testTestRunnerFilter() {
     test_2: function() {
     }
   };
-  var tests = base.unittest.discoverTests(object, /test_2/);
+  var tests = base.unittest.discoverTests_(object, /test_2/);
   rawAssertEquals(1, tests.length);
   rawAssertEquals('test_2', tests[0].testName);
 }
