@@ -25,6 +25,7 @@ class ExtensionDictBackend(object):
     extension_object = self._extension_dict.get(extension_id)
     if not extension_object:
       extension_object = self._CreateExtensionObject(extension_id)
+      extension_object.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       assert extension_object
       self._extension_dict[extension_id] = extension_object
     return extension_object

@@ -136,8 +136,6 @@ class BrowserBackend(object):
       for e in self.options.extensions_to_load:
         if not e.extension_id in self._extension_dict_backend:
           return False
-        extension_object = self._extension_dict_backend[e.extension_id]
-        extension_object.WaitForDocumentReadyStateToBeInteractiveOrBetter()
       return True
     if self._supports_extensions:
       util.WaitFor(AllExtensionsLoaded, timeout=30)
