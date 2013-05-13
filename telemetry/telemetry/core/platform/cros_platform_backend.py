@@ -77,4 +77,4 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
     return child_pids
 
   def GetCommandLine(self, pid):
-    raise NotImplementedError()
+    return self._cri.RunCmdOnDevice(['ps', '-p', str(pid), '-o', 'command='])[0]
