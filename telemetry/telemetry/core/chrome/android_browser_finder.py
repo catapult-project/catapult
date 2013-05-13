@@ -22,18 +22,12 @@ CHROME_PACKAGE_NAMES = {
   'android-jb-system-chrome': 'com.android.chrome'
 }
 
-ALL_BROWSER_TYPES = ','.join(['android-content-shell'] +
+ALL_BROWSER_TYPES = ','.join(['android-content-shell', 'android-webview'] +
                              CHROME_PACKAGE_NAMES.keys())
 
-CHROME_ACTIVITY = 'com.google.android.apps.chrome.Main'
-CHROME_COMMAND_LINE = '/data/local/chrome-command-line'
-CHROME_DEVTOOLS_REMOTE_PORT = 'localabstract:chrome_devtools_remote'
-
 CONTENT_SHELL_PACKAGE = 'org.chromium.content_shell_apk'
-CONTENT_SHELL_ACTIVITY = 'org.chromium.content_shell_apk.ContentShellActivity'
-CONTENT_SHELL_COMMAND_LINE = '/data/local/tmp/content-shell-command-line'
-CONTENT_SHELL_DEVTOOLS_REMOTE_PORT = (
-    'localabstract:content_shell_devtools_remote')
+WEBVIEW_PACKAGE = 'com.android.webview.chromium.shell'
+
 
 # adb shell pm list packages
 # adb
@@ -43,18 +37,18 @@ CONTENT_SHELL_DEVTOOLS_REMOTE_PORT = (
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
-  def __init__(self, browser_type, options, *args):
+  def __init__(self, browser_type, options, backend_settings):
     super(PossibleAndroidBrowser, self).__init__(browser_type, options)
-    self._args = args
+    self._backend_settings = backend_settings
 
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
   def Create(self):
     backend = android_browser_backend.AndroidBrowserBackend(
-        self._options, *self._args)
+        self._options, self._backend_settings)
     platform_backend = android_platform_backend.AndroidPlatformBackend(
-        self._args[0].Adb(), self._options.no_performance_mode)
+        self._backend_settings.adb.Adb(), self._options.no_performance_mode)
     b = browser.Browser(backend, platform_backend)
     backend.SetBrowser(b)
     return b
@@ -118,22 +112,25 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
   if 'package:' + CONTENT_SHELL_PACKAGE in packages:
-    b = PossibleAndroidBrowser('android-content-shell',
-                               options, adb,
-                               CONTENT_SHELL_PACKAGE, True,
-                               CONTENT_SHELL_COMMAND_LINE,
-                               CONTENT_SHELL_ACTIVITY,
-                               CONTENT_SHELL_DEVTOOLS_REMOTE_PORT)
+    b = PossibleAndroidBrowser(
+        'android-content-shell',
+        options, android_browser_backend.ContentShellBackendSettings(
+            adb, CONTENT_SHELL_PACKAGE))
+    possible_browsers.append(b)
+
+  if 'package:' + WEBVIEW_PACKAGE in packages:
+    b = PossibleAndroidBrowser(
+        'android-webview',
+        options,
+        android_browser_backend.WebviewBackendSettings(adb, WEBVIEW_PACKAGE))
     possible_browsers.append(b)
 
   for name, package in CHROME_PACKAGE_NAMES.iteritems():
     if 'package:' + package in packages:
-      b = PossibleAndroidBrowser(name,
-                                 options, adb,
-                                 package, False,
-                                 CHROME_COMMAND_LINE,
-                                 CHROME_ACTIVITY,
-                                 CHROME_DEVTOOLS_REMOTE_PORT)
+      b = PossibleAndroidBrowser(
+          name,
+          options,
+          android_browser_backend.ChromeBackendSettings(adb, package))
       possible_browsers.append(b)
 
   # See if the "forwarder" is installed -- we need this to host content locally
