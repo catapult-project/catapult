@@ -23,21 +23,6 @@ found in the LICENSE file.
 <body>
   <div class="header">
   <select id="trace_file">
-    <option value="simple_trace.json">simple trace</option>
-    <option value="android_systrace.html">android systrace</option>
-    <option value="async_begin_end.json">async begin/end</option>
-    <option value="big_trace.json">big trace</option>
-    <option value="huge_trace.json">huge trace</option>
-    <option value="instance_counters.json">instance counters</option>
-    <option value="lthi_cats.json">lthi cats</option>
-    <option value="main_thread_has_unclosed_slices.json">
-        main thread unclosed slices
-    </option>
-    <option value="tall_trace.json">tall trace</option>
-    <option value="trivial_trace.json">trivial trace</option>
-    <option value="picture_trace.json">picture trace</option>
-    <option value="theverge_trace.json">theverge trace</option>
-    <option value="v8.log">v8</option>
   </select>
   </div>
 
@@ -118,6 +103,17 @@ found in the LICENSE file.
     reload();
   }
 
+  function cleanFilename(file) {
+    function upcase(letter) {
+      return ' ' + letter.toUpperCase();
+    }
+
+    return file.replace(/_/g, ' ')
+               .replace(/\.[^\.]*$/, '')
+               .replace(/ ([a-z])/g, upcase)
+               .replace(/^[a-z]/, upcase);
+  }
+
   function reload() {
     var file = window.location.hash.substr(1);
     var filenames = ['../test_data/' + file];
@@ -126,18 +122,29 @@ found in the LICENSE file.
 
   window.addEventListener('hashchange', onHashChange);
   document.addEventListener('DOMContentLoaded', function() {
-    var select = document.getElementById('trace_file');
-    select.onchange = onSelectionChange;
-
     timelineViewEl = document.querySelector('.view');
     ui.decorate(timelineViewEl, tracing.TimelineView);
 
-    if (!window.location.hash) {
-      // This will trigger an onHashChange so no need to reload directly.
-      window.location.hash = '#' + select[select.selectedIndex].value;
-    } else {
-      onHashChange();
-    }
+    getAsync('/json/examples', function(data) {
+      var select = document.getElementById('trace_file');
+      var files = JSON.parse(data);
+
+      for (var i = 0; i < files.length; ++i) {
+        var opt = document.createElement('option');
+        opt.value = files[i];
+        opt.textContent = cleanFilename(files[i]);
+        select.appendChild(opt);
+      }
+      select.selectedIndex = 0;
+      select.onchange = onSelectionChange;
+
+      if (!window.location.hash) {
+        // This will trigger an onHashChange so no need to reload directly.
+        window.location.hash = '#' + select[select.selectedIndex].value;
+      } else {
+        onHashChange();
+      }
+    });
   });
   </script>
 </body>

@@ -17,6 +17,7 @@ DEPS_CHECK_DELAY = 30
 
 toplevel_dir = os.path.abspath(os.path.dirname(__file__))
 src_dir = os.path.join(toplevel_dir, 'src')
+test_data_dir = os.path.join(toplevel_dir, 'test_data')
 
 class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
@@ -51,6 +52,22 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(tests_as_json)
 
+  def do_GET_example_files(self):
+    data_files = []
+    for dirpath, dirnames, filenames in os.walk(test_data_dir):
+      for f in filenames:
+        data_files.append(f)
+
+    data_files.sort()
+    files_as_json = json.dumps(data_files)
+
+    self.send_response(200)
+    self.send_header('Content-Type', 'application/json')
+    self.send_header('Cache-Control', 'no-cache')
+    self.send_header('Content-Length', len(files_as_json))
+    self.end_headers()
+    self.wfile.write(files_as_json)
+
   def do_GET_deps(self):
     current_time = time.time()
     if self.server.next_deps_check < current_time:
@@ -66,6 +83,10 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.wfile.write(self.server.deps)
 
   def do_GET(self):
+    if self.path == '/json/examples':
+      self.do_GET_example_files()
+      return
+
     if self.path == '/json/tests':
       self.do_GET_json_tests()
       return
