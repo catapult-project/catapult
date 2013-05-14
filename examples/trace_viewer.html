@@ -31,9 +31,11 @@ found in the LICENSE file.
     <option value="instance_counters.json">instance counters</option>
     <option value="lthi_cats.json">lthi cats</option>
     <option value="main_thread_has_unclosed_slices.json">
-        main thread unclosed slices</option>
+        main thread unclosed slices
+    </option>
     <option value="tall_trace.json">tall trace</option>
     <option value="trivial_trace.json">trivial trace</option>
+    <option value="picture_trace.json">picture trace</option>
     <option value="v8.log">v8</option>
   </select>
   </div>
@@ -97,16 +99,42 @@ found in the LICENSE file.
     timelineViewEl.timeline.focusElement = timelineViewEl;
   }
 
-  function onLoad() {
+  function onSelectionChange() {
     var select = document.getElementById('trace_file');
-    select.onchange = onLoad;
+    window.location.hash = '#' + select[select.selectedIndex].value;
+  }
 
-    var file = select[select.selectedIndex].value;
+  function onHashChange() {
+    var file = window.location.hash.substr(1);
+    var select = document.getElementById('trace_file');
+    if (select[select.selectedIndex].value != file) {
+      for (var i = 0; i < select.children.length; i++) {
+        if (select.children[i].value == file) {
+          select.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    reload();
+  }
+
+  function reload() {
+    var file = window.location.hash.substr(1);
     var filenames = ['../test_data/' + file];
     loadTraces(filenames, createViewFromTraces);
   }
 
-  document.addEventListener('DOMContentLoaded', onLoad);
+  window.addEventListener('hashchange', onHashChange);
+  document.addEventListener('DOMContentLoaded', function() {
+    var select = document.getElementById('trace_file');
+    select.onchange = onSelectionChange;
+    if (!window.location.hash) {
+      // This will trigger an onHashChange so no need to reload directly.
+      window.location.hash = '#' + select[select.selectedIndex].value;
+    } else {
+      onHashChange();
+    }
+  });
   </script>
 </body>
 </html>
