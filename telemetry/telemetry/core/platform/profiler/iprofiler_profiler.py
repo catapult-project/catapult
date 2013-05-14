@@ -13,7 +13,10 @@ from telemetry.core.platform import profiler
 sys.path.append(os.path.join(
     os.path.abspath(os.path.dirname(__file__)), '..', '..', '..', '..', '..',
     '..', 'third_party', 'pexpect'))
-import pexpect  # pylint: disable=F0401
+try:
+  import pexpect  # pylint: disable=F0401
+except ImportError:
+  pass
 
 
 class IprofilerProfiler(profiler.Profiler):
