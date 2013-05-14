@@ -44,6 +44,8 @@ base.exportTo('cc', function() {
       cc.preInitializeObject(this);
 
       this.rasterData_ = undefined;
+
+      this.image = undefined; // set externally.
     },
 
     initialize: function() {
@@ -61,8 +63,25 @@ base.exportTo('cc', function() {
       this.rasterData_ = window.chrome.skiaBenchmarking.rasterize(this.dataB64);
 
       // Switch it to a Uint8ClampedArray.
-      this.rasterData_.data = new Uint8ClampedArray (this.rasterData_.data);
+      this.rasterData_.data = new Uint8ClampedArray(this.rasterData_.data);
       return this.rasterData_;
+    },
+
+    beginRenderingImage: function(imageReadyCallback) {
+      var rd = this.getRasterData();
+      var helperCanvas = document.createElement('canvas');
+      helperCanvas.width = rd.width;
+      helperCanvas.height = rd.height;
+      var ctx = helperCanvas.getContext('2d');
+      var imageData = ctx.createImageData(rd.width, rd.height);
+      imageData.data.set(rd.data);
+      ctx.putImageData(imageData, 0, 0);
+      var img = document.createElement('img');
+      img.onload = function() {
+        this.image = img;
+        imageReadyCallback();
+      }.bind(this);
+      img.src = helperCanvas.toDataURL();
     }
   };
 

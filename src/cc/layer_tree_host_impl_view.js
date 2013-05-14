@@ -319,7 +319,15 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
+    scheduleUpdateContents_: function() {
+      if (this.updateContentsPending_)
+        return;
+      this.updateContentsPending_ = true;
+      webkitRequestAnimationFrame(this.updateContents_.bind(this));
+    },
+
     updateContents_: function() {
+      this.updateContentsPending_ = false;
       if (!this.layer_) {
         this.quadView_.quads = [];
         return;
@@ -338,11 +346,12 @@ base.exportTo('cc', function() {
         }
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
-        var rd = picture.getRasterData();
-        if (rd)
-          iq.backgroundRasterData = rd;
-        else
+        if (!picture.image) {
+          picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
           iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+        } else {
+          iq.backgroundImage = picture.image;
+        }
         iq.borderColor = 'rgba(0, 0, 0, .1)';
         quads.push(iq);
       }
