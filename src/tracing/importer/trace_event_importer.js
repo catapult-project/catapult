@@ -486,45 +486,27 @@ base.exportTo('tracing.importer', function() {
       }, this);
     },
 
+    // Here, we collect all the snapshots that internally contain a
+    // Javascript-level object inside their args list that has an "id" field,
+    // and turn that into a snapshot of the instance referred to by id.
     createImplicitObjectsForProcess_: function(process) {
-      var implicitSnaps = [];
-      // Here, we collect all the snapshots that internally contain a
-      // Javascript-level object inside their args list that has an "id" field.
-      process.objects.iterObjectInstances(function(instance) {
-        instance.snapshots.forEach(function(snapshot) {
-          if (snapshot.args.id !== undefined)
-            throw new Error('args cannot have an id field inside it');
-          base.iterObjectFieldsRecursively(
-              snapshot.args,
-              function(object, fieldName, fieldValue) {
-                if (!fieldValue)
-                  return;
 
-                if (fieldValue.id === undefined)
-                  return;
-                if (fieldValue instanceof tracing.model.ObjectSnapshot)
-                  return;
-                implicitSnaps.push({containingSnapshot: snapshot,
-                  implicitSnapshot: fieldValue,
-                  referencingObject: object,
-                  referencingObjectFieldName: fieldName
-                });
-              }, snapshot);
-        }, this);
-      }, this);
+      function processField(referencingObject,
+                            referencingObjectFieldName,
+                            referencingObjectFieldValue,
+                            containingSnapshot) {
+        if (!referencingObjectFieldValue)
+          return;
 
-      // Now, create the snaps in sorted order of discovery.
-      implicitSnaps.sort(function(x, y) {
-        return x.containingSnapshot.ts - y.containingSnapshot.ts;
-      });
-      for (var i = 0; i < implicitSnaps.length; i++) {
-        var containingSnapshot = implicitSnaps[i].containingSnapshot;
-        var implicitSnapshot = implicitSnaps[i].implicitSnapshot;
-        var referencingObject = implicitSnaps[i].referencingObject;
-        var referencingObjectFieldName =
-            implicitSnaps[i].referencingObjectFieldName;
+        if (referencingObjectFieldValue.id === undefined)
+          return;
+        if (referencingObjectFieldValue instanceof tracing.model.ObjectSnapshot)
+          return;
 
-        var m = /(.+)\/(.+)/.exec(implicitSnapshot.id);
+        var implicitSnapshot = referencingObjectFieldValue;
+
+        var rawId = implicitSnapshot.id;
+        var m = /(.+)\/(.+)/.exec(rawId);
         if (!m)
           throw new Error('Implicit snapshots must have names.');
         delete implicitSnapshot.id;
@@ -539,14 +521,49 @@ base.exportTo('tracing.importer', function() {
         } catch(e) {
           this.model_.importErrors.push(
             'While processing implicit snapshot of ' +
-              id + ' at ts=' + containingSnapshot.ts + ': ' + e);
+              rawId + ' at ts=' + containingSnapshot.ts + ': ' + e);
           return;
         }
         referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
-
+        return res.args;
       }
+
+      function iterObject(object, func, containingSnapshot, thisArg) {
+        if (!(object instanceof Object))
+          return;
+
+        if (object instanceof Array) {
+          for (var i = 0; i < object.length; i++) {
+            var res = func.call(thisArg, object, i, object[i],
+                                containingSnapshot);
+            if (res)
+              iterObject(res, func, containingSnapshot, thisArg);
+            else
+              iterObject(object[i], func, containingSnapshot, thisArg);
+          }
+          return;
+        }
+
+        for (var key in object) {
+          var res = func.call(thisArg, object, key, object[key],
+                              containingSnapshot);
+          if (res)
+            iterObject(res, func, containingSnapshot, thisArg);
+          else
+            iterObject(object[key], func, containingSnapshot, thisArg);
+        }
+      }
+
+      // TODO(nduca): We may need to iterate the instances in sorted order by creationTs.
+      process.objects.iterObjectInstances(function(instance) {
+        instance.snapshots.forEach(function(snapshot) {
+          if (snapshot.args.id !== undefined)
+            throw new Error('args cannot have an id field inside it');
+          iterObject(snapshot.args, processField, snapshot, this);
+        }, this);
+      }, this);
     },
 
     joinObjectRefs_: function() {
