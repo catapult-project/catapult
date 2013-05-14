@@ -64,10 +64,9 @@ base.exportTo('ui', function() {
         this.updateChildren_();
         return;
       }
-      for (var i = 0; i < this.quads_.length; i++) {
-        var quad = this.quads_[i];
+      this.quads_.forEach(function(quad) {
         if (!quad.backgroundRasterData)
-          continue;
+          return;
         var tex = quad.backgroundRasterData;
         var helperCanvas = document.createElement('canvas');
         helperCanvas.width = tex.width;
@@ -82,7 +81,7 @@ base.exportTo('ui', function() {
           this.scheduleRedrawCanvas_();
         }.bind(this);
         img.src = helperCanvas.toDataURL();
-      }
+      }, this);
       this.updateChildren_();
     },
 

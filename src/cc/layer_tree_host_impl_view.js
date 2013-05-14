@@ -343,7 +343,7 @@ base.exportTo('cc', function() {
           iq.backgroundRasterData = rd;
         else
           iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-        iq.borderColor = 'rgba(0, 0, 0, .5)';
+        iq.borderColor = 'rgba(0, 0, 0, .1)';
         quads.push(iq);
       }
 
