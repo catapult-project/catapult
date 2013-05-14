@@ -178,6 +178,7 @@
   min-height: 200px;
   min-width: 400px;
   overflow: auto;
+  -webkit-user-select: text;
 }
 
 .import-errors-dialog-text {
