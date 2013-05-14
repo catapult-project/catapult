@@ -194,6 +194,8 @@ base.exportTo('ui', function() {
       targetEl[targetElProperty] =
           selectorEl.selectedOptions[0].targetPropertyValue;
     }
+    if (targetEl[targetElProperty] != items[0].value)
+      throw new Error('Target class is not yet at the default state');
     return selectorEl;
   }
 
