@@ -22,21 +22,21 @@ found in the LICENSE file.
       
       var testTarget = new ui.ToggleButton();
 
-      assertTrue(testTarget.isTrue);
+      assertTrue(testTarget.isOn);
 
       var newValue;
-      testTarget.addEventListener('isTrueChange', function(event) {
+      testTarget.addEventListener('isOnChange', function(event) {
         newValue = event.newValue;
       });
 
-      assertTrue(testTarget.isTrue);  // initially true
+      assertTrue(testTarget.isOn);  // initially true
 
       testTarget.click();            
-      assertTrue(!testTarget.isTrue);  // property tracks 
+      assertTrue(!testTarget.isOn);  // property tracks 
       assertTrue(!newValue);           // event fires  
 
       testTarget.click();
-      assertTrue(testTarget.isTrue);  // property toggles
+      assertTrue(testTarget.isOn);  // property toggles
       assertTrue(newValue);           // event fires and toggles
     }
 

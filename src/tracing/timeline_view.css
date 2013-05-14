@@ -33,11 +33,16 @@
                                      from(#E5E5E5),
                                      to(#D1D1D1));
   border-bottom: 1px solid #8e8e8e;
-  display: -webkit-box;
+  display: -webkit-flex;
+  padding-top: 1px;
+}
+
+.timeline-view > .control > .controls.category-filter {
 }
 
 .timeline-view > .control > .controls {
-  display: -webkit-box;
+  display: -webkit-flex;
+  margin-left: auto;
 }
 
 .timeline-view > .control > span {
@@ -173,12 +178,12 @@
 }
 
 .view-import-errors-overlay {
+  -webkit-user-select: text;
   max-height: 500px;
   max-width: 800px;
   min-height: 200px;
   min-width: 400px;
   overflow: auto;
-  -webkit-user-select: text;
 }
 
 .import-errors-dialog-text {
@@ -222,6 +227,9 @@
 }
 
 .toggle-button-text {
-  font-size: normal;
+  font-size: medium;
+  left: .4px;
   padding-bottom: 1px;
+  position: absolute;
+  top: -3.3px;
 }

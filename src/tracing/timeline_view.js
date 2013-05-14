@@ -49,12 +49,9 @@ base.exportTo('tracing', function() {
       this.controlDiv_.className = 'control';
 
       this.leftControlsEl_ = document.createElement('div');
-      this.leftControlsEl_.className = 'controls';
+      this.leftControlsEl_.className = 'controls track-filter';
       this.rightControlsEl_ = document.createElement('div');
-      this.rightControlsEl_.className = 'controls';
-
-      var spacingEl = document.createElement('div');
-      spacingEl.className = 'spacer';
+      this.rightControlsEl_.className = 'controls category-filter';
 
       this.timelineContainer_ = document.createElement('div');
       this.timelineContainer_.className = 'container';
@@ -77,13 +74,13 @@ base.exportTo('tracing', function() {
       this.metadataButton_ = this.createMetadataButton_();
 
       // Connect everything up.
+      this.rightControls.appendChild(this.createShowHiddenTracksButton_());
       this.rightControls.appendChild(this.importErrorsButton_);
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.metadataButton_);
       this.rightControls.appendChild(this.findCtl_);
       this.controlDiv_.appendChild(this.leftControlsEl_);
       this.controlDiv_.appendChild(this.titleEl_);
-      this.controlDiv_.appendChild(spacingEl);
       this.controlDiv_.appendChild(this.rightControlsEl_);
       this.appendChild(this.controlDiv_);
 
@@ -97,6 +94,36 @@ base.exportTo('tracing', function() {
       // Bookkeeping.
       this.onSelectionChangedBoundToThis_ = this.onSelectionChanged_.bind(this);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
+    },
+
+    createShowHiddenTracksButton_: function() {
+      var showHiddenTracksButton = document.createElement('button');
+      showHiddenTracksButton.className = 'track-filter-button';
+      showHiddenTracksButton.textContent = 'Show Hidden Tracks';
+      showHiddenTracksButton.disabled = true;
+      showHiddenTracksButton.hiddenTracks_ = 0;
+
+      showHiddenTracksButton.addEventListener('click', function(event) {
+        var container = this.timelineContainer_;
+        var trackButtons = container.querySelectorAll('.track-button');
+        for (var i = 0; i < trackButtons.length; i++) {
+          trackButtons[i].isOn = true;
+        }
+      }.bind(this));
+
+      this.timelineContainer_.addEventListener('isOnChange', function(event) {
+        if (!event.target.classList.contains('track-button'))
+          return;
+
+        if (event.newValue)
+          showHiddenTracksButton.hiddenTracks_--;
+        else
+          showHiddenTracksButton.hiddenTracks_++;
+
+        showHiddenTracksButton.disabled =
+            (showHiddenTracksButton.hiddenTracks_ === 0);
+      });
+      return showHiddenTracksButton;
     },
 
     createImportErrorsButton_: function() {
@@ -234,10 +261,10 @@ base.exportTo('tracing', function() {
 
         var model = that.model;
         for (var data in model.metadata) {
-          metadataStrings.push(
-              JSON.stringify(
-                  model.metadata[data].name) + ': ' +
-                  JSON.stringify(model.metadata[data].value, undefined, ' '));
+          var meta = model.metadata[data];
+          var name = JSON.stringify(meta.name);
+          var value = JSON.stringify(meta.value, undefined, ' ');
+          metadataStrings.push(name + ': ' + value);
         }
         textEl.textContent = metadataStrings.join('\n');
       }

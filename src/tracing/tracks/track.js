@@ -41,8 +41,8 @@ base.exportTo('tracing.tracks', function() {
       toggleButton.classList.add('track-collapse-button');
       this.insertBefore(toggleButton, this.firstChild);
 
-      toggleButton.addEventListener('click', function() {
-        this.style.display = 'none';
+      toggleButton.addEventListener('isOnChange', function() {
+        this.style.display = toggleButton.isOn ? '' : 'none';
       }.bind(this));
     }
   };

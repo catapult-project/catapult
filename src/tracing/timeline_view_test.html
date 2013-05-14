@@ -79,6 +79,14 @@ found in the LICENSE file.
      * to help with non-unittest UI work.
      */
     function testInstantiateView() {
+      var timelineView = document.querySelector('.timeline-view');
+      if (!timelineView) {
+        timelineView = instantiateView.call(this);
+      }
+      return timelineView;
+    }
+
+    function instantiateView() {
       var model = createFullyPopulatedModel(true, true);
 
       var view = new tracing.TimelineView();
@@ -94,6 +102,7 @@ found in the LICENSE file.
       view.timeline.selection = selection;
 
       this.addHTMLOutput(undefined, view);
+      return view;
     }
 
     function testChangeModelToSomethingDifferent() {
@@ -198,6 +207,50 @@ found in the LICENSE file.
       assertTrue(view.timeline_.categoryFilter.categories_['baz']);
     }
 
+    function instantiateView() {
+      var model = createFullyPopulatedModel(true, true);
+
+      var view = new tracing.TimelineView();
+      view.style.height = '400px';
+      view.model = model;
+      view.tabIndex = 0;
+      view.focusElement = view;
+
+      var selection = new tracing.Selection();
+      view.timeline.addAllObjectsMatchingFilterToSelection({
+          matchSlice: function() { return true;}
+      }, selection);
+      view.timeline.selection = selection;
+
+      this.addHTMLOutput(undefined, view);
+      return view;
+    }
+
+    function testShowHiddenTracks() {
+      var timelineView = testInstantiateView.call(this);
+      var showHiddenTracks = timelineView.querySelector('.track-filter-button');
+
+      // To start no tracks are disabled, so we can't Show Hidden Tracks
+      assertTrue(showHiddenTracks.getAttribute('disabled') === "");
+
+      var toggleButtons = timelineView.querySelectorAll('.track-button');
+      var lastTrackButton = toggleButtons[toggleButtons.length - 1];
+      lastTrackButton.scrollIntoViewIfNeeded();
+      lastTrackButton.click();
+
+      // The track is hidden
+      var styleDisplay = lastTrackButton.parentElement.style.display;
+      assertTrue(styleDisplay.indexOf('none') !== -1);
+      // A hidden track can now be re-shown.
+      assertTrue(showHiddenTracks.getAttribute('disabled') === null);
+
+      showHiddenTracks.click();
+       // The track is no longer hidden
+      styleDisplay = lastTrackButton.parentElement.style.display;
+      assertTrue(styleDisplay.indexOf('none') === -1);
+      // No hidden tracks to Show
+      assertTrue(showHiddenTracks.getAttribute('disabled') === "");
+    }
 </script>
 </body>
 </html>

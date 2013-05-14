@@ -4,7 +4,7 @@
 
 
 /**
- * @fileoverview ToggleButton: click toggles isTrue.
+ * @fileoverview ToggleButton: click toggles isOn.
  */
 base.require('ui');
 base.exportTo('ui', function() {
@@ -18,18 +18,16 @@ base.exportTo('ui', function() {
   ToggleButton.minus = '\u002D';
   ToggleButton.x = '\u00D7';
   ToggleButton.checkMark = '\u221A';
-  ToggleButton.blank = '&nbsp;';
+  ToggleButton.blank = '\u00A0';
 
   ToggleButton.prototype = {
     __proto__: HTMLSpanElement.prototype,
 
-    isTrueText: ToggleButton.x,
+    isOnText: ToggleButton.x,
     isFalseText: ToggleButton.blank,
 
     toggle_: function() {
-      this.isTrue = !this.isTrue;
-      this.textSpan_.textContent =
-        this.isTrue ? this.isTrueText : this.isFalseText;
+      this.isOn = !this.isOn;
     },
 
     decorate: function() {
@@ -38,13 +36,18 @@ base.exportTo('ui', function() {
       this.textSpan_.className = 'toggle-button-text';
       this.appendChild(this.textSpan_);
 
-      this.isTrue = false;
-      this.toggle_();
       this.addEventListener('click', this.toggle_.bind(this));
+      this.addEventListener('isOnChange', function(event) {
+        this.textSpan_.textContent =
+          this.isOn ? this.isOnText : this.isFalseText;
+      });
+
+      this.isOn = true;
     }
   };
 
-  base.defineProperty(ToggleButton, 'isTrue', base.PropertyKind.BOOL_ATTR);
+  base.defineProperty(ToggleButton, 'isOn',
+      base.PropertyKind.BOOL_ATTR, null, true);
 
   return {
     ToggleButton: ToggleButton
