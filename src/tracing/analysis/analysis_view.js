@@ -30,6 +30,7 @@ base.exportTo('tracing.analysis', function() {
       this.instanceViewRegistry = tracing.analysis.ObjectInstanceView;
 
       this.currentView_ = undefined;
+      this.currentSelection_ = undefined;
       this.selections_ = [];
       this.guid_ = base.GUID.allocate();
 
@@ -55,6 +56,10 @@ base.exportTo('tracing.analysis', function() {
 
     get currentView() {
       return this.currentView_;
+    },
+
+    get selection() {
+      return this.currentSelection_;
     },
 
     set selection(selection) {
@@ -125,6 +130,7 @@ base.exportTo('tracing.analysis', function() {
 
       this.changeViewType(tracing.analysis.AnalysisResults);
       this.currentView.clear();
+      this.currentSelection_ = selection;
       tracing.analysis.analyzeHitsByType(this.currentView, hitsByType);
     }
   };
