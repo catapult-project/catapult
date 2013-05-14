@@ -113,7 +113,7 @@ class Browser(object):
       raise Exception('Found %d Gpu processes' % result['Gpu']['ProcessCount'])
     for v in result.itervalues():
       if v['ProcessCount'] > 1:
-        for k in v.iterkeys():
+        for k in v.keys():
           if k.endswith('Peak'):
             del v[k]
       del v['ProcessCount']
