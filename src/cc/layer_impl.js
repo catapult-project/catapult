@@ -28,12 +28,19 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
+      // Defaults.
+      this.invalidation = new cc.Region();
+      this.pictures = [];
+
       // Import & validate this.args
       cc.moveRequiredFieldsFromArgsToToplevel(
         this, ['children',
                'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
         this, ['maskLayer', 'replicaLayer']);
+
+      // Leave bounds in both places.
+      this.bounds = this.args.bounds;
 
       for (var i = 0; i < this.children.length; i++)
         this.children[i].parentLayer = this;
@@ -68,9 +75,14 @@ base.exportTo('cc', function() {
     initialize: function() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
-      cc.moveOptionalFieldsFromArgsToToplevel(
-        this, ['invalidation']);
-      this.invalidation = cc.RegionFromArray(this.invalidation || []);
+      if (this.args.invalidation) {
+        this.invalidation = cc.RegionFromArray(this.args.invalidation);
+        delete this.args.invalidation;
+      }
+      if (this.args.pictures) {
+        this.pictures = this.args.pictures;
+        delete this.args.pictures;
+      }
     }
   };
 

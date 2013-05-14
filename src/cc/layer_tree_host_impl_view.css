@@ -9,11 +9,15 @@
 }
 
 .lthi-s-view > layer-picker {
-  width: 350px;
+  width: 450px;
 }
 
 .lthi-s-view > x-drag-handle {
   -webkit-flex: 0 0 auto;
+}
+
+.lthi-s-view > layer-context-viewer {
+  -webkit-flex: 1 0 auto;
 }
 
 .lthi-s-view > layer-viewer {
@@ -38,7 +42,13 @@ layer-picker > top-controls {
   display: inline;
 }
 
-layer-picker > x-list-view {
+layer-picker > list-and-context {
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  -webkit-flex: 1 1 auto;
+}
+
+layer-picker > list-and-context > x-list-view {
   -webkit-flex: 1 1 auto;
   overflow: auto;
   font-family: monospace;
@@ -50,6 +60,20 @@ layer-picker > x-generic-object-view {
   height: 200px;
   /*font-family: monospace;*/
 }
+
+/******************************************************************************/
+
+layer-context-viewer {
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+}
+
+layer-context-viewer > x-quad-view {
+  -webkit-flex: 1 1 auto;
+  overflow: auto;
+  padding: 10px 10px 10px 10px;
+}
+
 
 /******************************************************************************/
 

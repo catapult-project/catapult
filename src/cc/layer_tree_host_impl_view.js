@@ -31,10 +31,22 @@ base.exportTo('cc', function() {
       this.whichTree_ = constants.ACTIVE_TREE;
 
       this.controls_ = document.createElement('top-controls');
+
+
+      this.layerContextViewer_ = new LayerContextViewer();
+      this.addEventListener('selection-changed', function() {
+        this.layerContextViewer_.layer = this.selectedLayer;
+      }.bind(this));
+
       this.layerList_ = new ui.ListView();
       this.layerDataView_ = new tracing.analysis.GenericObjectView();
       this.appendChild(this.controls_);
-      this.appendChild(this.layerList_);
+
+      var layerListAndContext = document.createElement('list-and-context');
+      layerListAndContext.appendChild(this.layerContextViewer_);
+      layerListAndContext.appendChild(this.layerList_);
+
+      this.appendChild(layerListAndContext);
       var dragHandle = new ui.DragHandle();
       dragHandle.horizontal = true;
       dragHandle.target = this.layerDataView_;
@@ -63,8 +75,18 @@ base.exportTo('cc', function() {
       this.updateContents_();
 
       if (!oldSelectedLayer) {
-        if (!this.layerList_.selectedElement)
-          this.layerList_.children[0].selected = true;
+        if (!this.layerList_.selectedElement) {
+          // Try to select the first layer that drawsContent.
+          for (var i = 0; i < this.layerList_.children.length; i++) {
+            if (this.layerList_.children[i].layer.args.drawsContent) {
+              this.layerList_.children[i].selected = true;
+              return;
+            }
+          }
+          // Barring that, select the first layer.
+          if (this.layerList_.children.length > 0)
+            this.layerList_.children[0].selected = true;
+        }
         return;
       }
 
@@ -73,9 +95,12 @@ base.exportTo('cc', function() {
       for (var i = 0; i < this.layerList_.children.length; i++) {
         if (this.layerList_.children[i].layer.objectInstance == goal) {
           this.layerList_.children[i].selected = true;
-          break;
+          return;
         }
       }
+
+      // TODO(nduca): If matching failed, try to match on layer_id. The instance
+      // may have changed but the id could persist.
     },
 
     get whichTree() {
@@ -172,24 +197,21 @@ base.exportTo('cc', function() {
   };
 
   /**
+   * Shows a layer and all its related layers.
    * @constructor
    */
-  var LayerViewer = ui.define('layer-viewer');
+  var LayerContextViewer = ui.define('layer-context-viewer');
 
-  LayerViewer.prototype = {
+  LayerContextViewer.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.layer_ = undefined;
       this.lastLthiInstance_ = undefined;
 
-      this.controls_ = document.createElement('top-controls');
       this.quadView_ = new ui.QuadView();
-      this.appendChild(this.controls_);
       this.appendChild(this.quadView_);
 
-      this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
-      this.statusEL_.textContent = '<various options go here eventually>';
     },
 
     get layer() {
@@ -211,23 +233,6 @@ base.exportTo('cc', function() {
         quads.push(q);
 
         var selected = layer == this.layer;
-        if (layer.invalidation) {
-          for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
-            var rect = layer.invalidation.rects[ir];
-            var iq = base.QuadFromRect(rect);
-            // TODO(nduca): This quad has to be warped to be in the outer quad.
-            // TOOD(nduca): The quad has to be mapped from layer space to screenspace.
-            // vec2.scale(iq.p1, iq.p1, 2);
-            // vec2.scale(iq.p2, iq.p2, 2);
-            // vec2.scale(iq.p3, iq.p3, 2);
-            // vec2.scale(iq.p4, iq.p4, 2);
-            iq.backgroundColor = 'rgba(255, 0, 0, 0.15)';
-            if (selected)
-              iq.borderColor = 'rgba(255, 0, 0, 1)';
-            quads.push(iq);
-          }
-        }
-
         q.selected = selected;
       }
       return quads;
@@ -241,11 +246,99 @@ base.exportTo('cc', function() {
 
       var lthi = this.layer_.layerTreeImpl.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.15);
+      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.075);
       this.quadView_.quads = this.getTreeQuads();
-      this.quadView_.title = 'layer' + this.layer_.objectInstance.id;
       this.quadView_.viewport = viewport;
       this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
+    }
+  };
+
+
+  /**
+   * @constructor
+   */
+  var LayerViewer = ui.define('layer-viewer');
+
+  LayerViewer.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.layer_ = undefined;
+
+      this.controls_ = document.createElement('top-controls');
+      this.quadView_ = new ui.QuadView();
+      this.appendChild(this.controls_);
+      this.appendChild(this.quadView_);
+
+      this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
+      this.statusEL_.textContent = 'Selected layer';
+
+      this.scale_ = 0.0625;
+      var scaleSelector = ui.createSelector(
+          this, 'scale',
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
+      scaleSelector.selectedIndex = 3;
+      this.scale_ = 0.5;
+      this.controls_.appendChild(scaleSelector);
+    },
+
+    get layer() {
+      return this.layer_;
+    },
+
+    set layer(layer) {
+      this.layer_ = layer;
+      this.updateContents_();
+    },
+
+    get scale() {
+      return this.scale_;
+    },
+
+    set scale(scale) {
+      this.scale_ = scale;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (!this.layer_) {
+        this.quadView_.quads = [];
+        return;
+      }
+      var layer = this.layer_;
+      var quads = [];
+
+      // Picture quads
+      for (var ir = 0; ir < layer.pictures.length; ir++) {
+        var rect = layer.pictures[ir].layerRect;
+        var iq = base.QuadFromRect(rect);
+        iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+        iq.borderColor = 'rgba(0, 0, 0, .5)';
+        quads.push(iq);
+      }
+
+      // Invalidaiton quads
+      for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
+        var rect = layer.invalidation.rects[ir];
+        var iq = base.QuadFromRect(rect);
+        iq.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        iq.borderColor = 'rgba(255, 0, 0, 1)';
+        quads.push(iq);
+      }
+
+      var quads_bbox = new base.BBox2();
+      quads_bbox.addXY(0, 0);
+      quads_bbox.addXY(layer.bounds.width, layer.bounds.height);
+
+      this.quadView_.quads = quads;
+      this.quadView_.viewport = new ui.QuadViewViewport(quads_bbox, this.scale_);
     }
   };
 
