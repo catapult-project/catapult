@@ -115,18 +115,17 @@ this.base = (function() {
     didLoadModules = true;
 
     var req = new XMLHttpRequest();
-    var src = moduleBasePath + '/' + 'deps.js';
+    var src = '/deps.js';
     req.open('GET', src, false);
     req.send(null);
     if (req.status != 200)
-      throw new Error('Could not find ' + src +
-                      '. Run calcdeps.py and try again.');
+      throw new Error('Unable to retrieve deps. Something is wrong.')
 
     base.addModuleDependency = addModuleDependency;
     base.addModuleRawScriptDependency = addModuleRawScriptDependency;
     base.addModuleStylesheet = addModuleStylesheet;
     try {
-      // By construction, the deps file should call addModuleDependency.
+      // By construction, the deps should call addModuleDependency.
       eval(req.responseText);
     } catch (e) {
       throw new Error('When loading deps, got ' + e.stack ? e.stack : e);
@@ -146,7 +145,8 @@ this.base = (function() {
       if (!window.FLATTENED[dependentModuleName]) {
         throw new Error('Somehow, module ' + dependentModuleName +
                         ' didn\'t get stored in the flattened js file! ' +
-                        'You may need to rerun build/calcdeps.py');
+                        'You may need to rerun ' +
+                        'build/generate_about_tracing_contents.py');
       }
       return;
     }
@@ -206,8 +206,8 @@ this.base = (function() {
     if (window.FLATTENED_RAW_SCRIPTS) {
       if (!window.FLATTENED_RAW_SCRIPTS[rawScriptPath]) {
         throw new Error('Somehow, ' + rawScriptPath +
-                        ' didn\'t get stored in the flattened js file! ' +
-                        'You may need to rerun build/calcdeps.py');
+            ' didn\'t get stored in the flattened js file! ' +
+            'You may need to rerun build/generate_about_tracing_contents.py');
       }
       return;
     }
@@ -215,7 +215,7 @@ this.base = (function() {
     if (rawScriptLoadStatus[rawScriptPath])
       return;
     throw new Error(rawScriptPath + ' should already have been loaded.' +
-                    ' Did you forget to run calcdeps.py?');
+        ' Did you forget to run build/generate_about_tracing_contents.py?');
   }
 
   var stylesheetLoadStatus = {};

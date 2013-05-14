@@ -6,11 +6,10 @@ import optparse
 import os
 import sys
 import time
+from build import generate_deps_js_contents as deps_generator
 
 import SimpleHTTPServer
 import BaseHTTPServer
-
-from build import generate_deps_js_contents
 
 DEFAULT_PORT = 8003
 DEPS_CHECK_DELAY = 30
@@ -18,15 +17,22 @@ DEPS_CHECK_DELAY = 30
 class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
     SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
-    self._last_request_path = None
 
   def do_GET(self):
-    if self.path == '/src/deps.js':
+    if self.path == '/deps.js':
       current_time = time.time()
       if self.server.next_deps_check < current_time:
-        self.log_message('Regenerating /src/deps.js')
+        self.log_message('Regenerating ' + self.path)
+        self.server.deps = deps_generator.generate_deps_js()
         self.server.next_deps_check = current_time + DEPS_CHECK_DELAY
-        generate_deps_js_contents.main([sys.argv[0]])
+
+      self.send_response(200)
+      self.send_header('Content-Type', 'application/javascript')
+      self.send_header('content-Length', len(self.server.deps))
+      self.end_headers()
+      self.wfile.write(self.server.deps)
+      return
+
     return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
   def log_error(self, format, *args):
@@ -43,6 +49,7 @@ class Server(BaseHTTPServer.HTTPServer):
   def __init__(self, *args, **kwargs):
     BaseHTTPServer.HTTPServer.__init__(self, *args, **kwargs)
     self.next_deps_check = -1
+    self.deps = None
 
 def Main(args):
   parser = optparse.OptionParser()

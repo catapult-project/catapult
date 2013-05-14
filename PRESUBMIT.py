@@ -16,19 +16,17 @@ _LICENSE_HEADER = (
 
 def _CheckIfAboutTracingIsOutOfdate(input_api, output_api):
   import build.generate_about_tracing_contents as generator1
-  import build.generate_deps_js_contents as generator2
   import build.parse_deps
 
   try:
-    out_of_date = (generator1.is_out_of_date() or
-                   generator2.is_out_of_date())
+    out_of_date = generator1.is_out_of_date()
   except build.parse_deps.DepsException, ex:
     return [output_api.PresubmitError(str(ex))]
 
   if out_of_date:
     return [output_api.PresubmitError(
-        'This change affects module depenencies. You need to run'
-        ' ./build/calcdeps.py')]
+        'This change affects the about_tracing files. '
+        'Please run ./build/generate_about_tracing_contents.py')]
   return []
 
 def _CommonChecks(input_api, output_api):
@@ -42,7 +40,6 @@ def _CommonChecks(input_api, output_api):
   src_dir = os.path.join(input_api.change.RepositoryRoot(), "src")
   FILES_TO_NOT_LINT = [
     input_api.os_path.join(src_dir, "about_tracing.js"),
-    input_api.os_path.join(src_dir, "deps.js"),
   ]
 
   def IsResource(maybe_resource):
