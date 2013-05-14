@@ -132,7 +132,6 @@ base.exportTo('ui', function() {
       }
 
       // Outlines.
-      ctx.strokeStyle = 'rgb(128,128,128)';
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
         ctx.beginPath();
@@ -141,6 +140,10 @@ base.exportTo('ui', function() {
         ctx.lineTo(quad.p3[0], quad.p3[1]);
         ctx.lineTo(quad.p4[0], quad.p4[1]);
         ctx.closePath();
+        if (quad.borderColor)
+          ctx.strokeStyle = quad.borderColor;
+        else
+          ctx.strokeStyle = 'rgb(128,128,128)';
         ctx.stroke();
       }
 

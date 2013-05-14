@@ -40,6 +40,8 @@ found in the LICENSE file.
         QuadFromXYWH(15, 15, 10, 10)
         ];
       quads[2].selected = true;
+      quads[3].backgroundColor = 'rgba(255,0,255,0.15)';
+      quads[3].borderColor = 'rgba(0,255,255,1)';
       var quadsBBox = new base.BBox2();
       for (var i = 0; i < quads.length; i++)
         quadsBBox.addQuad(quads[i]);
