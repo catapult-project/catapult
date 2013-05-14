@@ -326,6 +326,7 @@ def calc_load_sequence(filenames, toplevel_dir):
   all_resources["scripts"] = {}
   resource_finder = ResourceFinder(os.path.abspath(toplevel_dir))
   initial_module_name_indices = {}
+  filenames.sort()
   for filename in filenames:
     if not os.path.exists(filename):
       raise Exception("Could not find %s" % filename)
