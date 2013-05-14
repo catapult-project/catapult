@@ -187,7 +187,7 @@ base.exportTo('cc', function() {
       if (this.selectedLayer)
         this.layerDataView_.object = this.selectedLayer.args;
       else
-        this.layerDataView_.object = "<no layer selected>";
+        this.layerDataView_.object = '<no layer selected>';
     },
 
     get selectedLayer() {
@@ -279,8 +279,11 @@ base.exportTo('cc', function() {
         tmp.style.paddingRight = '10px';
         tmp.style.color = 'red';
         tmp.style.fontWeight = 'bold';
-        tmp.title = cc.PictureSnapshot.HowToEnableRasterizing()
+        tmp.title = cc.PictureSnapshot.HowToEnableRasterizing();
       }
+
+      this.warningEL_ = this.controls_.appendChild(ui.createSpan(''));
+      this.warningEL_.textContent = '';
 
       this.scale_ = 0.0625;
       var scaleSelector = ui.createSelector(
@@ -324,9 +327,15 @@ base.exportTo('cc', function() {
       var layer = this.layer_;
       var quads = [];
 
+      this.warningEL_.textContent = '';
+
       // Picture quads
       for (var ir = 0; ir < layer.pictures.length; ir++) {
         var picture = layer.pictures[ir];
+        if (!picture.layerRect) {
+          this.warningEL_.textContent = 'Missing pictures';
+          continue;
+        }
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
         var rd = picture.getRasterData();
