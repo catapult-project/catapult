@@ -75,9 +75,7 @@ base.exportTo('tracing.model', function() {
     },
 
     idWasDeleted: function(id, category, name, ts) {
-      var instanceMap = this.instanceMapsById_[id];
-      if (!instanceMap)
-        return undefined;
+      var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance)
         return;

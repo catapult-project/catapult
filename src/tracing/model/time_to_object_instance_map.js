@@ -69,16 +69,41 @@ base.exportTo('tracing.model', function() {
           throw new Error('At the provided timestamp, no instance was still alive');
 
         if (instance.snapshots.length != 0)
-          throw new Error('Cannot shift creationTs forward, ' +
-                          'snapshots have been added');
+          throw new Error(
+              'Cannot shift creationTs forward, ' +
+              'snapshots have been added. First snap was at ts=' +
+              instance.snapshots[0].ts + ' and creationTs was ' +
+              instance.creationTs);
         instance.creationTs = ts;
       } else if(i >= this.instances.length) {
         instance = this.instances[this.instances.length - 1];
-        if (ts < instance.deletionTs)
-          throw new Error('Cannot add snapshot to object that is already deleted');
-        instance = this.createObjectInstanceFunction_(
-          this.parent, this.id, category, name, ts);
-        this.instances.push(instance);
+        if (ts >= instance.deletionTs) {
+          // The snap is added after our oldest and deleted instance. This means that
+          // this is a new implicit instance.
+          instance = this.createObjectInstanceFunction_(
+            this.parent, this.id, category, name, ts);
+          this.instances.push(instance);
+        } else {
+          // If the ts is before the last objects deletion time, then the caller
+          // is trying to add a snapshot when there may have been an instance
+          // alive. In that case, try to move an instance's creationTs to
+          // include this ts, provided that it has an implicit creationTs.
+
+          // Search backward from the right for an instance that was definitely deleted
+          // before this ts. Any time an instance is found that has a moveable creationTs
+          var lastValidIndex;
+          for (var i = this.instances.length - 1; i >= 0; i--) {
+            var tmp = this.instances[i];
+            if (ts >= tmp.deletionTs)
+              break;
+            if (tmp.creationTsWasExplicit == false && tmp.snapshots.length == 0)
+              lastValidIndex = i;
+          }
+          if (lastValidIndex === undefined)
+            throw new Error('Cannot add snapshot. No instance was alive that was mutable.');
+          instance = this.instances[lastValidIndex];
+          instance.creationTs = ts;
+        }
       } else {
         instance = this.instances[i];
       }
@@ -99,13 +124,15 @@ base.exportTo('tracing.model', function() {
         return lastInstance;
       }
 
-      if (lastInstance.deletionTs != Number.MAX_VALUE &&
-          ts < lastInstance.deletionTs)
+      if (ts < lastInstance.deletionTs)
         throw new Error('id was already deleted earlier.');
 
-      // The item was deleted a few times, with no snapshots in-between.
-      // No action is needed.
-      return undefined;
+      // A new instance was deleted with no snapshots in-between.
+      // Create an instance then kill it.
+      lastInstance = this.createObjectInstanceFunction_(
+          this.parent, this.id, category, name, ts);
+      this.instances.push(lastInstance);
+      return lastInstance;
     },
 
     getInstanceAt: function(ts) {
