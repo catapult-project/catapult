@@ -16,6 +16,12 @@ base.exportTo('base', function() {
     return q;
   }
 
+  function QuadFromRect2(r) {
+    return new QuadFromXYWH(
+      r.left, r.top,
+      r.width, r.height);
+  }
+
   function QuadFrom4Vecs(p1, p2, p3, p4) {
     var q = new Quad();
     vec2.set(q.p1, p1[0], p1[1]);
