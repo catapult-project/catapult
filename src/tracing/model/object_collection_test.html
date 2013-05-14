@@ -55,6 +55,8 @@ found in the LICENSE file.
 
   function testTwoSnapshots() {
     var collection = new tracing.model.ObjectCollection({});
+    collection.idWasCreated(
+      '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
       '0x1000', 'cat', 'Frame', 10, {foo: 1});
     collection.addSnapshot(

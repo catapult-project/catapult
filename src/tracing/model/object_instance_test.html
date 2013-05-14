@@ -18,23 +18,58 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  function testGetSnapshotAt() {
-    var instance = new tracing.model.ObjectInstance();
-    instance.addSnapshot(10, 'a');
+  function testGetSnapshotAtWithImplicitCreation() {
+    var instance = new tracing.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+    var s10 = instance.addSnapshot(10, 'a');
     instance.addSnapshot(40, 'b');
     instance.wasDeleted(60);
 
-    var s0 = instance.getSnapshotAt(1);
-    assertUndefined(s0);
+    var s1 = instance.getSnapshotAt(1);
+    assertEquals(s10, s1);
 
-    var sA = instance.getSnapshotAt(10);
-    assertEquals('a', sA.args);
-    assertEquals(sA, instance.getSnapshotAt(15));
+    var s10 = instance.getSnapshotAt(10);
+    assertEquals('a', s10.args);
+    assertEquals(s10, instance.getSnapshotAt(15));
 
-    var sB = instance.getSnapshotAt(40);
-    assertEquals('b', sB.args);
-    assertEquals(sB, instance.getSnapshotAt(50));
-    assertEquals(sB, instance.getSnapshotAt(59.9));
+    var s40 = instance.getSnapshotAt(40);
+    assertEquals('b', s40.args);
+    assertEquals(s40, instance.getSnapshotAt(50));
+    assertEquals(s40, instance.getSnapshotAt(59.9));
+  }
+
+  function testGetSnapshotAtWithExplicitCreation() {
+    var instance = new tracing.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+    instance.creationTsWasExplicit = true;
+    instance.addSnapshot(10, 'a');
+    instance.wasDeleted(60);
+
+    assertThrows(function() {
+      instance.getSnapshotAt(1);
+    });
+
+    var s10 = instance.getSnapshotAt(10);
+    assertEquals('a', s10.args);
+    assertEquals(s10, instance.getSnapshotAt(15));
+  }
+
+  function testGetSnapshotBeforeFirstSnapshot() {
+    var instance = new tracing.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+    var s15 = instance.addSnapshot(15, 'a');
+    instance.wasDeleted(40);
+
+    assertEquals(s15, instance.getSnapshotAt(10));
+  }
+
+  function testGetSnapshotAfterLastSnapshot() {
+    var instance = new tracing.model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+    var s15 = instance.addSnapshot(15, 'a');
+    instance.wasDeleted(40);
+
+    assertEquals(s15, instance.getSnapshotAt(20));
   }
 
   function testSnapshotTypeRegistry() {

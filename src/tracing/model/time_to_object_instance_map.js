@@ -33,6 +33,7 @@ base.exportTo('tracing.model', function() {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.id, category, name, ts));
+        this.instances[0].creationTsWasExplicit = true;
         return this.instances[0];
       }
 
@@ -43,6 +44,7 @@ base.exportTo('tracing.model', function() {
       }
       lastInstance = this.createObjectInstanceFunction_(
           this.parent, this.id, category, name, ts);
+      lastInstance.creationTsWasExplicit = true;
       this.instances.push(lastInstance);
       return lastInstance;
     },
@@ -53,17 +55,35 @@ base.exportTo('tracing.model', function() {
             this.parent, this.id, category, name, ts));
       }
 
-      var lastInstance = this.instances[this.instances.length - 1];
-      if (ts < lastInstance.creationTs) {
-        throw new Error('Mutation of the TimeToObjectInstanceMap must be ' +
-                        'done in ascending timestamp order.');
+      var i = base.findLowIndexInSortedIntervals(
+        this.instances,
+        function(inst) { return inst.creationTs; },
+        function(inst) { return inst.deletionTs - inst.creationTs; },
+        ts);
+
+      var instance;
+      if (i < 0) {
+        instance = this.instances[0];
+        if (ts > instance.deletionTs ||
+            instance.creationTsWasExplicit)
+          throw new Error('At the provided timestamp, no instance was still alive');
+
+        if (instance.snapshots.length != 0)
+          throw new Error('Cannot shift creationTs forward, ' +
+                          'snapshots have been added');
+        instance.creationTs = ts;
+      } else if(i >= this.instances.length) {
+        instance = this.instances[this.instances.length - 1];
+        if (ts < instance.deletionTs)
+          throw new Error('Cannot add snapshot to object that is already deleted');
+        instance = this.createObjectInstanceFunction_(
+          this.parent, this.id, category, name, ts);
+        this.instances.push(instance);
+      } else {
+        instance = this.instances[i];
       }
-      if (ts >= lastInstance.deletionTs) {
-        lastInstance = this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts);
-        this.instances.push(lastInstance);
-      }
-      return lastInstance.addSnapshot(ts, args);
+
+      return instance.addSnapshot(ts, args);
     },
 
     idWasDeleted: function(category, name, ts) {
@@ -94,8 +114,13 @@ base.exportTo('tracing.model', function() {
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
           ts);
-      if (i < 0 || i >= this.instances.length)
+      if (i < 0) {
+        if (this.instances[0].creationTsWasExplicit)
+          return undefined;
+        return this.instances[0];
+      } else if (i >= this.instances.length) {
         return undefined;
+      }
       return this.instances[i];
     }
   };

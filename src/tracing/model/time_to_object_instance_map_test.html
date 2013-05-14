@@ -35,9 +35,9 @@ found in the LICENSE file.
     assertEquals(2, m.instances.length);
 
     var i0 = m.getInstanceAt(0);
-    assertUndefined(i0);
-
     var i10 = m.getInstanceAt(10);
+    assertEquals(i10, i0);
+
     assertNotUndefined(i10);
     assertEquals(2, i10.snapshots.length);
     assertEquals('a1', i10.snapshots[0].args);
@@ -87,6 +87,61 @@ found in the LICENSE file.
     assertEquals(40, iB.bounds.min);
     assertEquals(41, iB.bounds.max);
   }
+
+  function testEarlySnapshot() {
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+                                                      {}, 7);
+    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    m.idWasDeleted('cat', 'name', 20);
+
+    assertThrows(function() {
+      m.addSnapshot('cat', 'name', 5, 'a1');
+    });
+    assertEquals(10, i10.creationTs);
+    assertEquals(20, i10.deletionTs);
+  }
+
+  function testEarlySnapshotWithImplicitCreate() {
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+                                                      {}, 7);
+    var i10 = m.idWasDeleted('cat', 'name', 20);
+    m.addSnapshot('cat', 'name', 5, 'a1');
+    assertEquals(5, i10.creationTs);
+    assertEquals(20, i10.deletionTs);
+  }
+
+  function testGetInstanceBeforeCreationImplicitCreate() {
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+                                                      {}, 7);
+    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    m.idWasDeleted('cat', 'name', 20);
+    assertEquals(undefined, m.getInstanceAt(5));
+  }
+
+  function testGetInstanceBeforeCreationImplicitCreate() {
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+                                                      {}, 7);
+    var s5 = m.addSnapshot('cat', 'name', 5, 'a1');
+    var i10 = m.idWasDeleted('cat', 'name', 20);
+    assertEquals(i10, m.getInstanceAt(5));
+  }
+
+  function testSnapshotAfterDeletion() {
+    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+                                                      {}, 7);
+    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    m.idWasDeleted('cat', 'name', 20);
+
+    var s25 = m.addSnapshot('cat', 'name', 25, 'a1');
+    var i25 = s25.objectInstance;
+
+    assertEquals(10, i10.creationTs);
+    assertEquals(20, i10.deletionTs);
+    assertNotEquals(i10, i25);
+    assertEquals(25, i25.creationTs);
+    assertEquals(Number.MAX_VALUE, i25.deletionTs);
+  }
+
 </script>
 </body>
 </html>

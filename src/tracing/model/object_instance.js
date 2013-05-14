@@ -86,6 +86,7 @@ base.exportTo('tracing.model', function() {
     this.category = category;
     this.name = name;
     this.creationTs = creationTs;
+    this.creationTsWasExplicit = false;
     this.deletionTs = Number.MAX_VALUE;
     this.selected = false;
     this.colorId = 0;
@@ -154,7 +155,12 @@ base.exportTo('tracing.model', function() {
     },
 
     getSnapshotAt: function(ts) {
-      if (ts < this.creationTs || ts > this.deletionTs)
+      if (ts < this.creationTs) {
+        if (this.creationTsWasExplicit)
+          throw new Error('ts must be within lifetime of this instance');
+        return this.snapshots[0];
+      }
+      if (ts > this.deletionTs)
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
@@ -167,8 +173,16 @@ base.exportTo('tracing.model', function() {
             return snapshots[i + 1].ts - snapshots[i].ts;
           },
           ts);
-      if (i < 0 || i >= this.snapshots.length)
-        return undefined;
+      if (i < 0) {
+        // Note, this is a little bit sketchy: this lets early ts point at the
+        // first snapshot, even before it is taken. We do this because raster
+        // tasks usually post before their tile snapshots are dumped. This may
+        // be a good line of code to re-visit if we start seeing strange and
+        // confusing object references showing up in the traces.
+        return this.snapshots[0];
+      }
+      if (i >= this.snapshots.length)
+        return this.snapshots[this.snapshots.length - 1];
       return this.snapshots[i];
     },
 
