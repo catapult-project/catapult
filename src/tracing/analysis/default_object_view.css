@@ -11,6 +11,10 @@
   display: block;
 }
 
+.default-object-view {
+  overflow: auto;
+}
+
 .default-object-view * {
   -webkit-user-select: text;
 }
