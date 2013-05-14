@@ -29,6 +29,16 @@ base.exportTo('base', function() {
     rect.height = h;
     return rect;
   }
+  Rect2.FromArray = function(ary) {
+    if (ary.length != 4)
+      throw new Error('ary.length must be 4');
+    var rect = new Rect2();
+    rect.left = ary[0];
+    rect.top = ary[1];
+    rect.width = ary[2];
+    rect.height = ary[3];
+    return rect;
+  }
 
   Rect2.prototype = {
     __proto__: Object.prototype,
