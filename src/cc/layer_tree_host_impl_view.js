@@ -50,7 +50,7 @@ base.exportTo('cc', function() {
       this.controls_.appendChild(ui.createSelector(
           this, 'whichTree',
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
-           {label: 'Pending tree', value: constants.ACTIVE_TREE}]));
+           {label: 'Pending tree', value: constants.PENDING_TREE}]));
     },
 
     get lthiSnapshot() {
