@@ -89,7 +89,6 @@ base.exportTo('cc', function() {
   ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::PictureLayerImpl', PictureLayerImplSnapshot);
 
-  ObjectSnapshot.register('cc::ContentLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::DelegatedRendererLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::HeadsUpDisplayLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::IOSurfaceLayerImpl', LayerImplSnapshot);
@@ -98,6 +97,7 @@ base.exportTo('cc', function() {
   ObjectSnapshot.register('cc::ScrollbarLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::SolidColorLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::TextureLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::TiledLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::VideoLayerImpl', LayerImplSnapshot);
 
   return {
