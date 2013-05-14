@@ -52,7 +52,7 @@ base.exportTo('cc', function() {
       if (whichTree == constants.ACTIVE_TREE)
         return this.activeTree;
       if (whichTree == constants.PENDING_TREE)
-        return this.activeTree;
+        return this.pendingTree;
       throw new Exception('Unknown tree type + ' + whichTree);
     }
   };

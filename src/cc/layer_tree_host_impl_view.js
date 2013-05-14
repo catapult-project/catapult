@@ -92,6 +92,9 @@ base.exportTo('cc', function() {
         return [];
 
       var tree = this.lthiSnapshot_.getTree(this.whichTree_);
+      if (!tree)
+        return [];
+
       var layerInfos = [];
       function visitLayer(layer, depth, note) {
         var info = {layer: layer,
