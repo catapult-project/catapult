@@ -16,7 +16,7 @@ base.exportTo('base', function() {
     return q;
   }
 
-  function QuadFromRect2(r) {
+  function QuadFromRect(r) {
     return new QuadFromXYWH(
       r.left, r.top,
       r.width, r.height);
@@ -90,6 +90,7 @@ base.exportTo('base', function() {
     vecInTriangle2: vecInTriangle2,
     Quad: Quad,
     QuadFromXYWH: QuadFromXYWH,
+    QuadFromRect: QuadFromRect,
     QuadFrom4Vecs: QuadFrom4Vecs,
     QuadFrom8Array: QuadFrom8Array
   };
