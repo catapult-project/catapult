@@ -14,7 +14,6 @@
 
 window.FLATTENED = {};
 window.FLATTENED_RAW_SCRIPTS = {};
-window.FLATTENED['base'] = true;
 window.FLATTENED['base.event_target'] = true;
 window.FLATTENED['ui'] = true;
 window.FLATTENED['ui.overlay'] = true;
@@ -113,7 +112,7 @@ window.FLATTENED['tracing.timeline_track_view'] = true;
 window.FLATTENED['tracing.find_control'] = true;
 window.FLATTENED['tracing.timeline_view'] = true;
 window.FLATTENED['about_tracing.profiling_view'] = true;
-<include src="base.js">
+window.FLATTENED['base'] = true;
 <include src="base/event_target.js">
 <include src="ui.js">
 <include src="ui/overlay.js">
@@ -212,6 +211,7 @@ window.FLATTENED['about_tracing.profiling_view'] = true;
 <include src="tracing/find_control.js">
 <include src="tracing/timeline_view.js">
 <include src="about_tracing/profiling_view.js">
+<include src="base.js">
 
 
 var tracingController;
