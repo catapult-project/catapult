@@ -337,8 +337,9 @@ base.exportTo('cc', function() {
 
       this.warningEL_.textContent = '';
 
-      // Picture quads
-      for (var ir = 0; ir < layer.pictures.length; ir++) {
+      // Picture quads (pictures are listed top -> bottom so need to be
+      // iterated in reverse)
+      for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
         var picture = layer.pictures[ir];
         if (!picture.layerRect) {
           this.warningEL_.textContent = 'Missing pictures';
@@ -356,7 +357,7 @@ base.exportTo('cc', function() {
         quads.push(iq);
       }
 
-      // Invalidaiton quads
+      // Invalidation quads
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
         var rect = layer.invalidation.rects[ir];
         var iq = base.QuadFromRect(rect);
