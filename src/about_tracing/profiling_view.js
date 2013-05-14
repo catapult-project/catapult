@@ -60,7 +60,6 @@ base.exportTo('about_tracing', function() {
       this.timelineView_.leftControls.appendChild(this.recordBn_);
       this.timelineView_.leftControls.appendChild(this.saveBn_);
       this.timelineView_.leftControls.appendChild(this.loadBn_);
-      this.timelineView_.viewTitle = undefined;
       this.appendChild(this.timelineView_);
 
       document.addEventListener('keypress', this.onKeypress_.bind(this));
@@ -160,6 +159,7 @@ base.exportTo('about_tracing', function() {
       var categories = this.recordSelectionDialog_.categoryFilter();
       console.log('Recording: ' + categories);
 
+      this.timelineView_.viewTitle = '-_-';
       tc.beginTracing(this.recordSelectionDialog_.isSystemTracingEnabled(),
                       this.recordSelectionDialog_.isContinuousTracingEnabled(),
                       categories);
@@ -169,6 +169,7 @@ base.exportTo('about_tracing', function() {
 
     onTraceEnded_: function() {
       var tc = this.tracingController;
+      this.timelineView_.viewTitle = '^_^';
       this.refresh_();
       setTimeout(function() {
         tc.removeEventListener('traceEnded', this.onTraceEndedBoundToThis_);
@@ -220,8 +221,15 @@ base.exportTo('about_tracing', function() {
       function response(e) {
         that.overlayEl_.visible = false;
         that.overlayEl_ = undefined;
-        if (e.type == 'loadTraceFileComplete')
+        if (e.type === 'loadTraceFileComplete') {
+           var nameParts = e.filename.split(/\//);
+           if (nameParts.length > 0)
+             that.timelineView_.viewTitle = nameParts[nameParts.length - 1];
+           else
+             that.timelineView_.viewTitle = '^_^';
           that.refresh_();
+        }
+
         setTimeout(function() {
           tc.removeEventListener('loadTraceFileComplete', response);
           tc.removeEventListener('loadTraceFileCanceled', response);
@@ -248,9 +256,12 @@ base.exportTo('about_tracing', function() {
       var files_len = files.length;
       for (var i = 0; i < files_len; ++i) {
         var reader = new FileReader();
+        var filename = files[i].name;
         reader.onload = function(data) {
           try {
-            that.tracingController.onLoadTraceFileComplete(data.target.result);
+            that.tracingController.onLoadTraceFileComplete(data.target.result,
+                                                           filename);
+            that.timelineView_.viewTitle = filename;
             that.refresh_();
           } catch (e) {
             console.log('Unable to import the provided trace file.', e.message);

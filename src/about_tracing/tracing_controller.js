@@ -328,7 +328,7 @@ base.exportTo('about_tracing', function() {
     /**
      * Called by the browser when a trace file is loaded.
      */
-    onLoadTraceFileComplete: function(traceDataString) {
+    onLoadTraceFileComplete: function(traceDataString, opt_filename) {
       var data;
       this.failedTraceDataString_ = undefined;
 
@@ -362,6 +362,7 @@ base.exportTo('about_tracing', function() {
 
       var e = new base.Event('loadTraceFileComplete');
       e.events = this.traceEvents_;
+      e.filename = opt_filename || '';
       this.dispatchEvent(e);
     },
 

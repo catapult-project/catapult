@@ -5,7 +5,7 @@ Copyright (c) 2011 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<head i18n-values="dir:textdirection;">
+<head>
 <title>Simple Embedded Viewer</title>
 <script src="/src/base.js"></script>
 <style>
@@ -54,7 +54,7 @@ found in the LICENSE file.
 
   var timelineViewEl;
 
-  function loadTraces(filenames, callback) {
+  function loadTraces(filenames, onTracesLoaded) {
     var traces = [];
     for (var i = 0; i < filenames.length; i++) {
       traces.push(undefined);
@@ -66,7 +66,7 @@ found in the LICENSE file.
         traces[i] = trace;
         numTracesPending--;
         if (numTracesPending == 0)
-          callback(traces);
+          onTracesLoaded(filenames, traces);
       });
     });
   }
@@ -88,15 +88,14 @@ found in the LICENSE file.
     req.send(null);
   }
 
-  function createViewFromTraces(traces) {
+  function createViewFromTraces(filenames, traces) {
     var m = new tracing.Model();
     m.importTraces(traces, true);
 
-    timelineViewEl = document.querySelector('.view');
-    ui.decorate(timelineViewEl, tracing.TimelineView);
     timelineViewEl.model = m;
     timelineViewEl.tabIndex = 1;
     timelineViewEl.timeline.focusElement = timelineViewEl;
+    timelineViewEl.viewTitle = filenames;
   }
 
   function onSelectionChange() {
@@ -128,6 +127,10 @@ found in the LICENSE file.
   document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('trace_file');
     select.onchange = onSelectionChange;
+
+    timelineViewEl = document.querySelector('.view');
+    ui.decorate(timelineViewEl, tracing.TimelineView);
+
     if (!window.location.hash) {
       // This will trigger an onHashChange so no need to reload directly.
       window.location.hash = '#' + select[select.selectedIndex].value;

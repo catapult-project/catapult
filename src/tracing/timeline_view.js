@@ -42,7 +42,7 @@ base.exportTo('tracing', function() {
 
       // Create individual elements.
       this.titleEl_ = document.createElement('div');
-      this.titleEl_.textContent = 'Tracing: ';
+      this.titleEl_.textContent = '^_^';
       this.titleEl_.className = 'title';
 
       this.controlDiv_ = document.createElement('div');
@@ -81,8 +81,8 @@ base.exportTo('tracing', function() {
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.metadataButton_);
       this.rightControls.appendChild(this.findCtl_);
-      this.controlDiv_.appendChild(this.titleEl_);
       this.controlDiv_.appendChild(this.leftControlsEl_);
+      this.controlDiv_.appendChild(this.titleEl_);
       this.controlDiv_.appendChild(spacingEl);
       this.controlDiv_.appendChild(this.rightControlsEl_);
       this.appendChild(this.controlDiv_);
@@ -276,7 +276,7 @@ base.exportTo('tracing', function() {
         return;
       }
       this.titleEl_.hidden = false;
-      this.titleEl_.textContent = text + ':';
+      this.titleEl_.textContent = text;
     },
 
     set traceData(traceData) {
