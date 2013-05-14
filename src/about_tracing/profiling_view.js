@@ -21,7 +21,7 @@ base.require('ui.overlay');
 base.require('tracing.importer.linux_perf_importer');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.importer.v8_log_importer');
-base.require('cc.layer_tree_host_impl_view');
+base.require('cc');
 
 base.exportTo('about_tracing', function() {
   /**

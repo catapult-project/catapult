@@ -170,6 +170,12 @@ base.addModuleStylesheet(
     'cc.layer_tree_host_impl_view',
     'cc.layer_tree_host_impl_view');
 base.addModuleDependency(
+    'cc',
+    'cc.layer_tree_host_impl');
+base.addModuleDependency(
+    'cc',
+    'cc.layer_tree_host_impl_view');
+base.addModuleDependency(
     'tracing.importer.linux_perf.android_parser',
     'tracing.importer.linux_perf.parser');
 base.addModuleDependency(
@@ -774,7 +780,7 @@ base.addModuleDependency(
     'tracing.importer.v8_log_importer');
 base.addModuleDependency(
     'about_tracing.profiling_view',
-    'cc.layer_tree_host_impl_view');
+    'cc');
 base.addModuleStylesheet(
     'about_tracing.profiling_view',
     'about_tracing.profiling_view');
