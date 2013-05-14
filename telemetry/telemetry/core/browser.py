@@ -83,6 +83,43 @@ class Browser(object):
   def supports_tracing(self):
     return self._browser_backend.supports_tracing
 
+  def _GetStatsCommon(self, pid_stats_function):
+    browser_pid = self._browser_backend.pid
+    result = {
+        'Browser': dict(pid_stats_function(browser_pid), **{'ProcessCount': 1}),
+        'Renderer': {'ProcessCount': 0},
+        'Gpu': {'ProcessCount': 0}
+    }
+    child_process_count = 0
+    for child_pid in self._platform_backend.GetChildPids(browser_pid):
+      child_process_count += 1
+      child_cmd_line = self._platform_backend.GetCommandLine(child_pid)
+      child_process_name = self._browser_backend.GetProcessName(child_cmd_line)
+      process_name_type_key_map = {'gpu-process': 'Gpu', 'renderer': 'Renderer'}
+      if child_process_name in process_name_type_key_map:
+        child_process_type_key = process_name_type_key_map[child_process_name]
+      else:
+        # TODO: identify other process types (zygote, plugin, etc), instead of
+        # lumping them in with renderer processes.
+        child_process_type_key = 'Renderer'
+      child_stats = pid_stats_function(child_pid)
+      result[child_process_type_key]['ProcessCount'] += 1
+      for k, v in child_stats.iteritems():
+        if k in result[child_process_type_key]:
+          result[child_process_type_key][k] += v
+        else:
+          result[child_process_type_key][k] = v
+    if result['Gpu']['ProcessCount'] > 1:
+      raise Exception('Found %d Gpu processes' % result['Gpu']['ProcessCount'])
+    for v in result.itervalues():
+      if v['ProcessCount'] > 1:
+        for k in v.iterkeys():
+          if k.endswith('Peak'):
+            del v[k]
+      del v['ProcessCount']
+    result['ProcessCount'] = child_process_count
+    return result
+
   @property
   def memory_stats(self):
     """Returns a dict of memory statistics for the browser:
@@ -94,6 +131,14 @@ class Browser(object):
         'ProportionalSetSize': W,
         'PrivateDirty': X
       },
+      'Gpu': {
+        'VM': S,
+        'VMPeak': T,
+        'WorkingSetSize': U,
+        'WorkingSetSizePeak': V,
+        'ProportionalSetSize': W,
+        'PrivateDirty': X
+      },
       'Renderer': {
         'VM': S,
         'VMPeak': T,
@@ -101,30 +146,27 @@ class Browser(object):
         'WorkingSetSizePeak': V,
         'ProportionalSetSize': W,
         'PrivateDirty': X
-      }
+      },
       'SystemCommitCharge': Y,
-      'ProcessCount': Z
+      'ProcessCount': Z,
     }
     Any of the above keys may be missing on a per-platform basis.
     """
-    browser_pid = self._browser_backend.pid
-    renderer_totals = collections.defaultdict(int)
-    process_count = 1
-    for renderer_pid in self._platform_backend.GetChildPids(browser_pid):
-      process_count += 1
-      for k, v in self._platform_backend.GetMemoryStats(
-          renderer_pid).iteritems():
-        renderer_totals[k] += v
-    return {'Browser': self._platform_backend.GetMemoryStats(browser_pid),
-            'Renderer': renderer_totals,
-            'SystemCommitCharge':
-                self._platform_backend.GetSystemCommitCharge(),
-            'ProcessCount': process_count}
+    result = self._GetStatsCommon(self._platform_backend.GetMemoryStats)
+    result['SystemCommitCharge'] = \
+        self._platform_backend.GetSystemCommitCharge()
+    return result
 
   @property
   def io_stats(self):
     """Returns a dict of IO statistics for the browser:
     { 'Browser': {
+        'ReadOperationCount': W,
+        'WriteOperationCount': X,
+        'ReadTransferCount': Y,
+        'WriteTransferCount': Z
+      },
+      'Gpu': {
         'ReadOperationCount': W,
         'WriteOperationCount': X,
         'ReadTransferCount': Y,
@@ -138,13 +180,9 @@ class Browser(object):
       }
     }
     """
-    browser_pid = self._browser_backend.pid
-    renderer_totals = collections.defaultdict(int)
-    for renderer_pid in self._platform_backend.GetChildPids(browser_pid):
-      for k, v in self._platform_backend.GetIOStats(renderer_pid).iteritems():
-        renderer_totals[k] += v
-    return {'Browser': self._platform_backend.GetIOStats(browser_pid),
-            'Renderer': renderer_totals}
+    result = self._GetStatsCommon(self._platform_backend.GetIOStats)
+    del result['ProcessCount']
+    return result
 
   def StartProfiling(self, options, base_output_file):
     """Starts profiling using |options|.profiler_tool. Results are saved to
