@@ -406,28 +406,59 @@ base.exportTo('tracing.importer', function() {
       function processEvent(objectEventState) {
         var event = objectEventState.event;
         var thread = objectEventState.thread;
-        if (event.name === undefined)
-          throw new Error('Object events require a name parameter.');
+        if (event.name === undefined) {
+          this.model_.importErrors.push(
+              'While processing ' + JSON.stringify(event)  + ': ' +
+              'Object events require an name parameter.');
+        }
 
-        if (event.id === undefined)
-          throw new Error('Object events require an id parameter.');
-
+        if (event.id === undefined) {
+          this.model_.importErrors.push(
+              'While processing ' + JSON.stringify(event)  + ': ' +
+              'Object events require an id parameter.');
+        }
         var process = thread.parent;
         var ts = event.ts / 1000;
         var instance;
         if (event.ph == 'N') {
-          instance = process.objects.idWasCreated(
+          try {
+            instance = process.objects.idWasCreated(
               event.id, event.cat, event.name, ts);
+          } catch (e) {
+            this.model_.importErrors.push(
+                'While processing create of ' +
+                event.id + ' at ts=' + ts + ': ' + e);
+            return;
+          }
         } else if (event.ph == 'O') {
-          if (event.args.snapshot === undefined)
-            throw new Error('Snapshots must have args: {snapshot: ...}');
-          var snapshot = process.objects.addSnapshot(
-              event.id, event.cat, event.name, ts,
-              deepCopy(event.args.snapshot));
+          if (event.args.snapshot === undefined) {
+            this.model_.importErrors.push(
+                'While processing ' + event.id + ' at ts=' + ts + ': ' +
+                'Snapshots must have args: {snapshot: ...}');
+            return;
+          }
+          var snapshot;
+          try {
+            snapshot = process.objects.addSnapshot(
+                event.id, event.cat, event.name, ts,
+                deepCopy(event.args.snapshot));
+          } catch (e) {
+            this.model_.importErrors.push(
+                'While processing snapshot of ' +
+                event.id + ' at ts=' + ts + ': ' + e);
+            return;
+          }
           instance = snapshot.objectInstance;
         } else if (event.ph == 'D') {
-          instance = process.objects.idWasDeleted(
+          try {
+            instance = process.objects.idWasDeleted(
               event.id, event.cat, event.name, ts);
+          } catch (e) {
+            this.model_.importErrors.push(
+                'While processing delete of ' +
+                event.id + ' at ts=' + ts + ': ' + e);
+            return;
+          }
         }
 
         if (instance)
@@ -499,10 +530,18 @@ base.exportTo('tracing.importer', function() {
         delete implicitSnapshot.id;
         var name = m[1];
         var id = m[2];
-        var res = process.objects.addSnapshot(
-            id, containingSnapshot.cat,
+        var res;
+        try {
+          res = process.objects.addSnapshot(
+            id, containingSnapshot.objectInstance.category,
             name, containingSnapshot.ts,
             implicitSnapshot);
+        } catch(e) {
+          this.model_.importErrors.push(
+            'While processing implicit snapshot of ' +
+              id + ' at ts=' + containingSnapshot.ts + ': ' + e);
+          return;
+        }
         referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
@@ -550,6 +589,7 @@ base.exportTo('tracing.importer', function() {
       function handleField(object, fieldName, fieldValue) {
         if (!fieldValue.id_ref && !fieldValue.idRef)
           return;
+
         var id = fieldValue.id_ref || fieldValue.idRef;
         var ts = item[itemTimestampField];
         var snapshot = objectCollection.getSnapshotAt(id, ts);
