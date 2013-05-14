@@ -151,7 +151,10 @@ base.exportTo('cc', function() {
 
     onLayerSelectionChanged_: function(e) {
       base.dispatchSimpleEvent(this, 'selection-changed', false);
-      this.layerDataView_.object = this.selectedLayer.args;
+      if (this.selectedLayer)
+        this.layerDataView_.object = this.selectedLayer.args;
+      else
+        this.layerDataView_.object = "<no layer selected>";
     },
 
     get selectedLayer() {
