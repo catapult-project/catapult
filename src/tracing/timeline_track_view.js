@@ -428,6 +428,9 @@ base.exportTo('tracing', function() {
       base.dispatchSimpleEvent(this, 'selectionChange');
       for (i = 0; i < this.selection_.length; i++)
         this.selection_[i].selected = true;
+      if (this.selection_.length &&
+          this.selection_[0].track)
+        this.selection_[0].track.scrollIntoViewIfNeeded();
       this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
     },
 
