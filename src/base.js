@@ -119,7 +119,7 @@ this.base = (function() {
     req.open('GET', src, false);
     req.send(null);
     if (req.status != 200)
-      throw new Error('Unable to retrieve deps. Something is wrong.')
+      throw new Error('Unable to retrieve deps. Something is wrong.');
 
     base.addModuleDependency = addModuleDependency;
     base.addModuleRawScriptDependency = addModuleRawScriptDependency;
@@ -272,7 +272,13 @@ this.base = (function() {
     e.propertyName = propertyName;
     e.newValue = newValue;
     e.oldValue = oldValue;
+    var error;
+    e.throwError = function(err) {  // workaround CR 239648
+      error = err;
+    }
     target.dispatchEvent(e);
+    if (error)
+      throw error;
   }
 
   /**
