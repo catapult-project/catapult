@@ -68,9 +68,14 @@
 
 .timeline-view > .analysis-view {
   display: -webkit-flex;
-  height: 250px;
   padding-left: 2px;
   padding-right: 2px;
+}
+.timeline-view > .analysis-view:not(.viewing-object) {
+  height: 250px;
+}
+.timeline-view > .analysis-view.viewing-object {
+  height: 500px;
 }
 
 .timeline-view .selection {

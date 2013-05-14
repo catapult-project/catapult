@@ -22,12 +22,33 @@ base.exportTo('ui', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.lastMousePos = 0;
+      this.lastMousePos_ = 0;
       this.onMouseMove_ = this.onMouseMove_.bind(this);
       this.onMouseUp_ = this.onMouseUp_.bind(this);
       this.addEventListener('mousedown', this.onMouseDown_);
-      this.target = undefined;
+      this.target_ = undefined;
       this.horizontal = true;
+      this.observer_ = new WebKitMutationObserver(this.didTargetMutate_.bind(this));
+      this.targetSizesByModeKey_ = {};
+    },
+
+    get modeKey_() {
+      return this.target_.className == "" ? '.' : this.target_.className;
+    },
+
+    get target() {
+      return this.target_;
+    },
+
+    set target(target) {
+      this.observer_.disconnect();
+      this.target_ = target;
+      if (!this.target_)
+        return;
+      this.observer_.observe(this.target_, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
     },
 
     get horizontal() {
@@ -50,39 +71,76 @@ base.exportTo('ui', function() {
       this.horizontal = !v;
     },
 
+    forceMutationObserverFlush_: function() {
+      var records = this.observer_.takeRecords();
+      if (records.length)
+        this.didTargetMutate_(records);
+    },
+
+    didTargetMutate_: function(e) {
+      var modeSize = this.targetSizesByModeKey_[this.modeKey_];
+      if (modeSize !== undefined) {
+        this.setTargetSize_(modeSize);
+        return;
+      }
+
+      // If we hadn't previously sized the target, then just remove any manual
+      // sizing that we applied.
+      this.target_.style[this.targetStyleKey_] = '';
+    },
+
+    get targetStyleKey_() {
+      return this.horizontal_ ? 'height' : 'width';
+    },
+
+    getTargetSize_: function() {
+      // If style is not set, start off with computed height.
+      var targetStyleKey = this.targetStyleKey_;
+      if (!this.target_.style[targetStyleKey]) {
+        this.target_.style[targetStyleKey] =
+            window.getComputedStyle(this.target_)[targetStyleKey];
+      }
+      var size = parseInt(this.target_.style[targetStyleKey]);
+      this.targetSizesByModeKey_[this.modeKey_] = size;
+      return size;
+    },
+
+    setTargetSize_: function(s) {
+      this.target_.style[this.targetStyleKey_] = s + 'px';
+      this.targetSizesByModeKey_[this.modeKey_] = s;
+    },
+
+    applyDelta_: function(delta) {
+      // Apply new size to the container.
+      var curSize = this.getTargetSize_();
+      var newSize;
+      if (this.target_ == this.nextSibling) {
+        newSize = curSize + delta;
+      } else {
+        if (this.target_ != this.previousSibling)
+          throw Error('Must be next sibling');
+        newSize = curSize - delta;
+      }
+      this.setTargetSize_(newSize);
+    },
+
     onMouseMove_: function(e) {
       // Compute the difference in height position.
       var curMousePos = this.horizontal_ ? e.clientY : e.clientX;
-      var delta = this.lastMousePos - curMousePos;
-      var targetKey = this.horizontal_ ? 'height' : 'width';
+      var delta = this.lastMousePos_ - curMousePos;
 
-      // If style is not set, start off with computed height.
-      if (!this.target.style[targetKey]) {
-        this.target.style[targetKey] =
-            window.getComputedStyle(this.target)[targetKey];
-      }
+      this.applyDelta_(delta);
 
-      // Apply new size to the container.
-      if (this.target == this.nextSibling) {
-        this.target.style[targetKey] =
-            parseInt(this.target.style[targetKey]) + delta + 'px';
-      } else {
-        if (this.target != this.previousSibling)
-          throw Error('Must be next sibling');
-        this.target.style[targetKey] =
-            parseInt(this.target.style[targetKey]) - delta + 'px';
-      }
-
-
-      this.lastMousePos = curMousePos;
+      this.lastMousePos_ = curMousePos;
       e.preventDefault();
       return true;
     },
 
     onMouseDown_: function(e) {
-      if (!this.target)
+      if (!this.target_)
         return;
-      this.lastMousePos = this.horizontal_ ? e.clientY : e.clientX;
+      this.forceMutationObserverFlush_();
+      this.lastMousePos_ = this.horizontal_ ? e.clientY : e.clientX;
       document.addEventListener('mousemove', this.onMouseMove_);
       document.addEventListener('mouseup', this.onMouseUp_);
       e.preventDefault();
