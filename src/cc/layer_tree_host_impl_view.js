@@ -209,8 +209,26 @@ base.exportTo('cc', function() {
         var layer = rsll[i];
         var q = layer.layerQuad.copy();
         quads.push(q);
-        if (layer == this.layer)
-          q.selected = true;
+
+        var selected = layer == this.layer;
+        if (layer.invalidation) {
+          for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
+            var rect = layer.invalidation.rects[ir];
+            var iq = base.QuadFromRect(rect);
+            // TODO(nduca): This quad has to be warped to be in the outer quad.
+            // TOOD(nduca): The quad has to be mapped from layer space to screenspace.
+            // vec2.scale(iq.p1, iq.p1, 2);
+            // vec2.scale(iq.p2, iq.p2, 2);
+            // vec2.scale(iq.p3, iq.p3, 2);
+            // vec2.scale(iq.p4, iq.p4, 2);
+            iq.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+            if (selected)
+              iq.borderColor = 'rgba(255, 0, 0, 1)';
+            quads.push(iq);
+          }
+        }
+
+        q.selected = selected;
       }
       return quads;
     },

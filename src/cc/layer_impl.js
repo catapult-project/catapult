@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('cc.region');
 base.require('tracing.model.object_instance');
 
 base.exportTo('cc', function() {
@@ -54,25 +55,41 @@ base.exportTo('cc', function() {
     }
   };
 
-  // For now, handle PictureLayerImpl's using LayerImpl classes.
-  // Deprecated.
-  ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
-  ObjectSnapshot.register('cc::PictureLayerImpl', LayerImplSnapshot);
+  /**
+   * @constructor
+   */
+  function PictureLayerImplSnapshot() {
+    LayerImplSnapshot.apply(this, arguments);
+  }
 
-  ObjectSnapshot.register('ContentLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('DelegatedRendererLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('HeadsUpDisplayLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('IOSurfaceLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('Layer', LayerImplSnapshot);
-  ObjectSnapshot.register('NinePatchLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('PictureImageLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('PictureLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('ScrollbarLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('SolidColorLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('TextureLayer', LayerImplSnapshot);
-  ObjectSnapshot.register('VideoLayer', LayerImplSnapshot);
+  PictureLayerImplSnapshot.prototype = {
+    __proto__: LayerImplSnapshot.prototype,
+
+    initialize: function() {
+      LayerImplSnapshot.prototype.initialize.call(this);
+
+      cc.moveOptionalFieldsFromArgsToToplevel(
+        this, ['invalidation']);
+      this.invalidation = cc.RegionFromArray(this.invalidation || []);
+    }
+  };
+
+  ObjectSnapshot.register('cc::LayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::PictureLayerImpl', PictureLayerImplSnapshot);
+
+  ObjectSnapshot.register('cc::ContentLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::DelegatedRendererLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::HeadsUpDisplayLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::IOSurfaceLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::NinePatchLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::PictureImageLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::ScrollbarLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::SolidColorLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::TextureLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::VideoLayerImpl', LayerImplSnapshot);
 
   return {
-    LayerImplSnapshot: LayerImplSnapshot
+    LayerImplSnapshot: LayerImplSnapshot,
+    PictureLayerImplSnapshot: PictureLayerImplSnapshot
   };
 });
