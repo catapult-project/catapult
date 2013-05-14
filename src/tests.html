@@ -10,91 +10,6 @@ found in the LICENSE file.
 <script src="/src/base.js"></script>
 <script>
   base.require('base.unittest');
-
-  G_allTests = [
-    'base_test.html',
-    'base/bbox2_test.html',
-    'base/color_test.html',
-    'base/gl_matrix_test.html',
-    'base/quad_test.html',
-    'base/range_test.html',
-    'base/settings_test.html',
-    'base/sorted_array_utils_test.html',
-    'base/unittest_test.html',
-
-    'ui_test.html',
-    'ui/overlay_test.html',
-    'ui/list_and_associated_view_test.html',
-    'ui/list_view_test.html',
-    'ui/quad_view_test.html',
-    'ui/quad_view_viewport_test.html',
-    'ui/toggle_button_test.html',
-
-    'about_tracing/profiling_view_test.html',
-    'about_tracing/tracing_controller_test.html',
-
-    'cc/layer_impl_test.html',
-    'cc/layer_tree_impl_test.html',
-    'cc/layer_tree_host_impl_test.html',
-    'cc/layer_tree_host_impl_view_test.html',
-    'cc/util_test.html',
-
-    'tracing/category_filter_dialog_test.html',
-    'tracing/filter_test.html',
-    'tracing/find_control_test.html',
-    'tracing/record_selection_dialog_test.html',
-    'tracing/selection_test.html',
-    'tracing/timeline_track_view_test.html',
-    'tracing/timeline_view_test.html',
-    'tracing/timeline_viewport_test.html',
-
-    'tracing/analysis/analysis_view_test.html',
-    'tracing/analysis/analysis_results_test.html',
-    'tracing/analysis/analyze_slices_test.html',
-    'tracing/analysis/analyze_counters_test.html',
-    'tracing/analysis/default_object_view_test.html',
-    'tracing/analysis/generic_object_view_test.html',
-
-    'tracing/model_test.html',
-    'tracing/model/async_slice_group_test.html',
-    'tracing/model/counter_test.html',
-    'tracing/model/cpu_test.html',
-    'tracing/model/object_collection_test.html',
-    'tracing/model/object_instance_test.html',
-    'tracing/model/process_base_test.html',
-    'tracing/model/process_test.html',
-    'tracing/model/slice_group_test.html',
-    'tracing/model/thread_test.html',
-    'tracing/model/time_to_object_instance_map_test.html',
-
-    'tracing/importer/linux_perf_importer_test.html',
-    'tracing/importer/linux_perf/android_parser_test.html',
-    'tracing/importer/linux_perf/bus_parser_test.html',
-    'tracing/importer/linux_perf/clock_parser_test.html',
-    'tracing/importer/linux_perf/cpufreq_parser_test.html',
-    'tracing/importer/linux_perf/disk_parser_test.html',
-    'tracing/importer/linux_perf/drm_parser_test.html',
-    'tracing/importer/linux_perf/exynos_parser_test.html',
-    'tracing/importer/linux_perf/gesture_parser_test.html',
-    'tracing/importer/linux_perf/i915_parser_test.html',
-    'tracing/importer/linux_perf/kfunc_parser_test.html',
-    'tracing/importer/linux_perf/mali_parser_test.html',
-    'tracing/importer/linux_perf/power_parser_test.html',
-    'tracing/importer/linux_perf/sched_parser_test.html',
-    'tracing/importer/linux_perf/workqueue_parser_test.html',
-    'tracing/importer/timeline_stream_importer_test.html',
-    'tracing/importer/trace_event_importer_test.html',
-    'tracing/importer/v8_log_importer_test.html',
-
-    'tracing/tracks/async_slice_group_track_test.html',
-    'tracing/tracks/cpu_track_test.html',
-    'tracing/tracks/counter_track_test.html',
-    'tracing/tracks/object_instance_track_test.html',
-    'tracing/tracks/slice_group_track_test.html',
-    'tracing/tracks/slice_track_test.html',
-    'tracing/tracks/thread_track_test.html',
-    'tracing/tracks/ruler_track_test.html'
-  ];
 </script>
 </head>
 <body id="test_harness">
@@ -118,13 +33,33 @@ found in the LICENSE file.
   </div>
 
   <script>
+
+    function getAsync(url, cb) {
+      var req = new XMLHttpRequest();
+      req.open('GET', url, true);
+      req.onreadystatechange = function(aEvt) {
+        if (req.readyState == 4) {
+          window.setTimeout(function() {
+            if (req.status == 200) {
+              cb(req.responseText);
+            } else {
+              console.log('Failed to load ' + url);
+            }
+          }, 0);
+        }
+      };
+      req.send(null);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       var stats = document.getElementById('stats');
 
       var runner = new base.unittest.AsyncTestRunner();
       runner.statsBlock = stats;
       document.body.appendChild(runner);
-      runner.enqueueTests(G_allTests);
+      getAsync('/json/tests', function(data) {
+         runner.enqueueTests(JSON.parse(data));
+      });
     });
   </script>
 </body>
