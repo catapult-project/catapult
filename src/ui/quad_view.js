@@ -21,6 +21,7 @@ base.exportTo('ui', function() {
       this.viewport_ = undefined;
       this.deviceViewportSizeForFrame_ = undefined;
       this.canvas_ = document.createElement('canvas');
+
       this.appendChild(this.canvas_);
 
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
@@ -59,6 +60,29 @@ base.exportTo('ui', function() {
 
     set quads(quads) {
       this.quads_ = quads;
+      if (!this.quads_) {
+        this.updateChildren_();
+        return;
+      }
+      for (var i = 0; i < this.quads_.length; i++) {
+        var quad = this.quads_[i];
+        if (!quad.backgroundRasterData)
+          continue;
+        var tex = quad.backgroundRasterData;
+        var helperCanvas = document.createElement('canvas');
+        helperCanvas.width = tex.width;
+        helperCanvas.height = tex.height;
+        var ctx = helperCanvas.getContext('2d');
+        var imageData = ctx.createImageData(tex.width, tex.height);
+        imageData.data.set(tex.data);
+        ctx.putImageData(imageData, 0, 0);
+        var img = document.createElement('img');
+        img.onload = function() {
+          quad.backgroundImage = img;
+          this.scheduleRedrawCanvas_();
+        }.bind(this);
+        img.src = helperCanvas.toDataURL();
+      }
       this.updateChildren_();
     },
 
@@ -87,7 +111,16 @@ base.exportTo('ui', function() {
       this.redrawCanvas_();
     },
 
+    scheduleRedrawCanvas_: function() {
+      if (this.redrawScheduled_)
+        return false;
+      this.redrawScheduled_ = true;
+      window.webkitRequestAnimationFrame(this.redrawCanvas_.bind(this));
+    },
+
     redrawCanvas_: function() {
+      this.redrawScheduled_ = false;
+
       if (this.canvas_.width != this.viewport_.deviceWidth) {
         this.canvas_.width = this.viewport_.deviceWidth;
         this.canvas_.style.width = this.viewport_.layoutWidth + 'px';
@@ -98,12 +131,12 @@ base.exportTo('ui', function() {
       }
 
       var ctx = this.canvas_.getContext('2d');
+
       var vp = this.viewport_;
       ctx.fillStyle = 'rgb(255,255,255)';
       ctx.fillRect(
           0, 0,
           this.canvas_.width, this.canvas_.height);
-
       ctx.save();
 
       vp.applyTransformToContext(ctx);
@@ -116,19 +149,31 @@ base.exportTo('ui', function() {
       ctx.fillStyle = lastBackgroundColor;
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        if (!quad.backgroundColor)
-          continue;
-        if (quad.backgroundColor != lastBackgroundColor) {
-          lastBackgroundColor = quad.backgroundColor;
-          ctx.fillStyle = lastBackgroundColor;
+        if (quad.backgroundImage) {
+          ctx.save();
+          var quadBBox = new base.BBox2();
+          quadBBox.addQuad(quad);
+
+          // TODO(nduca): Warp the image here to fil the quad.
+          ctx.drawImage(quad.backgroundImage,
+                        quadBBox.minVec2[0], quadBBox.minVec2[1],
+                        quadBBox.size.width, quadBBox.size.height);
+          ctx.restore();
         }
-        ctx.beginPath();
-        ctx.moveTo(quad.p1[0], quad.p1[1]);
-        ctx.lineTo(quad.p2[0], quad.p2[1]);
-        ctx.lineTo(quad.p3[0], quad.p3[1]);
-        ctx.lineTo(quad.p4[0], quad.p4[1]);
-        ctx.closePath();
-        ctx.fill();
+
+        if (quad.backgroundColor) {
+          if (quad.backgroundColor != lastBackgroundColor) {
+            lastBackgroundColor = quad.backgroundColor;
+            ctx.fillStyle = lastBackgroundColor;
+          }
+          ctx.beginPath();
+          ctx.moveTo(quad.p1[0], quad.p1[1]);
+          ctx.lineTo(quad.p2[0], quad.p2[1]);
+          ctx.lineTo(quad.p3[0], quad.p3[1]);
+          ctx.lineTo(quad.p4[0], quad.p4[1]);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
 
       // Outlines.
