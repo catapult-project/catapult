@@ -172,7 +172,7 @@
   color: red;
 }
 
-.import-errors-dialog {
+.view-import-errors-overlay {
   max-height: 500px;
   max-width: 800px;
   min-height: 200px;
