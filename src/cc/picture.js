@@ -62,12 +62,6 @@ base.exportTo('cc', function() {
 
       // Switch it to a Uint8ClampedArray.
       this.rasterData_.data = new Uint8ClampedArray (this.rasterData_.data);
-      var d = this.rasterData_.data;
-      for (var i = 0; i < d.length; i+= 4) {
-        var x = d[i];
-        d[i] = d[i+2];
-        d[i+2] = x;
-      }
       return this.rasterData_;
     }
   };
