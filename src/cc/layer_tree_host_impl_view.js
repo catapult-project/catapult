@@ -8,6 +8,7 @@ base.requireStylesheet('cc.layer_tree_host_impl_view');
 
 base.require('cc.constants');
 base.require('cc.layer_tree_host_impl');
+base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
@@ -272,6 +273,14 @@ base.exportTo('cc', function() {
 
       this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.statusEL_.textContent = 'Selected layer';
+      if (!cc.PictureSnapshot.CanRasterize()) {
+        var tmp = this.statusEL_.appendChild(ui.createSpan('[WARNING!!!]'));
+        tmp.style.paddingLeft = '10px';
+        tmp.style.paddingRight = '10px';
+        tmp.style.color = 'red';
+        tmp.style.fontWeight = 'bold';
+        tmp.title = cc.PictureSnapshot.HowToEnableRasterizing()
+      }
 
       this.scale_ = 0.0625;
       var scaleSelector = ui.createSelector(
@@ -317,9 +326,14 @@ base.exportTo('cc', function() {
 
       // Picture quads
       for (var ir = 0; ir < layer.pictures.length; ir++) {
-        var rect = layer.pictures[ir].layerRect;
+        var picture = layer.pictures[ir];
+        var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
-        iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
+        var rd = picture.getRasterData();
+        if (rd)
+          iq.backgroundRasterData = rd;
+        else
+          iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
         iq.borderColor = 'rgba(0, 0, 0, .5)';
         quads.push(iq);
       }
@@ -328,7 +342,7 @@ base.exportTo('cc', function() {
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
         var rect = layer.invalidation.rects[ir];
         var iq = base.QuadFromRect(rect);
-        iq.backgroundColor = 'rgba(255, 0, 0, 0.15)';
+        iq.backgroundColor = 'rgba(255, 0, 0, 0.05)';
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         quads.push(iq);
       }
