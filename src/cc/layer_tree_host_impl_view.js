@@ -99,6 +99,10 @@ base.exportTo('cc', function() {
       function visitLayer(layer, depth, note) {
         var info = {layer: layer,
           depth: depth};
+        if (layer.args.drawsContent)
+          info.name = layer.objectInstance.name;
+        else
+          info.name = 'cc::LayerImpl';
         layerInfos.push(info);
 
         var childInfo;
@@ -138,7 +142,7 @@ base.exportTo('cc', function() {
           indentEl.textContent = indentEl.textContent + ' ';
 
         var labelEl = item.appendChild(ui.createSpan());
-        labelEl.textContent = layer.objectInstance.name + ' ' +
+        labelEl.textContent = layerInfo.name + ' ' +
             layer.objectInstance.id;
 
         var notesEl = item.appendChild(ui.createSpan());
