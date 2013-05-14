@@ -108,11 +108,15 @@ base.exportTo('tracing.analysis', function() {
 
       this.appendTableCell_(table, row, 0, label);
 
-      var objectView = new tracing.analysis.GenericObjectView();
-      objectView.object = opt_value;
-      objectView.classList.add('analysis-table-col-1');
-      objectView.style.display = 'table-cell';
-      row.appendChild(objectView);
+      if (opt_value) {
+        var objectView = new tracing.analysis.GenericObjectView();
+        objectView.object = opt_value;
+        objectView.classList.add('analysis-table-col-1');
+        objectView.style.display = 'table-cell';
+        row.appendChild(objectView);
+      } else {
+        this.appendTableCell_(table, row, 1, '');
+      }
       for (var i = 2; i < table.numColumns; i++)
         this.appendTableCell_(table, row, i, '');
     },
