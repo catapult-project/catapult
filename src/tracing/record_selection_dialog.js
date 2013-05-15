@@ -245,10 +245,6 @@ base.exportTo('tracing', function() {
     updateSetting_: function(e) {
       var checkbox = e.target;
 
-      // Don't store disabled-by-default- into settings. Make it explicit that
-      // you have to select each time.
-      if (checkbox.value.indexOf('disabled-by-default-') == 0)
-        return;
       this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
     }
   };
