@@ -93,8 +93,14 @@ class Browser(object):
     child_process_count = 0
     for child_pid in self._platform_backend.GetChildPids(browser_pid):
       child_process_count += 1
-      child_cmd_line = self._platform_backend.GetCommandLine(child_pid)
-      child_process_name = self._browser_backend.GetProcessName(child_cmd_line)
+      # Process type detection is causing exceptions.
+      # http://crbug.com/240951
+      try:
+        child_cmd_line = self._platform_backend.GetCommandLine(child_pid)
+        child_process_name = self._browser_backend.GetProcessName(
+            child_cmd_line)
+      except Exception:
+        child_process_name = 'renderer'
       process_name_type_key_map = {'gpu-process': 'Gpu', 'renderer': 'Renderer'}
       if child_process_name in process_name_type_key_map:
         child_process_type_key = process_name_type_key_map[child_process_name]
