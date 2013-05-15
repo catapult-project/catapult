@@ -248,7 +248,7 @@ base.exportTo('cc', function() {
 
       var lthi = this.layer_.layerTreeImpl.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.075);
+      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.20);
       this.quadView_.quads = this.getTreeQuads();
       this.quadView_.viewport = viewport;
       this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
@@ -360,7 +360,7 @@ base.exportTo('cc', function() {
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
         iq.backgroundImage = picture.image;
-        iq.borderColor = 'rgba(0, 255, 0, 1)';
+        iq.borderColor = 'rgba(0, 0, 0, .1)';
         quads.push(iq);
       }
 
