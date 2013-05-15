@@ -248,7 +248,7 @@ base.exportTo('cc', function() {
 
       var lthi = this.layer_.layerTreeImpl.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.20);
+      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.15);
       this.quadView_.quads = this.getTreeQuads();
       this.quadView_.viewport = viewport;
       this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
@@ -343,7 +343,7 @@ base.exportTo('cc', function() {
       var hadMissing = false;
       for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
         var picture = layer.pictures[ir];
-        if (picture.image)
+        if (picture.image || !cc.PictureSnapshot.CanRasterize())
           continue;
 
         picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
@@ -359,7 +359,10 @@ base.exportTo('cc', function() {
         }
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
-        iq.backgroundImage = picture.image;
+        if (picture.image)
+          iq.backgroundImage = picture.image;
+        else
+          iq.backgroundColor = 'rgba(0,0,0,0.1)';
         iq.borderColor = 'rgba(0, 0, 0, .1)';
         quads.push(iq);
       }
