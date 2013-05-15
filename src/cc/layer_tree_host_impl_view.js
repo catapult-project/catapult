@@ -343,7 +343,9 @@ base.exportTo('cc', function() {
       var hadMissing = false;
       for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
         var picture = layer.pictures[ir];
-        if (picture.image || !cc.PictureSnapshot.CanRasterize())
+        if (picture.image ||
+            !cc.PictureSnapshot.CanRasterize() ||
+            !picture.layerRect)
           continue;
 
         picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
