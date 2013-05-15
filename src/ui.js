@@ -199,6 +199,22 @@ base.exportTo('ui', function() {
     return selectorEl;
   }
 
+  function createCheckBox(targetEl, targetElProperty,
+                          label) {
+    buttonEl = document.createElement('input');
+    buttonEl.type = 'checkbox';
+    buttonEl.checked = targetEl[targetElProperty];
+
+    buttonEl.addEventListener('change', function() {
+      targetEl[targetElProperty] = buttonEl.checked;
+    });
+
+    var labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    labelEl.appendChild(buttonEl);
+    return labelEl;
+  }
+
   function elementIsChildOf(el, potentialParent) {
     if (el == potentialParent)
       return false;
@@ -221,6 +237,7 @@ base.exportTo('ui', function() {
     createSpan: createSpan,
     createLabel: createLabel,
     createSelector: createSelector,
+    createCheckBox: createCheckBox,
 
     elementIsChildOf: elementIsChildOf
   };

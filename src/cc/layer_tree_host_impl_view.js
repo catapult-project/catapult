@@ -64,6 +64,10 @@ base.exportTo('cc', function() {
           this, 'whichTree',
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
            {label: 'Pending tree', value: constants.PENDING_TREE}]));
+
+      this.hidePureTransformLayers_ = true;
+      this.controls_.appendChild(ui.createCheckBox(
+          this, 'hidePureTransformLayers', 'Hide transform layers'));
     },
 
     get lthiSnapshot() {
@@ -71,9 +75,85 @@ base.exportTo('cc', function() {
     },
 
     set lthiSnapshot(lthiSnapshot) {
-      var oldSelectedLayer = this.selectedLayer;
       this.lthiSnapshot_ = lthiSnapshot;
       this.updateContents_();
+    },
+
+    get whichTree() {
+      return this.whichTree_;
+    },
+
+    set whichTree(whichTree) {
+      this.whichTree_ = whichTree;
+      this.updateContents_();
+    },
+
+    get hidePureTransformLayers() {
+      return this.hidePureTransformLayers_;
+    },
+
+    set hidePureTransformLayers(hide) {
+      this.hidePureTransformLayers_ = hide;
+      this.updateContents_();
+    },
+
+    getLayerInfos_: function() {
+      if (!this.lthiSnapshot_)
+        return [];
+
+      var tree = this.lthiSnapshot_.getTree(this.whichTree_);
+      if (!tree)
+        return [];
+
+      var layerInfos = [];
+
+      var hidePureTransformLayers = this.hidePureTransformLayers_;
+
+      function isPureTransformLayer(layer) {
+        if (layer.args.compositingReasons.length != 1 &&
+            layer.args.compositingReasons[0] != "No reasons given")
+          return false;
+
+        if (layer.args.drawsContent)
+          return false;
+
+        return true;
+      }
+      function visitLayer(layer, depth, note) {
+        var info = {layer: layer,
+          depth: depth};
+
+        if (layer.args.drawsContent)
+          info.name = layer.objectInstance.name;
+        else
+          info.name = 'cc::LayerImpl';
+
+        if (!hidePureTransformLayers || !isPureTransformLayer(layer))
+          layerInfos.push(info);
+
+        var childInfo;
+        for (var i = 0; i < layer.children.length; i++)
+          visitLayer(layer.children[i], depth + 1);
+
+        if (layer.maskLayer) {
+          childInfo = visitLayer(layer.maskLayer, depth + 2);
+          childInfo.isMaskLayer = true;
+        }
+
+        if (layer.replicaLayer) {
+          var childInfo = visitLayer(layer.replicaLayer, depth + 2);
+          childInfo.replicaLayer = true;
+        }
+
+        return info;
+      };
+      visitLayer(tree.rootLayer, 0);
+      return layerInfos;
+    },
+
+    updateContents_: function() {
+      var oldSelectedLayer = this.selectedLayer;
+      this.updateContentsInner_();
 
       if (!oldSelectedLayer) {
         if (!this.layerList_.selectedElement) {
@@ -104,54 +184,7 @@ base.exportTo('cc', function() {
       // may have changed but the id could persist.
     },
 
-    get whichTree() {
-      return this.whichTree_;
-    },
-
-    set whichTree(whichTree) {
-      this.whichTree_ = whichTree;
-      this.updateContents_();
-    },
-
-    getLayerInfos_: function() {
-      if (!this.lthiSnapshot_)
-        return [];
-
-      var tree = this.lthiSnapshot_.getTree(this.whichTree_);
-      if (!tree)
-        return [];
-
-      var layerInfos = [];
-      function visitLayer(layer, depth, note) {
-        var info = {layer: layer,
-          depth: depth};
-        if (layer.args.drawsContent)
-          info.name = layer.objectInstance.name;
-        else
-          info.name = 'cc::LayerImpl';
-        layerInfos.push(info);
-
-        var childInfo;
-        for (var i = 0; i < layer.children.length; i++)
-          visitLayer(layer.children[i], depth + 1);
-
-        if (layer.maskLayer) {
-          childInfo = visitLayer(layer.maskLayer, depth + 2);
-          childInfo.isMaskLayer = true;
-        }
-
-        if (layer.replicaLayer) {
-          var childInfo = visitLayer(layer.replicaLayer, depth + 2);
-          childInfo.replicaLayer = true;
-        }
-
-        return info;
-      };
-      visitLayer(tree.rootLayer, 0);
-      return layerInfos;
-    },
-
-    updateContents_: function() {
+    updateContentsInner_: function() {
       this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
           this.lthiSnapshot_.objectInstance.id;
 
@@ -365,7 +398,7 @@ base.exportTo('cc', function() {
           iq.backgroundImage = picture.image;
         else
           iq.backgroundColor = 'rgba(0,0,0,0.1)';
-        iq.borderColor = 'rgba(0, 0, 0, .1)';
+        iq.borderColor = 'rgba(0, 0, 0, 0)';
         quads.push(iq);
       }
 
