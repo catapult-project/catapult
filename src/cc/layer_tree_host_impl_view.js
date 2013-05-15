@@ -110,7 +110,8 @@ base.exportTo('cc', function() {
       var hidePureTransformLayers = this.hidePureTransformLayers_;
 
       function isPureTransformLayer(layer) {
-        if (layer.args.compositingReasons.length != 1 &&
+        if (layer.args.compositingReasons &&
+            layer.args.compositingReasons.length != 1 &&
             layer.args.compositingReasons[0] != "No reasons given")
           return false;
 
