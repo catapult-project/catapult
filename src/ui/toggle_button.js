@@ -36,13 +36,15 @@ base.exportTo('ui', function() {
       this.textSpan_.className = 'toggle-button-text';
       this.appendChild(this.textSpan_);
 
+      this.isOn = true;
+      this.textSpan_.textContent = this.isOnText;
+
       this.addEventListener('click', this.toggle_.bind(this));
       this.addEventListener('isOnChange', function(event) {
         this.textSpan_.textContent =
           this.isOn ? this.isOnText : this.isFalseText;
       });
 
-      this.isOn = true;
     }
   };
 

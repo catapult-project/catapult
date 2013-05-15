@@ -52,6 +52,21 @@ base.exportTo('base', function() {
 
       this.status_ = undefined;
       this.status = 'READY';
+      this.duration_ = undefined;
+    },
+
+    set duration(duration) {
+      this.duration_ = duration;
+
+      if (!this.statusSpan_)
+        return;
+
+      var spanClass = '';
+      if (this.duration_ > 0.5)
+        spanClass = 'class="unittest-red"';
+
+      this.statusSpan_.innerHTML = this.status_ +
+          ' <span' + spanClass + '>(' + this.duration_.toFixed(2) + 's)</span>';
     },
 
     get status() {
@@ -69,10 +84,20 @@ base.exportTo('base', function() {
       updateClassListGivenStatus(testNameSpan, this.status_);
       this.titleEl.appendChild(testNameSpan);
 
-      var statusSpan = this.ownerDocument.createElement('span');
-      statusSpan.className = 'unittest-test-case-title-test-status';
-      statusSpan.textContent = this.status_;
-      this.titleEl.appendChild(statusSpan);
+      this.statusSpan_ = this.ownerDocument.createElement('span');
+      this.statusSpan_.className = 'unittest-test-case-title-test-status';
+
+      var status = this.status_;
+      if (this.duration_) {
+        var spanClass = '';
+        if (this.duration_ > 0.5)
+          spanClass = 'class="unittest-red"';
+        status += ' <span ' + spanClass + '>(' + this.duration_.toFixed(2) +
+            's)</span>';
+      }
+
+      this.statusSpan_.innerHTML = status;
+      this.titleEl.appendChild(this.statusSpan_);
 
       updateClassListGivenStatus(this.titleEl, this.status_);
       if (this.status_ == 'FAILED' || this.alwaysShowErrorLink)
@@ -288,7 +313,11 @@ base.exportTo('base', function() {
           status = 'FAILED';
       }
       updateClassListGivenStatus(this.statusEl_, status);
-      this.statusEl_.textContent = this.title_ + ' [' + status + ']';
+
+      var status = this.title_ + ' [' + status + ']';
+      if (this.duration_)
+        status += ' (' + this.duration_.toFixed(2) + 's)';
+      this.statusEl_.textContent = status;
     },
 
     get done() {
@@ -299,6 +328,7 @@ base.exportTo('base', function() {
       this.results = [];
       this.running = true;
       this.updateStatus();
+
       for (var i = 0; i < tests.length; i++) {
         if (!this.filterFunc_(tests[i].testName))
           continue;
@@ -307,6 +337,9 @@ base.exportTo('base', function() {
       }
       this.running = false;
       this.updateStatus();
+
+      if (parent)
+        parent.postMessage('complete ' + document.location.pathname, '*');
     },
 
     willRunTest: function(test) {
@@ -359,8 +392,8 @@ base.exportTo('base', function() {
 
     decorate: function() {
       this.className = 'unittest';
-      this.maxNumTestsToRunAtOnce_ = 1;
-      this.processTestQueuesScheduled_ = false;
+      this.maxNumTestsToRunAtOnce_ = 2;
+      this.tests_ = {};
       this.readyTests_ = [];
       this.runningTests_ = [];
 
@@ -370,6 +403,34 @@ base.exportTo('base', function() {
         numTestsPassed: 0,
         numWithErrors: 0
       };
+
+      window.addEventListener('message', function(msg) {
+        var test = this.tests_[msg.data.substr(9)];
+        if (!test) {
+          console.log("Can't find " + msg.data.substr(9));
+          return;
+        }
+
+        test.duration =
+            (new Date().getTime() / 1000) - test.startTime;
+        for (var i = 0; i < this.runningTests_.length; ++i) {
+          if (this.runningTests_[i] === test)
+            break;
+        }
+        test.checkForDone();
+
+        this.stats_.numTestsRun += test.stats.numTestsRun;
+        this.stats_.numTestsPassed += test.stats.numTestsPassed;
+        this.stats_.numWithErrors += test.stats.numTestsWithErrors;
+
+        if (i < this.runningTests_.length)
+          this.runningTests_.splice(i, 1);
+
+        this.processTestQueues_();
+
+        if (this.readyTests_.length === 0 && this.runningTests_.length === 0)
+          this.onDone_();
+      }.bind(this));
     },
 
     get maxNumTestsToRunAtOnce() {
@@ -390,48 +451,23 @@ base.exportTo('base', function() {
         var test = new IFrameTestCase(tests[i]);
         if (test.done)
           throw new Error('Cannot enqueue test that is done.');
+
+        this.tests_[tests[i]] = test;
         this.readyTests_.push(test);
         this.appendChild(test);
       }
       if (this.readyTests_.length)
-        this.scheduleProcessTestQueues_();
-    },
-
-    scheduleProcessTestQueues_: function() {
-      if (this.processTestQueuesScheduled_)
-        return;
-      setTimeout(this.processTestQueues_.bind(this), 100);
-      this.processTestQueuesScheduled_ = true;
+        this.processTestQueues_();
     },
 
     processTestQueues_: function() {
-      this.processTestQueuesScheduled_ = false;
-
-      var stillRunningTests = [];
-      this.runningTests_.forEach(function(test) {
-        test.checkForDone();
-        if (!test.done) {
-          stillRunningTests.push(test);
-          return;
-        }
-
-        this.stats_.numTestsRun += test.stats.numTestsRun;
-        this.stats_.numTestsPassed += test.stats.numTestsPassed;
-        this.stats_.numWithErrors += test.stats.numTestsWithErrors;
-      }, this);
-      this.runningTests_ = stillRunningTests;
-
       while (this.readyTests_.length > 0 &&
              this.runningTests_.length < this.maxNumTestsToRunAtOnce_) {
         var test = this.readyTests_.shift();
+        test.startTime = new Date().getTime() / 1000;
         test.begin();
         this.runningTests_.push(test);
       }
-
-      if (!this.readyTests_.length && !this.runningTests_.length)
-        this.onDone_();
-      else
-        this.scheduleProcessTestQueues_();
     },
 
     onDone_: function() {
@@ -654,6 +690,7 @@ base.exportTo('base', function() {
         this.results_ = results;
         results.willRunTest(this);
 
+        var start = new Date().getTime() / 1000;
         if (NOCATCH_MODE) {
           this.setUp();
           this.testMethod_();
@@ -684,6 +721,9 @@ base.exportTo('base', function() {
           }
         }
       } finally {
+        results.currentTestCaseEl_.duration =
+            (new Date().getTime() / 1000) - start;
+
         this.unbindGlobals_();
         results.didRunTest(this);
         this.results_ = undefined;

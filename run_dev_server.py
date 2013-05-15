@@ -9,6 +9,7 @@ import sys
 import time
 from build import generate_deps_js_contents as deps_generator
 
+import SocketServer
 import SimpleHTTPServer
 import BaseHTTPServer
 
@@ -107,7 +108,7 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     pass
 
 
-class Server(BaseHTTPServer.HTTPServer):
+class Server(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, *args, **kwargs):
     BaseHTTPServer.HTTPServer.__init__(self, *args, **kwargs)
     self.next_deps_check = -1

@@ -11,6 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
 </script>
+<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
 <body>
 
@@ -141,6 +142,8 @@ function FakeResults() {
 }
 
 FakeResults.prototype = {
+  currentTestCaseEl_: {},
+
   willRunTest: function(test) {
     this.didWillRunTest = true;
     this.willRunTestArg1 = test;

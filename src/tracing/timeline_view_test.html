@@ -8,6 +8,7 @@ found in the LICENSE file.
 <head>
 <title>TimelineView tests</title>
 <script src="/src/base.js"></script>
+<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
 <body>
   <script>
@@ -78,7 +79,7 @@ found in the LICENSE file.
      * This test just instantiates a View and adds it to the DOM
      * to help with non-unittest UI work.
      */
-    function testInstantiateView() {
+    function instantiateViewHelper() {
       var timelineView = document.querySelector('.timeline-view');
       if (!timelineView) {
         timelineView = instantiateView.call(this);
@@ -207,27 +208,8 @@ found in the LICENSE file.
       assertTrue(view.timeline_.categoryFilter.categories_['baz']);
     }
 
-    function instantiateView() {
-      var model = createFullyPopulatedModel(true, true);
-
-      var view = new tracing.TimelineView();
-      view.style.height = '400px';
-      view.model = model;
-      view.tabIndex = 0;
-      view.focusElement = view;
-
-      var selection = new tracing.Selection();
-      view.timeline.addAllObjectsMatchingFilterToSelection({
-          matchSlice: function() { return true;}
-      }, selection);
-      view.timeline.selection = selection;
-
-      this.addHTMLOutput(undefined, view);
-      return view;
-    }
-
     function testShowHiddenTracks() {
-      var timelineView = testInstantiateView.call(this);
+      var timelineView = instantiateViewHelper.call(this);
       var showHiddenTracks = timelineView.querySelector('.track-filter-button');
 
       // To start no tracks are disabled, so we can't Show Hidden Tracks

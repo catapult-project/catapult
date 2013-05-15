@@ -8,6 +8,7 @@ found in the LICENSE file.
 <head>
 <title>base tests</title>
 <script src="/src/base.js"></script>
+<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
 <body>
   <script>
@@ -19,10 +20,10 @@ found in the LICENSE file.
 
     function testBaseDefineProperties() {
       var ASpan = ui.define('span');
-      
+
       ASpan.prototype = {
         __proto__: HTMLSpanElement.prototype,
-        
+
         jsProp_: [],
 
         decorate: function() {
@@ -50,7 +51,7 @@ found in the LICENSE file.
       aSpan.addEventListener('jsPropChange', function(event) {
         stateChanges = event.oldValue + ' to ' + event.newValue;
       });
-      
+
       aSpan.jsProp = 'obfuscated';
 
       assertTrue(stateChanges === 'undefined to obfuscated');

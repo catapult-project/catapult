@@ -240,7 +240,7 @@ this.base = (function() {
     try {
       var exports = fn();
     } catch (e) {
-      console.log('While running exports for ', name, ':');
+      console.log('While running exports for ', namespace, ':');
       console.log(e.stack || e);
       return;
     }

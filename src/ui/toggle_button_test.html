@@ -8,6 +8,7 @@ found in the LICENSE file.
 <head>
 <title>ToggleButton tests</title>
 <script src="/src/base.js"></script>
+<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
 <body>
   <script>
@@ -19,7 +20,7 @@ found in the LICENSE file.
     'use strict';
 
     function testToggleButton() {
-      
+
       var testTarget = new ui.ToggleButton();
 
       assertTrue(testTarget.isOn);
@@ -31,9 +32,9 @@ found in the LICENSE file.
 
       assertTrue(testTarget.isOn);  // initially true
 
-      testTarget.click();            
-      assertTrue(!testTarget.isOn);  // property tracks 
-      assertTrue(!newValue);           // event fires  
+      testTarget.click();
+      assertTrue(!testTarget.isOn);  // property tracks
+      assertTrue(!newValue);           // event fires
 
       testTarget.click();
       assertTrue(testTarget.isOn);  // property toggles
