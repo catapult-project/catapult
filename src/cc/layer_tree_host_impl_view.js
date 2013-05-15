@@ -265,6 +265,7 @@ base.exportTo('cc', function() {
       for (var i = 0; i < rsll.length; i++) {
         var layer = rsll[i];
         var q = layer.layerQuad.copy();
+        q.borderColor = 'rgba(0,0,0,0.75)';
         quads.push(q);
 
         var selected = layer == this.layer;

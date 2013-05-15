@@ -58,7 +58,11 @@ layer-picker > x-generic-object-view {
   -webkit-flex: 0 0 auto;
   overflow: auto;
   height: 200px;
-  /*font-family: monospace;*/
+}
+
+layer-picker > x-generic-object-view * {
+  cursor: text;
+  -webkit-user-select: text !important;
 }
 
 /******************************************************************************/
