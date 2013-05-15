@@ -393,6 +393,7 @@ base.exportTo('cc', function() {
         var picture = layer.pictures[ir];
         if (!picture.layerRect) {
           this.warningEL_.textContent = 'Missing pictures';
+          continue;
         }
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
