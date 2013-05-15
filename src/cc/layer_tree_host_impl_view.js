@@ -154,6 +154,7 @@ base.exportTo('cc', function() {
     updateContents_: function() {
       this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
           this.lthiSnapshot_.objectInstance.id;
+
       this.layerList_.clear();
 
       var layerInfos = this.getLayerInfos_();
@@ -307,7 +308,7 @@ base.exportTo('cc', function() {
 
     set layer(layer) {
       this.layer_ = layer;
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
     get scale() {
@@ -316,7 +317,7 @@ base.exportTo('cc', function() {
 
     set scale(scale) {
       this.scale_ = scale;
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
     scheduleUpdateContents_: function() {
@@ -339,21 +340,27 @@ base.exportTo('cc', function() {
 
       // Picture quads (pictures are listed top -> bottom so need to be
       // iterated in reverse)
+      var hadMissing = false;
+      for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+        var picture = layer.pictures[ir];
+        if (picture.image)
+          continue;
+
+        picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
+        hadMissing = true;
+      }
+      if (hadMissing)
+        return;
+
       for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
         var picture = layer.pictures[ir];
         if (!picture.layerRect) {
           this.warningEL_.textContent = 'Missing pictures';
-          continue;
         }
         var rect = picture.layerRect;
         var iq = base.QuadFromRect(rect);
-        if (!picture.image) {
-          picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
-          iq.backgroundColor = 'rgba(0, 0, 0, 0.15)';
-        } else {
-          iq.backgroundImage = picture.image;
-        }
-        iq.borderColor = 'rgba(0, 0, 0, .1)';
+        iq.backgroundImage = picture.image;
+        iq.borderColor = 'rgba(0, 255, 0, 1)';
         quads.push(iq);
       }
 
