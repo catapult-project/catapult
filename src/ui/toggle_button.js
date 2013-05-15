@@ -15,16 +15,17 @@ base.exportTo('ui', function() {
   var ToggleButton = ui.define('span');
 
   ToggleButton.plus = '\u002b';
-  ToggleButton.minus = '\u002D';
+  ToggleButton.minus = '\u2012';
   ToggleButton.x = '\u00D7';
   ToggleButton.checkMark = '\u221A';
   ToggleButton.blank = '\u00A0';
+  ToggleButton.bullet = '\u2022';
 
   ToggleButton.prototype = {
     __proto__: HTMLSpanElement.prototype,
 
     isOnText: ToggleButton.x,
-    isFalseText: ToggleButton.blank,
+    notIsOnText: ToggleButton.blank,
 
     toggle_: function() {
       this.isOn = !this.isOn;
@@ -32,8 +33,14 @@ base.exportTo('ui', function() {
 
     decorate: function() {
       this.classList.add('toggle-button');
+
+      this.borderSpan_ = document.createElement('span');
+      this.borderSpan_.className = 'toggle-button-border';
+
       this.textSpan_ = document.createElement('span');
       this.textSpan_.className = 'toggle-button-text';
+
+      this.appendChild(this.borderSpan_);
       this.appendChild(this.textSpan_);
 
       this.isOn = true;
@@ -42,8 +49,8 @@ base.exportTo('ui', function() {
       this.addEventListener('click', this.toggle_.bind(this));
       this.addEventListener('isOnChange', function(event) {
         this.textSpan_.textContent =
-          this.isOn ? this.isOnText : this.isFalseText;
-      });
+          this.isOn ? this.isOnText : this.notIsOnText;
+      }.bind(this));
 
     }
   };

@@ -1,0 +1,85 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>RegExpSelector tests</title>
+<link rel="stylesheet" href="../ui/filter_control.css">
+<link rel="stylesheet" href="../ui/regexp_selector.css">
+<script src="/src/base.js"></script>
+<script>
+  base.require('base.unittest');
+  base.require('tracing.test_utils')
+  base.require('ui');
+  base.require('ui.regexp_selector');
+</script>
+</head>
+<script>
+    'use strict';
+
+function testRegExpSelector() {
+  var div = document.createElement('div');
+  document.body.appendChild(div);
+
+  var regExpSelector = new ui.RegExpSelector();
+  div.appendChild(regExpSelector);
+ 
+  var matchBits = function(items) {
+    return items.map(function(item) {return item.matches ? '1' : '0';})
+  }
+
+  regExpSelector.addEventListener('itemsChange', function(event) {
+    var changeText = matchBits(event.oldValue) + ' to ' + matchBits(event.newValue);
+    console.log('itemsChange ' + changeText);
+  });
+
+  regExpSelector.addEventListener('regexpChange', function(event) {
+    var changeText = event.oldValue + ' to ' + event.newValue;
+    console.log('regexpChange ' + changeText);
+  });
+
+  var stringsToFilter = [
+    'foo',
+    'baz',
+    'bax'
+  ];
+
+  // Initial value is default
+  assertTrue(regExpSelector.regexp.source === '(?:)');
+
+  stringsToFilter.forEach(
+    regExpSelector.addFilterableItem.bind(regExpSelector)
+  );
+
+  // Initally all items match
+  assertTrue(matchBits(regExpSelector.items).toString() === '1,1,1');
+  assertTrue(regExpSelector.querySelector('.filter-control').hitCountText === '3 of 3');
+
+  regExpSelector.regexp = /ba/;
+
+    // 2nd & 3rd match
+  assertTrue(matchBits(regExpSelector.items).toString() === '0,1,1');
+  assertTrue(regExpSelector.querySelector('.filter-control').hitCountText === '2 of 3');
+
+  regExpSelector.querySelector('.filter-control').filterText = '';
+  // Blank text gives default RegExp
+  assertTrue(regExpSelector.regexp.source === '(?:)');
+  // Default RegExp gives blank text;
+  assertTrue(!regExpSelector.querySelector('input').value);
+
+  var caught;
+  try {
+    regExpSelector.regexp = '';  
+  } catch (exc) {
+    caught = exc;
+  }
+  assertTrue(caught);
+
+}
+
+</script>
+<body></body>
+</html>
