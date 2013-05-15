@@ -154,6 +154,8 @@ base.exportTo('ui', function() {
           quadBBox.addQuad(quad);
 
           // TODO(nduca): Warp the image here to fil the quad.
+          // Probably this: http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
+          // and this: https://github.com/mrdoob/three.js/blob/master/src/renderers/CanvasRenderer.js
           ctx.drawImage(quad.backgroundImage,
                         quadBBox.minVec2[0], quadBBox.minVec2[1],
                         quadBBox.size.width, quadBBox.size.height);
