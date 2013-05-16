@@ -16,5 +16,8 @@ class TabCrashException(Exception):
   In this state, the tab is gone, but the underlying browser is still alive."""
   pass
 
+class LoginException(Exception):
+  pass
+
 class EvaluateException(Exception):
   pass

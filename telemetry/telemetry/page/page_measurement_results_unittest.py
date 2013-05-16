@@ -115,7 +115,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('a', 'seconds', 3)
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailure(test_page_set.pages[0], 'message', 'details')
+    measurement_results.AddFailureMessage(test_page_set.pages[0], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
     measurement_results.Add('a', 'seconds', 7)
@@ -133,12 +133,12 @@ class PageMeasurementResultsTest(unittest.TestCase):
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('a', 'seconds', 3)
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailure(test_page_set.pages[0], 'message', 'details')
+    measurement_results.AddFailureMessage(test_page_set.pages[0], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
     measurement_results.Add('a', 'seconds', 7)
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailure(test_page_set.pages[1], 'message', 'details')
+    measurement_results.AddFailureMessage(test_page_set.pages[1], 'message')
 
     measurement_results.PrintSummary(None)
     self.assertEquals(measurement_results.results, [])
@@ -155,7 +155,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     measurement_results.WillMeasurePage(test_page_set.pages[1])
     measurement_results.Add('a', 'seconds', 7)
     measurement_results.DidMeasurePage()
-    measurement_results.AddFailure(test_page_set.pages[1], 'message', 'details')
+    measurement_results.AddFailureMessage(test_page_set.pages[1], 'message')
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('a', 'seconds', 4)

@@ -40,25 +40,6 @@ class Failure(Exception):
   undesired but designed-for problem."""
   pass
 
-class PageTestResults(object):
-  def __init__(self):
-    self.page_successes = []
-    self.page_failures = []
-    self.skipped_pages = []
-
-  def AddSuccess(self, page):
-    self.page_successes.append({'page': page})
-
-  def AddFailure(self, page, message, details):
-    self.page_failures.append({'page': page,
-                               'message': message,
-                               'details': details})
-
-  def AddSkippedPage(self, page, message, details):
-    self.skipped_pages.append({'page': page,
-                               'message': message,
-                               'details': details})
-
 class PageTest(object):
   """A class styled on unittest.TestCase for creating page-specific tests."""
 

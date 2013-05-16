@@ -8,6 +8,7 @@ import sys
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.page import page_test
+from telemetry.page import page_test_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.test import discover
@@ -124,7 +125,7 @@ class PageTestRunner(object):
     return test, ps
 
   def PrepareResults(self, test):  #pylint: disable=W0613
-    return page_test.PageTestResults()
+    return page_test_results.PageTestResults()
 
   def RunTestOnPageSet(self, test, ps, results):
     test.CustomizeBrowserOptions(self._options)
@@ -138,15 +139,16 @@ class PageTestRunner(object):
       runner.Run(self._options, possible_browser, test, results)
 
   def OutputResults(self, results):
-    if len(results.page_failures):
-      logging.warning('Failed pages: %s', '\n'.join(
-          [failure['page'].url for failure in results.page_failures]))
+    if results.failures:
+      logging.warning('Failed pages:\n%s', '\n'.join(zip(*results.failures)[0]))
 
-    if len(results.skipped_pages):
-      logging.warning('Skipped pages: %s', '\n'.join(
-          [skipped['page'].url for skipped in results.skipped_pages]))
+    if results.errors:
+      logging.warning('Errored pages:\n%s', '\n'.join(zip(*results.errors)[0]))
 
-    return min(255, len(results.page_failures))
+    if results.skipped:
+      logging.warning('Skipped pages:\n%s', '\n'.join(results.skipped))
+
+    return min(255, len(results.failures + results.errors))
 
   def PrintParseError(self, message):
     self._parser.error(message)

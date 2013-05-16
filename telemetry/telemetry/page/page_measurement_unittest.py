@@ -61,20 +61,20 @@ class PageMeasurementUnitTest(
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
     measurement = MeasurementForBlank()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertEquals(0, len(all_results.page_failures))
+    self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
     ps = self.CreatePageSet('file:///../../unittest_data/blank.html?foo=1')
     measurement = MeasurementQueryParams()
     ps.pages[-1].query_params = '?foo=1'
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertEquals(0, len(all_results.page_failures))
+    self.assertEquals(0, len(all_results.failures))
 
   def testFailure(self):
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
     measurement = MeasurementThatFails()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertEquals(1, len(all_results.page_failures))
+    self.assertEquals(1, len(all_results.failures))
 
   def testDefaults(self):
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
@@ -109,7 +109,7 @@ class PageMeasurementUnitTest(
                              (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]
       all_results = self.RunMeasurement(measurement, ps, options=self._options)
-      self.assertEquals(0, len(all_results.page_failures))
+      self.assertEquals(0, len(all_results.failures))
 
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.wpr_mode = wpr_modes.WPR_REPLAY
@@ -118,14 +118,14 @@ class PageMeasurementUnitTest(
           '', '', json.loads(archive_info_template % (test_archive, foo_url)))
       ps.pages = [page_module.Page(foo_url, ps)]
       all_results = self.RunMeasurement(measurement, ps, options=self._options)
-      self.assertEquals(1, len(all_results.page_failures))
+      self.assertEquals(1, len(all_results.failures))
 
       ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', json.loads(archive_info_template %
                              (test_archive, google_url)))
       ps.pages = [page_module.Page(google_url, ps)]
       all_results = self.RunMeasurement(measurement, ps, options=self._options)
-      self.assertEquals(0, len(all_results.page_failures))
+      self.assertEquals(0, len(all_results.failures))
 
       self.assertTrue(os.path.isfile(test_archive))
 

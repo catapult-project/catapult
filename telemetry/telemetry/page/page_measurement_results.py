@@ -5,7 +5,7 @@
 from collections import defaultdict
 from itertools import chain
 
-from telemetry.page import page_test
+from telemetry.page import page_test_results
 from telemetry.page import perf_tests_helper
 from telemetry.page import page_measurement_value
 
@@ -43,7 +43,7 @@ class ValuesForSinglePage(object):
       return values[0]
     return None
 
-class PageMeasurementResults(page_test.PageTestResults):
+class PageMeasurementResults(page_test_results.PageTestResults):
   def __init__(self):
     super(PageMeasurementResults, self).__init__()
     self._page_results = []
@@ -128,9 +128,11 @@ class PageMeasurementResults(page_test.PageTestResults):
     Args:
       trace_tag: a string tag to append to the key for a result trace.
     """
-    failed_pages = [p['page'] for p in self.page_failures]
-    success_page_results = [r for r in self._page_results
-                            if r.page not in failed_pages]
+    if self.failures:
+      success_page_results = [r for r in self._page_results
+                              if r.page.url not in zip(*self.failures)[0]]
+    else:
+      success_page_results = self._page_results
 
     # Print out the list of unique pages.
     unique_page_urls = []
@@ -173,7 +175,7 @@ class PageMeasurementResults(page_test.PageTestResults):
       # Print individual _by_url results if there's more than 1 successful page,
       # or if there's exactly 1 successful page but a failure exists.
       if not trace_tag and (len(value_url_list) > 1 or
-                            (self.page_failures and len(value_url_list) == 1)):
+                            (self.failures and len(value_url_list) == 1)):
         url_value_map = defaultdict(list)
         for value, url in value_url_list:
           if 'histogram' in data_type and url_value_map[url]:
@@ -189,7 +191,7 @@ class PageMeasurementResults(page_test.PageTestResults):
       # If there were no page failures, print the average data.
       # For histograms, we don't print the average data, only the _by_url,
       # unless there is only 1 page in which case the _by_urls are omitted.
-      if not self.page_failures:
+      if not self.failures:
         if 'histogram' not in data_type or len(value_url_list) == 1:
           values = [i[0] for i in value_url_list]
           if isinstance(values[0], list):
@@ -198,7 +200,7 @@ class PageMeasurementResults(page_test.PageTestResults):
 
     # If there were no failed pages, output the overall results (results not
     # associated with a page).
-    if not self.page_failures:
+    if not self.failures:
       for value in self._overall_results:
         values = value.value
         if not isinstance(values, list):
