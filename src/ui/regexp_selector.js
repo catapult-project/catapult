@@ -21,8 +21,6 @@ base.exportTo('ui', function() {
   RegExpSelector.prototype = {
     __proto__: HTMLSpanElement.prototype,
 
-    items_: [],
-
     decorate: function() {
       this.regexp = new RegExp();
       this.items = [];
@@ -33,12 +31,26 @@ base.exportTo('ui', function() {
     },
 
     // To avoid quadradic filter calls, set regexp to blank first
-    addFilterableItem: function(text) {
-      this.items_.push({text: text});
-      this.items.push({text: text});
-      if (!this.activator_.isOn)
+    addFilterableItem: function(text, opt_data) {
+      var item = {text: text, data: opt_data};
+      this.items.push(item);
+      if (this.activator_.isOn)
         this.filterItems_();
     },
+
+    clearItems: function() {
+      this.items = [];
+    },
+
+    get isOn() {
+      return this.activator_.isOn;
+    },
+
+    set isOn(aBoolean) {
+      this.activator_.isOn = aBoolean;
+    },
+
+    //-------------------------------------
 
     createActivator_: function() {
       this.activator_ = new ui.ToggleButton();
@@ -121,8 +133,15 @@ base.exportTo('ui', function() {
       return (item.matches !== wasMatch);
     },
 
+    clone_: function(items) {
+      return items.map(function(item) {
+        return {text: item.text, matches: item.matches, data: item.data};
+      });
+    },
+
     filterItems_: function() {
-      var anItemMatchChanged = this.items_.reduce(
+      var itemsClone = this.clone_(this.items);
+      var anItemMatchChanged = itemsClone.reduce(
         function(matchChanged, item) {
           return this.filterItem_(item) || matchChanged;
         }.bind(this),
@@ -130,20 +149,19 @@ base.exportTo('ui', function() {
       );
       if (anItemMatchChanged) {
         var matches = 0;
-        this.items = this.items_.map(function(item) {
-          if (item.matches)
-            matches++;
-          return {text: item.text, matches: item.matches};
-        });
-        var text = matches + ' of ' + this.items_.length;
+        this.items = this.clone_(itemsClone);
+        var matches = this.items.reduce(function(matches, item) {
+          return item.matches ? matches + 1 : matches;
+        }, 0);
+        var text = matches + ' of ' + this.items.length;
         this.filterControl_.hitCountText = text;
       }
     },
 
     noMatchesItems_: function() {
-      var noMatches = new Array(this.items_.length);
-      this.items_.forEach(function(item) {
-        noMatches.push({text: item.text});
+      var noMatches = [];
+      this.items.forEach(function(item) {
+        noMatches.push({text: item.text, data: item.data});
       });
       this.items = noMatches;
     },
@@ -157,10 +175,6 @@ base.exportTo('ui', function() {
   // Output Object with .text string and .matches boolean
   base.defineProperty(RegExpSelector, 'items',
       base.PropertyKind.JS);
-
-  // For CSS styling
-  base.defineProperty(RegExpSelector, 'isOn',
-      base.PropertyKind.BOOL_ATTR);
 
   return {
     RegExpSelector: RegExpSelector

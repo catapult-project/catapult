@@ -3,13 +3,18 @@
  * found in the LICENSE file.
  */
 
-.regexp-selector {
+
+span.regexp-selector {
+  -webkit-flex-direction: row;
   cursor: pointer;
   display: -webkit-flex;
+  padding: 1px 6px;
 }
+
 .regexp-selector .toggle-button {
   height: 1.2ex;
   margin-right: 0.5ex;
+  margin-top: 2px;
   position: relative;
   width: 1.2ex;
 }

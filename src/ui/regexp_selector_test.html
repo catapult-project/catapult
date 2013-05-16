@@ -48,21 +48,30 @@ function testRegExpSelector() {
   ];
 
   // Initial value is default
-  assertTrue(regExpSelector.regexp.source === '(?:)');
+  assertEquals(regExpSelector.regexp.source, '(?:)');
+  // Off by default
+  assertTrue(!regExpSelector.isOn)
 
   stringsToFilter.forEach(
     regExpSelector.addFilterableItem.bind(regExpSelector)
   );
-
+  regExpSelector.isOn = true;
+  
   // Initally all items match
-  assertTrue(matchBits(regExpSelector.items).toString() === '1,1,1');
-  assertTrue(regExpSelector.querySelector('.filter-control').hitCountText === '3 of 3');
+  assertEquals(matchBits(regExpSelector.items).toString(), '1,1,1');
+  assertEquals(regExpSelector.querySelector('.filter-control').hitCountText, '3 of 3');
 
+  regExpSelector.isOn = false;
+
+  // inactive selector selects none
+  assertEquals(matchBits(regExpSelector.items).toString(), '0,0,0');
+  
+  regExpSelector.isOn = true;
   regExpSelector.regexp = /ba/;
 
     // 2nd & 3rd match
-  assertTrue(matchBits(regExpSelector.items).toString() === '0,1,1');
-  assertTrue(regExpSelector.querySelector('.filter-control').hitCountText === '2 of 3');
+  assertEquals(matchBits(regExpSelector.items).toString(), '0,1,1');
+  assertEquals(regExpSelector.querySelector('.filter-control').hitCountText, '2 of 3');
 
   regExpSelector.querySelector('.filter-control').filterText = '';
   // Blank text gives default RegExp

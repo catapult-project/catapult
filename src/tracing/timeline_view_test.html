@@ -9,6 +9,8 @@ found in the LICENSE file.
 <title>TimelineView tests</title>
 <script src="/src/base.js"></script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
+<link rel="stylesheet" href="../ui/filter_control.css">
+<link rel="stylesheet" href="../ui/regexp_selector.css">
 </head>
 <body>
   <script>
@@ -208,15 +210,36 @@ found in the LICENSE file.
       assertTrue(view.timeline_.categoryFilter.categories_['baz']);
     }
 
-    function testShowHiddenTracks() {
-      var timelineView = instantiateViewHelper.call(this);
-      var showHiddenTracks = timelineView.querySelector('.track-filter-button');
+    function visibleTracks(trackButtons) {
+      return trackButtons.reduce(function(numVisible, button) {
+        var style = button.parentElement.style;
+        var visible = (style.display.indexOf('none') === -1);
+        return visible ? numVisible + 1 : numVisible;
+      }, 0);
+    }
+    function toggleRegExpSelectors(regexpSelectors) {
+      for (var i = 0; i < regexpSelectors.length; i++)
+        regexpSelectors[i].isOn = !regexpSelectors[i].isOn;
+    }
 
+    function testTrackSelector() {
+      var timeline = instantiateViewHelper.call(this);
+
+      var trackSelectorButton =
+          timeline.querySelector('.track-selector-button');
+      trackSelectorButton.click();
+
+      var showHiddenTracks =
+          timeline.querySelector('.show-hidden-tracks-button');
       // To start no tracks are disabled, so we can't Show Hidden Tracks
       assertTrue(showHiddenTracks.getAttribute('disabled') === "");
 
-      var toggleButtons = timelineView.querySelectorAll('.track-button');
-      var lastTrackButton = toggleButtons[toggleButtons.length - 1];
+      var trackButtonsDOM = timeline.querySelectorAll('.track-button');
+      var trackButtons = [];
+      for (var i = 0; i < trackButtonsDOM.length; i++)
+        trackButtons.push(trackButtonsDOM[i]);
+
+      var lastTrackButton = trackButtons[trackButtons.length - 1];
       lastTrackButton.scrollIntoViewIfNeeded();
       lastTrackButton.click();
 
@@ -232,7 +255,33 @@ found in the LICENSE file.
       assertTrue(styleDisplay.indexOf('none') === -1);
       // No hidden tracks to Show
       assertTrue(showHiddenTracks.getAttribute('disabled') === "");
+
+      var trackSelector = timeline.querySelector('.track-selector');
+      // initially we have 50 tracks
+      assertTrue(visibleTracks(trackButtons) === 50);
+
+      trackSelector.model = [
+        {regexp: 'Thread', isOn: true},
+        {regexp: 'Name:',  isOn: false}
+      ];
+      // 25 Tracks have "Thread'
+      assertTrue(visibleTracks(trackButtons) === 25);
+
+      var regexpSelectors =
+          trackSelector.querySelectorAll('regexp-selector');
+      toggleRegExpSelectors(regexpSelectors);
+      // 25 Tracks have 'Name:'
+      assertTrue(visibleTracks(trackButtons) === 25);
+
+      toggleRegExpSelectors(regexpSelectors);
+      // 25 Tracks have "Thread'
+      assertTrue(visibleTracks(trackButtons) === 25);
+
+      showHiddenTracks.click();
+      assertTrue(visibleTracks(trackButtons) === 50);
+      trackSelectorButton.click();
     }
+
 </script>
 </body>
 </html>

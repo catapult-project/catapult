@@ -10,13 +10,13 @@
 }
 
 .filter-control .hit-count-label {
-  left: -2px;
+  left: -4ex;
   opacity: 0.25;
   pointer-events: none;
   position: absolute;
   text-align: right;
   top: 1px;
-  width: 170px;
+  width: 30ex;
   z-index: 1;
 }
 
@@ -31,7 +31,7 @@
   margin-right: 0;
   margin-top: 1px;
   padding: 0;
-  width: 170px;
+  width: 30ex;
 }
 
 .filter-control input:focus {

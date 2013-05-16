@@ -15,6 +15,7 @@ base.require('tracing.analysis.analysis_view');
 base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
+base.require('tracing.tracks.track_selector');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
@@ -49,7 +50,7 @@ base.exportTo('tracing', function() {
       this.controlDiv_.className = 'control';
 
       this.leftControlsEl_ = document.createElement('div');
-      this.leftControlsEl_.className = 'controls track-filter';
+      this.leftControlsEl_.className = 'controls';
       this.rightControlsEl_ = document.createElement('div');
       this.rightControlsEl_.className = 'controls category-filter';
 
@@ -74,7 +75,7 @@ base.exportTo('tracing', function() {
       this.metadataButton_ = this.createMetadataButton_();
 
       // Connect everything up.
-      this.rightControls.appendChild(this.createShowHiddenTracksButton_());
+      this.rightControls.appendChild(this.createTrackSelectorButton_());
       this.rightControls.appendChild(this.importErrorsButton_);
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.metadataButton_);
@@ -94,36 +95,28 @@ base.exportTo('tracing', function() {
       // Bookkeeping.
       this.onSelectionChangedBoundToThis_ = this.onSelectionChanged_.bind(this);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
+
+      this.trackSelector_.connect();
     },
 
-    createShowHiddenTracksButton_: function() {
-      var showHiddenTracksButton = document.createElement('button');
-      showHiddenTracksButton.className = 'track-filter-button';
-      showHiddenTracksButton.textContent = 'Show Hidden Tracks';
-      showHiddenTracksButton.disabled = true;
-      showHiddenTracksButton.hiddenTracks_ = 0;
+    createTrackSelectorButton_: function() {
+      var anchor = document.createElement('div');
+      anchor.className = 'track-selector-anchor';
 
-      showHiddenTracksButton.addEventListener('click', function(event) {
-        var container = this.timelineContainer_;
-        var trackButtons = container.querySelectorAll('.track-button');
-        for (var i = 0; i < trackButtons.length; i++) {
-          trackButtons[i].isOn = true;
-        }
+      var button = document.createElement('button');
+      button.className = 'button track-selector-button track-selector-closed';
+      button.textContent = 'Track Selector';
+      anchor.appendChild(button);
+
+      button.addEventListener('click', function(event) {
+        button.classList.toggle('track-selector-closed');
       }.bind(this));
 
-      this.timelineContainer_.addEventListener('isOnChange', function(event) {
-        if (!event.target.classList.contains('track-button'))
-          return;
+      this.trackSelector_ = anchor.appendChild(
+          new tracing.tracks.TrackSelector()
+      );
 
-        if (event.newValue)
-          showHiddenTracksButton.hiddenTracks_--;
-        else
-          showHiddenTracksButton.hiddenTracks_++;
-
-        showHiddenTracksButton.disabled =
-            (showHiddenTracksButton.hiddenTracks_ === 0);
-      });
-      return showHiddenTracksButton;
+      return anchor;
     },
 
     createImportErrorsButton_: function() {
