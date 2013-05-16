@@ -4,7 +4,7 @@
 
 import json
 
-from telemetry.core.chrome import timeline_model
+import telemetry.core.timeline.model as timeline_model
 
 def Import(data):
   trace = json.loads(data) # pylint: disable=W0612

@@ -10,9 +10,9 @@ import threading
 
 
 from telemetry.core import util
-from telemetry.core.chrome import trace_event_importer
 from telemetry.core.chrome import trace_result
 from telemetry.core.chrome import websocket
+from telemetry.core.timeline import trace_event_importer
 
 
 class TracingUnsupportedException(Exception):

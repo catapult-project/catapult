@@ -4,8 +4,8 @@
 
 import unittest
 
-from telemetry.core.chrome.timeline_event import TimelineEvent
-from telemetry.core.chrome.timeline_model import TimelineModel
+from telemetry.core.timeline.event import TimelineEvent
+from telemetry.core.timeline.model import TimelineModel
 
 class TimelineModelUnittest(unittest.TestCase):
   def testTimelineEventsOfType(self):

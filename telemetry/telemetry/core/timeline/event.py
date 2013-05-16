@@ -4,23 +4,23 @@
 
 class TimelineEvent(object):
   """Represents a timeline event."""
-  def __init__(self, name, start_time_ms, duration_ms, args=None):
+  def __init__(self, name, start, duration, args=None):
     self.name = name
-    self.start_time_ms = start_time_ms
-    self.duration_ms = duration_ms
+    self.start = start
+    self.duration = duration
     self.children = []
     self.args = args
 
   @property
-  def end_time_ms(self):
-    return self.start_time_ms + self.duration_ms
+  def end(self):
+    return self.start + self.duration
 
   @property
-  def self_time_ms(self):
+  def self_time(self):
     """Time spent in this function less any time spent in child events."""
     child_total = sum(
-      [e.duration_ms for e in self.children])
-    return self.duration_ms - child_total
+      [e.duration for e in self.children])
+    return self.duration - child_total
 
   def __repr__(self):
     if self.args:
@@ -28,10 +28,10 @@ class TimelineEvent(object):
     else:
       args_str = ''
 
-    return "TimelineEvent(name='%s', start_ms=%f, duration_ms=%s%s)" % (
+    return "TimelineEvent(name='%s', start=%f, duration=%s%s)" % (
       self.name,
-      self.start_time_ms,
-      self.duration_ms,
+      self.start,
+      self.duration,
       args_str)
 
   @staticmethod
