@@ -48,7 +48,7 @@ function testRegExpSelector() {
   ];
 
   // Initial value is default
-  assertEquals(regExpSelector.regexp.source, '(?:)');
+  assertEquals(regExpSelector.regexp.source, ui.RegExpSelector.defaultSource);
   // Off by default
   assertTrue(!regExpSelector.isOn)
 
@@ -75,7 +75,7 @@ function testRegExpSelector() {
 
   regExpSelector.querySelector('.filter-control').filterText = '';
   // Blank text gives default RegExp
-  assertTrue(regExpSelector.regexp.source === '(?:)');
+  assertEquals(regExpSelector.regexp.source, ui.RegExpSelector.defaultSource);
   // Default RegExp gives blank text;
   assertTrue(!regExpSelector.querySelector('input').value);
 

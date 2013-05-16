@@ -218,8 +218,11 @@ found in the LICENSE file.
       }, 0);
     }
     function toggleRegExpSelectors(regexpSelectors) {
-      for (var i = 0; i < regexpSelectors.length; i++)
-        regexpSelectors[i].isOn = !regexpSelectors[i].isOn;
+      for (var i = 0; i < regexpSelectors.length; i++) {
+        var selector = regexpSelectors[i];
+        if (selector.regexp.source !== ui.RegExpSelector.defaultSource)
+          selector.isOn = !selector.isOn;
+      }
     }
 
     function testTrackSelector() {
@@ -267,8 +270,8 @@ found in the LICENSE file.
       // 25 Tracks have "Thread'
       assertTrue(visibleTracks(trackButtons) === 25);
 
-      var regexpSelectors =
-          trackSelector.querySelectorAll('regexp-selector');
+      var regexpSelectors = 
+          trackSelector.querySelectorAll('.regexp-selector');
       toggleRegExpSelectors(regexpSelectors);
       // 25 Tracks have 'Name:'
       assertTrue(visibleTracks(trackButtons) === 25);
@@ -278,7 +281,16 @@ found in the LICENSE file.
       assertTrue(visibleTracks(trackButtons) === 25);
 
       showHiddenTracks.click();
-      assertTrue(visibleTracks(trackButtons) === 50);
+      assertEquals(visibleTracks(trackButtons), 50);
+
+      var blanks = 0;
+      for (var i = 0; i < regexpSelectors.length; i++) {
+        var blankRegExp = ui.RegExpSelector.defaultSource;
+        if (regexpSelectors[i].regexp.source === blankRegExp) {
+          blanks++;
+        }
+      }
+      assertEquals(blanks, 1);
       trackSelectorButton.click();
     }
 

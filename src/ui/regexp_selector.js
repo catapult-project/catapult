@@ -18,6 +18,8 @@ base.exportTo('ui', function() {
    */
   var RegExpSelector = ui.define('span');
 
+  RegExpSelector.defaultSource = '(?:)';
+
   RegExpSelector.prototype = {
     __proto__: HTMLSpanElement.prototype,
 
@@ -102,7 +104,8 @@ base.exportTo('ui', function() {
       this.filterItems_();
       this.skipUpdate = true;
       var src = this.regexp.source;
-      this.filterControl_.filterText = (src === '(?:)' ? '' : src);
+      var isDefault = (src === ui.RegExpSelector.defaultSource);
+      this.filterControl_.filterText = isDefault ? '' : src;
       delete this.skipUpdate;
     },
 

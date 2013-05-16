@@ -132,6 +132,18 @@ base.exportTo('tracing.tracks', function() {
       return regExpSelector;
     },
 
+    ensureOneBlank_: function() {
+      var aBlank = this.selectors_.some(function(selector) {
+          return selector.regexp.source === ui.RegExpSelector.defaultSource;
+      });
+      if (!aBlank) {
+        this.selectors_.push(
+            this.createRegExpSelector_({regexp: '', isOn: false})
+        );
+        this.onTrackModelChange_();
+      }
+    },
+
     onItemsChange_: function() {
       var mergedItems;
       this.selectors_.forEach(function(selector) {
@@ -148,6 +160,8 @@ base.exportTo('tracing.tracks', function() {
         this.applySelection_(mergedItems);
       else
         this.onShowHiddenTracks_();
+
+      this.ensureOneBlank_();
     },
 
     mergeItems_: function(mergedItems, items) {
