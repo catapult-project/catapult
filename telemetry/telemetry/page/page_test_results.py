@@ -9,6 +9,7 @@ class PageTestResults(unittest.TestResult):
   def __init__(self):
     super(PageTestResults, self).__init__()
     self.successes = []
+    self.skipped = []
 
   def addError(self, test, err):
     if isinstance(test, unittest.TestCase):
@@ -23,7 +24,10 @@ class PageTestResults(unittest.TestResult):
       self.failures.append((test, ''.join(traceback.format_exception(*err))))
 
   def addSuccess(self, test):
-    self.successes += test
+    self.successes.append(test)
+
+  def addSkip(self, test, reason):  # Python 2.7 has this in unittest.TestResult
+    self.skipped.append((test, reason))
 
   def AddError(self, page, err):
     self.addError(page.url, err)
