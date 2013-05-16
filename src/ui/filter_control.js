@@ -7,6 +7,7 @@
 /**
  * @fileoverview Filter Control
  */
+base.requireStylesheet('ui.filter_control');
 base.require('tracing.filter');
 base.require('ui.overlay');
 base.exportTo('ui', function() {

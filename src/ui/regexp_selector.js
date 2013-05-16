@@ -8,6 +8,7 @@
  * Takes .regexp, applies to addFilterableItem()-s
  * Gives .items array. tEntry .matches true for .regexp matches.
  */
+base.requireStylesheet('ui.regexp_selector');
 base.require('ui');
 base.require('ui.toggle_button');
 base.require('ui.filter_control');
