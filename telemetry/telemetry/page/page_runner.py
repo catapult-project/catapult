@@ -371,11 +371,7 @@ class PageRunner(object):
   def _CleanUpPage(self, page, tab, page_state): # pylint: disable=R0201
     if page.credentials and page_state.did_login:
       tab.browser.credentials.LoginNoLongerNeeded(tab, page.credentials)
-    try:
-      tab.EvaluateJavaScript("""window.chrome && chrome.benchmarking &&
-                              chrome.benchmarking.closeConnections()""")
-    except Exception:
-      pass
+    util.CloseConnections(tab)
 
   def _WaitForThermalThrottlingIfNeeded(self, platform):
     if not platform.CanMonitorThermalThrottling():

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging
 
+from telemetry.core import util
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
 
@@ -172,6 +173,10 @@ class PageTest(object):
           action.RunAction(page, tab, prev_action)
         finally:
           self.DidRunAction(page, tab, action)
+
+      # Closing the connections periodically is needed; otherwise we won't be
+      # able to open enough sockets, and the pages will time out.
+      util.CloseConnections(tab)
 
   @property
   def action_name_to_run(self):
