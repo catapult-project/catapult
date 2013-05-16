@@ -128,9 +128,10 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     Args:
       trace_tag: a string tag to append to the key for a result trace.
     """
-    if self.failures:
+    if self.errors or self.failures:
       success_page_results = [r for r in self._page_results
-                              if r.page.url not in zip(*self.failures)[0]]
+                              if r.page.url not in
+                              zip(*self.errors + self.failures)[0]]
     else:
       success_page_results = self._page_results
 
@@ -175,7 +176,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
       # Print individual _by_url results if there's more than 1 successful page,
       # or if there's exactly 1 successful page but a failure exists.
       if not trace_tag and (len(value_url_list) > 1 or
-                            (self.failures and len(value_url_list) == 1)):
+          ((self.errors or self.failures) and len(value_url_list) == 1)):
         url_value_map = defaultdict(list)
         for value, url in value_url_list:
           if 'histogram' in data_type and url_value_map[url]:
@@ -191,7 +192,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
       # If there were no page failures, print the average data.
       # For histograms, we don't print the average data, only the _by_url,
       # unless there is only 1 page in which case the _by_urls are omitted.
-      if not self.failures:
+      if not (self.errors or self.failures):
         if 'histogram' not in data_type or len(value_url_list) == 1:
           values = [i[0] for i in value_url_list]
           if isinstance(values[0], list):
@@ -200,7 +201,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
 
     # If there were no failed pages, output the overall results (results not
     # associated with a page).
-    if not self.failures:
+    if not (self.errors or self.failures):
       for value in self._overall_results:
         values = value.value
         if not isinstance(values, list):

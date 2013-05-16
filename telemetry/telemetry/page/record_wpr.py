@@ -95,15 +95,16 @@ Use --browser=list to figure out which are available.\n"""
   with page_runner.PageRunner(ps) as runner:
     runner.Run(options, possible_browser, recorder, results)
 
-  if results.failures:
+  if results.errors or results.failures:
     logging.warning('Some pages failed. The recording has not been updated for '
                     'these pages.')
-    logging.warning('Failed pages: %s', '\n'.join(results.failures))
+    logging.warning('Failed pages:\n%s',
+                    '\n'.join(results.errors + results.failures))
 
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '
                     'updated for these pages.')
-    logging.warning('Skipped pages: %s', '\n'.join(results.skipped))
+    logging.warning('Skipped pages:\n%s', '\n'.join(results.skipped))
 
   if results.successes:
     # Update the metadata for the pages which were recorded.
