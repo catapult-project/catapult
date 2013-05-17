@@ -24,7 +24,9 @@ base.exportTo('base', function() {
        * In unit tests, use a mock object for storage so we don't change
        * localStorage in tests.
        */
-      this.storage_ = new FakeLocalStorage();
+      this.storage_ = FakeLocalStorage.singleton();
+      global.G_testRunner.clearMockLocalStorage =
+          FakeLocalStorage.clearSingleton;
     } else {
       this.storage_ = localStorage;
     }
@@ -115,6 +117,16 @@ base.exportTo('base', function() {
    * @constructor
    */
   function FakeLocalStorage() {
+  }
+
+  FakeLocalStorage.singleton = function() {
+    FakeLocalStorage.instance_ =
+        FakeLocalStorage.instance_ || new FakeLocalStorage();
+    return FakeLocalStorage.instance_;
+  }
+
+  FakeLocalStorage.clearSingleton = function() {
+    delete FakeLocalStorage.instance_;
   }
 
   FakeLocalStorage.prototype = {

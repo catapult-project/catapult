@@ -682,6 +682,8 @@ base.exportTo('base', function() {
     },
 
     setUp: function() {
+      if ('clearMockLocalStorage' in global)
+        global.clearMockLocalStorage();
     },
 
     run: function(results) {
