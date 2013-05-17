@@ -144,6 +144,27 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
     return '/data/data/%s/app_content_shell/' % self.package
 
 
+class ChromiumTestShellBackendSettings(AndroidBrowserBackendSettings):
+  def __init__(self, adb, package):
+    super(ChromiumTestShellBackendSettings, self).__init__(
+          adb=adb,
+          activity='org.chromium.chrome.testshell.ChromiumTestShellActivity',
+          cmdline_file='/data/local/tmp/chromium-testshell-command-line',
+          package=package,
+          pseudo_exec_name='chromium_testshell')
+
+  def GetDevtoolsRemotePort(self):
+    return 'localabstract:chromium_testshell_devtools_remote'
+
+  @property
+  def is_content_shell(self):
+    return True
+
+  @property
+  def _profile_dir(self):
+    return '/data/data/%s/app_chromiumtestshell/' % self.package
+
+
 class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
     super(WebviewBackendSettings, self).__init__(
