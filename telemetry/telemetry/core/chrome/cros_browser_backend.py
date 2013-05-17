@@ -62,6 +62,10 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       cri.PushFile(options.profile_dir + '/Default', profile_dir)
       cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', profile_dir])
 
+    # Escape all commas in the startup arguments we pass to Chrome
+    # because dbus-send delimits array elements by commas
+    startup_args = [a.replace(',', '\\,') for a in self.GetBrowserStartupArgs()]
+
     # Restart Chrome with the login extension and remote debugging.
     logging.info('Restarting Chrome with flags and login')
     args = ['dbus-send', '--system', '--type=method_call',
@@ -69,7 +73,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '/org/chromium/SessionManager',
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
-            'array:string:"%s"' % ','.join(self.GetBrowserStartupArgs())]
+            'array:string:"%s"' % ','.join(startup_args)]
     cri.RunCmdOnDevice(args)
 
     if not cri.local:
