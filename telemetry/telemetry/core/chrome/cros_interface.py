@@ -103,7 +103,11 @@ class CrOSInterface(object):
 
   def FormSSHCommandLine(self, args, extra_ssh_args=None):
     if self.local:
-      return args
+      # We run the command through the shell locally for consistency with
+      # how commands are run through SSH (crbug.com/239161). This work
+      # around will be unnecessary once we implement a persistent SSH
+      # connection to run remote commands (crbug.com/239607).
+      return ['sh', '-c', " ".join(args)]
 
     full_args = ['ssh',
                  '-o ForwardX11=no',

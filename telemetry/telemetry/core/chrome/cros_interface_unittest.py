@@ -129,3 +129,30 @@ class CrOSInterfaceTest(unittest.TestCase):
     remote_port_2 = cri.GetRemotePort()
 
     self.assertTrue(remote_port_1 != remote_port_2)
+
+  # TODO(tengs): It would be best if we can filter this test and other tests
+  # that need to be run locally based on the platform of the system browser. 
+  def testEscapeCmdArguments(self):
+    ''' Commands and their arguments that are executed through the cros
+    interface should follow bash syntax. This test needs to run on remotely
+    and locally on the device to check for consistency.
+    '''
+    if not sys.platform.startswith('linux'):
+      return
+
+    cri = cros_interface.CrOSInterface(
+      options_for_unittests.GetCopy().cros_remote,
+      options_for_unittests.GetCopy().cros_ssh_identity)
+
+    # Check arguments with no special characters
+    stdout, _ = cri.RunCmdOnDevice(['echo', '--arg1=value1', '--arg2=value2',
+        '--arg3="value3"'])
+    assert(stdout.strip() == '--arg1=value1 --arg2=value2 --arg3=value3')
+
+    # Check argument with special characters escaped
+    stdout, _ = cri.RunCmdOnDevice(['echo', '--arg=A\\; echo \\"B\\"'])
+    assert(stdout.strip() == '--arg=A; echo "B"')
+
+    # Check argument with special characters in quotes
+    stdout, _ = cri.RunCmdOnDevice(['echo', "--arg='$HOME;;$PATH'"])
+    assert(stdout.strip() == "--arg=$HOME;;$PATH")
