@@ -38,11 +38,11 @@
 }
 
 .timeline-view > .control > .controls.category-filter {
+  margin-left: auto;
 }
 
 .timeline-view > .control > .controls {
   display: -webkit-flex;
-  margin-left: auto;
 }
 
 .timeline-view > .control > span {

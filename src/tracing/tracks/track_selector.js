@@ -77,9 +77,13 @@ base.exportTo('tracing.tracks', function() {
           this.timelineView_.querySelectorAll('.track-button');
       for (var i = 0; i < trackButtons.length; i++) {
         var track = trackButtons[i].parentElement;
-        var selector = '.first-visible-child > .canvas-based-track-title';
-        var title = track.querySelector(selector);
-        trackItems.push({text: title.textContent, data: trackButtons[i]});
+        var titles = track.querySelectorAll('.canvas-based-track-title');
+        for (var iTitle = 0; iTitle < titles.length; iTitle++) {
+          var title = titles[iTitle];
+          if (title.textContent.trim().length) {
+            trackItems.push({text: title.textContent, data: trackButtons[i]});
+          }
+        }
       }
       this.selectors_.forEach(function(selector) {
         selector.clearItems();
