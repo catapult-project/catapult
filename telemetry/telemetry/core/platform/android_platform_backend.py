@@ -41,6 +41,8 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
 
   def StartRawDisplayFrameRateMeasurement(self):
     assert not self._surface_stats_collector
+    # Clear any leftover data from previous timed out tests
+    self._raw_display_frame_rate_measurements = []
     self._surface_stats_collector = \
         surface_stats_collector.SurfaceStatsCollector(self._adb)
     self._surface_stats_collector.Start()
