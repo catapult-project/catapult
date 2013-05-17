@@ -19,13 +19,12 @@ except ImportError:
   pass
 
 
-class IprofilerProfiler(profiler.Profiler):
-
-  def __init__(self, browser_backend, pid, output_path):
-    super(IprofilerProfiler, self).__init__(output_path)
-    self._browser_backend = browser_backend
-    output_dir = os.path.dirname(self.output_path)
-    output_file = os.path.basename(self.output_path)
+class _SingleProcessIprofilerProfiler(object):
+  """An internal class for using iprofiler for a given process."""
+  def __init__(self, pid, output_path):
+    self._output_path = output_path
+    output_dir = os.path.dirname(self._output_path)
+    output_file = os.path.basename(self._output_path)
     self._proc = pexpect.spawn(
         'iprofiler', ['-timeprofiler', '-T', '300', '-a', str(pid),
                       '-d', output_dir, '-o', output_file],
@@ -45,6 +44,31 @@ class IprofilerProfiler(profiler.Profiler):
         return self._proc.getecho()
       util.WaitFor(Echo, timeout=5)
 
+  def CollectProfile(self):
+    self._proc.kill(signal.SIGINT)
+    try:
+      self._proc.wait()
+    except pexpect.ExceptionPexpect:
+      pass
+    finally:
+      self._proc = None
+
+    print 'To view the profile, run:'
+    print '  open -a Instruments %s.dtps' % self._output_path
+
+
+class IprofilerProfiler(profiler.Profiler):
+
+  def __init__(self, browser_backend, platform_backend, output_path):
+    super(IprofilerProfiler, self).__init__(
+        browser_backend, platform_backend, output_path)
+    process_output_file_map = self._GetProcessOutputFileMap()
+    self._process_profilers = []
+    for pid, output_file in process_output_file_map.iteritems():
+      self._process_profilers.append(
+          _SingleProcessIprofilerProfiler(pid, output_file))
+
+
   @classmethod
   def name(cls):
     return 'iprofiler'
@@ -56,13 +80,5 @@ class IprofilerProfiler(profiler.Profiler):
             and not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
-    self._proc.kill(signal.SIGINT)
-    try:
-      self._proc.wait()
-    except pexpect.ExceptionPexpect:
-      pass
-    finally:
-      self._proc = None
-
-    print 'To view the profile, run:'
-    print '  open -a Instruments %s.dtps' % self.output_path
+    for single_process in self._process_profilers:
+      single_process.CollectProfile()

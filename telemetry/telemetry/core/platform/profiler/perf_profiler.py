@@ -10,16 +10,48 @@ import tempfile
 from telemetry.core.platform import profiler
 
 
-class PerfProfiler(profiler.Profiler):
-
-  def __init__(self, browser_backend, pid, output_path):
-    super(PerfProfiler, self).__init__(output_path)
-    self._browser_backend = browser_backend
+class _SingleProcessPerfProfiler(object):
+  """An internal class for using perf for a given process."""
+  def __init__(self, pid, output_file):
+    self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
     self._proc = subprocess.Popen(
         ['perf', 'record', '--call-graph',
-         '--pid', str(pid), '--output', self.output_path],
+         '--pid', str(pid), '--output', output_file],
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
+
+  def CollectProfile(self):
+    self._proc.send_signal(signal.SIGINT)
+    exit_code = self._proc.wait()
+    try:
+      if exit_code not in (0, -2):
+        raise Exception(
+            'perf failed with exit code %d. Output:\n%s' % (exit_code,
+                                                            self._GetStdOut()))
+    finally:
+      self._tmp_output_file.close()
+    print 'To view the profile, run:'
+    print '  perf report -i %s' % self._output_file
+
+  def _GetStdOut(self):
+    self._tmp_output_file.flush()
+    try:
+      with open(self._tmp_output_file.name) as f:
+        return f.read()
+    except IOError:
+      return ''
+
+
+class PerfProfiler(profiler.Profiler):
+
+  def __init__(self, browser_backend, platform_backend, output_path):
+    super(PerfProfiler, self).__init__(
+        browser_backend, platform_backend, output_path)
+    process_output_file_map = self._GetProcessOutputFileMap()
+    self._process_profilers = []
+    for pid, output_file in process_output_file_map.iteritems():
+      self._process_profilers.append(
+          _SingleProcessPerfProfiler(pid, output_file))
 
   @classmethod
   def name(cls):
@@ -39,24 +71,5 @@ class PerfProfiler(profiler.Profiler):
       return False
 
   def CollectProfile(self):
-    self._proc.send_signal(signal.SIGINT)
-    exit_code = self._proc.wait()
-    try:
-      if exit_code not in (0, -2):
-        raise Exception(
-            'perf failed with exit code %d. Output:\n%s' % (exit_code,
-                                                            self._GetStdOut()))
-    finally:
-      self._proc = None
-      self._tmp_output_file.close()
-
-    print 'To view the profile, run:'
-    print '  perf report -i %s' % self.output_path
-
-  def _GetStdOut(self):
-    self._tmp_output_file.flush()
-    try:
-      with open(self._tmp_output_file.name) as f:
-        return f.read()
-    except IOError:
-      return ''
+    for single_process in self._process_profilers:
+      single_process.CollectProfile()

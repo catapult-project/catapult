@@ -1,7 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import collections
+
 import os
 
 from telemetry.core import browser_credentials
@@ -195,24 +195,15 @@ class Browser(object):
     |base_output_file|.<process_name>."""
     assert not self._active_profilers
 
-    all_pids = ([self._browser_backend.pid] +
-                self._platform_backend.GetChildPids(self._browser_backend.pid))
     profiler_class = profiler_finder.FindProfiler(options.profiler_tool)
 
     if not profiler_class.is_supported(options):
       raise Exception('The %s profiler is not ' +
                       'supported on this platform.' % options.profiler_tool)
 
-    process_name_counts = collections.defaultdict(int)
-
-    for pid in all_pids:
-      cmd_line = self._platform_backend.GetCommandLine(pid)
-      process_name = self._browser_backend.GetProcessName(cmd_line)
-      output_file = '%s.%s%s' % (base_output_file, process_name,
-                                 process_name_counts[process_name])
-      process_name_counts[process_name] += 1
-      self._active_profilers.append(
-          profiler_class(self._browser_backend, pid, output_file))
+    self._active_profilers.append(
+        profiler_class(self._browser_backend, self._platform_backend,
+            base_output_file))
 
   def StopProfiling(self):
     """Stops all active profilers and saves their results."""
