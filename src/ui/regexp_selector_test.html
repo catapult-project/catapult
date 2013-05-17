@@ -64,8 +64,9 @@ function testRegExpSelector() {
   // inactive selector selects none
   assertEquals(matchBits(regExpSelector.items).toString(), '0,0,0');
   
-  regExpSelector.isOn = true;
-  regExpSelector.regexp = /ba/;
+  regExpSelector.querySelector('.filter-control').filterText = 'ba';
+  // moving from blank to non-blank turns on the selector
+  assertTrue(regExpSelector.isOn);
 
     // 2nd & 3rd match
   assertEquals(matchBits(regExpSelector.items).toString(), '0,1,1');
@@ -75,7 +76,15 @@ function testRegExpSelector() {
   // Blank text gives default RegExp
   assertEquals(regExpSelector.regexp.source, ui.RegExpSelector.defaultSource);
   // Default RegExp gives blank text;
-  assertTrue(!regExpSelector.querySelector('input').value);
+  assertFalse(regExpSelector.querySelector('input').value);
+  // Blank regexp are not on
+  assertFalse(regExpSelector.isOn);
+
+  regExpSelector.regexp = /ba/;
+  // update through API gives same results as UI
+  assertTrue(regExpSelector.isOn);
+  assertEquals(matchBits(regExpSelector.items).toString(), '0,1,1');
+  assertEquals(regExpSelector.querySelector('.filter-control').hitCountText, '2 of 3');
 
   var caught;
   try {

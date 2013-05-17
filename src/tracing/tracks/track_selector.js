@@ -119,8 +119,7 @@ base.exportTo('tracing.tracks', function() {
 
       if (selectorModel.regexp) {
         regExpSelector.regexp = new RegExp(selectorModel.regexp);
-        if (selectorModel.isOn)
-          regExpSelector.isOn = selectorModel.isOn;
+        regExpSelector.isOn = !!selectorModel.isOn;
       }
 
       regExpSelector.addEventListener(

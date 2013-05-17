@@ -79,12 +79,6 @@ base.exportTo('ui', function() {
         this.onFilterTextChange_.bind(this)
       );
 
-      this.filterControl_.addEventListener(
-        'focus',
-        this.onFocus_.bind(this),
-        true // focus does not bubble
-      );
-
       this.addEventListener(
         'regexpChange',
         this.onRegexpChange_.bind(this)
@@ -93,6 +87,11 @@ base.exportTo('ui', function() {
       this.appendChild(this.filterControl_);
 
       this.filterControl_.hitCountText = 'Enter RegExp';
+    },
+
+    regExpToText_: function(regexp) {
+      var isDefault = (regexp.source === ui.RegExpSelector.defaultSource);
+      return (isDefault ? '' : regexp.source) || '';
     },
 
     onRegexpChange_: function(event) {
@@ -104,31 +103,35 @@ base.exportTo('ui', function() {
       }
       this.filterItems_();
       this.skipUpdate = true;
-      var src = this.regexp.source;
-      var isDefault = (src === ui.RegExpSelector.defaultSource);
-      this.filterControl_.filterText = isDefault ? '' : src;
+      this.filterControl_.filterText = this.regExpToText_(this.regexp);
       delete this.skipUpdate;
+      var oldText = this.regExpToText_(event.oldValue);
+      this.autoEnableOnChange_(this.filterControl_.filterText, oldText);
     },
 
     onFilterTextChange_: function(event) {
       if (this.skipUpdate)
         return;
-      var regexpText = this.filterControl_.filterText;
+      var regexpText = this.filterControl_.filterText.trim();
       this.classList.remove('invalid-regexp');
       try {
         this.regexp = new RegExp(regexpText);
       } catch (exc) {
         this.classList.add('invalid-regexp');
       }
-      if (regexpText) {
-        this.classList.remove('empty-regexp');
-      } else {
-        this.classList.add('empty-regexp');
-      }
+      this.autoEnableOnChange_(regexpText, event.oldValue);
     },
 
-    onFocus_: function(event) {
-      this.activator_.isOn = true;
+    autoEnableOnChange_: function(regExpText, oldRegExpText) {
+      if (regExpText) {
+        this.classList.remove('empty-regexp');
+        if (oldRegExpText.trim().length === 0)
+          this.isOn = true;
+      } else {
+        this.classList.add('empty-regexp');
+        if (oldRegExpText.trim().length)
+          this.isOn = false;
+      }
     },
 
     filterItem_: function(item) {
