@@ -146,7 +146,7 @@ class PageTestRunner(object):
       logging.warning('Errored pages:\n%s', '\n'.join(zip(*results.errors)[0]))
 
     if results.skipped:
-      logging.warning('Skipped pages:\n%s', '\n'.join(results.skipped))
+      logging.warning('Skipped pages:\n%s', '\n'.join(zip(*results.skipped)[0]))
 
     return min(255, len(results.failures + results.errors))
 
