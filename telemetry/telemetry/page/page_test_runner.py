@@ -83,11 +83,40 @@ class PageTestRunner(object):
       page_set_list = ',\n'.join(
           sorted([os.path.relpath(f) for f in page_set_filenames]))
       self.PrintParseError(
-          'No page set specified.\n'
+          'No page set, file, or URL specified.\n'
           'Available page sets:\n'
           '%s' % page_set_list)
 
-    return page_set.PageSet.FromFile(self._args[1])
+    page_set_arg = self._args[1]
+
+    # We've been given a URL. Create a page set with just that URL.
+    if (page_set_arg.startswith('http://') or
+        page_set_arg.startswith('https://')):
+      self._options.allow_live_sites = True
+      return page_set.PageSet.FromDict({
+          'pages': [{'url': page_set_arg}]
+          })
+
+    # We've been given a page set JSON. Load it.
+    if page_set_arg.endswith('.json'):
+      return page_set.PageSet.FromFile(page_set_arg)
+
+    # We've been given a file or directory. Create a page set containing it.
+    if os.path.exists(page_set_arg):
+      page_set_dict = {'pages': []}
+      if os.path.isdir(page_set_arg):
+        for path in os.listdir(page_set_arg):
+          path = os.path.join(page_set_arg, path)
+          if os.path.isdir(path):
+            continue
+          print path
+          page_set_dict['pages'].append({'url': os.path.join('file://', path)})
+      else:
+        page_set_dict['pages'].append({'url': 'file://' + page_set_arg})
+      return page_set.PageSet.FromDict(page_set_dict)
+
+    raise Exception('Did not understand "%s". Pass a page set, file or URL.' %
+                    page_set_arg)
 
   def ParseCommandLine(self, args, test_dir, page_set_filenames):
     self._options = browser_options.BrowserOptions()
