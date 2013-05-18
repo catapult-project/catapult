@@ -55,9 +55,11 @@ class TracingBackend(object):
     self._thread = None
     self._tracing_data = []
 
-  def BeginTracing(self):
+  def BeginTracing(self, custom_categories=None):
     self._CheckNotificationSupported()
     req = {'method': 'Tracing.start'}
+    if custom_categories:
+      req['params'] = {'categories': custom_categories}
     self._SyncRequest(req)
     # Tracing.start will send asynchronous notifications containing trace
     # data, until Tracing.end is called.

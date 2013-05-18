@@ -184,10 +184,16 @@ class BrowserBackend(object):
   def supports_tracing(self):
     return self.is_content_shell or self._chrome_branch_number >= 1385
 
-  def StartTracing(self):
+  def StartTracing(self, custom_categories=None):
+    """ custom_categories is an optional string containing a list of
+    comma separated categories that will be traced instead of the
+    default category set.  Example: use
+    "webkit,cc,disabled-by-default-cc.debug" to trace only those three
+    event categories.
+    """
     if self._tracing_backend is None:
       self._tracing_backend = tracing_backend.TracingBackend(self._port)
-    self._tracing_backend.BeginTracing()
+    self._tracing_backend.BeginTracing(custom_categories)
 
   def StopTracing(self):
     self._tracing_backend.EndTracing()
