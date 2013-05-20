@@ -223,6 +223,8 @@ class InspectorBackend(object):
         res.get('params', {}).get('reason','') == 'replaced_with_devtools'):
       self._WaitForInspectorToGoAwayAndReconnect()
       return
+    if res['method'] == 'Inspector.targetCrashed':
+      raise exceptions.TabCrashException()
 
     mname = res['method']
     dot_pos = mname.find('.')

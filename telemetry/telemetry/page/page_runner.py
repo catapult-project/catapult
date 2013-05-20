@@ -229,6 +229,7 @@ class PageRunner(object):
     try:
       self._PreparePage(page, tab, page_state, test, results)
       test.Run(options, page, tab, results)
+      util.CloseConnections(tab)
     except page_test.Failure:
       logging.warning('%s:\n%s', page.url, traceback.format_exc())
       results.AddFailure(page, sys.exc_info())
@@ -344,7 +345,6 @@ class PageRunner(object):
   def _CleanUpPage(self, page, tab, page_state): # pylint: disable=R0201
     if page.credentials and page_state.did_login:
       tab.browser.credentials.LoginNoLongerNeeded(tab, page.credentials)
-    util.CloseConnections(tab)
 
   def _WaitForThermalThrottlingIfNeeded(self, platform):
     if not platform.CanMonitorThermalThrottling():
