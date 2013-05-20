@@ -95,7 +95,7 @@ class PageTestRunner(object):
       self._options.allow_live_sites = True
       return page_set.PageSet.FromDict({
           'pages': [{'url': page_set_arg}]
-          })
+          }, os.path.dirname(__file__))
 
     # We've been given a page set JSON. Load it.
     if page_set_arg.endswith('.json'):
@@ -113,7 +113,7 @@ class PageTestRunner(object):
           page_set_dict['pages'].append({'url': os.path.join('file://', path)})
       else:
         page_set_dict['pages'].append({'url': 'file://' + page_set_arg})
-      return page_set.PageSet.FromDict(page_set_dict)
+      return page_set.PageSet.FromDict(page_set_dict, os.path.dirname(__file__))
 
     raise Exception('Did not understand "%s". Pass a page set, file or URL.' %
                     page_set_arg)

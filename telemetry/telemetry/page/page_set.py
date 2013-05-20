@@ -38,7 +38,7 @@ class PageSet(object):
       return cls.FromDict(data, file_path)
 
   @classmethod
-  def FromDict(cls, data, file_path=''):
+  def FromDict(cls, data, file_path):
     page_set = cls(file_path, data)
     for page_attributes in data['pages']:
       url = page_attributes.pop('url')
