@@ -396,7 +396,7 @@ base.exportTo('cc', function() {
           continue;
         }
         var rect = picture.layerRect;
-        var iq = base.QuadFromRect(rect);
+        var iq = base.Quad.FromRect(rect);
         if (picture.image)
           iq.backgroundImage = picture.image;
         else
@@ -408,7 +408,7 @@ base.exportTo('cc', function() {
       // Invalidation quads
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
         var rect = layer.invalidation.rects[ir];
-        var iq = base.QuadFromRect(rect);
+        var iq = base.Quad.FromRect(rect);
         iq.backgroundColor = 'rgba(255, 0, 0, 0.05)';
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         quads.push(iq);

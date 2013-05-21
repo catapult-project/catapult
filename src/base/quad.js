@@ -7,7 +7,17 @@
 base.require('base.gl_matrix');
 
 base.exportTo('base', function() {
-  function QuadFromXYWH(x, y, w, h) {
+  /**
+   * @constructor
+   */
+  function Quad() {
+    this.p1 = vec2.create();
+    this.p2 = vec2.create();
+    this.p3 = vec2.create();
+    this.p4 = vec2.create();
+  }
+
+  Quad.FromXYWH = function(x, y, w, h) {
     var q = new Quad();
     vec2.set(q.p1, x, y);
     vec2.set(q.p2, x + w, y);
@@ -16,13 +26,13 @@ base.exportTo('base', function() {
     return q;
   }
 
-  function QuadFromRect(r) {
-    return new QuadFromXYWH(
+  Quad.FromRect = function(r) {
+    return new Quad.FromXYWH(
       r.x, r.y,
       r.width, r.height);
   }
 
-  function QuadFrom4Vecs(p1, p2, p3, p4) {
+  Quad.From4Vecs = function(p1, p2, p3, p4) {
     var q = new Quad();
     vec2.set(q.p1, p1[0], p1[1]);
     vec2.set(q.p2, p2[0], p2[1]);
@@ -31,7 +41,7 @@ base.exportTo('base', function() {
     return q;
   }
 
-  function QuadFrom8Array(arr) {
+  Quad.From8Array = function(arr) {
     if (arr.length != 8)
       throw new Error('Array must be 8 long');
     var q = new Quad();
@@ -45,16 +55,6 @@ base.exportTo('base', function() {
     q.p4[1] = arr[7];
     return q;
   };
-
-  /**
-   * @constructor
-   */
-  function Quad() {
-    this.p1 = vec2.create();
-    this.p2 = vec2.create();
-    this.p3 = vec2.create();
-    this.p4 = vec2.create();
-  }
 
   Quad.prototype = {
     vecInside: function(vec) {
@@ -86,10 +86,6 @@ base.exportTo('base', function() {
 
   return {
     vecInTriangle2: vecInTriangle2,
-    Quad: Quad,
-    QuadFromXYWH: QuadFromXYWH,
-    QuadFromRect: QuadFromRect,
-    QuadFrom4Vecs: QuadFrom4Vecs,
-    QuadFrom8Array: QuadFrom8Array
+    Quad: Quad
   };
 });

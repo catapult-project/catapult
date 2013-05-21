@@ -21,7 +21,6 @@ found in the LICENSE file.
     'use strict';
 
     var Quad = base.Quad;
-    var QuadFromXYWH = base.QuadFromXYWH;
 
     var QuadView = ui.QuadView;
     var QuadViewViewport = ui.QuadViewViewport;
@@ -33,12 +32,12 @@ found in the LICENSE file.
         this.addHTMLOutput(undefined, quadView);
 
       var quads = [
-        QuadFromXYWH(0, 0, 10, 10),
-        QuadFromXYWH(10, 10, 10, 10),
-        QuadFromXYWH(20, 4, 10, 10),
-        QuadFromXYWH(30, 10, 20, 20),
-        QuadFromXYWH(20, 20, 10, 10),
-        QuadFromXYWH(15, 15, 10, 10)
+        Quad.FromXYWH(0, 0, 10, 10),
+        Quad.FromXYWH(10, 10, 10, 10),
+        Quad.FromXYWH(20, 4, 10, 10),
+        Quad.FromXYWH(30, 10, 20, 20),
+        Quad.FromXYWH(20, 20, 10, 10),
+        Quad.FromXYWH(15, 15, 10, 10)
         ];
       quads[2].selected = true;
       quads[3].backgroundColor = 'rgba(255,0,255,0.15)';
@@ -61,7 +60,7 @@ found in the LICENSE file.
         this.addHTMLOutput(undefined, quadView);
 
       var quads = [
-        QuadFromXYWH(0, 0, 10, 10),
+        Quad.FromXYWH(0, 0, 10, 10),
         ];
       var data = new Uint8Array(2*2*4);
       data[0] = 0;
@@ -104,7 +103,7 @@ found in the LICENSE file.
         this.addHTMLOutput(undefined, quadView);
 
       var quads = [
-        base.QuadFrom8Array([0, 0,
+        base.Quad.From8Array([0, 0,
                         10, 0,
                         10, 5,
                         0, 10]),
@@ -147,12 +146,12 @@ found in the LICENSE file.
       var quadView = new QuadView();
 
       var quads = [
-        QuadFromXYWH(0, 0, 10, 10),
-        QuadFromXYWH(10, 10, 10, 10),
-        QuadFromXYWH(20, 4, 10, 10),
-        QuadFromXYWH(30, 10, 20, 20),
-        QuadFromXYWH(20, 20, 10, 10),
-        QuadFromXYWH(15, 15, 10, 10)
+        Quad.FromXYWH(0, 0, 10, 10),
+        Quad.FromXYWH(10, 10, 10, 10),
+        Quad.FromXYWH(20, 4, 10, 10),
+        Quad.FromXYWH(30, 10, 20, 20),
+        Quad.FromXYWH(20, 20, 10, 10),
+                          Quad.FromXYWH(15, 15, 10, 10)
         ];
       var quadsBBox = new base.BBox2();
       for (var i = 0; i < quads.length; i++)

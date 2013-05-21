@@ -98,7 +98,7 @@ base.exportTo('cc', function() {
       if (/Quad$/.test(key)) {
         var q;
         try {
-          q = base.QuadFrom8Array(object[key]);
+          q = base.Quad.From8Array(object[key]);
         } catch (e) {
           console.log(e);
         }
