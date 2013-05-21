@@ -24,6 +24,8 @@ class BrowserOptions(optparse.Values):
     self.android_device = None
     self.cros_ssh_identity = None
 
+    # When set to True, the browser will use the default profile.  Telemetry
+    # will not provide an alternate profile directory.
     self.dont_override_profile = False
     self.profile_dir = None
     self.extra_browser_args = []
@@ -87,7 +89,7 @@ class BrowserOptions(optparse.Values):
 
     # Browser options
     group = optparse.OptionGroup(parser, 'Browser options')
-    profile_choices = ['clean', 'default'] + profile_types.PROFILE_TYPES
+    profile_choices = profile_types.GetProfileTypes()
     group.add_option('--profile-type',
         dest='profile_type',
         type='choice',
@@ -211,9 +213,7 @@ class BrowserOptions(optparse.Values):
         delattr(self, 'extra_wpr_args_as_string')
       if self.profile_type == 'default':
         self.dont_override_profile = True
-      elif self.profile_type != 'clean':
-        self.profile_dir = profile_types.GetProfileDir(self.profile_type)
-      delattr(self, 'profile_type')
+      self.profile_dir = profile_types.GetProfileDir(self.profile_type)
       return ret
     parser.parse_args = ParseArgs
     return parser

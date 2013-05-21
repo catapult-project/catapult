@@ -7,20 +7,22 @@ import sys
 
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
+from telemetry.core import profile_types
 from telemetry.page import page_test
 from telemetry.page import page_test_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.test import discover
 
-def Main(test_dir, page_set_filenames):
+def Main(test_dir, profile_creators_dir, page_set_filenames):
   """Turns a PageTest into a command-line program.
 
   Args:
     test_dir: Path to directory containing PageTests.
+    profile_creators_dir: Path to a directory containing ProfileCreators
   """
   runner = PageTestRunner()
-  sys.exit(runner.Run(test_dir, page_set_filenames))
+  sys.exit(runner.Run(test_dir, profile_creators_dir, page_set_filenames))
 
 class PageTestRunner(object):
   def __init__(self):
@@ -39,8 +41,9 @@ class PageTestRunner(object):
   def test_class_name(self):
     return 'test'
 
-  def Run(self, test_dir, page_set_filenames):
-    test, ps = self.ParseCommandLine(sys.argv, test_dir, page_set_filenames)
+  def Run(self, test_dir, profile_creators_dir, page_set_filenames):
+    test, ps = self.ParseCommandLine(
+        sys.argv, test_dir, profile_creators_dir, page_set_filenames)
     results = self.PrepareResults(test)
     self.RunTestOnPageSet(test, ps, results)
     return self.OutputResults(results)
@@ -118,7 +121,12 @@ class PageTestRunner(object):
     raise Exception('Did not understand "%s". Pass a page set, file or URL.' %
                     page_set_arg)
 
-  def ParseCommandLine(self, args, test_dir, page_set_filenames):
+  def ParseCommandLine(self, args, test_dir, profile_creators_dir,
+      page_set_filenames):
+    # Need to collect profile creators before creating command line parser.
+    if profile_creators_dir:
+      profile_types.FindProfileCreators(profile_creators_dir)
+
     self._options = browser_options.BrowserOptions()
     self._parser = self._options.CreateParser(
         '%%prog [options] %s page_set' % self.test_class_name)

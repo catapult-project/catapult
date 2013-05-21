@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import unittest
 
 from telemetry.core import browser_finder
@@ -82,4 +83,20 @@ class BrowserTest(unittest.TestCase):
       tab = b.tabs[0]
       tab.Navigate('http://www.google.com/')
       tab.Close()
+      self.assertEquals(1, len(b.tabs))
+
+  def testDirtyProfileCreation(self):
+    options = options_for_unittests.GetCopy()
+
+    # Dirty profile creation is currently only implemented on Desktop.
+    is_running_on_desktop = not (
+        options.browser_type.startswith('android') or
+        options.browser_type.startswith('cros'))
+    if not is_running_on_desktop:
+      logging.warn("Desktop-only test, skipping.")
+      return
+
+    options.profile_type = 'small_profile'
+    browser_to_create = browser_finder.FindBrowser(options)
+    with browser_to_create.Create() as b:
       self.assertEquals(1, len(b.tabs))

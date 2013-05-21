@@ -10,6 +10,7 @@ import sys
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
+from telemetry.core import profile_types
 from telemetry.core.chrome import desktop_browser_backend
 from telemetry.core.platform import linux_platform_backend
 from telemetry.core.platform import mac_platform_backend
@@ -39,10 +40,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def __repr__(self):
     return 'PossibleDesktopBrowser(browser_type=%s)' % self.browser_type
 
-  def Create(self):
+  # Constructs a browser.
+  # Returns a touple of the form: (browser, backend)
+  def _CreateBrowserInternal(self, delete_profile_dir_after_run):
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self._options, self._local_executable,
-        self._is_content_shell, self._use_login)
+        self._is_content_shell, self._use_login,
+        delete_profile_dir_after_run=delete_profile_dir_after_run)
     if sys.platform.startswith('linux'):
       p = linux_platform_backend.LinuxPlatformBackend()
     elif sys.platform == 'darwin':
@@ -51,8 +55,35 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       p = win_platform_backend.WinPlatformBackend()
     else:
       raise NotImplementedError()
+
     b = browser.Browser(backend, p)
     backend.SetBrowser(b)
+    return (b, backend)
+
+  def Create(self):
+    # If a dirty profile is needed, instantiate an initial browser object and
+    # use that to create a dirty profile.
+    creator_class = profile_types.GetProfileCreator(self.options.profile_type)
+    if creator_class:
+      logging.info(
+          'Creating a dirty profile of type: %s', self.options.profile_type)
+      (b, backend) = \
+          self._CreateBrowserInternal(delete_profile_dir_after_run=False)
+      with b as b:
+        creator = creator_class(b)
+        creator.CreateProfile()
+        dirty_profile_dir = backend.profile_directory
+        logging.info(
+            "Dirty profile created succesfully in '%s'", dirty_profile_dir)
+
+      # Now create another browser to run tests on using the dirty profile
+      # we just created.
+      (b, backend) = \
+          self._CreateBrowserInternal(delete_profile_dir_after_run=True)
+      backend.SetProfileDirectory(dirty_profile_dir)
+    else:
+      (b, backend) = \
+          self._CreateBrowserInternal(delete_profile_dir_after_run=True)
     return b
 
   def SupportsOptions(self, options):
