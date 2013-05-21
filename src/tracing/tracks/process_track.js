@@ -60,8 +60,10 @@ base.exportTo('tracing.tracks', function() {
           // Don't show snapshot tracks for types that dont have viewers.
 
           if (!ObjectSnapshotView.getViewConstructor(typeName) &&
-              !ObjectInstanceView.getViewConstructor(typeName))
+              !ObjectInstanceView.getViewConstructor(typeName)) {
+            console.log('No snapshot viewer for type: ' + typeName);
             return;
+          }
 
           var track = new tracing.tracks.ObjectInstanceTrack();
           track.heading = typeName + ':';
