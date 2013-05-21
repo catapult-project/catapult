@@ -58,9 +58,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
     if options.profile_dir:
       profile_dir = '/home/chronos/Default'
-      cri.GetCmdOutput(['rm', '-rf', profile_dir])
+      cri.RunCmdOnDevice(['rm', '-rf', profile_dir])
       cri.PushFile(options.profile_dir + '/Default', profile_dir)
-      cri.GetCmdOutput(['chown', '-R', 'chronos:chronos', profile_dir])
+      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', profile_dir])
 
     # Escape all commas in the startup arguments we pass to Chrome
     # because dbus-send delimits array elements by commas
