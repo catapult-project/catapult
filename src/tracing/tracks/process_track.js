@@ -59,14 +59,28 @@ base.exportTo('tracing.tracks', function() {
         instanceTypeNames.forEach(function(typeName) {
           var allInstances = instancesByTypeName[typeName];
 
-          // Filter out instances that either are formed by implicit snapshots,
-          // or that have no snapshots at all.
+          // Don't show snapshot tracks for types that dont have viewers.
+          var hasViewer;
+          if (!ObjectSnapshotView.getViewConstructor(typeName) &&
+              !ObjectInstanceView.getViewConstructor(typeName)) {
+            hasViewer = false;
+          } else {
+            hasViewer = true;
+          }
+
+          // There are some instances that dont merit their own track in the UI.
+          // Filter them out.
           var visibleInstances = [];
           for (var i = 0; i < allInstances.length; i++) {
             var instance = allInstances[i];
-            if (instance.hasImplicitSnapshots)
-              continue;
+
+            // Do not create tracks for instances that have no snapshots.
             if (instance.snapshots.length == 0)
+              continue;
+
+            // Do not create tracks for instances that have implicit snapshots
+            // but that dont have a viewer.
+            if (instance.hasImplicitSnapshots && !hasViewer)
               continue;
             visibleInstances.push(instance);
           }
