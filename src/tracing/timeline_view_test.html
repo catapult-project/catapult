@@ -215,12 +215,23 @@ found in the LICENSE file.
         return visible ? numVisible + 1 : numVisible;
       }, 0);
     }
+
     function toggleRegExpSelectors(regexpSelectors) {
       for (var i = 0; i < regexpSelectors.length; i++) {
         var selector = regexpSelectors[i];
         if (selector.regexp.source !== ui.RegExpSelector.defaultSource)
           selector.isOn = !selector.isOn;
       }
+    }
+
+    function modelsEquivalent(lhs, rhs) {
+      if (lhs.length !== rhs.length)
+        return false;
+      return lhs.every(function(lhsItem, index) {
+        var rhsItem = rhs[index];
+        return rhsItem.regexpText === lhsItem.regexpText && 
+            rhsItem.isOn === lhsItem.isOn;
+      });
     }
 
     function testTrackSelector() {
@@ -261,7 +272,7 @@ found in the LICENSE file.
       // initially we have 50 tracks
       assertTrue(visibleTracks(trackButtons) === 50);
 
-      trackSelector.model = [
+      trackSelector.trackSelectorModel = [
         {regexp: 'Thread', isOn: true},
         {regexp: 'Name:',  isOn: false}
       ];
@@ -290,6 +301,32 @@ found in the LICENSE file.
       }
       assertEquals(blanks, 1);
       trackSelectorButton.click();
+
+      var settings = new base.Settings();
+      var trackSelectorModelJSON = settings.get("TrackSelector");
+      var actual = JSON.parse(trackSelectorModelJSON);
+      var expected = [
+        {"regexpText":"Thread","isOn":false},
+        {"regexpText":"Name:","isOn":false},
+        {"regexpText":"(?:)","isOn":false}
+      ];
+      // We've stored what we set in the test above.
+      assertTrue(modelsEquivalent(actual, expected));
+
+      expected.shift();
+
+      settings.set("TrackSelector", JSON.stringify(expected));
+      var aTrackSelector = new tracing.tracks.TrackSelector();
+      actual = aTrackSelector.trackSelectorModel;
+      // we recovered what we stored
+      assertTrue(modelsEquivalent(actual, expected));
+
+      settings.set("TrackSelector", 'junk');
+      aTrackSelector = new tracing.tracks.TrackSelector();
+      actual = aTrackSelector.trackSelectorModel;
+      // we fallback to default
+      expected = tracing.tracks.TrackSelector.defaultModel;
+      assertTrue(modelsEquivalent(actual, expected));
     }
 
 </script>

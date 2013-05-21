@@ -15,6 +15,14 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var TrackSelector = ui.define('div');
+
+  TrackSelector.defaultModel = [
+    {regexpText: 'Renderer', isOn: false},
+    {regexpText: null, isOn: false}
+  ];
+
+  TrackSelector.storageKey = 'traceViewer.TrackSelector';
+
   TrackSelector.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -24,12 +32,62 @@ base.exportTo('tracing.tracks', function() {
       this.showHiddenTracksButton_ = this.createshowHiddenTracksButton_();
       this.appendChild(this.showHiddenTracksButton_);
 
-      this.model = [
-        {regexp: 'Renderer', isOn: false},
-        {regexp: null, isOn: false}
-      ];
+      this.loadModel_();
 
       this.createRegExpSelectors_();
+    },
+
+    loadModel_: function() {
+      var settings = new base.Settings();
+      var modelJSON = settings.get('TrackSelector');
+      if (modelJSON) {
+        this.trackSelectorModel = this.createModelFromJSON_(modelJSON);
+      }
+      if (this.trackSelectorModel)
+        return;
+      // The stored model did not work for us.
+      this.trackSelectorModel = TrackSelector.defaultModel;
+      this.saveModel_();
+    },
+
+    createModelFromJSON_: function(modelJSON) {
+      var savedModel;
+      try {
+        var fromJSON = JSON.parse(modelJSON);
+        // validate input
+        if (fromJSON instanceof Array) {
+          savedModel = [];
+          fromJSON.forEach(function(item) {
+            if (!item.regexpText) // skip blanks
+              return;
+            savedModel.push({
+              regexpText: item.regexpText + '',
+              isOn: !!item.isOn
+            });
+          });
+        }
+      } catch (exc) {
+        var from = 'TrackSelector.createModelFromJSON_';
+        console.warn(from + ' falling back to default because: ' + exc);
+      }
+      return savedModel;
+    },
+
+    saveModel_: function() {
+      var modelJSON = JSON.stringify(this.trackSelectorModel);
+      var settings = new base.Settings();
+
+      settings.set('TrackSelector', modelJSON);
+    },
+
+    updateModelFromElements_: function() {
+      this.selectors_.forEach(function(selector, index) {
+        this.trackSelectorModel[index] = {
+          regexpText: selector.regexp.source,
+          isOn: selector.isOn
+        };
+      }.bind(this));
+      this.saveModel_();
     },
 
     connect: function() {
@@ -58,7 +116,12 @@ base.exportTo('tracing.tracks', function() {
       );
 
       this.addEventListener(
-          'modelChange',
+          'regexpChange',
+          this.updateModelFromElements_.bind(this)
+      );
+
+      this.addEventListener(
+          'trackSelectorModelChange',
           this.onSelectorsModelChange_.bind(this)
       );
     },
@@ -115,7 +178,8 @@ base.exportTo('tracing.tracks', function() {
     },
 
     createRegExpSelectors_: function() {
-      this.selectors_ = this.model.map(this.createRegExpSelector_.bind(this));
+      this.selectors_ = this.trackSelectorModel.map(
+          this.createRegExpSelector_.bind(this));
     },
 
     createRegExpSelector_: function(selectorModel) {
@@ -212,15 +276,17 @@ base.exportTo('tracing.tracks', function() {
     },
 
     onRegExpSelected_: function(event) {
-      if (!event.target.classList.contains('regexp-selector'))
+      if (!event.target.parentElement.classList.contains('regexp-selector'))
         return;
+      this.updateModelFromElements_();
       this.onItemsChange_();
     }
 
   };
 
   // Input, array of {regexp: RegExp, isOn: boolean}
-  base.defineProperty(TrackSelector, 'model', base.PropertyKind.JS);
+  base.defineProperty(TrackSelector, 'trackSelectorModel',
+      base.PropertyKind.JS);
 
   return {
     TrackSelector: TrackSelector
