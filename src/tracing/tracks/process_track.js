@@ -57,17 +57,25 @@ base.exportTo('tracing.tracks', function() {
         var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
         instanceTypeNames.sort();
         instanceTypeNames.forEach(function(typeName) {
-          // Don't show snapshot tracks for types that dont have viewers.
+          var allInstances = instancesByTypeName[typeName];
 
-          if (!ObjectSnapshotView.getViewConstructor(typeName) &&
-              !ObjectInstanceView.getViewConstructor(typeName)) {
-            console.log('No snapshot viewer for type: ' + typeName);
-            return;
+          // Filter out instances that either are formed by implicit snapshots,
+          // or that have no snapshots at all.
+          var visibleInstances = [];
+          for (var i = 0; i < allInstances.length; i++) {
+            var instance = allInstances[i];
+            if (instance.hasImplicitSnapshots)
+              continue;
+            if (instance.snapshots.length == 0)
+              continue;
+            visibleInstances.push(instance);
           }
+          if (visibleInstances.length == 0)
+            return;
 
           var track = new tracing.tracks.ObjectInstanceTrack();
           track.heading = typeName + ':';
-          track.objectInstances = instancesByTypeName[typeName];
+          track.objectInstances = visibleInstances;
           this.addTrack_(track);
         }, this);
 

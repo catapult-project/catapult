@@ -92,6 +92,7 @@ base.exportTo('tracing.model', function() {
     this.colorId = 0;
     this.bounds = new base.Range();
     this.snapshots = [];
+    this.hasImplicitSnapshots = false;
   }
 
   ObjectInstance.prototype = {

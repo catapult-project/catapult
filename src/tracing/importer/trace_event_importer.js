@@ -524,6 +524,7 @@ base.exportTo('tracing.importer', function() {
               rawId + ' at ts=' + containingSnapshot.ts + ': ' + e);
           return;
         }
+        res.objectInstance.hasImplicitSnapshots = true;
         referencingObject[referencingObjectFieldName] = res;
         if (!(res instanceof tracing.model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
