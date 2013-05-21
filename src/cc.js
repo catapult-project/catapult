@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('cc.picture');
+base.require('cc.picture_view');
 base.require('cc.layer_tree_host_impl');
 base.require('cc.layer_tree_host_impl_view');
 

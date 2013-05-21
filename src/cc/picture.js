@@ -6,6 +6,7 @@
 
 base.require('base.rect');
 base.require('tracing.model.object_instance');
+base.require('cc.util');
 
 base.exportTo('cc', function() {
 

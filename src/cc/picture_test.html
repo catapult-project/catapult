@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
+</head>
+<body>
+  <script>
+    base.require('base.unittest');
+    base.require('cc.picture');
+    base.require('tracing.importer.trace_event_importer');
+    base.require('tracing.model');
+  </script>
+  <script src="picture_view_test_data.js"></script>
+  <script>
+    'use strict';
+
+    var PictureSnapshot = cc.PictureSnapshot;
+
+    function testBasic() {
+      var m = new tracing.Model([g_picture_trace]);
+      var p = base.dictionaryValues(m.processes)[0];
+      var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
+      var snapshot = instance.snapshots[0];
+
+      assertTrue(snapshot instanceof PictureSnapshot);
+      instance.wasDeleted(150);
+    }
+  </script>
+</body>
+</html>
