@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('base.rect2');
+base.require('base.rect');
 base.require('tracing.model.object_instance');
 
 base.exportTo('cc', function() {
@@ -52,7 +52,7 @@ base.exportTo('cc', function() {
       cc.moveRequiredFieldsFromArgsToToplevel(
         this, ['layerRect',
                'dataB64']);
-      this.layerRect = base.Rect2.FromArray(this.layerRect);
+      this.layerRect = base.Rect.FromArray(this.layerRect);
     },
 
     getRasterData: function() {

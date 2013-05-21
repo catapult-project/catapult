@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('base.rect2');
+base.require('base.rect');
 
 base.exportTo('cc', function() {
   function RegionFromArray(array) {
@@ -13,8 +13,8 @@ base.exportTo('cc', function() {
 
     var r = new Region();
     for (var i = 0; i < array.length; i += 4) {
-      r.rects.push(base.Rect2.FromXYWH(array[i], array[i+1],
-                                       array[i+2], array[i+3]));
+      r.rects.push(base.Rect.FromXYWH(array[i], array[i+1],
+                                      array[i+2], array[i+3]));
     }
     return r;
   }

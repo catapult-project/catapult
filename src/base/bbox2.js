@@ -8,7 +8,7 @@
  * @fileoverview 2D bounding box computations.
  */
 base.require('base.gl_matrix');
-base.require('base.rect2');
+base.require('base.rect');
 
 base.exportTo('base', function() {
 
@@ -138,7 +138,7 @@ base.exportTo('base', function() {
     },
 
     asRect: function() {
-      return base.Rect2.FromXYWH(
+      return base.Rect.FromXYWH(
           this.min_[0],
           this.min_[1],
           this.max_[0] - this.min_[0],

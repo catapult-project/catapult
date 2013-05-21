@@ -15,24 +15,24 @@ base.exportTo('base', function() {
    * Tracks a 2D bounding box.
    * @constructor
    */
-  function Rect2() {
+  function Rect() {
     this.left = 0;
     this.top = 0;
     this.width = 0;
     this.height = 0;
   };
-  Rect2.FromXYWH = function(x, y, w, h) {
-    var rect = new Rect2();
+  Rect.FromXYWH = function(x, y, w, h) {
+    var rect = new Rect();
     rect.left = x;
     rect.top = y;
     rect.width = w;
     rect.height = h;
     return rect;
   }
-  Rect2.FromArray = function(ary) {
+  Rect.FromArray = function(ary) {
     if (ary.length != 4)
       throw new Error('ary.length must be 4');
-    var rect = new Rect2();
+    var rect = new Rect();
     rect.left = ary[0];
     rect.top = ary[1];
     rect.width = ary[2];
@@ -40,7 +40,7 @@ base.exportTo('base', function() {
     return rect;
   }
 
-  Rect2.prototype = {
+  Rect.prototype = {
     __proto__: Object.prototype,
 
     translateXY: function(x, y) {
@@ -65,7 +65,7 @@ base.exportTo('base', function() {
   };
 
   return {
-    Rect2: Rect2
+    Rect: Rect
   };
 
 });
