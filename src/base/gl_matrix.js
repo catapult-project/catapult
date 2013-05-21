@@ -6,10 +6,13 @@
 
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/common.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/mat2d.js');
+base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/mat4.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec4.js');
 
 base.exportTo('base', function() {
   var tmp_vec2 = vec2.create();
+  var tmp_vec4 = vec4.create();
   var tmp_mat2d = mat2d.create();
 
   vec2.createFromArray = function(arr) {
@@ -24,6 +27,10 @@ base.exportTo('base', function() {
     var v = vec2.create();
     vec2.set(v, x, y);
     return v;
+  };
+
+  vec2.toString = function(a) {
+    return '[' + a[0] + ', ' + a[1] + ']';
   };
 
   mat2d.translateInplace = function(inout, v) {
@@ -49,6 +56,19 @@ base.exportTo('base', function() {
   mat2d.rotateInplace = function(inout, rad) {
     mat2d.rotate(tmp_mat2d, inout, rad);
     mat2d.copy(inout, tmp_mat2d);
+  }
+
+  vec4.unitize = function(out, a) {
+    out[0] = a[0] / a[3];
+    out[1] = a[1] / a[3];
+    out[2] = a[2] / a[3];
+    out[3] = 1;
+    return out;
+  }
+
+  vec2.copyFromVec4 = function(out, a) {
+    vec4.unitize(tmp_vec4, a);
+    vec2.copy(out, tmp_vec4);
   }
 
   return {};

@@ -62,13 +62,44 @@ base.exportTo('base', function() {
           vecInTriangle2(vec, this.p1, this.p3, this.p4);
     },
 
-    copy: function() {
+    boundingRect: function() {
+      var x0 = Math.min(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
+      var y0 = Math.min(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
+
+      var x1 = Math.max(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
+      var y1 = Math.max(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
+
+      return new base.Rect.FromXYWH(x0, y0, x1 - x0, y1 - y0);
+    },
+
+    clone: function() {
       var q = new Quad();
       vec2.copy(q.p1, this.p1);
       vec2.copy(q.p2, this.p2);
       vec2.copy(q.p3, this.p3);
       vec2.copy(q.p4, this.p4);
       return q;
+    },
+
+    scale: function(s) {
+      var q = new Quad();
+      this.scaleFast(q, s);
+      return q;
+    },
+
+    scaleFast: function(dstQuad, s) {
+      vec2.copy(dstQuad.p1, this.p1, s);
+      vec2.copy(dstQuad.p2, this.p2, s);
+      vec2.copy(dstQuad.p3, this.p3, s);
+      vec2.copy(dstQuad.p3, this.p3, s);
+    },
+
+    toString: function() {
+      return 'Quad(' +
+        vec2.toString(this.p1) + ', ' +
+        vec2.toString(this.p2) + ', ' +
+        vec2.toString(this.p3) + ', ' +
+        vec2.toString(this.p4) + ')';
     }
   };
 

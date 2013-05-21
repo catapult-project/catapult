@@ -644,6 +644,40 @@ base.exportTo('base', function() {
       throw new TestError(message);
     },
 
+    assertVec2Equals: function(a, b, opt_message) {
+      if (a[0] == b[0] &&
+          a[1] == b[1])
+        return;
+      var message = opt_message || 'Expected (' + a[0] + ',' + a[1] +
+          ') but got (' + b[0] + ',' + b[1] + ')';
+      throw new TestError(message);
+    },
+
+    assertQuadEquals: function(a, b, opt_message) {
+      var ok = true;
+      ok &= a.p1[0] == b.p1[0] && a.p1[1] == b.p1[1];
+      ok &= a.p2[0] == b.p2[0] && a.p2[1] == b.p2[1];
+      ok &= a.p3[0] == b.p3[0] && a.p3[1] == b.p3[1];
+      ok &= a.p4[0] == b.p4[0] && a.p4[1] == b.p4[1];
+      if (ok)
+        return;
+      var message = opt_message || 'Expected "' + a.toString() +
+          '", got "' + b.toString() + '"';
+      throw new TestError(message);
+    },
+
+    assertRectEquals: function(a, b, opt_message) {
+      var ok = true;
+      if (a.x == b.x && a.y == b.y &&
+          a.width == b.width && a.height == b.height) {
+        return;
+      }
+
+      var message = opt_message || 'Expected "' + a.toString() +
+          '", got "' + b.toString() + '"';
+      throw new TestError(message);
+    },
+
     assertObjectEquals: function(a, b, opt_message) {
       // TODO(nduca): This is an expedient implementation. We can of course do
       // better.

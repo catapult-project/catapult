@@ -68,17 +68,17 @@ base.exportTo('ui', function() {
     },
 
     setWorldBBox: function(bbox, opt_dontPadBbox) {
-      var world_rect = bbox.asRect();
-      var world_pad;
+      var worldRect = bbox.asRect();
+      var worldPad;
       if (opt_dontPadBbox) {
-        world_pad = 0;
+        worldPad = 0;
       } else {
-        world_pad = Math.min(world_rect.width,
-                             world_rect.height) * 0.10;
+        worldPad = Math.min(worldRect.width,
+                             worldRect.height) * 0.10;
       }
 
-      world_rect.enlarge(world_pad);
-      this.worldRect = world_rect;
+      worldRect = worldRect.enlarge(worldPad);
+      this.worldRect = worldRect;
       this.updateScale_();
       this.updateTransform_();
       this.didChange_();
@@ -121,8 +121,8 @@ base.exportTo('ui', function() {
     },
 
     getDeviceLineWidthAssumingTransformIsApplied: function(
-        desired_device_line_width) {
-      return desired_device_line_width / this.worldPixelsPerDevicePixel_;
+        desiredDeviceLineWidth) {
+      return desiredDeviceLineWidth / this.worldPixelsPerDevicePixel_;
     },
 
     applyTransformToContext: function(ctx) {

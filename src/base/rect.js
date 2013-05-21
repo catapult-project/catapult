@@ -43,18 +43,6 @@ base.exportTo('base', function() {
   Rect.prototype = {
     __proto__: Object.prototype,
 
-    translateXY: function(x, y) {
-      this.x += x;
-      this.y += y;
-    },
-
-    enlarge: function(pad) {
-      this.x -= pad;
-      this.y -= pad;
-      this.width += 2 * pad;
-      this.height += 2 * pad;
-    },
-
     get left() {
       return this.x;
     },
@@ -69,7 +57,41 @@ base.exportTo('base', function() {
 
     get bottom() {
       return this.x + this.width;
-    }
+    },
+
+    toString: function() {
+      return 'Rect(' + this.x + ', ' + this.y + ', ' +
+        this.width + ', ' + this.height + ')';
+    },
+
+    enlarge: function(pad) {
+      var rect = new Rect();
+      this.enlargeFast(rect, pad);
+      return rect;
+    },
+
+    enlargeFast: function(out, pad) {
+      out.x = this.x - pad;
+      out.y = this.y - pad;
+      out.width = this.width + 2 * pad;
+      out.height = this.height + 2 * pad;
+      return out;
+    },
+
+    scale: function(s) {
+      var rect = new Rect();
+      this.scaleFast(rect, s);
+      return rect;
+    },
+
+    scaleFast: function(out, s) {
+      out.x = this.x * s;
+      out.y = this.y * s;
+      out.width = this.width * s;
+      out.height = this.height * s;
+      return out;
+    },
+
   };
 
   return {
