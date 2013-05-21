@@ -91,7 +91,7 @@ base.exportTo('ui', function() {
       mat2d.identity(this.transformWorldToDevicePixels_);
       mat2d.translateInplaceXY(
           this.transformWorldToDevicePixels_,
-          -this.worldRect.left, -this.worldRect.top);
+          -this.worldRect.x, -this.worldRect.y);
       mat2d.scaleInplaceXY(this.transformWorldToDevicePixels_,
                            this.worldPixelsPerDevicePixel_,
                            this.worldPixelsPerDevicePixel_);

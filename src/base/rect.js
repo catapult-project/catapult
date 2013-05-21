@@ -16,15 +16,15 @@ base.exportTo('base', function() {
    * @constructor
    */
   function Rect() {
-    this.left = 0;
-    this.top = 0;
+    this.x = 0;
+    this.y = 0;
     this.width = 0;
     this.height = 0;
   };
   Rect.FromXYWH = function(x, y, w, h) {
     var rect = new Rect();
-    rect.left = x;
-    rect.top = y;
+    rect.x = x;
+    rect.y = y;
     rect.width = w;
     rect.height = h;
     return rect;
@@ -33,8 +33,8 @@ base.exportTo('base', function() {
     if (ary.length != 4)
       throw new Error('ary.length must be 4');
     var rect = new Rect();
-    rect.left = ary[0];
-    rect.top = ary[1];
+    rect.x = ary[0];
+    rect.y = ary[1];
     rect.width = ary[2];
     rect.height = ary[3];
     return rect;
@@ -44,23 +44,31 @@ base.exportTo('base', function() {
     __proto__: Object.prototype,
 
     translateXY: function(x, y) {
-      this.left += x;
-      this.top += y;
+      this.x += x;
+      this.y += y;
     },
 
     enlarge: function(pad) {
-      this.left -= pad;
-      this.top -= pad;
+      this.x -= pad;
+      this.y -= pad;
       this.width += 2 * pad;
       this.height += 2 * pad;
     },
 
+    get left() {
+      return this.x;
+    },
+
+    get top() {
+      return this.y;
+    },
+
     get right() {
-      return this.left + this.width;
+      return this.x + this.width;
     },
 
     get bottom() {
-      return this.left + this.width;
+      return this.x + this.width;
     }
   };
 

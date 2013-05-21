@@ -18,7 +18,7 @@ base.exportTo('base', function() {
 
   function QuadFromRect(r) {
     return new QuadFromXYWH(
-      r.left, r.top,
+      r.x, r.y,
       r.width, r.height);
   }
 
@@ -57,11 +57,11 @@ base.exportTo('base', function() {
   }
 
   Quad.prototype = {
-    vecInside: function(vec)
-    {
+    vecInside: function(vec) {
       return vecInTriangle2(vec, this.p1, this.p2, this.p3) ||
           vecInTriangle2(vec, this.p1, this.p3, this.p4);
     },
+
     copy: function() {
       var q = new Quad();
       vec2.copy(q.p1, this.p1);
@@ -72,14 +72,12 @@ base.exportTo('base', function() {
     }
   };
 
-  function sign(p1, p2, p3)
-  {
+  function sign(p1, p2, p3) {
     return (p1[0] - p3[0]) * (p2[1] - p3[1]) -
         (p2[0] - p3[0]) * (p1[1] - p3[1]);
   }
 
-  function vecInTriangle2(pt, p1, p2, p3)
-  {
+  function vecInTriangle2(pt, p1, p2, p3) {
     var b1 = sign(pt, p1, p2) < 0.0;
     var b2 = sign(pt, p2, p3) < 0.0;
     var b3 = sign(pt, p3, p1) < 0.0;
