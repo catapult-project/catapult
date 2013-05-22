@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('base.rect');
+</script>
+<script>
+  'use strict';
+
+  var Rect = base.Rect;
+
+  function testUVRectBasic() {
+    var container = Rect.FromXYWH(0, 0, 10, 10);
+    var inner = Rect.FromXYWH(1, 1, 8, 8);
+    var uv = inner.asUVRectInside(container);
+    assertRectEquals(uv, Rect.FromXYWH(0.1, 0.1, .8, .8));
+  }
+
+</script>
+</body>
+</html>

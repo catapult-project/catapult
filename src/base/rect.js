@@ -105,6 +105,15 @@ base.exportTo('base', function() {
       out.height = this.height;
       return out;
     },
+
+    asUVRectInside: function(containingRect) {
+      var rect = new Rect();
+      rect.x = (this.x - containingRect.x) / containingRect.width;
+      rect.y = (this.x - containingRect.x) / containingRect.width;
+      rect.width = this.width / containingRect.width;
+      rect.height = this.width / containingRect.height;
+      return rect;
+    }
   };
 
   return {
