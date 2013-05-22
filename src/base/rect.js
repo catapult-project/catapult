@@ -56,7 +56,7 @@ base.exportTo('base', function() {
     },
 
     get bottom() {
-      return this.x + this.width;
+      return this.y + this.height;
     },
 
     toString: function() {
@@ -109,9 +109,9 @@ base.exportTo('base', function() {
     asUVRectInside: function(containingRect) {
       var rect = new Rect();
       rect.x = (this.x - containingRect.x) / containingRect.width;
-      rect.y = (this.x - containingRect.x) / containingRect.width;
+      rect.y = (this.y - containingRect.y) / containingRect.height;
       rect.width = this.width / containingRect.width;
-      rect.height = this.width / containingRect.height;
+      rect.height = this.height / containingRect.height;
       return rect;
     }
   };
