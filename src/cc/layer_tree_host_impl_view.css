@@ -9,7 +9,7 @@
 }
 
 .lthi-s-view > layer-picker {
-  width: 600px;
+  width: 400px;
 }
 
 .lthi-s-view > x-drag-handle {
@@ -42,16 +42,10 @@ layer-picker > top-controls {
   display: inline;
 }
 
-layer-picker > list-and-context {
-  display: -webkit-flex;
-  -webkit-flex-direction: row;
+layer-picker > x-list-view {
   -webkit-flex: 1 1 auto;
-}
-
-layer-picker > list-and-context > x-list-view {
-  -webkit-flex: 1 1 auto;
-  overflow: auto;
   font-family: monospace;
+  overflow: auto;
 }
 
 layer-picker > x-generic-object-view {

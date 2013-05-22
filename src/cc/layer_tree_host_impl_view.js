@@ -34,20 +34,11 @@ base.exportTo('cc', function() {
       this.controls_ = document.createElement('top-controls');
 
 
-      this.layerContextViewer_ = new LayerContextViewer();
-      this.addEventListener('selection-changed', function() {
-        this.layerContextViewer_.layer = this.selectedLayer;
-      }.bind(this));
-
       this.layerList_ = new ui.ListView();
       this.layerDataView_ = new tracing.analysis.GenericObjectView();
       this.appendChild(this.controls_);
 
-      var layerListAndContext = document.createElement('list-and-context');
-      layerListAndContext.appendChild(this.layerContextViewer_);
-      layerListAndContext.appendChild(this.layerList_);
-
-      this.appendChild(layerListAndContext);
+      this.appendChild(this.layerList_);
       var dragHandle = new ui.DragHandle();
       dragHandle.horizontal = true;
       dragHandle.target = this.layerDataView_;
@@ -233,65 +224,6 @@ base.exportTo('cc', function() {
   };
 
   /**
-   * Shows a layer and all its related layers.
-   * @constructor
-   */
-  var LayerContextViewer = ui.define('layer-context-viewer');
-
-  LayerContextViewer.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
-
-    decorate: function() {
-      this.layer_ = undefined;
-      this.lastLthiInstance_ = undefined;
-
-      this.quadView_ = new ui.QuadView();
-      this.appendChild(this.quadView_);
-
-    },
-
-    get layer() {
-      return this.layer_;
-    },
-
-    set layer(layer) {
-      this.layer_ = layer;
-      this.updateContents_();
-    },
-
-    getTreeQuads: function() {
-      var layerTreeImpl = this.layer_.layerTreeImpl;
-      var rsll = layerTreeImpl.renderSurfaceLayerList;
-      var quads = [];
-      for (var i = 0; i < rsll.length; i++) {
-        var layer = rsll[i];
-        var q = layer.layerQuad.clone();
-        q.borderColor = 'rgba(0,0,0,0.75)';
-        quads.push(q);
-
-        var selected = layer == this.layer;
-        q.selected = selected;
-      }
-      return quads;
-    },
-
-    updateContents_: function() {
-      if (!this.layer_) {
-        this.quadView_.quads = [];
-        return;
-      }
-
-      var lthi = this.layer_.layerTreeImpl.layerTreeHostImpl;
-      var lthiInstance = lthi.objectInstance;
-      var viewport = new ui.QuadViewViewport(lthiInstance.allLayersBBox, 0.15);
-      this.quadView_.quads = this.getTreeQuads();
-      this.quadView_.viewport = viewport;
-      this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
-    }
-  };
-
-
-  /**
    * @constructor
    */
   var LayerViewer = ui.define('layer-viewer');
@@ -335,6 +267,16 @@ base.exportTo('cc', function() {
       scaleSelector.selectedIndex = 3;
       this.scale_ = 0.5;
       this.controls_.appendChild(scaleSelector);
+
+      this.showOtherLayers_ = true;
+      var showOtherLayersCheckbox = ui.createCheckBox(
+        this, 'showOtherLayers', 'Show other layers');
+      this.controls_.appendChild(showOtherLayersCheckbox);
+
+      this.showInvalidations_ = true;
+      var showInvalidationsCheckbox = ui.createCheckBox(
+        this, 'showInvalidations', 'Show invalidations');
+      this.controls_.appendChild(showInvalidationsCheckbox);
     },
 
     get layer() {
@@ -355,6 +297,24 @@ base.exportTo('cc', function() {
       this.scheduleUpdateContents_();
     },
 
+    get showOtherLayers() {
+      return this.showOtherLayers_;
+    },
+
+    set showOtherLayers(show) {
+      this.showOtherLayers_ = show;
+      this.updateContents_();
+    },
+
+    get showInvalidations() {
+      return this.showInvalidations_;
+    },
+
+    set showInvalidations(show) {
+      this.showInvalidations_ = show;
+      this.updateContents_();
+    },
+
     scheduleUpdateContents_: function() {
       if (this.updateContentsPending_)
         return;
@@ -363,16 +323,102 @@ base.exportTo('cc', function() {
     },
 
     updateContents_: function() {
+      console.log(this.showOtherLayers_);
+
       this.updateContentsPending_ = false;
+      this.warningEL_.textContent = '';
+
       if (!this.layer_) {
         this.quadView_.quads = [];
         return;
       }
-      var layer = this.layer_;
+
+      var selectedLayer = this.layer_;
+      var showOtherLayers = this.showOtherLayers_;
+
+      var layerTreeImpl = selectedLayer.layerTreeImpl;
+      var lthi = layerTreeImpl.layerTreeHostImpl;
+      var lthiInstance = lthi.objectInstance;
+      var layers =  [];
+      if (showOtherLayers)
+        layers = layerTreeImpl.renderSurfaceLayerList;
+      else
+        layers = [selectedLayer];
+
+      // Figure out if we can draw the quads yet...
+      var hadMissingPicture = false;
+      for (var i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+          var picture = layer.pictures[ir];
+          if (picture.image ||
+              !cc.PictureSnapshot.CanRasterize() ||
+              !picture.layerRect)
+            continue;
+          picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
+          hadMissingPicture = true;
+        }
+      }
+      if (hadMissingPicture)
+        return;
+
+      // Generate the quads for the view.
       var quads = [];
+      for (var i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        var layerQuad;
+        layerQuad = layer.layerQuad.clone();
 
-      this.warningEL_.textContent = '';
+        // Generate image quads for the layer
+        var hasMissing = false;
+        for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+          var picture = layer.pictures[ir];
+          if (!picture.layerRect) {
+            hasMissing = true;
+            continue;
+          }
+          var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
+          var iq = layerQuad.projectUnitRect(unitRect);
 
+          if (picture.image)
+            iq.backgroundImage = picture.image;
+          else
+            iq.backgroundColor = 'rgba(0,0,0,0.1)';
+
+          quads.push(iq);
+        }
+
+        if (hasMissing)
+          this.warningEL_.textContent = 'Missing pictures';
+
+        // Generate the invalidation rect quads.
+        if (this.showInvalidations_) {
+          for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
+            var rect = layer.invalidation.rects[ir];
+            var unitRect = rect.asUVRectInside(layer.bounds);
+            var iq = layerQuad.projectUnitRect(unitRect);
+            iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+            iq.borderColor = 'rgba(255, 0, 0, 1)';
+            quads.push(iq);
+          }
+        }
+
+        // Push the layer quad last.
+        layerQuad.borderColor = 'rgba(0,0,0,0.75)';
+        quads.push(layerQuad);
+        if (selectedLayer == layer)
+          layerQuad.upperBorderColor = 'rgb(156,189,45)';
+      }
+
+      this.quadView_.quads = quads;
+
+      var viewport;
+      this.quadView_.viewport = new ui.QuadViewViewport(
+        lthiInstance.allLayersBBox, this.scale_);
+      this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
+    },
+
+    appendQuadsForLayer: function(quads, layer) {
       // Picture quads (pictures are listed top -> bottom so need to be
       // iterated in reverse)
       var hadMissing = false;
@@ -413,14 +459,8 @@ base.exportTo('cc', function() {
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         quads.push(iq);
       }
+    },
 
-      var quads_bbox = new base.BBox2();
-      quads_bbox.addXY(0, 0);
-      quads_bbox.addXY(layer.bounds.width, layer.bounds.height);
-
-      this.quadView_.quads = quads;
-      this.quadView_.viewport = new ui.QuadViewViewport(quads_bbox, this.scale_);
-    }
   };
 
 
