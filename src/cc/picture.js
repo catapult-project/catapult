@@ -59,8 +59,12 @@ base.exportTo('cc', function() {
     getRasterData: function() {
       if (this.rasterData_)
         return this.rasterData_;
-      if (!PictureSnapshot.CanRasterize())
-        return;
+
+      if (!PictureSnapshot.CanRasterize()) {
+        console.error(PictureSnapshot.HowToEnableRasterizing());
+        return undefined;
+      }
+
       this.rasterData_ = window.chrome.skiaBenchmarking.rasterize(this.dataB64);
 
       // Switch it to a Uint8ClampedArray.
@@ -70,6 +74,9 @@ base.exportTo('cc', function() {
 
     beginRenderingImage: function(imageReadyCallback) {
       var rd = this.getRasterData();
+      if (!rd)
+        return;
+
       var helperCanvas = document.createElement('canvas');
       helperCanvas.width = rd.width;
       helperCanvas.height = rd.height;
