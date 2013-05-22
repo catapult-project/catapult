@@ -6,6 +6,7 @@
 
 base.requireStylesheet('ui.quad_view');
 
+base.require('base.color');
 base.require('ui');
 base.require('ui.quad_view_viewport');
 
@@ -186,13 +187,10 @@ base.exportTo('ui', function() {
       var quads = this.quads_;
 
       // Background colors.
-      var lastBackgroundColor = 'rgb(255,255,0)';
-      ctx.fillStyle = lastBackgroundColor;
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
         if (quad.backgroundImage) {
           ctx.save();
-
 
           var quadBBox = new base.BBox2();
           quadBBox.addQuad(quad);
@@ -211,10 +209,7 @@ base.exportTo('ui', function() {
         }
 
         if (quad.backgroundColor) {
-          if (quad.backgroundColor != lastBackgroundColor) {
-            lastBackgroundColor = quad.backgroundColor;
-            ctx.fillStyle = lastBackgroundColor;
-          }
+          ctx.fillStyle = quad.backgroundColor;
           ctx.beginPath();
           ctx.moveTo(quad.p1[0], quad.p1[1]);
           ctx.lineTo(quad.p2[0], quad.p2[1]);
@@ -246,15 +241,17 @@ base.exportTo('ui', function() {
       var rules = window.getMatchedCSSRules(this.canvas_);
 
       // TODO(nduca): Figure out how to get these from css.
-      if (document.activeElement == this.canvas_)
-        ctx.strokeStyle = 'rgb(187,226,54)';
-      else
-        ctx.strokeStyle = 'rgb(156,189,45)';
-
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        if (!quad.selected)
+        if (!quad.upperBorderColor)
           continue;
+        if (document.activeElement == this.canvas_) {
+          var tmp = base.Color.fromString(quad.upperBorderColor).brighten(0.25);
+          ctx.strokeStyle = tmp.toString();
+        } else {
+          ctx.strokeStyle = quad.upperBorderColor;
+        }
+
         ctx.beginPath();
         ctx.moveTo(quad.p1[0], quad.p1[1]);
         ctx.lineTo(quad.p2[0], quad.p2[1]);
