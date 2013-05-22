@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('base.rect');
 base.require('cc.region');
 base.require('tracing.model.object_instance');
 
@@ -40,7 +41,9 @@ base.exportTo('cc', function() {
         this, ['maskLayer', 'replicaLayer']);
 
       // Leave bounds in both places.
-      this.bounds = this.args.bounds;
+      this.bounds = base.Rect.FromXYWH(
+        0, 0,
+        this.args.bounds.width, this.args.bounds.height);
 
       for (var i = 0; i < this.children.length; i++)
         this.children[i].parentLayer = this;
