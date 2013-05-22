@@ -288,6 +288,10 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     return args
 
   @property
+  def adb(self):
+    return self._adb
+
+  @property
   def pid(self):
     return int(self._adb.ExtractPid(self._backend_settings.package)[0])
 

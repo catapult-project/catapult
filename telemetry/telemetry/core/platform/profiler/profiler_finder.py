@@ -3,13 +3,17 @@
 # found in the LICENSE file.
 
 from telemetry.core.platform.profiler import iprofiler_profiler
+from telemetry.core.platform.profiler import java_heap_profiler
 from telemetry.core.platform.profiler import perf_profiler
 from telemetry.core.platform.profiler import sample_profiler
 
 
-_PROFILERS = [iprofiler_profiler.IprofilerProfiler,
-              perf_profiler.PerfProfiler,
-              sample_profiler.SampleProfiler]
+_PROFILERS = [
+    iprofiler_profiler.IprofilerProfiler,
+    java_heap_profiler.JavaHeapProfiler,
+    perf_profiler.PerfProfiler,
+    sample_profiler.SampleProfiler,
+]
 
 
 def FindProfiler(name):
