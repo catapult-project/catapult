@@ -22,6 +22,7 @@ base.require('tracing.importer.linux_perf_importer');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.importer.v8_log_importer');
 base.require('cc');
+base.require('tcmalloc');
 
 base.exportTo('about_tracing', function() {
   /**

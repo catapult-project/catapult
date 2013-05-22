@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('tcmalloc.heap');
+</script>
+<script>
+  'use strict';
+
+  var HeapSnapshot = tcmalloc.HeapSnapshot;
+
+  function testBasic() {
+    var heap = new HeapSnapshot({}, 10, [
+          {
+            "current_allocs": 14895,
+            "total_allocs": 351320,
+            "current_bytes": 18423637,
+            "trace": "",
+            "total_bytes": 169446942
+          },
+          {
+            "current_allocs": 1936,
+            "total_allocs": 60650,
+            "current_bytes": 7087867,
+            "trace": "ChromeBrowserMainParts::MainMessageLoopRun MessageLoop::RunTask ", // @suppress longLineCheck
+            "total_bytes": 12570744
+          },
+          {
+            "current_allocs": 21,
+            "total_allocs": 180,
+            "current_bytes": 3455123,
+            "trace": "ChromeBrowserMainParts::MainMessageLoopRun MessageLoop::RunTask RenderWidgetHostImpl::OnUpdateRect ", // @suppress longLineCheck
+            "total_bytes": 7046559
+          }
+    ]);
+    assertEquals(1, 1);
+  }
+</script>
+</body>
+</html>
