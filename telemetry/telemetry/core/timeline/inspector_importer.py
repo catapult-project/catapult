@@ -24,7 +24,8 @@ class InspectorTimelineImporter(importer.TimelineImporter):
   def ImportEvents(self):
     for raw_event in self._event_data:
       event = self.RawEventToTimelineEvent(raw_event)
-      self._model.AddEvent(event)
+      if event:
+        self._model.AddEvent(event)
 
   def FinalizeImport(self):
     pass
