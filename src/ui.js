@@ -201,6 +201,7 @@ base.exportTo('ui', function() {
     return selectorEl;
   }
 
+  var nextCheckboxId = 1;
   function createCheckBox(targetEl, targetElProperty,
                           label) {
     var buttonEl = document.createElement('input');
@@ -211,10 +212,17 @@ base.exportTo('ui', function() {
       targetEl[targetElProperty] = buttonEl.checked;
     });
 
+    var id = '#checkbox-' + nextCheckboxId++;
+
+    var spanEl = createSpan();
+    buttonEl.setAttribute('id', id);
+
     var labelEl = document.createElement('label');
     labelEl.textContent = label;
-    labelEl.appendChild(buttonEl);
-    return labelEl;
+    labelEl.setAttribute('for', id);
+    spanEl.appendChild(buttonEl);
+    spanEl.appendChild(labelEl);
+    return spanEl;
   }
 
   function elementIsChildOf(el, potentialParent) {
