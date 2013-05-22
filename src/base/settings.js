@@ -19,14 +19,6 @@ base.exportTo('base', function() {
   function Settings() {
     if (alternativeStorageInstance) {
       this.storage_ = alternativeStorageInstance;
-    } else if ('G_testRunner' in global) {
-      /**
-       * In unit tests, use a mock object for storage so we don't change
-       * localStorage in tests.
-       */
-      this.storage_ = FakeLocalStorage.singleton();
-      global.G_testRunner.clearMockLocalStorage =
-          FakeLocalStorage.clearSingleton;
     } else {
       this.storage_ = localStorage;
     }
@@ -110,46 +102,6 @@ base.exportTo('base', function() {
   };
 
   Settings.NAMESPACE = 'trace-viewer';
-
-  /**
-   * Create a Fake localStorage object which just stores to a dictionary
-   * instead of actually saving into localStorage. Only used in unit tests.
-   * @constructor
-   */
-  function FakeLocalStorage() {
-  }
-
-  FakeLocalStorage.singleton = function() {
-    FakeLocalStorage.instance_ =
-        FakeLocalStorage.instance_ || new FakeLocalStorage();
-    return FakeLocalStorage.instance_;
-  }
-
-  FakeLocalStorage.clearSingleton = function() {
-    delete FakeLocalStorage.instance_;
-  }
-
-  FakeLocalStorage.prototype = {
-    __proto__: Object.prototype,
-
-    getItem: function(key) {
-      // LocalStorage returns null if the key isn't found, not undefined.
-      if (this[key] === undefined || this[key] === null)
-        return null;
-      return this[key];
-    },
-
-    setItem: function(key, value) {
-      this[key] = value;
-    },
-
-    key: function(i) {
-      return Object.keys(this).sort()[i];
-    },
-    get length() {
-      return Object.keys(this).length;
-    }
-  };
 
   return {
     Settings: Settings

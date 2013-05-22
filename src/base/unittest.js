@@ -10,6 +10,7 @@
  * with Closure tests.
  */
 base.requireStylesheet('base.unittest');
+base.require('base.settings');
 base.exportTo('base', function() {
 
   var NOCATCH_MODE = false;
@@ -716,8 +717,8 @@ base.exportTo('base', function() {
     },
 
     setUp: function() {
-      if ('clearMockLocalStorage' in global.G_testRunner)
-        global.G_testRunner.clearMockLocalStorage();
+      global.sessionStorage.clear();
+      base.Settings.setAlternativeStorageInstance(global.sessionStorage);
     },
 
     run: function(results) {
@@ -770,6 +771,7 @@ base.exportTo('base', function() {
     }
 
   };
+
 
   /**
    * Returns an array of TestCase objects correpsonding to the tests
