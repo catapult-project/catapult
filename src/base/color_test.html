@@ -26,14 +26,14 @@ found in the LICENSE file.
     assertEquals(3, c.b);
     assertEquals(undefined, c.a);
   }
-  function testFromString() {
+  function testFromRGBA() {
     var c = Color.fromString('rgba(1, 2, 3, 0.5)');
     assertEquals(1, c.r);
     assertEquals(2, c.g);
     assertEquals(3, c.b);
     assertEquals(0.5, c.a);
   }
-  function testFromString() {
+  function testFromHex() {
     var c = Color.fromString('#010203');
     assertEquals(1, c.r);
     assertEquals(2, c.g);

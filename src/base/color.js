@@ -26,12 +26,12 @@ base.exportTo('base', function() {
           parseInt(values[0]),
           parseInt(values[1]),
           parseInt(values[2]));
-    } else if (str.substr(0, 4) == 'rgba(') {
+    } else if (str.substr(0, 5) == 'rgba(') {
       tmp = str.substr(5, str.length - 6);
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
       });
-      if (values.length != 3)
+      if (values.length != 4)
         throw new Error('Malformatted rgb-expression');
       return new Color(
           parseInt(values[0]),
@@ -93,4 +93,3 @@ base.exportTo('base', function() {
     Color: Color
   };
 });
-
