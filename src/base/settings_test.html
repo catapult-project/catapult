@@ -22,6 +22,8 @@ function testSetGetString() {
   var settings = new base.Settings();
   settings.set('my_key', 'my_val');
   assertEquals('my_val', settings.get('my_key'));
+  // base.Settings() is a singleton
+  assertEquals('my_val', base.Settings().get('my_key'));
 }
 
 function testSetGetNumber() {
