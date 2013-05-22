@@ -39,6 +39,22 @@
   background: rgb(255, 255, 255);
 }
 
+.overlay-root > .content-host .tool-bar {
+  cursor: pointer;
+  display: -webkit-flex;
+  height: 24px;
+  padding: 1px;
+}
+
+.overlay-root > .content-host .tool-bar .exit-button {
+  background-color: rgba(0,0,0, 0.8);
+  border: 1px solid white;
+  color: white;
+  height:  100%;
+  padding-left: 4px;
+  width:  19px;
+}
+
 .overlay {
   max-height: 500px;
   overflow: auto;

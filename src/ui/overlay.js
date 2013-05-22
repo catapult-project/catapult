@@ -30,6 +30,8 @@ base.exportTo('ui', function() {
       this.classList.add('overlay-root');
       this.visible = false;
 
+      this.createToolBar_();
+
       this.contentHost = this.ownerDocument.createElement('div');
       this.contentHost.classList.add('content-host');
 
@@ -43,12 +45,23 @@ base.exportTo('ui', function() {
       this.addEventListener('mousedown', this.onMousedown_.bind(this));
     },
 
+    createToolBar_: function() {
+      this.toolbar_ = this.ownerDocument.createElement('div');
+      this.toolbar_.className = 'tool-bar';
+      this.exitButton_ = this.ownerDocument.createElement('span');
+      this.exitButton_.className = 'exit-button';
+      this.exitButton_.textContent = 'x';
+      this.exitButton_.title = 'Close Overlay (esc)';
+      this.toolbar_.appendChild(this.exitButton_);
+    },
+
     /**
      * Adds an overlay, attaching it to the contentHost so that it is visible.
      */
     showOverlay: function(overlay) {
       // Reparent this to the overlay content host.
       overlay.oldParent_ = overlay.parentNode;
+      this.contentHost.appendChild(this.toolbar_);
       this.contentHost.appendChild(overlay);
       this.contentHost.appendChild(this.tabCatcher);
 
@@ -119,6 +132,7 @@ base.exportTo('ui', function() {
 
       // put the overlay back on its previous parent
       overlay.parentNode.removeChild(this.tabCatcher);
+      overlay.parentNode.removeChild(this.toolbar_);
       if (overlay.oldParent_) {
         overlay.oldParent_.appendChild(overlay);
         delete overlay.oldParent_;
