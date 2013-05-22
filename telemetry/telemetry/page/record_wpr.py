@@ -10,13 +10,13 @@ import time
 
 from telemetry.core import browser_finder
 from telemetry.core import browser_options
+from telemetry.core import discover
 from telemetry.core import wpr_modes
 from telemetry.page import page_measurement
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_test_results
-from telemetry.test import discover
 
 class RecordPage(page_test.PageTest):
   def __init__(self, measurements):

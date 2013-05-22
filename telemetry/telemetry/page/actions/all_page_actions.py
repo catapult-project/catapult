@@ -3,8 +3,8 @@
 # found in the LICENSE file.
 import os
 
+from telemetry.core import discover
 from telemetry.page.actions import page_action
-from telemetry.test import discover
 
 _page_action_classes = discover.DiscoverClasses(
     os.path.dirname(__file__),

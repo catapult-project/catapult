@@ -4,8 +4,8 @@
 
 import os
 
+from telemetry.core import discover
 from telemetry.core import profile_creator
-from telemetry.test import discover
 
 BASE_PROFILE_TYPES = ['clean', 'default']
 
