@@ -188,7 +188,13 @@ class CrOSInterface(object):
     return exists
 
   def PushFile(self, filename, remote_filename):
-    assert not self.local
+    if self.local:
+      args = ['cp', '-r', filename, remote_filename]
+      stdout, stderr = GetAllCmdOutput(args, quiet=True)
+      if stderr != '':
+        raise OSError('No such file or directory %s' % stderr)
+      return
+
     args = ['scp', '-r' ] + self._ssh_args
     if self._ssh_identity:
       args.extend(['-i', self._ssh_identity])
