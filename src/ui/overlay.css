@@ -9,12 +9,11 @@
 }
 
 .overlay-root {
-  -webkit-box-align: stretch;
-  -webkit-box-orient: horizontal;
-  -webkit-box-pack: center;
+  -webkit-flex-flow: row;
+  -webkit-justify-content: center;
   -webkit-user-select: none;
   background: rgba(0, 0, 0, 0.8);
-  display: -webkit-box;
+  display: -webkit-flex;
   font-family: sans-serif;
   height: 100%;
   left: 0;
@@ -30,11 +29,10 @@
 }
 
 .overlay-root > .content-host {
-  -webkit-box-align: stretch;
-  -webkit-box-orient: vertical;
-  -webkit-box-pack: center;
+  -webkit-flex-flow: column;
+  -webkit-justify-content: center;
   -webkit-user-select: auto;
-  display: -webkit-box;
+  display: -webkit-flex;
 }
 
 .overlay-root > .content-host > * {
