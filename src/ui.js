@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.exportTo('ui', function() {
 
   /**
@@ -201,7 +203,7 @@ base.exportTo('ui', function() {
 
   function createCheckBox(targetEl, targetElProperty,
                           label) {
-    buttonEl = document.createElement('input');
+    var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
     buttonEl.checked = targetEl[targetElProperty];
 
