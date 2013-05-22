@@ -78,7 +78,7 @@ class PageTestRunner(object):
     return arg
 
   def GetPageSet(self, test, page_set_filenames):
-    ps = test.CreatePageSet(self._options)
+    ps = test.CreatePageSet(self._args, self._options)
     if ps:
       return ps
 
@@ -107,16 +107,23 @@ class PageTestRunner(object):
     # We've been given a file or directory. Create a page set containing it.
     if os.path.exists(page_set_arg):
       page_set_dict = {'pages': []}
-      if os.path.isdir(page_set_arg):
-        for path in os.listdir(page_set_arg):
-          path = os.path.join(page_set_arg, path)
-          if os.path.isdir(path):
-            continue
-          print path
-          page_set_dict['pages'].append({'url': os.path.join('file://', path)})
-      else:
-        page_set_dict['pages'].append({'url': 'file://' + page_set_arg})
-      return page_set.PageSet.FromDict(page_set_dict, os.path.dirname(__file__))
+
+      def _AddFile(file_path):
+        page_set_dict['pages'].append({'url': 'file://' + file_path})
+
+      def _AddDir(dir_path):
+        for path in os.listdir(dir_path):
+          path = os.path.join(dir_path, path)
+          _AddPath(path)
+
+      def _AddPath(path):
+        if os.path.isdir(path):
+          _AddDir(path)
+        else:
+          _AddFile(path)
+
+      _AddPath(page_set_arg)
+      return page_set.PageSet.FromDict(page_set_dict, os.getcwd() + os.sep)
 
     raise Exception('Did not understand "%s". Pass a page set, file or URL.' %
                     page_set_arg)

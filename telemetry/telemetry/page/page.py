@@ -38,18 +38,12 @@ class Page(object):
 
     raise AttributeError()
 
-  # NOTE: This assumes the page_set file uses 'file:///' instead of 'file://',
-  # otherwise the '/' will be missing between page_set.base_dir and
-  # parsed_url.path.
   @property
   def serving_dirs_and_file(self):
     parsed_url = urlparse.urlparse(self.url)
-
-    # Don't use os.path.join otherwise netloc and path can't point to relative
-    # directories.
-    assert parsed_url.path[0] == '/'
-
-    path = self.base_dir + parsed_url.netloc + parsed_url.path
+    path = os.path.join(self.base_dir.rstrip('/'),
+                        parsed_url.netloc.strip('/'),
+                        parsed_url.path.strip('/'))
 
     if hasattr(self.page_set, 'serving_dirs'):
       url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
