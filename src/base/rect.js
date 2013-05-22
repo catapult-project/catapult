@@ -92,6 +92,19 @@ base.exportTo('base', function() {
       return out;
     },
 
+    translate: function(v) {
+      var rect = new Rect();
+      this.translateFast(rect, v);
+      return rect;
+    },
+
+    translateFast: function(out, v) {
+      out.x = this.x + v[0];
+      out.y = this.x + v[1];
+      out.width = this.width;
+      out.height = this.height;
+      return out;
+    },
   };
 
   return {

@@ -654,6 +654,16 @@ base.exportTo('base', function() {
       throw new TestError(message);
     },
 
+    assertVec3Equals: function(a, b, opt_message) {
+      if (a[0] == b[0] &&
+          a[1] == b[1] &&
+          a[2] == b[2])
+        return;
+      var message = opt_message || 'Expected ' + vec3.toString(a) +
+        ' but got ' + vec3.toString(b);
+      throw new TestError(message);
+    },
+
     assertQuadEquals: function(a, b, opt_message) {
       var ok = true;
       ok &= a.p1[0] == b.p1[0] && a.p1[1] == b.p1[1];

@@ -8,10 +8,12 @@ base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/common.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/mat2d.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/mat4.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec2.js');
+base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec3.js');
 base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec4.js');
 
 base.exportTo('base', function() {
   var tmp_vec2 = vec2.create();
+  var tmp_vec2b = vec2.create();
   var tmp_vec4 = vec4.create();
   var tmp_mat2d = mat2d.create();
 
@@ -33,29 +35,31 @@ base.exportTo('base', function() {
     return '[' + a[0] + ', ' + a[1] + ']';
   };
 
-  mat2d.translateInplace = function(inout, v) {
-    mat2d.translate(tmp_mat2d, inout, v);
-    mat2d.copy(inout, tmp_mat2d);
+  vec2.addTwoScaledUnitVectors = function(out, u1, scale1, u2, scale2) {
+    // out = u1 * scale1 + u2 * scale2
+    vec2.scale(tmp_vec2, u1, scale1);
+    vec2.scale(tmp_vec2b, u2, scale2);
+    vec2.add(out, tmp_vec2, tmp_vec2b);
   }
 
-  mat2d.translateInplaceXY = function(inout, x, y) {
+  vec3.createXYZ = function(x, y, z) {
+    var v = vec3.create();
+    vec3.set(v, x, y, z);
+    return v;
+  };
+
+  vec3.toString = function(a) {
+    return 'vec3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ')';
+  }
+
+  mat2d.translateXY = function(out, x, y) {
     vec2.set(tmp_vec2, x, y);
-    mat2d.translateInplace(inout, tmp_vec2);
+    mat2d.translate(out, out, tmp_vec2);
   }
 
-  mat2d.scaleInplace = function(inout, v) {
-    mat2d.scale(tmp_mat2d, inout, v);
-    mat2d.copy(inout, tmp_mat2d);
-  }
-
-  mat2d.scaleInplaceXY = function(inout, x, y) {
+  mat2d.scaleXY = function(out, x, y) {
     vec2.set(tmp_vec2, x, y);
-    mat2d.scaleInplace(inout, tmp_vec2);
-  }
-
-  mat2d.rotateInplace = function(inout, rad) {
-    mat2d.rotate(tmp_mat2d, inout, rad);
-    mat2d.copy(inout, tmp_mat2d);
+    mat2d.scale(out, out, tmp_vec2);
   }
 
   vec4.unitize = function(out, a) {
