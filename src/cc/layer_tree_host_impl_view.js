@@ -277,6 +277,11 @@ base.exportTo('cc', function() {
       var showInvalidationsCheckbox = ui.createCheckBox(
         this, 'showInvalidations', 'Show invalidations');
       this.controls_.appendChild(showInvalidationsCheckbox);
+
+      this.showContents_ = true;
+      var showContentsCheckbox = ui.createCheckBox(
+        this, 'showContents', 'Show contents');
+      this.controls_.appendChild(showContentsCheckbox);
     },
 
     get layer() {
@@ -303,6 +308,15 @@ base.exportTo('cc', function() {
 
     set showOtherLayers(show) {
       this.showOtherLayers_ = show;
+      this.updateContents_();
+    },
+
+    get showContents() {
+      return this.showContents_;
+    },
+
+    set showContents(show) {
+      this.showContents_ = show;
       this.updateContents_();
     },
 
@@ -380,7 +394,7 @@ base.exportTo('cc', function() {
           var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
           var iq = layerQuad.projectUnitRect(unitRect);
 
-          if (picture.image)
+          if (picture.image && this.showContents_)
             iq.backgroundImage = picture.image;
           else
             iq.backgroundColor = 'rgba(0,0,0,0.1)';
