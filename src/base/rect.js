@@ -113,6 +113,15 @@ base.exportTo('base', function() {
       rect.width = this.width / containingRect.width;
       rect.height = this.height / containingRect.height;
       return rect;
+    },
+
+    intersects: function(that) {
+      var ok = true;
+      ok &= this.x < that.right;
+      ok &= this.right > that.x;
+      ok &= this.y < that.bottom;
+      ok &= this.bottom > that.y;
+      return ok;
     }
   };
 

@@ -14,7 +14,7 @@ base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
 base.require('ui.drag_handle');
 base.require('ui.list_view');
-base.require('ui.quad_view');
+base.require('ui.quad_stack');
 base.exportTo('cc', function() {
   var constants = cc.constants;
   var tsRound = tracing.analysis.tsRound;
@@ -235,9 +235,9 @@ base.exportTo('cc', function() {
       this.layer_ = undefined;
 
       this.controls_ = document.createElement('top-controls');
-      this.quadView_ = new ui.QuadView();
+      this.quadStack_ = new ui.QuadStack();
       this.appendChild(this.controls_);
-      this.appendChild(this.quadView_);
+      this.appendChild(this.quadStack_);
 
       this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.statusEL_.textContent = 'Selected layer';
@@ -343,7 +343,7 @@ base.exportTo('cc', function() {
       this.warningEL_.textContent = '';
 
       if (!this.layer_) {
-        this.quadView_.quads = [];
+        this.quadStack_.quads = [];
         return;
       }
 
@@ -360,21 +360,24 @@ base.exportTo('cc', function() {
         layers = [selectedLayer];
 
       // Figure out if we can draw the quads yet...
-      var hadMissingPicture = false;
-      for (var i = 0; i < layers.length; i++) {
-        var layer = layers[i];
-        for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
-          var picture = layer.pictures[ir];
-          if (picture.image ||
-              !cc.PictureSnapshot.CanRasterize() ||
-              !picture.layerRect)
-            continue;
-          picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
-          hadMissingPicture = true;
+      if (this.showContents_) {
+        var hadMissingPicture = false;
+        for (var i = 0; i < layers.length; i++) {
+          var layer = layers[i];
+          for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+            var picture = layer.pictures[ir];
+            if (picture.image ||
+                !cc.PictureSnapshot.CanRasterize() ||
+                !picture.layerRect)
+              continue;
+            picture.beginRenderingImage(
+                this.scheduleUpdateContents_.bind(this));
+            hadMissingPicture = true;
+          }
         }
+        if (hadMissingPicture)
+          return;
       }
-      if (hadMissingPicture)
-        return;
 
       // Generate the quads for the view.
       var quads = [];
@@ -399,6 +402,7 @@ base.exportTo('cc', function() {
           else
             iq.backgroundColor = 'rgba(0,0,0,0.1)';
 
+          iq.stackingGroupId = i;
           quads.push(iq);
         }
 
@@ -413,68 +417,24 @@ base.exportTo('cc', function() {
             var iq = layerQuad.projectUnitRect(unitRect);
             iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
             iq.borderColor = 'rgba(255, 0, 0, 1)';
+            iq.stackingGroupId = i;
             quads.push(iq);
           }
         }
 
         // Push the layer quad last.
         layerQuad.borderColor = 'rgba(0,0,0,0.75)';
+        layerQuad.stackingGroupId = i;
         quads.push(layerQuad);
-        if (selectedLayer == layer)
+        if (selectedLayer == layer && showOtherLayers)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
       }
 
-      this.quadView_.quads = quads;
-
-      var viewport;
-      this.quadView_.viewport = new ui.QuadViewViewport(
+      this.quadStack_.quads = quads;
+      this.quadStack_.viewport = new ui.QuadViewViewport(
           lthiInstance.allLayersBBox, this.scale_);
-      this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
-    },
-
-    appendQuadsForLayer: function(quads, layer) {
-      // Picture quads (pictures are listed top -> bottom so need to be
-      // iterated in reverse)
-      var hadMissing = false;
-      for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
-        var picture = layer.pictures[ir];
-        if (picture.image ||
-            !cc.PictureSnapshot.CanRasterize() ||
-            !picture.layerRect)
-          continue;
-
-        picture.beginRenderingImage(this.scheduleUpdateContents_.bind(this));
-        hadMissing = true;
-      }
-      if (hadMissing)
-        return;
-
-      for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
-        var picture = layer.pictures[ir];
-        if (!picture.layerRect) {
-          this.warningEL_.textContent = 'Missing pictures';
-          continue;
-        }
-        var rect = picture.layerRect;
-        var iq = base.Quad.FromRect(rect);
-        if (picture.image)
-          iq.backgroundImage = picture.image;
-        else
-          iq.backgroundColor = 'rgba(0,0,0,0.1)';
-        iq.borderColor = 'rgba(0, 0, 0, 0)';
-        quads.push(iq);
-      }
-
-      // Invalidation quads
-      for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
-        var rect = layer.invalidation.rects[ir];
-        var iq = base.Quad.FromRect(rect);
-        iq.backgroundColor = 'rgba(255, 0, 0, 0.05)';
-        iq.borderColor = 'rgba(255, 0, 0, 1)';
-        quads.push(iq);
-      }
+      this.quadStack_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
     }
-
   };
 
 

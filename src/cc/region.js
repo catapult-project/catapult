@@ -27,9 +27,15 @@ base.exportTo('cc', function() {
   }
 
   Region.prototype = {
-    __proto__: Region.prototype
+    __proto__: Region.prototype,
 
-
+    rectIntersects: function(r) {
+      for (var i = 0; i < this.rects.length; i++) {
+        if (this.rects[i].intersects(r))
+          return true;
+      }
+      return false;
+    }
   };
 
   return {

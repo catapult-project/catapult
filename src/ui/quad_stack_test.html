@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('base.bbox2');
+  base.require('ui.quad_stack');
+</script>
+<script>
+  'use strict';
+
+  var Quad = base.Quad;
+  var QuadStack = ui.QuadStack;
+
+  function testBasic() {
+    var quads = [
+      Quad.FromXYWH(0, -100, 100, 400),
+      Quad.FromXYWH(0, 0, 100, 25),
+      Quad.FromXYWH(0, 0, 10, 100)
+    ];
+    quads[0].stackingGroupId = 0;
+    quads[1].stackingGroupId = 1;
+    quads[2].stackingGroupId = 2;
+
+    var quadsBbox = new base.BBox2();
+    quads.forEach(function(quad) { quadsBbox.addQuad(quad); });
+
+    var stack = new QuadStack();
+    stack.quads = quads;
+    stack.viewport = new ui.QuadViewViewport(quadsBbox, 1.0);
+    stack.deviceViewportSizeForFrame = {deviceWidth: 100, deviceHeight: 100};
+
+    this.addHTMLOutput(undefined, stack);
+  }
+</script>
+</body>
+</html>

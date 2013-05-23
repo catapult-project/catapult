@@ -54,7 +54,7 @@ base.exportTo('ui', function() {
     ctx.restore();
   }
 
-  var QuadView = ui.define('x-quad-view');
+  var QuadView = ui.define('quad-view');
 
   QuadView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
