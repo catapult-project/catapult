@@ -98,6 +98,7 @@ base.exportTo('ui', function() {
         var curView = this.children[this.children.length - 1];
         if (curView.region.rectIntersects(bboxRect))
           curView = appendNewQuadView();
+        curView.region.rects.push(bboxRect);
         stackingGroup.forEach(function(q) {
           curView.pendingQuads.push(q);
         });

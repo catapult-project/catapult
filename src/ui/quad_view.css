@@ -11,9 +11,3 @@ quad-view > * {
   -webkit-user-select: none;
   cursor: default;
 }
-
-quad-view canvas {
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: rgba(0,0,0,0.2) 3px 3px 8px;
-  outline: none;
-}
