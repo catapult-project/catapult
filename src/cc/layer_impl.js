@@ -84,7 +84,6 @@ base.exportTo('cc', function() {
       }
       if (this.args.pictures) {
         this.pictures = this.args.pictures;
-        delete this.args.pictures;
       }
     }
   };
