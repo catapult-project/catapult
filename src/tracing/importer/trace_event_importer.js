@@ -606,9 +606,8 @@ base.exportTo('tracing.importer', function() {
         throw new Error('');
 
       function handleField(object, fieldName, fieldValue) {
-        if (typeof fieldValue != object)
-          return;
-        if (!fieldValue.id_ref && !fieldValue.idRef)
+        if (fieldValue === undefined ||
+            (!fieldValue.id_ref && !fieldValue.idRef))
           return;
 
         var id = fieldValue.id_ref || fieldValue.idRef;
