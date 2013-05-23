@@ -9,7 +9,7 @@ base.requireStylesheet('tcmalloc.heap_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
 
-base.exportTo('cc', function() {
+base.exportTo('tcmalloc', function() {
 
   var tsRound = tracing.analysis.tsRound;
 

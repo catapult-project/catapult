@@ -7,7 +7,7 @@
 base.require('tracing.model.object_instance');
 base.require('cc.util');
 
-base.exportTo('memory', function() {
+base.exportTo('tcmalloc', function() {
   var ObjectSnapshot = tracing.model.ObjectSnapshot;
 
   /**
