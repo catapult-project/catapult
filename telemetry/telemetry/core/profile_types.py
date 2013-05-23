@@ -41,6 +41,10 @@ def _DiscoverCreateableProfiles(profile_creators_dir):
 
   return profile_creators
 
+def ClearProfieCreatorsForTests():
+  """Clears the discovered profile creator objects.  Used for unit tests."""
+  PROFILE_CREATORS.clear()
+
 def FindProfileCreators(profile_creators_dir):
   """Discover all the ProfileCreator objects in |profile_creators_dir|."""
   assert not PROFILE_CREATORS  # It's illegal to call this function twice.
