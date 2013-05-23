@@ -95,7 +95,7 @@ base.exportTo('cc', function() {
         key = newKey;
       }
 
-      if (/Quad$/.test(key)) {
+      if (/Quad$/.test(key) && !(object[key] instanceof base.Quad)) {
         var q;
         try {
           q = base.Quad.From8Array(object[key]);
