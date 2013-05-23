@@ -43,7 +43,7 @@ class Page(object):
     parsed_url = urlparse.urlparse(self.url)
     path = os.path.join(self.base_dir.rstrip('/'),
                         parsed_url.netloc.strip('/'),
-                        parsed_url.path.strip('/'))
+                        parsed_url.path.lstrip('/'))
 
     if hasattr(self.page_set, 'serving_dirs'):
       url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
