@@ -14,7 +14,6 @@ import random
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core import exceptions
-from telemetry.page import page_measurement_results
 from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_test
 
@@ -113,10 +112,10 @@ class PageRunner(object):
         if (test.discard_first_result and
             not self.has_called_will_run_page_set):
           # If discarding results, substitute a dummy object.
-          results_for_current_run = (
-            page_measurement_results.PageMeasurementResults())
+          results_for_current_run = type(out_results)()
         else:
           results_for_current_run = out_results
+        results_for_current_run.StartTest(page)
         tries = 3
         while tries:
           try:
@@ -170,6 +169,7 @@ class PageRunner(object):
             if not tries:
               logging.error('Lost connection to browser 3 times. Failing.')
               raise
+        results_for_current_run.StopTest(page)
       test.DidRunPageSet(state.tab, results_for_current_run)
     finally:
       state.Close()
@@ -193,9 +193,13 @@ class PageRunner(object):
           pages_missing_archive_file.append(page)
 
     for page in pages_without_archive_path:
+      out_results.StartTest(page)
       out_results.AddErrorMessage(page, 'Page set archive not defined.')
+      out_results.StopTest(page)
     for page in pages_missing_archive_file:
+      out_results.StartTest(page)
       out_results.AddErrorMessage(page, 'Page set archive doesn\'t exist.')
+      out_results.StopTest(page)
 
     if pages_without_archive_path:
       logging.warning('No page set archive provided for some pages. '
@@ -242,7 +246,6 @@ class PageRunner(object):
       # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
       raise
     except Exception:
-      logging.error('%s:\n%s', page.url, traceback.format_exc())
       raise
     else:
       results.AddSuccess(page)

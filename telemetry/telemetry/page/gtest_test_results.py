@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import time
+import unittest
 
 from telemetry.page import page_test_results
 
@@ -21,8 +22,11 @@ class GTestTestResults(page_test_results.PageTestResults):
 
   @staticmethod
   def _formatTestname(test):
-    chunks = test.id().split('.')[-2:]
-    return '.'.join(chunks)
+    if isinstance(test, unittest.TestCase):
+      chunks = test.id().split('.')[-2:]
+      return '.'.join(chunks)
+    else:
+      return str(test)
 
   def _emitFailure(self, test, err):
     print self._exc_info_to_string(err, test)

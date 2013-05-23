@@ -1,7 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import logging
 import os
 import sys
 
@@ -9,8 +8,8 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import profile_types
+from telemetry.page import gtest_test_results
 from telemetry.page import page_test
-from telemetry.page import page_test_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 
@@ -31,7 +30,16 @@ class PageTestRunner(object):
     self._args = None
 
   def AddCommandLineOptions(self, parser):
-    pass
+    parser.add_option('--output-format',
+                      default=self.output_format_choices[0],
+                      choices=self.output_format_choices,
+                      help='Output format. Defaults to "%%default". '
+                      'Can be %s.' % ', '.join(self.output_format_choices))
+
+  @property
+  def output_format_choices(self):
+    """Allowed output formats. The default is the first item in the list."""
+    return ['gtest']
 
   @property
   def test_class(self):
@@ -46,7 +54,8 @@ class PageTestRunner(object):
         sys.argv, test_dir, profile_creators_dir, page_set_filenames)
     results = self.PrepareResults(test)
     self.RunTestOnPageSet(test, ps, results)
-    return self.OutputResults(results)
+    results.PrintSummary()
+    return min(255, len(results.failures + results.errors))
 
   def FindTestConstructors(self, test_dir):
     return discover.DiscoverClasses(
@@ -60,7 +69,7 @@ class PageTestRunner(object):
     optparse parsing will fail.
 
     Returns:
-      test_name or none
+      test_name or None
     """
     test_name = None
     for arg in [self.GetModernizedTestName(a) for a in args]:
@@ -169,7 +178,13 @@ class PageTestRunner(object):
     return test, ps
 
   def PrepareResults(self, test):  #pylint: disable=W0613
-    return page_test_results.PageTestResults()
+    if self._options.output_format == 'gtest':
+      return gtest_test_results.GTestTestResults()
+    else:
+      # Should never be reached. The parser enforces the choices.
+      raise Exception('Invalid --output-format "%s". Valid choices are: %s'
+                      % (self._options.output_format,
+                         ', '.join(self.output_format_choices)))
 
   def RunTestOnPageSet(self, test, ps, results):
     test.CustomizeBrowserOptions(self._options)
@@ -181,18 +196,6 @@ class PageTestRunner(object):
 
     with page_runner.PageRunner(ps) as runner:
       runner.Run(self._options, possible_browser, test, results)
-
-  def OutputResults(self, results):
-    if results.failures:
-      logging.warning('Failed pages:\n%s', '\n'.join(zip(*results.failures)[0]))
-
-    if results.errors:
-      logging.warning('Errored pages:\n%s', '\n'.join(zip(*results.errors)[0]))
-
-    if results.skipped:
-      logging.warning('Skipped pages:\n%s', '\n'.join(zip(*results.skipped)[0]))
-
-    return min(255, len(results.failures + results.errors))
 
   def PrintParseError(self, message):
     self._parser.error(message)

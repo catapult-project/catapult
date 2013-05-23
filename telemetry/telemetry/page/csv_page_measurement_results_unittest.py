@@ -95,7 +95,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.Add('bar', 'seconds', 4)
     results.DidMeasurePage()
 
-    results.PrintSummary('tag')
+    results.PrintSummary()
 
     self.assertEquals(
       self.output_header_row,
@@ -120,7 +120,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
                 data_type='histogram')
     results.DidMeasurePage()
 
-    results.PrintSummary('tag')
+    results.PrintSummary()
 
     self.assertEquals(
       self.output_header_row,
