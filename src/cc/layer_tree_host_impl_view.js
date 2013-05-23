@@ -337,8 +337,6 @@ base.exportTo('cc', function() {
     },
 
     updateContents_: function() {
-      console.log(this.showOtherLayers_);
-
       this.updateContentsPending_ = false;
       this.warningEL_.textContent = '';
 
