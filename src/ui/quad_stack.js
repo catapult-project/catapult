@@ -4,8 +4,10 @@
 
 'use strict';
 
+base.require('base.bbox2');
 base.require('base.quad');
 base.require('ui.quad_view');
+base.require('cc.region');
 
 base.exportTo('ui', function() {
   var QuadView = ui.QuadView;
@@ -57,11 +59,55 @@ base.exportTo('ui', function() {
 
     updateContents_: function() {
       this.textContent = '';
-      var quadView = new QuadView();
-      quadView.viewport = this.viewport_;
-      quadView.deviceViewportSizeForFrame = this.deviceViewportSizeForFrame_;
-      quadView.quads = this.quads_;
-      this.appendChild(quadView);
+      var that = this;
+      function appendNewQuadView() {
+        var quadView = new QuadView();
+        quadView.viewport = that.viewport_;
+        quadView.deviceViewportSizeForFrame = that.deviceViewportSizeForFrame_;
+        quadView.pendingQuads = [];
+        quadView.region = new cc.Region();
+        that.appendChild(quadView);
+        return quadView;
+      }
+
+      // Temporarily off.
+      if (true) {
+        var qv = appendNewQuadView();
+        qv.quads = this.quads_;
+        return;
+      }
+
+
+      var stackingGroupsById = {};
+      var quads = this.quads;
+      for (var i = 0; i < quads.length; i++) {
+        var quad = quads[i];
+        if (stackingGroupsById[quad.stackingGroupId] === undefined)
+          stackingGroupsById[quad.stackingGroupId] = [];
+        stackingGroupsById[quad.stackingGroupId].push(quad);
+      }
+
+
+      appendNewQuadView();
+      for (var stackingGroupId in stackingGroupsById) {
+        var stackingGroup = stackingGroupsById[stackingGroupId];
+        var bbox = new base.BBox2();
+        stackingGroup.forEach(function(q) { bbox.addQuad(q); });
+        var bboxRect = bbox.asRect();
+
+        var curView = this.children[this.children.length - 1];
+        if (curView.region.rectIntersects(bboxRect))
+          curView = appendNewQuadView();
+        stackingGroup.forEach(function(q) {
+          curView.pendingQuads.push(q);
+        });
+      }
+
+      for (var i = 0; i < this.children.length; i++) {
+        var child = this.children[i];
+        child.quads = child.pendingQuads;
+        delete child.pendingQuads;
+      }
     }
   };
 
