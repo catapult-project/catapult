@@ -53,8 +53,8 @@ base.exportTo('base', function() {
 
   Quad.FromRect = function(r) {
     return new Quad.FromXYWH(
-      r.x, r.y,
-      r.width, r.height);
+        r.x, r.y,
+        r.width, r.height);
   }
 
   Quad.From4Vecs = function(p1, p2, p3, p4) {
@@ -191,10 +191,10 @@ base.exportTo('base', function() {
 
     toString: function() {
       return 'Quad(' +
-        vec2.toString(this.p1) + ', ' +
-        vec2.toString(this.p2) + ', ' +
-        vec2.toString(this.p3) + ', ' +
-        vec2.toString(this.p4) + ')';
+          vec2.toString(this.p1) + ', ' +
+          vec2.toString(this.p2) + ', ' +
+          vec2.toString(this.p3) + ', ' +
+          vec2.toString(this.p4) + ')';
     }
   };
 

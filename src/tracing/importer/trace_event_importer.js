@@ -408,13 +408,13 @@ base.exportTo('tracing.importer', function() {
         var thread = objectEventState.thread;
         if (event.name === undefined) {
           this.model_.importErrors.push(
-              'While processing ' + JSON.stringify(event)  + ': ' +
+              'While processing ' + JSON.stringify(event) + ': ' +
               'Object events require an name parameter.');
         }
 
         if (event.id === undefined) {
           this.model_.importErrors.push(
-              'While processing ' + JSON.stringify(event)  + ': ' +
+              'While processing ' + JSON.stringify(event) + ': ' +
               'Object events require an id parameter.');
         }
         var process = thread.parent;
@@ -423,7 +423,7 @@ base.exportTo('tracing.importer', function() {
         if (event.ph == 'N') {
           try {
             instance = process.objects.idWasCreated(
-              event.id, event.cat, event.name, ts);
+                event.id, event.cat, event.name, ts);
           } catch (e) {
             this.model_.importErrors.push(
                 'While processing create of ' +
@@ -452,7 +452,7 @@ base.exportTo('tracing.importer', function() {
         } else if (event.ph == 'D') {
           try {
             instance = process.objects.idWasDeleted(
-              event.id, event.cat, event.name, ts);
+                event.id, event.cat, event.name, ts);
           } catch (e) {
             this.model_.importErrors.push(
                 'While processing delete of ' +
@@ -515,12 +515,12 @@ base.exportTo('tracing.importer', function() {
         var res;
         try {
           res = process.objects.addSnapshot(
-            id, containingSnapshot.objectInstance.category,
-            name, containingSnapshot.ts,
-            implicitSnapshot);
-        } catch(e) {
+              id, containingSnapshot.objectInstance.category,
+              name, containingSnapshot.ts,
+              implicitSnapshot);
+        } catch (e) {
           this.model_.importErrors.push(
-            'While processing implicit snapshot of ' +
+              'While processing implicit snapshot of ' +
               rawId + ' at ts=' + containingSnapshot.ts + ': ' + e);
           return;
         }
@@ -557,7 +557,8 @@ base.exportTo('tracing.importer', function() {
         }
       }
 
-      // TODO(nduca): We may need to iterate the instances in sorted order by creationTs.
+      // TODO(nduca): We may need to iterate the instances in sorted order by
+      // creationTs.
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(snapshot) {
           if (snapshot.args.id !== undefined)

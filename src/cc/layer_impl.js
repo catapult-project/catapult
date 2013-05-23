@@ -35,15 +35,15 @@ base.exportTo('cc', function() {
 
       // Import & validate this.args
       cc.moveRequiredFieldsFromArgsToToplevel(
-        this, ['children',
-               'layerQuad']);
+          this, ['children',
+            'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
-        this, ['maskLayer', 'replicaLayer']);
+          this, ['maskLayer', 'replicaLayer']);
 
       // Leave bounds in both places.
       this.bounds = base.Rect.FromXYWH(
-        0, 0,
-        this.args.bounds.width, this.args.bounds.height);
+          0, 0,
+          this.args.bounds.width, this.args.bounds.height);
 
       for (var i = 0; i < this.children.length; i++)
         this.children[i].parentLayer = this;

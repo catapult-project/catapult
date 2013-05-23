@@ -74,7 +74,7 @@ base.exportTo('ui', function() {
         worldPad = 0;
       } else {
         worldPad = Math.min(worldRect.width,
-                             worldRect.height) * 0.10;
+            worldRect.height) * 0.10;
       }
 
       worldRect = worldRect.enlarge(worldPad);
@@ -93,8 +93,8 @@ base.exportTo('ui', function() {
           this.transformWorldToDevicePixels_,
           -this.worldRect.x, -this.worldRect.y);
       mat2d.scaleXY(this.transformWorldToDevicePixels_,
-                           this.worldPixelsPerDevicePixel_,
-                           this.worldPixelsPerDevicePixel_);
+          this.worldPixelsPerDevicePixel_,
+          this.worldPixelsPerDevicePixel_);
 
       mat2d.invert(this.transformDevicePixelsToWorld_,
                    this.transformWorldToDevicePixels_);

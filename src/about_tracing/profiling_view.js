@@ -223,11 +223,11 @@ base.exportTo('about_tracing', function() {
         that.overlayEl_.visible = false;
         that.overlayEl_ = undefined;
         if (e.type === 'loadTraceFileComplete') {
-           var nameParts = e.filename.split(/\//);
-           if (nameParts.length > 0)
-             that.timelineView_.viewTitle = nameParts[nameParts.length - 1];
-           else
-             that.timelineView_.viewTitle = '^_^';
+          var nameParts = e.filename.split(/\//);
+          if (nameParts.length > 0)
+            that.timelineView_.viewTitle = nameParts[nameParts.length - 1];
+          else
+            that.timelineView_.viewTitle = '^_^';
           that.refresh_();
         }
 

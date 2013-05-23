@@ -28,8 +28,8 @@ base.exportTo('cc', function() {
 
     initialize: function() {
       cc.moveRequiredFieldsFromArgsToToplevel(
-        this, ['rootLayer',
-               'renderSurfaceLayerList']);
+          this, ['rootLayer',
+            'renderSurfaceLayerList']);
       this.rootLayer.layerTreeImpl = this;
     }
   };

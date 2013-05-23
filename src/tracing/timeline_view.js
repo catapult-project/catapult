@@ -114,7 +114,7 @@ base.exportTo('tracing', function() {
 
       this.trackSelector_ = anchor.appendChild(
           new tracing.tracks.TrackSelector()
-      );
+          );
 
       return anchor;
     },

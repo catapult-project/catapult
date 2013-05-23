@@ -103,7 +103,7 @@ base.exportTo('cc', function() {
       function isPureTransformLayer(layer) {
         if (layer.args.compositingReasons &&
             layer.args.compositingReasons.length != 1 &&
-            layer.args.compositingReasons[0] != "No reasons given")
+            layer.args.compositingReasons[0] != 'No reasons given')
           return false;
 
         if (layer.args.drawsContent)
@@ -256,31 +256,31 @@ base.exportTo('cc', function() {
       this.scale_ = 0.0625;
       var scaleSelector = ui.createSelector(
           this, 'scale',
-        [{label: '6.25%', value: 0.0625},
-         {label: '12.5%', value: 0.125},
-         {label: '25%', value: 0.25},
-         {label: '50%', value: 0.5},
-         {label: '75%', value: 0.75},
-         {label: '100%', value: 1},
-         {label: '200%', value: 2}
-        ]);
+          [{label: '6.25%', value: 0.0625},
+           {label: '12.5%', value: 0.125},
+           {label: '25%', value: 0.25},
+           {label: '50%', value: 0.5},
+           {label: '75%', value: 0.75},
+           {label: '100%', value: 1},
+           {label: '200%', value: 2}
+          ]);
       scaleSelector.selectedIndex = 3;
       this.scale_ = 0.5;
       this.controls_.appendChild(scaleSelector);
 
       this.showOtherLayers_ = true;
       var showOtherLayersCheckbox = ui.createCheckBox(
-        this, 'showOtherLayers', 'Show other layers');
+          this, 'showOtherLayers', 'Show other layers');
       this.controls_.appendChild(showOtherLayersCheckbox);
 
       this.showInvalidations_ = true;
       var showInvalidationsCheckbox = ui.createCheckBox(
-        this, 'showInvalidations', 'Show invalidations');
+          this, 'showInvalidations', 'Show invalidations');
       this.controls_.appendChild(showInvalidationsCheckbox);
 
       this.showContents_ = true;
       var showContentsCheckbox = ui.createCheckBox(
-        this, 'showContents', 'Show contents');
+          this, 'showContents', 'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
     },
 
@@ -353,7 +353,7 @@ base.exportTo('cc', function() {
       var layerTreeImpl = selectedLayer.layerTreeImpl;
       var lthi = layerTreeImpl.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var layers =  [];
+      var layers = [];
       if (showOtherLayers)
         layers = layerTreeImpl.renderSurfaceLayerList;
       else
@@ -428,7 +428,7 @@ base.exportTo('cc', function() {
 
       var viewport;
       this.quadView_.viewport = new ui.QuadViewViewport(
-        lthiInstance.allLayersBBox, this.scale_);
+          lthiInstance.allLayersBBox, this.scale_);
       this.quadView_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
     },
 
@@ -473,7 +473,7 @@ base.exportTo('cc', function() {
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         quads.push(iq);
       }
-    },
+    }
 
   };
 

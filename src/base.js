@@ -4,6 +4,7 @@
 
 'use strict';
 
+
 /**
  * The global object.
  * @type {!Object}
@@ -266,9 +267,9 @@ this.base = (function() {
    * @param {*} oldValue The old value for the property.
    */
   function dispatchPropertyChange(target, propertyName, newValue, oldValue,
-    opt_bubbles, opt_cancelable) {
+                                  opt_bubbles, opt_cancelable) {
     var e = new base.Event(propertyName + 'Change',
-      opt_bubbles, opt_cancelable);
+        opt_bubbles, opt_cancelable);
     e.propertyName = propertyName;
     e.newValue = newValue;
     e.oldValue = oldValue;
@@ -295,9 +296,9 @@ this.base = (function() {
    * @param {string} name The defineProperty name
    * @return {string} an obfuscated name
    */
-   function getPrivateName(name) {
+  function getPrivateName(name) {
     return name + '_base_';
-   }
+  }
 
   /**
    * The kind of property to define in {@code defineProperty}.
@@ -375,7 +376,7 @@ this.base = (function() {
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
             dispatchPropertyChange(this, name, value, oldValue,
-              opt_bubbles, opt_cancelable);
+                opt_bubbles, opt_cancelable);
           }
         };
 
@@ -391,7 +392,7 @@ this.base = (function() {
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
             dispatchPropertyChange(this, name, value, oldValue,
-              opt_bubbles, opt_cancelable);
+                opt_bubbles, opt_cancelable);
           }
         };
 
@@ -407,7 +408,7 @@ this.base = (function() {
             if (opt_setHook)
               opt_setHook.call(this, value, oldValue);
             dispatchPropertyChange(this, name, value, oldValue,
-              opt_bubbles, opt_cancelable);
+                opt_bubbles, opt_cancelable);
           }
         };
     }
@@ -427,7 +428,7 @@ this.base = (function() {
    *     can be prevented.
    */
   function defineProperty(obj, name, opt_kind, opt_setHook,
-    opt_bubbles, opt_cancelable) {
+                          opt_bubbles, opt_cancelable) {
     if (typeof obj == 'function')
       obj = obj.prototype;
 
@@ -438,7 +439,7 @@ this.base = (function() {
 
     if (!obj.__lookupSetter__(name))
       obj.__defineSetter__(name, getSetter(name, kind, opt_setHook,
-        opt_bubbles, opt_cancelable));
+          opt_bubbles, opt_cancelable));
   }
 
   /**

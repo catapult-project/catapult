@@ -229,7 +229,7 @@ found in the LICENSE file.
         return false;
       return lhs.every(function(lhsItem, index) {
         var rhsItem = rhs[index];
-        return rhsItem.regexpText === lhsItem.regexpText && 
+        return rhsItem.regexpText === lhsItem.regexpText &&
             rhsItem.isOn === lhsItem.isOn;
       });
     }
@@ -244,7 +244,7 @@ found in the LICENSE file.
       var showHiddenTracks =
           timeline.querySelector('.show-hidden-tracks-button');
       // To start no tracks are disabled, so we can't Show Hidden Tracks
-      assertTrue(showHiddenTracks.getAttribute('disabled') === "");
+      assertTrue(showHiddenTracks.getAttribute('disabled') === '');
 
       var trackButtonsDOM = timeline.querySelectorAll('.track-button');
       var trackButtons = [];
@@ -266,7 +266,7 @@ found in the LICENSE file.
       styleDisplay = lastTrackButton.parentElement.style.display;
       assertTrue(styleDisplay.indexOf('none') === -1);
       // No hidden tracks to Show
-      assertTrue(showHiddenTracks.getAttribute('disabled') === "");
+      assertTrue(showHiddenTracks.getAttribute('disabled') === '');
 
       var trackSelector = timeline.querySelector('.track-selector');
       // initially we have 50 tracks
@@ -274,12 +274,12 @@ found in the LICENSE file.
 
       trackSelector.trackSelectorModel = [
         {regexp: 'Thread', isOn: true},
-        {regexp: 'Name:',  isOn: false}
+        {regexp: 'Name:', isOn: false}
       ];
       // 25 Tracks have "Thread'
       assertTrue(visibleTracks(trackButtons) === 25);
 
-      var regexpSelectors = 
+      var regexpSelectors =
           trackSelector.querySelectorAll('.regexp-selector');
       toggleRegExpSelectors(regexpSelectors);
       // 25 Tracks have 'Name:'
@@ -303,25 +303,25 @@ found in the LICENSE file.
       trackSelectorButton.click();
 
       var settings = new base.Settings();
-      var trackSelectorModelJSON = settings.get("TrackSelector");
+      var trackSelectorModelJSON = settings.get('TrackSelector');
       var actual = JSON.parse(trackSelectorModelJSON);
       var expected = [
-        {"regexpText":"Thread","isOn":false},
-        {"regexpText":"Name:","isOn":false},
-        {"regexpText":"(?:)","isOn":false}
+        {'regexpText': 'Thread', 'isOn': false},
+        {'regexpText': 'Name:', 'isOn': false},
+        {'regexpText': '(?:)', 'isOn': false}
       ];
       // We've stored what we set in the test above.
       assertTrue(modelsEquivalent(actual, expected));
 
       expected.shift();
 
-      settings.set("TrackSelector", JSON.stringify(expected));
+      settings.set('TrackSelector', JSON.stringify(expected));
       var aTrackSelector = new tracing.tracks.TrackSelector();
       actual = aTrackSelector.trackSelectorModel;
       // we recovered what we stored
       assertTrue(modelsEquivalent(actual, expected));
 
-      settings.set("TrackSelector", 'junk');
+      settings.set('TrackSelector', 'junk');
       aTrackSelector = new tracing.tracks.TrackSelector();
       actual = aTrackSelector.trackSelectorModel;
       // we fallback to default

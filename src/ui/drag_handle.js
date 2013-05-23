@@ -28,12 +28,13 @@ base.exportTo('ui', function() {
       this.addEventListener('mousedown', this.onMouseDown_);
       this.target_ = undefined;
       this.horizontal = true;
-      this.observer_ = new WebKitMutationObserver(this.didTargetMutate_.bind(this));
+      this.observer_ = new WebKitMutationObserver(
+          this.didTargetMutate_.bind(this));
       this.targetSizesByModeKey_ = {};
     },
 
     get modeKey_() {
-      return this.target_.className == "" ? '.' : this.target_.className;
+      return this.target_.className == '' ? '.' : this.target_.className;
     },
 
     get target() {

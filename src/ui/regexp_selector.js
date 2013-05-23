@@ -75,13 +75,13 @@ base.exportTo('ui', function() {
       this.filterControl_ = new ui.FilterControl();
 
       this.filterControl_.addEventListener(
-        'filterTextChange',
-        this.onFilterTextChange_.bind(this)
+          'filterTextChange',
+          this.onFilterTextChange_.bind(this)
       );
 
       this.addEventListener(
-        'regexpChange',
-        this.onRegexpChange_.bind(this)
+          'regexpChange',
+          this.onRegexpChange_.bind(this)
       );
 
       this.appendChild(this.filterControl_);
@@ -149,11 +149,11 @@ base.exportTo('ui', function() {
     filterItems_: function() {
       var itemsClone = this.clone_(this.items);
       var anItemMatchChanged = itemsClone.reduce(
-        function(matchChanged, item) {
-          return this.filterItem_(item) || matchChanged;
-        }.bind(this),
-        false
-      );
+          function(matchChanged, item) {
+            return this.filterItem_(item) || matchChanged;
+          }.bind(this),
+          false
+          );
       if (anItemMatchChanged) {
         var matches = 0;
         this.items = this.clone_(itemsClone);
@@ -171,7 +171,7 @@ base.exportTo('ui', function() {
         noMatches.push({text: item.text, data: item.data});
       });
       this.items = noMatches;
-    },
+    }
 
   };
 

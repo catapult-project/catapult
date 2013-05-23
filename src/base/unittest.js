@@ -660,7 +660,7 @@ base.exportTo('base', function() {
           a[2] == b[2])
         return;
       var message = opt_message || 'Expected ' + vec3.toString(a) +
-        ' but got ' + vec3.toString(b);
+          ' but got ' + vec3.toString(b);
       throw new TestError(message);
     },
 

@@ -92,7 +92,7 @@ found in the LICENSE file.
   function testProjectUnitRectOntoTranslatedQuad() {
     var container = Quad.FromXYWH(1, 1, 1, 1);
     var srcRect = Rect.FromXYWH(0.0, 0, 1, 1);
-    var expectedRect = srcRect.translate([1,1]);
+    var expectedRect = srcRect.translate([1, 1]);
 
     var q = new Quad();
     container.projectUnitRectFast(q, srcRect);

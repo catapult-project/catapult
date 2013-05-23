@@ -56,32 +56,35 @@ base.exportTo('tracing.model', function() {
       }
 
       var i = base.findLowIndexInSortedIntervals(
-        this.instances,
-        function(inst) { return inst.creationTs; },
-        function(inst) { return inst.deletionTs - inst.creationTs; },
-        ts);
+          this.instances,
+          function(inst) { return inst.creationTs; },
+          function(inst) { return inst.deletionTs - inst.creationTs; },
+          ts);
 
       var instance;
       if (i < 0) {
         instance = this.instances[0];
         if (ts > instance.deletionTs ||
-            instance.creationTsWasExplicit)
-          throw new Error('At the provided timestamp, no instance was still alive');
+            instance.creationTsWasExplicit) {
+          throw new Error(
+              'At the provided timestamp, no instance was still alive');
+        }
 
-        if (instance.snapshots.length != 0)
+        if (instance.snapshots.length != 0) {
           throw new Error(
               'Cannot shift creationTs forward, ' +
               'snapshots have been added. First snap was at ts=' +
               instance.snapshots[0].ts + ' and creationTs was ' +
               instance.creationTs);
+        }
         instance.creationTs = ts;
-      } else if(i >= this.instances.length) {
+      } else if (i >= this.instances.length) {
         instance = this.instances[this.instances.length - 1];
         if (ts >= instance.deletionTs) {
-          // The snap is added after our oldest and deleted instance. This means that
-          // this is a new implicit instance.
+          // The snap is added after our oldest and deleted instance. This means
+          // that this is a new implicit instance.
           instance = this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts);
+              this.parent, this.id, category, name, ts);
           this.instances.push(instance);
         } else {
           // If the ts is before the last objects deletion time, then the caller
@@ -89,8 +92,9 @@ base.exportTo('tracing.model', function() {
           // alive. In that case, try to move an instance's creationTs to
           // include this ts, provided that it has an implicit creationTs.
 
-          // Search backward from the right for an instance that was definitely deleted
-          // before this ts. Any time an instance is found that has a moveable creationTs
+          // Search backward from the right for an instance that was definitely
+          // deleted before this ts. Any time an instance is found that has a
+          // moveable creationTs
           var lastValidIndex;
           for (var i = this.instances.length - 1; i >= 0; i--) {
             var tmp = this.instances[i];
@@ -99,8 +103,10 @@ base.exportTo('tracing.model', function() {
             if (tmp.creationTsWasExplicit == false && tmp.snapshots.length == 0)
               lastValidIndex = i;
           }
-          if (lastValidIndex === undefined)
-            throw new Error('Cannot add snapshot. No instance was alive that was mutable.');
+          if (lastValidIndex === undefined) {
+            throw new Error(
+                'Cannot add snapshot. No instance was alive that was mutable.');
+          }
           instance = this.instances[lastValidIndex];
           instance.creationTs = ts;
         }

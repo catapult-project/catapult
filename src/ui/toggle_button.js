@@ -49,7 +49,7 @@ base.exportTo('ui', function() {
       this.addEventListener('click', this.toggle_.bind(this));
       this.addEventListener('isOnChange', function(event) {
         this.textSpan_.textContent =
-          this.isOn ? this.isOnText : this.notIsOnText;
+            this.isOn ? this.isOnText : this.notIsOnText;
       }.bind(this));
 
     }

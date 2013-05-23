@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script src="/src/base.js"></script>
 <script>
   base.require('base.unittest');
-  base.require('tracing.test_utils')
+  base.require('tracing.test_utils');
   base.require('ui');
   base.require('ui.filter_control');
 </script>
@@ -28,7 +28,7 @@ function testFilterControl() {
   document.body.appendChild(filterControl);
 
   filterControl.addEventListener('filterTextChange', function(event) {
-    filterControl.hitCountText = 
+    filterControl.hitCountText =
         event.oldValue.length + ' to ' + event.newValue.length;
   });
 

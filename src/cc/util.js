@@ -114,6 +114,6 @@ base.exportTo('cc', function() {
     preInitializeObject: preInitializeObject,
     convertNameToJSConvention: convertNameToJSConvention,
     moveRequiredFieldsFromArgsToToplevel: moveRequiredFieldsFromArgsToToplevel,
-    moveOptionalFieldsFromArgsToToplevel: moveOptionalFieldsFromArgsToToplevel,
+    moveOptionalFieldsFromArgsToToplevel: moveOptionalFieldsFromArgsToToplevel
   };
 });

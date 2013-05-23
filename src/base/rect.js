@@ -61,7 +61,7 @@ base.exportTo('base', function() {
 
     toString: function() {
       return 'Rect(' + this.x + ', ' + this.y + ', ' +
-        this.width + ', ' + this.height + ')';
+          this.width + ', ' + this.height + ')';
     },
 
     enlarge: function(pad) {

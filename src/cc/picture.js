@@ -51,8 +51,8 @@ base.exportTo('cc', function() {
 
     initialize: function() {
       cc.moveRequiredFieldsFromArgsToToplevel(
-        this, ['layerRect',
-               'dataB64']);
+          this, ['layerRect',
+            'dataB64']);
       this.layerRect = base.Rect.FromArray(this.layerRect);
     },
 

@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview Filter Control
+ * @fileoverview Filter Control.
  */
 base.requireStylesheet('ui.filter_control');
 base.require('tracing.filter');
@@ -82,6 +82,6 @@ base.exportTo('ui', function() {
       base.PropertyKind.JS, null, true);
 
   return {
-    FilterControl: FilterControl,
+    FilterControl: FilterControl
   };
 });

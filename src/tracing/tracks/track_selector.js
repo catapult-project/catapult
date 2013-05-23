@@ -191,8 +191,8 @@ base.exportTo('tracing.tracks', function() {
       }
 
       regExpSelector.addEventListener(
-        'itemsChange',
-        this.onItemsChange_.bind(this)
+          'itemsChange',
+          this.onItemsChange_.bind(this)
       );
 
       this.appendChild(regExpSelector);
@@ -201,7 +201,7 @@ base.exportTo('tracing.tracks', function() {
 
     ensureOneBlank_: function() {
       var aBlank = this.selectors_.some(function(selector) {
-          return selector.regexp.source === ui.RegExpSelector.defaultSource;
+        return selector.regexp.source === ui.RegExpSelector.defaultSource;
       });
       if (!aBlank) {
         this.selectors_.push(
@@ -214,13 +214,13 @@ base.exportTo('tracing.tracks', function() {
     onItemsChange_: function() {
       var mergedItems;
       this.selectors_.forEach(function(selector) {
-          if (selector.isOn) {
-            var items = selector.items;
-            if (mergedItems)
-              mergedItems = this.mergeItems_(mergedItems, items);
-            else
-              mergedItems = this.convertItems_(items);
-          }
+        if (selector.isOn) {
+          var items = selector.items;
+          if (mergedItems)
+            mergedItems = this.mergeItems_(mergedItems, items);
+          else
+            mergedItems = this.convertItems_(items);
+        }
       }.bind(this));
 
       if (mergedItems)

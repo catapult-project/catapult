@@ -15,9 +15,9 @@ base.exportTo('ui', function() {
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
   function drawTexturedTriangle(
-    ctx,
-    img, x0, y0, x1, y1, x2, y2,
-    u0, v0, u1, v1, u2, v2) {
+      ctx,
+      img, x0, y0, x1, y1, x2, y2,
+      u0, v0, u1, v1, u2, v2) {
 
     ctx.beginPath();
     ctx.moveTo(x0, y0);
@@ -35,17 +35,17 @@ base.exportTo('ui', function() {
     u2 -= u0;
     v2 -= v0;
 
-    var det = 1 / (u1*v2 - u2*v1),
+    var det = 1 / (u1 * v2 - u2 * v1),
 
         // linear transformation
-        a = (v2*x1 - v1*x2) * det,
-        b = (v2*y1 - v1*y2) * det,
-        c = (u1*x2 - u2*x1) * det,
-        d = (u1*y2 - u2*y1) * det,
+        a = (v2 * x1 - v1 * x2) * det,
+        b = (v2 * y1 - v1 * y2) * det,
+        c = (u1 * x2 - u2 * x1) * det,
+        d = (u1 * y2 - u2 * y1) * det,
 
         // translation
-        e = x0 - a*u0 - c*v0,
-        f = y0 - b*u0 - d*v0;
+        e = x0 - a * u0 - c * v0,
+        f = y0 - b * u0 - d * v0;
 
     ctx.save();
     ctx.transform(a, b, c, d, e, f);
@@ -198,13 +198,17 @@ base.exportTo('ui', function() {
           var iw = quad.backgroundImage.width;
           var ih = quad.backgroundImage.height;
           drawTexturedTriangle(
-            ctx, quad.backgroundImage,
-            quad.p1[0], quad.p1[1], quad.p2[0], quad.p2[1], quad.p4[0], quad.p4[1],
-            0, 0, iw, 0, 0, ih);
+              ctx, quad.backgroundImage,
+              quad.p1[0], quad.p1[1],
+              quad.p2[0], quad.p2[1],
+              quad.p4[0], quad.p4[1],
+              0, 0, iw, 0, 0, ih);
           drawTexturedTriangle(
-            ctx, quad.backgroundImage,
-            quad.p2[0], quad.p2[1], quad.p3[0], quad.p3[1], quad.p4[0], quad.p4[1],
-            iw, 0, iw, ih, 0, ih);
+              ctx, quad.backgroundImage,
+              quad.p2[0], quad.p2[1],
+              quad.p3[0], quad.p3[1],
+              quad.p4[0], quad.p4[1],
+              iw, 0, iw, ih, 0, ih);
           ctx.restore();
         }
 

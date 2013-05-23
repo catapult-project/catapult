@@ -58,13 +58,13 @@ found in the LICENSE file.
       assertTrue(aSpan.jsProp_ instanceof Array);
 
       aSpan.addEventListener('jsPropChange', function(event) {
-        event.throwError(new Error("flub"));
+        event.throwError(new Error('flub'));
       });
 
       var caught = false;
       try {
         aSpan.jsProp = 'anything';
-      } catch(exc) {
+      } catch (exc) {
         caught = true;
       }
       assertTrue(caught);
