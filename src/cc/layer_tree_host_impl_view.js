@@ -329,6 +329,11 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
+    set highlightedTile(tileSnapshot) {
+      this.highlightedTile_ = tileSnapshot;
+      this.updateContents_();
+    },
+
     scheduleUpdateContents_: function() {
       if (this.updateContentsPending_)
         return;
@@ -428,6 +433,19 @@ base.exportTo('cc', function() {
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
       }
 
+      if (this.highlightedTile_) {
+        var whichTree = layerTreeImpl.whichTree;
+        var priority = whichTree == constants.ACTIVE_TREE ?
+            this.highlightedTile_.args.activePriority :
+            this.highlightedTile_.args.pendingPriority;
+        var quad = priority.currentScreenQuad;
+        var quadForDrawing = quad.clone();
+        quadForDrawing.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+        quadForDrawing.borderColor = 'rgba(0, 255, 0, 1)';
+        quadForDrawing.stackingGroupId = i;
+        quads.push(quadForDrawing);
+      }
+
       this.quadStack_.quads = quads;
       this.quadStack_.viewport = new ui.QuadViewViewport(
           lthiInstance.allLayersBBox, this.scale_);
@@ -473,6 +491,10 @@ base.exportTo('cc', function() {
       var instance = snapshot.objectInstance;
       this.layerPicker_.lthiSnapshot = snapshot;
       this.layerViewer_.layer = this.layerPicker_.selectedLayer;
+    },
+
+    set highlightedTile(tileSnapshot) {
+      this.layerViewer_.highlightedTile = tileSnapshot;
     }
   };
 
