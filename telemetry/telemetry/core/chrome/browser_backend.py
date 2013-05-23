@@ -131,8 +131,21 @@ class BrowserBackend(object):
       raise exceptions.BrowserGoneException()
 
     def AllExtensionsLoaded():
+      # Extension pages are loaded from an about:blank page,
+      # so we need to check that the document URL is the extension
+      # page in addition to the ready state.
+      extension_ready_js = """
+          document.URL.lastIndexOf('chrome-extension://%s/', 0) == 0 &&
+          (document.readyState == 'complete' ||
+           document.readyState == 'interactive')
+      """
       for e in self.options.extensions_to_load:
         if not e.extension_id in self._extension_dict_backend:
+          return False
+        extension_object = self._extension_dict_backend[e.extension_id]
+        res = extension_object.EvaluateJavaScript(
+            extension_ready_js % e.extension_id)
+        if not res:
           return False
       return True
     if self._supports_extensions:
