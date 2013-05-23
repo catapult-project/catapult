@@ -76,7 +76,13 @@ def NavigateGuestLogin(browser_backend, cri):
 def NavigateLogin(browser_backend):
   """Navigates through oobe login screen"""
   # Dismiss the user image selection screen.
-  util.WaitFor(lambda: _WebContentsNotOobe(browser_backend), 15)
+  try:
+    util.WaitFor(lambda: _WebContentsNotOobe(browser_backend), 15)
+  except util.TimeoutException:
+    raise exceptions.LoginException(
+        'Timed out going through oobe screen. Make sure the custom auth '
+        'extension passed through --auth-ext-path is valid and belongs '
+        'to user "chronos".')
 
   # Wait for the startup window, then close it.
   util.WaitFor(lambda: _StartupWindow(browser_backend) is not None, 20)
