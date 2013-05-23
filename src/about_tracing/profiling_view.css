@@ -28,7 +28,6 @@
 .profiling-overlay .raw-text {
   -webkit-box-flex: 1;
   overflow: auto;
-  wrap: none;
 }
 
 .profiling-overlay .error {
