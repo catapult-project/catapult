@@ -26,11 +26,48 @@ base.exportTo('tcmalloc', function() {
       // TODO(jamescook): Any generic field setup can go here.
     },
 
+    // TODO(jamescook): This seems to be called before the green dot is clicked.
+    // Consider doing it in heap_view.js.
     initialize: function() {
       if (this.args.length == 0)
-        throw new Error('Omgbbq');
-      this.totals = this.args[0];
-      this.allocs = this.args.slice(1);
+        throw new Error('No heap snapshot data.');
+
+      // The first entry is total allocations across all stack traces.
+      this.total_ = this.args[0];
+      // The rest is a list of allocations.
+      var allocs = this.args.slice(1);
+
+      // Build a nested dictionary of trace event names.
+      this.heap_ = { children: {}, totalBytes: 0, totalAllocs: 0 };
+      for (var i = 0; i < allocs.length; i++) {
+        var alloc = allocs[i];
+        var traceNames = alloc.trace.split(' ');
+        var heapEntry = this.heap_;
+        // Walk down into the heap of stack traces.
+        for (var j = 0; j < traceNames.length; j++) {
+          // Add up the total memory for intermediate entries, so the top of
+          // each subtree is the total memory for that tree.
+          heapEntry.totalBytes += alloc.totalBytes;
+          heapEntry.totalAllocs += alloc.totalAllocs;
+          // Look for existing children with this trace.
+          var traceName = traceNames[j];
+          // The empty trace name indicates that the allocations occurred at
+          // this trace level, not in a sub-trace. This looks weird as the
+          // empty string, so replace it with something non-empty.
+          if (traceName.length == 0)
+            traceName = '(here)';
+          if (!heapEntry.children[traceName]) {
+            // New trace entry at this depth, so create a child for it.
+            heapEntry.children[traceName] = {
+                    children: {},
+                    totalBytes: alloc.totalBytes,
+                    totalAllocs: alloc.totalAllocs
+                };
+          }
+          // Descend into the children.
+          heapEntry = heapEntry.children[traceName];
+        }
+      }
     }
 
   };
