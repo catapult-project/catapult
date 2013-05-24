@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import tempfile
 import unittest
@@ -186,9 +187,13 @@ class PageRunnerTests(unittest.TestCase):
 
       def SetUpBrowser(self, browser):
         self._browser = browser
-        self._browser.tabs.New()
+        if self._browser.supports_tab_control:
+          self._browser.tabs.New()
 
       def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
+        if not self._browser.supports_tab_control:
+          logging.warning('Browser does not support tab control, skipping test')
+          return
         assert len(self._browser.tabs) == 1
 
     test = TestOneTab('RunTest')
