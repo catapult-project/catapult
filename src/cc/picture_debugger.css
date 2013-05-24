@@ -19,6 +19,17 @@ picture-debugger > x-drag-handle {
   -webkit-flex: 0 0 auto;
 }
 
+picture-debugger > raster-area > top-controls {
+  -webkit-flex: 0 0 auto;
+  background-image: -webkit-gradient(linear,
+                                     0 0, 100% 0,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
+}
+
 picture-debugger > raster-area {
   -webkit-flex: 1 0 auto;
 }
@@ -26,6 +37,8 @@ picture-debugger > raster-area {
 /******************************************************************************/
 
 raster-area {
+  min-height: 200px;
+  min-width: 200px;
   -webkit-flex-direction: column;
   background-color: #ddd;
   background-position: center;

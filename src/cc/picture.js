@@ -56,6 +56,10 @@ base.exportTo('cc', function() {
       this.layerRect = base.Rect.FromArray(this.layerRect);
     },
 
+    getBase64SkpData: function() {
+      return this.args.skp64;
+    },
+
     getRasterData: function() {
       if (this.rasterData_)
         return this.rasterData_;

@@ -25,9 +25,16 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      this.controls_ = document.createElement('top-controls');
       this.pictureDataView_ = new tracing.analysis.GenericObjectView();
+
+      this.rasterResult_ = document.createElement('raster-result');
       this.rasterArea_ = document.createElement('raster-area');
-      this.rasterArea_.classList.add('raster-area');
+
+      var saveButton = document.createElement('button');
+      saveButton.textContent = 'Save SkPicture';
+      saveButton.addEventListener('click', this.onSaveAsSkPictureClicked_.bind(this));
+      this.controls_.appendChild(saveButton);
 
       this.dragHandle_ = new ui.DragHandle();
       this.dragHandle_.horizontal = false;
@@ -35,9 +42,29 @@ base.exportTo('cc', function() {
 
       this.appendChild(this.pictureDataView_);
       this.appendChild(this.dragHandle_);
+      this.rasterArea_.appendChild(this.controls_);
+      this.rasterArea_.appendChild(this.rasterResult_);
       this.appendChild(this.rasterArea_);
 
       this.picture_ = undefined;
+    },
+
+    onSaveAsSkPictureClicked_: function() {
+      var rawData = atob(this.picture_.getBase64SkpData());
+
+      var blob = new Blob([rawData], {type: "text/plain;charset=utf-8"});
+      var blobUrl = window.webkitURL.createObjectURL(blob);
+
+      // Create a link and click on it. BEST API EVAR!
+      var link = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+      link.href = blobUrl;
+      link.download = 'chrome_picture.skp';
+      var event = document.createEvent("MouseEvents");
+      event.initMouseEvent(
+        "click", true, false, window, 0, 0, 0, 0, 0
+        , false, false, false, false, 0, null
+      );
+      link.dispatchEvent(event);
     },
 
     get picture() {
