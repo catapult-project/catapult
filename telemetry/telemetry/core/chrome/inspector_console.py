@@ -18,6 +18,8 @@ class InspectorConsole(object):
   def _OnNotification(self, msg):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
     if msg['method'] == 'Console.messageAdded':
+      if msg['params']['message']['url'] == 'chrome://newtab/':
+        return
       self._last_message = 'At %s:%i: %s' % (
         msg['params']['message']['url'],
         msg['params']['message']['line'],
