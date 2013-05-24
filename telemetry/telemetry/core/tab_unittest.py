@@ -18,11 +18,17 @@ def _IsDocumentVisible(tab):
 
 class TabTest(tab_test_case.TabTestCase):
   def testNavigateAndWaitToForCompleteState(self):
-    self._tab.Navigate('http://www.google.com')
+    unittest_data_dir = os.path.join(os.path.dirname(__file__),
+                                     '..', '..', 'unittest_data')
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testNavigateAndWaitToForInteractiveState(self):
-    self._tab.Navigate('http://www.google.com')
+    unittest_data_dir = os.path.join(os.path.dirname(__file__),
+                                     '..', '..', 'unittest_data')
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def testTabBrowserIsRightBrowser(self):

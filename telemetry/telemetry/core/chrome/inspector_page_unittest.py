@@ -5,28 +5,22 @@ import os
 
 from telemetry.test import tab_test_case
 
+unittest_data_dir = os.path.join(os.path.dirname(__file__),
+                                 '..', '..', '..', 'unittest_data')
+
 class InspectorPageTest(tab_test_case.TabTestCase):
   def __init__(self, *args):
     super(InspectorPageTest, self).__init__(*args)
 
+  def setUp(self):
+    super(InspectorPageTest, self).setUp()
+    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+
   def testPageNavigateToNormalUrl(self):
-    self._tab.Navigate('http://www.google.com')
-    self._tab.WaitForDocumentReadyStateToBeComplete()
-
-  def testPageNavigateToUrlChanger(self):
-    # The Url that we actually load is http://www.youtube.com/.
-    self._tab.Navigate('http://youtube.com/')
-
-    self._tab.WaitForDocumentReadyStateToBeComplete()
-
-  def testPageNavigateToImpossibleURL(self):
-    self._tab.Navigate('http://23f09f0f9fsdflajsfaldfkj2f3f.com')
+    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
   def testCustomActionToNavigate(self):
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
@@ -47,9 +41,6 @@ class InspectorPageTest(tab_test_case.TabTestCase):
         '/blank.html')
 
   def testGetCookieByName(self):
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
@@ -57,9 +48,6 @@ class InspectorPageTest(tab_test_case.TabTestCase):
     self.assertEquals(self._tab.GetCookieByName('foo'), 'bar')
 
   def testScriptToEvaluateOnCommit(self):
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
     self._tab.Navigate(
       self._browser.http_server.UrlOf('blank.html'),
       script_to_evaluate_on_commit='var foo = "bar";')

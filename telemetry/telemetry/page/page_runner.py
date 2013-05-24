@@ -331,7 +331,8 @@ class PageRunner(object):
       target_side_url = page.url
 
     if page.credentials:
-      tab.browser.credentials.LoginNeeded(tab, page.credentials)
+      if not tab.browser.credentials.LoginNeeded(tab, page.credentials):
+        raise page_test.Failure('Login as ' + page.credentials + ' failed')
       page_state.did_login = True
 
     if not self.has_called_will_run_page_set:

@@ -84,9 +84,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
-  def disabled_testCredentialsWhenLoginFails(self):
-    # This test is disabled because it runs against live sites, and needs to be
-    # fixed. crbug.com/179038
+  def testCredentialsWhenLoginFails(self):
     results = page_test_results.PageTestResults()
     credentials_backend = StubCredentialsBackend(login_return_value=False)
     did_run = self.runCredentialsTest(credentials_backend, results)
@@ -94,9 +92,7 @@ class PageRunnerTests(unittest.TestCase):
     assert credentials_backend.did_get_login_no_longer_needed == False
     assert did_run == False
 
-  def disabled_testCredentialsWhenLoginSucceeds(self):
-    # This test is disabled because it runs against live sites, and needs to be
-    # fixed. crbug.com/179038
+  def testCredentialsWhenLoginSucceeds(self):
     results = page_test_results.PageTestResults()
     credentials_backend = StubCredentialsBackend(login_return_value=True)
     did_run = self.runCredentialsTest(credentials_backend, results)
@@ -108,7 +104,10 @@ class PageRunnerTests(unittest.TestCase):
                          credentials_backend,
                          results):
     ps = page_set.PageSet()
-    page = page_module.Page('http://www.google.com', ps)
+    page = page_module.Page(
+        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        ps,
+        base_dir=os.path.dirname(__file__))
     page.credentials = "test"
     ps.pages.append(page)
 
