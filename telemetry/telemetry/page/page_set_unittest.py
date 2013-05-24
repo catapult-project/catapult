@@ -28,18 +28,20 @@ simple_set = """
 
 class TestPageSet(unittest.TestCase):
   def testSimpleSet(self):
-    with tempfile.NamedTemporaryFile() as f:
-      f.write(simple_archive_info)
-      f.flush()
-      archive_data_file = f.name
+    try:
+      with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(simple_archive_info)
 
-      with tempfile.NamedTemporaryFile() as f2:
-        f2.write(simple_set % archive_data_file)
-        f2.flush()
-        ps = page_set.PageSet.FromFile(f2.name)
+      with tempfile.NamedTemporaryFile(delete=False) as f2:
+        f2.write(simple_set % f.name.replace('\\', '\\\\'))
+
+      ps = page_set.PageSet.FromFile(f2.name)
+    finally:
+      os.remove(f.name)
+      os.remove(f2.name)
 
     self.assertEquals('hello', ps.description)
-    self.assertEquals(archive_data_file, ps.archive_data_file)
+    self.assertEquals(f.name, ps.archive_data_file)
     self.assertEquals(2, len(ps.pages))
     self.assertEquals('http://www.foo.com/', ps.pages[0].url)
     self.assertEquals('http://www.bar.com/', ps.pages[1].url)
