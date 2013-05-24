@@ -8,6 +8,36 @@ import urlparse
 
 from telemetry.core import util
 
+def _UrlPathJoin(*args):
+  """Joins each path in |args| for insertion into a URL path.
+
+  This is distinct from os.path.join in that:
+  1. Forward slashes are always used.
+  2. Paths beginning with '/' are not treated as absolute.
+
+  For example:
+    _UrlPathJoin('a', 'b') => 'a/b'
+    _UrlPathJoin('a/', 'b') => 'a/b'
+    _UrlPathJoin('a', '/b') => 'a/b'
+    _UrlPathJoin('a/', '/b') => 'a/b'
+  """
+  if not args:
+    return ''
+  if len(args) == 1:
+    return str(args[0])
+  else:
+    args = [str(arg).replace('\\', '/') for arg in args]
+    work = [args[0]]
+    for arg in args[1:]:
+      if not arg:
+        continue
+      if arg.startswith('/'):
+        work.append(arg[1:])
+      else:
+        work.append(arg)
+    joined = reduce(os.path.join, work)
+  return joined.replace('\\', '/')
+
 class Page(object):
   def __init__(self, url, page_set, attributes=None, base_dir=None):
     parsed_url = urlparse.urlparse(url)
@@ -41,14 +71,16 @@ class Page(object):
   @property
   def serving_dirs_and_file(self):
     parsed_url = urlparse.urlparse(self.url)
-    path = os.path.join(self.base_dir.rstrip('/'),
-                        parsed_url.netloc.strip('/'),
-                        parsed_url.path.lstrip('/'))
+    path = _UrlPathJoin(self.base_dir, parsed_url.netloc, parsed_url.path)
 
     if hasattr(self.page_set, 'serving_dirs'):
       url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
-      base_path = self.base_dir + '/' + url_base_dir
-      return ([self.base_dir + '/' + d for d in self.page_set.serving_dirs],
+      base_path = _UrlPathJoin(self.base_dir, url_base_dir)
+      print ([_UrlPathJoin(self.base_dir, d)
+               for d in self.page_set.serving_dirs],
+              path.replace(base_path, ''))
+      return ([_UrlPathJoin(self.base_dir, d)
+               for d in self.page_set.serving_dirs],
               path.replace(base_path, ''))
 
     return os.path.split(path)

@@ -8,6 +8,18 @@ from telemetry.page import page
 from telemetry.page import page_set
 
 class TestPage(unittest.TestCase):
+  def testUrlPathJoin(self):
+    # pylint: disable=W0212
+    self.assertEqual('a/b', page._UrlPathJoin('a', 'b'))
+    self.assertEqual('a/b', page._UrlPathJoin('a/', 'b'))
+    self.assertEqual('a/b', page._UrlPathJoin('a', '/b'))
+    self.assertEqual('a/b', page._UrlPathJoin('a/', '/b'))
+    self.assertEqual('a/b/c', page._UrlPathJoin('a', 'b', 'c'))
+    self.assertEqual('a/b/c', page._UrlPathJoin('a', 'b/', 'c'))
+    self.assertEqual('a/b/c', page._UrlPathJoin('a', 'b', '/c'))
+    self.assertEqual('a/b/c', page._UrlPathJoin('a', 'b/', '/c'))
+    self.assertEqual('a/b', page._UrlPathJoin('a', 'b', ''))
+
   def testGetUrlBaseDirAndFileForAbsolutePath(self):
     apage = page.Page('file:///somedir/otherdir/file.html',
                       None, # In this test, we don't need a page set.
