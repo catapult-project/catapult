@@ -102,7 +102,7 @@ def Main(args, start_dir, top_level_dir, runner=None):
   _, args = parser.parse_args(args)
 
   if default_options.verbosity == 0:
-    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger().setLevel(logging.WARN)
 
   from telemetry.core import browser_finder
   try:
