@@ -24,7 +24,11 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
       self._tab.ExecuteJavaScript(
 """
 var done = false;
-window.webkitRequestAnimationFrame(function() { done = true; });
+function sleep(ms) {
+  var endTime = (new Date().getTime()) + ms;
+  while ((new Date().getTime()) < endTime);
+}
+window.webkitRequestAnimationFrame(function() { sleep(10); done = true; });
 """)
       self._WaitForAnimationFrame()
 
