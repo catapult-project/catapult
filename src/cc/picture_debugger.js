@@ -52,7 +52,7 @@ base.exportTo('cc', function() {
     onSaveAsSkPictureClicked_: function() {
       var rawData = atob(this.picture_.getBase64SkpData());
 
-      var blob = new Blob([rawData], {type: "text/plain;charset=utf-8"});
+      var blob = new Blob([rawData], {type: "application/octet-binary"});
       var blobUrl = window.webkitURL.createObjectURL(blob);
 
       // Create a link and click on it. BEST API EVAR!
