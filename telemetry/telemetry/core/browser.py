@@ -83,6 +83,10 @@ class Browser(object):
   def supports_tracing(self):
     return self._browser_backend.supports_tracing
 
+  def is_profiler_active(self, profiler_name):
+    return profiler_name in [profiler.name() for
+                             profiler in self._active_profilers]
+
   def _GetStatsCommon(self, pid_stats_function):
     browser_pid = self._browser_backend.pid
     result = {
