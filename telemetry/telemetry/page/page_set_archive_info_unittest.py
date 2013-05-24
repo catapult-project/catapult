@@ -44,7 +44,8 @@ class TestPageSetArchiveInfo(unittest.TestCase):
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, '/tmp/pageset.json')
+        self.page_set_archive_info_file,
+        os.path.join(tempfile.gettempdir(), 'pageset.json'))
 
   def tearDown(self):
     shutil.rmtree(self.tmp_dir)
@@ -141,6 +142,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     # Check that the archive info was written correctly.
     self.assertTrue(os.path.exists(self.page_set_archive_info_file))
     read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, '/tmp/pageset.json')
+        self.page_set_archive_info_file,
+        os.path.join(tempfile.gettempdir(), 'pageset.json'))
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForPage(page1))
