@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import time
 import unittest
 
@@ -32,6 +33,7 @@ class GTestTestResults(page_test_results.PageTestResults):
     print self._exc_info_to_string(err, test)
     test_name = GTestTestResults._formatTestname(test)
     print '[  FAILED  ]', test_name, '(%0.f ms)' % self._GetMs()
+    sys.stdout.flush()
 
   def addError(self, test, err):
     self._emitFailure(test, err)
@@ -43,6 +45,7 @@ class GTestTestResults(page_test_results.PageTestResults):
 
   def startTest(self, test):
     print '[ RUN      ]', GTestTestResults._formatTestname(test)
+    sys.stdout.flush()
     self.timestamp = time.time()
     super(GTestTestResults, self).startTest(test)
 
@@ -50,6 +53,7 @@ class GTestTestResults(page_test_results.PageTestResults):
     self.num_successes = self.num_successes + 1
     test_name = GTestTestResults._formatTestname(test)
     print '[       OK ]', test_name, '(%0.f ms)' % self._GetMs()
+    sys.stdout.flush()
 
   def PrintSummary(self):
     unit = 'test' if self.num_successes == 1 else 'tests'
@@ -67,3 +71,4 @@ class GTestTestResults(page_test_results.PageTestResults):
       unit = 'TEST' if count == 1 else 'TESTS'
       print '%d FAILED %s' % (count, unit)
     print
+    sys.stdout.flush()
