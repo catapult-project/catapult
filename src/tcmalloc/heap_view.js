@@ -37,9 +37,11 @@ base.exportTo('tcmalloc', function() {
       this.textContent = '';
 
       var subhead = document.createElement('div');
-      subhead.textContent =
-          this.getByteString_(snapshot.total_.totalBytes) + ' in ' +
-              snapshot.total_.totalAllocs + ' allocations';
+      subhead.textContent = 'Retaining ' +
+          this.getByteString_(snapshot.total_.currentBytes) + ' in ' +
+          snapshot.total_.currentAllocs +
+          ' allocations. Showing > 0.1 MB.';
+      subhead.className = 'subhead';
       this.appendChild(subhead);
 
       // Build a nested tree-view of allocations
@@ -47,8 +49,11 @@ base.exportTo('tcmalloc', function() {
       this.appendChild(myList);
     },
 
-    /*
-     * Returns a <ul> with a nested list with clickable entries.
+    /**
+     * Creates a nested list with clickable entries.
+     * @param {Object} heapEntry The current trace heap entry.
+     * @param {boolean} hide Whether this list is hidden by default.
+     * @return {Element} A <ul> list element.
      */
     buildAllocList_: function(heapEntry, hide) {
       var myList = document.createElement('ul');
@@ -56,13 +61,16 @@ base.exportTo('tcmalloc', function() {
       var keys = Object.keys(heapEntry.children);
       keys.sort(function(a, b) {
         // Sort from large to small.
-        return heapEntry.children[b].totalBytes -
-            heapEntry.children[a].totalBytes;
+        return heapEntry.children[b].currentBytes -
+            heapEntry.children[a].currentBytes;
       });
       for (var i = 0; i < keys.length; i++) {
         var traceName = keys[i];
         var trace = heapEntry.children[traceName];
-        var myItem = this.buildItem_(traceName, trace.totalBytes);
+        // Don't show small nodes - they make things harder to see.
+        if (trace.currentBytes < 100 * 1024)
+          continue;
+        var myItem = this.buildItem_(traceName, trace.currentBytes);
         myList.appendChild(myItem);
         // Build a nested <ul> list of my children.
         if (Object.keys(trace.children).length > 0)
@@ -84,8 +92,13 @@ base.exportTo('tcmalloc', function() {
           child.hidden = !child.hidden;
         }
       });
-      myItem.classList.add('collapsed');
-
+        myItem.classList.add('collapsed');
+      // The empty trace name indicates that the allocations occurred at
+      // this trace level, not in a sub-trace. This looks weird as the
+      // empty string, so replace it with something non-empty and don't give
+      // that line an expander.
+      if (traceName.length == 0)
+        traceName = '(here)';
       var byteDiv = document.createElement('div');
       byteDiv.textContent = this.getByteString_(bytes);
       byteDiv.className = 'trace-bytes';
@@ -104,7 +117,7 @@ base.exportTo('tcmalloc', function() {
      */
     getByteString_: function(bytes) {
       var mb = bytes / 1024 / 1024;
-      return Math.round(mb * 10) / 10 + ' MB';
+      return mb.toFixed(1) + ' MB';
     },
   };
 

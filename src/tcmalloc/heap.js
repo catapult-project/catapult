@@ -38,7 +38,13 @@ base.exportTo('tcmalloc', function() {
       var allocs = this.args.slice(1);
 
       // Build a nested dictionary of trace event names.
-      this.heap_ = { children: {}, totalBytes: 0, totalAllocs: 0 };
+      this.heap_ = {
+        children: {},
+        currentBytes: 0,
+        currentAllocs: 0,
+        totalBytes: 0,
+        totalAllocs: 0
+      };
       for (var i = 0; i < allocs.length; i++) {
         var alloc = allocs[i];
         var traceNames = alloc.trace.split(' ');
@@ -51,18 +57,15 @@ base.exportTo('tcmalloc', function() {
           heapEntry.totalAllocs += alloc.totalAllocs;
           // Look for existing children with this trace.
           var traceName = traceNames[j];
-          // The empty trace name indicates that the allocations occurred at
-          // this trace level, not in a sub-trace. This looks weird as the
-          // empty string, so replace it with something non-empty.
-          if (traceName.length == 0)
-            traceName = '(here)';
           if (!heapEntry.children[traceName]) {
             // New trace entry at this depth, so create a child for it.
             heapEntry.children[traceName] = {
-                    children: {},
-                    totalBytes: alloc.totalBytes,
-                    totalAllocs: alloc.totalAllocs
-                };
+              children: {},
+              currentBytes: alloc.currentBytes,
+              currentAllocs: alloc.currentAllocs,
+              totalBytes: alloc.totalBytes,
+              totalAllocs: alloc.totalAllocs
+            };
           }
           // Descend into the children.
           heapEntry = heapEntry.children[traceName];

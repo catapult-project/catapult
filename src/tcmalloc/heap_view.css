@@ -3,14 +3,16 @@
  * found in the LICENSE file.
  */
 
-.heap-snapshot-view {
-  /* display: -webkit-flex; */
+.subhead {
+  font-size: small;
+  padding-bottom: 10px;
 }
 
 .heap-snapshot-view ul {
   background-position: 0 5px;
   background-repeat: no-repeat;
   cursor: pointer;
+  font-family: monospace;
   list-style: none;
   margin: 0;
   padding-left: 15px;
@@ -40,7 +42,7 @@
   display: inline-block;
   padding-right: 10px;
   text-align: right;
-  width: 90px;
+  width: 80px;
 }
 
 /* Trace name, inline so it appears to the right of the byte count. */
