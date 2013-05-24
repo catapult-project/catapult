@@ -76,6 +76,9 @@ class BrowserTest(unittest.TestCase):
 
   def testNewCloseTab(self):
     b = self.CreateBrowser()
+    if not b.supports_tab_control:
+      logging.warning('Browser does not support tab control, skipping test.')
+      return
     existing_tab = b.tabs[0]
     self.assertEquals(1, len(b.tabs))
     existing_tab_url = existing_tab.url
@@ -102,6 +105,9 @@ class BrowserTest(unittest.TestCase):
 
   def testCloseReferencedTab(self):
     b = self.CreateBrowser()
+    if not b.supports_tab_control:
+      logging.warning('Browser does not support tab control, skipping test.')
+      return
     b.tabs.New()
     tab = b.tabs[0]
     tab.Navigate(b.http_server.UrlOf('blank.html'))
