@@ -50,9 +50,9 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
-      cc.moveRequiredFieldsFromArgsToToplevel(
-          this, ['layerRect',
-            'dataB64']);
+      if (!this.args.params.layerRect)
+        throw new Error('Missing layer rect');
+      this.layerRect = this.args.params.layerRect;
       this.layerRect = base.Rect.FromArray(this.layerRect);
     },
 
@@ -65,10 +65,17 @@ base.exportTo('cc', function() {
         return undefined;
       }
 
-      this.rasterData_ = window.chrome.skiaBenchmarking.rasterize(this.dataB64);
-
-      // Switch it to a Uint8ClampedArray.
-      this.rasterData_.data = new Uint8ClampedArray(this.rasterData_.data);
+      this.rasterData_ = window.chrome.skiaBenchmarking.rasterize({
+        skp64: this.args.skp64,
+        params: {
+          layer_rect: this.args.params.layerRect,
+          opaque_rect: this.args.params.opaqueRect
+        }
+      });
+      if (this.rasterData_) {
+        // Switch it to a Uint8ClampedArray.
+        this.rasterData_.data = new Uint8ClampedArray(this.rasterData_.data);
+      }
       return this.rasterData_;
     },
 
