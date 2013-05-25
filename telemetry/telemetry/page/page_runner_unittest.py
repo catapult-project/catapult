@@ -113,10 +113,10 @@ class PageRunnerTests(unittest.TestCase):
 
     did_run = [False]
 
-    with tempfile.NamedTemporaryFile() as f:
-      f.write(SIMPLE_CREDENTIALS_STRING)
-      f.flush()
-      ps.credentials_path = f.name
+    try:
+      with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(SIMPLE_CREDENTIALS_STRING)
+        ps.credentials_path = f.name
 
       class TestThatInstallsCredentialsBackend(page_test.PageTest):
         def __init__(self, credentials_backend):
@@ -134,6 +134,8 @@ class PageRunnerTests(unittest.TestCase):
         options = options_for_unittests.GetCopy()
         possible_browser = browser_finder.FindBrowser(options)
         runner.Run(options, possible_browser, test, results)
+    finally:
+      os.remove(f.name)
 
     return did_run[0]
 

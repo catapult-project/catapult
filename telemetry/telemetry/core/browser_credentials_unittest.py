@@ -1,8 +1,9 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import unittest
+import os
 import tempfile
+import unittest
 
 from telemetry.core import browser_credentials
 
@@ -36,9 +37,9 @@ class TestBrowserCredentials(unittest.TestCase):
     browser_cred = browser_credentials.BrowserCredentials(
       [google_backend,
        othersite_backend])
-    with tempfile.NamedTemporaryFile() as f:
-      f.write(SIMPLE_CREDENTIALS_STRING)
-      f.flush()
+    try:
+      with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(SIMPLE_CREDENTIALS_STRING)
 
       browser_cred.credentials_path = f.name
 
@@ -66,3 +67,5 @@ class TestBrowserCredentials(unittest.TestCase):
       browser_cred.LoginNoLongerNeeded(tab, 'google')
       self.assertTrue(google_backend.login_no_longer_needed_called is not None)
       self.assertEqual(tab, google_backend.login_no_longer_needed_called[0])
+    finally:
+      os.remove(f.name)
