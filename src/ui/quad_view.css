@@ -6,8 +6,10 @@
 quad-view {
   display: block;
 }
+
 quad-view,
 quad-view > * {
   -webkit-user-select: none;
   cursor: default;
+  outline: none;
 }

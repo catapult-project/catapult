@@ -4,7 +4,22 @@
  */
 
 quad-stack {
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: rgba(0,0,0,0.2) 3px 3px 8px;
+  position: relative;
   outline: none;
+  overflow: scroll;
+}
+
+quad-stack > view-container {
+  -webkit-transform-style: preserve-3d;
+  display: -webkit-flex;
+  outline: none;
+  position: relative;
+  z-index: 10;
+}
+
+quad-stack quad-view {
+  -webkit-transform: translateZ(0); /* actual xform for depth is set in rAF */
+  position: absolute;
+  top: 0;
+  z-index: -10; /* cause quad views to render under container scrollbars */
 }
