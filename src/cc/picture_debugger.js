@@ -31,6 +31,12 @@ base.exportTo('cc', function() {
       this.rasterResult_ = document.createElement('raster-result');
       this.rasterArea_ = document.createElement('raster-area');
 
+      this.filename_ = document.createElement('input');
+      this.filename_.classList.add('filename');
+      this.filename_.type = 'text';
+      this.filename_.value = 'skpicture.skp';
+      this.controls_.appendChild(this.filename_);
+
       var saveButton = document.createElement('button');
       saveButton.textContent = 'Save SkPicture';
       saveButton.addEventListener('click', this.onSaveAsSkPictureClicked_.bind(this));
@@ -50,19 +56,28 @@ base.exportTo('cc', function() {
     },
 
     onSaveAsSkPictureClicked_: function() {
+      // Decode base64 data into a String
       var rawData = atob(this.picture_.getBase64SkpData());
 
-      var blob = new Blob([rawData], {type: "application/octet-binary"});
+      // Convert this String into an Uint8Array
+      var length = rawData.length;
+      var arrayBuffer = new ArrayBuffer(length);
+      var uint8Array = new Uint8Array(arrayBuffer);
+      for (var c = 0; c < length; c++)
+        uint8Array[c] = rawData.charCodeAt(c);
+
+      // Create a blob URL from the binary array.
+      var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
       var blobUrl = window.webkitURL.createObjectURL(blob);
 
       // Create a link and click on it. BEST API EVAR!
-      var link = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
-      link.download = 'chrome_picture.skp';
-      var event = document.createEvent("MouseEvents");
+      link.download = this.filename_.value;
+      var event = document.createEvent('MouseEvents');
       event.initMouseEvent(
-        "click", true, false, window, 0, 0, 0, 0, 0
-        , false, false, false, false, 0, null
+        'click', true, false, window, 0, 0, 0, 0, 0,
+        false, false, false, false, 0, null
       );
       link.dispatchEvent(event);
     },

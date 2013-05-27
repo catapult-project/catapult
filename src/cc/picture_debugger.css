@@ -30,6 +30,10 @@ picture-debugger > raster-area > top-controls {
   display: inline;
 }
 
+picture-debugger .filename {
+  -webkit-user-select: text;
+}
+
 picture-debugger > raster-area {
   -webkit-flex: 1 0 auto;
 }
@@ -37,12 +41,12 @@ picture-debugger > raster-area {
 /******************************************************************************/
 
 raster-area {
-  min-height: 200px;
-  min-width: 200px;
   -webkit-flex-direction: column;
   background-color: #ddd;
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
   display: -webkit-flex;
+  min-height: 200px;
+  min-width: 200px;
 }
