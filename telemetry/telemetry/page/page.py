@@ -76,9 +76,6 @@ class Page(object):
     if hasattr(self.page_set, 'serving_dirs'):
       url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
       base_path = _UrlPathJoin(self.base_dir, url_base_dir)
-      print ([_UrlPathJoin(self.base_dir, d)
-               for d in self.page_set.serving_dirs],
-              path.replace(base_path, ''))
       return ([_UrlPathJoin(self.base_dir, d)
                for d in self.page_set.serving_dirs],
               path.replace(base_path, ''))
