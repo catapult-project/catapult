@@ -18,7 +18,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
 
-    data = {'selector': 'a[id="clickme"]', 'wait_for_navigation': True}
+    data = {'selector': 'a[id="clickme"]', 'wait_for_href_change': True}
     i = click_element.ClickElementAction(data)
     i.RunAction(None, self._tab, None)
 
