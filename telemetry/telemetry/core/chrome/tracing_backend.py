@@ -48,7 +48,7 @@ class TraceResultImpl(object):
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
-    debugger_url = 'ws://127.0.0.1:%i/devtools/browser' % devtools_port
+    debugger_url = 'ws://localhost:%i/devtools/browser' % devtools_port
     self._socket = websocket.create_connection(debugger_url)
     self._next_request_id = 0
     self._cur_socket_timeout = 0

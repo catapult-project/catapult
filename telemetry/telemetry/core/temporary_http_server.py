@@ -34,7 +34,7 @@ class TemporaryHTTPServer(object):
                       browser_backend.GetRemotePort(self._host_port)))
 
     def IsServerUp():
-      return not socket.socket().connect_ex(('127.0.0.1', self._host_port))
+      return not socket.socket().connect_ex(('localhost', self._host_port))
     util.WaitFor(IsServerUp, 10)
 
   @property

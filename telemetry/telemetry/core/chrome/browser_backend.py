@@ -179,7 +179,7 @@ class BrowserBackend(object):
     self._chrome_branch_number = 1025
 
   def Request(self, path, timeout=None):
-    url = 'http://127.0.0.1:%i/json' % self._port
+    url = 'http://localhost:%i/json' % self._port
     if path:
       url += '/' + path
     req = urllib2.urlopen(url, timeout=timeout)
