@@ -68,10 +68,14 @@ base.exportTo('ui', function() {
       this.appendChild(this.canvas_);
 
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
-      this.onMouseDown_ = this.onMouseDown_.bind(this);
-      this.onMouseMove_ = this.onMouseMove_.bind(this);
-      this.onMouseUp_ = this.onMouseUp_.bind(this);
-      this.canvas_.addEventListener('mousedown', this.onMouseDown_);
+
+      // FIXME: We should re-enable these events at some point.
+      if (false) {
+        this.onMouseDown_ = this.onMouseDown_.bind(this);
+        this.onMouseMove_ = this.onMouseMove_.bind(this);
+        this.onMouseUp_ = this.onMouseUp_.bind(this);
+        this.canvas_.addEventListener('mousedown', this.onMouseDown_);
+      }
 
       this.canvas_.addEventListener('focus', this.redrawCanvas_.bind(this));
       this.canvas_.addEventListener('blur', this.redrawCanvas_.bind(this));
