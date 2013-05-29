@@ -583,6 +583,18 @@ this.base = (function() {
     }
   }
 
+  function tracedFunction(fn, name, opt_this) {
+    function F() {
+      console.time(name);
+      try {
+        fn.apply(opt_this, arguments);
+      } finally {
+        console.timeEnd(name);
+      }
+    }
+    return F;
+  }
+
   /**
    * Maps types to a given value.
    * @constructor
@@ -635,7 +647,8 @@ this.base = (function() {
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
-    TypeMap: TypeMap
+    TypeMap: TypeMap,
+    tracedFunction: tracedFunction
   };
 })();
 
