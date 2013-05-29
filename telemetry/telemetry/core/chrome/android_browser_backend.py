@@ -259,6 +259,8 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
   def GetStandardOutput(self):
     # If we can find symbols and there is a stack, output the symbolized stack.
     symbol_paths = [
+        os.path.join(adb_commands.GetOutDirectory(), 'Release', 'lib'),
+        os.path.join(adb_commands.GetOutDirectory(), 'Debug', 'lib'),
         os.path.join(adb_commands.GetOutDirectory(), 'Release', 'lib.target'),
         os.path.join(adb_commands.GetOutDirectory(), 'Debug', 'lib.target')]
     for symbol_path in symbol_paths:
