@@ -5,8 +5,8 @@
 'use strict';
 
 /**
- * @fileoverview Interactive visualizaiton of Model objects
- * based loosely on gantt charts. Each thread in the Model is given a
+ * @fileoverview Interactive visualizaiton of TraceModel objects
+ * based loosely on gantt charts. Each thread in the TraceModel is given a
  * set of Tracks, one per subrow in the thread. The TimelineTrackView class
  * acts as a controller, creating the individual tracks, while Tracks
  * do actual drawing.
@@ -23,7 +23,7 @@ base.require('base.event_target');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
-base.require('tracing.tracks.model_track');
+base.require('tracing.tracks.trace_model_track');
 base.require('tracing.tracks.ruler_track');
 base.require('ui');
 
@@ -48,7 +48,7 @@ base.exportTo('tracing', function() {
   }
 
   /**
-   * Renders a Model into a div element, making one
+   * Renders a TraceModel into a div element, making one
    * Track for each subrow in each thread of the model, managing
    * overall track layout, and handling user interaction with the
    * viewport.
@@ -79,7 +79,7 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_.className = 'model-track-container';
       this.appendChild(this.modelTrackContainer_);
 
-      this.modelTrack_ = new tracing.tracks.ModelTrack();
+      this.modelTrack_ = new tracing.tracks.TraceModelTrack();
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');

@@ -13,7 +13,7 @@ found in the LICENSE file.
     base.require('base.unittest');
     base.require('cc.picture');
     base.require('tracing.importer.trace_event_importer');
-    base.require('tracing.model');
+    base.require('tracing.trace_model');
   </script>
   <script src="picture_view_test_data.js"></script>
   <script>
@@ -22,7 +22,7 @@ found in the LICENSE file.
     var PictureSnapshot = cc.PictureSnapshot;
 
     function testBasic() {
-      var m = new tracing.Model([g_picture_trace]);
+      var m = new tracing.TraceModel([g_picture_trace]);
       var p = base.dictionaryValues(m.processes)[0];
       var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
       var snapshot = instance.snapshots[0];

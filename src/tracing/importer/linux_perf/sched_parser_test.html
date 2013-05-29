@@ -91,7 +91,7 @@ function testImportOneSequenceWithSchedWakeUp() {
       '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
   ];
 
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var thread = m.findAllThreadsNamed('Binder_1')[0];

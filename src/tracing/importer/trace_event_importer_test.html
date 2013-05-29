@@ -34,7 +34,7 @@ function testBasicSingleThreadNonnestedParsing() {
     {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
   var p = m.processes[52];
   assertNotUndefined(p);
@@ -65,7 +65,7 @@ function testArgumentDupeCreatesNonFailingImportError() {
     {name: 'a', args: {'x': 2}, pid: 1, ts: 560, cat: 'foo', tid: 1, ph: 'E'}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[1].threads[1];
   var sA = findSliceNamed(t.slices, 'a');
 
@@ -79,7 +79,7 @@ function testCategoryBeginEndMismatchPrefersBegin() {
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'bar', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
   var p = m.processes[52];
   assertNotUndefined(p);
@@ -101,7 +101,7 @@ function testNestedParsing() {
     {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'E'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var t = m.processes[1].threads[1];
 
   var sA = findSliceNamed(t.slices, 'a');
@@ -127,7 +127,7 @@ function testAutoclosing() {
     {name: 'b', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var t = p.threads[1];
   var slice = t.slices[0];
@@ -143,7 +143,7 @@ function testAutoclosingLoneBegin() {
     // Slice that doesn't finish.
     {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var t = p.threads[1];
   var slice = t.slices[0];
@@ -161,7 +161,7 @@ function testAutoclosingWithSubTasks() {
     {name: 'b1', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'E'},
     {name: 'b2', args: {}, pid: 1, ts: 3, cat: 'foo', tid: 1, ph: 'B'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var t = m.processes[1].threads[1];
 
   var sA = findSliceNamed(t.slices, 'a');
@@ -183,7 +183,7 @@ function testAutoclosingWithEventsOutsideBounds() {
     {name: 'c', args: {}, pid: 1, ts: 1, cat: 'bar', tid: 2, ph: 'B'},
     {name: 'c', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
   assertEquals(2, t.slices.length);
@@ -215,7 +215,7 @@ function testNestedAutoclosing() {
     {name: 'b', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var t1 = m.processes[1].threads[1];
   var t2 = m.processes[1].threads[2];
 
@@ -240,7 +240,7 @@ function testTaskColoring() {
     {name: 'a', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 6, cat: 'baz', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var t = p.threads[1];
   var a1 = t.slices[0];
@@ -263,7 +263,7 @@ function testMultipleThreadParsing() {
     {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
   var p = m.processes[1];
   assertNotUndefined(p);
@@ -304,7 +304,7 @@ function testMultiplePidParsing() {
     {name: 'b', args: {}, pid: 2, ts: 3, cat: 'bar', tid: 2, ph: 'B'},
     {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(2, m.numProcesses);
   var p = m.processes[1];
   assertNotUndefined(p);
@@ -357,7 +357,7 @@ function testThreadNames() {
     {name: 'thread_name', args: {name: 'Thread 2'},
       pid: 2, ts: 0, tid: 2, ph: 'M'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals('Thread 1', m.processes[1].threads[1].name);
   assertEquals('Thread 2', m.processes[2].threads[2].name);
 }
@@ -368,7 +368,7 @@ function testParsingWhenEndComesFirst() {
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'B'},
     {name: 'a', args: {}, pid: 1, ts: 5, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
   assertEquals(1, t.slices.length);
@@ -388,7 +388,7 @@ function testImmediateParsing() {
     {name: 'slower', args: {}, pid: 1, ts: 4, cat: 'baz', tid: 1, ph: 'i'},
     {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
   ];
-  var m = new tracing.Model(events, false);
+  var m = new tracing.TraceModel(events, false);
   var p = m.processes[1];
   var t = p.threads[1];
   assertEquals(3, t.slices.length);
@@ -428,7 +428,7 @@ function testSimpleCounter() {
      ph: 'C'}
 
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var ctr = m.processes[1].counters['foo.ctr'];
 
@@ -460,7 +460,7 @@ function testInstanceCounter() {
     {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
      ph: 'C', id: 2}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var ctr = m.processes[1].counters['foo.ctr[0]'];
   assertEquals('ctr[0]', ctr.name);
@@ -524,7 +524,7 @@ function testMultiCounter() {
     {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo',
      tid: 1, ph: 'C'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[1];
   var ctr = m.processes[1].counters['foo.ctr'];
   assertEquals('ctr', ctr.name);
@@ -554,7 +554,7 @@ function testImportObjectInsteadOfArray() {
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
   ] };
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
 }
 
@@ -564,7 +564,7 @@ function testImportString() {
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(JSON.stringify(events));
+  var m = new tracing.TraceModel(JSON.stringify(events));
   assertEquals(1, m.numProcesses);
 }
 
@@ -574,7 +574,7 @@ function testImportStringWithTrailingNewLine() {
     {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(JSON.stringify(events) + '\n');
+  var m = new tracing.TraceModel(JSON.stringify(events) + '\n');
   assertEquals(1, m.numProcesses);
 }
 
@@ -589,7 +589,7 @@ function testImportStringWithMissingCloseSquareBracket() {
 
   // Drop off the trailing ]
   var dropped = tmp.substring(0, tmp.length - 1);
-  var m = new tracing.Model(dropped);
+  var m = new tracing.TraceModel(dropped);
   assertEquals(1, m.numProcesses);
 }
 
@@ -601,7 +601,7 @@ function testImportStringWithEndingCommaButMissingCloseSquareBracket() {
     ];
   var text = lines.join('\n');
 
-  var m = new tracing.Model(text);
+  var m = new tracing.TraceModel(text);
   assertEquals(1, m.numProcesses);
   assertEquals(1, m.processes[52].threads[53].slices.length);
 }
@@ -617,7 +617,7 @@ function testImportStringWithMissingCloseSquareBracketAndNewline() {
 
   // Drop off the trailing ] and add a newline
   var dropped = tmp.substring(0, tmp.length - 1);
-  var m = new tracing.Model(dropped + '\n');
+  var m = new tracing.TraceModel(dropped + '\n');
   assertEquals(1, m.numProcesses);
 }
 
@@ -629,7 +629,7 @@ function testImportStringWithEndingCommaButMissingCloseSquareBracketCRLF() {
     ];
   var text = lines.join('\r\n');
 
-  var m = new tracing.Model(text);
+  var m = new tracing.TraceModel(text);
   assertEquals(1, m.numProcesses);
   assertEquals(1, m.processes[52].threads[53].slices.length);
 }
@@ -642,7 +642,7 @@ function testImportOldFormat() {
     ']'
     ];
   var text = lines.join('\n');
-  var m = new tracing.Model(text);
+  var m = new tracing.TraceModel(text);
   assertEquals(1, m.numProcesses);
   assertEquals(1, m.processes[9].threads[8].slices.length);
 }
@@ -656,7 +656,7 @@ function testStartFinishOneSliceOneThread() {
        ph: 'S', id: 72, args: {'foo': 'bar'}}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertNotUndefined(t);
   assertEquals(1, t.asyncSlices.slices.length);
@@ -676,7 +676,7 @@ function testEndArgsAddedToSlice() {
     {name: 'a', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
   var p = m.processes[52];
   assertNotUndefined(p);
@@ -701,7 +701,7 @@ function testEndArgOverrwritesOriginalArgValueIfDuplicated() {
     {name: 'b', args: {z: 4}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   assertEquals(1, m.numProcesses);
   var p = m.processes[52];
   assertNotUndefined(p);
@@ -726,7 +726,7 @@ function testAsyncEndArgsAddedToSlice() {
        ph: 'S', id: 72}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertNotUndefined(t);
   assertEquals(1, t.asyncSlices.slices.length);
@@ -750,7 +750,7 @@ function testAsyncEndArgOverrwritesOriginalArgValueIfDuplicated() {
        ph: 'S', id: 72}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertNotUndefined(t);
   assertEquals(1, t.asyncSlices.slices.length);
@@ -775,7 +775,7 @@ function testAsyncStepsInOneThread() {
        ph: 'S', id: 72}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertNotUndefined(t);
   assertEquals(1, t.asyncSlices.slices.length);
@@ -811,7 +811,7 @@ function testAsyncStepsMissingStart() {
        ph: 'T', id: 72}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertUndefined(t);
 }
@@ -825,7 +825,7 @@ function testAsyncStepsMissingFinish() {
        ph: 'S', id: 72}
   ];
 
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var t = m.processes[52].threads[53];
   assertUndefined(t);
 }
@@ -836,7 +836,7 @@ function testImportSamples() {
     {name: 'b', args: {}, pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
     {name: 'c', args: {}, pid: 52, ts: 558, cat: 'test', tid: 53, ph: 'P'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[52];
   assertNotUndefined(p);
   var t = p.threads[53];
@@ -857,7 +857,7 @@ function testImportSamplesMissingArgs() {
     {name: 'b', pid: 52, ts: 548, cat: 'test', tid: 53, ph: 'P'},
     {name: 'c', pid: 52, ts: 549, cat: 'test', tid: 53, ph: 'P'}
   ];
-  var m = new tracing.Model(events);
+  var m = new tracing.TraceModel(events);
   var p = m.processes[52];
   assertNotUndefined(p);
   var t = p.threads[53];
@@ -874,7 +874,7 @@ function testImportSimpleObject() {
     {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: {snapshot: 20}}, // @suppress longLineCheck
     {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
   ];
-  var m = new tracing.Model();
+  var m = new tracing.TraceModel();
   m.importTraces([events], false);
   assertEquals(10, m.bounds.min);
   assertEquals(50, m.bounds.max);
@@ -918,7 +918,7 @@ function testImportImplicitObjects() {
      ]}}
   ];
 
-  var m = new tracing.Model();
+  var m = new tracing.TraceModel();
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
@@ -958,7 +958,7 @@ function testImportIDRefs() {
     {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
   ];
 
-  var m = new tracing.Model();
+  var m = new tracing.TraceModel();
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
@@ -987,7 +987,7 @@ function testImportIDRefsThatPointAtEachOther() {
     {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
   ];
 
-  var m = new tracing.Model();
+  var m = new tracing.TraceModel();
   m.importTraces([events], false);
   var p1 = m.processes[1];
 
@@ -1030,7 +1030,7 @@ function testImportDoesNotMutateEventList() {
 
   // Import event while the A types are registered, causing the
   // arguments of the snapshots to be mutated.
-  var m = new tracing.Model();
+  var m = new tracing.TraceModel();
   try {
     tracing.model.ObjectSnapshot.register('a', ASnapshot);
     m.importTraces([events], false);

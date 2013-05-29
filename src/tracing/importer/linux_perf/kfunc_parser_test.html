@@ -32,7 +32,7 @@ function testKernelFunctionParser() {
     'Binder_2-127   (  127) [001] ....  3431.906896: graph_ent: func=sys_write',
     'Binder_2-127   (  127) [001] ....  3431.906906: graph_ret: func=sys_write'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var process = m.processes[127];

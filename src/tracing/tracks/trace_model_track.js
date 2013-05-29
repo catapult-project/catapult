@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.model_track');
+base.requireStylesheet('tracing.tracks.trace_model_track');
 
 base.require('base.measuring_stick');
 base.require('tracing.tracks.container_track');
@@ -20,9 +20,9 @@ base.exportTo('tracing.tracks', function() {
    * CpuTracks.
    * @constructor
    */
-  var ModelTrack = ui.define(tracing.tracks.ContainerTrack);
+  var TraceModelTrack = ui.define(tracing.tracks.ContainerTrack);
 
-  ModelTrack.prototype = {
+  TraceModelTrack.prototype = {
 
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
@@ -107,6 +107,6 @@ base.exportTo('tracing.tracks', function() {
   };
 
   return {
-    ModelTrack: ModelTrack
+    TraceModelTrack: TraceModelTrack
   };
 });

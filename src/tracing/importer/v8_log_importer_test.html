@@ -25,7 +25,7 @@ var V8LogImporter = tracing.importer.V8LogImporter;
 function testTickEventInSharedLibrary() {
   var lines = ['shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
                'tick,0x99d8aae4,0xbff02f08,12158,0,0x0,5'];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   var p = m.processes[-32];
   var threads = p.findAllThreadsNamed('V8 PC');
   var t = threads[0];
@@ -37,7 +37,7 @@ function testTickEventInGeneratedCode() {
   var lines = ['shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
                'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
                'tick,0x5b60ce84,0xbff02f08,12158,0,0x0,5'];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   var p = m.processes[-32];
   var threads = p.findAllThreadsNamed('V8 PC');
   var t = threads[0];
@@ -49,7 +49,7 @@ function testTickEventInUknownCode() {
   var lines = ['shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
                'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
                'tick,0x4,0xbff02f08,12158,0,0x0,5'];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   var p = m.processes[-32];
   var threads = p.findAllThreadsNamed('V8 PC');
   var t = threads[0];
@@ -59,7 +59,7 @@ function testTickEventInUknownCode() {
 
 function testTimerEventSliceCreation() {
   var lines = ['timer-event,"V8.External",38189483,3'];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   var p = m.processes[-32];
   var threads = p.findAllThreadsNamed('V8 Timers');
   assertNotUndefined(threads);
@@ -70,7 +70,7 @@ function testTimerEventSliceCreation() {
 
 function testProcessThreadCreation() {
   var lines = ['timer-event,"V8.External",38189483,3'];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   assertNotUndefined(m);
   var p = m.processes[-32];
   assertNotUndefined(p);

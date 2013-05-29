@@ -15,7 +15,7 @@ found in the LICENSE file.
     base.require('base.unittest');
     base.require('tracing.test_utils');
     base.require('tracing.timeline_view');
-    base.require('tracing.model');
+    base.require('tracing.trace_model');
   </script>
   <script>
     'use strict';
@@ -31,7 +31,7 @@ found in the LICENSE file.
       var testIndex = 0;
       var startTime = 0;
 
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       for (testIndex = 0; testIndex < num_tests; ++testIndex) {
         var process = model.getOrCreateProcess(10000 + testIndex);
         if (testIndex % 2 == 0) {
@@ -173,7 +173,7 @@ found in the LICENSE file.
     }
 
     function testSetModelUpdatesCategories() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 

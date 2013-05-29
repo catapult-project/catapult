@@ -5,7 +5,7 @@
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
-base.require('tracing.model');
+base.require('tracing.trace_model');
 base.require('tracing.model.slice');
 base.require('tracing.color_scheme');
 base.require('tracing.importer.v8.log_reader');
@@ -234,7 +234,7 @@ base.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.Model.registerImporter(V8LogImporter);
+  tracing.TraceModel.registerImporter(V8LogImporter);
 
   return {
     V8LogImporter: V8LogImporter

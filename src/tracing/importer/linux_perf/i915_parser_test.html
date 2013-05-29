@@ -49,7 +49,7 @@ function testi915Import() {
     '          chrome-1539  [000] 18420.677772: i915_reg_rw: ' +
                'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var i915GemThread = undefined;

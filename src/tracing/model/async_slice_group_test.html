@@ -14,12 +14,12 @@ found in the LICENSE file.
   <script>
     base.require('base.unittest');
     base.require('tracing.test_utils');
-    base.require('tracing.model');
+    base.require('tracing.trace_model');
   </script>
   <script>
   'use strict';
 
-  var Model = tracing.Model;
+  var Model = tracing.TraceModel;
   var Process = tracing.model.Process;
   var Thread = tracing.model.Thread;
   var AsyncSlice = tracing.model.AsyncSlice;

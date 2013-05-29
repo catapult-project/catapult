@@ -18,13 +18,13 @@ found in the LICENSE file.
     base.require('tracing.analysis.stub_analysis_results');
     base.require('tracing.analysis.analyze_counters');
     base.require('tracing.selection');
-    base.require('tracing.model');
+    base.require('tracing.trace_model');
   </script>
   <script>
     'use strict';
 
     var Counter = tracing.model.Counter;
-    var Model = tracing.Model;
+    var Model = tracing.TraceModel;
     var Thread = tracing.model.Thread;
     var Selection = tracing.Selection;
     var AnalysisView = tracing.analysis.AnalysisView;

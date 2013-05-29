@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model');
+  base.require('tracing.trace_model');
   base.require('tracing.selection');
   base.require('tracing.tracks.slice_track');
 </script>
@@ -22,7 +22,7 @@ found in the LICENSE file.
     'use strict';
 
     function testSelectionObject() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
       t1.pushSlice(new tracing.model.ThreadSlice('', 'a', 0, 1, {}, 3));
@@ -45,7 +45,7 @@ found in the LICENSE file.
     }
 
     function testShiftedSelection() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
       t1.pushSlice(new tracing.model.ThreadSlice('', 'a', 0, 1, {}, 3));

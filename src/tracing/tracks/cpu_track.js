@@ -7,7 +7,7 @@
 base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.slice_track');
 base.require('tracing.filter');
-base.require('tracing.model');
+base.require('tracing.trace_model');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {

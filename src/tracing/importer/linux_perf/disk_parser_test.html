@@ -42,7 +42,7 @@ function testDiskImport() {
     'mmcqd/0-81    [000] d..2 154578.877466: block_rq_complete: ' +
         '179,0 R () 3255288 + 8 [0]'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var blockThread = undefined;

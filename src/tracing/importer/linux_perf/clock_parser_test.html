@@ -51,7 +51,7 @@ function testClock() {
   'fout_apll state=500000000 cpu_id=0'
   ];
 
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var counters = m.getAllCounters();

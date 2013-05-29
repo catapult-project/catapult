@@ -6,12 +6,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>Model tests</title>
+<title>TraceModel tests</title>
 <script src="/src/base.js"></script>
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model');
+  base.require('tracing.trace_model');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -22,11 +22,11 @@ found in the LICENSE file.
 var Slice = tracing.model.Slice;
 var ThreadSlice = tracing.model.ThreadSlice;
 var Thread = tracing.model.Thread;
-var Model = tracing.Model;
+var TraceModel = tracing.TraceModel;
 var TitleFilter = tracing.TitleFilter;
 
-function createModelWithOneOfEverything() {
-  var m = new Model();
+function createTraceModelWithOneOfEverything() {
+  var m = new TraceModel();
   var cpu = m.getOrCreateCpu(1);
   cpu.slices.push(tracing.test_utils.newSlice(1, 3));
 
@@ -52,23 +52,23 @@ function createModelWithOneOfEverything() {
   return m;
 }
 
-function testModelBounds_EmptyModel() {
-  var m = new Model();
+function testTraceModelBounds_EmptyTraceModel() {
+  var m = new TraceModel();
   m.updateBounds();
   assertEquals(undefined, m.bounds.min);
   assertEquals(undefined, m.bounds.max);
 }
 
-function testModelBounds_OneEmptyThread() {
-  var m = new Model();
+function testTraceModelBounds_OneEmptyThread() {
+  var m = new TraceModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   m.updateBounds();
   assertEquals(undefined, m.bounds.min);
   assertEquals(undefined, m.bounds.max);
 }
 
-function testModelBounds_OneThread() {
-  var m = new Model();
+function testTraceModelBounds_OneThread() {
+  var m = new TraceModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
   m.updateBounds();
@@ -76,8 +76,8 @@ function testModelBounds_OneThread() {
   assertEquals(4, m.bounds.max);
 }
 
-function testModelBounds_OneThreadAndOneEmptyThread() {
-  var m = new Model();
+function testTraceModelBounds_OneThreadAndOneEmptyThread() {
+  var m = new TraceModel();
   var t1 = m.getOrCreateProcess(1).getOrCreateThread(1);
   t1.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
   var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
@@ -86,8 +86,8 @@ function testModelBounds_OneThreadAndOneEmptyThread() {
   assertEquals(4, m.bounds.max);
 }
 
-function testModelBounds_OneCpu() {
-  var m = new Model();
+function testTraceModelBounds_OneCpu() {
+  var m = new TraceModel();
   var cpu = m.getOrCreateCpu(1);
   cpu.slices.push(tracing.test_utils.newSlice(1, 3));
   m.updateBounds();
@@ -96,8 +96,8 @@ function testModelBounds_OneCpu() {
 }
 
 
-function testModelBounds_OneCpuOneThread() {
-  var m = new Model();
+function testTraceModelBounds_OneCpuOneThread() {
+  var m = new TraceModel();
   var cpu = m.getOrCreateCpu(1);
   cpu.slices.push(tracing.test_utils.newSlice(1, 3));
 
@@ -109,10 +109,10 @@ function testModelBounds_OneCpuOneThread() {
   assertEquals(5, m.bounds.max);
 }
 
-function testModelCanImportEmpty() {
+function testTraceModelCanImportEmpty() {
   var m;
-  m = new Model([]);
-  m = new Model('');
+  m = new TraceModel([]);
+  m = new TraceModel('');
 }
 
 function testTitleFilter() {
@@ -128,13 +128,13 @@ function testTitleFilter() {
   assertFalse(new TitleFilter('x').matchSlice(s1));
 }
 
-function testModel_toJSON() {
-  var m = createModelWithOneOfEverything();
+function testTraceModel_toJSON() {
+  var m = createTraceModelWithOneOfEverything();
   assertNotNull(JSON.stringify(m));
 }
 
-function testModel_findAllThreadsNamed() {
-  var m = new Model();
+function testTraceModel_findAllThreadsNamed() {
+  var m = new TraceModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   t.name = 'CrBrowserMain';
 
@@ -145,8 +145,8 @@ function testModel_findAllThreadsNamed() {
   assertEquals(0, f.length);
 }
 
-function testModel_updateCategories() {
-  var m = new Model();
+function testTraceModel_updateCategories() {
+  var m = new TraceModel();
   var t = m.getOrCreateProcess(1).getOrCreateThread(1);
   t.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
   t.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));

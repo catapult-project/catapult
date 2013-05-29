@@ -123,7 +123,7 @@ base.exportTo('about_tracing', function() {
       if (this.tracingController.systemTraceEvents.length)
         traces.push(this.tracingController.systemTraceEvents);
 
-      var m = new tracing.Model();
+      var m = new tracing.TraceModel();
       m.importTraces(traces, true);
       this.timelineView_.model = m;
     },

@@ -25,7 +25,7 @@ function testExynosImport() {
     '               X-945   [001] ....   113.995561: exynos_flip_complete: ' +
                     'pipe=0'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var threads = m.getAllThreads();
@@ -47,7 +47,7 @@ function testExynosBusfreqImport() {
     '     kworker/1:0-4177  [001] ....  2805.729039: ' +
                     'exynos_busfreq_target_mif: frequency=200000'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c0 = m.cpus[0];

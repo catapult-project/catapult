@@ -31,7 +31,7 @@ found in the LICENSE file.
         {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
         {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
       ];
-      var model = new tracing.Model(events);
+      var model = new tracing.TraceModel(events);
       var timeline = new tracing.TimelineTrackView();
       timeline.model = model;
       timeline.focusElement = timeline;
@@ -41,7 +41,7 @@ found in the LICENSE file.
     }
 
     function testAddAllObjectsMatchingFilterToSelection() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
@@ -77,7 +77,7 @@ found in the LICENSE file.
     }
 
     function testEmptyThreadsDeleted() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
@@ -97,7 +97,7 @@ found in the LICENSE file.
     };
 
     function testFilteredCounters() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var c1 = model.getOrCreateCpu(0);
       c1.getOrCreateCounter('', 'b');
       var p1 = model.getOrCreateProcess(1);
@@ -121,7 +121,7 @@ found in the LICENSE file.
     };
 
     function testFilteredCpus() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var c1 = model.getOrCreateCpu(1);
       c1.getOrCreateCounter('', 'a');
 
@@ -144,7 +144,7 @@ found in the LICENSE file.
     };
 
     function testFilteredProcesses() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       p1.getOrCreateCounter('', 'a');
 
@@ -167,7 +167,7 @@ found in the LICENSE file.
     };
 
     function testFilteredThreads() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(2);
       t1.pushSlice(tracing.test_utils.newSlice(0, 1));

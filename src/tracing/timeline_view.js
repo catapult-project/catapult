@@ -300,7 +300,7 @@ base.exportTo('tracing', function() {
     },
 
     set traceData(traceData) {
-      this.model = new tracing.Model(traceData);
+      this.model = new tracing.TraceModel(traceData);
     },
 
     get model() {

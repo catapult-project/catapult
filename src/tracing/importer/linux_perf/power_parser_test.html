@@ -30,7 +30,7 @@ function testPowerFrequencyImport() {
     ' kworker/1:2-7269  [001]  2784.993120: power_frequency: ' +
                'type=2 state=1300000 cpu_id=1'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c0 = m.cpus[0];
@@ -53,7 +53,7 @@ function testCpuFrequencyImport() {
     '     kworker/0:2-7972  [000] 15051.020304: cpu_frequency: ' +
                    'state=800000 cpu_id=0'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c0 = m.cpus[0];
@@ -80,7 +80,7 @@ function testCpuIdleImport() {
     '          <idle>-0     [001] 15050.993457: cpu_idle: ' +
                   'state=4294967295 cpu_id=1'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c0 = m.cpus[0];

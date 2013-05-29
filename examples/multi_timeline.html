@@ -99,14 +99,14 @@ found in the LICENSE file.
     // Creating attached vs detached stress tests the canvas- and viewport-
     // setup code.
     var create_detached = parentEl.getAttribute('create-attached') == 1;
-    function createModel(data) {
-      timelineViewEl.model = new tracing.Model(data);
+    function createTraceModel(data) {
+      timelineViewEl.model = new tracing.TraceModel(data);
       if (!create_detached)
         containerEl.appendChild(timelineViewEl);
     }
     if (create_detached)
       containerEl.appendChild(timelineViewEl);
-    getAsync(src, createModel);
+    getAsync(src, createTraceModel);
   }
 
   function onLoad() {

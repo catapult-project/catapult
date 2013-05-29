@@ -10,7 +10,7 @@
  *
  */
 
-base.require('tracing.model');
+base.require('tracing.trace_model');
 base.require('tracing.model.slice');
 
 base.exportTo('tracing.importer', function() {

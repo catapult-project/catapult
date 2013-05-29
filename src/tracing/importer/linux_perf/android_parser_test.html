@@ -48,7 +48,7 @@ function testAndroidUserlandImport() {
     'SurfaceFlinger-4831  [001] ...1 80909.599087: tracing_mark_write: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599104: tracing_mark_write: E'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var threads = m.getAllThreads();
@@ -66,7 +66,7 @@ function testAndroidUserlandImportWithSpacesInThreadName() {
     'Surface Flinger -4831  [001] ...1 80909.598590: tracing_mark_write: B|4829|latchBuffer', // @suppress longLineCheck
     'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var threads = m.getAllThreads();
@@ -109,7 +109,7 @@ function testAndroidUserlandLegacyKernelImport() {
     'SurfaceFlinger-4831  [001] ...1 80909.599087: 0: E',
     'SurfaceFlinger-4831  [001] ...1 80909.599104: 0: E'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var threads = m.getAllThreads();
@@ -132,7 +132,7 @@ function testAndroidUserlandChromiumImport() {
     'SandboxedProces-2894  [001] ...1   253.780750: tracing_mark_write: C|2867|counter1|10|cat1', // @suppress longLineCheck
     'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2' // @suppress longLineCheck
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var threads = m.getAllThreads();

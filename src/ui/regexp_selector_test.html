@@ -15,6 +15,7 @@ found in the LICENSE file.
   base.require('ui.regexp_selector');
 </script>
 </head>
+<body>
 <script>
     'use strict';
 
@@ -28,17 +29,6 @@ function testRegExpSelector() {
   var matchBits = function(items) {
     return items.map(function(item) {return item.matches ? '1' : '0';});
   }
-
-  regExpSelector.addEventListener('itemsChange', function(event) {
-    var changeText = matchBits(event.oldValue) +
-      ' to ' + matchBits(event.newValue);
-    console.log('itemsChange ' + changeText);
-  });
-
-  regExpSelector.addEventListener('regexpChange', function(event) {
-    var changeText = event.oldValue + ' to ' + event.newValue;
-    console.log('regexpChange ' + changeText);
-  });
 
   var stringsToFilter = [
     'foo',
@@ -106,5 +96,5 @@ function testRegExpSelector() {
 }
 
 </script>
-<body></body>
+</body>
 </html>

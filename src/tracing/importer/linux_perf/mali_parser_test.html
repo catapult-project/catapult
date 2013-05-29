@@ -187,9 +187,9 @@ function testMaliDDKImport() {
                 'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
   ];
   var traceNoThread =
-    new tracing.Model(linesNoThread.join('\n'), false);
+    new tracing.TraceModel(linesNoThread.join('\n'), false);
   var traceWithThread =
-    new tracing.Model(linesWithThread.join('\n'), false);
+    new tracing.TraceModel(linesWithThread.join('\n'), false);
   assertEquals(0, traceNoThread.importErrors.length);
   assertEquals(0, traceWithThread.importErrors.length);
 
@@ -213,7 +213,7 @@ function testDVFSFrequencyImport() {
     '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_set_clock: ' +
                    'frequency=400'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var counters = m.getAllCounters();
@@ -231,7 +231,7 @@ function testDVFSVoltageImport() {
     '     kworker/u:0-5     [000] ....  1183.840009: mali_dvfs_set_voltage: ' +
                    'voltage=1100000'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var counters = m.getAllCounters();
@@ -249,7 +249,7 @@ function testDVFSUtilizationImport() {
     '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_event: ' +
                    'utilization=37'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var counters = m.getAllCounters();
@@ -469,7 +469,7 @@ function testMaliHWCImport() {
     '     kworker/u:0-5     [000] ....    79.046851: ' +
                    'mali_hwc_VCACHE_MISS: val=70'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var counters = m.getAllCounters();

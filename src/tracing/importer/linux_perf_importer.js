@@ -4,7 +4,7 @@
 
 /**
  * @fileoverview Imports text files in the Linux event trace format into the
- * model. This format is output both by sched_trace and by Linux's perf
+ * Tracemodel. This format is output both by sched_trace and by Linux's perf
  * tool.
  *
  * This importer assumes the events arrive as a string. The unit tests provide
@@ -18,7 +18,7 @@
  */
 'use strict';
 
-base.require('tracing.model');
+base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
 base.require('tracing.importer.linux_perf.bus_parser');
 base.require('tracing.importer.linux_perf.clock_parser');
@@ -134,7 +134,7 @@ base.exportTo('tracing.importer', function() {
       eventName: groups[6],
       details: groups[7]
     };
-  }
+  };
   TestExports.lineParserWithTGID = lineParserWithTGID;
 
   // Matches the default trace record in 3.2 and later (includes irq-info):
@@ -156,7 +156,7 @@ base.exportTo('tracing.importer', function() {
       eventName: groups[5],
       details: groups[6]
     };
-  }
+  };
   TestExports.lineParserWithIRQInfo = lineParserWithIRQInfo;
 
   // Matches the default trace record pre-3.2:
@@ -176,7 +176,7 @@ base.exportTo('tracing.importer', function() {
       eventName: groups[5],
       details: groups[6]
     };
-  }
+  };
   TestExports.lineParserWithLegacyFmt = lineParserWithLegacyFmt;
 
   // Matches the trace_event_clock_sync record
@@ -302,7 +302,7 @@ base.exportTo('tracing.importer', function() {
     return {ok: true,
       lines: produce_result ? events : undefined,
       events_begin_at_line: events_begin_at_line};
-  }
+  };
 
   LinuxPerfImporter.prototype = {
     __proto__: Object.prototype,
@@ -497,7 +497,7 @@ base.exportTo('tracing.importer', function() {
                   wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
             }
-          }
+          };
 
           if (prevSlice.args.stateWhenDescheduled == 'S') {
             pushSleep('Sleeping', sleepingId);
@@ -752,7 +752,7 @@ base.exportTo('tracing.importer', function() {
     }
   };
 
-  tracing.Model.registerImporter(LinuxPerfImporter);
+  tracing.TraceModel.registerImporter(LinuxPerfImporter);
 
   return {
     LinuxPerfImporter: LinuxPerfImporter,

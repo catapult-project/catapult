@@ -91,7 +91,7 @@ found in the LICENSE file.
   };
 
   function testImportBasic() {
-    var model = new tracing.Model();
+    var model = new tracing.TraceModel();
     var importer = new tracing.importer.TimelineStreamImporter(model);
 
     assertFalse(importer.paused);
@@ -126,7 +126,7 @@ found in the LICENSE file.
   }
 
   function testPause() {
-    var model = new tracing.Model();
+    var model = new tracing.TraceModel();
     var importer = new tracing.importer.TimelineStreamImporter(model);
 
     assertFalse(importer.paused);
@@ -157,7 +157,7 @@ found in the LICENSE file.
   }
 
   function testCounters() {
-    var model = new tracing.Model();
+    var model = new tracing.TraceModel();
     var importer = new tracing.importer.TimelineStreamImporter(model);
 
     assertFalse(importer.paused);
@@ -229,7 +229,7 @@ found in the LICENSE file.
   }
 
   function testCounterImportErrors() {
-    var model = new tracing.Model();
+    var model = new tracing.TraceModel();
     var importer = new tracing.importer.TimelineStreamImporter(model);
 
     assertFalse(importer.paused);

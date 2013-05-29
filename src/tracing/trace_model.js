@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * @fileoverview Model is a parsed representation of the
+ * @fileoverview TraceModel is a parsed representation of the
  * TraceEvents obtained from base/trace_event in which the begin-end
  * tokens are converted into a hierarchy of processes, threads,
  * subrows, and slices.
@@ -36,13 +36,13 @@ base.exportTo('tracing', function() {
   /**
    * Builds a model from an array of TraceEvent objects.
    * @param {Object=} opt_eventData Data from a single trace to be imported into
-   *     the new model. See Model.importTraces for details on how to
+   *     the new model. See TraceModel.importTraces for details on how to
    *     import multiple traces at once.
    * @param {bool=} opt_shiftWorldToZero Whether to shift the world to zero.
    * Defaults to true.
    * @constructor
    */
-  function Model(opt_eventData, opt_shiftWorldToZero) {
+  function TraceModel(opt_eventData, opt_shiftWorldToZero) {
     this.kernel = new Kernel();
     this.cpus = {};
     this.processes = {};
@@ -55,7 +55,7 @@ base.exportTo('tracing', function() {
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
   }
 
-  Model.importerConstructors_ = [];
+  TraceModel.importerConstructors_ = [];
 
   /**
    * Registers an importer. All registered importers are considered
@@ -63,11 +63,11 @@ base.exportTo('tracing', function() {
    *
    * @param {Function} importerConstructor The importer's constructor function.
    */
-  Model.registerImporter = function(importerConstructor) {
-    Model.importerConstructors_.push(importerConstructor);
+  TraceModel.registerImporter = function(importerConstructor) {
+    TraceModel.importerConstructors_.push(importerConstructor);
   };
 
-  Model.prototype = {
+  TraceModel.prototype = {
     __proto__: base.EventTarget.prototype,
 
     get numProcesses() {
@@ -215,9 +215,9 @@ base.exportTo('tracing', function() {
 
     createImporter_: function(eventData) {
       var importerConstructor;
-      for (var i = 0; i < Model.importerConstructors_.length; ++i) {
-        if (Model.importerConstructors_[i].canImport(eventData)) {
-          importerConstructor = Model.importerConstructors_[i];
+      for (var i = 0; i < TraceModel.importerConstructors_.length; ++i) {
+        if (TraceModel.importerConstructors_[i].canImport(eventData)) {
+          importerConstructor = TraceModel.importerConstructors_[i];
           break;
         }
       }
@@ -233,7 +233,7 @@ base.exportTo('tracing', function() {
     /**
      * Imports the provided traces into the model. The eventData type
      * is undefined and will be passed to all the  importers registered
-     * via Model.registerImporter. The first importer that returns true
+     * via TraceModel.registerImporter. The first importer that returns true
      * for canImport(events) will be used to import the events.
      *
      * The primary trace is provided via the eventData variable. If multiple
@@ -313,11 +313,11 @@ base.exportTo('tracing', function() {
    * Importer for empty strings and arrays.
    * @constructor
    */
-  function ModelEmptyImporter(events) {
+  function TraceModelEmptyImporter(events) {
     this.importPriority = 0;
   };
 
-  ModelEmptyImporter.canImport = function(eventData) {
+  TraceModelEmptyImporter.canImport = function(eventData) {
     if (eventData instanceof Array && eventData.length == 0)
       return true;
     if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -326,7 +326,7 @@ base.exportTo('tracing', function() {
     return false;
   };
 
-  ModelEmptyImporter.prototype = {
+  TraceModelEmptyImporter.prototype = {
     __proto__: Object.prototype,
 
     importEvents: function() {
@@ -337,9 +337,9 @@ base.exportTo('tracing', function() {
     }
   };
 
-  Model.registerImporter(ModelEmptyImporter);
+  TraceModel.registerImporter(TraceModelEmptyImporter);
 
   return {
-    Model: Model
+    TraceModel: TraceModel
   };
 });

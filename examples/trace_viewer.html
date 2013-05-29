@@ -76,7 +76,7 @@ found in the LICENSE file.
   }
 
   function createViewFromTraces(filenames, traces) {
-    var m = new tracing.Model();
+    var m = new tracing.TraceModel();
     m.importTraces(traces, true);
 
     timelineViewEl.model = m;

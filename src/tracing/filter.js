@@ -4,22 +4,6 @@
 
 'use strict';
 
-/**
- * @fileoverview Model is a parsed representation of the
- * TraceEvents obtained from base/trace_event in which the begin-end
- * tokens are converted into a hierarchy of processes, threads,
- * subrows, and slices.
- *
- * The building block of the model is a slice. A slice is roughly
- * equivalent to function call executing on a specific thread. As a
- * result, slices may have one or more subslices.
- *
- * A thread contains one or more subrows of slices. Row 0 corresponds to
- * the "root" slices, e.g. the topmost slices. Row 1 contains slices that
- * are nested 1 deep in the stack, and so on. We use these subrows to draw
- * nesting tasks.
- *
- */
 base.exportTo('tracing', function() {
 
   function filterSliceArray(filter, slices) {
@@ -47,7 +31,7 @@ base.exportTo('tracing', function() {
   }
 
   /**
-   * @constructor The generic base class for filtering a Model based on
+   * @constructor The generic base class for filtering a TraceModel based on
    * various rules. The base class returns true for everything.
    */
   function Filter() {

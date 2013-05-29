@@ -184,7 +184,7 @@ found in the LICENSE file.
     }
 
     function testFindControllerWithRealTimeline() {
-      var model = new tracing.Model();
+      var model = new tracing.TraceModel();
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
       t1.pushSlice(new tracing.model.ThreadSlice('', 'a', 0, 1, {}, 3));

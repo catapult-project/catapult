@@ -211,7 +211,7 @@ function testCanImportSystraceFile() {
     '<head i18n-values="dir:textdirection;">',
     '<title>Android System Trace</title>',
     '<style type="text/css">tabbox{-webkit-box-orient:vertical;display:-webkit-box;}tabs{-webkit-padding-start</style>',
-    '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.Model;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.View);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;', // @suppress longLineCheck
+    '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.TraceModel;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.View);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;', // @suppress longLineCheck
     'this.cr=function(){function g(a,b,c,f){var e=new cr.Event(b+"Change");e.propertyName=b;e.newValue=c;e.oldValue=f;a.dispatchEvent(e)}function e(a){return a.replace(/([A-Z])/g,"-$1").toLowerCase()}function c(b,c){switch(c){case a.JS:var f=b+"_";return function(){return this[f]};case a.ATTR:var h=e(b);return function(){return this.getAttribute(h)};case a.BOOL_ATTR:return h=e(b),function(){return this.hasAttribute(h)}}}function f(b,c,f){switch(c){case a.JS:var h=b+"_";return function(a){var c=this[h];', // @suppress longLineCheck
     '  </div>',
     '  <script>',
@@ -274,7 +274,7 @@ function testImportOneSequence() {
                 'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
                 'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c = m.cpus[1];
@@ -300,7 +300,7 @@ function testImportOneSequenceWithSpacyThreadName() {
                 'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
                 'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c = m.cpus[1];
@@ -315,7 +315,7 @@ function testImportWithNewline() {
   var lines = [
     ''
   ];
-  var m = new tracing.Model(lines.join('\n'));
+  var m = new tracing.TraceModel(lines.join('\n'));
   assertEquals(0, m.importErrors.length);
 }
 
@@ -335,7 +335,7 @@ function testClockSync() {
     '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
                   'trace_event_clock_sync: parent_ts=0.1'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c = m.cpus[1];
@@ -359,7 +359,7 @@ function testClockSyncMarkWrite() {
     'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
               'trace_event_clock_sync: parent_ts=0'
   ];
-  var m = new tracing.Model(lines.join('\n'), false);
+  var m = new tracing.TraceModel(lines.join('\n'), false);
   assertEquals(0, m.importErrors.length);
 
   var c = m.cpus[1];
