@@ -146,11 +146,11 @@ base.exportTo('tracing.tracks', function() {
           parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
           parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
       var pixelRatio = window.devicePixelRatio || 1;
-      if (this.canvas_.width != innerWidth) {
+      if (this.canvas_.width != innerWidth * pixelRatio) {
         this.canvas_.width = innerWidth * pixelRatio;
         this.canvas_.style.width = innerWidth + 'px';
       }
-      if (this.canvas_.height != innerHeight) {
+      if (this.canvas_.height != innerHeight * pixelRatio) {
         this.canvas_.height = innerHeight * pixelRatio;
         this.canvas_.style.height = innerHeight + 'px';
       }
