@@ -63,20 +63,43 @@ base.exportTo('about_tracing', function() {
       this.timelineView_.leftControls.appendChild(this.loadBn_);
       this.appendChild(this.timelineView_);
 
-      document.addEventListener('keypress', this.onKeypress_.bind(this));
+      this.onKeypressBoundToThis_ = this.onKeypress_.bind(this);
+      document.addEventListener('keypress', this.onKeypressBoundToThis_);
 
       this.onCategoriesCollectedBoundToThis_ =
           this.onCategoriesCollected_.bind(this);
       this.onTraceEndedBoundToThis_ = this.onTraceEnded_.bind(this);
 
-      document.addEventListener('dragstart', this.ignoreHandler_, false);
-      document.addEventListener('dragend', this.ignoreHandler_, false);
-      document.addEventListener('dragenter', this.ignoreHandler_, false);
-      document.addEventListener('dragleave', this.ignoreHandler_, false);
-      document.addEventListener('dragover', this.ignoreHandler_, false);
-      document.addEventListener('drop', this.dropHandler_.bind(this), false);
+      this.dropHandlerBoundToThis_ = this.dropHandler_.bind(this);
+      this.ignoreHandlerBoundToThis_ = this.ignoreHandler_.bind(this);
+      document.addEventListener(
+          'dragstart', this.ignoreHandlerBoundToThis_, false);
+      document.addEventListener(
+          'dragend', this.ignoreHandlerBoundToThis_, false);
+      document.addEventListener(
+          'dragenter', this.ignoreHandlerBoundToThis_, false);
+      document.addEventListener(
+          'dragleave', this.ignoreHandlerBoundToThis_, false);
+      document.addEventListener(
+          'dragover', this.ignoreHandlerBoundToThis_, false);
+      document.addEventListener(
+          'drop', this.dropHandlerBoundToThis_, false);
+
+      this.selectingCategories = false;
 
       this.refresh_();
+    },
+
+    // Detach all document event listeners. Without this the tests can get
+    // confused as the element may still be listening when the next test runs.
+    detach_: function() {
+      document.removeEventListener('keypress', this.onKeypressBoundToThis_);
+      document.removeEventListener('dragstart', this.ignoreHandlerBoundToThis_);
+      document.removeEventListener('dragend', this.ignoreHandlerBoundToThis_);
+      document.removeEventListener('dragenter', this.ignoreHandlerBoundToThis_);
+      document.removeEventListener('dragleave', this.ignoreHandlerBoundToThis_);
+      document.removeEventListener('dragover', this.ignoreHandlerBoundToThis_);
+      document.removeEventListener('drop', this.dropHandlerBoundToThis_);
     },
 
     didSetTracingController_: function(value, oldValue) {
@@ -108,9 +131,18 @@ base.exportTo('about_tracing', function() {
     onKeypress_: function(event) {
       if (event.keyCode === 114 &&  // r
           !this.tracingController.isTracingEnabled &&
+          !this.selectingCategories &&
           document.activeElement.nodeName !== 'INPUT') {
         this.onSelectCategories_();
       }
+    },
+
+    get selectingCategories() {
+      return this.selectingCategories_;
+    },
+
+    set selectingCategories(val) {
+      this.selectingCategories_ = val;
     },
 
     get timelineView() {
@@ -120,6 +152,7 @@ base.exportTo('about_tracing', function() {
     ///////////////////////////////////////////////////////////////////////////
 
     onSelectCategories_: function() {
+      this.selectingCategories = true;
       var tc = this.tracingController;
       tc.collectCategories();
       tc.addEventListener('categoriesCollected',
@@ -146,6 +179,10 @@ base.exportTo('about_tracing', function() {
       dlg.recordCallback = this.onRecord_.bind(this);
       dlg.showSystemTracing = this.tracingController.supportsSystemTracing;
       dlg.visible = true;
+      dlg.addEventListener('visibleChange', function(ev) {
+        if (!dlg.visible)
+          this.selectingCategories = false;
+      }.bind(this));
       this.recordSelectionDialog_ = dlg;
 
       setTimeout(function() {
@@ -155,6 +192,8 @@ base.exportTo('about_tracing', function() {
     },
 
     onRecord_: function() {
+      this.selectingCategories = false;
+
       var tc = this.tracingController;
 
       var categories = this.recordSelectionDialog_.categoryFilter();

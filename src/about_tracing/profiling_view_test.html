@@ -98,6 +98,8 @@ found in the LICENSE file.
       view.tracingController = tracingController;
       view.focusElement = view;
       this.addHTMLOutput(undefined, view);
+
+      view.detach_();
     }
 
     /*
@@ -140,6 +142,16 @@ found in the LICENSE file.
         if (!this.wasBeginTracingCalledWithSystemTracingEnabled)
           return [];
         return systemTraceTestData;
+      },
+
+      set tracingEnabled(val) {
+        this.isTracingEnabled_ = val;
+      },
+
+      get isTracingEnabled() {
+        if (this.isTracingEnabled_ === undefined)
+          this.isTracingEnabled_ = false;
+        return this.isTracingEnabled_;
       }
     };
 
@@ -166,6 +178,8 @@ found in the LICENSE file.
       e.events = tracingController.traceEvents;
       tracingController.dispatchEvent(e);
       assertTrue(!!view.timelineView.model);
+
+      view.detach_();
     }
 
     function testSelectedCategoriesSentToTracing() {
@@ -190,6 +204,8 @@ found in the LICENSE file.
       var categories = tracingController.beginTracingCategories;
       // Renderer is disabled in settings, skia is clicked off.
       assertEquals('-renderer,-skia', categories);
+
+      view.detach_();
     }
 
     function testBadCategories() {
@@ -219,6 +235,8 @@ found in the LICENSE file.
 
       var categories = tracingController.beginTracingCategories;
       assertEquals('', categories);
+
+      view.detach_();
     }
 
     function testRecordNonCros() {
@@ -239,6 +257,83 @@ found in the LICENSE file.
       } finally {
         base.isChromeOS = old;
       }
+    }
+
+    function testRecordWithTraceRunning_KeyEvent() {
+      var view = new about_tracing.ProfilingView();
+      var tracingController = new FakeTracingController();
+      tracingController.tracingEnabled = true;
+      view.tracingController = tracingController;
+
+      var evt = document.createEvent('Event');
+      evt.initEvent('keypress',
+          true,  //  canBubbleArg
+          true,  //  cancelableArg
+          window);  //  viewArg
+      evt.keyCode = 'r'.charCodeAt(0);
+
+      document.dispatchEvent(evt);
+      assertFalse(tracingController.wasCollectCategoriesCalled);
+
+      view.detach_();
+    }
+
+    function testCategorySelectionWithTraceRunning_KeyEvent() {
+      var view = new about_tracing.ProfilingView();
+      var tracingController = new FakeTracingController();
+      view.tracingController = tracingController;
+      view.selectingCategories = true;
+
+      var evt = document.createEvent('Event');
+      evt.initEvent('keypress',
+          true,  //  canBubbleArg
+          true,  //  cancelableArg
+          window);  //  viewArg
+      evt.keyCode = 'r'.charCodeAt(0);
+
+      document.dispatchEvent(evt);
+      assertFalse(tracingController.wasCollectCategoriesCalled);
+
+      view.detach_();
+    }
+
+    function testCategorySelectionSetsSelectingCategories() {
+      var view = new about_tracing.ProfilingView();
+      var tracingController = new FakeTracingController();
+      view.tracingController = tracingController;
+      view.selectingCategories = false;
+
+      view.querySelector('button.record').click();
+      assertTrue(view.selectingCategories);
+
+      var e = new base.Event('categoriesCollected');
+      e.categories = ['skia', 'gpu', 'cc', 'renderer'];
+      tracingController.dispatchEvent(e);
+
+      view.recordSelectionDialog_.querySelector(
+          'button.record-categories').click();
+
+      assertFalse(view.selectingCategories);
+      view.detach_();
+    }
+
+    function testCategorySelectionResetsSelectingCategoriesOnDialogDismiss() {
+      var view = new about_tracing.ProfilingView();
+      var tracingController = new FakeTracingController();
+      view.tracingController = tracingController;
+      view.selectingCategories = false;
+
+      view.querySelector('button.record').click();
+      assertTrue(view.selectingCategories);
+
+      var e = new base.Event('categoriesCollected');
+      e.categories = ['skia', 'gpu', 'cc', 'renderer'];
+      tracingController.dispatchEvent(e);
+
+      view.recordSelectionDialog_.visible = false;
+
+      assertFalse(view.selectingCategories);
+      view.detach_();
     }
   </script>
 </body>
