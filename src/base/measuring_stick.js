@@ -34,7 +34,7 @@ base.exportTo('base', function() {
     attach: function() {
       var iframe = document.createElement('iframe');
       iframe.style.cssText =
-          'width:100%;height:0;border:0;visibility:hidden';
+          'position:absolute;width:100%;height:0;border:0;visibility:hidden';
       document.body.appendChild(iframe);
       this.iframe_ = iframe;
       this.iframe_.contentDocument.body.style.cssText =
