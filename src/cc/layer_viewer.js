@@ -6,6 +6,7 @@
 
 base.requireStylesheet('cc.layer_viewer');
 
+base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
@@ -131,7 +132,8 @@ base.exportTo('cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      webkitRequestAnimationFrame(this.updateContents_.bind(this));
+      base.requestAnimationFrameInThisFrameIfPossible(
+        this.updateContents_, this);
     },
 
     updateContents_: function() {

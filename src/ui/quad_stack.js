@@ -8,6 +8,7 @@ base.requireStylesheet('ui.quad_stack');
 
 base.require('base.bbox2');
 base.require('base.quad');
+base.require('base.raf');
 base.require('ui.quad_view');
 base.require('cc.region');
 
@@ -130,7 +131,15 @@ base.exportTo('ui', function() {
         delete child.pendingQuads;
       }
 
-      this.repaint_();
+      this.scheduleRepaint_();
+    },
+
+    scheduleRepaint_: function() {
+      if (this.repaintPending_)
+        return;
+      this.repaintPending_ = true;
+      base.requestAnimationFrameInThisFrameIfPossible(
+        this.repaint_, this);
     },
 
     repaint_: function() {

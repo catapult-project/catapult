@@ -6,6 +6,7 @@
 
 base.requireStylesheet('tracing.tracks.canvas_based_track');
 
+base.require('base.raf');
 base.require('tracing.tracks.track');
 base.require('tracing.fast_rect_renderer');
 base.require('tracing.color_scheme');
@@ -111,13 +112,15 @@ base.exportTo('tracing.tracks', function() {
     invalidate: function() {
       if (this.rafPending_)
         return;
-      webkitRequestAnimationFrame(function() {
+      base.requestPreAnimationFrame(function() {
         this.rafPending_ = false;
         if (!this.viewport_)
           return;
         this.updateCanvasSizeIfNeeded_();
-        this.redraw();
-      }.bind(this), this);
+        base.requestAnimationFrameInThisFrameIfPossible(function() {
+          this.redraw();
+        }, this);
+      }, this);
       this.rafPending_ = true;
     },
 
