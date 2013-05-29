@@ -190,8 +190,13 @@ base.exportTo('cc', function() {
           indentEl.textContent = indentEl.textContent + ' ';
 
         var labelEl = item.appendChild(ui.createSpan());
-        labelEl.textContent = layerInfo.name + ' ' +
-            layer.objectInstance.id;
+        var id;
+        if (layer.args.layerId !== undefined)
+          id = layer.args.layerId;
+        else
+          id = layer.objectInstance.id;
+        labelEl.textContent = layerInfo.name + ' ' + id;
+
 
         var notesEl = item.appendChild(ui.createSpan());
         if (layerInfo.isMaskLayer)
