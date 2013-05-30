@@ -99,7 +99,7 @@ Use --browser=list to figure out which are available.\n"""
     logging.warning('Some pages failed. The recording has not been updated for '
                     'these pages.')
     logging.warning('Failed pages:\n%s',
-                    '\n'.join(results.errors + results.failures))
+                    '\n'.join(zip(*results.errors + results.failures)[0]))
 
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '
