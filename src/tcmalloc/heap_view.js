@@ -92,7 +92,7 @@ base.exportTo('tcmalloc', function() {
           child.hidden = !child.hidden;
         }
       });
-        myItem.classList.add('collapsed');
+      myItem.classList.add('collapsed');
       // The empty trace name indicates that the allocations occurred at
       // this trace level, not in a sub-trace. This looks weird as the
       // empty string, so replace it with something non-empty and don't give
@@ -118,7 +118,7 @@ base.exportTo('tcmalloc', function() {
     getByteString_: function(bytes) {
       var mb = bytes / 1024 / 1024;
       return mb.toFixed(1) + ' MB';
-    },
+    }
   };
 
   tracing.analysis.ObjectSnapshotView.register(

@@ -39,7 +39,8 @@ base.exportTo('cc', function() {
 
       var saveButton = document.createElement('button');
       saveButton.textContent = 'Save SkPicture';
-      saveButton.addEventListener('click', this.onSaveAsSkPictureClicked_.bind(this));
+      saveButton.addEventListener(
+          'click', this.onSaveAsSkPictureClicked_.bind(this));
       this.controls_.appendChild(saveButton);
 
       this.dragHandle_ = new ui.DragHandle();
@@ -76,9 +77,8 @@ base.exportTo('cc', function() {
       link.download = this.filename_.value;
       var event = document.createEvent('MouseEvents');
       event.initMouseEvent(
-        'click', true, false, window, 0, 0, 0, 0, 0,
-        false, false, false, false, 0, null
-      );
+          'click', true, false, window, 0, 0, 0, 0, 0,
+          false, false, false, false, 0, null);
       link.dispatchEvent(event);
     },
 

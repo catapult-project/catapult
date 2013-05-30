@@ -118,7 +118,8 @@ base.exportTo('tracing', function() {
                                                     this.onResizeBoundToThis_);
       }
 
-      var curSize = this.parentEl_.clientWidth + 'x' + this.parentEl_.clientHeight;
+      var curSize = this.parentEl_.clientWidth + 'x' +
+          this.parentEl_.clientHeight;
       if (this.pendingSetFunction_) {
         this.lastSize_ = curSize;
         try {

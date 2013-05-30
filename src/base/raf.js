@@ -27,7 +27,7 @@ base.exportTo('base', function() {
       this.pendingPreAFs.callback.call(pendingPreAFs.context);
 
     currentRAFDispatchList = currentRAFs;
-    while(currentRAFDispatchList.length > 0) {
+    while (currentRAFDispatchList.length > 0) {
       var task = currentRAFDispatchList.shift();
       try {
         task.callback.call(task.context);
@@ -40,8 +40,9 @@ base.exportTo('base', function() {
 
   function requestPreAnimationFrame(callback, opt_this) {
     scheduleRAF();
-    pendingRAFs.push({callback: callback,
-                      context: opt_this || window});
+    pendingRAFs.push({
+      callback: callback,
+      context: opt_this || window});
   }
 
   function requestAnimationFrameInThisFrameIfPossible(callback, opt_this) {
@@ -49,15 +50,17 @@ base.exportTo('base', function() {
       requestAnimationFrame(callback, opt_this);
       return;
     }
-    currentRAFDispatchList.push({callback: callback,
-                                 context: opt_this || window});
+    currentRAFDispatchList.push({
+      callback: callback,
+      context: opt_this || window});
     return;
   }
 
   function requestAnimationFrame(callback, opt_this) {
     scheduleRAF();
-    pendingRAFs.push({callback: callback,
-                      context: opt_this || window});
+    pendingRAFs.push({
+      callback: callback,
+      context: opt_this || window});
   }
   return {
     requestPreAnimationFrame: requestPreAnimationFrame,
