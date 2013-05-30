@@ -15,6 +15,18 @@ base.require('cc.region');
 base.exportTo('ui', function() {
   var QuadView = ui.QuadView;
 
+  function lerp(a, b, interp) {
+    return (a * (1 - interp)) +
+        (b * interp);
+  }
+
+  function validateQuads(quads) {
+    for (var i = 0; i < quads.length; i++) {
+      if (quads[i].stackingGroupId === undefined)
+        throw new Error('All quads must have stackingGroupIds');
+    }
+  }
+
   /**
    * @constructor
    */
@@ -35,15 +47,25 @@ base.exportTo('ui', function() {
       this.onMouseUp_ = this.onMouseUp_.bind(this);
       this.addEventListener('mousedown', this.onMouseDown_);
 
-      this.rAF_ = null;
-      this.depth_ = 70;
-      this.cameraStart_ = {x: null, y: null};
-      this.rotations_ = {x: null, y: null};
-      this.rotationStart_ = {x: null, y: null};
+      this.cameraStart_ = {x: 0, y: 0};
+      this.rotations_ = {x: 0, y: 0};
+      this.rotationStart_ = {x: 0, y: 0};
       this.matrixParameters_ = {
-          strengthRatio: 0.7, // ratio of mousemove pixels to degrees rotated.
-          depthRatio: 1.0     // ratio of depth to depth pixels.
+        thicknessRatio: 0.012, // Ratio of thickness to world size.
+        strengthRatioX: 0.7, // Ratio of mousemove X pixels to degrees rotated.
+        strengthRatioY: 0.25 // Ratio of mousemove Y pixels to degrees rotated.
       };
+    },
+
+    setQuadsViewportAndDeviceViewportSize: function(
+        quads, viewport, deviceViewportSizeForFrame, opt_insideRAF) {
+      validateQuads(quads);
+      this.quads_ = quads;
+      this.viewport_ = viewport;
+      this.deviceViewportSizeForFrame_ = deviceViewportSizeForFrame;
+      this.updateContents_();
+      if (opt_insideRAF && this.repaintPending_)
+        this.repaint_();
     },
 
     get quads() {
@@ -51,10 +73,7 @@ base.exportTo('ui', function() {
     },
 
     set quads(quads) {
-      for (var i = 0; i < quads.length; i++) {
-        if (quads[i].stackingGroupId === undefined)
-          throw new Error('All quads must have stackingGroupIds');
-      }
+      validateQuads(quads);
       this.quads_ = quads;
       this.updateContents_();
     },
@@ -78,27 +97,20 @@ base.exportTo('ui', function() {
     },
 
     updateContents_: function() {
-      this.contentContainer_.textContent = '';
-
-      var that = this;
-      function appendNewQuadView() {
-        var quadView = new QuadView();
-        quadView.viewport = that.viewport_;
-        quadView.deviceViewportSizeForFrame = that.deviceViewportSizeForFrame_;
-        quadView.pendingQuads = [];
-        quadView.region = new cc.Region();
-        that.contentContainer_.appendChild(quadView);
-        return quadView;
+      var percX, percY;
+      if (this.viewport_) {
+        var layoutRect = this.viewport_.layoutRect;
+        percX = 100 * (Math.abs(layoutRect.x) / layoutRect.width);
+        percX = 100 * (Math.abs(layoutRect.y) / layoutRect.height);
+        this.style.width = layoutRect.width + 'px';
+        this.style.height = layoutRect.height + 'px';
+      } else {
+        percX = '50';
+        percY = '50';
       }
+      this.style.webkitPerspectiveOrigin = percX + '% ' + percY + '%';
 
-      // TODO(pdr): Remove me once the Quad Stack stabalizes.
-      // Set this conditional to true to disable the 3d view.
-      if (false) {
-        var qv = appendNewQuadView();
-        qv.quads = this.quads_;
-        return;
-      }
-
+      // Build the stacks.
       var stackingGroupsById = {};
       var quads = this.quads;
       for (var i = 0; i < quads.length; i++) {
@@ -108,6 +120,34 @@ base.exportTo('ui', function() {
         stackingGroupsById[quad.stackingGroupId].push(quad);
       }
 
+      // Get rid of old quad views if needed.
+      var numStackingGroups = base.dictionaryValues(stackingGroupsById).length;
+      while (this.contentContainer_.children.length > numStackingGroups) {
+        var n = this.contentContainer_.children.length - 1;
+        this.contentContainer_.removeChild(
+            this.contentContainer_.children[n]);
+      }
+
+      // Helper function to create a new quad view and track the current one.
+      var that = this;
+      var curQuadViewIndex = -1;
+      var curQuadView = undefined;
+      function appendNewQuadView() {
+        curQuadViewIndex++;
+        if (curQuadViewIndex < that.contentContainer_.children.length) {
+          curQuadView = that.contentContainer_.children[curQuadViewIndex];
+        } else {
+          curQuadView = new QuadView();
+          that.contentContainer_.appendChild(curQuadView);
+        }
+        curQuadView.quads = undefined;
+        curQuadView.viewport = that.viewport_;
+        curQuadView.pendingQuads = [];
+        curQuadView.region = new cc.Region();
+        return curQuadView;
+      }
+
+
       appendNewQuadView();
       for (var stackingGroupId in stackingGroupsById) {
         var stackingGroup = stackingGroupsById[stackingGroupId];
@@ -115,18 +155,23 @@ base.exportTo('ui', function() {
         stackingGroup.forEach(function(q) { bbox.addQuad(q); });
         var bboxRect = bbox.asRect();
 
-        var curView = this.contentContainer_.children[
-            this.contentContainer_.children.length - 1];
-        if (curView.region.rectIntersects(bboxRect))
-          curView = appendNewQuadView();
-        curView.region.rects.push(bboxRect);
+        if (curQuadView.region.rectIntersects(bboxRect))
+          appendNewQuadView();
+        curQuadView.region.rects.push(bboxRect);
         stackingGroup.forEach(function(q) {
-          curView.pendingQuads.push(q);
+          curQuadView.pendingQuads.push(q);
         });
       }
 
       for (var i = 0; i < this.contentContainer_.children.length; i++) {
         var child = this.contentContainer_.children[i];
+        if (i != this.contentContainer_.children.length - 1) {
+          child.deviceViewportSizeForFrame = undefined;
+        } else {
+          child.drawDeviceViewportMask = true;
+          child.deviceViewportSizeForFrame =
+              this.deviceViewportSizeForFrame_;
+        }
         child.quads = child.pendingQuads;
         delete child.pendingQuads;
       }
@@ -139,29 +184,50 @@ base.exportTo('ui', function() {
         return;
       this.repaintPending_ = true;
       base.requestAnimationFrameInThisFrameIfPossible(
-        this.repaint_, this);
+          this.repaint_, this);
     },
 
     repaint_: function() {
-      window.cancelAnimationFrame(this.rAF_);
-      var _this = this;
-      this.rAF_ = window.requestAnimationFrame(function(timestamp) {
-        // set depth of each layer appropriately spaced apart
-        var layers = _this.contentContainer_.children;
-        for (var i = 0, len = layers.length; i < len; i++) {
-          var layer = layers[i];
-          // translate out by the value of the depth, but center around 0
-          var newDepth = (_this.depth_ * (i - 0.5 * len)) *
-              _this.matrixParameters_.depthRatio;
-          layer.style.webkitTransform = 'translateZ(' + newDepth + 'px)';
-        }
+      if (!this.repaintPending_)
+        return;
+      this.repaintPending_ = false;
+      var layers = this.contentContainer_.children;
+      var numLayers = layers.length;
 
-        // set rotation matrix to whatever is stored
-        var transformString = '';
-        transformString += 'rotateX(' + _this.rotations_.x + 'deg)';
-        transformString += ' rotateY(' + _this.rotations_.y + 'deg)';
-        _this.contentContainer_.style.webkitTransform = transformString;
-      });
+      var vpThickness = this.matrixParameters_.thicknessRatio *
+          Math.min(this.viewport_.worldRect.width,
+                   this.viewport_.worldRect.height);
+      vpThickness = Math.max(vpThickness, 15);
+
+      // When viewing the stack head-on, we want no foreshortening effects. As
+      // we move off axis, let the thickness grow as well as the amount of
+      // perspective foreshortening.
+      var maxRotation = Math.max(Math.abs(this.rotations_.x),
+                                 Math.abs(this.rotations_.y));
+      var clampLimit = 30;
+      var clampedMaxRotation = Math.min(maxRotation, clampLimit);
+      var percentToClampLimit = clampedMaxRotation / clampLimit;
+      var persp = Math.pow(Math.E,
+                           lerp(Math.log(5000), Math.log(250),
+                                percentToClampLimit));
+      this.style.webkitPerspective = persp;
+      var effectiveThickness = vpThickness * percentToClampLimit;
+
+      // Set depth of each layer such that they center around 0.
+      var deepestLayerZ = -effectiveThickness * 0.5;
+      var depthIncreasePerLayer = effectiveThickness /
+          Math.max(1, numLayers - 1);
+      for (var i = 0; i < numLayers; i++) {
+        var layer = layers[i];
+        var newDepth = deepestLayerZ + i * depthIncreasePerLayer;
+        layer.style.webkitTransform = 'translateZ(' + newDepth + 'px)';
+      }
+
+      // Set rotation matrix to whatever is stored.
+      var transformString = '';
+      transformString += 'rotateX(' + this.rotations_.x + 'deg)';
+      transformString += ' rotateY(' + this.rotations_.y + 'deg)';
+      this.contentContainer_.style.webkitTransform = transformString;
     },
 
     updateCameraStart_: function(x, y) {
@@ -179,10 +245,10 @@ base.exportTo('ui', function() {
       // update new rotation matrix (note the parameter swap)
       // "strength" is ration between mouse dist and rotation amount.
       this.rotations_.x = this.rotationStart_.x + delta.y *
-          this.matrixParameters_.strengthRatio;
+          this.matrixParameters_.strengthRatioY;
       this.rotations_.y = this.rotationStart_.y + -delta.x *
-          this.matrixParameters_.strengthRatio;
-      this.repaint_();
+          this.matrixParameters_.strengthRatioX;
+      this.scheduleRepaint_();
     },
 
     onMouseDown_: function(e) {

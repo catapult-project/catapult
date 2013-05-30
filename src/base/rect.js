@@ -64,6 +64,15 @@ base.exportTo('base', function() {
           this.width + ', ' + this.height + ')';
     },
 
+    clone: function() {
+      var rect = new Rect();
+      rect.x = this.x;
+      rect.y = this.y;
+      rect.width = this.width;
+      rect.height = this.height;
+      return rect;
+    },
+
     enlarge: function(pad) {
       var rect = new Rect();
       this.enlargeFast(rect, pad);

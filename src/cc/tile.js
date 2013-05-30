@@ -27,7 +27,7 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
-    },
+    }
   };
 
   ObjectSnapshot.register('cc::Tile', TileSnapshot);

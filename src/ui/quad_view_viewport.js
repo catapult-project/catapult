@@ -8,14 +8,17 @@ base.require('base.range');
 base.require('base.event_target');
 
 base.exportTo('ui', function() {
+  var DEFAULT_PAD_PERCENTAGE = 0.75;
+
   function QuadViewViewport(bbox,
                             opt_scale,
-                            opt_dontPadBbox, opt_devicePixelRatio) {
+                            opt_padding, opt_devicePixelRatio) {
     base.EventTarget.call(this);
     if (bbox.isEmpty)
       throw new Error('Cannot initialize a viewport with an empty bbox');
 
-    this.setWorldBBox(bbox, opt_dontPadBbox);
+    this.layoutRect = undefined;
+    this.setWorldBBox(bbox, opt_padding);
 
     var devicePixelRatio;
     if (opt_devicePixelRatio)
@@ -59,23 +62,29 @@ base.exportTo('ui', function() {
       this.deviceHeight =
           this.worldRect.height * this.worldPixelsPerDevicePixel_;
 
-      this.layoutWidth = this.deviceWidth * this.devicePixelsPerLayoutPixel_;
-      this.layoutHeight = this.deviceHeight * this.devicePixelsPerLayoutPixel_;
+      this.layoutRect = base.Rect.FromXYWH(
+          this.worldRect.x * this.devicePixelsPerLayoutPixel_,
+          this.worldRect.y * this.devicePixelsPerLayoutPixel_,
+          this.deviceWidth * this.devicePixelsPerLayoutPixel_,
+          this.deviceHeight * this.devicePixelsPerLayoutPixel_);
+      this.effectiveWorldRect = this.worldRect.clone().scale(this.scale_);
 
       this.transformWorldToDevicePixels_ = mat2d.create();
       this.transformDevicePixelsToWorld_ = mat2d.create();
       this.updateTransform_();
     },
 
-    setWorldBBox: function(bbox, opt_dontPadBbox) {
+    setWorldBBox: function(bbox, opt_padding) {
       var worldRect = bbox.asRect();
       var worldPad;
-      if (opt_dontPadBbox) {
-        worldPad = 0;
+      var padding;
+      if (opt_padding !== undefined) {
+        padding = opt_padding;
       } else {
-        worldPad = Math.min(worldRect.width,
-            worldRect.height) * 0.10;
+        padding = DEFAULT_PAD_PERCENTAGE;
       }
+      worldPad = Math.min(worldRect.width,
+                          worldRect.height) * padding;
 
       worldRect = worldRect.enlarge(worldPad);
       this.worldRect = worldRect;

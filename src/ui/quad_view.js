@@ -7,6 +7,7 @@
 base.requireStylesheet('ui.quad_view');
 
 base.require('base.color');
+base.require('base.raf');
 base.require('ui');
 base.require('ui.quad_view_viewport');
 
@@ -63,6 +64,7 @@ base.exportTo('ui', function() {
       this.quads_ = undefined;
       this.viewport_ = undefined;
       this.deviceViewportSizeForFrame_ = undefined;
+      this.drawDeviceViewportMask_ = false;
       this.canvas_ = document.createElement('canvas');
 
       this.appendChild(this.canvas_);
@@ -141,6 +143,19 @@ base.exportTo('ui', function() {
       this.updateChildren_();
     },
 
+    get drawDeviceViewportMask() {
+      return this.drawDeviceViewportMask_;
+    },
+
+    /**
+     * When true, darkens the canvas outside of the viewport in order to
+     * make waht is inside vs outside the viewport more obvious.
+     */
+    set drawDeviceViewportMask(draw) {
+      this.drawDeviceViewportMask_ = draw;
+      this.updateChildren_();
+    },
+
     get hasRequiredProprties_() {
       return this.quads_ &&
           this.viewport_;
@@ -154,14 +169,15 @@ base.exportTo('ui', function() {
         return;
       }
 
-      this.redrawCanvas_();
+      this.scheduleRedrawCanvas_();
     },
 
     scheduleRedrawCanvas_: function() {
       if (this.redrawScheduled_)
         return false;
       this.redrawScheduled_ = true;
-      window.webkitRequestAnimationFrame(this.redrawCanvas_.bind(this));
+      base.requestAnimationFrameInThisFrameIfPossible(
+          this.redrawCanvas_, this);
     },
 
     redrawCanvas_: function() {
@@ -169,11 +185,11 @@ base.exportTo('ui', function() {
 
       if (this.canvas_.width != this.viewport_.deviceWidth) {
         this.canvas_.width = this.viewport_.deviceWidth;
-        this.canvas_.style.width = this.viewport_.layoutWidth + 'px';
+        this.canvas_.style.width = this.viewport_.layoutRect.width + 'px';
       }
       if (this.canvas_.height != this.viewport_.deviceHeight) {
         this.canvas_.height = this.viewport_.deviceHeight;
-        this.canvas_.style.height = this.viewport_.layoutHeight + 'px';
+        this.canvas_.style.height = this.viewport_.layoutRect.height + 'px';
       }
 
       var ctx = this.canvas_.getContext('2d');
@@ -188,7 +204,7 @@ base.exportTo('ui', function() {
       vp.applyTransformToContext(ctx);
       ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(1.0);
 
-      var quads = this.quads_;
+      var quads = this.quads_ || [];
 
       // Background colors.
       for (var i = 0; i < quads.length; i++) {
@@ -270,6 +286,33 @@ base.exportTo('ui', function() {
       }
 
       if (this.deviceViewportSizeForFrame_) {
+        if (this.drawDeviceViewportMask_) {
+          var vW = this.deviceViewportSizeForFrame_.width;
+          var vH = this.deviceViewportSizeForFrame_.height;
+
+          ctx.fillStyle = 'rgba(0,0,0,0.2)';
+
+          // Cover above and below the viewoprt with dark grey.
+          ctx.fillRect(vp.worldRect.x,
+                       vp.worldRect.y,
+                       vp.worldRect.width,
+                       -vp.worldRect.y);
+          ctx.fillRect(vp.worldRect.x,
+                       vH,
+                       vp.worldRect.width,
+                       vp.worldRect.height - vH);
+
+          // Cover left and right of the viewoprt with dark grey.
+          ctx.fillRect(vp.worldRect.x,
+                       0,
+                       -vp.worldRect.x,
+                       vH);
+          ctx.fillRect(vW,
+                       0,
+                       vp.worldRect.width - vW,
+                       vH);
+        }
+
         ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
         ctx.strokeStyle = 'rgba(0,0,255,1)';
         ctx.strokeRect(0,

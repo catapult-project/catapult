@@ -4,9 +4,10 @@
  */
 
 quad-stack {
-  position: relative;
+  display: block;
   outline: none;
   overflow: scroll;
+  position: relative;
   z-index: 10; /* cause our scrollbars to render above our children. */
 }
 

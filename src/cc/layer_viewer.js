@@ -58,8 +58,8 @@ base.exportTo('cc', function() {
            {label: '100%', value: 1},
            {label: '200%', value: 2}
           ]);
-      scaleSelector.selectedIndex = 3;
-      this.scale_ = 0.5;
+      scaleSelector.selectedIndex = 2;
+      this.scale_ = 0.2;
       this.controls_.appendChild(scaleSelector);
 
       this.showOtherLayers_ = true;
@@ -133,7 +133,7 @@ base.exportTo('cc', function() {
         return;
       this.updateContentsPending_ = true;
       base.requestAnimationFrameInThisFrameIfPossible(
-        this.updateContents_, this);
+          this.updateContents_, this);
     },
 
     updateContents_: function() {
@@ -241,10 +241,10 @@ base.exportTo('cc', function() {
         quads.push(quadForDrawing);
       }
 
-      this.quadStack_.quads = quads;
-      this.quadStack_.viewport = new ui.QuadViewViewport(
+      var viewport = new ui.QuadViewViewport(
           lthiInstance.allLayersBBox, this.scale_);
-      this.quadStack_.deviceViewportSizeForFrame = lthi.deviceViewportSize;
+      this.quadStack_.setQuadsViewportAndDeviceViewportSize(
+          quads, viewport, lthi.deviceViewportSize, true);
     }
   };
 

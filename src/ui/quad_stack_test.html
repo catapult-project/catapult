@@ -23,7 +23,7 @@ found in the LICENSE file.
     var quads = [
       Quad.FromXYWH(0, -100, 100, 400),
       Quad.FromXYWH(0, 0, 100, 25),
-      Quad.FromXYWH(0, 0, 10, 100)
+      Quad.FromXYWH(100, 0, 10, 100)
     ];
     quads[0].stackingGroupId = 0;
     quads[1].stackingGroupId = 1;
@@ -34,8 +34,9 @@ found in the LICENSE file.
 
     var stack = new QuadStack();
     stack.quads = quads;
-    stack.viewport = new ui.QuadViewViewport(quadsBbox, 1.0);
-    stack.deviceViewportSizeForFrame = {deviceWidth: 100, deviceHeight: 100};
+    stack.viewport = new ui.QuadViewViewport(quadsBbox, 0.5);
+    stack.deviceViewportSizeForFrame = {width: 100, height: 100};
+    stack.style.border = '1px solid black';
 
     this.addHTMLOutput(undefined, stack);
   }
