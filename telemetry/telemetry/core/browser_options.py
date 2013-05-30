@@ -28,6 +28,7 @@ class BrowserOptions(optparse.Values):
     # will not provide an alternate profile directory.
     self.dont_override_profile = False
     self.profile_dir = None
+    self.profile_type = None
     self.extra_browser_args = []
     self.extra_wpr_args = []
     self.show_stdout = False
