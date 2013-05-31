@@ -26,8 +26,6 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.lthi_ = undefined;
-      this.whichTree_ = constants.ACTIVE_TREE;
-
       this.controls_ = document.createElement('top-controls');
 
 
@@ -50,6 +48,7 @@ base.exportTo('cc', function() {
 
       this.controls_.appendChild(ui.createSelector(
           this, 'whichTree',
+          'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
            {label: 'Pending tree', value: constants.PENDING_TREE}]));
 
@@ -174,8 +173,12 @@ base.exportTo('cc', function() {
     },
 
     updateContentsInner_: function() {
-      this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
-          this.lthiSnapshot_.objectInstance.id;
+      if (this.lthiSnapshot_) {
+        this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
+            this.lthiSnapshot_.objectInstance.id;
+      } else {
+        this.titleEl_.textContent = '<no tree chosen>';
+      }
 
       this.layerList_.clear();
 

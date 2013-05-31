@@ -7,6 +7,7 @@
 base.requireStylesheet('cc.layer_viewer');
 
 base.require('base.raf');
+base.require('base.settings');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
@@ -48,19 +49,18 @@ base.exportTo('cc', function() {
       this.warningEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.warningEL_.textContent = '';
 
-      this.scale_ = 0.0625;
       var scaleSelector = ui.createSelector(
           this, 'scale',
+          'layerViewer.scale', 0.375,
           [{label: '6.25%', value: 0.0625},
            {label: '12.5%', value: 0.125},
            {label: '25%', value: 0.25},
+           {label: '37.5%', value: 0.375},
            {label: '50%', value: 0.5},
            {label: '75%', value: 0.75},
            {label: '100%', value: 1},
            {label: '200%', value: 2}
           ]);
-      scaleSelector.selectedIndex = 2;
-      this.scale_ = 0.2;
       this.controls_.appendChild(scaleSelector);
 
       this.showOtherLayers_ = true;
@@ -94,6 +94,7 @@ base.exportTo('cc', function() {
 
     set scale(scale) {
       this.scale_ = scale;
+      base.Settings.set('layer_viewer.scale', this.scale_, 'cc');
       this.scheduleUpdateContents_();
     },
 

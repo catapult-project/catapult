@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('ui');
+base.require('base.settings');
 
 base.exportTo('ui', function() {
 
@@ -15,22 +16,68 @@ base.exportTo('ui', function() {
     return spanEl;
   };
 
-  function createSelector(targetEl, targetElProperty,
-                          items) {
+  function createSelector(
+      targetEl, targetElProperty,
+      settingsKey, defaultValue,
+      items) {
+    var defaultValueIndex;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (item.value == defaultValue) {
+        defaultValueIndex = i;
+        break;
+      }
+    }
+    if (defaultValueIndex === undefined)
+      throw new Error('defaultValue must be in the items list');
+
     var selectorEl = document.createElement('select');
     selectorEl.addEventListener('change', onChange);
-    items.forEach(function(item) {
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
       var optionEl = document.createElement('option');
       optionEl.textContent = item.label;
       optionEl.targetPropertyValue = item.value;
       selectorEl.appendChild(optionEl);
-    });
-    function onChange(e) {
-      targetEl[targetElProperty] =
-          selectorEl.selectedOptions[0].targetPropertyValue;
     }
-    if (targetEl[targetElProperty] != items[0].value)
-      throw new Error('Target class is not yet at the default state');
+    function onChange(e) {
+      var value = selectorEl.selectedOptions[0].targetPropertyValue;
+      base.Settings.set(settingsKey, value);
+      targetEl[targetElProperty] = value;
+    }
+    var oldSetter = targetEl.__lookupSetter__('selectedIndex')
+    selectorEl.__defineGetter__('selectedValue', function(v) {
+      return selectorEl.children[selectorEl.selectedIndex].targetPropertyValue;
+    });
+    selectorEl.__defineSetter__('selectedValue', function(v) {
+      for (var i = 0; i < selectorEl.children.length; i++) {
+        var value = selectorEl.children[i].targetPropertyValue;
+        if (value == v) {
+          selectorEl.selectedIndex = i;
+          onChange();
+          return;
+        }
+      }
+      throw new Error('Not a valid value');
+    });
+
+    var initialValue = base.Settings.get(settingsKey, defaultValue);
+    if (typeof defaultValue == 'number')
+      initialValue = parseFloat(initialValue);
+    var didSet = false;
+    for (var i = 0; i < selectorEl.children.length; i++) {
+      if (selectorEl.children[i].targetPropertyValue == initialValue) {
+        didSet = true;
+        targetEl[targetElProperty] = initialValue;
+        selectorEl.selectedIndex = i;
+        break;
+      }
+    }
+    if (!didSet) {
+      selectorEl.selectedIndex = defaultValueIndex;
+      targetEl[targetElProperty] = defaultValue;
+    }
+
     return selectorEl;
   }
 
