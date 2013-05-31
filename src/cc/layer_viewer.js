@@ -235,7 +235,7 @@ base.exportTo('cc', function() {
             this.highlightedTile_.args.pendingPriority;
         var quad = priority.currentScreenQuad;
         var quadForDrawing = quad.clone();
-        quadForDrawing.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+        quadForDrawing.backgroundColor = 'rgba(0, 255, 0, 0.7)';
         quadForDrawing.borderColor = 'rgba(0, 255, 0, 1)';
         quadForDrawing.stackingGroupId = i;
         quads.push(quadForDrawing);
