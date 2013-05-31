@@ -23,7 +23,7 @@ base.exportTo('base', function() {
     var currentRAFs = pendingRAFs;
     pendingPreAFs = [];
     pendingRAFs = [];
-    for (var i = 0; i < this.pendingPreAFs; i++)
+    for (var i = 0; i < pendingPreAFs; i++)
       this.pendingPreAFs.callback.call(pendingPreAFs.context);
 
     currentRAFDispatchList = currentRAFs;
