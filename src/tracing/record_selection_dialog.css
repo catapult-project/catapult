@@ -4,10 +4,8 @@
  */
 
 .record-selection-dialog {
-  max-height: 500px;
-  min-width: 400px;
-  overflow-y: auto;
   padding: 20px;
+  padding-top: 0;
 }
 
 .record-selection-dialog .default-enabled-categories {
@@ -28,6 +26,9 @@
 .record-selection-dialog form {
   display: inline-block;
   margin-bottom: 5px;
+  max-height: 450px;
+  min-width: 450px;
+  overflow-y: auto;
 }
 
 .record-selection-dialog .options {
