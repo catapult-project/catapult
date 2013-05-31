@@ -32,7 +32,10 @@ base.exportTo('base', function() {
       try {
         task.callback.call(task.context);
       } catch (e) {
-        console.error(e);
+        if (e.message)
+          console.error(e.message, e.stack);
+        else
+          console.error(e);
       }
     }
     currentRAFDispatchList = undefined;
