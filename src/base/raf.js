@@ -17,33 +17,35 @@ base.exportTo('base', function() {
     window.webkitRequestAnimationFrame(processRequests);
   }
 
+  function runTask(task) {
+    try {
+      task.callback.call(task.context);
+    } catch (e) {
+      if (e.message)
+        console.error(e.message, e.stack);
+      else
+        console.error(e);
+    }
+  }
+
   function processRequests() {
     rafScheduled = false;
+
     var currentPreAFs = pendingPreAFs;
-    var currentRAFs = pendingRAFs;
+    currentRAFDispatchList = pendingRAFs;
     pendingPreAFs = [];
     pendingRAFs = [];
-    for (var i = 0; i < pendingPreAFs; i++)
-      this.pendingPreAFs.callback.call(pendingPreAFs.context);
+    for (var i = 0; i < currentPreAFs.length; i++)
+      runTask(currentPreAFs[i]);
 
-    currentRAFDispatchList = currentRAFs;
-    while (currentRAFDispatchList.length > 0) {
-      var task = currentRAFDispatchList.shift();
-      try {
-        task.callback.call(task.context);
-      } catch (e) {
-        if (e.message)
-          console.error(e.message, e.stack);
-        else
-          console.error(e);
-      }
-    }
+    while (currentRAFDispatchList.length > 0)
+      runTask(currentRAFDispatchList.shift());
     currentRAFDispatchList = undefined;
   }
 
   function requestPreAnimationFrame(callback, opt_this) {
     scheduleRAF();
-    pendingRAFs.push({
+    pendingPreAFs.push({
       callback: callback,
       context: opt_this || window});
   }
