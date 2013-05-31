@@ -16,10 +16,6 @@
   -webkit-flex: 0 0 auto;
 }
 
-.lthi-s-view > layer-context-viewer {
-  -webkit-flex: 1 0 auto;
-}
-
 .lthi-s-view > layer-viewer {
   -webkit-flex: 1 0 auto;
 }
