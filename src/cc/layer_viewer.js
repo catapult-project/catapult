@@ -72,17 +72,23 @@ base.exportTo('cc', function() {
 
       this.showOtherLayers_ = true;
       var showOtherLayersCheckbox = ui.createCheckBox(
-          this, 'showOtherLayers', 'Show other layers');
+          this, 'showOtherLayers',
+          'layerViewer.showOtherLayers', true,
+          'Show other layers');
       this.controls_.appendChild(showOtherLayersCheckbox);
 
       this.showInvalidations_ = true;
       var showInvalidationsCheckbox = ui.createCheckBox(
-          this, 'showInvalidations', 'Show invalidations');
+          this, 'showInvalidations',
+          'layerViewer.showInvalidations', true,
+          'Show invalidations');
       this.controls_.appendChild(showInvalidationsCheckbox);
 
       this.showContents_ = true;
       var showContentsCheckbox = ui.createCheckBox(
-          this, 'showContents', 'Show contents');
+          this, 'showContents',
+          'layerViewer.showContents', true,
+          'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
     },
 

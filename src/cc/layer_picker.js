@@ -54,7 +54,9 @@ base.exportTo('cc', function() {
 
       this.hidePureTransformLayers_ = true;
       this.controls_.appendChild(ui.createCheckBox(
-          this, 'hidePureTransformLayers', 'Hide transform layers'));
+          this, 'hidePureTransformLayers',
+          'layerPicker.hideTransformLayers', true,
+          'Hide transform layers'));
     },
 
     get lthiSnapshot() {
