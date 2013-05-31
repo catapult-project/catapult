@@ -477,7 +477,7 @@ base.exportTo('tracing.importer', function() {
       for (var i = 0; i < allObjectEvents.length; i++) {
         var objectEventState = allObjectEvents[i];
         try {
-          processEvent(objectEventState);
+          processEvent.call(this, objectEventState);
         } catch (e) {
           this.model_.importErrors.push(e.message);
         }
