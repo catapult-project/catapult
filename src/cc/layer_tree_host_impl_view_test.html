@@ -27,7 +27,7 @@ found in the LICENSE file.
     var LayerTreeHostImplSnapshotView = cc.LayerTreeHostImplSnapshotView;
 
     function testBasic() {
-      var m = new tracing.TraceModel([g_catLTHIEvent]);
+      var m = new tracing.TraceModel(g_catLTHIEvents);
       var p = base.dictionaryValues(m.processes)[0];
 
       var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];

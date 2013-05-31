@@ -23,13 +23,12 @@ found in the LICENSE file.
     var TileSnapshot = cc.TileSnapshot;
 
     function testBasic() {
-      var m = new tracing.TraceModel([g_catLTHIEvent]);
+      var m = new tracing.TraceModel(g_catLTHIEvents);
       var p = base.dictionaryValues(m.processes)[0];
       var instance = p.objects.getAllInstancesNamed('cc::Tile')[0];
       var snapshot = instance.snapshots[0];
 
       assertTrue(snapshot instanceof TileSnapshot);
-      instance.wasDeleted(150);
     }
   </script>
 </body>

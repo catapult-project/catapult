@@ -23,14 +23,13 @@ found in the LICENSE file.
     var LayerTreeHostImplInstance = cc.LayerTreeHostImplInstance;
 
     function testBasic() {
-      var m = new tracing.TraceModel([g_catLTHIEvent]);
+      var m = new tracing.TraceModel(g_catLTHIEvents);
       var p = base.dictionaryValues(m.processes)[0];
 
       var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
       var snapshot = instance.snapshots[0];
 
       assertTrue(snapshot instanceof LayerTreeHostImplSnapshot);
-      instance.wasDeleted(150);
     }
   </script>
 </body>
