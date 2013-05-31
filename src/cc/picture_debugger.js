@@ -9,7 +9,9 @@ base.requireStylesheet('cc.picture_debugger');
 base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
+base.require('ui.info_bar');
 base.require('ui.list_view');
+base.require('ui.overlay');
 
 base.exportTo('cc', function() {
 
@@ -26,6 +28,7 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.controls_ = document.createElement('top-controls');
+      this.infoBar_ = new ui.InfoBar();
       this.pictureDataView_ = new tracing.analysis.GenericObjectView();
 
       this.rasterResult_ = document.createElement('raster-result');
@@ -50,6 +53,7 @@ base.exportTo('cc', function() {
       this.appendChild(this.pictureDataView_);
       this.appendChild(this.dragHandle_);
       this.rasterArea_.appendChild(this.controls_);
+      this.rasterArea_.appendChild(this.infoBar_);
       this.rasterArea_.appendChild(this.rasterResult_);
       this.appendChild(this.rasterArea_);
 
@@ -103,11 +107,24 @@ base.exportTo('cc', function() {
 
       if (!this.picture_)
         return;
+      this.infoBar_.visible = false;
+      this.infoBar_.removeAllButtons();
 
       if (!this.picture_.image) {
         this.style.backgroundImage = '';
-        this.picture_.beginRenderingImage(
-            this.scheduleUpdateContents_.bind(this));
+        if (!cc.PictureSnapshot.CanRasterize()) {
+          this.infoBar_.message = 'Cannot rasterize...';
+          this.infoBar_.addButton('More info...', function() {
+            var overlay = new ui.Overlay();
+            overlay.textContent = cc.PictureSnapshot.HowToEnableRasterizing();
+            overlay.visible = true;
+            overlay.autoClose = true;
+          });
+          this.infoBar_.visible = true;
+        } else {
+          this.picture_.beginRenderingImage(
+              this.scheduleUpdateContents_.bind(this));
+        }
       } else {
         this.rasterArea_.style.backgroundImage = 'url("' +
             this.picture_.image.src + '")';
