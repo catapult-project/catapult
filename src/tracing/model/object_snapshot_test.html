@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('tracing.model.object_instance');
+  base.require('tracing.model.object_snapshot');
+</script>
+<script>
+  'use strict';
+
+  function testSnapshotTypeRegistry() {
+    function MySnapshot() {
+      tracing.model.ObjectSnapshot.apply(this, arguments);
+      this.myFoo = this.args.foo;
+    }
+    MySnapshot.prototype = {
+      __proto__: tracing.model.ObjectSnapshot.prototype
+    };
+
+    var instance = new tracing.model.ObjectInstance(
+      {}, '0x1000', 'cat', 'MySnapshot', 10);
+    try {
+      tracing.model.ObjectSnapshot.register('MySnapshot', MySnapshot);
+      var snapshot = instance.addSnapshot(15, {foo: 'bar'});
+      assertTrue(snapshot instanceof MySnapshot);
+      assertEquals('bar', snapshot.myFoo);
+    } finally {
+      tracing.model.ObjectSnapshot.unregister('MySnapshot');
+    }
+  }
+
+</script>
+</body>
+</html>

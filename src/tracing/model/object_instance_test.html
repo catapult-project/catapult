@@ -73,27 +73,6 @@ found in the LICENSE file.
     assertEquals(s15, instance.getSnapshotAt(20));
   }
 
-  function testSnapshotTypeRegistry() {
-    function MySnapshot() {
-      tracing.model.ObjectSnapshot.apply(this, arguments);
-      this.myFoo = this.args.foo;
-    }
-    MySnapshot.prototype = {
-      __proto__: tracing.model.ObjectSnapshot.prototype
-    };
-
-    var instance = new tracing.model.ObjectInstance(
-      {}, '0x1000', 'cat', 'MySnapshot', 10);
-    try {
-      tracing.model.ObjectSnapshot.register('MySnapshot', MySnapshot);
-      var snapshot = instance.addSnapshot(15, {foo: 'bar'});
-      assertTrue(snapshot instanceof MySnapshot);
-      assertEquals('bar', snapshot.myFoo);
-    } finally {
-      tracing.model.ObjectSnapshot.unregister('MySnapshot');
-    }
-  }
-
 </script>
 </body>
 </html>
