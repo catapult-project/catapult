@@ -9,6 +9,7 @@ base.requireStylesheet('cc.layer_tree_host_impl_view');
 base.require('cc.layer_tree_host_impl');
 base.require('cc.layer_picker');
 base.require('cc.layer_viewer');
+base.require('cc.tile');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('ui.drag_handle');
 
@@ -53,6 +54,8 @@ base.exportTo('cc', function() {
     },
 
     set highlightedTile(tileSnapshot) {
+      if (!(tileSnapshot instanceof cc.TileSnapshot))
+        throw new Error('Not a tile');
       this.layerViewer_.highlightedTile = tileSnapshot;
     }
   };
