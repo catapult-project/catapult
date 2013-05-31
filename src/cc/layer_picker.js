@@ -11,6 +11,7 @@ base.require('cc.layer_tree_host_impl');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
 base.require('ui.list_view');
+base.require('ui.dom_helpers');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;

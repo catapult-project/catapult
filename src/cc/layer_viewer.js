@@ -12,6 +12,7 @@ base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
 base.require('tracing.analysis.util');
 base.require('ui.quad_stack');
+base.require('ui.dom_helpers');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
