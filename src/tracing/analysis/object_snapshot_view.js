@@ -45,6 +45,12 @@ base.exportTo('tracing.analysis', function() {
     };
   };
 
+  ObjectSnapshotView.unregister = function(typeName) {
+    if (ObjectSnapshotView.typeNameToViewInfoMap[typeName] === undefined)
+      throw new Error(typeName + ' not registered');
+    delete ObjectSnapshotView.typeNameToViewInfoMap[typeName];
+  };
+
   ObjectSnapshotView.getViewInfo = function(typeName) {
     return ObjectSnapshotView.typeNameToViewInfoMap[typeName];
   };

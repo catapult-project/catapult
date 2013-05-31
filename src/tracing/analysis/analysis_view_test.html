@@ -54,27 +54,32 @@ found in the LICENSE file.
       this.addHTMLOutput(undefined, analysisEl);
     }
 
+    function withRegisteredType(registrar, typeName,
+                                typeConstructor, opt_options, fn) {
+      registrar.register(typeName, typeConstructor, opt_options);
+      try {
+        fn();
+      } finally {
+        registrar.unregister(typeName);
+      }
+    }
+
     function testAnalyzeSelectionWithObjectSnapshotUnknownType() {
-      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+      var i10 = new ObjectInstance(
+          {}, '0x1000', 'cat', 'someUnhandledName', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
 
       var selection = new tracing.Selection();
       selection.addObjectSnapshot({}, s10);
 
       var view = new AnalysisView();
-      view.snapshotViewRegistry = {
-        getViewInfo: function(typeName) {
-          return undefined;
-        }
-      };
-
       view.selection = selection;
       assertTrue(view.currentView instanceof DefaultObjectSnapshotView);
       assertEquals(s10, view.currentView.objectSnapshot);
     }
 
     function testAnalyzeSelectionWithObjectSnapshotKnownType() {
-      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'MyView', 10);
       var s10 = i10.addSnapshot(10, {foo: 1});
 
       var selection = new tracing.Selection();
@@ -93,39 +98,31 @@ found in the LICENSE file.
       };
 
       var view = new AnalysisView();
-      view.snapshotViewRegistry = {
-        getViewInfo: function(typeName) {
-          if (typeName == 'name')
-            return {constructor: MyView};
-        }
-      };
-
-      view.selection = selection;
-      assertTrue(view.currentView instanceof MyView);
-      assertEquals(s10, view.currentView.objectSnapshot);
-      assertEquals('hello', view.currentView.textContent);
+      withRegisteredType(
+          tracing.analysis.ObjectSnapshotView, 'MyView', MyView, undefined,
+          function() {
+            view.selection = selection;
+            assertTrue(view.currentView instanceof MyView);
+            assertEquals(s10, view.currentView.objectSnapshot);
+            assertEquals('hello', view.currentView.textContent);
+          });
     }
 
     function testAnalyzeSelectionWithObjectInstanceUnknownType() {
-      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+      var i10 = new ObjectInstance(
+          {}, '0x1000', 'cat', 'someUnhandledName', 10);
 
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
 
       var view = new AnalysisView();
-      view.instanceViewRegistry = {
-        getViewInfo: function(typeName) {
-          return undefined;
-        }
-      };
-
       view.selection = selection;
       assertTrue(view.currentView instanceof DefaultObjectInstanceView);
       assertEquals(i10, view.currentView.objectInstance);
     }
 
     function testAnalyzeSelectionWithObjectInstanceKnownType() {
-      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'name', 10);
+      var i10 = new ObjectInstance({}, '0x1000', 'cat', 'MyView', 10);
 
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
@@ -143,17 +140,14 @@ found in the LICENSE file.
       };
 
       var view = new AnalysisView();
-      view.instanceViewRegistry = {
-        getViewInfo: function(typeName) {
-          if (typeName == 'name')
-            return {constructor: MyView};
-        }
-      };
-
-      view.selection = selection;
-      assertTrue(view.currentView instanceof MyView);
-      assertEquals(i10, view.currentView.objectInstance);
-      assertEquals('hello', view.currentView.textContent);
+      withRegisteredType(
+          tracing.analysis.ObjectInstanceView,
+          'MyView', MyView, undefined, function() {
+            view.selection = selection;
+            assertTrue(view.currentView instanceof MyView);
+            assertEquals(i10, view.currentView.objectInstance);
+            assertEquals('hello', view.currentView.textContent);
+          });
     }
   </script>
 </body>

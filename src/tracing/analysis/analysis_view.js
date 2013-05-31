@@ -26,8 +26,6 @@ base.exportTo('tracing.analysis', function() {
 
     decorate: function() {
       this.className = 'analysis-view';
-      this.snapshotViewRegistry = tracing.analysis.ObjectSnapshotView;
-      this.instanceViewRegistry = tracing.analysis.ObjectInstanceView;
 
       this.currentView_ = undefined;
       this.currentSelection_ = undefined;
@@ -103,7 +101,7 @@ base.exportTo('tracing.analysis', function() {
           hitsByType.counterSamples.length == 0) {
         if (hitsByType.objectSnapshots.length == 1) {
           var snapshot = hitsByType.objectSnapshots[0].objectSnapshot;
-          var viewInfo = this.snapshotViewRegistry.getViewInfo(
+          var viewInfo = tracing.analysis.ObjectSnapshotView.getViewInfo(
               snapshot.objectInstance.typeName);
 
           var viewConstructor;
@@ -119,7 +117,7 @@ base.exportTo('tracing.analysis', function() {
 
         if (hitsByType.objectInstances.length == 1) {
           var instance = hitsByType.objectInstances[0].objectInstance;
-          var viewInfo = this.instanceViewRegistry.getViewInfo(
+          var viewInfo = tracing.analysis.ObjectInstanceView.getViewInfo(
               instance.typeName);
 
           var viewConstructor;
