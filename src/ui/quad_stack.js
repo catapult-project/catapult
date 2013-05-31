@@ -199,9 +199,14 @@ base.exportTo('ui', function() {
       var layers = this.contentContainer_.children;
       var numLayers = layers.length;
 
-      var vpThickness = this.matrixParameters_.thicknessRatio *
-          Math.min(this.viewport_.worldRect.width,
-                   this.viewport_.worldRect.height);
+      var vpThickness;
+      if (this.viewport_) {
+        vpThickness = this.matrixParameters_.thicknessRatio *
+            Math.min(this.viewport_.worldRect.width,
+                     this.viewport_.worldRect.height);
+      } else {
+        vpThickness = 0;
+      }
       vpThickness = Math.max(vpThickness, 15);
 
       // When viewing the stack head-on, we want no foreshortening effects. As
