@@ -208,7 +208,7 @@ base.exportTo('ui', function() {
       var clampedMaxRotation = Math.min(maxRotation, clampLimit);
       var percentToClampLimit = clampedMaxRotation / clampLimit;
       var persp = Math.pow(Math.E,
-                           lerp(Math.log(5000), Math.log(250),
+                           lerp(Math.log(5000), Math.log(500),
                                 percentToClampLimit));
       this.style.webkitPerspective = persp;
       var effectiveThickness = vpThickness * percentToClampLimit;
