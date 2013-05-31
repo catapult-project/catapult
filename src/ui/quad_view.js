@@ -210,26 +210,31 @@ base.exportTo('ui', function() {
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
         if (quad.backgroundImage) {
-          ctx.save();
-
-          var quadBBox = new base.BBox2();
-          quadBBox.addQuad(quad);
-
-          var iw = quad.backgroundImage.width;
-          var ih = quad.backgroundImage.height;
-          drawTexturedTriangle(
-              ctx, quad.backgroundImage,
-              quad.p1[0], quad.p1[1],
-              quad.p2[0], quad.p2[1],
-              quad.p4[0], quad.p4[1],
-              0, 0, iw, 0, 0, ih);
-          drawTexturedTriangle(
-              ctx, quad.backgroundImage,
-              quad.p2[0], quad.p2[1],
-              quad.p3[0], quad.p3[1],
-              quad.p4[0], quad.p4[1],
-              iw, 0, iw, ih, 0, ih);
-          ctx.restore();
+          if (quad.isRectangle()) {
+            var bounds = quad.boundingRect();
+            ctx.drawImage(quad.backgroundImage, 0, 0,
+                quad.backgroundImage.width, quad.backgroundImage.height,
+                bounds.x, bounds.y, bounds.width, bounds.height);
+          } else {
+            ctx.save();
+            var quadBBox = new base.BBox2();
+            quadBBox.addQuad(quad);
+            var iw = quad.backgroundImage.width;
+            var ih = quad.backgroundImage.height;
+            drawTexturedTriangle(
+                ctx, quad.backgroundImage,
+                quad.p1[0], quad.p1[1],
+                quad.p2[0], quad.p2[1],
+                quad.p4[0], quad.p4[1],
+                0, 0, iw, 0, 0, ih);
+            drawTexturedTriangle(
+                ctx, quad.backgroundImage,
+                quad.p2[0], quad.p2[1],
+                quad.p3[0], quad.p3[1],
+                quad.p4[0], quad.p4[1],
+                iw, 0, iw, ih, 0, ih);
+            ctx.restore();
+          }
         }
 
         if (quad.backgroundColor) {

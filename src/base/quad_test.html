@@ -56,6 +56,17 @@ found in the LICENSE file.
     assertFalse(res);
   }
 
+  function testIsRectangle() {
+    assertTrue(Quad.FromXYWH(0, 0, 10, 10).isRectangle());
+    assertTrue(Quad.FromXYWH(-10, -10, 5, 5).isRectangle());
+    assertTrue(Quad.FromXYWH(-10, -10, 20, 20).isRectangle());
+    assertTrue(Quad.FromXYWH(-10, 10, 5, 5).isRectangle());
+
+    assertFalse(Quad.FromXYWH(0, 0, -10, -10).isRectangle());
+    assertFalse(Quad.From8Array([0, 1, 2, 3, 4, 5, 6, 7]).isRectangle());
+    assertFalse(Quad.From8Array([0, 0, 0, 5, 5, 5, 0, 0]).isRectangle());
+  }
+
   function testProjectUnitRect() {
     var container = Quad.FromXYWH(0, 0, 10, 10);
     var srcRect = Rect.FromXYWH(0.1, 0.8, 0.8, 0.1);

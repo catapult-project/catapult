@@ -119,14 +119,19 @@ base.exportTo('base', function() {
       vec2.copy(dstQuad.p3, this.p3, s);
     },
 
-    projectUV: function(u, v) {
-      return projectVecUV([u, v]);
-    },
-
-    projectVecUV: function(v) {
-      if (vecInTriangle2(v, p00, p10, p11)) {
-      }
-
+    isRectangle: function() {
+      // Simple rectangle check. Note: will not handle out-of-order components.
+      var bounds = this.boundingRect();
+      return (
+        bounds.x == this.p1[0] &&
+        bounds.y == this.p1[1] &&
+        bounds.width == this.p2[0] - this.p1[0] &&
+        bounds.y == this.p2[1] &&
+        bounds.width == this.p3[0] - this.p1[0] &&
+        bounds.height == this.p3[1] - this.p2[1] &&
+        bounds.x == this.p4[0] &&
+        bounds.height == this.p4[1] - this.p2[1]
+      );
     },
 
     projectUnitRect: function(rect) {
