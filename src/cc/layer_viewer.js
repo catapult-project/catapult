@@ -43,7 +43,7 @@ base.exportTo('cc', function() {
       this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.statusEL_.textContent = 'Selected layer';
       if (!cc.PictureSnapshot.CanRasterize()) {
-        this.infoBar_.message = 'Missing picture';
+        this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function() {
           var overlay = new ui.Overlay();
           overlay.textContent = cc.PictureSnapshot.HowToEnableRasterizing();
