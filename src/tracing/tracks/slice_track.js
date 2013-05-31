@@ -22,7 +22,8 @@ base.exportTo('tracing.tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var SliceTrack = ui.define(tracing.tracks.CanvasBasedTrack);
+  var SliceTrack = ui.define(
+      'slice-track', tracing.tracks.CanvasBasedTrack);
 
   SliceTrack.prototype = {
 

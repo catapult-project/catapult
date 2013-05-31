@@ -41,9 +41,10 @@ base.exportTo('ui', function() {
   }
 
   /**
-   * Creates the constructor for a UI element class.
+   * Defines a tracing UI component, a function that can be called to construct
+   * the component.
    *
-   * Usage:
+   * Base class:
    * <pre>
    * var List = ui.define('list');
    * List.prototype = {
@@ -55,21 +56,41 @@ base.exportTo('ui', function() {
    * };
    * </pre>
    *
-   * @param {string|Function} tagNameOrFunction The tagName or
-   *     function to use for newly created elements. If this is a function it
-   *     needs to return a new element when called.
-   * @return {function(Object=):Element} The constructor function which takes
-   *     an optional property bag. The function also has a static
-   *     {@code decorate} method added to it.
+   * Derived class:
+   * <pre>
+   * var CustomList = ui.define('custom-list', List);
+   * CustomList.prototype = {
+   *   __proto__: List.prototype,
+   *   decorate: function() {
+   *     ...
+   *   },
+   *   ...
+   * };
+   * </pre>
+   *
+   * @param {string} tagName The tagName of the newly created subtype. If
+   *     subclassing, this is used for debugging. If not subclassing, then it is
+   *     the tag name that will be created by the component.
+   * @param {function} opt_parentConstructor The parent class for this new
+   *     element, if subclassing is desired. If provided, the parent class must
+   *     be also a function created by ui.define.
+   * @return {function(Object=):Element} The newly created component
+   *     constructor.
    */
-  function define(tagNameOrFunction) {
+  function define(tagName, opt_parentConstructor) {
     var createFunction, tagName;
-    if (typeof tagNameOrFunction == 'function') {
-      createFunction = tagNameOrFunction;
-      tagName = '';
+    if (typeof tagName == 'function') {
+      throw new Error('Passing functions as tagName is deprecated. Please ' +
+                      'use (tagName, opt_parentConstructor) to subclass');
+    }
+
+    tagName = tagName.toLowerCase();
+    if (opt_parentConstructor) {
+      if (!opt_parentConstructor.tagName)
+        throw new Error('opt_parentConstructor was not created by ui.define');
+      createFunction = opt_parentConstructor;
     } else {
       createFunction = createElementHelper;
-      tagName = tagNameOrFunction;
     }
 
     /**
@@ -81,6 +102,12 @@ base.exportTo('ui', function() {
      * @constructor
      */
     function f(opt_propertyBag) {
+      if (opt_parentConstructor &&
+          f.prototype.__proto__ != opt_parentConstructor.prototype)
+        throw new Error(
+            tagName + ' prototye\'s __proto__ field is messed up. ' +
+            'It MUST be the prototype of ' + opt_parentConstructor.tagName);
+
       var el = createFunction(tagName, opt_propertyBag);
       f.decorate(el);
       for (var propertyName in opt_propertyBag) {
@@ -95,8 +122,18 @@ base.exportTo('ui', function() {
      */
     f.decorate = function(el) {
       el.__proto__ = f.prototype;
+      el.componentConstructor = f;
       el.decorate();
     };
+
+    f.tagName = tagName;
+    if (opt_parentConstructor)
+      f.parentConstructor = opt_parentConstructor;
+    f.toString = function() {
+      if (!f.parentConstructor)
+        return f.tagName;
+      return f.parentConstructor.toString() + '::' + f.tagName;
+    }
 
     return f;
   }

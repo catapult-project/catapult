@@ -18,6 +18,7 @@ base.exportTo('tracing.analysis', function() {
    * @constructor
    */
   var DefaultObjectSnapshotView = ui.define(
+      'default-object-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   DefaultObjectSnapshotView.prototype = {
@@ -65,6 +66,7 @@ base.exportTo('tracing.analysis', function() {
    * @constructor
    */
   var DefaultObjectInstanceView = ui.define(
+      'default-object-instance-view',
       tracing.analysis.ObjectInstanceView);
 
   DefaultObjectInstanceView.prototype = {

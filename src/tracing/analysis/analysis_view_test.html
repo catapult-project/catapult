@@ -85,7 +85,8 @@ found in the LICENSE file.
       var selection = new tracing.Selection();
       selection.addObjectSnapshot({}, s10);
 
-      var MyView = ui.define(tracing.analysis.ObjectSnapshotView);
+      var MyView = ui.define(
+          'my-view', tracing.analysis.ObjectSnapshotView);
       MyView.prototype = {
         __proto__: tracing.analysis.ObjectSnapshotView.prototype,
 
@@ -127,7 +128,8 @@ found in the LICENSE file.
       var selection = new tracing.Selection();
       selection.addObjectInstance({}, i10);
 
-      var MyView = ui.define(tracing.analysis.ObjectInstanceView);
+      var MyView = ui.define(
+          'my-view', tracing.analysis.ObjectInstanceView);
       MyView.prototype = {
         __proto__: tracing.analysis.ObjectInstanceView.prototype,
 

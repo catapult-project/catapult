@@ -18,6 +18,7 @@ base.exportTo('tcmalloc', function() {
    * @constructor
    */
   var HeapSnapshotView = ui.define(
+      'heap-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   HeapSnapshotView.prototype = {

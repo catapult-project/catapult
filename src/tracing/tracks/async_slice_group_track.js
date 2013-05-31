@@ -15,6 +15,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var AsyncSliceGroupTrack = ui.define(
+      'async-slice-group-track',
       tracing.tracks.SliceGroupTrack);
 
   AsyncSliceGroupTrack.prototype = {

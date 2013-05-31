@@ -19,6 +19,7 @@ base.exportTo('cc', function() {
    * @constructor
    */
   var PictureSnapshotView = ui.define(
+      'picture-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   PictureSnapshotView.prototype = {

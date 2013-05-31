@@ -19,6 +19,7 @@ base.exportTo('cc', function() {
    * @constructor
    */
   var LayerTreeHostImplSnapshotView = ui.define(
+      'layer-tree-host-impl-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   LayerTreeHostImplSnapshotView.prototype = {

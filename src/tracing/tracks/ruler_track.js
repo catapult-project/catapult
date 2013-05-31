@@ -18,7 +18,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var RulerTrack = ui.define(tracing.tracks.CanvasBasedTrack);
+  var RulerTrack = ui.define('ruler-track', tracing.tracks.CanvasBasedTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {

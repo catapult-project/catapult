@@ -21,7 +21,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var CounterTrack =
-      ui.define(tracing.tracks.CanvasBasedTrack);
+      ui.define('counter-track', tracing.tracks.CanvasBasedTrack);
 
   CounterTrack.prototype = {
 

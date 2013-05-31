@@ -22,7 +22,8 @@ base.exportTo('tracing.tracks', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var ObjectInstanceTrack = ui.define(tracing.tracks.CanvasBasedTrack);
+  var ObjectInstanceTrack = ui.define(
+      'object-instance-track', tracing.tracks.CanvasBasedTrack);
 
   ObjectInstanceTrack.prototype = {
 

@@ -14,7 +14,7 @@ base.exportTo('tracing.tracks', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = ui.define(tracing.tracks.Track);
+  var ContainerTrack = ui.define('container-track', tracing.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 

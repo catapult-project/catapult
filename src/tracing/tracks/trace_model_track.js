@@ -20,7 +20,8 @@ base.exportTo('tracing.tracks', function() {
    * CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = ui.define(tracing.tracks.ContainerTrack);
+  var TraceModelTrack = ui.define(
+      'trace-model-track', tracing.tracks.ContainerTrack);
 
   TraceModelTrack.prototype = {
 

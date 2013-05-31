@@ -23,7 +23,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var ProcessTrack =
-      ui.define(tracing.tracks.ContainerTrack);
+      ui.define('process-track', tracing.tracks.ContainerTrack);
 
   ProcessTrack.prototype = {
 

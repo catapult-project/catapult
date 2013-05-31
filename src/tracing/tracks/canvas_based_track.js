@@ -22,7 +22,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HTMLDivElement}
    */
   var CanvasBasedTrack =
-      ui.define(tracing.tracks.Track);
+      ui.define('canvas-based-track', tracing.tracks.Track);
 
   CanvasBasedTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,

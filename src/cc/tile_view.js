@@ -16,6 +16,7 @@ base.exportTo('cc', function() {
    * @constructor
    */
   var TileSnapshotView = ui.define(
+      'tile-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   TileSnapshotView.prototype = {

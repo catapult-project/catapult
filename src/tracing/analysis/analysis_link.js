@@ -43,7 +43,8 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectSnapshot when clicked.
    * @constructor
    */
-  var ObjectSnapshotLink = ui.define(AnalysisLink);
+  var ObjectSnapshotLink = ui.define(
+      'object-snapshot-link', AnalysisLink);
 
   ObjectSnapshotLink.prototype = {
     __proto__: AnalysisLink.prototype,
@@ -68,7 +69,8 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectInstance when clicked.
    * @constructor
    */
-  var ObjectInstanceLink = ui.define(AnalysisLink);
+  var ObjectInstanceLink = ui.define(
+      'object-instance-link', AnalysisLink);
 
   ObjectInstanceLink.prototype = {
     __proto__: AnalysisLink.prototype,

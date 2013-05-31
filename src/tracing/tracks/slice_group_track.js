@@ -16,7 +16,8 @@ base.exportTo('tracing.tracks', function() {
    * @extends {ContainerTrack}
    */
 
-  var SliceGroupTrack = ui.define(tracing.tracks.ContainerTrack);
+  var SliceGroupTrack = ui.define(
+      'slice-group-track', tracing.tracks.ContainerTrack);
 
   SliceGroupTrack.prototype = {
 
