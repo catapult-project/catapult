@@ -269,9 +269,8 @@ base.exportTo('tracing', function() {
       // Autoclose open slices.
       this.updateBounds();
       this.kernel.autoCloseOpenSlices(this.bounds.max);
-      for (var pid in this.processes) {
+      for (var pid in this.processes)
         this.processes[pid].autoCloseOpenSlices(this.bounds.max);
-      }
 
       // Finalize import.
       for (var i = 0; i < importers.length; i++)
@@ -302,6 +301,10 @@ base.exportTo('tracing', function() {
       // Join refs.
       for (var i = 0; i < importers.length; i++)
         importers[i].joinRefs();
+
+      // Delete any undeleted objects.
+      for (var pid in this.processes)
+        this.processes[pid].autoDeleteObjects(this.bounds.max);
 
       // Run initializers.
       for (var pid in this.processes)

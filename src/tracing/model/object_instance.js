@@ -88,6 +88,7 @@ base.exportTo('tracing.model', function() {
     this.creationTs = creationTs;
     this.creationTsWasExplicit = false;
     this.deletionTs = Number.MAX_VALUE;
+    this.deletionTsWasExplicit = false;
     this.selected = false;
     this.colorId = 0;
     this.bounds = new base.Range();
@@ -137,6 +138,7 @@ base.exportTo('tracing.model', function() {
               ts + '. A snapshot exists that is older.');
       }
       this.deletionTs = ts;
+      this.deletionTsWasExplicit = true;
     },
 
     /**

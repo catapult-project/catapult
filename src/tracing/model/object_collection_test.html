@@ -135,6 +135,32 @@ found in the LICENSE file.
     assertEquals(10, i10.creationTs);
     assertEquals(15, i10.deletionTs);
   }
+
+  function testBoundsOnUndeletedObject() {
+    var collection = new tracing.model.ObjectCollection({});
+    collection.idWasCreated(
+      '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+      '0x1000', 'cat', 'Frame', 15, {foo: 1});
+
+    collection.updateBounds();
+    assertEquals(collection.bounds.min, 10);
+    assertEquals(collection.bounds.max, 15);
+  }
+
+  function testAutoDelete() {
+    var collection = new tracing.model.ObjectCollection({});
+    collection.idWasCreated(
+      '0x1000', 'cat', 'Frame', 10);
+    collection.addSnapshot(
+      '0x1000', 'cat', 'Frame', 10, {foo: 1});
+    collection.autoDeleteObjects(15);
+
+    var s10 = collection.getSnapshotAt('0x1000', 10);
+    var i10 = s10.objectInstance;
+    assertEquals(i10.deletionTs, 15);
+  }
+
 </script>
 </body>
 </html>

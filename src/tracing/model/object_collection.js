@@ -89,6 +89,19 @@ base.exportTo('tracing.model', function() {
       }
     },
 
+    autoDeleteObjects: function(maxTimestamp) {
+      base.iterItems(this.instanceMapsById_, function(id, i2imap) {
+        var lastInstance = i2imap.lastInstance;
+        if (lastInstance.deletionTs != Number.MAX_VALUE)
+          return;
+        i2imap.idWasDeleted(
+            lastInstance.category, lastInstance.name, maxTimestamp);
+        // idWasDeleted will cause lastInstance.deletionTsWasExplicit to be set
+        // to true. Unset it here.
+        lastInstance.deletionTsWasExplicit = false;
+      });
+    },
+
     getObjectInstanceAt: function(id, ts) {
       var instanceMap = this.instanceMapsById_[id];
       if (!instanceMap)

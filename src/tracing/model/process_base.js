@@ -72,6 +72,10 @@ base.exportTo('tracing.model', function() {
       }
     },
 
+    autoDeleteObjects: function(maxTimestamp) {
+      this.objects.autoDeleteObjects(maxTimestamp);
+    },
+
     /**
      * Called by the model after finalizing imports,
      * but before joining refs.

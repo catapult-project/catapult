@@ -117,6 +117,12 @@ base.exportTo('tracing.model', function() {
       return instance.addSnapshot(ts, args);
     },
 
+    get lastInstance() {
+      if (this.instances.length == 0)
+        return undefined;
+      return this.instances[this.instances.length - 1];
+    },
+
     idWasDeleted: function(category, name, ts) {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
