@@ -59,13 +59,15 @@ base.exportTo('tracing.tracks', function() {
         instanceTypeNames.forEach(function(typeName) {
           var allInstances = instancesByTypeName[typeName];
 
-          // If a object snapshot has a viewer it will be shown regardless
-          // of there being implicit snapshots.
-          var hasViewer = true;
-          if (!ObjectSnapshotView.getViewConstructor(typeName) &&
-              !ObjectInstanceView.getViewConstructor(typeName)) {
-            hasViewer = false;
-          }
+          // If a object snapshot has a viewer it will be shown,
+          // unless the viewer asked for it to not be shown.
+          var instanceViewInfo = ObjectInstanceView.getViewInfo(typeName);
+          var snapshotViewInfo = ObjectSnapshotView.getViewInfo(typeName);
+          if (instanceViewInfo && !instanceViewInfo.options.showInTrackView)
+            instanceViewInfo = undefined;
+          if (snapshotViewInfo && !snapshotViewInfo.options.showInTrackView)
+            snapshotViewInfo = undefined;
+          var hasViewInfo = instanceViewInfo || snapshotViewInfo;
 
           // There are some instances that don't merit their own track in
           // the UI. Filter them out.
@@ -79,7 +81,7 @@ base.exportTo('tracing.tracks', function() {
 
             // Do not create tracks for instances that have implicit snapshots
             // and don't have a viewer.
-            if (instance.hasImplicitSnapshots && !hasViewer)
+            if (instance.hasImplicitSnapshots && !hasViewInfo)
               continue;
 
             visibleInstances.push(instance);

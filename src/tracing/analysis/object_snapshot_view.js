@@ -30,16 +30,23 @@ base.exportTo('tracing.analysis', function() {
     }
   };
 
-  ObjectSnapshotView.typeNameToViewConstructorMap = {};
-  ObjectSnapshotView.register = function(typeName, viewConstructor) {
-    if (ObjectSnapshotView.typeNameToViewConstructorMap[typeName])
+  ObjectSnapshotView.typeNameToViewInfoMap = {};
+  ObjectSnapshotView.register = function(typeName,
+                                         viewConstructor,
+                                         opt_options) {
+    if (ObjectSnapshotView.typeNameToViewInfoMap[typeName])
       throw new Error('Handler already registered for ' + typeName);
-    ObjectSnapshotView.typeNameToViewConstructorMap[typeName] =
-        viewConstructor;
+    var options = opt_options || {
+      showInTrackView: true
+    };
+    ObjectSnapshotView.typeNameToViewInfoMap[typeName] = {
+      constructor: viewConstructor,
+      options: options
+    };
   };
 
-  ObjectSnapshotView.getViewConstructor = function(typeName) {
-    return ObjectSnapshotView.typeNameToViewConstructorMap[typeName];
+  ObjectSnapshotView.getViewInfo = function(typeName) {
+    return ObjectSnapshotView.typeNameToViewInfoMap[typeName];
   };
 
   return {

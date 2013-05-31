@@ -103,10 +103,13 @@ base.exportTo('tracing.analysis', function() {
           hitsByType.counterSamples.length == 0) {
         if (hitsByType.objectSnapshots.length == 1) {
           var snapshot = hitsByType.objectSnapshots[0].objectSnapshot;
-          var viewConstructor = this.snapshotViewRegistry.getViewConstructor(
+          var viewInfo = this.snapshotViewRegistry.getViewInfo(
               snapshot.objectInstance.typeName);
 
-          if (!viewConstructor)
+          var viewConstructor;
+          if (viewInfo)
+            viewConstructor = viewInfo.constructor;
+          else
             viewConstructor = tracing.analysis.DefaultObjectSnapshotView;
 
           this.changeViewType(viewConstructor);
@@ -116,10 +119,13 @@ base.exportTo('tracing.analysis', function() {
 
         if (hitsByType.objectInstances.length == 1) {
           var instance = hitsByType.objectInstances[0].objectInstance;
-          var viewConstructor = this.instanceViewRegistry.getViewConstructor(
+          var viewInfo = this.instanceViewRegistry.getViewInfo(
               instance.typeName);
 
-          if (!viewConstructor)
+          var viewConstructor;
+          if (viewInfo)
+            viewConstructor = viewInfo.constructor;
+          else
             viewConstructor = tracing.analysis.DefaultObjectInstanceView;
 
           this.changeViewType(viewConstructor);
