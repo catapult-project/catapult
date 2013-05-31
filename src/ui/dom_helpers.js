@@ -45,7 +45,7 @@ base.exportTo('ui', function() {
       base.Settings.set(settingsKey, value);
       targetEl[targetElProperty] = value;
     }
-    var oldSetter = targetEl.__lookupSetter__('selectedIndex')
+    var oldSetter = targetEl.__lookupSetter__('selectedIndex');
     selectorEl.__defineGetter__('selectedValue', function(v) {
       return selectorEl.children[selectorEl.selectedIndex].targetPropertyValue;
     });
@@ -108,6 +108,6 @@ base.exportTo('ui', function() {
   return {
     createSpan: createSpan,
     createSelector: createSelector,
-    createCheckBox: createCheckBox,
+    createCheckBox: createCheckBox
   };
 });

@@ -118,8 +118,8 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allAsyncEvents_.push({
-          event: event,
-          thread: thread});
+        event: event,
+        thread: thread});
     },
 
     /**
@@ -167,8 +167,8 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allObjectEvents_.push({
-          event: event,
-          thread: thread});
+        event: event,
+        thread: thread});
     },
 
     processDurationEvent: function(event) {
