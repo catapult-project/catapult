@@ -32,10 +32,19 @@ base.exportTo('base', function() {
    */
   Settings.get = function(key, opt_default, opt_namespace) {
     key = Settings.namespace_(key, opt_namespace);
-    var val = storage_.getItem(key);
-    if (val === null || val === undefined)
+    var rawVal = storage_.getItem(key);
+    if (rawVal === null || rawVal === undefined)
       return opt_default;
-    return JSON.parse(val).value;
+
+    // Old settings versions used to stringify objects instead of putting them
+    // into JSON. If those are encountered, parse will fail. In that case,
+    // "upgrade" the setting to the default value.
+    try {
+      return JSON.parse(rawVal).value;
+    } catch (e) {
+      storage_.removeItem(Settings.namespace_(key, opt_namespace));
+      return opt_default;
+    }
   },
 
   /**
@@ -96,6 +105,11 @@ base.exportTo('base', function() {
 
   Settings.setAlternativeStorageInstance = function(instance) {
     storage_ = instance;
+  }
+  Settings.getAlternativeStorageInstance = function() {
+    if (storage_ === localStorage)
+      return undefined;
+    return storage_;
   }
 
   Settings.NAMESPACE = 'trace-viewer';

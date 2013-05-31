@@ -18,6 +18,16 @@ base.require('base.settings');
 base.require('base.unittest');
 base.require('tracing.test_utils');
 
+// Old settings versions used to stringify objects instead of putting them into
+// JSON. This test makes sure that these old settings yield the default value
+// instead of strings.
+function testOldStyleSettingYieldsDefaultValue() {
+  var storage = base.Settings.getAlternativeStorageInstance();
+  storage.setItem(base.Settings.namespace_('key'), 'hello world');
+
+  assertEquals('value', base.Settings.get('key', 'value'));
+}
+
 function testSetGetString() {
   var settings = new base.Settings();
   settings.set('my_key', 'my_val');
