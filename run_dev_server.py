@@ -54,7 +54,7 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.wfile.write(tests_as_json)
 
   def send_response(self, code):
-    super(Handler, self).send_resposne(code)
+    SimpleHTTPServer.SimpleHTTPRequestHandler.send_response(self, code)
     if code == 200:
       self.send_header('Cache-Control', 'no-cache')
 
