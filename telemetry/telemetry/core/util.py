@@ -2,11 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import inspect
+import os
 import socket
 import time
 
 class TimeoutException(Exception):
   pass
+
+def GetTelemetryDir():
+  return os.path.normpath(os.path.join(
+      __file__, os.pardir, os.pardir, os.pardir))
+
+def GetUnittestDataDir():
+  return os.path.join(GetTelemetryDir(), 'unittest_data')
+
+def GetChromiumSrcDir():
+  return os.path.normpath(os.path.join(GetTelemetryDir(), os.pardir, os.pardir))
 
 def WaitFor(condition,
             timeout, poll_interval=0.1,
