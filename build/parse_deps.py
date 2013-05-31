@@ -219,7 +219,10 @@ class Module(object):
       module = Module(name)
       all_resources["scripts"][name] = module
       self.dependent_modules.append(module)
-      module.load_and_parse(filename, contents)
+      try:
+        module.load_and_parse(filename, contents)
+      except Exception, e:
+        raise Exception('While processing ' + filename + ': ' + e.message)
       module.resolve(all_resources, resource_finder)
 
     for name in self.dependent_raw_script_names:
