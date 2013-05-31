@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<script src="/src/base.js"></script>
+</head>
+<body>
+<script>
+  base.require('base.unittest');
+  base.require('ui.info_bar');
+</script>
+<script>
+  'use strict';
+
+  function testBasic() {
+    var infoBar = new ui.InfoBar();
+    infoBar.message = 'This is an info bar';
+    this.addHTMLOutput(undefined, infoBar);
+  }
+</script>
+</body>
+</html>
