@@ -47,3 +47,12 @@
   font-size: 11px;
   margin-left: 8px;
 }
+
+.group-selectors {
+  font-size: 80%;
+  margin-left: 10px;
+}
+
+.group-selectors button {
+  padding: 1px;
+}

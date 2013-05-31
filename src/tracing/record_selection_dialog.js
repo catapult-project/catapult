@@ -39,22 +39,32 @@ base.exportTo('tracing', function() {
 
       var enabledCategoriesEl = document.createElement('td');
       enabledCategoriesEl.className = 'default-enabled-categories';
-      enabledCategoriesEl.innerHTML = 'Record&nbsp;Categories:';
       rowEl.appendChild(enabledCategoriesEl);
+
+      var categoriesHeaderEl = document.createElement('div');
+      categoriesHeaderEl.innerHTML = 'Record&nbsp;Categories';
+      enabledCategoriesEl.appendChild(categoriesHeaderEl);
 
       this.enabledCategoriesContainerEl_ = document.createElement('div');
       this.enabledCategoriesContainerEl_.className = 'categories';
       enabledCategoriesEl.appendChild(this.enabledCategoriesContainerEl_);
+      this.createGroupSelectButtons_(categoriesHeaderEl,
+                                     this.enabledCategoriesContainerEl_);
 
       var disabledCategoriesEl = document.createElement('td');
       disabledCategoriesEl.className = 'default-disabled-categories';
-      disabledCategoriesEl.innerHTML =
-          'Disabled&nbsp;by&nbsp;Default&nbsp;Categories';
       rowEl.appendChild(disabledCategoriesEl);
+
+      var disabledCategoriesHeaderEl = document.createElement('div');
+      disabledCategoriesHeaderEl.innerHTML =
+          '<div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>';
+      disabledCategoriesEl.appendChild(disabledCategoriesHeaderEl);
 
       this.disabledCategoriesContainerEl_ = document.createElement('div');
       this.disabledCategoriesContainerEl_.className = 'categories';
       disabledCategoriesEl.appendChild(this.disabledCategoriesContainerEl_);
+      this.createGroupSelectButtons_(disabledCategoriesHeaderEl,
+                                     this.disabledCategoriesContainerEl_);
 
       var opts = document.createElement('div');
       opts.className = 'options';
@@ -211,10 +221,9 @@ base.exportTo('tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked = this.settings_.get(category,
-                                             checkedDefault,
-                                             this.settings_key_) === 'true';
-        inputEl.onchange = this.updateSetting_.bind(this);
+        inputEl.checked = this.settings_.get(
+            category, checkedDefault, this.settings_key_) === 'true';
+        inputEl.onclick = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');
         labelEl.textContent = category;
@@ -267,6 +276,42 @@ base.exportTo('tracing', function() {
     updateSetting_: function(e) {
       var checkbox = e.target;
       this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
+    },
+
+    createGroupSelectButtons_: function(parent, container) {
+      var groupEl = document.createElement('div');
+      groupEl.className = 'group-selectors';
+      groupEl.innerText = 'Select';
+      parent.appendChild(groupEl);
+
+      var flipInputs = function(dir) {
+        var inputs = container.querySelectorAll('input');
+        for (var i = 0; i < inputs.length; i++) {
+          if (inputs[i].checked === dir)
+            continue;
+          // click() is used so the settings will be correclty stored. Setting
+          // checked does not trigger the onclick (or onchange) callback.
+          inputs[i].click();
+        }
+      };
+
+      var allBtn = document.createElement('button');
+      allBtn.innerText = 'All';
+      allBtn.className = 'all-btn';
+      allBtn.onclick = function(evt) {
+        flipInputs(true);
+        evt.preventDefault();
+      };
+      groupEl.appendChild(allBtn);
+
+      var noneBtn = document.createElement('button');
+      noneBtn.innerText = 'None';
+      noneBtn.className = 'none-btn';
+      noneBtn.onclick = function(evt) {
+        flipInputs(false);
+        evt.preventDefault();
+      };
+      groupEl.appendChild(noneBtn);
     }
   };
 

@@ -96,10 +96,63 @@ found in the LICENSE file.
       var inputs =
           dlg.formEl_.querySelector('input#disabled-by-default-bar').click();
 
-     assertEquals('disabled-by-default-bar', dlg.categoryFilter());
+      assertEquals('disabled-by-default-bar', dlg.categoryFilter());
 
-     assertEquals('false',
-         settings.get('disabled-by-default-foo', 'false', 'categories'));
+      assertEquals('false',
+          settings.get('disabled-by-default-foo', 'false', 'categories'));
+    }
+
+    function testSelectAll() {
+      var settings = new base.Settings();
+      settings.set('two', true, 'categories');
+      settings.set('three', false, 'categories');
+
+      var dlg = new tracing.RecordSelectionDialog();
+      dlg.categories = ['disabled-by-default-one'];
+      dlg.settings = settings;
+      dlg.settings_key = 'categories';
+      dlg.updateForm_();
+    }
+
+    function testSelectNone() {
+      var settings = new base.Settings();
+      settings.set('two', true, 'categories');
+      settings.set('three', false, 'categories');
+
+      var dlg = new tracing.RecordSelectionDialog();
+      dlg.categories = ['disabled-by-default-one'];
+      dlg.settings = settings;
+      dlg.settings_key = 'categories';
+      dlg.updateForm_();
+
+      // Enables the three option, two already enabled.
+      dlg.formEl_.querySelector('.default-enabled-categories .all-btn').click();
+      assertEquals('', dlg.categoryFilter());
+      assertEquals('true', settings.get('three', 'false', 'categories'));
+
+      // Disables three and two.
+      dlg.formEl_.
+          querySelector('.default-enabled-categories .none-btn').click();
+      assertEquals('-three,-two', dlg.categoryFilter());
+      assertEquals('false', settings.get('two', 'false', 'categories'));
+      assertEquals('false', settings.get('three', 'false', 'categories'));
+
+      // Turn categories back on so they can be ignored.
+      dlg.formEl_.querySelector('.default-enabled-categories .all-btn').click();
+
+      // Enables disabled category.
+      dlg.formEl_.
+          querySelector('.default-disabled-categories .all-btn').click();
+      assertEquals('disabled-by-default-one', dlg.categoryFilter());
+      assertEquals('true',
+          settings.get('disabled-by-default-one', 'false', 'categories'));
+
+      // Turn disabled by default back off.
+      dlg.formEl_.
+          querySelector('.default-disabled-categories .none-btn').click();
+      assertEquals('', dlg.categoryFilter());
+      assertEquals('false',
+          settings.get('disabled-by-default-one', 'false', 'categories'));
     }
   </script>
 </body>
