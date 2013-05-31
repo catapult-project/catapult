@@ -98,17 +98,22 @@ base.exportTo('ui', function() {
 
     updateContents_: function() {
       var percX, percY;
-      if (this.viewport_) {
-        var layoutRect = this.viewport_.layoutRect;
-        percX = 100 * (Math.abs(layoutRect.x) / layoutRect.width);
-        percX = 100 * (Math.abs(layoutRect.y) / layoutRect.height);
-        this.style.width = layoutRect.width + 'px';
-        this.style.height = layoutRect.height + 'px';
-      } else {
-        percX = '50';
-        percY = '50';
+      // TODO(nduca): This exists to get the stack to appear centered around the
+      // center of the stack. But, the way this was done makes the quad stack
+      // un-shrinkable. We need a better way.
+      if (false) {
+        if (this.viewport_) {
+          var layoutRect = this.viewport_.layoutRect;
+          percX = 100 * (Math.abs(layoutRect.x) / layoutRect.width);
+          percX = 100 * (Math.abs(layoutRect.y) / layoutRect.height);
+          this.style.width = layoutRect.width + 'px';
+          this.style.height = layoutRect.height + 'px';
+        } else {
+          percX = '50';
+          percY = '50';
+        }
+        this.style.webkitPerspectiveOrigin = percX + '% ' + percY + '%';
       }
-      this.style.webkitPerspectiveOrigin = percX + '% ' + percY + '%';
 
       // Build the stacks.
       var stackingGroupsById = {};
