@@ -53,6 +53,11 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(tests_as_json)
 
+  def send_response(self, code):
+    super(Handler, self).send_resposne(code)
+    if code == 200:
+      self.send_header('Cache-Control', 'no-cache')
+
   def do_GET_example_files(self):
     data_files = []
     for dirpath, dirnames, filenames in os.walk(test_data_dir):
