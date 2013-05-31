@@ -6,6 +6,7 @@
 
 base.requireStylesheet('ui.info_bar');
 base.require('ui');
+base.require('ui.dom_helpers');
 
 base.exportTo('ui', function() {
   /**
@@ -14,20 +15,26 @@ base.exportTo('ui', function() {
   var InfoBar = ui.define('info-bar');
 
   InfoBar.prototype = {
-    __proto__: 'info-bar'.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+      this.messageEl_ = ui.createSpan();
+      this.messageEl_.className = 'message';
+      this.buttonsEl_ = ui.createSpan();
+      this.buttonsEl_.className = 'buttons';
+
+      this.appendChild(this.messageEl_);
+      this.appendChild(this.buttonsEl_);
       this.message = '';
       this.visible = false;
     },
 
     get message() {
-      return this.message_;
+      return this.messageEl_.textContent;
     },
 
     set message(message) {
-      this.message_ = message;
-      this.textContent = this.message_;
+      this.messageEl_.textContent = message;
     },
 
     get visible() {
@@ -39,6 +46,18 @@ base.exportTo('ui', function() {
         this.classList.remove('info-bar-hidden');
       else
         this.classList.add('info-bar-hidden');
+    },
+
+    removeAllButtons: function() {
+      this.buttonsEl_.textContent = '';
+    },
+
+    addButton: function(text, clickCallback) {
+      var button = document.createElement('button');
+      button.textContent = text;
+      button.addEventListener('click', clickCallback);
+      this.buttonsEl_.appendChild(button);
+      return button;
     }
   };
 

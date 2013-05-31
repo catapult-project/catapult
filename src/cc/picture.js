@@ -29,10 +29,16 @@ base.exportTo('cc', function() {
     return true;
   }
   PictureSnapshot.HowToEnableRasterizing = function() {
+    var usualReason = [
+      'For pictures to show up, you need to have Chrome running with ',
+      '--enable-skia-benchmarking. Please restart chrome with this flag ',
+      'and try again.'
+    ].join('');
+
     if (!window.chrome)
-      return 'Please restart chrome with --enable-skia-benchmarking';
+      return usualReason;
     if (!window.chrome.skiaBenchmarking)
-      return 'Please restart chrome with --enable-skia-benchmarking';
+      return usualReason;
     if (!window.chrome.skiaBenchmarking.rasterize)
       return 'Your chrome is old';
     return 'Rasterizing is on';

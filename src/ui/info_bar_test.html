@@ -18,6 +18,20 @@ found in the LICENSE file.
   function testBasic() {
     var infoBar = new ui.InfoBar();
     infoBar.message = 'This is an info bar';
+    infoBar.visible = true;
+    this.addHTMLOutput(undefined, infoBar);
+  }
+
+  function testButtons() {
+    var infoBar = new ui.InfoBar();
+    infoBar.visible = true;
+    infoBar.message = 'This is an info bar with buttons';
+    var didClick = false;
+    var button = infoBar.addButton('More info...', function() {
+      didClick = true;
+    });
+    button.click();
+    assertTrue(didClick);
     this.addHTMLOutput(undefined, infoBar);
   }
 </script>

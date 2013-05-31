@@ -3,17 +3,24 @@
  * found in the LICENSE file.
  */
 info-bar {
-  background-color: #FCEBA2;
+  -webkit-align-items: center;
+  background-color: rgb(252, 235, 162);
   border-bottom: 1px solid #A3A3A3;
   border-left: 1px solid white;
   border-right: 1px solid #A3A3A3;
   border-top: 1px solid white;
-  display: block;
+  display: -webkit-flex;
   height: 26px;
-  padding-left: 10px;
-  padding-top: 6px;
+  padding: 0 3px 0 3px;
 }
 
 .info-bar-hidden {
   display: none;
+}
+
+info-bar > .message {
+  -webkit-flex: 1 1 auto;
+}
+
+info-bar > .buttons {
 }

@@ -123,14 +123,14 @@ base.exportTo('base', function() {
       // Simple rectangle check. Note: will not handle out-of-order components.
       var bounds = this.boundingRect();
       return (
-        bounds.x == this.p1[0] &&
-        bounds.y == this.p1[1] &&
-        bounds.width == this.p2[0] - this.p1[0] &&
-        bounds.y == this.p2[1] &&
-        bounds.width == this.p3[0] - this.p1[0] &&
-        bounds.height == this.p3[1] - this.p2[1] &&
-        bounds.x == this.p4[0] &&
-        bounds.height == this.p4[1] - this.p2[1]
+          bounds.x == this.p1[0] &&
+          bounds.y == this.p1[1] &&
+          bounds.width == this.p2[0] - this.p1[0] &&
+          bounds.y == this.p2[1] &&
+          bounds.width == this.p3[0] - this.p1[0] &&
+          bounds.height == this.p3[1] - this.p2[1] &&
+          bounds.x == this.p4[0] &&
+          bounds.height == this.p4[1] - this.p2[1]
       );
     },
 

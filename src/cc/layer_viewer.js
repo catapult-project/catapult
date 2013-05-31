@@ -12,6 +12,8 @@ base.require('cc.constants');
 base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
 base.require('tracing.analysis.util');
+base.require('ui.overlay');
+base.require('ui.info_bar');
 base.require('ui.quad_stack');
 base.require('ui.dom_helpers');
 
@@ -31,19 +33,24 @@ base.exportTo('cc', function() {
       this.layer_ = undefined;
 
       this.controls_ = document.createElement('top-controls');
+      this.infoBar_ = new ui.InfoBar();
       this.quadStack_ = new ui.QuadStack();
+
       this.appendChild(this.controls_);
+      this.appendChild(this.infoBar_);
       this.appendChild(this.quadStack_);
 
       this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.statusEL_.textContent = 'Selected layer';
       if (!cc.PictureSnapshot.CanRasterize()) {
-        var tmp = this.statusEL_.appendChild(ui.createSpan('[WARNING!!!]'));
-        tmp.style.paddingLeft = '10px';
-        tmp.style.paddingRight = '10px';
-        tmp.style.color = 'red';
-        tmp.style.fontWeight = 'bold';
-        tmp.title = cc.PictureSnapshot.HowToEnableRasterizing();
+        this.infoBar_.message = 'Missing picture';
+        this.infoBar_.addButton('More info...', function() {
+          var overlay = new ui.Overlay();
+          overlay.textContent = cc.PictureSnapshot.HowToEnableRasterizing();
+          overlay.visible = true;
+          overlay.autoClose = true;
+        });
+        this.infoBar_.visible = true;
       }
 
       this.warningEL_ = this.controls_.appendChild(ui.createSpan(''));
