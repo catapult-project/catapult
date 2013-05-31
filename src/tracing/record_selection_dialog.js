@@ -68,7 +68,9 @@ base.exportTo('tracing', function() {
 
       this.continuousTracingBn_ = document.createElement('input');
       this.continuousTracingBn_.type = 'checkbox';
+      this.continuousTracingBn_.value = 'continuousTracing';
       this.continuousTracingBn_.checked = true;
+      this.continuousTracingBn_.onchange = this.updateDlgSetting_.bind(this);
 
       var continuousTracingLabelEl = document.createElement('label');
       continuousTracingLabelEl.textContent = 'Continuous tracing';
@@ -77,7 +79,9 @@ base.exportTo('tracing', function() {
 
       this.systemTracingBn_ = document.createElement('input');
       this.systemTracingBn_.type = 'checkbox';
+      this.systemTracingBn_.value = 'systemTracing';
       this.systemTracingBn_.checked = false;
+      this.systemTracingBn_.onchange = this.updateDlgSetting_.bind(this);
 
       this.systemTracingLabelEl_ = document.createElement('label');
       this.systemTracingLabelEl_.textContent = 'System events';
@@ -86,6 +90,11 @@ base.exportTo('tracing', function() {
       opts.appendChild(this.systemTracingLabelEl_);
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
+    },
+
+    updateDlgSetting_: function(e) {
+      var checkbox = e.target;
+      this.settings_.set(checkbox.value, checkbox.checked, 'record_dlg');
     },
 
     set categories(c) {
@@ -98,6 +107,13 @@ base.exportTo('tracing', function() {
 
     set settings(s) {
       this.settings_ = s;
+
+      this.continuousTracingBn_.checked =
+          this.settings_.get('continuousTracing',
+              'true', 'record_dlg') === 'true';
+      this.systemTracingBn_.checked =
+          this.settings_.get('systemTracing',
+              'false', 'record_dlg') === 'true';
     },
 
     set recordCallback(cb) {
@@ -105,7 +121,13 @@ base.exportTo('tracing', function() {
     },
 
     set showSystemTracing(isEnabled) {
-      this.systemTracingBn_.checked = isEnabled;
+      if ((this.settings_ === undefined) ||
+          (this.settings_.get('systemTracing',
+                              undefined,
+                              'record_dlg') === undefined)) {
+        this.systemTracingBn_.checked = isEnabled;
+      }
+
       this.systemTracingLabelEl_.style.display =
           isEnabled ? 'inline-block' : 'none';
     },
@@ -244,7 +266,6 @@ base.exportTo('tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-
       this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
     }
   };
