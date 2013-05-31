@@ -56,6 +56,12 @@ base.exportTo('base', function() {
       if (this.isEmpty_)
         return undefined;
       return this.max_;
+    },
+
+    get range() {
+      if (this.isEmpty_)
+        return undefined;
+      return this.max_ - this.min_;
     }
   };
 

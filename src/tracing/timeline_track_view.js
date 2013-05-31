@@ -168,11 +168,24 @@ base.exportTo('tracing', function() {
 
     setInitialViewport_: function() {
       var w = this.firstCanvas.width;
-      var boost =
-          (this.model_.bounds.max - this.model_.bounds.min) * 0.15;
-      this.viewport_.xSetWorldBounds(this.model_.bounds.min - boost,
-                                    this.model_.bounds.max + boost,
-                                    w);
+
+      var min;
+      var range;
+
+      if (this.model_.bounds.isEmpty) {
+        min = 0;
+        range = 1000;
+      } else if (this.model_.bounds.range == 0) {
+        min = this.model_.bounds.min;
+        range = 1000;
+      } else {
+        min = this.model_.bounds.min;
+        range = this.model_.bounds.range;
+      }
+      var boost = range * 0.15;
+      this.viewport_.xSetWorldBounds(min - boost,
+                                     min + range + boost,
+                                     w);
     },
 
     /**
