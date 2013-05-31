@@ -20,12 +20,6 @@ base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
 
-/*
- * Importers, object handlers
- */
-base.require('tracing.importer.linux_perf_importer');
-base.require('tracing.importer.trace_event_importer');
-
 base.exportTo('tracing', function() {
 
   /**
