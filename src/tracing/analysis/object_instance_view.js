@@ -7,7 +7,7 @@
 base.require('ui');
 
 base.exportTo('tracing.analysis', function() {
-  var ObjectInstanceView = ui.define('div');
+  var ObjectInstanceView = ui.define('object-instance-view');
 
   ObjectInstanceView.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -7,7 +7,7 @@
 base.require('ui');
 
 base.exportTo('tracing.analysis', function() {
-  var ObjectSnapshotView = ui.define('div');
+  var ObjectSnapshotView = ui.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
     __proto__: HTMLDivElement.prototype,
