@@ -121,6 +121,7 @@ class PageRunner(object):
             if not state.browser:
               self._SetupBrowser(state, test, possible_browser,
                                  credentials_path, page.archive_path)
+              last_archive_path = page.archive_path
             if not state.tab:
               if len(state.browser.tabs) == 0:
                 state.browser.tabs.New()
