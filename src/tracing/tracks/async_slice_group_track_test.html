@@ -25,11 +25,11 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  var AsyncSliceGroup = tracing.model.AsyncSliceGroup;
+  var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
   var AsyncSliceGroupTrack =
       tracing.tracks.AsyncSliceGroupTrack;
-  var Process = tracing.model.Process;
-  var Thread = tracing.model.Thread;
+  var Process = tracing.trace_model.Process;
+  var Thread = tracing.trace_model.Thread;
   var newAsyncSlice = tracing.test_utils.newAsyncSlice;
 
   function testAsyncSliceGroup_filterSubRows() {

@@ -350,7 +350,7 @@ base.exportTo('tracing.importer', function() {
 
           if (event.ph == 'F') {
             // Create a slice from start to end.
-            var slice = new tracing.model.AsyncSlice(
+            var slice = new tracing.trace_model.AsyncSlice(
                 events[0].event.cat,
                 name,
                 tracing.getStringColorId(name),
@@ -369,7 +369,7 @@ base.exportTo('tracing.importer', function() {
               var subName = name;
               if (events[j - 1].event.ph == 'T')
                 subName = name + ':' + events[j - 1].event.args.step;
-              var subSlice = new tracing.model.AsyncSlice(
+              var subSlice = new tracing.trace_model.AsyncSlice(
                   events[0].event.cat,
                   subName,
                   tracing.getStringColorId(name + j),
@@ -504,7 +504,8 @@ base.exportTo('tracing.importer', function() {
 
         if (referencingObjectFieldValue.id === undefined)
           return;
-        if (referencingObjectFieldValue instanceof tracing.model.ObjectSnapshot)
+        if (referencingObjectFieldValue instanceof
+            tracing.trace_model.ObjectSnapshot)
           return;
 
         var implicitSnapshot = referencingObjectFieldValue;
@@ -531,7 +532,7 @@ base.exportTo('tracing.importer', function() {
         res.objectInstance.hasImplicitSnapshots = true;
         res.containingSnapshot = containingSnapshot;
         referencingObject[referencingObjectFieldName] = res;
-        if (!(res instanceof tracing.model.ObjectSnapshot))
+        if (!(res instanceof tracing.trace_model.ObjectSnapshot))
           throw new Error('Created object must be instanceof snapshot');
         return res.args;
       }
@@ -632,7 +633,7 @@ base.exportTo('tracing.importer', function() {
         if (!(object instanceof Object))
           return;
 
-        if (object instanceof tracing.model.ObjectSnapshot)
+        if (object instanceof tracing.trace_model.ObjectSnapshot)
           return;
 
         if (object instanceof Array) {

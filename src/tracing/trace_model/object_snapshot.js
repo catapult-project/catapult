@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('tracing.model', function() {
+base.exportTo('tracing.trace_model', function() {
   /**
    * A snapshot of an object instance, at a given moment in time.
    *

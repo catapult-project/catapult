@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 base.require('cc.util');
 
 base.exportTo('tcmalloc', function() {
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
    * @constructor

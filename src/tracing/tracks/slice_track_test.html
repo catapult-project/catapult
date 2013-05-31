@@ -16,7 +16,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model.slice');
+  base.require('tracing.trace_model.slice');
   base.require('tracing.timeline_track_view');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
@@ -27,7 +27,7 @@ found in the LICENSE file.
 
   var Selection = tracing.Selection;
   var SliceTrack = tracing.tracks.SliceTrack;
-  var Slice = tracing.model.Slice;
+  var Slice = tracing.trace_model.Slice;
   var Viewport = tracing.TimelineViewport;
 
   function testBasicSlices() {

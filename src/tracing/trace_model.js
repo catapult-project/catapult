@@ -22,16 +22,16 @@
  */
 base.require('base.range');
 base.require('base.event_target');
-base.require('tracing.model.process');
-base.require('tracing.model.kernel');
-base.require('tracing.model.cpu');
+base.require('tracing.trace_model.process');
+base.require('tracing.trace_model.kernel');
+base.require('tracing.trace_model.cpu');
 base.require('tracing.filter');
 
 base.exportTo('tracing', function() {
 
-  var Process = tracing.model.Process;
-  var Kernel = tracing.model.Kernel;
-  var Cpu = tracing.model.Cpu;
+  var Process = tracing.trace_model.Process;
+  var Kernel = tracing.trace_model.Kernel;
+  var Cpu = tracing.trace_model.Cpu;
 
   /**
    * Builds a model from an array of TraceEvent objects.

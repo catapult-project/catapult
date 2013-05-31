@@ -6,10 +6,10 @@
 
 base.require('base.rect');
 base.require('cc.region');
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
    * @constructor

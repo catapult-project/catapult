@@ -66,14 +66,14 @@ base.exportTo('tracing.analysis', function() {
         return;
       }
 
-      if (object instanceof tracing.model.ObjectSnapshot) {
+      if (object instanceof tracing.trace_model.ObjectSnapshot) {
         var link = new tracing.analysis.ObjectSnapshotLink(object);
         link.objectSnapshot = object;
         this.appendElementWithLabel_(label, indent, link, suffix);
         return;
       }
 
-      if (object instanceof tracing.model.ObjectInstance) {
+      if (object instanceof tracing.trace_model.ObjectInstance) {
         var link = new tracing.analysis.ObjectInstanceLink(object);
         link.objectInstance = object;
         this.appendElementWithLabel_(label, indent, link, suffix);

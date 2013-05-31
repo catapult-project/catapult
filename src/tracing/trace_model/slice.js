@@ -7,7 +7,7 @@
 /**
  * @fileoverview Provides the Slice class.
  */
-base.exportTo('tracing.model', function() {
+base.exportTo('tracing.trace_model', function() {
 
   /**
    * A Slice represents an interval of time plus parameters associated

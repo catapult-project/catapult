@@ -9,11 +9,11 @@
  */
 base.require('base.range');
 base.require('base.sorted_array_utils');
-base.require('tracing.model.object_instance');
-base.require('tracing.model.time_to_object_instance_map');
+base.require('tracing.trace_model.object_instance');
+base.require('tracing.trace_model.time_to_object_instance_map');
 
-base.exportTo('tracing.model', function() {
-  var ObjectInstance = tracing.model.ObjectInstance;
+base.exportTo('tracing.trace_model', function() {
+  var ObjectInstance = tracing.trace_model.ObjectInstance;
 
   /**
    * A collection of object instances and their snapshots, accessible by id and
@@ -33,7 +33,7 @@ base.exportTo('tracing.model', function() {
     __proto__: Object.prototype,
 
     createObjectInstance_: function(parent, id, category, name, creationTs) {
-      var constructor = tracing.model.ObjectInstance.getConstructor(name);
+      var constructor = tracing.trace_model.ObjectInstance.getConstructor(name);
       var instance = new constructor(parent, id, category, name, creationTs);
       var typeName = instance.typeName;
       var instancesOfTypeName = this.instancesByTypeName_[typeName];
@@ -49,7 +49,7 @@ base.exportTo('tracing.model', function() {
       var instanceMap = this.instanceMapsById_[id];
       if (instanceMap)
         return instanceMap;
-      instanceMap = new tracing.model.TimeToObjectInstanceMap(
+      instanceMap = new tracing.trace_model.TimeToObjectInstanceMap(
           this.createObjectInstance_, this.parent, id);
       this.instanceMapsById_[id] = instanceMap;
       return instanceMap;

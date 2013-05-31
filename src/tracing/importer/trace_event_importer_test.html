@@ -488,7 +488,7 @@ function testInstanceCounter() {
 }
 
 function testMultiCounterUpdateBounds() {
-  var ctr = new tracing.model.Counter(undefined, 'testBasicCounter',
+  var ctr = new tracing.trace_model.Counter(undefined, 'testBasicCounter',
       '', 'testBasicCounter');
   ctr.seriesNames = ['value1', 'value2'];
   ctr.seriesColors = ['testBasicCounter.value1', 'testBasicCounter.value2'];
@@ -1021,21 +1021,21 @@ function testImportDoesNotMutateEventList() {
   // The A type family exists to mutate the args list provided to
   // snapshots.
   function ASnapshot() {
-    tracing.model.ObjectSnapshot.apply(this, arguments);
+    tracing.trace_model.ObjectSnapshot.apply(this, arguments);
     this.args.foo = 7;
   }
   ASnapshot.prototype = {
-    __proto__: tracing.model.ObjectSnapshot.prototype
+    __proto__: tracing.trace_model.ObjectSnapshot.prototype
   };
 
   // Import event while the A types are registered, causing the
   // arguments of the snapshots to be mutated.
   var m = new tracing.TraceModel();
   try {
-    tracing.model.ObjectSnapshot.register('a', ASnapshot);
+    tracing.trace_model.ObjectSnapshot.register('a', ASnapshot);
     m.importTraces([events], false);
   } finally {
-    tracing.model.ObjectSnapshot.unregister('a');
+    tracing.trace_model.ObjectSnapshot.unregister('a');
   }
   assertEquals(0, m.importErrors.length);
 

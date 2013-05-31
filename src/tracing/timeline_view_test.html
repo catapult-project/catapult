@@ -36,19 +36,16 @@ found in the LICENSE file.
         var process = model.getOrCreateProcess(10000 + testIndex);
         if (testIndex % 2 == 0) {
           var thread = process.getOrCreateThread('Thread Name Here');
-          thread.slices.push(
-              new tracing.model.Slice('foo', 'a', 0, startTime, {}, 1));
-          thread.slices.push(
-              new tracing.model.Slice('bar', 'b', 0,
-                                        startTime + 23, {}, 10));
+          thread.slices.push(new tracing.trace_model.Slice(
+              'foo', 'a', 0, startTime, {}, 1));
+          thread.slices.push(new tracing.trace_model.Slice(
+              'bar', 'b', 0, startTime + 23, {}, 10));
         } else {
           var thread = process.getOrCreateThread('Name');
-          thread.slices.push(
-              new tracing.model.Slice('foo', 'a', 0,
-                                        startTime + 4, {}, 11));
-          thread.slices.push(
-              new tracing.model.Slice('bar', 'b', 0,
-                                        startTime + 22, {}, 14));
+          thread.slices.push(new tracing.trace_model.Slice(
+              'foo', 'a', 0, startTime + 4, {}, 11));
+          thread.slices.push(new tracing.trace_model.Slice(
+              'bar', 'b', 0, startTime + 22, {}, 14));
         }
       }
       var p1000 = model.getOrCreateProcess(1000);
@@ -177,12 +174,12 @@ found in the LICENSE file.
       var p1 = model.getOrCreateProcess(1);
       var t1 = p1.getOrCreateThread(1);
 
-      t1.pushSlice(new tracing.model.ThreadSlice('foo', 'a',
-                                                 0, 1, {}, 3));
-      t1.pushSlice(new tracing.model.ThreadSlice('bar', 'b',
-                                                 0, 1.1, {}, 2.8));
-      t1.pushSlice(new tracing.model.ThreadSlice('baz', 'b',
-                                                 0, 1.2, {}, 2.4));
+      t1.pushSlice(new tracing.trace_model.ThreadSlice(
+          'foo', 'a', 0, 1, {}, 3));
+      t1.pushSlice(new tracing.trace_model.ThreadSlice(
+          'bar', 'b', 0, 1.1, {}, 2.8));
+      t1.pushSlice(new tracing.trace_model.ThreadSlice(
+          'baz', 'b', 0, 1.2, {}, 2.4));
       model.updateCategories_();
       model.updateBounds();
 

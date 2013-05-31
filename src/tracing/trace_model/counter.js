@@ -10,7 +10,7 @@ base.require('base.range');
 /**
  * @fileoverview Provides the Counter class.
  */
-base.exportTo('tracing.model', function() {
+base.exportTo('tracing.trace_model', function() {
 
   /**
    * Stores all the samples for a given counter.

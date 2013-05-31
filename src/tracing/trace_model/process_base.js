@@ -9,13 +9,13 @@
  */
 base.require('base.guid');
 base.require('base.range');
-base.require('tracing.model.counter');
-base.require('tracing.model.object_collection');
-base.require('tracing.model.thread');
-base.exportTo('tracing.model', function() {
+base.require('tracing.trace_model.counter');
+base.require('tracing.trace_model.object_collection');
+base.require('tracing.trace_model.thread');
+base.exportTo('tracing.trace_model', function() {
 
-  var Thread = tracing.model.Thread;
-  var Counter = tracing.model.Counter;
+  var Thread = tracing.trace_model.Thread;
+  var Counter = tracing.trace_model.Counter;
 
   /**
    * The ProcessBase is an partial base class, upon which Kernel
@@ -27,7 +27,7 @@ base.exportTo('tracing.model', function() {
     this.guid_ = base.GUID.allocate();
     this.threads = {};
     this.counters = {};
-    this.objects = new tracing.model.ObjectCollection(this);
+    this.objects = new tracing.trace_model.ObjectCollection(this);
     this.bounds = new base.Range();
   };
 

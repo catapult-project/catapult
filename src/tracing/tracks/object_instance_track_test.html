@@ -12,7 +12,7 @@ found in the LICENSE file.
   base.require('base.unittest');
   base.require('tracing.test_utils');
   base.require('tracing.selection');
-  base.require('tracing.model.object_collection');
+  base.require('tracing.trace_model.object_collection');
   base.require('tracing.timeline_viewport');
   base.require('tracing.tracks.object_instance_track');
 </script>
@@ -27,7 +27,7 @@ found in the LICENSE file.
   var Viewport = tracing.TimelineViewport;
 
   function createObjects() {
-    var objects = new tracing.model.ObjectCollection({});
+    var objects = new tracing.trace_model.ObjectCollection({});
     objects.idWasCreated('0x1000', 'cc', 'Frame', 10);
     objects.addSnapshot('0x1000', 'cc', 'Frame', 10, 'snapshot-1');
     objects.addSnapshot('0x1000', 'cc', 'Frame', 25, 'snapshot-2');

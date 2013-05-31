@@ -9,10 +9,10 @@
  */
 base.require('base.range');
 base.require('base.sorted_array_utils');
-base.require('tracing.model.object_snapshot');
+base.require('tracing.trace_model.object_snapshot');
 
-base.exportTo('tracing.model', function() {
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
+base.exportTo('tracing.trace_model', function() {
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
    * An object with a specific id, whose state has been snapshotted several
@@ -61,8 +61,8 @@ base.exportTo('tracing.model', function() {
         }
       }
 
-      var snapshotConstructor = tracing.model.ObjectSnapshot.getConstructor(
-          this.name);
+      var snapshotConstructor =
+          tracing.trace_model.ObjectSnapshot.getConstructor(this.name);
       var snapshot = new snapshotConstructor(this, ts, args);
       this.snapshots.push(snapshot);
       return snapshot;

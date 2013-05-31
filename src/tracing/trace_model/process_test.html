@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model.process');
+  base.require('tracing.trace_model.process');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -19,7 +19,7 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  var Process = tracing.model.Process;
+  var Process = tracing.trace_model.Process;
 
   function testGetOrCreateCounter() {
     var process = new Process(7);

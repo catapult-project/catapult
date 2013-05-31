@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model.object_collection');
+  base.require('tracing.trace_model.object_collection');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -21,18 +21,19 @@ found in the LICENSE file.
 
   // Create a mock object instance for the testObjectInstanceSubtype test.
   function TestObjectInstance(parent, id, category, name, creationTs) {
-    tracing.model.ObjectInstance.call(
+    tracing.trace_model.ObjectInstance.call(
       this, parent, id, category, name, creationTs);
   }
   TestObjectInstance.prototype = {
-    __proto__: tracing.model.ObjectInstance.prototype
+    __proto__: tracing.trace_model.ObjectInstance.prototype
   };
 
   function testObjectInstanceSubtype() {
     // Register that TestObjects are bound to TestObjectInstance.
-    tracing.model.ObjectInstance.register('TestObject', TestObjectInstance);
+    tracing.trace_model.ObjectInstance.register('TestObject',
+                                                TestObjectInstance);
     try {
-      var collection = new tracing.model.ObjectCollection({ });
+      var collection = new tracing.trace_model.ObjectCollection({ });
       collection.idWasCreated(
         '0x1000', 'cc', 'Frame', 10);
       collection.idWasDeleted(
@@ -43,19 +44,19 @@ found in the LICENSE file.
         '0x1000', 'skia', 'TestObject', 25);
 
       var testFrame = collection.getObjectInstanceAt('0x1000', 10);
-      assertTrue(testFrame instanceof tracing.model.ObjectInstance);
+      assertTrue(testFrame instanceof tracing.trace_model.ObjectInstance);
       assertFalse(testFrame instanceof TestObjectInstance);
 
       var testObject = collection.getObjectInstanceAt('0x1000', 20);
-      assertTrue(testObject instanceof tracing.model.ObjectInstance);
+      assertTrue(testObject instanceof tracing.trace_model.ObjectInstance);
       assertTrue(testObject instanceof TestObjectInstance);
     } finally {
-      tracing.model.ObjectInstance.unregister('TestObject');
+      tracing.trace_model.ObjectInstance.unregister('TestObject');
     }
   }
 
   function testTwoSnapshots() {
-    var collection = new tracing.model.ObjectCollection({});
+    var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
       '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -86,7 +87,7 @@ found in the LICENSE file.
   }
 
   function testTwoObjectsSharingOneID() {
-    var collection = new tracing.model.ObjectCollection({});
+    var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
       '0x1000', 'cc', 'Frame', 10);
     collection.idWasDeleted(
@@ -118,7 +119,7 @@ found in the LICENSE file.
   }
 
   function testCreateSnapDelete() {
-    var collection = new tracing.model.ObjectCollection({});
+    var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
       '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -137,7 +138,7 @@ found in the LICENSE file.
   }
 
   function testBoundsOnUndeletedObject() {
-    var collection = new tracing.model.ObjectCollection({});
+    var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
       '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -149,7 +150,7 @@ found in the LICENSE file.
   }
 
   function testAutoDelete() {
-    var collection = new tracing.model.ObjectCollection({});
+    var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
       '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(

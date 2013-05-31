@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 base.require('cc.layer_impl');
 
 base.exportTo('cc', function() {
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
    * @constructor

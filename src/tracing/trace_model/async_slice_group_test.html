@@ -20,10 +20,10 @@ found in the LICENSE file.
   'use strict';
 
   var Model = tracing.TraceModel;
-  var Process = tracing.model.Process;
-  var Thread = tracing.model.Thread;
-  var AsyncSlice = tracing.model.AsyncSlice;
-  var AsyncSliceGroup = tracing.model.AsyncSliceGroup;
+  var Process = tracing.trace_model.Process;
+  var Thread = tracing.trace_model.Thread;
+  var AsyncSlice = tracing.trace_model.AsyncSlice;
+  var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
   var newAsyncSlice = tracing.test_utils.newAsyncSlice;
 
   function testAsyncSliceGroupBounds_Empty() {

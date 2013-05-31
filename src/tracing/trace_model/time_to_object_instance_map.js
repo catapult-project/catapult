@@ -10,7 +10,7 @@
 base.require('base.range');
 base.require('base.sorted_array_utils');
 
-base.exportTo('tracing.model', function() {
+base.exportTo('tracing.trace_model', function() {
 
   /**
    * Tracks all the instances associated with a given ID over its lifetime.

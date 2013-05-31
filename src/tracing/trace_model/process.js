@@ -7,8 +7,8 @@
 /**
  * @fileoverview Provides the Process class.
  */
-base.require('tracing.model.process_base');
-base.exportTo('tracing.model', function() {
+base.require('tracing.trace_model.process_base');
+base.exportTo('tracing.trace_model', function() {
 
   /**
    * The Process represents a single userland process in the
@@ -16,7 +16,7 @@ base.exportTo('tracing.model', function() {
    * @constructor
    */
   function Process(pid) {
-    tracing.model.ProcessBase.call(this);
+    tracing.trace_model.ProcessBase.call(this);
     this.pid = pid;
   };
 
@@ -28,7 +28,7 @@ base.exportTo('tracing.model', function() {
   };
 
   Process.prototype = {
-    __proto__: tracing.model.ProcessBase.prototype,
+    __proto__: tracing.trace_model.ProcessBase.prototype,
 
     compareTo: function(that) {
       return Process.compare(this, that);

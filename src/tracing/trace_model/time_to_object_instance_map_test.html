@@ -11,8 +11,8 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model.time_to_object_instance_map');
-  base.require('tracing.model.object_instance');
+  base.require('tracing.trace_model.time_to_object_instance_map');
+  base.require('tracing.trace_model.object_instance');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -21,12 +21,12 @@ found in the LICENSE file.
   'use strict';
 
   function createObjectInstance(parent, id, category, name, creationTs) {
-    return new tracing.model.ObjectInstance(
+    return new tracing.trace_model.ObjectInstance(
         parent, id, category, name, creationTs);
   }
 
   function testTimeToObjectInstanceMap() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(createObjectInstance,
                                                       {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
@@ -70,8 +70,8 @@ found in the LICENSE file.
   }
 
   function testTimeToObjectInstanceMapsBoundsLogic() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
     m.idWasDeleted('cat', 'name', 30);
@@ -90,8 +90,8 @@ found in the LICENSE file.
   }
 
   function testEarlySnapshot() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
 
@@ -103,8 +103,8 @@ found in the LICENSE file.
   }
 
   function testEarlySnapshotWithImplicitCreate() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     var i10 = m.idWasDeleted('cat', 'name', 20);
     m.addSnapshot('cat', 'name', 5, 'a1');
     assertEquals(5, i10.creationTs);
@@ -112,24 +112,24 @@ found in the LICENSE file.
   }
 
   function testGetInstanceBeforeCreationImplicitCreate() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
     assertEquals(undefined, m.getInstanceAt(5));
   }
 
   function testGetInstanceBeforeCreationImplicitCreate() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     var s5 = m.addSnapshot('cat', 'name', 5, 'a1');
     var i10 = m.idWasDeleted('cat', 'name', 20);
     assertEquals(i10, m.getInstanceAt(5));
   }
 
   function testSnapshotAfterDeletion() {
-    var m = new tracing.model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
 

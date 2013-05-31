@@ -8,12 +8,12 @@
  * @fileoverview Provides the SliceGroup class.
  */
 base.require('base.range');
-base.require('tracing.model.slice');
+base.require('tracing.trace_model.slice');
 base.require('tracing.color_scheme');
 base.require('tracing.filter');
 
-base.exportTo('tracing.model', function() {
-  var Slice = tracing.model.Slice;
+base.exportTo('tracing.trace_model', function() {
+  var Slice = tracing.trace_model.Slice;
 
   /**
    * A group of Slices, plus code to create them from B/E events, as

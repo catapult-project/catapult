@@ -5,12 +5,12 @@
 'use strict';
 
 base.require('base.rect');
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 base.require('cc.util');
 
 base.exportTo('cc', function() {
 
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
    * @constructor

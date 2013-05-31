@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('base.quad');
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
   function convertNameToJSConvention(name) {
@@ -82,8 +82,8 @@ base.exportTo('cc', function() {
     }
 
     if (hasRecursed &&
-        (object instanceof tracing.model.ObjectSnapshot ||
-         object instanceof tracing.model.ObjectInstance))
+        (object instanceof tracing.trace_model.ObjectSnapshot ||
+         object instanceof tracing.trace_model.ObjectInstance))
       return;
 
     for (var key in object) {

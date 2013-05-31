@@ -11,7 +11,7 @@
  */
 
 base.require('tracing.trace_model');
-base.require('tracing.model.slice');
+base.require('tracing.trace_model.slice');
 
 base.exportTo('tracing.importer', function() {
 
@@ -123,7 +123,7 @@ base.exportTo('tracing.importer', function() {
         var thread = process.getOrCreateThread(threadName);
         for (var s = 0; s < threadSlices.length; s++) {
           var slice = threadSlices[s];
-          thread.slices.push(new tracing.model.Slice('streamed',
+          thread.slices.push(new tracing.trace_model.Slice('streamed',
               slice['l'],
               0,
               slice['s'],

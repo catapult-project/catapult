@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.model.cpu');
+  base.require('tracing.trace_model.cpu');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -19,8 +19,8 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  var Cpu = tracing.model.Cpu;
-  var Slice = tracing.model.Slice;
+  var Cpu = tracing.trace_model.Cpu;
+  var Slice = tracing.trace_model.Slice;
 
   function testCpuBounds_Empty() {
     var cpu = new Cpu(undefined, 1);

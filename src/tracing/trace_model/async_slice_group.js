@@ -8,10 +8,10 @@
  * @fileoverview Provides the AsyncSliceGroup class.
  */
 base.require('base.range');
-base.require('tracing.model.slice');
-base.exportTo('tracing.model', function() {
+base.require('tracing.trace_model.slice');
+base.exportTo('tracing.trace_model', function() {
 
-  var Slice = tracing.model.Slice;
+  var Slice = tracing.trace_model.Slice;
 
   /**
    * A AsyncSlice represents an interval of time during which an

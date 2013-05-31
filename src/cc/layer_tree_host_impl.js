@@ -8,15 +8,15 @@
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
 base.require('base.bbox2');
-base.require('tracing.model.object_instance');
+base.require('tracing.trace_model.object_instance');
 base.require('cc.constants');
 base.require('cc.layer_tree_impl');
 base.require('cc.util');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
-  var ObjectSnapshot = tracing.model.ObjectSnapshot;
-  var ObjectInstance = tracing.model.ObjectInstance;
+  var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
+  var ObjectInstance = tracing.trace_model.ObjectInstance;
 
   /**
    * @constructor

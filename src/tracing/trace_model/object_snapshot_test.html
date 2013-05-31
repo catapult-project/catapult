@@ -10,30 +10,30 @@ found in the LICENSE file.
 <body>
 <script>
   base.require('base.unittest');
-  base.require('tracing.model.object_instance');
-  base.require('tracing.model.object_snapshot');
+  base.require('tracing.trace_model.object_instance');
+  base.require('tracing.trace_model.object_snapshot');
 </script>
 <script>
   'use strict';
 
   function testSnapshotTypeRegistry() {
     function MySnapshot() {
-      tracing.model.ObjectSnapshot.apply(this, arguments);
+      tracing.trace_model.ObjectSnapshot.apply(this, arguments);
       this.myFoo = this.args.foo;
     }
     MySnapshot.prototype = {
-      __proto__: tracing.model.ObjectSnapshot.prototype
+      __proto__: tracing.trace_model.ObjectSnapshot.prototype
     };
 
-    var instance = new tracing.model.ObjectInstance(
+    var instance = new tracing.trace_model.ObjectInstance(
       {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
-      tracing.model.ObjectSnapshot.register('MySnapshot', MySnapshot);
+      tracing.trace_model.ObjectSnapshot.register('MySnapshot', MySnapshot);
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assertTrue(snapshot instanceof MySnapshot);
       assertEquals('bar', snapshot.myFoo);
     } finally {
-      tracing.model.ObjectSnapshot.unregister('MySnapshot');
+      tracing.trace_model.ObjectSnapshot.unregister('MySnapshot');
     }
   }
 
