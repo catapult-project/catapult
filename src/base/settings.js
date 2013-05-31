@@ -35,7 +35,7 @@ base.exportTo('base', function() {
     var val = storage_.getItem(key);
     if (val === null || val === undefined)
       return opt_default;
-    return String(val);
+    return JSON.parse(val).value;
   },
 
   /**
@@ -48,7 +48,10 @@ base.exportTo('base', function() {
    * a set of related settings.
    */
   Settings.set = function(key, value, opt_namespace) {
-    storage_.setItem(Settings.namespace_(key, opt_namespace), String(value));
+    if (value === undefined)
+      throw new Error('Settings.set: value must not be undefined');
+    var v = JSON.stringify({value: value});
+    storage_.setItem(Settings.namespace_(key, opt_namespace), v);
   },
 
   /**

@@ -15,9 +15,32 @@ found in the LICENSE file.
 <script>
   'use strict';
 
-  function testCheckbox() {
-    var target = {foo: false};
-    this.addHTMLOutput(undefined, ui.createCheckBox(target, 'foo', 'Foo'));
+  function testCheckboxFromDefaults() {
+    var target = {foo: undefined};
+    var cb = ui.createCheckBox(target, 'foo',
+                               'myCheckBox', false,
+                               'Foo');
+    assertEquals(false, target.foo);
+  }
+
+  function testCheckboxFromSettings() {
+    base.Settings.set('myCheckBox', true);
+    var target = {foo: undefined};
+    var cb = ui.createCheckBox(target, 'foo',
+                               'myCheckBox', false,
+                               'Foo');
+    assertEquals(true, target.foo);
+  }
+
+  function testCheckboxChanged() {
+    var target = {foo: undefined};
+    var cb = ui.createCheckBox(target, 'foo',
+                               'myCheckBox', false,
+                               'Foo');
+    cb.checked = true;
+
+    assertEquals(true, base.Settings.get('myCheckBox', undefined));
+    assertEquals(true, target.foo);
   }
 
   function testSelectorSettingsAlreaySet() {

@@ -76,7 +76,7 @@ base.exportTo('tracing', function() {
         inputEl.value = category;
 
         inputEl.checked =
-            this.settings_.get(category, 'true', this.settings_key_) === 'true';
+            this.settings_.get(category, true, this.settings_key_);
         inputEl.onchange = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');

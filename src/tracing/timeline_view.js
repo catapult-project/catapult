@@ -449,7 +449,7 @@ base.exportTo('tracing', function() {
       var categories = this.settings.keys('categories');
       var disabledCategories = [];
       for (var i = 0; i < categories.length; i++) {
-        if (this.settings.get(categories[i], 'true', 'categories') == 'false')
+        if (!this.settings.get(categories[i], true, 'categories'))
           disabledCategories.push(categories[i]);
       }
 

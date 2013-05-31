@@ -26,31 +26,49 @@ function testSetGetString() {
   assertEquals('my_val', base.Settings().get('my_key'));
 }
 
+function assertSettingIs(expectedValue, key) {
+  assertEquals(expectedValue, base.Settings.get('my_key'),
+               'Expected Settings.' + key + ' to be ' + expectedValue);
+}
+
 function testSetGetNumber() {
   var settings = new base.Settings();
   settings.set('my_key', 5);
-  // Numbers are converted to strings.
-  assertEquals('5', settings.get('my_key'));
+  assertSettingIs(5, 'my_key');
 }
 
 function testSetGetBool() {
   var settings = new base.Settings();
   settings.set('my_key', false);
-  // Booleans are converted to strings.
-  assertEquals('false', settings.get('my_key'));
+  assertSettingIs(false, 'my_key');
 }
 
 function testSetGetObject() {
   var settings = new base.Settings();
   settings.set('my_key', {'hello': 5});
-  // Objects are converted to strings.
-  assertEquals('[object Object]', settings.get('my_key'));
+  assertObjectEquals({'hello': 5}, settings.get('my_key'));
+}
+
+function testSetInvalidObject() {
+  var settings = new base.Settings();
+  var obj = {'hello': undefined};
+  obj.hello = obj;
+  assertThrows(function() {
+    settings.set('my_key', obj)
+  });
+}
+
+function testSetUndefined() {
+  var settings = new base.Settings();
+  assertThrows(function() {
+    settings.set('my_key', undefined)
+  });
 }
 
 function testGetUnset() {
   var settings = new base.Settings();
   // Undefined should be returned if value isn't set.
-  assertUndefined(settings.get('my_key'));
+  assertSettingIs(undefined, 'my_key');
 }
 
 function testGetDefault() {

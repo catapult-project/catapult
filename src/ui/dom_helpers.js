@@ -62,8 +62,6 @@ base.exportTo('ui', function() {
     });
 
     var initialValue = base.Settings.get(settingsKey, defaultValue);
-    if (typeof defaultValue == 'number')
-      initialValue = parseFloat(initialValue);
     var didSet = false;
     for (var i = 0; i < selectorEl.children.length; i++) {
       if (selectorEl.children[i].targetPropertyValue == initialValue) {
@@ -83,14 +81,21 @@ base.exportTo('ui', function() {
 
   var nextCheckboxId = 1;
   function createCheckBox(targetEl, targetElProperty,
+                          settingsKey, defaultValue,
                           label) {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
-    buttonEl.checked = targetEl[targetElProperty];
 
-    buttonEl.addEventListener('change', function() {
+    var initialValue = base.Settings.get(settingsKey, defaultValue);
+    buttonEl.checked = !!initialValue;
+    targetEl[targetElProperty] = initialValue;
+
+    function onChange() {
+      base.Settings.set(settingsKey, buttonEl.checked);
       targetEl[targetElProperty] = buttonEl.checked;
-    });
+    }
+
+    buttonEl.addEventListener('change', onChange);
 
     var id = '#checkbox-' + nextCheckboxId++;
 
@@ -102,6 +107,15 @@ base.exportTo('ui', function() {
     labelEl.setAttribute('for', id);
     spanEl.appendChild(buttonEl);
     spanEl.appendChild(labelEl);
+
+    spanEl.__defineSetter__('checked', function(opt_bool) {
+      buttonEl.checked = !!opt_bool;
+      onChange();
+    });
+    spanEl.__defineGetter__('checked', function() {
+      return buttonEl.checked;
+    });
+
     return spanEl;
   }
 

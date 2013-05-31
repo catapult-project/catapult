@@ -120,10 +120,10 @@ base.exportTo('tracing', function() {
 
       this.continuousTracingBn_.checked =
           this.settings_.get('continuousTracing',
-              'true', 'record_dlg') === 'true';
+              true, 'record_dlg');
       this.systemTracingBn_.checked =
           this.settings_.get('systemTracing',
-              'false', 'record_dlg') === 'true';
+              false, 'record_dlg');
     },
 
     set recordCallback(cb) {
@@ -222,7 +222,7 @@ base.exportTo('tracing', function() {
         inputEl.value = category;
 
         inputEl.checked = this.settings_.get(
-            category, checkedDefault, this.settings_key_) === 'true';
+            category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');
@@ -264,11 +264,11 @@ base.exportTo('tracing', function() {
       disabledCategories = disabledCategories.sort();
       categories = categories.sort();
 
-      this.buildInputs_(categories, 'true', this.enabledCategoriesContainerEl_);
+      this.buildInputs_(categories, true, this.enabledCategoriesContainerEl_);
 
       if (disabledCategories.length > 0) {
         this.disabledCategoriesContainerEl_.hidden = false;
-        this.buildInputs_(disabledCategories, 'false',
+        this.buildInputs_(disabledCategories, false,
             this.disabledCategoriesContainerEl_);
       }
     },

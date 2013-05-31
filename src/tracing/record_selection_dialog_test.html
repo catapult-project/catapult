@@ -98,8 +98,8 @@ found in the LICENSE file.
 
       assertEquals('disabled-by-default-bar', dlg.categoryFilter());
 
-      assertEquals('false',
-          settings.get('disabled-by-default-foo', 'false', 'categories'));
+      assertEquals(false,
+          settings.get('disabled-by-default-foo', false, 'categories'));
     }
 
     function testSelectAll() {
@@ -128,14 +128,14 @@ found in the LICENSE file.
       // Enables the three option, two already enabled.
       dlg.formEl_.querySelector('.default-enabled-categories .all-btn').click();
       assertEquals('', dlg.categoryFilter());
-      assertEquals('true', settings.get('three', 'false', 'categories'));
+      assertEquals(true' settings.get('three', false, 'categories'));
 
       // Disables three and two.
       dlg.formEl_.
           querySelector('.default-enabled-categories .none-btn').click();
       assertEquals('-three,-two', dlg.categoryFilter());
-      assertEquals('false', settings.get('two', 'false', 'categories'));
-      assertEquals('false', settings.get('three', 'false', 'categories'));
+      assertEquals(false, settings.get('two', false, 'categories'));
+      assertEquals(false, settings.get('three', false, 'categories'));
 
       // Turn categories back on so they can be ignored.
       dlg.formEl_.querySelector('.default-enabled-categories .all-btn').click();
@@ -144,15 +144,15 @@ found in the LICENSE file.
       dlg.formEl_.
           querySelector('.default-disabled-categories .all-btn').click();
       assertEquals('disabled-by-default-one', dlg.categoryFilter());
-      assertEquals('true',
-          settings.get('disabled-by-default-one', 'false', 'categories'));
+      assertEquals(true,
+          settings.get('disabled-by-default-one', false, 'categories'));
 
       // Turn disabled by default back off.
       dlg.formEl_.
           querySelector('.default-disabled-categories .none-btn').click();
       assertEquals('', dlg.categoryFilter());
-      assertEquals('false',
-          settings.get('disabled-by-default-one', 'false', 'categories'));
+      assertEquals(false,
+          settings.get('disabled-by-default-one', false, 'categories'));
     }
   </script>
 </body>
