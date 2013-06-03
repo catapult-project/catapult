@@ -6,26 +6,12 @@ try:
   import resource  # pylint: disable=F0401
 except ImportError:
   resource = None  # Not available on all platforms
-import subprocess
 
-from telemetry.core.platform import platform_backend
+from telemetry.core.platform import posix_platform_backend
 
 
-class LinuxPlatformBackend(platform_backend.PlatformBackend):
-  def _GetProcFileDict(self, filename):
-    retval = {}
-    with open(filename, 'r') as f:
-      for line in f.readlines():
-        line = line.strip()
-        key_val = line.split(':')
-        assert len(key_val) == 2
-        try:
-          retval[key_val[0]] = int(key_val[1].replace('kB', ''))
-        except Exception:
-          pass
-    return retval
+class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
-  # pylint: disable=W0613
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
@@ -41,41 +27,37 @@ class LinuxPlatformBackend(platform_backend.PlatformBackend):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
+  def _GetProcFileDict(self, filename):
+    retval = {}
+    for line in self._GetFileContents(filename).splitlines():
+      key, value = line.split(':')
+      retval[key.strip()] = value.strip()
+    return retval
+
+  def _ConvertKbToByte(self, value):
+    return int(value.replace('kB','')) * 1024
+
   def GetSystemCommitCharge(self):
     meminfo = self._GetProcFileDict('/proc/meminfo')
-    return (meminfo['MemTotal'] - meminfo['MemFree'] - meminfo['Buffers'] -
-            meminfo['Cached'])
+    return (self._ConvertKbToByte(meminfo['MemTotal'])
+            - self._ConvertKbToByte(meminfo['MemFree'])
+            - self._ConvertKbToByte(meminfo['Buffers'])
+            - self._ConvertKbToByte(meminfo['Cached']))
 
   def GetMemoryStats(self, pid):
     status = self._GetProcFileDict('/proc/%s/status' % pid)
-    stats = open('/proc/%s/stat' % pid, 'r').read().split(' ')
+    stats = self._GetFileContents('/proc/%s/stat' % pid).split()
+
+    if not status or not stats or 'Z' in status['State']:
+      return {}
     return {'VM': int(stats[22]),
-            'VMPeak': status['VmPeak'] * 1024,
+            'VMPeak': self._ConvertKbToByte(status['VmPeak']),
             'WorkingSetSize': int(stats[23]) * resource.getpagesize(),
-            'WorkingSetSizePeak': status['VmHWM'] * 1024}
+            'WorkingSetSizePeak': self._ConvertKbToByte(status['VmHWM'])}
 
   def GetIOStats(self, pid):
     io = self._GetProcFileDict('/proc/%s/io' % pid)
-    return {'ReadOperationCount': io['syscr'],
-            'WriteOperationCount': io['syscw'],
-            'ReadTransferCount': io['rchar'],
-            'WriteTransferCount': io['wchar']}
-
-  def GetChildPids(self, pid):
-    """Retunds a list of child pids of |pid|."""
-    child_pids = []
-    pid_ppid_state_list = subprocess.Popen(
-        ['ps', '-e', '-o', 'pid,ppid,state'],
-        stdout=subprocess.PIPE).communicate()[0]
-    for pid_ppid_state in pid_ppid_state_list.splitlines()[1:]:  # Skip header
-      curr_pid, curr_ppid, state = pid_ppid_state.split()
-      if 'Z' in state:
-        continue  # Ignore zombie processes
-      if int(curr_ppid) == pid:
-        child_pids.append(int(curr_pid))
-        child_pids.extend(self.GetChildPids(int(curr_pid)))
-    return child_pids
-
-  def GetCommandLine(self, pid):
-    with open('/proc/%s/cmdline' % pid, 'r') as f:
-      return f.read()
+    return {'ReadOperationCount': int(io['syscr']),
+            'WriteOperationCount': int(io['syscw']),
+            'ReadTransferCount': int(io['rchar']),
+            'WriteTransferCount': int(io['wchar'])}

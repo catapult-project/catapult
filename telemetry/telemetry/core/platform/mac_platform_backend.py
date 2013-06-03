@@ -6,13 +6,12 @@ try:
   import resource  # pylint: disable=F0401
 except ImportError:
   resource = None  # Not available on all platforms
-import subprocess
 
-from telemetry.core.platform import platform_backend
+from telemetry.core.platform import posix_platform_backend
 
 
-class MacPlatformBackend(platform_backend.PlatformBackend):
-  # pylint: disable=W0613
+class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
+
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
@@ -29,8 +28,7 @@ class MacPlatformBackend(platform_backend.PlatformBackend):
     raise NotImplementedError()
 
   def GetSystemCommitCharge(self):
-    vm_stat = subprocess.Popen(['vm_stat'],
-                               stdout=subprocess.PIPE).communicate()[0]
+    vm_stat = self._RunCommand(['vm_stat'])
     for stat in vm_stat.splitlines():
       key, value = stat.split(':')
       if key == 'Pages active':
@@ -39,27 +37,9 @@ class MacPlatformBackend(platform_backend.PlatformBackend):
     return 0
 
   def GetMemoryStats(self, pid):
-    pid_rss_vsz_list = subprocess.Popen(['ps', '-e', '-o', 'pid=,rss=,vsz='],
-                                        stdout=subprocess.PIPE).communicate()[0]
-    for pid_rss_vsz in pid_rss_vsz_list.splitlines():
-      curr_pid, rss, vsz = pid_rss_vsz.split()
-      if int(curr_pid) == pid:
-        return {'VM': 1024 * int(vsz),
-                'WorkingSetSize': 1024 * int(rss)}
+    rss_vsz = self._GetPsOutput(['rss', 'vsz'], pid)
+    if rss_vsz:
+      rss, vsz = rss_vsz[0].split()
+      return {'VM': 1024 * int(vsz),
+              'WorkingSetSize': 1024 * int(rss)}
     return {}
-
-  def GetChildPids(self, pid):
-    """Retunds a list of child pids of |pid|."""
-    child_pids = []
-    pid_ppid_list = subprocess.Popen(['ps', '-e', '-o', 'pid=,ppid='],
-                                     stdout=subprocess.PIPE).communicate()[0]
-    for pid_ppid in pid_ppid_list.splitlines():
-      curr_pid, curr_ppid = pid_ppid.split()
-      if int(curr_ppid) == pid:
-        child_pids.append(int(curr_pid))
-        child_pids.extend(self.GetChildPids(int(curr_pid)))
-    return child_pids
-
-  def GetCommandLine(self, pid):
-    return subprocess.Popen(['ps', '-p', str(pid), '-o', 'command='],
-                            stdout=subprocess.PIPE).communicate()[0]
