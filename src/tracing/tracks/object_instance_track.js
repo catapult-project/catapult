@@ -238,6 +238,18 @@ base.exportTo('tracing.tracks', function() {
     }
   };
 
+  ObjectInstanceTrack.typeNameToTrackConstructorMap = {};
+  ObjectInstanceTrack.register = function(typeName, constructor) {
+    if (ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName])
+      throw new Error('Handler already registered for ' + typeName);
+    ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName] =
+        constructor;
+  };
+
+  ObjectInstanceTrack.getTrackConstructor = function(typeName) {
+    return ObjectInstanceTrack.typeNameToTrackConstructorMap[typeName];
+  };
+
   return {
     ObjectInstanceTrack: ObjectInstanceTrack
   };

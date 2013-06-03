@@ -48,15 +48,25 @@ base.exportTo('tcmalloc', function() {
       for (var i = 0; i < allocs.length; i++) {
         var alloc = allocs[i];
         var traceNames = alloc.trace.split(' ');
+        // We don't want to record allocations caused by the heap profiling
+        // system itself, so skip allocations with this special name.
+        if (traceNames.indexOf('trace-memory-ignore') != -1)
+          continue;
         var heapEntry = this.heap_;
         // Walk down into the heap of stack traces.
         for (var j = 0; j < traceNames.length; j++) {
-          // Add up the total memory for intermediate entries, so the top of
-          // each subtree is the total memory for that tree.
-          heapEntry.totalBytes += alloc.totalBytes;
-          heapEntry.totalAllocs += alloc.totalAllocs;
           // Look for existing children with this trace.
           var traceName = traceNames[j];
+          // The empty trace name means "(here)", so don't roll those up into
+          // parent traces because they have already been counted.
+          if (traceName.length != 0) {
+            // Add up the total memory for intermediate entries, so the top of
+            // each subtree is the total memory for that tree.
+            heapEntry.currentBytes += alloc.currentBytes;
+            heapEntry.currentAllocs += alloc.currentAllocs;
+            heapEntry.totalBytes += alloc.totalBytes;
+            heapEntry.totalAllocs += alloc.totalAllocs;
+          }
           if (!heapEntry.children[traceName]) {
             // New trace entry at this depth, so create a child for it.
             heapEntry.children[traceName] = {

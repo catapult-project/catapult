@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('tcmalloc.heap_instance_track');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.tracks.container_track');
@@ -89,7 +90,13 @@ base.exportTo('tracing.tracks', function() {
           if (visibleInstances.length === 0)
             return;
 
-          var track = new tracing.tracks.ObjectInstanceTrack();
+          // Look up the constructor for this track, or use the default
+          // constructor if none exists.
+          var trackConstructor =
+            tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
+          if (!trackConstructor)
+            trackConstructor = tracing.tracks.ObjectInstanceTrack;
+          var track = new trackConstructor();
           track.heading = typeName + ':';
           track.objectInstances = visibleInstances;
           this.addTrack_(track);

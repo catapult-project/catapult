@@ -5,7 +5,8 @@
 'use strict';
 
 base.require('tcmalloc.heap');
-base.require('tcmalloc.heap_view');
+base.require('tcmalloc.tcmalloc_instance_view');
+base.require('tcmalloc.tcmalloc_snapshot_view');
 
 base.exportTo('tcmalloc', function() {
   return {};
