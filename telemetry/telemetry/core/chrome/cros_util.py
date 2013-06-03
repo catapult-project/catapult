@@ -84,6 +84,11 @@ def NavigateLogin(browser_backend):
         'extension passed through --auth-ext-path is valid and belongs '
         'to user "chronos".')
 
-  # Wait for the startup window, then close it.
-  util.WaitFor(lambda: _StartupWindow(browser_backend) is not None, 20)
-  _StartupWindow(browser_backend).Close()
+  if browser_backend.chrome_branch_number < 1500:
+    # Wait for the startup window, then close it. Startup window doesn't exist
+    # post-M27. crrev.com/197900
+    util.WaitFor(lambda: _StartupWindow(browser_backend) is not None, 20)
+    _StartupWindow(browser_backend).Close()
+  else:
+    # Open a new window/tab.
+    browser_backend.tab_list_backend.New(15)
