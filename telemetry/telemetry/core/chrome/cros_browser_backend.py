@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
 from telemetry.core.chrome import cros_util
@@ -101,6 +102,14 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       raise
 
+    # chrome_branch_number is set in _PostBrowserStartupInitialization.
+    # Without --skip-hwid-check (introduced in crrev.com/203397), devices/VMs
+    # will be stuck on the bad hwid screen.
+    if self.chrome_branch_number <= 1500 and not self.hwid:
+        raise exceptions.LoginException(
+            'Hardware id not set on device/VM. --skip-hwid-check not supported '
+            'with chrome branches 1500 or earlier.')
+
     if self._is_guest:
       cros_util.NavigateGuestLogin(self, cri)
       # Guest browsing shuts down the current browser and launches an incognito
@@ -129,6 +138,10 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     if not self._is_guest:
       args.append('--auth-ext-path=%s' % self._login_ext_dir)
 
+    # Skip hwid check on systems that don't have a hwid set, eg VMs.
+    if not self.hwid:
+      args.append('--skip-hwid-check')
+
     return args
 
   @property
@@ -138,6 +151,10 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
         if process.startswith(path):
           return int(pid)
     return None
+
+  @property
+  def hwid(self):
+    return self._cri.RunCmdOnDevice(['/usr/bin/crossystem', 'hwid'])[0]
 
   def GetRemotePort(self, _):
     return self._cri.GetRemotePort()
