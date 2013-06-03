@@ -57,6 +57,6 @@ class PosixPlatformBackend(platform_backend.PlatformBackend):
     return child_ids
 
   def GetCommandLine(self, pid):
-    command = self._GetPsOutput('command', pid)
+    command = self._GetPsOutput(['command'], pid)
     return command[0] if command else None
 
