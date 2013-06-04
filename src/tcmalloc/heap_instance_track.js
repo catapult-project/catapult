@@ -47,7 +47,7 @@ base.exportTo('tcmalloc', function() {
       this.visible = true;
       this.objectInstance_ = objectInstances[0];
       this.maxBytes_ = this.computeMaxBytes_(
-        this.objectInstance_.snapshots);
+          this.objectInstance_.snapshots);
     },
 
     computeMaxBytes_: function(snapshots) {
@@ -133,8 +133,8 @@ base.exportTo('tcmalloc', function() {
         for (var k = keys.length - 1; k >= 0; k--) {
           var trace = snapshot.heap_.children[keys[k]];
           var colorId = snapshot.selected ?
-            snapshot.objectInstance.colorId + highlightIdBoost :
-            snapshot.objectInstance.colorId;
+              snapshot.objectInstance.colorId + highlightIdBoost :
+              snapshot.objectInstance.colorId;
           ctx.fillStyle = palette[colorId + k];
           var barHeight = canvasHeight * trace.currentBytes / maxBytes;
           ctx.fillRect(leftView, currentY - barHeight,
@@ -195,7 +195,7 @@ base.exportTo('tcmalloc', function() {
   };
 
   tracing.tracks.ObjectInstanceTrack.register(
-    'memory::Heap', HeapInstanceTrack);
+      'memory::Heap', HeapInstanceTrack);
 
   return {
     HeapInstanceTrack: HeapInstanceTrack

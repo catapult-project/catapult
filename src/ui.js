@@ -71,7 +71,7 @@ base.exportTo('ui', function() {
    * @param {string} tagName The tagName of the newly created subtype. If
    *     subclassing, this is used for debugging. If not subclassing, then it is
    *     the tag name that will be created by the component.
-   * @param {function} opt_parentConstructor The parent class for this new
+   * @param {function=} opt_parentConstructor The parent class for this new
    *     element, if subclassing is desired. If provided, the parent class must
    *     be also a function created by ui.define.
    * @return {function(Object=):Element} The newly created component

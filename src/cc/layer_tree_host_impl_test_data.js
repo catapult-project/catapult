@@ -126,14 +126,14 @@ var g_catLTHIEvents = [
             'active_priority': {
               'time_to_visible_in_seconds': 0,
               'current_screen_quad': [
-                2428,
-                0,
+                1230,
+                256,
                 2460,
-                0,
+                256,
                 2460,
-                511,
-                2428,
-                511
+                767,
+                1230,
+                767
               ],
               'resolution': 'HIGH_RESOLUTION',
               'distance_to_visible_in_pixels': 0

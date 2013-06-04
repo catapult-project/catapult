@@ -29,11 +29,17 @@ base.exportTo('cc', function() {
     },
 
     updateContents: function() {
-      var containingSnapshot = this.objectSnapshot_.containingSnapshot;
-      if (containingSnapshot) {
-        this.layerTreeView_.objectSnapshot = containingSnapshot;
-        this.layerTreeView_.highlightedTile = this.objectSnapshot_;
-      }
+      var tile = this.objectSnapshot_;
+      var layerTreeHostImpl = tile.containingSnapshot;
+      if (!layerTreeHostImpl)
+        return;
+
+      this.layerTreeView_.objectSnapshot = layerTreeHostImpl;
+      this.layerTreeView_.highlight = {
+        quadIfActive: tile.args.activePriority.currentScreenQuad,
+        quadIfPending: tile.args.pendingPriority.currentScreenQuad,
+        objectToAnalyze: this.objectSnapshot_
+      };
     }
   };
 

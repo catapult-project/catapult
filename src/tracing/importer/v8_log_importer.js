@@ -68,7 +68,7 @@ base.exportTo('tracing.importer', function() {
       length /= 1000;
       var colorId = tracing.getStringColorId(name);
       var slice = new tracing.trace_model.Slice('v8', name, colorId, start,
-                                          args, length);
+          args, length);
       this.v8_timer_thread_.pushSlice(slice);
     },
 

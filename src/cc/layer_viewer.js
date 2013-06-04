@@ -11,7 +11,10 @@ base.require('base.settings');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('tracing.analysis.generic_object_view');
+base.require('tracing.analysis.analyze_selection');
+base.require('tracing.analysis.analysis_results');
 base.require('tracing.analysis.util');
+base.require('ui.drag_handle');
 base.require('ui.overlay');
 base.require('ui.info_bar');
 base.require('ui.quad_stack');
@@ -31,14 +34,21 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.layer_ = undefined;
+      this.highlight_ = undefined;
 
       this.controls_ = document.createElement('top-controls');
       this.infoBar_ = new ui.InfoBar();
       this.quadStack_ = new ui.QuadStack();
+      this.lowerDragBar_ = new ui.DragHandle();
+      this.lowerAnalysisEl_ = document.createElement('layer-viewer-analysis');
+
+      this.lowerDragBar_.target = this.lowerAnalysisEl_;
 
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStack_);
+      this.appendChild(this.lowerDragBar_);
+      this.appendChild(this.lowerAnalysisEl_);
 
       this.statusEL_ = this.controls_.appendChild(ui.createSpan(''));
       this.statusEL_.textContent = 'Selected layer';
@@ -90,6 +100,8 @@ base.exportTo('cc', function() {
           'layerViewer.showContents', true,
           'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
+
+      this.scheduleUpdateContents_();
     },
 
     get layer() {
@@ -117,7 +129,7 @@ base.exportTo('cc', function() {
 
     set showOtherLayers(show) {
       this.showOtherLayers_ = show;
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
     get showContents() {
@@ -126,7 +138,7 @@ base.exportTo('cc', function() {
 
     set showContents(show) {
       this.showContents_ = show;
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
     get showInvalidations() {
@@ -135,12 +147,18 @@ base.exportTo('cc', function() {
 
     set showInvalidations(show) {
       this.showInvalidations_ = show;
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
-    set highlightedTile(tileSnapshot) {
-      this.highlightedTile_ = tileSnapshot;
-      this.updateContents_();
+    set highlight(highlight) {
+      if (!(highlight.quadIfActive && highlight.quadIfPending)) {
+        throw new Error('Selection must have quadIfActive and ' +
+                        'quadIfPending parameters');
+      }
+      if (!highlight.objectToAnalyze)
+        throw new Error('Selection must have an objectToAnalyze parameter');
+      this.highlight_ = highlight;
+      this.scheduleUpdateContents_();
     },
 
     scheduleUpdateContents_: function() {
@@ -154,6 +172,21 @@ base.exportTo('cc', function() {
     updateContents_: function() {
       this.updateContentsPending_ = false;
       this.warningEL_.textContent = '';
+
+      if (this.highlight_) {
+        delete this.lowerDragBar_.style.display;
+        delete this.lowerAnalysisEl_.style.display;
+        this.lowerAnalysisEl_.textContent = '';
+        var sel = tracing.createSelectionFromObjectAndView(
+            this.highlight_.objectToAnalyze, this);
+        var results = new tracing.analysis.AnalysisResults();
+        tracing.analysis.analyzeSelection(results, sel);
+        this.lowerAnalysisEl_.appendChild(results);
+      } else {
+        this.lowerDragBar_.style.display = 'none';
+        this.lowerAnalysisEl_.style.display = 'none';
+        this.lowerAnalysisEl_.textContent = '';
+      }
 
       if (!this.layer_) {
         this.quadStack_.quads = [];
@@ -243,23 +276,27 @@ base.exportTo('cc', function() {
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
       }
 
-      if (this.highlightedTile_) {
-        var whichTree = layerTreeImpl.whichTree;
-        var priority = whichTree == constants.ACTIVE_TREE ?
-            this.highlightedTile_.args.activePriority :
-            this.highlightedTile_.args.pendingPriority;
-        var quad = priority.currentScreenQuad;
-        var quadForDrawing = quad.clone();
-        quadForDrawing.backgroundColor = 'rgba(0, 255, 0, 0.7)';
-        quadForDrawing.borderColor = 'rgba(0, 255, 0, 1)';
-        quadForDrawing.stackingGroupId = i;
-        quads.push(quadForDrawing);
-      }
+      if (this.highlight_)
+        this.appendQuadsForHighlight_(
+            quads, layerTreeImpl, this.highlight_, i);
 
       var viewport = new ui.QuadViewViewport(
           lthiInstance.allLayersBBox, this.scale_);
       this.quadStack_.setQuadsViewportAndDeviceViewportSize(
           quads, viewport, lthi.deviceViewportSize, true);
+    },
+
+    appendQuadsForHighlight_: function(
+        quads, layerTreeImpl,
+        highlight, stackingGroupId) {
+      var quad = layerTreeImpl.whichTree == constants.ACTIVE_TREE ?
+          highlight.quadIfActive : highlight.quadIfPending;
+
+      var quadForDrawing = quad.clone();
+      quadForDrawing.backgroundColor = 'rgba(0, 255, 0, 0.7)';
+      quadForDrawing.borderColor = 'rgba(0, 255, 0, 1)';
+      quadForDrawing.stackingGroupId = stackingGroupId;
+      quads.push(quadForDrawing);
     }
   };
 

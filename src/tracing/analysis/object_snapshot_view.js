@@ -16,6 +16,14 @@ base.exportTo('tracing.analysis', function() {
       this.objectSnapshot_ = undefined;
     },
 
+    set modelObject(obj) {
+      this.objectSnapshot = obj;
+    },
+
+    get modelObject(obj) {
+      return this.objectSnapshot;
+    },
+
     get objectSnapshot() {
       return this.objectSnapshot_;
     },

@@ -93,7 +93,7 @@ base.exportTo('tracing.tracks', function() {
           // Look up the constructor for this track, or use the default
           // constructor if none exists.
           var trackConstructor =
-            tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
+              tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
           if (!trackConstructor)
             trackConstructor = tracing.tracks.ObjectInstanceTrack;
           var track = new trackConstructor();

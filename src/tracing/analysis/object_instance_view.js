@@ -16,6 +16,14 @@ base.exportTo('tracing.analysis', function() {
       this.objectInstance_ = undefined;
     },
 
+    set modelObject(obj) {
+      this.objectInstance = obj;
+    },
+
+    get modelObject(obj) {
+      return this.objectInstance;
+    },
+
     get objectInstance() {
       return this.objectInstance_;
     },

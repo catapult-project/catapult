@@ -26,8 +26,8 @@ found in the LICENSE file.
   }
 
   function testTimeToObjectInstanceMap() {
-    var m = new tracing.trace_model.TimeToObjectInstanceMap(createObjectInstance,
-                                                      {}, 7);
+    var m = new tracing.trace_model.TimeToObjectInstanceMap(
+        createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
     m.idWasDeleted('cat', 'name', 30);

@@ -21,13 +21,14 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    var Model = tracing.TraceModel;
-    var Selection = tracing.Selection;
     var AnalysisView = tracing.analysis.AnalysisView;
-    var ObjectInstance = tracing.trace_model.ObjectInstance;
-    var newSliceNamed = tracing.test_utils.newSliceNamed;
-    var DefaultObjectSnapshotView = tracing.analysis.DefaultObjectSnapshotView;
     var DefaultObjectInstanceView = tracing.analysis.DefaultObjectInstanceView;
+    var DefaultObjectSnapshotView = tracing.analysis.DefaultObjectSnapshotView;
+    var Model = tracing.TraceModel;
+    var ObjectInstance = tracing.trace_model.ObjectInstance;
+    var Selection = tracing.Selection;
+    var Slice = tracing.trace_model.Slice;
+    var newSliceNamed = tracing.test_utils.newSliceNamed;
 
     function testInstantiateAnalysisWithObjects() {
       var model = new Model();
@@ -151,6 +152,37 @@ found in the LICENSE file.
             assertEquals('hello', view.currentView.textContent);
           });
     }
-  </script>
+
+    function testAnalyzeSelectionWithSliceKnownType() {
+      var s10 = new Slice('cat', 'MySlice', 0, 10, {}, 4);
+
+      var selection = new tracing.Selection();
+      selection.addSlice({}, s10);
+
+      var MySlice = ui.define(
+          'my-slice', tracing.analysis.SliceView);
+      MySlice.prototype = {
+        __proto__: tracing.analysis.SliceView.prototype,
+
+        decorate: function() {
+        },
+
+        updateContents: function() {
+          this.textContent = 'hello';
+        }
+      };
+
+      var view = new AnalysisView();
+      withRegisteredType(
+          tracing.analysis.SliceView,
+          'MySlice', MySlice, undefined, function() {
+            view.selection = selection;
+            assertTrue(view.currentView instanceof MySlice);
+            assertEquals(s10, view.currentView.slice);
+            assertEquals('hello', view.currentView.textContent);
+          });
+    }
+
+</script>
 </body>
 </html>

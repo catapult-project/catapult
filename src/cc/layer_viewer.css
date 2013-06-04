@@ -24,3 +24,8 @@ layer-viewer > quad-stack {
   overflow: auto;
   padding: 10px 10px 10px 10px;
 }
+
+layer-viewer > layer-viewer-analysis {
+  height: 150px;
+  overflow-y: auto;
+}

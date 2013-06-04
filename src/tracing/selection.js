@@ -17,6 +17,10 @@ base.exportTo('tracing', function() {
     this.slice = slice;
   }
   SelectionSliceHit.prototype = {
+    get modelObject() {
+      return this.slice;
+    },
+
     get selected() {
       return this.slice.selected;
     },
@@ -36,6 +40,10 @@ base.exportTo('tracing', function() {
   }
 
   SelectionCounterSampleHit.prototype = {
+    get modelObject() {
+      return this.sampleIndex;
+    },
+
     get selected() {
       return this.track.selectedSamples[this.sampleIndex] == true;
     },
@@ -60,6 +68,10 @@ base.exportTo('tracing', function() {
     this.objectSnapshot = objectSnapshot;
   }
   SelectionObjectSnapshotHit.prototype = {
+    get modelObject() {
+      return this.objectSnapshot;
+    },
+
     get selected() {
       return this.objectSnapshot.selected;
     },
@@ -76,6 +88,10 @@ base.exportTo('tracing', function() {
     this.objectInstance = objectInstance;
   }
   SelectionObjectInstanceHit.prototype = {
+    get modelObject() {
+      return this.objectInstance;
+    },
+
     get selected() {
       return this.objectInstance.selected;
     },
@@ -303,11 +319,29 @@ base.exportTo('tracing', function() {
     }
   };
 
+  function createSelectionFromObjectAndView(obj, opt_view) {
+    // TODO: fill in the track intelligently by finding the TimelineView, then
+    // finding the right track based on the provided object.
+    var track = undefined;
+
+    var selection = new Selection();
+    if (obj instanceof tracing.trace_model.Slice)
+      selection.addSlice(track, obj);
+    else if (obj instanceof tracing.trace_model.ObjectSnapshot)
+      selection.addObjectSnapshot(track, obj);
+    else if (obj instanceof tracing.trace_model.ObjectInstance)
+      selection.addObjectInstance(track, obj);
+    else
+      throw new Error('Unrecognized selection type');
+    return selection;
+  }
+
   return {
     SelectionSliceHit: SelectionSliceHit,
     SelectionCounterSampleHit: SelectionCounterSampleHit,
     SelectionObjectSnapshotHit: SelectionObjectSnapshotHit,
     SelectionObjectInstanceHit: SelectionObjectInstanceHit,
-    Selection: Selection
+    Selection: Selection,
+    createSelectionFromObjectAndView: createSelectionFromObjectAndView
   };
 });

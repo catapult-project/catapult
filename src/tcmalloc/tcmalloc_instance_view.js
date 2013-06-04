@@ -19,7 +19,7 @@ base.exportTo('tcmalloc', function() {
    * @constructor
    */
   var TcmallocInstanceView = ui.define(
-      tracing.analysis.ObjectInstanceView);
+      'tcmalloc-instance-view', tracing.analysis.ObjectInstanceView);
 
   TcmallocInstanceView.prototype = {
     __proto__: tracing.analysis.ObjectInstanceView.prototype,
@@ -64,7 +64,7 @@ base.exportTo('tcmalloc', function() {
           rowData.push(bytes);
           // Associate a  megabyte count with a time in seconds.
           chartArrays[j].push(
-            [Math.round(snapshot.ts / 1000), bytes / 1024 / 1024]);
+              [Math.round(snapshot.ts / 1000), bytes / 1024 / 1024]);
         }
         var row = this.buildRow_(snapshot, rowData);
         table.appendChild(row);
@@ -95,7 +95,7 @@ base.exportTo('tcmalloc', function() {
     getByteString_: function(bytes) {
       var mb = bytes / 1024 / 1024;
       return mb.toFixed(1) + ' MB';
-    },
+    }
   };
 
   tracing.analysis.ObjectInstanceView.register(

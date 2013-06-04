@@ -58,10 +58,8 @@ base.exportTo('tracing.analysis', function() {
           snapshot.objectInstance.id + ' @ ' +
           tsRound(snapshot.ts) + ' ms';
       this.selectionGenerator = function() {
-        var selection = new tracing.Selection();
-        selection.addObjectSnapshot(undefined, snapshot);
-        return selection;
-      };
+        return tracing.createSelectionFromObjectAndView(snapshot, this);
+      }.bind(this);
     }
   };
 
@@ -81,10 +79,8 @@ base.exportTo('tracing.analysis', function() {
     set objectInstance(instance) {
       this.textContent = instance.typeName + ' ' + instance.id;
       this.selectionGenerator = function() {
-        var selection = new tracing.Selection();
-        selection.addObjectInstance(undefined, instance);
-        return selection;
-      };
+        return tracing.createSelectionFromObjectAndView(instance, this);
+      }.bind(this);
     }
   };
 

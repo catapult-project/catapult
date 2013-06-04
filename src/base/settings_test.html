@@ -64,14 +64,14 @@ function testSetInvalidObject() {
   var obj = {'hello': undefined};
   obj.hello = obj;
   assertThrows(function() {
-    settings.set('my_key', obj)
+    settings.set('my_key', obj);
   });
 }
 
 function testSetUndefined() {
   var settings = new base.Settings();
   assertThrows(function() {
-    settings.set('my_key', undefined)
+    settings.set('my_key', undefined);
   });
 }
 

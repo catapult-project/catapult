@@ -54,10 +54,8 @@ base.exportTo('cc', function() {
       this.layerViewer_.layer = this.layerPicker_.selectedLayer;
     },
 
-    set highlightedTile(tileSnapshot) {
-      if (!(tileSnapshot instanceof cc.TileSnapshot))
-        throw new Error('Not a tile');
-      this.layerViewer_.highlightedTile = tileSnapshot;
+    set highlight(highlight) {
+      this.layerViewer_.highlight = highlight;
     }
   };
 

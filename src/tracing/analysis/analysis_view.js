@@ -10,11 +10,12 @@
 base.requireStylesheet('tracing.analysis.analysis_view');
 
 base.require('base.guid');
-base.require('tracing.analysis.analyze_selection');
 base.require('tracing.analysis.analysis_results');
+base.require('tracing.analysis.analyze_selection');
+base.require('tracing.analysis.default_object_view');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.default_object_view');
+base.require('tracing.analysis.slice_view');
 base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
@@ -35,12 +36,12 @@ base.exportTo('tracing.analysis', function() {
       window.addEventListener('popstate', this.onPopState.bind(this));
     },
 
-    changeViewType: function(viewConstructor) {
-      if (this.currentView_ instanceof viewConstructor)
+    changeViewType: function(viewType) {
+      if (this.currentView_ instanceof viewType)
         return;
       this.textContent = '';
       try {
-        this.currentView_ = new viewConstructor();
+        this.currentView_ = new viewType();
         this.appendChild(this.currentView_);
       } catch (e) {
         this.currentView_ = undefined;
@@ -97,45 +98,53 @@ base.exportTo('tracing.analysis', function() {
     processSelection: function(selection) {
       var hitsByType = selection.getHitsOrganizedByType();
       if (selection.length == 1 &&
-          hitsByType.slices.length == 0 &&
           hitsByType.counterSamples.length == 0) {
-        if (hitsByType.objectSnapshots.length == 1) {
-          var snapshot = hitsByType.objectSnapshots[0].objectSnapshot;
-          var viewInfo = tracing.analysis.ObjectSnapshotView.getViewInfo(
-              snapshot.objectInstance.typeName);
-
-          var viewConstructor;
-          if (viewInfo)
-            viewConstructor = viewInfo.constructor;
-          else
-            viewConstructor = tracing.analysis.DefaultObjectSnapshotView;
-
-          this.changeViewType(viewConstructor);
-          this.currentView.objectSnapshot = snapshot;
+        if (this.tryToProcessSelectionUsingCustomViewer(selection[0]))
           return;
-        }
-
-        if (hitsByType.objectInstances.length == 1) {
-          var instance = hitsByType.objectInstances[0].objectInstance;
-          var viewInfo = tracing.analysis.ObjectInstanceView.getViewInfo(
-              instance.typeName);
-
-          var viewConstructor;
-          if (viewInfo)
-            viewConstructor = viewInfo.constructor;
-          else
-            viewConstructor = tracing.analysis.DefaultObjectInstanceView;
-
-          this.changeViewType(viewConstructor);
-          this.currentView.objectInstance = instance;
-          return;
-        }
       }
 
       this.changeViewType(tracing.analysis.AnalysisResults);
       this.currentView.clear();
       this.currentSelection_ = selection;
       tracing.analysis.analyzeHitsByType(this.currentView, hitsByType);
+    },
+
+    tryToProcessSelectionUsingCustomViewer: function(hit) {
+      var obj;
+      var typeName;
+      var viewBaseType;
+      var defaultViewType;
+      var viewProperty;
+      var obj = hit.modelObject;
+      if (hit instanceof tracing.SelectionObjectSnapshotHit) {
+        typeName = obj.objectInstance.typeName;
+        viewBaseType = tracing.analysis.ObjectSnapshotView;
+        defaultViewType = tracing.analysis.DefaultObjectSnapshotView;
+      } else if (hit instanceof tracing.SelectionObjectInstanceHit) {
+        typeName = obj.typeName;
+        viewBaseType = tracing.analysis.ObjectInstanceView;
+        defaultViewType = tracing.analysis.DefaultObjectInstanceView;
+      } else if (hit instanceof tracing.SelectionSliceHit) {
+        typeName = obj.title;
+        viewBaseType = tracing.analysis.SliceView;
+        defaultViewType = undefined;
+      } else {
+        return false;
+      }
+
+      var customViewInfo = viewBaseType.getViewInfo(typeName);
+
+      var viewType = customViewInfo ?
+          customViewInfo.constructor : defaultViewType;
+
+      // Some view types don't have default viewers. In those cases, we fall
+      // back to the standard analysis sytem.
+      if (!viewType)
+        return false;
+
+      this.changeViewType(viewType);
+      this.currentView.modelObject = obj;
+      return true;
     }
   };
 

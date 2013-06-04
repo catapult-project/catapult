@@ -115,7 +115,7 @@ base.exportTo('base', function() {
 
     addEventListener: function(type, listener, useCapture) {
       this.__proto__.addEventListener.call(
-        this, type, listener, useCapture);
+          this, type, listener, useCapture);
       if (this.listenerCounts_[type] === undefined)
         this.listenerCounts_[type] = 0;
       this.listenerCounts_[type]++;
@@ -123,7 +123,7 @@ base.exportTo('base', function() {
 
     removeEventListener: function(type, listener, useCapture) {
       this.__proto__.removeEventListener.call(
-        this, type, listener, useCapture);
+          this, type, listener, useCapture);
       this.listenerCounts_[type]--;
     },
 
