@@ -195,8 +195,7 @@ base.exportTo('ui', function() {
       var ctx = this.canvas_.getContext('2d');
 
       var vp = this.viewport_;
-      ctx.fillStyle = 'rgba(255,255,255,0)';
-      ctx.fillRect(
+      ctx.clearRect(
           0, 0,
           this.canvas_.width, this.canvas_.height);
       ctx.save();
