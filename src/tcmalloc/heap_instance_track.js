@@ -23,7 +23,8 @@ base.exportTo('tcmalloc', function() {
    * @extends {CanvasBasedTrack}
    */
 
-  var HeapInstanceTrack = ui.define(tracing.tracks.CanvasBasedTrack);
+  var HeapInstanceTrack = ui.define(
+      'heap-instance-track', tracing.tracks.CanvasBasedTrack);
 
   HeapInstanceTrack.prototype = {
 
