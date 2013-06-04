@@ -8,6 +8,7 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.unittest import simple_mock
 from telemetry.unittest import options_for_unittests
+from telemetry.unittest import DisabledTest
 
 _ = simple_mock.DONT_CARE
 
@@ -26,6 +27,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
   def setUp(self):
     self._credentials_type = None
 
+  @DisabledTest
   def testRealLoginIfPossible(self):
     credentials_path = _GetCredentialsPath()
     if not credentials_path:
@@ -40,6 +42,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
       ret = b.credentials.LoginNeeded(b.tabs[0], self._credentials_type)
       self.assertTrue(ret)
 
+  @DisabledTest
   def testRealLoginWithDontOverrideProfileIfPossible(self):
     credentials_path = _GetCredentialsPath()
     if not credentials_path:

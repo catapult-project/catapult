@@ -13,10 +13,10 @@ from telemetry.core import util
 from telemetry.core.chrome import cros_browser_backend
 from telemetry.core.chrome import cros_interface
 from telemetry.unittest import options_for_unittests
-from telemetry.unittest import run_tests
+from telemetry.unittest import RequiresBrowserOfType
 
 class CrOSInterfaceTest(unittest.TestCase):
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testPushContents(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -27,7 +27,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     contents = cri.GetFileContents('/tmp/testPushContents')
     self.assertEquals(contents, 'hello world')
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testExists(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -46,7 +46,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testGetFileContents(self): # pylint: disable=R0201
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -55,7 +55,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     hosts = cri.GetFileContents('/etc/hosts')
     assert hosts.startswith('# /etc/hosts')
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testGetFileContentsForSomethingThatDoesntExist(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -65,7 +65,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       OSError,
       lambda: cri.GetFileContents('/tmp/209fuslfskjf/dfsfsf'))
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testIsServiceRunning(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -80,7 +80,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     cri = cros_interface.CrOSInterface()
     self.assertTrue(cri.IsServiceRunning('dbus'))
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -116,7 +116,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     # longer in use.
     self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
 
-  @run_tests.RequiresBrowserOfType('cros-chrome')
+  @RequiresBrowserOfType('cros-chrome')
   def testGetRemotePortReservedPorts(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -131,7 +131,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertTrue(remote_port_1 != remote_port_2)
 
   # TODO(tengs): It would be best if we can filter this test and other tests
-  # that need to be run locally based on the platform of the system browser. 
+  # that need to be run locally based on the platform of the system browser.
   def testEscapeCmdArguments(self):
     ''' Commands and their arguments that are executed through the cros
     interface should follow bash syntax. This test needs to run on remotely

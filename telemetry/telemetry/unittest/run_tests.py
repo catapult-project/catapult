@@ -11,14 +11,6 @@ from telemetry.core import discover
 from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import options_for_unittests
 
-
-def RequiresBrowserOfType(*types):
-  def wrap(func):
-    func._requires_browser_types = types
-    return func
-  return wrap
-
-
 def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
   loader.suiteClass = gtest_testrunner.GTestTestSuite
@@ -53,7 +45,9 @@ def FilterSuite(suite, predicate):
   return new_suite
 
 
-def DiscoverAndRunTests(dir_name, args, top_level_dir, runner=None):
+def DiscoverAndRunTests(
+    dir_name, args, top_level_dir,
+    runner=None, run_disabled_tests=False):
   if not runner:
     runner = gtest_testrunner.GTestTestRunner(inner=True)
 
@@ -75,6 +69,9 @@ def DiscoverAndRunTests(dir_name, args, top_level_dir, runner=None):
         if options_for_unittests.GetBrowserType() not in types:
           logging.debug('Skipping test %s because it requires %s' %
                         (test.id(), types))
+          return False
+      if hasattr(method, '_disabled_test'):
+        if not run_disabled_tests:
           return False
 
     return True
@@ -98,6 +95,10 @@ def Main(args, start_dir, top_level_dir, runner=None):
   parser.add_option('--repeat-count', dest='run_test_repeat_count',
                     type='int', default=1,
                     help='Repeats each a provided number of times.')
+  parser.add_option('-d', '--also-run-disabled-tests',
+                    dest='run_disabled_tests',
+                    action='store_true', default=False,
+                    help='Also run tests decorated with @DisabledTest.')
 
   _, args = parser.parse_args(args)
 
@@ -125,8 +126,9 @@ def Main(args, start_dir, top_level_dir, runner=None):
     success = True
     for _ in range(
         default_options.run_test_repeat_count): # pylint: disable=E1101
-      success = success and DiscoverAndRunTests(start_dir, args, top_level_dir,
-                                                runner)
+      success = success and DiscoverAndRunTests(
+        start_dir, args, top_level_dir,
+        runner, default_options.run_disabled_tests)
     if success:
       return 0
   finally:
