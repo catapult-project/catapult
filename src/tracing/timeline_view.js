@@ -64,8 +64,6 @@ base.exportTo('tracing', function() {
 
       this.importErrorsButton_ = this.createImportErrorsButton_();
       this.categoryFilterButton_ = this.createCategoryFilterButton_();
-      this.categoryFilterButton_.callback =
-          this.updateCategoryFilterFromSettings_.bind(this);
       this.metadataButton_ = this.createMetadataButton_();
 
       // Connect everything up.
@@ -153,36 +151,31 @@ base.exportTo('tracing', function() {
       return showEl;
     },
 
-    createCategoryFilterButton_: function() {
-      // Set by the embedder of the help button that we create in this function.
-      var callback;
+    updateCategoryFilter_: function(categories) {
+      if (!this.timeline_)
+        return;
+      this.timeline_.categoryFilter = new tracing.CategoryFilter(categories);
+    },
 
+    createCategoryFilterButton_: function() {
       var showEl = document.createElement('div');
       showEl.className = 'button view-info-button';
       showEl.textContent = 'Categories';
-      showEl.__defineSetter__('callback', function(value) {
-        callback = value;
-      });
 
-
-      var that = this;
       function onClick() {
         var dlg = new tracing.CategoryFilterDialog();
-        dlg.categories = that.model.categories;
-        dlg.settings = that.settings;
+        dlg.categories = this.model.categories;
         dlg.settings_key = 'categories';
-        dlg.settingUpdatedCallback = callback;
+        dlg.settingUpdatedCallback = this.updateCategoryFilter_.bind(this);
         dlg.visible = true;
       }
 
+      var that = this;
       function updateVisibility() {
-        if (that.model)
-          showEl.style.display = '';
-        else
-          showEl.style.display = 'none';
+        showEl.style.display = that.model ? '' : 'none';
       }
       updateVisibility();
-      that.addEventListener('modelChange', updateVisibility);
+      this.addEventListener('modelChange', updateVisibility);
 
       showEl.addEventListener('click', onClick.bind(this));
       return showEl;
@@ -328,7 +321,6 @@ base.exportTo('tracing', function() {
         this.findCtl_.controller.timeline = this.timeline_;
         this.timeline_.addEventListener(
             'selectionChange', this.onSelectionChangedBoundToThis_);
-        this.updateCategoryFilterFromSettings_();
 
         this.analysisEl_.clearSelectionHistory();
       }
@@ -439,22 +431,6 @@ base.exportTo('tracing', function() {
     onRequestSelectionChange_: function(e) {
       this.timeline_.selection = e.selection;
       e.stopPropagation();
-    },
-
-    updateCategoryFilterFromSettings_: function() {
-      if (!this.timeline_)
-        return;
-
-      // Get the disabled categories from settings.
-      var categories = this.settings.keys('categories');
-      var disabledCategories = [];
-      for (var i = 0; i < categories.length; i++) {
-        if (!this.settings.get(categories[i], true, 'categories'))
-          disabledCategories.push(categories[i]);
-      }
-
-      this.timeline_.categoryFilter =
-          new tracing.CategoryFilter(disabledCategories);
     }
   };
 

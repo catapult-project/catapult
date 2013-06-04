@@ -43,16 +43,19 @@ base.exportTo('tracing', function() {
       this.categories_ = c;
     },
 
-    set settings_key(k) {
-      this.settings_key_ = k;
-    },
-
-    set settings(s) {
-      this.settings_ = s;
-    },
-
     set settingUpdatedCallback(c) {
       this.settingUpdatedCallback_ = c;
+    },
+
+    unselectedCategories_: function() {
+      var inputs = this.formEl_.querySelectorAll('input');
+      var categories = [];
+      for (var i = 0; i < inputs.length; ++i) {
+        var input = inputs[i];
+        if (input.checked === false)
+          categories.push(input.value);
+      }
+      return categories;
     },
 
     onVisibleChange_: function() {
@@ -64,10 +67,7 @@ base.exportTo('tracing', function() {
     updateForm_: function() {
       this.categoriesEl_.innerHTML = ''; // Clear old categories
 
-      var categories =
-          this.categories_.concat(this.settings_.keys(this.settings_key_));
-      categories = categories.sort();
-
+      var categories = this.categories_.sort();
       for (var i = 0; i < categories.length; i++) {
         var category = categories[i];
         var inputEl = document.createElement('input');
@@ -75,8 +75,7 @@ base.exportTo('tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked =
-            this.settings_.get(category, true, this.settings_key_);
+        inputEl.checked = true;
         inputEl.onchange = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');
@@ -92,9 +91,8 @@ base.exportTo('tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-      this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
       if (this.settingUpdatedCallback_ !== undefined)
-        this.settingUpdatedCallback_();
+        this.settingUpdatedCallback_(this.unselectedCategories_());
     }
   };
 
