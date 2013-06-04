@@ -93,11 +93,48 @@ base.exportTo('base', function() {
       }
 
       return !prevented && event.returnValue;
+    },
+
+    hasEventListener: function(type) {
+      return this.listeners_[type] !== undefined;
+    }
+  };
+
+  EventTargetHelper = {
+    decorate: function(target) {
+      for (var k in EventTargetHelper) {
+        if (k == 'decorate')
+          continue;
+        var v = EventTargetHelper[k];
+        if (typeof v !== 'function')
+          continue;
+        target[k] = v;
+      }
+      target.listenerCounts_ = {};
+    },
+
+    addEventListener: function(type, listener, useCapture) {
+      this.__proto__.addEventListener.call(
+        this, type, listener, useCapture);
+      if (this.listenerCounts_[type] === undefined)
+        this.listenerCounts_[type] = 0;
+      this.listenerCounts_[type]++;
+    },
+
+    removeEventListener: function(type, listener, useCapture) {
+      this.__proto__.removeEventListener.call(
+        this, type, listener, useCapture);
+      this.listenerCounts_[type]--;
+    },
+
+    hasEventListener: function(type) {
+      return this.listenerCounts_[type] > 0;
     }
   };
 
   // Export
   return {
-    EventTarget: EventTarget
+    EventTarget: EventTarget,
+    EventTargetHelper: EventTargetHelper
   };
 });
