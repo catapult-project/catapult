@@ -17,6 +17,7 @@ from telemetry.core.platform import cros_platform_backend
 ALL_BROWSER_TYPES = ','.join([
     'cros-chrome',
     'cros-chrome-guest',
+    'system-guest',
     ])
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
@@ -53,7 +54,10 @@ def FindAllAvailableBrowsers(options):
       if res.count('CHROMEOS_RELEASE_NAME'):
         return [PossibleCrOSBrowser('system', options,
                                     cros_interface.CrOSInterface(),
-                                    is_guest=False)]
+                                    is_guest=False),
+                PossibleCrOSBrowser('system-guest', options,
+                                    cros_interface.CrOSInterface(),
+                                    is_guest=True)]
 
   if options.cros_remote == None:
     logging.debug('No --remote specified, will not probe for CrOS.')

@@ -111,9 +111,11 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
           'with chrome branches 1500 or earlier.')
 
     if self._is_guest:
+      pid = self.pid
       cros_util.NavigateGuestLogin(self, cri)
       # Guest browsing shuts down the current browser and launches an incognito
-      # browser, which we need to wait for.
+      # browser in a separate process, which we need to wait for.
+      util.WaitFor(lambda: pid != self.pid, 10)
       self._WaitForBrowserToComeUp()
     else:
       cros_util.NavigateLogin(self)
