@@ -51,6 +51,19 @@ found in the LICENSE file.
       quadView.viewport = new QuadViewViewport(quadsBBox, 10.0);
       quadView.deviceViewportSizeForFrame = {widht: 50,
                                              height: 30};
+
+      quadView.addEventListener(
+        'selectionChanged',
+        function(e) {
+          quads.forEach(function(q) {
+            q.upperBorderColor = undefined;
+          });
+
+          e.selectedQuadIndices.forEach(function(i) {
+            quads[i].upperBorderColor = 'rgba(255,255,0,1)';
+          });
+          quadView.quads = quads;
+        }.bind(this));
     }
 
     function testBackgroundTexture() {

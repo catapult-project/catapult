@@ -7,6 +7,7 @@
 base.requireStylesheet('ui.quad_view');
 
 base.require('base.color');
+base.require('base.event_target');
 base.require('base.raf');
 base.require('ui');
 base.require('ui.quad_view_viewport');
@@ -61,6 +62,8 @@ base.exportTo('ui', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      base.EventTargetHelper.decorate(this);
+
       this.quads_ = undefined;
       this.viewport_ = undefined;
       this.deviceViewportSizeForFrame_ = undefined;
@@ -71,13 +74,10 @@ base.exportTo('ui', function() {
 
       this.onViewportChanged_ = this.onViewportChanged_.bind(this);
 
-      // FIXME: We should re-enable these events at some point.
-      if (false) {
-        this.onMouseDown_ = this.onMouseDown_.bind(this);
-        this.onMouseMove_ = this.onMouseMove_.bind(this);
-        this.onMouseUp_ = this.onMouseUp_.bind(this);
-        this.canvas_.addEventListener('mousedown', this.onMouseDown_);
-      }
+      this.onMouseDown_ = this.onMouseDown_.bind(this);
+      this.onMouseMove_ = this.onMouseMove_.bind(this);
+      this.onMouseUp_ = this.onMouseUp_.bind(this);
+      this.canvas_.addEventListener('mousedown', this.onMouseDown_);
 
       this.canvas_.addEventListener('focus', this.redrawCanvas_.bind(this));
       this.canvas_.addEventListener('blur', this.redrawCanvas_.bind(this));
@@ -356,6 +356,8 @@ base.exportTo('ui', function() {
     },
 
     onMouseDown_: function(e) {
+      if (!this.hasEventListener('selectionChanged'))
+        return;
       this.selectQuadsAtCanvasClientPoint(e.clientX, e.clientY);
       document.addEventListener('mousemove', this.onMouseMove_);
       document.addEventListener('mouseup', this.onMouseUp_);
