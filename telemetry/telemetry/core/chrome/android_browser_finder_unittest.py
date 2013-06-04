@@ -5,7 +5,7 @@ import unittest
 
 from telemetry.core import browser_options
 from telemetry.core.chrome import android_browser_finder
-from telemetry.test import system_stub
+from telemetry.unittest import system_stub
 
 class LoggingStub(object):
   def __init__(self):

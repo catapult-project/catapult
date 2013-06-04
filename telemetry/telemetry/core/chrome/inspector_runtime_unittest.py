@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from telemetry.core import exceptions
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeEvaluateSimple(self):

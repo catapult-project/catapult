@@ -12,8 +12,8 @@ import sys
 from telemetry.core import util
 from telemetry.core.chrome import cros_browser_backend
 from telemetry.core.chrome import cros_interface
-from telemetry.test import options_for_unittests
-from telemetry.test import run_tests
+from telemetry.unittest import options_for_unittests
+from telemetry.unittest import run_tests
 
 class CrOSInterfaceTest(unittest.TestCase):
   @run_tests.RequiresBrowserOfType('cros-chrome')

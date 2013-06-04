@@ -106,9 +106,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     # Without --skip-hwid-check (introduced in crrev.com/203397), devices/VMs
     # will be stuck on the bad hwid screen.
     if self.chrome_branch_number <= 1500 and not self.hwid:
-        raise exceptions.LoginException(
-            'Hardware id not set on device/VM. --skip-hwid-check not supported '
-            'with chrome branches 1500 or earlier.')
+      raise exceptions.LoginException(
+          'Hardware id not set on device/VM. --skip-hwid-check not supported '
+          'with chrome branches 1500 or earlier.')
 
     if self._is_guest:
       cros_util.NavigateGuestLogin(self, cri)

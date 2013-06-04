@@ -13,7 +13,7 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_test_results
 from telemetry.page import page_runner
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 SIMPLE_CREDENTIALS_STRING = """
 {

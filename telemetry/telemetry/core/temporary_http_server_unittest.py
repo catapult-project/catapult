@@ -5,7 +5,7 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class TemporaryHTTPServerTest(unittest.TestCase):
   def testBasicHosting(self):

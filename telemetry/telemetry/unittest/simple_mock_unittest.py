@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import unittest
 
-from telemetry.test import simple_mock
+from telemetry.unittest import simple_mock
 
 _ = simple_mock.DONT_CARE
 

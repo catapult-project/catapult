@@ -5,7 +5,7 @@ import os
 
 from telemetry.page import page as page_module
 from telemetry.page.actions import scroll
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 class ScrollActionTest(tab_test_case.TabTestCase):
   def CreateAndNavigateToPageFromUnittestDataDir(

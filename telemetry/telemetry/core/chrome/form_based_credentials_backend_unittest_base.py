@@ -6,8 +6,8 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
-from telemetry.test import simple_mock
-from telemetry.test import options_for_unittests
+from telemetry.unittest import simple_mock
+from telemetry.unittest import options_for_unittests
 
 _ = simple_mock.DONT_CARE
 

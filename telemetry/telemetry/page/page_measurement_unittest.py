@@ -12,7 +12,7 @@ from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class MeasurementThatFails(page_measurement.PageMeasurement):
   def MeasurePage(self, page, tab, results):

@@ -8,8 +8,8 @@ import unittest
 
 from telemetry.core import browser_options
 from telemetry.core import discover
-from telemetry.test import gtest_testrunner
-from telemetry.test import options_for_unittests
+from telemetry.unittest import gtest_testrunner
+from telemetry.unittest import options_for_unittests
 
 
 def RequiresBrowserOfType(*types):

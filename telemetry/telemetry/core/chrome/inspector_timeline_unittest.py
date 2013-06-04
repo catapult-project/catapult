@@ -5,7 +5,7 @@ import os
 
 from telemetry.core import util
 from telemetry.core.chrome import inspector_timeline
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):
   def _StartServer(self):

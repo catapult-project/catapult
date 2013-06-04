@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
   def testGetDOMStats(self):

@@ -6,7 +6,7 @@ import os
 
 from telemetry.core import util
 from telemetry.core import exceptions
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 
 def _IsDocumentVisible(tab):

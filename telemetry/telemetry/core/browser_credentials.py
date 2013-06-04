@@ -7,7 +7,7 @@ import os
 
 from telemetry.core.chrome import facebook_credentials_backend
 from telemetry.core.chrome import google_credentials_backend
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class BrowserCredentials(object):
   def __init__(self, backends = None):

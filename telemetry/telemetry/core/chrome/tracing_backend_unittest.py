@@ -10,7 +10,7 @@ import unittest
 
 from telemetry.core import util
 from telemetry.core.chrome import tracing_backend
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):

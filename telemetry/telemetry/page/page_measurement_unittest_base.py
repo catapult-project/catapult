@@ -9,7 +9,7 @@ from telemetry.page import page_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_measurement_results
 from telemetry.page import page_set
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class PageMeasurementUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests

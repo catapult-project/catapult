@@ -18,7 +18,7 @@ from telemetry.core.chrome import extension_dict_backend
 from telemetry.core.chrome import tab_list_backend
 from telemetry.core.chrome import tracing_backend
 from telemetry.core.chrome import misc_web_contents_backend
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class ExtensionsNotSupportedException(Exception):
   pass

@@ -4,7 +4,7 @@
 import os
 
 from telemetry.page.actions import click_element
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 class ClickElementActionTest(tab_test_case.TabTestCase):
   def testClickWithSelectorWaitForNavigation(self):

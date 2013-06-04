@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.test import tab_test_case
+from telemetry.unittest import tab_test_case
 
 unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                  '..', '..', '..', 'unittest_data')

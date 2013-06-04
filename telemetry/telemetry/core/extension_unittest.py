@@ -10,7 +10,7 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.core import extension_to_load
 from telemetry.core.chrome import extension_dict_backend
-from telemetry.test import options_for_unittests
+from telemetry.unittest import options_for_unittests
 
 class ExtensionTest(unittest.TestCase):
   def setUp(self):
