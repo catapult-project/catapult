@@ -235,7 +235,7 @@ found in the LICENSE file.
 
       trackSelector.trackSelectorModel = [
         {regexp: 'Thread', isOn: true},
-        {regexp: 'Name:', isOn: false}
+        {regexp: 'Name\\s\\|', isOn: false}
       ];
       // 25 Tracks have "Thread'
       assertTrue(visibleTracks(trackButtons) === 25);
@@ -243,7 +243,7 @@ found in the LICENSE file.
       var regexpSelectors =
           trackSelector.querySelectorAll('.regexp-selector');
       toggleRegExpSelectors(regexpSelectors);
-      // 25 Tracks have 'Name:'
+      // 25 Tracks have 'Name\s\|'
       assertTrue(visibleTracks(trackButtons) === 25);
 
       toggleRegExpSelectors(regexpSelectors);
@@ -268,7 +268,7 @@ found in the LICENSE file.
       var actual = JSON.parse(trackSelectorModelJSON);
       var expected = [
         {'regexpText': 'Thread', 'isOn': false},
-        {'regexpText': 'Name:', 'isOn': false},
+        {'regexpText': 'Name\\s\\|', 'isOn': false},
         {'regexpText': '(?:)', 'isOn': false}
       ];
       // We've stored what we set in the test above.

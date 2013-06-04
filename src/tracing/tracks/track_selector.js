@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
   var TrackSelector = ui.define('div');
 
   TrackSelector.defaultModel = [
-    {regexpText: 'Renderer', isOn: false},
+    {regexpText: 'CrBrowserMain|Gpu|Renderer', isOn: false},
     {regexpText: null, isOn: false}
   ];
 

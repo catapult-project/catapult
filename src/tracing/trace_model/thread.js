@@ -239,7 +239,7 @@ base.exportTo('tracing.trace_model', function() {
      */
     get userFriendlyName() {
       var tname = this.name || this.tid;
-      return this.parent.userFriendlyName + ': ' + tname;
+      return tname + ' | ' + this.parent.userFriendlyName;
     },
 
     /**
