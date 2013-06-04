@@ -45,6 +45,18 @@ base.exportTo('ui', function() {
       this.addEventListener('mousedown', this.onMousedown_.bind(this));
     },
 
+    toggleToolbar: function(show) {
+        if (show) {
+          if (this.contentHost.firstChild)
+            this.contentHost.insertBefore(this.contentHost.firstChild,
+                this.toolbar_);
+          else
+            this.contentHost.appendChild(this.toolbar_);
+        } else {
+         this.contentHost.removeChild(this.toolbar_);
+        }
+    },
+
     createToolBar_: function() {
       this.toolbar_ = this.ownerDocument.createElement('div');
       this.toolbar_.className = 'tool-bar';
@@ -61,7 +73,6 @@ base.exportTo('ui', function() {
     showOverlay: function(overlay) {
       // Reparent this to the overlay content host.
       overlay.oldParent_ = overlay.parentNode;
-      this.contentHost.appendChild(this.toolbar_);
       this.contentHost.appendChild(overlay);
       this.contentHost.appendChild(this.tabCatcher);
 
@@ -132,7 +143,6 @@ base.exportTo('ui', function() {
 
       // put the overlay back on its previous parent
       overlay.parentNode.removeChild(this.tabCatcher);
-      overlay.parentNode.removeChild(this.toolbar_);
       if (overlay.oldParent_) {
         overlay.oldParent_.appendChild(overlay);
         delete overlay.oldParent_;
@@ -173,12 +183,19 @@ base.exportTo('ui', function() {
 
       this.classList.add('overlay');
       this.visible = false;
-      this.defaultClickShouldClose = true;
       this.autoClose = false;
       this.additionalCloseKeyCodes = [];
       this.onKeyDown = this.onKeyDown.bind(this);
       this.onKeyPress = this.onKeyPress.bind(this);
       this.onDocumentClick = this.onDocumentClick.bind(this);
+      this.addEventListener('defaultClickShouldCloseChange',
+          this.onDefaultClickShouldCloseChange_.bind(this));
+      this.defaultClickShouldClose = true;
+    },
+
+    onDefaultClickShouldCloseChange_: function(event) {
+      var overlayRoot = this.ownerDocument.querySelector('.overlay-root');
+      overlayRoot.toggleToolbar(event.newValue);
     },
 
     onVisibleChanged_: function() {
