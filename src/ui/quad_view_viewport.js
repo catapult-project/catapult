@@ -22,15 +22,15 @@ base.exportTo('ui', function() {
 
     var devicePixelRatio;
     if (opt_devicePixelRatio)
-      devicePixelRatio = opt_devicePixelRatio;
+      this.devicePixelRatio = opt_devicePixelRatio;
     else
-      devicePixelRatio = window.devicePixelRatio || 1;
+      this.devicePixelRatio = window.devicePixelRatio || 1;
 
     var scale;
     if (opt_scale) {
       scale = opt_scale;
     } else {
-      if (devicePixelRatio > 1)
+      if (this.devicePixelRatio > 1)
         scale = 0.25;
       else
         scale = 0.125;
@@ -55,7 +55,7 @@ base.exportTo('ui', function() {
 
     updateScale_: function() {
       this.worldPixelsPerDevicePixel_ = this.scale_;
-      this.devicePixelsPerLayoutPixel_ = 1 / devicePixelRatio;
+      this.devicePixelsPerLayoutPixel_ = 1 / this.devicePixelRatio;
 
       this.deviceWidth =
           this.worldRect.width * this.worldPixelsPerDevicePixel_;
