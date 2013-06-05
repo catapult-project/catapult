@@ -79,6 +79,20 @@ base.exportTo('base', function() {
           Math.min(255, this.b + Math.floor(this.b * k)));
     },
 
+    darken: function(opt_k) {
+      var k;
+      k = opt_k || 0.45;
+
+      return new Color(
+          Math.min(255, this.r - Math.floor(this.r * k)),
+          Math.min(255, this.g - Math.floor(this.g * k)),
+          Math.min(255, this.b - Math.floor(this.b * k)));
+    },
+
+    withAlpha: function(a) {
+      return new Color(this.r, this.g, this.b, a);
+    },
+
     toString: function() {
       if (this.a !== undefined) {
         return 'rgba(' +
