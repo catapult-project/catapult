@@ -26,13 +26,19 @@ found in the LICENSE file.
 
     function testObjectConvertNested() {
       var object = {
-        foo_bar: {
-          a_field: 7
+        un_disturbed: true,
+        args: {
+          foo_bar: {
+            a_field: 7
+          }
         }
       };
       var expected = {
-        fooBar: {
-          aField: 7
+        un_disturbed: true,
+        args: {
+          fooBar: {
+            aField: 7
+          }
         }
       };
       cc.preInitializeObject(object);
@@ -40,14 +46,20 @@ found in the LICENSE file.
     }
 
     function testArrayConvert() {
-      var object = [
-        {foo_bar: 7},
-        {foo_bar: 8}
-      ];
-      var expected = [
-        {fooBar: 7},
-        {fooBar: 8}
-      ];
+      var object = {
+        un_disturbed: true,
+        args: [
+          {foo_bar: 7},
+          {foo_bar: 8}
+        ]
+      };
+      var expected = {
+        un_disturbed: true,
+        args: [
+          {fooBar: 7},
+          {fooBar: 8}
+        ]
+      };
       cc.preInitializeObject(object);
       assertObjectEquals(expected, object);
     }

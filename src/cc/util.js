@@ -68,7 +68,7 @@ base.exportTo('cc', function() {
   }
 
   function preInitializeObject(object) {
-    preInitializeObjectInner(object, false);
+    preInitializeObjectInner(object.args, false);
   }
 
   function preInitializeObjectInner(object, hasRecursed) {
