@@ -22,7 +22,6 @@ def GetChromiumSrcDir():
 def WaitFor(condition,
             timeout, poll_interval=0.1,
             pass_time_left_to_func=False):
-  assert isinstance(condition, type(lambda: None))  # is function
   start_time = time.time()
   while True:
     if pass_time_left_to_func:
