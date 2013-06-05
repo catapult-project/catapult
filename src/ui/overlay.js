@@ -46,15 +46,15 @@ base.exportTo('ui', function() {
     },
 
     toggleToolbar: function(show) {
-        if (show) {
-          if (this.contentHost.firstChild)
-            this.contentHost.insertBefore(this.contentHost.firstChild,
-                this.toolbar_);
-          else
-            this.contentHost.appendChild(this.toolbar_);
-        } else {
-         this.contentHost.removeChild(this.toolbar_);
-        }
+      if (show) {
+        if (this.contentHost.firstChild)
+          this.contentHost.insertBefore(this.contentHost.firstChild,
+                                        this.toolbar_);
+        else
+          this.contentHost.appendChild(this.toolbar_);
+      } else {
+        this.contentHost.removeChild(this.toolbar_);
+      }
     },
 
     createToolBar_: function() {
