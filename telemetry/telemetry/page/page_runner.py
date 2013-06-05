@@ -158,7 +158,7 @@ class PageRunner(object):
             if options.profiler_dir:
               self._EndProfiling(state)
 
-            if test.needs_browser_restart_after_each_run:
+            if test.NeedsBrowserRestartAfterEachRun(state.tab):
               state.Close()
 
             break

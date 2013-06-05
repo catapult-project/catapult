@@ -60,15 +60,15 @@ class PageTest(object):
     self._discard_first_result = discard_first_result
 
   @property
-  def needs_browser_restart_after_each_run(self):
-    return self._needs_browser_restart_after_each_run
-
-  @property
   def discard_first_result(self):
     """When set to True, the first run of the test is discarded.  This is
     useful for cases where it's desirable to have some test resource cached so
     the first run of the test can warm things up. """
     return self._discard_first_result
+
+  def NeedsBrowserRestartAfterEachRun(self, tab): # pylint: disable=W0613
+    """Override to specify browser restart after each run."""
+    return self._needs_browser_restart_after_each_run
 
   def AddCommandLineOptions(self, parser):
     """Override to expose command-line options for this test.
