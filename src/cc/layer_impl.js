@@ -5,10 +5,12 @@
 'use strict';
 
 base.require('base.rect');
+base.require('cc.constants');
 base.require('cc.region');
 base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
+  var constants = cc.constants;
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
@@ -35,7 +37,7 @@ base.exportTo('cc', function() {
 
       // Import & validate this.args
       cc.moveRequiredFieldsFromArgsToToplevel(
-          this, ['children',
+          this, ['layerId', 'children',
             'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['maskLayer', 'replicaLayer']);
@@ -62,6 +64,20 @@ base.exportTo('cc', function() {
     },
     set layerTreeImpl(layerTreeImpl) {
       this.layerTreeImpl_ = layerTreeImpl;
+    },
+
+    get activeLayer() {
+      if (this.layerTreeImpl.whichTree == constants.ACTIVE_TREE)
+        return this;
+      var activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
+      return activeTree.findLayerWithId(this.layerId);
+    },
+
+    get pendingLayer() {
+      if (this.layerTreeImpl.whichTree == constants.PENDING_TREE)
+        return this;
+      var pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
+      return pendingTree.findLayerWithId(this.layerId);
     }
   };
 
