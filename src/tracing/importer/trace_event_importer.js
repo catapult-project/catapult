@@ -6,6 +6,7 @@
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided model.
  */
+base.require('base.quad');
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
 base.exportTo('tracing.importer', function() {
