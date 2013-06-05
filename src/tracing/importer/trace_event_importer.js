@@ -633,7 +633,9 @@ base.exportTo('tracing.importer', function() {
         if (!(object instanceof Object))
           return;
 
-        if (object instanceof tracing.trace_model.ObjectSnapshot)
+        if ((object instanceof tracing.trace_model.ObjectSnapshot) ||
+            (object instanceof Float32Array) ||
+            (object instanceof base.Quad))
           return;
 
         if (object instanceof Array) {
