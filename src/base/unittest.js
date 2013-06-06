@@ -710,6 +710,16 @@ base.exportTo('base', function() {
       throw new TestError(message);
     },
 
+    assertDoesNotThrow: function(fn, opt_message) {
+      try {
+        fn();
+      } catch (e) {
+        var message = opt_message || 'Expected to not throw from ' + fn +
+            ' but got: ' + e;
+        throw new TestError(message);
+      }
+    },
+
     assertApproxEquals: function(a, b, opt_epsilon, opt_message) {
       if (a == b)
         return;

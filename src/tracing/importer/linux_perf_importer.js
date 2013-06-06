@@ -529,15 +529,17 @@ base.exportTo('tracing.importer', function() {
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep('Uninterruptable Sleep | WakeKill', ioWaitId);
           } else {
-            throw new Error('Unrecognized state: ') +
-                prevSlice.args.stateWhenDescheduled;
+            slices.push(new tracing.trace_model.Slice('', 'UNKNOWN', ioWaitId,
+                prevSlice.end, {}, midDuration));
+            this.model_.importErrors.push('Unrecognized sleep state: ' +
+                prevSlice.args.stateWhenDescheduled);
           }
 
           slices.push(new tracing.trace_model.Slice('', 'Running', runningId,
               nextSlice.start, {}, nextSlice.duration));
         }
         thread.cpuSlices = slices;
-      });
+      }, this);
     },
 
     /**

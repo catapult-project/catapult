@@ -56,11 +56,12 @@ base.exportTo('tracing', function() {
     {r: 182, g: 125, b: 143},
     {r: 126, g: 200, b: 148},
     {r: 133, g: 160, b: 210},
-    {r: 240, g: 240, b: 240}];
+    {r: 240, g: 240, b: 240},
+    {r: 199, g: 155, b: 125}];
 
   // Make sure this number tracks the number of reserved entries in the
   // palette.
-  var numReservedColorIds = 4;
+  var numReservedColorIds = 5;
 
   function brighten(c) {
     var k;
@@ -126,6 +127,8 @@ base.exportTo('tracing', function() {
       return numRegularColorIds + 2;
     if (name == 'sleeping')
       return numRegularColorIds + 3;
+    if (name == 'UNKNOWN')
+      return numRegularColorIds + 4;
     throw new Error('Unrecognized color ') + name;
   }
 

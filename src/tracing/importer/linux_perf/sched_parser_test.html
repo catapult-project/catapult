@@ -120,6 +120,46 @@ function testImportOneSequenceWithSchedWakeUp() {
   assertAlmostEquals(7.253 - 6.950, runningSlice2.duration);
 }
 
+function testImportWithUnknownSleepState() {
+  var lines = [
+    'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: ' +
+      'prev_comm=ndroid.launcher prev_pid=584 prev_prio=120 prev_state=R+ ' +
+      '==> next_comm=Binder_1 next_pid=217 next_prio=120',
+
+    '       Binder_1-217   [001] d..3 12622.506918: sched_switch: ' +
+      'prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=F|O ' +
+      '==> next_comm=ndroid.launcher next_pid=584 next_prio=120',
+
+    'ndroid.launcher-584   [001] d..4 12622.506936: sched_wakeup: ' +
+      'comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001',
+
+    'ndroid.launcher-584   [001] d..3 12622.506950: sched_switch: ' +
+      'prev_comm=ndroid.launcher prev_pid=584 prev_prio=120 prev_state=R+ ' +
+      '==> next_comm=Binder_1 next_pid=217 next_prio=120',
+
+    '       Binder_1-217   [001] ...1 12622.507057: tracing_mark_write: ' +
+      'B|128|queueBuffer',
+
+    '       Binder_1-217   [001] ...1 12622.507175: tracing_mark_write: E',
+
+    '       Binder_1-217   [001] d..3 12622.507253: sched_switch: ' +
+      'prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=F|O ' +
+      '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
+  ];
+
+  var m;
+  assertDoesNotThrow(function() {
+    m = new tracing.TraceModel(lines.join('\n'), false);
+  });
+  assertTrue(m.importErrors.length > 0);
+  assertEquals("Unrecognized sleep state: F|O", m.importErrors[0]);
+
+  var thread = m.findAllThreadsNamed('Binder_1')[0];
+  var cpuSlices = thread.cpuSlices;
+
+  assertEquals("UNKNOWN", cpuSlices[1].title);
+}
+
 </script>
 </body>
 </html>
