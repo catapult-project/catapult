@@ -132,10 +132,18 @@ base.exportTo('tcmalloc', function() {
         var keys = Object.keys(snapshot.heap_.children);
         for (var k = keys.length - 1; k >= 0; k--) {
           var trace = snapshot.heap_.children[keys[k]];
-          var colorId = snapshot.selected ?
-              snapshot.objectInstance.colorId + highlightIdBoost :
-              snapshot.objectInstance.colorId;
-          ctx.fillStyle = palette[colorId + k];
+          if (this.objectInstance_.selectedTraces &&
+              this.objectInstance_.selectedTraces.length > 0 &&
+              this.objectInstance_.selectedTraces[0] == keys[k]) {
+            // A trace selected in the analysis view is bright yellow.
+            ctx.fillStyle = 'rgb(239, 248, 206)';
+          } else {
+            // Selected snapshots get a lighter color.
+            var colorId = snapshot.selected ?
+                snapshot.objectInstance.colorId + highlightIdBoost :
+                snapshot.objectInstance.colorId;
+            ctx.fillStyle = palette[colorId + k];
+          }
           var barHeight = canvasHeight * trace.currentBytes / maxBytes;
           ctx.fillRect(leftView, currentY - barHeight,
                        rightView - leftView + 1, barHeight);

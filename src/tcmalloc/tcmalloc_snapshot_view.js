@@ -76,11 +76,13 @@ base.exportTo('tcmalloc', function() {
         // Don't show small nodes - they make things harder to see.
         if (trace.currentBytes < 100 * 1024)
           continue;
-        var myItem =
-            this.buildItem_(traceName, trace.currentBytes, trace.currentAllocs);
+        var childCount = Object.keys(trace.children).length;
+        var isLeaf = childCount == 0;
+        var myItem = this.buildItem_(
+            traceName, isLeaf, trace.currentBytes, trace.currentAllocs);
         myList.appendChild(myItem);
         // Build a nested <ul> list of my children.
-        if (Object.keys(trace.children).length > 0)
+        if (childCount > 0)
           myItem.appendChild(this.buildAllocList_(trace, true));
       }
       return myList;
@@ -89,23 +91,11 @@ base.exportTo('tcmalloc', function() {
     /*
      * Returns a <li> for an allocation traceName of size bytes.
      */
-    buildItem_: function(traceName, bytes, allocs) {
+    buildItem_: function(traceName, isLeaf, bytes, allocs) {
       var myItem = document.createElement('li');
-      myItem.addEventListener('click', function(event) {
-        // Allow click on the +/- image (li) or child divs.
-        if (this == event.target || this == event.target.parentElement) {
-          this.classList.toggle('expanded');
-          var child = this.querySelector('ul');
-          child.hidden = !child.hidden;
-        }
-      });
-      myItem.classList.add('collapsed');
-      // The empty trace name indicates that the allocations occurred at
-      // this trace level, not in a sub-trace. This looks weird as the
-      // empty string, so replace it with something non-empty and don't give
-      // that line an expander.
-      if (traceName.length == 0)
-        traceName = '(here)';
+      myItem.className = 'trace-item';
+      myItem.id = traceName;
+
       var byteDiv = document.createElement('div');
       byteDiv.textContent = this.getByteString_(bytes);
       byteDiv.className = 'trace-bytes';
@@ -129,7 +119,41 @@ base.exportTo('tcmalloc', function() {
       traceDiv.className = 'trace-name';
       myItem.appendChild(traceDiv);
 
+      // Don't allow leaf nodes to be expanded.
+      if (isLeaf)
+        return myItem;
+
+      // Expand the element when it is clicked.
+      var self = this;
+      myItem.addEventListener('click', function(event) {
+        // Allow click on the +/- image (li) or child divs.
+        if (this == event.target || this == event.target.parentElement) {
+          this.classList.toggle('expanded');
+          var child = this.querySelector('ul');
+          child.hidden = !child.hidden;
+          // Highlight this stack trace in the timeline view.
+          self.onItemClicked_(this);
+        }
+      });
+      myItem.classList.add('collapsed');
       return myItem;
+    },
+
+    onItemClicked_: function(traceItem) {
+      // Compute the full stack trace the user just clicked.
+      var traces = [];
+      while (traceItem.classList.contains('trace-item')) {
+        var traceNameDiv = traceItem.firstElementChild.nextElementSibling;
+        traces.unshift(traceNameDiv.textContent);
+        var traceNameUl = traceItem.parentElement;
+        traceItem = traceNameUl.parentElement;
+      }
+      // Tell the instance that this stack trace is selected.
+      var instance = this.objectSnapshot_.objectInstance;
+      instance.selectedTraces = traces;
+      // Invalid the viewport to cause a redraw.
+      var trackView = document.querySelector('.timeline-track-view');
+      trackView.viewport_.dispatchChangeEvent();
     },
 
     /*

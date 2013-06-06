@@ -62,7 +62,7 @@ base.exportTo('tcmalloc', function() {
         for (var j = 0; j < 5; j++) {
           var bytes = snapshot.heap_.children[traceNames[j]].currentBytes;
           rowData.push(bytes);
-          // Associate a  megabyte count with a time in seconds.
+          // Associate a megabyte count with a time in seconds.
           chartArrays[j].push(
               [Math.round(snapshot.ts / 1000), bytes / 1024 / 1024]);
         }
