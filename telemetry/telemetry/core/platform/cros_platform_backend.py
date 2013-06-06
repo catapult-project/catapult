@@ -27,7 +27,7 @@ class CrosPlatformBackend(linux_platform_backend.LinuxPlatformBackend):
     raise NotImplementedError()
 
   def _RunCommand(self, args):
-    return self._cri.RunCommandOnDevice(args)[0]
+    return self._cri.RunCmdOnDevice(args)[0]
 
   def _GetFileContents(self, filename):
     try:
