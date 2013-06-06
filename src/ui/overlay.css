@@ -35,6 +35,10 @@
   display: -webkit-flex;
 }
 
+.overlay * {
+  -webkit-user-select: auto;
+}
+
 .overlay-root > .content-host > * {
   background: rgb(255, 255, 255);
 }
