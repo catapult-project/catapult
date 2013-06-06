@@ -43,9 +43,6 @@ base.exportTo('cc', function() {
       this.layerList_.addEventListener(
           'selection-changed', this.onLayerSelectionChanged_.bind(this));
 
-      this.titleEl_ = document.createElement('span');
-      this.controls_.appendChild(this.titleEl_);
-
       this.controls_.appendChild(ui.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
@@ -53,10 +50,12 @@ base.exportTo('cc', function() {
            {label: 'Pending tree', value: constants.PENDING_TREE}]));
 
       this.hidePureTransformLayers_ = true;
-      this.controls_.appendChild(ui.createCheckBox(
+      var hideTransformLayers = ui.createCheckBox(
           this, 'hidePureTransformLayers',
           'layerPicker.hideTransformLayers', true,
-          'Hide transform layers'));
+          'Hide transform layers');
+      hideTransformLayers.classList.add('hide-transform-layers');
+      this.controls_.appendChild(hideTransformLayers);
     },
 
     get lthiSnapshot() {
@@ -175,13 +174,6 @@ base.exportTo('cc', function() {
     },
 
     updateContentsInner_: function() {
-      if (this.lthiSnapshot_) {
-        this.titleEl_.textContent = 'CC::LayerTreeHostImpl ' +
-            this.lthiSnapshot_.objectInstance.id;
-      } else {
-        this.titleEl_.textContent = '<no tree chosen>';
-      }
-
       this.layerList_.clear();
 
       var layerInfos = this.getLayerInfos_();

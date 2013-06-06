@@ -29,3 +29,7 @@ layer-viewer > layer-viewer-analysis {
   height: 150px;
   overflow-y: auto;
 }
+
+.labeled-checkbox {
+  white-space: nowrap;
+}

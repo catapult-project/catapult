@@ -116,6 +116,8 @@ base.exportTo('ui', function() {
       return buttonEl.checked;
     });
 
+    spanEl.className = 'labeled-checkbox';
+
     return spanEl;
   }
 
