@@ -35,7 +35,6 @@ base.exportTo('ui', function() {
 
   Camera.prototype = {
 
-    // Asychronous paint
     scheduleRepaint: function() {
       if (this.repaintPending_)
         return;
@@ -44,7 +43,7 @@ base.exportTo('ui', function() {
           this.repaint_, this);
     },
 
-    // Sychronous paint, call only inside of a requestAnimationFrame
+    /** Call only inside of a requestAnimationFrame. */
     repaint: function() {
       this.repaintPending_ = true;
       this.repaint_();
@@ -97,7 +96,8 @@ base.exportTo('ui', function() {
       var transformString = '';
       transformString += 'rotateX(' + this.rotations_.x + 'deg)';
       transformString += ' rotateY(' + this.rotations_.y + 'deg)';
-      this.targetElement_.content.style.webkitTransform = transformString;
+      var container = this.targetElement_.contentContainer;
+      container.style.webkitTransform = transformString;
     },
 
     updateCameraStart_: function(x, y) {

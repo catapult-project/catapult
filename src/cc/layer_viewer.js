@@ -281,9 +281,9 @@ base.exportTo('cc', function() {
             quads, layerTreeImpl, this.highlight_, i);
 
       var viewport = new ui.QuadViewViewport(
-          lthiInstance.allLayersBBox, this.scale_);
+          lthiInstance.allLayersBBox, this.scale_, lthi.deviceViewportSize);
       this.quadStack_.setQuadsViewportAndDeviceViewportSize(
-          quads, viewport, lthi.deviceViewportSize, true);
+          quads, viewport, true);
     },
 
     appendQuadsForHighlight_: function(

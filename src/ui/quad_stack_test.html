@@ -34,8 +34,9 @@ found in the LICENSE file.
 
     var stack = new QuadStack();
     stack.quads = quads;
-    stack.viewport = new ui.QuadViewViewport(quadsBbox, 0.5);
-    stack.deviceViewportSizeForFrame = {width: 100, height: 100};
+    var deviceViewportSizeForFrame = {width: 100, height: 100};
+    stack.viewport = new ui.QuadViewViewport(quadsBbox,
+        0.5, deviceViewportSizeForFrame);
     stack.style.border = '1px solid black';
 
     this.addHTMLOutput(undefined, stack);

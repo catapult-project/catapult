@@ -66,7 +66,6 @@ base.exportTo('ui', function() {
 
       this.quads_ = undefined;
       this.viewport_ = undefined;
-      this.deviceViewportSizeForFrame_ = undefined;
       this.drawDeviceViewportMask_ = false;
       this.canvas_ = document.createElement('canvas');
 
@@ -131,15 +130,6 @@ base.exportTo('ui', function() {
         }.bind(this);
         img.src = helperCanvas.toDataURL();
       }, this);
-      this.updateChildren_();
-    },
-
-    get deviceViewportSizeForFrame() {
-      return this.deviceViewportSizeForFrame_;
-    },
-
-    set deviceViewportSizeForFrame(size) {
-      this.deviceViewportSizeForFrame_ = size;
       this.updateChildren_();
     },
 
@@ -289,41 +279,8 @@ base.exportTo('ui', function() {
         ctx.stroke();
       }
 
-      if (this.deviceViewportSizeForFrame_) {
-        if (this.drawDeviceViewportMask_) {
-          var vW = this.deviceViewportSizeForFrame_.width;
-          var vH = this.deviceViewportSizeForFrame_.height;
-
-          ctx.fillStyle = 'rgba(0,0,0,0.2)';
-
-          // Cover above and below the viewoprt with dark grey.
-          ctx.fillRect(vp.worldRect.x,
-                       vp.worldRect.y,
-                       vp.worldRect.width,
-                       -vp.worldRect.y);
-          ctx.fillRect(vp.worldRect.x,
-                       vH,
-                       vp.worldRect.width,
-                       vp.worldRect.height - vH);
-
-          // Cover left and right of the viewoprt with dark grey.
-          ctx.fillRect(vp.worldRect.x,
-                       0,
-                       -vp.worldRect.x,
-                       vH);
-          ctx.fillRect(vW,
-                       0,
-                       vp.worldRect.width - vW,
-                       vH);
-        }
-
-        ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
-        ctx.strokeStyle = 'rgba(0,0,255,1)';
-        ctx.strokeRect(0,
-                       0,
-                       this.deviceViewportSizeForFrame_.width,
-                       this.deviceViewportSizeForFrame_.height);
-      }
+      if (this.viewport.deviceViewport)
+        this.drawDeviceViewport_(this.viewport.deviceViewport, ctx);
 
       ctx.restore();
     },
@@ -352,6 +309,43 @@ base.exportTo('ui', function() {
           hitIndices.push(i);
       }
       return hitIndices;
+    },
+
+    drawDeviceViewport_: function(deviceViewport, ctx) {
+      if (this.drawDeviceViewportMask_) {
+        var vW = deviceViewport.width;
+        var vH = deviceViewport.height;
+        var vp = this.viewport_;
+
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+
+        // Cover above and below the viewport with dark grey.
+        ctx.fillRect(vp.worldRect.x,
+                     vp.worldRect.y,
+                     vp.worldRect.width,
+                     -vp.worldRect.y);
+        ctx.fillRect(vp.worldRect.x,
+                     vH,
+                     vp.worldRect.width,
+                     vp.worldRect.height - vH);
+
+        // Cover left and right of the viewport with dark grey.
+        ctx.fillRect(vp.worldRect.x,
+                     0,
+                     -vp.worldRect.x,
+                     vH);
+        ctx.fillRect(vW,
+                     0,
+                     vp.worldRect.width - vW,
+                     vH);
+      }
+
+      ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
+      ctx.strokeStyle = 'rgba(0,0,255,1)';
+      ctx.strokeRect(0,
+                     0,
+                     deviceViewport.width,
+                     deviceViewport.height);
     },
 
     onMouseDown_: function(e) {

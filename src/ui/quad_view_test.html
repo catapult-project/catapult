@@ -48,9 +48,11 @@ found in the LICENSE file.
 
       quadView.title = 'Test Tree';
       quadView.quads = quads;
-      quadView.viewport = new QuadViewViewport(quadsBBox, 10.0);
-      quadView.deviceViewportSizeForFrame = {widht: 50,
+      var deviceViewportSizeForFrame = {width: 50,
                                              height: 30};
+      quadView.viewport = new QuadViewViewport(quadsBBox,
+        10.0, deviceViewportSizeForFrame);
+
 
       quadView.addEventListener(
         'selectionChanged',
@@ -172,9 +174,11 @@ found in the LICENSE file.
 
       quadView.title = 'Test Tree';
       quadView.quads = quads;
-      quadView.viewport = new QuadViewViewport(quadsBBox, 10.0, 0, 2);
-      quadView.deviceViewportSizeForFrame = {widht: 50,
+
+      var deviceViewportSizeForFrame = {width: 50,
                                              height: 30};
+      quadView.viewport = new QuadViewViewport(quadsBBox, 10.0,
+          deviceViewportSizeForFrame, 0, 2);
 
       document.body.appendChild(quadView);
       try {

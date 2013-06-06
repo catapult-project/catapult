@@ -36,17 +36,15 @@ base.exportTo('ui', function() {
       this.appendChild(this.contentContainer_);
       this.viewport_ = undefined;
       this.quads_ = undefined;
-      this.deviceViewportSizeForFrame_ = undefined;
 
       this.camera_ = new ui.Camera(this);
     },
 
     setQuadsViewportAndDeviceViewportSize: function(
-        quads, viewport, deviceViewportSizeForFrame, opt_insideRAF) {
+        quads, viewport, opt_insideRAF) {
       validateQuads(quads);
       this.quads_ = quads;
       this.viewport_ = viewport;
-      this.deviceViewportSizeForFrame_ = deviceViewportSizeForFrame;
       this.updateContents_();
       if (opt_insideRAF)
         this.camera_.repaint();
@@ -84,9 +82,8 @@ base.exportTo('ui', function() {
       return this.deviceViewportSizeForFrame_;
     },
 
-    set deviceViewportSizeForFrame(deviceViewportSizeForFrame) {
-      this.deviceViewportSizeForFrame_ = deviceViewportSizeForFrame;
-      this.updateContents_();
+    get contentContainer() {
+      return this.contentContainer_;
     },
 
     updateContents_: function() {
@@ -160,15 +157,12 @@ base.exportTo('ui', function() {
         });
       }
 
+      var topQuadIndex = this.contentContainer_.children.length - 1;
+      var topQuad = this.contentContainer_.children[topQuadIndex];
+      topQuad.drawDeviceViewportMask = true;
+
       for (var i = 0; i < this.contentContainer_.children.length; i++) {
         var child = this.contentContainer_.children[i];
-        if (i != this.contentContainer_.children.length - 1) {
-          child.deviceViewportSizeForFrame = undefined;
-        } else {
-          child.drawDeviceViewportMask = true;
-          child.deviceViewportSizeForFrame =
-              this.deviceViewportSizeForFrame_;
-        }
         child.quads = child.pendingQuads;
         delete child.pendingQuads;
       }

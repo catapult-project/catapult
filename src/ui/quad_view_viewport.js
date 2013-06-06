@@ -12,6 +12,7 @@ base.exportTo('ui', function() {
 
   function QuadViewViewport(bbox,
                             opt_scale,
+                            opt_deviceViewport,
                             opt_padding, opt_devicePixelRatio) {
     base.EventTarget.call(this);
     if (bbox.isEmpty)
@@ -36,6 +37,9 @@ base.exportTo('ui', function() {
         scale = 0.125;
     }
     this.scale_ = scale;
+
+    this.deviceViewport_ = opt_deviceViewport;
+
     this.updateScale_();
   }
 
@@ -51,6 +55,11 @@ base.exportTo('ui', function() {
 
     get scale() {
       return this.scale_;
+    },
+
+    // The area of the world that is visible by users, in world pixels
+    get deviceViewport() {
+      return this.deviceViewport_;
     },
 
     updateScale_: function() {
