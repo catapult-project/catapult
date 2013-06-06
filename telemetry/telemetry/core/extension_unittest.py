@@ -16,9 +16,10 @@ class ExtensionTest(unittest.TestCase):
   def setUp(self):
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'simple_extension')
-    load_extension = extension_to_load.ExtensionToLoad(extension_path)
 
     options = options_for_unittests.GetCopy()
+    load_extension = extension_to_load.ExtensionToLoad(
+        extension_path, options.browser_type)
     options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
 
@@ -60,15 +61,18 @@ class NonExistentExtensionTest(unittest.TestCase):
     """Test that a non-existent extension path will raise an exception."""
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'foo')
+    options = options_for_unittests.GetCopy()
     self.assertRaises(extension_to_load.ExtensionPathNonExistentException,
-                      lambda: extension_to_load.ExtensionToLoad(extension_path))
+                      lambda: extension_to_load.ExtensionToLoad(
+                          extension_path, options.browser_type))
 
   def testExtensionNotLoaded(self):
     """Querying an extension that was not loaded will return None"""
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'simple_extension')
-    load_extension = extension_to_load.ExtensionToLoad(extension_path)
     options = options_for_unittests.GetCopy()
+    load_extension = extension_to_load.ExtensionToLoad(
+        extension_path, options.browser_type)
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
       if b.supports_extensions:
@@ -88,9 +92,10 @@ class MultipleExtensionTest(unittest.TestCase):
     for d in self._extension_dirs:
       shutil.copy(manifest_path, d)
       shutil.copy(script_path, d)
-    self._extensions_to_load = [extension_to_load.ExtensionToLoad(d)
-                                for d in self._extension_dirs]
     options = options_for_unittests.GetCopy()
+    self._extensions_to_load = [extension_to_load.ExtensionToLoad(
+                                    d, options.browser_type)
+                                for d in self._extension_dirs]
     options.extensions_to_load = self._extensions_to_load
     browser_to_create = browser_finder.FindBrowser(options)
     self._browser = None
@@ -125,9 +130,10 @@ class ComponentExtensionTest(unittest.TestCase):
   def testComponentExtensionBasic(self):
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'component_extension')
-    load_extension = extension_to_load.ExtensionToLoad(extension_path, True)
-
     options = options_for_unittests.GetCopy()
+    load_extension = extension_to_load.ExtensionToLoad(
+        extension_path, options.browser_type, is_component=True)
+
     options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
@@ -144,6 +150,9 @@ class ComponentExtensionTest(unittest.TestCase):
     # simple_extension does not have a public key.
     extension_path = os.path.join(os.path.dirname(__file__),
         '..', '..', 'unittest_data', 'simple_extension')
+    options = options_for_unittests.GetCopy()
     self.assertRaises(extension_to_load.MissingPublicKeyException,
-                      lambda: extension_to_load.ExtensionToLoad(extension_path,
-                                                                True))
+                      lambda: extension_to_load.ExtensionToLoad(
+                          extension_path,
+                          browser_type=options.browser_type,
+                          is_component=True))
