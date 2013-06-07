@@ -61,6 +61,10 @@ base.exportTo('tracing.importer', function() {
 
     __proto__: Object.prototype,
 
+    extractSubtrace: function() {
+      return undefined;
+    },
+
     processTimerEvent_: function(name, start, length) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;

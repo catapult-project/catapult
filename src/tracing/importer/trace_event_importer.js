@@ -44,6 +44,11 @@ base.exportTo('tracing.importer', function() {
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
+    this.events_ = undefined;
+    this.systemTraceEvents_ = undefined;
+    this.eventsWereFromString_ = false;
+    this.allAsyncEvents_ = [];
+    this.allObjectEvents_ = [];
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       // If the event data begins with a [, then we know it should end with a ].
@@ -58,7 +63,7 @@ base.exportTo('tracing.importer', function() {
           eventData = eventData + ']';
       }
       this.events_ = JSON.parse(eventData);
-
+      this.eventsWereFromString_ = true;
     } else {
       this.events_ = eventData;
     }
@@ -69,17 +74,20 @@ base.exportTo('tracing.importer', function() {
     if (this.events_.traceEvents) {
       var container = this.events_;
       this.events_ = this.events_.traceEvents;
+
+      // Some trace_event implementations put linux_perf_importer traces as a
+      // huge string inside container.systemTraceEvents. If we see that, pull it
+      // out. It will be picked up by extractSubtrace later on.
+      this.systemTraceEvents_ = container.systemTraceEvents;
+
+      // Any other fields in the container should be treated as metadata.
       for (fieldName in container) {
-        if (fieldName == 'traceEvents')
+        if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents')
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
       }
     }
-
-    // Some events need to be processed during finalizeEvents
-    this.allAsyncEvents_ = [];
-    this.allObjectEvents_ = [];
   }
 
   /**
@@ -110,6 +118,21 @@ base.exportTo('tracing.importer', function() {
   TraceEventImporter.prototype = {
 
     __proto__: Object.prototype,
+
+    extractSubtrace: function() {
+      var tmp = this.systemTraceEvents_;
+      this.systemTraceEvents_ = undefined;
+      return tmp;
+    },
+
+    /**
+     * Deep copying is only needed if the trace was given to us as events.
+     */
+    deepCopyIfNeeded_: function(obj) {
+      if (this.eventsWereFromString_)
+        return obj;
+      return deepCopy(obj);
+    },
 
     /**
      * Helper to process an 'async finish' event, which will close an open slice
@@ -183,7 +206,7 @@ base.exportTo('tracing.importer', function() {
 
       if (event.ph == 'B') {
         thread.beginSlice(event.cat, event.name, event.ts / 1000,
-                          deepCopy(event.args));
+                          this.deepCopyIfNeeded_(event.args));
       } else {
         if (!thread.openSliceCount) {
           this.model_.importErrors.push(
@@ -199,7 +222,7 @@ base.exportTo('tracing.importer', function() {
                 'provided values for argument ' + arg + '. ' +
                 'The value of the E phase event will be used.');
           }
-          slice.args[arg] = deepCopy(event.args[arg]);
+          slice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
         }
       }
     },
@@ -221,7 +244,7 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
       thread.beginSlice(event.cat, event.name, event.ts / 1000,
-                        deepCopy(event.args));
+                        this.deepCopyIfNeeded_(event.args));
       thread.endSlice(event.ts / 1000);
     },
 
@@ -229,7 +252,7 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
       thread.addSample(event.cat, event.name, event.ts / 1000,
-                       deepCopy(event.args));
+                       this.deepCopyIfNeeded_(event.args));
     },
 
     /**
@@ -362,7 +385,7 @@ base.exportTo('tracing.importer', function() {
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
             slice.id = id;
-            slice.args = deepCopy(events[0].event.args);
+            slice.args = this.deepCopyIfNeeded_(events[0].event.args);
             slice.subSlices = [];
 
             // Create subSlices for each step.
@@ -382,7 +405,7 @@ base.exportTo('tracing.importer', function() {
               subSlice.startThread = events[j - 1].thread;
               subSlice.endThread = events[j].thread;
               subSlice.id = id;
-              subSlice.args = deepCopy(events[j - 1].event.args);
+              subSlice.args = this.deepCopyIfNeeded_(events[j - 1].event.args);
 
               slice.subSlices.push(subSlice);
             }
@@ -390,7 +413,7 @@ base.exportTo('tracing.importer', function() {
             // The args for the finish event go in the last subSlice.
             var lastSlice = slice.subSlices[slice.subSlices.length - 1];
             for (var arg in event.args)
-              lastSlice.args[arg] = deepCopy(event.args[arg]);
+              lastSlice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
 
             // Add |slice| to the start-thread's asyncSlices.
             slice.startThread.asyncSlices.push(slice);
@@ -446,7 +469,7 @@ base.exportTo('tracing.importer', function() {
           try {
             snapshot = process.objects.addSnapshot(
                 event.id, event.cat, event.name, ts,
-                deepCopy(event.args.snapshot));
+                this.deepCopyIfNeeded_(event.args.snapshot));
           } catch (e) {
             this.model_.importErrors.push(
                 'While processing snapshot of ' +

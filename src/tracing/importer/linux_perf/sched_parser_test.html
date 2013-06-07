@@ -152,12 +152,12 @@ function testImportWithUnknownSleepState() {
     m = new tracing.TraceModel(lines.join('\n'), false);
   });
   assertTrue(m.importErrors.length > 0);
-  assertEquals("Unrecognized sleep state: F|O", m.importErrors[0]);
+  assertEquals('Unrecognized sleep state: F|O', m.importErrors[0]);
 
   var thread = m.findAllThreadsNamed('Binder_1')[0];
   var cpuSlices = thread.cpuSlices;
 
-  assertEquals("UNKNOWN", cpuSlices[1].title);
+  assertEquals('UNKNOWN', cpuSlices[1].title);
 }
 
 </script>

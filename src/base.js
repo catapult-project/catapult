@@ -620,6 +620,20 @@ this.base = (function() {
     }
   };
 
+  function normalizeException(e) {
+    if (typeof(e) == 'string') {
+      return {
+        message: e,
+        stack: ['<unknown>']
+      };
+    }
+
+    return {
+      message: e.message,
+      stack: e.stack ? e.stack : ['<unknown>']
+    };
+  }
+
   return {
     set moduleBasePath(path) {
       setModuleBasePath(path);
@@ -648,7 +662,8 @@ this.base = (function() {
     iterItems: iterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
     TypeMap: TypeMap,
-    tracedFunction: tracedFunction
+    tracedFunction: tracedFunction,
+    normalizeException: normalizeException
   };
 })();
 

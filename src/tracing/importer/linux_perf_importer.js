@@ -310,6 +310,10 @@ base.exportTo('tracing.importer', function() {
   LinuxPerfImporter.prototype = {
     __proto__: Object.prototype,
 
+    extractSubtrace: function() {
+      return undefined;
+    },
+
     get model() {
       return this.model_;
     },

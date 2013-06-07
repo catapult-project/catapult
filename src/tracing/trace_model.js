@@ -251,10 +251,24 @@ base.exportTo('tracing', function() {
       if (opt_shiftWorldToZero === undefined)
         opt_shiftWorldToZero = true;
 
+      // Copy the traces array, we may mutate it.
+      traces = traces.slice(0);
+
       // Figure out which importers to use.
       var importers = [];
       for (var i = 0; i < traces.length; ++i)
         importers.push(this.createImporter_(traces[i]));
+
+      // Some traces have other traces inside them. Before doing the full
+      // import, ask the importer if it has any subtraces, and if so, create an
+      // importer for that, also.
+      for (var i = 0; i < importers.length; i++) {
+        var subTrace = importers[i].extractSubtrace();
+        if (!subTrace)
+          continue;
+        traces.push(subTrace);
+        importers.push(this.createImporter_(subTrace));
+      }
 
       // Sort them on priority. This ensures importing happens in a predictable
       // order, e.g. linux_perf_importer before trace_event_importer.
@@ -332,6 +346,9 @@ base.exportTo('tracing', function() {
   TraceModelEmptyImporter.prototype = {
     __proto__: Object.prototype,
 
+    extractSubtrace: function() {
+      return undefined;
+    },
     importEvents: function() {
     },
     finalizeImport: function() {

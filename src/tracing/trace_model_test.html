@@ -11,7 +11,7 @@ found in the LICENSE file.
 <script>
   base.require('base.unittest');
   base.require('tracing.test_utils');
-  base.require('tracing.trace_model');
+  base.require('tracing.importer');
 </script>
 <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
 </head>
@@ -113,6 +113,50 @@ function testTraceModelCanImportEmpty() {
   var m;
   m = new TraceModel([]);
   m = new TraceModel('');
+}
+
+function testTraceModelCanImportSubtraces() {
+  var systraceLines = [
+    'SurfaceFlinger-2  [001] ...1 1000.0: 0: B|1|taskA',
+    'SurfaceFlinger-2  [001] ...1 2000.0: 0: E'
+  ];
+  var traceEvents = [
+    {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
+      my_object: {id_ref: '0x1000'}
+    }},
+    {ts: 2000, pid: 1, tid: 3, ph: 'E', cat: 'c', name: 'taskB', args: {}}
+  ];
+
+  var combined = JSON.stringify({
+    traceEvents: traceEvents,
+    systemTraceEvents: systraceLines.join('\n')
+  });
+
+  var m = new TraceModel();
+  m.importTraces([combined]);
+  assertEquals(1, base.dictionaryValues(m.processes).length);
+
+  var p1 = m.processes[1];
+  assertNotUndefined(p1);
+
+  var t2 = p1.threads[2];
+  var t3 = p1.threads[3];
+  assertNotUndefined(t2);
+  assertNotUndefined(t3);
+
+  assertEquals(1, t2.slices.length, 1);
+  assertEquals('taskA', t2.slices[0].title);
+
+  assertEquals(1, t3.slices.length);
+  assertEquals('taskB', t3.slices[0].title);
+}
+
+function testTraceModelWithImportFailure() {
+  var malformed = '{traceEvents: [{garbage';
+  var m = new TraceModel();
+  assertThrows(function() {
+    m.importTraces([malformed]);
+  });
 }
 
 function testTitleFilter() {

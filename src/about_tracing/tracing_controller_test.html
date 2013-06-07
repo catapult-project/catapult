@@ -22,18 +22,16 @@ base.require('about_tracing.tracing_controller');
   function testLoadTraceFileCompleteWithJSONfiles() {
     var callbackFired = false;
 
+    var traceEventData = '[{"a":1, "b":2}]';
+
     var tc = new about_tracing.TracingController(undefined);
     tc.addEventListener('loadTraceFileComplete', function(event) {
-      assertNotNull(event.events);
-      assertEquals(1, event.events[0].a);
-      assertEquals(2, event.events[0].b);
       callbackFired = true;
     });
-    tc.onLoadTraceFileComplete('[{"a":1, "b":2}]');
+    tc.onLoadTraceFileComplete(traceEventData);
 
-    assertEquals(1, tc.traceEvents[0].a);
-    assertEquals(2, tc.traceEvents[0].b);
     assertTrue(callbackFired);
+    assertEquals(traceEventData, tc.traceEventData);
   }
 
   function testLoadTraceFileCompleteWithNonJSONfiles() {
@@ -41,13 +39,11 @@ base.require('about_tracing.tracing_controller');
 
     var tc = new about_tracing.TracingController(undefined);
     tc.addEventListener('loadTraceFileComplete', function(event) {
-      assertNotNull(event.events);
-      assertEquals('<DOCTYPE>', event.events);
       callbackFired = true;
     });
     tc.onLoadTraceFileComplete('<DOCTYPE>');
 
-    assertEquals('<DOCTYPE>', tc.traceEvents);
+    assertEquals('<DOCTYPE>', tc.traceEventData);
     assertTrue(callbackFired);
   }
 </script>

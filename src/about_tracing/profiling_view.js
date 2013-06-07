@@ -13,6 +13,7 @@ base.require('about_tracing.tracing_controller');
 base.require('tracing.timeline_view');
 base.require('tracing.record_selection_dialog');
 base.require('ui');
+base.require('ui.info_bar');
 base.require('ui.overlay');
 
 /*
@@ -33,9 +34,6 @@ base.exportTo('about_tracing', function() {
   ProfilingView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    traceEvents_: [],
-    systemTraceEvents_: [],
-
     decorate: function() {
       this.classList.add('profiling-view');
 
@@ -54,6 +52,10 @@ base.exportTo('about_tracing', function() {
       this.loadBn_ = document.createElement('button');
       this.loadBn_.textContent = 'Load';
       this.loadBn_.addEventListener('click', this.onLoad_.bind(this));
+
+      this.infoBar_ = new ui.InfoBar();
+      this.infoBar_.visible = false;
+      this.appendChild(this.infoBar_);
 
       this.timelineView_ = new tracing.TimelineView();
       this.timelineView_.leftControls.appendChild(this.recordBn_);
@@ -111,18 +113,31 @@ base.exportTo('about_tracing', function() {
       if (!this.tracingController)
         return;
 
-      var traceEvents = this.tracingController.traceEvents;
-      var hasEvents = traceEvents && traceEvents.length;
-      this.saveBn_.disabled = !hasEvents;
+      this.saveBn_.disabled = true;
 
-      if (!hasEvents) return;
+      if (!this.tracingController.traceEventData) {
+        this.infoBar_.visible = false;
+        return;
+      }
+      this.saveBn_.disabled = false;
 
-      var traces = [traceEvents];
-      if (this.tracingController.systemTraceEvents.length)
+      var traces = [this.tracingController.traceEventData];
+
+      if (this.tracingController.systemTraceEvents)
         traces.push(this.tracingController.systemTraceEvents);
 
       var m = new tracing.TraceModel();
-      m.importTraces(traces, true);
+      try {
+        m.importTraces(traces, true);
+      } catch (e) {
+        this.timelineView_.model = undefined;
+        this.infoBar_.message =
+            'There was an error while importing the traceData: ' +
+            base.normalizeException(e).message;
+        this.infoBar_.visible = true;
+        return;
+      }
+      this.infoBar_.visible = false;
       this.timelineView_.model = m;
     },
 
