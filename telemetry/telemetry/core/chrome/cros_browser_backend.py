@@ -31,7 +31,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     self._login_ext_dir = os.path.join(os.path.dirname(__file__),
                                        'chromeos_login_ext')
-    self._cached_pid = None
 
     # Push a dummy login extension to the device.
     # This extension automatically logs in as test@test.test
@@ -55,7 +54,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     # Ensure the UI is running and logged out.
     self._RestartUI()
-    util.WaitFor(self._HasChromeProcess, 20)
+    util.WaitFor(lambda: self.IsBrowserRunning(), 20)  # pylint: disable=W0108
 
     # Delete test@test.test's cryptohome vault (user data directory).
     if not options.dont_override_profile:
@@ -147,19 +146,13 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     return args
 
-  def _HasChromeProcess(self):
-    for _, process in self._cri.ListProcesses():
-      if any(map(process.startswith, self.CHROME_PATHS)):
-        return True
-    return False
-
   @property
   def pid(self):
-    if self._cached_pid is None:
-      lsof_out = self._cri.RunCmdOnDevice(
-          ['lsof', '-t', '-i', 'tcp:%s' % self._remote_debugging_port])[0]
-      self._cached_pid = int(lsof_out) if lsof_out else None
-    return self._cached_pid
+    for pid, process in self._cri.ListProcesses():
+      for path in self.CHROME_PATHS:
+        if process.startswith(path):
+          return int(pid)
+    return None
 
   @property
   def hwid(self):
