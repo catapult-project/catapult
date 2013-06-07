@@ -17,7 +17,7 @@ class MiscWebContentsBackend(object):
     self._browser_backend = browser_backend
 
   def GetOobe(self):
-    oobe_web_contents_info = self._FindWebContentsInfo('chrome://oobe/login')
+    oobe_web_contents_info = self._FindWebContentsInfo()
     if oobe_web_contents_info:
       debugger_url = oobe_web_contents_info.get('webSocketDebuggerUrl')
       if debugger_url:
@@ -39,8 +39,10 @@ class MiscWebContentsBackend(object):
         raise exceptions.BrowserGoneException()
       raise exceptions.BrowserConnectionGoneException()
 
-  def _FindWebContentsInfo(self, url):
+  def _FindWebContentsInfo(self):
     for web_contents_info in self._ListWebContents():
-      if web_contents_info.get('url') == url:
+      # Prior to crrev.com/203152, url was chrome://oobe/login.
+      oobe_urls = ['chrome://oobe/login', 'chrome://oobe/login#login']
+      if (web_contents_info.get('url') in oobe_urls):
         return web_contents_info
     return None
