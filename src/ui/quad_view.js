@@ -312,34 +312,35 @@ base.exportTo('ui', function() {
     },
 
     drawDeviceViewport_: function(deviceViewport, ctx) {
-      if (this.drawDeviceViewportMask_) {
-        var vW = deviceViewport.width;
-        var vH = deviceViewport.height;
-        var vp = this.viewport_;
+      if (!this.drawDeviceViewportMask_ || !this.viewport_)
+        return;
+      var vW = deviceViewport.width;
+      var vH = deviceViewport.height;
+      var vp = this.viewport_;
 
-        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
 
-        // Cover above and below the viewport with dark grey.
-        ctx.fillRect(vp.worldRect.x,
-                     vp.worldRect.y,
-                     vp.worldRect.width,
-                     -vp.worldRect.y);
-        ctx.fillRect(vp.worldRect.x,
-                     vH,
-                     vp.worldRect.width,
-                     vp.worldRect.height - vH);
+      // Cover above and below the viewport with dark grey.
+      ctx.fillRect(vp.worldRect.x,
+                   vp.worldRect.y,
+                   vp.worldRect.width,
+                   -vp.worldRect.y);
+      ctx.fillRect(vp.worldRect.x,
+                   vH,
+                   vp.worldRect.width,
+                   vp.worldRect.height - vH);
 
-        // Cover left and right of the viewport with dark grey.
-        ctx.fillRect(vp.worldRect.x,
-                     0,
-                     -vp.worldRect.x,
-                     vH);
-        ctx.fillRect(vW,
-                     0,
-                     vp.worldRect.width - vW,
-                     vH);
-      }
+      // Cover left and right of the viewport with dark grey.
+      ctx.fillRect(vp.worldRect.x,
+                   0,
+                   -vp.worldRect.x,
+                   vH);
+      ctx.fillRect(vW,
+                   0,
+                   vp.worldRect.width - vW,
+                   vH);
 
+      // Stroke area around viewport.
       ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
       ctx.strokeStyle = 'rgba(0,0,255,1)';
       ctx.strokeRect(0,
