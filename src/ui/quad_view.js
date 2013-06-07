@@ -13,6 +13,7 @@ base.require('ui');
 base.require('ui.quad_view_viewport');
 
 base.exportTo('ui', function() {
+  var RASTER_SCALE = 0.75; // Adjust the resolution of our backing canvases.
 
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
@@ -175,12 +176,12 @@ base.exportTo('ui', function() {
 
       var resizedCanvas = false;
       if (this.canvas_.width != this.viewport_.deviceWidth) {
-        this.canvas_.width = this.viewport_.deviceWidth;
+        this.canvas_.width = this.viewport_.deviceWidth * ui.RASTER_SCALE;
         this.canvas_.style.width = this.viewport_.layoutRect.width + 'px';
         resizedCanvas = true;
       }
       if (this.canvas_.height != this.viewport_.deviceHeight) {
-        this.canvas_.height = this.viewport_.deviceHeight;
+        this.canvas_.height = this.viewport_.deviceHeight * ui.RASTER_SCALE;
         this.canvas_.style.height = this.viewport_.layoutRect.height + 'px';
         resizedCanvas = true;
       }
@@ -193,7 +194,7 @@ base.exportTo('ui', function() {
         ctx.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
 
       ctx.save();
-
+      ctx.scale(ui.RASTER_SCALE, ui.RASTER_SCALE);
       vp.applyTransformToContext(ctx);
       ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(1.0);
 
@@ -290,6 +291,8 @@ base.exportTo('ui', function() {
     },
 
     selectQuadsAtCanvasClientPoint: function(clientX, clientY) {
+      clientX *= ui.RASTER_SCALE;
+      clientY *= ui.RASTER_SCALE;
       var selectedQuadIndices = this.findQuadsAtCanvasClientPoint(
           clientX, clientY);
       var e = new base.Event('selectionChanged');
@@ -377,6 +380,7 @@ base.exportTo('ui', function() {
   };
 
   return {
-    QuadView: QuadView
+    QuadView: QuadView,
+    RASTER_SCALE: RASTER_SCALE
   };
 });
