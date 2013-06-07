@@ -168,7 +168,7 @@ base.exportTo('ui', function() {
       }
 
       this.camera_.scheduleRepaint();
-    },
+    }
 
   };
 
