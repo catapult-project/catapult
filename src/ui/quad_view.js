@@ -173,21 +173,25 @@ base.exportTo('ui', function() {
     redrawCanvas_: function() {
       this.redrawScheduled_ = false;
 
+      var resizedCanvas = false;
       if (this.canvas_.width != this.viewport_.deviceWidth) {
         this.canvas_.width = this.viewport_.deviceWidth;
         this.canvas_.style.width = this.viewport_.layoutRect.width + 'px';
+        resizedCanvas = true;
       }
       if (this.canvas_.height != this.viewport_.deviceHeight) {
         this.canvas_.height = this.viewport_.deviceHeight;
         this.canvas_.style.height = this.viewport_.layoutRect.height + 'px';
+        resizedCanvas = true;
       }
 
       var ctx = this.canvas_.getContext('2d');
 
       var vp = this.viewport_;
-      ctx.clearRect(
-          0, 0,
-          this.canvas_.width, this.canvas_.height);
+
+      if (!resizedCanvas) // Canvas resizing automatically clears the context.
+        ctx.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+
       ctx.save();
 
       vp.applyTransformToContext(ctx);
