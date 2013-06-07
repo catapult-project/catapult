@@ -82,7 +82,8 @@ found in the LICENSE file.
 
     timelineViewEl.model = m;
     timelineViewEl.tabIndex = 1;
-    timelineViewEl.timeline.focusElement = timelineViewEl;
+    if (timelineViewEl.timeline)
+      timelineViewEl.timeline.focusElement = timelineViewEl;
     timelineViewEl.viewTitle = filenames;
   }
 

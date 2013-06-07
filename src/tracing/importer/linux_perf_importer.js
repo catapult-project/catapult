@@ -198,6 +198,8 @@ base.exportTo('tracing.importer', function() {
    * recognized; otherwise null.
    */
   function autoDetectLineParser(line) {
+    if (line[0] == '{')
+      return false;
     if (lineREWithTGID.test(line))
       return lineParserWithTGID;
     if (lineREWithIRQInfo.test(line))
