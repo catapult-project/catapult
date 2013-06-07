@@ -101,6 +101,8 @@ base.exportTo('cc', function() {
           'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
 
+      this.camera_ = new ui.Camera(this.quadStack_);
+
       this.scheduleUpdateContents_();
     },
 
@@ -120,7 +122,10 @@ base.exportTo('cc', function() {
     set scale(scale) {
       this.scale_ = scale;
       base.Settings.set('layer_viewer.scale', this.scale_, 'cc');
-      this.scheduleUpdateContents_();
+      if (this.quadStack_.viewport)
+        this.quadStack_.viewport.scale = scale;
+      else
+        this.scheduleUpdateContents_();
     },
 
     get showOtherLayers() {
@@ -282,8 +287,8 @@ base.exportTo('cc', function() {
 
       var viewport = new ui.QuadViewViewport(
           lthiInstance.allLayersBBox, this.scale_, lthi.deviceViewportSize);
-      this.quadStack_.setQuadsViewportAndDeviceViewportSize(
-          quads, viewport, true);
+
+      this.quadStack_.setQuadsAndViewport(quads, viewport);
     },
 
     appendQuadsForHighlight_: function(

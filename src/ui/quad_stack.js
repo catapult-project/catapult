@@ -36,18 +36,13 @@ base.exportTo('ui', function() {
       this.appendChild(this.contentContainer_);
       this.viewport_ = undefined;
       this.quads_ = undefined;
-
-      this.camera_ = new ui.Camera(this);
     },
 
-    setQuadsViewportAndDeviceViewportSize: function(
-        quads, viewport, opt_insideRAF) {
+    setQuadsAndViewport: function(quads, viewport) {
       validateQuads(quads);
       this.quads_ = quads;
       this.viewport_ = viewport;
       this.updateContents_();
-      if (opt_insideRAF)
-        this.camera_.repaint();
     },
 
     get quads() {
@@ -67,19 +62,6 @@ base.exportTo('ui', function() {
     set viewport(viewport) {
       this.viewport_ = viewport;
       this.updateContents_();
-    },
-
-    get layers() {
-      // ? Why aren't layers just our children? Why contentContainer_?
-      return this.contentContainer_.children;
-    },
-
-    get content() {
-      return this.contentContainer_;
-    },
-
-    get deviceViewportSizeForFrame() {
-      return this.deviceViewportSizeForFrame_;
     },
 
     get contentContainer() {
@@ -167,10 +149,12 @@ base.exportTo('ui', function() {
         delete child.pendingQuads;
       }
 
-      this.camera_.scheduleRepaint();
+      this.layers = this.contentContainer_.children;
     }
 
   };
+
+  base.defineProperty(QuadStack, 'layers', base.PropertyKind.JS);
 
   return {
     QuadStack: QuadStack

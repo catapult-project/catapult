@@ -31,6 +31,8 @@ base.exportTo('ui', function() {
     };
 
     this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
+    this.targetElement_.addEventListener('layersChange',
+        this.scheduleRepaint.bind(this));
   }
 
   Camera.prototype = {
