@@ -42,7 +42,6 @@ class MiscWebContentsBackend(object):
   def _FindWebContentsInfo(self):
     for web_contents_info in self._ListWebContents():
       # Prior to crrev.com/203152, url was chrome://oobe/login.
-      oobe_urls = ['chrome://oobe/login', 'chrome://oobe/login#login']
-      if (web_contents_info.get('url') in oobe_urls):
+      if (web_contents_info.get('url').startswith('chrome://oobe')):
         return web_contents_info
     return None
