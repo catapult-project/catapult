@@ -119,8 +119,6 @@ class Browser(object):
           result[child_process_type_key][k] += v
         else:
           result[child_process_type_key][k] = v
-    if result['Gpu']['ProcessCount'] > 1:
-      raise Exception('Found %d Gpu processes' % result['Gpu']['ProcessCount'])
     for v in result.itervalues():
       if v['ProcessCount'] > 1:
         for k in v.keys():
