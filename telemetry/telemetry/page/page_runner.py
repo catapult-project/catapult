@@ -73,8 +73,9 @@ class PageRunner(object):
     # Reorder page set based on options.
     pages = _ShuffleAndFilterPageSet(self.page_set, options)
 
-    if not options.allow_live_sites:
-      pages = self._CheckArchives(options, pages, out_results)
+    if (not options.allow_live_sites and
+        options.wpr_mode != wpr_modes.WPR_RECORD):
+      pages = self._CheckArchives(self.page_set, pages, out_results)
 
     # Verify credentials path.
     credentials_path = None
@@ -174,12 +175,32 @@ class PageRunner(object):
     finally:
       state.Close()
 
-  def _CheckArchives(self, options, pages, out_results):
+  def _CheckArchives(self, page_set, pages, out_results):
     """Returns a subset of pages that are local or have WPR archives.
 
     Logs warnings if any are missing."""
-    pages_without_archive_path = []
-    pages_missing_archive_file = []
+    page_set_has_live_sites = False
+    for page in pages:
+      parsed_url = urlparse.urlparse(page.url)
+      if parsed_url.scheme != 'chrome' and parsed_url.scheme != 'file':
+        page_set_has_live_sites = True
+        break
+
+    # Potential problems with the entire page set.
+    if page_set_has_live_sites:
+      if not page_set.archive_data_file:
+        logging.warning('The page set is missing an "archive_data_file" '
+                        'property. Skipping any live sites. To include them, '
+                        'pass the flag --allow-live-sites.')
+      if not page_set.wpr_archive_info:
+        logging.warning('The archive info file is missing. '
+                        'To fix this, either add svn-internal to your '
+                        '.gclient using http://goto/read-src-internal, '
+                        'or create a new archive using record_wpr.')
+
+    # Potential problems with individual pages.
+    pages_missing_archive_path = []
+    pages_missing_archive_data = []
 
     for page in pages:
       parsed_url = urlparse.urlparse(page.url)
@@ -187,38 +208,29 @@ class PageRunner(object):
         continue
 
       if not page.archive_path:
-        pages_without_archive_path.append(page)
-      elif options.wpr_mode != wpr_modes.WPR_RECORD:
-        if not os.path.isfile(page.archive_path):
-          pages_missing_archive_file.append(page)
+        pages_missing_archive_path.append(page)
+      if not os.path.isfile(page.archive_path):
+        pages_missing_archive_data.append(page)
 
-    for page in pages_without_archive_path:
-      out_results.StartTest(page)
-      out_results.AddErrorMessage(page, 'Page set archive not defined.')
-      out_results.StopTest(page)
-    for page in pages_missing_archive_file:
+    if pages_missing_archive_path:
+      logging.warning('The page set archives for some pages do not exist. '
+                      'Skipping those pages. To fix this, record those pages '
+                      'using record_wpr. To ignore this warning and run '
+                      'against live sites, pass the flag --allow-live-sites.')
+    if pages_missing_archive_data:
+      logging.warning('The page set archives for some pages are missing. '
+                      'Someone forgot to check them in, or they were deleted. '
+                      'Skipping those pages. To fix this, record those pages '
+                      'using record_wpr. To ignore this warning and run '
+                      'against live sites, pass the flag --allow-live-sites.')
+
+    for page in pages_missing_archive_path + pages_missing_archive_data:
       out_results.StartTest(page)
       out_results.AddErrorMessage(page, 'Page set archive doesn\'t exist.')
       out_results.StopTest(page)
 
-    if pages_without_archive_path:
-      logging.warning('No page set archive provided for some pages. '
-                      'Skipping those pages. To run against live sites, '
-                      'pass the flag --allow-live-sites.')
-      logging.warning('First 5 such pages:\n%s' % '\n'.join(
-          [page.url for page in pages_without_archive_path][:5]))
-
-    if pages_missing_archive_file:
-      logging.warning('The page set archives some pages do not exist, '
-                      'not running those pages. '
-                      'To fix this, either add svn-internal to your '
-                      '.gclient using http://goto/read-src-internal, '
-                      'or create a new archive using record_wpr.')
-      logging.warning('First 5 such pages:\n%s' % '\n'.join(
-          [page.url for page in pages_missing_archive_file][:5]))
-
     return [page for page in pages if page not in
-            pages_without_archive_path + pages_missing_archive_file]
+            pages_missing_archive_path + pages_missing_archive_data]
 
   def _RunPage(self, options, page, tab, test, results):
     if not test.CanRunForPage(page):
