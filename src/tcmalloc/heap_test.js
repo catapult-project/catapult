@@ -12,20 +12,20 @@ base.unittest.testSuite('tcmalloc.heap', function() {
   // Tests total allocation count.
   test('totals', function() {
     var snapshot = new HeapSnapshot({}, 1, [
-          {
-            'current_allocs': 10,
-            'total_allocs': 100,
-            'current_bytes': 10000,
-            'trace': '',
-            'total_bytes': 100000
-          },
-          {
-            'current_allocs': 2,
-            'total_allocs': 22,
-            'current_bytes': 200,
-            'trace': 'TestObject::TestMethod ',
-            'total_bytes': 2200
-          }
+      {
+        'current_allocs': 10,
+        'total_allocs': 100,
+        'current_bytes': 10000,
+        'trace': '',
+        'total_bytes': 100000
+      },
+      {
+        'current_allocs': 2,
+        'total_allocs': 22,
+        'current_bytes': 200,
+        'trace': 'TestObject::TestMethod ',
+        'total_bytes': 2200
+      }
     ]);
     snapshot.preInitialize();
     snapshot.initialize();
@@ -41,34 +41,34 @@ base.unittest.testSuite('tcmalloc.heap', function() {
   // Tests multi-level trace stacks.
   test('multiLevel', function() {
     var snapshot = new HeapSnapshot({}, 1, [
-          {
-            'current_allocs': 10,
-            'total_allocs': 100,
-            'current_bytes': 10000,
-            'trace': '',
-            'total_bytes': 100000
-          },
-          {
-            'current_allocs': 2,
-            'total_allocs': 22,
-            'current_bytes': 200,
-            'trace': 'TestObject::TestMethod ',
-            'total_bytes': 2200
-          },
-          {
-            'current_allocs': 3,
-            'total_allocs': 33,
-            'current_bytes': 300,
-            'trace': 'TestObject2::TestMethod2  ',
-            'total_bytes': 3300
-          },
-          {
-            'current_allocs': 5,
-            'total_allocs': 55,
-            'current_bytes': 500,
-            'trace': 'TestObject2::TestMethod2 TestObject3::TestMethod3 ',
-            'total_bytes': 5500
-          }
+      {
+        'current_allocs': 10,
+        'total_allocs': 100,
+        'current_bytes': 10000,
+        'trace': '',
+        'total_bytes': 100000
+      },
+      {
+        'current_allocs': 2,
+        'total_allocs': 22,
+        'current_bytes': 200,
+        'trace': 'TestObject::TestMethod ',
+        'total_bytes': 2200
+      },
+      {
+        'current_allocs': 3,
+        'total_allocs': 33,
+        'current_bytes': 300,
+        'trace': 'TestObject2::TestMethod2  ',
+        'total_bytes': 3300
+      },
+      {
+        'current_allocs': 5,
+        'total_allocs': 55,
+        'current_bytes': 500,
+        'trace': 'TestObject2::TestMethod2 TestObject3::TestMethod3 ',
+        'total_bytes': 5500
+      }
     ]);
     snapshot.preInitialize();
     snapshot.initialize();

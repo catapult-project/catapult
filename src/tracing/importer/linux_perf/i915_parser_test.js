@@ -48,20 +48,20 @@ base.unittest.testSuite('tracing.importer.linux_perf.i915_parser', function() {
     var i915RegThread = undefined;
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
-      case 'i915_gem':
-        i915GemThread = t;
-        break;
-      case 'i915_flip':
-        i915FlipThread = t;
-        break;
-      case 'i915_gem_ring':
-        i915GemRingThread = t;
-        break;
-      case 'i915_reg':
-        i915RegThread = t;
-        break;
-      default:
-        throw new unittest.TestError('Unexpected thread named ' + t.name);
+        case 'i915_gem':
+          i915GemThread = t;
+          break;
+        case 'i915_flip':
+          i915FlipThread = t;
+          break;
+        case 'i915_gem_ring':
+          i915GemRingThread = t;
+          break;
+        case 'i915_reg':
+          i915RegThread = t;
+          break;
+        default:
+          throw new unittest.TestError('Unexpected thread named ' + t.name);
       }
     });
     assertNotUndefined(i915GemThread);

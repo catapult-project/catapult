@@ -14,7 +14,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser', function() {
       'Binder_2-127  ( 127) [001] ....  3431.906769: graph_ret: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906785: graph_ent: func=sys_write',
       'Binder_2-127  ( 127) [001] ...1  3431.906798: tracing_mark_write: B|' +
-        '127|dequeueBuffer',
+          '127|dequeueBuffer',
       'Binder_2-127  ( 127) [001] ....  3431.906802: graph_ret: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906842: graph_ent: func=sys_write',
       'Binder_2-127  ( 127) [001] ...1  3431.906849: tracing_mark_write: E',

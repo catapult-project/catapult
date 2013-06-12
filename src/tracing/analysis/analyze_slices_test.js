@@ -171,13 +171,13 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t = results.tables[0];
     assertEquals('Slices:', t.tableHeader);
     assertObjectEquals(
-      {label: 'c',
-       duration: 0.1,
-       occurences: 2,
-       details: {min: 0.04, max: 0.06, avg: 0.05,
-                 avg_stddev: 0.014142135623730947}
-      },
-      t.rows[0]);
+        {label: 'c',
+          duration: 0.1,
+          occurences: 2,
+          details: {min: 0.04, max: 0.06, avg: 0.05,
+            avg_stddev: 0.014142135623730947}
+        },
+        t.rows[0]);
     assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
     assertObjectEquals({label: 'Selection extent', time: 0.18}, t.rows[2]);
 
@@ -198,7 +198,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     var model = new Model();
     var p1 = model.getOrCreateProcess(1);
     var myObjectSlice = p1.objects.addSnapshot(
-         '0x1000', 'cat', 'my_object', 0);
+        '0x1000', 'cat', 'my_object', 0);
 
     var t1 = p1.getOrCreateThread(1);
     t1.pushSlice(newSliceCategory('cat', 'b', 0, 2));

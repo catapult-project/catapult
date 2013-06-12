@@ -69,35 +69,35 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
 
   test('autodetectLineCornerCases', function() {
     var detectParser =
-      tracing.importer._LinuxPerfImporterTestExports.autoDetectLineParser;
+        tracing.importer._LinuxPerfImporterTestExports.autoDetectLineParser;
     var lineParserWithLegacyFmt =
-      tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt;
+        tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt;
     var lineParserWithIRQInfo =
-      tracing.importer._LinuxPerfImporterTestExports.lineParserWithIRQInfo;
+        tracing.importer._LinuxPerfImporterTestExports.lineParserWithIRQInfo;
     var lineParserWithTGID =
-      tracing.importer._LinuxPerfImporterTestExports.lineParserWithTGID;
+        tracing.importer._LinuxPerfImporterTestExports.lineParserWithTGID;
 
     var lineWithLegacyFmt =
-      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
-      'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-      'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-      'next_prio=120';
+        'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
     var detected = detectParser(lineWithLegacyFmt);
     assertEquals(detected, lineParserWithLegacyFmt);
 
     var lineWithIRQInfo =
-      'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
-      'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-      'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-      'next_prio=120';
+        'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
     var detected = detectParser(lineWithIRQInfo);
     assertEquals(detected, lineParserWithIRQInfo);
 
     var lineWithTGID =
-      'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
-      'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-      'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-      'next_prio=120';
+        'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120';
     var detected = detectParser(lineWithTGID);
     assertEquals(detected, lineParserWithTGID);
   });
@@ -132,27 +132,27 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           '==> next_comm=swapper next_pid=0 next_prio=120',
 
       '          <idle>-0     [001]  4467.844208: sched_switch: ' +
-            'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
-            'next_comm=kworker/u:2 next_pid=2844 next_prio=120'
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=kworker/u:2 next_pid=2844 next_prio=120'
     ];
     assertTrue(tracing.importer.LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
-              'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
               'next_comm=SurfaceFlinger next_pid=178 next_prio=112'
     ];
     assertTrue(tracing.importer.LinuxPerfImporter.canImport(lines.join('\n')));
 
     var lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
-                'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
-                'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
+          'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
 
       '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
-                'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
-                'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
-                'next_prio=120'
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120'
     ];
     assertTrue(tracing.importer.LinuxPerfImporter.canImport(lines.join('\n')));
 
@@ -200,7 +200,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
       '<html>',
       '<head i18n-values="dir:textdirection;">',
       '<title>Android System Trace</title>',
-      '<style type="text/css">tabbox{-webkit-box-orient:vertical;display:-webkit-box;}tabs{-webkit-padding-start</style>',
+      '<style type="text/css">tabbox{-webkit-box-orient:vertical;display:-webkit-box;}tabs{-webkit-padding-start</style>', // @suppress longLineCheck
       '<script language="javascript">function onLoad(){reload()}function reload(){if(linuxPerfData){var g=new tracing.TraceModel;g.importEvents("[]",!0,[linuxPerfData]);var e=document.querySelector(".view");cr.ui.decorate(e,tracing.View);e.model=g;e.tabIndex=1;e.timeline.focusElement=e}}document.addEventListener("DOMContentLoaded",onLoad);var global=this;', // @suppress longLineCheck
       'this.cr=function(){function g(a,b,c,f){var e=new cr.Event(b+"Change");e.propertyName=b;e.newValue=c;e.oldValue=f;a.dispatchEvent(e)}function e(a){return a.replace(/([A-Z])/g,"-$1").toLowerCase()}function c(b,c){switch(c){case a.JS:var f=b+"_";return function(){return this[f]};case a.ATTR:var h=e(b);return function(){return this.getAttribute(h)};case a.BOOL_ATTR:return h=e(b),function(){return this.hasAttribute(h)}}}function f(b,c,f){switch(c){case a.JS:var h=b+"_";return function(a){var c=this[h];', // @suppress longLineCheck
       '  </div>',
@@ -255,12 +255,12 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
 
-          '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
+      '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
           'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
           'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
           'next_prio=120',
 
-          '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
@@ -281,12 +281,12 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=Surface Flinger  next_pid=178 next_prio=112',
 
-          'Surface Flinger -178   [001]  4467.843536: sched_switch: ' +
+      'Surface Flinger -178   [001]  4467.843536: sched_switch: ' +
           'prev_comm=Surface Flinger  prev_pid=178 prev_prio=112 ' +
           'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
           'next_prio=120',
 
-          '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
+      '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
@@ -312,18 +312,18 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
   test('clockSync', function() {
     var lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
-                    'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
-                    '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112',
+          'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
+          '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112',
       '  SurfaceFlinger-178   [001]  4467.843536: sched_switch: ' +
-                    'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
-                    'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
-                    'next_prio=120',
+          'prev_comm=SurfaceFlinger prev_pid=178 prev_prio=112 ' +
+          'prev_state=S ==> next_comm=kworker/u:2 next_pid=2844 ' +
+          'next_prio=120',
       '     kworker/u:2-2844  [001]  4467.843567: sched_switch: ' +
-                    'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
-                    'prev_state=S ==> next_comm=swapper next_pid=0 ' +
-                    'next_prio=120',
+          'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=swapper next_pid=0 ' +
+          'next_prio=120',
       '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
-                    'trace_event_clock_sync: parent_ts=0.1'
+          'trace_event_clock_sync: parent_ts=0.1'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
@@ -338,17 +338,17 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
   test('clockSyncMarkWrite', function() {
     var lines = [
       'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
-                'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-                'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-                'next_prio=120',
+          'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+          'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+          'next_prio=120',
       ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
-                'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
-                'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+          'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
       '     debugd-4404  [001] 15180.979010: sched_switch: prev_comm=debugd ' +
-                'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
-                'next_comm=dbus-daemon next_pid=510 next_prio=120',
+          'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+          'next_comm=dbus-daemon next_pid=510 next_prio=120',
       'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
-                'trace_event_clock_sync: parent_ts=0'
+          'trace_event_clock_sync: parent_ts=0'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);

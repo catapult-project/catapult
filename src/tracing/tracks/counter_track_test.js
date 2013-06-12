@@ -45,7 +45,7 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
 
   test('instantiate', function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
-                               'testBasicCounter');
+        'testBasicCounter');
     ctr.seriesNames = ['value1', 'value2'];
     ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
                         tracing.getStringColorId('testBasicCounter.value2')];

@@ -12,8 +12,8 @@ base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
 
   test('tickEventInSharedLibrary', function() {
     var lines = [
-        'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
-        'tick,0x99d8aae4,0xbff02f08,12158,0,0x0,5'];
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'tick,0x99d8aae4,0xbff02f08,12158,0,0x0,5'];
     var m = new tracing.TraceModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8 PC');
@@ -24,9 +24,9 @@ base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
 
   test('tickEventInGeneratedCode', function() {
     var lines = [
-        'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
-        'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
-        'tick,0x5b60ce84,0xbff02f08,12158,0,0x0,5'];
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
+      'tick,0x5b60ce84,0xbff02f08,12158,0,0x0,5'];
     var m = new tracing.TraceModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8 PC');
@@ -37,9 +37,9 @@ base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
 
   test('tickEventInUknownCode', function() {
     var lines = [
-        'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
-        'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
-        'tick,0x4,0xbff02f08,12158,0,0x0,5'];
+      'shared-library,"/usr/lib/libc++.1.dylib",0x99d8aae0,0x99dce729',
+      'code-creation,Stub,2,0x5b60ce80,1259,"StringAddStub"',
+      'tick,0x4,0xbff02f08,12158,0,0x0,5'];
     var m = new tracing.TraceModel(lines.join('\n'));
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8 PC');

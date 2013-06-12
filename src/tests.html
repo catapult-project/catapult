@@ -56,7 +56,7 @@ found in the LICENSE file.
           tests.push(parts[1]);
       });
 
-      if (suite!== undefined) {
+      if (suite !== undefined) {
         base.unittest.Suites(['/src/' + suite + '_test.js'], tests);
       } else {
         getAsync('/json/tests', function(data) {

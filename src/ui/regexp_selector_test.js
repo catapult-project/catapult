@@ -33,7 +33,7 @@ base.unittest.testSuite('ui.regexp_selector', function() {
     assertTrue(!regExpSelector.isOn);
 
     stringsToFilter.forEach(
-      regExpSelector.addFilterableItem.bind(regExpSelector)
+        regExpSelector.addFilterableItem.bind(regExpSelector)
     );
     regExpSelector.isOn = true;
 

@@ -14,17 +14,18 @@ base.unittest.testSuite('base.sorted_array', function() {
   ArrayOfIntervals.prototype = {
     findLowIndex: function(ts) {
       return base.findLowIndexInSortedIntervals(
-        this.array,
-        function(x) { return x.lo; },
-        function(x) { return x.hi - x.lo; },
-        ts);
+          this.array,
+          function(x) { return x.lo; },
+          function(x) { return x.hi - x.lo; },
+          ts);
     }
   };
 
   test('findLow', function() {
     var array = new ArrayOfIntervals([
-        {lo: 10, hi: 15},
-        {lo: 20, hi: 30}]);
+      {lo: 10, hi: 15},
+      {lo: 20, hi: 30}
+    ]);
 
     assertEquals(-1, array.findLowIndex(0));
     assertEquals(0, array.findLowIndex(10));

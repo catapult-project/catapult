@@ -39,14 +39,14 @@ base.unittest.testSuite('tracing.importer.linux_perf.disk_parser', function() {
     var ext4Thread = undefined;
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
-      case 'block:mmcqd/0':
-        blockThread = t;
-        break;
-      case 'ext4:AsyncTask #2':
-        ext4Thread = t;
-        break;
-      default:
-        throw new unittest.TestError('Unexpected thread named ' + t.name);
+        case 'block:mmcqd/0':
+          blockThread = t;
+          break;
+        case 'ext4:AsyncTask #2':
+          ext4Thread = t;
+          break;
+        default:
+          throw new unittest.TestError('Unexpected thread named ' + t.name);
       }
     });
     assertNotUndefined(blockThread);

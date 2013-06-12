@@ -55,17 +55,17 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
   test('cpuIdleImport', function() {
     var lines = [
       '          <idle>-0     [000] 15050.992883: cpu_idle: ' +
-                    'state=1 cpu_id=0',
+          'state=1 cpu_id=0',
       '          <idle>-0     [000] 15050.993027: cpu_idle: ' +
-                    'state=4294967295 cpu_id=0',
+          'state=4294967295 cpu_id=0',
       '          <idle>-0     [001] 15050.993132: cpu_idle: ' +
-                    'state=1 cpu_id=1',
+          'state=1 cpu_id=1',
       '          <idle>-0     [001] 15050.993276: cpu_idle: ' +
-                    'state=4294967295 cpu_id=1',
+          'state=4294967295 cpu_id=1',
       '          <idle>-0     [001] 15050.993279: cpu_idle: ' +
-                    'state=3 cpu_id=1',
+          'state=3 cpu_id=1',
       '          <idle>-0     [001] 15050.993457: cpu_idle: ' +
-                    'state=4294967295 cpu_id=1'
+          'state=4294967295 cpu_id=1'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);

@@ -51,19 +51,19 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('argumentDupeCreatesNonFailingImportError', function() {
     var events = [
       {name: 'a',
-       args: {'x': 1},
-       pid: 1,
-       ts: 520,
-       cat: 'foo',
-       tid: 1,
-       ph: 'B'},
+        args: {'x': 1},
+        pid: 1,
+        ts: 520,
+        cat: 'foo',
+        tid: 1,
+        ph: 'B'},
       {name: 'a',
-       args: {'x': 2},
-       pid: 1,
-       ts: 560,
-       cat: 'foo',
-       tid: 1,
-       ph: 'E'}
+        args: {'x': 2},
+        pid: 1,
+        ts: 560,
+        cat: 'foo',
+        tid: 1,
+        ph: 'E'}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -422,11 +422,11 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('simpleCounter', function() {
     var events = [
       {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
-       ph: 'C'},
+        ph: 'C'},
       {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
-       ph: 'C'},
+        ph: 'C'},
       {name: 'ctr', args: {'value': 0}, pid: 1, ts: 20, cat: 'foo', tid: 1,
-       ph: 'C'}
+        ph: 'C'}
 
     ];
     var m = new tracing.TraceModel(events);
@@ -450,17 +450,17 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('instanceCounter', function() {
     var events = [
       {name: 'ctr', args: {'value': 0}, pid: 1, ts: 0, cat: 'foo', tid: 1,
-       ph: 'C', id: 0},
+        ph: 'C', id: 0},
       {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
-       ph: 'C', id: 0},
+        ph: 'C', id: 0},
       {name: 'ctr', args: {'value': 10}, pid: 1, ts: 10, cat: 'foo', tid: 1,
-       ph: 'C', id: 1},
+        ph: 'C', id: 1},
       {name: 'ctr', args: {'value': 20}, pid: 1, ts: 15, cat: 'foo', tid: 1,
-       ph: 'C', id: 1},
+        ph: 'C', id: 1},
       {name: 'ctr', args: {'value': 30}, pid: 1, ts: 18, cat: 'foo', tid: 1,
-       ph: 'C', id: 1},
+        ph: 'C', id: 1},
       {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
-       ph: 'C', id: 2}
+        ph: 'C', id: 2}
     ];
     var m = new tracing.TraceModel(events);
     var p = m.processes[1];
@@ -519,12 +519,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
   test('multiCounter', function() {
     var events = [
-      {name: 'ctr', args: {'value1': 0, 'value2': 7}, pid: 1, ts: 0, cat: 'foo',
-       tid: 1, ph: 'C'},
-      {name: 'ctr', args: {'value1': 10, 'value2': 4}, pid: 1, ts: 10, cat: 'foo',
-       tid: 1, ph: 'C'},
-      {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo',
-       tid: 1, ph: 'C'}
+      {name: 'ctr', args: {'value1': 0, 'value2': 7}, pid: 1, ts: 0, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
+      {name: 'ctr', args: {'value1': 10, 'value2': 4}, pid: 1, ts: 10, cat: 'foo', tid: 1, ph: 'C'}, // @suppress longLineCheck
+      {name: 'ctr', args: {'value1': 0, 'value2': 1 }, pid: 1, ts: 20, cat: 'foo', tid: 1, ph: 'C'} // @suppress longLineCheck
     ];
     var m = new tracing.TraceModel(events);
     var p = m.processes[1];
@@ -600,7 +597,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
       '[',
       '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},', // @suppress longLineCheck
       '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},' // @suppress longLineCheck
-      ];
+    ];
     var text = lines.join('\n');
 
     var m = new tracing.TraceModel(text);
@@ -628,7 +625,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
       '[',
       '{"name": "a", "args": {}, "pid": 52, "ts": 524, "cat": "foo", "tid": 53, "ph": "B"},', // @suppress longLineCheck
       '{"name": "a", "args": {}, "pid": 52, "ts": 560, "cat": "foo", "tid": 53, "ph": "E"},' // @suppress longLineCheck
-      ];
+    ];
     var text = lines.join('\r\n');
 
     var m = new tracing.TraceModel(text);
@@ -642,7 +639,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
       '{"cat":"a","pid":9,"tid":8,"ts":194,"ph":"E","name":"I","args":{}},',
       '{"cat":"b","pid":9,"tid":8,"ts":194,"ph":"B","name":"I","args":{}}',
       ']'
-      ];
+    ];
     var text = lines.join('\n');
     var m = new tracing.TraceModel(text);
     assertEquals(1, m.numProcesses);
@@ -653,9 +650,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'cat', tid: 53,
-         ph: 'F', id: 72},
+        ph: 'F', id: 72},
       {name: 'a', pid: 52, ts: 524, cat: 'cat', tid: 53,
-         ph: 'S', id: 72, args: {'foo': 'bar'}}
+        ph: 'S', id: 72, args: {'foo': 'bar'}}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -723,9 +720,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'c', args: {y: 2}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-         ph: 'F', id: 72},
+        ph: 'F', id: 72},
       {name: 'c', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
-         ph: 'S', id: 72}
+        ph: 'S', id: 72}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -747,9 +744,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'd', args: {z: 4}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-         ph: 'F', id: 72},
+        ph: 'F', id: 72},
       {name: 'd', args: {z: 3}, pid: 52, ts: 524, cat: 'foo', tid: 53,
-         ph: 'S', id: 72}
+        ph: 'S', id: 72}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -769,12 +766,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('asyncStepsInOneThread', function() {
     var events = [
       // Time is intentionally out of order.
-      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-         ph: 'F', id: 72},
-      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53,
-         ph: 'T', id: 72},
-      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
-         ph: 'S', id: 72}
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'F', id: 72}, // @suppress longLineCheck
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo', tid: 53, ph: 'T', id: 72}, // @suppress longLineCheck
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'S', id: 72} // @suppress longLineCheck
     ];
 
     var m = new tracing.TraceModel(events);
@@ -808,9 +802,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-         ph: 'F', id: 72},
+        ph: 'F', id: 72},
       {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
-         tid: 53, ph: 'T', id: 72}
+        tid: 53, ph: 'T', id: 72}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -822,9 +816,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       // Time is intentionally out of order.
       {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
-         tid: 53, ph: 'T', id: 72},
+        tid: 53, ph: 'T', id: 72},
       {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-         ph: 'S', id: 72}
+        ph: 'S', id: 72}
     ];
 
     var m = new tracing.TraceModel(events);
@@ -904,20 +898,20 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var events = [
       {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
       {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
-       args: { snapshot: [
-         { id: 'subObject/0x1',
-           foo: 1
-         }
-       ]}},
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            foo: 1
+          }
+        ]}},
       {ts: 20000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
-       args: { snapshot: [
-         { id: 'subObject/0x1',
-           foo: 2
-         },
-         { id: 'subObject/0x2',
-           foo: 1
-         }
-       ]}}
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            foo: 2
+          },
+          { id: 'subObject/0x2',
+            foo: 1
+          }
+        ]}}
     ];
 
     var m = new tracing.TraceModel();
@@ -925,7 +919,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var p1 = m.processes[1];
 
     var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
-    var subObjectInstances = p1.objects.getAllInstancesByTypeName()['subObject'];
+    var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
+        'subObject'];
 
     assertEquals(2, subObjectInstances.length);
     var subObject1 = p1.objects.getObjectInstanceAt('0x1', 15);
@@ -954,10 +949,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
 
       // A slice that references the object.
-      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
-        my_object: {id_ref: '0x1000'}
-      }},
-      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
+      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {my_object: {id_ref: '0x1000'}}}, // @suppress longLineCheck
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
     var m = new tracing.TraceModel();
@@ -983,10 +976,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
 
       // A slice that references the object.
-      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
-        my_object: {id_ref: '0x1001'}
-      }},
-      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
+      {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {my_object: {id_ref: '0x1001'}}}, // @suppress longLineCheck
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
     var m = new tracing.TraceModel();
@@ -1015,9 +1006,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
       // A slice that references the object.
       {ts: 17000, pid: 1, tid: 1, ph: 'B', cat: 'c', name: 'taskSlice', args: {
-        my_object: {id_ref: '0x1000'}
-      }},
-      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}}
+        my_object: {id_ref: '0x1000'}}
+      },
+      {ts: 17500, pid: 1, tid: 1, ph: 'E', cat: 'c', name: 'taskSlice', args: {}} // @suppress longLineCheck
     ];
 
     // The A type family exists to mutate the args list provided to
@@ -1043,11 +1034,11 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     // Verify that the events array wasn't modified.
     assertObjectEquals(
-      events[1].args,
-      {snapshot: {foo: 15}});
+        events[1].args,
+        {snapshot: {foo: 15}});
     assertObjectEquals(
-      events[3].args,
-      {my_object: {id_ref: '0x1000'}});
+        events[3].args,
+        {my_object: {id_ref: '0x1000'}});
   });
 
   // TODO(nduca): one slice, two threads

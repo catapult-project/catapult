@@ -14,9 +14,9 @@ base.unittest.testSuite('base.settings', function() {
                  'Expected Settings.' + key + ' to be ' + expectedValue);
   }
 
-  // Old settings versions used to stringify objects instead of putting them into
-  // JSON. This test makes sure that these old settings yield the default value
-  // instead of strings.
+  // Old settings versions used to stringify objects instead of putting them
+  // into JSON. This test makes sure that these old settings yield the default
+  // value instead of strings.
   test('oldStyleSettingYieldsDefaultValue', function() {
     var storage = base.Settings.getAlternativeStorageInstance();
     storage.setItem(base.Settings.namespace_('key'), 'hello world');
@@ -105,8 +105,9 @@ base.unittest.testSuite('base.settings', function() {
     settings.set('key_C', 'baz', 'prefix2');
     assertArrayEquals(['key_a', 'key_b', 'key_c'], settings.keys('prefix1'));
     assertArrayEquals(['key_C', 'key_a', 'key_b'], settings.keys('prefix2'));
-    assertArrayEquals(['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
-                       'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
-                      settings.keys());
+    assertArrayEquals(
+        ['prefix1.key_a', 'prefix1.key_b', 'prefix1.key_c',
+         'prefix2.key_C', 'prefix2.key_a', 'prefix2.key_b'],
+        settings.keys());
   });
 });

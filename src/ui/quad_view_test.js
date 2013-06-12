@@ -37,24 +37,24 @@ base.unittest.testSuite('ui.quad_view', function() {
     quadView.deviceViewportSizeForFrame = {widht: 50, height: 30};
 
     quadView.addEventListener(
-      'selectionChanged',
-      function(e) {
-        quads.forEach(function(q) {
-          q.upperBorderColor = undefined;
-        });
+        'selectionChanged',
+        function(e) {
+          quads.forEach(function(q) {
+            q.upperBorderColor = undefined;
+          });
 
-        e.selectedQuadIndices.forEach(function(i) {
-          quads[i].upperBorderColor = 'rgba(255,255,0,1)';
-        });
-        quadView.quads = quads;
-      }.bind(this));
+          e.selectedQuadIndices.forEach(function(i) {
+            quads[i].upperBorderColor = 'rgba(255,255,0,1)';
+          });
+          quadView.quads = quads;
+        }.bind(this));
 
     this.addHTMLOutput(quadView);
   });
 
   test('instantiate_backgroundTexture', function() {
     var quadView = new QuadView();
-    var quads = [ Quad.FromXYWH(0, 0, 10, 10) ];
+    var quads = [Quad.FromXYWH(0, 0, 10, 10)];
     var data = new Uint8Array(2 * 2 * 4);
     data[0] = 0;
     data[1] = 0;
@@ -90,10 +90,10 @@ base.unittest.testSuite('ui.quad_view', function() {
 
   test('instantiate_warpedTexturedQuad', function() {
     var quadView = new QuadView();
-    var quads = [ base.Quad.From8Array([0, 0,
-                                        10, 0,
-                                        10, 5,
-                                        0, 10]) ];
+    var quads = [base.Quad.From8Array([0, 0,
+                                       10, 0,
+                                       10, 5,
+                                       0, 10])];
     var data = new Uint8Array(2 * 2 * 4);
     data[0] = 0;
     data[1] = 0;

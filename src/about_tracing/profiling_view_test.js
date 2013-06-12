@@ -19,18 +19,18 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
   var systemTraceTestData = [
     'systrace.sh-8170  [000] 0.013: sched_switch: ' +
-              'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
-              'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
-              'next_prio=120',
+        'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+        'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+        'next_prio=120',
     ' kworker/1:0-7873  [000] 0.036: sched_switch: ' +
-              'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
-              'prev_state=S ==> next_comm=debugd next_pid=4404 ' +
-              'next_prio=120',
+        'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+        'prev_state=S ==> next_comm=debugd next_pid=4404 ' +
+        'next_prio=120',
     '     debugd-4404  [000] 0.070: sched_switch: prev_comm=debugd ' +
-              'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
-              'next_comm=dbus-daemon next_pid=510 next_prio=120',
+        'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+        'next_comm=dbus-daemon next_pid=510 next_prio=120',
     'systrace.sh-8182  [000] 0.000: tracing_mark_write: ' +
-              'trace_event_clock_sync: parent_ts=0.0'
+        'trace_event_clock_sync: parent_ts=0.0'
   ].join('\n');
 
   // This code emulates Chrome's responses to sendFn enough that the real
@@ -133,7 +133,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       if (!this.wasBeginTracingCalled)
         return [];
       if (!this.wasBeginTracingCalledWithSystemTracingEnabled)
-        return []
+        return [];
       return systemTraceTestData;
     },
 

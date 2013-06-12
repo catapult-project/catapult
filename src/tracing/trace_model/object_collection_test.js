@@ -10,7 +10,7 @@ base.require('tracing.trace_model.object_collection');
 base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
     tracing.trace_model.ObjectInstance.call(
-      this, parent, id, category, name, creationTs);
+        this, parent, id, category, name, creationTs);
   };
 
   TestObjectInstance.prototype = {
@@ -24,13 +24,13 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
     try {
       var collection = new tracing.trace_model.ObjectCollection({ });
       collection.idWasCreated(
-        '0x1000', 'cc', 'Frame', 10);
+          '0x1000', 'cc', 'Frame', 10);
       collection.idWasDeleted(
-        '0x1000', 'cc', 'Frame', 15);
+          '0x1000', 'cc', 'Frame', 15);
       collection.idWasCreated(
-        '0x1000', 'skia', 'TestObject', 20);
+          '0x1000', 'skia', 'TestObject', 20);
       collection.idWasDeleted(
-        '0x1000', 'skia', 'TestObject', 25);
+          '0x1000', 'skia', 'TestObject', 25);
 
       var testFrame = collection.getObjectInstanceAt('0x1000', 10);
       assertTrue(testFrame instanceof tracing.trace_model.ObjectInstance);
@@ -47,11 +47,11 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   test('twoSnapshots', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
-      '0x1000', 'cat', 'Frame', 10);
+        '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
-      '0x1000', 'cat', 'Frame', 10, {foo: 1});
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
     collection.addSnapshot(
-      '0x1000', 'cat', 'Frame', 20, {foo: 2});
+        '0x1000', 'cat', 'Frame', 20, {foo: 2});
 
     collection.updateBounds();
     assertEquals(10, collection.bounds.min);
@@ -78,13 +78,13 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   test('twoObjectsSharingOneID', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
-      '0x1000', 'cc', 'Frame', 10);
+        '0x1000', 'cc', 'Frame', 10);
     collection.idWasDeleted(
-      '0x1000', 'cc', 'Frame', 15);
+        '0x1000', 'cc', 'Frame', 15);
     collection.idWasCreated(
-      '0x1000', 'skia', 'Picture', 20);
+        '0x1000', 'skia', 'Picture', 20);
     collection.idWasDeleted(
-      '0x1000', 'skia', 'Picture', 25);
+        '0x1000', 'skia', 'Picture', 25);
 
     var frame = collection.getObjectInstanceAt('0x1000', 10);
     assertEquals('cc', frame.category);
@@ -110,11 +110,11 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   test('createSnapDelete', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
-      '0x1000', 'cat', 'Frame', 10);
+        '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
-      '0x1000', 'cat', 'Frame', 10, {foo: 1});
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
     collection.idWasDeleted(
-      '0x1000', 'cat', 'Frame', 15);
+        '0x1000', 'cat', 'Frame', 15);
 
     collection.updateBounds();
     assertEquals(10, collection.bounds.min);
@@ -129,9 +129,9 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   test('boundsOnUndeletedObject', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
-      '0x1000', 'cat', 'Frame', 10);
+        '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
-      '0x1000', 'cat', 'Frame', 15, {foo: 1});
+        '0x1000', 'cat', 'Frame', 15, {foo: 1});
 
     collection.updateBounds();
     assertEquals(collection.bounds.min, 10);
@@ -141,9 +141,9 @@ base.unittest.testSuite('tracing.trace_model.object_collection', function() {
   test('autoDelete', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(
-      '0x1000', 'cat', 'Frame', 10);
+        '0x1000', 'cat', 'Frame', 10);
     collection.addSnapshot(
-      '0x1000', 'cat', 'Frame', 10, {foo: 1});
+        '0x1000', 'cat', 'Frame', 10, {foo: 1});
     collection.autoDeleteObjects(15);
 
     var s10 = collection.getSnapshotAt('0x1000', 10);

@@ -93,8 +93,8 @@ base.unittest.testSuite('tracing.timeline_view', function() {
 
     var selection = new tracing.Selection();
     view.timeline.addAllObjectsMatchingFilterToSelection({
-            matchSlice: function() { return true; }
-        }, selection);
+      matchSlice: function() { return true; }
+    }, selection);
     view.timeline.selection = selection;
 
     return view;
@@ -161,7 +161,7 @@ base.unittest.testSuite('tracing.timeline_view', function() {
     assertNull(showHiddenTracks.getAttribute('disabled'));
     showHiddenTracks.click();
 
-     // The track is no longer hidden
+    // The track is no longer hidden
     styleDisplay = lastTrackButton.parentElement.style.display;
     assertEquals(-1, styleDisplay.indexOf('none'));
 

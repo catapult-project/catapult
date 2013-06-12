@@ -27,9 +27,11 @@ base.exportTo('base.unittest', function() {
     this.tests_ = tests || [];
     this.moduleCount_ = 0;
 
-    this.stats_ = {tests: 0,
-                   failures: 0,
-                   duration: 0.0};
+    this.stats_ = {
+      tests: 0,
+      failures: 0,
+      duration: 0.0
+    };
   }
 
   TestRunner.prototype = {
@@ -204,8 +206,10 @@ base.exportTo('base.unittest', function() {
           this.teardownFn_.bind(test).call();
 
         if (test.result === TestResults.FAILED) {
-          this.failures_.push({error: test.failure,
-                               test: test.name});
+          this.failures_.push({
+            error: test.failure,
+            test: test.name
+          });
           this.results_ = TestResults.FAILED;
         }
       }, this);
@@ -255,7 +259,7 @@ base.exportTo('base.unittest', function() {
 
         var preEl = document.createElement('pre');
         preEl.className = 'failure';
-        preEl.innerText = "Test: " + fail.test + '\n' + fail.error.stack;
+        preEl.innerText = 'Test: ' + fail.test + '\n' + fail.error.stack;
         parent.appendChild(preEl);
       }
 

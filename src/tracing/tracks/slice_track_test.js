@@ -70,11 +70,11 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       track.SHOULD_ELIDE_TEXT = dict.elide;
       track.heading = 'Visual: ' + dict.trackName;
       track.slices = [
-          // title, colorId, start, args, opt_duration
-          new Slice('', 'a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
-          new Slice('', bigTitle, 1, 2.1, {}, 4.8),
-          new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
-          new Slice('', 'd', 2, 7.6, {}, 1.0)
+        // title, colorId, start, args, opt_duration
+        new Slice('', 'a ' + tooLongTitle + bigTitle, 0, 1, {}, 1),
+        new Slice('', bigTitle, 1, 2.1, {}, 4.8),
+        new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
+        new Slice('', 'd', 2, 7.6, {}, 1.0)
       ];
       track.viewport = new Viewport(viewport);
       track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
@@ -157,9 +157,9 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     track.viewport = new Viewport(testEl);
     track.heading = 'testElide';
     track.slices = [
-        // title, colorId, start, args, opt_duration
-        new Slice('', bigtitle, 0, 1, {}, 1),
-        new Slice('', smalltitle, 1, 2, {}, 1)
+      // title, colorId, start, args, opt_duration
+      new Slice('', bigtitle, 0, 1, {}, 1),
+      new Slice('', smalltitle, 1, 2, {}, 1)
     ];
     track.viewport.xSetWorldBounds(0, 3.3, track.clientWidth);
 
@@ -175,7 +175,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var elidedWhenSmallEnough = false;
     for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
       stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
-        track.labelWidth(smalltitle), sliceLength);
+          track.labelWidth(smalltitle), sliceLength);
       if (stringWidthPair.string.length < smalltitle.length) {
         elidedWhenSmallEnough = true;
         break;
@@ -225,14 +225,14 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new Selection();
     ret = track.addItemNearToProvidedHitToSelection(
-       selRight[0], 1, selRightOfRight);
+        selRight[0], 1, selRightOfRight);
     assertTrue(ret);
     assertEquals(track.slices[3], selRightOfRight[0].slice);
 
     // Select to the right of the rightmost slice.
     var selNone = new Selection();
     ret = track.addItemNearToProvidedHitToSelection(
-       selRightOfRight[0], 1, selNone);
+        selRightOfRight[0], 1, selNone);
     assertFalse(ret);
     assertEquals(0, selNone.length);
 

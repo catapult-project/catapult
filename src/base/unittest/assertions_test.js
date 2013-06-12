@@ -61,7 +61,7 @@ base.unittest.testSuite('base.unittest.assertions', function() {
   test('assertThrows', function() {
     rawAssertThrows(function() {
       assertThrows(function() {
-    });
+      });
     });
     rawAssertNotThrows(function() {
       assertThrows(function() {

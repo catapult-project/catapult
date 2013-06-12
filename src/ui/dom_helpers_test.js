@@ -36,17 +36,17 @@ base.unittest.testSuite('ui.dom_helpers', function() {
       scale: 314
     };
     var sel = ui.createSelector(
-      target, 'scale',
-      'myScale', 0.375,
-      [{label: '6.25%', value: 0.0625},
-       {label: '12.5%', value: 0.125},
-       {label: '25%', value: 0.25},
-       {label: '37.5%', value: 0.375},
-       {label: '50%', value: 0.5},
-       {label: '75%', value: 0.75},
-       {label: '100%', value: 1},
-       {label: '200%', value: 2}
-      ]);
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
     assertEquals(0.25, target.scale);
     assertEquals(2, sel.selectedIndex);
   });
@@ -56,17 +56,17 @@ base.unittest.testSuite('ui.dom_helpers', function() {
       scale: 314
     };
     var sel = ui.createSelector(
-      target, 'scale',
-      'myScale', 0.375,
-      [{label: '6.25%', value: 0.0625},
-       {label: '12.5%', value: 0.125},
-       {label: '25%', value: 0.25},
-       {label: '37.5%', value: 0.375},
-       {label: '50%', value: 0.5},
-       {label: '75%', value: 0.75},
-       {label: '100%', value: 1},
-       {label: '200%', value: 2}
-      ]);
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
     assertEquals(0.375, target.scale);
     assertEquals(3, sel.selectedIndex);
   });
@@ -76,17 +76,17 @@ base.unittest.testSuite('ui.dom_helpers', function() {
       scale: 314
     };
     var sel = ui.createSelector(
-      target, 'scale',
-      'myScale', 0.375,
-      [{label: '6.25%', value: 0.0625},
-       {label: '12.5%', value: 0.125},
-       {label: '25%', value: 0.25},
-       {label: '37.5%', value: 0.375},
-       {label: '50%', value: 0.5},
-       {label: '75%', value: 0.75},
-       {label: '100%', value: 1},
-       {label: '200%', value: 2}
-      ]);
+        target, 'scale',
+        'myScale', 0.375,
+        [{label: '6.25%', value: 0.0625},
+         {label: '12.5%', value: 0.125},
+         {label: '25%', value: 0.25},
+         {label: '37.5%', value: 0.375},
+         {label: '50%', value: 0.5},
+         {label: '75%', value: 0.75},
+         {label: '100%', value: 1},
+         {label: '200%', value: 2}
+        ]);
     assertEquals(0.375, sel.selectedValue);
     sel.selectedValue = 0.75;
     assertEquals(0.75, target.scale);

@@ -19,7 +19,7 @@ base.unittest.testSuite('tracing.trace_model.object_snapshot', function() {
     };
 
     var instance = new tracing.trace_model.ObjectInstance(
-      {}, '0x1000', 'cat', 'MySnapshot', 10);
+        {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
       tracing.trace_model.ObjectSnapshot.register('MySnapshot', MySnapshot);
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});

@@ -177,9 +177,9 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
           'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
     ];
     var traceNoThread =
-      new tracing.TraceModel(linesNoThread.join('\n'), false);
+        new tracing.TraceModel(linesNoThread.join('\n'), false);
     var traceWithThread =
-      new tracing.TraceModel(linesWithThread.join('\n'), false);
+        new tracing.TraceModel(linesWithThread.join('\n'), false);
     assertEquals(0, traceNoThread.importErrors.length);
     assertEquals(0, traceWithThread.importErrors.length);
 

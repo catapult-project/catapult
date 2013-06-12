@@ -55,20 +55,20 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     // Hit outside range
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-      8, 8.1, 0.1, selection);
+        8, 8.1, 0.1, selection);
     assertEquals(0, selection.length);
 
     // Hit the first snapshot, via pixel-nearness.
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-      9.98, 9.99, 0.1, selection);
+        9.98, 9.99, 0.1, selection);
     assertEquals(1, selection.length);
     assertEquals(1, selection.getNumObjectSnapshotHits());
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
-      20, 20.1, 0.1, selection);
+        20, 20.1, 0.1, selection);
     assertEquals(1, selection.length);
     assertEquals(1, selection.getNumObjectInstanceHits());
   });

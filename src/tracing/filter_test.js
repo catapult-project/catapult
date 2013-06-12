@@ -6,7 +6,7 @@ base.require('base.unittest');
 base.require('tracing.test_utils');
 base.require('tracing.filter');
 
-'use strict'
+'use strict';
 
 base.unittest.testSuite('tracing.filter', function() {
   var TitleFilter = tracing.TitleFilter;

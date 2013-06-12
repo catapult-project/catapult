@@ -8,7 +8,7 @@ base.require('tracing.importer.timeline_stream_importer');
 
 'use strict';
 
-base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() {
+base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() { // @suppress longLineCheck
   var FakeWebSocket = function() {
     base.EventTarget.call(this);
     this.sendHook_ = undefined;
@@ -93,16 +93,16 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
     assertTrue(importer.connected);
 
     socket.pushMessage({
-        cmd: 'ptd',
-        pid: 1,
-        td: { n: 3,
-              s: [
-                {s: 10, e: 11, l: 'alligator'},
-                {s: 14, e: 15, l: 'bandicoot'},
-                {s: 17, e: 18, l: 'cheetah'}
-              ]
-            }
-        });
+      cmd: 'ptd',
+      pid: 1,
+      td: { n: 3,
+        s: [
+          {s: 10, e: 11, l: 'alligator'},
+          {s: 14, e: 15, l: 'bandicoot'},
+          {s: 17, e: 18, l: 'cheetah'}
+        ]
+      }
+    });
     socket.dispatchAllPendingMessages();
 
     assertNotUndefined(model.processes[1]);
