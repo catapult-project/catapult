@@ -146,8 +146,8 @@
   font-size: 14px;
   height: 19px;
   margin: 1px;
+  min-width: 23px;
   text-align: center;
-  width: 23px;
 }
 
 .button:hover {
