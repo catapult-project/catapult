@@ -328,6 +328,8 @@ base.exportTo('tracing.tracks', function() {
         var newtitle = title;
         var elided = false;
         while (track.labelWidthWorld(newtitle, pixWidth) > sliceDuration) {
+          if (newtitle.length * 0.75 < 1)
+            break;
           newtitle = newtitle.substring(0, newtitle.length * 0.75);
           elided = true;
         }

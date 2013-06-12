@@ -6,35 +6,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-<title>All Tracing Tests</title>
-<script src="/src/base.js"></script>
-<script>
-  base.require('base.unittest');
-</script>
-<link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
-</head>
-<body id="test_harness">
-  <h1>Trace-Viewer Tests</h3>
-
-  <div id="stats">
-    <br />
-  </div>
-
-  <div id='individual_tests'>
-    <div class="unittest">
-      View a trace file:
-      <a href="../examples/trace_viewer.html"
-          class="unittest-error-link">Trace viewer</a>
-    </div>
-    <div class="unittest">
-      Record Selection Interactive Tests:
-      <a href="tracing/record_selection_dialog_interactive_tests.html"
-          class="unittest-error-link">Run manually</a>
-    </div>
-  </div>
-
+  <title>All Tracing Tests</title>
+  <script src="/src/base.js"></script>
   <script>
-
+    base.require('base.unittest');
+    base.require('base.settings');
+  </script>
+  <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
+  <script>
     function getAsync(url, cb) {
       var req = new XMLHttpRequest();
       req.open('GET', url, true);
@@ -52,16 +31,79 @@ found in the LICENSE file.
       req.send(null);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    function launchTests() {
+      var format = document.getElementById('short-format');
+      format.checked = localStorage.getItem('testing::short-format') === 'true';
+      format.addEventListener('click', function(ev) {
+        localStorage.setItem('testing::short-format', ev.target.checked);
+        base.unittest.showCondensed(ev.target.checked);
+      });
+      base.unittest.showCondensed(format.checked);
+
       var stats = document.getElementById('stats');
 
-      var runner = new base.unittest.AsyncTestRunner();
-      runner.statsBlock = stats;
-      document.body.appendChild(runner);
-      getAsync('/json/tests', function(data) {
-         runner.enqueueTests(JSON.parse(data));
+      var suite = undefined;
+      var tests = [];
+
+      // Note, this is nieve, but works for our purposes. Would explode on
+      // encoded &'s.
+      var queryParams = window.location.search.substring(1).split('&');
+      queryParams.forEach(function(param) {
+        var parts = param.split('=');
+        if (parts[0] === 'suite')
+          suite = parts[1];
+        else if (parts[0] === 'test')
+          tests.push(parts[1]);
       });
+
+      if (suite!== undefined) {
+        base.unittest.Suites(['/src/' + suite + '_test.js'], tests);
+      } else {
+        getAsync('/json/tests', function(data) {
+          base.unittest.Suites(JSON.parse(data), tests);
+        });
+      }
+    }
+
+    function launchTestsIfAvailable() {
+      if (base.unittest === undefined ||
+          base.unittest.showCondensed === undefined) {
+        window.setTimeout(launchTestsIfAvailable, 100);
+        return;
+      }
+
+      launchTests();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      launchTestsIfAvailable();
     });
+
   </script>
+</head>
+
+<body id="test-harness">
+  <h1>Trace-Viewer Tests</h3>
+
+  <div id="stats">
+    <br />
+  </div>
+
+  <div id='individual-tests'>
+    <div class="unittest">
+      View a trace file:
+      <a href="/examples/trace_viewer.html"
+          class="unittest-error-link">Trace viewer</a>
+    </div>
+    <div class="unittest">
+      Record Selection Interactive Tests:
+      <a href="/src/tracing/record_selection_dialog_interactive_tests.html"
+          class="unittest-error-link">Run manually</a>
+    </div>
+    short format <input type='checkbox' id='short-format' />
+  </div>
+
+  <div id='test-results'>
+  </div>
 </body>
 </html>

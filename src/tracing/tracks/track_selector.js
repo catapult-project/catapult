@@ -40,11 +40,12 @@ base.exportTo('tracing.tracks', function() {
     loadModel_: function() {
       var settings = new base.Settings();
       var modelJSON = settings.get('TrackSelector');
-      if (modelJSON) {
+      if (modelJSON)
         this.trackSelectorModel = this.createModelFromJSON_(modelJSON);
-      }
+
       if (this.trackSelectorModel)
         return;
+
       // The stored model did not work for us.
       this.trackSelectorModel = TrackSelector.defaultModel;
       this.saveModel_();
@@ -93,36 +94,30 @@ base.exportTo('tracing.tracks', function() {
     connect: function() {
       this.timelineView_ = this.findAncestorByClass_('timeline-view');
       if (!this.timelineView_)
-        return; // Our parent is not in the DOM, maybe test-code.
+        return;  // Our parent is not in the DOM, maybe test-code.
 
       this.showHiddenTracksButton_.addEventListener(
-          'click',
-          this.onShowHiddenTracks_.bind(this)
+          'click', this.onShowHiddenTracks_.bind(this)
       );
 
       this.timelineView_.addEventListener(
-          'isOnChange',
-          this.onTrackButtonIsOnChange_.bind(this)
+          'isOnChange', this.onTrackButtonIsOnChange_.bind(this)
       );
 
       this.timelineView_.addEventListener(
-          'modelChange',
-          this.onTrackModelChange_.bind(this)
+          'modelChange', this.onTrackModelChange_.bind(this)
       );
 
       this.addEventListener(
-          'isOnChange',
-          this.onRegExpSelected_.bind(this)
+          'isOnChange', this.onRegExpSelected_.bind(this)
       );
 
       this.addEventListener(
-          'regexpChange',
-          this.updateModelFromElements_.bind(this)
+          'regexpChange', this.updateModelFromElements_.bind(this)
       );
 
       this.addEventListener(
-          'trackSelectorModelChange',
-          this.onSelectorsModelChange_.bind(this)
+          'trackSelectorModelChange', this.onSelectorsModelChange_.bind(this)
       );
     },
 
@@ -162,7 +157,6 @@ base.exportTo('tracing.tracks', function() {
       showHiddenTracksButton_.textContent = 'Show Hidden Tracks';
       showHiddenTracksButton_.disabled = true;
       showHiddenTracksButton_.hiddenTracks_ = 0;
-
       return showHiddenTracksButton_;
     },
 
@@ -266,11 +260,7 @@ base.exportTo('tracing.tracks', function() {
         return;
 
       // track-button isOn controls track visibility
-      if (event.newValue)
-        this.showHiddenTracksButton_.hiddenTracks_--;
-      else
-        this.showHiddenTracksButton_.hiddenTracks_++;
-
+      this.showHiddenTracksButton_.hiddenTracks_ += (event.newValue ? -1 : 1);
       this.showHiddenTracksButton_.disabled =
           (this.showHiddenTracksButton_.hiddenTracks_ === 0);
     },

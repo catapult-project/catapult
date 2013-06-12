@@ -188,8 +188,11 @@ class CSSChecker(object):
     ]
 
     results = []
-    affected_files = self.input_api.AffectedFiles(include_deletes=False,
-                                                  file_filter=self.file_filter)
+    try: # Workaround AffectedFiles exploding on deleted files.
+      affected_files = self.input_api.AffectedFiles(include_deletes=False,
+                                                    file_filter=self.file_filter)
+    except:
+      affected_files = []
     files = []
     for f in affected_files:
       # Remove all /*comments*/, @at-keywords, and grit <if|include> tags; we're

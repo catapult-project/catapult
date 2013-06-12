@@ -1,79 +1,68 @@
-/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
 
-unittest-test-runner {
-  display: block;
-}
-test-case {
-  display: block;
-  font-size: 90%;
-}
-
-unittest-test-runner > title {
-  border-bottom: 1px solid black;
-  display: block;
-  font-family: sans-serif;
-  margin: auto;
-  width: 100%;
-}
-
-.unittest-test-case-title-test-name {
-  text-decoration: none;
-}
-.unittest-test-case-title-test-status:before {
-  content: ': ';
-}
-
-test-case > title {
-  display: block;
-  font-family: monospace;
-}
-
-test-case-error,
-test-case-output {
-  display: block;
-  margin-bottom: 16px;
-  margin-left: 16px;
-}
-test-case-stack {
-  display: block;
-  font-family: monospace;
-  overflow-x: auto;
-  white-space: pre;
-}
-
-.unittest-green {
-  color: darkgreen;
-}
-
-.unittest-yellow {
-  color: orange;
-}
-
-.unittest-red {
-  color: darkRed;
-  font-weight: bold;
-}
-
-#test_harness h1 {
+#test-harness h1 {
   margin-bottom: 0;
   margin-top: 0;
+
+  counter-reset: suite-count;
 }
 
 #stats {
   margin-bottom: 10px;
 }
 
-#pass_count {
+#individual-tests {
+  margin-bottom: 20px;
+}
+
+.test-result:nth-child(2n),
+.individual-result:nth-child(2n) {
+  background-color: #eee;
+}
+
+.individual-result {
+  padding: 5px;
+}
+
+.individual-result pre {
+  overflow-y: auto;
+}
+
+.test-result {
+  padding: 5px;
+  counter-increment: suite-count;
+}
+
+.test-result:before {
+  content: counter(suite-count) ' - ';
+  display: inline-block;
+  margin-right: 5px;
+  text-align: right;
+  width: 2em;
+}
+
+.test-result span {
+  padding-left: 10px;
+}
+
+.pending {
+  color: orange;
+}
+
+.passed {
   color: darkgreen;
 }
 
-#fail_count {
-  color: darkRed;
+.failed {
+  color: darkred;
+  font-weight: bold;
 }
 
-#individual_tests {
-  margin-bottom: 20px;
+.failure {
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 5px;
 }

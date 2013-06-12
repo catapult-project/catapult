@@ -13,7 +13,8 @@ base.exportTo('ui', function() {
   function QuadViewViewport(bbox,
                             opt_scale,
                             opt_deviceViewport,
-                            opt_padding, opt_devicePixelRatio) {
+                            opt_padding,
+                            opt_devicePixelRatio) {
     base.EventTarget.call(this);
     if (bbox.isEmpty)
       throw new Error('Cannot initialize a viewport with an empty bbox');

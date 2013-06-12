@@ -24,13 +24,18 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
     SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
 
+  def send_response(self, code, message=None):
+     SimpleHTTPServer.SimpleHTTPRequestHandler.send_response(self, code, message)
+     if code == 200:
+       self.send_header('Cache-Control', 'no-cache')
+
   def do_GET_json_tests(self):
     def is_test(x):
       basename = os.path.basename(x)
       if basename.startswith('.'):
         return False
 
-      if basename.endswith('_test.html'):
+      if basename.endswith('_test.js'):
         return True
       return False
 
@@ -48,15 +53,9 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     self.send_response(200)
     self.send_header('Content-Type', 'application/json')
-    self.send_header('Cache-Control', 'no-cache')
     self.send_header('Content-Length', len(tests_as_json))
     self.end_headers()
     self.wfile.write(tests_as_json)
-
-  def send_response(self, code, message=None):
-    SimpleHTTPServer.SimpleHTTPRequestHandler.send_response(self, code, message)
-    if code == 200:
-      self.send_header('Cache-Control', 'no-cache')
 
   def do_GET_example_files(self):
     data_files = []
@@ -69,7 +68,6 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     self.send_response(200)
     self.send_header('Content-Type', 'application/json')
-    self.send_header('Cache-Control', 'no-cache')
     self.send_header('Content-Length', len(files_as_json))
     self.end_headers()
     self.wfile.write(files_as_json)
@@ -83,7 +81,6 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     self.send_response(200)
     self.send_header('Content-Type', 'application/javascript')
-    self.send_header('Cache-Control', 'no-cache')
     self.send_header('Content-Length', len(self.server.deps))
     self.end_headers()
     self.wfile.write(self.server.deps)
@@ -107,6 +104,7 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     if self.path == '/favicon.ico':
       return
     self.log_message("While processing %s: ", self.path)
+    SimpleHTTPServer.SimpleHTTPRequestHandler.log_error(self, format, *args)
 
   def log_request(self, code='-', size='-'):
     # Dont spam the console unless it is important.

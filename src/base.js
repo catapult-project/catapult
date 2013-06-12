@@ -129,19 +129,32 @@ this.base = (function() {
       // By construction, the deps should call addModuleDependency.
       eval(req.responseText);
     } catch (e) {
-      throw new Error('When loading deps, got ' + e.stack ? e.stack : e);
+      throw new Error('When loading deps, got ' +
+                      e.stack ? e.stack : e.message);
     }
     delete base.addModuleStylesheet;
     delete base.addModuleRawScriptDependency;
     delete base.addModuleDependency;
-
   }
 
   var moduleLoadStatus = {};
   var rawScriptLoadStatus = {};
-  function require(dependentModuleName, opt_indentLevel) {
+  var moduleCount = 0;
+  function require(modules, opt_indentLevel) {
     var indentLevel = opt_indentLevel || 0;
+    var dependentModules = modules;
+    if (!(modules instanceof Array))
+      dependentModules = [modules];
 
+    ensureDepsLoaded();
+
+    dependentModules.forEach(function(module) {
+      requireModule(module, indentLevel);
+    });
+  }
+
+  var modulesWaiting = [];
+  function requireModule(dependentModuleName, indentLevel) {
     if (window.FLATTENED) {
       if (!window.FLATTENED[dependentModuleName]) {
         throw new Error('Somehow, module ' + dependentModuleName +
@@ -151,16 +164,22 @@ this.base = (function() {
       }
       return;
     }
-    ensureDepsLoaded();
-
-    mLog('require(' + dependentModuleName + ')', indentLevel);
 
     if (moduleLoadStatus[dependentModuleName] == 'APPENDED')
       return;
-    if (moduleLoadStatus[dependentModuleName] == 'RESOLVING')
-      throw new Error('Circular dependency betwen modules. Cannot continue!');
-    moduleLoadStatus[dependentModuleName] = 'RESOLVING';
 
+    if (moduleLoadStatus[dependentModuleName] == 'RESOLVING')
+      return;
+
+    mLog('require(' + dependentModuleName + ')', indentLevel);
+    moduleLoadStatus[dependentModuleName] = 'RESOLVING';
+    requireDependencies(dependentModuleName, indentLevel);
+
+    modulesWaiting.push(dependentModuleName);
+    loadModuleWhenDependentsLoaded(indentLevel);
+  }
+
+  function requireDependencies(dependentModuleName, indentLevel) {
     // Load the module stylesheet first.
     var stylesheets = moduleStylesheets[dependentModuleName] || [];
     for (var i = 0; i < stylesheets.length; i++)
@@ -173,28 +192,45 @@ this.base = (function() {
       if (rawScriptLoadStatus[rawScriptName])
         continue;
 
+      loadScript(rawScriptName);
       mLog('load(' + rawScriptName + ')', indentLevel);
-      var src = moduleBasePath + '/' + rawScriptName;
-      var text = '<script type="text/javascript" src="' + src +
-          '"></' + 'script>';
-      base.doc.write(text);
       rawScriptLoadStatus[rawScriptName] = 'APPENDED';
     }
 
     // Load the module's dependent scripts after.
-    var dependentModules =
-        moduleDependencies[dependentModuleName] || [];
-    for (var i = 0; i < dependentModules.length; i++)
-      require(dependentModules[i], indentLevel + 1);
+    var dependentModules = moduleDependencies[dependentModuleName] || [];
+    require(dependentModules, indentLevel + 1);
+  }
 
-    mLog('load(' + dependentModuleName + ')', indentLevel);
-    // Load the module itself.
-    var localPath = dependentModuleName.replace(/\./g, '/') + '.js';
-    var src = moduleBasePath + '/' + localPath;
-    var text = '<script type="text/javascript" src="' + src +
-        '"></' + 'script>';
-    base.doc.write(text);
-    moduleLoadStatus[dependentModuleName] = 'APPENDED';
+  function loadScript(path) {
+    moduleCount++;
+
+    var scriptEl = document.createElement('script');
+    scriptEl.src = path + '?' + new Date().getTime();
+    scriptEl.type = 'text/javascript';
+    scriptEl.defer = true;
+    scriptEl.async = false;
+    scriptEl.onload = function() {
+      moduleCount--;
+    }
+    base.doc.head.appendChild(scriptEl);
+  }
+
+  function loadModuleWhenDependentsLoaded(indentLevel) {
+    if (moduleCount > 0) {
+      window.setTimeout(function() {
+        loadModuleWhenDependentsLoaded(indentLevel);
+      }, 1);
+      return;
+    }
+
+    var name = modulesWaiting.shift();
+    loadScript(name.replace(/\./g, '/') + '.js');
+    mLog('load(' + name + ')', indentLevel);
+    moduleLoadStatus[name] = 'APPENDED';
+
+    if (modulesWaiting.lenght > 0)
+      loadModuleWhenDependentsLoaded(indentLevel);
   }
 
   /**
@@ -228,7 +264,8 @@ this.base = (function() {
       return;
     stylesheetLoadStatus[dependentStylesheetName] = true;
     var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
-    var stylesheetPath = moduleBasePath + '/' + localPath;
+    var stylesheetPath = moduleBasePath + '/' + localPath + '?' +
+        (new Date().getTime());
 
     var linkEl = document.createElement('link');
     linkEl.setAttribute('rel', 'stylesheet');
@@ -273,10 +310,12 @@ this.base = (function() {
     e.propertyName = propertyName;
     e.newValue = newValue;
     e.oldValue = oldValue;
+
     var error;
     e.throwError = function(err) {  // workaround CR 239648
       error = err;
     }
+
     target.dispatchEvent(e);
     if (error)
       throw error;

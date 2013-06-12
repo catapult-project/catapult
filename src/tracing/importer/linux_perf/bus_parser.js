@@ -7,6 +7,7 @@
  * userland.
  */
 base.require('tracing.importer.linux_perf.parser');
+
 base.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;

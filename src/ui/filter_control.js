@@ -9,6 +9,7 @@
  */
 base.requireStylesheet('ui.filter_control');
 base.require('tracing.filter');
+base.require('ui');
 base.require('ui.overlay');
 base.exportTo('ui', function() {
 
@@ -85,3 +86,4 @@ base.exportTo('ui', function() {
     FilterControl: FilterControl
   };
 });
+
