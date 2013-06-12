@@ -36,119 +36,16 @@ found in the LICENSE file.
   base.require('tracing.importer');
   base.require('cc');
   base.require('tcmalloc');
-  </script>
-  <script>
-  'use strict';
 
-  var timelineViewEl;
+  (function() {
+    var scriptEl = document.createElement('script');
+    scriptEl.src = 'trace_viewer.js';
+    scriptEl.type = 'text/javascript';
+    scriptEl.defer = true;
+    scriptEl.async = false;
+    base.doc.head.appendChild(scriptEl);
+  })();
 
-  function loadTraces(filenames, onTracesLoaded) {
-    var traces = [];
-    for (var i = 0; i < filenames.length; i++) {
-      traces.push(undefined);
-    }
-    var numTracesPending = filenames.length;
-
-    filenames.forEach(function(filename, i) {
-      getAsync(filename, function(trace) {
-        traces[i] = trace;
-        numTracesPending--;
-        if (numTracesPending == 0)
-          onTracesLoaded(filenames, traces);
-      });
-    });
-  }
-
-  function getAsync(url, cb) {
-    var req = new XMLHttpRequest();
-    req.open('GET', url, true);
-    req.onreadystatechange = function(aEvt) {
-      if (req.readyState == 4) {
-        window.setTimeout(function() {
-          if (req.status == 200) {
-            cb(req.responseText);
-          } else {
-            console.log('Failed to load ' + url);
-          }
-        }, 0);
-      }
-    };
-    req.send(null);
-  }
-
-  function createViewFromTraces(filenames, traces) {
-    var m = new tracing.TraceModel();
-    m.importTraces(traces, true);
-
-    timelineViewEl.model = m;
-    timelineViewEl.tabIndex = 1;
-    if (timelineViewEl.timeline)
-      timelineViewEl.timeline.focusElement = timelineViewEl;
-    timelineViewEl.viewTitle = filenames;
-  }
-
-  function onSelectionChange() {
-    var select = document.getElementById('trace_file');
-    window.location.hash = '#' + select[select.selectedIndex].value;
-  }
-
-  function onHashChange() {
-    var file = window.location.hash.substr(1);
-    var select = document.getElementById('trace_file');
-    if (select[select.selectedIndex].value != file) {
-      for (var i = 0; i < select.children.length; i++) {
-        if (select.children[i].value == file) {
-          select.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    reload();
-  }
-
-  function cleanFilename(file) {
-    function upcase(letter) {
-      return ' ' + letter.toUpperCase();
-    }
-
-    return file.replace(/_/g, ' ')
-               .replace(/\.[^\.]*$/, '')
-               .replace(/ ([a-z])/g, upcase)
-               .replace(/^[a-z]/, upcase);
-  }
-
-  function reload() {
-    var file = window.location.hash.substr(1);
-    var filenames = ['../test_data/' + file];
-    loadTraces(filenames, createViewFromTraces);
-  }
-
-  window.addEventListener('hashchange', onHashChange);
-  document.addEventListener('DOMContentLoaded', function() {
-    timelineViewEl = document.querySelector('.view');
-    ui.decorate(timelineViewEl, tracing.TimelineView);
-
-    getAsync('/json/examples', function(data) {
-      var select = document.getElementById('trace_file');
-      var files = JSON.parse(data);
-
-      for (var i = 0; i < files.length; ++i) {
-        var opt = document.createElement('option');
-        opt.value = files[i];
-        opt.textContent = cleanFilename(files[i]);
-        select.appendChild(opt);
-      }
-      select.selectedIndex = 0;
-      select.onchange = onSelectionChange;
-
-      if (!window.location.hash) {
-        // This will trigger an onHashChange so no need to reload directly.
-        window.location.hash = '#' + select[select.selectedIndex].value;
-      } else {
-        onHashChange();
-      }
-    });
-  });
   </script>
 </body>
 </html>

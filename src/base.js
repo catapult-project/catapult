@@ -139,7 +139,6 @@ this.base = (function() {
 
   var moduleLoadStatus = {};
   var rawScriptLoadStatus = {};
-  var moduleCount = 0;
   function require(modules, opt_indentLevel) {
     var indentLevel = opt_indentLevel || 0;
     var dependentModules = modules;
@@ -175,11 +174,15 @@ this.base = (function() {
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
     requireDependencies(dependentModuleName, indentLevel);
 
-    modulesWaiting.push(dependentModuleName);
-    loadModuleWhenDependentsLoaded(indentLevel);
+    loadScript(dependentModuleName.replace(/\./g, '/') + '.js');
+    moduleLoadStatus[name] = 'APPENDED';
   }
 
   function requireDependencies(dependentModuleName, indentLevel) {
+    // Load the module's dependent scripts after.
+    var dependentModules = moduleDependencies[dependentModuleName] || [];
+    require(dependentModules, indentLevel + 1);
+
     // Load the module stylesheet first.
     var stylesheets = moduleStylesheets[dependentModuleName] || [];
     for (var i = 0; i < stylesheets.length; i++)
@@ -196,41 +199,15 @@ this.base = (function() {
       mLog('load(' + rawScriptName + ')', indentLevel);
       rawScriptLoadStatus[rawScriptName] = 'APPENDED';
     }
-
-    // Load the module's dependent scripts after.
-    var dependentModules = moduleDependencies[dependentModuleName] || [];
-    require(dependentModules, indentLevel + 1);
   }
 
   function loadScript(path) {
-    moduleCount++;
-
     var scriptEl = document.createElement('script');
-    scriptEl.src = path + '?' + new Date().getTime();
+    scriptEl.src = moduleBasePath + '/' + path; // + '?' + new Date().getTime();
     scriptEl.type = 'text/javascript';
     scriptEl.defer = true;
     scriptEl.async = false;
-    scriptEl.onload = function() {
-      moduleCount--;
-    }
     base.doc.head.appendChild(scriptEl);
-  }
-
-  function loadModuleWhenDependentsLoaded(indentLevel) {
-    if (moduleCount > 0) {
-      window.setTimeout(function() {
-        loadModuleWhenDependentsLoaded(indentLevel);
-      }, 1);
-      return;
-    }
-
-    var name = modulesWaiting.shift();
-    loadScript(name.replace(/\./g, '/') + '.js');
-    mLog('load(' + name + ')', indentLevel);
-    moduleLoadStatus[name] = 'APPENDED';
-
-    if (modulesWaiting.lenght > 0)
-      loadModuleWhenDependentsLoaded(indentLevel);
   }
 
   /**
