@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 try:
   import resource  # pylint: disable=F0401
 except ImportError:
@@ -43,3 +44,20 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return {'VM': 1024 * int(vsz),
               'WorkingSetSize': 1024 * int(rss)}
     return {}
+
+  def GetOSName(self):
+    return 'mac'
+
+  def GetOSVersionName(self):
+    os_version = os.uname()[2]
+
+    if os_version.startswith('9.'):
+      return 'leopard'
+    if os_version.startswith('10.'):
+      return 'snowleopard'
+    if os_version.startswith('11.'):
+      return 'lion'
+    if os_version.startswith('12.'):
+      return 'mountainlion'
+    #if os_version.startswith('13.'):
+    #  return 'mavericks'

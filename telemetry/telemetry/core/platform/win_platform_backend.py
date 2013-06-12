@@ -4,6 +4,7 @@
 
 import collections
 import ctypes
+import os
 import re
 import subprocess
 try:
@@ -143,3 +144,18 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
         command = ','.join(parts[1:-1])
         return command
     raise Exception('Could not get command line for %d' % pid)
+
+  def GetOSName(self):
+    return 'win'
+
+  def GetOSVersionName(self):
+    os_version = os.uname()[2]
+
+    if os_version.startswith('5.1.'):
+      return 'xp'
+    if os_version.startswith('6.0.'):
+      return 'vista'
+    if os_version.startswith('6.1.'):
+      return 'win7'
+    if os_version.startswith('6.2.'):
+      return 'win8'

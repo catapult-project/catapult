@@ -61,3 +61,6 @@ class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
             'WriteOperationCount': int(io['syscw']),
             'ReadTransferCount': int(io['rchar']),
             'WriteTransferCount': int(io['wchar'])}
+
+  def GetOSName(self):
+    return 'linux'

@@ -119,3 +119,6 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
       if int(curr_pid) == pid:
         return curr_name
     raise Exception("Could not get command line for %d" % pid)
+
+  def GetOSName(self):
+    return 'android'

@@ -72,3 +72,15 @@ class Platform(object):
   def HasBeenThermallyThrottled(self):
     """Returns True if the device has been thermally throttled."""
     return self._platform_backend.HasBeenThermallyThrottled()
+
+  def GetOSName(self):
+    """Returns a string description of the Platform OS.
+
+    Examples: WIN, MAC, LINUX, CHROMEOS"""
+    return self._platform_backend.GetOSName()
+
+  def GetOSVersionName(self):
+    """Returns a string description of the Platform OS version.
+
+    Examples: VISTA, WIN7, LION, MOUNTAINLION"""
+    return self._platform_backend.GetOSVersionName()

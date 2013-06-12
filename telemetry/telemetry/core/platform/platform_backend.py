@@ -42,3 +42,9 @@ class PlatformBackend(object):
 
   def GetCommandLine(self, pid):
     raise NotImplementedError()
+
+  def GetOSName(self):
+    raise NotImplementedError()
+
+  def GetOSVersionName(self):
+    return None

@@ -34,3 +34,6 @@ class CrosPlatformBackend(linux_platform_backend.LinuxPlatformBackend):
       return self._cri.RunCmdOnDevice(['cat', filename])[0]
     except AssertionError:
       return ''
+
+  def GetOSName(self):
+    return 'chromeos'
