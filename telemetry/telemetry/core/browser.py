@@ -259,7 +259,7 @@ class Browser(object):
     self._http_server = temporary_http_server.TemporaryHTTPServer(
       self._browser_backend, paths)
 
-  def SetReplayArchivePath(self, archive_path):
+  def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False):
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None
@@ -278,6 +278,7 @@ class Browser(object):
         self._browser_backend,
         archive_path,
         use_record_mode,
+        append_to_existing_wpr,
         self._browser_backend.WEBPAGEREPLAY_HOST,
         self._browser_backend.webpagereplay_local_http_port,
         self._browser_backend.webpagereplay_local_https_port,

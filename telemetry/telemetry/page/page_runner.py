@@ -98,6 +98,7 @@ class PageRunner(object):
     state = _RunState()
     last_archive_path = None
     results_for_current_run = out_results
+    append_to_existing_wpr = False
 
     try:
       for page in pages:
@@ -121,7 +122,8 @@ class PageRunner(object):
           try:
             if not state.browser:
               self._SetupBrowser(state, test, possible_browser,
-                                 credentials_path, page.archive_path)
+                                 credentials_path, page.archive_path,
+                                 append_to_existing_wpr)
               last_archive_path = page.archive_path
             if not state.tab:
               if len(state.browser.tabs) == 0:
@@ -153,6 +155,10 @@ class PageRunner(object):
                           ('*' * 80))
               logging.warning('Tab crashed: %s%s', page.url, stdout)
               state.Close()
+              # Restarting the state will also restart the wpr server. If we're
+              # recording, we need to continue adding into the same wpr archive,
+              # not overwrite it.
+              append_to_existing_wpr = True
 
             if options.trace_dir:
               self._EndTracing(state, options, page)
@@ -166,6 +172,10 @@ class PageRunner(object):
           except exceptions.BrowserGoneException:
             logging.warning('Lost connection to browser. Retrying.')
             state.Close()
+            # Restarting the state will also restart the wpr server. If we're
+            # recording, we need to continue adding into the same wpr archive,
+            # not overwrite it.
+            append_to_existing_wpr = True
             tries -= 1
             if not tries:
               logging.error('Lost connection to browser 3 times. Failing.')
@@ -289,7 +299,7 @@ class PageRunner(object):
       raise Exception('%s isn\'t empty: %s' % (name, path))
 
   def _SetupBrowser(self, state, test, possible_browser, credentials_path,
-                    archive_path):
+                    archive_path, append_to_existing_wpr):
     assert not state.tab
     state.browser = possible_browser.Create()
     state.browser.credentials.credentials_path = credentials_path
@@ -299,7 +309,7 @@ class PageRunner(object):
       state.browser.credentials.WarnIfMissingCredentials(self.page_set)
       state.first_browser = False
 
-    state.browser.SetReplayArchivePath(archive_path)
+    state.browser.SetReplayArchivePath(archive_path, append_to_existing_wpr)
 
   def _SetupProfiling(self, state, options, page):
     output_file = os.path.join(options.profiler_dir, page.url_as_file_safe_name)
