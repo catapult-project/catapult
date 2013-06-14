@@ -118,7 +118,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       util.WaitFor(lambda: pid != self.pid, 10)
       self._WaitForBrowserToComeUp()
     else:
-      cros_util.NavigateLogin(self)
+      cros_util.NavigateLogin(self, cri)
 
     logging.info('Browser is up!')
 

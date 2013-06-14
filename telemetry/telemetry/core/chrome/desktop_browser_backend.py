@@ -10,6 +10,7 @@ import tempfile
 
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
+from telemetry.core.chrome import cros_interface
 from telemetry.core.chrome import cros_util
 
 class DesktopBrowserBackend(browser_backend.BrowserBackend):
@@ -51,8 +52,9 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       self._supports_net_benchmarking = False
       self._LaunchBrowser(options)
 
+    # TODO(achuith): Remove this (crbug.com/249480)
     if self._use_login:
-      cros_util.NavigateLogin(self)
+      cros_util.NavigateLogin(self, cros_interface.CrOSInterface())
 
   def _LaunchBrowser(self, options):
     args = [self._executable]
