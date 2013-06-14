@@ -8,17 +8,28 @@ base.require('base.quad');
 base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
+  var convertedNameCache = {};
   function convertNameToJSConvention(name) {
+    if (name in convertedNameCache)
+      return convertedNameCache[name];
+
     if (name[0] == '_' ||
-        name[name.length - 1] == '_')
+        name[name.length - 1] == '_') {
+      convertedNameCache[name] = name;
       return name;
+    }
 
     var words = name.split('_');
-    if (words.length == 1)
+    if (words.length == 1) {
+      convertedNameCache[name] = words[0];
       return words[0];
+    }
+
     for (var i = 1; i < words.length; i++)
       words[i] = words[i][0].toUpperCase() + words[i].substring(1);
-    return words.join('');
+
+    convertedNameCache[name] = words.join('');
+    return convertedNameCache[name];
   }
 
   function convertObjectFieldNamesToJSConventions(object) {
