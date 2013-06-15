@@ -1,6 +1,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import os
+import sys
+
+from telemetry.page import block_page_measurement_results
+from telemetry.page import buildbot_page_measurement_results
+from telemetry.page import csv_page_measurement_results
+from telemetry.page import page_measurement_results
 from telemetry.page import page_test
 
 class MeasurementFailure(page_test.Failure):
@@ -48,6 +55,45 @@ class PageMeasurement(page_test.PageTest):
     results.WillMeasurePage(page)
     self.MeasurePage(page, tab, results)
     results.DidMeasurePage()
+
+  def AddOutputOptions(self, parser):
+    super(PageMeasurement, self).AddOutputOptions(parser)
+    parser.add_option('-o', '--output',
+                      dest='output_file',
+                      help='Redirects output to a file. Defaults to stdout.')
+    parser.add_option('--output-trace-tag',
+                      default='',
+                      help='Append a tag to the key of each result trace.')
+
+  @property
+  def output_format_choices(self):
+    return ['buildbot', 'block', 'csv', 'none']
+
+  def PrepareResults(self, options):
+    if not options.output_file or options.output_file == '-':
+      output_stream = sys.stdout
+    else:
+      output_stream = open(os.path.expanduser(options.output_file), 'w')
+
+    if options.output_format == 'csv':
+      return csv_page_measurement_results.CsvPageMeasurementResults(
+        output_stream,
+        self.results_are_the_same_on_every_page,
+        trace_tag=options.output_trace_tag)
+    elif options.output_format == 'block':
+      return block_page_measurement_results.BlockPageMeasurementResults(
+        output_stream)
+    elif options.output_format == 'buildbot':
+      return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
+          trace_tag=options.output_trace_tag)
+    elif options.output_format == 'none':
+      return page_measurement_results.PageMeasurementResults(
+          trace_tag=options.output_trace_tag)
+    else:
+      # Should never be reached. The parser enforces the choices.
+      raise Exception('Invalid --output-format "%s". Valid choices are: %s'
+                      % (options.output_format,
+                         ', '.join(self.output_format_choices)))
 
   @property
   def results_are_the_same_on_every_page(self):

@@ -4,6 +4,8 @@
 import logging
 
 from telemetry.core import util
+from telemetry.page import gtest_test_results
+from telemetry.page import page_test_results
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
 
@@ -97,13 +99,17 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
-  def WillRunPageSet(self, tab, results):
+  def WillRunPageSet(self, tab):
     """Override to do operations before the page set is navigated."""
     pass
 
   def DidRunPageSet(self, tab, results):
     """Override to do operations after page set is completed, but before browser
     is torn down."""
+    pass
+
+  def DidStartHTTPServer(self, tab):
+    """Override to do operations after the HTTP server is started."""
     pass
 
   def WillNavigateToPage(self, page, tab):
@@ -127,6 +133,29 @@ class PageTest(object):
     """Override to make this test generate its own page set instead of
     allowing arbitrary page sets entered from the command-line."""
     return None
+
+  def AddOutputOptions(self, parser):
+    parser.add_option('--output-format',
+                      default=self.output_format_choices[0],
+                      choices=self.output_format_choices,
+                      help='Output format. Defaults to "%%default". '
+                      'Can be %s.' % ', '.join(self.output_format_choices))
+
+  @property
+  def output_format_choices(self):
+    """Allowed output formats. The default is the first item in the list."""
+    return ['gtest', 'none']
+
+  def PrepareResults(self, options):
+    if options.output_format == 'gtest':
+      return gtest_test_results.GTestTestResults()
+    elif options.output_format == 'none':
+      return page_test_results.PageTestResults()
+    else:
+      # Should never be reached. The parser enforces the choices.
+      raise Exception('Invalid --output-format "%s". Valid choices are: %s'
+                      % (options.output_format,
+                         ', '.join(self.output_format_choices)))
 
   def Run(self, options, page, tab, results):
     self.options = options

@@ -4,10 +4,8 @@
 import os
 import unittest
 
-from telemetry.core import browser_finder
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
-from telemetry.page import page_measurement_results
 from telemetry.page import page_set
 from telemetry.unittest import options_for_unittests
 
@@ -41,9 +39,7 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
       setattr(options, k, v)
 
     measurement.CustomizeBrowserOptions(options)
-    possible_browser = browser_finder.FindBrowser(options)
-
-    results = page_measurement_results.PageMeasurementResults()
-    with page_runner.PageRunner(ps) as runner:
-      runner.Run(options, possible_browser, measurement, results)
-    return results
+    options.output_file = None
+    options.output_format = 'none'
+    options.output_trace_tag = None
+    return page_runner.Run(measurement, ps, options)

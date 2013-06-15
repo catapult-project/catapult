@@ -1,13 +1,15 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import csv
+
 from telemetry.page import page_measurement_results
 
 class CsvPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
-  def __init__(self, results_writer, output_after_every_page, trace_tag=''):
+  def __init__(self, output_stream, output_after_every_page, trace_tag=''):
     super(CsvPageMeasurementResults, self).__init__(trace_tag)
-    self._results_writer = results_writer
+    self._results_writer = csv.writer(output_stream)
     self._did_output_header = False
     self._header_names_written_to_writer = None
     self._output_after_every_page = output_after_every_page

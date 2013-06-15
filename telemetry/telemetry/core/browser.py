@@ -242,22 +242,25 @@ class Browser(object):
     return self._http_server
 
   def SetHTTPServerDirectories(self, paths):
+    """Returns True if the HTTP server was started, False otherwise."""
     if not isinstance(paths, list):
       paths = [paths]
     paths = [os.path.abspath(p) for p in paths]
 
     if paths and self._http_server and self._http_server.paths == paths:
-      return
+      return False
 
     if self._http_server:
       self._http_server.Close()
       self._http_server = None
 
     if not paths:
-      return
+      return False
 
     self._http_server = temporary_http_server.TemporaryHTTPServer(
       self._browser_backend, paths)
+
+    return True
 
   def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False):
     if self._wpr_server:
