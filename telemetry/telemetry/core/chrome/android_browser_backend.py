@@ -224,6 +224,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--enable-remote-debugging')
+    args.append('--no-restore-state')
     args.append('--disable-fre')
     return args
 
