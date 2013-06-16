@@ -122,8 +122,35 @@ this.base = (function() {
     var src = '/deps.js';
     req.open('GET', src, false);
     req.send(null);
-    if (req.status != 200)
-      throw new Error('Unable to retrieve deps. Something is wrong.');
+    if (req.status != 200) {
+      var serverSideException = JSON.parse(req.responseText);
+      var msg = 'You have a module problem: ' +
+          serverSideException.message;
+      var baseWarningEl = document.createElement('div');
+      baseWarningEl.style.position = 'fixed';
+      baseWarningEl.style.border = '3px solid red';
+      baseWarningEl.style.color = 'black';
+      baseWarningEl.style.padding = '8px';
+      baseWarningEl.innerHTML =
+          '<h2>Module parsing problem</h2>' +
+          '<div id="message"></div>' +
+          '<pre id="details"></pre>';
+      baseWarningEl.querySelector('#message').textContent =
+          serverSideException.message;
+      var detailsEl = baseWarningEl.querySelector('#details');
+      detailsEl.textContent = serverSideException.details;
+      detailsEl.style.maxWidth = '800px';
+      detailsEl.style.overflow = 'auto';
+
+      if (!document.body) {
+        setTimeout(function() {
+          document.body.appendChild(baseWarningEl);
+        }, 150);
+      } else {
+        document.body.appendChild(baseWarningEl);
+      }
+      throw new Error(msg);
+    }
 
     base.addModuleDependency = addModuleDependency;
     base.addModuleRawScriptDependency = addModuleRawScriptDependency;

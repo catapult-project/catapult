@@ -7,6 +7,7 @@ import optparse
 import os
 import sys
 import time
+import traceback
 from build import generate_deps_js_contents as deps_generator
 
 import SocketServer
@@ -76,7 +77,20 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     current_time = time.time()
     if self.server.next_deps_check < current_time:
       self.log_message('Regenerating ' + self.path)
-      self.server.deps = deps_generator.generate_deps_js()
+      try:
+        self.server.deps = deps_generator.generate_deps_js()
+      except Exception, ex:
+        msg = json.dumps({"details": traceback.format_exc(),
+                          "message": ex.message});
+        self.log_error('While parsing deps: %s', ex.message)
+        self.send_response(500)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Content-Length', len(msg))
+        self.end_headers()
+        self.wfile.write(msg)
+        return
+
       self.server.next_deps_check = current_time + DEPS_CHECK_DELAY
 
     self.send_response(200)
