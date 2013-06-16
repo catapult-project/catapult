@@ -270,13 +270,26 @@ base.exportTo('about_tracing', function() {
      * Tells browser to put up a save dialog and save the trace file
      */
     beginSaveTraceFile: function() {
+      // this.traceEventData_ is already in JSON form, but now need to insert it
+      // into a data structure containing metadata about the recording. To do
+      // this "right," we should parse the traceEventData_, make the new data
+      // structure and then JSONize the lot. But, the traceEventData_ is huge so
+      // parsing it and stringifying it again is going to consume time and
+      // memory.
+      //
+      // Instead, we make the new data strcture with a placeholder string,
+      // JSONify it, then replace the placeholder string with the
+      // traceEventData_.
       var data = {
-        traceEvents: this.traceEventData_,
+        traceEvents: '__TRACE_EVENT_PLACEHOLDER__',
         systemTraceEvents: this.systemTraceEvents_,
         clientInfo: this.clientInfo_,
         gpuInfo: this.gpuInfo_
       };
-      this.sendFn_('saveTraceFile', [JSON.stringify(data)]);
+      var dataAsString = JSON.stringify(data);
+      dataAsString = dataAsString.replace('"__TRACE_EVENT_PLACEHOLDER__"',
+                                          this.traceEventData_);
+      this.sendFn_('saveTraceFile', [dataAsString]);
     },
 
     /**

@@ -35,4 +35,47 @@ base.unittest.testSuite('about_tracing.tracing_controller', function() {
     assertEquals('<DOCTYPE>', tc.traceEventData);
     assertTrue(callbackFired);
   });
+
+  function SendStub() {
+    this.sends = [];
+  }
+  SendStub.prototype = {
+    reset: function() {
+      this.sends = [];
+    },
+
+    send: function(msg, args) {
+      this.sends.push({msg: msg,
+                       args: args});
+    },
+
+    get numSends() {
+      return this.sends.length;
+    },
+
+    getMessage: function(i) {
+      return this.sends[i].msg;
+    },
+
+    getArgs: function(i) {
+      return this.sends[i].args;
+    },
+  };
+
+  test('saveTraceFile', function() {
+    var sendStub = new SendStub();
+    var tc = new about_tracing.TracingController(sendStub.send.bind(sendStub));
+    tc.traceEventData_ = JSON.stringify([1, 2, 3]);
+    assertEquals(1, sendStub.numSends);
+    assertEquals('tracingControllerInitialized', sendStub.getMessage(0));
+    sendStub.reset();
+
+    tc.beginSaveTraceFile();
+
+    assertEquals(1, sendStub.numSends);
+    assertEquals('saveTraceFile', sendStub.getMessage(0));
+    var savedDataString = sendStub.getArgs(0)[0];
+    var savedData = JSON.parse(savedDataString);
+    assertArrayEquals([1, 2, 3], savedData.traceEvents);
+  });
 });
