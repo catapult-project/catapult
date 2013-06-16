@@ -98,7 +98,11 @@ base.exportTo('cc', function() {
       }
 
       this.rasterStatus_ = RASTER_SUCCEEDED;
-      this.rasterResult_ = new Uint8ClampedArray(res.data);
+      this.rasterResult_ = {
+          width: res.width,
+          height: res.height,
+          data: new Uint8ClampedArray(res.data)
+      };
     },
 
     get image() {
@@ -124,7 +128,8 @@ base.exportTo('cc', function() {
         base.requestAnimationFrameInThisFrameIfPossible(imageReadyCallback);
         return;
       }
-
+      var rd = this.rasterResult_;
+      
       var helperCanvas = document.createElement('canvas');
       helperCanvas.width = rd.width;
       helperCanvas.height = rd.height;
@@ -134,7 +139,7 @@ base.exportTo('cc', function() {
       ctx.putImageData(imageData, 0, 0);
       var img = document.createElement('img');
       img.onload = function() {
-        this.image = img;
+        this.image_ = img;
         imageReadyCallback();
       }.bind(this);
       img.src = helperCanvas.toDataURL();
