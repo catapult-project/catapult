@@ -111,7 +111,7 @@ base.exportTo('cc', function() {
 
     get canRasterizeImage() {
       if (this.rasterStatus_ == RASTER_SUCCEEDED)
-        throw new Error('Already rasterized image');
+        return true;
       return this.rasterStatus_ == RASTER_NOT_BEGUN;
     },
 
