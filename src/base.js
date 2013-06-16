@@ -111,6 +111,9 @@ this.base = (function() {
   }
 
   function ensureDepsLoaded() {
+    if (window.FLATTENED)
+      return;
+
     if (didLoadModules)
       return;
     didLoadModules = true;
