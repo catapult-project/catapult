@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('base.raf');
 base.require('base.rect');
 base.require('tracing.trace_model.object_instance');
 base.require('cc.util');
@@ -44,15 +45,24 @@ base.exportTo('cc', function() {
     return 'Rasterizing is on';
   }
 
+  var RASTER_IMPOSSIBLE = -2;
+  var RASTER_FAILED = -1;
+  var RASTER_NOT_BEGUN = 0;
+  var RASTER_SUCCEEDED = 1;
+
   PictureSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
       cc.preInitializeObject(this);
 
-      this.rasterData_ = undefined;
+      if (PictureSnapshot.CanRasterize())
+        this.rasterStatus_ = RASTER_NOT_BEGUN;
+      else
+        this.rasterStatus_ = RASTER_IMPOSSIBLE;
+      this.rasterResult_ = undefined;
 
-      this.image = undefined; // set externally.
+      this.image_ = undefined;
     },
 
     initialize: function() {
@@ -66,33 +76,54 @@ base.exportTo('cc', function() {
       return this.args.skp64;
     },
 
-    getRasterData: function() {
-      if (this.rasterData_)
-        return this.rasterData_;
+    rasterize_: function() {
+      if (this.rasterStatus_ != RASTER_NOT_BEGUN)
+        throw new Error('Rasterized already');
 
       if (!PictureSnapshot.CanRasterize()) {
         console.error(PictureSnapshot.HowToEnableRasterizing());
         return undefined;
       }
 
-      this.rasterData_ = window.chrome.skiaBenchmarking.rasterize({
+      var res = window.chrome.skiaBenchmarking.rasterize({
         skp64: this.args.skp64,
         params: {
           layer_rect: this.args.params.layerRect,
           opaque_rect: this.args.params.opaqueRect
         }
       });
-      if (this.rasterData_) {
-        // Switch it to a Uint8ClampedArray.
-        this.rasterData_.data = new Uint8ClampedArray(this.rasterData_.data);
+      if (!res) {
+        this.rasterStatus_ = RASTER_FAILED;
+        return;
       }
-      return this.rasterData_;
+
+      this.rasterStatus_ = RASTER_SUCCEEDED;
+      this.rasterResult_ = new Uint8ClampedArray(res.data);
     },
 
-    beginRenderingImage: function(imageReadyCallback) {
-      var rd = this.getRasterData();
-      if (!rd)
+    get image() {
+      return this.image_;
+    },
+
+    get canRasterizeImage() {
+      if (this.rasterStatus_ == RASTER_SUCCEEDED)
+        throw new Error('Already rasterized image');
+      return this.rasterStatus_ == RASTER_NOT_BEGUN;
+    },
+
+    beginRasterizingImage: function(imageReadyCallback) {
+      if (this.rasterStatus_ == RASTER_IMPOSSIBLE ||
+          this.rasterStatus_ == RASTER_FAILED)
+        throw new Error('Cannot render image');
+
+      if (this.rasterStatus_ == RASTER_SUCCEEDED)
+        throw new Error('Cannot render image');
+
+      this.rasterize_();
+      if (this.rasterStatus_ == RASTER_FAILED) {
+        base.requestAnimationFrameInThisFrameIfPossible(imageReadyCallback);
         return;
+      }
 
       var helperCanvas = document.createElement('canvas');
       helperCanvas.width = rd.width;

@@ -112,17 +112,24 @@ base.exportTo('cc', function() {
 
       if (!this.picture_.image) {
         this.style.backgroundImage = '';
-        if (!cc.PictureSnapshot.CanRasterize()) {
+        if (!this.picture_.canRasterizeImage) {
+          var details;
+          if (!cc.PictureSnapshot.CanRasterize()) {
+            details = cc.PictureSnapshot.HowToEnableRasterizing();
+          } else {
+            details = 'Your recording may be from an old Chrome version. ' +
+                'The SkPicture format is not backward compatible.';
+          }
           this.infoBar_.message = 'Cannot rasterize...';
           this.infoBar_.addButton('More info...', function() {
             var overlay = new ui.Overlay();
-            overlay.textContent = cc.PictureSnapshot.HowToEnableRasterizing();
+            overlay.textContent = details;
             overlay.visible = true;
             overlay.autoClose = true;
           });
           this.infoBar_.visible = true;
         } else {
-          this.picture_.beginRenderingImage(
+          this.picture_.beginRasterizingImage(
               this.scheduleUpdateContents_.bind(this));
         }
       } else {

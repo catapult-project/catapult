@@ -15,12 +15,14 @@ base.unittest.testSuite('cc.layer_viewer', function() {
     var p = m.processes[1];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
-    var snapshot = instance.snapshots[0];
-    var layer = snapshot.activeTree.renderSurfaceLayerList[0];
+    var lthi = instance.snapshots[0];
+    var layer = lthi.activeTree.renderSurfaceLayerList[0];
 
     var viewer = new cc.LayerViewer();
     viewer.style.height = '500px';
-    viewer.layer = layer;
+    viewer.layerTreeImpl = lthi.activeTree;
+    viewer.selection = new cc.LayerSelection(layer);
+
     this.addHTMLOutput(viewer);
   });
 
@@ -35,13 +37,8 @@ base.unittest.testSuite('cc.layer_viewer', function() {
 
     var viewer = new cc.LayerViewer();
     viewer.style.height = '500px';
-    viewer.layer = layer;
-
-    viewer.highlight = {
-      quadIfActive: tile.args.activePriority.currentScreenQuad,
-      quadIfPending: tile.args.pendingPriority.currentScreenQuad,
-      objectToAnalyze: tile
-    };
+    viewer.layerTreeImpl = lthi.activeTree;
+    viewer.selection = new cc.TileSelection(tile);
     this.addHTMLOutput(viewer);
   });
 });

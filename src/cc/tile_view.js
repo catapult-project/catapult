@@ -35,11 +35,7 @@ base.exportTo('cc', function() {
         return;
 
       this.layerTreeView_.objectSnapshot = layerTreeHostImpl;
-      this.layerTreeView_.highlight = {
-        quadIfActive: tile.args.activePriority.currentScreenQuad,
-        quadIfPending: tile.args.pendingPriority.currentScreenQuad,
-        objectToAnalyze: this.objectSnapshot_
-      };
+      this.layerTreeView_.selection = new cc.TileSelection(tile);
     }
   };
 

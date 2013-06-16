@@ -8,6 +8,7 @@ base.requireStylesheet('cc.layer_picker');
 
 base.require('cc.constants');
 base.require('cc.layer_tree_host_impl');
+base.require('cc.selection');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
 base.require('ui.list_view');
@@ -30,15 +31,9 @@ base.exportTo('cc', function() {
 
 
       this.layerList_ = new ui.ListView();
-      this.layerDataView_ = new tracing.analysis.GenericObjectView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.layerList_);
-      var dragHandle = new ui.DragHandle();
-      dragHandle.horizontal = true;
-      dragHandle.target = this.layerDataView_;
-      this.appendChild(dragHandle);
-      this.appendChild(this.layerDataView_);
 
       this.layerList_.addEventListener(
           'selection-changed', this.onLayerSelectionChanged_.bind(this));
@@ -108,7 +103,7 @@ base.exportTo('cc', function() {
 
         return true;
       }
-      function visitLayer(layer, depth, note) {
+      function visitLayer(layer, depth, isMask, isReplica) {
         var info = {layer: layer,
           depth: depth};
 
@@ -117,64 +112,23 @@ base.exportTo('cc', function() {
         else
           info.name = 'cc::LayerImpl';
 
+        info.isMaskLayer = isMask;
+        info.replicaLayer = isReplica;
+
         if (!hidePureTransformLayers || !isPureTransformLayer(layer))
           layerInfos.push(info);
 
-        var childInfo;
-        for (var i = 0; i < layer.children.length; i++)
-          visitLayer(layer.children[i], depth + 1);
-
-        if (layer.maskLayer) {
-          childInfo = visitLayer(layer.maskLayer, depth + 2);
-          childInfo.isMaskLayer = true;
-        }
-
-        if (layer.replicaLayer) {
-          var childInfo = visitLayer(layer.replicaLayer, depth + 2);
-          childInfo.replicaLayer = true;
-        }
-
-        return info;
       };
-      visitLayer(tree.rootLayer, 0);
+      tree.iterLayers(visitLayer);
       return layerInfos;
     },
 
     updateContents_: function() {
-      var oldSelectedLayer = this.selectedLayer;
-      this.updateContentsInner_();
-
-      if (!oldSelectedLayer) {
-        if (!this.layerList_.selectedElement) {
-          // Try to select the first layer that drawsContent.
-          for (var i = 0; i < this.layerList_.children.length; i++) {
-            if (this.layerList_.children[i].layer.args.drawsContent) {
-              this.layerList_.children[i].selected = true;
-              return;
-            }
-          }
-          // Barring that, select the first layer.
-          if (this.layerList_.children.length > 0)
-            this.layerList_.children[0].selected = true;
-        }
-        return;
-      }
-
-      // Try to resync the selection to what it was before.
-      var goal = oldSelectedLayer.objectInstance;
-      for (var i = 0; i < this.layerList_.children.length; i++) {
-        if (this.layerList_.children[i].layer.objectInstance == goal) {
-          this.layerList_.children[i].selected = true;
-          return;
-        }
-      }
-
-      // TODO(nduca): If matching failed, try to match on layer_id. The instance
-      // may have changed but the id could persist.
-    },
-
-    updateContentsInner_: function() {
       this.layerList_.clear();
+
+      var selectedLayerId;
+      if (this.selection_ && this.selection_.associatedLayerId)
+        selectedLayerId = this.selection_.associatedLayerId;
 
       var layerInfos = this.getLayerInfos_();
       layerInfos.forEach(function(layerInfo) {
@@ -188,11 +142,7 @@ base.exportTo('cc', function() {
           indentEl.textContent = indentEl.textContent + ' ';
 
         var labelEl = item.appendChild(ui.createSpan());
-        var id;
-        if (layer.args.layerId !== undefined)
-          id = layer.args.layerId;
-        else
-          id = layer.objectInstance.id;
+        var id = layer.layerId;
         labelEl.textContent = layerInfo.name + ' ' + id;
 
 
@@ -204,21 +154,28 @@ base.exportTo('cc', function() {
 
         item.layer = layer;
         this.layerList_.appendChild(item);
+
+        if (layer.layerId == selectedLayerId)
+          layer.selected = true;
       }, this);
     },
 
     onLayerSelectionChanged_: function(e) {
+      var selectedLayer;
+      if (this.layerList_.selectedElement)
+        selectedLayer = this.layerList_.selectedElement.layer;
+
+      this.selection_ = new cc.LayerSelection(selectedLayer);
       base.dispatchSimpleEvent(this, 'selection-changed', false);
-      if (this.selectedLayer)
-        this.layerDataView_.object = this.selectedLayer.args;
-      else
-        this.layerDataView_.object = '<no layer selected>';
     },
 
-    get selectedLayer() {
-      if (!this.layerList_.selectedElement)
-        return undefined;
-      return this.layerList_.selectedElement.layer;
+    get selection() {
+      return this.selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      this.updateContents_();
     }
   };
 

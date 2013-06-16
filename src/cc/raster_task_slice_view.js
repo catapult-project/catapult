@@ -56,11 +56,7 @@ base.exportTo('cc', function() {
 
       var containingSnapshot = tile.containingSnapshot;
       this.layerTreeView_.objectSnapshot = containingSnapshot;
-      this.layerTreeView_.highlight = {
-        quadIfActive: tile.args.activePriority.currentScreenQuad,
-        quadIfPending: tile.args.pendingPriority.currentScreenQuad,
-        objectToAnalyze: this.slice
-      };
+      this.layerTreeView_.selection = new cc.RasterTaskSelection(this.slice);
     }
   };
 

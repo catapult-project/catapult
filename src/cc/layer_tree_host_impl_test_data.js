@@ -76,7 +76,7 @@ var g_catLTHIEvents = [
                   'width': 2460,
                   'height': 3334
                 },
-                'num_tiles': 140
+                'num_tiles': 1
               },
               {
                 'content_scale': 0.25,
@@ -95,7 +95,47 @@ var g_catLTHIEvents = [
               'width': 1230,
               'height': 1667
             },
-            'children': [],
+            'children': [
+              {
+                'tilings': [
+                  {
+                    'content_scale': 2,
+                    'content_bounds': {
+                      'width': 200,
+                      'height': 100
+                    },
+                    'num_tiles': 1
+                  }
+                ],
+                'gpu_memory_usage': 128000,
+                'draws_content': 1,
+                'layer_id': 7,
+                'invalidation': [],
+                'bounds': {
+                  'width': 100,
+                  'height': 50
+                },
+                'children': [
+                ],
+                'ideal_contents_scale': 2,
+                'layer_quad': [
+                  0,
+                  0,
+                  200,
+                  0,
+                  200,
+                  100,
+                  0,
+                  100
+                ],
+                'pictures': [
+                  {
+                    'id_ref': 'PICTURE_2'
+                  }
+                ],
+                'id': 'cc::PictureLayerImpl/LAYER_2'
+              }
+            ],
             'ideal_contents_scale': 2,
             'layer_quad': [
               0,
@@ -115,9 +155,8 @@ var g_catLTHIEvents = [
             'id': 'cc::PictureLayerImpl/LAYER_1'
           },
           'render_surface_layer_list': [
-            {
-              'id_ref': 'LAYER_1'
-            }
+            {'id_ref': 'LAYER_1'},
+            {'id_ref': 'LAYER_2'}
           ],
           'id': 'cc::LayerTreeImpl/0x7d246ee0'
         },
@@ -169,6 +208,7 @@ var g_catLTHIEvents = [
               'gpu_memmgr_stats_bin': 'NOW_BIN',
               'is_picture_pile_analyzed': true
             },
+            'layer_id': 'LAYER_1',
             'picture_pile': {
               'id_ref': 'PICTURE_1'
             },
