@@ -32,6 +32,8 @@ class _TCMallocHeapProfilerAndroid(object):
 
   def _SetDeviceProperties(self, properties):
     device_configured = False
+    # This profiler requires adb root to set properties.
+    self._browser_backend.adb.Adb().EnableAdbRoot()
     for values in properties.itervalues():
       device_property = self._browser_backend.adb.RunShellCommand(
           'getprop ' + values[0])
