@@ -55,15 +55,16 @@ class _RunState(object):
         self._last_archive_path = page.archive_path
 
     if self.browser.supports_tab_control:
-      # Create a tab.
-      if not self.tab:
-        if len(self.browser.tabs) == 0:
-          self.browser.tabs.New()
-        self.tab = self.browser.tabs[0]
+      # Create a tab if there's none.
+      if len(self.browser.tabs) == 0:
+        self.browser.tabs.New()
 
       # Ensure only one tab is open.
       while len(self.browser.tabs) > 1:
         self.browser.tabs[-1].Close()
+
+    if not self.tab:
+      self.tab = self.browser.tabs[0]
 
     if self.first_page:
       self.first_page = False
