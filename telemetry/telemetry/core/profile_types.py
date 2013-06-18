@@ -28,13 +28,9 @@ def _DiscoverCreateableProfiles(profile_creators_dir):
           os.path.join(profile_creators_dir, '..'),
           profile_creator.ProfileCreator))
 
-  # Fixup class list:
-  #  * Remove '_creator' suffix from keys.
-  #  * Remove base class from dictionary.
+  # Remove '_creator' suffix from keys.
   profile_creators = {}
   for test_name, test_class in profile_creators_unfiltered.iteritems():
-    if (test_name == 'profile_creator'):
-      continue
     assert test_name.endswith('_creator')
     test_name = test_name[:-len('_creator')]
     profile_creators[test_name] = test_class
