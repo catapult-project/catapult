@@ -127,11 +127,11 @@ class PageState(object):
   def __init__(self):
     self._did_login = False
 
-  def PreparePage(self, test, page, tab):
+  def PreparePage(self, page, tab, test):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
       serving_dirs, filename = page.serving_dirs_and_file
-      if tab.browser.SetHTTPServerDirectories(serving_dirs):
+      if tab.browser.SetHTTPServerDirectories(serving_dirs) and test:
         test.DidStartHTTPServer(tab)
       target_side_url = tab.browser.http_server.UrlOf(filename)
     else:
@@ -142,12 +142,13 @@ class PageState(object):
         raise page_test.Failure('Login as ' + page.credentials + ' failed')
       self._did_login = True
 
-    test.WillNavigateToPage(page, tab)
-    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
-    test.DidNavigateToPage(page, tab)
+    if test:
+      test.WillNavigateToPage(page, tab)
+      tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
+      test.DidNavigateToPage(page, tab)
 
-    page.WaitToLoad(tab, 60)
-    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      page.WaitToLoad(tab, 60)
+      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def CleanUpPage(self, page, tab):
     if page.credentials and self._did_login:
@@ -349,7 +350,7 @@ def _RunPage(test, page, tab, results, options):
   page_state = PageState()
 
   try:
-    page_state.PreparePage(test, page, tab)
+    page_state.PreparePage(page, tab, test)
     test.Run(options, page, tab, results)
     util.CloseConnections(tab)
   except page_test.Failure:
