@@ -113,6 +113,9 @@ base.exportTo('ui', function() {
         this.updateChildren_();
         return;
       }
+      this.viewport_ = this.viewport_ ||
+          this.createViewportFromQuads_(this.quads_);
+
       this.quads_.forEach(function(quad) {
         if (!quad.backgroundRasterData)
           return;
@@ -174,17 +177,7 @@ base.exportTo('ui', function() {
     redrawCanvas_: function() {
       this.redrawScheduled_ = false;
 
-      var resizedCanvas = false;
-      if (this.canvas_.width != this.viewport_.deviceWidth) {
-        this.canvas_.width = this.viewport_.deviceWidth * ui.RASTER_SCALE;
-        this.canvas_.style.width = this.viewport_.layoutRect.width + 'px';
-        resizedCanvas = true;
-      }
-      if (this.canvas_.height != this.viewport_.deviceHeight) {
-        this.canvas_.height = this.viewport_.deviceHeight * ui.RASTER_SCALE;
-        this.canvas_.style.height = this.viewport_.layoutRect.height + 'px';
-        resizedCanvas = true;
-      }
+      var resizedCanvas = this.viewport_.updateBoxSize(this.canvas_);
 
       var ctx = this.canvas_.getContext('2d');
 
@@ -284,8 +277,9 @@ base.exportTo('ui', function() {
         ctx.stroke();
       }
 
-      if (this.viewport.deviceViewport)
-        this.drawDeviceViewport_(this.viewport.deviceViewport, ctx);
+      if (this.drawDeviceViewportMask_ &&
+          this.viewport_ && this.viewport_.deviceViewport)
+        this.drawDeviceViewport_(ctx);
 
       ctx.restore();
     },
@@ -306,7 +300,7 @@ base.exportTo('ui', function() {
       var vecInLayout = vec2.createXY(clientX - bounds.left,
                                       clientY - bounds.top);
       var vecInWorldPixels =
-          this.viewport_.layoutPixelsToWorldPixels2(vecInLayout);
+          this.viewport_.layoutPixelsToWorldPixels(vecInLayout);
 
       var quads = this.quads_;
       var hitIndices = [];
@@ -318,12 +312,19 @@ base.exportTo('ui', function() {
       return hitIndices;
     },
 
-    drawDeviceViewport_: function(deviceViewport, ctx) {
-      if (!this.drawDeviceViewportMask_ || !this.viewport_)
-        return;
-      var vW = deviceViewport.width;
-      var vH = deviceViewport.height;
+    createViewportFromQuads_: function() {
+      var quads = this.quads_ || [];
+      var quadBBox = new base.BBox2();
+      quads.forEach(function(quad) {
+        quadBBox.addQuad(quad);
+      });
+      return new ui.QuadViewViewport(quadBBox.asRect());
+    },
+
+    drawDeviceViewport_: function(ctx) {
       var vp = this.viewport_;
+      var vW = vp.deviceViewport.width;
+      var vH = vp.deviceViewport.height;
 
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
 
@@ -350,10 +351,7 @@ base.exportTo('ui', function() {
       // Stroke area around viewport.
       ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
       ctx.strokeStyle = 'rgba(0,0,255,1)';
-      ctx.strokeRect(0,
-                     0,
-                     deviceViewport.width,
-                     deviceViewport.height);
+      ctx.strokeRect(0, 0, vW, vH);
     },
 
     onMouseDown_: function(e) {

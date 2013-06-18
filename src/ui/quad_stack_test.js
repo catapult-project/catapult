@@ -1,3 +1,7 @@
+// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 base.require('base.unittest');
 base.require('base.bbox2');
 base.require('ui.quad_stack');
@@ -21,7 +25,7 @@ base.unittest.testSuite('ui.quad_stack', function() {
     var stack = new ui.QuadStack();
     stack.quads = quads;
     var deviceViewportSizeForFrame = {width: 100, height: 100};
-    stack.viewport = new ui.QuadViewViewport(quadsBbox,
+    stack.viewport = new ui.QuadViewViewport(quadsBbox.asRect(),
         0.5, deviceViewportSizeForFrame);
     stack.style.border = '1px solid black';
 

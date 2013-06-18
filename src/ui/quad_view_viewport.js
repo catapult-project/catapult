@@ -10,18 +10,20 @@ base.require('base.event_target');
 base.exportTo('ui', function() {
   var DEFAULT_PAD_PERCENTAGE = 0.75;
 
-  function QuadViewViewport(bbox,
+  function QuadViewViewport(worldRect,
                             opt_scale,
                             opt_deviceViewport,
                             opt_padding,
                             opt_devicePixelRatio) {
     base.EventTarget.call(this);
-    if (bbox.isEmpty)
-      throw new Error('Cannot initialize a viewport with an empty bbox');
+    if (!worldRect)
+      throw new Error('Cannot initialize a viewport with an empty worldRect');
 
-    this.layoutRect = undefined;
-    this.setWorldBBox(bbox, opt_padding);
+    this.layoutRect_ = undefined;
+    this.setWorldRect_(worldRect, opt_padding);
 
+    // Physical pixels / device-independent pixels;
+    // 1 is normal; higher for eg Retina
     var devicePixelRatio;
     if (opt_devicePixelRatio)
       this.devicePixelRatio = opt_devicePixelRatio;
@@ -37,7 +39,7 @@ base.exportTo('ui', function() {
       else
         scale = 0.125;
     }
-    this.scale_ = scale;
+    this.worldPixelsPerDevicePixel_ = scale;
 
     this.deviceViewport_ = opt_deviceViewport;
 
@@ -49,13 +51,13 @@ base.exportTo('ui', function() {
     __proto__: base.EventTarget.prototype,
 
     set scale(scale) {
-      this.scale_ = scale;
+      this.worldPixelsPerDevicePixel_ = scale;
       this.updateScale_();
       this.didChange_();
     },
 
     get scale() {
-      return this.scale_;
+      return this.worldPixelsPerDevicePixel_;
     },
 
     // The area of the world that is visible by users, in world pixels
@@ -63,73 +65,38 @@ base.exportTo('ui', function() {
       return this.deviceViewport_;
     },
 
-    updateScale_: function() {
-      this.worldPixelsPerDevicePixel_ = this.scale_;
-      this.devicePixelsPerLayoutPixel_ = 1 / this.devicePixelRatio;
-
-      this.deviceWidth =
-          this.worldRect.width * this.worldPixelsPerDevicePixel_;
-      this.deviceHeight =
-          this.worldRect.height * this.worldPixelsPerDevicePixel_;
-
-      this.layoutRect = base.Rect.FromXYWH(
-          this.worldRect.x * this.devicePixelsPerLayoutPixel_,
-          this.worldRect.y * this.devicePixelsPerLayoutPixel_,
-          this.deviceWidth * this.devicePixelsPerLayoutPixel_,
-          this.deviceHeight * this.devicePixelsPerLayoutPixel_);
-      this.effectiveWorldRect = this.worldRect.clone().scale(this.scale_);
-
-      this.transformWorldToDevicePixels_ = mat2d.create();
-      this.transformDevicePixelsToWorld_ = mat2d.create();
-      this.updateTransform_();
+    updateBoxSize: function(canvas) {
+      var resizedCanvas = false;
+      if (canvas.width !== this.deviceWidth) {
+        canvas.width = this.deviceWidth * ui.RASTER_SCALE;
+        canvas.style.width = this.layoutRect_.width + 'px';
+        resizedCanvas = true;
+      }
+      if (canvas.height !== this.deviceHeight) {
+        canvas.height = this.deviceHeight * ui.RASTER_SCALE;
+        canvas.style.height = this.layoutRect_.height + 'px';
+        resizedCanvas = true;
+      }
+      return resizedCanvas;
     },
 
-    setWorldBBox: function(bbox, opt_padding) {
-      var worldRect = bbox.asRect();
-      var worldPad;
-      var padding;
-      if (opt_padding !== undefined) {
-        padding = opt_padding;
-      } else {
-        padding = DEFAULT_PAD_PERCENTAGE;
-      }
-      worldPad = Math.min(worldRect.width,
-                          worldRect.height) * padding;
-
-      worldRect = worldRect.enlarge(worldPad);
-      this.worldRect = worldRect;
+    setWorldworldRect: function(worldRect, opt_padding) {
+      this.setWorldRect_(worldRect, opt_padding);
       this.updateScale_();
-      this.updateTransform_();
       this.didChange_();
     },
 
-    updateTransform_: function() {
-      if (!this.transformWorldToDevicePixels_)
-        return;
-
-      mat2d.identity(this.transformWorldToDevicePixels_);
-      mat2d.translateXY(
-          this.transformWorldToDevicePixels_,
-          -this.worldRect.x, -this.worldRect.y);
-      mat2d.scaleXY(this.transformWorldToDevicePixels_,
-          this.worldPixelsPerDevicePixel_,
-          this.worldPixelsPerDevicePixel_);
-
-      mat2d.invert(this.transformDevicePixelsToWorld_,
-                   this.transformWorldToDevicePixels_);
+    layoutPixelsToWorldPixels: function(v) {
+      var tmp = this.layoutPixelsToDevicePixels(v);
+      return this.devicePixelsToWorldPixels(tmp);
     },
 
-    layoutPixelsToWorldPixels2: function(v) {
-      var tmp = this.layoutPixelsToDevicePixels2(v);
-      return this.devicePixelsToWorldPixels2(tmp);
-    },
-
-    layoutPixelsToDevicePixels2: function(v) {
+    layoutPixelsToDevicePixels: function(v) {
       var res = vec2.create();
-      return vec2.scale(res, v, 1 / this.devicePixelsPerLayoutPixel_);
+      return vec2.scale(res, v, this.devicePixelRatio);
     },
 
-    devicePixelsToWorldPixels2: function(v) {
+    devicePixelsToWorldPixels: function(v) {
       var res = vec2.create();
       vec2.transformMat2d(res, v, this.transformDevicePixelsToWorld_);
       return res;
@@ -152,6 +119,64 @@ base.exportTo('ui', function() {
 
     forceRedrawAll: function() {
       this.didChange_();
+    },
+
+    //-------------------------------------------
+
+    updateScale_: function() {
+      // Scale the world to the size selected by the user.
+      this.deviceWidth =
+          this.worldRect.width * this.worldPixelsPerDevicePixel_;
+      this.deviceHeight =
+          this.worldRect.height * this.worldPixelsPerDevicePixel_;
+
+      this.updateLayoutRect_();
+
+      this.transformWorldToDevicePixels_ = mat2d.create();
+      this.transformDevicePixelsToWorld_ = mat2d.create();
+      this.updateTransform_();
+    },
+
+    /** Adjust the scaled world box for Retina-like displays */
+    updateLayoutRect_: function() {
+      var devicePixelsPerLayoutPixel = 1 / this.devicePixelRatio;
+      this.layoutRect_ = base.Rect.FromXYWH(
+          this.worldRect.x * devicePixelsPerLayoutPixel,
+          this.worldRect.y * devicePixelsPerLayoutPixel,
+          this.deviceWidth * devicePixelsPerLayoutPixel,
+          this.deviceHeight * devicePixelsPerLayoutPixel
+      );
+    },
+
+    setWorldRect_: function(worldRect, opt_padding) {
+      var worldPad;
+      var padding;
+      if (opt_padding !== undefined) {
+        padding = opt_padding;
+      } else {
+        padding = DEFAULT_PAD_PERCENTAGE;
+      }
+      worldPad = Math.min(worldRect.width,
+                          worldRect.height) * padding;
+
+      worldRect = worldRect.enlarge(worldPad);
+      this.worldRect = worldRect;
+    },
+
+    updateTransform_: function() {
+      if (!this.transformWorldToDevicePixels_)
+        return;
+
+      mat2d.identity(this.transformWorldToDevicePixels_);
+      mat2d.translateXY(
+          this.transformWorldToDevicePixels_,
+          -this.worldRect.x, -this.worldRect.y);
+      mat2d.scaleXY(this.transformWorldToDevicePixels_,
+          this.worldPixelsPerDevicePixel_,
+          this.worldPixelsPerDevicePixel_);
+
+      mat2d.invert(this.transformDevicePixelsToWorld_,
+                   this.transformWorldToDevicePixels_);
     },
 
     didChange_: function() {

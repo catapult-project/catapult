@@ -15,25 +15,25 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     bbox.addXY(0, 0);
     bbox.addXY(4000, 2000);
 
-    var vp = new QuadViewViewport(bbox, 0.125, null, 0, 2);
+    var vp = new QuadViewViewport(bbox.asRect(), 0.125, null, 0, 2);
     assertEquals(500, vp.deviceWidth);
     assertEquals(250, vp.deviceHeight);
 
-    assertEquals(250, vp.layoutRect.width);
-    assertEquals(125, vp.layoutRect.height);
+    assertEquals(250, vp.layoutRect_.width);
+    assertEquals(125, vp.layoutRect_.height);
 
     // Top left.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(0, 0));
     assertEquals(0, tmp[0]);
     assertEquals(0, tmp[1]);
 
     // World center.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(125, 62.5));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(125, 62.5));
     assertEquals(2000, tmp[0]);
     assertEquals(1000, tmp[1]);
 
     // Bottom right.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(250, 125));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(250, 125));
     assertEquals(4000, tmp[0]);
     assertEquals(2000, tmp[1]);
   });
@@ -43,25 +43,25 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     bbox.addXY(0, 0);
     bbox.addXY(4000, 2000);
 
-    var vp = new QuadViewViewport(bbox, 0.125, null, 0.1, 2);
+    var vp = new QuadViewViewport(bbox.asRect(), 0.125, null, 0.1, 2);
     assertEquals(550, vp.deviceWidth);
     assertEquals(300, vp.deviceHeight);
 
-    assertEquals(275, vp.layoutRect.width);
-    assertEquals(150, vp.layoutRect.height);
+    assertEquals(275, vp.layoutRect_.width);
+    assertEquals(150, vp.layoutRect_.height);
 
     // Top left.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(0, 0));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(0, 0));
     assertEquals(-200, tmp[0]);
     assertEquals(-200, tmp[1]);
 
     // World center.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(137.5, 75));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(137.5, 75));
     assertEquals(2000, tmp[0]);
     assertEquals(1000, tmp[1]);
 
     // Bottom right.
-    var tmp = vp.layoutPixelsToWorldPixels2(vec2.createXY(275, 150));
+    var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(275, 150));
     assertEquals(4200, tmp[0]);
     assertEquals(2200, tmp[1]);
   });

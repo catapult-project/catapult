@@ -320,8 +320,9 @@ base.exportTo('cc', function() {
         this.appendQuadsForSelection_(
             quads, layerTreeImpl, this.selection_, i);
 
+      var allLayersRect = lthiInstance.allLayersBBox.asRect();
       var viewport = new ui.QuadViewViewport(
-          lthiInstance.allLayersBBox, this.scale_, lthi.deviceViewportSize);
+          allLayersRect, this.scale_, lthi.deviceViewportSize);
 
       this.quadStack_.setQuadsAndViewport(quads, viewport);
     },
