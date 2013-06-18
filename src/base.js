@@ -167,6 +167,24 @@ this.base = (function() {
     delete base.addModuleDependency;
   }
 
+  // TODO(dsinclair): Remove this when HTML imports land as the templates
+  // will be pulled in by the requireTemplate calls.
+  var templatesLoaded_ = false;
+  function ensureTemplatesLoaded() {
+    if (templatesLoaded_)
+      return;
+    templatesLoaded_ = true;
+
+    var req = new XMLHttpRequest();
+    req.open('GET', '/templates', false);
+    req.send(null);
+
+    var elem = document.createElement('div');
+    elem.innerHTML = req.responseText;
+    while (elem.hasChildNodes())
+      document.head.appendChild(elem.removeChild(elem.firstChild));
+  }
+
   var moduleLoadStatus = {};
   var rawScriptLoadStatus = {};
   function require(modules, opt_indentLevel) {
@@ -176,6 +194,7 @@ this.base = (function() {
       dependentModules = [modules];
 
     ensureDepsLoaded();
+    ensureTemplatesLoaded();
 
     dependentModules.forEach(function(module) {
       requireModule(module, indentLevel);
@@ -233,7 +252,7 @@ this.base = (function() {
 
   function loadScript(path) {
     var scriptEl = document.createElement('script');
-    scriptEl.src = moduleBasePath + '/' + path; // + '?' + new Date().getTime();
+    scriptEl.src = moduleBasePath + '/' + path;
     scriptEl.type = 'text/javascript';
     scriptEl.defer = true;
     scriptEl.async = false;
@@ -270,14 +289,33 @@ this.base = (function() {
     if (stylesheetLoadStatus[dependentStylesheetName])
       return;
     stylesheetLoadStatus[dependentStylesheetName] = true;
+
     var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
-    var stylesheetPath = moduleBasePath + '/' + localPath + '?' +
-        (new Date().getTime());
+    var stylesheetPath = moduleBasePath + '/' + localPath;
 
     var linkEl = document.createElement('link');
     linkEl.setAttribute('rel', 'stylesheet');
     linkEl.setAttribute('href', stylesheetPath);
     base.doc.head.appendChild(linkEl);
+  }
+
+  var templateLoadStatus = {};
+  function requireTemplate(template) {
+    if (window.FLATTENED)
+      return;
+
+    if (templateLoadStatus[template])
+      return;
+    templateLoadStatus[template] = true;
+
+    var localPath = template.replace(/\./g, '/') + '.html';
+    var importPath = moduleBasePath + '/' + localPath;
+
+    var linkEl = document.createElement('link');
+    linkEl.setAttribute('rel', 'import');
+    linkEl.setAttribute('href', importPath);
+    // TODO(dsinclair): Enable when HTML imports are available.
+    //base.doc.head.appendChild(linkEl);
   }
 
   function exportTo(namespace, fn) {
@@ -641,6 +679,10 @@ this.base = (function() {
     return F;
   }
 
+  function cloneTemplate(selector) {
+    return document.querySelector(selector).content.cloneNode(true);
+  }
+
   /**
    * Maps types to a given value.
    * @constructor
@@ -692,6 +734,7 @@ this.base = (function() {
     require: require,
     requireStylesheet: requireStylesheet,
     requireRawScript: requireRawScript,
+    requireTemplate: requireTemplate,
     exportTo: exportTo,
 
     addSingletonGetter: addSingletonGetter,
@@ -709,7 +752,8 @@ this.base = (function() {
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
     TypeMap: TypeMap,
     tracedFunction: tracedFunction,
-    normalizeException: normalizeException
+    normalizeException: normalizeException,
+    cloneTemplate: cloneTemplate
   };
 })();
 

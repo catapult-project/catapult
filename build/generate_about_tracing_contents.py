@@ -7,6 +7,9 @@ import parse_deps
 import sys
 import os
 
+import generate_template_contents as template_generator
+from generate_template_contents import generate_templates
+
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
 html_warning_message = """
@@ -41,6 +44,7 @@ def generate_html():
 
   assert template.find("<WARNING_MESSAGE></WARNING_MESSAGE>") != -1
   assert template.find("<STYLE_SHEET_CONTENTS></STYLE_SHEET_CONTENTS>") != -1
+  assert template.find("<TEMPLATE_CONTENTS></TEMPLATE_CONTENTS>") != -1
 
   filenames = [os.path.join(srcdir, x) for x in ["base.js", "about_tracing/profiling_view.js"]]
   filenames = [os.path.relpath(x, srcdir) for x in filenames]
@@ -54,9 +58,15 @@ def generate_html():
       link_tag = """<link rel="stylesheet" href="%s">\n""" % rel_filename
       style_sheet_contents += link_tag
 
+  template_contents = generate_templates()
+
   result = template
-  result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>", html_warning_message)
-  result = result.replace("<STYLE_SHEET_CONTENTS></STYLE_SHEET_CONTENTS>", style_sheet_contents)
+  result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>",
+      html_warning_message)
+  result = result.replace("<STYLE_SHEET_CONTENTS></STYLE_SHEET_CONTENTS>",
+      style_sheet_contents)
+  result = result.replace("<TEMPLATE_CONTENTS></TEMPLATE_CONTENTS>",
+      template_contents)
 
   return result
 

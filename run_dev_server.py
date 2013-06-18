@@ -9,6 +9,7 @@ import sys
 import time
 import traceback
 from build import generate_deps_js_contents as deps_generator
+from build import generate_template_contents as template_generator
 
 import SocketServer
 import SimpleHTTPServer
@@ -99,6 +100,15 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(self.server.deps)
 
+  def do_GET_templates(self):
+    templates = template_generator.generate_templates()
+
+    self.send_response(200)
+    self.send_header('Content-Type', 'text/html')
+    self.send_header('Content-Length', len(templates))
+    self.end_headers()
+    self.wfile.write(templates)
+
   def do_GET(self):
     if self.path == '/json/examples':
       self.do_GET_example_files()
@@ -106,6 +116,10 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     if self.path == '/json/tests':
       self.do_GET_json_tests()
+      return
+
+    if self.path == '/templates':
+      self.do_GET_templates()
       return
 
     if self.path == '/deps.js':

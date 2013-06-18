@@ -2,10 +2,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import base64
 import optparse
 import parse_deps
 import sys
 import os
+
+from generate_template_contents import generate_templates
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -50,7 +53,7 @@ def _sopen(filename, mode):
 
 def _get_input_filenames():
   return [os.path.join(srcdir, f)
-          for f in ['base.js', 'timeline_view.js']]
+          for f in ['base.js', 'tracing/timeline_view.js']]
 
 def generate_css():
   filenames = _get_input_filenames()
@@ -67,11 +70,22 @@ def generate_js():
   filenames = _get_input_filenames()
   load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
 
+
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
 
   for module in load_sequence:
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
+
+  html_encoded = base64.b64encode(generate_templates())
+  js_chunks.append("var templateData_ = window.atob('" +
+                   html_encoded + "');\n");
+  js_chunks.append("var templateElem_ = document.createElement('div');\n");
+  js_chunks.append("templateElem_.innerHTML = templateData_;\n");
+  js_chunks.append("while (templateElem_.hasChildNodes()) {\n");
+  js_chunks.append("  document.head.appendChild(" +
+                   "templateElem_.removeChild(templateElem_.firstChild));\n");
+  js_chunks.append("}\n\n");
 
   for module in load_sequence:
     js_chunks.append(module.contents)
@@ -84,8 +98,8 @@ def main(args):
     usage="%prog --js=<filename> --css=<filename>",
     epilog="""
 A script to takes all of the javascript and css files that comprise trace-viewer
-and merges them together into two giant js and css files, taking into account various
-ordering restrictions between them.
+and merges them together into two giant js and css files, taking into account
+various ordering restrictions between them.
 """)
   parser.add_option("--js", dest="js_file",
                     help="Where to place generated javascript file")
@@ -94,7 +108,8 @@ ordering restrictions between them.
   options, args = parser.parse_args(args)
 
   if not options.js_file and not options.css_file:
-    sys.stderr.write("ERROR: Must specify one or both of --js=<filename> or --css=<filename>\n\n")
+    sys.stderr.write("ERROR: Must specify one of --js=<filename> or "
+        "--css=<filename>\n\n")
     parser.print_help()
     return 1
 
@@ -107,7 +122,6 @@ ordering restrictions between them.
       f.write(generate_css())
 
   return 0
-
 
 if __name__ == "__main__":
   sys.exit(main(sys.argv))
