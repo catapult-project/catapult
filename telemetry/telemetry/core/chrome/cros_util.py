@@ -18,14 +18,18 @@ def _SigninUIState(oobe):
   ''')
 
 def _IsCryptohomeMounted(cri):
+  """Returns True if a cryptohome vault is mounted at /home/chronos/user."""
   return cri.FilesystemMountedAt('/home/chronos/user').startswith(
       '/home/.shadow/')
+
+def _GetOobe(browser_backend):
+  return browser_backend.misc_web_contents_backend.GetOobe()
 
 def _HandleUserImageSelectionScreen(browser_backend):
   """If we're stuck on the user image selection screen, we click the ok button.
   TODO(achuith): Figure out a better way to bypass user image selection.
   crbug.com/249182."""
-  oobe = browser_backend.misc_web_contents_backend.GetOobe()
+  oobe = _GetOobe(browser_backend)
   if oobe:
     try:
       oobe.EvaluateJavaScript("""
@@ -38,9 +42,10 @@ def _HandleUserImageSelectionScreen(browser_backend):
       pass
 
 def _IsLoggedIn(browser_backend, cri):
-  """Returns true if we're logged in (cryptohome has mounted)."""
+  """Returns True if we're logged in (cryptohome has mounted), and the oobe has
+  been dismissed."""
   _HandleUserImageSelectionScreen(browser_backend)
-  return _IsCryptohomeMounted(cri)
+  return _IsCryptohomeMounted(cri) and not _GetOobe(browser_backend)
 
 def _ClickBrowseAsGuest(oobe):
   """Click the Browse As Guest button on the account picker screen. This will
@@ -75,7 +80,7 @@ def WaitForGuestFsMounted(cri):
 
 def NavigateGuestLogin(browser_backend, cri):
   """Navigates through oobe login screen as guest"""
-  oobe = browser_backend.misc_web_contents_backend.GetOobe()
+  oobe = _GetOobe(browser_backend)
   assert oobe
   WaitForAccountPicker(oobe)
   _ClickBrowseAsGuest(oobe)
