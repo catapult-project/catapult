@@ -359,7 +359,7 @@ this.base = (function() {
     var error;
     e.throwError = function(err) {  // workaround CR 239648
       error = err;
-    }
+    };
 
     target.dispatchEvent(e);
     if (error)
@@ -679,7 +679,7 @@ this.base = (function() {
     return F;
   }
 
-  function cloneTemplate(selector) {
+  function instantiateTemplate(selector) {
     return document.querySelector(selector).content.cloneNode(true);
   }
 
@@ -753,7 +753,7 @@ this.base = (function() {
     TypeMap: TypeMap,
     tracedFunction: tracedFunction,
     normalizeException: normalizeException,
-    cloneTemplate: cloneTemplate
+    instantiateTemplate: instantiateTemplate
   };
 })();
 
