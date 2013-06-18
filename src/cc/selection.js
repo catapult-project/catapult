@@ -100,8 +100,11 @@ base.exportTo('cc', function() {
     },
 
     findEquivalent: function(lthi) {
-      return lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
-        lthi.pendingTree.findLayerWithId(this.layer_.layerId);
+      var layer = lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
+          lthi.pendingTree.findLayerWithId(this.layer_.layerId);
+      if (!layer)
+        return undefined;
+      return new LayerSelection(layer);
     }
   };
 
@@ -142,7 +145,10 @@ base.exportTo('cc', function() {
       if (lthi.ts < tileInstance.creationTs ||
           lthi.ts >= tileInstance.deletionTs)
         return undefined;
-      return tileInstance.getSnapshotAt(lthi.ts);
+      var tileSnapshot = tileInstance.getSnapshotAt(lthi.ts);
+      if (!tileSnapshot)
+        return undefined;
+      return new TileSelection(tileSnapshot);
     }
   };
 
