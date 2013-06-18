@@ -47,3 +47,13 @@ class TestPageSet(unittest.TestCase):
     self.assertEquals('http://www.bar.com/', ps.pages[1].url)
     self.assertEquals('data_01.wpr', os.path.basename(ps.pages[0].archive_path))
     self.assertEquals('data_02.wpr', os.path.basename(ps.pages[1].archive_path))
+
+  def testDirectoryFilePath(self):
+    directory_path = tempfile.mkdtemp()
+    try:
+      ps = page_set.PageSet.FromDict({'pages': [{'url': 'file:///test.html'}]},
+                                     directory_path)
+    finally:
+      os.rmdir(directory_path)
+
+    self.assertEquals(ps[0].base_dir, directory_path)

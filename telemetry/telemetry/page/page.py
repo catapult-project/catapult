@@ -51,18 +51,16 @@ class Page(object):
     self.page_set = page_set
     self.base_dir = base_dir
 
-    # These _attributes can be set dynamically by the page.
-    self._attributes = {}
-    self._attributes['credentials'] = None
-    self._attributes['disabled'] = False
-    self._attributes['script_to_evaluate_on_commit'] = None
+    # These attributes can be set dynamically by the page.
+    self.credentials = None
+    self.disabled = False
+    self.script_to_evaluate_on_commit = None
+
     if attributes:
-      self._attributes.update(attributes)
+      for k, v in attributes.iteritems():
+        setattr(self, k, v)
 
   def __getattr__(self, name):
-    if name in self._attributes:
-      return self._attributes[name]
-
     if self.page_set and hasattr(self.page_set, name):
       return getattr(self.page_set, name)
 

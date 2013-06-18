@@ -133,9 +133,9 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
       else:
         self.AddFileToResourceMap(path)
 
-  def AddDirectoryToResourceMap(self, cwd):
-    """Loads all files in cwd into the in-memory resource map."""
-    for root, dirs, files in os.walk(cwd):
+  def AddDirectoryToResourceMap(self, directory_path):
+    """Loads all files in directory_path into the in-memory resource map."""
+    for root, dirs, files in os.walk(directory_path):
       # Skip hidden files and folders (like .svn and .git).
       files = [f for f in files if f[0] != '.']
       dirs[:] = [d for d in dirs if d[0] != '.']

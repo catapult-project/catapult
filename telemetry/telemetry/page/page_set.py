@@ -24,7 +24,10 @@ class PageSet(object):
     self.pages = []
 
     if self.archive_data_file:
-      base_dir = os.path.dirname(file_path)
+      if os.path.isdir(file_path):
+        base_dir = file_path
+      else:
+        base_dir = os.path.dirname(file_path)
       self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
           os.path.join(base_dir, self.archive_data_file), file_path)
     else:
@@ -40,10 +43,14 @@ class PageSet(object):
   @classmethod
   def FromDict(cls, data, file_path):
     page_set = cls(file_path, data)
+    if os.path.isdir(file_path):
+      base_dir = file_path
+    else:
+      base_dir = os.path.dirname(file_path)
     for page_attributes in data['pages']:
       url = page_attributes.pop('url')
       page = page_module.Page(url, page_set, attributes=page_attributes,
-                              base_dir=os.path.dirname(file_path))
+                              base_dir=base_dir)
       page_set.pages.append(page)
     return page_set
 
