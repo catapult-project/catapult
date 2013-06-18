@@ -99,7 +99,9 @@ base.exportTo('cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      webkitRequestAnimationFrame(this.updateContents_.bind(this));
+      base.requestAnimationFrameInThisFrameIfPossible(
+          this.updateContents_.bind(this)
+      );
     },
 
     updateContents_: function() {
