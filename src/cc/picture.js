@@ -99,9 +99,9 @@ base.exportTo('cc', function() {
 
       this.rasterStatus_ = RASTER_SUCCEEDED;
       this.rasterResult_ = {
-          width: res.width,
-          height: res.height,
-          data: new Uint8ClampedArray(res.data)
+        width: res.width,
+        height: res.height,
+        data: new Uint8ClampedArray(res.data)
       };
     },
 
@@ -129,7 +129,7 @@ base.exportTo('cc', function() {
         return;
       }
       var rd = this.rasterResult_;
-      
+
       var helperCanvas = document.createElement('canvas');
       helperCanvas.width = rd.width;
       helperCanvas.height = rd.height;

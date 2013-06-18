@@ -45,8 +45,10 @@ base.unittest.testSuite('about_tracing.tracing_controller', function() {
     },
 
     send: function(msg, args) {
-      this.sends.push({msg: msg,
-                       args: args});
+      this.sends.push({
+        msg: msg,
+        args: args
+      });
     },
 
     get numSends() {
@@ -59,7 +61,7 @@ base.unittest.testSuite('about_tracing.tracing_controller', function() {
 
     getArgs: function(i) {
       return this.sends[i].args;
-    },
+    }
   };
 
   test('saveTraceFile', function() {
