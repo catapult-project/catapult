@@ -8,7 +8,6 @@ import sys
 import tempfile
 import time
 
-from telemetry.core import browser_finder
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import wpr_modes
@@ -16,7 +15,7 @@ from telemetry.page import page_measurement
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
-from telemetry.page import page_test_results
+
 
 class RecordPage(page_test.PageTest):
   def __init__(self, measurements):
@@ -66,10 +65,11 @@ def Main(measurement_dir):
                                         page_measurement.PageMeasurement)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
-  page_runner.PageRunner.AddCommandLineOptions(parser)
+  page_runner.AddCommandLineOptions(parser)
 
   recorder = RecordPage(measurements)
   recorder.AddCommandLineOptions(parser)
+  recorder.AddOutputOptions(parser)
 
   _, args = parser.parse_args()
 
@@ -86,14 +86,7 @@ def Main(measurement_dir):
   # Do the actual recording.
   options.wpr_mode = wpr_modes.WPR_RECORD
   recorder.CustomizeBrowserOptions(options)
-  possible_browser = browser_finder.FindBrowser(options)
-  if not possible_browser:
-    print >> sys.stderr, """No browser found.\n
-Use --browser=list to figure out which are available.\n"""
-    sys.exit(1)
-  results = page_test_results.PageTestResults()
-  with page_runner.PageRunner(ps) as runner:
-    runner.Run(options, possible_browser, recorder, results)
+  results = page_runner.Run(recorder, ps, options)
 
   if results.errors or results.failures:
     logging.warning('Some pages failed. The recording has not been updated for '
