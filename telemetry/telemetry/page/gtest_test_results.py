@@ -54,6 +54,7 @@ class GTestTestResults(page_test_results.PageTestResults):
     test_name = GTestTestResults._formatTestname(test)
     print '[       OK ]', test_name, '(%0.f ms)' % self._GetMs()
     sys.stdout.flush()
+    super(GTestTestResults, self).addSuccess(test)
 
   def PrintSummary(self):
     unit = 'test' if self.num_successes == 1 else 'tests'
