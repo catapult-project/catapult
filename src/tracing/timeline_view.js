@@ -9,6 +9,7 @@
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
 base.requireStylesheet('tracing.timeline_view');
+base.requireTemplate('tracing.timeline_view');
 
 base.require('base.settings');
 base.require('tracing.analysis.analysis_view');
@@ -35,54 +36,37 @@ base.exportTo('tracing', function() {
     decorate: function() {
       this.classList.add('timeline-view');
 
-      // Create individual elements.
-      this.titleEl_ = document.createElement('div');
-      this.titleEl_.textContent = '^_^';
-      this.titleEl_.className = 'title';
+      var node = base.instantiateTemplate('#timeline-view-template');
+      this.appendChild(node);
 
-      this.controlDiv_ = document.createElement('div');
-      this.controlDiv_.className = 'control';
+      this.titleEl_ = this.querySelector('.title');
+      this.leftControlsEl_ = this.querySelector('#left-controls');
+      this.rightControlsEl_ = this.querySelector('#right-controls');
+      this.timelineContainer_ = this.querySelector('.container');
 
-      this.leftControlsEl_ = document.createElement('div');
-      this.leftControlsEl_.className = 'controls';
-      this.rightControlsEl_ = document.createElement('div');
-      this.rightControlsEl_.className = 'controls category-filter';
+      this.categoryFilterButton_ = this.createCategoryFilterButton_();
+      this.categoryFilterButton_.callback =
+          this.updateCategoryFilter_.bind(this);
 
-      this.timelineContainer_ = document.createElement('div');
-      this.timelineContainer_.className = 'container';
+      this.findCtl_ = new tracing.FindControl();
+      this.findCtl_.controller = new tracing.FindController();
+
+      this.rightControls.appendChild(this.createTrackSelectorButton_());
+      this.rightControls.appendChild(this.createImportErrorsButton_());
+      this.rightControls.appendChild(this.categoryFilterButton_);
+      this.rightControls.appendChild(this.createMetadataButton_());
+      this.rightControls.appendChild(this.findCtl_);
+      this.rightControls.appendChild(this.createHelpButton_());
+
+      this.dragEl_ = new ui.DragHandle();
+      this.dragEl_.target = this.analysisEl_;
+      this.appendChild(this.dragEl_);
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
       this.analysisEl_.addEventListener(
           'requestSelectionChange',
           this.onRequestSelectionChange_.bind(this));
-
-      this.dragEl_ = new ui.DragHandle();
-      this.dragEl_.target = this.analysisEl_;
-
-      this.findCtl_ = new tracing.FindControl();
-      this.findCtl_.controller = new tracing.FindController();
-
-      this.importErrorsButton_ = this.createImportErrorsButton_();
-      this.categoryFilterButton_ = this.createCategoryFilterButton_();
-      this.metadataButton_ = this.createMetadataButton_();
-
-      // Connect everything up.
-      this.rightControls.appendChild(this.createTrackSelectorButton_());
-      this.rightControls.appendChild(this.importErrorsButton_);
-      this.rightControls.appendChild(this.categoryFilterButton_);
-      this.rightControls.appendChild(this.metadataButton_);
-      this.rightControls.appendChild(this.findCtl_);
-      this.controlDiv_.appendChild(this.leftControlsEl_);
-      this.controlDiv_.appendChild(this.titleEl_);
-      this.controlDiv_.appendChild(this.rightControlsEl_);
-      this.appendChild(this.controlDiv_);
-
-      this.appendChild(this.timelineContainer_);
-      this.appendChild(this.dragEl_);
-
       this.appendChild(this.analysisEl_);
-
-      this.rightControls.appendChild(this.createHelpButton_());
 
       // Bookkeeping.
       this.onSelectionChangedBoundToThis_ = this.onSelectionChanged_.bind(this);
@@ -92,60 +76,44 @@ base.exportTo('tracing', function() {
     },
 
     createTrackSelectorButton_: function() {
-      var anchor = document.createElement('div');
-      anchor.className = 'track-selector-anchor';
-
-      var button = document.createElement('button');
-      button.className = 'button track-selector-button track-selector-closed';
-      button.textContent = 'Track Selector';
-      anchor.appendChild(button);
+      var node = base.instantiateTemplate('#track-selector-btn-template');
+      var anchor = node.querySelector('.track-selector-anchor');
+      var button = node.querySelector('.track-selector-button');
 
       button.addEventListener('click', function(event) {
         button.classList.toggle('track-selector-closed');
       }.bind(this));
 
-      this.trackSelector_ = anchor.appendChild(
-          new tracing.tracks.TrackSelector());
+      this.trackSelector_ =
+          anchor.appendChild(new tracing.tracks.TrackSelector());
 
-      return anchor;
+      return node;
     },
 
     createImportErrorsButton_: function() {
+      var node = base.instantiateTemplate('#import-errors-btn-template');
+      var showEl = node.querySelector('.view-import-errors-button');
+      var containerEl = node.querySelector('.info-button-container');
+      var textEl = containerEl.querySelector('.info-button-text');
+
       var dlg = new ui.Overlay();
       dlg.classList.add('view-import-errors-overlay');
       dlg.autoClose = true;
-
-      var showEl = document.createElement('div');
-      showEl.className = 'button view-import-errors-button view-info-button';
-      showEl.textContent = 'Import errors!';
-
-      var textEl = document.createElement('div');
-      textEl.className = 'info-button-text import-errors-dialog-text';
-
-      var containerEl = document.createElement('div');
-      containerEl.className = 'info-button-container' +
-          'import-errors-dialog';
-
-      containerEl.textContent = 'Errors occurred during import:';
-      containerEl.appendChild(textEl);
       dlg.appendChild(containerEl);
 
-      var that = this;
       function onClick() {
         dlg.visible = true;
-        textEl.textContent = that.model.importErrors.join('\n');
+        textEl.textContent = this.model.importErrors.join('\n');
       }
       showEl.addEventListener('click', onClick.bind(this));
 
       function updateVisibility() {
-        if (that.model &&
-            that.model.importErrors.length)
-          showEl.style.display = '';
-        else
-          showEl.style.display = 'none';
+        showEl.style.display =
+            (this.model && this.model.importErrors.length) ? '' : 'none';
       }
-      updateVisibility();
-      that.addEventListener('modelChange', updateVisibility);
+      var updateVisibility_ = updateVisibility.bind(this);
+      updateVisibility_();
+      this.addEventListener('modelChange', updateVisibility_);
 
       return showEl;
     },
@@ -157,9 +125,8 @@ base.exportTo('tracing', function() {
     },
 
     createCategoryFilterButton_: function() {
-      var showEl = document.createElement('div');
-      showEl.className = 'button view-info-button';
-      showEl.textContent = 'Categories';
+      var node = base.instantiateTemplate('#category-filter-btn-template');
+      var showEl = node.querySelector('.view-info-button');
 
       function onClick() {
         var dlg = new tracing.CategoryFilterDialog();
@@ -168,81 +135,66 @@ base.exportTo('tracing', function() {
         dlg.settingUpdatedCallback = this.updateCategoryFilter_.bind(this);
         dlg.visible = true;
       }
-
-      var that = this;
-      function updateVisibility() {
-        showEl.style.display = that.model ? '' : 'none';
-      }
-      updateVisibility();
-      this.addEventListener('modelChange', updateVisibility);
-
       showEl.addEventListener('click', onClick.bind(this));
+
+      function updateVisibility() {
+        showEl.style.display = this.model ? '' : 'none';
+      }
+      var updateVisibility_ = updateVisibility.bind(this);
+      updateVisibility_();
+      this.addEventListener('modelChange', updateVisibility_);
+
       return showEl;
     },
 
     createHelpButton_: function() {
+      var node = base.instantiateTemplate('#help-btn-template');
+      var showEl = node.querySelector('.view-help-button');
+      var helpTextEl = node.querySelector('.view-help-text');
+
       var dlg = new ui.Overlay();
       dlg.classList.add('view-help-overlay');
       dlg.autoClose = true;
       dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
-
-      var showEl = document.createElement('div');
-      showEl.className = 'button view-help-button';
-      showEl.textContent = '?';
-
-      var helpTextEl = document.createElement('div');
-      helpTextEl.style.whiteSpace = 'pre';
-      helpTextEl.style.fontFamily = 'monospace';
       dlg.appendChild(helpTextEl);
 
       function onClick(e) {
         dlg.visible = true;
-        if (this.timeline_)
-          helpTextEl.textContent = this.timeline_.keyHelp;
-        else
-          helpTextEl.textContent = 'No content loaded. For interesting help,' +
-              ' load something.';
+
+        helpTextEl.textContent = this.timeline_ ? this.timeline_.keyHelp :
+            'No content loaded. For interesting help, load something.';
 
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
         return false;
       }
-
       showEl.addEventListener('click', onClick.bind(this));
 
       return showEl;
     },
 
     createMetadataButton_: function() {
+      var node = base.instantiateTemplate('#metadata-btn-template');
+      var showEl = node.querySelector('.view-metadata-button');
+      var containerEl = node.querySelector('.info-button-container');
+      var textEl = containerEl.querySelector('.info-button-text');
+
       var dlg = new ui.Overlay();
       dlg.classList.add('view-metadata-overlay');
       dlg.autoClose = true;
-
-      var showEl = document.createElement('div');
-      showEl.className = 'button view-metadata-button view-info-button';
-      showEl.textContent = 'Metadata';
-
-      var textEl = document.createElement('div');
-      textEl.className = 'info-button-text metadata-dialog-text';
-
-      var containerEl = document.createElement('div');
-      containerEl.className = 'info-button-container metadata-dialog';
-
-      containerEl.textContent = 'Metadata Info:';
-      containerEl.appendChild(textEl);
       dlg.appendChild(containerEl);
 
-      var that = this;
       function onClick() {
         dlg.visible = true;
 
         var metadataStrings = [];
 
-        var model = that.model;
+        var model = this.model;
         for (var data in model.metadata) {
           var meta = model.metadata[data];
           var name = JSON.stringify(meta.name);
           var value = JSON.stringify(meta.value, undefined, ' ');
+
           metadataStrings.push(name + ': ' + value);
         }
         textEl.textContent = metadataStrings.join('\n');
@@ -250,14 +202,12 @@ base.exportTo('tracing', function() {
       showEl.addEventListener('click', onClick.bind(this));
 
       function updateVisibility() {
-        if (that.model &&
-            that.model.metadata.length)
-          showEl.style.display = '';
-        else
-          showEl.style.display = 'none';
+        showEl.style.display =
+            (this.model && this.model.metadata.length) ? '' : 'none';
       }
-      updateVisibility();
-      that.addEventListener('modelChange', updateVisibility);
+      var updateVisibility_ = updateVisibility.bind(this);
+      updateVisibility_();
+      this.addEventListener('modelChange', updateVisibility_);
 
       return showEl;
     },

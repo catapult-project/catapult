@@ -1,0 +1,52 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="timeline-view-template">
+  <div class="control">
+    <div id="left-controls" class="controls"></div>
+    <div class="title">^_^</div>
+    <div id="right-controls" class="controls category-filter"></div>
+  </div>
+  <div class="container"></div>
+</template>
+
+<template id="track-selector-btn-template">
+  <div class="track-selector-anchor">
+    <button class="button track-selector-button track-selector-closed">
+      Track Selector
+    </button>
+  </div>
+</template>
+
+<template id="import-errors-btn-template">
+  <div class="button view-import-errors-button view-info-button">
+    Import errors!
+  </div>
+  <div class="info-button-container import-errors-dialog">
+    Errors occurred during import:
+    <div class="info-button-text import-errors-dialog-text"></div>
+  </div>
+</template>
+
+<template id="category-filter-btn-template">
+  <div class="button view-info-button">Categories</div>
+</template>
+
+<template id="help-btn-template">
+  <div class="button view-help-button">?</div>
+  <div class="view-help-text"
+      style="white-space: pre; font-family: monospace"></div>
+</template>
+
+<template id="metadata-btn-template">
+  <div class="button view-metadata-button view-info-button">
+    Metadata
+  </div>
+  <div class="info-button-container metadata-dialog">
+    Metadata Info:
+    <div class="info-button-text metadata-dialog-text"></div>
+  </div>
+</template>
