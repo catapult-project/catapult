@@ -76,11 +76,9 @@ base.exportTo('tracing', function() {
       this.settings_ = s;
 
       this.continuousTracingBn_.checked =
-          this.settings_.get('continuousTracing',
-              true, 'record_dlg');
+          this.settings_.get('continuousTracing', true, 'record_dlg');
       this.systemTracingBn_.checked =
-          this.settings_.get('systemTracing',
-              false, 'record_dlg');
+          this.settings_.get('systemTracing', false, 'record_dlg');
     },
 
     set recordCallback(cb) {
@@ -183,7 +181,7 @@ base.exportTo('tracing', function() {
         inputEl.onclick = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');
-        labelEl.textContent = category;
+        labelEl.textContent = category.replace('disabled-by-default-', '');
         labelEl.setAttribute('for', category);
 
         var divEl = document.createElement('div');

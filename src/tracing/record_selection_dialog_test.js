@@ -36,7 +36,7 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     assertEquals(3, labels.length);
     assertEquals('three', labels[0].textContent);
     assertEquals('two', labels[1].textContent);
-    assertEquals('disabled-by-default-one', labels[2].textContent);
+    assertEquals('one', labels[2].textContent);
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
@@ -68,7 +68,7 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     assertEquals(3, labels.length);
     assertEquals('three', labels[0].textContent);
     assertEquals('two', labels[1].textContent);
-    assertEquals('disabled-by-default-one', labels[2].textContent);
+    assertEquals('one', labels[2].textContent);
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
