@@ -6,6 +6,9 @@
 layer-viewer {
   -webkit-flex-direction: column;
   display: -webkit-flex;
+  left: 0;
+  position: relative;
+  top: 0;
 }
 
 layer-viewer > top-controls {
@@ -32,4 +35,11 @@ layer-viewer > layer-viewer-analysis {
 
 .labeled-checkbox {
   white-space: nowrap;
+}
+
+.camera-debug-indicator {
+  left: 0;
+  position: absolute;
+  top:  0;
+  z-index: 11;
 }

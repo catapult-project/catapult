@@ -36,13 +36,13 @@ base.exportTo('ui', function() {
       this.appendChild(this.contentContainer_);
       this.viewport_ = undefined;
       this.quads_ = undefined;
+      this.debug_ = false;
     },
 
     setQuadsAndViewport: function(quads, viewport) {
       validateQuads(quads);
       this.quads_ = quads;
-      this.viewport_ = viewport;
-      this.updateContents_();
+      this.viewport = viewport;
     },
 
     get quads() {
@@ -61,11 +61,27 @@ base.exportTo('ui', function() {
 
     set viewport(viewport) {
       this.viewport_ = viewport;
+
+      if (this.debug) {
+        this.viewport_.addEventListener('change', function() {
+          this.updateDebugIndicator_();
+        }.bind(this));
+      }
+
       this.updateContents_();
     },
 
     get contentContainer() {
       return this.contentContainer_;
+    },
+
+    get debug() {
+      return this.debug_;
+    },
+
+    set debug(debug) {
+      this.debug_ = debug;
+      this.updateDebugIndicator_();
     },
 
     updateContents_: function() {
@@ -150,6 +166,22 @@ base.exportTo('ui', function() {
       }
 
       this.layers = this.contentContainer_.children;
+    },
+
+    updateDebugIndicator_: function() {
+      this.indicatorCanvas_ = this.indicatorCanvas_ ||
+        document.createElement('canvas');
+      this.indicatorCanvas_.className = 'quad-stack-debug-indicator';
+      this.contentContainer_.appendChild(this.indicatorCanvas_);
+
+      var resizedCanvas = this.viewport_.updateBoxSize(this.indicatorCanvas_);
+      var ctx = this.indicatorCanvas_.getContext('2d');
+      ctx.fillStyle = 'red';
+      ctx.fontStyle = '30px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('X', this.indicatorCanvas_.width / 2,
+          this.indicatorCanvas_.height / 2);
     }
 
   };
