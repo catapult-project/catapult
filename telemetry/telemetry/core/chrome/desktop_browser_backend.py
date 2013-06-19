@@ -10,14 +10,12 @@ import tempfile
 
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
-from telemetry.core.chrome import cros_interface
-from telemetry.core.chrome import cros_util
 
 class DesktopBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """
-  def __init__(self, options, executable, is_content_shell, use_login,
+  def __init__(self, options, executable, is_content_shell,
                delete_profile_dir_after_run=True):
     super(DesktopBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
@@ -28,8 +26,6 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self._proc = None
     self._tmpdir = None
     self._tmp_output_file = None
-
-    self._use_login = use_login
 
     self._executable = executable
     if not self._executable:
@@ -51,10 +47,6 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       self.Close()
       self._supports_net_benchmarking = False
       self._LaunchBrowser(options)
-
-    # TODO(achuith): Remove this (crbug.com/249480)
-    if self._use_login:
-      cros_util.NavigateLogin(self, cros_interface.CrOSInterface())
 
   def _LaunchBrowser(self, options):
     args = [self._executable]
@@ -92,11 +84,6 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
           shutil.rmtree(self._tmpdir)
           shutil.copytree(profile_dir, self._tmpdir)
         args.append('--user-data-dir=%s' % self._tmpdir)
-      if self._use_login:
-        ext_path = os.path.join(os.path.dirname(__file__), 'chromeos_login_ext')
-        args.extend(['--login-manager', '--login-profile=user',
-                     '--stub-cros', '--login-screen=login',
-                     '--auth-ext-path=%s' % ext_path])
     return args
 
   def SetProfileDirectory(self, profile_dir):
