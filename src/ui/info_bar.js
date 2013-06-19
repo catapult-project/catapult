@@ -18,10 +18,8 @@ base.exportTo('ui', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.messageEl_ = ui.createSpan();
-      this.messageEl_.className = 'message';
-      this.buttonsEl_ = ui.createSpan();
-      this.buttonsEl_.className = 'buttons';
+      this.messageEl_ = ui.createSpan({className: 'message'});
+      this.buttonsEl_ = ui.createSpan({className: 'buttons'});
 
       this.appendChild(this.messageEl_);
       this.appendChild(this.buttonsEl_);

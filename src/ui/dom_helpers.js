@@ -9,11 +9,28 @@ base.require('base.settings');
 
 base.exportTo('ui', function() {
 
-  function createSpan(opt_text) {
+  function createSpan(opt_dictionary) {
     var spanEl = document.createElement('span');
-    if (opt_text)
-      spanEl.textContent = opt_text;
+    if (opt_dictionary) {
+      if (opt_dictionary.className)
+        spanEl.className = opt_dictionary.className;
+      if (opt_dictionary.textContent)
+          spanEl.textContent = opt_dictionary.textContent;
+      if (opt_dictionary.parent)
+          opt_dictionary.parent.appendChild(spanEl);
+    }
     return spanEl;
+  };
+
+  function createDiv(opt_dictionary) {
+    var divEl = document.createElement('div');
+    if (opt_dictionary) {
+      if (opt_dictionary.className)
+        divEl.className = opt_dictionary.className;
+      if (opt_dictionary.parent)
+        opt_dictionary.parent.appendChild(divEl);
+    }
+    return divEl;
   };
 
   function createSelector(
@@ -99,7 +116,7 @@ base.exportTo('ui', function() {
 
     var id = '#checkbox-' + nextCheckboxId++;
 
-    var spanEl = createSpan();
+    var spanEl = createSpan({className: 'labeled-checkbox'});
     buttonEl.setAttribute('id', id);
 
     var labelEl = document.createElement('label');
@@ -116,13 +133,12 @@ base.exportTo('ui', function() {
       return buttonEl.checked;
     });
 
-    spanEl.className = 'labeled-checkbox';
-
     return spanEl;
   }
 
   return {
     createSpan: createSpan,
+    createDiv: createDiv,
     createSelector: createSelector,
     createCheckBox: createCheckBox
   };
