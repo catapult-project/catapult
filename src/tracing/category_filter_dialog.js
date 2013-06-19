@@ -8,8 +8,11 @@
  * @fileoverview CategoryFilterButton extracts categories from the model
  * and shows/hides them based on settings.
  */
+base.requireTemplate('tracing.category_filter_dialog');
+
 base.require('tracing.filter');
 base.require('ui.overlay');
+
 base.exportTo('tracing', function() {
 
   var CategoryFilterDialog = ui.define('div');
@@ -23,18 +26,12 @@ base.exportTo('tracing', function() {
       this.className = 'view-category-filter-overlay';
       this.autoClose = true;
 
-      var containerEl = document.createElement('div');
-      containerEl.className = 'category-filter-dialog';
-      containerEl.textContent = 'Select active categories:';
+      var node =
+          base.instantiateTemplate('#view-category-filter-dialog-template');
+      this.appendChild(node);
 
-      this.formEl_ = document.createElement('form');
-      this.formEl_.className = 'category-filter-dialog-form';
-      containerEl.appendChild(this.formEl_);
-      this.appendChild(containerEl);
-
-      this.categoriesEl_ = document.createElement('div');
-      this.categoriesEl_.className = 'categories';
-      this.formEl_.appendChild(this.categoriesEl_);
+      this.formEl_ = this.querySelector('form');
+      this.categoriesEl_ = this.querySelector('.categories');
 
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
