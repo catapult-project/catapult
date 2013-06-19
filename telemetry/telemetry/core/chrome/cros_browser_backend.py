@@ -133,11 +133,18 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             '--enable-threaded-compositing',
             '--enable-per-tile-painting',
             '--force-compositing-mode',
+            # Disables the start page, as well as other external apps that can
+            # steal focus or make measurements inconsistent.
+            '--disable-default-apps',
+            # Jump to the login screen, skipping network selection, eula, etc.
             '--login-screen=login',
+            # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
+            # Open a maximized window.
             '--start-maximized'])
 
     if not self._is_guest:
+      # This extension bypasses gaia and logs us in.
       args.append('--auth-ext-path=%s' % self._login_ext_dir)
 
     # Skip hwid check on systems that don't have a hwid set, eg VMs.
