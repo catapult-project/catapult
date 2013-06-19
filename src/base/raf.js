@@ -17,14 +17,18 @@ base.exportTo('base', function() {
     window.webkitRequestAnimationFrame(processRequests);
   }
 
+  function onAnimationFrameError(e) {
+    if (e.message)
+      console.error(e.message, e.stack);
+    else
+     console.error(e);
+  }
+
   function runTask(task) {
     try {
       task.callback.call(task.context);
     } catch (e) {
-      if (e.message)
-        console.error(e.message, e.stack);
-      else
-        console.error(e);
+      base.onAnimationFrameError(e);
     }
   }
 
@@ -68,6 +72,7 @@ base.exportTo('base', function() {
       context: opt_this || window});
   }
   return {
+    onAnimationFrameError: onAnimationFrameError,
     requestPreAnimationFrame: requestPreAnimationFrame,
     requestAnimationFrame: requestAnimationFrame,
     requestAnimationFrameInThisFrameIfPossible:

@@ -4,14 +4,30 @@
  */
 
 #test-harness h1 {
+  counter-reset: suite-count;
   margin-bottom: 0;
   margin-top: 0;
-
-  counter-reset: suite-count;
 }
 
 #stats {
   margin-bottom: 10px;
+}
+
+.exceptions {
+  display: none;
+}
+
+.exceptions[hasexceptions] {
+  display: block;
+}
+
+.exceptions:before {
+  content: 'Exceptions:';
+}
+
+.exceptions {
+  font-family: dejavu sans mono, monospace;
+  font-size: 11px;
 }
 
 #individual-tests {
@@ -32,8 +48,8 @@
 }
 
 .test-result {
-  padding: 5px;
   counter-increment: suite-count;
+  padding: 5px;
 }
 
 .test-result:before {
@@ -58,6 +74,11 @@
 
 .failed {
   color: darkred;
+  font-weight: bold;
+}
+
+.exception {
+  color: red;
   font-weight: bold;
 }
 

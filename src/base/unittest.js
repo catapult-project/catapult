@@ -30,6 +30,7 @@ base.exportTo('base.unittest', function() {
     this.stats_ = {
       tests: 0,
       failures: 0,
+      exceptions: [],
       duration: 0.0
     };
   }
@@ -93,13 +94,35 @@ base.exportTo('base.unittest', function() {
       }.bind(this), 1);
     },
 
+    onAnimationFrameError: function(e) {
+      if (e.message)
+        console.error(e.message, e.stack);
+      else
+        console.error(e);
+
+      this.stats_.exceptions.push(e);
+      this.appendException(e);
+      this.updateStats_();
+    },
+
     updateStats_: function() {
       var statEl = document.querySelector('#stats');
       statEl.innerHTML =
           this.suites_.length + ' suites, ' +
           '<span class="passed">' + this.stats_.tests + '</span> tests, ' +
-          '<span class="failed">' + this.stats_.failures + '</span> failures,' +
+          '<span class="failed">' + this.stats_.failures +
+          '</span> failures, ' +
+          '<span class="exception">' + this.stats_.exceptions.length +
+          '</span> exceptions,' +
           ' in ' + this.stats_.duration + 'ms.';
+    },
+
+    appendException: function(exc) {
+      var exceptionsEl = document.querySelector('.exceptions');
+      exceptionsEl.setAttribute('hasExceptions', this.stats_.exceptions.length);
+      var excEl = document.createElement('li');
+      excEl.textContent = exc + '';
+      exceptionsEl.appendChild(excEl);
     }
   };
 
@@ -192,6 +215,8 @@ base.exportTo('base.unittest', function() {
         // Clear settings storage before each test.
         global.sessionStorage.clear();
         base.Settings.setAlternativeStorageInstance(global.sessionStorage);
+        base.onAnimationFrameError =
+            testRunner.onAnimationFrameError.bind(testRunner);
 
         if (this.setupFn_ !== undefined)
           this.setupFn_.bind(test).call();
