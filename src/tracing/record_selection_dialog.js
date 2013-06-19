@@ -8,9 +8,12 @@
  * @fileoverview RecordSelectionDialog presents the available categories
  * to be enabled/disabled during tracing.
  */
+base.requireStylesheet('tracing.record_selection_dialog');
+base.requireTemplate('tracing.record_selection_dialog');
+
 base.require('tracing.filter');
 base.require('ui.overlay');
-base.requireStylesheet('tracing.record_selection_dialog');
+
 base.exportTo('tracing', function() {
 
   var RecordSelectionDialog = ui.define('div');
@@ -24,82 +27,36 @@ base.exportTo('tracing', function() {
       this.className = 'record-dialog-overlay';
       this.autoClose = true;
 
-      var containerEl = document.createElement('div');
-      containerEl.className = 'record-selection-dialog';
-      this.appendChild(containerEl);
+      var node = base.instantiateTemplate('#record-selection-dialog-template');
+      this.appendChild(node);
 
-      this.formEl_ = document.createElement('form');
-      containerEl.appendChild(this.formEl_);
+      this.formEl_ = this.querySelector('form');
 
-      var tableEl = document.createElement('table');
-      this.formEl_.appendChild(tableEl);
+      this.recordButtonEl_ = this.querySelector('.record-categories');
+      this.recordButtonEl_.onclick = this.onRecord_.bind(this);
 
-      var rowEl = document.createElement('tr');
-      tableEl.appendChild(rowEl);
-
-      var enabledCategoriesEl = document.createElement('td');
-      enabledCategoriesEl.className = 'default-enabled-categories';
-      rowEl.appendChild(enabledCategoriesEl);
-
-      var categoriesHeaderEl = document.createElement('div');
-      categoriesHeaderEl.innerHTML = 'Record&nbsp;Categories';
-      enabledCategoriesEl.appendChild(categoriesHeaderEl);
-
-      this.enabledCategoriesContainerEl_ = document.createElement('div');
-      this.enabledCategoriesContainerEl_.className = 'categories';
-      enabledCategoriesEl.appendChild(this.enabledCategoriesContainerEl_);
-      this.createGroupSelectButtons_(categoriesHeaderEl,
-                                     this.enabledCategoriesContainerEl_);
-
-      var disabledCategoriesEl = document.createElement('td');
-      disabledCategoriesEl.className = 'default-disabled-categories';
-      rowEl.appendChild(disabledCategoriesEl);
-
-      var disabledCategoriesHeaderEl = document.createElement('div');
-      disabledCategoriesHeaderEl.innerHTML =
-          '<div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>';
-      disabledCategoriesEl.appendChild(disabledCategoriesHeaderEl);
-
-      this.disabledCategoriesContainerEl_ = document.createElement('div');
-      this.disabledCategoriesContainerEl_.className = 'categories';
-      disabledCategoriesEl.appendChild(this.disabledCategoriesContainerEl_);
-      this.createGroupSelectButtons_(disabledCategoriesHeaderEl,
-                                     this.disabledCategoriesContainerEl_);
-
-      var opts = document.createElement('div');
-      opts.className = 'options';
-      containerEl.appendChild(opts);
-
-      this.buttonEl_ = document.createElement('button');
-      this.buttonEl_.innerText = 'Record';
-      this.buttonEl_.className = 'record-categories';
-      this.buttonEl_.onclick = this.onRecord_.bind(this);
-      opts.appendChild(this.buttonEl_);
-
-      this.continuousTracingBn_ = document.createElement('input');
-      this.continuousTracingBn_.type = 'checkbox';
-      this.continuousTracingBn_.value = 'continuousTracing';
-      this.continuousTracingBn_.checked = true;
+      this.continuousTracingBn_ =
+          this.querySelector('.continuous-tracing-button');
       this.continuousTracingBn_.onchange = this.updateDlgSetting_.bind(this);
 
-      var continuousTracingLabelEl = document.createElement('label');
-      continuousTracingLabelEl.textContent = 'Continuous tracing';
-      continuousTracingLabelEl.appendChild(this.continuousTracingBn_);
-      opts.appendChild(continuousTracingLabelEl);
-
-      this.systemTracingBn_ = document.createElement('input');
-      this.systemTracingBn_.type = 'checkbox';
-      this.systemTracingBn_.value = 'systemTracing';
-      this.systemTracingBn_.checked = false;
+      this.systemTracingBn_ = this.querySelector('.system-tracing-button');
       this.systemTracingBn_.onchange = this.updateDlgSetting_.bind(this);
 
-      this.systemTracingLabelEl_ = document.createElement('label');
-      this.systemTracingLabelEl_.textContent = 'System events';
-      this.systemTracingLabelEl_.appendChild(this.systemTracingBn_);
+      this.systemTracingLabelEl_ = this.querySelector('.system-tracing-label');
       this.systemTracingLabelEl_.style.display = 'none';
-      opts.appendChild(this.systemTracingLabelEl_);
 
-      this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
+      this.enabledCategoriesContainerEl_ =
+          this.querySelector('.default-enabled-categories .categories');
+
+      this.disabledCategoriesContainerEl_ =
+          this.querySelector('.default-disabled-categories .categories');
+
+      this.createGroupSelectButtons_(
+          this.querySelector('.default-enabled-categories'));
+      this.createGroupSelectButtons_(
+          this.querySelector('.default-disabled-categories'));
+
+       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
 
     updateDlgSetting_: function(e) {
@@ -241,7 +198,7 @@ base.exportTo('tracing', function() {
       this.enabledCategoriesContainerEl_.innerHTML = ''; // Clear old categories
       this.disabledCategoriesContainerEl_.innerHTML = '';
 
-      this.buttonEl_.focus();
+      this.recordButtonEl_.focus();
 
       // Dedup the categories. We may have things in settings that are also
       // returned when we query the category list.
@@ -278,14 +235,9 @@ base.exportTo('tracing', function() {
       this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
     },
 
-    createGroupSelectButtons_: function(parent, container) {
-      var groupEl = document.createElement('div');
-      groupEl.className = 'group-selectors';
-      groupEl.innerText = 'Select';
-      parent.appendChild(groupEl);
-
+    createGroupSelectButtons_: function(parent) {
       var flipInputs = function(dir) {
-        var inputs = container.querySelectorAll('input');
+        var inputs = parent.querySelectorAll('input');
         for (var i = 0; i < inputs.length; i++) {
           if (inputs[i].checked === dir)
             continue;
@@ -295,23 +247,17 @@ base.exportTo('tracing', function() {
         }
       };
 
-      var allBtn = document.createElement('button');
-      allBtn.innerText = 'All';
-      allBtn.className = 'all-btn';
+      var allBtn = parent.querySelector('.all-btn');
       allBtn.onclick = function(evt) {
         flipInputs(true);
         evt.preventDefault();
       };
-      groupEl.appendChild(allBtn);
 
-      var noneBtn = document.createElement('button');
-      noneBtn.innerText = 'None';
-      noneBtn.className = 'none-btn';
+      var noneBtn = parent.querySelector('.none-btn');
       noneBtn.onclick = function(evt) {
         flipInputs(false);
         evt.preventDefault();
       };
-      groupEl.appendChild(noneBtn);
     }
   };
 

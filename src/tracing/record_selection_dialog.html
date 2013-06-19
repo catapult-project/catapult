@@ -1,0 +1,48 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="record-selection-dialog-template">
+  <div class="record-selection-dialog">
+    <form>
+      <table>
+        <tr>
+          <td class="default-enabled-categories">
+            <div>Record&nbsp;Categories</div>
+            <div class="group-selectors">
+              Select
+              <button class="all-btn">All</button>
+              <button class="none-btn">None</button>
+            </div>
+            <div class="categories"></div>
+          </td>
+          <td class="default-disabled-categories">
+            <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
+            <div class="group-selectors">
+              Select
+              <button class="all-btn">All</button>
+              <button class="none-btn">None</button>
+            </div>
+            <div class="categories"></div>
+          </td>
+        </tr>
+      </table>
+    </form>
+
+    <div class="options">
+      <button class="record-categories">Record</button>
+      <label class="continuous-tracing-label">
+        Continuous tracing
+        <input type="checkbox" value="continuousTracing" checked="checked"
+               class="continuous-tracing-button" />
+      </label>
+      <label class="system-tracing-label">
+        System events
+        <input type="checkbox" value="systemTracing"
+               class="system-tracing-button" />
+      </label>
+    </div>
+  </div>
+</template>
