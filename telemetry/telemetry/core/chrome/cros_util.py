@@ -90,7 +90,7 @@ def NavigateLogin(browser_backend, cri):
   """Navigates through oobe login screen"""
   # Dismiss the user image selection screen.
   try:
-    util.WaitFor(lambda: _IsLoggedIn(browser_backend, cri), 15)
+    util.WaitFor(lambda: _IsLoggedIn(browser_backend, cri), 30)
   except util.TimeoutException:
     raise exceptions.LoginException(
         'Timed out going through oobe screen. Make sure the custom auth '
