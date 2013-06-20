@@ -200,7 +200,7 @@ class Browser(object):
     profiler_class = profiler_finder.FindProfiler(options.profiler_tool)
 
     if not profiler_class.is_supported(options):
-      raise Exception('The %s profiler is not ' +
+      raise Exception('The %s profiler is not '
                       'supported on this platform.' % options.profiler_tool)
 
     self._active_profilers.append(
