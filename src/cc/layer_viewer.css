@@ -20,12 +20,15 @@ layer-viewer > top-controls {
   border-bottom: 1px solid #8e8e8e;
   border-top: 1px solid white;
   display: inline;
+  position: relative;
 }
 
-layer-viewer > quad-stack {
+layer-viewer > quad-stack-viewer {
   -webkit-flex: 1 1 auto;
+  -webkit-flex-direction: row;
+  display: -webkit-flex;
+  height: 100%;
   overflow: auto;
-  padding: 10px 10px 10px 10px;
 }
 
 layer-viewer > layer-viewer-analysis {

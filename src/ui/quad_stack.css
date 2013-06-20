@@ -8,6 +8,7 @@ quad-stack {
   outline: none;
   overflow: scroll;
   position: relative;
+  width: 100%;
   z-index: 10; /* cause our scrollbars to render above our children. */
 }
 

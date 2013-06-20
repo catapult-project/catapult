@@ -4,6 +4,7 @@
  */
 info-bar {
   -webkit-align-items: center;
+  -webkit-flex: 0 0 auto;
   background-color: rgb(252, 235, 162);
   border-bottom: 1px solid #A3A3A3;
   border-left: 1px solid white;
