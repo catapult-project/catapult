@@ -5,11 +5,13 @@ import sys
 import os
 import base64
 
-PNG_PATH = os.path.join(os.path.dirname(__file__),
-    '..', '..', '..', 'third_party', 'png')
-if PNG_PATH not in sys.path:
-  sys.path.append(PNG_PATH)
+def _EnsurePngIsInPath():
+  png_path = os.path.join(os.path.dirname(__file__),
+                          '..', '..', '..', 'third_party', 'png')
+  if png_path not in sys.path:
+    sys.path.append(png_path)
 
+_EnsurePngIsInPath()
 import png # pylint: disable=F0401
 
 class PngColor(object):
