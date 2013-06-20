@@ -42,6 +42,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     return b
 
   def SupportsOptions(self, options):
+    if (len(options.extensions_to_load) != 0) and self._is_guest:
+      return False
     return True
 
 def FindAllAvailableBrowsers(options):

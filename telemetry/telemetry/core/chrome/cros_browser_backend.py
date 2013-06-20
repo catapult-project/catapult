@@ -19,7 +19,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def __init__(self, browser_type, options, cri, is_guest):
     super(CrOSBrowserBackend, self).__init__(is_content_shell=False,
-        supports_extensions=True, options=options)
+        supports_extensions=not is_guest, options=options)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type
     self._options = options
@@ -129,13 +129,13 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
 
     args.extend([
-            '--enable-smooth-scrolling',
-            '--enable-threaded-compositing',
-            '--enable-per-tile-painting',
-            '--force-compositing-mode',
+            #'--enable-smooth-scrolling',
+            #'--enable-threaded-compositing',
+            #'--enable-per-tile-painting',
+            #'--force-compositing-mode',
             # Disables the start page, as well as other external apps that can
             # steal focus or make measurements inconsistent.
-            '--disable-default-apps',
+            #'--disable-default-apps',
             # Jump to the login screen, skipping network selection, eula, etc.
             '--login-screen=login',
             # Allow devtools to connect to chrome.
