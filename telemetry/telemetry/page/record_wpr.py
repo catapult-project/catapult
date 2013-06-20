@@ -85,6 +85,7 @@ def Main(measurement_dir):
 
   # Do the actual recording.
   options.wpr_mode = wpr_modes.WPR_RECORD
+  options.no_proxy_server = True
   recorder.CustomizeBrowserOptions(options)
   results = page_runner.Run(recorder, ps, options)
 

@@ -111,6 +111,10 @@ class BrowserBackend(object):
     component_extension_str = ','.join(component_extensions)
     if len(component_extensions) > 0:
       args.append('--load-component-extension=%s' % component_extension_str)
+
+    if self.options.no_proxy_server:
+      args.append('--no-proxy-server')
+
     return args
 
   @property
