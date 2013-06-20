@@ -127,7 +127,7 @@ class PageState(object):
   def __init__(self):
     self._did_login = False
 
-  def PreparePage(self, page, tab, test):
+  def PreparePage(self, page, tab, test=None):
     parsed_url = urlparse.urlparse(page.url)
     if parsed_url[0] == 'file':
       serving_dirs, filename = page.serving_dirs_and_file
@@ -144,11 +144,12 @@ class PageState(object):
 
     if test:
       test.WillNavigateToPage(page, tab)
-      tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
+    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
+    if test:
       test.DidNavigateToPage(page, tab)
 
-      page.WaitToLoad(tab, 60)
-      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    page.WaitToLoad(tab, 60)
+    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def CleanUpPage(self, page, tab):
     if page.credentials and self._did_login:
