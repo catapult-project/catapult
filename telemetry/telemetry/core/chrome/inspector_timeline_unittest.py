@@ -32,6 +32,6 @@ window.webkitRequestAnimationFrame(function() { sleep(10); done = true; });
 """)
       self._WaitForAnimationFrame()
 
-    r = self._tab.timeline_model.GetAllOfName('FireAnimationFrame')
+    r = self._tab.timeline_model.GetAllEventsOfName('FireAnimationFrame')
     self.assertTrue(len(r) > 0)
     self.assertTrue(r[0].duration > 0)

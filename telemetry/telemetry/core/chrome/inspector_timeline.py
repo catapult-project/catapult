@@ -44,8 +44,8 @@ class InspectorTimeline(object):
     if not self._is_recording:
       raise TabBackendException('Stop() called but not started')
     self._is_recording = False
-    self._timeline_model = model.TimelineModel()
-    self._timeline_model.ImportTraces([self._raw_events])
+    self._timeline_model = model.TimelineModel(event_data=self._raw_events,
+                                               shift_world_to_zero=False)
     req = {'method': 'Timeline.stop'}
     self._SendSyncRequest(req)
     self._inspector_backend.UnregisterDomain('Timeline')

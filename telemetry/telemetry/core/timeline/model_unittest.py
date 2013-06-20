@@ -15,4 +15,4 @@ class TimelineModelUnittest(unittest.TestCase):
     timeline_model.AddEvent(a)
     timeline_model.AddEvent(b)
     timeline_model.DidFinishRecording()
-    self.assertEquals(1, len(timeline_model.GetAllOfName('a')))
+    self.assertEquals(1, len(timeline_model.GetAllEventsOfName('a')))

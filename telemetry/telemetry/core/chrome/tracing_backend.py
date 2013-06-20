@@ -12,7 +12,7 @@ import threading
 from telemetry.core import util
 from telemetry.core.chrome import trace_result
 from telemetry.core.chrome import websocket
-from telemetry.core.timeline import trace_event_importer
+from telemetry.core.timeline import model
 
 
 class TracingUnsupportedException(Exception):
@@ -43,8 +43,7 @@ class TraceResultImpl(object):
   def AsTimelineModel(self):
     f = cStringIO.StringIO()
     self.Serialize(f)
-    return trace_event_importer.Import(
-      f.getvalue())
+    return model.TimelineModel(event_data=f.getvalue())
 
 class TracingBackend(object):
   def __init__(self, devtools_port):

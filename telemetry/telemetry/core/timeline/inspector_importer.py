@@ -16,7 +16,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     that if the first event is a valid inspector event, we can import the
     entire list.
     '''
-    if len(event_data):
+    if isinstance(event_data, list) and len(event_data):
       event_datum = event_data[0]
       return 'startTime' in event_datum and 'endTime' in event_datum
     return False
@@ -64,7 +64,8 @@ class InspectorTimelineImporter(importer.TimelineImporter):
         start=raw_inspector_event['startTime'],
         duration=(raw_inspector_event['endTime'] -
                      raw_inspector_event['startTime']),
-        args=args)
+        args=args,
+        parent=parent_for_created_events)
       if parent_for_created_events:
         parent_for_created_events.children.append(newly_created_event)
     else:
