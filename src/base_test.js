@@ -8,6 +8,9 @@ base.require('ui');
 
 base.unittest.testSuite('base', function() {
   test('defineProperties', function() {
+
+    var stateChanges = [];
+
     var ASpan = ui.define('span');
 
     ASpan.prototype = {
@@ -16,47 +19,38 @@ base.unittest.testSuite('base', function() {
       jsProp_: [],
 
       decorate: function() {
-        this.boolProp = false;
+        this.prop_ = false;
+        this.addEventListener('propChange', function(event) {
+          stateChanges.push('Internal ' + event.oldValue +
+              ' to ' + event.newValue);
+        }, true);
+      },
+
+      get prop() {
+        return this.prop_;
+      },
+
+      set prop(newValue) {
+        base.setPropertyAndDispatchChange(this, 'prop', newValue);
       }
     };
 
-    var propName = 'boolProp';
-    base.defineProperty(ASpan, propName, base.PropertyKind.BOOL_ATTR);
-
-    base.defineProperty(ASpan, 'jsProp', base.PropertyKind.JS);
-
     var aSpan = new ASpan();
 
-    var stateChanges;
-    aSpan.addEventListener('boolPropChange', function(event) {
-      stateChanges = event.oldValue + ' to ' + event.newValue;
+    aSpan.addEventListener('propChange', function(event) {
+      stateChanges.push(event.oldValue + ' to ' + event.newValue);
     });
 
-    aSpan.boolProp = true;
-    assertTrue(stateChanges === 'false to true');
-    aSpan.boolProp = false;
-    assertTrue(stateChanges === 'true to false');
+    assertFalse(aSpan.prop);
 
-    aSpan.addEventListener('jsPropChange', function(event) {
-      stateChanges = event.oldValue + ' to ' + event.newValue;
-    });
+    aSpan.prop = true;
+    assertTrue(aSpan.prop);
+    assertTrue(stateChanges.length === 2);
+    assertTrue(stateChanges[0] === 'Internal false to true');
+    assertTrue(stateChanges[1] === 'false to true');
 
-    aSpan.jsProp = 'obfuscated';
-
-    assertTrue(stateChanges === 'undefined to obfuscated');
-    assertTrue(aSpan.jsProp_ instanceof Array);
-
-    aSpan.addEventListener('jsPropChange', function(event) {
-      event.throwError(new Error('flub'));
-    });
-
-    var caught = false;
-    try {
-      aSpan.jsProp = 'anything';
-    } catch (exc) {
-      caught = true;
-    }
-    assertTrue(caught);
-
+    aSpan.prop = false;
+    assertFalse(aSpan.prop);
+    assertTrue(stateChanges[3] === 'true to false');
   });
 });

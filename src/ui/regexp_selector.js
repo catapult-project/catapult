@@ -25,12 +25,38 @@ base.exportTo('ui', function() {
     __proto__: HTMLSpanElement.prototype,
 
     decorate: function() {
-      this.regexp = new RegExp();
-      this.items = [];
+      this.regexp_ = new RegExp();
+      this.items_ = [];
 
       this.classList.add('regexp-selector');
       this.createActivator_();
       this.createFilterControl_();
+    },
+
+    // Input. {RegExp} (eg to predefine a RegExp)
+    get regexp() {
+      return this.regexp_;
+    },
+
+    set regexp(newValue) {
+      base.setPropertyAndDispatchChange(this, 'regexp', newValue);
+    },
+
+    // Output. {text: {string}, matches: {boolean}}
+    get items() {
+      return this.items_;
+    },
+
+    set items(newValue) {
+      base.setPropertyAndDispatchChange(this, 'items', newValue);
+    },
+
+    get isOn() {
+      return this.activator_.isOn;
+    },
+
+    set isOn(aBoolean) {
+      this.activator_.isOn = aBoolean;
     },
 
     // To avoid quadradic filter calls, set regexp to blank first
@@ -43,14 +69,6 @@ base.exportTo('ui', function() {
 
     clearItems: function() {
       this.items = [];
-    },
-
-    get isOn() {
-      return this.activator_.isOn;
-    },
-
-    set isOn(aBoolean) {
-      this.activator_.isOn = aBoolean;
     },
 
     //-------------------------------------
@@ -174,14 +192,6 @@ base.exportTo('ui', function() {
     }
 
   };
-
-  // Input, eg to predefine a RegExp.
-  base.defineProperty(RegExpSelector, 'regexp',
-      base.PropertyKind.JS);
-
-  // Output Object with .text string and .matches boolean
-  base.defineProperty(RegExpSelector, 'items',
-      base.PropertyKind.JS);
 
   return {
     RegExpSelector: RegExpSelector

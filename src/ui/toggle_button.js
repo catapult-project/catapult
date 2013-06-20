@@ -50,13 +50,21 @@ base.exportTo('ui', function() {
       this.addEventListener('isOnChange', function(event) {
         this.textSpan_.textContent =
             this.isOn ? this.isOnText : this.notIsOnText;
+        if (this.isOn)
+          this.setAttribute('isOn', 'isOn');
+        else
+          this.removeAttribute('isOn');
       }.bind(this));
+    },
 
+    get isOn() {
+      return this.isOn_;
+    },
+
+    set isOn(newValue) {
+      base.setPropertyAndDispatchChange(this, 'isOn', newValue);
     }
   };
-
-  base.defineProperty(ToggleButton, 'isOn',
-      base.PropertyKind.BOOL_ATTR, null, true);
 
   return {
     ToggleButton: ToggleButton

@@ -23,8 +23,7 @@
   z-index: 1000;
 }
 
-.overlay-root:not([visible]),
-.overlay:not([visible]) {
+.overlay-root:not([visible]) {
   display: none;
 }
 

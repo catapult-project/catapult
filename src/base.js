@@ -366,6 +366,15 @@ this.base = (function() {
       throw error;
   }
 
+  function setPropertyAndDispatchChange(obj, propertyName, newValue) {
+    var privateName = propertyName + '_';
+    var oldValue = obj[propertyName];
+    obj[privateName] = newValue;
+    if (oldValue !== newValue)
+      base.dispatchPropertyChange(obj, propertyName,
+          newValue, oldValue, true, false);
+  }
+
   /**
    * Converts a camelCase javascript property name to a hyphenated-lower-case
    * attribute name.
@@ -513,6 +522,7 @@ this.base = (function() {
    */
   function defineProperty(obj, name, opt_kind, opt_setHook,
                           opt_bubbles, opt_cancelable) {
+    console.error("Don't use base.defineProperty");
     if (typeof obj == 'function')
       obj = obj.prototype;
 
@@ -753,7 +763,8 @@ this.base = (function() {
     TypeMap: TypeMap,
     tracedFunction: tracedFunction,
     normalizeException: normalizeException,
-    instantiateTemplate: instantiateTemplate
+    instantiateTemplate: instantiateTemplate,
+    setPropertyAndDispatchChange: setPropertyAndDispatchChange,
   };
 })();
 

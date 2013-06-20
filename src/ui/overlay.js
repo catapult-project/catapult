@@ -28,7 +28,7 @@ base.exportTo('ui', function() {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
       this.classList.add('overlay-root');
-      this.visible = false;
+      this.visible_ = false;
 
       this.createToolBar_();
 
@@ -43,6 +43,14 @@ base.exportTo('ui', function() {
       this.onKeydownBoundToThis_ = this.onKeydown_.bind(this);
       this.onFocusInBoundToThis_ = this.onFocusIn_.bind(this);
       this.addEventListener('mousedown', this.onMousedown_.bind(this));
+    },
+
+    get visible() {
+      return this.visible_;
+    },
+
+    set visible(newValue) {
+      base.setPropertyAndDispatchChange(this, 'visible', newValue);
     },
 
     toggleToolbar: function(show) {
@@ -157,8 +165,6 @@ base.exportTo('ui', function() {
     }
   };
 
-  base.defineProperty(OverlayRoot, 'visible', base.PropertyKind.BOOL_ATTR);
-
   /**
    * Creates a new overlay element. It will not be visible until shown.
    * @param {Object=} opt_propertyBag Optional properties.
@@ -182,15 +188,25 @@ base.exportTo('ui', function() {
       }
 
       this.classList.add('overlay');
-      this.visible = false;
+      this.visible_ = false;
+      this.defaultClickShouldClose_ = true;
       this.autoClose = false;
       this.additionalCloseKeyCodes = [];
       this.onKeyDown = this.onKeyDown.bind(this);
       this.onKeyPress = this.onKeyPress.bind(this);
       this.onDocumentClick = this.onDocumentClick.bind(this);
+      this.addEventListener('visibleChange',
+          this.onVisibleChange_.bind(this), true);
       this.addEventListener('defaultClickShouldCloseChange',
-          this.onDefaultClickShouldCloseChange_.bind(this));
-      this.defaultClickShouldClose = true;
+          this.onDefaultClickShouldCloseChange_.bind(this), true);
+    },
+
+    get visible() {
+      return this.visible_;
+    },
+
+    set visible(newValue) {
+      base.setPropertyAndDispatchChange(this, 'visible', newValue);
     },
 
     onDefaultClickShouldCloseChange_: function(event) {
@@ -198,15 +214,16 @@ base.exportTo('ui', function() {
       overlayRoot.toggleToolbar(event.newValue);
     },
 
-    onVisibleChanged_: function() {
+    onVisibleChange_: function() {
       var overlayRoot = this.ownerDocument.querySelector('.overlay-root');
-      base.dispatchSimpleEvent(this, 'visibleChange');
       if (this.visible) {
+        overlayRoot.setAttribute('visible', 'visible');
         overlayRoot.showOverlay(this);
         document.addEventListener('keydown', this.onKeyDown, true);
         document.addEventListener('keypress', this.onKeyPress, true);
         document.addEventListener('click', this.onDocumentClick, true);
       } else {
+        overlayRoot.removeAttribute('visible');
         document.removeEventListener('keydown', this.onKeyDown, true);
         document.removeEventListener('keypress', this.onKeyPress, true);
         document.removeEventListener('click', this.onDocumentClick, true);
@@ -253,15 +270,6 @@ base.exportTo('ui', function() {
     }
 
   };
-
-  /**
-   * Shows and hides the overlay. Note that while visible == true, the overlay
-   * element will be tempoarily reparented to another place in the DOM.
-   */
-  base.defineProperty(Overlay, 'visible', base.PropertyKind.BOOL_ATTR,
-      Overlay.prototype.onVisibleChanged_);
-  base.defineProperty(Overlay, 'defaultClickShouldClose',
-      base.PropertyKind.BOOL_ATTR);
 
   return {
     Overlay: Overlay

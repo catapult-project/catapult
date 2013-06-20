@@ -160,6 +160,8 @@ base.exportTo('tracing', function() {
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
         this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+
+      base.setPropertyAndDispatchChange(this, 'model', model);
     },
 
     get numVisibleTracks() {
@@ -686,12 +688,6 @@ base.exportTo('tracing', function() {
       e.preventDefault();
     }
   };
-
-  /**
-   * The Model being viewed by the timeline
-   * @type {Model}
-   */
-  base.defineProperty(TimelineTrackView, 'model', base.PropertyKind.JS);
 
   return {
     TimelineTrackView: TimelineTrackView

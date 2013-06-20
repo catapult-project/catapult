@@ -39,6 +39,14 @@ base.exportTo('ui', function() {
       this.debug_ = false;
     },
 
+    get layers() {
+      return this.layers_;
+    },
+
+    set layers(newValue) {
+      base.setPropertyAndDispatchChange(this, 'layers', newValue);
+    },
+
     setQuadsAndViewport: function(quads, viewport) {
       validateQuads(quads);
       this.quads_ = quads;
@@ -185,8 +193,6 @@ base.exportTo('ui', function() {
     }
 
   };
-
-  base.defineProperty(QuadStack, 'layers', base.PropertyKind.JS);
 
   return {
     QuadStack: QuadStack

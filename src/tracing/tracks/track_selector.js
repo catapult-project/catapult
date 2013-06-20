@@ -37,6 +37,16 @@ base.exportTo('tracing.tracks', function() {
       this.createRegExpSelectors_();
     },
 
+    /** @return {Array} of {regexp: RegExp, isOn: boolean}
+    */
+    get trackSelectorModel() {
+      return this.trackSelectorModel_;
+    },
+
+    set trackSelectorModel(newValue) {
+      base.setPropertyAndDispatchChange(this, 'trackSelectorModel', newValue);
+    },
+
     loadModel_: function() {
       var settings = new base.Settings();
       var modelJSON = settings.get('TrackSelector');
@@ -273,10 +283,6 @@ base.exportTo('tracing.tracks', function() {
     }
 
   };
-
-  // Input, array of {regexp: RegExp, isOn: boolean}
-  base.defineProperty(TrackSelector, 'trackSelectorModel',
-      base.PropertyKind.JS);
 
   return {
     TrackSelector: TrackSelector

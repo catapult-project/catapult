@@ -87,7 +87,8 @@ base.exportTo('about_tracing', function() {
 
       this.selectingCategories = false;
 
-      this.refresh_();
+      this.addEventListener('tracingControllerChange',
+          this.refresh_.bind(this), true);
     },
 
     // Detach all document event listeners. Without this the tests can get
@@ -100,13 +101,6 @@ base.exportTo('about_tracing', function() {
       document.removeEventListener('dragleave', this.ignoreHandlerBoundToThis_);
       document.removeEventListener('dragover', this.ignoreHandlerBoundToThis_);
       document.removeEventListener('drop', this.dropHandlerBoundToThis_);
-    },
-
-    didSetTracingController_: function(value, oldValue) {
-      if (oldValue)
-        throw new Error('Can only set tracing controller once.');
-
-      this.refresh_();
     },
 
     refresh_: function() {
@@ -160,6 +154,16 @@ base.exportTo('about_tracing', function() {
 
     get timelineView() {
       return this.timelineView_;
+    },
+
+    get tracingController() {
+      return this.tracingController_;
+    },
+
+    set tracingController(newValue) {
+      if (this.tracingController_)
+        throw new Error('Can only set tracing controller once.');
+      base.setPropertyAndDispatchChange(this, 'tracingController', newValue);
     },
 
     ///////////////////////////////////////////////////////////////////////////
@@ -325,9 +329,6 @@ base.exportTo('about_tracing', function() {
       return false;
     }
   };
-
-  base.defineProperty(ProfilingView, 'tracingController', base.PropertyKind.JS,
-      ProfilingView.prototype.didSetTracingController_);
 
   return {
     ProfilingView: ProfilingView
