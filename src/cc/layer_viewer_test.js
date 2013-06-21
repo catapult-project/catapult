@@ -10,7 +10,7 @@ base.require('cc.layer_tree_host_impl_test_data');
 
 'use strict';
 
-base.unittest.testSuite('cc.quad_stack_viewer', function() {
+base.unittest.testSuite('cc.layer_viewer', function() {
   test('instantiate', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];

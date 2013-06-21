@@ -14,6 +14,7 @@ base.require('base.settings');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('cc.selection');
+base.require('cc.layer_tree_quad_stack_viewer');
 base.require('cc.quad_stack_viewer');
 base.require('tracing.analysis.util');
 base.require('ui.drag_handle');
@@ -33,113 +34,55 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.layerTreeImpl_ = undefined;
-      this.selection_ = undefined;
-
-      this.controls_ = document.createElement('top-controls');
-      this.infoBar_ = new ui.InfoBar();
-      this.quadStackViewer_ = new cc.QuadStackViewer();
+      this.layerTreeQuadStackViewer_ = new cc.LayerTreeQuadStackViewer();
       this.dragBar_ = new ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-viewer-analysis');
 
       this.dragBar_.target = this.analysisEl_;
 
-      this.appendChild(this.controls_);
-      this.appendChild(this.infoBar_);
-      this.appendChild(this.quadStackViewer_);
+      this.appendChild(this.layerTreeQuadStackViewer_);
       this.appendChild(this.dragBar_);
       this.appendChild(this.analysisEl_);
 
-      var scaleSelector = ui.createSelector(
-          this, 'scale',
-          'layerViewer.scale', 0.375,
-          [{label: '6.25%', value: 0.0625},
-           {label: '12.5%', value: 0.125},
-           {label: '25%', value: 0.25},
-           {label: '37.5%', value: 0.375},
-           {label: '50%', value: 0.5},
-           {label: '75%', value: 0.75},
-           {label: '100%', value: 1},
-           {label: '200%', value: 2}
-          ]);
-      this.controls_.appendChild(scaleSelector);
-
-      var showOtherLayersCheckbox = ui.createCheckBox(
-          this.quadStackViewer_, 'showOtherLayers',
-          'layerViewer.showOtherLayers', true,
-          'Show other layers');
-      this.controls_.appendChild(showOtherLayersCheckbox);
-
-      var showInvalidationsCheckbox = ui.createCheckBox(
-          this.quadStackViewer_, 'showInvalidations',
-          'layerViewer.showInvalidations', true,
-          'Show invalidations');
-      this.controls_.appendChild(showInvalidationsCheckbox);
-
-      var showContentsCheckbox = ui.createCheckBox(
-          this.quadStackViewer_, 'showContents',
-          'layerViewer.showContents', true,
-          'Show contents');
-      this.controls_.appendChild(showContentsCheckbox);
-
-      this.quadStackViewer_.addEventListener('selectionChange',
-          this.updateAnalysisContents_.bind(this));
-      this.quadStackViewer_.addEventListener('messagesChange',
-          this.onInfoBarMessages_.bind(this));
+      this.layerTreeQuadStackViewer_.addEventListener('selectionChange',
+          this.layerTreeQuadStackViewerSelectionChanged_.bind(this));
     },
 
     get layerTreeImpl() {
-      return this.quadStackViewer_.layerTreeImpl;
+      return this.layerTreeQuadStackViewer_.layerTreeImpl;
     },
 
-    set layerTreeImpl(layerTreeImpl) {
-      this.quadStackViewer_.layerTreeImpl = layerTreeImpl;
+    set layerTreeImpl(newValue) {
+      return this.layerTreeQuadStackViewer_.layerTreeImpl = newValue;
     },
 
-    updateAnalysisContents_: function() {
-      if (this.selection_) {
+    get selection() {
+      return this.layerTreeQuadStackViewer_.selection;
+    },
+
+    set selection(newValue) {
+      this.layerTreeQuadStackViewer_.selection = newValue;
+    },
+
+    layerTreeQuadStackViewerSelectionChanged_: function(event) {
+      var selection = event.newValue;
+      if (selection) {
         this.dragBar_.style.display = '';
         this.analysisEl_.style.display = '';
         this.analysisEl_.textContent = '';
-        var analysis = this.selection_.createAnalysis();
+        var analysis = selection.createAnalysis();
         this.analysisEl_.appendChild(analysis);
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';
-        this.analysisEl_.textContent = '';
-      }
-    },
-
-    onInfoBarMessages_: function(event) {
-      var infoBarMessages = event.newValue;
-      if (infoBarMessages.length) {
-        this.infoBar_.removeAllButtons();
-        this.infoBar_.message = 'Some problems were encountered...';
-        this.infoBar_.addButton('More info...', function() {
-          var overlay = new ui.Overlay();
-          overlay.textContent = '';
-          infoBarMessages.forEach(function(message) {
-            var title = document.createElement('h3');
-            title.textContent = message.header;
-
-            var details = document.createElement('div');
-            details.textContent = message.details;
-
-            overlay.appendChild(title);
-            overlay.appendChild(details);
-          });
-          overlay.visible = true;
-          overlay.autoClose = true;
-        });
-        this.infoBar_.visible = true;
-      } else {
-        this.infoBar_.removeAllButtons();
-        this.infoBar_.message = '';
-        this.infoBar_.visible = false;
+        var analysis = this.analysisEl_.firstChild;
+        if (analysis)
+          this.analysisEl_.removeChild(analysis);
+        this.layerTreeQuadStackViewer_.style.height =
+            window.getComputedStyle(this).height;
       }
     }
   };
-
   return {
     LayerViewer: LayerViewer
   };

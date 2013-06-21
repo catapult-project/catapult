@@ -5,44 +5,24 @@
 
 layer-viewer {
   -webkit-flex-direction: column;
-  display: -webkit-flex;
+  display:  -webkit-flex;
   left: 0;
   position: relative;
   top: 0;
 }
 
-layer-viewer > top-controls {
-  -webkit-flex: 0 0 auto;
-  background-image: -webkit-gradient(linear,
-                                     0 0, 100% 0,
-                                     from(#E5E5E5),
-                                     to(#D1D1D1));
-  border-bottom: 1px solid #8e8e8e;
-  border-top: 1px solid white;
-  display: inline;
-  position: relative;
-}
-
-layer-viewer > quad-stack-viewer {
-  -webkit-flex: 1 1 auto;
-  -webkit-flex-direction: row;
+layer-viewer > layer-tree-quad-stack-viewer {
+  -webkit-flex: 1 1 100%;
+  -webkit-flex-direction: column;
   display: -webkit-flex;
-  height: 100%;
   overflow: auto;
 }
 
 layer-viewer > layer-viewer-analysis {
-  height: 150px;
+  height: 150px; /* fixed height given by drag control */
   overflow-y: auto;
 }
 
 .labeled-checkbox {
   white-space: nowrap;
-}
-
-.camera-debug-indicator {
-  left: 0;
-  position: absolute;
-  top:  0;
-  z-index: 11;
 }

@@ -1,0 +1,30 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+
+layer-tree-quad-stack-viewer > top-controls {
+  -webkit-flex: 0 0 auto;
+  background-image: -webkit-gradient(linear,
+                                     0 0, 100% 0,
+                                     from(#E5E5E5),
+                                     to(#D1D1D1));
+  border-bottom: 1px solid #8e8e8e;
+  border-top: 1px solid white;
+  display: inline;
+  position: relative;
+}
+
+layer-tree-quad-stack-viewer > quad-stack-viewer {
+  -webkit-flex: 1 1 100%;
+  display: block;
+  overflow: scroll;
+}
+
+.camera-debug-indicator {
+  left: 0;
+  position: absolute;
+  top:  0;
+  z-index: 11;
+}

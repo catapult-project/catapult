@@ -5,14 +5,15 @@
 
 quad-stack {
   display: block;
+  min-height: 100%;
   outline: none;
-  overflow: scroll;
   position: relative;
   width: 100%;
   z-index: 10; /* cause our scrollbars to render above our children. */
 }
 
 quad-stack > view-container {
+  -webkit-flex: 1 1 auto;
   -webkit-transform-style: preserve-3d;
   display: -webkit-flex;
   outline: none;

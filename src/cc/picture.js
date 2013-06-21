@@ -121,7 +121,7 @@ base.exportTo('cc', function() {
         throw new Error('Cannot render image');
 
       if (this.rasterStatus_ == RASTER_SUCCEEDED)
-        throw new Error('Cannot render image');
+        return;
 
       this.rasterize_();
       if (this.rasterStatus_ == RASTER_FAILED) {
