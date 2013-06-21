@@ -59,10 +59,9 @@ class RecordPage(page_test.PageTest):
     return actions
 
 
-def Main(measurement_dir):
-  measurements = discover.DiscoverClasses(measurement_dir,
-                                        os.path.join(measurement_dir, '..'),
-                                        page_measurement.PageMeasurement)
+def Main(base_dir):
+  measurements = discover.DiscoverClasses(base_dir, base_dir,
+                                          page_measurement.PageMeasurement)
   options = browser_options.BrowserOptions()
   parser = options.CreateParser('%prog <page_set>')
   page_runner.AddCommandLineOptions(parser)
@@ -98,7 +97,7 @@ def Main(measurement_dir):
   if results.skipped:
     logging.warning('Some pages were skipped. The recording has not been '
                     'updated for these pages.')
-    logging.warning('Skipped pages:\n%s', '\n'.join(results.skipped))
+    logging.warning('Skipped pages:\n%s', '\n'.join(zip(*results.skipped)[0]))
 
   if results.successes:
     # Update the metadata for the pages which were recorded.
