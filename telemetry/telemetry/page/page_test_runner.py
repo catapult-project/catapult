@@ -8,7 +8,7 @@ from telemetry import test as test_module
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import profile_types
-from telemetry.page import page_test
+from telemetry.page import page_test as page_test_module
 from telemetry.page import page_runner
 from telemetry.page import page_set
 
@@ -29,7 +29,7 @@ class PageTestRunner(object):
 
   @property
   def test_class(self):
-    return page_test.PageTest
+    return page_test_module.PageTest
 
   @property
   def test_class_name(self):
@@ -138,9 +138,12 @@ class PageTestRunner(object):
     test = None
     if test_name:
       test = test_constructors[test_name]()
-      if not isinstance(test, test_module.Test):
-        test.AddOutputOptions(self._parser)
-        test.AddCommandLineOptions(self._parser)
+      if isinstance(test, test_module.Test):
+        page_test = test.test()
+      else:
+        page_test = test
+      page_test.AddOutputOptions(self._parser)
+      page_test.AddCommandLineOptions(self._parser)
     page_runner.AddCommandLineOptions(self._parser)
 
     _, self._args = self._parser.parse_args()
@@ -165,10 +168,7 @@ class PageTestRunner(object):
     if len(self._args) > 2:
       self.PrintParseError('Too many arguments.')
 
-    if isinstance(test, test_module.Test):
-      return test.test(), ps
-    else:
-      return test, ps
+    return page_test, ps
 
   def PrintParseError(self, message):
     self._parser.error(message)
