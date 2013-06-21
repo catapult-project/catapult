@@ -23,6 +23,16 @@ def RemoveAllDocs():
     for filename in filenames:
       os.remove(os.path.join(dirname, filename))
 
+def RemoveAllStalePycFiles():
+  for dirname, _, filenames in os.walk(telemetry_dir):
+    for filename in filenames:
+      if not filename.endswith('.pyc'):
+        continue
+      pyc_path = os.path.join(dirname, filename)
+      py_path = os.path.splitext(pyc_path)[0] + '.py'
+      if not os.path.exists(py_path):
+        os.remove(py_path)
+
 def GenerateHTMLForModule(module):
   html = pydoc.html.page(pydoc.describe(module),
                          pydoc.html.document(module, module.__name__))
@@ -59,6 +69,7 @@ def WriteHTMLForModule(module):
     f.write(page)
 
 def GetAllModulesToDocument(module):
+  RemoveAllStalePycFiles()
   modules = [module]
   for _, modname, _ in pkgutil.walk_packages(
       module.__path__, module.__name__ + '.'):
