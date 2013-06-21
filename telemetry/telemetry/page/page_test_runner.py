@@ -4,6 +4,7 @@
 import os
 import sys
 
+from telemetry import test as test_module
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import profile_types
@@ -11,15 +12,14 @@ from telemetry.page import page_test
 from telemetry.page import page_runner
 from telemetry.page import page_set
 
-def Main(test_dir, profile_creators_dir, page_set_filenames):
+def Main(base_dir, page_set_filenames):
   """Turns a PageTest into a command-line program.
 
   Args:
-    test_dir: Path to directory containing PageTests.
-    profile_creators_dir: Path to a directory containing ProfileCreators
+    base_dir: Path to directory containing tests and ProfileCreators.
   """
   runner = PageTestRunner()
-  sys.exit(runner.Run(test_dir, profile_creators_dir, page_set_filenames))
+  sys.exit(runner.Run(base_dir, page_set_filenames))
 
 class PageTestRunner(object):
   def __init__(self):
@@ -35,16 +35,19 @@ class PageTestRunner(object):
   def test_class_name(self):
     return 'test'
 
-  def Run(self, test_dir, profile_creators_dir, page_set_filenames):
-    test, ps = self.ParseCommandLine(
-        sys.argv, test_dir, profile_creators_dir, page_set_filenames)
+  def Run(self, base_dir, page_set_filenames):
+    test, ps = self.ParseCommandLine(sys.argv, base_dir, page_set_filenames)
     results = page_runner.Run(test, ps, self._options)
     results.PrintSummary()
     return min(255, len(results.failures + results.errors))
 
-  def FindTestConstructors(self, test_dir):
-    return discover.DiscoverClasses(
-        test_dir, os.path.join(test_dir, '..'), self.test_class)
+  def FindTestConstructors(self, base_dir):
+    # Look for both Tests and PageTests, but Tests get priority, because
+    test_constructors = discover.DiscoverClasses(
+        base_dir, base_dir, self.test_class)
+    test_constructors.update(discover.DiscoverClasses(
+        base_dir, base_dir, test_module.Test, index_by_class_name=True))
+    return test_constructors
 
   def FindTestName(self, test_constructors, args):
     """Find the test name in an arbitrary argument list.
@@ -122,23 +125,22 @@ class PageTestRunner(object):
     raise Exception('Did not understand "%s". Pass a page set, file or URL.' %
                     page_set_arg)
 
-  def ParseCommandLine(self, args, test_dir, profile_creators_dir,
-      page_set_filenames):
+  def ParseCommandLine(self, args, base_dir, page_set_filenames):
     # Need to collect profile creators before creating command line parser.
-    if profile_creators_dir:
-      profile_types.FindProfileCreators(profile_creators_dir)
+    profile_types.FindProfileCreators(base_dir)
 
     self._options = browser_options.BrowserOptions()
     self._parser = self._options.CreateParser(
         '%%prog [options] %s page_set' % self.test_class_name)
 
-    test_constructors = self.FindTestConstructors(test_dir)
+    test_constructors = self.FindTestConstructors(base_dir)
     test_name = self.FindTestName(test_constructors, args)
     test = None
     if test_name:
       test = test_constructors[test_name]()
-      test.AddOutputOptions(self._parser)
-      test.AddCommandLineOptions(self._parser)
+      if not isinstance(test, test_module.Test):
+        test.AddOutputOptions(self._parser)
+        test.AddCommandLineOptions(self._parser)
     page_runner.AddCommandLineOptions(self._parser)
 
     _, self._args = self._parser.parse_args()
@@ -155,12 +157,18 @@ class PageTestRunner(object):
       test_list_string = ',\n'.join(sorted(test_constructors.keys()))
       self.PrintParseError(error_message + test_list_string)
 
-    ps = self.GetPageSet(test, page_set_filenames)
+    if isinstance(test, test_module.Test):
+      ps = test.CreatePageSet(self._options)
+    else:
+      ps = self.GetPageSet(test, page_set_filenames)
 
     if len(self._args) > 2:
       self.PrintParseError('Too many arguments.')
 
-    return test, ps
+    if isinstance(test, test_module.Test):
+      return test.test(), ps
+    else:
+      return test, ps
 
   def PrintParseError(self, message):
     self._parser.error(message)

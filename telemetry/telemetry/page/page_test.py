@@ -147,6 +147,9 @@ class PageTest(object):
     return ['gtest', 'none']
 
   def PrepareResults(self, options):
+    if not hasattr(options, 'output_format'):
+      options.output_format = self.output_format_choices[0]
+
     if options.output_format == 'gtest':
       return gtest_test_results.GTestTestResults()
     elif options.output_format == 'none':

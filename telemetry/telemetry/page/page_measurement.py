@@ -70,16 +70,19 @@ class PageMeasurement(page_test.PageTest):
     return ['buildbot', 'block', 'csv', 'none']
 
   def PrepareResults(self, options):
-    if not options.output_file or options.output_file == '-':
-      output_stream = sys.stdout
-    else:
+    if hasattr(options, 'output_file') and options.output_file:
       output_stream = open(os.path.expanduser(options.output_file), 'w')
+    else:
+      output_stream = sys.stdout
+    if not hasattr(options, 'output_format'):
+      options.output_format = self.output_format_choices[0]
+    if not hasattr(options, 'output_trace_tag'):
+      options.output_trace_tag = ''
 
     if options.output_format == 'csv':
       return csv_page_measurement_results.CsvPageMeasurementResults(
         output_stream,
-        self.results_are_the_same_on_every_page,
-        trace_tag=options.output_trace_tag)
+        self.results_are_the_same_on_every_page)
     elif options.output_format == 'block':
       return block_page_measurement_results.BlockPageMeasurementResults(
         output_stream)

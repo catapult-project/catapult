@@ -24,8 +24,7 @@ def _DiscoverCreateableProfiles(profile_creators_dir):
   'small_profile_creator will be 'small_profile'.
   """
   profile_creators_unfiltered = (
-      discover.DiscoverClasses(profile_creators_dir,
-          os.path.join(profile_creators_dir, '..'),
+      discover.DiscoverClasses(profile_creators_dir, profile_creators_dir,
           profile_creator.ProfileCreator))
 
   # Remove '_creator' suffix from keys.
