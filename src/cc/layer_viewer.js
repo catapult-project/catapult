@@ -12,15 +12,9 @@ base.requireStylesheet('cc.layer_viewer');
 base.require('base.raf');
 base.require('base.settings');
 base.require('cc.constants');
-base.require('cc.picture');
-base.require('cc.selection');
 base.require('cc.layer_tree_quad_stack_viewer');
-base.require('cc.quad_stack_viewer');
 base.require('tracing.analysis.util');
 base.require('ui.drag_handle');
-base.require('ui.overlay');
-base.require('ui.info_bar');
-base.require('ui.dom_helpers');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;

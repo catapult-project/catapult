@@ -13,7 +13,7 @@ base.requireStylesheet('cc.layer_tree_quad_stack_viewer');
 base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');
-base.require('cc.quad_stack_viewer');
+base.require('ui.quad_stack_viewer');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
@@ -31,7 +31,7 @@ base.exportTo('cc', function() {
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
       this.infoBar_ = new ui.InfoBar();
-      this.quadStackViewer_ = new cc.QuadStackViewer();
+      this.quadStackViewer_ = new ui.QuadStackViewer();
 
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
