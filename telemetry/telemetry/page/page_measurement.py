@@ -44,12 +44,14 @@ class PageMeasurement(page_test.PageTest):
   def __init__(self,
                action_name_to_run='',
                needs_browser_restart_after_each_run=False,
-               discard_first_result=False):
+               discard_first_result=False,
+               clear_cache_before_each_run=False):
     super(PageMeasurement, self).__init__(
       '_RunTest',
       action_name_to_run,
       needs_browser_restart_after_each_run,
-      discard_first_result)
+      discard_first_result,
+      clear_cache_before_each_run)
 
   def _RunTest(self, page, tab, results):
     results.WillMeasurePage(page)

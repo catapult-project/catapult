@@ -49,7 +49,8 @@ class PageTest(object):
                test_method_name,
                action_name_to_run='',
                needs_browser_restart_after_each_run=False,
-               discard_first_result=False):
+               discard_first_result=False,
+               clear_cache_before_each_run=False):
     self.options = None
     try:
       self._test_method = getattr(self, test_method_name)
@@ -60,6 +61,7 @@ class PageTest(object):
     self._needs_browser_restart_after_each_run = (
         needs_browser_restart_after_each_run)
     self._discard_first_result = discard_first_result
+    self._clear_cache_before_each_run = clear_cache_before_each_run
 
   @property
   def discard_first_result(self):
@@ -67,6 +69,12 @@ class PageTest(object):
     useful for cases where it's desirable to have some test resource cached so
     the first run of the test can warm things up. """
     return self._discard_first_result
+
+  @property
+  def clear_cache_before_each_run(self):
+    """When set to True, the browser's disk and memory cache will be cleared
+    before each run."""
+    return self._clear_cache_before_each_run
 
   def NeedsBrowserRestartAfterEachRun(self, tab): # pylint: disable=W0613
     """Override to specify browser restart after each run."""

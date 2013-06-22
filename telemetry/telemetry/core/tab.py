@@ -98,3 +98,7 @@ class Tab(web_contents.WebContents):
 
   def CollectGarbage(self):
     self._inspector_backend.CollectGarbage()
+
+  def ClearCache(self):
+    """Clears the browser's HTTP disk cache and the tab's HTTP memory cache."""
+    self._inspector_backend.ClearCache()

@@ -143,6 +143,8 @@ class PageState(object):
       self._did_login = True
 
     if test:
+      if test.clear_cache_before_each_run:
+        tab.ClearCache()
       test.WillNavigateToPage(page, tab)
     tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     if test:
