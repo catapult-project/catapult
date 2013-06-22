@@ -71,6 +71,8 @@ base.exportTo('cc', function() {
    * @constructor
    */
   function LayerSelection(layer) {
+    if (!layer)
+      throw new Error('Layer is required');
     this.layer_ = layer;
   }
 
