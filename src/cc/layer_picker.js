@@ -165,7 +165,10 @@ base.exportTo('cc', function() {
       if (this.layerList_.selectedElement)
         selectedLayer = this.layerList_.selectedElement.layer;
 
-      this.selection_ = new cc.LayerSelection(selectedLayer);
+      if (selectedLayer)
+        this.selection_ = new cc.LayerSelection(selectedLayer);
+      else
+        this.selection_ = undefined;
       base.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
