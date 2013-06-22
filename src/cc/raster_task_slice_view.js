@@ -63,7 +63,12 @@ base.exportTo('cc', function() {
   tracing.analysis.SliceView.register(
       'TileManager::RunRasterTask', RasterTaskSliceView);
   tracing.analysis.SliceView.register(
+      'RasterWorkerPoolTaskImpl::RunRasterOnThread', RasterTaskSliceView);
+
+  tracing.analysis.SliceView.register(
       'TileManager::RunAnalyzeTask', RasterTaskSliceView);
+  tracing.analysis.SliceView.register(
+      'RasterWorkerPoolTaskImpl::RunAnalysisOnThread', RasterTaskSliceView);
 
   return {
     RasterTaskSliceView: RasterTaskSliceView
