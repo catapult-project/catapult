@@ -33,7 +33,7 @@ base.exportTo('tracing', function() {
     this.gridEnabled_ = false;
     this.hasCalledSetupFunction_ = false;
 
-    this.onResizeBoundToThis_ = this.onResize_.bind(this);
+    this.onResize_ = this.onResize_.bind(this);
 
     // The following code uses an interval to detect when the parent element
     // is attached to the document. That is a trigger to run the setup function
@@ -114,8 +114,7 @@ base.exportTo('tracing', function() {
             'position:absolute;width:100%;height:0;border:0;visibility:hidden;';
         this.parentEl_.appendChild(this.iframe_);
 
-        this.iframe_.contentWindow.addEventListener('resize',
-                                                    this.onResizeBoundToThis_);
+        this.iframe_.contentWindow.addEventListener('resize', this.onResize_);
       }
 
       var curSize = this.parentEl_.clientWidth + 'x' +
@@ -152,7 +151,7 @@ base.exportTo('tracing', function() {
         this.checkForAttachInterval_ = undefined;
       }
       if (this.iframe_) {
-        this.iframe_.removeEventListener('resize', this.onResizeBoundToThis_);
+        this.iframe_.removeEventListener('resize', this.onResize_);
         this.parentEl_.removeChild(this.iframe_);
       }
     },

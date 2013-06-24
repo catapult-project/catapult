@@ -40,8 +40,8 @@ base.exportTo('ui', function() {
 
       this.appendChild(this.contentHost);
 
-      this.onKeydownBoundToThis_ = this.onKeydown_.bind(this);
-      this.onFocusInBoundToThis_ = this.onFocusIn_.bind(this);
+      this.onKeydown_ = this.onKeydown_.bind(this);
+      this.onFocusIn_ = this.onFocusIn_.bind(this);
       this.addEventListener('mousedown', this.onMousedown_.bind(this));
     },
 
@@ -99,9 +99,8 @@ base.exportTo('ui', function() {
 
       // Listen to key and focus events to prevent focus from
       // leaving the overlay.
-      this.ownerDocument.addEventListener('focusin',
-          this.onFocusInBoundToThis_, true);
-      overlay.addEventListener('keydown', this.onKeydownBoundToThis_);
+      this.ownerDocument.addEventListener('focusin', this.onFocusIn_, true);
+      overlay.addEventListener('keydown', this.onKeydown_);
     },
 
     /**
@@ -159,9 +158,8 @@ base.exportTo('ui', function() {
       }
 
       // remove listeners
-      overlay.removeEventListener('keydown', this.onKeydownBoundToThis_);
-      this.ownerDocument.removeEventListener('focusin',
-          this.onFocusInBoundToThis_);
+      overlay.removeEventListener('keydown', this.onKeydown_);
+      this.ownerDocument.removeEventListener('focusin', this.onFocusIn_);
     }
   };
 

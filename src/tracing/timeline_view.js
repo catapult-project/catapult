@@ -69,7 +69,7 @@ base.exportTo('tracing', function() {
       this.appendChild(this.analysisEl_);
 
       // Bookkeeping.
-      this.onSelectionChangedBoundToThis_ = this.onSelectionChanged_.bind(this);
+      this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.trackSelector_.connect();
@@ -254,7 +254,7 @@ base.exportTo('tracing', function() {
         this.timelineContainer_.textContent = '';
         if (this.timeline_) {
           this.timeline_.removeEventListener(
-              'selectionChange', this.onSelectionChangedBoundToThis_);
+              'selectionChange', this.onSelectionChanged_);
           this.timeline_.detach();
           this.timeline_ = undefined;
           this.findCtl_.controller.timeline = undefined;
@@ -269,7 +269,7 @@ base.exportTo('tracing', function() {
         this.timelineContainer_.appendChild(this.timeline_);
         this.findCtl_.controller.timeline = this.timeline_;
         this.timeline_.addEventListener(
-            'selectionChange', this.onSelectionChangedBoundToThis_);
+            'selectionChange', this.onSelectionChanged_);
 
         this.analysisEl_.clearSelectionHistory();
       }

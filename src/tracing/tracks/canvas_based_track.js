@@ -48,10 +48,9 @@ base.exportTo('tracing.tracks', function() {
 
     detach: function() {
       if (this.viewport_) {
-        this.viewport_.removeEventListener('change',
-                                           this.viewportChangeBoundToThis_);
+        this.viewport_.removeEventListener('change', this.viewportChange_);
         this.viewport_.removeEventListener('markersChange',
-            this.viewportMarkersChangeBoundToThis_);
+            this.viewportMarkersChange_);
       }
     },
 
@@ -78,20 +77,17 @@ base.exportTo('tracing.tracks', function() {
     set viewport(v) {
       this.viewport_ = v;
       if (this.viewport_) {
-        this.viewport_.removeEventListener('change',
-                                           this.viewportChangeBoundToThis_);
+        this.viewport_.removeEventListener('change', this.viewportChange_);
         this.viewport_.removeEventListener('markersChange',
-            this.viewportMarkersChangeBoundToThis_);
+            this.viewportMarkersChange_);
       }
       this.viewport_ = v;
       if (this.viewport_) {
-        this.viewportChangeBoundToThis_ = this.viewportChange_.bind(this);
-        this.viewport_.addEventListener('change',
-                                        this.viewportChangeBoundToThis_);
-        this.viewportMarkersChangeBoundToThis_ =
-            this.viewportMarkersChange_.bind(this);
+        this.viewportChange_ = this.viewportChange_.bind(this);
+        this.viewport_.addEventListener('change', this.viewportChange_);
+        this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
         this.viewport_.addEventListener('markersChange',
-                                        this.viewportMarkersChangeBoundToThis_);
+                                        this.viewportMarkersChange_);
         if (this.isAttachedToDocument_)
           this.updateCanvasSizeIfNeeded_();
       }
