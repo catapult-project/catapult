@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import signal
 import subprocess
 import sys
@@ -12,7 +13,9 @@ from telemetry.core.platform import profiler
 
 class _SingleProcessPerfProfiler(object):
   """An internal class for using perf for a given process."""
-  def __init__(self, pid, output_file):
+  def __init__(self, pid, output_file, platform_backend):
+    self._pid = pid
+    self._platform_backend = platform_backend
     self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
     self._proc = subprocess.Popen(
@@ -21,6 +24,11 @@ class _SingleProcessPerfProfiler(object):
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def CollectProfile(self):
+    if ('renderer' in self._output_file and
+        not self._platform_backend.GetCommandLine(self._pid)):
+      logging.warning('Renderer was swapped out during profiling. '
+                      'To collect a full profile rerun with '
+                      '"--extra-browser-args=--single-process"')
     self._proc.send_signal(signal.SIGINT)
     exit_code = self._proc.wait()
     try:
@@ -51,7 +59,7 @@ class PerfProfiler(profiler.Profiler):
     self._process_profilers = []
     for pid, output_file in process_output_file_map.iteritems():
       self._process_profilers.append(
-          _SingleProcessPerfProfiler(pid, output_file))
+          _SingleProcessPerfProfiler(pid, output_file, platform_backend))
 
   @classmethod
   def name(cls):
