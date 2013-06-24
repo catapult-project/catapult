@@ -269,7 +269,7 @@ base.exportTo('cc', function() {
 
       // Generate the quads for the view.
       var layers = this.layers;
-      var quads = [];
+      this.quads_ = [];
       for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
 
