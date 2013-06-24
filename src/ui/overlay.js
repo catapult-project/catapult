@@ -28,7 +28,7 @@ base.exportTo('ui', function() {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
       this.classList.add('overlay-root');
-      this.visible_ = false;
+
 
       this.createToolBar_();
 
@@ -43,14 +43,6 @@ base.exportTo('ui', function() {
       this.onKeydown_ = this.onKeydown_.bind(this);
       this.onFocusIn_ = this.onFocusIn_.bind(this);
       this.addEventListener('mousedown', this.onMousedown_.bind(this));
-    },
-
-    get visible() {
-      return this.visible_;
-    },
-
-    set visible(newValue) {
-      base.setPropertyAndDispatchChange(this, 'visible', newValue);
     },
 
     toggleToolbar: function(show) {
@@ -86,7 +78,6 @@ base.exportTo('ui', function() {
 
       // Show the overlay root.
       this.ownerDocument.body.classList.add('disabled-by-overlay');
-      this.visible = true;
 
       // Bring overlay into focus.
       overlay.tabIndex = 0;
@@ -194,7 +185,7 @@ base.exportTo('ui', function() {
       this.onKeyPress = this.onKeyPress.bind(this);
       this.onDocumentClick = this.onDocumentClick.bind(this);
       this.addEventListener('visibleChange',
-          this.onVisibleChange_.bind(this), true);
+          Overlay.prototype.onVisibleChange_.bind(this), true);
       this.addEventListener('defaultClickShouldCloseChange',
           this.onDefaultClickShouldCloseChange_.bind(this), true);
     },

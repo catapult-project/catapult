@@ -195,6 +195,11 @@ base.exportTo('base.unittest', function() {
       var message = opt_message || 'Expect ' + a + ' and ' + b +
           ' to be within ' + epsilon + ' was ' + relative_error;
       throw new base.unittest.TestError(message);
+    },
+
+    assertVisible: function(elt) {
+      if (!elt.offsetHeight || !elt.offsetWidth)
+        throw new base.unittest.TestError('Expected element to be visible');
     }
   };
 

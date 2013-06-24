@@ -210,6 +210,8 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     e.categories = ['skia', 'gpu', 'cc', 'renderer'];
     tracingController.dispatchEvent(e);
 
+    assertVisible(view.recordSelectionDialog_);
+
     view.recordSelectionDialog_.querySelector('input#skia').click();
     view.recordSelectionDialog_.querySelector(
         'button.record-categories').click();
