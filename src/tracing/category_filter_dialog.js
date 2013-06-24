@@ -24,7 +24,7 @@ base.exportTo('tracing', function() {
       ui.Overlay.prototype.decorate.call(this);
 
       this.className = 'view-category-filter-overlay';
-      this.autoClose = true;
+      this.obeyCloseEvents = true;
 
       var node =
           base.instantiateTemplate('#view-category-filter-dialog-template');

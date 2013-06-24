@@ -53,7 +53,8 @@ base.exportTo('ui', function() {
         else
           this.contentHost.appendChild(this.toolbar_);
       } else {
-        this.contentHost.removeChild(this.toolbar_);
+        if (this.toolbar_.parentElement)
+          this.contentHost.removeChild(this.toolbar_);
       }
     },
 
@@ -178,16 +179,14 @@ base.exportTo('ui', function() {
 
       this.classList.add('overlay');
       this.visible_ = false;
-      this.defaultClickShouldClose_ = true;
-      this.autoClose = false;
+      this.obeyCloseEvents = false;
       this.additionalCloseKeyCodes = [];
       this.onKeyDown = this.onKeyDown.bind(this);
       this.onKeyPress = this.onKeyPress.bind(this);
       this.onDocumentClick = this.onDocumentClick.bind(this);
       this.addEventListener('visibleChange',
           Overlay.prototype.onVisibleChange_.bind(this), true);
-      this.addEventListener('defaultClickShouldCloseChange',
-          this.onDefaultClickShouldCloseChange_.bind(this), true);
+      this.obeyCloseEvents = true;
     },
 
     get visible() {
@@ -198,9 +197,19 @@ base.exportTo('ui', function() {
       base.setPropertyAndDispatchChange(this, 'visible', newValue);
     },
 
-    onDefaultClickShouldCloseChange_: function(event) {
+    get obeyCloseEvents() {
+      return this.obeyCloseEvents_;
+    },
+
+    set obeyCloseEvents(newValue) {
+      base.setPropertyAndDispatchChange(this, 'obeyCloseEvents', newValue);
       var overlayRoot = this.ownerDocument.querySelector('.overlay-root');
-      overlayRoot.toggleToolbar(event.newValue);
+      // Currently the toolbar only has the close button.
+      overlayRoot.toggleToolbar(newValue);
+    },
+
+    get toolbar() {
+      return this.ownerDocument.querySelector('.overlay-root .tool-bar');
     },
 
     onVisibleChange_: function() {
@@ -221,7 +230,7 @@ base.exportTo('ui', function() {
     },
 
     onKeyDown: function(e) {
-      if (!this.autoClose)
+      if (!this.obeyCloseEvents)
         return;
 
       if (e.keyCode == 27) {  // escape
@@ -232,7 +241,7 @@ base.exportTo('ui', function() {
     },
 
     onKeyPress: function(e) {
-      if (!this.autoClose)
+      if (!this.obeyCloseEvents)
         return;
 
       for (var i = 0; i < this.additionalCloseKeyCodes.length; i++) {
@@ -245,7 +254,7 @@ base.exportTo('ui', function() {
     },
 
     onDocumentClick: function(e) {
-      if (!this.defaultClickShouldClose)
+      if (!this.obeyCloseEvents)
         return;
       var target = e.target;
       while (target !== null) {

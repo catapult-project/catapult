@@ -211,6 +211,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     tracingController.dispatchEvent(e);
 
     assertVisible(view.recordSelectionDialog_);
+    assertVisible(view.recordSelectionDialog_.toolbar);
 
     view.recordSelectionDialog_.querySelector('input#skia').click();
     view.recordSelectionDialog_.querySelector(

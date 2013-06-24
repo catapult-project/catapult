@@ -25,7 +25,7 @@ base.exportTo('tracing', function() {
       ui.Overlay.prototype.decorate.call(this);
 
       this.className = 'record-dialog-overlay';
-      this.autoClose = true;
+      this.obeyCloseEvents = true;
 
       var node = base.instantiateTemplate('#record-selection-dialog-template');
       this.appendChild(node);

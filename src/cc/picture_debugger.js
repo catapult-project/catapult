@@ -127,7 +127,7 @@ base.exportTo('cc', function() {
             var overlay = new ui.Overlay();
             overlay.textContent = details;
             overlay.visible = true;
-            overlay.autoClose = true;
+            overlay.obeyCloseEvents = true;
           });
           this.infoBar_.visible = true;
         } else {

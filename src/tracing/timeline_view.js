@@ -98,7 +98,7 @@ base.exportTo('tracing', function() {
 
       var dlg = new ui.Overlay();
       dlg.classList.add('view-import-errors-overlay');
-      dlg.autoClose = true;
+      dlg.obeyCloseEvents = true;
       dlg.appendChild(containerEl);
 
       function onClick() {
@@ -154,7 +154,7 @@ base.exportTo('tracing', function() {
 
       var dlg = new ui.Overlay();
       dlg.classList.add('view-help-overlay');
-      dlg.autoClose = true;
+      dlg.obeyCloseEvents = true;
       dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
       dlg.appendChild(helpTextEl);
 
@@ -181,7 +181,7 @@ base.exportTo('tracing', function() {
 
       var dlg = new ui.Overlay();
       dlg.classList.add('view-metadata-overlay');
-      dlg.autoClose = true;
+      dlg.obeyCloseEvents = true;
       dlg.appendChild(containerEl);
 
       function onClick() {
