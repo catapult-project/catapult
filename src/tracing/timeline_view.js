@@ -59,7 +59,6 @@ base.exportTo('tracing', function() {
       this.rightControls.appendChild(this.createHelpButton_());
 
       this.dragEl_ = new ui.DragHandle();
-      this.dragEl_.target = this.analysisEl_;
       this.appendChild(this.dragEl_);
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
@@ -73,6 +72,7 @@ base.exportTo('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.trackSelector_.connect();
+      this.dragEl_.target = this.analysisEl_;
     },
 
     createTrackSelectorButton_: function() {
