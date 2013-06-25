@@ -318,7 +318,7 @@ def _CheckArchives(page_set, pages, results):
 
     if not page.archive_path:
       pages_missing_archive_path.append(page)
-    if not os.path.isfile(page.archive_path):
+    elif not os.path.isfile(page.archive_path):
       pages_missing_archive_data.append(page)
 
   if pages_missing_archive_path:

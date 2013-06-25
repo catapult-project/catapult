@@ -32,6 +32,9 @@ def RemoveAllStalePycFiles():
       py_path = os.path.splitext(pyc_path)[0] + '.py'
       if not os.path.exists(py_path):
         os.remove(pyc_path)
+        pyc_dir = os.path.dirname(pyc_path)
+        if not os.listdir(pyc_dir):
+          os.removedirs(pyc_dir)
 
 def GenerateHTMLForModule(module):
   html = pydoc.html.page(pydoc.describe(module),
