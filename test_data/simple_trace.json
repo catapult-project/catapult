@@ -3,7 +3,7 @@
       "name": "counter", "args": {"value": 10}},
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 826, "ph": "B",
       "name": "A long name that doesnt fit but is exceedingly informative",
-      "args": {}},
+      "args": {"name_false": false, "value_true": true}},
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 827, "ph": "B",
       "name": "Asub with a name that wont fit", "args": {}},
   {"cat": "PERF", "pid": 22630, "tid": 22630, "ts": 828, "ph": "E",
