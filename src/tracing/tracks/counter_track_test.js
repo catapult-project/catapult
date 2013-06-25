@@ -15,6 +15,7 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
   var runTest = function(timestamps, samples, testFn) {
     var testEl = document.createElement('div');
     this.addHTMLOutput(testEl);
+
     var ctr = new Counter(undefined, 'foo', '', 'foo');
     var n = samples.length / timestamps.length;
 
@@ -41,7 +42,7 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
         track.firstCanvas.getBoundingClientRect().width * pixelRatio);
 
     testFn(ctr, track);
-  }
+  };
 
   test('instantiate', function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
@@ -61,15 +62,15 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
     ctr.updateBounds();
 
     var viewport = document.createElement('div');
+    this.addHTMLOutput(viewport);
 
     var track = new CounterTrack();
+    viewport.appendChild(track);
+
     track.heading = ctr.name;
     track.counter = ctr;
     track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 7.7, track.clientWidth);
-    viewport.appendChild(track);
-
-    this.addHTMLOutput(viewport);
   });
 
   test('basicCounterXPointPicking', function() {
