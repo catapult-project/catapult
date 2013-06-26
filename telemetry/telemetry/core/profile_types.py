@@ -16,16 +16,15 @@ PROFILE_TYPE_MAPPING = {
   'power_user': 'chrome/test/data/extensions/profiles/extension_webrequest',
 }
 
-def _DiscoverCreateableProfiles(profile_creators_dir):
+def _DiscoverCreateableProfiles(profile_creators_dir, base_dir):
   """Returns a dictionary of all the profile creators we can use to create
   a Chrome profile for testing located in |profile_creators_dir|.
   The returned value consists of 'class_name' -> 'test class' dictionary where
   class_name is the name of the class with the _creator suffix removed e.g.
   'small_profile_creator will be 'small_profile'.
   """
-  profile_creators_unfiltered = (
-      discover.DiscoverClasses(profile_creators_dir, profile_creators_dir,
-          profile_creator.ProfileCreator))
+  profile_creators_unfiltered = discover.DiscoverClasses(
+      profile_creators_dir, base_dir, profile_creator.ProfileCreator)
 
   # Remove '_creator' suffix from keys.
   profile_creators = {}
@@ -40,10 +39,11 @@ def ClearProfieCreatorsForTests():
   """Clears the discovered profile creator objects.  Used for unit tests."""
   PROFILE_CREATORS.clear()
 
-def FindProfileCreators(profile_creators_dir):
+def FindProfileCreators(profile_creators_dir, base_dir):
   """Discover all the ProfileCreator objects in |profile_creators_dir|."""
   assert not PROFILE_CREATORS  # It's illegal to call this function twice.
-  PROFILE_CREATORS.update(_DiscoverCreateableProfiles(profile_creators_dir))
+  PROFILE_CREATORS.update(_DiscoverCreateableProfiles(
+      profile_creators_dir, base_dir))
 
 def GetProfileTypes():
   """Returns a list of all command line options that can be specified for

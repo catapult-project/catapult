@@ -548,11 +548,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(3, ctr.num_samples)
     self.assertEqual(2, ctr.num_series)
 
-    self.assertItemsEqual(['value1', 'value2'], ctr.series_names)
-    self.assertItemsEqual([0, 0.01, 0.02], ctr.timestamps)
-    self.assertItemsEqual([0, 7,
-                       10, 4,
-                       0, 1], ctr.samples)
+    self.assertEqual(sorted(['value1', 'value2']), sorted(ctr.series_names))
+    self.assertEqual(sorted([0, 0.01, 0.02]), sorted(ctr.timestamps))
+    self.assertEqual(sorted([0, 7, 10, 4, 0, 1]), sorted(ctr.samples))
     # We can't check ctr.totals here because it can change depending on
     # the order in which the series names are added.
     self.assertEqual(14, ctr.max_total)
@@ -826,7 +824,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
 
     m = timeline_model.TimelineModel(event_data=events)
     t = GetAllProcesses(m)[0].GetThreadWithId(53)
-    self.assertIsNotNone(t)
+    self.assertTrue(t is not None)
 
   def testAsyncStepsMissingFinish(self):
     events = [
@@ -839,7 +837,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
 
     m = timeline_model.TimelineModel(event_data=events)
     t = GetAllProcesses(m)[0].GetThreadWithId(53)
-    self.assertIsNotNone(t)
+    self.assertTrue(t is not None)
 
   def testImportSamples(self):
     events = [

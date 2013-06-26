@@ -5,6 +5,7 @@ import os
 import unittest
 
 from telemetry.core import profile_types
+from telemetry.core import util
 
 class ProfileTypesTest(unittest.TestCase):
   def testGetProfileTypes(self):
@@ -17,10 +18,11 @@ class ProfileTypesTest(unittest.TestCase):
     self.assertFalse(profile_types.GetProfileDir('typical_user') is None)
 
   def testGetProfileCreatorTypes(self):
-    profile_creators_dir = os.path.join(os.path.dirname(__file__), '..', '..',
-        'unittest_data','discoverable_classes')
+    profile_creators_dir = os.path.join(
+        util.GetUnittestDataDir(), 'discoverable_classes')
+    base_dir = util.GetUnittestDataDir()
 
-    profile_types.FindProfileCreators(profile_creators_dir)
+    profile_types.FindProfileCreators(profile_creators_dir, base_dir)
     types = profile_types.GetProfileTypes()
     self.assertTrue(len(types) > 0)
     self.assertTrue('dummy_profile' in types)
