@@ -101,7 +101,7 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
       assertEquals(ctr, sel[0].counter);
       assertEquals(1, sel[0].sampleIndex);
 
-      // Outside bouds.
+      // Outside bounds.
       sel = new tracing.Selection();
       var x = (-5 / vW) * wW;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);

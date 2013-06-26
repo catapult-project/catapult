@@ -16,7 +16,11 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
   test('instantiate', function() {
     var viewport = document.createElement('div');
+    this.addHTMLOutput(viewport);
+
     var track = SliceTrack();
+    viewport.appendChild(track);
+
     track.heading = 'testBasicSlices';
     track.slices = [
       new Slice('', 'a', 0, 1, {}, 1),
@@ -26,14 +30,14 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     ];
     track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 8.8, track.clientWidth);
-    viewport.appendChild(track);
-
-    this.addHTMLOutput(viewport);
   });
 
   test('instantiate_shrinkingSliceSize', function() {
     var viewport = document.createElement('div');
+    this.addHTMLOutput(viewport);
+
     var track = SliceTrack();
+    viewport.appendChild(track);
 
     track.heading = 'testShrinkingSliceSizes';
     var x = 0;
@@ -47,9 +51,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     track.slices = slices;
     track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
-    viewport.appendChild(track);
-
-    this.addHTMLOutput(viewport);
   });
 
   test('instantiate_elide', function() {
@@ -65,8 +66,10 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
       var viewport = document.createElement('div');
       viewport.appendChild(document.createTextNode(dict.trackName));
+      this.addHTMLOutput(viewport);
 
       var track = new SliceTrack();
+      viewport.appendChild(track);
       track.SHOULD_ELIDE_TEXT = dict.elide;
       track.heading = 'Visual: ' + dict.trackName;
       track.slices = [
@@ -78,9 +81,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       ];
       track.viewport = new Viewport(viewport);
       track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
-      viewport.appendChild(track);
-
-      this.addHTMLOutput(viewport);
     }
   });
 

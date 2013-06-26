@@ -14,6 +14,7 @@ base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('ui.quad_stack_viewer');
+base.require('ui.info_bar');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
@@ -329,8 +330,7 @@ base.exportTo('cc', function() {
         this.infoBar_.message = '';
         this.infoBar_.visible = false;
       }
-    },
-
+    }
   };
 
   return {

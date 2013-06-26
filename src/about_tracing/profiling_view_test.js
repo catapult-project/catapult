@@ -99,7 +99,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
   var FakeTracingController = function() {
     this.wasBeginTracingCalled = false;
     this.wasCollectCategoriesCalled = false;
-  }
+  };
 
   FakeTracingController.prototype = {
     __proto__: base.EventTarget.prototype,
@@ -177,21 +177,22 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
   };
 
   test('instantiate', function() {
+    var parent = document.createElement('div');
+    this.addHTMLOutput(parent);
+
     var view = new about_tracing.ProfilingView();
-    var tracingController;
+    parent.appendChild(view);
 
     var sendHandler = createSendHandler();
-    tracingController = new about_tracing.TracingController(sendHandler);
+    var tracingController = new about_tracing.TracingController(sendHandler);
     sendHandler.tracingController = tracingController;
     tracingController.supportsSystemTracing_ = true;
 
     view.tracingController = tracingController;
     view.focusElement = view;
-    this.addHTMLOutput(ui.createCheckBox(sendHandler, 'corruptTrace',
+    parent.appendChild(ui.createCheckBox(sendHandler, 'corruptTrace',
                                          'profilingViewTest.corruptTrace',
                                          false, 'Make traces corrupt'));
-    this.addHTMLOutput(view);
-
     view.detach_();
   });
 

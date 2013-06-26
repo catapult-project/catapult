@@ -29,21 +29,23 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     return objects;
   };
 
-  function testBasic() {
+  test('instantiate', function() {
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
     frames[0].snapshots[1].selected = true;
 
     var viewport = document.createElement('div');
+    this.addHTMLOutput(viewport);
+
     var track = ObjectInstanceTrack();
+    viewport.appendChild(track);
+
     track.heading = 'testBasic';
     track.objectInstances = frames;
     track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 50, track.clientWidth);
-    viewport.appendChild(trace);
 
-    this.addHTMLOutput(viewport);
-  }
+  });
 
   test('selectionHitTestingWithThreadTrack', function() {
     var objects = createObjects();
