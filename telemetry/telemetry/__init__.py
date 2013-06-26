@@ -5,6 +5,8 @@
 A library for cross-platform browser tests.
 """
 import inspect
+import os
+import shutil
 import sys
 
 from telemetry.core.browser import Browser
@@ -27,3 +29,8 @@ for x in dir():
   if (inspect.isclass(getattr(m, x)) or
       inspect.isfunction(getattr(m, x))):
     __all__.append(x)
+
+# TODO: Remove this eventually. This is because a stale .pyc file in that
+# directory are conflicting with test.py. http://crbug.com/252808
+if os.path.isdir(os.path.join(os.path.dirname(__file__), 'test')):
+  shutil.rmtree(os.path.join(os.path.dirname(__file__), 'test'))
