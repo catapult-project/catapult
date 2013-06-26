@@ -360,6 +360,7 @@ base.exportTo('base.unittest', function() {
         this.test_.bind(this).call();
         this.result_ = TestResults.PASSED;
       } catch (e) {
+        console.error(e, e.stack);
         this.failure_ = e;
       }
     },

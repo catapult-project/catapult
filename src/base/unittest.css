@@ -60,7 +60,7 @@
   width: 2em;
 }
 
-.test-result span {
+.test-result > span {
   padding-left: 10px;
 }
 
