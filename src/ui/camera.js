@@ -105,7 +105,8 @@ base.exportTo('ui', function() {
       var transformString = '';
       transformString += 'rotateX(' + this.rotations_.x + 'deg)';
       transformString += ' rotateY(' + this.rotations_.y + 'deg)';
-      this.targetElement_.style.webkitTransform = transformString;
+      var container = this.targetElement_.contentContainer;
+      container.style.webkitTransform = transformString;
 
       if (this.debug)
         this.updateDebugIndicator_();

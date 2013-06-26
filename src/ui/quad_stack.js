@@ -32,6 +32,8 @@ base.exportTo('ui', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      this.contentContainer_ = document.createElement('view-container');
+      this.appendChild(this.contentContainer_);
       this.viewport_ = undefined;
       this.quads_ = undefined;
       this.debug_ = false;
@@ -77,6 +79,10 @@ base.exportTo('ui', function() {
       this.updateContents_();
     },
 
+    get contentContainer() {
+      return this.contentContainer_;
+    },
+
     get debug() {
       return this.debug_;
     },
@@ -100,10 +106,10 @@ base.exportTo('ui', function() {
 
       // Get rid of old quad views if needed.
       var numStackingGroups = base.dictionaryValues(stackingGroupsById).length;
-      while (this.children.length > numStackingGroups) {
-        var n = this.children.length - 1;
-        this.removeChild(
-            this.children[n]);
+      while (this.contentContainer_.children.length > numStackingGroups) {
+        var n = this.contentContainer_.children.length - 1;
+        this.contentContainer_.removeChild(
+            this.contentContainer_.children[n]);
       }
 
       // Helper function to create a new quad view and track the current one.
@@ -112,11 +118,11 @@ base.exportTo('ui', function() {
       var curQuadView = undefined;
       function appendNewQuadView() {
         curQuadViewIndex++;
-        if (curQuadViewIndex < that.children.length) {
-          curQuadView = that.children[curQuadViewIndex];
+        if (curQuadViewIndex < that.contentContainer_.children.length) {
+          curQuadView = that.contentContainer_.children[curQuadViewIndex];
         } else {
           curQuadView = new QuadView();
-          that.appendChild(curQuadView);
+          that.contentContainer_.appendChild(curQuadView);
         }
         curQuadView.quads = undefined;
         curQuadView.viewport = that.viewport_;
@@ -140,24 +146,24 @@ base.exportTo('ui', function() {
         });
       }
 
-      var topQuadIndex = this.children.length - 1;
-      var topQuad = this.children[topQuadIndex];
+      var topQuadIndex = this.contentContainer_.children.length - 1;
+      var topQuad = this.contentContainer_.children[topQuadIndex];
       topQuad.drawDeviceViewportMask = true;
 
-      for (var i = 0; i < this.children.length; i++) {
-        var child = this.children[i];
+      for (var i = 0; i < this.contentContainer_.children.length; i++) {
+        var child = this.contentContainer_.children[i];
         child.quads = child.pendingQuads;
         delete child.pendingQuads;
       }
 
-      this.layers = this.children;
+      this.layers = this.contentContainer_.children;
     },
 
     updateDebugIndicator_: function() {
       this.indicatorCanvas_ = this.indicatorCanvas_ ||
         document.createElement('canvas');
       this.indicatorCanvas_.className = 'quad-stack-debug-indicator';
-      this.appendChild(this.indicatorCanvas_);
+      this.contentContainer_.appendChild(this.indicatorCanvas_);
 
       var resizedCanvas = this.viewport_.updateBoxSize(this.indicatorCanvas_);
       var ctx = this.indicatorCanvas_.getContext('2d');
