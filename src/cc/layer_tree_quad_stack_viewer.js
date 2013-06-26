@@ -16,8 +16,12 @@ base.require('cc.picture');
 base.require('ui.quad_stack_viewer');
 base.require('ui.info_bar');
 
+
 base.exportTo('cc', function() {
-  var constants = cc.constants;
+  var constants = {
+    // The ratio of quad stack pixels to world pixels before CSS scaling.
+    QUAD_STACK_SCALE: 0.5
+  };
 
   /**
    * @constructor
@@ -298,7 +302,7 @@ base.exportTo('cc', function() {
       var lthiInstance = lthi.objectInstance;
       var allLayersRect = lthiInstance.allLayersBBox.asRect();
       var viewport = new ui.QuadViewViewport(
-          allLayersRect, 0.5, lthi.deviceViewportSize);
+          allLayersRect, constants.QUAD_STACK_SCALE, lthi.deviceViewportSize);
       this.quadStackViewer_.setQuadsAndViewport(this.quads_, viewport);
 
       this.updateInfoBar_(this.messages_);

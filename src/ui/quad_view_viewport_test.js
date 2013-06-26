@@ -15,12 +15,18 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     bbox.addXY(0, 0);
     bbox.addXY(4000, 2000);
 
-    var vp = new QuadViewViewport(bbox.asRect(), 0.125, null, 0, 2);
-    assertEquals(500, vp.deviceWidth);
-    assertEquals(250, vp.deviceHeight);
+    var deviceViewportRect = new base.Rect.FromXYWH(0, 0, 2000, 1000);
+    var vp = new QuadViewViewport(bbox.asRect(), 0.125,
+        deviceViewportRect, 0, 2);
+
+    assertEquals(500, vp.worldWidthInDevicePixels_);
+    assertEquals(250, vp.worldHeightInDevicePixels_);
 
     assertEquals(250, vp.layoutRect_.width);
     assertEquals(125, vp.layoutRect_.height);
+
+    assertEquals(vp.deviceViewportRect.width, 2000);
+    assertEquals(vp.deviceViewportRect.height, 1000);
 
     // Top left.
     var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(0, 0));
@@ -44,8 +50,8 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     bbox.addXY(4000, 2000);
 
     var vp = new QuadViewViewport(bbox.asRect(), 0.125, null, 0.1, 2);
-    assertEquals(550, vp.deviceWidth);
-    assertEquals(300, vp.deviceHeight);
+    assertEquals(550, vp.worldWidthInDevicePixels_);
+    assertEquals(300, vp.worldHeightInDevicePixels_);
 
     assertEquals(275, vp.layoutRect_.width);
     assertEquals(150, vp.layoutRect_.height);

@@ -12,5 +12,7 @@ base.unittest.testSuite('base.rect', function() {
     var inner = base.Rect.FromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
     assertRectEquals(uv, base.Rect.FromXYWH(0.1, 0.1, .8, .8));
+    assertEquals(container.size().width, 10);
+    assertEquals(container.size().height, 10);
   });
 });

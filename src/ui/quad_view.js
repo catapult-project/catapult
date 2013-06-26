@@ -278,7 +278,7 @@ base.exportTo('ui', function() {
       }
 
       if (this.drawDeviceViewportMask_ &&
-          this.viewport_ && this.viewport_.deviceViewport)
+          this.viewport_ && this.viewport_.deviceViewportRect)
         this.drawDeviceViewport_(ctx);
 
       ctx.restore();
@@ -323,8 +323,8 @@ base.exportTo('ui', function() {
 
     drawDeviceViewport_: function(ctx) {
       var vp = this.viewport_;
-      var vW = vp.deviceViewport.width;
-      var vH = vp.deviceViewport.height;
+      var vW = vp.deviceViewportRect.width;
+      var vH = vp.deviceViewportRect.height;
 
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
 

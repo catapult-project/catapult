@@ -11,8 +11,8 @@ base.exportTo('ui', function() {
   var DEFAULT_PAD_PERCENTAGE = 0.75;
 
   function QuadViewViewport(worldRect,
-                            opt_scale,
-                            opt_deviceViewport,
+                            opt_quad_stack_scale,
+                            opt_deviceViewportRect,
                             opt_padding,
                             opt_devicePixelRatio) {
     base.EventTarget.call(this);
@@ -31,17 +31,23 @@ base.exportTo('ui', function() {
       this.devicePixelRatio = window.devicePixelRatio || 1;
 
     var scale;
-    if (opt_scale) {
-      scale = opt_scale;
+    if (opt_quad_stack_scale) {
+      scale = opt_quad_stack_scale;
     } else {
+      scale = 0.125;
       if (this.devicePixelRatio > 1)
-        scale = 0.25;
-      else
-        scale = 0.125;
+        scale = scale * this.devicePixelRatio;
     }
     this.worldPixelsPerDevicePixel_ = scale;
 
-    this.deviceViewport_ = opt_deviceViewport;
+    if (opt_deviceViewportRect) {
+      this.deviceViewportRect_ = new base.Rect.FromXYWH(
+        opt_deviceViewportRect.x || 0,
+        opt_deviceViewportRect.y || 0,
+        opt_deviceViewportRect.width || 0,
+        opt_deviceViewportRect.height || 0
+        );
+    }
 
     this.updateScale_();
   }
@@ -50,6 +56,9 @@ base.exportTo('ui', function() {
 
     __proto__: base.EventTarget.prototype,
 
+    // The pixels in the original, traced browser are
+    // represented in a canvas 'world', scaled by a
+    // this 'scale' value.
     set scale(scale) {
       this.worldPixelsPerDevicePixel_ = scale;
       this.updateScale_();
@@ -60,30 +69,25 @@ base.exportTo('ui', function() {
       return this.worldPixelsPerDevicePixel_;
     },
 
-    // The area of the world that is visible by users, in world pixels
-    get deviceViewport() {
-      return this.deviceViewport_;
+    // The part of the world that is visible by users, in world pixels.
+    // Maybe undefined.
+    get deviceViewportRect() {
+      return this.deviceViewportRect_;
     },
 
     updateBoxSize: function(canvas) {
       var resizedCanvas = false;
-      if (canvas.width !== this.deviceWidth) {
-        canvas.width = this.deviceWidth * ui.RASTER_SCALE;
+      if (canvas.width !== this.worldWidthInDevicePixels_) {
+        canvas.width = this.worldWidthInDevicePixels_ * ui.RASTER_SCALE;
         canvas.style.width = this.layoutRect_.width + 'px';
         resizedCanvas = true;
       }
-      if (canvas.height !== this.deviceHeight) {
-        canvas.height = this.deviceHeight * ui.RASTER_SCALE;
+      if (canvas.height !== this.worldHeightInDevicePixels_) {
+        canvas.height = this.worldHeightInDevicePixels_ * ui.RASTER_SCALE;
         canvas.style.height = this.layoutRect_.height + 'px';
         resizedCanvas = true;
       }
       return resizedCanvas;
-    },
-
-    setWorldworldRect: function(worldRect, opt_padding) {
-      this.setWorldRect_(worldRect, opt_padding);
-      this.updateScale_();
-      this.didChange_();
     },
 
     layoutPixelsToWorldPixels: function(v) {
@@ -125,9 +129,9 @@ base.exportTo('ui', function() {
 
     updateScale_: function() {
       // Scale the world to the size selected by the user.
-      this.deviceWidth =
+      this.worldWidthInDevicePixels_ =
           this.worldRect.width * this.worldPixelsPerDevicePixel_;
-      this.deviceHeight =
+      this.worldHeightInDevicePixels_ =
           this.worldRect.height * this.worldPixelsPerDevicePixel_;
 
       this.updateLayoutRect_();
@@ -143,8 +147,8 @@ base.exportTo('ui', function() {
       this.layoutRect_ = base.Rect.FromXYWH(
           this.worldRect.x * devicePixelsPerLayoutPixel,
           this.worldRect.y * devicePixelsPerLayoutPixel,
-          this.deviceWidth * devicePixelsPerLayoutPixel,
-          this.deviceHeight * devicePixelsPerLayoutPixel
+          this.worldWidthInDevicePixels_ * devicePixelsPerLayoutPixel,
+          this.worldHeightInDevicePixels_ * devicePixelsPerLayoutPixel
       );
     },
 

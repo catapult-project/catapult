@@ -87,6 +87,10 @@ base.exportTo('base', function() {
       return out;
     },
 
+    size: function() {
+      return {width: this.width, height: this.height};
+    },
+
     scale: function(s) {
       var rect = new Rect();
       this.scaleFast(rect, s);
