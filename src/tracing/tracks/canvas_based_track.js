@@ -28,6 +28,7 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.Track.prototype,
 
     decorate: function() {
+      tracing.tracks.Track.prototype.decorate.apply(this);
       this.className = 'canvas-based-track';
       this.slices_ = null;
 

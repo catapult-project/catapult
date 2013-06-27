@@ -39,6 +39,7 @@ base.exportTo('tracing.tracks', function() {
     SHOULD_ELIDE_TEXT: true,
 
     decorate: function() {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
       this.classList.add('slice-track');
       this.elidedTitleCache = new ElidedTitleCache();
       this.asyncStyle_ = false;

@@ -30,6 +30,7 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
     decorate: function() {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
       this.classList.add('object-instance-track');
       this.objectInstances_ = [];
       this.objectSnapshots_ = [];

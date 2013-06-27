@@ -64,7 +64,8 @@ base.exportTo('base.unittest', function() {
     assertEquals: function(a, b, opt_message) {
       if (a === b)
         return;
-      var message = opt_message || 'Expected\n"' + a + '"\ngot\n"' + b + '"';
+      var message = opt_message || 'Expected\n"' + JSON.stringify(a) +
+          '"\ngot\n"' + JSON.stringify(b) + '"';
       throw new base.unittest.TestError(message);
     },
 

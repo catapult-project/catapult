@@ -31,6 +31,7 @@ base.exportTo('tcmalloc', function() {
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
     decorate: function() {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },

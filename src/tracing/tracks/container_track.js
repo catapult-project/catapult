@@ -19,6 +19,7 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.Track.prototype,
 
     decorate: function() {
+      tracing.tracks.Track.prototype.decorate.apply(this);
       this.categoryFilter_ = new tracing.Filter();
       this.headingWidth_ = undefined;
       this.tracks_ = [];
@@ -50,6 +51,10 @@ base.exportTo('tracing.tracks', function() {
         if (this.tracks_[i].visible)
           return this.tracks_[i].firstCanvas;
         return undefined;
+    },
+
+    get tracks() {
+      return this.tracks_;
     },
 
     // The number of tracks actually displayed.

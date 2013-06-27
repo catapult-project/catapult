@@ -28,6 +28,7 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
     decorate: function() {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
       this.classList.add('counter-track');
       this.addControlButtonElements_(false);
       this.selectedSamples_ = {};

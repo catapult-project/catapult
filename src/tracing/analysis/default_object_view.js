@@ -25,6 +25,7 @@ base.exportTo('tracing.analysis', function() {
     __proto__: tracing.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
+      tracing.analysis.ObjectSnapshotView.prototype.decorate.apply(this);
       this.classList.add('default-object-view');
       this.classList.add('default-object-snapshot-view');
     },
@@ -73,6 +74,7 @@ base.exportTo('tracing.analysis', function() {
     __proto__: tracing.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
+      tracing.analysis.ObjectInstanceView.prototype.decorate.apply(this);
       this.classList.add('default-object-view');
       this.classList.add('default-object-instance-view');
     },

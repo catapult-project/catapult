@@ -22,6 +22,7 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
     decorate: function() {
+      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
       this.classList.add('cpu-track');
     },
 

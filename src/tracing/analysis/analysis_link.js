@@ -50,6 +50,7 @@ base.exportTo('tracing.analysis', function() {
     __proto__: AnalysisLink.prototype,
 
     decorate: function() {
+      AnalysisLink.prototype.decorate.apply(this);
     },
 
     set objectSnapshot(snapshot) {
@@ -74,6 +75,7 @@ base.exportTo('tracing.analysis', function() {
     __proto__: AnalysisLink.prototype,
 
     decorate: function() {
+      AnalysisLink.prototype.decorate.apply(this);
     },
 
     set objectInstance(instance) {

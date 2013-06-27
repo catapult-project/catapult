@@ -24,8 +24,8 @@ base.exportTo('tracing.tracks', function() {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
     decorate: function() {
+      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
       this.classList.add('thread-track');
-      this.categoryFilter_ = new tracing.Filter();
     },
 
     get thread() {
@@ -68,7 +68,7 @@ base.exportTo('tracing.tracks', function() {
         cpuTrack.height = '4px';
         cpuTrack.decorateHit = function(hit) {
           hit.thread = this.thread_;
-        }
+        };
         this.addTrack_(cpuTrack);
 
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack();
@@ -76,14 +76,14 @@ base.exportTo('tracing.tracks', function() {
         asyncTrack.decorateHit = function(hit) {
           // TODO(simonjam): figure out how to associate subSlice hits back
           // to their parent slice.
-        }
+        };
         asyncTrack.group = this.thread_.asyncSlices;
         this.addTrack_(asyncTrack);
 
         var track = new tracing.tracks.SliceGroupTrack();
         track.decorateHit = function(hit) {
           hit.thread = this.thread_;
-        }
+        };
         track.group = this.thread_;
         this.addTrack_(track);
 
@@ -95,7 +95,7 @@ base.exportTo('tracing.tracks', function() {
             // TODO(johnmccutchan): Figure out what else should be associated
             // with the hit.
             hit.thread = this.thread_;
-          }
+          };
           this.addTrack_(samplesTrack);
         }
 
@@ -110,8 +110,8 @@ base.exportTo('tracing.tracks', function() {
         return;
       }
       var shouldBeVisible = false;
-      for (var i = 0; i < this.tracks_.length; ++i) {
-        var track = this.tracks_[i];
+      for (var i = 0; i < this.tracks.length; ++i) {
+        var track = this.tracks[i];
         if (track.visible) {
           shouldBeVisible = true;
           if (i >= 1) {
@@ -126,19 +126,19 @@ base.exportTo('tracing.tracks', function() {
 
     collapsedDidChange: function(collapsed) {
       if (collapsed) {
-        var h = parseInt(this.tracks_[0].height);
-        for (var i = 0; i < this.tracks_.length; ++i) {
+        var h = parseInt(this.tracks[0].height);
+        for (var i = 0; i < this.tracks.length; ++i) {
           if (h > 2) {
-            this.tracks_[i].height = Math.floor(h) + 'px';
+            this.tracks[i].height = Math.floor(h) + 'px';
           } else {
-            this.tracks_[i].style.display = 'none';
+            this.tracks[i].style.display = 'none';
           }
           h = h * 0.5;
         }
       } else {
-        for (var i = 0; i < this.tracks_.length; ++i) {
-          this.tracks_[i].height = this.tracks_[0].height;
-          this.tracks_[i].style.display = '';
+        for (var i = 0; i < this.tracks.length; ++i) {
+          this.tracks[i].height = this.tracks[0].height;
+          this.tracks[i].style.display = '';
         }
       }
     }

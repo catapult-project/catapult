@@ -25,6 +25,7 @@ base.exportTo('tcmalloc', function() {
     __proto__: tracing.analysis.ObjectInstanceView.prototype,
 
     decorate: function() {
+      tracing.analysis.ObjectInstanceView.prototype.decoreate.apply(this);
       this.classList.add('tcmalloc-instance-view');
     },
 
