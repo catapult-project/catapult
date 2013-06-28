@@ -10,8 +10,9 @@ PYLINT_DISABLED_WARNINGS = ['R0923', 'R0201', 'E1101']
 def _CommonChecks(input_api, output_api):
   results = []
 
-  from build import update_docs
-  if update_docs.IsUpdateDocsNeeded():
+  # TODO(nduca): This should call update_docs.IsUpdateDocsNeeded().
+  # Disabled due to crbug.com/255326.
+  if False:
     update_docs_path = os.path.join(
       input_api.PresubmitLocalPath(), 'update_docs')
     assert os.path.exists(update_docs_path)
