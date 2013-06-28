@@ -32,6 +32,8 @@ base.unittest.testSuite('cc.picture', function() {
     picture.initialize();
 
     var ops = picture.getOps();
+    if (!ops)
+      return;
     assertEquals(22, ops.length);
 
     var op0 = ops[0];
