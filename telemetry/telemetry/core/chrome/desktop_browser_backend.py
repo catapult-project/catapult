@@ -15,7 +15,7 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """
-  def __init__(self, options, executable, is_content_shell,
+  def __init__(self, options, executable, flash_path, is_content_shell,
                delete_profile_dir_after_run=True):
     super(DesktopBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
@@ -30,6 +30,14 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self._executable = executable
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
+
+    self._flash_path = None
+    if flash_path:
+      if os.path.exists(flash_path):
+        self._flash_path = flash_path
+      else:
+        logging.warning('Could not find flash at %s. Running without flash.' %
+                        flash_path)
 
     if len(options.extensions_to_load) > 0 and is_content_shell:
       raise browser_backend.ExtensionsNotSupportedException(
@@ -70,6 +78,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     args.append('--remote-debugging-port=%i' % self._port)
     if not self.is_content_shell:
       args.append('--window-size=1280,1024')
+      if self._flash_path:
+        args.append('--ppapi-flash-path=%s' % self._flash_path)
       if self._supports_net_benchmarking:
         args.append('--enable-net-benchmarking')
       else:
