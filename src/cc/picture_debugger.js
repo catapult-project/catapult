@@ -118,7 +118,7 @@ base.exportTo('cc', function() {
         if (!this.picture_.canRasterizeImage) {
           var details;
           if (!cc.PictureSnapshot.CanRasterize()) {
-            details = cc.PictureSnapshot.HowToEnableRasterizing();
+            details = cc.PictureSnapshot.HowToEnablePictureDebugging();
           } else {
             details = 'Your recording may be from an old Chrome version. ' +
                 'The SkPicture format is not backward compatible.';
