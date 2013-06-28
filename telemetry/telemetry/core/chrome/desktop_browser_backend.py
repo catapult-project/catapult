@@ -31,13 +31,8 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
 
-    self._flash_path = None
-    if flash_path:
-      if os.path.exists(flash_path):
-        self._flash_path = flash_path
-      else:
-        logging.warning('Could not find flash at %s. Running without flash.' %
-                        flash_path)
+    assert not flash_path or os.path.exists(flash_path)
+    self._flash_path = flash_path
 
     if len(options.extensions_to_load) > 0 and is_content_shell:
       raise browser_backend.ExtensionsNotSupportedException(

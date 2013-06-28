@@ -5,6 +5,7 @@
 
 import logging
 import os
+import platform
 import subprocess
 import sys
 
@@ -113,7 +114,12 @@ def FindAllAvailableBrowsers(options):
   elif sys.platform.startswith('linux'):
     chromium_app_name = 'chrome'
     content_shell_app_name = 'content_shell'
-    flash_path = '/opt/google/chrome/PepperFlash/libpepflashplayer.so'
+    linux_dir = 'linux'
+    if platform.architecture()[0] == '64bit':
+      linux_dir = 'linux_x64'
+    flash_path = os.path.join(
+        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
+        linux_dir, 'libpepflashplayer.so')
   elif sys.platform.startswith('win'):
     chromium_app_name = 'chrome.exe'
     content_shell_app_name = 'content_shell.exe'
@@ -121,6 +127,12 @@ def FindAllAvailableBrowsers(options):
     flash_path = None
   else:
     raise Exception('Platform not recognized')
+
+  if flash_path and not os.path.exists(flash_path):
+    logging.warning(('Could not find flash at %s. Running without flash.\n\n'
+                     'To fix this see http://go/read-src-internal') %
+                    flash_path)
+    flash_path = None
 
   # Add the explicit browser executable if given.
   if options.browser_executable:
