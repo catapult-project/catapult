@@ -123,8 +123,9 @@ def FindAllAvailableBrowsers(options):
   elif sys.platform.startswith('win'):
     chromium_app_name = 'chrome.exe'
     content_shell_app_name = 'content_shell.exe'
-    # TODO(tonyg): Implement this on win.
-    flash_path = None
+    flash_path = os.path.join(
+        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
+        'win', 'pepflashplayer.dll')
   else:
     raise Exception('Platform not recognized')
 
