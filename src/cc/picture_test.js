@@ -19,4 +19,23 @@ base.unittest.testSuite('cc.picture', function() {
     assertTrue(snapshot instanceof cc.PictureSnapshot);
     instance.wasDeleted(150);
   });
+
+  test('getOps', function() {
+    var picture = new cc.PictureSnapshot({id: '31415'}, 10, {
+      'params': {
+        'opaque_rect': [-15, -15, 0, 0],
+        'layer_rect': [-15, -15, 46, 833]
+      },
+      'skp64': 'DAAAAHYEAADzAQAABwAAAAFkYWVy8AAAAAgAAB4DAAAADAAAIAAAgD8AAIA/CAAAHgMAAAAcAAADAAAAAAAAAAAAwI5EAID5QwEAAADoAAAACAAAHgMAAAAMAAAjAAAAAAAAAAAMAAAjAAAAAAAAAAAcAAADAAAAAAAAAAAAwI5EAID5QwEAAADkAAAAGAAAFQEAAAAAAAAAAAAAAADAjkQAgPlDGAAAFQIAAAAAAAAAAAAAAADAjkQAgPlDCAAAHgMAAAAcAAADAAAAAAAAAAAAwI5EAID5QwEAAADgAAAAGAAAFQMAAAAAAKBAAACgQAAAgEIAAIBCBAAAHAQAABwEAAAcBAAAHHRjYWYBAAAADVNrU3JjWGZlcm1vZGVjZnB0AAAAAHlhcmGgAAAAIHRucAMAAAAAAEBBAACAPwAAAAAAAIA/AAAAAAAAgEAAAP//ADABAAAAAAAAAEBBAACAPwAAAAAAAIA/AAAAAAAAgED/////AjABAAAAAAAAAAAAAAAAAAEAAAAEAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEEAAIA/AAAAAAAAgD8AAAAAAACAQP8AAP8AMAEAAAAAACBmb2U=' // @suppress longLineCheck
+    });
+    picture.preInitialize();
+    picture.initialize();
+
+    var ops = picture.getOps();
+    assertEquals(22, ops.length);
+
+    var op0 = ops[0];
+    assertEquals('Save', op0.cmd_string);
+    assertTrue(op0.info instanceof Array);
+  });
 });

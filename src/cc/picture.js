@@ -29,7 +29,18 @@ base.exportTo('cc', function() {
       return false;
     return true;
   }
-  PictureSnapshot.HowToEnableRasterizing = function() {
+
+  PictureSnapshot.CanGetOps = function() {
+    if (!window.chrome)
+      return false;
+    if (!window.chrome.skiaBenchmarking)
+      return false;
+    if (!window.chrome.skiaBenchmarking.getOps)
+      return false;
+    return true;
+  }
+
+  PictureSnapshot.HowToEnablePictureDebugging = function() {
     var usualReason = [
       'For pictures to show up, you need to have Chrome running with ',
       '--enable-skia-benchmarking. Please restart chrome with this flag ',
@@ -42,6 +53,8 @@ base.exportTo('cc', function() {
       return usualReason;
     if (!window.chrome.skiaBenchmarking.rasterize)
       return 'Your chrome is old';
+    if (!window.chrome.skiaBenchmarking.getOps)
+      return 'Your chrome is old, skiaBenchmarking.getOps not found';
     return 'Rasterizing is on';
   }
 
@@ -81,7 +94,7 @@ base.exportTo('cc', function() {
         throw new Error('Rasterized already');
 
       if (!PictureSnapshot.CanRasterize()) {
-        console.error(PictureSnapshot.HowToEnableRasterizing());
+        console.error(PictureSnapshot.HowToEnablePictureDebugging());
         return undefined;
       }
 
@@ -113,6 +126,26 @@ base.exportTo('cc', function() {
       if (this.rasterStatus_ == RASTER_SUCCEEDED)
         return true;
       return this.rasterStatus_ == RASTER_NOT_BEGUN;
+    },
+
+    getOps: function() {
+      if (!PictureSnapshot.CanGetOps()) {
+        console.error(PictureSnapshot.HowToEnablePictureDebugging());
+        return undefined;
+      }
+
+      var ops = window.chrome.skiaBenchmarking.getOps({
+        skp64: this.args.skp64,
+        params: {
+          layer_rect: this.args.params.layerRect,
+          opaque_rect: this.args.params.opaqueRect
+        }
+      });
+
+      if (!ops)
+        throw new Error('Cannot get picture ops.');
+
+      return ops;
     },
 
     beginRasterizingImage: function(imageReadyCallback) {

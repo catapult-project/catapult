@@ -7,6 +7,7 @@
 base.requireStylesheet('cc.picture_debugger');
 
 base.require('cc.picture');
+base.require('cc.picture_ops_list_view');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
 base.require('ui.info_bar');
@@ -29,7 +30,7 @@ base.exportTo('cc', function() {
     decorate: function() {
       this.controls_ = document.createElement('top-controls');
       this.infoBar_ = new ui.InfoBar();
-      this.pictureDataView_ = new tracing.analysis.GenericObjectView();
+      this.pictureDataView_ = new cc.PictureOpsListView();
 
       this.rasterResult_ = document.createElement('raster-result');
       this.rasterArea_ = document.createElement('raster-area');
@@ -139,7 +140,7 @@ base.exportTo('cc', function() {
             this.picture_.image.src + '")';
       }
 
-      this.pictureDataView_.object = this.picture_;
+      this.pictureDataView_.picture = this.picture_;
     }
   };
 

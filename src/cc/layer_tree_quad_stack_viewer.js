@@ -175,7 +175,7 @@ base.exportTo('cc', function() {
           hasBrokenPicture = false;
           messages.push({
             header: 'Cannot rasterize',
-            details: cc.PictureSnapshot.HowToEnableRasterizing()});
+            details: cc.PictureSnapshot.HowToEnablePictureDebugging()});
         }
         if (hasUnresolvedPictureRef) {
           messages.push({

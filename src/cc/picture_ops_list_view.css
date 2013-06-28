@@ -1,0 +1,30 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+picture-ops-list-view {
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+}
+
+picture-ops-list-view > x-list-view {
+  -webkit-flex: 1 1 auto;
+  overflow: auto;
+}
+
+picture-ops-list-view > x-list-view .list-item {
+  border-bottom: 1px solid #555;
+  font-size: small;
+  font-weight: bold;
+  padding-bottom: 5px;
+  padding-left: 5px;
+}
+
+picture-ops-list-view > x-list-view .list-item > * {
+  color: #777;
+  font-size: x-small;
+  font-weight: normal;
+  margin-left: 1em;
+  max-width: 300px; /* force long strings to wrap */
+}
