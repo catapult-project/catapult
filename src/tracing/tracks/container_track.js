@@ -18,8 +18,8 @@ base.exportTo('tracing.tracks', function() {
   ContainerTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 
-    decorate: function() {
-      tracing.tracks.Track.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.Track.prototype.decorate.call(this, viewport);
       this.categoryFilter_ = new tracing.Filter();
       this.headingWidth_ = undefined;
       this.tracks_ = [];
@@ -34,16 +34,6 @@ base.exportTo('tracing.tracks', function() {
         this.tracks_[i].detach();
       this.tracks_ = [];
       this.textContent = '';
-    },
-
-    get viewport() {
-      return this.viewport_;
-    },
-
-    set viewport(v) {
-      this.viewport_ = v;
-      for (var i = 0; i < this.tracks_.length; i++)
-        this.tracks_[i].viewport = v;
     },
 
     get firstCanvas() {
@@ -102,7 +92,6 @@ base.exportTo('tracing.tracks', function() {
 
     addTrack_: function(track) {
       track.headingWidth = this.headingWidth_;
-      track.viewport = this.viewport_;
       track.categoryFilter = this.categoryFilter;
 
       this.tracks_.push(track);

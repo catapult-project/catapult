@@ -29,7 +29,7 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var testEl = document.createElement('div');
     testEl.style.width = '600px';
 
-    var track = new ThreadTrack();
+    var track = new ThreadTrack(new Viewport(testEl));
     testEl.appendChild(track);
     track.heading = 'testSelectionHitTestingWithThreadTrack';
     track.headingWidth = '100px';
@@ -39,7 +39,6 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var h = track.getBoundingClientRect().height;
     var wW = 10;
     var vW = track.firstCanvas.getBoundingClientRect().width;
-    track.viewport = new Viewport(testEl);
     track.viewport.xSetWorldBounds(0, wW, vW);
 
     var selection = new Selection();
@@ -59,7 +58,7 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     thread.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
-    var t = new ThreadTrack();
+    var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;
 
     assertTrue(t.tracks_[1].visible);
@@ -84,7 +83,7 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     thread.addSample('a', 'c', 5);
     thread.addSample('aa', 'd', 10);
     thread.addSample('aa', 'e', 15);
-    var t = new ThreadTrack();
+    var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;
     // Track is visible.
     assertTrue(t.tracks_[3].visible);

@@ -23,8 +23,8 @@ base.exportTo('tracing.tracks', function() {
   ThreadTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('thread-track');
     },
 
@@ -62,7 +62,7 @@ base.exportTo('tracing.tracks', function() {
     updateChildTracks_: function() {
       this.detach();
       if (this.thread_) {
-        var cpuTrack = new tracing.tracks.SliceTrack();
+        var cpuTrack = new tracing.tracks.SliceTrack(this.viewport);
         cpuTrack.heading = '';
         cpuTrack.slices = this.thread_.cpuSlices;
         cpuTrack.height = '4px';
@@ -71,7 +71,7 @@ base.exportTo('tracing.tracks', function() {
         };
         this.addTrack_(cpuTrack);
 
-        var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack();
+        var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
         asyncTrack.categoryFilter = this.categoryFilter;
         asyncTrack.decorateHit = function(hit) {
           // TODO(simonjam): figure out how to associate subSlice hits back
@@ -80,7 +80,7 @@ base.exportTo('tracing.tracks', function() {
         asyncTrack.group = this.thread_.asyncSlices;
         this.addTrack_(asyncTrack);
 
-        var track = new tracing.tracks.SliceGroupTrack();
+        var track = new tracing.tracks.SliceGroupTrack(this.viewport);
         track.decorateHit = function(hit) {
           hit.thread = this.thread_;
         };
@@ -88,7 +88,7 @@ base.exportTo('tracing.tracks', function() {
         this.addTrack_(track);
 
         if (this.thread_.samples.length) {
-          var samplesTrack = new tracing.tracks.SliceTrack();
+          var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
           samplesTrack.group = this.thread_;
           samplesTrack.slices = this.thread_.samples;
           samplesTrack.decorateHit = function(hit) {

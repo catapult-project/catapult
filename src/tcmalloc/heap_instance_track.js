@@ -30,8 +30,8 @@ base.exportTo('tcmalloc', function() {
 
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },
@@ -88,7 +88,7 @@ base.exportTo('tcmalloc', function() {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
       // Culling parameters.
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var pixWidthWorld = vp.xViewVectorToWorld(1);
       var viewLeftWorld = vp.xViewToWorld(0);
       var viewRightWorld = vp.xViewToWorld(canvasWidth);

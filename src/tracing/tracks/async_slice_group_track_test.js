@@ -20,7 +20,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
     assertEquals(1, track.subRows_.length);
@@ -40,7 +40,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1, t1, t1));
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
     var subRows = track.subRows_;
 
@@ -59,7 +59,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     g.push(newAsyncSlice(0, 1.5, t1, t1));
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows_;
@@ -80,7 +80,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     g.push(newAsyncSlice(0, 1.5, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     g.updateBounds();
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
     var subRows = track.subRows_;
 
@@ -103,7 +103,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     g.push(newAsyncSlice(2, 1, t1, t1));
     g.updateBounds();
 
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
     var subRows = track.subRows_;
@@ -122,7 +122,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(0, 1, t2, t2));
-    var track = new AsyncSliceGroupTrack();
+    var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
     var subRows = track.subRows_;
 

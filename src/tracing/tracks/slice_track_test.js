@@ -18,7 +18,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var viewport = document.createElement('div');
     this.addHTMLOutput(viewport);
 
-    var track = SliceTrack();
+    var track = SliceTrack(new Viewport(viewport));
     viewport.appendChild(track);
 
     track.heading = 'testBasicSlices';
@@ -28,7 +28,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       new Slice('', 'b', 1, 7, {}, 0.5),
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
-    track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 8.8, track.clientWidth);
   });
 
@@ -36,7 +35,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var viewport = document.createElement('div');
     this.addHTMLOutput(viewport);
 
-    var track = SliceTrack();
+    var track = SliceTrack(new Viewport(viewport));
     viewport.appendChild(track);
 
     track.heading = 'testShrinkingSliceSizes';
@@ -49,7 +48,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       slices.push(s);
     }
     track.slices = slices;
-    track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
   });
 
@@ -68,7 +66,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       viewport.appendChild(document.createTextNode(dict.trackName));
       this.addHTMLOutput(viewport);
 
-      var track = new SliceTrack();
+      var track = new SliceTrack(new Viewport(viewport));
       viewport.appendChild(track);
       track.SHOULD_ELIDE_TEXT = dict.elide;
       track.heading = 'Visual: ' + dict.trackName;
@@ -79,13 +77,12 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
         new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
         new Slice('', 'd', 2, 7.6, {}, 1.0)
       ];
-      track.viewport = new Viewport(viewport);
       track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
     }
   });
 
   test('findAllObjectsMatchingInSliceTrack', function() {
-    var track = SliceTrack();
+    var track = SliceTrack(new tracing.TimelineViewport());
     track.slices = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),
@@ -105,7 +102,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var testEl = document.createElement('div');
     this.addHTMLOutput(testEl);
 
-    var track = new SliceTrack();
+    var track = new SliceTrack(new Viewport(testEl));
     testEl.style.width = '600px';
 
     testEl.appendChild(track);
@@ -119,7 +116,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var pixelRatio = window.devicePixelRatio || 1;
     var wW = 10;
     var vW = track.firstCanvas.getBoundingClientRect().width;
-    track.viewport = new Viewport(testEl);
     track.viewport.xSetWorldBounds(0, wW, vW * pixelRatio);
 
     var selection = new Selection();
@@ -148,13 +144,12 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
     this.addHTMLOutput(testEl);
 
-    var track = new SliceTrack();
+    var track = new SliceTrack(new Viewport(testEl));
     testEl.appendChild(track);
 
     var bigtitle = 'Super duper long long title ' +
         'holy moly when did you get so verbose?';
     var smalltitle = 'small';
-    track.viewport = new Viewport(testEl);
     track.heading = 'testElide';
     track.slices = [
       // title, colorId, start, args, opt_duration
@@ -164,7 +159,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     track.viewport.xSetWorldBounds(0, 3.3, track.clientWidth);
 
     var stringWidthPair = undefined;
-    var pixWidth = track.viewport_.xViewVectorToWorld(1);
+    var pixWidth = track.viewport.xViewVectorToWorld(1);
 
     // Small titles on big slices are not elided.
     stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
@@ -198,7 +193,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
   });
 
   test('sliceTrackAddItemNearToProvidedHit', function() {
-    var track = new SliceTrack();
+    var track = new SliceTrack(new tracing.TimelineViewport());
     track.slices = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 2.1, {}, 4.8),

@@ -20,7 +20,15 @@ base.exportTo('tracing.tracks', function() {
   Track.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate: function(viewport) {
+      this.viewport_ = viewport;
+
+      if (this.viewport_ === undefined)
+        throw new Error('viewport is required when creating a Track.');
+    },
+
+    get viewport() {
+      return this.viewport_;
     },
 
     get visible() {

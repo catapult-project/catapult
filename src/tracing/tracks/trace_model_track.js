@@ -27,8 +27,8 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('model-track');
       this.measuringStick_ = new base.MeasuringStick();
       this.measuringStick_.attach();
@@ -88,7 +88,7 @@ base.exportTo('tracing.tracks', function() {
 
         for (var i = 0; i < cpus.length; ++i) {
           var cpu = cpus[i];
-          var track = new tracing.tracks.CpuTrack();
+          var track = new tracing.tracks.CpuTrack(this.viewport);
           track.heading = 'CPU ' + cpu.cpuNumber + ':';
           track.cpu = cpu;
           this.addTrack_(track);
@@ -100,7 +100,7 @@ base.exportTo('tracing.tracks', function() {
 
         for (var i = 0; i < processes.length; ++i) {
           var process = processes[i];
-          var track = new tracing.tracks.ProcessTrack();
+          var track = new tracing.tracks.ProcessTrack(this.viewport);
           track.process = process;
           this.addTrack_(track);
         }

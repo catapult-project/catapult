@@ -30,8 +30,8 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('process-track');
       this.categoryFilter_ = new tracing.Filter();
     },
@@ -97,7 +97,7 @@ base.exportTo('tracing.tracks', function() {
               tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
           if (!trackConstructor)
             trackConstructor = tracing.tracks.ObjectInstanceTrack;
-          var track = new trackConstructor();
+          var track = new trackConstructor(this.viewport);
           track.heading = typeName + ':';
           track.objectInstances = visibleInstances;
           this.addTrack_(track);
@@ -113,7 +113,7 @@ base.exportTo('tracing.tracks', function() {
 
         // Create the counters for this process.
         counters.forEach(function(counter) {
-          var track = new tracing.tracks.CounterTrack();
+          var track = new tracing.tracks.CounterTrack(this.viewport);
           track.heading = counter.name + ':';
           track.counter = counter;
           this.addTrack_(track);
@@ -127,7 +127,7 @@ base.exportTo('tracing.tracks', function() {
 
         // Create the threads.
         threads.forEach(function(thread) {
-          var track = new tracing.tracks.ThreadTrack();
+          var track = new tracing.tracks.ThreadTrack(this.viewport);
           track.heading = thread.userFriendlyName + ':';
           track.tooltip = thread.userFriendlyDetails;
           track.thread = thread;

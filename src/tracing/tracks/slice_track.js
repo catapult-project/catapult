@@ -38,8 +38,8 @@ base.exportTo('tracing.tracks', function() {
      */
     SHOULD_ELIDE_TEXT: true,
 
-    decorate: function() {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-track');
       this.elidedTitleCache = new ElidedTitleCache();
       this.asyncStyle_ = false;
@@ -98,7 +98,7 @@ base.exportTo('tracing.tracks', function() {
       ctx.clearRect(0, 0, canvasW, canvasH);
 
       // Culling parameters.
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var pixWidth = vp.xViewVectorToWorld(1);
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);

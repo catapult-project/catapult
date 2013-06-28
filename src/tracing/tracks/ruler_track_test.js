@@ -13,10 +13,10 @@ base.unittest.testSuite('tracing.tracks.ruler_track', function() {
     var viewport = document.createElement('div');
     this.addHTMLOutput(viewport);
 
-    var track = tracing.tracks.RulerTrack();
+    var track = tracing.tracks.RulerTrack(
+        new tracing.TimelineViewport(viewport));
     viewport.appendChild(track);
 
-    track.viewport = new tracing.TimelineViewport(viewport);
     track.viewport.setPanAndScale(0, track.clientWidth / 1000);
   });
 });

@@ -18,7 +18,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sA = group.pushSlice(newSliceNamed('a', 1, 2));
     var sB = group.pushSlice(newSliceNamed('a', 3, 1));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -33,7 +33,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -50,7 +50,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 1, 4));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -67,7 +67,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
     var sB = group.pushSlice(newSliceNamed('b', 2, 0));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -82,7 +82,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sB = group.pushSlice(newSliceNamed('b', 1, 0));
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -101,7 +101,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
     var sA = group.pushSlice(newSliceNamed('a', 1, 2));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -121,7 +121,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sB = group.pushSlice(newSliceNamed('b', 3, 1));
     var sA = group.pushSlice(newSliceNamed('a', 1, 5));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -143,7 +143,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
     var sA = group.pushSlice(newSliceNamed('a', 1, 3));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -163,7 +163,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
     var sC = group.pushSlice(newSliceNamed('c', 5, 0));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
     var subRows = track.subRows_;
 
@@ -185,7 +185,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sC = group.pushSlice(newSliceNamed('c', 1.75, 0.5));
     var sD = group.pushSlice(newSliceNamed('c', 5, 0.25));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
 
     var subRows = track.subRows_;
@@ -202,7 +202,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var sA = group.pushSlice(newSliceNamed('a', 1, 3));
     var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
 
-    var track = new SliceGroupTrack();
+    var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
 
     assertEquals(2, track.subRows_.length);

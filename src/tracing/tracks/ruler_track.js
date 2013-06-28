@@ -29,8 +29,8 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
@@ -47,12 +47,12 @@ base.exportTo('tracing.tracks', function() {
     placeAndBeginDraggingMarker: function(clientX) {
       var pixelRatio = window.devicePixelRatio || 1;
       var viewX = (clientX - this.canvasContainer_.offsetLeft) * pixelRatio;
-      var worldX = this.viewport_.xViewToWorld(viewX);
-      var marker = this.viewport_.findMarkerNear(worldX, 6);
+      var worldX = this.viewport.xViewToWorld(viewX);
+      var marker = this.viewport.findMarkerNear(worldX, 6);
       var createdMarker = false;
       var movedMarker = false;
       if (!marker) {
-        marker = this.viewport_.addMarker(worldX);
+        marker = this.viewport.addMarker(worldX);
         createdMarker = true;
       }
       marker.selected = true;
@@ -60,7 +60,7 @@ base.exportTo('tracing.tracks', function() {
       var that = this;
       var onMouseMove = function(e) {
         var viewX = (e.clientX - that.canvasContainer_.offsetLeft) * pixelRatio;
-        var worldX = that.viewport_.xViewToWorld(viewX);
+        var worldX = that.viewport.xViewToWorld(viewX);
         marker.positionWorld = worldX;
         movedMarker = true;
       };
@@ -68,7 +68,7 @@ base.exportTo('tracing.tracks', function() {
       var onMouseUp = function(e) {
         marker.selected = false;
         if (!movedMarker && !createdMarker)
-          that.viewport_.removeMarker(marker);
+          that.viewport.removeMarker(marker);
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousemove', onMouseMove);
       };
@@ -119,7 +119,7 @@ base.exportTo('tracing.tracks', function() {
       ctx.clearRect(0, 0, canvasW, canvasH);
 
       // Culling parametrs.
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var pixWidth = vp.xViewVectorToWorld(1);
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);

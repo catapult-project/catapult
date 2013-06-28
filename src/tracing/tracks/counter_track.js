@@ -27,8 +27,8 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.CanvasBasedTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
       this.addControlButtonElements_(false);
       this.selectedSamples_ = {};
@@ -81,7 +81,7 @@ base.exportTo('tracing.tracks', function() {
       ctx.clearRect(0, 0, canvasW, canvasH);
 
       // Culling parametrs.
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var pixWidth = vp.xViewVectorToWorld(1);
       var viewLWorld = vp.xViewToWorld(0);
       var viewRWorld = vp.xViewToWorld(canvasW);

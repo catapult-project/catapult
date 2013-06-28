@@ -27,8 +27,8 @@ base.exportTo('tracing.tracks', function() {
   CanvasBasedTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 
-    decorate: function() {
-      tracing.tracks.Track.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.Track.prototype.decorate.call(this, viewport);
       this.className = 'canvas-based-track';
       this.slices_ = null;
 
@@ -45,14 +45,21 @@ base.exportTo('tracing.tracks', function() {
       this.canvasContainer_.appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
+
+      this.viewportChange_ = this.viewportChange_.bind(this);
+      this.viewport.addEventListener('change', this.viewportChange_);
+      this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
+      this.viewport.addEventListener('markersChange',
+                                        this.viewportMarkersChange_);
+      if (this.isAttachedToDocument_)
+        this.updateCanvasSizeIfNeeded_();
+      this.invalidate();
     },
 
     detach: function() {
-      if (this.viewport_) {
-        this.viewport_.removeEventListener('change', this.viewportChange_);
-        this.viewport_.removeEventListener('markersChange',
-            this.viewportMarkersChange_);
-      }
+      this.viewport.removeEventListener('change', this.viewportChange_);
+      this.viewport.removeEventListener('markersChange',
+         this.viewportMarkersChange_);
     },
 
     set headingWidth(width) {
@@ -71,36 +78,12 @@ base.exportTo('tracing.tracks', function() {
       this.headingDiv_.title = text;
     },
 
-    get viewport() {
-      return this.viewport_;
-    },
-
-    set viewport(v) {
-      this.viewport_ = v;
-      if (this.viewport_) {
-        this.viewport_.removeEventListener('change', this.viewportChange_);
-        this.viewport_.removeEventListener('markersChange',
-            this.viewportMarkersChange_);
-      }
-      this.viewport_ = v;
-      if (this.viewport_) {
-        this.viewportChange_ = this.viewportChange_.bind(this);
-        this.viewport_.addEventListener('change', this.viewportChange_);
-        this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
-        this.viewport_.addEventListener('markersChange',
-                                        this.viewportMarkersChange_);
-        if (this.isAttachedToDocument_)
-          this.updateCanvasSizeIfNeeded_();
-      }
-      this.invalidate();
-    },
-
     viewportChange_: function() {
       this.invalidate();
     },
 
     viewportMarkersChange_: function() {
-      if (this.viewport_.markers.length < 2)
+      if (this.viewport.markers.length < 2)
         this.classList.remove('ruler-track-with-distance-measurements');
       else
         this.classList.add('ruler-track-with-distance-measurements');
@@ -111,8 +94,6 @@ base.exportTo('tracing.tracks', function() {
         return;
       base.requestPreAnimationFrame(function() {
         this.rafPending_ = false;
-        if (!this.viewport_)
-          return;
         this.updateCanvasSizeIfNeeded_();
         base.requestAnimationFrameInThisFrameIfPossible(function() {
           this.redraw();
@@ -161,9 +142,9 @@ base.exportTo('tracing.tracks', function() {
         loVX, hiVX, loVY, hiVY, selection) {
 
       var pixelRatio = window.devicePixelRatio || 1;
-      var viewPixWidthWorld = this.viewport_.xViewVectorToWorld(1);
-      var loWX = this.viewport_.xViewToWorld(loVX * pixelRatio);
-      var hiWX = this.viewport_.xViewToWorld(hiVX * pixelRatio);
+      var viewPixWidthWorld = this.viewport.xViewVectorToWorld(1);
+      var loWX = this.viewport.xViewToWorld(loVX * pixelRatio);
+      var hiWX = this.viewport.xViewToWorld(hiVX * pixelRatio);
 
       var clientRect = this.getBoundingClientRect();
       var a = Math.max(loVY, clientRect.top);

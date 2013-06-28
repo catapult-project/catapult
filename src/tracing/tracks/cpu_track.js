@@ -21,8 +21,8 @@ base.exportTo('tracing.tracks', function() {
   CpuTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('cpu-track');
     },
 
@@ -66,7 +66,7 @@ base.exportTo('tracing.tracks', function() {
         var slices = tracing.filterSliceArray(this.categoryFilter_,
                                               this.cpu_.slices);
         if (slices.length) {
-          var track = new tracing.tracks.SliceTrack();
+          var track = new tracing.tracks.SliceTrack(this.viewport);
           track.slices = slices;
           track.heading = this.heading_;
           track.tooltip = this.tooltip_;
@@ -75,7 +75,7 @@ base.exportTo('tracing.tracks', function() {
 
         for (var counterName in this.cpu_.counters) {
           var counter = this.cpu_.counters[counterName];
-          track = new tracing.tracks.CounterTrack();
+          track = new tracing.tracks.CounterTrack(this.viewport);
           track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
               counter.name + ':';
           track.counter = counter;

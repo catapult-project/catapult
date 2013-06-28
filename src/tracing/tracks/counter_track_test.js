@@ -30,14 +30,14 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
     }
     ctr.updateBounds();
 
-    var track = new CounterTrack();
+    var track = new CounterTrack(new Viewport(testEl));
     testEl.appendChild(track);
+    track.updateCanvasSizeIfNeeded_();
 
     var pixelRatio = window.devicePixelRatio || 1;
 
     track.heading = ctr.name;
     track.counter = ctr;
-    track.viewport = new Viewport(testEl);
     track.viewport.xSetWorldBounds(0, 10,
         track.firstCanvas.getBoundingClientRect().width * pixelRatio);
 
@@ -64,12 +64,11 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
     var viewport = document.createElement('div');
     this.addHTMLOutput(viewport);
 
-    var track = new CounterTrack();
+    var track = new CounterTrack(new Viewport(viewport));
     viewport.appendChild(track);
 
     track.heading = ctr.name;
     track.counter = ctr;
-    track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 7.7, track.clientWidth);
   });
 

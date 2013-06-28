@@ -40,7 +40,7 @@ base.unittest.testSuite('tracing.selection', function() {
     t1.pushSlice(new tracing.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
     t1.pushSlice(new tracing.trace_model.ThreadSlice('', 'a', 0, 5, {}, 1));
 
-    var track = new tracing.tracks.SliceTrack();
+    var track = new tracing.tracks.SliceTrack(new tracing.TimelineViewport());
     track.slices = t1.slices;
 
     var sel = new tracing.Selection();

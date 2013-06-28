@@ -71,15 +71,14 @@ base.exportTo('tracing', function() {
       this.viewport_ = new Viewport(this);
 
       // Add the viewport track.
-      this.rulerTrack_ = new tracing.tracks.RulerTrack();
-      this.rulerTrack_.viewport = this.viewport_;
+      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
       this.appendChild(this.rulerTrack_);
 
       this.modelTrackContainer_ = document.createElement('div');
       this.modelTrackContainer_.className = 'model-track-container';
       this.appendChild(this.modelTrackContainer_);
 
-      this.modelTrack_ = new tracing.tracks.TraceModelTrack();
+      this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
@@ -153,7 +152,6 @@ base.exportTo('tracing', function() {
       var modelInstanceChanged = this.model_ != model;
       this.model_ = model;
       this.modelTrack_.model = model;
-      this.modelTrack_.viewport = this.viewport_;
       this.modelTrack_.categoryFilter = this.categoryFilter;
       this.rulerTrack_.headingWidth = this.modelTrack_.headingWidth;
 

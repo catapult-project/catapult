@@ -90,6 +90,9 @@ base.exportTo('tracing', function() {
      */
     get isAttachedToDocument_() {
       var cur = this.parentEl_;
+      // Allow not providing a parent element, used by tests.
+      if (cur === undefined)
+        return;
       while (cur.parentNode)
         cur = cur.parentNode;
       return cur == this.parentEl_.ownerDocument;

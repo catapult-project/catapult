@@ -23,8 +23,8 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.ContainerTrack.prototype,
 
-    decorate: function() {
-      tracing.tracks.ContainerTrack.prototype.decorate.apply(this);
+    decorate: function(viewport) {
+      tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-group-track');
     },
 
@@ -57,7 +57,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addSliceTrack_: function(slices) {
-      var track = new tracing.tracks.SliceTrack();
+      var track = new tracing.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       track.decorateHit = this.decorateHit_;
       this.addTrack_(track);

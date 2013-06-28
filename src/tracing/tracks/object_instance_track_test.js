@@ -37,12 +37,11 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     var viewport = document.createElement('div');
     this.addHTMLOutput(viewport);
 
-    var track = ObjectInstanceTrack();
+    var track = ObjectInstanceTrack(new Viewport(viewport));
     viewport.appendChild(track);
 
     track.heading = 'testBasic';
     track.objectInstances = frames;
-    track.viewport = new Viewport(viewport);
     track.viewport.xSetWorldBounds(0, 50, track.clientWidth);
 
   });
@@ -51,7 +50,7 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
 
-    var track = ObjectInstanceTrack();
+    var track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
 
     // Hit outside range
