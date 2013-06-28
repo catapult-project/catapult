@@ -98,16 +98,6 @@ def FindAllAvailableBrowsers(options):
       os.getenv('DISPLAY') == None):
     has_display = False
 
-  # Add the explicit browser executable if given.
-  if options.browser_executable:
-    normalized_executable = os.path.expanduser(options.browser_executable)
-    if os.path.exists(normalized_executable):
-      browsers.append(PossibleDesktopBrowser('exact', options,
-                                             normalized_executable, False))
-    else:
-      logging.warning('%s specified by browser_executable does not exist',
-                      normalized_executable)
-
   # Look for a browser in the standard chrome build locations.
   if options.chrome_root:
     chrome_root = options.chrome_root
@@ -131,6 +121,17 @@ def FindAllAvailableBrowsers(options):
     flash_path = None
   else:
     raise Exception('Platform not recognized')
+
+  # Add the explicit browser executable if given.
+  if options.browser_executable:
+    normalized_executable = os.path.expanduser(options.browser_executable)
+    if os.path.exists(normalized_executable):
+      browsers.append(PossibleDesktopBrowser('exact', options,
+                                             normalized_executable, flash_path,
+                                             False))
+    else:
+      logging.warning('%s specified by browser_executable does not exist',
+                      normalized_executable)
 
   build_dirs = ['build',
                 'out',
