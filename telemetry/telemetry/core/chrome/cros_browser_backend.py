@@ -8,7 +8,6 @@ import subprocess
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.chrome import browser_backend
-from telemetry.core.chrome import cros_util
 
 class CrOSBrowserBackend(browser_backend.BrowserBackend):
   # Some developers' workflow includes running the Chrome process from
@@ -112,13 +111,13 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     if self._is_guest:
       pid = self.pid
-      cros_util.NavigateGuestLogin(self, cri)
+      self._NavigateGuestLogin()
       # Guest browsing shuts down the current browser and launches an incognito
       # browser in a separate process, which we need to wait for.
       util.WaitFor(lambda: pid != self.pid, 10)
       self._WaitForBrowserToComeUp()
     else:
-      cros_util.NavigateLogin(self, cri)
+      self._NavigateLogin()
 
     logging.info('Browser is up!')
 
@@ -236,6 +235,108 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
         self._cri.RunCmdOnDevice(['restart', 'ui'])
       else:
         self._cri.RunCmdOnDevice(['start', 'ui'])
+
+  @property
+  def oobe(self):
+    return self.misc_web_contents_backend.GetOobe()
+
+  def _SigninUIState(self):
+    """Returns the signin ui state of the oobe. HIDDEN: 0, GAIA_SIGNIN: 1,
+    ACCOUNT_PICKER: 2, WRONG_HWID_WARNING: 3, MANAGED_USER_CREATION_FLOW: 4.
+    These values are in
+    chrome/browser/resources/chromeos/login/display_manager.js
+    """
+    return self.oobe.EvaluateJavaScript('''
+      loginHeader = document.getElementById('login-header-bar')
+      if (loginHeader) {
+        loginHeader.signinUIState_;
+      }
+    ''')
+
+  def _IsCryptohomeMounted(self):
+    """Returns True if a cryptohome vault is mounted at /home/chronos/user."""
+    return self._cri.FilesystemMountedAt('/home/chronos/user').startswith(
+        '/home/.shadow/')
+
+  def _HandleUserImageSelectionScreen(self):
+    """If we're stuck on the user image selection screen, we click the ok
+    button. TODO(achuith): Figure out a better way to bypass user image
+    selection. crbug.com/249182."""
+    oobe = self.oobe
+    if oobe:
+      try:
+        oobe.EvaluateJavaScript("""
+            var ok = document.getElementById("ok-button");
+            if (ok) {
+              ok.click();
+            }
+        """)
+      except (exceptions.TabCrashException):
+        pass
+
+  def _IsLoggedIn(self):
+    """Returns True if we're logged in (cryptohome has mounted), and the oobe
+    has been dismissed."""
+    self._HandleUserImageSelectionScreen()
+    return self._IsCryptohomeMounted() and not self.oobe
+
+  def _StartupWindow(self):
+    """Closes the startup window, which is an extension on official builds,
+    and a webpage on chromiumos"""
+    startup_window_ext_id = 'honijodknafkokifofgiaalefdiedpko'
+    return (self.extension_dict_backend[startup_window_ext_id]
+        if startup_window_ext_id in self.extension_dict_backend
+        else self.tab_list_backend.Get(0, None))
+
+  def _WaitForAccountPicker(self):
+    """Waits for the oobe screen to be in the account picker state."""
+    util.WaitFor(lambda: self._SigninUIState() == 2, 20)
+
+  def _ClickBrowseAsGuest(self):
+    """Click the Browse As Guest button on the account picker screen. This will
+    restart the browser, and we could have a tab crash or a browser crash."""
+    try:
+      self.oobe.EvaluateJavaScript("""
+          var guest = document.getElementById("guest-user-button");
+          if (guest) {
+            guest.click();
+          }
+      """)
+    except (exceptions.TabCrashException,
+            exceptions.BrowserConnectionGoneException):
+      pass
+
+  def _WaitForGuestFsMounted(self):
+    """Waits for /home/chronos/user to be mounted as guestfs"""
+    util.WaitFor(lambda: (self._cri.FilesystemMountedAt('/home/chronos/user') ==
+                          'guestfs'), 20)
+
+  def _NavigateGuestLogin(self):
+    """Navigates through oobe login screen as guest"""
+    assert self.oobe
+    self._WaitForAccountPicker()
+    self._ClickBrowseAsGuest()
+    self._WaitForGuestFsMounted()
+
+  def _NavigateLogin(self):
+    """Navigates through oobe login screen"""
+    # Dismiss the user image selection screen.
+    try:
+      util.WaitFor(lambda: self._IsLoggedIn(), 60) # pylint: disable=W0108
+    except util.TimeoutException:
+      raise exceptions.LoginException(
+          'Timed out going through oobe screen. Make sure the custom auth '
+          'extension passed through --auth-ext-path is valid and belongs '
+          'to user "chronos".')
+
+    if self.chrome_branch_number < 1500:
+      # Wait for the startup window, then close it. Startup window doesn't exist
+      # post-M27. crrev.com/197900
+      util.WaitFor(lambda: self._StartupWindow() is not None, 20)
+      self._StartupWindow().Close()
+    else:
+      # Open a new window/tab.
+      self.tab_list_backend.New(15)
 
 
 class SSHForwarder(object):
