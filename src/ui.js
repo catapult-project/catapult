@@ -126,8 +126,22 @@ base.exportTo('ui', function() {
     return f;
   }
 
+  function elementIsChildOf(el, potentialParent) {
+    if (el == potentialParent)
+      return false;
+
+    var cur = el;
+    while (cur.parentNode) {
+      if (cur == potentialParent)
+        return true;
+      cur = cur.parentNode;
+    }
+    return false;
+  };
+
   return {
     decorate: decorate,
-    define: define
+    define: define,
+    elementIsChildOf: elementIsChildOf
   };
 });
