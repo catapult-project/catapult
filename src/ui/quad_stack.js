@@ -161,7 +161,7 @@ base.exportTo('ui', function() {
 
     updateDebugIndicator_: function() {
       this.indicatorCanvas_ = this.indicatorCanvas_ ||
-        document.createElement('canvas');
+          document.createElement('canvas');
       this.indicatorCanvas_.className = 'quad-stack-debug-indicator';
       this.contentContainer_.appendChild(this.indicatorCanvas_);
 

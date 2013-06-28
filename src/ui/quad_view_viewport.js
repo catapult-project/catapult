@@ -42,11 +42,10 @@ base.exportTo('ui', function() {
 
     if (opt_deviceViewportRect) {
       this.deviceViewportRect_ = new base.Rect.FromXYWH(
-        opt_deviceViewportRect.x || 0,
-        opt_deviceViewportRect.y || 0,
-        opt_deviceViewportRect.width || 0,
-        opt_deviceViewportRect.height || 0
-        );
+          opt_deviceViewportRect.x || 0,
+          opt_deviceViewportRect.y || 0,
+          opt_deviceViewportRect.width || 0,
+          opt_deviceViewportRect.height || 0);
     }
 
     this.updateScale_();
@@ -148,8 +147,7 @@ base.exportTo('ui', function() {
           this.worldRect.x * devicePixelsPerLayoutPixel,
           this.worldRect.y * devicePixelsPerLayoutPixel,
           this.worldWidthInDevicePixels_ * devicePixelsPerLayoutPixel,
-          this.worldHeightInDevicePixels_ * devicePixelsPerLayoutPixel
-      );
+          this.worldHeightInDevicePixels_ * devicePixelsPerLayoutPixel);
     },
 
     setWorldRect_: function(worldRect, opt_padding) {

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 'use strict';
+
 /**
  * @fileoverview Graphical view of  LayerTreeImpl, with controls for
  * type of layer content shown and info bar for content-loading warnings.
@@ -287,7 +288,7 @@ base.exportTo('cc', function() {
         this.appendImageQuads_(layer, layerQuad);
 
         if (this.showInvalidations) {
-            this.appendInvalidationQuads_(layer, layerQuad);
+          this.appendInvalidationQuads_(layer, layerQuad);
         }
 
         // Push the layer quad last.

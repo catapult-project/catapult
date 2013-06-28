@@ -10,13 +10,13 @@ base.unittest.testSuite('ui.dom_helpers', function() {
 
   test('simpleSpanAndDiv', function() {
     var divEl = ui.createDiv({
-        className: 'a-div-class', parent: document.body
+      className: 'a-div-class', parent: document.body
     });
     var testText = 'some span text';
     var spanEl = ui.createSpan({
-        className: 'a-span-class',
-        textContent: testText,
-        parent: divEl
+      className: 'a-span-class',
+      textContent: testText,
+      parent: divEl
     });
     var eltInDocument = document.querySelector('.a-div-class>.a-span-class');
     assertEquals(eltInDocument.textContent, testText);

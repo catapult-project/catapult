@@ -764,7 +764,7 @@ this.base = (function() {
     tracedFunction: tracedFunction,
     normalizeException: normalizeException,
     instantiateTemplate: instantiateTemplate,
-    setPropertyAndDispatchChange: setPropertyAndDispatchChange,
+    setPropertyAndDispatchChange: setPropertyAndDispatchChange
   };
 })();
 

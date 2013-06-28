@@ -37,8 +37,9 @@ base.exportTo('tracing.tracks', function() {
       this.createRegExpSelectors_();
     },
 
-    /** @return {Array} of {regexp: RegExp, isOn: boolean}
-    */
+    /**
+     *@return {Array} of {regexp: RegExp, isOn: boolean}
+     */
     get trackSelectorModel() {
       return this.trackSelectorModel_;
     },

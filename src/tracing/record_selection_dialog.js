@@ -56,7 +56,7 @@ base.exportTo('tracing', function() {
       this.createGroupSelectButtons_(
           this.querySelector('.default-disabled-categories'));
 
-       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
+      this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
 
     updateDlgSetting_: function(e) {

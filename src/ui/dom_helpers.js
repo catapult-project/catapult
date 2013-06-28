@@ -15,9 +15,9 @@ base.exportTo('ui', function() {
       if (opt_dictionary.className)
         spanEl.className = opt_dictionary.className;
       if (opt_dictionary.textContent)
-          spanEl.textContent = opt_dictionary.textContent;
+        spanEl.textContent = opt_dictionary.textContent;
       if (opt_dictionary.parent)
-          opt_dictionary.parent.appendChild(spanEl);
+        opt_dictionary.parent.appendChild(spanEl);
     }
     return spanEl;
   };

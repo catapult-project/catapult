@@ -3,8 +3,9 @@
 // found in the LICENSE file.
 
 'use strict';
+
 /**
- * @fileoverview LayerViewer coordinates graphical and analysis views of layers
+ * @fileoverview LayerViewer coordinates graphical and analysis views of layers.
  */
 
 base.requireStylesheet('cc.layer_viewer');

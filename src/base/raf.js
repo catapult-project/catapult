@@ -21,7 +21,7 @@ base.exportTo('base', function() {
     if (e.message)
       console.error(e.message, e.stack);
     else
-     console.error(e);
+      console.error(e);
   }
 
   function runTask(task) {

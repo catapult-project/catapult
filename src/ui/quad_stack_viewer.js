@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 'use strict';
+
 /**
- * @fileoverview QuadStackViewer controls the content and
-*    viewing angle a QuadStack.
+ * @fileoverview QuadStackViewer controls the content and viewing angle a
+ * QuadStack.
  */
 
 base.require('ui.quad_stack');
