@@ -43,10 +43,11 @@ class TimelineModel(object):
     if self._frozen:
       raise Exception("Cannot add events once recording is done")
     self._root_events.append(event)
-    self._all_events.extend(
-      event.GetAllChildrenRecursive(include_self=True))
 
   def DidFinishRecording(self):
+    for event in self._root_events:
+      self._all_events.extend(
+        event.GetAllChildrenRecursive(include_self=True))
     self._frozen = True
 
   def ImportTraces(self, traces, shift_world_to_zero=True):
