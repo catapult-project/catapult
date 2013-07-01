@@ -74,8 +74,11 @@ class List(Command):
     else:
       print >> sys.stderr, 'Available tests are:'
       for test_name, test_class in sorted(_GetTests().items()):
-        print >> sys.stderr, '  %-20s %s' % (test_name,
-            test_class.__doc__.splitlines()[0])
+        if test_class.__doc__:
+          print >> sys.stderr, '  %-20s %s' % (test_name,
+              test_class.__doc__.splitlines()[0])
+        else:
+          print >> sys.stderr, '  %-20s' % test_name
     return 0
 
 
