@@ -13,16 +13,7 @@ class InspectorPage(object):
         'Page',
         self._OnNotification,
         self._OnClose)
-
-    # Turn on notifications. We need them to get the Page.frameNavigated event.
-    request = {
-        'method': 'Page.enable'
-        }
-    res = self._inspector_backend.SyncRequest(request)
-    assert len(res['result'].keys()) == 0
-
     self._navigation_pending = False
-    self._script_to_evaluate_on_commit = None
 
   def _OnNotification(self, msg):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
@@ -37,46 +28,40 @@ class InspectorPage(object):
   def _OnClose(self):
     pass
 
-  def _SetScriptToEvaluateOnCommit(self, source):
-    existing_source = (self._script_to_evaluate_on_commit and
-                       self._script_to_evaluate_on_commit['source'])
-    if source == existing_source:
-      return
-    if existing_source:
-      request = {
-          'method': 'Page.removeScriptToEvaluateOnLoad',
-          'params': {
-              'identifier': self._script_to_evaluate_on_commit['id'],
-              }
-          }
-      self._inspector_backend.SyncRequest(request)
-      self._script_to_evaluate_on_commit = None
-    if source:
-      request = {
-          'method': 'Page.addScriptToEvaluateOnLoad',
-          'params': {
-              'scriptSource': source,
-              }
-          }
-      res = self._inspector_backend.SyncRequest(request)
-      self._script_to_evaluate_on_commit = {
-          'id': res['result']['identifier'],
-          'source': source
-          }
-
   def PerformActionAndWaitForNavigate(self, action_function, timeout=60):
     """Executes action_function, and waits for the navigation to complete.
 
     action_function is expect to result in a navigation. This function returns
     when the navigation is complete or when the timeout has been exceeded.
     """
+
+    # Turn on notifications. We need them to get the Page.frameNavigated event.
+    request = {
+        'method': 'Page.enable'
+        }
+    res = self._inspector_backend.SyncRequest(request, timeout)
+    assert len(res['result'].keys()) == 0
+
+    def DisablePageNotifications():
+      request = {
+          'method': 'Page.disable'
+          }
+      res = self._inspector_backend.SyncRequest(request, timeout)
+      assert len(res['result'].keys()) == 0
+
     self._navigation_pending = True
-    action_function()
+    try:
+      action_function()
+    except:
+      DisablePageNotifications()
+      raise
 
     def IsNavigationDone(time_left):
       self._inspector_backend.DispatchNotifications(time_left)
       return not self._navigation_pending
     util.WaitFor(IsNavigationDone, timeout, pass_time_left_to_func=True)
+
+    DisablePageNotifications()
 
   def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=60):
     """Navigates to |url|.
@@ -87,7 +72,14 @@ class InspectorPage(object):
     """
 
     def DoNavigate():
-      self._SetScriptToEvaluateOnCommit(script_to_evaluate_on_commit)
+      if script_to_evaluate_on_commit:
+        request = {
+            'method': 'Page.addScriptToEvaluateOnLoad',
+            'params': {
+                'scriptSource': script_to_evaluate_on_commit,
+                }
+            }
+        self._inspector_backend.SyncRequest(request)
       # Navigate the page. However, there seems to be a bug in chrome devtools
       # protocol where the request id for this event gets held on the browser
       # side pretty much indefinitely.
