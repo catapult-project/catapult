@@ -245,11 +245,15 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     for process in self._processes.itervalues():
       for thread in process.threads:
         thread.AutoCloseOpenSlices(max_timestamp=self._model.max_timestamp)
+
     # We need to reupdate the bounds in case the minimum start time changes
     self._model.UpdateBounds()
     self._CreateAsyncSlices()
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
+
+    for process in self._processes.itervalues():
+      process.FinalizeImport()
 
   def _CreateAsyncSlices(self):
     if len(self._all_async_events) == 0:
@@ -308,7 +312,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           async_slice = tracing_async_slice.AsyncSlice(
               events[0]['event']['cat'],
               name,
-              events[0]['event']['ts'] / 1000.0)
+              events[0]['event']['ts'] / 1000.0,
+              parent=self)
 
           async_slice.duration = ((event['ts'] / 1000.0)
               - (events[0]['event']['ts'] / 1000.0))

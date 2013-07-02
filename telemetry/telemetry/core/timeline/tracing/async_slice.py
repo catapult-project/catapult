@@ -12,16 +12,10 @@ class AsyncSlice(tracing_slice.Slice):
   def __init__(self, category, name, timestamp, args=None, parent=None):
     super(AsyncSlice, self).__init__(
         category, name, timestamp, args=args, parent=parent)
-    self._sub_slices = []
     self.start_thread = None
     self.end_thread = None
     self.id = None
 
-  @property
-  def sub_slices(self):
-    return self._sub_slices
-
   def AddSubSlice(self, sub_slice):
-    self._sub_slices.append(sub_slice)
-    sub_slice.parent = self
+    super(AsyncSlice, self).AddSubSlice(sub_slice)
     self.children.append(sub_slice)

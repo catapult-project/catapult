@@ -18,10 +18,11 @@ class Thread(timeline_event.TimelineEvent):
     self._open_slices = []
     self._async_slices = []
     self._samples = []
+    self._slices = []
 
   @property
   def slices(self):
-    return self.children
+    return self._slices
 
   @property
   def samples(self):
@@ -86,6 +87,7 @@ class Thread(timeline_event.TimelineEvent):
     return self.PushSlice(curr_slice)
 
   def PushSlice(self, new_slice):
+    self._slices.append(new_slice)
     self.children.append(new_slice)
     return new_slice
 
@@ -111,3 +113,70 @@ class Thread(timeline_event.TimelineEvent):
         self.start = self._open_slices[0].start
       if not len(self.slices) or self.end < self._open_slices[-1].start:
         self.duration = self._open_slices[-1].start - self.start
+
+  def FinalizeImport(self):
+    self._BuildSliceSubRows()
+
+  def _BuildSliceSubRows(self):
+    '''This function works by walking through slices by start time.
+
+     The basic idea here is to insert each slice as deep into the subrow
+     list as it can go such that every subslice is fully contained by its
+     parent slice.
+
+     Visually, if we start with this:
+      0:  [    a       ]
+      1:    [  b  ]
+      2:    [c][d]
+
+     To place this slice:
+                   [e]
+     We first check row 2's last item, [d]. [e] wont fit into [d] (they dont
+     even intersect). So we go to row 1. That gives us [b], and [d] wont fit
+     into that either. So, we go to row 0 and its last slice, [a]. That can
+     completely contain [e], so that means we should add [e] as a subslice
+     of [a]. That puts it on row 1, yielding:
+      0:  [    a       ]
+      1:    [  b  ][e]
+      2:    [c][d]
+
+     If we then get this slice:
+                          [f]
+     We do the same deepest-to-shallowest walk of the subrows trying to fit
+     it. This time, it doesn't fit in any open slice. So, we simply append
+     it to row 0 (a root slice):
+      0:  [    a       ]  [f]
+      1:    [  b  ][e]
+    '''
+    def CompareSlices(s1, s2):
+      if s1.start == s2.start:
+        # Break ties by having the slice with the greatest
+        # end timestamp come first.
+        return cmp(s2.end, s1.end)
+      return cmp(s1.start, s2.start)
+
+    if not len(self._slices):
+      return
+
+    sorted_slices = sorted(self._slices, cmp=CompareSlices)
+    root_slice = sorted_slices[0]
+    for s in sorted_slices[1:]:
+      if not self._AddSliceIfBounds(root_slice, s):
+        root_slice = s
+
+  def _AddSliceIfBounds(self, root, child):
+    ''' Adds a child slice to a root slice its proper row.
+    Return False if the child slice is not in the bounds
+    of the root slice.
+
+    Because we know that the start time of child is >= the start time
+    of all other slices seen so far, we can just check the last slice
+    of each row for bounding.
+    '''
+    if child.start >= root.start and child.end <= root.end:
+      if len(root.sub_slices) > 0:
+        if self._AddSliceIfBounds(root.sub_slices[-1], child):
+          return True
+      root.AddSubSlice(child)
+      return True
+    return False

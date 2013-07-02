@@ -58,3 +58,7 @@ class Process(timeline_event.TimelineEvent):
     super(Process, self).UpdateBounds()
     for ctr in self.counters.itervalues():
       ctr.UpdateBounds()
+
+  def FinalizeImport(self):
+    for thread in self._threads:
+      thread.FinalizeImport()

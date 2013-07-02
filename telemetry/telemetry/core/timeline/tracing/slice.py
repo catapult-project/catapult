@@ -16,5 +16,22 @@ class Slice(timeline_event.TimelineEvent):
   def __init__(self, category, name, timestamp, args=None, parent=None):
     super(Slice, self).__init__(
         name, timestamp, 0, args=args, parent=parent)
+    self._sub_slices = []
     self.category = category
     self.did_not_finish = False
+
+  @property
+  def sub_slices(self):
+    return self._sub_slices
+
+  def AddSubSlice(self, sub_slice):
+    self._sub_slices.append(sub_slice)
+
+  def _GetSubSlicesRecursive(self):
+    for sub_slice in self._sub_slices:
+      for s in sub_slice.GetAllSubSlices():
+        yield s
+      yield sub_slice
+
+  def GetAllSubSlices(self):
+    return list(self._GetSubSlicesRecursive())

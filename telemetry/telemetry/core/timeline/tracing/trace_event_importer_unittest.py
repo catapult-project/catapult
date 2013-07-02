@@ -733,6 +733,60 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(0, slice_event.start)
     self.assertEqual(4, slice_event.args['z'])
 
+  def testSliceHierarchy(self):
+    ''' The slice hierarchy should look something like this:
+           [            a            ]
+              [      b      ]  [ d ]
+              [ c ]     [ e ]
+    '''
+    events = [
+      {'name': 'a', 'args': {}, 'pid': 52, 'ts': 100, 'cat': 'foo',
+       'tid': 53, 'ph': 'B'},
+      {'name': 'a', 'args': {}, 'pid': 52, 'ts': 200, 'cat': 'foo',
+       'tid': 53, 'ph': 'E'},
+      {'name': 'b', 'args': {}, 'pid': 52, 'ts': 125, 'cat': 'foo',
+       'tid': 53, 'ph': 'B'},
+      {'name': 'b', 'args': {}, 'pid': 52, 'ts': 165, 'cat': 'foo',
+       'tid': 53, 'ph': 'E'},
+      {'name': 'c', 'args': {}, 'pid': 52, 'ts': 125, 'cat': 'foo',
+       'tid': 53, 'ph': 'B'},
+      {'name': 'c', 'args': {}, 'pid': 52, 'ts': 135, 'cat': 'foo',
+       'tid': 53, 'ph': 'E'},
+      {'name': 'd', 'args': {}, 'pid': 52, 'ts': 175, 'cat': 'foo',
+       'tid': 53, 'ph': 'B'},
+      {'name': 'd', 'args': {}, 'pid': 52, 'ts': 190, 'cat': 'foo',
+       'tid': 53, 'ph': 'E'},
+      {'name': 'e', 'args': {}, 'pid': 52, 'ts': 155, 'cat': 'foo',
+       'tid': 53, 'ph': 'B'},
+      {'name': 'e', 'args': {}, 'pid': 52, 'ts': 165, 'cat': 'foo',
+       'tid': 53, 'ph': 'E'}
+    ]
+    m = timeline_model.TimelineModel(event_data=events,
+                                     shift_world_to_zero=False)
+    processes = GetAllProcesses(m)
+    self.assertEqual(1, len(processes))
+    p = processes[0]
+
+    self.assertEqual(1, len(p.threads))
+    t = p.GetThreadWithId(53)
+
+    slice_a = t.slices[0]
+    self.assertEqual(4, len(slice_a.GetAllSubSlices()))
+    self.assertEqual('a', slice_a.name)
+    self.assertEqual(100 / 1000.0, slice_a.start)
+    self.assertEqual(200 / 1000.0, slice_a.end)
+    self.assertEqual(2, len(slice_a.sub_slices))
+
+    slice_b = slice_a.sub_slices[0]
+    self.assertEqual('b', slice_b.name)
+    self.assertEqual(2, len(slice_b.sub_slices))
+    self.assertEqual('c', slice_b.sub_slices[0].name)
+    self.assertEqual('e', slice_b.sub_slices[1].name)
+
+    slice_d = slice_a.sub_slices[1]
+    self.assertEqual('d', slice_d.name)
+    self.assertEqual(0, len(slice_d.sub_slices))
+
   def testAsyncEndArgAddedToSlice(self):
     events = [
       # Time is intentionally out of order.
