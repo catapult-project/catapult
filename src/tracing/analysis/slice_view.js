@@ -26,7 +26,7 @@ base.exportTo('tracing.analysis', function() {
       this.slice = obj;
     },
 
-    get modelObject(obj) {
+    get modelObject() {
       return this.slice;
     },
 

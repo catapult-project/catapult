@@ -167,7 +167,7 @@ this.base = (function() {
   // will be pulled in by the requireTemplate calls.
   var templatesLoaded_ = false;
   function ensureTemplatesLoaded() {
-    if (templatesLoaded_)
+    if (templatesLoaded_ || window.FLATTENED)
       return;
     templatesLoaded_ = true;
 

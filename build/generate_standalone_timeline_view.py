@@ -53,7 +53,7 @@ def _sopen(filename, mode):
 
 def _get_input_filenames():
   return [os.path.join(srcdir, f)
-          for f in ['base.js', 'tracing/timeline_view.js']]
+          for f in ['base.js', 'tracing/standalone_timeline_view.js']]
 
 def generate_css():
   filenames = _get_input_filenames()
@@ -73,8 +73,12 @@ def generate_js():
 
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
+  js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
 
   for module in load_sequence:
+    for dependent_raw_script_name in module.dependent_raw_script_names:
+      js_chunks.append("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
+        dependent_raw_script_name)
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
 
   html_encoded = base64.b64encode(generate_templates())

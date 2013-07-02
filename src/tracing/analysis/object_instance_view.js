@@ -20,7 +20,7 @@ base.exportTo('tracing.analysis', function() {
       this.objectInstance = obj;
     },
 
-    get modelObject(obj) {
+    get modelObject() {
       return this.objectInstance;
     },
 
