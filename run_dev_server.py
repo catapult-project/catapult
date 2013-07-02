@@ -27,9 +27,9 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
 
   def send_response(self, code, message=None):
-     SimpleHTTPServer.SimpleHTTPRequestHandler.send_response(self, code, message)
-     if code == 200:
-       self.send_header('Cache-Control', 'no-cache')
+    SimpleHTTPServer.SimpleHTTPRequestHandler.send_response(self, code, message)
+    if code == 200:
+      self.send_header('Cache-Control', 'no-cache')
 
   def do_GET_json_tests(self):
     def is_test(x):

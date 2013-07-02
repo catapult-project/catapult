@@ -14,44 +14,21 @@ _LICENSE_HEADER = (
     "\n"
 )
 
-def _CheckIfAboutTracingIsOutOfdate(input_api, output_api):
-  import build.generate_about_tracing_contents as generator1
-  import build.parse_deps
-
-  try:
-    out_of_date = generator1.is_out_of_date()
-  except build.parse_deps.DepsException, ex:
-    return [output_api.PresubmitError(str(ex))]
-
-  if out_of_date:
-    return [output_api.PresubmitError(
-        'This change affects the about_tracing files. '
-        'Please run ./build/generate_about_tracing_contents.py')]
-  return []
-
 def _CommonChecks(input_api, output_api):
   results = []
   results.extend(input_api.canned_checks.PanProjectChecks(
       input_api, output_api, excluded_paths=_EXCLUDED_PATHS))
-  results.extend(_CheckIfAboutTracingIsOutOfdate(input_api, output_api))
 
   from web_dev_style import css_checker, js_checker
 
   src_dir = os.path.join(input_api.change.RepositoryRoot(), "src")
-  FILES_TO_NOT_LINT = [
-    input_api.os_path.join(src_dir, "about_tracing.js"),
-  ]
 
   def IsResource(maybe_resource):
     f = maybe_resource.AbsoluteLocalPath()
     print f
     if not f.endswith(('.css', '.html', '.js')):
       return False
-    for ignored in FILES_TO_NOT_LINT:
-      if input_api.os_path.samefile(f, ignored):
-        return False
     return True
-
 
   results.extend(css_checker.CSSChecker(input_api, output_api,
                                         file_filter=IsResource).RunChecks())
