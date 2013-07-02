@@ -213,8 +213,8 @@ class Browser(object):
       profiler.CollectProfile()
     self._active_profilers = []
 
-  def StartTracing(self, custom_categories=None):
-    return self._browser_backend.StartTracing(custom_categories)
+  def StartTracing(self, custom_categories=None, timeout=10):
+    return self._browser_backend.StartTracing(custom_categories, timeout)
 
   def StopTracing(self):
     return self._browser_backend.StopTracing()
