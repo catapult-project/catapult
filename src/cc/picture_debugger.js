@@ -28,32 +28,49 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.controls_ = document.createElement('top-controls');
-      this.infoBar_ = new ui.InfoBar();
-      this.pictureDataView_ = new cc.PictureOpsListView();
+      this.leftPanel_ = document.createElement('left-panel');
 
-      this.rasterResult_ = document.createElement('raster-result');
-      this.rasterArea_ = document.createElement('raster-area');
+      this.pictureInfo_ = document.createElement('picture-info');
 
+      this.title_ = document.createElement('span');
+      this.title_.textContent = 'Skia Picture';
+      this.title_.classList.add('title');
+      this.sizeInfo_ = document.createElement('span');
+      this.sizeInfo_.classList.add('size');
       this.filename_ = document.createElement('input');
       this.filename_.classList.add('filename');
       this.filename_.type = 'text';
       this.filename_.value = 'skpicture.skp';
-      this.controls_.appendChild(this.filename_);
-
-      var saveButton = document.createElement('button');
-      saveButton.textContent = 'Save SkPicture';
-      saveButton.addEventListener(
+      var exportButton = document.createElement('button');
+      exportButton.textContent = 'Export';
+      exportButton.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
-      this.controls_.appendChild(saveButton);
+      this.pictureInfo_.appendChild(this.title_);
+      this.pictureInfo_.appendChild(this.sizeInfo_);
+      this.pictureInfo_.appendChild(document.createElement('br'));
+      this.pictureInfo_.appendChild(this.filename_);
+      this.pictureInfo_.appendChild(exportButton);
 
-      this.dragHandle_ = new ui.DragHandle();
-      this.dragHandle_.horizontal = false;
-      this.dragHandle_.target = this.pictureDataView_;
+      this.titleDragHandle_ = new ui.DragHandle();
+      this.titleDragHandle_.horizontal = true;
+      this.titleDragHandle_.target = this.pictureInfo_;
 
-      this.appendChild(this.pictureDataView_);
-      this.appendChild(this.dragHandle_);
-      this.rasterArea_.appendChild(this.controls_);
+      this.drawOpsView_ = new cc.PictureOpsListView();
+
+      this.leftPanel_.appendChild(this.pictureInfo_);
+      this.leftPanel_.appendChild(this.titleDragHandle_);
+      this.leftPanel_.appendChild(this.drawOpsView_);
+
+      this.middleDragHandle_ = new ui.DragHandle();
+      this.middleDragHandle_.horizontal = false;
+      this.middleDragHandle_.target = this.leftPanel_;
+
+      this.infoBar_ = new ui.InfoBar();
+      this.rasterResult_ = document.createElement('raster-result');
+      this.rasterArea_ = document.createElement('raster-area');
+
+      this.appendChild(this.leftPanel_);
+      this.appendChild(this.middleDragHandle_);
       this.rasterArea_.appendChild(this.infoBar_);
       this.rasterArea_.appendChild(this.rasterResult_);
       this.appendChild(this.rasterArea_);
@@ -108,6 +125,10 @@ base.exportTo('cc', function() {
     updateContents_: function() {
       this.updateContentsPending_ = false;
 
+      this.sizeInfo_.textContent = '(' +
+            this.picture_.layerRect.width + ' x ' +
+            this.picture_.layerRect.height + ')';
+
       if (!this.picture_)
         return;
       this.infoBar_.visible = false;
@@ -140,7 +161,7 @@ base.exportTo('cc', function() {
             this.picture_.image.src + '")';
       }
 
-      this.pictureDataView_.picture = this.picture_;
+      this.drawOpsView_.picture = this.picture_;
     }
   };
 

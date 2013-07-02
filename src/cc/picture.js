@@ -81,8 +81,12 @@ base.exportTo('cc', function() {
     initialize: function() {
       if (!this.args.params.layerRect)
         throw new Error('Missing layer rect');
-      this.layerRect = this.args.params.layerRect;
-      this.layerRect = base.Rect.FromArray(this.layerRect);
+      this.layerRect_ = this.args.params.layerRect;
+      this.layerRect_ = base.Rect.FromArray(this.layerRect_);
+    },
+
+    get layerRect() {
+      return this.layerRect_;
     },
 
     getBase64SkpData: function() {
