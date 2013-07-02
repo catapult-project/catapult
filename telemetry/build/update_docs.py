@@ -9,32 +9,16 @@ import pydoc
 import re
 import sys
 
+import telemetry
 from telemetry.core import util
 
 telemetry_dir = util.GetTelemetryDir()
 docs_dir = os.path.join(telemetry_dir, 'docs')
 
-def EnsureTelemetryIsInPath():
-  if telemetry_dir not in sys.path:
-    sys.path.append(telemetry_dir)
-
 def RemoveAllDocs():
   for dirname, _, filenames in os.walk(docs_dir):
     for filename in filenames:
       os.remove(os.path.join(dirname, filename))
-
-def RemoveAllStalePycFiles():
-  for dirname, _, filenames in os.walk(telemetry_dir):
-    for filename in filenames:
-      if not filename.endswith('.pyc'):
-        continue
-      pyc_path = os.path.join(dirname, filename)
-      py_path = os.path.splitext(pyc_path)[0] + '.py'
-      if not os.path.exists(py_path):
-        os.remove(pyc_path)
-        pyc_dir = os.path.dirname(pyc_path)
-        if not os.listdir(pyc_dir):
-          os.removedirs(pyc_dir)
 
 def GenerateHTMLForModule(module):
   html = pydoc.html.page(pydoc.describe(module),
@@ -50,7 +34,7 @@ def GenerateHTMLForModule(module):
       continue
 
     new_href = href.replace('file:', '')
-    new_href = new_href.replace(telemetry_dir, '..')
+    new_href = new_href.replace(telemetry_dir, os.pardir)
     new_href = new_href.replace(os.sep, '/')
 
     new_link_text = link_text.replace(telemetry_dir + os.sep, '')
@@ -72,7 +56,6 @@ def WriteHTMLForModule(module):
     f.write(page)
 
 def GetAllModulesToDocument(module):
-  RemoveAllStalePycFiles()
   modules = [module]
   for _, modname, _ in pkgutil.walk_packages(
       module.__path__, module.__name__ + '.'):
@@ -113,9 +96,6 @@ def GetAlreadyDocumentedModules():
 
 
 def IsUpdateDocsNeeded():
-  EnsureTelemetryIsInPath()
-  import telemetry
-
   already_documented_modules = GetAlreadyDocumentedModules()
   already_documented_modules_by_name = dict(
     (module.name, module) for module in already_documented_modules)
@@ -158,9 +138,6 @@ def Main(args):
   assert os.path.isdir(docs_dir)
 
   RemoveAllDocs()
-
-  EnsureTelemetryIsInPath()
-  import telemetry
 
   old_cwd = os.getcwd()
   try:
