@@ -21,7 +21,7 @@
  *
  */
 base.require('base.range');
-base.require('base.event_target');
+base.require('base.events');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
 base.require('tracing.trace_model.cpu');

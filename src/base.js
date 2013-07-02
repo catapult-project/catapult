@@ -4,7 +4,6 @@
 
 'use strict';
 
-
 /**
  * The global object.
  * @type {!Object}
@@ -12,10 +11,8 @@
  */
 var global = this;
 
-
 /** Platform, package, object property, and Event support. */
 this.base = (function() {
-
   /**
    * Base path for modules. Used to form URLs for module 'require' requests.
    */
@@ -25,7 +22,6 @@ this.base = (function() {
       path = path.substring(0, path.length - 1);
     moduleBasePath = path;
   }
-
 
   function mLog(text, opt_indentLevel) {
     if (true)
@@ -342,249 +338,6 @@ this.base = (function() {
   };
 
   /**
-   * Fires a property change event on the target.
-   * @param {EventTarget} target The target to dispatch the event on.
-   * @param {string} propertyName The name of the property that changed.
-   * @param {*} newValue The new value for the property.
-   * @param {*} oldValue The old value for the property.
-   */
-  function dispatchPropertyChange(target, propertyName, newValue, oldValue,
-                                  opt_bubbles, opt_cancelable) {
-    var e = new base.Event(propertyName + 'Change',
-        opt_bubbles, opt_cancelable);
-    e.propertyName = propertyName;
-    e.newValue = newValue;
-    e.oldValue = oldValue;
-
-    var error;
-    e.throwError = function(err) {  // workaround CR 239648
-      error = err;
-    };
-
-    target.dispatchEvent(e);
-    if (error)
-      throw error;
-  }
-
-  function setPropertyAndDispatchChange(obj, propertyName, newValue) {
-    var privateName = propertyName + '_';
-    var oldValue = obj[propertyName];
-    obj[privateName] = newValue;
-    if (oldValue !== newValue)
-      base.dispatchPropertyChange(obj, propertyName,
-          newValue, oldValue, true, false);
-  }
-
-  /**
-   * Converts a camelCase javascript property name to a hyphenated-lower-case
-   * attribute name.
-   * @param {string} jsName The javascript camelCase property name.
-   * @return {string} The equivalent hyphenated-lower-case attribute name.
-   */
-  function getAttributeName(jsName) {
-    return jsName.replace(/([A-Z])/g, '-$1').toLowerCase();
-  }
-
-  /* Creates a private name unlikely to collide with object properties names
-   * @param {string} name The defineProperty name
-   * @return {string} an obfuscated name
-   */
-  function getPrivateName(name) {
-    return name + '_base_';
-  }
-
-  /**
-   * The kind of property to define in {@code defineProperty}.
-   * @enum {number}
-   * @const
-   */
-  var PropertyKind = {
-    /**
-     * Plain old JS property where the backing data is stored as a 'private'
-     * field on the object.
-     */
-    JS: 'js',
-
-    /**
-     * The property backing data is stored as an attribute on an element.
-     */
-    ATTR: 'attr',
-
-    /**
-     * The property backing data is stored as an attribute on an element. If the
-     * element has the attribute then the value is true.
-     */
-    BOOL_ATTR: 'boolAttr'
-  };
-
-  /**
-   * Helper function for defineProperty that returns the getter to use for the
-   * property.
-   * @param {string} name The name of the property.
-   * @param {base.PropertyKind} kind The kind of the property.
-   * @return {function():*} The getter for the property.
-   */
-  function getGetter(name, kind) {
-    switch (kind) {
-      case PropertyKind.JS:
-        var privateName = getPrivateName(name);
-        return function() {
-          return this[privateName];
-        };
-      case PropertyKind.ATTR:
-        var attributeName = getAttributeName(name);
-        return function() {
-          return this.getAttribute(attributeName);
-        };
-      case PropertyKind.BOOL_ATTR:
-        var attributeName = getAttributeName(name);
-        return function() {
-          return this.hasAttribute(attributeName);
-        };
-    }
-  }
-
-  /**
-   * Helper function for defineProperty that returns the setter of the right
-   * kind.
-   * @param {string} name The name of the property we are defining the setter
-   *     for.
-   * @param {base.PropertyKind} kind The kind of property we are getting the
-   *     setter for.
-   * @param {function(*):void=} opt_setHook A function to run after the property
-   *     is set, but before the propertyChange event is fired.
-   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
-   * @param {boolean=} opt_cancelable Whether the default action of the event
-   *     can be prevented.
-   * @return {function(*):void} The function to use as a setter.
-   */
-  function getSetter(name, kind, opt_setHook, opt_bubbles, opt_cancelable) {
-    switch (kind) {
-      case PropertyKind.JS:
-        var privateName = getPrivateName(name);
-        return function(value) {
-          var oldValue = this[privateName];
-          if (value !== oldValue) {
-            this[privateName] = value;
-            if (opt_setHook)
-              opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue,
-                opt_bubbles, opt_cancelable);
-          }
-        };
-
-      case PropertyKind.ATTR:
-        var attributeName = getAttributeName(name);
-        return function(value) {
-          var oldValue = this.getAttribute(attributeName);
-          if (value !== oldValue) {
-            if (value == undefined)
-              this.removeAttribute(attributeName);
-            else
-              this.setAttribute(attributeName, value);
-            if (opt_setHook)
-              opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue,
-                opt_bubbles, opt_cancelable);
-          }
-        };
-
-      case PropertyKind.BOOL_ATTR:
-        var attributeName = getAttributeName(name);
-        return function(value) {
-          var oldValue = (this.getAttribute(attributeName) === name);
-          if (value !== oldValue) {
-            if (value)
-              this.setAttribute(attributeName, name);
-            else
-              this.removeAttribute(attributeName);
-            if (opt_setHook)
-              opt_setHook.call(this, value, oldValue);
-            dispatchPropertyChange(this, name, value, oldValue,
-                opt_bubbles, opt_cancelable);
-          }
-        };
-    }
-  }
-
-  /**
-   * Defines a property on an object. When the setter changes the value a
-   * property change event with the type {@code name + 'Change'} is fired.
-   * @param {!Object} obj The object to define the property for.
-   * @param {string} name The name of the property.
-   * @param {base.PropertyKind=} opt_kind What kind of underlying storage to
-   * use.
-   * @param {function(*):void=} opt_setHook A function to run after the
-   *     property is set, but before the propertyChange event is fired.
-   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
-   * @param {boolean=} opt_cancelable Whether the default action of the event
-   *     can be prevented.
-   */
-  function defineProperty(obj, name, opt_kind, opt_setHook,
-                          opt_bubbles, opt_cancelable) {
-    console.error("Don't use base.defineProperty");
-    if (typeof obj == 'function')
-      obj = obj.prototype;
-
-    var kind = opt_kind || PropertyKind.JS;
-
-    if (!obj.__lookupGetter__(name))
-      obj.__defineGetter__(name, getGetter(name, kind));
-
-    if (!obj.__lookupSetter__(name))
-      obj.__defineSetter__(name, getSetter(name, kind, opt_setHook,
-          opt_bubbles, opt_cancelable));
-  }
-
-  /**
-   * Dispatches a simple event on an event target.
-   * @param {!EventTarget} target The event target to dispatch the event on.
-   * @param {string} type The type of the event.
-   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
-   * @param {boolean=} opt_cancelable Whether the default action of the event
-   *     can be prevented.
-   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
-   * @param {boolean=} opt_cancelable Whether the default action of the event
-   *     can be prevented.
-   * @return {boolean} If any of the listeners called {@code preventDefault}
-   *     during the dispatch this will return false.
-   */
-  function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable) {
-    var e = new base.Event(type, opt_bubbles, opt_cancelable);
-    return target.dispatchEvent(e);
-  }
-
-  /**
-   * Adds a {@code getInstance} static method that always return the same
-   * instance object.
-   * @param {!Function} ctor The constructor for the class to add the static
-   *     method to.
-   */
-  function addSingletonGetter(ctor) {
-    ctor.getInstance = function() {
-      return ctor.instance_ || (ctor.instance_ = new ctor());
-    };
-  }
-
-  /**
-   * Creates a new event to be used with base.EventTarget or DOM EventTarget
-   * objects.
-   * @param {string} type The name of the event.
-   * @param {boolean=} opt_bubbles Whether the event bubbles.
-   *     Default is false.
-   * @param {boolean=} opt_preventable Whether the default action of the event
-   *     can be prevented.
-   * @constructor
-   * @extends {Event}
-   */
-  function Event(type, opt_bubbles, opt_preventable) {
-    var e = base.doc.createEvent('Event');
-    e.initEvent(type, !!opt_bubbles, !!opt_preventable);
-    e.__proto__ = global.Event.prototype;
-    return e;
-  };
-
-  /**
    * Initialization which must be deferred until run-time.
    */
   function initialize() {
@@ -605,8 +358,6 @@ this.base = (function() {
       return;
     }
 
-    Event.prototype = {__proto__: global.Event.prototype};
-
     base.doc = document;
 
     base.isMac = /Mac/.test(navigator.platform);
@@ -619,119 +370,6 @@ this.base = (function() {
     setModuleBasePath('/src');
   }
 
-  function asArray(arrayish) {
-    var values = [];
-    for (var i = 0; i < arrayish.length; i++)
-      values.push(arrayish[i]);
-    return values;
-  }
-
-  function concatenateArrays(/*arguments*/) {
-    var values = [];
-    for (var i = 0; i < arguments.length; i++) {
-      if (!(arguments[i] instanceof Array))
-        throw new Error('Arguments ' + i + 'is not an array');
-      values.push.apply(values, arguments[i]);
-    }
-    return values;
-  }
-
-  function dictionaryKeys(dict) {
-    var keys = [];
-    for (var key in dict)
-      keys.push(key);
-    return keys;
-  }
-
-  function dictionaryValues(dict) {
-    var values = [];
-    for (var key in dict)
-      values.push(dict[key]);
-    return values;
-  }
-
-  function iterItems(dict, fn, opt_this) {
-    opt_this = opt_this || this;
-    for (var key in dict)
-      fn.call(opt_this, key, dict[key]);
-  }
-
-  function iterObjectFieldsRecursively(object, func) {
-    if (!(object instanceof Object))
-      return;
-
-    if (object instanceof Array) {
-      for (var i = 0; i < object.length; i++) {
-        func(object, i, object[i]);
-        iterObjectFieldsRecursively(object[i], func);
-      }
-      return;
-    }
-
-    for (var key in object) {
-      var value = object[key];
-
-      func(object, key, value);
-
-      iterObjectFieldsRecursively(value, func);
-    }
-  }
-
-  function tracedFunction(fn, name, opt_this) {
-    function F() {
-      console.time(name);
-      try {
-        fn.apply(opt_this, arguments);
-      } finally {
-        console.timeEnd(name);
-      }
-    }
-    return F;
-  }
-
-  function instantiateTemplate(selector) {
-    return document.querySelector(selector).content.cloneNode(true);
-  }
-
-  /**
-   * Maps types to a given value.
-   * @constructor
-   */
-  function TypeMap() {
-    this.types = [];
-    this.values = [];
-  }
-  TypeMap.prototype = {
-    __proto__: Object.prototype,
-
-    add: function(type, value) {
-      this.types.push(type);
-      this.values.push(value);
-    },
-
-    get: function(instance) {
-      for (var i = 0; i < this.types.length; i++) {
-        if (instance instanceof this.types[i])
-          return this.values[i];
-      }
-      return undefined;
-    }
-  };
-
-  function normalizeException(e) {
-    if (typeof(e) == 'string') {
-      return {
-        message: e,
-        stack: ['<unknown>']
-      };
-    }
-
-    return {
-      message: e.message,
-      stack: e.stack ? e.stack : ['<unknown>']
-    };
-  }
-
   return {
     set moduleBasePath(path) {
       setModuleBasePath(path);
@@ -741,30 +379,13 @@ this.base = (function() {
       return moduleBasePath;
     },
 
+    initialize: initialize,
+
     require: require,
     requireStylesheet: requireStylesheet,
     requireRawScript: requireRawScript,
     requireTemplate: requireTemplate,
-    exportTo: exportTo,
-
-    addSingletonGetter: addSingletonGetter,
-    defineProperty: defineProperty,
-    dispatchPropertyChange: dispatchPropertyChange,
-    dispatchSimpleEvent: dispatchSimpleEvent,
-    Event: Event,
-    initialize: initialize,
-    PropertyKind: PropertyKind,
-    asArray: asArray,
-    concatenateArrays: concatenateArrays,
-    dictionaryKeys: dictionaryKeys,
-    dictionaryValues: dictionaryValues,
-    iterItems: iterItems,
-    iterObjectFieldsRecursively: iterObjectFieldsRecursively,
-    TypeMap: TypeMap,
-    tracedFunction: tracedFunction,
-    normalizeException: normalizeException,
-    instantiateTemplate: instantiateTemplate,
-    setPropertyAndDispatchChange: setPropertyAndDispatchChange
+    exportTo: exportTo
   };
 })();
 

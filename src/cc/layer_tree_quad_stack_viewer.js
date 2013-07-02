@@ -11,6 +11,7 @@
 
 base.requireStylesheet('cc.layer_tree_quad_stack_viewer');
 
+base.require('base.properties');
 base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.event_target');
+base.require('base.events');
 base.require('about_tracing.profiling_view');
 base.require('about_tracing.tracing_controller');
 base.require('ui.dom_helpers');

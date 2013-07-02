@@ -7,7 +7,8 @@
  */
 base.requireStylesheet('about_tracing.tracing_controller');
 
-base.require('base.event_target');
+base.require('base.properties');
+base.require('base.events');
 base.require('ui.overlay');
 
 base.exportTo('about_tracing', function() {

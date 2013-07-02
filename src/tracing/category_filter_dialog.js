@@ -10,11 +10,11 @@
  */
 base.requireTemplate('tracing.category_filter_dialog');
 
+base.require('base.utils');
 base.require('tracing.filter');
 base.require('ui.overlay');
 
 base.exportTo('tracing', function() {
-
   var CategoryFilterDialog = ui.define('div');
 
   CategoryFilterDialog.prototype = {

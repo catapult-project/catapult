@@ -8,6 +8,8 @@
  * @fileoverview Filter Control.
  */
 base.requireStylesheet('ui.filter_control');
+
+base.require('base.properties');
 base.require('tracing.filter');
 base.require('ui');
 base.require('ui.overlay');

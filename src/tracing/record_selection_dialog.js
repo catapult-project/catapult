@@ -11,11 +11,11 @@
 base.requireStylesheet('tracing.record_selection_dialog');
 base.requireTemplate('tracing.record_selection_dialog');
 
+base.require('base.utils');
 base.require('tracing.filter');
 base.require('ui.overlay');
 
 base.exportTo('tracing', function() {
-
   var RecordSelectionDialog = ui.define('div');
 
   RecordSelectionDialog.prototype = {

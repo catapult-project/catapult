@@ -19,7 +19,7 @@
  *
  */
 base.requireStylesheet('tracing.timeline_track_view');
-base.require('base.event_target');
+base.require('base.events');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');

@@ -10,6 +10,7 @@
  *
  */
 
+base.require('base.events');
 base.require('tracing.trace_model');
 base.require('tracing.trace_model.slice');
 

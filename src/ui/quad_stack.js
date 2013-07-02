@@ -6,8 +6,10 @@
 
 base.requireStylesheet('ui.quad_stack');
 
+base.require('base.properties');
 base.require('base.bbox2');
 base.require('base.quad');
+base.require('base.utils');
 base.require('base.raf');
 base.require('ui.quad_view');
 base.require('cc.region');

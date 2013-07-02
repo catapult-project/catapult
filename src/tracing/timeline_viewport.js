@@ -7,7 +7,7 @@
 /**
  * @fileoverview Code for the viewport.
  */
-base.require('base.event_target');
+base.require('base.events');
 
 base.exportTo('tracing', function() {
 

@@ -2,17 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui');
-
 'use strict';
 
-base.unittest.testSuite('base', function() {
-  test('defineProperties', function() {
+base.require('base.properties');
+base.require('ui');
 
+base.unittest.testSuite('base.properties', function() {
+  test('defineProperties', function() {
     var stateChanges = [];
 
     var ASpan = ui.define('span');
-
     ASpan.prototype = {
       __proto__: HTMLSpanElement.prototype,
 

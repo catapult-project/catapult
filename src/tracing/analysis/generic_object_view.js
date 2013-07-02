@@ -6,6 +6,7 @@
 
 base.requireStylesheet('tracing.analysis.generic_object_view');
 
+base.require('base.utils');
 base.require('tracing.analysis.analysis_link');
 base.require('ui');
 

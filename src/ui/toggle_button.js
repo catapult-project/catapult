@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
 
 /**
  * @fileoverview ToggleButton: click toggles isOn.
  */
+
+base.require('base.properties');
 base.require('ui');
+
 base.exportTo('ui', function() {
 
   /**

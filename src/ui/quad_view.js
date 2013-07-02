@@ -7,7 +7,7 @@
 base.requireStylesheet('ui.quad_view');
 
 base.require('base.color');
-base.require('base.event_target');
+base.require('base.events');
 base.require('base.raf');
 base.require('ui');
 base.require('ui.quad_view_viewport');

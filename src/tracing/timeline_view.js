@@ -11,6 +11,7 @@
 base.requireStylesheet('tracing.timeline_view');
 base.requireTemplate('tracing.timeline_view');
 
+base.require('base.utils');
 base.require('base.settings');
 base.require('tracing.analysis.analysis_view');
 base.require('tracing.category_filter_dialog');

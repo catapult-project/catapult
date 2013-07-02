@@ -9,10 +9,10 @@
  */
 base.requireStylesheet('ui.list_view');
 
+base.require('base.events');
 base.require('ui');
 
 base.exportTo('ui', function() {
-
   /**
    * @constructor
    */

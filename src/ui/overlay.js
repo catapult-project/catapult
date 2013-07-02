@@ -12,8 +12,11 @@
  *
  */
 base.requireStylesheet('ui.overlay');
-base.require('base.event_target');
+
+base.require('base.properties');
+base.require('base.events');
 base.require('ui');
+
 base.exportTo('ui', function() {
   /**
    * Manages a full-window div that darkens the window, disables

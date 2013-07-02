@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('base.range');
-base.require('base.event_target');
+base.require('base.events');
 
 base.exportTo('ui', function() {
   var DEFAULT_PAD_PERCENTAGE = 0.75;

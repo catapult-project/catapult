@@ -7,6 +7,7 @@
 /**
  * @fileoverview Provides the ObjectCollection class.
  */
+base.require('base.utils');
 base.require('base.range');
 base.require('base.sorted_array_utils');
 base.require('tracing.trace_model.object_instance');

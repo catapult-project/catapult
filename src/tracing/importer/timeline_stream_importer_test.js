@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.event_target');
+base.require('base.events');
 base.require('tracing.test_utils');
 base.require('tracing.importer.timeline_stream_importer');
 
@@ -14,7 +14,7 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
     this.sendHook_ = undefined;
     this.messages_ = [];
     this.connected_ = false;
-  }
+  };
 
   FakeWebSocket.prototype = {
     __proto__: base.EventTarget.prototype,
@@ -129,7 +129,7 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
       var data = JSON.parse(message);
       didSend = true;
       assertEquals('pause', data['cmd']);
-    }
+    };
     importer.pause();
     assertTrue(didSend);
     assertTrue(importer.paused);
@@ -139,7 +139,7 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
       var data = JSON.parse(message);
       didSend = true;
       assertEquals('resume', data['cmd']);
-    }
+    };
     importer.resume();
     assertTrue(didSend);
     assertFalse(importer.paused);
