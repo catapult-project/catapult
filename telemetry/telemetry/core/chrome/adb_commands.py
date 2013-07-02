@@ -167,7 +167,7 @@ class Forwarder(object):
     if HasForwarder('Release'):
       buildtype = 'Release'
     self._forwarder = forwarder.Forwarder(adb.Adb(), buildtype)
-    self._forwarder.Run(new_port_pairs, tool, '127.0.0.1')
+    self._forwarder.Run(new_port_pairs, tool)
 
   @property
   def url(self):
