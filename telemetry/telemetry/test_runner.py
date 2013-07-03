@@ -47,10 +47,10 @@ class Help(Command):
   """Display help information"""
 
   def Run(self, options, args):
-    print >> sys.stderr, ('usage: %s <command> [<args>]' % _GetScriptName())
-    print >> sys.stderr, 'Available commands are:'
+    print ('usage: %s <command> [<args>]' % _GetScriptName())
+    print 'Available commands are:'
     for command in COMMANDS:
-      print >> sys.stderr, '  %-10s %s' % (command.name, command.description)
+      print '  %-10s %s' % (command.name, command.description)
     return 0
 
 
@@ -70,15 +70,15 @@ class List(Command):
               'enabled': test_class.enabled,
               'options': test_class.options,
             })
-      print >> sys.stderr, json.dumps(test_list)
+      print json.dumps(test_list)
     else:
-      print >> sys.stderr, 'Available tests are:'
+      print 'Available tests are:'
       for test_name, test_class in sorted(_GetTests().items()):
         if test_class.__doc__:
-          print >> sys.stderr, '  %-20s %s' % (test_name,
+          print '  %-20s %s' % (test_name,
               test_class.__doc__.splitlines()[0])
         else:
-          print >> sys.stderr, '  %-20s' % test_name
+          print '  %-20s' % test_name
     return 0
 
 
