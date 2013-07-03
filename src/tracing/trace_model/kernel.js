@@ -16,8 +16,10 @@ base.exportTo('tracing.trace_model', function() {
    * model.
    * @constructor
    */
-  function Kernel() {
-    tracing.trace_model.ProcessBase.call(this);
+  function Kernel(model) {
+    if (model === undefined)
+      throw new Error('model must be provided');
+    tracing.trace_model.ProcessBase.call(this, model);
   };
 
   /**

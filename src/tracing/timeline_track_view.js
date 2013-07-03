@@ -97,7 +97,6 @@ base.exportTo('tracing', function() {
       this.addEventListener('dblclick', this.onDblClick_);
 
       this.lastMouseViewPos_ = {x: 0, y: 0};
-      this.maxHeadingWidth_ = 0;
 
       this.selection_ = new Selection();
     },
@@ -153,7 +152,6 @@ base.exportTo('tracing', function() {
       this.model_ = model;
       this.modelTrack_.model = model;
       this.modelTrack_.categoryFilter = this.categoryFilter;
-      this.rulerTrack_.headingWidth = this.modelTrack_.headingWidth;
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
@@ -162,8 +160,8 @@ base.exportTo('tracing', function() {
       base.setPropertyAndDispatchChange(this, 'model', model);
     },
 
-    get numVisibleTracks() {
-      return this.modelTrack_.numVisibleTracks;
+    get hasVisibleContent() {
+      return this.modelTrack_.hasVisibleContent;
     },
 
     setInitialViewport_: function() {
@@ -507,7 +505,10 @@ base.exportTo('tracing', function() {
         right: modelTrackContainerRect.right,
         bottom: modelTrackContainerRect.bottom
       };
-      var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
+
+      var headingWidth = window.getComputedStyle(
+          this.querySelector('heading')).width;
+      var trackTitleWidth = parseInt(headingWidth);
       clipRect.left = clipRect.left + trackTitleWidth;
 
       var finalDragBox = intersectRect_(clipRect, dragRect);
@@ -671,7 +672,9 @@ base.exportTo('tracing', function() {
         left: modelTrackContainerRect.left,
         right: modelTrackContainerRect.right
       };
-      var trackTitleWidth = parseInt(this.modelTrack_.headingWidth);
+      var headingWidth = window.getComputedStyle(
+          this.querySelector('heading')).width;
+      var trackTitleWidth = parseInt(headingWidth);
       clipBounds.left = clipBounds.left + trackTitleWidth;
 
       if (e.clientX < clipBounds.left || e.clientX > clipBounds.right)

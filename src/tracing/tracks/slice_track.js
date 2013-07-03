@@ -68,8 +68,6 @@ base.exportTo('tracing.tracks', function() {
 
     set slices(slices) {
       this.slices_ = slices || [];
-      if (!slices)
-        this.visible = false;
       this.invalidate();
     },
 

@@ -21,7 +21,8 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
   });
 
   test('asyncSliceGroupBounds_Basic', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
@@ -55,7 +56,8 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
       '      } ]',
       '}'].join('\n');
 
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var s = newAsyncSlice(0, 1, t1, t1);
 

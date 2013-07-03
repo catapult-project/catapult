@@ -228,10 +228,24 @@ base.exportTo('tracing.importer', function() {
     },
 
     processMetadataEvent: function(event) {
-      if (event.name == 'thread_name') {
-        var thread = this.model_.getOrCreateProcess(event.pid)
-                         .getOrCreateThread(event.tid);
+      if (event.name == 'process_name') {
+        var process = this.model_.getOrCreateProcess(event.pid);
+        process.name = event.args.name;
+      } else if (event.name == 'process_labels') {
+        var process = this.model_.getOrCreateProcess(event.pid);
+        process.labels.push.apply(
+            process.labels, event.args.labels.split(','));
+      } else if (event.name == 'process_sort_index') {
+        var process = this.model_.getOrCreateProcess(event.pid);
+        process.sortIndex = event.args.sort_index;
+      } else if (event.name == 'thread_name') {
+        var thread = this.model_.getOrCreateProcess(event.pid).
+            getOrCreateThread(event.tid);
         thread.name = event.args.name;
+      } else if (event.name == 'thread_sort_index') {
+        var thread = this.model_.getOrCreateProcess(event.pid).
+            getOrCreateThread(event.tid);
+        thread.sortIndex = event.args.sort_index;
       } else {
         this.model_.importErrors.push(
             'Unrecognized metadata name: ' + event.name);

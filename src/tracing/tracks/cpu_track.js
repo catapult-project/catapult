@@ -32,7 +32,7 @@ base.exportTo('tracing.tracks', function() {
 
     set cpu(cpu) {
       this.cpu_ = cpu;
-      this.updateChildTracks_();
+      this.updateContents_();
     },
 
     get tooltip() {
@@ -41,48 +41,37 @@ base.exportTo('tracing.tracks', function() {
 
     set tooltip(value) {
       this.tooltip_ = value;
-      this.updateChildTracks_();
+      this.updateContents_();
     },
 
-    get heading() {
-      return this.heading_;
+    get hasVisibleContent() {
+      return this.children.length > 0;
     },
 
-    set heading(h) {
-      this.heading_ = h;
-      this.updateChildTracks_();
-    },
-
-    applyCategoryFilter_: function() {
-      if (this.categoryFilter.matchCpu(this.cpu_))
-        this.updateChildTracks_();
-      else
-        this.visible = false;
-    },
-
-    updateChildTracks_: function() {
+    updateContents_: function() {
       this.detach();
-      if (this.cpu_) {
-        var slices = tracing.filterSliceArray(this.categoryFilter_,
-                                              this.cpu_.slices);
-        if (slices.length) {
-          var track = new tracing.tracks.SliceTrack(this.viewport);
-          track.slices = slices;
-          track.heading = this.heading_;
-          track.tooltip = this.tooltip_;
-          this.addTrack_(track);
-        }
-
-        for (var counterName in this.cpu_.counters) {
-          var counter = this.cpu_.counters[counterName];
-          track = new tracing.tracks.CounterTrack(this.viewport);
-          track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
-              counter.name + ':';
-          track.counter = counter;
-          this.addTrack_(track);
-        }
+      if (!this.cpu_)
+        return;
+      var slices = tracing.filterSliceArray(this.categoryFilter_,
+                                            this.cpu_.slices);
+      if (slices.length) {
+        var track = new tracing.tracks.SliceTrack(this.viewport);
+        track.slices = slices;
+        track.heading = 'CPU ' + this.cpu_.cpuNumber + ':';
+        this.appendChild(track);
       }
-      this.addControlButtonElements_(false);
+
+      for (var counterName in this.cpu_.counters) {
+        var counter = this.cpu_.counters[counterName];
+        if (!this.categoryFilter_.matchCounter(counter))
+          return;
+        track = new tracing.tracks.CounterTrack(this.viewport);
+        track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
+            counter.name + ':';
+        track.counter = counter;
+        track.categoryFilter = this.categoryFilter_;
+        this.appendChild(track);
+      }
     }
   };
 

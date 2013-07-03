@@ -26,6 +26,8 @@ base.exportTo('tracing.tracks', function() {
     decorate: function(viewport) {
       tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-group-track');
+      this.tooltip_ = '';
+      this.heading_ = '';
     },
 
     get group() {
@@ -34,61 +36,84 @@ base.exportTo('tracing.tracks', function() {
 
     set group(g) {
       this.group_ = g;
-      this.updateChildTracks_();
+      this.updateContents_();
+    },
+
+    get heading() {
+      return this.heading_;
     },
 
     set heading(h) {
-      if (this.tracks_.length)
-        this.tracks_[0].heading = h;
+      this.heading_ = h;
+      this.updateContents_();
+    },
+
+    get tooltip() {
+      return this.tooltip_;
     },
 
     set tooltip(t) {
-      if (this.tracks_.length)
-        this.tracks_[0].tooltip = t;
+      this.tooltip_ = t;
+      this.updateContents_();
     },
 
     set decorateHit(f) {
       this.decorateHit_ = f;
-      this.updateChildTracks_();
-    },
-
-    applyCategoryFilter_: function() {
-      this.updateChildTracks_();
+      this.updateContents_();
     },
 
     addSliceTrack_: function(slices) {
       var track = new tracing.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       track.decorateHit = this.decorateHit_;
-      this.addTrack_(track);
+      track.categoryFilter_ = this.categoryFilter;
+      this.appendChild(track);
       return track;
     },
 
-    updateChildTracks_: function() {
+    get subRows() {
+      return base.asArray(this.children).map(function(sliceTrack) {
+        return sliceTrack.slices;
+      });
+    },
+
+    get hasVisibleContent() {
+      return this.children.length > 0;
+    },
+
+    updateContents_: function() {
       if (!this.group_) {
-        this.visible = false;
+        this.updateHeadingAndTooltip_();
         return;
       }
 
       var slices = tracing.filterSliceArray(this.categoryFilter,
                                             this.group_.slices);
-      if (!slices.length) {
-        this.visible = false;
+      if (this.areArrayContentsSame_(this.filteredSlices_, slices)) {
+        this.updateHeadingAndTooltip_();
         return;
       }
-      this.visible = true;
-
-      if (this.areArrayContentsSame_(this.filteredSlices_, slices))
-        return;
 
       this.filteredSlices_ = slices;
+
       this.detach();
-      this.subRows_ = this.buildSubRows_(slices);
-      for (var srI = 0; srI < this.subRows_.length; srI++) {
-        if (this.subRows_[srI].length) {
-          this.addSliceTrack_(this.subRows_[srI]);
-        }
+      if (!slices.length)
+        return;
+      var subRows = this.buildSubRows_(slices);
+      for (var srI = 0; srI < subRows.length; srI++) {
+        var subRow = subRows[srI];
+        if (!subRow.length)
+          continue;
+        this.addSliceTrack_(subRow);
       }
+      this.updateHeadingAndTooltip_();
+    },
+
+    updateHeadingAndTooltip_: function() {
+      if (!this.firstChild)
+        return;
+      this.firstChild.heading = this.heading_;
+      this.firstChild.tooltip = this.tooltip_;
     },
 
     /**

@@ -126,8 +126,8 @@ base.exportTo('cc', function() {
       this.updateContentsPending_ = false;
 
       this.sizeInfo_.textContent = '(' +
-            this.picture_.layerRect.width + ' x ' +
-            this.picture_.layerRect.height + ')';
+          this.picture_.layerRect.width + ' x ' +
+          this.picture_.layerRect.height + ')';
 
       if (!this.picture_)
         return;

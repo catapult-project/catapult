@@ -63,6 +63,7 @@ base.exportTo('tracing.trace_model', function() {
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;
+    this.sortIndex = 0;
     this.tid = tid;
     this.cpuSlices = undefined;
     this.samples_ = [];
@@ -238,16 +239,14 @@ base.exportTo('tracing.trace_model', function() {
      * @return {String} A user-friendly name for this thread.
      */
     get userFriendlyName() {
-      var tname = this.name || this.tid;
-      return tname + ' | ' + this.parent.userFriendlyName;
+      return this.name || this.tid;
     },
 
     /**
      * @return {String} User friendly details about this thread.
      */
     get userFriendlyDetails() {
-      return this.parent.userFriendlyDetails +
-          ', tid: ' + this.tid +
+      return 'tid: ' + this.tid +
           (this.name ? ', name: ' + this.name : '');
     }
   };
@@ -258,21 +257,20 @@ base.exportTo('tracing.trace_model', function() {
    */
   Thread.compare = function(x, y) {
     var tmp = x.parent.compareTo(y.parent);
-    if (tmp != 0)
+    if (tmp)
       return tmp;
 
-    if (x.name && y.name) {
-      var tmp = x.name.localeCompare(y.name);
-      if (tmp == 0)
-        return x.tid - y.tid;
+    tmp = x.sortIndex - y.sortIndex;
+    if (tmp)
       return tmp;
-    } else if (x.name) {
-      return -1;
-    } else if (y.name) {
-      return 1;
-    } else {
-      return x.tid - y.tid;
-    }
+
+    tmp = base.comparePossiblyUndefinedValues(
+        x.name, y.name,
+        function(x, y) { return x.localeCompare(y); });
+    if (tmp)
+      return tmp;
+
+    return x.tid - y.tid;
   };
 
   return {

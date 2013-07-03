@@ -40,12 +40,10 @@ base.exportTo('tcmalloc', function() {
       this.invalidate();
       if (!objectInstances) {
         this.objectInstance_ = [];
-        this.visible = false;
         return;
       }
       if (objectInstances.length != 1)
         throw new Error('Bad object instance count.');
-      this.visible = true;
       this.objectInstance_ = objectInstances[0];
       this.maxBytes_ = this.computeMaxBytes_(
           this.objectInstance_.snapshots);

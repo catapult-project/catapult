@@ -12,6 +12,36 @@ base.exportTo('base', function() {
     return values;
   }
 
+  function compareArrays(x, y, elementCmp) {
+    var minLength = Math.min(x.length, y.length);
+    for (var i = 0; i < minLength; i++) {
+      var tmp = elementCmp(x[i], y[i]);
+      if (tmp)
+        return tmp;
+    }
+    if (x.length == y.length)
+      return 0;
+
+    if (x[i] === undefined)
+      return -1;
+
+    return 1;
+  }
+
+  /**
+   * Compares two values when one or both might be undefined. Undefined
+   * values are sorted after defined.
+   */
+  function comparePossiblyUndefinedValues(x, y, cmp) {
+    if (x !== undefined && y !== undefined)
+      return cmp(x, y);
+    if (x !== undefined)
+      return -1;
+    if (y !== undefined)
+      return 1;
+    return 0;
+  }
+
   function concatenateArrays(/*arguments*/) {
     var values = [];
     for (var i = 0; i < arguments.length; i++) {
@@ -64,10 +94,11 @@ base.exportTo('base', function() {
   return {
     asArray: asArray,
     concatenateArrays: concatenateArrays,
+    compareArrays: compareArrays,
+    comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively
   };
 });
-

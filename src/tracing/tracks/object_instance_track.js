@@ -42,14 +42,13 @@ base.exportTo('tracing.tracks', function() {
 
     set objectInstances(objectInstances) {
       this.invalidate();
-      if (!objectInstances) {
+      if (!objectInstances || objectInstances.length == 0) {
+        this.heading = '';
         this.objectInstances_ = [];
         this.objectSnapshots_ = [];
-        this.objectSnapshots_ = [];
-        this.visible = false;
         return;
       }
-      this.visible = true;
+      this.heading = objectInstances[0].typeName;
       this.objectInstances_ = objectInstances;
       this.objectSnapshots_ = [];
       this.objectInstances_.forEach(function(instance) {

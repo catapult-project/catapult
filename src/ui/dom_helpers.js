@@ -33,6 +33,13 @@ base.exportTo('ui', function() {
     return divEl;
   };
 
+  function createScopedStyle(styleContent) {
+    var styleEl = document.createElement('style');
+    styleEl.scoped = true;
+    styleEl.innerHTML = styleContent;
+    return styleEl;
+  }
+
   function createSelector(
       targetEl, targetElProperty,
       settingsKey, defaultValue,
@@ -139,6 +146,7 @@ base.exportTo('ui', function() {
   return {
     createSpan: createSpan,
     createDiv: createDiv,
+    createScopedStyle: createScopedStyle,
     createSelector: createSelector,
     createCheckBox: createCheckBox
   };

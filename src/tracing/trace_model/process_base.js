@@ -23,12 +23,20 @@ base.exportTo('tracing.trace_model', function() {
    *
    * @constructor
    */
-  function ProcessBase() {
+  function ProcessBase(model) {
+    if (!model)
+      throw new Error('Must provide a model');
     this.guid_ = base.GUID.allocate();
+    this.model = model;
     this.threads = {};
     this.counters = {};
     this.objects = new tracing.trace_model.ObjectCollection(this);
     this.bounds = new base.Range();
+    this.sortIndex = 0;
+  };
+
+  ProcessBase.compare = function(x, y) {
+    return x.sortIndex - y.sortIndex;
   };
 
   ProcessBase.prototype = {
@@ -48,6 +56,20 @@ base.exportTo('tracing.trace_model', function() {
         n++;
       }
       return n;
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'model')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
     },
 
     /**

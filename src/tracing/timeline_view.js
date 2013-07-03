@@ -17,7 +17,6 @@ base.require('tracing.analysis.analysis_view');
 base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
-base.require('tracing.tracks.track_selector');
 base.require('tracing.timeline_track_view');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
@@ -52,7 +51,6 @@ base.exportTo('tracing', function() {
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
 
-      this.rightControls.appendChild(this.createTrackSelectorButton_());
       this.rightControls.appendChild(this.createImportErrorsButton_());
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.createMetadataButton_());
@@ -72,23 +70,7 @@ base.exportTo('tracing', function() {
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
-      this.trackSelector_.connect();
       this.dragEl_.target = this.analysisEl_;
-    },
-
-    createTrackSelectorButton_: function() {
-      var node = base.instantiateTemplate('#track-selector-btn-template');
-      var anchor = node.querySelector('.track-selector-anchor');
-      var button = node.querySelector('.track-selector-button');
-
-      button.addEventListener('click', function(event) {
-        button.classList.toggle('track-selector-closed');
-      }.bind(this));
-
-      this.trackSelector_ =
-          anchor.appendChild(new tracing.tracks.TrackSelector());
-
-      return node;
     },
 
     createImportErrorsButton_: function() {

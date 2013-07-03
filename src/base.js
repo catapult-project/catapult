@@ -4,12 +4,14 @@
 
 'use strict';
 
+
 /**
  * The global object.
  * @type {!Object}
  * @const
  */
 var global = this;
+
 
 /** Platform, package, object property, and Event support. */
 this.base = (function() {

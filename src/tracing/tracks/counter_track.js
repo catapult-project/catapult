@@ -30,7 +30,6 @@ base.exportTo('tracing.tracks', function() {
     decorate: function(viewport) {
       tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
-      this.addControlButtonElements_(false);
       this.selectedSamples_ = {};
       this.categoryFilter_ = new tracing.Filter();
     },
@@ -49,13 +48,16 @@ base.exportTo('tracing.tracks', function() {
 
     set counter(counter) {
       this.counter_ = counter;
+      this.heading = counter.name + ': ';
       this.invalidate();
-      this.updateVisibility_();
+    },
+
+    get categoryFilter() {
+      return this.categoryFilter_;
     },
 
     set categoryFilter(v) {
       this.categoryFilter_ = v;
-      this.updateVisibility_();
     },
 
     /**
@@ -65,11 +67,6 @@ base.exportTo('tracing.tracks', function() {
      */
     get selectedSamples() {
       return this.selectedSamples_;
-    },
-
-    updateVisibility_: function() {
-      this.visible = (this.counter_ &&
-                      this.categoryFilter_.matchCounter(this.counter_));
     },
 
     redraw: function() {

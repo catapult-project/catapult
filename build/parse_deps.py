@@ -242,7 +242,7 @@ class Module(object):
     for name in self.style_sheet_names:
       if name in all_resources["style_sheets"]:
         assert all_resources["style_sheets"][name].contents
-        self.style_sheets.append(all_resources["scripts"][name])
+        self.style_sheets.append(all_resources["style_sheets"][name])
         continue
 
       filename, contents = resource_finder.find_and_load_style_sheet(self, name)

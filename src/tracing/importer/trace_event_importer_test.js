@@ -346,21 +346,81 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
                       m.getAllThreads());
   });
 
+  // Process names.
+  test('processNames', function() {
+    var events = [
+      {name: 'process_name', args: {name: 'SomeProcessName'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_name', args: {name: 'SomeProcessName'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+    assertEquals('SomeProcessName', m.processes[1].name);
+  });
+
+  // Process labels.
+  test('processNames', function() {
+    var events = [
+      {name: 'process_labels', args: {labels: 'foo,bar'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_labels', args: {labels: 'baz'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+    assertArrayEquals(['foo', 'bar'], m.processes[1].labels);
+    assertArrayEquals(['baz'], m.processes[2].labels);
+  });
+
+  // Process sort index.
+  test('processSortIndex', function() {
+    var events = [
+      {name: 'process_name', args: {name: 'First'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_name', args: {name: 'Second'},
+        pid: 2, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_sort_index', args: {sort_index: 1},
+        pid: 1, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+
+    // By name, p1 is before p2. But, its sort index overrides that.
+    assertTrue(m.processes[1].compareTo(m.processes[2]) > 0);
+  });
+
   // Thread names.
   test('threadNames', function() {
     var events = [
       {name: 'thread_name', args: {name: 'Thread 1'},
         pid: 1, ts: 0, tid: 1, ph: 'M'},
-      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
-      {name: 'a', args: {}, pid: 1, ts: 2, cat: 'foo', tid: 1, ph: 'E'},
-      {name: 'b', args: {}, pid: 2, ts: 3, cat: 'foo', tid: 2, ph: 'B'},
-      {name: 'b', args: {}, pid: 2, ts: 4, cat: 'foo', tid: 2, ph: 'E'},
       {name: 'thread_name', args: {name: 'Thread 2'},
         pid: 2, ts: 0, tid: 2, ph: 'M'}
     ];
     var m = new tracing.TraceModel(events);
+    m.importTraces([events], false, false);
     assertEquals('Thread 1', m.processes[1].threads[1].name);
     assertEquals('Thread 2', m.processes[2].threads[2].name);
+  });
+
+  // Thread sort index.
+  test('threadSortIndex', function() {
+    var events = [
+      {name: 'thread_name', args: {name: 'Thread 1'},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'thread_name', args: {name: 'Thread 2'},
+        pid: 1, ts: 0, tid: 2, ph: 'M'},
+      {name: 'thread_sort_index', args: {sort_index: 1},
+        pid: 1, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+
+    // By name, t1 is before t2. But, its sort index overrides that.
+    var t1 = m.processes[1].threads[1];
+    var t2 = m.processes[1].threads[2];
+    assertTrue(t1.compareTo(t2) > 0);
   });
 
   test('parsingWhenEndComesFirst', function() {

@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.slice');
 base.require('tracing.timeline_track_view');
-
-'use strict';
+base.require('ui.dom_helpers');
 
 base.unittest.testSuite('tracing.tracks.slice_track', function() {
   var Selection = tracing.Selection;
@@ -100,6 +101,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
+    testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
     this.addHTMLOutput(testEl);
 
     var track = new SliceTrack(new Viewport(testEl));
@@ -107,7 +109,6 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
     testEl.appendChild(track);
     track.heading = 'testSelectionHitTesting';
-    track.headingWidth = '100px';
     track.slices = [
       new Slice('', 'a', 0, 1, {}, 1),
       new Slice('', 'b', 1, 5, {}, 4.8)

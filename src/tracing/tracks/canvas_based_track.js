@@ -29,11 +29,10 @@ base.exportTo('tracing.tracks', function() {
 
     decorate: function(viewport) {
       tracing.tracks.Track.prototype.decorate.call(this, viewport);
-      this.className = 'canvas-based-track';
+      this.classList.add('canvas-based-track');
       this.slices_ = null;
 
-      this.headingDiv_ = document.createElement('div');
-      this.headingDiv_.className = 'canvas-based-track-title';
+      this.headingDiv_ = document.createElement('heading');
       this.appendChild(this.headingDiv_);
 
       this.canvasContainer_ = document.createElement('div');
@@ -50,7 +49,7 @@ base.exportTo('tracing.tracks', function() {
       this.viewport.addEventListener('change', this.viewportChange_);
       this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
       this.viewport.addEventListener('markersChange',
-                                        this.viewportMarkersChange_);
+                                     this.viewportMarkersChange_);
       if (this.isAttachedToDocument_)
         this.updateCanvasSizeIfNeeded_();
       this.invalidate();
@@ -59,11 +58,7 @@ base.exportTo('tracing.tracks', function() {
     detach: function() {
       this.viewport.removeEventListener('change', this.viewportChange_);
       this.viewport.removeEventListener('markersChange',
-         this.viewportMarkersChange_);
-    },
-
-    set headingWidth(width) {
-      this.headingDiv_.style.width = width;
+                                        this.viewportMarkersChange_);
     },
 
     get heading() {
@@ -100,6 +95,22 @@ base.exportTo('tracing.tracks', function() {
         }, this);
       }, this);
       this.rafPending_ = true;
+    },
+
+    redraw: function() {
+      var ctx = this.ctx_;
+      var canvasW = this.canvas_.width;
+      var canvasH = this.canvas_.height;
+
+      ctx.clearRect(0, 0, canvasW, canvasH);
+
+      // Culling parameters.
+      var vp = this.viewport;
+      var pixWidth = vp.xViewVectorToWorld(1);
+      var viewLWorld = vp.xViewToWorld(0);
+      var viewRWorld = vp.xViewToWorld(canvasW);
+      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
+      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     /**
@@ -154,6 +165,9 @@ base.exportTo('tracing.tracks', function() {
 
       this.addIntersectingItemsInRangeToSelectionInWorldSpace(
           loWX, hiWX, viewPixWidthWorld, selection);
+    },
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
     }
   };
 

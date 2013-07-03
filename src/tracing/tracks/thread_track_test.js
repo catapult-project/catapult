@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.timeline_track_view');
 base.require('tracing.tracks.thread_track');
-
-'use strict';
+base.require('ui.dom_helpers');
 
 base.unittest.testSuite('tracing.tracks.thread_track', function() {
   var Process = tracing.trace_model.Process;
@@ -27,12 +28,11 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     t1.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = document.createElement('div');
+    testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var track = new ThreadTrack(new Viewport(testEl));
     testEl.appendChild(track);
-    track.heading = 'testSelectionHitTestingWithThreadTrack';
-    track.headingWidth = '100px';
     track.thread = t1;
 
     var y = track.getBoundingClientRect().top;
@@ -54,40 +54,37 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
   });
 
   test('filterThreadSlices', function() {
-    var thread = new Thread(new Process(7), 1);
+    var model = new tracing.TraceModel();
+    var thread = new Thread(new Process(model, 7), 1);
     thread.pushSlice(newSliceNamed('a', 0, 0));
     thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
     var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;
 
-    assertTrue(t.tracks_[1].visible);
-    assertEquals(1, t.tracks_[1].tracks_.length);
-    assertTrue(t.tracks_[1].visible);
-    assertEquals(1, t.tracks_[2].tracks_.length);
+    assertEquals(t.tracks_.length, 2);
+    assertTrue(t.tracks_[0] instanceof tracing.tracks.AsyncSliceGroupTrack);
+    assertTrue(t.tracks_[1] instanceof tracing.tracks.SliceGroupTrack);
 
     t.categoryFilter = new tracing.TitleFilter('x');
-    assertFalse(t.tracks_[1].visible);
-    assertFalse(t.tracks_[1].visible);
+    assertEquals(0, t.tracks_.length);
 
     t.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(t.tracks_[1].visible);
-    assertEquals(1, t.tracks_[1].tracks_.length);
-    assertTrue(t.tracks_[1].visible);
-    assertEquals(1, t.tracks_[2].tracks_.length);
+    assertTrue(t.tracks_[0] instanceof tracing.tracks.AsyncSliceGroupTrack);
+    assertTrue(t.tracks_[1] instanceof tracing.tracks.SliceGroupTrack);
   });
 
   test('sampleThreadSlices', function() {
-    var thread = new Thread(new Process(7), 1);
+    var model = new tracing.TraceModel();
+    var thread = new Thread(new Process(model, 7), 1);
     thread.addSample('a', 'b', 0);
     thread.addSample('a', 'c', 5);
     thread.addSample('aa', 'd', 10);
     thread.addSample('aa', 'e', 15);
     var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;
-    // Track is visible.
-    assertTrue(t.tracks_[3].visible);
-    // Track has 4 slices.
-    assertEquals(t.tracks_[3].slices.length, 4);
+    assertEquals(1, t.tracks_.length);
+    assertTrue(t.tracks_[0] instanceof tracing.tracks.SliceTrack);
+    assertTrue(4, t.tracks_[0].slices.length);
   });
 });

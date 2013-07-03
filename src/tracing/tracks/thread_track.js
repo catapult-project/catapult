@@ -34,43 +34,36 @@ base.exportTo('tracing.tracks', function() {
 
     set thread(thread) {
       this.thread_ = thread;
-      this.updateChildTracks_();
+      this.updateContents_();
     },
 
-    get tooltip() {
-      return this.tooltip_;
+    get hasVisibleContent() {
+      return this.tracks_.length > 0;
     },
 
-    set tooltip(value) {
-      this.tooltip_ = value;
-      this.updateChildTracks_();
-    },
-
-    get heading() {
-      return this.heading_;
-    },
-
-    set heading(h) {
-      this.heading_ = h;
-      this.updateChildTracks_();
-    },
-
-    applyCategoryFilter_: function() {
-      this.updateVisibility_();
-    },
-
-    updateChildTracks_: function() {
+    updateContents_: function() {
       this.detach();
-      if (this.thread_) {
+
+      if (!this.thread_)
+        return;
+
+      this.heading = this.thread_.userFriendlyName + ': ';
+      this.tooltip = this.thread_.userFriendlyDetails;
+
+      if (this.thread_.cpuSlices) {
         var cpuTrack = new tracing.tracks.SliceTrack(this.viewport);
+        cpuTrack.categoryFilter = this.categoryFilter;
         cpuTrack.heading = '';
-        cpuTrack.slices = this.thread_.cpuSlices;
         cpuTrack.height = '4px';
         cpuTrack.decorateHit = function(hit) {
           hit.thread = this.thread_;
-        };
-        this.addTrack_(cpuTrack);
+        }
+        cpuTrack.slices = this.thread_.cpuSlices;
+        if (cpuTrack.hasVisibleContent)
+          this.appendChild(cpuTrack);
+      }
 
+      if (this.thread_.asyncSlices.length) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
         asyncTrack.categoryFilter = this.categoryFilter;
         asyncTrack.decorateHit = function(hit) {
@@ -78,50 +71,36 @@ base.exportTo('tracing.tracks', function() {
           // to their parent slice.
         };
         asyncTrack.group = this.thread_.asyncSlices;
-        this.addTrack_(asyncTrack);
+        if (asyncTrack.hasVisibleContent)
+          this.appendChild(asyncTrack);
+      }
 
+      if (this.thread_.samples.length) {
+        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        samplesTrack.categoryFilter = samplesTrack;
+        samplesTrack.group = this.thread_;
+        samplesTrack.slices = this.thread_.samples;
+        samplesTrack.decorateHit = function(hit) {
+          // TODO(johnmccutchan): Figure out what else should be associated
+          // with the hit.
+          hit.thread = this.thread_;
+        }
+        this.appendChild(samplesTrack);
+      }
+
+      if (this.thread_.slices.length) {
         var track = new tracing.tracks.SliceGroupTrack(this.viewport);
+        track.categoryFilter = this.categoryFilter;
+        track.heading = this.thread_.userFriendlyName;
+        track.tooltip = this.thread_.userFriendlyDetails;
+
         track.decorateHit = function(hit) {
           hit.thread = this.thread_;
         };
         track.group = this.thread_;
-        this.addTrack_(track);
-
-        if (this.thread_.samples.length) {
-          var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
-          samplesTrack.group = this.thread_;
-          samplesTrack.slices = this.thread_.samples;
-          samplesTrack.decorateHit = function(hit) {
-            // TODO(johnmccutchan): Figure out what else should be associated
-            // with the hit.
-            hit.thread = this.thread_;
-          };
-          this.addTrack_(samplesTrack);
-        }
-
-        this.updateVisibility_();
+        if (track.hasVisibleContent)
+          this.appendChild(track);
       }
-      this.addControlButtonElements_();
-    },
-
-    updateVisibility_: function() {
-      if (!this.categoryFilter.matchThread(this.thread)) {
-        this.visible = false;
-        return;
-      }
-      var shouldBeVisible = false;
-      for (var i = 0; i < this.tracks.length; ++i) {
-        var track = this.tracks[i];
-        if (track.visible) {
-          shouldBeVisible = true;
-          if (i >= 1) {
-            track.heading = this.heading_;
-            track.tooltip = this.tooltip_;
-            break;
-          }
-        }
-      }
-      this.visible = shouldBeVisible;
     },
 
     collapsedDidChange: function(collapsed) {

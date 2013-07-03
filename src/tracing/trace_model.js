@@ -43,7 +43,7 @@ base.exportTo('tracing', function() {
    * @constructor
    */
   function TraceModel(opt_eventData, opt_shiftWorldToZero) {
-    this.kernel = new Kernel();
+    this.kernel = new Kernel(this);
     this.cpus = {};
     this.processes = {};
     this.importErrors = [];
@@ -93,7 +93,7 @@ base.exportTo('tracing', function() {
      */
     getOrCreateProcess: function(pid) {
       if (!this.processes[pid])
-        this.processes[pid] = new Process(pid);
+        this.processes[pid] = new Process(this, pid);
       return this.processes[pid];
     },
 
@@ -245,11 +245,16 @@ base.exportTo('tracing', function() {
      * a separate importer.
      * @param {bool=} opt_shiftWorldToZero Whether to shift the world to zero.
      * Defaults to true.
+     * @param {bool=} opt_pruneEmptyContainers Whether to prune empty
+     * containers. Defaults to true.
      */
     importTraces: function(traces,
-                           opt_shiftWorldToZero) {
+                           opt_shiftWorldToZero,
+                           opt_pruneEmptyContainers) {
       if (opt_shiftWorldToZero === undefined)
         opt_shiftWorldToZero = true;
+      if (opt_pruneEmptyContainers === undefined)
+        opt_pruneEmptyContainers = true;
 
       // Copy the traces array, we may mutate it.
       traces = traces.slice(0);
@@ -295,9 +300,11 @@ base.exportTo('tracing', function() {
         this.processes[pid].preInitializeObjects();
 
       // Prune empty containers.
-      this.kernel.pruneEmptyContainers();
-      for (var pid in this.processes) {
-        this.processes[pid].pruneEmptyContainers();
+      if (opt_pruneEmptyContainers) {
+        this.kernel.pruneEmptyContainers();
+        for (var pid in this.processes) {
+          this.processes[pid].pruneEmptyContainers();
+        }
       }
 
       // Merge kernel and userland slices on each thread.

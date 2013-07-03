@@ -13,6 +13,9 @@ base.require('tracing.tracks.object_instance_track');
 base.require('tracing.tracks.thread_track');
 base.require('tracing.filter');
 base.require('ui');
+base.require('ui.dom_helpers');
+
+base.requireStylesheet('tracing.tracks.process_track');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -33,7 +36,17 @@ base.exportTo('tracing.tracks', function() {
     decorate: function(viewport) {
       tracing.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.classList.add('process-track');
-      this.categoryFilter_ = new tracing.Filter();
+
+      this.expandEl_ = document.createElement('expand-button');
+      this.expandEl_.classList.add('expand-button-expanded');
+
+      this.processNameEl_ = ui.createSpan();
+
+      this.headerEl_ = ui.createDiv({className: 'process-track-header'});
+      this.headerEl_.appendChild(this.expandEl_);
+      this.headerEl_.appendChild(this.processNameEl_);
+
+      this.appendChild(this.headerEl_);
     },
 
     get process() {
@@ -42,98 +55,125 @@ base.exportTo('tracing.tracks', function() {
 
     set process(process) {
       this.process_ = process;
-      this.updateChildTracks_();
+      this.updateContents_();
     },
 
-    applyCategoryFilter_: function() {
-      this.visible = (this.categoryFilter.matchProcess(this.process) &&
-                      !!this.numVisibleChildTracks);
+    get expanded() {
+      return this.expandEl_.classList.contains('expand-button-expanded');
     },
 
-    updateChildTracks_: function() {
-      this.detach();
-      if (this.process_) {
-        // Create the object instance tracks for this process.
-        var instancesByTypeName =
-            this.process_.objects.getAllInstancesByTypeName();
-        var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
-        instanceTypeNames.sort();
-        instanceTypeNames.forEach(function(typeName) {
-          var allInstances = instancesByTypeName[typeName];
-
-          // If a object snapshot has a viewer it will be shown,
-          // unless the viewer asked for it to not be shown.
-          var instanceViewInfo = ObjectInstanceView.getViewInfo(typeName);
-          var snapshotViewInfo = ObjectSnapshotView.getViewInfo(typeName);
-          if (instanceViewInfo && !instanceViewInfo.options.showInTrackView)
-            instanceViewInfo = undefined;
-          if (snapshotViewInfo && !snapshotViewInfo.options.showInTrackView)
-            snapshotViewInfo = undefined;
-          var hasViewInfo = instanceViewInfo || snapshotViewInfo;
-
-          // There are some instances that don't merit their own track in
-          // the UI. Filter them out.
-          var visibleInstances = [];
-          for (var i = 0; i < allInstances.length; i++) {
-            var instance = allInstances[i];
-
-            // Do not create tracks for instances that have no snapshots.
-            if (instance.snapshots.length === 0)
-              continue;
-
-            // Do not create tracks for instances that have implicit snapshots
-            // and don't have a viewer.
-            if (instance.hasImplicitSnapshots && !hasViewInfo)
-              continue;
-
-            visibleInstances.push(instance);
-          }
-          if (visibleInstances.length === 0)
-            return;
-
-          // Look up the constructor for this track, or use the default
-          // constructor if none exists.
-          var trackConstructor =
-              tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
-          if (!trackConstructor)
-            trackConstructor = tracing.tracks.ObjectInstanceTrack;
-          var track = new trackConstructor(this.viewport);
-          track.heading = typeName + ':';
-          track.objectInstances = visibleInstances;
-          this.addTrack_(track);
-        }, this);
-
-
-        // Add counter tracks for this process.
-        var counters = [];
-        for (var tid in this.process.counters) {
-          counters.push(this.process.counters[tid]);
-        }
-        counters.sort(tracing.trace_model.Counter.compare);
-
-        // Create the counters for this process.
-        counters.forEach(function(counter) {
-          var track = new tracing.tracks.CounterTrack(this.viewport);
-          track.heading = counter.name + ':';
-          track.counter = counter;
-          this.addTrack_(track);
-        }.bind(this));
-
-        // Get a sorted list of threads.
-        var threads = [];
-        for (var tid in this.process.threads)
-          threads.push(this.process.threads[tid]);
-        threads.sort(tracing.trace_model.Thread.compare);
-
-        // Create the threads.
-        threads.forEach(function(thread) {
-          var track = new tracing.tracks.ThreadTrack(this.viewport);
-          track.heading = thread.userFriendlyName + ':';
-          track.tooltip = thread.userFriendlyDetails;
-          track.thread = thread;
-          this.addTrack_(track);
-        }.bind(this));
+    set expanded(expanded) {
+      if (expanded) {
+        this.expandEl_.classList.add('expand-button-expanded');
+        return;
       }
+      this.expandEl_.classList.remove('expand-button-expanded');
+    },
+
+    get hasVisibleContent() {
+      return this.children.length > 1;
+    },
+
+    updateContents_: function() {
+      this.tracks_.forEach(function(track) {
+        this.removeChild(track);
+      }, this);
+
+      if (!this.process_)
+        return;
+
+      this.processNameEl_.textContent = this.process_.userFriendlyName;
+      this.headerEl_.title = this.process_.userFriendlyDetails;
+
+      // Create the object instance tracks for this process.
+      this.appendObjectInstanceTracks_();
+      this.appendCounterTracks_();
+      this.appendThreadTracks_();
+    },
+
+    appendObjectInstanceTracks_: function() {
+      var instancesByTypeName =
+          this.process_.objects.getAllInstancesByTypeName();
+      var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
+      instanceTypeNames.sort();
+      instanceTypeNames.forEach(function(typeName) {
+        var allInstances = instancesByTypeName[typeName];
+
+        // If a object snapshot has a viewer it will be shown,
+        // unless the viewer asked for it to not be shown.
+        var instanceViewInfo = ObjectInstanceView.getViewInfo(typeName);
+        var snapshotViewInfo = ObjectSnapshotView.getViewInfo(typeName);
+        if (instanceViewInfo && !instanceViewInfo.options.showInTrackView)
+          instanceViewInfo = undefined;
+        if (snapshotViewInfo && !snapshotViewInfo.options.showInTrackView)
+          snapshotViewInfo = undefined;
+        var hasViewInfo = instanceViewInfo || snapshotViewInfo;
+
+        // There are some instances that don't merit their own track in
+        // the UI. Filter them out.
+        var visibleInstances = [];
+        for (var i = 0; i < allInstances.length; i++) {
+          var instance = allInstances[i];
+
+          // Do not create tracks for instances that have no snapshots.
+          if (instance.snapshots.length === 0)
+            continue;
+
+          // Do not create tracks for instances that have implicit snapshots
+          // and don't have a viewer.
+          if (instance.hasImplicitSnapshots && !hasViewInfo)
+            continue;
+
+          visibleInstances.push(instance);
+        }
+        if (visibleInstances.length === 0)
+          return;
+
+        // Look up the constructor for this track, or use the default
+        // constructor if none exists.
+        var trackConstructor =
+            tracing.tracks.ObjectInstanceTrack.getTrackConstructor(typeName);
+        if (!trackConstructor)
+          trackConstructor = tracing.tracks.ObjectInstanceTrack;
+        var track = new trackConstructor(this.viewport);
+        track.categoryFilter = this.categoryFilter_;
+        track.objectInstances = visibleInstances;
+        this.appendChild(track);
+      }, this);
+    },
+
+    appendCounterTracks_: function() {
+      // Add counter tracks for this process.
+      var counters = base.dictionaryValues(this.process.counters).
+          filter(this.categoryFilter.matchCounter, this.categoryFilter);
+      counters.sort(tracing.trace_model.Counter.compare);
+
+      // Create the counters for this process.
+      counters.forEach(function(counter) {
+        var track = new tracing.tracks.CounterTrack(this.viewport);
+        track.categoryFilter = this.categoryFilter_;
+        track.counter = counter;
+        this.appendChild(track);
+      }.bind(this));
+    },
+
+    appendThreadTracks_: function() {
+      // Get a sorted list of threads.
+      var threads = base.dictionaryValues(this.process.threads).
+          filter(function(thread) {
+            return this.categoryFilter_.matchThread(thread);
+          }, this);
+      threads.sort(tracing.trace_model.Thread.compare);
+
+      // Create the threads.
+      threads.forEach(function(thread) {
+        var track = new tracing.tracks.ThreadTrack(this.viewport);
+        track.categoryFilter = this.categoryFilter_;
+        track.thread = thread;
+        if (!track.hasVisibleContent)
+          return;
+        this.appendChild(track);
+      }.bind(this));
     }
   };
 

@@ -13,6 +13,10 @@
   display: -webkit-box;
 }
 
+.timeline-track-view heading {
+  width: 150px;
+}
+
 .model-track-container {
   -webkit-box-flex: 1;
   overflow: auto;

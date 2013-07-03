@@ -7,6 +7,7 @@ found in the LICENSE file.
 -->
 <WARNING_MESSAGE></WARNING_MESSAGE>
 <head i18n-values="dir:textdirection;">
+<title>chrome://tracing</title>
 <style>
 html, body {
   height: 100%;

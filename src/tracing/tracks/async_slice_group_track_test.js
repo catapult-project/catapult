@@ -16,34 +16,35 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
   var newAsyncSlice = tracing.test_utils.newAsyncSlice;
 
   test('filterSubRows', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
-    assertEquals(1, track.subRows_.length);
-    assertTrue(track.visible);
+    assertEquals(1, track.children.length);
+    assertTrue(track.hasVisibleContent);
 
     track.categoryFilter = new tracing.TitleFilter('x');
-    assertFalse(track.visible);
+    assertFalse(track.hasVisibleContent);
 
     track.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(track.visible);
-    assertEquals(1, track.subRows_.length);
+    assertTrue(track.hasVisibleContent);
+    assertEquals(1, track.children.length);
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1, t1, t1));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
-    var subRows = track.subRows_;
-
+    var subRows = track.subRows;
     assertEquals(1, subRows.length);
     assertEquals(2, subRows[0].length);
     assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
@@ -51,7 +52,8 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
   });
 
   test('rebuildSubRows_twoOverlappingSlices', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
 
@@ -62,7 +64,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(2, subRows.length);
     assertEquals(1, subRows[0].length);
@@ -73,7 +75,8 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
     g.push(newAsyncSlice(0, 1, t1, t1));
@@ -82,7 +85,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     g.updateBounds();
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(2, subRows.length);
     assertEquals(2, subRows[0].length);
@@ -94,7 +97,8 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
   });
 
   test('rebuildSubRows_threeOverlappingSlices', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var g = new AsyncSliceGroup();
 
@@ -106,7 +110,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
 
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
     assertEquals(2, subRows.length);
     assertEquals(2, subRows[0].length);
     assertEquals(g.slices[0].subSlices[0], subRows[0][0]);
@@ -116,7 +120,8 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
   });
 
   test('computeSubGroups_twoThreadSpecificSlices', function() {
-    var p1 = new Process(1);
+    var model = new tracing.TraceModel();
+    var p1 = new Process(model, 1);
     var t1 = new Thread(p1, 1);
     var t2 = new Thread(p1, 2);
     var g = new AsyncSliceGroup();
@@ -124,7 +129,7 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
     g.push(newAsyncSlice(0, 1, t2, t2));
     var track = new AsyncSliceGroupTrack(new tracing.TimelineViewport());
     track.group = g;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     var subGroups = g.computeSubGroups();
     assertEquals(2, subGroups.length);

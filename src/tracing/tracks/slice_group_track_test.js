@@ -20,7 +20,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(1, subRows.length);
@@ -35,7 +35,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -52,7 +52,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -69,7 +69,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(1, subRows.length);
@@ -84,7 +84,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -103,7 +103,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(1, subRows.length);
@@ -123,7 +123,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -145,7 +145,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -165,7 +165,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
 
     assertEquals(0, track.badSlices_.length);
     assertEquals(2, subRows.length);
@@ -188,7 +188,7 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
 
-    var subRows = track.subRows_;
+    var subRows = track.subRows;
     assertEquals(0, track.badSlices_.length);
     assertEquals(3, subRows.length);
     assertArrayEquals([sA, sD], subRows[0]);
@@ -205,18 +205,18 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
 
-    assertEquals(2, track.subRows_.length);
-    assertTrue(track.visible);
+    assertEquals(2, track.subRows.length);
+    assertTrue(track.hasVisibleContent);
 
     track.categoryFilter = new tracing.TitleFilter('x');
-    assertFalse(track.visible);
+    assertFalse(track.hasVisibleContent);
 
     track.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(track.visible);
-    assertEquals(1, track.subRows_.length);
+    assertTrue(track.hasVisibleContent);
+    assertEquals(1, track.subRows.length);
 
     track.categoryFilter = new tracing.TitleFilter('b');
-    assertTrue(track.visible);
-    assertEquals(1, track.subRows_.length);
+    assertTrue(track.hasVisibleContent);
+    assertEquals(1, track.subRows.length);
   });
 });

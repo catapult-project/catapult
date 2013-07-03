@@ -109,7 +109,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    assertEquals(0, timeline.numVisibleTracks);
+    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCounters', function() {
@@ -122,10 +122,10 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    assertEquals(2, timeline.numVisibleTracks);
+    assertTrue(timeline.hasVisibleContent);
 
     timeline.categoryFilter = new NoCountersFilter();
-    assertEquals(0, timeline.numVisibleTracks);
+    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCpus', function() {
@@ -136,10 +136,10 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    assertEquals(1, timeline.numVisibleTracks);
+    assertTrue(timeline.hasVisibleContent);
 
     timeline.categoryFilter = new NoCpusFilter();
-    assertEquals(0, timeline.numVisibleTracks);
+    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredProcesses', function() {
@@ -150,10 +150,10 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    assertEquals(1, timeline.numVisibleTracks);
+    assertTrue(timeline.hasVisibleContent);
 
     timeline.categoryFilter = new NoProcessesFilter();
-    assertEquals(0, timeline.numVisibleTracks);
+    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredThreads', function() {
@@ -165,9 +165,9 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    assertEquals(1, timeline.numVisibleTracks);
+    assertTrue(timeline.hasVisibleContent);
 
     timeline.categoryFilter = new NoThreadsFilter();
-    assertEquals(0, timeline.numVisibleTracks);
+    assertFalse(timeline.hasVisibleContent);
   });
 });
