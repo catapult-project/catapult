@@ -19,9 +19,9 @@ def GetChromeFlags(replay_host, http_port, https_port):
 
 class ReplayServer(object):
   def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
-               webpagereplay_host, webpagereplay_local_http_port,
-               webpagereplay_local_https_port, webpagereplay_remote_http_port,
-               webpagereplay_remote_https_port):
+               make_javascript_deterministic, webpagereplay_host,
+               webpagereplay_local_http_port, webpagereplay_local_https_port,
+               webpagereplay_remote_http_port, webpagereplay_remote_https_port):
     self._browser_backend = browser_backend
     self._forwarder = None
     self._web_page_replay = None
@@ -45,7 +45,7 @@ class ReplayServer(object):
         options.append('--append')
       else:
         options.append('--record')
-    if not browser_backend.options.wpr_make_javascript_deterministic:
+    if not make_javascript_deterministic:
       options.append('--inject_scripts=')
     self._web_page_replay = webpagereplay.ReplayServer(
         path,

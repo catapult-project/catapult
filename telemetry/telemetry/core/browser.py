@@ -262,7 +262,8 @@ class Browser(object):
 
     return True
 
-  def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False):
+  def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False,
+                           make_javascript_deterministic=True):
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None
@@ -282,6 +283,7 @@ class Browser(object):
         archive_path,
         use_record_mode,
         append_to_existing_wpr,
+        make_javascript_deterministic,
         self._browser_backend.WEBPAGEREPLAY_HOST,
         self._browser_backend.webpagereplay_local_http_port,
         self._browser_backend.webpagereplay_local_https_port,

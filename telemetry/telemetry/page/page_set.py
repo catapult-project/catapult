@@ -16,6 +16,7 @@ class PageSet(object):
     self.file_path = file_path
     self.credentials_path = None
     self.user_agent_type = None
+    self.make_javascript_deterministic = True
 
     if attributes:
       for k, v in attributes.iteritems():
