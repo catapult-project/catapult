@@ -53,7 +53,7 @@ class _RunState(object):
       if self._last_archive_path != page.archive_path:
         self.browser.SetReplayArchivePath(page.archive_path,
                                           self._append_to_existing_wpr,
-                                          page_set.page_javascript_determinsitc)
+                                          page_set.make_javascript_determinsitc)
         self._last_archive_path = page.archive_path
 
     if self.browser.supports_tab_control:
