@@ -163,7 +163,10 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
 
     # Kill old browser.
     self._adb.CloseApplication(self._backend_settings.package)
-    self._adb.KillAll('device_forwarder')
+
+    adb_commands.Forwarder.KillDevice(self._adb)
+    if not options.keep_test_server_ports:
+      adb_commands.Forwarder.KillHost()
 
     if self._adb.Adb().CanAccessProtectedFileContents():
       if not options.dont_override_profile:

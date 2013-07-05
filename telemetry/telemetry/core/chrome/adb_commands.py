@@ -156,18 +156,27 @@ def HasForwarder(buildtype=None):
 
 class Forwarder(object):
   def __init__(self, adb, *port_pairs):
-    assert HasForwarder()
     tool = valgrind_tools.BaseTool()
     self._host_port = port_pairs[0].local_port
 
     new_port_pairs = [(port_pair.local_port, port_pair.remote_port)
                       for port_pair in port_pairs]
 
-    buildtype = 'Debug'
-    if HasForwarder('Release'):
-      buildtype = 'Release'
-    self._forwarder = forwarder.Forwarder(adb.Adb(), buildtype)
+    self._forwarder = forwarder.Forwarder(adb.Adb(), Forwarder._GetBuildType())
     self._forwarder.Run(new_port_pairs, tool)
+
+  @staticmethod
+  def _GetBuildType():
+    assert HasForwarder()
+    return 'Debug' if HasForwarder('Debug') else 'Release'
+
+  @staticmethod
+  def KillHost():
+    forwarder.Forwarder.KillHost(Forwarder._GetBuildType())
+
+  @staticmethod
+  def KillDevice(adb):
+    forwarder.Forwarder.KillDevice(adb.Adb(), valgrind_tools.BaseTool())
 
   @property
   def url(self):
