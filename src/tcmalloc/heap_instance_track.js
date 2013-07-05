@@ -75,7 +75,7 @@ base.exportTo('tcmalloc', function() {
       this.invalidate();
     },
 
-    redraw: function() {
+    draw: function(viewLWorld, viewRWorld) {
       var ctx = this.ctx_;
       var canvasWidth = this.canvas_.width;
       var canvasHeight = this.canvas_.height;
@@ -83,17 +83,9 @@ base.exportTo('tcmalloc', function() {
       var twoPi = Math.PI * 2;
       var pixelRatio = window.devicePixelRatio || 1;
 
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
       // Culling parameters.
       var vp = this.viewport;
-      var pixWidthWorld = vp.xViewVectorToWorld(1);
-      var viewLeftWorld = vp.xViewToWorld(0);
-      var viewRightWorld = vp.xViewToWorld(canvasWidth);
       var snapshotRadiusWorld = vp.xViewVectorToWorld(canvasHeight);
-
-      // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx, viewLeftWorld, viewRightWorld, canvasHeight);
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       var objectSnapshots = this.objectInstance_.snapshots;
@@ -103,11 +95,11 @@ base.exportTo('tcmalloc', function() {
             return snapshot.ts +
                 snapshotRadiusWorld;
           },
-          viewLeftWorld);
+          viewLWorld);
       for (var i = lowIndex; i < objectSnapshots.length; ++i) {
         var snapshot = objectSnapshots[i];
         var left = snapshot.ts;
-        if (left - snapshotRadiusWorld > viewRightWorld)
+        if (left - snapshotRadiusWorld > viewRWorld)
           break;
         var leftView = vp.xWorldToView(left);
         if (leftView < 0)
@@ -150,9 +142,6 @@ base.exportTo('tcmalloc', function() {
         }
       }
       ctx.lineWidth = 1;
-
-      // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx, viewLeftWorld, viewRightWorld, canvasHeight);
     },
 
     /**

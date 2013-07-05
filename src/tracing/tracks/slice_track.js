@@ -88,21 +88,13 @@ base.exportTo('tracing.tracks', function() {
       return this.labelWidth(title) * pixWidth;
     },
 
-    redraw: function() {
+    draw: function(viewLWorld, viewRWorld) {
       var ctx = this.ctx_;
-      var canvasW = this.canvas_.width;
-      var canvasH = this.canvas_.height;
-
-      ctx.clearRect(0, 0, canvasW, canvasH);
+      var canvasH = ctx.canvas.height;
 
       // Culling parameters.
       var vp = this.viewport;
       var pixWidth = vp.xViewVectorToWorld(1);
-      var viewLWorld = vp.xViewToWorld(0);
-      var viewRWorld = vp.xViewToWorld(canvasW);
-
-      // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
 
       // Begin rendering in world space.
       ctx.save();
@@ -195,9 +187,6 @@ base.exportTo('tracing.tracks', function() {
           }
         }
       }
-
-      // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(

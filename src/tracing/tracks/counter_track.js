@@ -69,22 +69,14 @@ base.exportTo('tracing.tracks', function() {
       return this.selectedSamples_;
     },
 
-    redraw: function() {
-      var ctr = this.counter_;
+    draw: function(viewLWorld, viewRWorld) {
+      var counter = this.counter_;
       var ctx = this.ctx_;
-      var canvasW = this.canvas_.width;
-      var canvasH = this.canvas_.height;
-
-      ctx.clearRect(0, 0, canvasW, canvasH);
+      var canvasH = ctx.canvas.height;
 
       // Culling parametrs.
       var vp = this.viewport;
       var pixWidth = vp.xViewVectorToWorld(1);
-      var viewLWorld = vp.xViewToWorld(0);
-      var viewRWorld = vp.xViewToWorld(canvasW);
-
-      // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
 
       // Drop sampels that are less than skipDistancePix apart.
       var skipDistancePix = 1;
@@ -95,9 +87,9 @@ base.exportTo('tracing.tracks', function() {
       vp.applyTransformToCanvas(ctx);
 
       // Figure out where drawing should begin.
-      var numSeries = ctr.numSeries;
-      var numSamples = ctr.numSamples;
-      var startIndex = base.findLowIndexInSortedArray(ctr.timestamps,
+      var numSeries = counter.numSeries;
+      var numSamples = counter.numSamples;
+      var startIndex = base.findLowIndexInSortedArray(counter.timestamps,
                                                       function(x) {
                                                         return x;
                                                       },
@@ -105,17 +97,18 @@ base.exportTo('tracing.tracks', function() {
       startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
 
       // Draw indices one by one until we fall off the viewRWorld.
-      var yScale = canvasH / ctr.maxTotal;
-      for (var seriesIndex = ctr.numSeries - 1;
+      var yScale = canvasH / counter.maxTotal;
+      for (var seriesIndex = counter.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
-        var colorId = ctr.seriesColors[seriesIndex];
+        var colorId = counter.seriesColors[seriesIndex];
         ctx.fillStyle = palette[colorId];
         ctx.beginPath();
 
         // Set iLast and xLast such that the first sample we draw is the
         // startIndex sample.
         var iLast = startIndex - 1;
-        var xLast = iLast >= 0 ? ctr.timestamps[iLast] - skipDistanceWorld : -1;
+        var xLast = iLast >= 0 ?
+            counter.timestamps[iLast] - skipDistanceWorld : -1;
         var yLastView = canvasH;
 
         // Iterate over samples from iLast onward until we either fall off the
@@ -132,9 +125,9 @@ base.exportTo('tracing.tracks', function() {
             break;
           }
 
-          var x = ctr.timestamps[i];
+          var x = counter.timestamps[i];
 
-          var y = ctr.totals[i * numSeries + seriesIndex];
+          var y = counter.totals[i * numSeries + seriesIndex];
           var yView = canvasH - (yScale * y);
 
           if (x > viewRWorld) {
@@ -144,7 +137,7 @@ base.exportTo('tracing.tracks', function() {
           }
 
           if (i + 1 < numSamples) {
-            var xNext = ctr.timestamps[i + 1];
+            var xNext = counter.timestamps[i + 1];
             if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld) {
               iLast = i;
               continue;
@@ -176,35 +169,32 @@ base.exportTo('tracing.tracks', function() {
         if (!this.selectedSamples_[i])
           continue;
 
-        var x = ctr.timestamps[i];
-        for (var seriesIndex = ctr.numSeries - 1;
+        var x = counter.timestamps[i];
+        for (var seriesIndex = counter.numSeries - 1;
              seriesIndex >= 0; seriesIndex--) {
-          var y = ctr.totals[i * numSeries + seriesIndex];
+          var y = counter.totals[i * numSeries + seriesIndex];
           var yView = canvasH - (yScale * y);
           ctx.fillRect(x - pixWidth, yView - 1, 3 * pixWidth, 3);
         }
       }
       ctx.restore();
-
-      // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
 
       function getSampleWidth(x, i) {
-        if (i == ctr.timestamps.length - 1)
+        if (i == counter.timestamps.length - 1)
           return 0;
-        return ctr.timestamps[i + 1] - ctr.timestamps[i];
+        return counter.timestamps[i + 1] - counter.timestamps[i];
       }
 
-      var ctr = this.counter_;
-      var iLo = base.findLowIndexInSortedIntervals(ctr.timestamps,
+      var counter = this.counter_;
+      var iLo = base.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth,
                                                    loWX);
-      var iHi = base.findLowIndexInSortedIntervals(ctr.timestamps,
+      var iHi = base.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
                                                    getSampleWidth,
                                                    hiWX);
@@ -213,7 +203,7 @@ base.exportTo('tracing.tracks', function() {
       for (var i = iLo; i <= iHi; i++) {
         if (i < 0)
           continue;
-        if (i >= ctr.timestamps.length)
+        if (i >= counter.timestamps.length)
           continue;
 
         // TODO(nduca): Pick the seriesIndexHit based on the loY - hiY values.

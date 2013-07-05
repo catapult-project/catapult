@@ -35,6 +35,23 @@ base.exportTo('tracing.tracks', function() {
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
       this.addEventListener('mousedown', this.onMouseDown);
+
+      this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
+      viewport.addEventListener('markersChange', this.viewportMarkersChange_);
+
+    },
+
+    detach: function() {
+      tracing.tracks.CanvasBasedTrack.prototype.detach.call(this);
+      this.viewport.removeEventListener('markersChange',
+                                        this.viewportMarkersChange_);
+    },
+
+    viewportMarkersChange_: function() {
+      if (this.viewport.markers.length < 2)
+        this.classList.remove('ruler-track-with-distance-measurements');
+      else
+        this.classList.add('ruler-track-with-distance-measurements');
     },
 
     onMouseDown: function(e) {
@@ -87,7 +104,6 @@ base.exportTo('tracing.tracks', function() {
     },
 
     drawArrow_: function(ctx, x1, y1, x2, y2, arrowWidth, color) {
-
       this.drawLine_(ctx, x1, y1, x2, y2, color);
 
       var dx = x2 - x1;
@@ -111,28 +127,18 @@ base.exportTo('tracing.tracks', function() {
       ctx.fill();
     },
 
-    redraw: function() {
+    draw: function(viewLWorld, viewRWorld) {
       var ctx = this.ctx_;
-      var canvasW = this.canvas_.width;
-      var canvasH = this.canvas_.height;
-
-      ctx.clearRect(0, 0, canvasW, canvasH);
-
-      // Culling parametrs.
-      var vp = this.viewport;
-      var pixWidth = vp.xViewVectorToWorld(1);
-      var viewLWorld = vp.xViewToWorld(0);
-      var viewRWorld = vp.xViewToWorld(canvasW);
+      var canvasW = ctx.canvas.width;
+      var canvasH = ctx.canvas.height;
 
       var measurements = this.classList.contains(
           'ruler-track-with-distance-measurements');
 
       var rulerHeight = measurements ? canvasH / 2 : canvasH;
 
-      for (var i = 0; i < vp.markers.length; ++i) {
-        vp.markers[i].drawTriangle_(ctx, viewLWorld, viewRWorld,
-                                    canvasH, rulerHeight, vp);
-      }
+      var vp = this.viewport;
+      vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
 
       var pixelRatio = window.devicePixelRatio || 1;
       var idealMajorMarkDistancePix = 150 * pixelRatio;
@@ -159,6 +165,7 @@ base.exportTo('tracing.tracks', function() {
         majorMarkDistanceWorld = conservativeGuess / divisors[i - 1];
         break;
       }
+
       var tickLabels = undefined;
       if (majorMarkDistanceWorld < 100) {
         unit = 'ms';
@@ -224,7 +231,6 @@ base.exportTo('tracing.tracks', function() {
 
       // Give distance between directly adjacent markers.
       if (measurements) {
-
         // Divide canvas horizontally between ruler and measurements.
         ctx.moveTo(0, rulerHeight);
         ctx.lineTo(canvasW, rulerHeight);

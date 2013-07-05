@@ -70,27 +70,18 @@ base.exportTo('tracing.tracks', function() {
       return 7 * (window.devicePixelRatio || 1);
     },
 
-    redraw: function() {
+    draw: function(viewLWorld, viewRWorld) {
       var ctx = this.ctx_;
-      var canvasW = this.canvas_.width;
-      var canvasH = this.canvas_.height;
+      var canvasH = ctx.canvas.height;
       var halfCanvasH = canvasH * 0.5;
       var twoPi = Math.PI * 2;
       var pixelRatio = window.devicePixelRatio || 1;
 
-      ctx.clearRect(0, 0, canvasW, canvasH);
-
       // Culling parameters.
       var vp = this.viewport;
-      var pixWidthWorld = vp.xViewVectorToWorld(1);
-      var viewLWorld = vp.xViewToWorld(0);
-      var viewRWorld = vp.xViewToWorld(canvasW);
       var snapshotRadiusView = this.snapshotRadiusView;
       var snapshotRadiusWorld = vp.xViewVectorToWorld(canvasH);
       var loI;
-
-      // Give the viewport a chance to draw onto this canvas.
-      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
 
       // Begin rendering in world space.
       ctx.save();
@@ -165,9 +156,6 @@ base.exportTo('tracing.tracks', function() {
         }
       }
       ctx.lineWidth = 1;
-
-      // Give the viewport a chance to draw over this canvas.
-      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(

@@ -47,33 +47,6 @@ base.exportTo('tracing', function() {
   TimelineViewport.prototype = {
     __proto__: base.EventTarget.prototype,
 
-    drawUnderContent: function(ctx, viewLWorld, viewRWorld, canvasH) {
-    },
-
-    drawOverContent: function(ctx, viewLWorld, viewRWorld, canvasH) {
-      if (this.gridEnabled) {
-        var x = this.gridTimebase;
-
-        ctx.beginPath();
-        while (x < viewRWorld) {
-          if (x >= viewLWorld) {
-            // Do conversion to viewspace here rather than on
-            // x to avoid precision issues.
-            var vx = this.xWorldToView(x);
-            ctx.moveTo(vx, 0);
-            ctx.lineTo(vx, canvasH);
-          }
-          x += this.gridStep;
-        }
-        ctx.strokeStyle = 'rgba(255,0,0,0.25)';
-        ctx.stroke();
-      }
-
-      for (var i = 0; i < this.markers.length; ++i) {
-        this.markers[i].drawLine(ctx, viewLWorld, viewRWorld, canvasH, this);
-      }
-    },
-
     /**
      * Allows initialization of the viewport when the viewport's parent element
      * has been attached to the document and given a size.
@@ -296,6 +269,41 @@ base.exportTo('tracing', function() {
         }
       }
       return undefined;
+    },
+
+    drawGridLines: function(ctx, viewLWorld, viewRWorld) {
+      if (!this.gridEnabled)
+        return;
+
+      var x = this.gridTimebase;
+
+      ctx.beginPath();
+      while (x < viewRWorld) {
+        if (x >= viewLWorld) {
+          // Do conversion to viewspace here rather than on
+          // x to avoid precision issues.
+          var vx = this.xWorldToView(x);
+          ctx.moveTo(vx, 0);
+          ctx.lineTo(vx, ctx.canvas.height);
+        }
+        x += this.gridStep;
+      }
+      ctx.strokeStyle = 'rgba(255,0,0,0.25)';
+      ctx.stroke();
+    },
+
+    drawMarkerArrows: function(ctx, viewLWorld, viewRWorld, drawHeight) {
+      for (var i = 0; i < this.markers.length; ++i) {
+        this.markers[i].drawTriangle_(ctx, viewLWorld, viewRWorld,
+                                    ctx.canvas.height, drawHeight, this);
+      }
+    },
+
+    drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
+      for (var i = 0; i < this.markers.length; ++i) {
+        this.markers[i].drawLine(ctx, viewLWorld, viewRWorld,
+            ctx.canvas.height, this);
+      }
     }
   };
 
@@ -337,25 +345,30 @@ base.exportTo('tracing', function() {
     drawTriangle_: function(ctx, viewLWorld, viewRWorld,
                             canvasH, rulerHeight, vp) {
       ctx.beginPath();
+
       var ts = this.positionWorld_;
-      if (ts >= viewLWorld && ts < viewRWorld) {
-        var viewX = vp.xWorldToView(ts);
-        ctx.moveTo(viewX, rulerHeight);
-        ctx.lineTo(viewX - 3, rulerHeight / 2);
-        ctx.lineTo(viewX + 3, rulerHeight / 2);
-        ctx.lineTo(viewX, rulerHeight);
-        ctx.closePath();
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        if (rulerHeight != canvasH) {
-          ctx.beginPath();
-          ctx.moveTo(viewX, rulerHeight);
-          ctx.lineTo(viewX, canvasH);
-          ctx.closePath();
-          ctx.strokeStyle = this.color;
-          ctx.stroke();
-        }
-      }
+      if (ts < viewLWorld || ts > viewRWorld)
+        return;
+
+      var viewX = vp.xWorldToView(ts);
+      ctx.moveTo(viewX, rulerHeight);
+      ctx.lineTo(viewX - 3, rulerHeight / 2);
+      ctx.lineTo(viewX + 3, rulerHeight / 2);
+      ctx.lineTo(viewX, rulerHeight);
+      ctx.closePath();
+      ctx.fillStyle = this.color;
+      ctx.fill();
+
+      if (rulerHeight === canvasH)
+        return;
+
+      // Draw line from bottom of triangle to the bottom of our canvas.
+      ctx.beginPath();
+      ctx.moveTo(viewX, rulerHeight);
+      ctx.lineTo(viewX, canvasH);
+      ctx.closePath();
+      ctx.strokeStyle = this.color;
+      ctx.stroke();
     },
 
     drawLine: function(ctx, viewLWorld, viewRWorld, canvasH, vp) {

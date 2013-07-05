@@ -47,9 +47,7 @@ base.exportTo('tracing.tracks', function() {
 
       this.viewportChange_ = this.viewportChange_.bind(this);
       this.viewport.addEventListener('change', this.viewportChange_);
-      this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
-      this.viewport.addEventListener('markersChange',
-                                     this.viewportMarkersChange_);
+
       if (this.isAttachedToDocument_)
         this.updateCanvasSizeIfNeeded_();
       this.invalidate();
@@ -57,8 +55,6 @@ base.exportTo('tracing.tracks', function() {
 
     detach: function() {
       this.viewport.removeEventListener('change', this.viewportChange_);
-      this.viewport.removeEventListener('markersChange',
-                                        this.viewportMarkersChange_);
     },
 
     get heading() {
@@ -77,40 +73,30 @@ base.exportTo('tracing.tracks', function() {
       this.invalidate();
     },
 
-    viewportMarkersChange_: function() {
-      if (this.viewport.markers.length < 2)
-        this.classList.remove('ruler-track-with-distance-measurements');
-      else
-        this.classList.add('ruler-track-with-distance-measurements');
-    },
-
     invalidate: function() {
       if (this.rafPending_)
         return;
+
       base.requestPreAnimationFrame(function() {
         this.rafPending_ = false;
         this.updateCanvasSizeIfNeeded_();
         base.requestAnimationFrameInThisFrameIfPossible(function() {
-          this.redraw();
+          this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+
+          var viewLWorld = this.viewport.xViewToWorld(0);
+          var viewRWorld = this.viewport.xViewToWorld(this.canvas_.width);
+
+          this.draw(viewLWorld, viewRWorld);
+
+          this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
+          this.viewport.drawMarkerLines(this.ctx_, viewLWorld, viewRWorld);
         }, this);
       }, this);
       this.rafPending_ = true;
     },
 
-    redraw: function() {
-      var ctx = this.ctx_;
-      var canvasW = this.canvas_.width;
-      var canvasH = this.canvas_.height;
-
-      ctx.clearRect(0, 0, canvasW, canvasH);
-
-      // Culling parameters.
-      var vp = this.viewport;
-      var pixWidth = vp.xViewVectorToWorld(1);
-      var viewLWorld = vp.xViewToWorld(0);
-      var viewRWorld = vp.xViewToWorld(canvasW);
-      vp.drawUnderContent(ctx, viewLWorld, viewRWorld, canvasH);
-      vp.drawOverContent(ctx, viewLWorld, viewRWorld, canvasH);
+    draw: function() {
+      throw new Error('Implementation missing');
     },
 
     /**
