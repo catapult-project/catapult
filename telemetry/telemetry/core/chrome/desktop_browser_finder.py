@@ -109,8 +109,12 @@ def FindAllAvailableBrowsers(options):
   if sys.platform == 'darwin':
     chromium_app_name = 'Chromium.app/Contents/MacOS/Chromium'
     content_shell_app_name = 'Content Shell.app/Contents/MacOS/Content Shell'
-    # TODO(tonyg): Implement this on mac.
-    flash_path = None
+    mac_dir = 'mac'
+    if platform.architecture()[0] == '64bit':
+      mac_dir = 'mac_64'
+    flash_path = os.path.join(
+        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
+        mac_dir, 'PepperFlashPlayer.plugin')
   elif sys.platform.startswith('linux'):
     chromium_app_name = 'chrome'
     content_shell_app_name = 'content_shell'
