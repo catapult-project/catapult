@@ -33,6 +33,8 @@ for x in dir():
 
 def _RemoveAllStalePycFiles():
   for dirname, _, filenames in os.walk(os.path.dirname(__file__)):
+    if '.svn' in dirname or '.git' in dirname:
+      continue
     for filename in filenames:
       root, ext = os.path.splitext(filename)
       if ext != '.pyc':
