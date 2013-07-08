@@ -127,9 +127,12 @@ def FindAllAvailableBrowsers(options):
   elif sys.platform.startswith('win'):
     chromium_app_name = 'chrome.exe'
     content_shell_app_name = 'content_shell.exe'
+    win_dir = 'win'
+    if platform.architecture()[0] == '64bit':
+      win_dir = 'win_x64'
     flash_path = os.path.join(
         chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
-        'win', 'pepflashplayer.dll')
+        win_dir, 'pepflashplayer.dll')
   else:
     raise Exception('Platform not recognized')
 
