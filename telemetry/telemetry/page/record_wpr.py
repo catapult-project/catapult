@@ -28,7 +28,8 @@ class RecordPage(page_test.PageTest):
          if measurement().action_name_to_run])
 
   def CanRunForPage(self, page):
-    return bool(self._CompoundActionsForPage(page))
+    return (page.url.startswith('http') and
+            bool(self._CompoundActionsForPage(page)))
 
   def CustomizeBrowserOptionsForPage(self, page, options):
     for compound_action in self._CompoundActionsForPage(page):
