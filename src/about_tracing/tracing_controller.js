@@ -94,7 +94,7 @@ base.exportTo('about_tracing', function() {
      * Example: beginTracing("-excluded_category1,-excluded_category2");
      */
     beginTracing: function(opt_systemTracingEnabled, opt_trace_continuous,
-                           opt_trace_categories) {
+                           opt_enableSampling, opt_trace_categories) {
       if (this.tracingEnabled_)
         throw new Error('Tracing already begun.');
 
@@ -108,8 +108,11 @@ base.exportTo('about_tracing', function() {
       console.log('Beginning to trace...');
       this.statusDiv_.textContent = 'Tracing active.';
 
-      var trace_options = (opt_trace_continuous ? 'record-continuously' :
-                                                  'record-until-full');
+      var trace_options = [];
+      trace_options.push(opt_trace_continuous ? 'record-continuously' :
+                                                'record-until-full');
+      if (opt_enableSampling)
+        trace_options.push('enable-sampling');
 
       this.traceEventData_ = undefined;
       this.systemTraceEvents_ = undefined;
@@ -118,7 +121,7 @@ base.exportTo('about_tracing', function() {
           [
            opt_systemTracingEnabled || false,
            opt_trace_categories || '-test_*',
-           trace_options
+           trace_options.join(',')
           ]
       );
       this.beginRequestBufferPercentFull_();

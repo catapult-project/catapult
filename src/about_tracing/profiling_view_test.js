@@ -48,6 +48,8 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
       } else if (message == 'beginTracing') {
         systemTraceRequested = opt_args[0];
+        continuousTraceRequested = opt_args[1];
+        samplingRequested = opt_args[2];
 
       } else if (message == 'beginRequestBufferPercentFull') {
         setTimeout(function() {
@@ -99,6 +101,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
   var FakeTracingController = function() {
     this.wasBeginTracingCalled = false;
     this.wasCollectCategoriesCalled = false;
+    this.wasSamplingEnabled = false;
   };
 
   FakeTracingController.prototype = {
@@ -110,6 +113,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
     beginTracing: function(opt_systemTracingEnabled,
                            opt_continuousTracingEnabled,
+                           opt_enableSampling,
                            opt_traceCategories) {
       this.wasBeginTracingCalled = true;
       this.wasBeginTracingCalledWithSystemTracingEnabled =
@@ -117,6 +121,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       this.wasBeginTracingCalledWithContinuousTracingEnabled =
           opt_continuousTracingEnabled;
       this.beginTracingCategories = opt_traceCategories;
+      this.wasSamplingEnabled = opt_enableSampling;
     },
 
     collectCategories: function() {
@@ -350,5 +355,42 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
     assertFalse(view.selectingCategories);
     view.detach_();
+  });
+
+  test('recording_withSamplingEnabled', function() {
+    var view = new about_tracing.ProfilingView();
+
+    var tracingController = new FakeTracingController();
+    view.tracingController = tracingController;
+    view.querySelector('button.record').click();
+
+    var e = new base.Event('categoriesCollected');
+    e.categories = [];
+    tracingController.dispatchEvent(e);
+
+    view.recordSelectionDialog_.querySelector('.sampling-button').click();
+    view.recordSelectionDialog_.querySelector(
+        'button.record-categories').click();
+
+    assertTrue(tracingController.wasBeginTracingCalled);
+    assertTrue(tracingController.wasSamplingEnabled);
+  });
+
+  test('recording_withSamplingDisabled', function() {
+    var view = new about_tracing.ProfilingView();
+
+    var tracingController = new FakeTracingController();
+    view.tracingController = tracingController;
+    view.querySelector('button.record').click();
+
+    var e = new base.Event('categoriesCollected');
+    e.categories = [];
+    tracingController.dispatchEvent(e);
+
+    view.recordSelectionDialog_.querySelector(
+        'button.record-categories').click();
+
+    assertTrue(tracingController.wasBeginTracingCalled);
+    assertFalse(tracingController.wasSamplingEnabled);
   });
 });

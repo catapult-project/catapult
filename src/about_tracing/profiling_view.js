@@ -211,6 +211,7 @@ base.exportTo('about_tracing', function() {
       this.timelineView_.viewTitle = '-_-';
       tc.beginTracing(this.recordSelectionDialog_.isSystemTracingEnabled(),
                       this.recordSelectionDialog_.isContinuousTracingEnabled(),
+                      this.recordSelectionDialog_.isSamplingEnabled(),
                       categories);
 
       tc.addEventListener('traceEnded', this.onTraceEnded_);

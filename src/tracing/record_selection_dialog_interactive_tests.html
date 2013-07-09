@@ -32,7 +32,8 @@ found in the LICENSE file.
        var el = document.querySelector('.record-output');
        el.innerText = 'Category filter: ' + dlg.categoryFilter() + '\n' +
            'System Tracing: ' + dlg.isSystemTracingEnabled() + '\n' +
-           'Continuous Tracing: ' + dlg.isContinuousTracingEnabled();
+           'Continuous Tracing: ' + dlg.isContinuousTracingEnabled() + '\n' +
+           'Sampling: ' + dlg.isSamplingEnabled();
      }
      dlg.updateForm_();
   }

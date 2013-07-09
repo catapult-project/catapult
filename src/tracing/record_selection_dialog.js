@@ -42,6 +42,9 @@ base.exportTo('tracing', function() {
       this.systemTracingBn_ = this.querySelector('.system-tracing-button');
       this.systemTracingBn_.onchange = this.updateDlgSetting_.bind(this);
 
+      this.samplingBn_ = this.querySelector('.sampling-button');
+      this.samplingBn_.onchange = this.updateDlgSetting_.bind(this);
+
       this.systemTracingLabelEl_ = this.querySelector('.system-tracing-label');
       this.systemTracingLabelEl_.style.display = 'none';
 
@@ -79,6 +82,8 @@ base.exportTo('tracing', function() {
           this.settings_.get('continuousTracing', true, 'record_dlg');
       this.systemTracingBn_.checked =
           this.settings_.get('systemTracing', false, 'record_dlg');
+      this.samplingBn_.checked =
+          this.settings_.get('enableSampling', false, 'record_dlg');
     },
 
     set recordCallback(cb) {
@@ -103,6 +108,10 @@ base.exportTo('tracing', function() {
 
     isSystemTracingEnabled: function() {
       return this.systemTracingBn_.checked;
+    },
+
+    isSamplingEnabled: function() {
+      return this.samplingBn_.checked;
     },
 
     categoryFilter: function() {
