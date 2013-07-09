@@ -31,6 +31,7 @@ base.require('tracing.importer.linux_perf.i915_parser');
 base.require('tracing.importer.linux_perf.mali_parser');
 base.require('tracing.importer.linux_perf.power_parser');
 base.require('tracing.importer.linux_perf.sched_parser');
+base.require('tracing.importer.linux_perf.sync_parser');
 base.require('tracing.importer.linux_perf.workqueue_parser');
 base.require('tracing.importer.linux_perf.android_parser');
 base.require('tracing.importer.linux_perf.kfunc_parser');
