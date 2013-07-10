@@ -17,12 +17,23 @@ class ScrollAction(page_action.PageAction):
       js = f.read()
       tab.ExecuteJavaScript(js)
 
+    # Fail if this action requires touch and we can't send touch events.
+    if (hasattr(self, 'scroll_requires_touch') and
+        self.scroll_requires_touch and not
+        tab.EvaluateJavaScript(
+            'chrome.gpuBenchmarking.smoothScrollBySendsTouch()')):
+      raise page_action.PageActionNotSupported(
+          'Touch scroll not supported for this browser')
+
+    distance_func = 'null'
+    if hasattr(self, 'remaining_scroll_distance_function'):
+      distance_func = self.remaining_scroll_distance_function
+
+    done_callback = 'function() { window.__scrollActionDone = true; }'
     tab.ExecuteJavaScript("""
         window.__scrollActionDone = false;
-        window.__scrollAction = new __ScrollAction(function() {
-          window.__scrollActionDone = true;
-        });
-     """)
+        window.__scrollAction = new __ScrollAction(%s, %s);"""
+        % (done_callback, distance_func))
 
   def RunAction(self, page, tab, previous_action):
     # scrollable_element_function is a function that passes the scrollable

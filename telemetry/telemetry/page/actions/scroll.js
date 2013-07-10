@@ -91,16 +91,20 @@
   //
   // start -> startPass_ -> ...scroll... -> onGestureComplete_ ->
   //       -> startPass_ -> .. scroll... -> onGestureComplete_ -> callback_
-  function ScrollAction(opt_callback) {
+  function ScrollAction(opt_callback, opt_remaining_distance_func) {
     var self = this;
 
     this.beginMeasuringHook = function() {}
     this.endMeasuringHook = function() {}
 
     this.callback_ = opt_callback;
+    this.remaining_distance_func_ = opt_remaining_distance_func;
   }
 
   ScrollAction.prototype.getRemainingScrollDistance_ = function() {
+    if (this.remaining_distance_func_)
+      return this.remaining_distance_func_();
+
     var clientHeight;
     // clientHeight is "special" for the body element.
     if (this.element_ == document.body)
