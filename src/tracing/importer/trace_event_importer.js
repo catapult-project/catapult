@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * @fileoverview TraceEventImporter imports TraceEvent-formatted data
  * into the provided model.
@@ -81,7 +83,7 @@ base.exportTo('tracing.importer', function() {
       this.systemTraceEvents_ = container.systemTraceEvents;
 
       // Any other fields in the container should be treated as metadata.
-      for (fieldName in container) {
+      for (var fieldName in container) {
         if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents')
           continue;
         this.model_.metadata.push({name: fieldName,

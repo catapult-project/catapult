@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.color');
-
 'use strict';
+
+base.require('base.color');
 
 base.unittest.testSuite('base.color', function() {
   test('fromRGB', function() {

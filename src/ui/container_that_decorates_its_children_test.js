@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui.container_that_decorates_its_children');
-
 'use strict';
+
+base.require('ui.container_that_decorates_its_children');
 
 base.unittest.testSuite('ui.container_that_decorates_its_children', function() { // @suppress longLineCheck
 
@@ -17,7 +17,7 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   /**
    * @constructor
    */
-  SimpleContainer = ui.define('simple-container',
+  var SimpleContainer = ui.define('simple-container',
                               ui.ContainerThatDecoratesItsChildren);
 
   SimpleContainer.prototype = {
@@ -45,7 +45,7 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   });
 
   test('clearUsingTextContent', function() {
-    c0 = createChild();
+    var c0 = createChild();
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.textContent = '';
@@ -53,7 +53,7 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   });
 
   test('clear', function() {
-    c0 = createChild();
+    var c0 = createChild();
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.clear();
@@ -61,8 +61,8 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   });
 
   test('insertNewBefore', function() {
-    c0 = createChild();
-    c1 = createChild();
+    var c0 = createChild();
+    var c1 = createChild();
     var container = new SimpleContainer();
     container.appendChild(c1);
     container.insertBefore(c0, c1);
@@ -71,8 +71,8 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   });
 
   test('insertExistingBefore', function() {
-    c0 = createChild();
-    c1 = createChild();
+    var c0 = createChild();
+    var c1 = createChild();
     var container = new SimpleContainer();
     container.appendChild(c1);
     container.appendChild(c0);
@@ -82,8 +82,8 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
   });
 
   test('testReplace', function() {
-    c0 = createChild();
-    c1 = createChild();
+    var c0 = createChild();
+    var c1 = createChild();
     var container = new SimpleContainer();
     container.appendChild(c0);
     container.replaceChild(c1, c0);

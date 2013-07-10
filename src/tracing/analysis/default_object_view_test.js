@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.analysis.default_object_view');
 base.require('tracing.selection');
 base.require('tracing.trace_model.object_instance');
-
-'use strict';
 
 base.unittest.testSuite('tracing.analysis.default_object_view', function() {
   test('instantiate_snapshotView', function() {

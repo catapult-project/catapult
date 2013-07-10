@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui.info_bar');
-
 'use strict';
+
+base.require('ui.info_bar');
 
 base.unittest.testSuite('ui.info_bar', function() {
   test('instantiate', function() {

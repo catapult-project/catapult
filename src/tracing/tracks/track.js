@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * @fileoverview Renders an array of slices into the provided div,
  * using a child canvas element. Uses a FastRectRenderer to draw only

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('tcmalloc.heap');
-
 'use strict';
+
+base.require('tcmalloc.heap');
 
 base.unittest.testSuite('tcmalloc.heap', function() {
   var HeapSnapshot = tcmalloc.HeapSnapshot;

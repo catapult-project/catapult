@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.sorted_array_utils');
-
 'use strict';
+
+base.require('base.sorted_array_utils');
 
 base.unittest.testSuite('base.sorted_array_utils', function() {
   var ArrayOfIntervals = function(array) {

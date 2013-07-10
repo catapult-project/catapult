@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 // A single LTHI sort of manually created from a Google search for cats.
 var g_catLTHIEvents = [
   {

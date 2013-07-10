@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.bbox2');
 base.require('base.quad');
 base.require('ui.quad_view');
 base.require('ui.quad_view_viewport');
-
-'use strict';
 
 base.unittest.testSuite('ui.quad_view', function() {
   var Quad = base.Quad;

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui');
-
 'use strict';
+
+base.require('ui');
 
 base.unittest.testSuite('ui', function() {
   var TestElement = ui.define('div');

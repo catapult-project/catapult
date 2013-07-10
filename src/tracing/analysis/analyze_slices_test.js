@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.analysis.analysis_view');
 base.require('tracing.analysis.stub_analysis_results');
 base.require('tracing.selection');
 base.require('tracing.trace_model');
-
-'use strict';
 
 base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
   var Model = tracing.TraceModel;
@@ -216,4 +216,3 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     this.addHTMLOutput(analysisEl);
   });
 });
-

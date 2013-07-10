@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('cc.picture');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.picture_view_test_data');
-
-'use strict';
 
 base.unittest.testSuite('cc.picture', function() {
   test('basic', function() {

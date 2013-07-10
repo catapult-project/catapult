@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
-
-'use strict';
 
 base.unittest.testSuite('tracing.importer.linux_perf.android_parser', function() { // @suppress longLineCheck
   test('syncEventImport', function() {

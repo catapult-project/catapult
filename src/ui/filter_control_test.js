@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui.filter_control');
-
 'use strict';
+
+base.require('ui.filter_control');
 
 base.unittest.testSuite('ui.filter_control', function() {
   var filterControl = new ui.FilterControl();

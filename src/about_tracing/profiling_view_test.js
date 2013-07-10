@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.events');
 base.require('about_tracing.profiling_view');
 base.require('about_tracing.tracing_controller');
 base.require('ui.dom_helpers');
-
-'use strict';
 
 base.unittest.testSuite('about_tracing.profiling_view', function() {
   var testDataString = JSON.stringify([
@@ -153,7 +153,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     }
   };
 
-  recordTestCommon = function() {
+  var recordTestCommon = function() {
     var view = new about_tracing.ProfilingView();
 
     var tracingController = new FakeTracingController();

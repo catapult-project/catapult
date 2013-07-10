@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('cc.raster_task_slice_view');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
-
-'use strict';
 
 base.unittest.testSuite('cc.raster_task_slice_view', function() {
   test('instantiate', function() {

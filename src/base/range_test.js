@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.range');
-
 'use strict';
+
+base.require('base.range');
 
 base.unittest.testSuite('base.range', function() {
   test('addValue', function() {

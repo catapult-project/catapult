@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('cc.picture');
 base.require('cc.picture_debugger');
-
-'use strict';
 
 base.unittest.testSuite('cc.picture_debugger', function() {
   test('instantiate', function() {

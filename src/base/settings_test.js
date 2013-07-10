@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.settings');
 base.require('base.unittest');
 base.require('tracing.test_utils');
-
-'use strict';
 
 base.unittest.testSuite('base.settings', function() {
   function assertSettingIs(expectedValue, key) {

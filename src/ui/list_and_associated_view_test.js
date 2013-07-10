@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui.list_and_associated_view');
-
 'use strict';
+
+base.require('ui.list_and_associated_view');
 
 base.unittest.testSuite('ui.list_and_associated_view', function() {
   var ListAndAssociatedView = ui.ListAndAssociatedView;

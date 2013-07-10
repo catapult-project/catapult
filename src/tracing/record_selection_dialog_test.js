@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.settings');
 base.require('tracing.test_utils');
 base.require('tracing.record_selection_dialog');
-
-'use strict';
 
 base.unittest.testSuite('tracing.record_selection_dialog', function() {
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {

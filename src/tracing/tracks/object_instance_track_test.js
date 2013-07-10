@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.selection');
 base.require('tracing.trace_model.object_collection');
 base.require('tracing.timeline_viewport');
 base.require('tracing.tracks.object_instance_track');
-
-'use strict';
 
 base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
   var Selection = tracing.Selection;

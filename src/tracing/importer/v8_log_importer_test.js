@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.importer.v8_log_importer');
-
-'use strict';
 
 base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
   var V8LogImporter = tracing.importer.V8LogImporter;

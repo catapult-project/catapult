@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * @fileoverview Parses scheduler events in the Linux event trace format.
  */
@@ -23,7 +25,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
         SchedParser.prototype.schedWakeupEvent.bind(this));
   }
 
-  TestExports = {};
+  var TestExports = {};
 
   // Matches the sched_switch record
   var schedSwitchRE = new RegExp(

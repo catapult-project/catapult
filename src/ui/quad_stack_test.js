@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.unittest');
 base.require('base.bbox2');
 base.require('ui.quad_stack');
-
-'use strict';
 
 base.unittest.testSuite('ui.quad_stack', function() {
   test('instantiate', function() {

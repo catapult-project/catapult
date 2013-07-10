@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('cc.tile');
 base.require('cc.tile_view');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
-
-'use strict';
 
 base.unittest.testSuite('cc.tile', function() {
   test('basic', function() {

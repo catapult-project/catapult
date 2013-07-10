@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.events');
 base.require('tracing.test_utils');
 base.require('tracing.importer.timeline_stream_importer');
-
-'use strict';
 
 base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() { // @suppress longLineCheck
   var FakeWebSocket = function() {

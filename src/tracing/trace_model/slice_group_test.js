@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.slice_group');
-
-'use strict';
 
 base.unittest.testSuite('tracing.trace_model.slice_group', function() {
   var Slice = tracing.trace_model.Slice;

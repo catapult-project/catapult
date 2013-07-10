@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.rect');
-
 'use strict';
+
+base.require('base.rect');
 
 base.unittest.testSuite('base.rect', function() {
   test('UVRectBasic', function() {

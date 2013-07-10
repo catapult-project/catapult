@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('cc.util');
-
 'use strict';
+
+base.require('cc.util');
 
 base.unittest.testSuite('cc.util', function() {
   test('nameConvert', function() {

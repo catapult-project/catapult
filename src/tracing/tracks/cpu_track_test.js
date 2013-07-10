@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('tracing.timeline_track_view');
 base.require('tracing.trace_model');
-
-'use strict';
 
 base.unittest.testSuite('tracing.tracks.cpu_track', function() {
   var Cpu = tracing.trace_model.Cpu;

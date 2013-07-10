@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('ui');
 base.require('ui.regexp_selector');
-
-'use strict';
 
 base.unittest.testSuite('ui.regexp_selector', function() {
   test('regExpSelector', function() {

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.unittest.assertions');
-
 'use strict';
+
+base.require('base.unittest.assertions');
 
 base.unittest.testSuite('base.unittest.assertions', function() {
   setup(function() {

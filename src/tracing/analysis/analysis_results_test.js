@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.analysis.analysis_results');
 base.require('tracing.analysis.stub_analysis_table');
 base.require('tracing.selection');
-
-'use strict';
 
 base.unittest.testSuite('tracing.analysis.analysis_results', function() {
   test('selectionChangingLink', function() {

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('ui.drag_handle');
-
 'use strict';
+
+base.require('ui.drag_handle');
 
 base.unittest.testSuite('ui.drag_handle', function() {
   var createDragHandle = function() {

@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-base.require('base.bbox2');
-
 'use strict';
+
+base.require('base.bbox2');
 
 base.unittest.testSuite('base.bbox2', function() {
   test('addVec2', function() {

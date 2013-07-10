@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.test_utils');
 base.require('about_tracing.tracing_controller');
-
-'use strict';
 
 base.unittest.testSuite('about_tracing.tracing_controller', function() {
   test('loadTraceFileCompleteWithJSONfiles', function() {

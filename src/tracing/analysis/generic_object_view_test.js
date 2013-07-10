@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('tracing.trace_model.object_instance');
 base.require('tracing.analysis.generic_object_view');
-
-'use strict';
 
 base.unittest.testSuite('tracing.analysis.generic_object_view', function() {
   var GenericObjectView = tracing.analysis.GenericObjectView;

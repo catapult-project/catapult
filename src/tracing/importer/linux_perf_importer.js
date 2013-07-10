@@ -105,7 +105,7 @@ base.exportTo('tracing.importer', function() {
     this.eventHandlers_ = {};
   }
 
-  TestExports = {};
+  var TestExports = {};
 
   // Matches the trace record in 3.2 and later with the print-tgid option:
   //          <idle>-0    0 [001] d...  1.23: sched_switch

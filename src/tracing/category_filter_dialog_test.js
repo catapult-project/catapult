@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('base.settings');
 base.require('tracing.test_utils');
 base.require('tracing.category_filter_dialog');
-
-'use strict';
 
 base.unittest.testSuite('tracing.category_filter_dialog', function() {
   test('categoryFilterDialog_UpdateForm_NoSettings', function() {
