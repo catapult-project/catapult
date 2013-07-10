@@ -295,7 +295,7 @@ base.exportTo('tracing', function() {
     drawMarkerArrows: function(ctx, viewLWorld, viewRWorld, drawHeight) {
       for (var i = 0; i < this.markers.length; ++i) {
         this.markers[i].drawTriangle_(ctx, viewLWorld, viewRWorld,
-                                    ctx.canvas.height, drawHeight, this);
+                                      ctx.canvas.height, drawHeight, this);
       }
     },
 
