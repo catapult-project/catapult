@@ -26,8 +26,10 @@ base.exportTo('tracing', function() {
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
+    this.modelTrackContainer_ = null;
     this.scaleX_ = 1;
     this.panX_ = 0;
+    this.panY_ = 0;
     this.gridTimebase_ = 0;
     this.gridStep_ = 1000 / 60;
     this.gridEnabled_ = false;
@@ -132,6 +134,23 @@ base.exportTo('tracing', function() {
       }
     },
 
+    getStateInViewCoordinates: function() {
+      return {
+        panX: this.xWorldVectorToView(this.panX),
+        panY: this.panY,
+        scaleX: this.scaleX,
+      };
+    },
+
+    setStateInViewCoordinates: function(state) {
+      this.panX = this.xViewVectorToWorld(state.panX);
+      this.panY = state.panY;
+    },
+
+    set modelTrackContainer(m) {
+      this.modelTrackContainer_ = m;
+    },
+
     get scaleX() {
       return this.scaleX_;
     },
@@ -152,6 +171,14 @@ base.exportTo('tracing', function() {
         this.panX_ = p;
         this.dispatchChangeEvent();
       }
+    },
+
+    get panY() {
+      return this.panY_;
+    },
+    set panY(p) {
+      this.panY_ = p;
+      this.modelTrackContainer_.scrollTop = p;
     },
 
     setPanAndScale: function(p, s) {

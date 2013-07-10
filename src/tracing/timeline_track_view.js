@@ -31,6 +31,8 @@ base.exportTo('tracing', function() {
 
   var Selection = tracing.Selection;
   var Viewport = tracing.TimelineViewport;
+  var MOUSE_MODE_SELECTION = 1;
+  var MOUSE_MODE_PANSCAN = 2;
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -69,6 +71,7 @@ base.exportTo('tracing', function() {
       this.categoryFilter_ = new tracing.CategoryFilter();
 
       this.viewport_ = new Viewport(this);
+      this.viewportStateAtMouseDown_ = null;
 
       // Add the viewport track.
       this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
@@ -77,28 +80,162 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_ = document.createElement('div');
       this.modelTrackContainer_.className = 'model-track-container';
       this.appendChild(this.modelTrackContainer_);
+      this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
       this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
+
+      this.modeIndicator_ = this.ownerDocument.createElement('div');
+      this.modeIndicator_.className = 'mode-indicator';
+      this.appendChild(this.modeIndicator_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
       this.dragBox_.className = 'drag-box';
       this.appendChild(this.dragBox_);
       this.hideDragBox_();
 
+      this.bindEventListener_(document, 'mousemove', this.onMouseMove_, this);
+      this.bindEventListener_(document, 'mouseup', this.onMouseUp_, this);
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
-      this.bindEventListener_(document, 'mousemove', this.onMouseMove_, this);
-      this.bindEventListener_(document, 'mouseup', this.onMouseUp_, this);
 
       this.addEventListener('mousewheel', this.onMouseWheel_);
       this.addEventListener('mousedown', this.onMouseDown_);
       this.addEventListener('dblclick', this.onDblClick_);
 
+      this.mouseViewPosAtMouseDown = {x: 0, y: 0};
       this.lastMouseViewPos_ = {x: 0, y: 0};
-
       this.selection_ = new Selection();
+      this.isPanningAndScanning_ = false;
+
+      this.currentMouseMode_ = 0;
+
+      this.mouseMode = MOUSE_MODE_SELECTION;
+    },
+
+    mouseModeHandlers_: {
+      selection: {
+        down: function(e) {
+
+          var canv = this.firstCanvas;
+          var rect = this.modelTrack_.getBoundingClientRect();
+          var canvRect = this.firstCanvas.getBoundingClientRect();
+
+          var inside = rect &&
+              e.clientX >= rect.left &&
+              e.clientX < rect.right &&
+              e.clientY >= rect.top &&
+              e.clientY < rect.bottom &&
+              e.clientX >= canvRect.left &&
+              e.clientX < canvRect.right;
+
+          if (!inside)
+            return;
+
+          var pos = {
+            x: e.clientX - canv.offsetLeft,
+            y: e.clientY - canv.offsetTop
+          };
+
+          var wX = this.viewport_.xViewToWorld(pos.x);
+
+          this.dragBeginEvent_ = e;
+          e.preventDefault();
+          if (document.activeElement)
+            document.activeElement.blur();
+          if (this.focusElement.tabIndex >= 0)
+            this.focusElement.focus();
+
+        },
+
+        move: function(e) {
+          if (!this.dragBeginEvent_)
+            return;
+
+          // Update the drag box
+          this.dragBoxXStart_ = this.dragBeginEvent_.clientX;
+          this.dragBoxXEnd_ = e.clientX;
+          this.dragBoxYStart_ = this.dragBeginEvent_.clientY;
+          this.dragBoxYEnd_ = e.clientY;
+          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+              this.dragBoxXEnd_, this.dragBoxYEnd_, e.shiftKey);
+
+        },
+
+        up: function(e) {
+
+          // Stop the dragging.
+          this.hideDragBox_();
+          var eDown = this.dragBeginEvent_ || e;
+          this.dragBeginEvent_ = null;
+
+          // Figure out extents of the drag.
+          var loY;
+          var hiY;
+          var loX = Math.min(eDown.clientX, e.clientX);
+          var hiX = Math.max(eDown.clientX, e.clientX);
+          var tracksContainer =
+              this.modelTrackContainer_.getBoundingClientRect();
+          var topBoundary = tracksContainer.height;
+          var vertical = e.shiftKey;
+          if (vertical) {
+            var modelTrackRect = this.modelTrack_.getBoundingClientRect();
+            loY = modelTrackRect.top;
+            hiY = modelTrackRect.bottom;
+          } else {
+            loY = Math.min(eDown.clientY, e.clientY);
+            hiY = Math.max(eDown.clientY, e.clientY);
+          }
+
+          // Convert to worldspace.
+          var canv = this.firstCanvas;
+          var loVX = loX - canv.offsetLeft;
+          var hiVX = hiX - canv.offsetLeft;
+
+          // Figure out what has been hit.
+          var selection = new Selection();
+          this.modelTrack_.addIntersectingItemsInRangeToSelection(
+              loVX, hiVX, loY, hiY, selection);
+
+          // Activate the new selection, and zoom if ctrl key held down.
+          this.selection = selection;
+          if ((base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey))
+            this.zoomToSelection_();
+        },
+
+        dblclick: function(e) {
+          this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
+          e.preventDefault();
+        },
+
+        wheel: function(e) {
+        }
+      },
+
+      panscan: {
+        down: function(e) {
+          this.beginPanScan_(e);
+        },
+
+        move: function(e) {
+          this.updatePanScan_(e);
+        },
+
+        up: function(e) {
+          this.endPanScan_(e);
+        },
+
+        dblclick: function(e) {
+        },
+
+        wheel: function(e) {
+          var delta = e.wheelDeltaY / 120;
+          var zoomScale = Math.pow(1.5, delta);
+          this.zoomBy_(zoomScale);
+          e.preventDefault();
+        }
+      }
     },
 
     /**
@@ -125,6 +262,24 @@ base.exportTo('tracing', function() {
       }
       this.boundListeners_ = undefined;
       this.viewport_.detach();
+    },
+
+    get mouseMode() {
+      return this.currentMouseMode_;
+    },
+
+    set mouseMode(mode) {
+      this.currentMouseMode_ = mode;
+      this.updateModeIndicator_();
+    },
+
+    get currentMouseModeHandler_() {
+      switch (this.mouseMode) {
+        case MOUSE_MODE_SELECTION:
+          return this.mouseModeHandlers_.selection;
+        case MOUSE_MODE_PANSCAN:
+          return this.mouseModeHandlers_.panscan;
+      }
     },
 
     get viewport() {
@@ -288,12 +443,7 @@ base.exportTo('tracing', function() {
     },
 
     onMouseWheel_: function(e) {
-      if (e.altKey) {
-        var delta = e.wheelDeltaY / 120;
-        var zoomScale = Math.pow(1.5, delta);
-        this.zoomBy_(zoomScale);
-        e.preventDefault();
-      }
+      this.currentMouseModeHandler_.wheel.call(this, e);
     },
 
     // Not all keys send a keypress.
@@ -303,7 +453,14 @@ base.exportTo('tracing', function() {
       var sel;
       var vp = this.viewport_;
       var viewWidth = this.firstCanvas.clientWidth;
+
       switch (e.keyCode) {
+        case 16:   // shift
+          if (this.dragBeginEvent_)
+            return;
+          this.mouseMode = MOUSE_MODE_PANSCAN;
+          e.preventDefault();
+          break;
         case 37:   // left arrow
           sel = this.selection.getShiftedSelection(-1);
           if (sel) {
@@ -355,6 +512,13 @@ base.exportTo('tracing', function() {
               this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
         }
       }
+
+      // Prevent the user switching to selection mode during a pan and scan.
+      if (this.isPanningAndScanning_)
+        return;
+
+      this.mouseMode = MOUSE_MODE_SELECTION;
+      this.updateModeIndicator_();
     },
 
     /**
@@ -391,31 +555,32 @@ base.exportTo('tracing', function() {
     get keyHelp() {
       var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
       var help = 'Qwerty Controls\n' +
-          ' w/s           : Zoom in/out    (with shift: go faster)\n' +
-          ' a/d           : Pan left/right\n\n' +
+          ' w/s                : Zoom in/out     (with shift: go faster)\n' +
+          ' a/d                : Pan left/right\n\n' +
           'Dvorak Controls\n' +
-          ' ,/o           : Zoom in/out     (with shift: go faster)\n' +
-          ' a/e           : Pan left/right\n\n' +
+          ' ,/o                : Zoom in/out     (with shift: go faster)\n' +
+          ' a/e                : Pan left/right\n\n' +
           'Mouse Controls\n' +
-          ' drag          : Select slices   (with ' + mod +
+          ' drag               : Select slices   (with ' + mod +
                                                         ': zoom to slices)\n' +
-          ' drag + shift  : Select all slices vertically\n\n';
+          ' drag + shift       : Select all slices vertically\n\n';
 
       if (this.focusElement.tabIndex) {
         help +=
-            ' <-            : Select previous event on current timeline\n' +
-            ' ->            : Select next event on current timeline\n';
+          ' <-                 : Select previous event on current timeline\n' +
+          ' ->                 : Select next event on current timeline\n';
       } else {
         help += 'General Navigation\n' +
-            ' g/General     : Shows grid at the start/end of the selected' +
-            ' task\n' +
-            ' <-,^TAB       : Select previous event on current timeline\n' +
-            ' ->, TAB       : Select next event on current timeline\n';
+          ' g/General          : Shows grid at the start/end of the selected' +
+          ' task\n' +
+          ' <-,^TAB            : Select previous event on current timeline\n' +
+          ' ->, TAB            : Select next event on current timeline\n';
       }
       help +=
           '\n' +
-          'Alt + Scroll to zoom in/out\n' +
-          'Dbl-click to zoom in; Shift dbl-click to zoom out\n' +
+          'Shift toggles select / pan navigation\n' +
+          'Shift + Scroll to zoom in/out\n' +
+          'Dbl-click to add timing markers\n' +
           'f to zoom into selection\n' +
           'z to reset zoom and pan to initial view\n' +
           '/ to search\n';
@@ -471,6 +636,19 @@ base.exportTo('tracing', function() {
       if (this.modelTrack_)
         return this.modelTrack_.firstCanvas;
       return undefined;
+    },
+
+    updateModeIndicator_: function() {
+      switch (this.currentMouseMode_) {
+        case MOUSE_MODE_SELECTION:
+          this.classList.remove('mode-panscan');
+          this.classList.add('mode-selection');
+          break;
+        case MOUSE_MODE_PANSCAN:
+          this.classList.remove('mode-selection');
+          this.classList.add('mode-panscan');
+          break;
+      }
     },
 
     hideDragBox_: function() {
@@ -561,133 +739,83 @@ base.exportTo('tracing', function() {
     },
 
     onMouseDown_: function(e) {
-      if (e.button !== 0)
+
+      if (e.button != 0)
         return;
 
-      if (e.shiftKey) {
-        this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
-        return;
-      }
-
-      var canv = this.firstCanvas;
-      var rect = this.modelTrack_.getBoundingClientRect();
-      var canvRect = this.firstCanvas.getBoundingClientRect();
-
-      var inside = rect &&
-          e.clientX >= rect.left &&
-          e.clientX < rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY < rect.bottom &&
-          e.clientX >= canvRect.left &&
-          e.clientX < canvRect.right;
-
-      if (!inside)
+      // Ensure that we do not interfere with the user adding markers.
+      if (ui.elementIsChildOf(e.target, this.rulerTrack_))
         return;
 
-      var pos = {
-        x: e.clientX - canv.offsetLeft,
-        y: e.clientY - canv.offsetTop
-      };
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition(e);
 
-      var wX = this.viewport_.xViewToWorld(pos.x);
+      this.mouseViewPosAtMouseDown.x = this.lastMouseViewPos_.x;
+      this.mouseViewPosAtMouseDown.y = this.lastMouseViewPos_.y;
 
-      this.dragBeginEvent_ = e;
+      this.currentMouseModeHandler_.down.call(this, e);
       e.preventDefault();
-      if (document.activeElement)
-        document.activeElement.blur();
-      if (this.focusElement.tabIndex >= 0)
-        this.focusElement.focus();
+
     },
 
     onMouseMove_: function(e) {
-      if (!this.firstCanvas)
-        return;
-      var canv = this.firstCanvas;
-      var pos = {
-        x: e.clientX - canv.offsetLeft,
-        y: e.clientY - canv.offsetTop
-      };
-
-      // Remember position. Used during keyboard zooming.
-      this.lastMouseViewPos_ = pos;
-
-      // Update the drag box
-      if (this.dragBeginEvent_) {
-        this.dragBoxXStart_ = this.dragBeginEvent_.clientX;
-        this.dragBoxXEnd_ = e.clientX;
-        this.dragBoxYStart_ = this.dragBeginEvent_.clientY;
-        this.dragBoxYEnd_ = e.clientY;
-        var vertical = e.shiftKey;
-        this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-            this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
-      }
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition(e);
+      this.currentMouseModeHandler_.move.call(this, e);
     },
 
     onMouseUp_: function(e) {
-      var i;
-      if (this.dragBeginEvent_) {
-        // Stop the dragging.
-        this.hideDragBox_();
-        var eDown = this.dragBeginEvent_;
-        this.dragBeginEvent_ = null;
-
-        // Figure out extents of the drag.
-        var loY;
-        var hiY;
-        var loX = Math.min(eDown.clientX, e.clientX);
-        var hiX = Math.max(eDown.clientX, e.clientX);
-        var tracksContainer = this.modelTrackContainer_.getBoundingClientRect();
-        var topBoundary = tracksContainer.height;
-        var vertical = e.shiftKey;
-        if (vertical) {
-          var modelTrackRect = this.modelTrack_.getBoundingClientRect();
-          loY = modelTrackRect.top;
-          hiY = modelTrackRect.bottom;
-        } else {
-          loY = Math.min(eDown.clientY, e.clientY);
-          hiY = Math.max(eDown.clientY, e.clientY);
-        }
-
-        // Convert to worldspace.
-        var canv = this.firstCanvas;
-        var loVX = loX - canv.offsetLeft;
-        var hiVX = hiX - canv.offsetLeft;
-
-        // Figure out what has been hit.
-        var selection = new Selection();
-        this.modelTrack_.addIntersectingItemsInRangeToSelection(
-            loVX, hiVX, loY, hiY, selection);
-
-        // Activate the new selection, and zoom if ctrl key held down.
-        this.selection = selection;
-        if ((base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey)) {
-          this.zoomToSelection_();
-        }
-      }
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition(e);
+      this.currentMouseModeHandler_.up.call(this, e);
     },
 
     onDblClick_: function(e) {
-      var modelTrackContainerRect =
-          this.modelTrackContainer_.getBoundingClientRect();
-      var clipBounds = {
-        left: modelTrackContainerRect.left,
-        right: modelTrackContainerRect.right
-      };
-      var headingWidth = window.getComputedStyle(
-          this.querySelector('heading')).width;
-      var trackTitleWidth = parseInt(headingWidth);
-      clipBounds.left = clipBounds.left + trackTitleWidth;
+      this.currentMouseModeHandler_.dblclick.call(this, e);
+    },
 
-      if (e.clientX < clipBounds.left || e.clientX > clipBounds.right)
+    extractRelativeMousePosition: function(e) {
+      if (!this.firstCanvas)
+        return null;
+      var canv = this.firstCanvas;
+      return {
+        x: e.clientX - canv.offsetLeft,
+        y: e.clientY - canv.offsetTop
+      };
+    },
+
+    beginPanScan_: function(e) {
+      var vp = this.viewport_;
+
+      this.viewportStateAtMouseDown_ = vp.getStateInViewCoordinates();
+      this.isPanningAndScanning_ = true;
+
+    },
+
+    updatePanScan_: function(e) {
+
+      if (!this.isPanningAndScanning_)
         return;
 
-      var canv = this.firstCanvas;
+      var vp = this.viewport_;
+      var viewWidth = this.firstCanvas.clientWidth;
 
-      var scale = 4;
-      if (e.shiftKey)
-        scale = 1 / scale;
-      this.zoomBy_(scale);
+      var x = this.viewportStateAtMouseDown_.panX + (this.lastMouseViewPos_.x -
+          this.mouseViewPosAtMouseDown.x);
+      var y = this.viewportStateAtMouseDown_.panY - (this.lastMouseViewPos_.y -
+          this.mouseViewPosAtMouseDown.y);
+
+      vp.setStateInViewCoordinates({
+        panX: x,
+        panY: y
+      });
+
       e.preventDefault();
+      e.stopPropagation();
+    },
+
+    endPanScan_: function(e) {
+      this.isPanningAndScanning_ = false;
+
+      if (!e.shiftKey)
+        this.mouseMode = MOUSE_MODE_SELECTION;
     }
   };
 
