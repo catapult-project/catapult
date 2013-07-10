@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+
 _EXCLUDED_PATHS = []
 
 _LICENSE_HEADER = (
@@ -25,7 +26,6 @@ def _CommonChecks(input_api, output_api):
 
   def IsResource(maybe_resource):
     f = maybe_resource.AbsoluteLocalPath()
-    print f
     if not f.endswith(('.css', '.html', '.js')):
       return False
     return True
@@ -34,6 +34,11 @@ def _CommonChecks(input_api, output_api):
                                         file_filter=IsResource).RunChecks())
   results.extend(js_checker.JSChecker(input_api, output_api,
                                       file_filter=IsResource).RunChecks())
+
+  from build import check_gyp
+  gyp_result = check_gyp.GypCheck()
+  if len(gyp_result) > 0:
+    results.extend([output_api.PresubmitError(gyp_result)])
 
   black_list = input_api.DEFAULT_BLACK_LIST
   sources = lambda x: input_api.FilterSourceFile(x, black_list=black_list)
