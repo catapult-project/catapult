@@ -12,6 +12,7 @@ import sys
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core import profile_types
+from telemetry.core.chrome import cros_interface
 from telemetry.core.chrome import desktop_browser_backend
 from telemetry.core.platform import linux_platform_backend
 from telemetry.core.platform import mac_platform_backend
@@ -93,6 +94,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
   browsers = []
+
+  if cros_interface.IsRunningOnCrosDevice():
+    return []
 
   has_display = True
   if (sys.platform.startswith('linux') and

@@ -6,12 +6,23 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import tempfile
 
 # TODO(nduca): This whole file is built up around making individual ssh calls
 # for each operation. It really could get away with a single ssh session built
 # around pexpect, I suspect, if we wanted it to be faster. But, this was
 # convenient.
+
+def IsRunningOnCrosDevice():
+  """Returns True if we're on a ChromeOS device."""
+  lsb_release = '/etc/lsb-release'
+  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
+    with open(lsb_release, 'r') as f:
+      res = f.read()
+      if res.count('CHROMEOS_RELEASE_NAME'):
+        return True
+  return False
 
 def RunCmd(args, cwd=None, quiet=False):
   """Opens a subprocess to execute a program and returns its return value.
