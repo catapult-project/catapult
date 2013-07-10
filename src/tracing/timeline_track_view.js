@@ -231,6 +231,11 @@ base.exportTo('tracing', function() {
 
         wheel: function(e) {
           var delta = e.wheelDeltaY / 120;
+
+          // If wheelDeltaY is zero use wheelDelta instead.
+          if (e.wheelDeltaY === 0)
+            delta = e.wheelDelta / 120;
+
           var zoomScale = Math.pow(1.5, delta);
           this.zoomBy_(zoomScale);
           e.preventDefault();
