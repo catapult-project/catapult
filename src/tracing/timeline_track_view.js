@@ -417,7 +417,8 @@ base.exportTo('tracing', function() {
           'Alt + Scroll to zoom in/out\n' +
           'Dbl-click to zoom in; Shift dbl-click to zoom out\n' +
           'f to zoom into selection\n' +
-          'z to reset zoom and pan to initial view\n';
+          'z to reset zoom and pan to initial view\n' +
+          '/ to search\n';
       return help;
     },
 

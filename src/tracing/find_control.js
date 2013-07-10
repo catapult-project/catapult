@@ -71,7 +71,14 @@ base.exportTo('tracing', function() {
 
       this.filterEl_.addEventListener('focus', function(e) {
         this.updateHitCountEl_();
+        this.filterEl_.select();
       }.bind(this));
+
+      // Prevent that the input text is deselected after focusing the find
+      // control with the mouse.
+      this.filterEl_.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+      });
 
       // Attach everything.
       this.appendChild(this.filterEl_);
@@ -93,8 +100,6 @@ base.exportTo('tracing', function() {
     },
 
     focus: function() {
-      this.filterEl_.selectionStart = 0;
-      this.filterEl_.selectionEnd = this.filterEl_.value.length;
       this.filterEl_.focus();
     },
 
