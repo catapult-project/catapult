@@ -13,7 +13,7 @@ base.unittest.testSuite('tracing.filter', function() {
   var CategoryFilter = tracing.CategoryFilter;
 
   test('titleFilter', function() {
-    var s0 = tracing.test_utils.newSlice(1, 3);
+    var s0 = tracing.test_utils.newSliceNamed('a', 1, 3);
     assertFalse(new TitleFilter('').matchSlice(s0));
 
     assertTrue(new TitleFilter('a').matchSlice(s0));
@@ -24,7 +24,12 @@ base.unittest.testSuite('tracing.filter', function() {
     assertTrue(new TitleFilter('ba').matchSlice(s1));
     assertFalse(new TitleFilter('x').matchSlice(s1));
 
-    var c0 = tracing.test_utils.newCounter(null);
+    var s2 = tracing.test_utils.newSliceNamed('Ca', 1, 3);
+    assertTrue(new TitleFilter('A').matchSlice(s2));
+    assertTrue(new TitleFilter('cA').matchSlice(s2));
+    assertFalse(new TitleFilter('X').matchSlice(s2));
+
+    var c0 = tracing.test_utils.newCounterNamed(null, 'a');
     assertFalse(new TitleFilter('').matchCounter(c0));
 
     assertTrue(new TitleFilter('a').matchCounter(c0));
@@ -34,10 +39,15 @@ base.unittest.testSuite('tracing.filter', function() {
     assertTrue(new TitleFilter('a').matchCounter(c1));
     assertTrue(new TitleFilter('ba').matchCounter(c1));
     assertFalse(new TitleFilter('x').matchCounter(c1));
+
+    var c2 = tracing.test_utils.newCounterNamed(null, 'cA');
+    assertTrue(new TitleFilter('a').matchCounter(c2));
+    assertTrue(new TitleFilter('Ca').matchCounter(c2));
+    assertFalse(new TitleFilter('X').matchCounter(c2));
   });
 
   test('categoryFilter', function() {
-    var sNoCategory = tracing.test_utils.newSlice(1, 3);
+    var sNoCategory = tracing.test_utils.newSliceNamed('a', 1, 3);
     sNoCategory.category = undefined;
     assertTrue(new CategoryFilter(['x']).matchSlice(sNoCategory));
 

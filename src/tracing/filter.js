@@ -62,30 +62,30 @@ base.exportTo('tracing', function() {
   };
 
   /**
-   * @constructor A filter that matches objects by their name.
+   * @constructor A filter that matches objects by their name case insensitive.
    * .findAllObjectsMatchingFilter
    */
   function TitleFilter(text) {
     Filter.call(this);
-    this.text_ = text;
+    this.text_ = text.toLowerCase();
   }
   TitleFilter.prototype = {
     __proto__: Filter.prototype,
 
     matchCounter: function(counter) {
-      if (this.text_.length == 0)
+      if (this.text_.length === 0)
         return false;
       if (counter.name === undefined)
         return false;
-      return counter.name.indexOf(this.text_) != -1;
+      return counter.name.toLowerCase().indexOf(this.text_) !== -1;
     },
 
     matchSlice: function(slice) {
-      if (this.text_.length == 0)
+      if (this.text_.length === 0)
         return false;
       if (slice.title === undefined)
         return false;
-      return slice.title.indexOf(this.text_) != -1;
+      return slice.title.toLowerCase().indexOf(this.text_) !== -1;
     }
   };
 
