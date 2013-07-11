@@ -186,6 +186,8 @@ class JSChecker(object):
         ])
 
       # Use closure_linter to check for several different errors
+      import gflags as flags
+      flags.FLAGS.strict = True
       error_handler = ErrorHandlerImpl(self.input_api.re)
       js_checker = checker.JavaScriptStyleChecker(error_handler)
       js_checker.Check(self.input_api.os_path.join(
