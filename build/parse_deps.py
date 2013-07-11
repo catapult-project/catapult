@@ -193,7 +193,9 @@ class Module(object):
     else:
       self.contents = module_contents
     self.filename = module_filename
-    self.parse_definition_(self.contents, decl_required)
+    stripped_text = _strip_js_comments(self.contents)
+    self.validate_uses_strict_mode_(stripped_text)
+    self.parse_definition_(stripped_text, decl_required)
 
   def resolve(self, all_resources, resource_finder):
     if "scripts" not in all_resources:
@@ -261,11 +263,20 @@ class Module(object):
       already_loaded_set.add(self.name)
       load_sequence.append(self)
 
-  def parse_definition_(self, text, decl_required = True):
+  def validate_uses_strict_mode_(self, stripped_text):
+    lines = stripped_text.split('\n')
+    for line in lines:
+      line = line.strip()
+      if len(line.strip()) == 0:
+        continue
+      if line.strip() == """'use strict';""":
+        break
+      raise DepsException('%s must use strict mode' % self.name)
+
+  def parse_definition_(self, stripped_text, decl_required = True):
     if not decl_required and not self.name:
       raise Exception("Module.name must be set for decl_required to be false.")
 
-    stripped_text = _strip_js_comments(text)
     rest = stripped_text
     while True:
       # Things to search for.
