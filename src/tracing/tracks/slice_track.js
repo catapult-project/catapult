@@ -80,6 +80,10 @@ base.exportTo('tracing.tracks', function() {
       this.invalidate();
     },
 
+    get hasVisibleContent() {
+      return this.slices.length > 0;
+    },
+
     labelWidth: function(title) {
       return quickMeasureText(this.ctx_, title) + 2;
     },
