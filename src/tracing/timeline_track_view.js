@@ -87,6 +87,7 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_ =
           new tracing.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
+      this.modelTrackContainer_.style.display = 'block';
       this.modelTrackContainer_.invalidate();
 
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
