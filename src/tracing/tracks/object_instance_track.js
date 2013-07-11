@@ -71,12 +71,12 @@ base.exportTo('tracing.tracks', function() {
 
     draw: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
-      var bounds = this.getBoundingClientRect();
+      var pixelRatio = window.devicePixelRatio || 1;
 
-      var height = bounds.height;
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height * pixelRatio;
       var halfHeight = height * 0.5;
       var twoPi = Math.PI * 2;
-      var pixelRatio = window.devicePixelRatio || 1;
 
       // Culling parameters.
       var vp = this.viewport;

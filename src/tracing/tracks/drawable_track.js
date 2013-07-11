@@ -75,10 +75,11 @@ base.exportTo('tracing.tracks', function() {
 
           ctx.save();
 
+          var pixelRatio = window.devicePixelRatio || 1;
           var bounds = this.getBoundingClientRect();
           var canvasBounds = ctx.canvas.getBoundingClientRect();
 
-          ctx.translate(0, bounds.top - canvasBounds.top);
+          ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
           var viewLWorld = this.viewport.xViewToWorld(0);
           var viewRWorld = this.viewport.xViewToWorld(bounds.width);

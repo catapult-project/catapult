@@ -70,10 +70,13 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var counter = this.counter_;
       var ctx = this.context();
+      var pixelRatio = window.devicePixelRatio || 1;
+
       var bounds = this.getBoundingClientRect();
-      var height = bounds.height;
+      var height = bounds.height * pixelRatio;
+
+      var counter = this.counter_;
 
       // Culling parametrs.
       var vp = this.viewport;

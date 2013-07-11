@@ -127,10 +127,11 @@ base.exportTo('tracing.tracks', function() {
 
     draw: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
+      var pixelRatio = window.devicePixelRatio || 1;
 
       var bounds = this.getBoundingClientRect();
       var width = bounds.width;
-      var height = bounds.height;
+      var height = bounds.height * pixelRatio;
 
       var measurements = this.classList.contains(
           'ruler-track-with-distance-measurements');
@@ -140,7 +141,6 @@ base.exportTo('tracing.tracks', function() {
       var vp = this.viewport;
       vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
 
-      var pixelRatio = window.devicePixelRatio || 1;
       var idealMajorMarkDistancePix = 150 * pixelRatio;
       var idealMajorMarkDistanceWorld =
           vp.xViewVectorToWorld(idealMajorMarkDistancePix);

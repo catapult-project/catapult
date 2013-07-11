@@ -93,9 +93,11 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var bounds = this.getBoundingClientRect();
       var ctx = this.context();
-      var height = bounds.height;
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height * pixelRatio;
 
       // Culling parameters.
       var vp = this.viewport;
@@ -153,7 +155,6 @@ base.exportTo('tracing.tracks', function() {
       ctx.restore();
 
       // Labels.
-      var pixelRatio = window.devicePixelRatio || 1;
       if (height > 8) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
