@@ -624,7 +624,8 @@ base.exportTo('tracing', function() {
       }
       help +=
           '\n' +
-          'Shift toggles select / pan navigation\n' +
+          'Space to switch between select / pan modes\n' +
+          'Shift to temporarily switch between select / pan modes\n' +
           'Scroll to zoom in/out (in pan mode)\n' +
           'Dbl-click to add timing markers\n' +
           'f to zoom into selection\n' +
