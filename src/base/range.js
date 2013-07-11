@@ -62,6 +62,10 @@ base.exportTo('base', function() {
       if (this.isEmpty_)
         return undefined;
       return this.max_ - this.min_;
+    },
+
+    get center() {
+      return (this.min_ + this.max_) * 0.5;
     }
   };
 

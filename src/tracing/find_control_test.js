@@ -41,9 +41,9 @@ base.unittest.testSuite('tracing.find_control', function() {
       this.statusEl_.textContent = status;
     },
 
-    setSelectionAndMakeVisible: function(selection, zoomAllowed) {
-      this.selection = selection;
-    },
+    zoomToSelection: function() {},
+
+    panToSelection: function() {},
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
@@ -65,6 +65,8 @@ base.unittest.testSuite('tracing.find_control', function() {
       findPrevious: function() {
         didFindPrevious = true;
       },
+
+      reset: function() {},
 
       filterHits: [],
 
@@ -106,6 +108,8 @@ base.unittest.testSuite('tracing.find_control', function() {
     controller.timeline = timeline;
 
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1];
+    controller.filterText = 'asdf';
+
     controller.findNext();
     assertArrayShallowEquals([1], timeline.selection);
     controller.findNext();
@@ -120,6 +124,7 @@ base.unittest.testSuite('tracing.find_control', function() {
     controller.timeline = timeline;
 
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+    controller.filterText = 'asdf';
 
     // Loop through hits then when we wrap, try moving backward.
     controller.findNext();
@@ -142,6 +147,7 @@ base.unittest.testSuite('tracing.find_control', function() {
     controller.timeline = timeline;
 
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
+    controller.filterText = 'asdf';
 
     // Loop through hits then when we wrap, try moving backward.
     controller.findNext();
@@ -151,12 +157,15 @@ base.unittest.testSuite('tracing.find_control', function() {
     assertArrayShallowEquals([4], timeline.selection);
   });
 
-  test('findControllerSelectsFirstItemImmediately', function() {
+  test('findControllerSelectsAllItemsFirst', function() {
     var timeline = new FakeTimeline();
     var controller = new tracing.FindController();
     controller.timeline = timeline;
+
     timeline.addAllObjectsMatchingFilterToSelectionReturnValue = [1, 2, 3];
     controller.filterText = 'asdfsf';
+    assertArrayShallowEquals([1, 2, 3], timeline.selection);
+    controller.findNext();
     assertArrayShallowEquals([1], timeline.selection);
     controller.findNext();
     assertArrayShallowEquals([2], timeline.selection);

@@ -445,7 +445,7 @@ base.exportTo('tracing', function() {
           this.setInitialViewport_();
           break;
         case 102:  // f
-          this.zoomToSelection_();
+          this.zoomToSelection();
           break;
       }
     },
@@ -472,7 +472,8 @@ base.exportTo('tracing', function() {
         case 37:   // left arrow
           sel = this.selection.getShiftedSelection(-1);
           if (sel) {
-            this.setSelectionAndMakeVisible(sel);
+            this.selection = sel;
+            this.panToSelection();
             e.preventDefault();
           } else {
             if (!this.firstCanvas)
@@ -483,7 +484,8 @@ base.exportTo('tracing', function() {
         case 39:   // right arrow
           sel = this.selection.getShiftedSelection(1);
           if (sel) {
-            this.setSelectionAndMakeVisible(sel);
+            this.selection = sel;
+            this.panToSelection();
             e.preventDefault();
           } else {
             if (!this.firstCanvas)
@@ -548,16 +550,46 @@ base.exportTo('tracing', function() {
     /**
      * Zoom into the current selection.
      */
-    zoomToSelection_: function() {
-      if (!this.selection)
+    zoomToSelection: function() {
+      if (!this.selection || !this.selection.length)
         return;
+
       var bounds = this.selection.bounds;
-      var worldCenter = bounds.min + (bounds.max - bounds.min) * 0.5;
-      var worldBounds = (bounds.max - bounds.min) * 0.5;
-      var boost = worldBounds * 0.15;
-      this.viewport_.xSetWorldBounds(worldCenter - worldBounds - boost,
-                                    worldCenter + worldBounds + boost,
-                                    this.firstCanvas.width);
+      if (!bounds.range)
+        return;
+
+      var worldCenter = bounds.center;
+      var worldRangeHalf = bounds.range * 0.5;
+      var boost = worldRangeHalf * 0.5;
+      this.viewport_.xSetWorldBounds(worldCenter - worldRangeHalf - boost,
+                                     worldCenter + worldRangeHalf + boost,
+                                     this.firstCanvas.width);
+    },
+
+    /**
+     * Pan the view so the current selection becomes visible.
+     */
+    panToSelection: function() {
+      if (!this.selection || !this.selection.length)
+        return;
+
+      var bounds = this.selection.bounds;
+      var worldCenter = bounds.center;
+      var viewWidth = this.firstCanvas.width;
+
+      if (!bounds.range) {
+        this.viewport_.xPanWorldPosToViewPos(worldCenter, 'center', viewWidth);
+        return;
+      }
+
+      var worldRangeHalf = bounds.range * 0.5;
+      var boost = worldRangeHalf * 0.5;
+      this.viewport_.xPanWorldBoundsIntoView(
+          worldCenter - worldRangeHalf - boost,
+          worldCenter + worldRangeHalf + boost,
+          viewWidth);
+
+      this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max, viewWidth);
     },
 
     get keyHelp() {
@@ -608,7 +640,8 @@ base.exportTo('tracing', function() {
       for (i = 0; i < this.selection_.length; i++)
         this.selection_[i].selected = false;
 
-      this.selection_ = selection;
+      this.selection_.clear();
+      this.selection_.addSelection(selection);
 
       base.dispatchSimpleEvent(this, 'selectionChange');
       for (i = 0; i < this.selection_.length; i++)
@@ -617,25 +650,6 @@ base.exportTo('tracing', function() {
           this.selection_[0].track)
         this.selection_[0].track.scrollIntoViewIfNeeded();
       this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
-    },
-
-    setSelectionAndMakeVisible: function(selection, zoomAllowed) {
-      if (!(selection instanceof Selection))
-        throw new Error('Expected Selection');
-      this.selection = selection;
-      var bounds = this.selection.bounds;
-      var size = this.viewport_.xWorldVectorToView(bounds.max - bounds.min);
-      if (zoomAllowed && size < 50) {
-        var worldCenter = bounds.min + (bounds.max - bounds.min) * 0.5;
-        var worldBounds = (bounds.max - bounds.min) * 5;
-        this.viewport_.xSetWorldBounds(worldCenter - worldBounds * 0.5,
-                                      worldCenter + worldBounds * 0.5,
-                                      this.firstCanvas.width);
-        return;
-      }
-
-      this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max,
-          this.firstCanvas.width);
     },
 
     get firstCanvas() {
@@ -794,7 +808,6 @@ base.exportTo('tracing', function() {
 
       this.viewportStateAtMouseDown_ = vp.getStateInViewCoordinates();
       this.isPanningAndScanning_ = true;
-
     },
 
     updatePanScan_: function(e) {

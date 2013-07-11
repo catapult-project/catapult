@@ -34,31 +34,26 @@ base.exportTo('tracing', function() {
       var findPreviousBn = document.createElement('div');
       findPreviousBn.className = 'button find-previous';
       findPreviousBn.textContent = '\u2190';
-      findPreviousBn.addEventListener('click', function() {
-        this.controller.findPrevious();
-        this.updateHitCountEl_();
-      }.bind(this));
+      findPreviousBn.addEventListener('click', this.findPrevious_.bind(this));
 
       var findNextBn = document.createElement('div');
       findNextBn.className = 'button find-next';
       findNextBn.textContent = '\u2192';
-      findNextBn.addEventListener('click', function() {
-        this.controller.findNext();
-        this.updateHitCountEl_();
-      }.bind(this));
+      findNextBn.addEventListener('click', this.findNext_.bind(this));
 
       // Filter input element.
       this.filterEl_ = document.createElement('input');
       this.filterEl_.type = 'input';
 
-      this.filterEl_.addEventListener('input', function(e) {
-        this.controller.filterText = this.filterEl_.value;
-        this.updateHitCountEl_();
-      }.bind(this));
+      this.filterEl_.addEventListener('input',
+          this.filterTextChanged_.bind(this));
 
       this.filterEl_.addEventListener('keydown', function(e) {
         if (e.keyCode == 13) {
-          findNextBn.click();
+          if (e.shiftKey)
+            this.findPrevious_();
+          else
+            this.findNext_();
         } else if (e.keyCode == 27) {
           this.filterEl_.blur();
           this.updateHitCountEl_();
@@ -70,7 +65,8 @@ base.exportTo('tracing', function() {
       }.bind(this));
 
       this.filterEl_.addEventListener('focus', function(e) {
-        this.updateHitCountEl_();
+        this.controller.reset();
+        this.filterTextChanged_();
         this.filterEl_.select();
       }.bind(this));
 
@@ -103,6 +99,23 @@ base.exportTo('tracing', function() {
       this.filterEl_.focus();
     },
 
+    filterTextChanged_: function() {
+      this.controller.filterText = this.filterEl_.value;
+      this.updateHitCountEl_();
+    },
+
+    findNext_: function() {
+      if (this.controller)
+        this.controller.findNext();
+      this.updateHitCountEl_();
+    },
+
+    findPrevious_: function() {
+      if (this.controller)
+        this.controller.findPrevious();
+      this.updateHitCountEl_();
+    },
+
     updateHitCountEl_: function() {
       if (!this.controller || document.activeElement != this.filterEl_) {
         this.hitCountEl_.textContent = '';
@@ -123,7 +136,7 @@ base.exportTo('tracing', function() {
     this.filterText_ = '';
     this.filterHits_ = new tracing.Selection();
     this.filterHitsDirty_ = true;
-    this.currentHitIndex_ = 0;
+    this.currentHitIndex_ = -1;
   };
 
   FindController.prototype = {
@@ -147,21 +160,19 @@ base.exportTo('tracing', function() {
         return;
       this.filterText_ = f;
       this.filterHitsDirty_ = true;
-      this.findNext();
+      this.showHits_(this.filterHits);
     },
 
     get filterHits() {
       if (this.filterHitsDirty_) {
         this.filterHitsDirty_ = false;
-        if (this.timeline_) {
+        this.filterHits_.clear();
+        this.currentHitIndex_ = -1;
+
+        if (this.timeline_ && this.filterText.length) {
           var filter = new tracing.TitleFilter(this.filterText);
-          this.filterHits_.clear();
           this.timeline.addAllObjectsMatchingFilterToSelection(
               filter, this.filterHits_);
-          this.currentHitIndex_ = this.filterHits_.length - 1;
-        } else {
-          this.filterHits_.clear();
-          this.currentHitIndex_ = 0;
         }
       }
       return this.filterHits_;
@@ -171,26 +182,32 @@ base.exportTo('tracing', function() {
       return this.currentHitIndex_;
     },
 
-    find_: function(dir) {
+    showHits_: function(selection, zoom, pan) {
       if (!this.timeline)
         return;
 
+      this.timeline.selection = selection;
+
+      if (zoom)
+        this.timeline.zoomToSelection();
+      else if (pan)
+        this.timeline.panToSelection();
+    },
+
+    find_: function(dir) {
+      var firstHit = this.currentHitIndex_ === -1;
+      if (firstHit && dir < 0)
+        this.currentHitIndex_ = 0;
+
       var N = this.filterHits.length;
-      this.currentHitIndex_ = this.currentHitIndex_ + dir;
+      this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
-      if (this.currentHitIndex_ < 0) this.currentHitIndex_ = N - 1;
-      if (this.currentHitIndex_ >= N) this.currentHitIndex_ = 0;
-
-      if (this.currentHitIndex_ < 0 || this.currentHitIndex_ >= N) {
-        this.timeline.selection = new tracing.Selection();
-        return;
-      }
-
-      // We allow the zoom level to change on the first hit level. But, when
+      // We allow the zoom level to change only on the first hit. But, when
       // then cycling through subsequent changes, restrict it to panning.
-      var zoomAllowed = this.currentHitIndex_ == 0;
+      var zoom = firstHit;
+      var pan = true;
       var subSelection = this.filterHits.subSelection(this.currentHitIndex_);
-      this.timeline.setSelectionAndMakeVisible(subSelection, zoomAllowed);
+      this.showHits_(subSelection, zoom, pan);
     },
 
     findNext: function() {
@@ -199,6 +216,11 @@ base.exportTo('tracing', function() {
 
     findPrevious: function() {
       this.find_(-1);
+    },
+
+    reset: function() {
+      this.filterText_ = '';
+      this.filterHitsDirty_ = true;
     }
   };
 
