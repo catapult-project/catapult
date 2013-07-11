@@ -122,22 +122,22 @@ base.exportTo('cc', function() {
     rasterize: function(params, rasterCompleteCallback) {
       if (!PictureSnapshot.CanRasterize() || !PictureSnapshot.CanGetOps()) {
         rasterCompleteCallback(new cc.PictureAsImage(
-              this, cc.PictureSnapshot.HowToEnablePictureDebugging()));
+            this, cc.PictureSnapshot.HowToEnablePictureDebugging()));
         return;
       }
 
       var raster = window.chrome.skiaBenchmarking.rasterize(
-        {
-          skp64: this.args.skp64,
-          params: {
-            layer_rect: this.args.params.layerRect,
-            opaque_rect: this.args.params.opaqueRect
-          }
-        },
-        {
-          stop: params.stopIndex === undefined ? -1 : params.stopIndex,
-          params: { }
-        });
+          {
+            skp64: this.args.skp64,
+            params: {
+              layer_rect: this.args.params.layerRect,
+              opaque_rect: this.args.params.opaqueRect
+            }
+          },
+          {
+            stop: params.stopIndex === undefined ? -1 : params.stopIndex,
+            params: { }
+          });
 
       if (raster) {
         var helperCanvas = document.createElement('canvas');

@@ -156,15 +156,15 @@ base.exportTo('cc', function() {
       // FIXME: There's no reason to store the image src in two places.
       //        pictureAsImage_.image could store the src instead of the image.
       var src = this.pictureAsImage_.image ? 'url("' +
-            this.pictureAsImage_.image.src + '")' : '';
+          this.pictureAsImage_.image.src + '")' : '';
       this.rasterArea_.style.backgroundImage = src;
     },
 
     rasterize_: function() {
       if (this.picture_) {
         this.picture_.rasterize(
-          {stopIndex: this.drawOpsView_.selectedOpIndex},
-          this.onRasterComplete_.bind(this));
+            {stopIndex: this.drawOpsView_.selectedOpIndex},
+            this.onRasterComplete_.bind(this));
       }
     },
 

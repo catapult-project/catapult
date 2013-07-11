@@ -607,14 +607,16 @@ base.exportTo('tracing', function() {
 
       if (this.focusElement.tabIndex) {
         help +=
-          ' <-                 : Select previous event on current timeline\n' +
-          ' ->                 : Select next event on current timeline\n';
+            ' <-                 : Select previous event on current ' +
+            'timeline\n' +
+            ' ->                 : Select next event on current timeline\n';
       } else {
         help += 'General Navigation\n' +
-          ' g/General          : Shows grid at the start/end of the selected' +
-          ' task\n' +
-          ' <-,^TAB            : Select previous event on current timeline\n' +
-          ' ->, TAB            : Select next event on current timeline\n';
+            ' g/General          : Shows grid at the start/end of the ' +
+            ' selected task\n' +
+            ' <-,^TAB            : Select previous event on current ' +
+            'timeline\n' +
+            ' ->, TAB            : Select next event on current timeline\n';
       }
       help +=
           '\n' +

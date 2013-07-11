@@ -138,7 +138,7 @@ base.exportTo('tracing', function() {
       return {
         panX: this.xWorldVectorToView(this.panX),
         panY: this.panY,
-        scaleX: this.scaleX,
+        scaleX: this.scaleX
       };
     },
 

@@ -18,7 +18,7 @@ base.unittest.testSuite('ui.container_that_decorates_its_children', function() {
    * @constructor
    */
   var SimpleContainer = ui.define('simple-container',
-                              ui.ContainerThatDecoratesItsChildren);
+                                  ui.ContainerThatDecoratesItsChildren);
 
   SimpleContainer.prototype = {
     __proto__: ui.ContainerThatDecoratesItsChildren.prototype,

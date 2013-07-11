@@ -169,12 +169,12 @@ base.exportTo('cc', function() {
               this.pictureAsImage_[picture.guid] =
                   cc.PictureAsImage.Pending(this);
               picture.rasterize(
-                {stopIndex: undefined},
-                function(pictureAsImage) {
-                  var picture_ = pictureAsImage.picture;
-                  this.pictureAsImage_[picture_.guid] = pictureAsImage;
-                  this.scheduleUpdateContents_();
-                }.bind(this));
+                  {stopIndex: undefined},
+                  function(pictureAsImage) {
+                    var picture_ = pictureAsImage.picture;
+                    this.pictureAsImage_[picture_.guid] = pictureAsImage;
+                    this.scheduleUpdateContents_();
+                  }.bind(this));
               continue;
             }
             if (pictureAsImage.isPending()) {
