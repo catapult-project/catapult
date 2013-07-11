@@ -165,6 +165,9 @@ base.exportTo('tracing', function() {
 
         up: function(e) {
 
+          if (!this.dragBeginEvent_)
+            return;
+
           // Stop the dragging.
           this.hideDragBox_();
           var eDown = this.dragBeginEvent_ || e;
