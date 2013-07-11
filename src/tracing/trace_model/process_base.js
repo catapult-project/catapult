@@ -12,6 +12,7 @@ base.require('base.range');
 base.require('tracing.trace_model.counter');
 base.require('tracing.trace_model.object_collection');
 base.require('tracing.trace_model.thread');
+base.require('tracing.trace_model_settings');
 base.exportTo('tracing.trace_model', function() {
 
   var Thread = tracing.trace_model.Thread;
@@ -33,6 +34,7 @@ base.exportTo('tracing.trace_model', function() {
     this.objects = new tracing.trace_model.ObjectCollection(this);
     this.bounds = new base.Range();
     this.sortIndex = 0;
+    this.ephemeralSettings = {};
   };
 
   ProcessBase.compare = function(x, y) {
@@ -191,6 +193,10 @@ base.exportTo('tracing.trace_model', function() {
       if (!this.counters[id])
         this.counters[id] = new Counter(this, id, cat, name);
       return this.counters[id];
+    },
+
+    getSettingsKey: function() {
+      throw new Error('Not implemented');
     }
   };
 

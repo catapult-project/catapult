@@ -69,6 +69,14 @@ base.exportTo('tracing.trace_model', function() {
       if (this.name)
         return this.name + ' (pid ' + this.pid + ')';
       return 'pid: ' + this.pid;
+    },
+
+    getSettingsKey: function() {
+      if (!this.name)
+        return undefined;
+      if (!this.labels.length)
+        return 'processes.' + this.name;
+      return 'processes.' + this.name + '.' + this.labels.join('.');
     }
   };
 

@@ -104,6 +104,7 @@
       'src/tracing/record_selection_dialog.js',
       'src/tracing/standalone_timeline_view.js',
       'src/tracing/trace_model.js',
+      'src/tracing/trace_model_settings.js',
       'src/tracing/importer.js',
       'src/tracing/trace_model/process_base.js',
       'src/tracing/trace_model/cpu.js',

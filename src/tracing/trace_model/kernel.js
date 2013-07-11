@@ -42,6 +42,10 @@ base.exportTo('tracing.trace_model', function() {
 
     get userFriendlyDetails() {
       return 'kernel';
+    },
+
+    getSettingsKey: function() {
+      return 'kernel';
     }
   };
 

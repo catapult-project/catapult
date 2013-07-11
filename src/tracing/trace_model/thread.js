@@ -70,6 +70,7 @@ base.exportTo('tracing.trace_model', function() {
     this.kernelSlices = new SliceGroup();
     this.asyncSlices = new AsyncSliceGroup();
     this.bounds = new base.Range();
+    this.ephemeralSettings = {};
   }
 
   Thread.prototype = {
@@ -248,6 +249,15 @@ base.exportTo('tracing.trace_model', function() {
     get userFriendlyDetails() {
       return 'tid: ' + this.tid +
           (this.name ? ', name: ' + this.name : '');
+    },
+
+    getSettingsKey: function() {
+      if (!this.name)
+        return undefined;
+      var parentKey = this.parent.getSettingsKey();
+      if (!parentKey)
+        return undefined;
+      return parentKey + '.' + this.name;
     }
   };
 
