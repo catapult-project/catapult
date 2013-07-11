@@ -20,6 +20,7 @@
  */
 base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
+base.require('base.settings');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
@@ -66,6 +67,7 @@ base.exportTo('tracing', function() {
     model_: null,
 
     decorate: function() {
+
       this.classList.add('timeline-track-view');
 
       this.categoryFilter_ = new tracing.CategoryFilter();
@@ -108,10 +110,12 @@ base.exportTo('tracing', function() {
       this.lastMouseViewPos_ = {x: 0, y: 0};
       this.selection_ = new Selection();
       this.isPanningAndScanning_ = false;
+      this.isInTemporaryAlternativeMouseMode_ = false;
 
       this.currentMouseMode_ = 0;
 
-      this.mouseMode = MOUSE_MODE_SELECTION;
+      this.mouseMode = base.Settings.get('timeline_track_view.mouseMode',
+          MOUSE_MODE_SELECTION);
     },
 
     mouseModeHandlers_: {
@@ -142,10 +146,6 @@ base.exportTo('tracing', function() {
 
           this.dragBeginEvent_ = e;
           e.preventDefault();
-          if (document.activeElement)
-            document.activeElement.blur();
-          if (this.focusElement.tabIndex >= 0)
-            this.focusElement.focus();
 
         },
 
@@ -174,22 +174,13 @@ base.exportTo('tracing', function() {
           this.dragBeginEvent_ = null;
 
           // Figure out extents of the drag.
-          var loY;
-          var hiY;
+          var loY = Math.min(eDown.clientY, e.clientY);
+          var hiY = Math.max(eDown.clientY, e.clientY);
           var loX = Math.min(eDown.clientX, e.clientX);
           var hiX = Math.max(eDown.clientX, e.clientX);
           var tracksContainer =
               this.modelTrackContainer_.getBoundingClientRect();
           var topBoundary = tracksContainer.height;
-          var vertical = e.shiftKey;
-          if (vertical) {
-            var modelTrackRect = this.modelTrack_.getBoundingClientRect();
-            loY = modelTrackRect.top;
-            hiY = modelTrackRect.bottom;
-          } else {
-            loY = Math.min(eDown.clientY, e.clientY);
-            hiY = Math.max(eDown.clientY, e.clientY);
-          }
 
           // Convert to worldspace.
           var canv = this.firstCanvas;
@@ -277,8 +268,11 @@ base.exportTo('tracing', function() {
     },
 
     set mouseMode(mode) {
+
       this.currentMouseMode_ = mode;
       this.updateModeIndicator_();
+
+      base.Settings.set('timeline_track_view.mouseMode', mode);
     },
 
     get currentMouseModeHandler_() {
@@ -405,6 +399,9 @@ base.exportTo('tracing', function() {
       var viewWidth = this.firstCanvas.clientWidth;
       var curMouseV, curCenterW;
       switch (e.keyCode) {
+        case 32:   // space
+          this.mouseMode = this.alternativeMouseMode_;
+          break;
         case 119:  // w
         case 44:   // ,
           this.zoomBy_(1.5);
@@ -464,9 +461,11 @@ base.exportTo('tracing', function() {
 
       switch (e.keyCode) {
         case 16:   // shift
-          if (this.dragBeginEvent_)
+          // Prevent the user switching modes during an interaction.
+          if (this.isPanningAndScanning_ || this.dragBeginEvent_)
             return;
-          this.mouseMode = MOUSE_MODE_PANSCAN;
+          this.mouseMode = this.alternativeMouseMode_;
+          this.isInTemporaryAlternativeMouseMode_ = true;
           e.preventDefault();
           break;
         case 37:   // left arrow
@@ -503,13 +502,6 @@ base.exportTo('tracing', function() {
           }
           break;
       }
-      if (e.shiftKey && this.dragBeginEvent_) {
-        var vertical = e.shiftKey;
-        if (this.dragBeginEvent_) {
-          this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-              this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
-        }
-      }
     },
 
     onKeyup_: function(e) {
@@ -517,18 +509,23 @@ base.exportTo('tracing', function() {
         return;
       if (!e.shiftKey) {
         if (this.dragBeginEvent_) {
-          var vertical = e.shiftKey;
           this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-              this.dragBoxXEnd_, this.dragBoxYEnd_, vertical);
+              this.dragBoxXEnd_, this.dragBoxYEnd_);
         }
       }
 
-      // Prevent the user switching to selection mode during a pan and scan.
-      if (this.isPanningAndScanning_)
+      // Prevent the user switching modes during an interaction.
+      if (this.isPanningAndScanning_ || this.dragBeginEvent_)
         return;
 
-      this.mouseMode = MOUSE_MODE_SELECTION;
-      this.updateModeIndicator_();
+      // If the user has successfully switched mouse modes temporarily and has
+      // now released the shift key switch back.
+      if (this.isInTemporaryAlternativeMouseMode_ && e.keyCode === 16) {
+        this.mouseMode = this.alternativeMouseMode_;
+        this.isInTemporaryAlternativeMouseMode_ = false;
+        e.preventDefault();
+      }
+
     },
 
     /**
@@ -592,18 +589,25 @@ base.exportTo('tracing', function() {
       this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max, viewWidth);
     },
 
+    get alternativeMouseMode_() {
+      if (this.mouseMode === MOUSE_MODE_SELECTION)
+        return MOUSE_MODE_PANSCAN;
+      else if (this.mouseMode === MOUSE_MODE_PANSCAN)
+        return MOUSE_MODE_SELECTION;
+    },
+
     get keyHelp() {
       var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
       var help = 'Qwerty Controls\n' +
-          ' w/s                : Zoom in/out     (with shift: go faster)\n' +
-          ' a/d                : Pan left/right\n\n' +
+          ' w/s                   : Zoom in/out     (with shift: go faster)\n' +
+          ' a/d                   : Pan left/right\n\n' +
           'Dvorak Controls\n' +
-          ' ,/o                : Zoom in/out     (with shift: go faster)\n' +
-          ' a/e                : Pan left/right\n\n' +
+          ' ,/o                   : Zoom in/out     (with shift: go faster)\n' +
+          ' a/e                   : Pan left/right\n\n' +
           'Mouse Controls\n' +
-          ' drag               : Select slices   (with ' + mod +
+          ' drag (Selection mode) : Select slices   (with ' + mod +
                                                         ': zoom to slices)\n' +
-          ' drag + shift       : Select all slices vertically\n\n';
+          ' drag (Pan mode)       : Pan left/right/up/down)\n\n';
 
       if (this.focusElement.tabIndex) {
         help +=
@@ -621,7 +625,7 @@ base.exportTo('tracing', function() {
       help +=
           '\n' +
           'Shift toggles select / pan navigation\n' +
-          'Shift + Scroll to zoom in/out\n' +
+          'Scroll to zoom in/out (in pan mode)\n' +
           'Dbl-click to add timing markers\n' +
           'f to zoom into selection\n' +
           'z to reset zoom and pan to initial view\n' +
@@ -667,10 +671,14 @@ base.exportTo('tracing', function() {
         case MOUSE_MODE_SELECTION:
           this.classList.remove('mode-panscan');
           this.classList.add('mode-selection');
+          this.modeIndicator_.setAttribute('title', 'Selection mode: use the ' +
+              'mouse to select events.');
           break;
         case MOUSE_MODE_PANSCAN:
           this.classList.remove('mode-selection');
           this.classList.add('mode-panscan');
+          this.modeIndicator_.setAttribute('title', 'Pan mode: use the mouse ' +
+              'to pan around and scroll to zoom.');
           break;
       }
     },
@@ -682,24 +690,17 @@ base.exportTo('tracing', function() {
       this.dragBox_.style.height = 0;
     },
 
-    setDragBoxPosition_: function(xStart, yStart, xEnd, yEnd, vertical) {
-      var loY;
-      var hiY;
+    setDragBoxPosition_: function(xStart, yStart, xEnd, yEnd) {
+      var loY = Math.min(yStart, yEnd);
+      var hiY = Math.max(yStart, yEnd);
       var loX = Math.min(xStart, xEnd);
       var hiX = Math.max(xStart, xEnd);
       var modelTrackRect = this.modelTrack_.getBoundingClientRect();
-
-      if (vertical) {
-        loY = modelTrackRect.top;
-        hiY = modelTrackRect.bottom;
-      } else {
-        loY = Math.min(yStart, yEnd);
-        hiY = Math.max(yStart, yEnd);
-      }
-
       var dragRect = {left: loX, top: loY, width: hiX - loX, height: hiY - loY};
+
       dragRect.right = dragRect.left + dragRect.width;
       dragRect.bottom = dragRect.top + dragRect.height;
+
       var modelTrackContainerRect =
           this.modelTrackContainer_.getBoundingClientRect();
       var clipRect = {
@@ -779,6 +780,11 @@ base.exportTo('tracing', function() {
       this.currentMouseModeHandler_.down.call(this, e);
       e.preventDefault();
 
+      if (document.activeElement)
+        document.activeElement.blur();
+      if (this.focusElement.tabIndex >= 0)
+        this.focusElement.focus();
+
     },
 
     onMouseMove_: function(e) {
@@ -837,8 +843,8 @@ base.exportTo('tracing', function() {
     endPanScan_: function(e) {
       this.isPanningAndScanning_ = false;
 
-      if (!e.shiftKey)
-        this.mouseMode = MOUSE_MODE_SELECTION;
+      if (this.isInTemporaryAlternativeMouseMode_ && !e.shiftKey)
+        this.mouseMode = this.alternativeMouseMode_;
     }
   };
 
