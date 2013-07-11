@@ -232,6 +232,11 @@ base.exportTo('tracing', function() {
         },
 
         wheel: function(e) {
+          // TODO(aerotwist): Figure out how to do zoom without stealing scroll
+          // events.
+          if (true)
+            return;
+
           var delta = e.wheelDeltaY / 120;
 
           // If wheelDeltaY is zero use wheelDelta instead.
