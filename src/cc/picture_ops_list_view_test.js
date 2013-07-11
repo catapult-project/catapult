@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.require('cc.picture_ops_list_view');
 base.require('cc.picture');
 base.require('cc.layer_tree_host_impl_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
-
-'use strict';
 
 base.unittest.testSuite('cc.picture_ops_list_view', function() {
   var PictureOpsListView = cc.PictureOpsListView;
@@ -44,4 +44,3 @@ base.unittest.testSuite('cc.picture_ops_list_view', function() {
   });
 
 });
-
