@@ -37,7 +37,7 @@ var g_catLTHIEvents = [
   {
     'name': 'TileManager::RunRasterTask',
     'args': {
-      'metadata': {
+      'data': {
         'source_frame_number': 107,
         'tile_id': {
           'id_ref': 'TILE_1'

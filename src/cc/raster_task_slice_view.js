@@ -33,13 +33,13 @@ base.exportTo('cc', function() {
     updateContents: function() {
       this.infoBar_.visible = false;
 
-      if (!this.slice.args.metadata) {
+      if (!this.slice.args.data) {
         this.infoBar_.visible = true;
-        this.infoBar_.message = 'No metadata on this raster task.';
+        this.infoBar_.message = 'No data on this raster task.';
         this.layerTreeView_.style.display = 'none';
         return;
       }
-      var tile = this.slice.args.metadata.tile_id;
+      var tile = this.slice.args.data.tile_id;
       if (!tile) {
         this.infoBar_.visible = true;
         this.infoBar_.message = 'No tile on this raster task.';
