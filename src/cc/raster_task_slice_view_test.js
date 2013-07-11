@@ -14,7 +14,7 @@ base.unittest.testSuite('cc.raster_task_slice_view', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
 
-    var rasterTask = p.threads[1].slices.filter(function(slice) {
+    var rasterTask = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title == 'TileManager::RunRasterTask';
     })[0];
 

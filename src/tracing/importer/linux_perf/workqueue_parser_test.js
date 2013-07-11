@@ -22,7 +22,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.workqueue_parser', function
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    assertEquals(1, m.processes['6880'].threads['6880'].slices.length);
-    assertEquals(1, m.processes['7269'].threads['7269'].slices.length);
+    assertEquals(1, m.processes['6880'].threads['6880'].sliceGroup.length);
+    assertEquals(1, m.processes['7269'].threads['7269'].sliceGroup.length);
   });
 });

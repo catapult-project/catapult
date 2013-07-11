@@ -192,8 +192,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
     var maliThreadWithThread = threadsWithThread[0];
     assertEquals('mali', maliThreadNoThread.tid);
     assertEquals('mali-1878934320', maliThreadWithThread.tid);
-    assertEquals(9, maliThreadNoThread.slices.length);
-    assertEquals(9, maliThreadWithThread.slices.length);
+    assertEquals(9, maliThreadNoThread.sliceGroup.length);
+    assertEquals(9, maliThreadWithThread.sliceGroup.length);
   });
 
   test('DVFSFrequencyImport', function() {

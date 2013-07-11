@@ -59,7 +59,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
             tracing.getStringColorId(value),
             thread.lastActiveTs, {},
             duration);
-        thread.thread.pushSlice(slice);
+        thread.thread.sliceGroup.pushSlice(slice);
       }
       thread.lastActiveTs = ts;
       thread.lastActiveValue = event[2];
@@ -80,7 +80,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var thread = this.model_.getOrCreateProcess(tgid)
         .getOrCreateThread(pid);
       thread.name = eventBase.threadName;
-      var slices = thread.kernelSlices;
+      var slices = thread.kernelSliceGroup;
       if (!slices.isTimestampValidForBeginOrEnd(ts)) {
         this.model_.importErrors.push('Timestamps are moving backward.');
         return false;

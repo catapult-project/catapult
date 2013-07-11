@@ -25,15 +25,15 @@ base.unittest.testSuite('tracing.timeline_view', function() {
       var process = model.getOrCreateProcess(10000 + testIndex);
       if (testIndex % 2 == 0) {
         var thread = process.getOrCreateThread('Thread Name Here');
-        thread.slices.push(new tracing.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tracing.trace_model.Slice(
             'foo', 'a', 0, startTime, {}, 1));
-        thread.slices.push(new tracing.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tracing.trace_model.Slice(
             'bar', 'b', 0, startTime + 23, {}, 10));
       } else {
         var thread = process.getOrCreateThread('Name');
-        thread.slices.push(new tracing.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tracing.trace_model.Slice(
             'foo', 'a', 0, startTime + 4, {}, 11));
-        thread.slices.push(new tracing.trace_model.Slice(
+        thread.sliceGroup.pushSlice(new tracing.trace_model.Slice(
             'bar', 'b', 0, startTime + 22, {}, 14));
       }
     }
@@ -122,7 +122,7 @@ base.unittest.testSuite('tracing.timeline_view', function() {
 
     // Mutate the model and update the view.
     var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
-    t123.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
+    t123.sliceGroup.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.

@@ -58,24 +58,22 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Thread(parent, tid) {
-    SliceGroup.call(this, ThreadSlice);
     this.guid_ = base.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;
     this.sortIndex = 0;
     this.tid = tid;
+    this.sliceGroup = new SliceGroup(ThreadSlice);
     this.cpuSlices = undefined;
     this.samples_ = [];
-    this.kernelSlices = new SliceGroup();
-    this.asyncSlices = new AsyncSliceGroup();
+    this.kernelSliceGroup = new SliceGroup();
+    this.asyncSliceGroup = new AsyncSliceGroup();
     this.bounds = new base.Range();
     this.ephemeralSettings = {};
   }
 
   Thread.prototype = {
-
-    __proto__: SliceGroup.prototype,
 
     /*
      * @return {Number} A globally unique identifier for this counter.
@@ -151,7 +149,7 @@ base.exportTo('tracing.trace_model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      SliceGroup.prototype.shiftTimestampsForward.call(this, amount);
+      this.sliceGroup.shiftTimestampsForward(amount);
 
       if (this.cpuSlices) {
         for (var i = 0; i < this.cpuSlices.length; i++) {
@@ -167,8 +165,8 @@ base.exportTo('tracing.trace_model', function() {
         }
       }
 
-      this.kernelSlices.shiftTimestampsForward(amount);
-      this.asyncSlices.shiftTimestampsForward(amount);
+      this.kernelSliceGroup.shiftTimestampsForward(amount);
+      this.asyncSliceGroup.shiftTimestampsForward(amount);
     },
 
     /**
@@ -176,15 +174,15 @@ base.exportTo('tracing.trace_model', function() {
      * that it should be pruned from the model.
      */
     get isEmpty() {
-      if (this.slices.length)
+      if (this.sliceGroup.length)
         return false;
-      if (this.openSliceCount)
+      if (this.sliceGroup.openSliceCount)
         return false;
       if (this.cpuSlices && this.cpuSlices.length)
         return false;
-      if (this.kernelSlices.length)
+      if (this.kernelSliceGroup.length)
         return false;
-      if (this.asyncSlices.length)
+      if (this.asyncSliceGroup.length)
         return false;
       if (this.samples_.length)
         return false;
@@ -196,13 +194,16 @@ base.exportTo('tracing.trace_model', function() {
      * current objects associated with the thread.
      */
     updateBounds: function() {
-      SliceGroup.prototype.updateBounds.call(this);
+      this.bounds.reset();
 
-      this.kernelSlices.updateBounds();
-      this.bounds.addRange(this.kernelSlices.bounds);
+      this.sliceGroup.updateBounds();
+      this.bounds.addRange(this.sliceGroup.bounds);
 
-      this.asyncSlices.updateBounds();
-      this.bounds.addRange(this.asyncSlices.bounds);
+      this.kernelSliceGroup.updateBounds();
+      this.bounds.addRange(this.kernelSliceGroup.bounds);
+
+      this.asyncSliceGroup.updateBounds();
+      this.bounds.addRange(this.asyncSliceGroup.bounds);
 
       if (this.cpuSlices && this.cpuSlices.length) {
         this.bounds.addValue(this.cpuSlices[0].start);
@@ -217,21 +218,26 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      for (var i = 0; i < this.slices.length; i++)
-        categoriesDict[this.slices[i].category] = true;
-      for (var i = 0; i < this.kernelSlices.length; i++)
-        categoriesDict[this.kernelSlices.slices[i].category] = true;
-      for (var i = 0; i < this.asyncSlices.length; i++)
-        categoriesDict[this.asyncSlices.slices[i].category] = true;
+      for (var i = 0; i < this.sliceGroup.length; i++)
+        categoriesDict[this.sliceGroup.slices[i].category] = true;
+      for (var i = 0; i < this.kernelSliceGroup.length; i++)
+        categoriesDict[this.kernelSliceGroup.slices[i].category] = true;
+      for (var i = 0; i < this.asyncSliceGroup.length; i++)
+        categoriesDict[this.asyncSliceGroup.slices[i].category] = true;
       for (var i = 0; i < this.samples_.length; i++)
         categoriesDict[this.samples_[i].category] = true;
     },
 
+    autoCloseOpenSlices: function(opt_maxTimestamp) {
+      this.sliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
+    },
+
     mergeKernelWithUserland: function() {
-      if (this.kernelSlices.length > 0) {
-        var newSlices = SliceGroup.merge(this, this.kernelSlices);
-        this.slices = newSlices.slices;
-        this.kernelSlices = new SliceGroup();
+      if (this.kernelSliceGroup.length > 0) {
+        var newSlices = SliceGroup.merge(
+            this.sliceGroup, this.kernelSliceGroup);
+        this.sliceGroup.slices = newSlices.slices;
+        this.kernelSliceGroup = new SliceGroup();
         this.updateBounds();
       }
     },

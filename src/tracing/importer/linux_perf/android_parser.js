@@ -56,14 +56,15 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
-          if (!thread.isTimestampValidForBeginOrEnd(ts)) {
+          if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(ts)) {
             this.model_.importErrors.push(
                 'Timestamps are moving backward.');
             return false;
           }
 
           this.ppids_[pid] = ppid;
-          thread.beginSlice(category, title, ts, parseArgs(eventData[3]));
+          thread.sliceGroup.beginSlice(
+              category, title, ts, parseArgs(eventData[3]));
 
           break;
         case 'E':
@@ -75,12 +76,12 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
-          if (!thread.openSliceCount) {
+          if (!thread.sliceGroup.openSliceCount) {
             // Silently ignore unmatched E events.
             break;
           }
 
-          var slice = thread.endSlice(ts);
+          var slice = thread.sliceGroup.endSlice(ts);
 
           var args = parseArgs(eventData[3]);
           for (var arg in args) {

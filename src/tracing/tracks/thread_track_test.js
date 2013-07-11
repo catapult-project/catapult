@@ -24,8 +24,8 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
-    t1.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
+    t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
+    t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = document.createElement('div');
     testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
@@ -49,20 +49,20 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
-    assertEquals(t1.slices[0], selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], selection[0].slice);
 
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
-    assertEquals(t1.slices[0], selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], selection[0].slice);
   });
 
   test('filterThreadSlices', function() {
     var model = new tracing.TraceModel();
     var thread = new Thread(new Process(model, 7), 1);
-    thread.pushSlice(newSliceNamed('a', 0, 0));
-    thread.asyncSlices.push(newAsyncSliceNamed('a', 0, 5, t, t));
+    thread.sliceGroup.pushSlice(newSliceNamed('a', 0, 0));
+    thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
 
     var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;

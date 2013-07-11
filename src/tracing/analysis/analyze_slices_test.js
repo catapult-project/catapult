@@ -23,15 +23,15 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     var model = new Model();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
     if (withCategory)
-      t53.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
+      t53.sliceGroup.pushSlice(newSliceCategory('foo', 'b', 0, 0.002));
     else
-      t53.pushSlice(newSliceNamed('b', 0, 0.002));
+      t53.sliceGroup.pushSlice(newSliceNamed('b', 0, 0.002));
 
     var t53track = {};
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.slices[0]);
+    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
 
     return selection;
@@ -40,15 +40,15 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
   var createSelectionWithTwoSlices = function() {
     var model = new Model();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.pushSlice(newSliceNamed('a', 0.0, 0.04));
-    t53.pushSlice(newSliceNamed('aa', 0.120, 0.06));
+    t53.sliceGroup.pushSlice(newSliceNamed('a', 0.0, 0.04));
+    t53.sliceGroup.pushSlice(newSliceNamed('aa', 0.120, 0.06));
 
     var t53track = {};
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.slices[0]);
-    selection.addSlice(t53track, t53.slices[1]);
+    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
+    selection.addSlice(t53track, t53.sliceGroup.slices[1]);
 
     return selection;
   };
@@ -56,15 +56,15 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
   var createSelectionWithTwoSlicesSameTitle = function() {
     var model = new Model();
     var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.pushSlice(newSliceNamed('c', 0.0, 0.04));
-    t53.pushSlice(newSliceNamed('c', 0.12, 0.06));
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.0, 0.04));
+    t53.sliceGroup.pushSlice(newSliceNamed('c', 0.12, 0.06));
 
     var t53track = {};
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.slices[0]);
-    selection.addSlice(t53track, t53.slices[1]);
+    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
+    selection.addSlice(t53track, t53.sliceGroup.slices[1]);
 
     return selection;
   };
@@ -201,14 +201,14 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
         '0x1000', 'cat', 'my_object', 0);
 
     var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(newSliceCategory('cat', 'b', 0, 2));
-    t1.slices[0].args.my_object = myObjectSlice;
+    t1.sliceGroup.pushSlice(newSliceCategory('cat', 'b', 0, 2));
+    t1.sliceGroup.slices[0].args.my_object = myObjectSlice;
 
     var t1track = {};
     t1track.thread = t1;
 
     var selection = new Selection();
-    selection.addSlice(t1track, t1.slices[0]);
+    selection.addSlice(t1track, t1.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
 
     var analysisEl = new AnalysisView();

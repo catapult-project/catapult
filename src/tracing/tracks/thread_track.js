@@ -63,14 +63,14 @@ base.exportTo('tracing.tracks', function() {
           this.appendChild(cpuTrack);
       }
 
-      if (this.thread_.asyncSlices.length) {
+      if (this.thread_.asyncSliceGroup.length) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
         asyncTrack.categoryFilter = this.categoryFilter;
         asyncTrack.decorateHit = function(hit) {
           // TODO(simonjam): figure out how to associate subSlice hits back
           // to their parent slice.
         };
-        asyncTrack.group = this.thread_.asyncSlices;
+        asyncTrack.group = this.thread_.asyncSliceGroup;
         if (asyncTrack.hasVisibleContent)
           this.appendChild(asyncTrack);
       }
@@ -88,7 +88,7 @@ base.exportTo('tracing.tracks', function() {
         this.appendChild(samplesTrack);
       }
 
-      if (this.thread_.slices.length) {
+      if (this.thread_.sliceGroup.length) {
         var track = new tracing.tracks.SliceGroupTrack(this.viewport);
         track.categoryFilter = this.categoryFilter;
         track.heading = this.thread_.userFriendlyName;
@@ -97,7 +97,7 @@ base.exportTo('tracing.tracks', function() {
         track.decorateHit = function(hit) {
           hit.thread = this.thread_;
         };
-        track.group = this.thread_;
+        track.group = this.thread_.sliceGroup;
         if (track.hasVisibleContent)
           this.appendChild(track);
       }

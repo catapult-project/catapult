@@ -69,7 +69,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
             {},
             ts - kthread.openSliceTS);
 
-        kthread.thread.pushSlice(slice);
+        kthread.thread.sliceGroup.pushSlice(slice);
       }
       kthread.openSlice = undefined;
       return true;

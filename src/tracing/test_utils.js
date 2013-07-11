@@ -7,8 +7,12 @@
 /**
  * @fileoverview Helper functions for use in tracing tests.
  */
+'use strict';
+
 base.require('tracing.trace_model.counter');
 base.require('tracing.trace_model.slice');
+base.require('tracing.trace_model.slice_group');
+
 base.exportTo('tracing.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
@@ -57,6 +61,8 @@ base.exportTo('tracing.test_utils', function() {
   }
 
   function findSliceNamed(slices, name) {
+    if (slices instanceof tracing.trace_model.SliceGroup)
+      slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title == name)
         return slices[i];

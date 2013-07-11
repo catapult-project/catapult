@@ -69,16 +69,16 @@ base.unittest.testSuite('tracing.importer.linux_perf.i915_parser', function() {
     assertNotUndefined(i915GemRingThread);
     assertNotUndefined(i915RegThread);
 
-    assertEquals(3, i915GemThread.slices.length);
+    assertEquals(3, i915GemThread.sliceGroup.length);
 
-    assertEquals(1, i915FlipThread.slices.length);
+    assertEquals(1, i915FlipThread.sliceGroup.length);
 
     assertAlmostEquals(2784.774864 * 1000.0,
-        i915FlipThread.slices[0].start);
+        i915FlipThread.sliceGroup.slices[0].start);
     assertAlmostEquals((2784.788644 - 2784.774864) * 1000.0,
-        i915FlipThread.slices[0].duration);
+        i915FlipThread.sliceGroup.slices[0].duration);
 
-    assertEquals(7, i915GemRingThread.slices.length);
-    assertEquals(1, i915RegThread.slices.length);
+    assertEquals(7, i915GemRingThread.sliceGroup.length);
+    assertEquals(1, i915RegThread.sliceGroup.length);
   });
 });

@@ -103,13 +103,19 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
 
         var gestureThread = threads[0];
         assertEquals('gesture', gestureThread.name);
-        assertEquals(21, gestureThread.slices.length);
-        assertEquals('touchpad_gesture', gestureThread.slices[0].category);
-        assertEquals('GestureLog', gestureThread.slices[0].title);
-        assertEquals('touchpad_gesture', gestureThread.slices[2].category);
-        assertEquals('SyncInterpret', gestureThread.slices[2].title);
-        assertEquals('touchpad_gesture', gestureThread.slices[7].category);
-        assertEquals('HandleTimer', gestureThread.slices[7].title);
+        assertEquals(21, gestureThread.sliceGroup.length);
+        assertEquals('touchpad_gesture',
+                     gestureThread.sliceGroup.slices[0].category);
+        assertEquals('GestureLog',
+                     gestureThread.sliceGroup.slices[0].title);
+        assertEquals('touchpad_gesture',
+                     gestureThread.sliceGroup.slices[2].category);
+        assertEquals('SyncInterpret',
+                     gestureThread.sliceGroup.slices[2].title);
+        assertEquals('touchpad_gesture',
+                     gestureThread.sliceGroup.slices[7].category);
+        assertEquals('HandleTimer',
+                     gestureThread.sliceGroup.slices[7].title);
       });
 
       test('unusualStart', function() {

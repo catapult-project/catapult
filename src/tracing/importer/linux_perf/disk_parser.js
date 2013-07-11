@@ -59,7 +59,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
             new tracing.trace_model.Slice(category, slice.title,
                 slice.colorId, slice.start, slice.args, slice.duration)
           ];
-          kthread.thread.asyncSlices.push(slice);
+          kthread.thread.asyncSliceGroup.push(slice);
           delete kthread.openAsyncSlices[key];
         }
       }

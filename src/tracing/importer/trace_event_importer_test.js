@@ -31,16 +31,16 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[53];
     assertNotUndefined(t);
-    assertEquals(2, t.slices.length);
+    assertEquals(2, t.sliceGroup.length);
     assertEquals(53, t.tid);
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
     assertAlmostEquals((560 - 520) / 1000, slice.duration);
     assertEquals(0, slice.subSlices.length);
 
-    slice = t.slices[1];
+    slice = t.sliceGroup.slices[1];
     assertEquals('b', slice.title);
     assertEquals('bar', slice.category);
     assertAlmostEquals((629 - 520) / 1000, slice.start);
@@ -68,7 +68,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     var m = new tracing.TraceModel(events);
     var t = m.processes[1].threads[1];
-    var sA = findSliceNamed(t.slices, 'a');
+    var sA = findSliceNamed(t.sliceGroup, 'a');
 
     assertEquals(2, sA.args.x);
     assertEquals(m.importErrors.length, 1);
@@ -88,9 +88,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(53, t.tid);
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
   });
@@ -105,8 +105,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
-    var sA = findSliceNamed(t.slices, 'a');
-    var sB = findSliceNamed(t.slices, 'b');
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
 
     assertEquals('a', sA.title);
     assertEquals('foo', sA.category);
@@ -131,7 +131,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertTrue(slice.didNotFinish);
@@ -147,7 +147,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertTrue(slice.didNotFinish);
@@ -165,9 +165,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var t = m.processes[1].threads[1];
 
-    var sA = findSliceNamed(t.slices, 'a');
-    var sB1 = findSliceNamed(t.slices, 'b1');
-    var sB2 = findSliceNamed(t.slices, 'b2');
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB1 = findSliceNamed(t.sliceGroup, 'b1');
+    var sB2 = findSliceNamed(t.sliceGroup, 'b2');
 
     assertEquals(0.003, sA.end);
     assertEquals(0.003, sB1.end);
@@ -187,16 +187,16 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
-    assertEquals(2, t.slices.length);
+    assertEquals(2, t.sliceGroup.length);
 
-    var slice = findSliceNamed(t.slices, 'a');
+    var slice = findSliceNamed(t.sliceGroup, 'a');
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
     assertEquals(0.003, slice.duration);
 
     var t2 = p.threads[2];
-    var slice2 = findSliceNamed(t2.slices, 'c');
+    var slice2 = findSliceNamed(t2.sliceGroup, 'c');
     assertEquals('c', slice2.title);
     assertEquals('bar', slice2.category);
     assertEquals(0.001, slice2.start);
@@ -220,9 +220,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var t1 = m.processes[1].threads[1];
     var t2 = m.processes[1].threads[2];
 
-    var sA1 = findSliceNamed(t1.slices, 'a1');
-    var sA2 = findSliceNamed(t1.slices, 'a2');
-    var sB = findSliceNamed(t2.slices, 'b');
+    var sA1 = findSliceNamed(t1.sliceGroup, 'a1');
+    var sA2 = findSliceNamed(t1.sliceGroup, 'a2');
+    var sB = findSliceNamed(t2.sliceGroup, 'b');
 
     assertEquals(0.002, sA1.end);
     assertEquals(0.002, sA2.end);
@@ -244,14 +244,14 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    var a1 = t.slices[0];
+    var a1 = t.sliceGroup.slices[0];
     assertEquals('a', a1.title);
     assertEquals('foo', a1.category);
-    var b = t.slices[1];
+    var b = t.sliceGroup.slices[1];
     assertEquals('b', b.title);
     assertEquals('bar', b.category);
     assertNotEquals(a1.colorId, b.colorId);
-    var a2 = t.slices[2];
+    var a2 = t.sliceGroup.slices[2];
     assertEquals('a', a2.title);
     assertEquals('baz', a2.category);
     assertEquals(a1.colorId, a2.colorId);
@@ -274,10 +274,10 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     // Check thread 1.
     var t = p.threads[1];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(1, t.tid);
 
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
@@ -287,10 +287,10 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     // Check thread 2.
     var t = p.threads[2];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(2, t.tid);
 
-    slice = t.slices[0];
+    slice = t.sliceGroup.slices[0];
     assertEquals('b', slice.title);
     assertEquals('bar', slice.category);
     assertEquals((3 - 1) / 1000, slice.start);
@@ -315,10 +315,10 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     // Check process 1 thread 1.
     var t = p.threads[1];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(1, t.tid);
 
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
@@ -331,10 +331,10 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[2];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(2, t.tid);
 
-    slice = t.slices[0];
+    slice = t.sliceGroup.slices[0];
     assertEquals('b', slice.title);
     assertEquals('bar', slice.category);
     assertEquals((3 - 1) / 1000, slice.start);
@@ -432,11 +432,11 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
-    assertEquals(1, t.slices.length);
-    assertEquals('a', t.slices[0].title);
-    assertEquals('foo', t.slices[0].category);
-    assertEquals(0.004, t.slices[0].start);
-    assertEquals(0.001, t.slices[0].duration);
+    assertEquals(1, t.sliceGroup.length);
+    assertEquals('a', t.sliceGroup.slices[0].title);
+    assertEquals('foo', t.sliceGroup.slices[0].category);
+    assertEquals(0.004, t.sliceGroup.slices[0].start);
+    assertEquals(0.001, t.sliceGroup.slices[0].duration);
     assertEquals(1, m.importErrors.length);
   });
 
@@ -452,26 +452,26 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
-    assertEquals(3, t.slices.length);
-    assertEquals(0.002, t.slices[0].start);
-    assertEquals(0, t.slices[0].duration);
-    assertEquals(0.004, t.slices[1].start);
-    assertEquals(0.001, t.slices[2].start);
-    assertEquals(0.003, t.slices[2].duration);
+    assertEquals(3, t.sliceGroup.length);
+    assertEquals(0.002, t.sliceGroup.slices[0].start);
+    assertEquals(0, t.sliceGroup.slices[0].duration);
+    assertEquals(0.004, t.sliceGroup.slices[1].start);
+    assertEquals(0.001, t.sliceGroup.slices[2].start);
+    assertEquals(0.003, t.sliceGroup.slices[2].duration);
 
-    var slice = findSliceNamed(t.slices, 'a');
+    var slice = findSliceNamed(t.sliceGroup, 'a');
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0.003, slice.duration);
 
-    var immed = findSliceNamed(t.slices, 'immediate');
+    var immed = findSliceNamed(t.sliceGroup, 'immediate');
     assertEquals('immediate', immed.title);
     assertEquals('bar', immed.category);
     assertEquals(0.002, immed.start);
     assertEquals(0, immed.duration);
     assertEquals(0, immed.subSlices.length);
 
-    var slower = findSliceNamed(t.slices, 'slower');
+    var slower = findSliceNamed(t.sliceGroup, 'slower');
     assertEquals('slower', slower.title);
     assertEquals('baz', slower.category);
     assertEquals(0.004, slower.start);
@@ -662,7 +662,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     var m = new tracing.TraceModel(text);
     assertEquals(1, m.numProcesses);
-    assertEquals(1, m.processes[52].threads[53].slices.length);
+    assertEquals(1, m.processes[52].threads[53].sliceGroup.length);
   });
 
   test('importStringWithMissingCloseSquareBracketAndNewline', function() {
@@ -690,7 +690,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     var m = new tracing.TraceModel(text);
     assertEquals(1, m.numProcesses);
-    assertEquals(1, m.processes[52].threads[53].slices.length);
+    assertEquals(1, m.processes[52].threads[53].sliceGroup.length);
   });
 
   test('importOldFormat', function() {
@@ -703,7 +703,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var text = lines.join('\n');
     var m = new tracing.TraceModel(text);
     assertEquals(1, m.numProcesses);
-    assertEquals(1, m.processes[9].threads[8].slices.length);
+    assertEquals(1, m.processes[9].threads[8].sliceGroup.length);
   });
 
   test('startFinishOneSliceOneThread', function() {
@@ -718,15 +718,15 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.asyncSlices.slices.length);
-    assertEquals('a', t.asyncSlices.slices[0].title);
-    assertEquals('cat', t.asyncSlices.slices[0].category);
-    assertEquals(72, t.asyncSlices.slices[0].id);
-    assertEquals('bar', t.asyncSlices.slices[0].args.foo);
-    assertEquals(0, t.asyncSlices.slices[0].start);
-    assertAlmostEquals((60 - 24) / 1000, t.asyncSlices.slices[0].duration);
-    assertEquals(t, t.asyncSlices.slices[0].startThread);
-    assertEquals(t, t.asyncSlices.slices[0].endThread);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    assertEquals('a', t.asyncSliceGroup.slices[0].title);
+    assertEquals('cat', t.asyncSliceGroup.slices[0].category);
+    assertEquals(72, t.asyncSliceGroup.slices[0].id);
+    assertEquals('bar', t.asyncSliceGroup.slices[0].args.foo);
+    assertEquals(0, t.asyncSliceGroup.slices[0].start);
+    assertAlmostEquals((60 - 24) / 1000, t.asyncSliceGroup.slices[0].duration);
+    assertEquals(t, t.asyncSliceGroup.slices[0].startThread);
+    assertEquals(t, t.asyncSliceGroup.slices[0].endThread);
   });
 
   test('endArgsAddedToSlice', function() {
@@ -743,9 +743,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.slices.length);
+    assertEquals(1, t.sliceGroup.length);
     assertEquals(53, t.tid);
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
@@ -768,7 +768,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[53];
     assertNotUndefined(t);
-    var slice = t.slices[0];
+    var slice = t.sliceGroup.slices[0];
     assertEquals('b', slice.title);
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
@@ -788,8 +788,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.asyncSlices.slices.length);
-    var parentSlice = t.asyncSlices.slices[0];
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('c', parentSlice.title);
     assertEquals('foo', parentSlice.category);
 
@@ -812,8 +812,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.asyncSlices.slices.length);
-    var parentSlice = t.asyncSlices.slices[0];
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('d', parentSlice.title);
     assertEquals('foo', parentSlice.category);
 
@@ -834,8 +834,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertNotUndefined(t);
-    assertEquals(1, t.asyncSlices.slices.length);
-    var parentSlice = t.asyncSlices.slices[0];
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
     assertEquals('a', parentSlice.title);
     assertEquals('foo', parentSlice.category);
     assertEquals(0, parentSlice.start);
@@ -1020,7 +1020,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
     var s15 = iA.getSnapshotAt(15);
 
-    var taskSlice = p1.threads[1].slices[0];
+    var taskSlice = p1.threads[1].sliceGroup.slices[0];
     assertEquals(s15, taskSlice.args.my_object);
   });
 
@@ -1052,7 +1052,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var a15 = iA.getSnapshotAt(15);
     var foo15 = iFoo.getSnapshotAt(15);
 
-    var taskSlice = p1.threads[1].slices[0];
+    var taskSlice = p1.threads[1].sliceGroup.slices[0];
     assertEquals(foo15, taskSlice.args.my_object);
   });
 

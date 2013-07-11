@@ -105,6 +105,12 @@ base.exportTo('tracing.trace_model', function() {
       return this.openPartialSlices_.length;
     },
 
+    get mostRecentlyOpenedPartialSlice() {
+      if (!this.openPartialSlices_.length)
+        return undefined;
+      return this.openPartialSlices_[this.openPartialSlices_.length - 1];
+    },
+
     /**
      * Ends the last begun slice in this group and pushes it onto the slice
      * array.

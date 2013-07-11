@@ -22,7 +22,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
 
         var gfxFlipThread = threads[0];
         assertEquals('exynos_flip', gfxFlipThread.name);
-        assertEquals(1, gfxFlipThread.slices.length);
+        assertEquals(1, gfxFlipThread.sliceGroup.length);
       });
 
       test('exynosBusfreqImport', function() {

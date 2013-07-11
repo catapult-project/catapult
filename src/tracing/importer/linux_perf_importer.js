@@ -459,8 +459,8 @@ base.exportTo('tracing.importer', function() {
           return x.ts - y.ts;
         });
 
-        // Walk the slice list and put slices between each original slice
-        // to show when the thread isn't running
+        // Walk the slice list and put slices between each original slice to
+        // show when the thread isn't running.
         var slices = [];
 
         if (origSlices.length) {

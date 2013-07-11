@@ -25,7 +25,7 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
   test('threadBounds_SubRow', function() {
     var model = new tracing.TraceModel();
     var t = new Thread(new Process(model, 7), 1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     t.updateBounds();
     assertEquals(1, t.bounds.min);
     assertEquals(4, t.bounds.max);
@@ -34,8 +34,8 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
   test('threadBounds_AsyncSliceGroup', function() {
     var model = new tracing.TraceModel();
     var t = new Thread(new Process(model, 7), 1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
-    t.asyncSlices.push(newAsyncSlice(0.1, 5, t, t));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0.1, 5, t, t));
     t.updateBounds();
     assertEquals(0.1, t.bounds.min);
     assertEquals(5.1, t.bounds.max);
@@ -53,12 +53,12 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
   test('shiftTimestampsForwardWithCpu', function() {
     var model = new tracing.TraceModel();
     var t = new Thread(new Process(model, 7), 1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
-    t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
     t.cpuSlices = [newSliceNamed('x', 0, 1)];
 
     var shiftCount = 0;
-    t.asyncSlices.shiftTimestampsForward = function(ts) {
+    t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
       if (ts == 0.32)
         shiftCount++;
     };
@@ -66,18 +66,18 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
     t.shiftTimestampsForward(0.32);
 
     assertEquals(1, shiftCount);
-    assertEquals(0.32, t.slices[0].start);
+    assertEquals(0.32, t.sliceGroup.slices[0].start);
     assertEquals(0.32, t.cpuSlices[0].start);
   });
 
   test('shiftTimestampsForwardWithoutCpu', function() {
     var model = new tracing.TraceModel();
     var t = new Thread(new Process(model, 7), 1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
-    t.asyncSlices.push(newAsyncSlice(0, 5, t, t));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
+    t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
 
     var shiftCount = 0;
-    t.asyncSlices.shiftTimestampsForward = function(ts) {
+    t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
       if (ts == 0.32)
         shiftCount++;
     };
@@ -85,6 +85,6 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
     t.shiftTimestampsForward(0.32);
 
     assertEquals(1, shiftCount);
-    assertEquals(0.32, t.slices[0].start);
+    assertEquals(0.32, t.sliceGroup.slices[0].start);
   });
 });

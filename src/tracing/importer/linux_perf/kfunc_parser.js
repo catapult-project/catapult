@@ -56,7 +56,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
         .getOrCreateThread(pid);
       thread.name = eventBase.threadName;
 
-      var slices = thread.kernelSlices;
+      var slices = thread.kernelSliceGroup;
       if (!slices.isTimestampValidForBeginOrEnd(ts)) {
         this.model_.importErrors.push('Timestamps are moving backward.');
         return false;
@@ -78,7 +78,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
         .getOrCreateThread(pid);
       thread.name = eventBase.threadName;
 
-      var slices = thread.kernelSlices;
+      var slices = thread.kernelSliceGroup;
       if (!slices.isTimestampValidForBeginOrEnd(ts)) {
         this.model_.importErrors.push('Timestamps are moving backward.');
         return false;

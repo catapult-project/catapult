@@ -49,7 +49,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(4829, thread.parent.pid);
         assertEquals(4831, thread.tid);
         assertEquals('SurfaceFlinger', thread.name);
-        assertEquals(11, thread.slices.length);
+        assertEquals(11, thread.sliceGroup.length);
       });
 
       test('androidUserlandImportWithSpacesInThreadName', function() {
@@ -67,7 +67,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(4829, thread.parent.pid);
         assertEquals(4831, thread.tid);
         assertEquals('Surface Flinger ', thread.name);
-        assertEquals(1, thread.slices.length);
+        assertEquals(1, thread.sliceGroup.length);
       });
 
       test('androidUserlandLegacyKernelImport', function() {
@@ -110,7 +110,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(4829, thread.parent.pid);
         assertEquals(4831, thread.tid);
         assertEquals('SurfaceFlinger', thread.name);
-        assertEquals(11, thread.slices.length);
+        assertEquals(11, thread.sliceGroup.length);
       });
 
       test('androidUserlandChromiumImport', function() {
@@ -133,15 +133,16 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(2867, thread.parent.pid);
         assertEquals(2894, thread.tid);
         assertEquals('SandboxedProces', thread.name);
-        assertEquals(3, thread.slices.length);
+        assertEquals(3, thread.sliceGroup.length);
 
-        assertEquals('test=test', thread.slices[0].args['source']);
-        assertEquals('cat2', thread.slices[0].category);
-        assertEquals('DeferOrRunPendingTask', thread.slices[0].title);
-        assertEquals('xyz', thread.slices[0].args['task']);
-        assertEquals('ipc/ipc_sync_message_filter.cc:Send', thread.slices[1].args['source']); // @suppress longLineCheck
-        assertEquals('1', thread.slices[2].args['arg1']);
-        assertEquals('2', thread.slices[2].args['arg2']);
+        assertEquals('test=test', thread.sliceGroup.slices[0].args['source']);
+        assertEquals('cat2', thread.sliceGroup.slices[0].category);
+        assertEquals('DeferOrRunPendingTask',
+                     thread.sliceGroup.slices[0].title);
+        assertEquals('xyz', thread.sliceGroup.slices[0].args['task']);
+        assertEquals('ipc/ipc_sync_message_filter.cc:Send', thread.sliceGroup.slices[1].args['source']); // @suppress longLineCheck
+        assertEquals('1', thread.sliceGroup.slices[2].args['arg1']);
+        assertEquals('2', thread.sliceGroup.slices[2].args['arg2']);
 
         var counters = m.getAllCounters();
         assertEquals(1, counters.length);

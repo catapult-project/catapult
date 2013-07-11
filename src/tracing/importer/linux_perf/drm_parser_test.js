@@ -21,6 +21,6 @@ base.unittest.testSuite('tracing.importer.linux_perf.drm_parser', function() {
 
     var vblankThread = threads[0];
     assertEquals('drm_vblank', vblankThread.name);
-    assertEquals(2, vblankThread.slices.length);
+    assertEquals(2, vblankThread.sliceGroup.length);
   });
 });

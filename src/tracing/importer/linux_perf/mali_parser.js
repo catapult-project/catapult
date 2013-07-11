@@ -221,7 +221,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var thread = this.importer.model_.getOrCreateProcess(pid)
         .getOrCreateThread(tid);
       var funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
-      thread.beginSlice('gpu-driver', funcArgs[1], ts,
+      thread.sliceGroup.beginSlice('gpu-driver', funcArgs[1], ts,
           { 'args': funcArgs[2],
             'blockinfo': blockinfo });
     },
@@ -229,11 +229,11 @@ base.exportTo('tracing.importer.linux_perf', function() {
     maliDDKCloseSlice: function(pid, tid, ts, args, blockinfo) {
       var thread = this.importer.model_.getOrCreateProcess(pid)
         .getOrCreateThread(tid);
-      if (!thread.openSliceCount) {
+      if (!thread.sliceGroup.openSliceCount) {
         // Discard unmatched ends.
         return;
       }
-      thread.endSlice(ts);
+      thread.sliceGroup.endSlice(ts);
     },
 
     /**

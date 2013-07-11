@@ -108,7 +108,7 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
     assertNotUndefined(model.processes[1]);
     assertNotUndefined(model.processes[1].threads[3]);
     var t3 = model.processes[1].threads[3];
-    assertEquals(3, t3.slices.length);
+    assertEquals(3, t3.sliceGroup.length);
 
     assertEquals(model.bounds.min, 10);
     assertEquals(model.bounds.max, 18);

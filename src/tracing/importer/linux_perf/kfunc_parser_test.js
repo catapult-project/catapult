@@ -31,8 +31,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser', function() {
     var thread = process.threads[127];
     assertNotNull(thread);
 
-    var slices = thread.slices;
-    assertEquals(7, thread.slices.length);
+    var slices = thread.sliceGroup.slices;
+    assertEquals(7, thread.sliceGroup.length);
 
     // Slice 0 is an un-split sys_write
     assertEquals('sys_write', slices[0].title);

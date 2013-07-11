@@ -85,7 +85,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
             args,
             ts - kthread.openSliceTS);
 
-        kthread.thread.pushSlice(slice);
+        kthread.thread.sliceGroup.pushSlice(slice);
       }
       kthread.openSlice = undefined;
     },
@@ -96,7 +96,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.pushSlice(slice);
+      kthread.thread.sliceGroup.pushSlice(slice);
     },
 
     i915GemRingSlice: function(ts, eventName, dev, ring, args) {
@@ -105,7 +105,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.pushSlice(slice);
+      kthread.thread.sliceGroup.pushSlice(slice);
     },
 
     i915RegSlice: function(ts, eventName, reg, args) {
@@ -114,7 +114,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.pushSlice(slice);
+      kthread.thread.sliceGroup.pushSlice(slice);
     },
 
     /**

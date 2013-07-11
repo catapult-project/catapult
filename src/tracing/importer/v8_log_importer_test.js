@@ -56,7 +56,7 @@ base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
     assertNotUndefined(threads);
     assertEquals(threads.length, 1);
     var t = threads[0];
-    assertEquals(t.slices.length, 1);
+    assertEquals(t.sliceGroup.length, 1);
   });
 
   test('processThreadCreation', function() {

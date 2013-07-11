@@ -59,7 +59,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.pushSlice(slice);
+      kthread.thread.sliceGroup.pushSlice(slice);
     },
 
     cpufreqBoostSlice: function(ts, eventName, args) {
@@ -68,7 +68,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
           tracing.getStringColorId(kthread.openSlice), ts, args, 0);
 
-      kthread.thread.pushSlice(slice);
+      kthread.thread.sliceGroup.pushSlice(slice);
     },
 
     /**

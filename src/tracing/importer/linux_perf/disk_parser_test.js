@@ -52,9 +52,9 @@ base.unittest.testSuite('tracing.importer.linux_perf.disk_parser', function() {
     assertNotUndefined(blockThread);
     assertNotUndefined(ext4Thread);
 
-    assertEquals(4, blockThread.asyncSlices.length);
+    assertEquals(4, blockThread.asyncSliceGroup.length);
 
-    var slice = blockThread.asyncSlices.slices[0];
+    var slice = blockThread.asyncSliceGroup.slices[0];
     assertEquals('block', slice.category);
     assertEquals('write sync', slice.title);
     assertEquals('179,0', slice.args.device);
@@ -62,9 +62,9 @@ base.unittest.testSuite('tracing.importer.linux_perf.disk_parser', function() {
     assertEquals(16, slice.args.numSectors);
     assertEquals(3427120, slice.args.sector);
 
-    assertEquals(1, ext4Thread.asyncSlices.length);
+    assertEquals(1, ext4Thread.asyncSliceGroup.length);
 
-    slice = ext4Thread.asyncSlices.slices[0];
+    slice = ext4Thread.asyncSliceGroup.slices[0];
     assertEquals('ext4', slice.category);
     assertEquals('fdatasync', slice.title);
     assertEquals('259,1', slice.args.device);

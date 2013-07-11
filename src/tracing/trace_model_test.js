@@ -20,8 +20,8 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
     var p = m.getOrCreateProcess(1);
     var t = p.getOrCreateThread(1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
-    t.asyncSlices.push(tracing.test_utils.newAsyncSlice(0, 1, t, t));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
+    t.asyncSliceGroup.push(tracing.test_utils.newAsyncSlice(0, 1, t, t));
 
     var c = p.getOrCreateCounter('', 'ProcessCounter');
     c.seriesNames.push('a', 'b');
@@ -58,7 +58,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
   test('traceModelBounds_OneThread', function() {
     var m = new TraceModel();
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     m.updateBounds();
     assertEquals(1, m.bounds.min);
     assertEquals(4, m.bounds.max);
@@ -67,7 +67,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
   test('traceModelBounds_OneThreadAndOneEmptyThread', function() {
     var m = new TraceModel();
     var t1 = m.getOrCreateProcess(1).getOrCreateThread(1);
-    t1.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
     m.updateBounds();
     assertEquals(1, m.bounds.min);
@@ -89,7 +89,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
 
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
 
     m.updateBounds();
     assertEquals(1, m.bounds.min);
@@ -131,11 +131,11 @@ base.unittest.testSuite('tracing.trace_model', function() {
     assertNotUndefined(t2);
     assertNotUndefined(t3);
 
-    assertEquals(1, t2.slices.length, 1);
-    assertEquals('taskA', t2.slices[0].title);
+    assertEquals(1, t2.sliceGroup.length, 1);
+    assertEquals('taskA', t2.sliceGroup.slices[0].title);
 
-    assertEquals(1, t3.slices.length);
-    assertEquals('taskB', t3.slices[0].title);
+    assertEquals(1, t3.sliceGroup.length);
+    assertEquals('taskB', t3.sliceGroup.slices[0].title);
   });
 
   test('traceModelWithImportFailure', function() {
@@ -179,11 +179,11 @@ base.unittest.testSuite('tracing.trace_model', function() {
   test('traceModel_updateCategories', function() {
     var m = new TraceModel();
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
-    t.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
-    t.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
-    t.pushSlice(new ThreadSlice('categoryB', 'a', 0, 1, {}, 3));
-    t.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
-    t.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('categoryB', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('categoryA', 'a', 0, 1, {}, 3));
+    t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     m.updateCategories_();
     assertArrayEquals(['categoryA', 'categoryB'], m.categories);
   });

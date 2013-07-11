@@ -175,7 +175,8 @@ base.unittest.testSuite('tracing.find_control', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
-    t1.pushSlice(new tracing.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(new tracing.trace_model.ThreadSlice(
+        '', 'a', 0, 1, {}, 3));
 
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
@@ -190,7 +191,7 @@ base.unittest.testSuite('tracing.find_control', function() {
     controller.filterText = 'a';
     controller.findNext();
     assertEquals(1, timeline.selection.length);
-    assertEquals(t1.slices[0], timeline.selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], timeline.selection[0].slice);
 
     controller.filterText = 'xxx';
     controller.findNext();

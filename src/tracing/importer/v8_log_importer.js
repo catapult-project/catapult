@@ -75,19 +75,19 @@ base.exportTo('tracing.importer', function() {
       var colorId = tracing.getStringColorId(name);
       var slice = new tracing.trace_model.Slice('v8', name, colorId, start,
           args, length);
-      this.v8_timer_thread_.pushSlice(slice);
+      this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
 
     processTimerEventStart_: function(name, start) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
-      this.v8_timer_thread_.beginSlice('v8', name, start, args);
+      this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, start, args);
     },
 
     processTimerEventEnd_: function(name, end) {
       end /= 1000;  // Convert to milliseconds.
-      this.v8_timer_thread_.endSlice(end);
+      this.v8_timer_thread_.sliceGroup.endSlice(end);
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name) {
@@ -146,7 +146,7 @@ base.exportTo('tracing.importer', function() {
           var colorId = tracing.getStringColorId(name);
           var slice = new tracing.trace_model.Slice(
               'v8', name, colorId, start, {}, 0);
-          this.v8_stack_thread_.pushSlice(slice);
+          this.v8_stack_thread_.sliceGroup.pushSlice(slice);
         }
       }
     },

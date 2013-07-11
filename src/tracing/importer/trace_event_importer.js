@@ -200,23 +200,23 @@ base.exportTo('tracing.importer', function() {
     processDurationEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
-      if (!thread.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
+      if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
         this.model_.importErrors.push(
             'Timestamps are moving backward.');
         return;
       }
 
       if (event.ph == 'B') {
-        thread.beginSlice(event.cat, event.name, event.ts / 1000,
-                          this.deepCopyIfNeeded_(event.args));
+        thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
+                                     this.deepCopyIfNeeded_(event.args));
       } else {
-        if (!thread.openSliceCount) {
+        if (!thread.sliceGroup.openSliceCount) {
           this.model_.importErrors.push(
               'E phase event without a matching B phase event.');
           return;
         }
 
-        var slice = thread.endSlice(event.ts / 1000);
+        var slice = thread.sliceGroup.endSlice(event.ts / 1000);
         for (var arg in event.args) {
           if (slice.args[arg] !== undefined) {
             this.model_.importErrors.push(
@@ -259,9 +259,9 @@ base.exportTo('tracing.importer', function() {
     processInstantEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
-      thread.beginSlice(event.cat, event.name, event.ts / 1000,
-                        this.deepCopyIfNeeded_(event.args));
-      thread.endSlice(event.ts / 1000);
+      thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
+                                   this.deepCopyIfNeeded_(event.args));
+      thread.sliceGroup.endSlice(event.ts / 1000);
     },
 
     processSampleEvent: function(event) {
@@ -432,7 +432,7 @@ base.exportTo('tracing.importer', function() {
               lastSlice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
 
             // Add |slice| to the start-thread's asyncSlices.
-            slice.startThread.asyncSlices.push(slice);
+            slice.startThread.asyncSliceGroup.push(slice);
             delete asyncEventStatesByNameThenID[name][id];
           }
         }
@@ -624,11 +624,11 @@ base.exportTo('tracing.importer', function() {
       // Iterate the world, looking for id_refs
       var patchupsToApply = [];
       base.iterItems(process.threads, function(tid, thread) {
-        thread.asyncSlices.slices.forEach(function(item) {
+        thread.asyncSliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(
               patchupsToApply, process.objects, 'start', item);
         }, this);
-        thread.slices.forEach(function(item) {
+        thread.sliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(
               patchupsToApply, process.objects, 'start', item);
         }, this);

@@ -8,7 +8,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.android_parser', function() { // @suppress longLineCheck
+base.unittest.testSuite('tracing.importer.linux_perf.sync_parser', function() { // @suppress longLineCheck
   test('syncEventImport', function() {
     var lines = [
       's3c-fb-92            (     0) [000] ...1  7206.550061: sync_timeline: name=s3c-fb value=7094', // @suppress longLineCheck
@@ -37,11 +37,12 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser', function()
 
     var threads = m.findAllThreadsNamed('s3c-fb');
     assertEquals(1, threads.length);
-    assertEquals(1, threads[0].slices.length);
+    assertEquals(1, threads[0].sliceGroup.length);
 
     var threads = m.findAllThreadsNamed('kworker/u:5');
     assertEquals(1, threads.length);
-    assertEquals(1, threads[0].slices.length);
-    assertEquals('fence_wait("display")', threads[0].slices[0].title);
+    assertEquals(1, threads[0].sliceGroup.length);
+    assertEquals('fence_wait("display")',
+                 threads[0].sliceGroup.slices[0].title);
   });
 });

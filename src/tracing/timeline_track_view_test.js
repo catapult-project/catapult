@@ -69,11 +69,12 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(1);
 
-    t1.pushSlice(new tracing.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
-    t1.pushSlice(
+    t1.sliceGroup.pushSlice(
+        new tracing.trace_model.ThreadSlice('', 'a', 0, 1, {}, 3));
+    t1.sliceGroup.pushSlice(
         new tracing.trace_model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
-    var t1asg = t1.asyncSlices;
+    var t1asg = t1.asyncSliceGroup;
     t1asg.slices.push(
         tracing.test_utils.newAsyncSliceNamed('a', 0, 1, t1, t1));
     t1asg.slices.push(
@@ -83,7 +84,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     timeline.model = model;
 
     var expected = [{slice: t1asg.slices[0].subSlices[0]},
-                    {slice: t1.slices[0]}];
+                    {slice: t1.sliceGroup.slices[0]}];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('a'), result);
@@ -92,7 +93,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     assertEquals(expected[1].slice, result[1].slice);
 
     var expected = [{slice: t1asg.slices[1].subSlices[0]},
-                    {slice: t1.slices[1]}];
+                    {slice: t1.sliceGroup.slices[1]}];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('b'), result);
@@ -160,7 +161,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(2);
-    t1.pushSlice(tracing.test_utils.newSlice(0, 1));
+    t1.sliceGroup.pushSlice(tracing.test_utils.newSlice(0, 1));
 
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
