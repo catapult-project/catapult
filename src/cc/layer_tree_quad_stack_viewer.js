@@ -34,6 +34,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+      this.pictureAsImage_ = {}; // Maps picture.guid to PictureAsImage.
       this.quads_ = [];
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
@@ -82,6 +83,10 @@ base.exportTo('cc', function() {
     },
 
     set layerTreeImpl(layerTreeImpl) {
+      // FIXME(pdr): We may want to clear pictureAsImage_ here to save memory at
+      //             the cost of performance. Note that pictureAsImage_ will be
+      //             cleared when this is destructed, but this view might live
+      //             for several layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = null;
       this.updateContents_();
@@ -119,7 +124,7 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
-    scheduleupdateContents_: function() {
+    scheduleUpdateContents_: function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
@@ -141,13 +146,14 @@ base.exportTo('cc', function() {
       var messages = [];
       if (this.showContents) {
         var hasPendingRasterizeImage = false;
-        var hasBrokenPicture = false;
+        var firstPictureError = undefined;
         var hasMissingLayerRect = false;
         var hasUnresolvedPictureRef = false;
         for (var i = 0; i < layers.length; i++) {
           var layer = layers[i];
           for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
             var picture = layer.pictures[ir];
+
             if (picture.idRef) {
               hasUnresolvedPictureRef = true;
               continue;
@@ -156,29 +162,35 @@ base.exportTo('cc', function() {
               hasMissingLayerRect = true;
               continue;
             }
-            if (picture.image)
-              continue;
-            if (!picture.canRasterizeImage) {
-              hasBrokenPicture = true;
+
+            var pictureAsImage = this.pictureAsImage_[picture.guid];
+            if (!pictureAsImage) {
+              hasPendingRasterizeImage = true;
+              this.pictureAsImage_[picture.guid] =
+                  cc.PictureAsImage.Pending(this);
+              picture.rasterize(
+                {stopIndex: undefined},
+                function(pictureAsImage) {
+                  var picture_ = pictureAsImage.picture;
+                  this.pictureAsImage_[picture_.guid] = pictureAsImage;
+                  this.scheduleUpdateContents_();
+                }.bind(this));
               continue;
             }
-            picture.beginRasterizingImage(
-                this.scheduleupdateContents_.bind(this)
-            );
-            hasPendingRasterizeImage = true;
+            if (pictureAsImage.isPending()) {
+              hasPendingRasterizeImage = true;
+              continue;
+            }
+            if (pictureAsImage.error) {
+              if (!firstPictureError)
+                firstPictureError = pictureAsImage.error;
+              break;
+            }
           }
         }
         if (hasPendingRasterizeImage)
           return false;
 
-        if (!cc.PictureSnapshot.CanRasterize()) {
-          // In this case, broken pictures are just the result of not being able
-          // to rasterize at all.
-          hasBrokenPicture = false;
-          messages.push({
-            header: 'Cannot rasterize',
-            details: cc.PictureSnapshot.HowToEnablePictureDebugging()});
-        }
         if (hasUnresolvedPictureRef) {
           messages.push({
             header: 'Missing picture',
@@ -191,11 +203,10 @@ base.exportTo('cc', function() {
             details: 'Your trace may be corrupt or from a very old ' +
                 'Chrome revision.'});
         }
-        if (hasBrokenPicture) {
+        if (firstPictureError) {
           messages.push({
-            header: 'Broken SkPicture',
-            details: 'Your recording may be from an old Chrome version. ' +
-                'The SkPicture format is not backward compatible.'});
+            header: 'Cannot rasterize',
+            details: firstPictureError});
         }
       }
       this.messages_ = messages;
@@ -229,8 +240,9 @@ base.exportTo('cc', function() {
         var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
 
-        if (picture.image && this.showContents)
-          iq.backgroundImage = picture.image;
+        var pictureAsImage = this.pictureAsImage_[picture.guid];
+        if (pictureAsImage.image && this.showContents)
+          iq.backgroundImage = pictureAsImage.image;
         else
           iq.backgroundColor = 'rgba(0,0,0,0.1)';
 

@@ -4,20 +4,26 @@
 
 'use strict';
 
-base.require('base.raf');
+base.require('base.guid');
 base.require('base.rect');
+base.require('base.raf');
 base.require('tracing.trace_model.object_instance');
+base.require('cc.picture_as_image');
 base.require('cc.util');
 
 base.exportTo('cc', function() {
 
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
+  // Number of pictures created. Used as an uniqueId because we are immutable.
+  var PictureCount = 0;
+
   /**
    * @constructor
    */
   function PictureSnapshot() {
     ObjectSnapshot.apply(this, arguments);
+    this.guid_ = base.GUID.allocate();
   }
 
   PictureSnapshot.CanRasterize = function() {
@@ -58,24 +64,12 @@ base.exportTo('cc', function() {
     return 'Rasterizing is on';
   }
 
-  var RASTER_IMPOSSIBLE = -2;
-  var RASTER_FAILED = -1;
-  var RASTER_NOT_BEGUN = 0;
-  var RASTER_SUCCEEDED = 1;
-
   PictureSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
     preInitialize: function() {
       cc.preInitializeObject(this);
-
-      if (PictureSnapshot.CanRasterize())
-        this.rasterStatus_ = RASTER_NOT_BEGUN;
-      else
-        this.rasterStatus_ = RASTER_IMPOSSIBLE;
       this.rasterResult_ = undefined;
-
-      this.image_ = undefined;
     },
 
     initialize: function() {
@@ -89,47 +83,12 @@ base.exportTo('cc', function() {
       return this.layerRect_;
     },
 
+    get guid() {
+      return this.guid_;
+    },
+
     getBase64SkpData: function() {
       return this.args.skp64;
-    },
-
-    rasterize_: function() {
-      if (this.rasterStatus_ != RASTER_NOT_BEGUN)
-        throw new Error('Rasterized already');
-
-      if (!PictureSnapshot.CanRasterize()) {
-        console.error(PictureSnapshot.HowToEnablePictureDebugging());
-        return undefined;
-      }
-
-      var res = window.chrome.skiaBenchmarking.rasterize({
-        skp64: this.args.skp64,
-        params: {
-          layer_rect: this.args.params.layerRect,
-          opaque_rect: this.args.params.opaqueRect
-        }
-      });
-      if (!res) {
-        this.rasterStatus_ = RASTER_FAILED;
-        return;
-      }
-
-      this.rasterStatus_ = RASTER_SUCCEEDED;
-      this.rasterResult_ = {
-        width: res.width,
-        height: res.height,
-        data: new Uint8ClampedArray(res.data)
-      };
-    },
-
-    get image() {
-      return this.image_;
-    },
-
-    get canRasterizeImage() {
-      if (this.rasterStatus_ == RASTER_SUCCEEDED)
-        return true;
-      return this.rasterStatus_ == RASTER_NOT_BEGUN;
     },
 
     getOps: function() {
@@ -147,39 +106,58 @@ base.exportTo('cc', function() {
       });
 
       if (!ops)
-        throw new Error('Cannot get picture ops.');
+        console.error('Failed to get picture ops.');
 
       return ops;
     },
 
-    beginRasterizingImage: function(imageReadyCallback) {
-      if (this.rasterStatus_ == RASTER_IMPOSSIBLE ||
-          this.rasterStatus_ == RASTER_FAILED)
-        throw new Error('Cannot render image');
-
-      if (this.rasterStatus_ == RASTER_SUCCEEDED)
-        return;
-
-      this.rasterize_();
-      if (this.rasterStatus_ == RASTER_FAILED) {
-        base.requestAnimationFrameInThisFrameIfPossible(imageReadyCallback);
+    /**
+     * Rasterize the picture.
+     *
+     * @param {{opt_stopIndex: number, params}} The SkPicture operation to
+     *     rasterize up to. If not defined, the entire SkPicture is rasterized.
+     * @param {function(cc.PictureAsImage)} The callback function
+     *     that is called after rasterization is complete or fails.
+     */
+    rasterize: function(params, rasterCompleteCallback) {
+      if (!PictureSnapshot.CanRasterize() || !PictureSnapshot.CanGetOps()) {
+        rasterCompleteCallback(new cc.PictureAsImage(
+              this, cc.PictureSnapshot.HowToEnablePictureDebugging()));
         return;
       }
-      var rd = this.rasterResult_;
 
-      var helperCanvas = document.createElement('canvas');
-      helperCanvas.width = rd.width;
-      helperCanvas.height = rd.height;
-      var ctx = helperCanvas.getContext('2d');
-      var imageData = ctx.createImageData(rd.width, rd.height);
-      imageData.data.set(rd.data);
-      ctx.putImageData(imageData, 0, 0);
-      var img = document.createElement('img');
-      img.onload = function() {
-        this.image_ = img;
-        imageReadyCallback();
-      }.bind(this);
-      img.src = helperCanvas.toDataURL();
+      var raster = window.chrome.skiaBenchmarking.rasterize(
+        {
+          skp64: this.args.skp64,
+          params: {
+            layer_rect: this.args.params.layerRect,
+            opaque_rect: this.args.params.opaqueRect
+          }
+        },
+        {
+          stop: params.stopIndex === undefined ? -1 : params.stopIndex,
+          params: { }
+        });
+
+      if (raster) {
+        var helperCanvas = document.createElement('canvas');
+        helperCanvas.width = raster.width;
+        helperCanvas.height = raster.height;
+        var ctx = helperCanvas.getContext('2d');
+        var imageData = ctx.createImageData(raster.width, raster.height);
+        imageData.data.set(new Uint8ClampedArray(raster.data));
+        ctx.putImageData(imageData, 0, 0);
+        var img = document.createElement('img');
+        img.onload = function() {
+          rasterCompleteCallback(new cc.PictureAsImage(this, img));
+        }.bind(this);
+        img.src = helperCanvas.toDataURL();
+      } else {
+        var error = 'Failed to rasterize picture. ' +
+                'Your recording may be from an old Chrome version. ' +
+                'The SkPicture format is not backward compatible.';
+        rasterCompleteCallback(new cc.PictureAsImage(this, error));
+      }
     }
   };
 

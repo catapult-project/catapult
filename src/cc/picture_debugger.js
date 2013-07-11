@@ -28,6 +28,8 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      this.pictureAsImage_ = undefined;
+
       this.leftPanel_ = document.createElement('left-panel');
 
       this.pictureInfo_ = document.createElement('picture-info');
@@ -56,6 +58,8 @@ base.exportTo('cc', function() {
       this.titleDragHandle_.target = this.pictureInfo_;
 
       this.drawOpsView_ = new cc.PictureOpsListView();
+      this.drawOpsView_.addEventListener(
+          'selection-changed', this.onChangeDrawOps_.bind(this));
 
       this.leftPanel_.appendChild(this.pictureInfo_);
       this.leftPanel_.appendChild(this.titleDragHandle_);
@@ -66,13 +70,11 @@ base.exportTo('cc', function() {
       this.middleDragHandle_.target = this.leftPanel_;
 
       this.infoBar_ = new ui.InfoBar();
-      this.rasterResult_ = document.createElement('raster-result');
       this.rasterArea_ = document.createElement('raster-area');
 
       this.appendChild(this.leftPanel_);
       this.appendChild(this.middleDragHandle_);
       this.rasterArea_.appendChild(this.infoBar_);
-      this.rasterArea_.appendChild(this.rasterResult_);
       this.appendChild(this.rasterArea_);
 
       this.picture_ = undefined;
@@ -109,7 +111,10 @@ base.exportTo('cc', function() {
     },
 
     set picture(picture) {
+      this.drawOpsView_.picture = picture;
       this.picture_ = picture;
+      this.rasterize_();
+
       this.updateContents_();
     },
 
@@ -125,43 +130,52 @@ base.exportTo('cc', function() {
     updateContents_: function() {
       this.updateContentsPending_ = false;
 
-      this.sizeInfo_.textContent = '(' +
-          this.picture_.layerRect.width + ' x ' +
-          this.picture_.layerRect.height + ')';
-
-      if (!this.picture_)
-        return;
-      this.infoBar_.visible = false;
-      this.infoBar_.removeAllButtons();
-
-      if (!this.picture_.image) {
-        this.style.backgroundImage = '';
-        if (!this.picture_.canRasterizeImage) {
-          var details;
-          if (!cc.PictureSnapshot.CanRasterize()) {
-            details = cc.PictureSnapshot.HowToEnablePictureDebugging();
-          } else {
-            details = 'Your recording may be from an old Chrome version. ' +
-                'The SkPicture format is not backward compatible.';
-          }
-          this.infoBar_.message = 'Cannot rasterize...';
-          this.infoBar_.addButton('More info...', function() {
-            var overlay = new ui.Overlay();
-            overlay.textContent = details;
-            overlay.visible = true;
-            overlay.obeyCloseEvents = true;
-          });
-          this.infoBar_.visible = true;
-        } else {
-          this.picture_.beginRasterizingImage(
-              this.scheduleUpdateContents_.bind(this));
-        }
-      } else {
-        this.rasterArea_.style.backgroundImage = 'url("' +
-            this.picture_.image.src + '")';
+      if (this.picture_) {
+        this.sizeInfo_.textContent = '(' +
+            this.picture_.layerRect.width + ' x ' +
+            this.picture_.layerRect.height + ')';
       }
 
-      this.drawOpsView_.picture = this.picture_;
+      // Return if picture hasn't finished rasterizing.
+      if (!this.pictureAsImage_)
+        return;
+
+      this.infoBar_.visible = false;
+      this.infoBar_.removeAllButtons();
+      if (this.pictureAsImage_.error) {
+        this.infoBar_.message = 'Cannot rasterize...';
+        this.infoBar_.addButton('More info...', function() {
+          var overlay = new ui.Overlay();
+          overlay.textContent = this.pictureAsImage_.error;
+          overlay.visible = true;
+          overlay.obeyCloseEvents = true;
+        }.bind(this));
+        this.infoBar_.visible = true;
+      }
+
+      // FIXME: There's no reason to store the image src in two places.
+      //        pictureAsImage_.image could store the src instead of the image.
+      var src = this.pictureAsImage_.image ? 'url("' +
+            this.pictureAsImage_.image.src + '")' : '';
+      this.rasterArea_.style.backgroundImage = src;
+    },
+
+    rasterize_: function() {
+      if (this.picture_) {
+        this.picture_.rasterize(
+          {stopIndex: this.drawOpsView_.selectedOpIndex},
+          this.onRasterComplete_.bind(this));
+      }
+    },
+
+    onRasterComplete_: function(pictureAsImage) {
+      this.pictureAsImage_ = pictureAsImage;
+      this.scheduleUpdateContents_();
+    },
+
+    onChangeDrawOps_: function() {
+      this.rasterize_();
+      this.updateContents_();
     }
   };
 

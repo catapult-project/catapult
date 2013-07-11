@@ -25,6 +25,12 @@ base.exportTo('cc', function() {
     decorate: function() {
       this.opsList_ = new ui.ListView();
       this.appendChild(this.opsList_);
+
+      this.selectedOp_ = undefined;
+      this.selectedOpIndex_ = undefined;
+      this.opsList_.addEventListener(
+          'selection-changed', this.onSelectionChanged_.bind(this));
+
       this.picture_ = undefined;
     },
 
@@ -39,6 +45,9 @@ base.exportTo('cc', function() {
 
     updateContents_: function() {
       this.opsList_.clear();
+
+      if (!this.picture_)
+        return;
 
       var ops = this.picture_.getOps();
       if (!ops)
@@ -56,6 +65,39 @@ base.exportTo('cc', function() {
 
         this.opsList_.appendChild(item);
       }, this);
+    },
+
+    onSelectionChanged_: function(e) {
+      var beforeSelectedOp = true;
+
+      // Deselect on re-selection.
+      if (this.opsList_.selectedElement === this.selectedOp_) {
+        this.opsList_.selectedElement = undefined;
+        beforeSelectedOp = false;
+        this.selectedOpIndex_ = undefined;
+      }
+
+      this.selectedOp_ = this.opsList_.selectedElement;
+
+      // Set selection on all previous ops.
+      var ops = this.opsList_.children;
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        if (op === this.selectedOp_) {
+          beforeSelectedOp = false;
+          this.selectedOpIndex_ = i;
+        } else if (beforeSelectedOp) {
+          op.setAttribute('beforeSelection', 'beforeSelection');
+        } else {
+          op.removeAttribute('beforeSelection');
+        }
+      }
+
+      base.dispatchSimpleEvent(this, 'selection-changed', false);
+    },
+
+    get selectedOpIndex() {
+      return this.selectedOpIndex_;
     }
   };
 
