@@ -6,7 +6,7 @@
 
 base.requireStylesheet('tracing.tracks.counter_track');
 
-base.require('tracing.tracks.canvas_based_track');
+base.require('tracing.tracks.drawable_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
@@ -17,18 +17,18 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays a Counter object.
    * @constructor
-   * @extends {CanvasBasedTrack}
+   * @extends {DrawableTrack}
    */
 
   var CounterTrack =
-      ui.define('counter-track', tracing.tracks.CanvasBasedTrack);
+      ui.define('counter-track', tracing.tracks.DrawableTrack);
 
   CounterTrack.prototype = {
 
-    __proto__: tracing.tracks.CanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.DrawableTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
       this.selectedSamples_ = {};
       this.categoryFilter_ = new tracing.Filter();
@@ -71,8 +71,9 @@ base.exportTo('tracing.tracks', function() {
 
     draw: function(viewLWorld, viewRWorld) {
       var counter = this.counter_;
-      var ctx = this.ctx_;
-      var canvasH = ctx.canvas.height;
+      var ctx = this.context();
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height;
 
       // Culling parametrs.
       var vp = this.viewport;
@@ -97,7 +98,7 @@ base.exportTo('tracing.tracks', function() {
       startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
 
       // Draw indices one by one until we fall off the viewRWorld.
-      var yScale = canvasH / counter.maxTotal;
+      var yScale = height / counter.maxTotal;
       for (var seriesIndex = counter.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
         var colorId = counter.seriesColors[seriesIndex];
@@ -109,7 +110,7 @@ base.exportTo('tracing.tracks', function() {
         var iLast = startIndex - 1;
         var xLast = iLast >= 0 ?
             counter.timestamps[iLast] - skipDistanceWorld : -1;
-        var yLastView = canvasH;
+        var yLastView = height;
 
         // Iterate over samples from iLast onward until we either fall off the
         // viewRWorld or we run out of samples. To avoid drawing too much, after
@@ -121,18 +122,18 @@ base.exportTo('tracing.tracks', function() {
           if (i >= numSamples) {
             ctx.lineTo(xLast, yLastView);
             ctx.lineTo(xLast + 8 * pixWidth, yLastView);
-            ctx.lineTo(xLast + 8 * pixWidth, canvasH);
+            ctx.lineTo(xLast + 8 * pixWidth, height);
             break;
           }
 
           var x = counter.timestamps[i];
 
           var y = counter.totals[i * numSeries + seriesIndex];
-          var yView = canvasH - (yScale * y);
+          var yView = height - (yScale * y);
 
           if (x > viewRWorld) {
             ctx.lineTo(x, yLastView);
-            ctx.lineTo(x, canvasH);
+            ctx.lineTo(x, height);
             break;
           }
 
@@ -145,7 +146,7 @@ base.exportTo('tracing.tracks', function() {
           }
 
           if (!hasMoved) {
-            ctx.moveTo(viewLWorld, canvasH);
+            ctx.moveTo(viewLWorld, height);
             hasMoved = true;
           }
           if (x - xLast < skipDistanceWorld) {
@@ -173,7 +174,7 @@ base.exportTo('tracing.tracks', function() {
         for (var seriesIndex = counter.numSeries - 1;
              seriesIndex >= 0; seriesIndex--) {
           var y = counter.totals[i * numSeries + seriesIndex];
-          var yView = canvasH - (yScale * y);
+          var yView = height - (yScale * y);
           ctx.fillRect(x - pixWidth, yView - 1, 3 * pixWidth, 3);
         }
       }

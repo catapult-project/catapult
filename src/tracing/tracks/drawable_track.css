@@ -3,19 +3,18 @@
  * found in the LICENSE file.
  */
 
-.canvas-based-track {
+.drawable-track {
   -webkit-box-align: stretch;
   -webkit-box-orient: horizontal;
-  background-color: white;
   display: -webkit-box;
   margin: 0;
   padding: 0 5px 0 0;
 }
 
-.canvas-based-track > heading {
-  display: block;
+.drawable-track > heading {
   background-color: rgba(214, 221, 229, 0.3);
   border-right: 1px solid #8e8e8e;
+  display: block;
   overflow: hidden;
   padding-left: 18px;
   padding-right: 5px;
@@ -24,12 +23,8 @@
   white-space: nowrap;
 }
 
-.canvas-based-track-canvas-container {
+.drawable-container {
   -webkit-box-flex: 1;
   width: 100%;
 }
 
-.canvas-based-track-canvas {
-  -webkit-box-flex: 1;
-  display: block;
-}

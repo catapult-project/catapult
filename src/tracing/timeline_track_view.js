@@ -24,6 +24,7 @@ base.require('base.settings');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
+base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
 base.require('tracing.tracks.ruler_track');
 base.require('ui');
@@ -75,13 +76,19 @@ base.exportTo('tracing', function() {
       this.viewport_ = new Viewport(this);
       this.viewportStateAtMouseDown_ = null;
 
-      // Add the viewport track.
-      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
-      this.appendChild(this.rulerTrack_);
+      this.rulerTrackContainer_ =
+          new tracing.tracks.DrawingContainer(this.viewport_);
+      this.appendChild(this.rulerTrackContainer_);
+      this.rulerTrackContainer_.invalidate();
 
-      this.modelTrackContainer_ = document.createElement('div');
-      this.modelTrackContainer_.className = 'model-track-container';
+      this.rulerTrack_ = new tracing.tracks.RulerTrack(this.viewport_);
+      this.rulerTrackContainer_.appendChild(this.rulerTrack_);
+
+      this.modelTrackContainer_ =
+          new tracing.tracks.DrawingContainer(this.viewport_);
       this.appendChild(this.modelTrackContainer_);
+      this.modelTrackContainer_.invalidate();
+
       this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
       this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
@@ -293,6 +300,8 @@ base.exportTo('tracing', function() {
     },
 
     set categoryFilter(filter) {
+      this.modelTrackContainer_.invalidate();
+
       this.categoryFilter_ = filter;
       this.modelTrack_.categoryFilter = filter;
     },
@@ -660,11 +669,7 @@ base.exportTo('tracing', function() {
     },
 
     get firstCanvas() {
-      if (this.rulerTrack_)
-        return this.rulerTrack_.firstCanvas;
-      if (this.modelTrack_)
-        return this.modelTrack_.firstCanvas;
-      return undefined;
+      return this.rulerTrackContainer_.canvas;
     },
 
     updateModeIndicator_: function() {

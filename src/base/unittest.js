@@ -94,14 +94,15 @@ base.exportTo('base.unittest', function() {
       }.bind(this), 1);
     },
 
-    onAnimationFrameError: function(e) {
+    onAnimationFrameError: function(e, opt_stack) {
       if (e.message)
         console.error(e.message, e.stack);
       else
         console.error(e);
 
-      this.stats_.exceptions.push(e);
-      this.appendException(e);
+      var exception = {e: e, stack: opt_stack};
+      this.stats_.exceptions.push(exception);
+      this.appendException(exception);
       this.updateStats_();
     },
 
@@ -118,10 +119,13 @@ base.exportTo('base.unittest', function() {
     },
 
     appendException: function(exc) {
-      var exceptionsEl = document.querySelector('.exceptions');
+      var exceptionsEl = document.querySelector('#exceptions');
       exceptionsEl.setAttribute('hasExceptions', this.stats_.exceptions.length);
+
       var excEl = document.createElement('li');
-      excEl.textContent = exc + '';
+      excEl.innerHTML = exc.e + '<pre>' + exc.stack + '</pre>';
+
+      var exceptionsEl = document.querySelector('#exception-list');
       exceptionsEl.appendChild(excEl);
     }
   };

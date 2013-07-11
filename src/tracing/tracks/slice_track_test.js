@@ -16,11 +16,16 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
   var Viewport = tracing.TimelineViewport;
 
   test('instantiate', function() {
-    var viewport = document.createElement('div');
-    this.addHTMLOutput(viewport);
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
 
-    var track = SliceTrack(new Viewport(viewport));
-    viewport.appendChild(track);
+    var viewport = new Viewport(div);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = SliceTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.invalidate();
 
     track.heading = 'testBasicSlices';
     track.slices = [
@@ -33,11 +38,16 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
   });
 
   test('instantiate_shrinkingSliceSize', function() {
-    var viewport = document.createElement('div');
-    this.addHTMLOutput(viewport);
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
 
-    var track = SliceTrack(new Viewport(viewport));
-    viewport.appendChild(track);
+    var viewport = new Viewport(div);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = SliceTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.invalidate();
 
     track.heading = 'testShrinkingSliceSizes';
     var x = 0;
@@ -63,12 +73,18 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     for (var dictIndex in optDicts) {
       var dict = optDicts[dictIndex];
 
-      var viewport = document.createElement('div');
-      viewport.appendChild(document.createTextNode(dict.trackName));
-      this.addHTMLOutput(viewport);
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(dict.trackName));
+      this.addHTMLOutput(div);
 
-      var track = new SliceTrack(new Viewport(viewport));
-      viewport.appendChild(track);
+      var viewport = new Viewport(div);
+      var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+      div.appendChild(drawingContainer);
+
+      var track = new SliceTrack(viewport);
+      drawingContainer.appendChild(track);
+      drawingContainer.invalidate();
+
       track.SHOULD_ELIDE_TEXT = dict.elide;
       track.heading = 'Visual: ' + dict.trackName;
       track.slices = [
@@ -102,12 +118,17 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
     testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.style.width = '600px';
     this.addHTMLOutput(testEl);
 
-    var track = new SliceTrack(new Viewport(testEl));
-    testEl.style.width = '600px';
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
 
-    testEl.appendChild(track);
+    var track = new SliceTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.updateCanvasSizeIfNeeded_();
+
     track.heading = 'testSelectionHitTesting';
     track.slices = [
       new Slice('', 'a', 0, 1, {}, 1),
@@ -116,7 +137,7 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var y = track.getBoundingClientRect().top + 5;
     var pixelRatio = window.devicePixelRatio || 1;
     var wW = 10;
-    var vW = track.firstCanvas.getBoundingClientRect().width;
+    var vW = drawingContainer.canvas.getBoundingClientRect().width;
     track.viewport.xSetWorldBounds(0, wW, vW * pixelRatio);
 
     var selection = new Selection();
@@ -142,11 +163,15 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
 
   test('elide', function() {
     var testEl = document.createElement('div');
-
     this.addHTMLOutput(testEl);
 
-    var track = new SliceTrack(new Viewport(testEl));
-    testEl.appendChild(track);
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new SliceTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.updateCanvasSizeIfNeeded_();
 
     var bigtitle = 'Super duper long long title ' +
         'holy moly when did you get so verbose?';

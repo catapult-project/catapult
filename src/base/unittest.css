@@ -13,21 +13,21 @@
   margin-bottom: 10px;
 }
 
-.exceptions {
+#exceptions {
   display: none;
 }
 
-.exceptions[hasexceptions] {
+#exceptions[hasexceptions] {
   display: block;
 }
 
-.exceptions:before {
-  content: 'Exceptions:';
-}
-
-.exceptions {
+#exception-list {
   font-family: dejavu sans mono, monospace;
   font-size: 11px;
+}
+
+#exception-list pre {
+  margin-top: 0;
 }
 
 #individual-tests {

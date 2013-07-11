@@ -7,7 +7,7 @@
 base.requireStylesheet('tracing.tracks.slice_track');
 
 base.require('base.sorted_array_utils');
-base.require('tracing.tracks.canvas_based_track');
+base.require('tracing.tracks.drawable_track');
 base.require('tracing.fast_rect_renderer');
 base.require('tracing.color_scheme');
 base.require('ui');
@@ -19,15 +19,15 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays an array of Slice objects.
    * @constructor
-   * @extends {CanvasBasedTrack}
+   * @extends {DrawableTrack}
    */
 
   var SliceTrack = ui.define(
-      'slice-track', tracing.tracks.CanvasBasedTrack);
+      'slice-track', tracing.tracks.DrawableTrack);
 
   SliceTrack.prototype = {
 
-    __proto__: tracing.tracks.CanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.DrawableTrack.prototype,
 
     /**
      * Should we elide text on trace labels?
@@ -39,7 +39,7 @@ base.exportTo('tracing.tracks', function() {
     SHOULD_ELIDE_TEXT: true,
 
     decorate: function(viewport) {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-track');
       this.elidedTitleCache = new ElidedTitleCache();
       this.asyncStyle_ = false;
@@ -85,7 +85,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     labelWidth: function(title) {
-      return quickMeasureText(this.ctx_, title) + 2;
+      return quickMeasureText(this.context(), title) + 2;
     },
 
     labelWidthWorld: function(title, pixWidth) {
@@ -93,8 +93,9 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var ctx = this.ctx_;
-      var canvasH = ctx.canvas.height;
+      var bounds = this.getBoundingClientRect();
+      var ctx = this.context();
+      var height = bounds.height;
 
       // Culling parameters.
       var vp = this.viewport;
@@ -109,14 +110,13 @@ base.exportTo('tracing.tracks', function() {
         ctx.globalAlpha = 0.25;
       var tr = new tracing.FastRectRenderer(ctx, 2 * pixWidth, 2 * pixWidth,
                                             palette);
-      tr.setYandH(0, canvasH);
+      tr.setYandH(0, height);
       var slices = this.slices_;
-      var lowSlice = base.findLowIndexInSortedArray(slices,
-                                                    function(slice) {
-                                                      return slice.start +
-                slice.duration;
-                                                    },
-                                                    viewLWorld);
+      var lowSlice = base.findLowIndexInSortedArray(
+          slices,
+          function(slice) { return slice.start + slice.duration; },
+          viewLWorld);
+
       for (var i = lowSlice; i < slices.length; ++i) {
         var slice = slices[i];
         var x = slice.start;
@@ -141,9 +141,9 @@ base.exportTo('tracing.tracks', function() {
           } else {
             ctx.fillStyle = palette[colorId];
             ctx.beginPath();
-            ctx.moveTo(x - (4 * pixWidth), canvasH);
+            ctx.moveTo(x - (4 * pixWidth), height);
             ctx.lineTo(x, 0);
-            ctx.lineTo(x + (4 * pixWidth), canvasH);
+            ctx.lineTo(x + (4 * pixWidth), height);
             ctx.closePath();
             ctx.fill();
           }
@@ -154,40 +154,43 @@ base.exportTo('tracing.tracks', function() {
 
       // Labels.
       var pixelRatio = window.devicePixelRatio || 1;
-      if (canvasH > 8) {
+      if (height > 8) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.font = (10 * pixelRatio) + 'px sans-serif';
         ctx.strokeStyle = 'rgb(0,0,0)';
         ctx.fillStyle = 'rgb(0,0,0)';
+
         // Don't render text until until it is 20px wide
         var quickDiscardThresshold = pixWidth * 20;
         var shouldElide = this.SHOULD_ELIDE_TEXT;
         for (var i = lowSlice; i < slices.length; ++i) {
           var slice = slices[i];
-          if (slice.start > viewRWorld) {
+          if (slice.start > viewRWorld)
             break;
+
+          if (slice.duration <= quickDiscardThresshold)
+            continue;
+
+          var title = slice.title +
+              (slice.didNotFinish ? ' (Did Not Finish)' : '');
+
+          var drawnTitle = title;
+          var drawnWidth = this.labelWidth(drawnTitle);
+          if (shouldElide &&
+              this.labelWidthWorld(drawnTitle, pixWidth) > slice.duration) {
+            var elidedValues = this.elidedTitleCache.get(
+                this, pixWidth,
+                drawnTitle, drawnWidth,
+                slice.duration);
+            drawnTitle = elidedValues.string;
+            drawnWidth = elidedValues.width;
           }
-          if (slice.duration > quickDiscardThresshold) {
-            var title = slice.title;
-            if (slice.didNotFinish) {
-              title += ' (Did Not Finish)';
-            }
-            var drawnTitle = title;
-            var drawnWidth = this.labelWidth(drawnTitle);
-            if (shouldElide &&
-                this.labelWidthWorld(drawnTitle, pixWidth) > slice.duration) {
-              var elidedValues = this.elidedTitleCache.get(
-                  this, pixWidth,
-                  drawnTitle, drawnWidth,
-                  slice.duration);
-              drawnTitle = elidedValues.string;
-              drawnWidth = elidedValues.width;
-            }
-            if (drawnWidth * pixWidth < slice.duration) {
-              var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
-              ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
-            }
+
+          if (drawnWidth * pixWidth < slice.duration) {
+
+            var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
+            ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
           }
         }
       }

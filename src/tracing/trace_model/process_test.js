@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('tracing.test_utils');
+base.require('tracing.trace_model');
 base.require('tracing.trace_model.process');
 
 base.unittest.testSuite('tracing.trace_model.process', function() {

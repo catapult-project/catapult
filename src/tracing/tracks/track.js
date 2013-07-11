@@ -37,6 +37,15 @@ base.exportTo('tracing.tracks', function() {
       return this.viewport_;
     },
 
+    context: function() {
+      // This is a little weird here, but we have to be able to walk up the
+      // parent tree to get the context.
+      if (!this.parentNode)
+        return undefined;
+      if (!this.parentNode.context)
+        throw new Error('Parent container does not support context() method.');
+      return this.parentNode.context();
+    },
 
     get categoryFilter() {
       return this.categoryFilter_;

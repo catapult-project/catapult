@@ -31,14 +31,19 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
-    var track = new ThreadTrack(new Viewport(testEl));
-    testEl.appendChild(track);
+    var viewport = new Viewport(testEl);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new ThreadTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.updateCanvasSizeIfNeeded_();
     track.thread = t1;
 
     var y = track.getBoundingClientRect().top;
     var h = track.getBoundingClientRect().height;
     var wW = 10;
-    var vW = track.firstCanvas.getBoundingClientRect().width;
+    var vW = drawingContainer.canvas.getBoundingClientRect().width;
     track.viewport.xSetWorldBounds(0, wW, vW);
 
     var selection = new Selection();

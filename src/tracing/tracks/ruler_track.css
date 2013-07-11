@@ -11,6 +11,6 @@
   height: 24px;
 }
 
-.ruler-track .canvas-based-track-canvas-container {
+.ruler-track .drawable-container {
   border-bottom: 1px solid #8e8e8e;
 }

@@ -24,8 +24,13 @@ base.unittest.testSuite('tracing.tracks.cpu_track', function() {
     ];
     cpu.updateBounds();
 
-    var track = CpuTrack(new Viewport(testEl));
-    testEl.appendChild(track);
+    var viewport = new Viewport(testEl);
+
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+
+    var track = CpuTrack(viewport);
+    drawingContainer.appendChild(track);
+
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
     track.viewport.xSetWorldBounds(0, 11.1, track.clientWidth);

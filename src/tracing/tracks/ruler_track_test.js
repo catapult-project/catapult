@@ -6,16 +6,21 @@
 
 base.require('tracing.test_utils');
 base.require('tracing.timeline_viewport');
+base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.ruler_track');
 
 base.unittest.testSuite('tracing.tracks.ruler_track', function() {
   test('instantiate', function() {
-    var viewport = document.createElement('div');
-    this.addHTMLOutput(viewport);
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
 
-    var track = tracing.tracks.RulerTrack(
-        new tracing.TimelineViewport(viewport));
-    viewport.appendChild(track);
+    var viewport = new tracing.TimelineViewport(div);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = tracing.tracks.RulerTrack(viewport);
+    drawingContainer.appendChild(track);
+    drawingContainer.invalidate();
 
     track.viewport.setPanAndScale(0, track.clientWidth / 1000);
   });

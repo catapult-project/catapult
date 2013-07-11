@@ -3,11 +3,6 @@
  * found in the LICENSE file.
  */
 
-.process-track-base > :nth-child(odd),
-.process-track-base > :nth-child(odd) * {
-  background-color: rgb(240, 240, 240);
-}
-
 .process-track-header {
   -webkit-flex: 0 0 auto;
   background-image: -webkit-gradient(linear,

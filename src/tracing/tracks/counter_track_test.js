@@ -30,18 +30,26 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
     }
     ctr.updateBounds();
 
-    var track = new CounterTrack(new Viewport(testEl));
-    testEl.appendChild(track);
-    track.updateCanvasSizeIfNeeded_();
+    var viewport = new Viewport(testEl);
+
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    testEl.appendChild(drawingContainer);
+
+    var track = new CounterTrack(viewport);
+    drawingContainer.appendChild(track);
+
+    // Force the container to update sizes so the test can use coordinates that
+    // make sense. This has to be after the adding of the track as we need to
+    // use the track header to figure out our positioning.
+    drawingContainer.updateCanvasSizeIfNeeded_();
 
     var pixelRatio = window.devicePixelRatio || 1;
 
     track.heading = ctr.name;
     track.counter = ctr;
-    track.viewport.xSetWorldBounds(0, 10,
-        track.firstCanvas.getBoundingClientRect().width * pixelRatio);
+    track.viewport.xSetWorldBounds(0, 10, track.clientWidth * pixelRatio);
 
-    testFn(ctr, track);
+    testFn(ctr, drawingContainer, track);
   };
 
   test('instantiate', function() {
@@ -61,11 +69,17 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
                    3.1, 0.5];
     ctr.updateBounds();
 
-    var viewport = document.createElement('div');
-    this.addHTMLOutput(viewport);
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
 
-    var track = new CounterTrack(new Viewport(viewport));
-    viewport.appendChild(track);
+    var viewport = new Viewport(div);
+
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+    drawingContainer.invalidate();
+
+    var track = new CounterTrack(viewport);
+    drawingContainer.appendChild(track);
 
     track.heading = ctr.name;
     track.counter = ctr;
@@ -82,10 +96,9 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
                    1, 7,
                    3, 0,
                    3.1, 0.5];
-    runTest.call(this, timestamps, samples, function(ctr, track) {
-      var clientRect = track.firstCanvas.getBoundingClientRect();
-
-      var y75 = clientRect.top + 0.75 * clientRect.height;
+    runTest.call(this, timestamps, samples, function(ctr, container, track) {
+      var clientRect = container.canvas.getBoundingClientRect();
+      var y75 = clientRect.top + (0.75 * clientRect.height);
       var sel;
       var vW = 10;
       var wW = clientRect.width;

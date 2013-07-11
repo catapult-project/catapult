@@ -4,7 +4,10 @@
  */
 
 .analysis-view {
+  background-color: white;
   display: -webkit-flex;
+  position: relative;
+  z-index: 10;
 }
 
 .analysis-view:not(.viewing-object) {

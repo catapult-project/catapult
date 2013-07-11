@@ -7,7 +7,7 @@
 base.requireStylesheet('tracing.tracks.object_instance_track');
 
 base.require('base.sorted_array_utils');
-base.require('tracing.tracks.canvas_based_track');
+base.require('tracing.tracks.drawable_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
@@ -19,18 +19,17 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays an array of Slice objects.
    * @constructor
-   * @extends {CanvasBasedTrack}
+   * @extends {DrawableTrack}
    */
 
   var ObjectInstanceTrack = ui.define(
-      'object-instance-track', tracing.tracks.CanvasBasedTrack);
+      'object-instance-track', tracing.tracks.DrawableTrack);
 
   ObjectInstanceTrack.prototype = {
-
-    __proto__: tracing.tracks.CanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.DrawableTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
       this.classList.add('object-instance-track');
       this.objectInstances_ = [];
       this.objectSnapshots_ = [];
@@ -71,16 +70,18 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var ctx = this.ctx_;
-      var canvasH = ctx.canvas.height;
-      var halfCanvasH = canvasH * 0.5;
+      var ctx = this.context();
+      var bounds = this.getBoundingClientRect();
+
+      var height = bounds.height;
+      var halfHeight = height * 0.5;
       var twoPi = Math.PI * 2;
       var pixelRatio = window.devicePixelRatio || 1;
 
       // Culling parameters.
       var vp = this.viewport;
       var snapshotRadiusView = this.snapshotRadiusView;
-      var snapshotRadiusWorld = vp.xViewVectorToWorld(canvasH);
+      var snapshotRadiusWorld = vp.xViewVectorToWorld(height);
       var loI;
 
       // Begin rendering in world space.
@@ -110,7 +111,7 @@ base.exportTo('tracing.tracks', function() {
         var right = instance.deletionTs == Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
         ctx.fillStyle = palette[colorId];
-        ctx.fillRect(x, pixelRatio, right - x, canvasH - 2 * pixelRatio);
+        ctx.fillRect(x, pixelRatio, right - x, height - 2 * pixelRatio);
       }
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -137,7 +138,7 @@ base.exportTo('tracing.tracks', function() {
 
         ctx.fillStyle = palette[colorId];
         ctx.beginPath();
-        ctx.arc(xView, halfCanvasH, snapshotRadiusView, 0, twoPi);
+        ctx.arc(xView, halfHeight, snapshotRadiusView, 0, twoPi);
         ctx.fill();
         if (snapshot.selected) {
           ctx.lineWidth = 5;
@@ -145,7 +146,7 @@ base.exportTo('tracing.tracks', function() {
           ctx.stroke();
 
           ctx.beginPath();
-          ctx.arc(xView, halfCanvasH, snapshotRadiusView - 1, 0, twoPi);
+          ctx.arc(xView, halfHeight, snapshotRadiusView - 1, 0, twoPi);
           ctx.lineWidth = 2;
           ctx.strokeStyle = 'rgb(255,255,0)';
           ctx.stroke();

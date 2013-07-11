@@ -8,6 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.selection');
 base.require('tracing.trace_model.object_collection');
 base.require('tracing.timeline_viewport');
+base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.object_instance_track');
 
 base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
@@ -34,16 +35,20 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     var frames = objects.getAllInstancesByTypeName()['Frame'];
     frames[0].snapshots[1].selected = true;
 
-    var viewport = document.createElement('div');
-    this.addHTMLOutput(viewport);
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
 
-    var track = ObjectInstanceTrack(new Viewport(viewport));
-    viewport.appendChild(track);
+    var viewport = new Viewport(div);
+    var drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+    div.appendChild(drawingContainer);
+
+    var track = ObjectInstanceTrack(viewport);
+    drawingContainer.invalidate();
+    drawingContainer.appendChild(track);
 
     track.heading = 'testBasic';
     track.objectInstances = frames;
     track.viewport.xSetWorldBounds(0, 50, track.clientWidth);
-
   });
 
   test('selectionHitTestingWithThreadTrack', function() {

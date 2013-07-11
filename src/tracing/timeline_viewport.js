@@ -102,7 +102,8 @@ base.exportTo('tracing', function() {
         try {
           this.pendingSetFunction_();
         } catch (ex) {
-          console.log('While running setWhenPossible:', ex);
+          console.log('While running setWhenPossible:',
+              ex.message ? ex.message + '\n' + ex.stack : ex.stack);
         }
         this.pendingSetFunction_ = undefined;
       }
@@ -242,6 +243,7 @@ base.exportTo('tracing', function() {
     set gridEnabled(enabled) {
       if (this.gridEnabled_ == enabled)
         return;
+
       this.gridEnabled_ = enabled && true;
       this.dispatchChangeEvent();
     },
@@ -254,7 +256,7 @@ base.exportTo('tracing', function() {
       if (this.gridTimebase_ == timebase)
         return;
       this.gridTimebase_ = timebase;
-      base.dispatchSimpleEvent(this, 'change');
+      this.dispatchChangeEvent();
     },
 
     get gridStep() {

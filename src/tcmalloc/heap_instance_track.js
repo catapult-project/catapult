@@ -7,7 +7,7 @@
 base.requireStylesheet('tcmalloc.heap_instance_track');
 
 base.require('base.sorted_array_utils');
-base.require('tracing.tracks.canvas_based_track');
+base.require('tracing.tracks.drawable_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.color_scheme');
 base.require('ui');
@@ -20,18 +20,18 @@ base.exportTo('tcmalloc', function() {
   /**
    * A track that displays heap memory data.
    * @constructor
-   * @extends {CanvasBasedTrack}
+   * @extends {DrawableTrack}
    */
 
   var HeapInstanceTrack = ui.define(
-      'heap-instance-track', tracing.tracks.CanvasBasedTrack);
+      'heap-instance-track', tracing.tracks.DrawableTrack);
 
   HeapInstanceTrack.prototype = {
 
-    __proto__: tracing.tracks.CanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.DrawableTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },
@@ -76,16 +76,13 @@ base.exportTo('tcmalloc', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var ctx = this.ctx_;
-      var canvasWidth = this.canvas_.width;
-      var canvasHeight = this.canvas_.height;
-      var halfcanvasHeight = canvasHeight * 0.5;
-      var twoPi = Math.PI * 2;
-      var pixelRatio = window.devicePixelRatio || 1;
+      var ctx = this.context();
+      var bounds = this.getBoundingClientRect();
+      var height = bounds.height;
 
       // Culling parameters.
       var vp = this.viewport;
-      var snapshotRadiusWorld = vp.xViewVectorToWorld(canvasHeight);
+      var snapshotRadiusWorld = vp.xViewVectorToWorld(height);
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       var objectSnapshots = this.objectInstance_.snapshots;
@@ -119,7 +116,7 @@ base.exportTo('tcmalloc', function() {
         // Draw a stacked bar graph. Largest item is stored first in the
         // heap data structure, so iterate backwards. Likewise draw from
         // the bottom of the bar upwards.
-        var currentY = canvasHeight;
+        var currentY = height;
         var keys = Object.keys(snapshot.heap_.children);
         for (var k = keys.length - 1; k >= 0; k--) {
           var trace = snapshot.heap_.children[keys[k]];
@@ -135,7 +132,7 @@ base.exportTo('tcmalloc', function() {
                 snapshot.objectInstance.colorId;
             ctx.fillStyle = palette[colorId + k];
           }
-          var barHeight = canvasHeight * trace.currentBytes / maxBytes;
+          var barHeight = height * trace.currentBytes / maxBytes;
           ctx.fillRect(leftView, currentY - barHeight,
                        rightView - leftView + 1, barHeight);
           currentY -= barHeight;

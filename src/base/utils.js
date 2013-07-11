@@ -49,12 +49,19 @@ base.exportTo('base', function() {
     };
   }
 
+  function stackTrace() {
+    var stack = new Error().stack + '';
+    stack = stack.split('\n');
+    return stack.slice(2);
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
     tracedFunction: tracedFunction,
     normalizeException: normalizeException,
-    instantiateTemplate: instantiateTemplate
+    instantiateTemplate: instantiateTemplate,
+    stackTrace: stackTrace
   };
 });
 

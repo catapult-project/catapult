@@ -7,7 +7,7 @@
 base.requireStylesheet('tracing.tracks.ruler_track');
 
 base.require('tracing.tracks.track');
-base.require('tracing.tracks.canvas_based_track');
+base.require('tracing.tracks.drawable_track');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
@@ -15,10 +15,10 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays the ruler.
    * @constructor
-   * @extends {CanvasBasedTrack}
+   * @extends {DrawableTrack}
    */
 
-  var RulerTrack = ui.define('ruler-track', tracing.tracks.CanvasBasedTrack);
+  var RulerTrack = ui.define('ruler-track', tracing.tracks.DrawableTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -26,11 +26,10 @@ base.exportTo('tracing.tracks', function() {
   }
 
   RulerTrack.prototype = {
-
-    __proto__: tracing.tracks.CanvasBasedTrack.prototype,
+    __proto__: tracing.tracks.DrawableTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.CanvasBasedTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
@@ -42,7 +41,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     detach: function() {
-      tracing.tracks.CanvasBasedTrack.prototype.detach.call(this);
+      tracing.tracks.DrawableTrack.prototype.detach.call(this);
       this.viewport.removeEventListener('markersChange',
                                         this.viewportMarkersChange_);
     },
@@ -59,7 +58,6 @@ base.exportTo('tracing.tracks', function() {
         return;
       this.placeAndBeginDraggingMarker(e.clientX);
     },
-
 
     placeAndBeginDraggingMarker: function(clientX) {
       var pixelRatio = window.devicePixelRatio || 1;
@@ -128,14 +126,16 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
-      var ctx = this.ctx_;
-      var canvasW = ctx.canvas.width;
-      var canvasH = ctx.canvas.height;
+      var ctx = this.context();
+
+      var bounds = this.getBoundingClientRect();
+      var width = bounds.width;
+      var height = bounds.height;
 
       var measurements = this.classList.contains(
           'ruler-track-with-distance-measurements');
 
-      var rulerHeight = measurements ? canvasH / 2 : canvasH;
+      var rulerHeight = measurements ? height / 2 : height;
 
       var vp = this.viewport;
       vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
@@ -185,7 +185,7 @@ base.exportTo('tracing.tracks', function() {
           Math.floor(viewLWorld / majorMarkDistanceWorld) *
               majorMarkDistanceWorld;
 
-      var minorTickH = Math.floor(canvasH * 0.25);
+      var minorTickH = Math.floor(height * 0.25);
 
       ctx.fillStyle = 'rgb(0, 0, 0)';
       ctx.strokeStyle = 'rgb(0, 0, 0)';
@@ -233,7 +233,7 @@ base.exportTo('tracing.tracks', function() {
       if (measurements) {
         // Divide canvas horizontally between ruler and measurements.
         ctx.moveTo(0, rulerHeight);
-        ctx.lineTo(canvasW, rulerHeight);
+        ctx.lineTo(width, rulerHeight);
         ctx.stroke();
 
         // Obtain a sorted array of markers
