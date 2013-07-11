@@ -338,7 +338,7 @@ base.exportTo('tracing.importer', function() {
      */
     getOrCreateCpuState: function(cpuNumber) {
       if (!this.cpuStates_[cpuNumber]) {
-        var cpu = this.model_.getOrCreateCpu(cpuNumber);
+        var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
         this.cpuStates_[cpuNumber] = new CpuState(cpu);
       }
       return this.cpuStates_[cpuNumber];
@@ -605,7 +605,7 @@ base.exportTo('tracing.importer', function() {
         throw new Error('Cannot abort, have alrady pushedCpuDataToThreads.');
 
       for (var cpuNumber in this.cpuStates_)
-        delete this.model_.cpus[cpuNumber];
+        delete this.model_.kernel.cpus[cpuNumber];
       for (var kernelThreadName in this.kernelThreadStates_) {
         var kthread = this.kernelThreadStates_[kernelThreadName];
         var thread = kthread.thread;

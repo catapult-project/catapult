@@ -24,14 +24,12 @@ base.require('base.range');
 base.require('base.events');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
-base.require('tracing.trace_model.cpu');
 base.require('tracing.filter');
 
 base.exportTo('tracing', function() {
 
   var Process = tracing.trace_model.Process;
   var Kernel = tracing.trace_model.Kernel;
-  var Cpu = tracing.trace_model.Cpu;
 
   /**
    * Builds a model from an array of TraceEvent objects.
@@ -44,7 +42,6 @@ base.exportTo('tracing', function() {
    */
   function TraceModel(opt_eventData, opt_shiftWorldToZero) {
     this.kernel = new Kernel(this);
-    this.cpus = {};
     this.processes = {};
     this.importErrors = [];
     this.metadata = [];
@@ -78,16 +75,6 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @return {Cpu} Gets a specific Cpu or creates one if
-     * it does not exist.
-     */
-    getOrCreateCpu: function(cpuNumber) {
-      if (!this.cpus[cpuNumber])
-        this.cpus[cpuNumber] = new Cpu(cpuNumber);
-      return this.cpus[cpuNumber];
-    },
-
-    /**
      * @return {Process} Gets a TimlineProcess for a specified pid or
      * creates one if it does not exist.
      */
@@ -105,8 +92,6 @@ base.exportTo('tracing', function() {
       this.kernel.addCategoriesToDict(categoriesDict);
       for (var pid in this.processes)
         this.processes[pid].addCategoriesToDict(categoriesDict);
-      for (var cpuNumber in this.cpus)
-        this.cpus[cpuNumber].addCategoriesToDict(categoriesDict);
 
       this.categories = [];
       for (var category in categoriesDict)
@@ -124,11 +109,6 @@ base.exportTo('tracing', function() {
         this.processes[pid].updateBounds();
         this.bounds.addRange(this.processes[pid].bounds);
       }
-
-      for (var cpuNumber in this.cpus) {
-        this.cpus[cpuNumber].updateBounds();
-        this.bounds.addRange(this.cpus[cpuNumber].bounds);
-      }
     },
 
     shiftWorldToZero: function() {
@@ -138,8 +118,6 @@ base.exportTo('tracing', function() {
       this.kernel.shiftTimestampsForward(-timeBase);
       for (var pid in this.processes)
         this.processes[pid].shiftTimestampsForward(-timeBase);
-      for (var cpuNumber in this.cpus)
-        this.cpus[cpuNumber].shiftTimestampsForward(-timeBase);
       this.updateBounds();
     },
 
@@ -158,16 +136,6 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @return {Array} An array of all cpus in the model.
-     */
-    getAllCpus: function() {
-      var cpus = [];
-      for (var cpu in this.cpus)
-        cpus.push(this.cpus[cpu]);
-      return cpus;
-    },
-
-    /**
      * @return {Array} An array of all processes in the model.
      */
     getAllProcesses: function() {
@@ -182,16 +150,13 @@ base.exportTo('tracing', function() {
      */
     getAllCounters: function() {
       var counters = [];
+      counters.push.apply(
+          counters, base.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.counters) {
           counters.push(process.counters[tid]);
         }
-      }
-      for (var cpuNumber in this.cpus) {
-        var cpu = this.cpus[cpuNumber];
-        for (var counterName in cpu.counters)
-          counters.push(cpu.counters[counterName]);
       }
       return counters;
     },

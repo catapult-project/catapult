@@ -15,7 +15,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
   var createTraceModelWithOneOfEverything = function() {
     var m = new TraceModel();
-    var cpu = m.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
 
     var p = m.getOrCreateProcess(1);
@@ -76,7 +76,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
   test('traceModelBounds_OneCpu', function() {
     var m = new TraceModel();
-    var cpu = m.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
     m.updateBounds();
     assertEquals(1, m.bounds.min);
@@ -85,7 +85,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
   test('traceModelBounds_OneCpuOneThread', function() {
     var m = new TraceModel();
-    var cpu = m.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
 
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);

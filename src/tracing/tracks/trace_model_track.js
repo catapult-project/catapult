@@ -8,7 +8,7 @@ base.requireStylesheet('tracing.tracks.trace_model_track');
 
 base.require('base.measuring_stick');
 base.require('tracing.tracks.container_track');
-base.require('tracing.tracks.cpu_track');
+base.require('tracing.tracks.kernel_track');
 base.require('tracing.tracks.process_track');
 
 base.require('ui');
@@ -60,19 +60,7 @@ base.exportTo('tracing.tracks', function() {
 
       var categoryFilter = this.categoryFilter;
 
-      var cpus = this.model_.getAllCpus();
-      cpus.sort(tracing.trace_model.Cpu.compare);
-
-      for (var i = 0; i < cpus.length; ++i) {
-        var cpu = cpus[i];
-        if (!categoryFilter.matchCpu(cpu))
-          return;
-        var track = new tracing.tracks.CpuTrack(this.viewport);
-        track.categoryFilter = categoryFilter;
-        track.cpu = cpu;
-        if (track.hasVisibleContent)
-          this.appendChild(track);
-      }
+      this.appendKernelTrack_();
 
       // Get a sorted list of processes.
       var processes = this.model_.getAllProcesses();
@@ -89,6 +77,18 @@ base.exportTo('tracing.tracks', function() {
           continue;
         this.appendChild(track);
       }
+    },
+
+    appendKernelTrack_: function() {
+      var kernel = this.model.kernel;
+      if (!this.categoryFilter.matchProcess(kernel))
+        return;
+      var track = new tracing.tracks.KernelTrack(this.viewport);
+      track.categoryFilter = this.categoryFilter;
+      track.kernel = this.model.kernel;
+      if (!track.hasVisibleContent)
+        return;
+      this.appendChild(track);
     }
   };
 

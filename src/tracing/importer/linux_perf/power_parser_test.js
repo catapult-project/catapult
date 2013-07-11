@@ -20,11 +20,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c0 = m.cpus[0];
+    var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
     assertEquals(1, c0.counters['Clock Frequency'].samples.length);
 
-    var c1 = m.cpus[1];
+    var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
     assertEquals(2, c1.counters['Clock Frequency'].samples.length);
   });
@@ -43,11 +43,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c0 = m.cpus[0];
+    var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
     assertEquals(2, c0.counters['Clock Frequency'].samples.length);
 
-    var c1 = m.cpus[1];
+    var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
     assertEquals(2, c1.counters['Clock Frequency'].samples.length);
   });
@@ -70,11 +70,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c0 = m.cpus[0];
+    var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
     assertEquals(2, c0.counters['C-State'].samples.length);
 
-    var c1 = m.cpus[1];
+    var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
     assertEquals(4, c1.counters['C-State'].samples.length);
   });

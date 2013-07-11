@@ -114,7 +114,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
 
   test('filteredCounters', function() {
     var model = new tracing.TraceModel();
-    var c1 = model.getOrCreateCpu(0);
+    var c1 = model.kernel.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
     var p1 = model.getOrCreateProcess(1);
     p1.getOrCreateCounter('', 'a').samples = [1];
@@ -130,7 +130,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
 
   test('filteredCpus', function() {
     var model = new tracing.TraceModel();
-    var c1 = model.getOrCreateCpu(1);
+    var c1 = model.kernel.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
     var timeline = new tracing.TimelineTrackView();

@@ -267,7 +267,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c = m.cpus[1];
+    var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
 
     assertEquals('SurfaceFlinger', c.slices[0].title);
@@ -293,7 +293,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c = m.cpus[1];
+    var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
 
     assertEquals('Surface Flinger ', c.slices[0].title);
@@ -328,7 +328,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c = m.cpus[1];
+    var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
 
     assertAlmostEquals((467.843475 - (467.843 - 0.1)) * 1000,
@@ -353,7 +353,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     assertEquals(0, m.importErrors.length);
 
-    var c = m.cpus[1];
+    var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
 
     assertAlmostEquals((15180.978813 - 0) * 1000, c.slices[0].start);

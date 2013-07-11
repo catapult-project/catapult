@@ -3,8 +3,8 @@
  * found in the LICENSE file.
  */
 
-.process-track > :nth-child(odd),
-.process-track > :nth-child(odd) * {
+.process-track-base > :nth-child(odd),
+.process-track-base > :nth-child(odd) * {
   background-color: rgb(240, 240, 240);
 }
 
