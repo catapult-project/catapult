@@ -14,6 +14,8 @@ base.unittest.testSuite('cc.picture_ops_list_view', function() {
   var PictureOpsListView = cc.PictureOpsListView;
 
   test('instantiate', function() {
+    if (!cc.PictureSnapshot.CanRasterize())
+      return;
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = base.dictionaryValues(m.processes)[0];
 
@@ -26,6 +28,8 @@ base.unittest.testSuite('cc.picture_ops_list_view', function() {
   });
 
   test('selection', function() {
+    if (!cc.PictureSnapshot.CanRasterize())
+      return;
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = base.dictionaryValues(m.processes)[0];
 
