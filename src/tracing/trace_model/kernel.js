@@ -42,11 +42,11 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     get userFriendlyName() {
-      return 'kernel';
+      return 'Kernel';
     },
 
     get userFriendlyDetails() {
-      return 'kernel';
+      return 'Kernel';
     },
 
     /**

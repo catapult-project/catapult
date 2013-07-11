@@ -88,6 +88,8 @@
       "args": {}},
 
   {"cat": "__metadata", "pid": 30, "tid": 14, "ts": 0, "ph": "M",
+    "name": "process_name", "args": {"name": "processA"}},
+  {"cat": "__metadata", "pid": 30, "tid": 14, "ts": 0, "ph": "M",
     "name": "thread_name", "args": {"name": "thread12345678B"}},
   {"cat": "__metadata", "pid": 30, "tid": 15, "ts": 0, "ph": "M",
     "name": "thread_name", "args": {"name": "threadA"}}

@@ -11,6 +11,7 @@ base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.counter_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.tracks.thread_track');
+base.require('tracing.trace_model_settings');
 base.require('tracing.filter');
 base.require('ui');
 base.require('ui.dom_helpers');
@@ -21,6 +22,7 @@ base.exportTo('tracing.tracks', function() {
 
   var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
   var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
+  var TraceModelSettings = tracing.TraceModelSettings;
 
   /**
    * Visualizes a Process by building ThreadTracks and CounterTracks.
@@ -39,6 +41,7 @@ base.exportTo('tracing.tracks', function() {
       this.processBase_ = undefined;
 
       this.classList.add('process-track-base');
+      this.classList.add('expanded');
 
       this.expandEl_ = document.createElement('expand-button');
       this.expandEl_.classList.add('expand-button-expanded');
@@ -48,6 +51,7 @@ base.exportTo('tracing.tracks', function() {
       this.headerEl_ = ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.expandEl_);
       this.headerEl_.appendChild(this.processNameEl_);
+      this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
       this.appendChild(this.headerEl_);
     },
@@ -58,6 +62,13 @@ base.exportTo('tracing.tracks', function() {
 
     set processBase(processBase) {
       this.processBase_ = processBase;
+
+      if (this.processBase_) {
+        var modelSettings = new TraceModelSettings(this.processBase_.model);
+        this.expanded = modelSettings.getSettingFor(
+            this.processBase_, 'expanded', true);
+      }
+
       this.updateContents_();
     },
 
@@ -66,15 +77,38 @@ base.exportTo('tracing.tracks', function() {
     },
 
     set expanded(expanded) {
-      if (expanded) {
-        this.expandEl_.classList.add('expand-button-expanded');
+      expanded = !!expanded;
+
+      var wasExpanded = this.expandEl_.classList.contains(
+          'expand-button-expanded');
+      if (wasExpanded === expanded)
         return;
+
+      if (expanded) {
+        this.classList.add('expanded');
+        this.expandEl_.classList.add('expand-button-expanded');
+      } else {
+        this.classList.remove('expanded');
+        this.expandEl_.classList.remove('expand-button-expanded');
       }
-      this.expandEl_.classList.remove('expand-button-expanded');
+
+      if (!this.processBase_)
+        return;
+
+      var modelSettings = new TraceModelSettings(this.processBase_.model);
+      modelSettings.setSettingFor(this.processBase_, 'expanded', expanded);
     },
 
     get hasVisibleContent() {
-      return this.children.length > 1;
+      if (this.expanded)
+        return this.children.length > 1;
+      return true;
+    },
+
+    onHeaderClick_: function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      this.expanded = !this.expanded;
     },
 
     updateContents_: function() {
