@@ -11,7 +11,7 @@ base.exportTo('base', function() {
   // tasks. When an exception happens the original stack will be printed.
   //
   // NOTE: This should never be set committed as true.
-  var recordRAFStacks = true;
+  var recordRAFStacks = false;
 
   var pendingPreAFs = [];
   var pendingRAFs = [];
