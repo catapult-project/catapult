@@ -165,7 +165,7 @@ base.exportTo('cc', function() {
     __proto__: Selection.prototype,
 
     get tile() {
-      return this.rasterTask_.args.metadata.tile_id;
+      return this.rasterTask_.args.data.tile_id;
     },
 
     get associatedLayerId() {
