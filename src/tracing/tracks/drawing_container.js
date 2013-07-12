@@ -78,7 +78,8 @@ base.exportTo('tracing.tracks', function() {
           childTracks[childTracks.length - 1].getBoundingClientRect();
 
       var canvasLeft = headingBounds.right - thisBounds.left;
-      var canvasTop = firstChildTrackBounds.top - thisBounds.top;
+      var canvasTop = firstChildTrackBounds.top - thisBounds.top +
+                      this.scrollTop;
 
       if (this.canvas_.style.top + 'px' !== canvasTop)
         this.canvas_.style.top = canvasTop + 'px';
