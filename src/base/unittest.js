@@ -21,6 +21,17 @@ base.exportTo('base.unittest', function() {
     showCondensed_ = val;
   }
 
+  function logWarningMessage(message) {
+    var messagesEl = document.querySelector('#messages');
+    messagesEl.setAttribute('hasMessages', true);
+
+    var li = document.createElement('li');
+    li.innerText = message;
+
+    var list = document.querySelector('#message-list');
+    list.appendChild(li);
+  }
+
   function TestRunner(suitePaths, tests) {
     this.suitePaths_ = suitePaths || [];
     this.suites_ = [];
@@ -50,7 +61,7 @@ base.exportTo('base.unittest', function() {
 
     addSuite: function(suite) {
       if (this.suiteNames_[suite.name] === true)
-        this.logDuplicateSuiteName_(suite.name);
+        logWarningMessage('Duplicate test suite name detected: ' + suite.name);
 
       this.suites_.push(suite);
       this.suiteNames_[suite.name] = true;
@@ -132,23 +143,13 @@ base.exportTo('base.unittest', function() {
 
       var exceptionsEl = document.querySelector('#exception-list');
       exceptionsEl.appendChild(excEl);
-    },
-
-    logDuplicateSuiteName_: function(name) {
-      var messagesEl = document.querySelector('#messages');
-      messagesEl.setAttribute('hasMessages', true);
-
-      var li = document.createElement('li');
-      li.innerText = 'Duplicate test suite name detected: ' + name;
-
-      var list = document.querySelector('#message-list');
-      list.appendChild(li);
     }
   };
 
   function TestSuite(name, suite) {
     this.name_ = name;
     this.tests_ = [];
+    this.testNames_ = {};
     this.failures_ = [];
     this.results_ = TestResults.PENDING;
     this.showLongResults = false;
@@ -159,7 +160,11 @@ base.exportTo('base.unittest', function() {
     global.teardown = function(fn) { this.teardownFn_ = fn; }.bind(this);
 
     global.test = function(name, test) {
+      if (this.testNames_[name] === true)
+        logWarningMessage('Duplicate test name detected: ' + name);
+
       this.tests_.push(new Test(name, test));
+      this.testNames_[name] = true;
     }.bind(this);
 
     suite.call();

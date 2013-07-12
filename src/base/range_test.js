@@ -21,7 +21,7 @@ base.unittest.testSuite('base.range', function() {
     assertEquals(range.max, 2);
   });
 
-  test('addNonEmptyRange1', function() {
+  test('addNonEmptyRange', function() {
     var r1 = new base.Range();
     r1.addValue(1);
     r1.addValue(2);
@@ -42,7 +42,7 @@ base.unittest.testSuite('base.range', function() {
     assertEquals(r.max, undefined);
   });
 
-  test('addEmptyRange', function() {
+  test('addRangeToRange', function() {
     var r1 = new base.Range();
     r1.addValue(1);
     r1.addValue(2);
@@ -50,6 +50,7 @@ base.unittest.testSuite('base.range', function() {
     var r = new base.Range();
     r.addValue(3);
     r.addRange(r1);
+
     assertFalse(r.isEmpty);
     assertEquals(r.min, 1);
     assertEquals(r.max, 3);

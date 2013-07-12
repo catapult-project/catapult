@@ -93,7 +93,7 @@ base.unittest.testSuite('tracing.trace_model_settings', function() {
     assertTrue(settings.getSettingFor(p1, 'true_by_default', true));
   });
 
-  test('process_persistence_when_not_unique', function() {
+  test('process_persistence_when_not_unique_with_name', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);
     p1.name = 'Browser';

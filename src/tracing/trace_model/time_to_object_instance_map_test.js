@@ -110,7 +110,7 @@ base.unittest.testSuite('tracing.trace_model.time_to_object_instance_map',
         assertEquals(undefined, m.getInstanceAt(5));
       });
 
-      test('getInstanceBeforeCreationImplicitCreate', function() {
+      test('getInstanceBeforeCreationImplicitCreateWithSnapshot', function() {
         var m = new tracing.trace_model.TimeToObjectInstanceMap(
             createObjectInstance, {}, 7);
         var s5 = m.addSnapshot('cat', 'name', 5, 'a1');

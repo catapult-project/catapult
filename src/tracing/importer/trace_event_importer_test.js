@@ -360,7 +360,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   });
 
   // Process labels.
-  test('processNames', function() {
+  test('processLabels', function() {
     var events = [
       {name: 'process_labels', args: {labels: 'foo,bar'},
         pid: 1, ts: 0, tid: 1, ph: 'M'},
