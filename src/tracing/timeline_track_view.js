@@ -831,7 +831,6 @@ base.exportTo('tracing', function() {
     },
 
     updatePanScan_: function(e) {
-
       if (!this.isPanningAndScanning_)
         return;
 

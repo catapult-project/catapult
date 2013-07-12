@@ -70,21 +70,23 @@ base.exportTo('tracing.tracks', function() {
       if (headingBounds === undefined)
         return;
 
-      var childTrack = this.querySelector('.track');
+      var childTracks = this.querySelectorAll('.track');
 
       var thisBounds = this.getBoundingClientRect();
-      var childTrackBounds = childTrack.getBoundingClientRect();
+      var firstChildTrackBounds = childTracks[0].getBoundingClientRect();
+      var lastChildTrackBounds =
+          childTracks[childTracks.length - 1].getBoundingClientRect();
 
       var canvasLeft = headingBounds.right - thisBounds.left;
-      var canvasTop = childTrackBounds.top - thisBounds.top;
+      var canvasTop = firstChildTrackBounds.top - thisBounds.top;
 
       if (this.canvas_.style.top + 'px' !== canvasTop)
         this.canvas_.style.top = canvasTop + 'px';
       if (this.canvas_.style.left + 'px' !== canvasLeft)
         this.canvas_.style.left = canvasLeft + 'px';
 
-      var innerWidth = childTrackBounds.width - headingBounds.right;
-      var innerHeight = thisBounds.height;
+      var innerWidth = firstChildTrackBounds.width - headingBounds.right;
+      var innerHeight = lastChildTrackBounds.bottom - firstChildTrackBounds.top;
 
       var pixelRatio = window.devicePixelRatio || 1;
 
