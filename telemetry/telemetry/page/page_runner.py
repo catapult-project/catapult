@@ -235,7 +235,7 @@ def Run(test, page_set, options):
             _CheckThermalThrottling(state.browser.platform)
           except exceptions.TabCrashException:
             stdout = ''
-            if not options.show_stdout:
+            if options.show_stdout:
               stdout = state.browser.GetStandardOutput()
               stdout = (('\nStandard Output:\n') +
                         ('*' * 80) +

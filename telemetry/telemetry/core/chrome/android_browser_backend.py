@@ -6,10 +6,10 @@ import logging
 import os
 import subprocess
 import sys
-import tempfile
 import time
 
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.core.chrome import adb_commands
 from telemetry.core.chrome import browser_backend
 
@@ -261,31 +261,28 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     return local_port
 
   def GetStandardOutput(self):
-    # If we can find symbols and there is a stack, output the symbolized stack.
-    symbol_paths = [
-        os.path.join(adb_commands.GetOutDirectory(), 'Release', 'lib'),
-        os.path.join(adb_commands.GetOutDirectory(), 'Debug', 'lib'),
-        os.path.join(adb_commands.GetOutDirectory(), 'Release', 'lib.target'),
-        os.path.join(adb_commands.GetOutDirectory(), 'Debug', 'lib.target')]
-    for symbol_path in symbol_paths:
-      if not os.path.isdir(symbol_path):
-        continue
-      with tempfile.NamedTemporaryFile() as f:
-        lines = self._adb.RunShellCommand('logcat -d')
-        for line in lines:
-          f.write(line + '\n')
-        symbolized_stack = None
-        try:
-          logging.info('Symbolizing stack...')
-          symbolized_stack = subprocess.Popen([
-              'ndk-stack', '-sym', symbol_path,
-              '-dump', f.name], stdout=subprocess.PIPE).communicate()[0]
-        except Exception:
-          pass
-        if symbolized_stack:
-          return symbolized_stack
-    # Otherwise, just return the last 100 lines of logcat.
-    return '\n'.join(self._adb.RunShellCommand('logcat -d -t 100'))
+    def Decorate(title, content):
+      return title + '\n' + content + '\n' + '*' * 80 + '\n'
+    # Get the last lines of logcat (large enough to contain stacktrace)
+    logcat = '\n'.join(self._adb.RunShellCommand('logcat -d -t 500'))
+    ret = Decorate('Logcat', logcat)
+    stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
+                         'android_platform', 'development', 'scripts', 'stack')
+    # Try to symbolize logcat.
+    if os.path.exists(stack):
+      p = subprocess.Popen([stack], stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE)
+      ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
+
+    # Try to get tombstones.
+    tombstones = os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
+                              'tombstones.py')
+    if os.path.exists(tombstones):
+      ret += Decorate('Tombstones',
+                      subprocess.Popen([tombstones, '-w', '--device',
+                                        self._adb.device()],
+                                       stdout=subprocess.PIPE).communicate()[0])
+    return ret
 
   def CreateForwarder(self, *port_pairs):
     return adb_commands.Forwarder(self._adb, *port_pairs)

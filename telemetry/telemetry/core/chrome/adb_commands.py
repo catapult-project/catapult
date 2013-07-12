@@ -54,6 +54,10 @@ class AdbCommands(object):
 
   def __init__(self, device):
     self._adb = android_commands.AndroidCommands(device)
+    self._device = device
+
+  def device(self):
+    return self._device
 
   def Adb(self):
     return self._adb
