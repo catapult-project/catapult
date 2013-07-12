@@ -592,7 +592,11 @@ base.exportTo('tracing', function() {
       var viewWidth = this.firstCanvas.width;
 
       if (!bounds.range) {
-        this.viewport_.xPanWorldPosToViewPos(worldCenter, 'center', viewWidth);
+        if (this.viewport_.xWorldToView(bounds.center) < 0 ||
+            this.viewport_.xWorldToView(bounds.center) > viewWidth) {
+          this.viewport_.xPanWorldPosToViewPos(
+              worldCenter, 'center', viewWidth);
+        }
         return;
       }
 
