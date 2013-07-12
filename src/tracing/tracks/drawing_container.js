@@ -55,12 +55,23 @@ base.exportTo('tracing.tracks', function() {
     },
 
     updateCanvasSizeIfNeeded_: function() {
-      var heading = this.querySelector('heading');
-      if (heading === undefined || heading === null)
+      var headings = this.querySelectorAll('heading');
+      if (headings === undefined || headings === null || headings.length === 0)
         return;
 
-      heading = heading.getBoundingClientRect();
-      var left = parseInt(heading.right);
+      // Find the first heading with size.
+      var boundingRect = undefined;
+      for (var i = 0; i < headings.length; i++) {
+        var rect = headings[i].getBoundingClientRect();
+        if (rect.right > 0) {
+          boundingRect = rect;
+          break;
+        }
+      }
+      if (boundingRect === undefined)
+        return;
+
+      var left = parseInt(boundingRect.right);
 
       var childTrack = this.querySelector('.track');
       var top = childTrack.offsetTop;
@@ -74,7 +85,7 @@ base.exportTo('tracing.tracks', function() {
       var innerWidth = parseInt(style.width) -
           parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
           parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth) -
-          (heading.right - heading.left);
+          (boundingRect.right - boundingRect.left);
       var innerHeight = parseInt(style.height) -
           parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
           parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);

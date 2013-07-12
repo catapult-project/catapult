@@ -92,6 +92,11 @@ base.exportTo('tracing.tracks', function() {
         this.expandEl_.classList.remove('expand-button-expanded');
       }
 
+      // Expanding and collapsing tracks is, essentially, growing and shrinking
+      // the viewport. We dispatch a change event to trigger any processing
+      // to happen.
+      this.viewport_.dispatchChangeEvent();
+
       if (!this.processBase_)
         return;
 
