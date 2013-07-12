@@ -97,6 +97,8 @@ base.exportTo('tracing', function() {
 
       this.modeIndicator_ = this.ownerDocument.createElement('div');
       this.modeIndicator_.className = 'mode-indicator';
+      this.modeIndicator_.addEventListener('click',
+          this.toggleMouseMode_.bind(this));
       this.appendChild(this.modeIndicator_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
@@ -415,7 +417,7 @@ base.exportTo('tracing', function() {
       var curMouseV, curCenterW;
       switch (e.keyCode) {
         case 32:   // space
-          this.mouseMode = this.alternativeMouseMode_;
+          this.toggleMouseMode_();
           break;
         case 119:  // w
         case 44:   // ,
@@ -479,7 +481,7 @@ base.exportTo('tracing', function() {
           // Prevent the user switching modes during an interaction.
           if (this.isPanningAndScanning_ || this.dragBeginEvent_)
             return;
-          this.mouseMode = this.alternativeMouseMode_;
+          this.toggleMouseMode_();
           this.isInTemporaryAlternativeMouseMode_ = true;
           e.preventDefault();
           break;
@@ -536,7 +538,7 @@ base.exportTo('tracing', function() {
       // If the user has successfully switched mouse modes temporarily and has
       // now released the shift key switch back.
       if (this.isInTemporaryAlternativeMouseMode_ && e.keyCode === 16) {
-        this.mouseMode = this.alternativeMouseMode_;
+        this.toggleMouseMode_();
         this.isInTemporaryAlternativeMouseMode_ = false;
         e.preventDefault();
       }
@@ -604,11 +606,9 @@ base.exportTo('tracing', function() {
       this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max, viewWidth);
     },
 
-    get alternativeMouseMode_() {
-      if (this.mouseMode === MOUSE_MODE_SELECTION)
-        return MOUSE_MODE_PANSCAN;
-      else if (this.mouseMode === MOUSE_MODE_PANSCAN)
-        return MOUSE_MODE_SELECTION;
+    toggleMouseMode_: function() {
+      this.mouseMode = (this.mouseMode === MOUSE_MODE_SELECTION) ?
+          MOUSE_MODE_PANSCAN : MOUSE_MODE_SELECTION;
     },
 
     get keyHelp() {
@@ -856,7 +856,7 @@ base.exportTo('tracing', function() {
       this.isPanningAndScanning_ = false;
 
       if (this.isInTemporaryAlternativeMouseMode_ && !e.shiftKey)
-        this.mouseMode = this.alternativeMouseMode_;
+        this.toggleMouseMode_();
     }
   };
 
