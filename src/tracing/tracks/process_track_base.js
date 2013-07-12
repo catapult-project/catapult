@@ -10,6 +10,7 @@ base.require('tracing.analysis.object_instance_view');
 base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.counter_track');
 base.require('tracing.tracks.object_instance_track');
+base.require('tracing.tracks.spacing_track');
 base.require('tracing.tracks.thread_track');
 base.require('tracing.trace_model_settings');
 base.require('tracing.filter');
@@ -23,6 +24,7 @@ base.exportTo('tracing.tracks', function() {
   var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
   var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
   var TraceModelSettings = tracing.TraceModelSettings;
+  var SpacingTrack = tracing.tracks.SpacingTrack;
 
   /**
    * Visualizes a Process by building ThreadTracks and CounterTracks.
@@ -146,6 +148,8 @@ base.exportTo('tracing.tracks', function() {
           this.processBase_.objects.getAllInstancesByTypeName();
       var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
       instanceTypeNames.sort();
+
+      var didAppendAtLeastOneTrack = false;
       instanceTypeNames.forEach(function(typeName) {
         var allInstances = instancesByTypeName[typeName];
 
@@ -189,7 +193,10 @@ base.exportTo('tracing.tracks', function() {
         track.categoryFilter = this.categoryFilter_;
         track.objectInstances = visibleInstances;
         this.appendChild(track);
+        didAppendAtLeastOneTrack = true;
       }, this);
+      if (didAppendAtLeastOneTrack)
+        this.appendChild(new SpacingTrack(this.viewport));
     },
 
     appendCounterTracks_: function() {
@@ -204,6 +211,7 @@ base.exportTo('tracing.tracks', function() {
         track.categoryFilter = this.categoryFilter_;
         track.counter = counter;
         this.appendChild(track);
+        this.appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     },
 
@@ -223,6 +231,7 @@ base.exportTo('tracing.tracks', function() {
         if (!track.hasVisibleContent)
           return;
         this.appendChild(track);
+        this.appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     }
   };

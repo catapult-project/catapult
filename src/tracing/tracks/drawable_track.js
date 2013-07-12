@@ -95,7 +95,7 @@ base.exportTo('tracing.tracks', function() {
       this.rafPending_ = true;
     },
 
-    draw: function() {
+    draw: function(viewLWorld, viewRWorld) {
       throw new Error('Implementation missing');
     },
 

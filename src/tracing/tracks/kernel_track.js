@@ -40,6 +40,7 @@ base.exportTo('tracing.tracks', function() {
       var cpus = base.dictionaryValues(this.kernel.cpus);
       cpus.sort(tracing.trace_model.Cpu.compare);
 
+      var didAppendAtLeastOneTrack = false;
       for (var i = 0; i < cpus.length; ++i) {
         var cpu = cpus[i];
         if (!categoryFilter.matchCpu(cpu))
@@ -47,9 +48,13 @@ base.exportTo('tracing.tracks', function() {
         var track = new tracing.tracks.CpuTrack(this.viewport);
         track.categoryFilter = categoryFilter;
         track.cpu = cpu;
-        if (track.hasVisibleContent)
-          this.appendChild(track);
+        if (!track.hasVisibleContent)
+          continue;
+        this.appendChild(track);
+        didAppendAtLeastOneTrack = true;
       }
+      if (didAppendAtLeastOneTrack)
+        this.appendChild(new SpacingTrack(this.viewport));
     }
   };
 
