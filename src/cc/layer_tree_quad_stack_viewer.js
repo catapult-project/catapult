@@ -246,7 +246,7 @@ base.exportTo('cc', function() {
         var iq = layerQuad.projectUnitRect(unitRect);
 
         var pictureAsImage = this.pictureAsImage_[picture.guid];
-        if (pictureAsImage.image && this.showContents)
+        if (this.showContents && pictureAsImage.image)
           iq.backgroundImage = pictureAsImage.image;
         else
           iq.backgroundColor = 'rgba(0,0,0,0.1)';
