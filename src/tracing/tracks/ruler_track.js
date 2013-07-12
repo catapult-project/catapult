@@ -130,7 +130,7 @@ base.exportTo('tracing.tracks', function() {
       var pixelRatio = window.devicePixelRatio || 1;
 
       var bounds = this.getBoundingClientRect();
-      var width = bounds.width;
+      var width = bounds.width * pixelRatio;
       var height = bounds.height * pixelRatio;
 
       var measurements = this.classList.contains(
