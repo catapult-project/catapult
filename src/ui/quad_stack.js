@@ -86,6 +86,10 @@ base.exportTo('ui', function() {
       this.updateDebugIndicator_();
     },
 
+    get viewport() {
+      return this.viewport_;
+    },
+
     get worldViewportRect() {
       return this.worldViewportRect_;
     },

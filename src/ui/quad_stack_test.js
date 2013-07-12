@@ -35,5 +35,6 @@ base.unittest.testSuite('ui.quad_stack', function() {
 
     assertEquals(stack.worldViewportRect.width, 200);
     assertEquals(stack.worldViewportRect.height, 100);
+    assertNotUndefined(stack.viewport);
   });
 });
