@@ -70,12 +70,16 @@ base.exportTo('tracing.tracks', function() {
       if (headingBounds === undefined)
         return;
 
-      var childTracks = this.querySelectorAll('.track');
+      var visibleChildTracks = base.asArray(this.children).filter(function(element) {
+        if (!(element instanceof tracing.tracks.Track))
+          return false;
+        return window.getComputedStyle(element).display !== 'none';
+      });
 
       var thisBounds = this.getBoundingClientRect();
-      var firstChildTrackBounds = childTracks[0].getBoundingClientRect();
+      var firstChildTrackBounds = visibleChildTracks[0].getBoundingClientRect();
       var lastChildTrackBounds =
-          childTracks[childTracks.length - 1].getBoundingClientRect();
+          visibleChildTracks[visibleChildTracks.length - 1].getBoundingClientRect();
 
       var canvasLeft = headingBounds.right - thisBounds.left;
       var canvasTop = firstChildTrackBounds.top - thisBounds.top +
