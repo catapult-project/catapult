@@ -12,23 +12,19 @@ base.exportTo('ui', function() {
 
   function QuadViewViewport(worldRect,
                             opt_quad_stack_scale,
-                            opt_deviceViewportRect,
                             opt_padding,
                             opt_devicePixelRatio) {
     base.EventTarget.call(this);
     if (!worldRect)
       throw new Error('Cannot initialize a viewport with an empty worldRect');
 
-    this.layoutRect_ = undefined;
-    this.setWorldRect_(worldRect, opt_padding);
-
     // Physical pixels / device-independent pixels;
     // 1 is normal; higher for eg Retina
-    var devicePixelRatio;
-    if (opt_devicePixelRatio)
-      this.devicePixelRatio = opt_devicePixelRatio;
-    else
-      this.devicePixelRatio = window.devicePixelRatio || 1;
+    this.devicePixelRatio =
+        opt_devicePixelRatio || window.devicePixelRatio || 1;
+
+    this.layoutRect_ = undefined;
+    this.setWorldRect_(worldRect, opt_padding);
 
     var scale;
     if (opt_quad_stack_scale) {
@@ -39,14 +35,6 @@ base.exportTo('ui', function() {
         scale = scale * this.devicePixelRatio;
     }
     this.worldPixelsPerDevicePixel_ = scale;
-
-    if (opt_deviceViewportRect) {
-      this.deviceViewportRect_ = new base.Rect.FromXYWH(
-          opt_deviceViewportRect.x || 0,
-          opt_deviceViewportRect.y || 0,
-          opt_deviceViewportRect.width || 0,
-          opt_deviceViewportRect.height || 0);
-    }
 
     this.updateScale_();
   }
@@ -68,10 +56,8 @@ base.exportTo('ui', function() {
       return this.worldPixelsPerDevicePixel_;
     },
 
-    // The part of the world that is visible by users, in world pixels.
-    // Maybe undefined.
-    get deviceViewportRect() {
-      return this.deviceViewportRect_;
+    get worldRect() {
+      return this.worldRect_;
     },
 
     updateBoxSize: function(canvas) {
@@ -129,9 +115,9 @@ base.exportTo('ui', function() {
     updateScale_: function() {
       // Scale the world to the size selected by the user.
       this.worldWidthInDevicePixels_ =
-          this.worldRect.width * this.worldPixelsPerDevicePixel_;
+          this.worldRect_.width * this.worldPixelsPerDevicePixel_;
       this.worldHeightInDevicePixels_ =
-          this.worldRect.height * this.worldPixelsPerDevicePixel_;
+          this.worldRect_.height * this.worldPixelsPerDevicePixel_;
 
       this.updateLayoutRect_();
 
@@ -162,7 +148,7 @@ base.exportTo('ui', function() {
                           worldRect.height) * padding;
 
       worldRect = worldRect.enlarge(worldPad);
-      this.worldRect = worldRect;
+      this.worldRect_ = worldRect;
     },
 
     updateTransform_: function() {
@@ -172,7 +158,7 @@ base.exportTo('ui', function() {
       mat2d.identity(this.transformWorldToDevicePixels_);
       mat2d.translateXY(
           this.transformWorldToDevicePixels_,
-          -this.worldRect.x, -this.worldRect.y);
+          -this.worldRect_.x, -this.worldRect_.y);
       mat2d.scaleXY(this.transformWorldToDevicePixels_,
           this.worldPixelsPerDevicePixel_,
           this.worldPixelsPerDevicePixel_);

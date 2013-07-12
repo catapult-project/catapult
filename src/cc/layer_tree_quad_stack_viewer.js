@@ -139,6 +139,7 @@ base.exportTo('cc', function() {
     updateContents_: function() {
       if (!this.layerTreeImpl_)
         return;
+
       if (this.pictureLoadingComplete_())
         this.generateQuads_();
     },
@@ -315,13 +316,14 @@ base.exportTo('cc', function() {
           this.appendSelectionQuads_(layer, layerQuad);
         }
       }
-
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var allLayersRect = lthiInstance.allLayersBBox.asRect();
-      var viewport = new ui.QuadViewViewport(
-          allLayersRect, constants.QUAD_STACK_SCALE, lthi.deviceViewportSize);
-      this.quadStackViewer_.setQuadsAndViewport(this.quads_, viewport);
+      var worldViewportRect = base.Rect.FromXYWH(0, 0,
+          lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
+      this.quadStackViewer_.quadStack.initialize(
+          lthiInstance.allLayersBBox.asRect(), worldViewportRect);
+
+      this.quadStackViewer_.quadStack.quads = this.quads_;
 
       this.updateInfoBar_(this.messages_);
     },

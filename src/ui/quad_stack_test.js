@@ -26,12 +26,14 @@ base.unittest.testSuite('ui.quad_stack', function() {
     if (stack.debug)
       throw new Error('ui.QuadStack debug flag must not be truthy.');
 
+    var deviceViewportSizeForFrame = {width: 200, height: 100};
+    stack.initialize(quadsBbox.asRect(), deviceViewportSizeForFrame);
     stack.quads = quads;
-    var deviceViewportSizeForFrame = {width: 100, height: 100};
-    stack.viewport = new ui.QuadViewViewport(quadsBbox.asRect(),
-        0.5, deviceViewportSizeForFrame);
     stack.style.border = '1px solid black';
 
     this.addHTMLOutput(stack);
+
+    assertEquals(stack.worldViewportRect.width, 200);
+    assertEquals(stack.worldViewportRect.height, 100);
   });
 });

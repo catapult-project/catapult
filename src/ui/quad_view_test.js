@@ -146,7 +146,7 @@ base.unittest.testSuite('ui.quad_view', function() {
 
     var deviceViewportSizeForFrame = {width: 50, height: 30};
     quadView.viewport = new QuadViewViewport(
-        quadsBBox.asRect(), 10.0, deviceViewportSizeForFrame, 0, 2);
+        quadsBBox.asRect(), 10.0, 0, 2);
 
     var rect = quadView.canvas_.getBoundingClientRect();
     var hitIndices = quadView.findQuadsAtCanvasClientPoint(

@@ -34,9 +34,8 @@ base.exportTo('ui', function() {
       this.camera_ = new ui.Camera(this.quadStack_);
     },
 
-    setQuadsAndViewport: function(quads, viewport) {
-      viewport.scale = this.scale_;
-      this.quadStack_.setQuadsAndViewport(quads, viewport);
+    get quadStack() {
+      return this.quadStack_;
     },
 
     get scale() {

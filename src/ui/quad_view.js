@@ -67,7 +67,7 @@ base.exportTo('ui', function() {
 
       this.quads_ = undefined;
       this.viewport_ = undefined;
-      this.drawDeviceViewportMask_ = false;
+      this.worldViewportRect_ = undefined;
       this.canvas_ = document.createElement('canvas');
 
       this.appendChild(this.canvas_);
@@ -137,16 +137,16 @@ base.exportTo('ui', function() {
       this.updateChildren_();
     },
 
-    get drawDeviceViewportMask() {
-      return this.drawDeviceViewportMask_;
+    get worldViewportRect() {
+      return this.worldViewportRect_;
     },
 
     /**
-     * When true, darkens the canvas outside of the viewport in order to
+     * When set, darkens the canvas outside of the viewport in order to
      * make waht is inside vs outside the viewport more obvious.
      */
-    set drawDeviceViewportMask(draw) {
-      this.drawDeviceViewportMask_ = draw;
+    set worldViewportRect(rect) {
+      this.worldViewportRect_ = rect;
       this.updateChildren_();
     },
 
@@ -188,6 +188,10 @@ base.exportTo('ui', function() {
 
       ctx.save();
       ctx.scale(ui.RASTER_SCALE, ui.RASTER_SCALE);
+
+      // The quads are in the world coordinate system. We are drawing
+      // into a canvas with 0,0 in the top left corner. Tell the canvas to
+      // transform drawing ops from world to canvas coordinates.
       vp.applyTransformToContext(ctx);
       ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(1.0);
 
@@ -277,8 +281,7 @@ base.exportTo('ui', function() {
         ctx.stroke();
       }
 
-      if (this.drawDeviceViewportMask_ &&
-          this.viewport_ && this.viewport_.deviceViewportRect)
+      if (this.worldViewportRect_)
         this.drawDeviceViewport_(ctx);
 
       ctx.restore();
@@ -322,9 +325,9 @@ base.exportTo('ui', function() {
     },
 
     drawDeviceViewport_: function(ctx) {
+      var vW = this.worldViewportRect_.width;
+      var vH = this.worldViewportRect_.height;
       var vp = this.viewport_;
-      var vW = vp.deviceViewportRect.width;
-      var vH = vp.deviceViewportRect.height;
 
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
 

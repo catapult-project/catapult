@@ -63,8 +63,13 @@ base.exportTo('ui', function() {
     repaint_: function() {
       if (!this.repaintPending_)
         return;
+
       this.repaintPending_ = false;
       var layers = this.targetElement_.layers;
+
+      if (!layers)
+        return;
+
       var numLayers = layers.length;
 
       var vpThickness;

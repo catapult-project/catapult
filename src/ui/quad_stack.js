@@ -41,18 +41,30 @@ base.exportTo('ui', function() {
       this.debug_ = false;
     },
 
+    initialize: function(unpaddedWorldRect, opt_worldViewportRect) {
+      this.viewport_ = new ui.QuadViewViewport(unpaddedWorldRect);
+
+      if (this.debug) {
+        this.viewport_.addEventListener('change', function() {
+          this.updateDebugIndicator_();
+        }.bind(this));
+        this.updateDebugIndicator_();
+      }
+
+      this.worldViewportRect_ = base.Rect.FromXYWH(
+          opt_worldViewportRect.x || 0,
+          opt_worldViewportRect.y || 0,
+          opt_worldViewportRect.width,
+          opt_worldViewportRect.height
+          );
+    },
+
     get layers() {
       return this.layers_;
     },
 
     set layers(newValue) {
       base.setPropertyAndDispatchChange(this, 'layers', newValue);
-    },
-
-    setQuadsAndViewport: function(quads, viewport) {
-      validateQuads(quads);
-      this.quads_ = quads;
-      this.viewport = viewport;
     },
 
     get quads() {
@@ -65,26 +77,6 @@ base.exportTo('ui', function() {
       this.updateContents_();
     },
 
-    get viewport() {
-      return this.viewport_;
-    },
-
-    set viewport(viewport) {
-      this.viewport_ = viewport;
-
-      if (this.debug) {
-        this.viewport_.addEventListener('change', function() {
-          this.updateDebugIndicator_();
-        }.bind(this));
-      }
-
-      this.updateContents_();
-    },
-
-    get contentContainer() {
-      return this.contentContainer_;
-    },
-
     get debug() {
       return this.debug_;
     },
@@ -94,8 +86,16 @@ base.exportTo('ui', function() {
       this.updateDebugIndicator_();
     },
 
-    updateContents_: function() {
+    get worldViewportRect() {
+      return this.worldViewportRect_;
+    },
 
+    get contentContainer() {
+      return this.contentContainer_;
+    },
+
+
+    updateContents_: function() {
       // Build the stacks.
       var stackingGroupsById = {};
       var quads = this.quads;
@@ -150,7 +150,7 @@ base.exportTo('ui', function() {
 
       var topQuadIndex = this.contentContainer_.children.length - 1;
       var topQuad = this.contentContainer_.children[topQuadIndex];
-      topQuad.drawDeviceViewportMask = true;
+      topQuad.worldViewportRect = this.worldViewportRect_;
 
       for (var i = 0; i < this.contentContainer_.children.length; i++) {
         var child = this.contentContainer_.children[i];
