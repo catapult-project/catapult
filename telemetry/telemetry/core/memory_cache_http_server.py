@@ -3,12 +3,13 @@
 # found in the LICENSE file.
 import BaseHTTPServer
 from collections import namedtuple
+import gzip
 import mimetypes
 import os
 import SimpleHTTPServer
 import SocketServer
+import StringIO
 import sys
-import zlib
 
 
 ByteRange = namedtuple('ByteRange', ['from_byte', 'to_byte'])
@@ -62,7 +63,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.send_header('Last-Modified',
                      self.date_time_string(resource['last-modified']))
     if resource['zipped']:
-      self.send_header('Content-Encoding', 'deflate')
+      self.send_header('Content-Encoding', 'gzip')
     self.end_headers()
     return ResourceAndRange(resource, byte_range)
 
@@ -155,7 +156,12 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
       zipped = False
       if content_type in ['text/html', 'text/css', 'application/javascript']:
         zipped = True
-        response = zlib.compress(response, 9)
+        sio = StringIO.StringIO()
+        gzf = gzip.GzipFile(fileobj=sio, compresslevel=9, mode='wb')
+        gzf.write(response)
+        gzf.close()
+        response = sio.getvalue()
+        sio.close()
       self.resource_map[file_path] = {
           'content-type': content_type,
           'content-length': len(response),
