@@ -13,12 +13,29 @@
   margin-bottom: 10px;
 }
 
-#exceptions {
+#exceptions,
+#messages {
   display: none;
 }
 
-#exceptions[hasexceptions] {
+#exceptions[hasExceptions],
+#messages[hasMessages] {
   display: block;
+}
+
+#messages {
+  margin-bottom: 20px;
+}
+
+#message-list {
+  color: orange;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#message-list h1 {
+  font-size: 1em;
 }
 
 #exception-list {

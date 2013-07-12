@@ -24,6 +24,7 @@ base.exportTo('base.unittest', function() {
   function TestRunner(suitePaths, tests) {
     this.suitePaths_ = suitePaths || [];
     this.suites_ = [];
+    this.suiteNames_ = {};
     this.tests_ = tests || [];
     this.moduleCount_ = 0;
 
@@ -48,7 +49,11 @@ base.exportTo('base.unittest', function() {
     },
 
     addSuite: function(suite) {
+      if (this.suiteNames_[suite.name] === true)
+        this.logDuplicateSuiteName_(suite.name);
+
       this.suites_.push(suite);
+      this.suiteNames_[suite.name] = true;
 
       // This assumes one test suite per file.
       if (this.suites_.length === this.suitePaths_.length)
@@ -127,6 +132,17 @@ base.exportTo('base.unittest', function() {
 
       var exceptionsEl = document.querySelector('#exception-list');
       exceptionsEl.appendChild(excEl);
+    },
+
+    logDuplicateSuiteName_: function(name) {
+      var messagesEl = document.querySelector('#messages');
+      messagesEl.setAttribute('hasMessages', true);
+
+      var li = document.createElement('li');
+      li.innerText = 'Duplicate test suite name detected: ' + name;
+
+      var list = document.querySelector('#message-list');
+      list.appendChild(li);
     }
   };
 
