@@ -55,40 +55,37 @@ base.exportTo('tracing.tracks', function() {
     },
 
     updateCanvasSizeIfNeeded_: function() {
+      // Find the first heading with size.
       var headings = this.querySelectorAll('heading');
       if (headings === undefined || headings === null || headings.length === 0)
         return;
-
-      // Find the first heading with size.
-      var boundingRect = undefined;
+      var headingBounds = undefined;
       for (var i = 0; i < headings.length; i++) {
         var rect = headings[i].getBoundingClientRect();
         if (rect.right > 0) {
-          boundingRect = rect;
+          headingBounds = rect;
           break;
         }
       }
-      if (boundingRect === undefined)
+      if (headingBounds === undefined)
         return;
 
-      var left = parseInt(boundingRect.right);
-
       var childTrack = this.querySelector('.track');
-      var top = childTrack.offsetTop;
 
-      if (this.canvas_.style.top !== top)
-        this.canvas_.style.top = top + 'px';
-      if (this.canvas_.style.left !== left)
-        this.canvas_.style.left = left + 'px';
+      var thisBounds = this.getBoundingClientRect();
+      var childTrackBounds = childTrack.getBoundingClientRect();
 
-      var style = window.getComputedStyle(childTrack);
-      var innerWidth = parseInt(style.width) -
-          parseInt(style.paddingLeft) - parseInt(style.paddingRight) -
-          parseInt(style.borderLeftWidth) - parseInt(style.borderRightWidth) -
-          (boundingRect.right - boundingRect.left);
-      var innerHeight = parseInt(style.height) -
-          parseInt(style.paddingTop) - parseInt(style.paddingBottom) -
-          parseInt(style.borderTopWidth) - parseInt(style.borderBottomWidth);
+      var canvasLeft = headingBounds.right - thisBounds.left;
+      var canvasTop = childTrackBounds.top - thisBounds.top;
+
+      if (this.canvas_.style.top + 'px' !== canvasTop)
+        this.canvas_.style.top = canvasTop + 'px';
+      if (this.canvas_.style.left + 'px' !== canvasLeft)
+        this.canvas_.style.left = canvasLeft + 'px';
+
+      var innerWidth = childTrackBounds.width - headingBounds.right;
+      var innerHeight = thisBounds.height;
+
       var pixelRatio = window.devicePixelRatio || 1;
 
       if (this.canvas_.width != innerWidth * pixelRatio) {
