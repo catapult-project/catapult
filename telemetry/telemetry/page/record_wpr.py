@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 
+from telemetry import test
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import wpr_modes
@@ -28,8 +29,7 @@ class RecordPage(page_test.PageTest):
          if measurement().action_name_to_run])
 
   def CanRunForPage(self, page):
-    return (page.url.startswith('http') and
-            bool(self._CompoundActionsForPage(page)))
+    return page.url.startswith('http')
 
   def CustomizeBrowserOptionsForPage(self, page, options):
     for compound_action in self._CompoundActionsForPage(page):
@@ -63,8 +63,10 @@ class RecordPage(page_test.PageTest):
 def Main(base_dir):
   measurements = discover.DiscoverClasses(base_dir, base_dir,
                                           page_measurement.PageMeasurement)
+  tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
+                                   index_by_class_name=True)
   options = browser_options.BrowserOptions()
-  parser = options.CreateParser('%prog <page_set>')
+  parser = options.CreateParser('%prog <PageSet|Measurement|Test>')
   page_runner.AddCommandLineOptions(parser)
 
   recorder = RecordPage(measurements)
@@ -77,7 +79,15 @@ def Main(base_dir):
     parser.print_usage()
     sys.exit(1)
 
-  ps = page_set.PageSet.FromFile(args[0])
+  if args[0].endswith('.json'):
+    ps = page_set.PageSet.FromFile(args[0])
+  elif args[0] in measurements:
+    ps = measurements[args[0]]().CreatePageSet(args, options)
+  elif args[0] in tests:
+    ps = tests[args[0]]().CreatePageSet(options)
+  else:
+    parser.print_usage()
+    sys.exit(1)
 
   # Set the archive path to something temporary.
   temp_target_wpr_file_path = tempfile.mkstemp()[1]
