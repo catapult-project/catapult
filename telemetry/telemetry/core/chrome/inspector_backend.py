@@ -218,7 +218,7 @@ class InspectorBackend(object):
       if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
           self._debugger_url):
         return
-      raise exceptions.TabCrashException()
+      raise exceptions.TabCrashException(sys.exc_info()[1])
 
     res = json.loads(data)
     logging.debug('got [%s]', data)
