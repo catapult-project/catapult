@@ -119,6 +119,10 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
+    get selection() {
+      return this.selection_;
+    },
+
     set selection(selection) {
       base.setPropertyAndDispatchChange(this, 'selection', selection);
       this.updateContents_();
