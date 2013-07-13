@@ -41,14 +41,28 @@ class ScrollAction(page_action.PageAction):
     #   function (callback) {
     #     callback(document.getElementById('foo'));
     #   }
+    left_start_percentage = 0.5
+    top_start_percentage = 0.5
+    if hasattr(self, 'left_start_percentage'):
+      left_start_percentage = self.left_start_percentage
+    if hasattr(self, 'top_start_percentage'):
+      top_start_percentage = self.top_start_percentage
     if hasattr(self, 'scrollable_element_function'):
       tab.ExecuteJavaScript("""
-          (%s)(function(element) {
-            window.__scrollAction.start(element);
-          });""" % (self.scrollable_element_function))
+          (%s)(function(element) { window.__scrollAction.start(
+             { element: element,
+               left_start_percentage: %s,
+               top_start_percentage: %s })
+             });""" % (self.scrollable_element_function,
+                       left_start_percentage,
+                       top_start_percentage))
     else:
-      tab.ExecuteJavaScript(
-        'window.__scrollAction.start(document.body);')
+      tab.ExecuteJavaScript("""
+          window.__scrollAction.start(
+          { element: document.body,
+            left_start_percentage: %s,
+            top_start_percentage: %s });"""
+        % (left_start_percentage, top_start_percentage))
 
     # Poll for scroll action completion.
     util.WaitFor(lambda: tab.EvaluateJavaScript(

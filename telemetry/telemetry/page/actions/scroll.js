@@ -5,7 +5,7 @@
 // This file provides the ScrollAction object, which scrolls a page
 // from top to bottom:
 //   1. var action = new __ScrollAction(callback)
-//   2. action.start(element_to_scroll)
+//   2. action.start(scroll_options)
 'use strict';
 
 (function() {
@@ -33,13 +33,25 @@
            };
   })().bind(window);
 
+  function ScrollGestureOptions(opt_options) {
+    if (opt_options) {
+      this.element_ = opt_options.element;
+      this.left_start_percentage_ = opt_options.left_start_percentage;
+      this.top_start_percentage_ = opt_options.top_start_percentage;
+    } else {
+      this.element_ = document.body;
+      this.left_start_percentage_ = 0.5;
+      this.top_start_percentage_ = 0.5;
+    }
+  }
+
   /**
    * Scrolls a given element down a certain amount to emulate user scroll.
    * Uses smooth scroll capabilities provided by the platform, if available.
    * @constructor
    */
-  function SmoothScrollDownGesture(opt_element) {
-    this.element_ = opt_element || document.body;
+  function SmoothScrollDownGesture(options) {
+    this.options_ = options;
   };
 
   function min(a, b) {
@@ -72,15 +84,19 @@
     if (window.chrome &&
         chrome.gpuBenchmarking &&
         chrome.gpuBenchmarking.smoothScrollBy) {
-      var rect = getBoundingVisibleRect(this.element_);
+      var rect = getBoundingVisibleRect(this.options_.element_);
+      var start_left =
+          rect.left + rect.width * this.options_.left_start_percentage_;
+      var start_top =
+          rect.top + rect.height * this.options_.top_start_percentage_;
       chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
         callback();
-      }, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      }, start_left, start_top);
       return;
     }
 
     var SCROLL_DELTA = 100;
-    this.element_.scrollTop += SCROLL_DELTA;
+    this.options_.element_.scrollTop += SCROLL_DELTA;
     requestAnimationFrame(callback);
   };
 
@@ -115,10 +131,11 @@
     return this.scrollHeight_ - this.element_.scrollTop - clientHeight;
   }
 
-  ScrollAction.prototype.start = function(opt_element) {
+  ScrollAction.prototype.start = function(opt_options) {
+    this.options_ = new ScrollGestureOptions(opt_options);
     // Assign this.element_ here instead of constructor, because the constructor
     // ensures this method will be called after the document is loaded.
-    this.element_ = opt_element || document.body;
+    this.element_ = this.options_.element_;
     // Some pages load more content when you scroll to the bottom. Record
     // the original element height here and only scroll to that point.
     // -1 to allow for rounding errors on scaled viewports (like mobile).
@@ -132,7 +149,7 @@
 
     this.beginMeasuringHook();
 
-    this.gesture_ = new SmoothScrollDownGesture(this.element_);
+    this.gesture_ = new SmoothScrollDownGesture(this.options_);
     this.gesture_.start(this.getRemainingScrollDistance_(),
                         this.onGestureComplete_.bind(this));
   };
