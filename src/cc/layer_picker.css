@@ -19,7 +19,7 @@ layer-picker > top-controls {
   display: inline;
 }
 
-layer-picker > x-list-view {
+layer-picker > .x-list-view {
   -webkit-flex: 1 1 auto;
   font-family: monospace;
   overflow: auto;

@@ -8,7 +8,7 @@ x-list-and-associated-view {
   display: -webkit-flex;
 }
 
-x-list-and-associated-view > x-list-view {
+x-list-and-associated-view > .x-list-view {
   min-width: 100px;
 }
 
