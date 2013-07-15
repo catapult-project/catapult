@@ -9,10 +9,11 @@
  * using a child canvas element. Uses a FastRectRenderer to draw only
  * the visible slices.
  */
+
 base.requireStylesheet('tracing.tracks.track');
 base.require('ui');
 base.require('ui.container_that_decorates_its_children');
-base.require('ui.toggle_button');
+
 base.exportTo('tracing.tracks', function() {
 
   /**

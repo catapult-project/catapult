@@ -69,14 +69,6 @@ base.unittest.testSuite('tracing.timeline_view', function() {
     }, 0);
   };
 
-  var toggleRegExpSelectors = function(regexpSelectors) {
-    for (var i = 0; i < regexpSelectors.length; i++) {
-      var selector = regexpSelectors[i];
-      if (selector.regexp.source !== ui.RegExpSelector.defaultSource)
-        selector.isOn = !selector.isOn;
-    }
-  };
-
   var modelsEquivalent = function(lhs, rhs) {
     if (lhs.length !== rhs.length)
       return false;

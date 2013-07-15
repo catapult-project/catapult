@@ -221,15 +221,3 @@
 .category-filter-dialog-form input {
   margin-right: 7px;
 }
-
-.toggle-button {
-  padding-left: 0;
-}
-
-.toggle-button-text {
-  font-size: medium;
-  left: .4px;
-  padding-bottom: 1px;
-  position: absolute;
-  top: -3.3px;
-}
