@@ -11,6 +11,7 @@ base.requireStylesheet('ui.list_view');
 
 base.require('base.events');
 base.require('ui');
+base.require('ui.container_that_decorates_its_children');
 
 base.exportTo('ui', function() {
   /**
