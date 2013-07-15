@@ -223,6 +223,9 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
   def GetStandardOutput(self):
     return 'Cannot get standard output on CrOS'
 
+  def GetStackTrace(self):
+    return 'Cannot get stack trace on CrOS'
+
   def CreateForwarder(self, *port_pairs):
     assert self._cri
     return (browser_backend.DoNothingForwarder(*port_pairs) if self._cri.local

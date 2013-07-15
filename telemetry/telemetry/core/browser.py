@@ -292,3 +292,6 @@ class Browser(object):
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()
+
+  def GetStackTrace(self):
+    return self._browser_backend.GetStackTrace()

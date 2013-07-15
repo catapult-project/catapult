@@ -234,14 +234,12 @@ def Run(test, page_set, options):
             _RunPage(test, page, state.tab, results_for_current_run, options)
             _CheckThermalThrottling(state.browser.platform)
           except exceptions.TabCrashException:
-            stdout = ''
-            if options.show_stdout:
-              stdout = state.browser.GetStandardOutput()
-              stdout = (('\nStandard Output:\n') +
-                        ('*' * 80) +
-                        '\n\t' + stdout.replace('\n', '\n\t') + '\n' +
-                        ('*' * 80))
-            logging.warning('Tab crashed: %s%s', page.url, stdout)
+            stack_trace = state.browser.GetStackTrace()
+            stack_trace = (('\nStack Trace:\n') +
+                      ('*' * 80) +
+                      '\n\t' + stack_trace.replace('\n', '\n\t') + '\n' +
+                      ('*' * 80))
+            logging.warning('Tab crashed: %s%s', page.url, stack_trace)
             state.StopBrowser()
 
           if options.trace_dir:

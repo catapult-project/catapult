@@ -124,6 +124,12 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     except IOError:
       return ''
 
+  def GetStackTrace(self):
+    # crbug.com/223572, symbolize stack trace for desktop browsers.
+    logging.warning('Stack traces not supported on desktop browsers, '
+                    'returning stdout')
+    return self.GetStandardOutput()
+
   def __del__(self):
     self.Close()
 

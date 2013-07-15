@@ -261,10 +261,13 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     return local_port
 
   def GetStandardOutput(self):
+    return '\n'.join(self._adb.RunShellCommand('logcat -d -t 500'))
+
+  def GetStackTrace(self):
     def Decorate(title, content):
       return title + '\n' + content + '\n' + '*' * 80 + '\n'
     # Get the last lines of logcat (large enough to contain stacktrace)
-    logcat = '\n'.join(self._adb.RunShellCommand('logcat -d -t 500'))
+    logcat = self.GetStandardOutput()
     ret = Decorate('Logcat', logcat)
     stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
                          'android_platform', 'development', 'scripts', 'stack')
