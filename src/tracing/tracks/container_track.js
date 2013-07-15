@@ -26,8 +26,6 @@ base.exportTo('tracing.tracks', function() {
       this.textContent = '';
     },
 
-
-
     get tracks_() {
       var tracks = [];
       for (var i = 0; i < this.children.length; i++) {
@@ -35,14 +33,6 @@ base.exportTo('tracing.tracks', function() {
           tracks.push(this.children[i]);
       }
       return tracks;
-    },
-
-    get firstCanvas() {
-      for (var i = 0; i < this.tracks_.length; i++) {
-        var canvas = this.tracks_[i].firstCanvas;
-        if (canvas)
-          return canvas;
-      }
     },
 
     /**

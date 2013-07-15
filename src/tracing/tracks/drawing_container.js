@@ -29,7 +29,7 @@ base.exportTo('tracing.tracks', function() {
       this.viewport.addEventListener('change', this.viewportChange_);
     },
 
-    // Needed to support the firstCanvas call in TimelineTrackView.
+    // Needed to support the calls in TimelineTrackView.
     get canvas() {
       return this.canvas_;
     },
@@ -70,16 +70,14 @@ base.exportTo('tracing.tracks', function() {
       if (headingBounds === undefined)
         return;
 
-      var visibleChildTracks = base.asArray(this.children).filter(function(element) {
-        if (!(element instanceof tracing.tracks.Track))
-          return false;
-        return window.getComputedStyle(element).display !== 'none';
-      });
+      var visibleChildTracks = base.asArray(this.children).filter(
+          this.visibleFilter_);
 
       var thisBounds = this.getBoundingClientRect();
       var firstChildTrackBounds = visibleChildTracks[0].getBoundingClientRect();
       var lastChildTrackBounds =
-          visibleChildTracks[visibleChildTracks.length - 1].getBoundingClientRect();
+          visibleChildTracks[visibleChildTracks.length - 1].
+              getBoundingClientRect();
 
       var canvasLeft = headingBounds.right - thisBounds.left;
       var canvasTop = firstChildTrackBounds.top - thisBounds.top +
@@ -104,6 +102,12 @@ base.exportTo('tracing.tracks', function() {
         this.canvas_.height = innerHeight * pixelRatio;
         this.canvas_.style.height = innerHeight + 'px';
       }
+    },
+
+    visibleFilter_: function(element) {
+      if (!(element instanceof tracing.tracks.Track))
+        return false;
+      return window.getComputedStyle(element).display !== 'none';
     }
   };
 

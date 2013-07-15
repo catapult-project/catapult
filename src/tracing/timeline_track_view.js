@@ -131,11 +131,9 @@ base.exportTo('tracing', function() {
     mouseModeHandlers_: {
       selection: {
         down: function(e) {
-
-          var canv = this.firstCanvas;
+          var canv = this.modelTrackContainer_.canvas;
           var rect = this.modelTrack_.getBoundingClientRect();
-          var canvRect = this.firstCanvas.getBoundingClientRect();
-
+          var canvRect = canv.getBoundingClientRect();
           var inside = rect &&
               e.clientX >= rect.left &&
               e.clientX < rect.right &&
@@ -156,7 +154,6 @@ base.exportTo('tracing', function() {
 
           this.dragBeginEvent_ = e;
           e.preventDefault();
-
         },
 
         move: function(e) {
@@ -170,11 +167,9 @@ base.exportTo('tracing', function() {
           this.dragBoxYEnd_ = e.clientY;
           this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
               this.dragBoxXEnd_, this.dragBoxYEnd_, e.shiftKey);
-
         },
 
         up: function(e) {
-
           if (!this.dragBeginEvent_)
             return;
 
@@ -193,7 +188,7 @@ base.exportTo('tracing', function() {
           var topBoundary = tracksContainer.height;
 
           // Convert to worldspace.
-          var canv = this.firstCanvas;
+          var canv = this.modelTrackContainer_.canvas;
           var loVX = loX - canv.offsetLeft;
           var hiVX = hiX - canv.offsetLeft;
 
@@ -283,7 +278,6 @@ base.exportTo('tracing', function() {
     },
 
     set mouseMode(mode) {
-
       this.currentMouseMode_ = mode;
       this.updateModeIndicator_();
 
@@ -339,7 +333,7 @@ base.exportTo('tracing', function() {
     },
 
     setInitialViewport_: function() {
-      var w = this.firstCanvas.width;
+      var w = this.modelTrackContainer_.canvas.width;
 
       var min;
       var range;
@@ -407,13 +401,11 @@ base.exportTo('tracing', function() {
 
     onKeypress_: function(e) {
       var vp = this.viewport_;
-      if (!this.firstCanvas)
-        return;
       if (!this.listenToKeys_)
         return;
       if (document.activeElement.nodeName == 'INPUT')
         return;
-      var viewWidth = this.firstCanvas.clientWidth;
+      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var curMouseV, curCenterW;
       switch (e.keyCode) {
         case 32:   // space
@@ -474,7 +466,7 @@ base.exportTo('tracing', function() {
         return;
       var sel;
       var vp = this.viewport_;
-      var viewWidth = this.firstCanvas.clientWidth;
+      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
 
       switch (e.keyCode) {
         case 16:   // shift
@@ -492,8 +484,6 @@ base.exportTo('tracing', function() {
             this.panToSelection();
             e.preventDefault();
           } else {
-            if (!this.firstCanvas)
-              return;
             vp.panX += vp.xViewVectorToWorld(viewWidth * 0.1);
           }
           break;
@@ -504,8 +494,6 @@ base.exportTo('tracing', function() {
             this.panToSelection();
             e.preventDefault();
           } else {
-            if (!this.firstCanvas)
-              return;
             vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.1);
           }
           break;
@@ -542,7 +530,6 @@ base.exportTo('tracing', function() {
         this.isInTemporaryAlternativeMouseMode_ = false;
         e.preventDefault();
       }
-
     },
 
     /**
@@ -550,10 +537,8 @@ base.exportTo('tracing', function() {
      * @param {integer} scale The scale factor to apply.  If <1, zooms out.
      */
     zoomBy_: function(scale) {
-      if (!this.firstCanvas)
-        return;
       var vp = this.viewport_;
-      var viewWidth = this.firstCanvas.clientWidth;
+      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var pixelRatio = window.devicePixelRatio || 1;
       var curMouseV = this.lastMouseViewPos_.x * pixelRatio;
       var curCenterW = vp.xViewToWorld(curMouseV);
@@ -577,7 +562,7 @@ base.exportTo('tracing', function() {
       var boost = worldRangeHalf * 0.5;
       this.viewport_.xSetWorldBounds(worldCenter - worldRangeHalf - boost,
                                      worldCenter + worldRangeHalf + boost,
-                                     this.firstCanvas.width);
+                                     this.modelTrackContainer_.canvas.width);
     },
 
     /**
@@ -589,7 +574,7 @@ base.exportTo('tracing', function() {
 
       var bounds = this.selection.bounds;
       var worldCenter = bounds.center;
-      var viewWidth = this.firstCanvas.width;
+      var viewWidth = this.modelTrackContainer_.canvas.width;
 
       if (!bounds.range) {
         if (this.viewport_.xWorldToView(bounds.center) < 0 ||
@@ -678,10 +663,6 @@ base.exportTo('tracing', function() {
       this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
     },
 
-    get firstCanvas() {
-      return this.rulerTrackContainer_.canvas;
-    },
-
     updateModeIndicator_: function() {
       switch (this.currentMouseMode_) {
         case MOUSE_MODE_SELECTION:
@@ -739,7 +720,7 @@ base.exportTo('tracing', function() {
       this.dragBox_.style.height = finalDragBox.height + 'px';
 
       var pixelRatio = window.devicePixelRatio || 1;
-      var canv = this.firstCanvas;
+      var canv = this.modelTrackContainer_.canvas;
       var loWX = this.viewport_.xViewToWorld(
           (loX - canv.offsetLeft) * pixelRatio);
       var hiWX = this.viewport_.xViewToWorld(
@@ -780,7 +761,6 @@ base.exportTo('tracing', function() {
     },
 
     onMouseDown_: function(e) {
-
       if (e.button != 0)
         return;
 
@@ -800,7 +780,6 @@ base.exportTo('tracing', function() {
         document.activeElement.blur();
       if (this.focusElement.tabIndex >= 0)
         this.focusElement.focus();
-
     },
 
     onMouseMove_: function(e) {
@@ -818,9 +797,7 @@ base.exportTo('tracing', function() {
     },
 
     extractRelativeMousePosition: function(e) {
-      if (!this.firstCanvas)
-        return null;
-      var canv = this.firstCanvas;
+      var canv = this.modelTrackContainer_.canvas;
       return {
         x: e.clientX - canv.offsetLeft,
         y: e.clientY - canv.offsetTop
@@ -839,7 +816,7 @@ base.exportTo('tracing', function() {
         return;
 
       var vp = this.viewport_;
-      var viewWidth = this.firstCanvas.clientWidth;
+      var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
 
       var x = this.viewportStateAtMouseDown_.panX + (this.lastMouseViewPos_.x -
           this.mouseViewPosAtMouseDown.x);
