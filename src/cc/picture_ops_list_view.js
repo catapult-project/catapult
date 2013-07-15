@@ -53,9 +53,10 @@ base.exportTo('cc', function() {
       if (!ops)
         return;
 
-      ops.forEach(function(op) {
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
         var item = document.createElement('div');
-        item.textContent = op.cmd_string;
+        item.textContent = i + ') ' + op.cmd_string;
 
         op.info.forEach(function(info) {
           var infoItem = document.createElement('div');
@@ -64,7 +65,7 @@ base.exportTo('cc', function() {
         });
 
         this.opsList_.appendChild(item);
-      }, this);
+      }
     },
 
     onSelectionChanged_: function(e) {
