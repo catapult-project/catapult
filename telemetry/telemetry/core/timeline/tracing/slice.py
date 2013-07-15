@@ -35,3 +35,6 @@ class Slice(timeline_event.TimelineEvent):
 
   def GetAllSubSlices(self):
     return list(self._GetSubSlicesRecursive())
+
+  def GetAllSubSlicesOfName(self, name):
+    return [e for e in self.GetAllSubSlices() if e.name == name]
