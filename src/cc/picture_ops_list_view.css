@@ -8,12 +8,12 @@ picture-ops-list-view {
   display: -webkit-flex;
 }
 
-picture-ops-list-view > x-list-view {
+picture-ops-list-view > .x-list-view {
   -webkit-flex: 1 1 auto;
   overflow: auto;
 }
 
-picture-ops-list-view > x-list-view .list-item {
+picture-ops-list-view > .x-list-view .list-item {
   border-bottom: 1px solid #555;
   font-size: small;
   font-weight: bold;
@@ -21,12 +21,12 @@ picture-ops-list-view > x-list-view .list-item {
   padding-left: 5px;
 }
 
-picture-ops-list-view > x-list-view .list-item:hover {
+picture-ops-list-view > .x-list-view .list-item:hover {
   background-color: #f0f0f0;
   cursor: pointer;
 }
 
-picture-ops-list-view > x-list-view .list-item > * {
+picture-ops-list-view > .x-list-view .list-item > * {
   color: #777;
   font-size: x-small;
   font-weight: normal;
@@ -34,12 +34,12 @@ picture-ops-list-view > x-list-view .list-item > * {
   max-width: 300px; /* force long strings to wrap */
 }
 
-x-list-view:focus > .list-item[beforeSelection] {
+.x-list-view:focus > .list-item[beforeSelection] {
   background-color: rgb(171, 217, 202);
   outline: 1px dotted rgba(0, 0, 0, 0.1);
   outline-offset: 0;
 }
 
-x-list-view > .list-item[beforeSelection] {
+.x-list-view > .list-item[beforeSelection] {
   background-color: rgb(103, 199, 165);
 }
