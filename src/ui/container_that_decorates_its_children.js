@@ -57,13 +57,13 @@ base.exportTo('ui', function() {
     },
 
     clear: function() {
-      var changed = this.selectedElement !== undefined;
       while (this.lastChild)
         HTMLUnknownElement.prototype.removeChild.call(this, this.lastChild);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     didMutate_: function(records) {
+      this.beginDecorating_();
       for (var i = 0; i < records.length; i++) {
         var addedNodes = records[i].addedNodes;
         if (addedNodes) {
@@ -86,6 +86,9 @@ base.exportTo('ui', function() {
 
     undecorateChild_: function(child) {
       throw new Error('Not implemented');
+    },
+
+    beginDecorating_: function() {
     },
 
     doneDecoratingForNow_: function() {
