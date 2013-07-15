@@ -21,6 +21,9 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(viewLWorld, viewRWorld) {
+    },
+
+    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
     }
   };
 

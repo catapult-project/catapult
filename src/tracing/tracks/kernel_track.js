@@ -6,11 +6,13 @@
 
 base.require('tracing.tracks.process_track_base');
 base.require('tracing.tracks.cpu_track');
+base.require('tracing.tracks.spacing_track');
 
 base.exportTo('tracing.tracks', function() {
   var Cpu = tracing.trace_model.Cpu;
   var CpuTrack = tracing.tracks.cpu_track;
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
+  var SpacingTrack = tracing.tracks.SpacingTrack;
 
   /**
    * @constructor
