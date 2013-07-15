@@ -412,7 +412,7 @@ def _WaitForThermalThrottlingIfNeeded(platform):
     thermal_throttling_retry += 1
     time.sleep(thermal_throttling_retry * 2)
 
-  if platform.IsThermallyThrottled():
+  if thermal_throttling_retry and platform.IsThermallyThrottled():
     logging.error('Device is thermally throttled before running '
                   'performance tests, results will vary.')
 
