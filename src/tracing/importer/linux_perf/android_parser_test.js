@@ -70,6 +70,33 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(1, thread.sliceGroup.length);
       });
 
+      test('androidAsyncUserlandImport', function() {
+        var lines = [
+          'ndroid.launcher-9649  ( 9649) [000] ...1 1990280.663276: ' +
+              'tracing_mark_write: S|9649|animator:childrenOutlineAlpha|' +
+              '1113053968',
+          'ndroid.launcher-9649  ( 9649) [000] ...1 1990280.781445: ' +
+              'tracing_mark_write: F|9649|animator:childrenOutlineAlpha|' +
+              '1113053968'
+        ];
+        var m = new tracing.TraceModel(lines.join('\n'), false);
+        assertEquals(0, m.importErrors.length);
+
+        var threads = m.getAllThreads();
+        assertEquals(1, threads.length);
+
+        var thread = threads[0];
+        assertEquals(9649, thread.parent.pid);
+        assertEquals(9649, thread.tid);
+        assertEquals('ndroid.launcher', thread.name);
+        assertEquals(0, thread.sliceGroup.length);
+        assertEquals(1, thread.asyncSliceGroup.length);
+
+        var slice = thread.asyncSliceGroup.slices[0];
+        assertEquals('animator:childrenOutlineAlpha', slice.title);
+        assertAlmostEquals(118.169, slice.duration);
+      });
+
       test('androidUserlandLegacyKernelImport', function() {
         var lines = [
           'SurfaceFlinger-4831  [001] ...1 80909.598554: 0: B|4829|onMessageReceived', // @suppress longLineCheck

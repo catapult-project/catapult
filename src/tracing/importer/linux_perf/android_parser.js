@@ -45,6 +45,41 @@ base.exportTo('tracing.importer.linux_perf', function() {
   AndroidParser.prototype = {
     __proto__: Parser.prototype,
 
+    openAsyncSlice: function(thread, category, name, cookie, ts) {
+      var slice = new tracing.trace_model.AsyncSlice(
+          category, name, tracing.getStringColorId(name), ts);
+      var key = name + ':' + cookie;
+      slice.id = cookie;
+      slice.startThread = thread;
+
+
+      if (!this.openAsyncSlices) {
+        this.openAsyncSlices = { };
+      }
+      this.openAsyncSlices[key] = slice;
+    },
+
+    closeAsyncSlice: function(thread, name, cookie, ts) {
+      if (!this.openAsyncSlices) {
+        // No async slices have been started.
+        return;
+      }
+
+      var key = name + ':' + cookie;
+      var slice = this.openAsyncSlices[key];
+      if (!slice) {
+        // No async slices w/ this key have been started.
+        return;
+      }
+
+      slice.endThread = thread;
+      slice.duration = ts - slice.start;
+      slice.startThread.asyncSliceGroup.push(slice);
+      slice.subSlices = [new tracing.trace_model.Slice(slice.category,
+          slice.title, slice.colorId, slice.start, slice.args, slice.duration)];
+      delete this.openAsyncSlices[key];
+    },
+
     traceMarkWriteAndroidEvent: function(eventName, cpuNumber, pid, ts,
                                   eventBase) {
       var eventData = eventBase.details.split('|');
@@ -115,6 +150,37 @@ base.exportTo('tracing.importer.linux_perf', function() {
           ctr.samples.push(value);
 
           break;
+
+        case 'S':
+          var ppid = parseInt(eventData[1]);
+          var name = eventData[2];
+          var cookie = parseInt(eventData[3]);
+          var thread = this.model_.getOrCreateProcess(ppid)
+            .getOrCreateThread(pid);
+          thread.name = eventBase.threadName;
+
+          this.ppids_[pid] = ppid;
+          this.openAsyncSlice(thread, null, name, cookie, ts);
+
+          break;
+
+        case 'F':
+          var ppid = this.ppids_[pid];
+          if (ppid === undefined) {
+            // Silently ignore unmatched F events.
+            break;
+          }
+
+          var thread = this.model_.getOrCreateProcess(ppid)
+            .getOrCreateThread(pid);
+
+          var name = eventData[2];
+          var cookie = parseInt(eventData[3]);
+
+          this.closeAsyncSlice(thread, name, cookie, ts);
+
+          break;
+
         default:
           return false;
       }

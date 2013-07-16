@@ -50,19 +50,6 @@ base.exportTo('tracing.tracks', function() {
       this.heading = this.thread_.userFriendlyName + ': ';
       this.tooltip = this.thread_.userFriendlyDetails;
 
-      if (this.thread_.cpuSlices) {
-        var cpuTrack = new tracing.tracks.SliceTrack(this.viewport);
-        cpuTrack.categoryFilter = this.categoryFilter;
-        cpuTrack.heading = '';
-        cpuTrack.height = '4px';
-        cpuTrack.decorateHit = function(hit) {
-          hit.thread = this.thread_;
-        }
-        cpuTrack.slices = this.thread_.cpuSlices;
-        if (cpuTrack.hasVisibleContent)
-          this.appendChild(cpuTrack);
-      }
-
       if (this.thread_.asyncSliceGroup.length) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
         asyncTrack.categoryFilter = this.categoryFilter;
@@ -86,6 +73,19 @@ base.exportTo('tracing.tracks', function() {
           hit.thread = this.thread_;
         }
         this.appendChild(samplesTrack);
+      }
+
+      if (this.thread_.cpuSlices) {
+        var cpuTrack = new tracing.tracks.SliceTrack(this.viewport);
+        cpuTrack.categoryFilter = this.categoryFilter;
+        cpuTrack.heading = '';
+        cpuTrack.height = '4px';
+        cpuTrack.decorateHit = function(hit) {
+          hit.thread = this.thread_;
+        }
+        cpuTrack.slices = this.thread_.cpuSlices;
+        if (cpuTrack.hasVisibleContent)
+          this.appendChild(cpuTrack);
       }
 
       if (this.thread_.sliceGroup.length) {
