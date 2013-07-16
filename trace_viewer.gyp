@@ -203,11 +203,18 @@
       'src/cc/tile_view.js',
       'src/cc/selection.js',
     ],
+    'tracing_img_files': [
+      'src/images/collapse.png',
+      'src/images/expand.png',
+      'src/images/pan_mode.png',
+      'src/images/select_mode.png',
+    ],
     'tracing_files': [
       '<@(tracing_template_files)',
       '<@(tracing_html_files)',
       '<@(tracing_css_files)',
       '<@(tracing_js_files)',
+      '<@(tracing_img_files)',
     ],
   },
   'targets': [

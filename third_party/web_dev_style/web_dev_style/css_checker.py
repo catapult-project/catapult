@@ -91,13 +91,11 @@ class CSSChecker(object):
     def milliseconds_for_small_times(line):
       return re.search(small_seconds, line)
 
+    def no_data_uris_in_source_files(line):
+      return re.search(r'\(\s*\'?\s*data:', line)
+
     def one_rule_per_line(line):
-      match = re.search(r'[_a-zA-Z0-9-](?<!data):(?!//)[^;]+;\s*[^ }]\s*', line)
-      if match:
-        data_match = re.search(r'url\(data', match.string)
-        if data_match:
-          return False
-      return match
+      return re.search(r'[_a-zA-Z0-9-](?<!data):(?!//)[^;]+;\s*[^ }]\s*', line)
 
     any_reg = re.compile(r':(?:-webkit-)?any\(.*?\)', re.DOTALL)
     multi_sels = re.compile(r'(?:}[\n\s]*)?([^,]+,(?=[^{}]+?{).*[,{])\s*$',
@@ -167,6 +165,9 @@ class CSSChecker(object):
         { 'desc': 'Use milliseconds for time measurements under 1 second.',
           'test': milliseconds_for_small_times,
           'after': suggest_ms_from_s,
+        },
+        { 'desc': 'Don\'t use data URIs in source files. Use grit instead.',
+          'test': no_data_uris_in_source_files,
         },
         { 'desc': 'One rule per line (what not to do: color: red; margin: 0;).',
           'test': one_rule_per_line,

@@ -2,11 +2,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import base64
 import optparse
 import parse_deps
 import sys
 import os
+import re
 
 from generate_template_contents import generate_templates
 
@@ -64,7 +66,25 @@ def generate_css():
     for style_sheet in module.style_sheets:
       style_sheet_chunks.append("""%s\n""" % style_sheet.contents)
 
-  return ''.join(style_sheet_chunks)
+  # Borrowed from grit html_format.py.
+  def InlineUrl(m):
+    filename = m.group('filename')
+    idx = filename.index('/images')
+    filename = "%s%s" % (srcdir, filename[idx:])
+    ext = filename[filename.rindex('.') + 1:]
+
+    with open(filename, 'rb') as f:
+      data = f.read();
+    data = base64.standard_b64encode(data)
+
+    return "url(data:image/%s;base64,%s)" % (ext, data)
+
+  full_style_sheet = ''.join(style_sheet_chunks)
+  # I'm assuming we only have url()'s associated with images
+  return re.sub('url\((?P<quote>"|\'|)(?P<filename>[^"\'()]*)(?P=quote)\)',
+                lambda m: InlineUrl(m),
+                full_style_sheet)
+
 
 def generate_js():
   filenames = _get_input_filenames()
