@@ -140,12 +140,6 @@ def FindAllAvailableBrowsers(options):
   else:
     raise Exception('Platform not recognized')
 
-  if flash_path and not os.path.exists(flash_path):
-    logging.warning(('Could not find flash at %s. Running without flash.\n\n'
-                     'To fix this see http://go/read-src-internal') %
-                    flash_path)
-    flash_path = None
-
   # Add the explicit browser executable if given.
   if options.browser_executable:
     normalized_executable = os.path.expanduser(options.browser_executable)
