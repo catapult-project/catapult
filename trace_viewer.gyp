@@ -12,6 +12,7 @@
       'src/tracing/record_selection_dialog.html',
       'src/tracing/timeline_view.html',
       'src/tracing/category_filter_dialog.html',
+      'src/ui/mouse_mode_selector.html',
     ],
     'tracing_css_files': [
       'src/base/unittest.css',
@@ -22,6 +23,8 @@
       'src/ui/quad_view.css',
       'src/ui/overlay.css',
       'src/ui/list_view.css',
+      'src/ui/tool_button.css',
+      'src/ui/mouse_mode_selector.css',
       'src/ui/list_and_associated_view.css',
       'src/ui/filter_control.css',
       'src/ui/drag_handle.css',
@@ -92,6 +95,7 @@
       'src/ui/drag_handle.js',
       'src/ui/quad_stack.js',
       'src/ui/list_view.js',
+      'src/ui/mouse_mode_selector.js',
       'src/ui/quad_view.js',
       'src/ui/quad_stack_viewer.js',
       'src/ui/dom_helpers.js',
@@ -105,6 +109,7 @@
       'src/tracing/trace_model.js',
       'src/tracing/trace_model_settings.js',
       'src/tracing/importer.js',
+      'src/tracing/mouse_mode_constants.js',
       'src/tracing/trace_model/process_base.js',
       'src/tracing/trace_model/cpu.js',
       'src/tracing/trace_model/time_to_object_instance_map.js',
@@ -206,8 +211,7 @@
     'tracing_img_files': [
       'src/images/collapse.png',
       'src/images/expand.png',
-      'src/images/pan_mode.png',
-      'src/images/select_mode.png',
+      'src/images/ui-states.png',
     ],
     'tracing_files': [
       '<@(tracing_template_files)',

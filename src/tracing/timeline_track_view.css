@@ -8,8 +8,8 @@
   cursor: default;
 }
 
-.timeline-track-view.mode-panscan {
-  cursor: move;
+.timeline-track-view .tool-button {
+  cursor: pointer;
 }
 
 .timeline-track-view {
