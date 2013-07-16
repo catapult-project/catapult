@@ -32,14 +32,6 @@ found in the LICENSE file.
     }
 
     function launchTests() {
-      var format = document.getElementById('short-format');
-      format.checked = localStorage.getItem('testing::short-format') === 'true';
-      format.addEventListener('click', function(ev) {
-        localStorage.setItem('testing::short-format', ev.target.checked);
-        base.unittest.showCondensed(ev.target.checked);
-      });
-      base.unittest.showCondensed(format.checked);
-
       var stats = document.getElementById('stats');
 
       var suite = undefined;
@@ -72,6 +64,15 @@ found in the LICENSE file.
         return;
       }
 
+      var format = document.getElementById('short-format');
+      format.checked = localStorage.getItem('testing::short-format') === 'true';
+      format.addEventListener('click', function(ev) {
+        localStorage.setItem('testing::short-format', ev.target.checked);
+        base.unittest.showCondensed(ev.target.checked);
+        base.unittest.runSuites();
+      });
+      base.unittest.showCondensed(format.checked);
+
       launchTests();
     }
 
@@ -83,7 +84,7 @@ found in the LICENSE file.
 </head>
 
 <body id="test-harness">
-  <h1>Trace-Viewer Tests</h3>
+  <h1><a href='/src/tests.html'>Trace-Viewer Tests</a></h1>
 
   <div id="stats">
     <br />

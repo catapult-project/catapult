@@ -9,6 +9,11 @@
   margin-top: 0;
 }
 
+#test-harness h1 a {
+  color: black;
+  text-decoration: none;
+}
+
 #stats {
   margin-bottom: 10px;
 }
@@ -56,28 +61,23 @@
   background-color: #eee;
 }
 
-.individual-result {
-  padding: 5px;
-}
-
 .individual-result pre {
   overflow-y: auto;
 }
 
-.test-result {
+.test-result,
+.individual-result {
   counter-increment: suite-count;
-  padding: 5px;
+  padding: 10px 0;
 }
 
-.test-result:before {
-  content: counter(suite-count) ' - ';
-  display: inline-block;
+.test-result:before,
+.individual-result:before {
+  content: counter(suite-count) ' -';
   margin-right: 5px;
-  text-align: right;
-  width: 2em;
 }
 
-.test-result > span {
+span.results {
   padding-left: 10px;
 }
 

@@ -55,6 +55,10 @@ base.exportTo('base.unittest', function() {
     },
 
     run: function() {
+      this.clear_(document.querySelector('#test-results'));
+      this.clear_(document.querySelector('#exception-list'));
+      this.clear_(document.querySelector('#message-list'));
+
       this.updateStats_();
       this.runSuites_();
     },
@@ -82,20 +86,26 @@ base.exportTo('base.unittest', function() {
       base.require(modules);
     },
 
+    clear_: function(el) {
+      while (el.firstChild)
+        el.removeChild(el.firstChild);
+    },
+
     runSuites_: function(opt_idx) {
       var idx = opt_idx || 0;
 
       var suiteCount = this.suites_.length;
       if (idx >= suiteCount) {
-        var harness = document.querySelector('#test-harness');
+        var harness = document.querySelector('#test-results');
+        harness.appendChild(document.createElement('br'));
         harness.appendChild(document.createTextNode('Test Run Complete'));
         return;
       }
 
       var suite = this.suites_[idx];
 
-      suite.displayInfo();
       suite.showLongResults = (suiteCount === 1);
+      suite.displayInfo();
       suite.runTests(this.tests_);
 
       this.stats_.duration += suite.duration;
@@ -271,7 +281,8 @@ base.exportTo('base.unittest', function() {
     },
 
     outputResults: function() {
-      if ((this.results === TestResults.PASSED) && showCondensed_) {
+      if ((this.results === TestResults.PASSED) && showCondensed_ &&
+          !this.showLongResults) {
         var parent = this.resultsEl_.parentNode;
         parent.removeChild(this.resultsEl_);
         this.resultsEl_ = undefined;
@@ -289,6 +300,7 @@ base.exportTo('base.unittest', function() {
         status.innerText = 'FAILED';
         status.classList.add('failed');
       }
+
       status.innerText += ' (' + this.duration_ + 'ms)';
 
       var child = this.showLongResults ? this.outputLongResults() :
@@ -342,10 +354,10 @@ base.exportTo('base.unittest', function() {
         resultEl.classList.add('results');
         testEl.appendChild(resultEl);
         if (test.result === TestResults.PASSED) {
-          resultEl.className = 'passed';
+          resultEl.classList.add('passed');
           resultEl.innerText = 'passed';
         } else {
-          resultEl.className = 'failed';
+          resultEl.classList.add('failed');
           resultEl.innerText = 'FAILED';
 
           var preEl = document.createElement('pre');
@@ -430,9 +442,14 @@ base.exportTo('base.unittest', function() {
     testRunner.loadSuites();
   }
 
+  function runSuites() {
+    testRunner.run();
+  }
+
   return {
     showCondensed: showCondensed,
     testSuite: testSuite,
+    runSuites: runSuites,
     Suites: Suites
   };
 });
