@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
       this.classList.add('spacing-track');
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {

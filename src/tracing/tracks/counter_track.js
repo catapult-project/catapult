@@ -49,7 +49,6 @@ base.exportTo('tracing.tracks', function() {
     set counter(counter) {
       this.counter_ = counter;
       this.heading = counter.name + ': ';
-      this.invalidate();
     },
 
     get categoryFilter() {
@@ -62,14 +61,21 @@ base.exportTo('tracing.tracks', function() {
 
     /**
      * @return {Object} A sparse, mutable map from sample index to bool. Samples
-     * indices the map that are true are drawn as selected. Callers that mutate
-     * the map must manually call invalidate on the track to trigger a redraw.
+     * indices the map that are true are drawn as selected.
      */
     get selectedSamples() {
       return this.selectedSamples_;
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tracing.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

@@ -37,13 +37,9 @@ base.exportTo('tracing.tracks', function() {
       this.canvasContainer_ = document.createElement('div');
       this.canvasContainer_.className = 'drawable-container';
       this.appendChild(this.canvasContainer_);
-
-      this.viewportChange_ = this.viewportChange_.bind(this);
-      this.viewport.addEventListener('change', this.viewportChange_);
     },
 
     detach: function() {
-      this.viewport.removeEventListener('change', this.viewportChange_);
     },
 
     get heading() {
@@ -58,45 +54,8 @@ base.exportTo('tracing.tracks', function() {
       this.headingDiv_.title = text;
     },
 
-    viewportChange_: function() {
-      this.invalidate();
-    },
-
-    invalidate: function() {
-      if (this.rafPending_)
-        return;
-
-      base.requestPreAnimationFrame(function() {
-        this.rafPending_ = false;
-        base.requestAnimationFrameInThisFrameIfPossible(function() {
-          var ctx = this.context();
-          if (ctx === undefined)
-            return;
-
-          ctx.save();
-
-          var pixelRatio = window.devicePixelRatio || 1;
-          var bounds = this.canvasContainer_.getBoundingClientRect();
-          var canvasBounds = ctx.canvas.getBoundingClientRect();
-
-          ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
-
-          var viewLWorld = this.viewport.xViewToWorld(0);
-          var viewRWorld = this.viewport.xViewToWorld(
-              bounds.width * pixelRatio);
-          this.draw(viewLWorld, viewRWorld);
-
-          this.viewport.drawGridLines(ctx, viewLWorld, viewRWorld);
-          this.viewport.drawMarkerLines(ctx, viewLWorld, viewRWorld);
-
-          ctx.restore();
-        }, this);
-      }, this);
-      this.rafPending_ = true;
-    },
-
-    draw: function(viewLWorld, viewRWorld) {
-      throw new Error('Implementation missing');
+    draw: function(type, viewLWorld, viewRWorld) {
+      throw new Error('draw implementation missing');
     },
 
     addIntersectingItemsInRangeToSelection: function(

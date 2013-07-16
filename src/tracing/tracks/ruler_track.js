@@ -125,7 +125,15 @@ base.exportTo('tracing.tracks', function() {
       ctx.fill();
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tracing.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

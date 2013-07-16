@@ -59,7 +59,6 @@ base.exportTo('tracing.tracks', function() {
 
     set asyncStyle(v) {
       this.asyncStyle_ = !!v;
-      this.invalidate();
     },
 
     get slices() {
@@ -68,7 +67,6 @@ base.exportTo('tracing.tracks', function() {
 
     set slices(slices) {
       this.slices_ = slices || [];
-      this.invalidate();
     },
 
     get height() {
@@ -77,7 +75,6 @@ base.exportTo('tracing.tracks', function() {
 
     set height(height) {
       this.style.height = height;
-      this.invalidate();
     },
 
     get hasVisibleContent() {
@@ -92,7 +89,15 @@ base.exportTo('tracing.tracks', function() {
       return this.labelWidth(title) * pixWidth;
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tracing.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

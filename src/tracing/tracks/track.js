@@ -70,6 +70,30 @@ base.exportTo('tracing.tracks', function() {
     },
 
     updateContents_: function() {
+    },
+
+    drawTrack: function(type) {
+      var ctx = this.context();
+      if (ctx === undefined)
+        return;
+
+      ctx.save();
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.canvasContainer_.getBoundingClientRect();
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+
+      ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
+
+      var viewLWorld = this.viewport.xViewToWorld(0);
+      var viewRWorld = this.viewport.xViewToWorld(bounds.width * pixelRatio);
+
+      this.draw(type, viewLWorld, viewRWorld);
+
+      ctx.restore();
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
     }
   };
 

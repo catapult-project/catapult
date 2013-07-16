@@ -10,6 +10,10 @@ base.require('tracing.tracks.track');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
+  var DrawType = {
+    SLICE: 1
+  };
+
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
 
   DrawingContainer.prototype = {
@@ -51,6 +55,23 @@ base.exportTo('tracing.tracks', function() {
         this.rafPending_ = false;
         this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
         this.updateCanvasSizeIfNeeded_();
+
+        base.requestAnimationFrameInThisFrameIfPossible(function() {
+          for (var i = 0; i < this.children.length; ++i) {
+            if (!(this.children[i] instanceof tracing.tracks.Track))
+              continue;
+            this.children[i].drawTrack(DrawType.SLICE);
+          }
+
+          var pixelRatio = window.devicePixelRatio || 1;
+          var bounds = this.canvas_.getBoundingClientRect();
+          var viewLWorld = this.viewport.xViewToWorld(0);
+          var viewRWorld = this.viewport.xViewToWorld(
+              bounds.width * pixelRatio);
+
+          this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
+          this.viewport.drawMarkerLines(this.ctx_, viewLWorld, viewRWorld);
+        }, this);
       }, this);
     },
 
@@ -112,6 +133,7 @@ base.exportTo('tracing.tracks', function() {
   };
 
   return {
-    DrawingContainer: DrawingContainer
+    DrawingContainer: DrawingContainer,
+    DrawType: DrawType
   };
 });

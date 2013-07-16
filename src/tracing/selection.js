@@ -54,7 +54,6 @@ base.exportTo('tracing', function() {
         this.track.selectedSamples[this.sampleIndex] = true;
       else
         this.track.selectedSamples[this.sampleIndex] = false;
-      this.track.invalidate();
     },
 
     addBoundsToRange: function(range) {

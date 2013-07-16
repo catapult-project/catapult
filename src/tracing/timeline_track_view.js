@@ -20,6 +20,7 @@
  */
 base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
+base.require('base.properties');
 base.require('base.settings');
 base.require('tracing.filter');
 base.require('tracing.selection');

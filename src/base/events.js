@@ -36,9 +36,6 @@ base.exportTo('base', function() {
    * @param {boolean=} opt_bubbles Whether the event bubbles or not.
    * @param {boolean=} opt_cancelable Whether the default action of the event
    *     can be prevented.
-   * @param {boolean=} opt_bubbles Whether the event bubbles or not.
-   * @param {boolean=} opt_cancelable Whether the default action of the event
-   *     can be prevented.
    * @return {boolean} If any of the listeners called {@code preventDefault}
    *     during the dispatch this will return false.
    */

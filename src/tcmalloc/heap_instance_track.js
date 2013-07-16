@@ -37,7 +37,6 @@ base.exportTo('tcmalloc', function() {
     },
 
     set objectInstances(objectInstances) {
-      this.invalidate();
       if (!objectInstances) {
         this.objectInstance_ = [];
         return;
@@ -72,10 +71,17 @@ base.exportTo('tcmalloc', function() {
 
     set height(height) {
       this.style.height = height;
-      this.invalidate();
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tracking.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 

@@ -40,7 +40,6 @@ base.exportTo('tracing.tracks', function() {
     },
 
     set objectInstances(objectInstances) {
-      this.invalidate();
       if (!objectInstances || objectInstances.length == 0) {
         this.heading = '';
         this.objectInstances_ = [];
@@ -62,14 +61,21 @@ base.exportTo('tracing.tracks', function() {
 
     set height(height) {
       this.style.height = height;
-      this.invalidate();
     },
 
     get snapshotRadiusView() {
       return 7 * (window.devicePixelRatio || 1);
     },
 
-    draw: function(viewLWorld, viewRWorld) {
+    draw: function(type, viewLWorld, viewRWorld) {
+      switch (type) {
+        case tracing.tracks.DrawType.SLICE:
+          this.drawSlices_(viewLWorld, viewRWorld);
+          break;
+      }
+    },
+
+    drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
