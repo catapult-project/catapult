@@ -114,4 +114,46 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
 
     assertEquals('UNKNOWN', cpuSlices[1].title);
   });
+
+  test('importWithUninterruptibleSleep', function() {
+    var lines = [
+      'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: ' +
+          'prev_comm=ndroid.launcher prev_pid=584 ' +
+          'prev_prio=120 prev_state=R+ ' +
+          '==> next_comm=Binder_1 next_pid=217 next_prio=120',
+
+      '       Binder_1-217   [001] d..3 12622.506918: sched_switch: ' +
+          'prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=D|K ' +
+          '==> next_comm=ndroid.launcher next_pid=584 next_prio=120',
+
+      'ndroid.launcher-584   [001] d..4 12622.506936: sched_wakeup: ' +
+          'comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001',
+
+      'ndroid.launcher-584   [001] d..3 12622.506950: sched_switch: ' +
+          'prev_comm=ndroid.launcher prev_pid=584 ' +
+          'prev_prio=120 prev_state=R+ ' +
+          '==> next_comm=Binder_1 next_pid=217 next_prio=120',
+
+      '       Binder_1-217   [001] ...1 12622.507057: tracing_mark_write: ' +
+          'B|128|queueBuffer',
+
+      '       Binder_1-217   [001] ...1 12622.507175: tracing_mark_write: E',
+
+      '       Binder_1-217   [001] d..3 12622.507253: sched_switch: ' +
+          'prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ' +
+          '==> next_comm=ndroid.launcher next_pid=584 next_prio=120',
+    ];
+
+    var m = new tracing.TraceModel(lines.join('\n'), false);
+    assertEquals(0, m.importErrors.length);
+
+    var thread = m.findAllThreadsNamed('Binder_1')[0];
+    var cpuSlices = thread.cpuSlices;
+    assertEquals(4, cpuSlices.length);
+
+    var wakeKillSlice = cpuSlices[1];
+    assertEquals('Uninterruptible Sleep | WakeKill', wakeKillSlice.title);
+    assertAlmostEquals(12622506.918, wakeKillSlice.start);
+    assertAlmostEquals(.936 - .918, wakeKillSlice.duration);
+  });
 });

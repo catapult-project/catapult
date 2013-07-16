@@ -530,11 +530,16 @@ base.exportTo('tracing.importer', function() {
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
             slices.push(new tracing.trace_model.Slice('', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tracing.trace_model.Slice('', 'WakeKill', ioWaitId,
+          } else if (prevSlice.args.stateWhenDescheduled == 'K') {
+            slices.push(new tracing.trace_model.Slice('', 'Wakekill', ioWaitId,
                 prevSlice.end, {}, midDuration));
+          } else if (prevSlice.args.stateWhenDescheduled == 'W') {
+            slices.push(new tracing.trace_model.Slice('', 'Waking', ioWaitId,
+                prevSlice.end, {}, midDuration));
+          } else if (prevSlice.args.stateWhenDescheduled == 'D|K') {
+            pushSleep('Uninterruptible Sleep | WakeKill', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
-            pushSleep('Uninterruptable Sleep | WakeKill', ioWaitId);
+            pushSleep('Uninterruptible Sleep | Waking', ioWaitId);
           } else {
             slices.push(new tracing.trace_model.Slice('', 'UNKNOWN', ioWaitId,
                 prevSlice.end, {}, midDuration));
