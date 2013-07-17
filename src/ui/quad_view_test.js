@@ -34,7 +34,7 @@ base.unittest.testSuite('ui.quad_view', function() {
     quadView.title = 'Test Tree';
     quadView.quads = quads;
     quadView.viewport = new QuadViewViewport(quadsBBox.asRect(), 10.0);
-    quadView.deviceViewportSizeForFrame = {widht: 50, height: 30};
+    quadView.deviceViewportSizeForFrame = {width: 50, height: 30};
 
     quadView.addEventListener(
         'selectionChanged',

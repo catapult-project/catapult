@@ -63,6 +63,10 @@ base.exportTo('ui', function() {
       return this.worldRect_;
     },
 
+    get unpaddedWorldRect() {
+      return this.unpaddedWorldRect_;
+    },
+
     updateBoxSize: function(canvas) {
       var resizedCanvas = false;
       if (canvas.width !== this.worldWidthInDevicePixels_) {
@@ -116,7 +120,6 @@ base.exportTo('ui', function() {
     //-------------------------------------------
 
     updateScale_: function() {
-      // Scale the world to the size selected by the user.
       this.worldWidthInDevicePixels_ =
           this.worldRect_.width * this.worldPixelsPerDevicePixel_;
       this.worldHeightInDevicePixels_ =
@@ -131,12 +134,9 @@ base.exportTo('ui', function() {
 
     /** Adjust the scaled world box for Retina-like displays */
     updateLayoutRect_: function() {
-      var devicePixelsPerLayoutPixel = 1 / this.devicePixelRatio;
-      this.layoutRect_ = base.Rect.FromXYWH(
-          this.worldRect.x * devicePixelsPerLayoutPixel,
-          this.worldRect.y * devicePixelsPerLayoutPixel,
-          this.worldWidthInDevicePixels_ * devicePixelsPerLayoutPixel,
-          this.worldHeightInDevicePixels_ * devicePixelsPerLayoutPixel);
+      var devicePixelsPerLayoutPixel =
+          this.worldPixelsPerDevicePixel_ / this.devicePixelRatio;
+      this.layoutRect_ = this.worldRect.scale(devicePixelsPerLayoutPixel);
     },
 
     setWorldRect_: function(worldRect, opt_padding) {
@@ -150,8 +150,8 @@ base.exportTo('ui', function() {
       worldPad = Math.min(worldRect.width,
                           worldRect.height) * padding;
 
-      worldRect = worldRect.enlarge(worldPad);
-      this.worldRect_ = worldRect;
+      this.unpaddedWorldRect_ = worldRect;
+      this.worldRect_ = worldRect.clone().enlarge(worldPad);
     },
 
     updateTransform_: function() {

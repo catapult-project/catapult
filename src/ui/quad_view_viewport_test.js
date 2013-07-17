@@ -10,7 +10,7 @@ base.require('ui.quad_view_viewport');
 base.unittest.testSuite('ui.quad_view_viewport', function() {
   var QuadViewViewport = ui.QuadViewViewport;
 
-  test('basicsHighDPI', function() {
+  test('basicsHighDPIUnpadded', function() {
     var bbox = new base.BBox2();
     bbox.addXY(0, 0);
     bbox.addXY(4000, 2000);
@@ -37,9 +37,11 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(250, 125));
     assertEquals(4000, tmp[0]);
     assertEquals(2000, tmp[1]);
+
+    assertRectEquals(bbox.asRect(), vp.unpaddedWorldRect);
   });
 
-  test('basicsHighDPIUnpadded', function() {
+  test('basicsHighDPI', function() {
     var bbox = new base.BBox2();
     bbox.addXY(0, 0);
     bbox.addXY(4000, 2000);
@@ -65,5 +67,7 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     var tmp = vp.layoutPixelsToWorldPixels(vec2.createXY(275, 150));
     assertEquals(4200, tmp[0]);
     assertEquals(2200, tmp[1]);
+
+    assertRectEquals(bbox.asRect(), vp.unpaddedWorldRect);
   });
 });
