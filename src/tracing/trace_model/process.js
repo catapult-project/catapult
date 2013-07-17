@@ -23,6 +23,7 @@ base.exportTo('tracing.trace_model', function() {
     this.pid = pid;
     this.name = undefined;
     this.labels = [];
+    this.instantEvents = [];
   };
 
   /**
@@ -54,6 +55,10 @@ base.exportTo('tracing.trace_model', function() {
       return Process.compare(this, that);
     },
 
+    pushInstantEvent: function(instantEvent) {
+      this.instantEvents.push(instantEvent);
+    },
+
     get userFriendlyName() {
       var res;
       if (this.name)
@@ -77,6 +82,14 @@ base.exportTo('tracing.trace_model', function() {
       if (!this.labels.length)
         return 'processes.' + this.name;
       return 'processes.' + this.name + '.' + this.labels.join('.');
+    },
+
+    shiftTimestampsForward: function(amount) {
+      for (var id in this.instantEvents)
+        this.instantEvents[id].start += amount;
+
+      tracing.trace_model.ProcessBase.prototype
+          .shiftTimestampsForward.apply(this, arguments);
     }
   };
 

@@ -89,6 +89,45 @@ base.exportTo('tracing.tracks', function() {
       if (!track.hasVisibleContent)
         return;
       this.appendChild(track);
+    },
+
+    drawTrack: function(type) {
+      switch (type) {
+        case tracing.tracks.DrawType.INSTANT_EVENT:
+          if (!this.model_.instantEvents ||
+              this.model_.instantEvents.length === 0)
+            break;
+
+          var ctx = this.context();
+          if (ctx === undefined)
+            break;
+
+          ctx.save();
+          var worldBounds = this.setupCanvasForDraw_();
+          this.drawInstantEvents_(
+              this.model_.instantEvents, worldBounds.left, worldBounds.right);
+          ctx.restore();
+          break;
+      }
+
+      tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+    },
+
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
+      function onPickHit(instantEvent) {
+        var hit = selection.addSlice(this, instantEvent);
+        this.decorateHit(hit);
+      }
+      base.iterateOverIntersectingIntervals(this.model_.instantEvents,
+          function(x) { return x.start; },
+          function(x) { return x.duration; },
+          loWX, hiWX,
+          onPickHit.bind(this));
+
+      tracing.tracks.ContainerTrack.prototype.
+          addIntersectingItemsInRangeToSelectionInWorldSpace.
+          apply(this, arguments);
     }
   };
 

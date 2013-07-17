@@ -830,7 +830,7 @@ base.exportTo('tracing', function() {
 
     onEndZoom_: function(e) {
       this.isZooming_ = false;
-    },
+    }
   };
 
   return {

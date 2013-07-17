@@ -46,14 +46,6 @@ base.exportTo('tracing.tracks', function() {
       this.slices_ = null;
     },
 
-    /**
-     * Called by all the addToSelection functions on the created selection
-     * hit objects. Override this function on parent classes to add
-     * context-specific information to the hit.
-     */
-    decorateHit: function(hit) {
-    },
-
     get asyncStyle() {
       return this.asyncStyle_;
     },
@@ -128,9 +120,9 @@ base.exportTo('tracing.tracks', function() {
       for (var i = lowSlice; i < slices.length; ++i) {
         var slice = slices[i];
         var x = slice.start;
-        if (x > viewRWorld) {
+        if (x > viewRWorld)
           break;
-        }
+
         // Less than 0.001 causes short events to disappear when zoomed in.
         var w = Math.max(slice.duration, 0.001);
         var colorId = slice.selected ?
@@ -205,17 +197,15 @@ base.exportTo('tracing.tracks', function() {
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
-
-      var that = this;
       function onPickHit(slice) {
-        var hit = selection.addSlice(that, slice);
-        that.decorateHit(hit);
+        var hit = selection.addSlice(this, slice);
+        this.decorateHit(hit);
       }
       base.iterateOverIntersectingIntervals(this.slices_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
-          onPickHit);
+          onPickHit.bind(this));
     },
 
     /**

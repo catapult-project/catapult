@@ -11,7 +11,8 @@ base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
   var DrawType = {
-    SLICE: 1
+    SLICE: 1,
+    INSTANT_EVENT: 2
   };
 
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
@@ -58,6 +59,12 @@ base.exportTo('tracing.tracks', function() {
         this.updateCanvasSizeIfNeeded_();
 
         base.requestAnimationFrameInThisFrameIfPossible(function() {
+          for (var i = 0; i < this.children.length; ++i) {
+            if (!(this.children[i] instanceof tracing.tracks.Track))
+              continue;
+            this.children[i].drawTrack(DrawType.INSTANT_EVENT);
+          }
+
           for (var i = 0; i < this.children.length; ++i) {
             if (!(this.children[i] instanceof tracing.tracks.Track))
               continue;

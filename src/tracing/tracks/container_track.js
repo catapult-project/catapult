@@ -65,6 +65,9 @@ base.exportTo('tracing.tracks', function() {
           this.tracks_[i].addIntersectingItemsInRangeToSelection(
               loVX, hiVX, loY, hiY, selection);
       }
+
+      tracing.tracks.Track.prototype.addIntersectingItemsInRangeToSelection.
+          apply(this, arguments);
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {

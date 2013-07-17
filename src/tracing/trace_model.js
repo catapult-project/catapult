@@ -47,6 +47,7 @@ base.exportTo('tracing', function() {
     this.metadata = [];
     this.categories = [];
     this.bounds = new base.Range();
+    this.instantEvents = [];
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -84,6 +85,10 @@ base.exportTo('tracing', function() {
       return this.processes[pid];
     },
 
+    pushInstantEvent: function(instantEvent) {
+      this.instantEvents.push(instantEvent);
+    },
+
     /**
      * Generates the set of categories from the slices and counters.
      */
@@ -116,6 +121,8 @@ base.exportTo('tracing', function() {
         return;
       var timeBase = this.bounds.min;
       this.kernel.shiftTimestampsForward(-timeBase);
+      for (var id in this.instantEvents)
+        this.instantEvents[id].start -= timeBase;
       for (var pid in this.processes)
         this.processes[pid].shiftTimestampsForward(-timeBase);
       this.updateBounds();

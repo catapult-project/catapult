@@ -5,12 +5,12 @@
 'use strict';
 
 /**
- * @fileoverview Provides the Instant class.
+ * @fileoverview Provides the InstantEvent class.
  *
  * Note, this has the save API as the slice class.
  */
 base.exportTo('tracing.trace_model', function() {
-  var InstantType = {
+  var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2,
     THREAD: 3
@@ -39,7 +39,7 @@ base.exportTo('tracing.trace_model', function() {
 
   function GlobalInstantEvent(category, title, colorId, start, args) {
     InstantEvent.apply(this, arguments);
-    this.type = InstantType.GLOBAL;
+    this.type = InstantEventType.GLOBAL;
   };
 
   GlobalInstantEvent.prototype = {
@@ -48,7 +48,7 @@ base.exportTo('tracing.trace_model', function() {
 
   function ProcessInstantEvent(category, title, colorId, start, args) {
     InstantEvent.apply(this, arguments);
-    this.type = InstantType.PROCESS;
+    this.type = InstantEventType.PROCESS;
   };
 
   ProcessInstantEvent.prototype = {
@@ -57,7 +57,7 @@ base.exportTo('tracing.trace_model', function() {
 
   function ThreadInstantEvent(category, title, colorId, start, args) {
     InstantEvent.apply(this, arguments);
-    this.type = InstantType.THREAD;
+    this.type = InstantEventType.THREAD;
   };
 
   ThreadInstantEvent.prototype = {
@@ -69,6 +69,6 @@ base.exportTo('tracing.trace_model', function() {
     ProcessInstantEvent: ProcessInstantEvent,
     ThreadInstantEvent: ThreadInstantEvent,
 
-    InstantType: InstantType
+    InstantEventType: InstantEventType
   };
 });

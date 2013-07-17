@@ -276,19 +276,26 @@ base.exportTo('tracing.importer', function() {
       }
 
       var colorId = tracing.getStringColorId(event.name);
-      var instant = new constructor(event.cat, event.name,
+      var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
-      switch (instant.type) {
-        case tracing.trace_model.InstantType.GLOBAL:
-        case tracing.trace_model.InstantType.PROCESS:
-        case tracing.trace_model.InstantType.THREAD:
+      switch (instantEvent.type) {
+        case tracing.trace_model.InstantEventType.GLOBAL:
+          this.model_.pushInstantEvent(instantEvent);
+          break;
+
+        case tracing.trace_model.InstantEventType.PROCESS:
+          var process = this.model_.getOrCreateProcess(event.pid);
+          process.pushInstantEvent(instantEvent);
+          break;
+
+        case tracing.trace_model.InstantEventType.THREAD:
           var thread = this.model_.getOrCreateProcess(event.pid)
               .getOrCreateThread(event.tid);
-          thread.sliceGroup.pushInstant(instant);
+          thread.sliceGroup.pushInstantEvent(instantEvent);
           break;
         default:
-          throw new Error('Unknown instant type: ' + event.s);
+          throw new Error('Unknown instant event type: ' + event.s);
       }
     },
 
