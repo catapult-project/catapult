@@ -50,7 +50,7 @@ class _RunState(object):
       self._last_archive_path = page.archive_path
     else:
       # Set up WPR path if it changed.
-      if self._last_archive_path != page.archive_path:
+      if page.archive_path and self._last_archive_path != page.archive_path:
         self.browser.SetReplayArchivePath(
             page.archive_path,
             self._append_to_existing_wpr,
