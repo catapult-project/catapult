@@ -16,7 +16,6 @@ base.exportTo('ui', function() {
    */
   function Camera(targetElement) {
     this.targetElement_ = targetElement;
-    this.debug_ = false;
 
     this.onMouseDown_ = this.onMouseDown_.bind(this);
     this.onMouseMove_ = this.onMouseMove_.bind(this);
@@ -50,14 +49,6 @@ base.exportTo('ui', function() {
     repaint: function() {
       this.repaintPending_ = true;
       this.repaint_();
-    },
-
-    get debug() {
-      return this.debug_;
-    },
-
-    set debug(debug) {
-      this.debug_ = !!debug;
     },
 
     repaint_: function() {
@@ -112,9 +103,6 @@ base.exportTo('ui', function() {
       transformString += ' rotateY(' + this.rotations_.y + 'deg)';
       var container = this.targetElement_.contentContainer;
       container.style.webkitTransform = transformString;
-
-      if (this.debug)
-        this.updateDebugIndicator_();
     },
 
     updateCameraStart_: function(x, y) {
@@ -155,31 +143,6 @@ base.exportTo('ui', function() {
       document.removeEventListener('mouseup', this.onMouseUp_);
       this.updateCamera_(e.x, e.y);
     },
-
-    indicatorLine_: function(context, x0, y0, x1, y1) {
-      context.beginPath();
-      context.moveTo(x0, y0);
-      context.lineTo(x1, y1);
-      context.lineWidth = 3;
-      context.strokeStyle = '#ff0000';
-      context.stroke();
-    },
-
-    updateDebugIndicator_: function() {
-      var crossHairsParent = this.targetElement_.parentElement;
-      var crossHairsTarget = this.targetElement_;
-      this.crossHairs_ = this.crossHairs_ || document.createElement('canvas');
-      this.crossHairs_.className = 'camera-debug-indicator';
-      crossHairsParent.appendChild(this.crossHairs_);
-      var width = this.crossHairs_.width = crossHairsTarget.offsetWidth;
-      var height = this.crossHairs_.height = crossHairsTarget.offsetHeight;
-
-      var context = this.crossHairs_.getContext('2d');
-      var offset = crossHairsTarget.offsetTop;
-      this.crossHairs_.style.top = offset + 'px';
-      this.indicatorLine_(context, 0, height / 2, width, height / 2);
-      this.indicatorLine_(context, width / 2, 0, width / 2, height);
-    }
 
   };
 

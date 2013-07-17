@@ -23,8 +23,6 @@ base.unittest.testSuite('ui.quad_stack', function() {
     quads.forEach(function(quad) { quadsBbox.addQuad(quad); });
 
     var stack = new ui.QuadStack();
-    if (stack.debug)
-      throw new Error('ui.QuadStack debug flag must not be truthy.');
 
     var deviceViewportSizeForFrame = {width: 200, height: 100};
     stack.initialize(quadsBbox.asRect(), deviceViewportSizeForFrame);

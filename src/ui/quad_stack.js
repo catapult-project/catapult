@@ -40,7 +40,6 @@ base.exportTo('ui', function() {
       this.viewport_ = undefined;
       this.worldViewportRectView_ = new ui.RectView();
       this.quads_ = undefined;
-      this.debug_ = false;
     },
 
     initialize: function(unpaddedWorldRect, opt_worldViewportRect) {
@@ -48,11 +47,7 @@ base.exportTo('ui', function() {
 
       this.viewport_.addEventListener('change', function() {
         this.worldViewportRectView_.viewport = this.viewport_;
-        if (this.debug)
-          this.updateDebugIndicator_();
       }.bind(this));
-      if (this.debug)
-        this.updateDebugIndicator_();
 
       this.worldViewportRect_ = base.Rect.FromXYWH(
           opt_worldViewportRect.x || 0,
@@ -81,15 +76,6 @@ base.exportTo('ui', function() {
       validateQuads(quads);
       this.quads_ = quads;
       this.updateContents_();
-    },
-
-    get debug() {
-      return this.debug_;
-    },
-
-    set debug(debug) {
-      this.debug_ = debug;
-      this.updateDebugIndicator_();
     },
 
     get viewport() {
@@ -176,24 +162,10 @@ base.exportTo('ui', function() {
         }
       }
 
+      this.viewport.updateBoxSize(this.contentContainer_);
       this.layers = this.contentContainer_.children;
     },
 
-    updateDebugIndicator_: function() {
-      this.indicatorCanvas_ = this.indicatorCanvas_ ||
-          document.createElement('canvas');
-      this.indicatorCanvas_.className = 'quad-stack-debug-indicator';
-      this.contentContainer_.appendChild(this.indicatorCanvas_);
-
-      var resizedCanvas = this.viewport_.updateBoxSize(this.indicatorCanvas_);
-      var ctx = this.indicatorCanvas_.getContext('2d');
-      ctx.fillStyle = 'red';
-      ctx.fontStyle = '30px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('X', this.indicatorCanvas_.width / 2,
-          this.indicatorCanvas_.height / 2);
-    }
 
   };
 

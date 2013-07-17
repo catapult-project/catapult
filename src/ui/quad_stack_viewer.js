@@ -21,12 +21,8 @@ base.exportTo('ui', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.layerTreeImpl_ = undefined;
-      this.selection_ = undefined;
-
-      this.showInvalidations_ = true;
-      this.showOtherLayers_ = true;
-      this.showContents_ = true;
+      this.className = 'quad-stack-viewer';
+      this.scale_ = 0.25;
 
       this.quadStack_ = new ui.QuadStack();
       this.appendChild(this.quadStack_);
@@ -46,6 +42,10 @@ base.exportTo('ui', function() {
       this.scale_ = newValue;
       if (this.quadStack_.viewport)
         this.quadStack_.viewport.scale = newValue;
+    },
+
+    get camera() {
+      return this.camera_;
     }
 
   };

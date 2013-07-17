@@ -4,8 +4,10 @@
  */
 
 quad-stack {
-  display: block;
-  min-height: 100%;
+  -webkit-flex: 1 1 100%;
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+  min-height: 357px;
   outline: none;
   position: relative;
   width: 100%;
@@ -13,7 +15,7 @@ quad-stack {
 }
 
 quad-stack > view-container {
-  -webkit-flex: 1 1 auto;
+  -webkit-flex: 1 1 100%;
   -webkit-transform-style: preserve-3d;
   display: -webkit-flex;
   outline: none;
@@ -22,6 +24,7 @@ quad-stack > view-container {
 
 quad-stack quad-view {
   -webkit-transform: translateZ(0); /* actual xform for depth is set in rAF */
+  left: 0;
   position: absolute;
   top: 0;
 }
