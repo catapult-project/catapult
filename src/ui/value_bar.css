@@ -1,0 +1,112 @@
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+/* Base class rules, internal to value-bar */
+
+.value-bar {
+    -webkit-flex-wrap: nowrap;
+    color: gray;
+    display: -webkit-flex;
+    position: absolute;
+    z-index: 100;
+}
+
+.value-bar .value-control {
+  -webkit-user-select: none;
+  background-color: whitesmoke;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 12px;
+}
+
+.value-bar .lowest-value-control {
+  position: relative;
+  z-index: 100;
+}
+
+.value-bar .highest-value-control {
+  position: relative;
+  z-index: 100;
+}
+
+.value-bar .value-range-control {
+  background-color: lightgray;
+  position: relative;
+}
+
+.value-bar .value-slider {
+  background-color: gray;
+  position: absolute;
+  z-index: 99;
+}
+
+.value-bar[orient='vertical'] .lowest-value-control {
+  border-bottom: none;
+}
+
+.value-bar[orient='vertical'] .value-slider {
+  cursor:  row-resize;
+  width: 18px;
+}
+
+.value-bar[orient='vertical'] .value-slider-top {
+  border-bottom: 1px solid black;
+  height: 5px;
+}
+
+ .value-bar[orient='vertical'] .value-slider-bottom {
+   border-top: 1px solid black;
+  height: 5px;
+}
+
+.value-bar[orient='vertical'] .value-range-control {
+  height: 100px;
+}
+
+.value-bar[orient='vertical'] .highest-value-control {
+  border-top: none;
+}
+
+.value-bar[orient='vertical'] .value-display {
+  left: 25px;
+}
+
+.value-bar[orient='horizontal'] .lowest-value-control {
+  border-right: none;
+}
+
+.value-bar[orient='horizontal'] .value-slider {
+  cursor:  col-resize;
+  height: 18px;
+  white-space: nowrap;
+}
+
+.value-bar[orient='horizontal'] .value-slider-top {
+  border-right: 1px solid black;
+  display: inline-block;
+  height: 18px;
+  width: 5px;
+}
+
+.value-bar[orient='horizontal'] .value-slider-bottom {
+  border-left: 1px solid black;
+  display: inline-block;
+  height: 18px;
+  width: 5px;
+}
+
+
+.value-bar[orient='horizontal'] .value-range-control {
+  width: 100px;
+}
+
+.value-bar[orient='horizontal'] .highest-value-control {
+  border-left: none;
+}
+
+.value-bar[orient='horizontal'] .value-display {
+  left: 25px;
+}
