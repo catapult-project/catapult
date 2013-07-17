@@ -11,6 +11,8 @@
 base.require('base.quad');
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
+base.require('tracing.trace_model.instant_event');
+
 base.exportTo('tracing.importer', function() {
 
   function deepCopy(value) {
@@ -257,11 +259,37 @@ base.exportTo('tracing.importer', function() {
     // Treat an Instant event as a duration 0 slice.
     // SliceTrack's redraw() knows how to handle this.
     processInstantEvent: function(event) {
-      var thread = this.model_.getOrCreateProcess(event.pid)
-        .getOrCreateThread(event.tid);
-      thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
-                                   this.deepCopyIfNeeded_(event.args));
-      thread.sliceGroup.endSlice(event.ts / 1000);
+      var constructor;
+      switch (event.s) {
+        case 'g':
+          constructor = tracing.trace_model.GlobalInstantEvent;
+          break;
+        case 'p':
+          constructor = tracing.trace_model.ProcessInstantEvent;
+          break;
+        case 't':
+          // fall through
+        default:
+          // Default to thread to support old style input files.
+          constructor = tracing.trace_model.ThreadInstantEvent;
+          break;
+      }
+
+      var colorId = tracing.getStringColorId(event.name);
+      var instant = new constructor(event.cat, event.name,
+          colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
+
+      switch (instant.type) {
+        case tracing.trace_model.InstantType.GLOBAL:
+        case tracing.trace_model.InstantType.PROCESS:
+        case tracing.trace_model.InstantType.THREAD:
+          var thread = this.model_.getOrCreateProcess(event.pid)
+              .getOrCreateThread(event.tid);
+          thread.sliceGroup.pushInstant(instant);
+          break;
+        default:
+          throw new Error('Unknown instant type: ' + event.s);
+      }
     },
 
     processSampleEvent: function(event) {

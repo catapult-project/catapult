@@ -64,6 +64,14 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     /**
+     * Push an instant event into the slice list.
+     * @param {tracing.trace_model.Instant} instant The instant event.
+     */
+    pushInstant: function(instant) {
+      this.slices.push(instant);
+    },
+
+    /**
      * Opens a new slice in the group's slices.
      *
      * Calls to beginSlice and

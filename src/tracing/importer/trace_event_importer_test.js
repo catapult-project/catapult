@@ -452,6 +452,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
+
     assertEquals(3, t.sliceGroup.length);
     assertEquals(0.002, t.sliceGroup.slices[0].start);
     assertEquals(0, t.sliceGroup.slices[0].duration);
@@ -469,14 +470,12 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('bar', immed.category);
     assertEquals(0.002, immed.start);
     assertEquals(0, immed.duration);
-    assertEquals(0, immed.subSlices.length);
 
     var slower = findSliceNamed(t.sliceGroup, 'slower');
     assertEquals('slower', slower.title);
     assertEquals('baz', slower.category);
     assertEquals(0.004, slower.start);
     assertEquals(0, slower.duration);
-    assertEquals(0, slower.subSlices.length);
   });
 
   test('simpleCounter', function() {

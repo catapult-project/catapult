@@ -125,6 +125,7 @@
       'src/tracing/trace_model/object_instance.js',
       'src/tracing/trace_model/process.js',
       'src/tracing/trace_model/counter.js',
+      'src/tracing/trace_model/instant_event.js',
       'src/tracing/test_utils.js',
       'src/tracing/timeline_viewport.js',
       'src/tracing/analysis/stub_analysis_table.js',
