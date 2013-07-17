@@ -4,33 +4,27 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.drawable_track');
-base.requireStylesheet('tracing.tracks.drawing_container');
+base.requireStylesheet('tracing.tracks.heading_track');
 
-base.require('base.raf');
 base.require('tracing.constants');
 base.require('tracing.tracks.track');
-base.require('tracing.fast_rect_renderer');
-base.require('tracing.color_scheme');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
   /**
-   * A drawable track constructed. Provides the basic heading and
-   * invalidation-managment infrastructure. Subclasses must implement drawing
-   * and picking code.
+   * A track with a header. Provides the basic heading and tooltip
+   * infrastructure. Subclasses must implement drawing code.
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var DrawableTrack = ui.define('drawable-track', tracing.tracks.Track);
+  var HeadingTrack = ui.define('heading-track', tracing.tracks.Track);
 
-  DrawableTrack.prototype = {
+  HeadingTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 
     decorate: function(viewport) {
       tracing.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('drawable-track');
-      this.slices_ = null;
+      this.classList.add('heading-track');
 
       this.headingDiv_ = document.createElement('heading');
       this.headingDiv_.style.width = tracing.constants.HEADING_WIDTH + 'px';
@@ -55,6 +49,6 @@ base.exportTo('tracing.tracks', function() {
   };
 
   return {
-    DrawableTrack: DrawableTrack
+    HeadingTrack: HeadingTrack
   };
 });

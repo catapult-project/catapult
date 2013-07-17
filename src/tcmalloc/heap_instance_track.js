@@ -7,7 +7,7 @@
 base.requireStylesheet('tcmalloc.heap_instance_track');
 
 base.require('base.sorted_array_utils');
-base.require('tracing.tracks.drawable_track');
+base.require('tracing.tracks.heading_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.color_scheme');
 base.require('ui');
@@ -20,18 +20,18 @@ base.exportTo('tcmalloc', function() {
   /**
    * A track that displays heap memory data.
    * @constructor
-   * @extends {DrawableTrack}
+   * @extends {HeadingTrack}
    */
 
   var HeapInstanceTrack = ui.define(
-      'heap-instance-track', tracing.tracks.DrawableTrack);
+      'heap-instance-track', tracing.tracks.HeadingTrack);
 
   HeapInstanceTrack.prototype = {
 
-    __proto__: tracing.tracks.DrawableTrack.prototype,
+    __proto__: tracing.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('heap-instance-track');
       this.objectInstance_ = null;
     },

@@ -8,7 +8,7 @@ base.requireStylesheet('tracing.tracks.ruler_track');
 
 base.require('tracing.constants');
 base.require('tracing.tracks.track');
-base.require('tracing.tracks.drawable_track');
+base.require('tracing.tracks.heading_track');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
@@ -16,10 +16,10 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays the ruler.
    * @constructor
-   * @extends {DrawableTrack}
+   * @extends {HeadingTrack}
    */
 
-  var RulerTrack = ui.define('ruler-track', tracing.tracks.DrawableTrack);
+  var RulerTrack = ui.define('ruler-track', tracing.tracks.HeadingTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {
@@ -27,10 +27,10 @@ base.exportTo('tracing.tracks', function() {
   }
 
   RulerTrack.prototype = {
-    __proto__: tracing.tracks.DrawableTrack.prototype,
+    __proto__: tracing.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
@@ -42,7 +42,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     detach: function() {
-      tracing.tracks.DrawableTrack.prototype.detach.call(this);
+      tracing.tracks.HeadingTrack.prototype.detach.call(this);
       this.viewport.removeEventListener('markersChange',
                                         this.viewportMarkersChange_);
     },

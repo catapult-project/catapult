@@ -11,6 +11,7 @@
  */
 
 base.requireStylesheet('tracing.tracks.track');
+
 base.require('ui');
 base.require('ui.container_that_decorates_its_children');
 

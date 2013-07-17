@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-.drawable-track {
+.heading-track {
   -webkit-box-align: stretch;
   -webkit-box-orient: horizontal;
   display: -webkit-box;
@@ -11,7 +11,7 @@
   padding: 0 5px 0 0;
 }
 
-.drawable-track > heading {
+.heading-track > heading {
   -webkit-box-sizing: border-box;
   background-color: rgba(214, 221, 229, 0.3);
   border-right: 1px solid #8e8e8e;
@@ -24,9 +24,3 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.drawable-container {
-  -webkit-box-flex: 1;
-  width: 100%;
-}
-

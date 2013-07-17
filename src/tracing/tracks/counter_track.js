@@ -6,7 +6,7 @@
 
 base.requireStylesheet('tracing.tracks.counter_track');
 
-base.require('tracing.tracks.drawable_track');
+base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
@@ -17,18 +17,18 @@ base.exportTo('tracing.tracks', function() {
   /**
    * A track that displays a Counter object.
    * @constructor
-   * @extends {DrawableTrack}
+   * @extends {HeadingTrack}
    */
 
   var CounterTrack =
-      ui.define('counter-track', tracing.tracks.DrawableTrack);
+      ui.define('counter-track', tracing.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
 
-    __proto__: tracing.tracks.DrawableTrack.prototype,
+    __proto__: tracing.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.DrawableTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
       this.selectedSamples_ = {};
       this.categoryFilter_ = new tracing.Filter();
