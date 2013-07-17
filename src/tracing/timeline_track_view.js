@@ -606,11 +606,20 @@ base.exportTo('tracing', function() {
 
     onDblClick_: function(e) {
 
-      if (this.mouseModeSelector_.mode ===
-          tracing.mouseModeConstants.MOUSE_MODE_SELECTION) {
-        this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
-        e.preventDefault();
+      if (this.isPanningAndScanning_) {
+        var endPanEvent = new base.Event('endpan');
+        endPanEvent.data = e;
+        this.onEndPanScan_(endPanEvent);
       }
+
+      if (this.isZooming_) {
+        var endZoomEvent = new base.Event('endzoom');
+        endZoomEvent.data = e;
+        this.onEndZoom_(endZoomEvent);
+      }
+
+      this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
+      e.preventDefault();
     },
 
     storeLastMousePos_: function(e) {
