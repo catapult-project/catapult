@@ -278,6 +278,12 @@ base.exportTo('tracing', function() {
     },
 
     onMouseMove_: function(e) {
+
+      // Zooming requires the delta since the last mousemove so we need to avoid
+      // tracking it when the zoom interaction is active.
+      if (this.isZooming_)
+        return;
+
       this.storeLastMousePos_(e);
     },
 
