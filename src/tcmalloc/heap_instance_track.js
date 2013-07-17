@@ -86,25 +86,31 @@ base.exportTo('tcmalloc', function() {
       var pixelRatio = window.devicePixelRatio || 1;
 
       var bounds = this.getBoundingClientRect();
+      var width = bounds.width * pixelRatio;
       var height = bounds.height * pixelRatio;
 
       // Culling parameters.
       var vp = this.viewport;
-      var snapshotRadiusWorld = vp.xViewVectorToWorld(height);
 
-      // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
+      // Scale by the size of the largest snapshot.
+      var maxBytes = this.maxBytes_;
+
       var objectSnapshots = this.objectInstance_.snapshots;
       var lowIndex = base.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
-            return snapshot.ts +
-                snapshotRadiusWorld;
+            return snapshot.ts;
           },
           viewLWorld);
+      // Assure that the stack with the left edge off screen still gets drawn
+      if (lowIndex > 0)
+        lowIndex -= 1;
+
       for (var i = lowIndex; i < objectSnapshots.length; ++i) {
         var snapshot = objectSnapshots[i];
+
         var left = snapshot.ts;
-        if (left - snapshotRadiusWorld > viewRWorld)
+        if (left > viewRWorld)
           break;
         var leftView = vp.xWorldToView(left);
         if (leftView < 0)
@@ -117,9 +123,12 @@ base.exportTo('tcmalloc', function() {
         else
           right = objectSnapshots[objectSnapshots.length - 1].ts + 5000;
         var rightView = vp.xWorldToView(right);
+        if (rightView > width)
+          rightView = width;
 
-        // Scale by the size of the largest snapshot.
-        var maxBytes = this.maxBytes_;
+        // Floor the bounds to avoid a small gap between stacks.
+        leftView = Math.floor(leftView);
+        rightView = Math.floor(rightView);
 
         // Draw a stacked bar graph. Largest item is stored first in the
         // heap data structure, so iterate backwards. Likewise draw from
@@ -140,9 +149,10 @@ base.exportTo('tcmalloc', function() {
                 snapshot.objectInstance.colorId;
             ctx.fillStyle = palette[colorId + k];
           }
+
           var barHeight = height * trace.currentBytes / maxBytes;
           ctx.fillRect(leftView, currentY - barHeight,
-                       rightView - leftView + 1, barHeight);
+                       Math.max(rightView - leftView, 1), barHeight);
           currentY -= barHeight;
         }
       }
