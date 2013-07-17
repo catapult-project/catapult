@@ -75,7 +75,7 @@ base.exportTo('tcmalloc', function() {
 
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
-        case tracking.tracks.DrawType.SLICE:
+        case tracing.tracks.DrawType.SLICE:
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
       }
