@@ -6,7 +6,6 @@ A library for cross-platform browser tests.
 """
 import inspect
 import os
-import shutil
 import sys
 
 from telemetry.core.browser import Browser
