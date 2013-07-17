@@ -30,6 +30,7 @@
       'src/ui/filter_control.css',
       'src/ui/drag_handle.css',
       'src/ui/mouse_tracker.js',
+      'src/ui/text_end_value_bar.js',
       'src/ui/value_bar.js',
       'src/ui/value_bar.css',
       'src/ui/value_display.js',
