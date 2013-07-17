@@ -36,6 +36,8 @@ base.exportTo('tracing', function() {
     this.hasCalledSetupFunction_ = false;
 
     this.onResize_ = this.onResize_.bind(this);
+    this.onModelTrackControllerScroll_ =
+        this.onModelTrackControllerScroll_.bind(this);
 
     // The following code uses an interval to detect when the parent element
     // is attached to the document. That is a trigger to run the setup function
@@ -148,8 +150,19 @@ base.exportTo('tracing', function() {
       this.panY = state.panY;
     },
 
+    onModelTrackControllerScroll_: function(e) {
+      this.panY_ = this.modelTrackContainer_.scrollTop;
+    },
+
     set modelTrackContainer(m) {
+
+      if (this.modelTrackContainer_)
+        this.modelTrackContainer_.removeEventListener('scroll',
+            this.onModelTrackControllerScroll_);
+
       this.modelTrackContainer_ = m;
+      this.modelTrackContainer_.addEventListener('scroll',
+          this.onModelTrackControllerScroll_);
     },
 
     get scaleX() {
