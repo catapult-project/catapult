@@ -220,6 +220,7 @@ base.exportTo('ui', function() {
       }
 
       e.preventDefault();
+      this.isInTemporaryAlternativeMouseMode_ = false;
     },
 
     onKeyPress_: function(e) {
@@ -279,6 +280,8 @@ base.exportTo('ui', function() {
           (e.keyCode === 18 || e.keyCode === 16)) {
         this.mode = mouseModeConstants.MOUSE_MODE_PANSCAN;
       }
+
+      this.isInTemporaryAlternativeMouseMode_ = false;
 
     },
 
