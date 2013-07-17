@@ -13,6 +13,8 @@ base.require('ui');
 base.require('ui.quad_view_viewport');
 
 base.exportTo('ui', function() {
+  // FIXME(pdr): Remove this extra scaling so our rasters are pixel-perfect.
+  //             https://code.google.com/p/trace-viewer/issues/detail?id=228
   var RASTER_SCALE = 0.75; // Adjust the resolution of our backing canvases.
 
   // Care of bckenney@ via
@@ -67,7 +69,6 @@ base.exportTo('ui', function() {
 
       this.quads_ = undefined;
       this.viewport_ = undefined;
-      this.worldViewportRect_ = undefined;
       this.canvas_ = document.createElement('canvas');
 
       this.appendChild(this.canvas_);
@@ -134,19 +135,6 @@ base.exportTo('ui', function() {
         }.bind(this);
         img.src = helperCanvas.toDataURL();
       }, this);
-      this.updateChildren_();
-    },
-
-    get worldViewportRect() {
-      return this.worldViewportRect_;
-    },
-
-    /**
-     * When set, darkens the canvas outside of the viewport in order to
-     * make waht is inside vs outside the viewport more obvious.
-     */
-    set worldViewportRect(rect) {
-      this.worldViewportRect_ = rect;
       this.updateChildren_();
     },
 
@@ -281,9 +269,6 @@ base.exportTo('ui', function() {
         ctx.stroke();
       }
 
-      if (this.worldViewportRect_)
-        this.drawDeviceViewport_(ctx);
-
       ctx.restore();
     },
 
@@ -322,39 +307,6 @@ base.exportTo('ui', function() {
         quadBBox.addQuad(quad);
       });
       return new ui.QuadViewViewport(quadBBox.asRect());
-    },
-
-    drawDeviceViewport_: function(ctx) {
-      var vW = this.worldViewportRect_.width;
-      var vH = this.worldViewportRect_.height;
-      var vp = this.viewport_;
-
-      ctx.fillStyle = 'rgba(0,0,0,0.2)';
-
-      // Cover above and below the viewport with dark grey.
-      ctx.fillRect(vp.worldRect.x,
-                   vp.worldRect.y,
-                   vp.worldRect.width,
-                   -vp.worldRect.y);
-      ctx.fillRect(vp.worldRect.x,
-                   vH,
-                   vp.worldRect.width,
-                   vp.worldRect.height - vH);
-
-      // Cover left and right of the viewport with dark grey.
-      ctx.fillRect(vp.worldRect.x,
-                   0,
-                   -vp.worldRect.x,
-                   vH);
-      ctx.fillRect(vW,
-                   0,
-                   vp.worldRect.width - vW,
-                   vH);
-
-      // Stroke area around viewport.
-      ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(2.0);
-      ctx.strokeStyle = 'rgba(0,0,255,1)';
-      ctx.strokeRect(0, 0, vW, vH);
     },
 
     onMouseDown_: function(e) {

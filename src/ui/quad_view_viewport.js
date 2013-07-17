@@ -8,6 +8,9 @@ base.require('base.range');
 base.require('base.events');
 
 base.exportTo('ui', function() {
+  // FIXME(pdr): Replace this padding with just what's necessary for
+  //             drawing borders / highlights.
+  //             https://code.google.com/p/trace-viewer/issues/detail?id=228
   var DEFAULT_PAD_PERCENTAGE = 0.75;
 
   function QuadViewViewport(worldRect,
@@ -91,8 +94,8 @@ base.exportTo('ui', function() {
       return res;
     },
 
-    getWorldToDevicePixelTransform: function() {
-      return this.transformDevicePixelsToWorld_;
+    getWorldToDevicePixelsTransform: function() {
+      return this.transformWorldToDevicePixels_;
     },
 
     getDeviceLineWidthAssumingTransformIsApplied: function(

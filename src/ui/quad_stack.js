@@ -14,6 +14,7 @@ base.require('base.raf');
 base.require('ui.quad_view');
 base.require('cc.region');
 base.require('ui.camera');
+base.require('ui.rect_view');
 
 base.exportTo('ui', function() {
   var QuadView = ui.QuadView;
@@ -37,6 +38,7 @@ base.exportTo('ui', function() {
       this.contentContainer_ = document.createElement('view-container');
       this.appendChild(this.contentContainer_);
       this.viewport_ = undefined;
+      this.worldViewportRectView_ = new ui.RectView();
       this.quads_ = undefined;
       this.debug_ = false;
     },
@@ -44,12 +46,13 @@ base.exportTo('ui', function() {
     initialize: function(unpaddedWorldRect, opt_worldViewportRect) {
       this.viewport_ = new ui.QuadViewViewport(unpaddedWorldRect);
 
-      if (this.debug) {
-        this.viewport_.addEventListener('change', function() {
+      this.viewport_.addEventListener('change', function() {
+        this.worldViewportRectView_.viewport = this.viewport_;
+        if (this.debug)
           this.updateDebugIndicator_();
-        }.bind(this));
+      }.bind(this));
+      if (this.debug)
         this.updateDebugIndicator_();
-      }
 
       this.worldViewportRect_ = base.Rect.FromXYWH(
           opt_worldViewportRect.x || 0,
@@ -57,6 +60,9 @@ base.exportTo('ui', function() {
           opt_worldViewportRect.width,
           opt_worldViewportRect.height
           );
+
+      this.worldViewportRectView_.viewport = this.viewport_;
+      this.worldViewportRectView_.rect = this.worldViewportRect_;
     },
 
     get layers() {
@@ -94,10 +100,13 @@ base.exportTo('ui', function() {
       return this.worldViewportRect_;
     },
 
+    get worldViewportRectView() {
+      return this.worldViewportRectView_;
+    },
+
     get contentContainer() {
       return this.contentContainer_;
     },
-
 
     updateContents_: function() {
       // Build the stacks.
@@ -109,6 +118,10 @@ base.exportTo('ui', function() {
           stackingGroupsById[quad.stackingGroupId] = [];
         stackingGroupsById[quad.stackingGroupId].push(quad);
       }
+
+      // Remove worldViewportRectView to re-insert after Quads.
+      if (this.worldViewportRectView_.parentNode === this.contentContainer_)
+        this.contentContainer_.removeChild(this.worldViewportRectView_);
 
       // Get rid of old quad views if needed.
       var numStackingGroups = base.dictionaryValues(stackingGroupsById).length;
@@ -152,14 +165,15 @@ base.exportTo('ui', function() {
         });
       }
 
-      var topQuadIndex = this.contentContainer_.children.length - 1;
-      var topQuad = this.contentContainer_.children[topQuadIndex];
-      topQuad.worldViewportRect = this.worldViewportRect_;
+      // Add worldViewportRectView after the Quads.
+      this.contentContainer_.appendChild(this.worldViewportRectView_);
 
       for (var i = 0; i < this.contentContainer_.children.length; i++) {
         var child = this.contentContainer_.children[i];
-        child.quads = child.pendingQuads;
-        delete child.pendingQuads;
+        if (child instanceof ui.QuadView) {
+          child.quads = child.pendingQuads;
+          delete child.pendingQuads;
+        }
       }
 
       this.layers = this.contentContainer_.children;
