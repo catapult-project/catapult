@@ -12,8 +12,10 @@
 }
 
 .drawable-track > heading {
+  -webkit-box-sizing: border-box;
   background-color: rgba(214, 221, 229, 0.3);
   border-right: 1px solid #8e8e8e;
+  box-sizing: border-box;
   display: block;
   overflow: hidden;
   padding-left: 18px;

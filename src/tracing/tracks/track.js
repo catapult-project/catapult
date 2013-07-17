@@ -80,7 +80,7 @@ base.exportTo('tracing.tracks', function() {
       ctx.save();
 
       var pixelRatio = window.devicePixelRatio || 1;
-      var bounds = this.canvasContainer_.getBoundingClientRect();
+      var bounds = this.getBoundingClientRect();
       var canvasBounds = ctx.canvas.getBoundingClientRect();
 
       ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
@@ -94,6 +94,28 @@ base.exportTo('tracing.tracks', function() {
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
+    },
+
+    addIntersectingItemsInRangeToSelection: function(
+        loVX, hiVX, loVY, hiVY, selection) {
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var viewPixWidthWorld = this.viewport.xViewVectorToWorld(1);
+      var loWX = this.viewport.xViewToWorld(loVX * pixelRatio);
+      var hiWX = this.viewport.xViewToWorld(hiVX * pixelRatio);
+
+      var clientRect = this.getBoundingClientRect();
+      var a = Math.max(loVY, clientRect.top);
+      var b = Math.min(hiVY, clientRect.bottom);
+      if (a > b)
+        return;
+
+      this.addIntersectingItemsInRangeToSelectionInWorldSpace(
+          loWX, hiWX, viewPixWidthWorld, selection);
+    },
+
+    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
+        loWX, hiWX, viewPixWidthWorld, selection) {
     }
   };
 

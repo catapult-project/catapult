@@ -97,15 +97,12 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
                    3, 0,
                    3.1, 0.5];
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
-      var clientRect = container.canvas.getBoundingClientRect();
+      var clientRect = track.getBoundingClientRect();
       var y75 = clientRect.top + (0.75 * clientRect.height);
-      var sel;
-      var vW = 10;
-      var wW = clientRect.width;
 
       // In bounds.
-      sel = new tracing.Selection();
-      var x = (1.5 / vW) * wW;
+      var sel = new tracing.Selection();
+      var x = 0.15 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
 
       assertEquals(1, sel.length);
@@ -115,12 +112,12 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
 
       // Outside bounds.
       sel = new tracing.Selection();
-      var x = (-5 / vW) * wW;
+      var x = -0.5 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
 
       sel = new tracing.Selection();
-      var x = (8 / vW) * wW;
+      var x = 0.8 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
       assertEquals(0, sel.length);
     });

@@ -6,6 +6,7 @@
 
 base.requireStylesheet('tracing.tracks.ruler_track');
 
+base.require('tracing.constants');
 base.require('tracing.tracks.track');
 base.require('tracing.tracks.drawable_track');
 base.require('ui');
@@ -54,16 +55,20 @@ base.exportTo('tracing.tracks', function() {
     },
 
     onMouseDown: function(e) {
-      if (e.button != 0)
+      if (e.button !== 0)
         return;
       this.placeAndBeginDraggingMarker(e.clientX);
     },
 
     placeAndBeginDraggingMarker: function(clientX) {
       var pixelRatio = window.devicePixelRatio || 1;
-      var viewX = (clientX - this.canvasContainer_.offsetLeft) * pixelRatio;
+
+      var viewX =
+          (clientX - this.offsetLeft - tracing.constants.HEADING_WIDTH) *
+              pixelRatio;
       var worldX = this.viewport.xViewToWorld(viewX);
       var marker = this.viewport.findMarkerNear(worldX, 6);
+
       var createdMarker = false;
       var movedMarker = false;
       if (!marker) {
@@ -72,21 +77,24 @@ base.exportTo('tracing.tracks', function() {
       }
       marker.selected = true;
 
-      var that = this;
       var onMouseMove = function(e) {
-        var viewX = (e.clientX - that.canvasContainer_.offsetLeft) * pixelRatio;
-        var worldX = that.viewport.xViewToWorld(viewX);
+        var viewX =
+            (e.clientX - this.offsetLeft - tracing.constants.HEADING_WIDTH) *
+                pixelRatio;
+        var worldX = this.viewport.xViewToWorld(viewX);
+
         marker.positionWorld = worldX;
         movedMarker = true;
-      };
+      }.bind(this);
 
       var onMouseUp = function(e) {
         marker.selected = false;
         if (!movedMarker && !createdMarker)
-          that.viewport.removeMarker(marker);
+          this.viewport.removeMarker(marker);
+
         document.removeEventListener('mouseup', onMouseUp);
         document.removeEventListener('mousemove', onMouseMove);
-      };
+      }.bind(this);
 
       document.addEventListener('mouseup', onMouseUp);
       document.addEventListener('mousemove', onMouseMove);

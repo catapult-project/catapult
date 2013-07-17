@@ -103,6 +103,7 @@
       'src/tcmalloc/tcmalloc_instance_view.js',
       'src/tcmalloc/heap.js',
       'src/tcmalloc/tcmalloc_snapshot_view.js',
+      'src/tracing/constants.js',
       'src/tracing/category_filter_dialog.js',
       'src/tracing/record_selection_dialog.js',
       'src/tracing/standalone_timeline_view.js',

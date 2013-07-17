@@ -17,10 +17,6 @@
   display: -webkit-box;
 }
 
-.timeline-track-view heading {
-  width: 250px;
-}
-
 .timeline-track-view .mode-indicator {
   height: 32px;
   position: absolute;

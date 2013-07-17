@@ -13,7 +13,6 @@
 .drawing-container-canvas {
   -webkit-box-flex: 1;
   display: block;
-  left: 0;
   pointer-events: none;
   position: absolute;
   top: 0;
