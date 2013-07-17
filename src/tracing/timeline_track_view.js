@@ -126,7 +126,7 @@ base.exportTo('tracing', function() {
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
 
-      this.addEventListener('mousedown', this.onMouseDown_);
+      this.addEventListener('mousemove', this.onMouseMove_);
       this.addEventListener('dblclick', this.onDblClick_);
 
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
@@ -275,6 +275,10 @@ base.exportTo('tracing', function() {
         return ui.elementIsChildOf(document.activeElement, this.focusElement);
       }
       return true;
+    },
+
+    onMouseMove_: function(e) {
+      this.storeLastMousePos_(e);
     },
 
     onKeypress_: function(e) {
