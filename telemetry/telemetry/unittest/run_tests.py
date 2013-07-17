@@ -102,6 +102,7 @@ def Main(args, start_dir, top_level_dir, runner=None):
 
   _, args = parser.parse_args(args)
 
+  logging_level = logging.getLogger().getEffectiveLevel()
   if default_options.verbosity == 0:
     logging.getLogger().setLevel(logging.WARN)
 
@@ -134,5 +135,8 @@ def Main(args, start_dir, top_level_dir, runner=None):
   finally:
     os.chdir(olddir)
     options_for_unittests.Set(None, None)
+    if default_options.verbosity == 0:
+      # Restore logging level.
+      logging.getLogger().setLevel(logging_level)
 
   return 1
