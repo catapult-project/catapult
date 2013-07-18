@@ -177,11 +177,16 @@ base.exportTo('ui', function() {
     onMouseUp_: function(e) {
       var eventNames = this.getCurrentModeEventNames_();
       var mouseEvent = new base.Event(eventNames.end, true, true);
+      var userHasReleasedShiftKey = !e.shiftKey;
+      var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
+          (!base.isMac && !e.ctrlKey);
+
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = false;
 
-      if (this.isInTemporaryAlternativeMouseMode_ && !e.shiftKey && !e.altKey) {
+      if (this.isInTemporaryAlternativeMouseMode_ && userHasReleasedShiftKey &&
+          userHasReleasedCmdOrCtrl) {
         this.mode = tracing.mouseModeConstants.MOUSE_MODE_PANSCAN;
       }
     },
@@ -251,20 +256,21 @@ base.exportTo('ui', function() {
         return;
 
       var mouseModeConstants = tracing.mouseModeConstants;
+      var userIsPressingCmdOrCtrl = (base.isMac && e.metaKey) ||
+          (!base.isMac && e.ctrlKey);
+      var userIsPressingShiftKey = e.shiftKey;
 
       if (this.mode !== mouseModeConstants.MOUSE_MODE_PANSCAN)
         return;
 
-      switch (e.keyCode) {
-        case 18:   // alt
-        case 16:   // shift
+      if (userIsPressingCmdOrCtrl || userIsPressingShiftKey) {
 
-          this.mode = e.keyCode === 18 ? mouseModeConstants.MOUSE_MODE_ZOOM :
-              mouseModeConstants.MOUSE_MODE_SELECTION;
+        this.mode = userIsPressingCmdOrCtrl ?
+            mouseModeConstants.MOUSE_MODE_ZOOM :
+            mouseModeConstants.MOUSE_MODE_SELECTION;
 
-          this.isInTemporaryAlternativeMouseMode_ = true;
-          e.preventDefault();
-          break;
+        this.isInTemporaryAlternativeMouseMode_ = true;
+        e.preventDefault();
       }
     },
 
@@ -275,9 +281,12 @@ base.exportTo('ui', function() {
         return;
 
       var mouseModeConstants = tracing.mouseModeConstants;
+      var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
+          (!base.isMac && !e.ctrlKey);
+      var userHasReleasedShiftKey = e.shiftKey;
 
       if (this.isInTemporaryAlternativeMouseMode_ &&
-          (e.keyCode === 18 || e.keyCode === 16)) {
+          (userHasReleasedCmdOrCtrl || userHasReleasedShiftKey)) {
         this.mode = mouseModeConstants.MOUSE_MODE_PANSCAN;
       }
 
