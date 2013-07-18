@@ -25,16 +25,6 @@
   width: 33px;
 }
 
-.timeline-track-view.mode-selection .mode-indicator {
-  background: url(../images/select_mode.png);
-  background-size: 33px 32px;
-}
-
-.timeline-track-view.mode-panscan .mode-indicator {
-  background: url(../images/pan_mode.png);
-  background-size: 33px 32px;
-}
-
 .model-track-container {
   -webkit-box-flex: 1;
   overflow: auto;
