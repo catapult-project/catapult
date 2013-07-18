@@ -133,7 +133,7 @@ class BrowserBackend(object):
     try:
       util.WaitFor(IsBrowserUp, timeout=30)
     except util.TimeoutException:
-      raise exceptions.BrowserGoneException()
+      raise exceptions.BrowserGoneException(self.GetStackTrace())
 
     def AllExtensionsLoaded():
       # Extension pages are loaded from an about:blank page,
@@ -246,6 +246,9 @@ class BrowserBackend(object):
     raise NotImplementedError()
 
   def GetStandardOutput(self):
+    raise NotImplementedError()
+
+  def GetStackTrace(self):
     raise NotImplementedError()
 
 class DoNothingForwarder(object):
