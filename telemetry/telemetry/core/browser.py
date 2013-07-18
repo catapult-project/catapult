@@ -197,7 +197,7 @@ class Browser(object):
     |base_output_file|.<process_name>."""
     assert not self._active_profilers
 
-    profiler_class = profiler_finder.FindProfiler(options.profiler_tool)
+    profiler_class = profiler_finder.FindProfiler(options.profiler)
 
     if not profiler_class.is_supported(options):
       raise Exception('The %s profiler is not '

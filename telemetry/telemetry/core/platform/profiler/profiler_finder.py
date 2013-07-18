@@ -7,6 +7,7 @@ from telemetry.core.platform.profiler import java_heap_profiler
 from telemetry.core.platform.profiler import perf_profiler
 from telemetry.core.platform.profiler import sample_profiler
 from telemetry.core.platform.profiler import tcmalloc_heap_profiler
+from telemetry.core.platform.profiler import trace_profiler
 
 _PROFILERS = [
     iprofiler_profiler.IprofilerProfiler,
@@ -14,6 +15,7 @@ _PROFILERS = [
     perf_profiler.PerfProfiler,
     sample_profiler.SampleProfiler,
     tcmalloc_heap_profiler.TCMallocHeapProfiler,
+    trace_profiler.TraceProfiler,
 ]
 
 

@@ -1,11 +1,11 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import codecs
 import glob
 import logging
 import os
 import sys
+import tempfile
 import time
 import traceback
 import urlparse
@@ -26,9 +26,9 @@ class _RunState(object):
 
     self._append_to_existing_wpr = False
     self._last_archive_path = None
-    self._is_tracing = False
     self._first_browser = True
     self.first_page = True
+    self.profiler_dir = None
 
   def StartBrowser(self, test, page_set, page, possible_browser,
                    credentials_path, archive_path):
@@ -74,8 +74,6 @@ class _RunState(object):
       test.WillRunPageSet(self.tab)
 
   def StopBrowser(self):
-    self._is_tracing = False
-
     if self.tab:
       self.tab.Disconnect()
       self.tab = None
@@ -90,40 +88,15 @@ class _RunState(object):
       self._append_to_existing_wpr = True
 
   def StartProfiling(self, page, options):
-    output_file = os.path.join(options.profiler_dir, page.url_as_file_safe_name)
+    if not self.profiler_dir:
+      self.profiler_dir = tempfile.mkdtemp()
+    output_file = os.path.join(self.profiler_dir, page.url_as_file_safe_name)
     if options.page_repeat != 1 or options.pageset_repeat != 1:
       output_file = _GetSequentialFileName(output_file)
     self.browser.StartProfiling(options, output_file)
 
   def StopProfiling(self):
     self.browser.StopProfiling()
-
-  def StartTracing(self):
-    if not self.browser.supports_tracing:
-      return
-
-    self._is_tracing = True
-    self.browser.StartTracing()
-
-  def StopTracing(self, page, options):
-    if not self._is_tracing:
-      return
-
-    assert self.browser
-    self._is_tracing = False
-    self.browser.StopTracing()
-    trace_result = self.browser.GetTraceResultAndReset()
-    logging.info('Processing trace...')
-
-    trace_file = os.path.join(options.trace_dir, page.url_as_file_safe_name)
-    if options.page_repeat != 1 or options.pageset_repeat != 1:
-      trace_file = _GetSequentialFileName(trace_file)
-    trace_file += '.json'
-
-    with codecs.open(trace_file, 'w',
-                     encoding='utf-8') as trace_file:
-      trace_result.Serialize(trace_file)
-    logging.info('Trace saved.')
 
 
 class PageState(object):
@@ -198,9 +171,6 @@ def Run(test, page_set, options):
   for page in pages:
     test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
 
-  _ValidateOrCreateEmptyDirectory('--trace-dir', options.trace_dir)
-  _ValidateOrCreateEmptyDirectory('--profiler-dir', options.profiler_dir)
-
   state = _RunState()
   # TODO(dtu): Move results creation and results_for_current_run into RunState.
   results_for_current_run = results
@@ -225,9 +195,7 @@ def Run(test, page_set, options):
 
           _WaitForThermalThrottlingIfNeeded(state.browser.platform)
 
-          if options.trace_dir:
-            state.StartTracing()
-          if options.profiler_dir:
+          if options.profiler:
             state.StartProfiling(page, options)
 
           try:
@@ -242,9 +210,7 @@ def Run(test, page_set, options):
             logging.warning('Tab crashed: %s%s', page.url, stack_trace)
             state.StopBrowser()
 
-          if options.trace_dir:
-            state.StopTracing(page, options)
-          if options.profiler_dir:
+          if options.profiler:
             state.StopProfiling()
 
           if test.NeedsBrowserRestartAfterEachRun(state.tab):
@@ -386,17 +352,6 @@ def _GetSequentialFileName(base_name):
       break
     index = index + 1
   return output_name
-
-
-def _ValidateOrCreateEmptyDirectory(name, path):
-  if not path:
-    return
-  if not os.path.exists(path):
-    os.mkdir(path)
-  if not os.path.isdir(path):
-    raise Exception('%s isn\'t a directory: %s' % (name, path))
-  elif os.listdir(path):
-    raise Exception('%s isn\'t empty: %s' % (name, path))
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
