@@ -21,7 +21,7 @@ picture-debugger > left-panel {
 }
 
 picture-debugger > left-panel > picture-info {
-  -webkit-flex: 1 0 auto;
+  -webkit-flex: 0 0 auto;
   padding-top: 2px;
 }
 
