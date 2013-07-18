@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging
 import os
+import time
 
 from telemetry.core import util
 from telemetry.core import exceptions
@@ -71,6 +72,8 @@ class GpuTabTest(tab_test_case.TabTestCase):
     self._tab.WaitForDocumentReadyStateToBeComplete()
     pixel_ratio = self._tab.EvaluateJavaScript('window.devicePixelRatio || 1')
 
+    # TODO(bajones): Sleep for a bit to counter BUG 260878.
+    time.sleep(0.5)
     screenshot = self._tab.Screenshot(5)
     assert screenshot
     screenshot.GetPixelColor(0 * pixel_ratio, 0 * pixel_ratio).AssertIsRGB(
