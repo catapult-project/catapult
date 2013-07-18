@@ -48,7 +48,7 @@ class InspectorBackend(object):
       self._socket = websocket.create_connection(self._debugger_url)
     except (websocket.WebSocketException):
       if self._browser_backend.IsBrowserRunning():
-        raise exceptions.TabCrashException()
+        raise exceptions.TabCrashException(sys.exc_info()[1])
       else:
         raise exceptions.BrowserGoneException()
 
@@ -286,7 +286,7 @@ class InspectorBackend(object):
             self._debugger_url):
           raise util.TimeoutException(
             'Timed out waiting for reply. This is unusual.')
-        raise exceptions.TabCrashException()
+        raise exceptions.TabCrashException(sys.exc_info()[1])
 
       res = json.loads(data)
       logging.debug('got [%s]', data)
