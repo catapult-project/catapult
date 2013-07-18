@@ -244,14 +244,13 @@ base.exportTo('tracing.tracks', function() {
 
         ctx.stroke();
       }
+      // Draw bottom bar.
+      ctx.moveTo(0, rulerHeight);
+      ctx.lineTo(width, rulerHeight);
+      ctx.stroke();
 
       // Give distance between directly adjacent markers.
       if (measurements) {
-        // Divide canvas horizontally between ruler and measurements.
-        ctx.moveTo(0, rulerHeight);
-        ctx.lineTo(width, rulerHeight);
-        ctx.stroke();
-
         // Obtain a sorted array of markers
         var sortedMarkers = vp.markers.slice();
         sortedMarkers.sort(function(a, b) {
@@ -338,6 +337,10 @@ base.exportTo('tracing.tracks', function() {
                 rightMarkerView, arrowPosY, arrowWidthView, arrowColor);
           }
         }
+        // Draw bottom bar.
+        ctx.moveTo(0, rulerHeight * 2);
+        ctx.lineTo(width, rulerHeight * 2);
+        ctx.stroke();
       }
     },
 
