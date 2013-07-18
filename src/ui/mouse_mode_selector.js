@@ -117,9 +117,11 @@ base.exportTo('ui', function() {
           break;
 
         default:
-          console.error('Unknown selection mode: ' + newMode);
+          throw new Error('Unknown selection mode: ' + newMode);
           break;
       }
+
+      base.Settings.set('mouse_mode_selector.mouseMode', newMode);
     },
 
     getCurrentModeEventNames_: function() {
