@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 base.requireStylesheet('ui.value_bar');
 base.require('base.unittest');
 base.require('base.bbox2');
 base.require('ui.dom_helpers');
 base.require('ui.value_bar');
 base.require('ui.value_display');
-
-'use strict';
 
 base.unittest.testSuite('ui.value_bar', function() {
 
