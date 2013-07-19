@@ -230,6 +230,7 @@ base.exportTo('tracing.trace_model', function() {
 
     autoCloseOpenSlices: function(opt_maxTimestamp) {
       this.sliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
+      this.kernelSliceGroup.autoCloseOpenSlices(opt_maxTimestamp);
     },
 
     mergeKernelWithUserland: function() {
