@@ -35,20 +35,28 @@ base.exportTo('tracing.analysis', function() {
       hitsByCounter[ctr.guid].push(counterSampleHits[i]);
     }
 
-    var table = results.appendTable('analysis-counter-table', 7);
+    var table = results.appendTable('analysis-counter-table', 2);
     results.appendTableHeader(table, 'Counters:');
     for (var id in hitsByCounter) {
       var hits = hitsByCounter[id];
       var ctr = hits[0].counter;
+
       var sampleIndices = [];
       for (var i = 0; i < hits.length; i++)
         sampleIndices.push(hits[i].sampleIndex);
 
       var stats = ctr.getSampleStatistics(sampleIndices);
       for (var i = 0; i < stats.length; i++) {
+        var samples = [];
+        for (var k = 0; k < sampleIndices.length; ++k)
+          samples.push(ctr.getSeries(i).getSample(sampleIndices[k]).value);
+
         results.appendDataRow(
-            table, ctr.name + ': ' + ctr.getSeries(i).name, undefined,
-            undefined, stats[i]);
+            table,
+            ctr.name + ': series(' + ctr.getSeries(i).name + ')',
+            samples,
+            samples.length,
+            stats[i]);
       }
     }
   }

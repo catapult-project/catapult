@@ -197,8 +197,13 @@ base.exportTo('tracing.analysis', function() {
       }
 
       if (opt_duration !== undefined) {
-        this.appendTableCellWithTooltip_(table, row, 1,
-            tracing.analysis.tsRound(opt_duration) + ' ms', tooltip);
+        if (opt_duration instanceof Array) {
+          this.appendTableCellWithTooltip_(table, row, 1,
+              '[' + opt_duration.join(', ') + ']', tooltip);
+        } else {
+          this.appendTableCellWithTooltip_(table, row, 1,
+              tracing.analysis.tsRound(opt_duration) + ' ms', tooltip);
+        }
       } else {
         this.appendTableCell_(table, row, 1, '');
       }
