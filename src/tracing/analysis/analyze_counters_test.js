@@ -168,10 +168,10 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     assertEquals('Counters:', table.tableHeader);
     assertEquals(4, table.rows.length);
 
-    assertEquals('ctr1: bytesallocated', table.rows[0].label);
-    assertEquals('ctr1: bytesfree', table.rows[1].label);
-    assertEquals('ctr2: bytesallocated', table.rows[2].label);
-    assertEquals('ctr2: bytesfree', table.rows[3].label);
+    assertEquals('ctr1: series(bytesallocated)', table.rows[0].label);
+    assertEquals('ctr1: series(bytesfree)', table.rows[1].label);
+    assertEquals('ctr2: series(bytesallocated)', table.rows[2].label);
+    assertEquals('ctr2: series(bytesfree)', table.rows[3].label);
   });
 
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
@@ -184,8 +184,8 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     assertEquals('Counters:', table.tableHeader);
     assertEquals(3, table.rows.length);
 
-    assertEquals('a: bytesallocated', table.rows[0].label);
-    assertEquals('b: bytesallocated', table.rows[1].label);
-    assertEquals('b: bytesfree', table.rows[2].label);
+    assertEquals('a: series(bytesallocated)', table.rows[0].label);
+    assertEquals('b: series(bytesallocated)', table.rows[1].label);
+    assertEquals('b: series(bytesfree)', table.rows[2].label);
   });
 });
