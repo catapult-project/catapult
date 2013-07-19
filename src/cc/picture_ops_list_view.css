@@ -34,6 +34,12 @@ picture-ops-list-view > .x-list-view .list-item > * {
   max-width: 300px; /* force long strings to wrap */
 }
 
+picture-ops-list-view > .x-list-view .list-item > .elementInfo {
+  color: purple;
+  font-size: small;
+  font-weight: bold;
+}
+
 .x-list-view:focus > .list-item[beforeSelection] {
   background-color: rgb(171, 217, 202);
   outline: 1px dotted rgba(0, 0, 0, 0.1);
