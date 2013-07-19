@@ -103,7 +103,11 @@ base.exportTo('cc', function() {
 
         return true;
       }
+      var visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
+        if (visitedLayers[layer.layerId])
+          return;
+        visitedLayers[layer.layerId] = true;
         var info = {layer: layer,
           depth: depth};
 
