@@ -20,9 +20,11 @@ https://code.google.com/p/trace-viewer/</tt></p>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.timeline.inspector_importer.html">telemetry.core.timeline.inspector_importer</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.timeline.tracing.trace_event_importer.html">telemetry.core.timeline.tracing.trace_event_importer</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.timeline.bounds.html">telemetry.core.timeline.bounds</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.timeline.inspector_importer.html">telemetry.core.timeline.inspector_importer</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.timeline.trace_event_importer.html">telemetry.core.timeline.trace_event_importer</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.timeline.process.html">telemetry.core.timeline.process</a><br>
+</td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -45,17 +47,21 @@ https://code.google.com/p/trace-viewer/</tt></p>
     
 <tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="TimelineModel-AddEvent"><strong>AddEvent</strong></a>(self, event)</dt></dl>
-
-<dl><dt><a name="TimelineModel-DidFinishRecording"><strong>DidFinishRecording</strong></a>(self)</dt></dl>
+<dl><dt><a name="TimelineModel-GetAllContainers"><strong>GetAllContainers</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="TimelineModel-GetAllEvents"><strong>GetAllEvents</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="TimelineModel-GetAllEventsOfName"><strong>GetAllEventsOfName</strong></a>(self, name)</dt></dl>
 
-<dl><dt><a name="TimelineModel-GetRootEvents"><strong>GetRootEvents</strong></a>(self)</dt></dl>
+<dl><dt><a name="TimelineModel-GetAllProcesses"><strong>GetAllProcesses</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="TimelineModel-GetAllThreads"><strong>GetAllThreads</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="TimelineModel-GetOrCreateProcess"><strong>GetOrCreateProcess</strong></a>(self, pid)</dt></dl>
 
 <dl><dt><a name="TimelineModel-ImportTraces"><strong>ImportTraces</strong></a>(self, traces, shift_world_to_zero<font color="#909090">=True</font>)</dt></dl>
+
+<dl><dt><a name="TimelineModel-IterAllEvents"><strong>IterAllEvents</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="TimelineModel-ShiftWorldToZero"><strong>ShiftWorldToZero</strong></a>(self)</dt></dl>
 
@@ -71,9 +77,9 @@ Data descriptors defined here:<br>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
-<dl><dt><strong>max_timestamp</strong></dt>
+<dl><dt><strong>bounds</strong></dt>
 </dl>
-<dl><dt><strong>min_timestamp</strong></dt>
+<dl><dt><strong>processes</strong></dt>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

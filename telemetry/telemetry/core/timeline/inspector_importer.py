@@ -4,7 +4,7 @@
 '''Imports event data obtained from the inspector's timeline.'''
 
 from telemetry.core.timeline import importer
-import telemetry.core.timeline.event as timeline_event
+import telemetry.core.timeline.thread as timeline_thread
 
 class InspectorTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, event_data):
@@ -22,34 +22,18 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     return False
 
   def ImportEvents(self):
+    render_process = self._model.GetOrCreateProcess(0)
+    render_thread = render_process.GetOrCreateThread(0)
     for raw_event in self._event_data:
-      event = self.RawEventToTimelineEvent(raw_event)
-      if event:
-        self._model.AddEvent(event)
+      InspectorTimelineImporter.AddRawEventToThreadRecursive(
+          render_thread, raw_event)
 
   def FinalizeImport(self):
     pass
 
   @staticmethod
-  def RawEventToTimelineEvent(raw_inspector_event):
-    """Converts raw_inspector_event to TimelineEvent."""
-    return InspectorTimelineImporter._RawEventToTimelineEventRecursive(
-      None, raw_inspector_event)
-
-  @staticmethod
-  def _RawEventToTimelineEventRecursive(
-    parent_for_created_events, raw_inspector_event):
-    """
-    Creates a new TimelineEvent for the raw_inspector_event, if possible, adding
-    it to the provided parent_for_created_events.
-
-    It then recurses on any child events found inside, building a tree of
-    TimelineEvents.
-
-    Returns the root of the created tree, or None.
-    """
-    # Create a TimelineEvent for this raw_inspector_event if possible. Only
-    # events with start-time and end-time get imported.
+  def AddRawEventToThreadRecursive(thread, raw_inspector_event):
+    did_begin_slice = False
     if ('startTime' in raw_inspector_event and
         'endTime' in raw_inspector_event):
       args = {}
@@ -59,24 +43,27 @@ class InspectorTimelineImporter(importer.TimelineImporter):
         args[x] = raw_inspector_event[x]
       if len(args) == 0:
         args = None
-      newly_created_event = timeline_event.TimelineEvent(
-        name=raw_inspector_event['type'],
-        start=raw_inspector_event['startTime'],
-        duration=(raw_inspector_event['endTime'] -
-                     raw_inspector_event['startTime']),
-        args=args,
-        parent=parent_for_created_events)
-      if parent_for_created_events:
-        parent_for_created_events.children.append(newly_created_event)
-    else:
-      newly_created_event = None
+      thread.BeginSlice('inspector',
+                        raw_inspector_event['type'],
+                        raw_inspector_event['startTime'],
+                        args)
+      did_begin_slice = True
 
-    # Process any children events, creating TimelineEvents for them as well.
-    if newly_created_event:
-      parent_for_children = newly_created_event
-    else:
-      parent_for_children = parent_for_created_events
     for child in raw_inspector_event.get('children', []):
-      InspectorTimelineImporter._RawEventToTimelineEventRecursive(
-        parent_for_children, child)
-    return newly_created_event
+      InspectorTimelineImporter.AddRawEventToThreadRecursive(
+          thread, child)
+
+    if did_begin_slice:
+      thread.EndSlice(raw_inspector_event['endTime'])
+
+  @staticmethod
+  def RawEventToTimelineEvent(raw_inspector_event):
+    """Converts raw_inspector_event to TimelineEvent."""
+    thread = timeline_thread.Thread(None, 0)
+    InspectorTimelineImporter.AddRawEventToThreadRecursive(
+        thread, raw_inspector_event)
+    thread.FinalizeImport()
+    assert len(thread.toplevel_slices) <= 1
+    if len(thread.toplevel_slices) == 0:
+      return None
+    return thread.toplevel_slices[0]

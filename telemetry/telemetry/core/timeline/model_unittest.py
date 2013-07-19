@@ -4,15 +4,5 @@
 
 import unittest
 
-from telemetry.core.timeline.event import TimelineEvent
-from telemetry.core.timeline.model import TimelineModel
-
 class TimelineModelUnittest(unittest.TestCase):
-  def testTimelineEventsOfType(self):
-    timeline_model = TimelineModel()
-    a = TimelineEvent('a', 0, 10)
-    b = TimelineEvent('b', 11, 10)
-    timeline_model.AddEvent(a)
-    timeline_model.AddEvent(b)
-    timeline_model.DidFinishRecording()
-    self.assertEquals(1, len(timeline_model.GetAllEventsOfName('a')))
+  pass

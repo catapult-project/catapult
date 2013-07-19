@@ -23,17 +23,18 @@
 <a href="telemetry.core.chrome.extension_dict_backend.html">telemetry.core.chrome.extension_dict_backend</a><br>
 <a href="httplib.html">httplib</a><br>
 <a href="json.html">json</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.chrome.misc_web_contents_backend.html">telemetry.core.chrome.misc_web_contents_backend</a><br>
-<a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
+<a href="telemetry.core.chrome.misc_web_contents_backend.html">telemetry.core.chrome.misc_web_contents_backend</a><br>
+</td><td width="25%" valign=top><a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
 <a href="re.html">re</a><br>
 <a href="socket.html">socket</a><br>
-</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+<a href="sys.html">sys</a><br>
 <a href="telemetry.core.chrome.tab_list_backend.html">telemetry.core.chrome.tab_list_backend</a><br>
-<a href="telemetry.core.chrome.tracing_backend.html">telemetry.core.chrome.tracing_backend</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.chrome.tracing_backend.html">telemetry.core.chrome.tracing_backend</a><br>
 <a href="urllib2.html">urllib2</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.user_agent.html">telemetry.core.user_agent</a><br>
+<a href="telemetry.core.user_agent.html">telemetry.core.user_agent</a><br>
 <a href="telemetry.core.util.html">telemetry.core.util</a><br>
-<a href="telemetry.core.wpr_modes.html">telemetry.core.wpr_modes</a><br>
+<a href="telemetry.core.web_contents.html">telemetry.core.web_contents</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.wpr_modes.html">telemetry.core.wpr_modes</a><br>
 <a href="telemetry.core.wpr_server.html">telemetry.core.wpr_server</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -78,6 +79,8 @@ once&nbsp;a&nbsp;remote-debugger&nbsp;port&nbsp;has&nbsp;been&nbsp;established.<
 
 <dl><dt><a name="BrowserBackend-GetRemotePort"><strong>GetRemotePort</strong></a>(self, _)</dt></dl>
 
+<dl><dt><a name="BrowserBackend-GetStackTrace"><strong>GetStackTrace</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="BrowserBackend-GetStandardOutput"><strong>GetStandardOutput</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="BrowserBackend-GetTraceResultAndReset"><strong>GetTraceResultAndReset</strong></a>(self)</dt></dl>
@@ -88,7 +91,7 @@ once&nbsp;a&nbsp;remote-debugger&nbsp;port&nbsp;has&nbsp;been&nbsp;established.<
 
 <dl><dt><a name="BrowserBackend-SetBrowser"><strong>SetBrowser</strong></a>(self, browser)</dt></dl>
 
-<dl><dt><a name="BrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
+<dl><dt><a name="BrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>, timeout<font color="#909090">=60</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
 comma&nbsp;separated&nbsp;categories&nbsp;that&nbsp;will&nbsp;be&nbsp;traced&nbsp;instead&nbsp;of&nbsp;the<br>
 default&nbsp;category&nbsp;set.&nbsp;&nbsp;Example:&nbsp;use<br>
 "webkit,cc,disabled-by-default-cc.debug"&nbsp;to&nbsp;trace&nbsp;only&nbsp;those&nbsp;three<br>

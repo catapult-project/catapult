@@ -21,7 +21,8 @@
 <a href="os.html">os</a><br>
 </td><td width="25%" valign=top><a href="re.html">re</a><br>
 <a href="subprocess.html">subprocess</a><br>
-</td><td width="25%" valign=top><a href="tempfile.html">tempfile</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+<a href="tempfile.html">tempfile</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -234,6 +235,7 @@ Returns:<br>
 &nbsp;&nbsp;Captures&nbsp;and&nbsp;returns&nbsp;the&nbsp;command's&nbsp;stdout.<br>
 &nbsp;&nbsp;Prints&nbsp;the&nbsp;command's&nbsp;stderr&nbsp;to&nbsp;logger&nbsp;(which&nbsp;defaults&nbsp;to&nbsp;stdout).</tt></dd></dl>
  <dl><dt><a name="-HasSSH"><strong>HasSSH</strong></a>()</dt></dl>
+ <dl><dt><a name="-IsRunningOnCrosDevice"><strong>IsRunningOnCrosDevice</strong></a>()</dt><dd><tt>Returns&nbsp;True&nbsp;if&nbsp;we're&nbsp;on&nbsp;a&nbsp;ChromeOS&nbsp;device.</tt></dd></dl>
  <dl><dt><a name="-RunCmd"><strong>RunCmd</strong></a>(args, cwd<font color="#909090">=None</font>, quiet<font color="#909090">=False</font>)</dt><dd><tt>Opens&nbsp;a&nbsp;subprocess&nbsp;to&nbsp;execute&nbsp;a&nbsp;program&nbsp;and&nbsp;returns&nbsp;its&nbsp;return&nbsp;value.<br>
 &nbsp;<br>
 Args:<br>

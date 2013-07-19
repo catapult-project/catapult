@@ -2,17 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import telemetry.core.timeline.event as timeline_event
-import telemetry.core.timeline.tracing.counter as tracing_counter
-import telemetry.core.timeline.tracing.thread as tracing_thread
+import telemetry.core.timeline.event_container as event_container
+import telemetry.core.timeline.counter as tracing_counter
+import telemetry.core.timeline.thread as tracing_thread
 
-class Process(timeline_event.TimelineEvent):
+class Process(event_container.TimelineEventContainer):
   ''' The Process represents a single userland process in the trace.
   '''
-  def __init__(self, pid):
-    super(Process, self).__init__('process %s' % pid, 0, 0)
+  def __init__(self, parent, pid):
+    super(Process, self).__init__('process %s' % pid, parent)
     self.pid = pid
-    self._threads = []
+    self._threads = {}
     self._counters = {}
 
   @property
@@ -23,21 +23,23 @@ class Process(timeline_event.TimelineEvent):
   def counters(self):
     return self._counters
 
-  def GetThreadWithId(self, tid):
-    for t in self.threads:
-      if t.tid == tid:
-        return t
-    raise ValueError(
-        'Thread with id %s not found in process with id %s.' % (tid, self.pid))
+  def IterChildContainers(self):
+    for thread in self._threads.itervalues():
+      yield thread
+    for counter in self._counters.itervalues():
+      yield counter
+
+  def IterEventsInThisContainer(self):
+    return
+    yield # pylint: disable=W0101
 
   def GetOrCreateThread(self, tid):
-    try:
-      return self.GetThreadWithId(tid)
-    except ValueError:
-      thread = tracing_thread.Thread(self, tid)
-      self.children.append(thread)
-      self._threads.append(thread)
+    thread = self.threads.get(tid, None)
+    if thread:
       return thread
+    thread = tracing_thread.Thread(self, tid)
+    self._threads[tid] = thread
+    return thread
 
   def GetCounter(self, category, name):
     counter_id = category + '.' + name
@@ -54,11 +56,12 @@ class Process(timeline_event.TimelineEvent):
       self._counters[ctr.full_name] = ctr
       return ctr
 
-  def UpdateBounds(self):
-    super(Process, self).UpdateBounds()
-    for ctr in self.counters.itervalues():
-      ctr.UpdateBounds()
+  def AutoCloseOpenSlices(self, max_timestamp):
+    for thread in self._threads.itervalues():
+      thread.AutoCloseOpenSlices(max_timestamp)
 
   def FinalizeImport(self):
-    for thread in self._threads:
+    for thread in self._threads.itervalues():
       thread.FinalizeImport()
+    for counter in self._counters.itervalues():
+      counter.FinalizeImport()
