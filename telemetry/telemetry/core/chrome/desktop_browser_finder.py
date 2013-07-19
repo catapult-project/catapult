@@ -21,7 +21,9 @@ from telemetry.core.platform import win_platform_backend
 ALL_BROWSER_TYPES = ','.join([
     'exact',
     'release',
+    'release_x64',
     'debug',
+    'debug_x64',
     'canary',
     'content-shell-debug',
     'content-shell-release',
@@ -167,8 +169,10 @@ def FindAllAvailableBrowsers(options):
 
   # Add local builds
   AddIfFound('debug', 'Debug', chromium_app_name, False)
+  AddIfFound('debug_x64', 'Debug_x64', chromium_app_name, False)
   AddIfFound('content-shell-debug', 'Debug', content_shell_app_name, True)
   AddIfFound('release', 'Release', chromium_app_name, False)
+  AddIfFound('release_x64', 'Release_x64', chromium_app_name, False)
   AddIfFound('content-shell-release', 'Release', content_shell_app_name, True)
 
   # Mac-specific options.
