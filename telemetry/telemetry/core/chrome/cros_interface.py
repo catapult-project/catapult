@@ -178,12 +178,12 @@ class CrOSInterface(object):
         'Logged into %s, expected $USER=root, but got %s.' % (
           self._hostname, stdout))
 
-  def FileExistsOnDevice(self, file_name, quiet=False):
+  def FileExistsOnDevice(self, file_name):
     if self.local:
       return os.path.exists(file_name)
 
     stdout, stderr = self.RunCmdOnDevice([
-        'if', 'test', '-a', file_name, ';',
+        'if', 'test', '-e', file_name, ';',
         'then', 'echo', '1', ';',
         'fi'
         ], quiet=True)
@@ -193,9 +193,7 @@ class CrOSInterface(object):
                       stderr)
       raise OSError('Unepected error: %s' % stderr)
     exists = stdout == '1\n'
-    if not quiet:
-      logging.debug("FileExistsOnDevice(<text>, %s)->%s" % (
-          file_name, exists))
+    logging.debug("FileExistsOnDevice(<text>, %s)->%s" % (file_name, exists))
     return exists
 
   def PushFile(self, filename, remote_filename):
@@ -324,3 +322,24 @@ class CrOSInterface(object):
       if line_ary:
         return line_ary[0]
     return None
+
+  def TakeScreenShot(self, screenshot_prefix):
+    """Takes a screenshot, useful for debugging failures."""
+    # TODO(achuith): Find a better location for screenshots. Cros autotests
+    # upload everything in /var/log so use /var/log/screenshots for now.
+    SCREENSHOT_DIR = '/var/log/screenshots/'
+    SCREENSHOT_EXT = '.png'
+
+    self.RunCmdOnDevice(['mkdir', '-p', SCREENSHOT_DIR])
+    for i in xrange(25):
+      screenshot_file = ('%s%s-%d%s' %
+                         (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
+      if not self.FileExistsOnDevice(screenshot_file):
+        self.RunCmdOnDevice([
+            'DISPLAY=:0.0 XAUTHORITY=/home/chronos/.Xauthority '
+            '/usr/local/bin/import',
+            '-window root',
+            '-depth 8',
+            screenshot_file])
+        return
+    logging.warning('screenshot directory full.')

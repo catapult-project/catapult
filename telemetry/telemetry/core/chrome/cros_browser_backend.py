@@ -327,6 +327,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
     try:
       util.WaitFor(lambda: self._IsLoggedIn(), 60) # pylint: disable=W0108
     except util.TimeoutException:
+      self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException(
           'Timed out going through oobe screen. Make sure the custom auth '
           'extension passed through --auth-ext-path is valid and belongs '
