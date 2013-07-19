@@ -75,7 +75,6 @@ base.unittest.testSuite('ui.quad_view', function() {
     data[13] = 0;
     data[14] = 255;
     data[15] = 255;
-    quads[0].backgroundRasterData = { data: data, width: 2, height: 2 };
 
     var quadsBBox = new base.BBox2();
     for (var i = 0; i < quads.length; i++)
@@ -114,7 +113,6 @@ base.unittest.testSuite('ui.quad_view', function() {
     data[13] = 0;
     data[14] = 255;
     data[15] = 255;
-    quads[0].backgroundRasterData = { data: data, width: 2, height: 2 };
     var quadsBBox = new base.BBox2();
     for (var i = 0; i < quads.length; i++)
       quadsBBox.addQuad(quads[i]);

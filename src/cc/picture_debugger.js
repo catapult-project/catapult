@@ -28,7 +28,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.pictureAsImage_ = undefined;
+      this.pictureAsCanvas_ = undefined;
 
       this.leftPanel_ = document.createElement('left-panel');
 
@@ -115,7 +115,7 @@ base.exportTo('cc', function() {
       this.picture_ = picture;
       this.rasterize_();
 
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     },
 
     scheduleUpdateContents_: function() {
@@ -137,27 +137,29 @@ base.exportTo('cc', function() {
       }
 
       // Return if picture hasn't finished rasterizing.
-      if (!this.pictureAsImage_)
+      if (!this.pictureAsCanvas_)
         return;
 
       this.infoBar_.visible = false;
       this.infoBar_.removeAllButtons();
-      if (this.pictureAsImage_.error) {
+      if (this.pictureAsCanvas_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function() {
           var overlay = new ui.Overlay();
-          overlay.textContent = this.pictureAsImage_.error;
+          overlay.textContent = this.pictureAsCanvas_.error;
           overlay.visible = true;
           overlay.obeyCloseEvents = true;
         }.bind(this));
         this.infoBar_.visible = true;
       }
 
-      // FIXME: There's no reason to store the image src in two places.
-      //        pictureAsImage_.image could store the src instead of the image.
-      var src = this.pictureAsImage_.image ? 'url("' +
-          this.pictureAsImage_.image.src + '")' : '';
-      this.rasterArea_.style.backgroundImage = src;
+      // FIXME(pdr): Append the canvas instead of using a background image.
+      if (this.pictureAsCanvas_.canvas) {
+        var imageUrl = this.pictureAsCanvas_.canvas.toDataURL();
+        this.rasterArea_.style.backgroundImage = 'url("' + imageUrl + '")';
+      } else {
+        this.rasterArea_.style.backgroundImage = '';
+      }
     },
 
     rasterize_: function() {
@@ -168,14 +170,14 @@ base.exportTo('cc', function() {
       }
     },
 
-    onRasterComplete_: function(pictureAsImage) {
-      this.pictureAsImage_ = pictureAsImage;
+    onRasterComplete_: function(pictureAsCanvas) {
+      this.pictureAsCanvas_ = pictureAsCanvas;
       this.scheduleUpdateContents_();
     },
 
     onChangeDrawOps_: function() {
       this.rasterize_();
-      this.updateContents_();
+      this.scheduleUpdateContents_();
     }
   };
 

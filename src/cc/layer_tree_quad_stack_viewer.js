@@ -34,7 +34,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.pictureAsImage_ = {}; // Maps picture.guid to PictureAsImage.
+      this.pictureAsCanvas_ = {}; // Maps picture.guid to PictureAsCanvas.
       this.quads_ = [];
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
@@ -83,10 +83,10 @@ base.exportTo('cc', function() {
     },
 
     set layerTreeImpl(layerTreeImpl) {
-      // FIXME(pdr): We may want to clear pictureAsImage_ here to save memory at
-      //             the cost of performance. Note that pictureAsImage_ will be
-      //             cleared when this is destructed, but this view might live
-      //             for several layerTreeImpls.
+      // FIXME(pdr): We may want to clear pictureAsCanvas_ here to save memory
+      //             at the cost of performance. Note that pictureAsCanvas_ will
+      //             be cleared when this is destructed, but this view might
+      //             live for several layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = null;
       this.updateContents_();
@@ -168,27 +168,27 @@ base.exportTo('cc', function() {
               continue;
             }
 
-            var pictureAsImage = this.pictureAsImage_[picture.guid];
-            if (!pictureAsImage) {
+            var pictureAsCanvas = this.pictureAsCanvas_[picture.guid];
+            if (!pictureAsCanvas) {
               hasPendingRasterizeImage = true;
-              this.pictureAsImage_[picture.guid] =
-                  cc.PictureAsImage.Pending(this);
+              this.pictureAsCanvas_[picture.guid] =
+                  cc.PictureAsCanvas.Pending(this);
               picture.rasterize(
                   {stopIndex: undefined},
-                  function(pictureAsImage) {
-                    var picture_ = pictureAsImage.picture;
-                    this.pictureAsImage_[picture_.guid] = pictureAsImage;
+                  function(pictureAsCanvas) {
+                    var picture_ = pictureAsCanvas.picture;
+                    this.pictureAsCanvas_[picture_.guid] = pictureAsCanvas;
                     this.scheduleUpdateContents_();
                   }.bind(this));
               continue;
             }
-            if (pictureAsImage.isPending()) {
+            if (pictureAsCanvas.isPending()) {
               hasPendingRasterizeImage = true;
               continue;
             }
-            if (pictureAsImage.error) {
+            if (pictureAsCanvas.error) {
               if (!firstPictureError)
-                firstPictureError = pictureAsImage.error;
+                firstPictureError = pictureAsCanvas.error;
               break;
             }
           }
@@ -245,11 +245,11 @@ base.exportTo('cc', function() {
         var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
 
-        var pictureAsImage = this.pictureAsImage_[picture.guid];
-        if (this.showContents && pictureAsImage.image)
-          iq.backgroundImage = pictureAsImage.image;
+        var pictureAsCanvas = this.pictureAsCanvas_[picture.guid];
+        if (this.showContents && pictureAsCanvas.canvas)
+          iq.canvas = pictureAsCanvas.canvas;
         else
-          iq.backgroundColor = 'rgba(0,0,0,0.1)';
+          iq.canvas = undefined;
 
         iq.stackingGroupId = layerQuad.stackingGroupId;
         this.quads_.push(iq);

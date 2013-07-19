@@ -117,25 +117,6 @@ base.exportTo('ui', function() {
       }
       this.viewport_ = this.viewport_ ||
           this.createViewportFromQuads_(this.quads_);
-
-      this.quads_.forEach(function(quad) {
-        if (!quad.backgroundRasterData)
-          return;
-        var tex = quad.backgroundRasterData;
-        var helperCanvas = document.createElement('canvas');
-        helperCanvas.width = tex.width;
-        helperCanvas.height = tex.height;
-        var ctx = helperCanvas.getContext('2d');
-        var imageData = ctx.createImageData(tex.width, tex.height);
-        imageData.data.set(tex.data);
-        ctx.putImageData(imageData, 0, 0);
-        var img = document.createElement('img');
-        img.onload = function() {
-          quad.backgroundImage = img;
-          this.scheduleRedrawCanvas_();
-        }.bind(this);
-        img.src = helperCanvas.toDataURL();
-      }, this);
       this.updateChildren_();
     },
 
@@ -189,26 +170,26 @@ base.exportTo('ui', function() {
       // Background colors.
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        if (quad.backgroundImage) {
+        if (quad.canvas) {
           if (quad.isRectangle()) {
             var bounds = quad.boundingRect();
-            ctx.drawImage(quad.backgroundImage, 0, 0,
-                quad.backgroundImage.width, quad.backgroundImage.height,
+            ctx.drawImage(quad.canvas, 0, 0,
+                quad.canvas.width, quad.canvas.height,
                 bounds.x, bounds.y, bounds.width, bounds.height);
           } else {
             ctx.save();
             var quadBBox = new base.BBox2();
             quadBBox.addQuad(quad);
-            var iw = quad.backgroundImage.width;
-            var ih = quad.backgroundImage.height;
+            var iw = quad.canvas.width;
+            var ih = quad.canvas.height;
             drawTexturedTriangle(
-                ctx, quad.backgroundImage,
+                ctx, quad.canvas,
                 quad.p1[0], quad.p1[1],
                 quad.p2[0], quad.p2[1],
                 quad.p4[0], quad.p4[1],
                 0, 0, iw, 0, 0, ih);
             drawTexturedTriangle(
-                ctx, quad.backgroundImage,
+                ctx, quad.canvas,
                 quad.p2[0], quad.p2[1],
                 quad.p3[0], quad.p3[1],
                 quad.p4[0], quad.p4[1],
