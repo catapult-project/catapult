@@ -211,7 +211,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
 
     var c0 = counters[0];
     assertEquals(c0.name, 'DVFS Frequency');
-    assertEquals(2, c0.samples.length);
+    assertEquals(2, c0.series[0].samples.length);
   });
 
   test('DVFSVoltageImport', function() {
@@ -229,7 +229,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
 
     var c0 = counters[0];
     assertEquals(c0.name, 'DVFS Voltage');
-    assertEquals(2, c0.samples.length);
+    assertEquals(2, c0.series[0].samples.length);
   });
 
   test('DVFSUtilizationImport', function() {
@@ -247,7 +247,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
 
     var c0 = counters[0];
     assertEquals(c0.name, 'DVFS Utilization');
-    assertEquals(2, c0.samples.length);
+    assertEquals(2, c0.series[0].samples.length);
   });
 
   test('maliHWCImport', function() {
@@ -468,7 +468,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
     // all counters should have 1 sample
     for (var tI = 0; tI < counters.length; tI++) {
       var counter = counters[tI];
-      assertEquals(1, counter.samples.length);
+      assertEquals(1, counter.series[0].samples.length);
     }
     // TODO(sleffler) verify counter names? (not sure if it's worth the effort)
   });

@@ -99,18 +99,17 @@ base.exportTo('tracing.tracks', function() {
       // Figure out where drawing should begin.
       var numSeries = counter.numSeries;
       var numSamples = counter.numSamples;
-      var startIndex = base.findLowIndexInSortedArray(counter.timestamps,
-                                                      function(x) {
-                                                        return x;
-                                                      },
-                                                      viewLWorld);
-      startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
+      var startIndex = base.findLowIndexInSortedArray(
+          counter.timestamps,
+          function(x) { return x; },
+          viewLWorld);
 
+      startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
       // Draw indices one by one until we fall off the viewRWorld.
       var yScale = height / counter.maxTotal;
       for (var seriesIndex = counter.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
-        var colorId = counter.seriesColors[seriesIndex];
+        var colorId = counter.series[seriesIndex].color;
         ctx.fillStyle = palette[colorId];
         ctx.beginPath();
 
@@ -126,6 +125,7 @@ base.exportTo('tracing.tracks', function() {
         // drawing a sample at xLast, skip subsequent samples that are less than
         // skipDistanceWorld from xLast.
         var hasMoved = false;
+
         while (true) {
           var i = iLast + 1;
           if (i >= numSamples) {
@@ -136,7 +136,6 @@ base.exportTo('tracing.tracks', function() {
           }
 
           var x = counter.timestamps[i];
-
           var y = counter.totals[i * numSeries + seriesIndex];
           var yView = height - (yScale * y);
 
@@ -158,6 +157,7 @@ base.exportTo('tracing.tracks', function() {
             ctx.moveTo(viewLWorld, height);
             hasMoved = true;
           }
+
           if (x - xLast < skipDistanceWorld) {
             // We know that xNext > xLast + skipDistanceWorld, so we can
             // safely move this sample's x over that much without passing
@@ -167,6 +167,7 @@ base.exportTo('tracing.tracks', function() {
           }
           ctx.lineTo(x, yLastView);
           ctx.lineTo(x, yView);
+
           iLast = i;
           xLast = x;
           yLastView = yView;
@@ -174,6 +175,7 @@ base.exportTo('tracing.tracks', function() {
         ctx.closePath();
         ctx.fill();
       }
+
       ctx.fillStyle = 'rgba(255, 0, 0, 1)';
       for (var i in this.selectedSamples_) {
         if (!this.selectedSamples_[i])
@@ -194,7 +196,7 @@ base.exportTo('tracing.tracks', function() {
         loWX, hiWX, viewPixWidthWorld, selection) {
 
       function getSampleWidth(x, i) {
-        if (i == counter.timestamps.length - 1)
+        if (i === counter.timestamps.length - 1)
           return 0;
         return counter.timestamps[i + 1] - counter.timestamps[i];
       }

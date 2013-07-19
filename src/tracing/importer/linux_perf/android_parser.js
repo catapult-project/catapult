@@ -9,6 +9,8 @@
  * userland.
  */
 base.require('tracing.importer.linux_perf.parser');
+base.require('tracing.trace_model.counter_series');
+
 base.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
@@ -139,15 +141,14 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var ctr = this.model_.getOrCreateProcess(ppid)
               .getOrCreateCounter(category, name);
           // Initialize the counter's series fields if needed.
-          if (ctr.numSeries == 0) {
-            ctr.seriesNames.push('value');
-            ctr.seriesColors.push(
-                tracing.getStringColorId(ctr.name + '.' + 'value'));
+          if (ctr.numSeries === 0) {
+            ctr.addSeries(new tracing.trace_model.CounterSeries(value,
+                tracing.getStringColorId(ctr.name + '.' + 'value')));
           }
 
-          // Add the sample value.
-          ctr.timestamps.push(ts);
-          ctr.samples.push(value);
+          ctr.series.forEach(function(series) {
+            series.addSample(ts, value);
+          });
 
           break;
 

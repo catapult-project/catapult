@@ -24,16 +24,36 @@ base.unittest.testSuite('tracing.trace_model', function() {
     t.asyncSliceGroup.push(tracing.test_utils.newAsyncSlice(0, 1, t, t));
 
     var c = p.getOrCreateCounter('', 'ProcessCounter');
-    c.seriesNames.push('a', 'b');
-    c.seriesColors.push(0, 1);
-    c.timestamps.push(0, 1, 2, 3);
-    c.samples.push(5, 10, 6, 15, 5, 12, 7, 16);
+    var aSeries = new tracing.trace_model.CounterSeries('a', 0);
+    var bSeries = new tracing.trace_model.CounterSeries('b', 0);
+    c.addSeries(aSeries);
+    c.addSeries(bSeries);
+
+    aSeries.addSample(0, 5);
+    aSeries.addSample(1, 6);
+    aSeries.addSample(2, 5);
+    aSeries.addSample(3, 7);
+
+    bSeries.addSample(0, 10);
+    bSeries.addSample(1, 15);
+    bSeries.addSample(2, 12);
+    bSeries.addSample(3, 16);
 
     var c1 = cpu.getOrCreateCounter('', 'CpuCounter');
-    c1.seriesNames.push('a', 'b');
-    c1.seriesColors.push(0, 1);
-    c1.timestamps.push(0, 1, 2, 3);
-    c1.samples.push(5, 10, 6, 15, 5, 12, 7, 16);
+    var aSeries = new tracing.trace_model.CounterSeries('a', 0);
+    var bSeries = new tracing.trace_model.CounterSeries('b', 0);
+    c1.addSeries(aSeries);
+    c1.addSeries(bSeries);
+
+    aSeries.addSample(0, 5);
+    aSeries.addSample(1, 6);
+    aSeries.addSample(2, 5);
+    aSeries.addSample(3, 7);
+
+    bSeries.addSample(0, 10);
+    bSeries.addSample(1, 15);
+    bSeries.addSample(2, 12);
+    bSeries.addSample(3, 16);
 
     m.updateBounds();
 

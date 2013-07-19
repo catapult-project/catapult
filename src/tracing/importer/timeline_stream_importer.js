@@ -148,20 +148,22 @@ base.exportTo('tracing.importer', function() {
           this.model_.importErrors.push(importError);
           return;
         }
-        if (counter.seriesNames.length == 0) {
-          // First time
-          counter.seriesNames = counterSeriesNames;
-          counter.seriesColors = counterSeriesColors;
+        if (counter.series.length === 0) {
+          for (var i = 0; i < counterSeriesNames.length; ++i) {
+            counter.addSeries(new tracing.trace_model.CounterSeries(
+                counterSeriesNames[i], counterSeriesColors[i]));
+          }
         } else {
-          if (counter.seriesNames.length != counterSeriesNames.length) {
+          if (counter.series.length != counterSeriesNames.length) {
             var importError = 'Streamed counter ' + counterName +
                 'changed number of seriesNames';
             this.model_.importErrors.push(importError);
             return;
           } else {
-            for (var i = 0; i < counter.seriesNames.length; i++) {
-              var oldSeriesName = counter.seriesNames[i];
+            for (var i = 0; i < counter.series.length; i++) {
+              var oldSeriesName = counter.series[i].name;
               var newSeriesName = counterSeriesNames[i];
+
               if (oldSeriesName != newSeriesName) {
                 var importError = 'Streamed counter ' + counterName +
                     'series name changed from ' +
@@ -175,10 +177,11 @@ base.exportTo('tracing.importer', function() {
         }
         for (var c = 0; c < counterValues.length; c++) {
           var count = counterValues[c];
-          var x = count['t'];
-          var y = count['v'];
-          counter.timestamps.push(x);
-          counter.samples = counter.samples.concat(y);
+          var ts = count['t'];
+          var values = count['v'];
+          for (var i = 0; i < values.length; ++i) {
+            counter.series[i].addSample(ts, values[i]);
+          }
         }
         modelDirty = true;
       }

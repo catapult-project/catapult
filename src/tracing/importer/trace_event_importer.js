@@ -12,6 +12,7 @@ base.require('base.quad');
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
 base.require('tracing.trace_model.instant_event');
+base.require('tracing.trace_model.counter_series');
 
 base.exportTo('tracing.importer', function() {
 
@@ -163,32 +164,29 @@ base.exportTo('tracing.importer', function() {
 
       var ctr = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateCounter(event.cat, ctr_name);
+
       // Initialize the counter's series fields if needed.
-      if (ctr.numSeries == 0) {
+      if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
-          ctr.seriesNames.push(seriesName);
-          ctr.seriesColors.push(
-              tracing.getStringColorId(ctr.name + '.' + seriesName));
+          ctr.addSeries(new tracing.trace_model.CounterSeries(seriesName,
+              tracing.getStringColorId(ctr.name + '.' + seriesName)));
         }
-        if (ctr.numSeries == 0) {
+
+        if (ctr.numSeries === 0) {
           this.model_.importErrors.push('Expected counter ' + event.name +
               ' to have at least one argument to use as a value.');
+
           // Drop the counter.
           delete ctr.parent.counters[ctr.name];
           return;
         }
       }
 
-      // Add the sample values.
-      ctr.timestamps.push(event.ts / 1000);
-      for (var i = 0; i < ctr.numSeries; i++) {
-        var seriesName = ctr.seriesNames[i];
-        if (event.args[seriesName] === undefined) {
-          ctr.samples.push(0);
-          continue;
-        }
-        ctr.samples.push(event.args[seriesName]);
-      }
+      var ts = event.ts / 1000;
+      ctr.series.forEach(function(series) {
+        var val = event.args[series.name] ? event.args[series.name] : 0;
+        series.addSample(ts, val);
+      });
     },
 
     processObjectEvent: function(event) {

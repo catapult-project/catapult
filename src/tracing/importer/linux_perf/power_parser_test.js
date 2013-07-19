@@ -22,11 +22,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
-    assertEquals(1, c0.counters['Clock Frequency'].samples.length);
+    assertEquals(1, c0.counters['Clock Frequency'].series[0].samples.length);
 
     var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
-    assertEquals(2, c1.counters['Clock Frequency'].samples.length);
+    assertEquals(2, c1.counters['Clock Frequency'].series[0].samples.length);
   });
 
   test('cpuFrequencyImport', function() {
@@ -45,11 +45,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
-    assertEquals(2, c0.counters['Clock Frequency'].samples.length);
+    assertEquals(2, c0.counters['Clock Frequency'].series[0].samples.length);
 
     var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
-    assertEquals(2, c1.counters['Clock Frequency'].samples.length);
+    assertEquals(2, c1.counters['Clock Frequency'].series[0].samples.length);
   });
 
   test('cpuIdleImport', function() {
@@ -72,10 +72,10 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
-    assertEquals(2, c0.counters['C-State'].samples.length);
+    assertEquals(2, c0.counters['C-State'].series[0].samples.length);
 
     var c1 = m.kernel.cpus[1];
     assertEquals(0, c1.slices.length);
-    assertEquals(4, c1.counters['C-State'].samples.length);
+    assertEquals(4, c1.counters['C-State'].series[0].samples.length);
   });
 });

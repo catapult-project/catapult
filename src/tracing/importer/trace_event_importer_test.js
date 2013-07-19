@@ -497,11 +497,17 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(3, ctr.numSamples);
     assertEquals(1, ctr.numSeries);
 
-    assertArrayEquals(['value'], ctr.seriesNames);
-    assertArrayEquals([tracing.getStringColorId('ctr.value')],
-                      ctr.seriesColors);
+    assertEquals('value', ctr.series[0].name);
+    assertEquals(tracing.getStringColorId('ctr.value'), ctr.series[0].color);
+
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
-    assertArrayEquals([0, 10, 0], ctr.samples);
+
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assertArrayEquals([0, 10, 0], samples);
+
     assertArrayEquals([0, 10, 0], ctr.totals);
     assertEquals(10, ctr.maxTotal);
   });
@@ -528,41 +534,70 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', ctr.category);
     assertEquals(2, ctr.numSamples);
     assertEquals(1, ctr.numSeries);
-    assertArrayEquals([0, 0.01], ctr.timestamps);
-    assertArrayEquals([0, 10], ctr.samples);
 
-    var ctr = m.processes[1].counters['foo.ctr[1]'];
+    assertArrayEquals([0, 0.01], ctr.timestamps);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assertArrayEquals([0, 10], samples);
+
+    ctr = m.processes[1].counters['foo.ctr[1]'];
     assertEquals('ctr[1]', ctr.name);
     assertEquals('foo', ctr.category);
     assertEquals(3, ctr.numSamples);
     assertEquals(1, ctr.numSeries);
     assertArrayEquals([0.01, 0.015, 0.018], ctr.timestamps);
-    assertArrayEquals([10, 20, 30], ctr.samples);
 
-    var ctr = m.processes[1].counters['bar.ctr[2]'];
+    samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assertArrayEquals([10, 20, 30], samples);
+
+    ctr = m.processes[1].counters['bar.ctr[2]'];
     assertEquals('ctr[2]', ctr.name);
     assertEquals('bar', ctr.category);
     assertEquals(1, ctr.numSamples);
     assertEquals(1, ctr.numSeries);
     assertArrayEquals([0.02], ctr.timestamps);
-    assertArrayEquals([40], ctr.samples);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assertArrayEquals([40], samples);
   });
 
   test('multiCounterUpdateBounds', function() {
     var ctr = new tracing.trace_model.Counter(undefined, 'testBasicCounter',
         '', 'testBasicCounter');
-    ctr.seriesNames = ['value1', 'value2'];
-    ctr.seriesColors = ['testBasicCounter.value1', 'testBasicCounter.value2'];
-    ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    ctr.samples = [0, 0,
-                   1, 0,
-                   1, 1,
-                   2, 1.1,
-                   3, 0,
-                   1, 7,
-                   3, 0,
-                   3.1, 0.5];
+    var value1Series = new tracing.trace_model.CounterSeries(
+        'value1', 'testBasicCounter.value1');
+    var value2Series = new tracing.trace_model.CounterSeries(
+        'value2', 'testBasicCounter.value2');
+    ctr.addSeries(value1Series);
+    ctr.addSeries(value2Series);
+
+    value1Series.addSample(0, 0);
+    value1Series.addSample(1, 1);
+    value1Series.addSample(2, 1);
+    value1Series.addSample(3, 2);
+    value1Series.addSample(4, 3);
+    value1Series.addSample(5, 1);
+    value1Series.addSample(6, 3);
+    value1Series.addSample(7, 3.1);
+
+    value2Series.addSample(0, 0);
+    value2Series.addSample(1, 0);
+    value2Series.addSample(2, 1);
+    value2Series.addSample(3, 1.1);
+    value2Series.addSample(4, 0);
+    value2Series.addSample(5, 7);
+    value2Series.addSample(6, 0);
+    value2Series.addSample(7, 0.5);
+
     ctr.updateBounds();
+
     assertEquals(0, ctr.bounds.min);
     assertEquals(7, ctr.bounds.max);
     assertEquals(8, ctr.maxTotal);
@@ -592,14 +627,23 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(3, ctr.numSamples);
     assertEquals(2, ctr.numSeries);
 
-    assertArrayEquals(['value1', 'value2'], ctr.seriesNames);
-    assertArrayEquals([tracing.getStringColorId('ctr.value1'),
-                       tracing.getStringColorId('ctr.value2')],
-                      ctr.seriesColors);
+    assertEquals('value1', ctr.series[0].name);
+    assertEquals('value2', ctr.series[1].name);
+    assertEquals(tracing.getStringColorId('ctr.value1'), ctr.series[0].color);
+    assertEquals(tracing.getStringColorId('ctr.value2'), ctr.series[1].color);
+
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
-    assertArrayEquals([0, 7,
-                       10, 4,
-                       0, 1], ctr.samples);
+    var samples = [];
+    ctr.series[0].samples.forEach(function(sample) {
+      samples.push(sample.value);
+    });
+    assertArrayEquals([0, 10, 0], samples);
+
+    var samples1 = [];
+    ctr.series[1].samples.forEach(function(sample) {
+      samples1.push(sample.value);
+    });
+    assertArrayEquals([7, 4, 1], samples1);
     assertArrayEquals([0, 7,
                        10, 14,
                        0, 1], ctr.totals);

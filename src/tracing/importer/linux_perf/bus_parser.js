@@ -9,6 +9,7 @@
  * userland.
  */
 base.require('tracing.importer.linux_perf.parser');
+base.require('tracing.trace_model.counter_series');
 
 base.exportTo('tracing.importer.linux_perf', function() {
 
@@ -52,29 +53,23 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
       var ctr = this.model_.getOrCreateProcess(0)
               .getOrCreateCounter(null, 'bus ' + name + ' read');
-      // Initialize the counter's series fields if needed.
-      if (ctr.numSeries == 0) {
-        ctr.seriesNames.push('value');
-        ctr.seriesColors.push(
-            tracing.getStringColorId(ctr.name + '.' + 'value'));
+      if (ctr.numSeries === 0) {
+        ctr.addSeries(new tracing.trace_model.CounterSeries('value',
+            tracing.getStringColorId(ctr.name + '.' + 'value')));
       }
-
-      // Add the sample value.
-      ctr.timestamps.push(ts);
-      ctr.samples.push(r_bw);
+      ctr.series.forEach(function(series) {
+        series.addSample(ts, r_bw);
+      });
 
       ctr = this.model_.getOrCreateProcess(0)
               .getOrCreateCounter(null, 'bus ' + name + ' write');
-      // Initialize the counter's series fields if needed.
-      if (ctr.numSeries == 0) {
-        ctr.seriesNames.push('value');
-        ctr.seriesColors.push(
-            tracing.getStringColorId(ctr.name + '.' + 'value'));
+      if (ctr.numSeries === 0) {
+        ctr.addSeries(new tracing.trace_model.CounterSeries('value',
+            tracing.getStringColorId(ctr.name + '.' + 'value')));
       }
-
-      // Add the sample value.
-      ctr.timestamps.push(ts);
-      ctr.samples.push(w_bw);
+      ctr.series.forEach(function(series) {
+        series.addSample(ts, r_bw);
+      });
 
       return true;
     }

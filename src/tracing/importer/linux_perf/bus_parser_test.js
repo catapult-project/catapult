@@ -55,6 +55,6 @@ base.unittest.testSuite('tracing.importer.linux_perf.bus_parser', function() {
     var counters = m.getAllCounters();
     assertEquals(10, counters.length);
 
-    assertEquals(2, counters[0].samples.length);
+    assertEquals(2, counters[0].series[0].samples.length);
   });
 });

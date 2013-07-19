@@ -11,9 +11,10 @@ base.exportTo('tracing.analysis', function() {
   function analyzeSingleCounterSampleHit(results, counterSampleHit) {
     var ctr = counterSampleHit.counter;
     var sampleIndex = counterSampleHit.sampleIndex;
+
     var values = [];
     for (var i = 0; i < ctr.numSeries; ++i)
-      values.push(ctr.samples[ctr.numSeries * sampleIndex + i]);
+      values.push(ctr.getSeries(i).getSample(sampleIndex).value);
 
     var table = results.appendTable('analysis-counter-table', 2);
     results.appendTableHeader(table, 'Selected counter:');
@@ -22,7 +23,7 @@ base.exportTo('tracing.analysis', function() {
         table, 'Timestamp', ctr.timestamps[sampleIndex]);
 
     for (var i = 0; i < ctr.numSeries; i++)
-      results.appendSummaryRow(table, ctr.seriesNames[i], values[i]);
+      results.appendSummaryRow(table, ctr.getSeries(i).name, values[i]);
   }
 
   function analyzeMultipleCounterSampleHits(results, counterSampleHits) {
@@ -46,7 +47,7 @@ base.exportTo('tracing.analysis', function() {
       var stats = ctr.getSampleStatistics(sampleIndices);
       for (var i = 0; i < stats.length; i++) {
         results.appendDataRow(
-            table, ctr.name + ': ' + ctr.seriesNames[i], undefined,
+            table, ctr.name + ': ' + ctr.getSeries(i).name, undefined,
             undefined, stats[i]);
       }
     }

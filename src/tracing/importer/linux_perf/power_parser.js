@@ -8,6 +8,8 @@
  * @fileoverview Parses power events in the Linux event trace format.
  */
 base.require('tracing.importer.linux_perf.parser');
+base.require('tracing.trace_model.counter_series');
+
 base.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
@@ -43,42 +45,40 @@ base.exportTo('tracing.importer.linux_perf', function() {
         return;
       }
       powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
-      if (powerCounter.numSeries == 0) {
-        powerCounter.seriesNames.push('state');
-        powerCounter.seriesColors.push(
-            tracing.getStringColorId(powerCounter.name + '.' + 'state'));
+      if (powerCounter.numSeries === 0) {
+        powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
+            tracing.getStringColorId(powerCounter.name + '.' + 'state')));
       }
-      powerCounter.timestamps.push(ts);
-      powerCounter.samples.push(cpuState);
+      powerCounter.series.forEach(function(series) {
+        series.addSample(ts, cpuState);
+      });
     },
 
     cpuIdleSlice: function(ts, targetCpuNumber, cpuState) {
       var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
       var powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
-      if (powerCounter.numSeries == 0) {
-        powerCounter.seriesNames.push('state');
-        powerCounter.seriesColors.push(
-            tracing.getStringColorId(powerCounter.name));
+      if (powerCounter.numSeries === 0) {
+        powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
+            tracing.getStringColorId(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
-      if (cpuState != 4294967295)
-        powerCounter.samples.push(cpuState);
-      else
-        powerCounter.samples.push(0);
-      powerCounter.timestamps.push(ts);
+      var val = (cpuState != 4294967295 ? cpuState : 0);
+      powerCounter.series.forEach(function(series) {
+        series.addSample(ts, val);
+      });
     },
 
     cpuFrequencySlice: function(ts, targetCpuNumber, powerState) {
       var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
       var powerCounter =
           targetCpu.cpu.getOrCreateCounter('', 'Clock Frequency');
-      if (powerCounter.numSeries == 0) {
-        powerCounter.seriesNames.push('state');
-        powerCounter.seriesColors.push(
-            tracing.getStringColorId(powerCounter.name + '.' + 'state'));
+      if (powerCounter.numSeries === 0) {
+        powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
+            tracing.getStringColorId(powerCounter.name + '.' + 'state')));
       }
-      powerCounter.timestamps.push(ts);
-      powerCounter.samples.push(powerState);
+      powerCounter.series.forEach(function(series) {
+        series.addSample(ts, powerState);
+      });
     },
 
     /**

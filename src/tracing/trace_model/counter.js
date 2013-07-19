@@ -6,6 +6,7 @@
 
 base.require('base.guid');
 base.require('base.range');
+base.require('tracing.trace_model.counter_series');
 
 /**
  * @fileoverview Provides the Counter class.
@@ -23,10 +24,8 @@ base.exportTo('tracing.trace_model', function() {
     this.id = id;
     this.category = category || '';
     this.name = name;
-    this.seriesNames = [];
-    this.seriesColors = [];
-    this.timestamps = [];
-    this.samples = [];
+
+    this.series_ = [];
     this.bounds = new base.Range();
   }
 
@@ -56,16 +55,48 @@ base.exportTo('tracing.trace_model', function() {
       return obj;
     },
 
+    set timestamps() {
+      throw new Error('Bad counter API. No cookie.');
+    },
+
+    set seriesNames() {
+      throw new Error('Bad counter API. No cookie.');
+    },
+
+    set seriesColors() {
+      throw new Error('Bad counter API. No cookie.');
+    },
+
+    set samples() {
+      throw new Error('Bad counter API. No cookie.');
+    },
+
+    addSeries: function(series) {
+      this.series_.push(series);
+    },
+
+    getSeries: function(idx) {
+      return this.series_[idx];
+    },
+
+    get series() {
+      return this.series_;
+    },
+
     get numSeries() {
-      return this.seriesNames.length;
+      return this.series_.length;
     },
 
     get numSamples() {
-      return this.timestamps.length;
+      if (this.series_.length === 0)
+        return 0;
+      return this.series_[0].length;
     },
 
-    getSampleValue: function(index, seriesIndex) {
-      return this.samples[index * this.numSeries + seriesIndex];
+    get timestamps() {
+      if (this.series_.length === 0)
+        return [];
+      return this.series_[0].timestamps;
     },
 
     /**
@@ -82,33 +113,11 @@ base.exportTo('tracing.trace_model', function() {
      */
     getSampleStatistics: function(sampleIndices) {
       sampleIndices.sort();
-      var sampleIndex = this.sampleIndex;
-      var numSeries = this.numSeries;
-      var numSamples = this.numSamples;
 
       var ret = [];
-
-      for (var i = 0; i < numSeries; ++i) {
-        var sum = 0;
-        var min = Number.MAX_VALUE;
-        var max = -Number.MAX_VALUE;
-        for (var j = 0; j < sampleIndices.length; j++) {
-          var x = sampleIndices[j];
-          sum += this.getSampleValue(x, i);
-          min = Math.min(this.getSampleValue(x, i), min);
-          max = Math.max(this.getSampleValue(x, i), max);
-        }
-        var avg = sum / sampleIndices.length;
-        var start = this.getSampleValue(sampleIndices[0], i);
-        var end = this.getSampleValue(
-            sampleIndices[sampleIndices.length - 1], i);
-
-        ret.push({min: min,
-          max: max,
-          avg: avg,
-          start: start,
-          end: end});
-      }
+      this.series_.forEach(function(series) {
+        ret.push(series.getStatistics(sampleIndices));
+      });
       return ret;
     },
 
@@ -117,40 +126,41 @@ base.exportTo('tracing.trace_model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var sI = 0; sI < this.timestamps.length; sI++)
-        this.timestamps[sI] = (this.timestamps[sI] + amount);
+      for (var i = 0; i < this.series_.length; ++i)
+        this.series_[i].shiftTimestampsForward(amount);
     },
 
     /**
      * Updates the bounds for this counter based on the samples it contains.
      */
     updateBounds: function() {
-      if (this.seriesNames.length != this.seriesColors.length)
-        throw new Error('seriesNames.length must match seriesColors.length');
-      if (this.numSeries * this.numSamples != this.samples.length)
-        throw new Error('samples.length must be a multiple of numSamples.');
-
       this.totals = [];
       this.maxTotal = 0;
       this.bounds.reset();
-      if (this.samples.length == 0)
+
+      if (this.series_.length === 0)
         return;
 
-      this.bounds.addValue(this.timestamps[0]);
-      this.bounds.addValue(this.timestamps[this.timestamps.length - 1]);
+      var firstSeries = this.series_[0];
+      var lastSeries = this.series_[this.series_.length - 1];
+
+      this.bounds.addValue(firstSeries.getTimestamp(0));
+      this.bounds.addValue(lastSeries.getTimestamp(lastSeries.length - 1));
 
       var numSeries = this.numSeries;
-      var maxTotal = -Infinity;
-      for (var i = 0; i < this.timestamps.length; i++) {
+      this.maxTotal = -Infinity;
+
+      // Sum the samples at each timestamp.
+      // Note, this assumes that all series have all timestamps.
+      for (var i = 0; i < firstSeries.length; ++i) {
         var total = 0;
-        for (var j = 0; j < numSeries; j++) {
-          total += this.samples[i * numSeries + j];
+        this.series_.forEach(function(series) {
+          total += series.getSample(i).value;
           this.totals.push(total);
-        }
-        if (total > maxTotal)
-          maxTotal = total;
+        }.bind(this));
+
+        this.maxTotal = Math.max(total, this.maxTotal);
       }
-      this.maxTotal = maxTotal;
     }
 
   };

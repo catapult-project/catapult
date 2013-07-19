@@ -17,17 +17,19 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
     this.addHTMLOutput(testEl);
 
     var ctr = new Counter(undefined, 'foo', '', 'foo');
-    var n = samples.length / timestamps.length;
-
-    ctr.timestamps = timestamps;
-    ctr.samples = samples;
-    ctr.seriesNames = [];
-    ctr.seriesColors = [];
+    var n = samples.length;
 
     for (var i = 0; i < n; ++i) {
-      ctr.seriesNames.push('value' + i);
-      ctr.seriesColors.push(tracing.getStringColorId(ctr.seriesNames[i]));
+      ctr.addSeries(new tracing.trace_model.CounterSeries('value' + i,
+          tracing.getStringColorId('value' + i)));
     }
+
+    for (var i = 0; i < samples.length; ++i) {
+      for (var k = 0; k < timestamps.length; ++k) {
+        ctr.series[i].addSample(timestamps[k], samples[i][k]);
+      }
+    }
+
     ctr.updateBounds();
 
     var viewport = new Viewport(testEl);
@@ -55,18 +57,20 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
   test('instantiate', function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
-    ctr.seriesNames = ['value1', 'value2'];
-    ctr.seriesColors = [tracing.getStringColorId('testBasicCounter.value1'),
-                        tracing.getStringColorId('testBasicCounter.value2')];
-    ctr.timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    ctr.samples = [0, 5,
-                   3, 3,
-                   1, 1,
-                   2, 1.1,
-                   3, 0,
-                   1, 7,
-                   3, 0,
-                   3.1, 0.5];
+    ctr.addSeries(new tracing.trace_model.CounterSeries('value1',
+        tracing.getStringColorId('testBasicCounter.value1')));
+    ctr.addSeries(new tracing.trace_model.CounterSeries('value2',
+        tracing.getStringColorId('testBasicCounter.value2')));
+
+    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
+                   [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
+    for (var i = 0; i < samples.length; ++i) {
+      for (var k = 0; k < timestamps.length; ++k) {
+        ctr.series[i].addSample(timestamps[k], samples[i][k]);
+      }
+    }
+
     ctr.updateBounds();
 
     var div = document.createElement('div');
@@ -88,14 +92,9 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
 
   test('basicCounterXPointPicking', function() {
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    var samples = [0, 5,
-                   3, 3,
-                   1, 1,
-                   2, 1.1,
-                   3, 0,
-                   1, 7,
-                   3, 0,
-                   3.1, 0.5];
+    var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
+                   [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
+
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
       var clientRect = track.getBoundingClientRect();
       var y75 = clientRect.top + (0.75 * clientRect.height);

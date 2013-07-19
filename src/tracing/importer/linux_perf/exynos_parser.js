@@ -76,13 +76,13 @@ base.exportTo('tracing.importer.linux_perf', function() {
     exynosBusfreqSample: function(name, ts, frequency) {
       var targetCpu = this.importer.getOrCreateCpuState(0);
       var counter = targetCpu.cpu.getOrCreateCounter('', name);
-      if (counter.numSeries == 0) {
-        counter.seriesNames.push('frequency');
-        counter.seriesColors.push(
-            tracing.getStringColorId(counter.name + '.' + 'frequency'));
+      if (counter.numSeries === 0) {
+        counter.addSeries(new tracing.trace_model.CounterSeries('frequency',
+            tracing.getStringColorId(counter.name + '.' + 'frequency')));
       }
-      counter.timestamps.push(ts);
-      counter.samples.push(frequency);
+      counter.series.forEach(function(series) {
+        series.addSample(ts, frequency);
+      });
     },
 
     /**

@@ -41,7 +41,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
 
         var c0 = m.kernel.cpus[0];
         assertEquals(0, c0.slices.length);
-        assertEquals(3, c0.counters['INT Frequency'].samples.length);
-        assertEquals(1, c0.counters['MIF Frequency'].samples.length);
+        assertEquals(3, c0.counters['INT Frequency'].series[0].samples.length);
+        assertEquals(1, c0.counters['MIF Frequency'].series[0].samples.length);
       });
     });

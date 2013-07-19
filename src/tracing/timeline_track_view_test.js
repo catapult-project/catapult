@@ -117,8 +117,12 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var model = new tracing.TraceModel();
     var c1 = model.kernel.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
+
     var p1 = model.getOrCreateProcess(1);
-    p1.getOrCreateCounter('', 'a').samples = [1];
+    var ctr = p1.getOrCreateCounter('', 'a');
+    var series = new tracing.trace_model.CounterSeries('a', 0);
+    series.addSample(0, 1);
+    ctr.addSeries(series);
 
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;

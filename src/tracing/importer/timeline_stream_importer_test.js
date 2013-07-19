@@ -206,13 +206,16 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
 
     assertNotUndefined(model.processes[1]);
     assertNotUndefined(model.processes[1].counters['streamed.Allocator']);
+
     var counter = model.processes[1].counters['streamed.Allocator'];
-    assertNotUndefined(counter.samples);
-    assertEquals(counter.samples.length, 5);
-    assertEquals(counter.seriesNames.length, 1);
-    assertEquals(counter.seriesColors.length, 1);
-    assertEquals(counter.samples[2], 48);
-    assertEquals(counter.timestamps[4], 64);
+    assertNotUndefined(counter.series);
+
+    assertEquals(1, counter.series.length);
+    assertEquals(5, counter.series[0].length);
+
+    assertEquals(48, counter.series[0].getSample(2).value);
+    assertEquals(64, counter.timestamps[4]);
+
     assertEquals(model.bounds.min, 2);
     assertEquals(model.bounds.max, 64);
   });

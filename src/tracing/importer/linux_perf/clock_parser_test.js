@@ -47,6 +47,6 @@ base.unittest.testSuite('tracing.importer.linux_perf.clock_parser', function() {
     var counters = m.getAllCounters();
     assertEquals(1, counters.length);
 
-    assertEquals(10, counters[0].samples.length);
+    assertEquals(10, counters[0].series[0].samples.length);
   });
 });

@@ -6,6 +6,7 @@
 
 base.requireStylesheet('tracing.tracks.drawing_container');
 
+base.require('base.raf');
 base.require('tracing.tracks.track');
 base.require('ui');
 

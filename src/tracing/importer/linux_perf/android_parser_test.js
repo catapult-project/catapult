@@ -175,7 +175,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
         assertEquals(1, counters.length);
         assertEquals('cat1', counters[0].category);
         assertEquals('counter1', counters[0].name);
+
         assertEquals(1, counters[0].numSamples);
-        assertEquals(10, counters[0].getSampleValue(0, 0));
+        assertEquals(10, counters[0].getSeries(0).getSample(0).value);
       });
     });
