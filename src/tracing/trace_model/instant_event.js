@@ -4,10 +4,10 @@
 
 'use strict';
 
+base.require('tracing.trace_model.trace_model_event');
+
 /**
  * @fileoverview Provides the InstantEvent class.
- *
- * Note, this has the save API as the slice class.
  */
 base.exportTo('tracing.trace_model', function() {
   var InstantEventType = {
@@ -17,24 +17,13 @@ base.exportTo('tracing.trace_model', function() {
   };
 
   function InstantEvent(category, title, colorId, start, args) {
-    this.category = category || '';
-    this.title = title;
-    this.colorId = colorId;
-    this.start = start;
-    this.args = args;
+    tracing.trace_model.TraceModelEvent.apply(this, arguments);
+
     this.type = undefined;
   };
 
   InstantEvent.prototype = {
-    __proto__: Object,
-
-    selected: false,
-
-    duration: 0,
-
-    get end() {
-      return this.start;
-    }
+    __proto__: tracing.trace_model.TraceModelEvent.prototype
   };
 
   function GlobalInstantEvent(category, title, colorId, start, args) {

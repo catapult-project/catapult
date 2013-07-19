@@ -4,37 +4,24 @@
 
 'use strict';
 
+base.require('tracing.trace_model.trace_model_event');
+
 /**
  * @fileoverview Provides the Sample class.
  */
 base.exportTo('tracing.trace_model', function() {
-
   /**
    * A Sample represents a sample taken at an instant in time
    * plus parameters associated with that sample.
    *
-   * NOTE: The Sample class implements the same interface as
-   * Slice. These must be kept in sync.
-   *
-   * All time units are stored in milliseconds.
    * @constructor
    */
-  function Sample(category, title, colorId, ts, args) {
-    this.category = category || '';
-    this.title = title;
-    this.colorId = colorId;
-    this.start = ts;
-    this.args = args;
+  function Sample(category, title, colorId, start, args) {
+    tracing.trace_model.TraceModelEvent.apply(this, arguments);
   }
 
   Sample.prototype = {
-    selected: false,
-
-    duration: 0,
-
-    get end() {
-      return this.start;
-    }
+    __proto__: tracing.trace_model.TraceModelEvent.prototype
   };
 
   return {

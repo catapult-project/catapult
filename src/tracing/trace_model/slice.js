@@ -4,36 +4,28 @@
 
 'use strict';
 
+base.require('tracing.trace_model.trace_model_event');
+
 /**
  * @fileoverview Provides the Slice class.
  */
 base.exportTo('tracing.trace_model', function() {
-
   /**
    * A Slice represents an interval of time plus parameters associated
    * with that interval.
    *
-   * NOTE: The Sample class implements the same interface as
-   * Slice. These must be kept in sync.
-   *
-   * All time units are stored in milliseconds.
    * @constructor
    */
   function Slice(category, title, colorId, start, args, opt_duration) {
-    this.category = category || '';
-    this.title = title;
-    this.start = start;
-    this.colorId = colorId;
-    this.args = args;
-    this.didNotFinish = false;
+    tracing.trace_model.TraceModelEvent.
+        call(this, category, title, colorId, start, args);
+
     if (opt_duration !== undefined)
       this.duration = opt_duration;
   }
 
   Slice.prototype = {
-    selected: false,
-
-    duration: undefined,
+    __proto__: tracing.trace_model.TraceModelEvent.prototype,
 
     get end() {
       return this.start + this.duration;

@@ -8,50 +8,9 @@
  * @fileoverview Provides the AsyncSliceGroup class.
  */
 base.require('base.range');
-base.require('tracing.trace_model.slice');
+base.require('tracing.trace_model.async_slice');
+
 base.exportTo('tracing.trace_model', function() {
-
-  var Slice = tracing.trace_model.Slice;
-
-  /**
-   * A AsyncSlice represents an interval of time during which an
-   * asynchronous operation is in progress. An AsyncSlice consumes no CPU time
-   * itself and so is only associated with Threads at its start and end point.
-   *
-   * @constructor
-   */
-  function AsyncSlice(category, title, colorId, start, args) {
-    Slice.call(this, category, title, colorId, start, args);
-  };
-
-  AsyncSlice.prototype = {
-    __proto__: Slice.prototype,
-
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] == 'function')
-          continue;
-        if (key == 'startThread' || key == 'endThread') {
-          obj[key] = this[key].guid;
-          continue;
-        }
-        obj[key] = this[key];
-      }
-      return obj;
-    },
-
-    id: undefined,
-
-    startThread: undefined,
-
-    endThread: undefined,
-
-    subSlices: undefined
-  };
-
   /**
    * A group of AsyncSlices.
    * @constructor
@@ -128,7 +87,6 @@ base.exportTo('tracing.trace_model', function() {
   };
 
   return {
-    AsyncSlice: AsyncSlice,
     AsyncSliceGroup: AsyncSliceGroup
   };
 });
