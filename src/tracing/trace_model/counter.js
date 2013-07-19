@@ -55,19 +55,19 @@ base.exportTo('tracing.trace_model', function() {
       return obj;
     },
 
-    set timestamps() {
+    set timestamps(arg) {
       throw new Error('Bad counter API. No cookie.');
     },
 
-    set seriesNames() {
+    set seriesNames(arg) {
       throw new Error('Bad counter API. No cookie.');
     },
 
-    set seriesColors() {
+    set seriesColors(arg) {
       throw new Error('Bad counter API. No cookie.');
     },
 
-    set samples() {
+    set samples(arg) {
       throw new Error('Bad counter API. No cookie.');
     },
 
