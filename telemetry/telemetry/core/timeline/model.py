@@ -7,13 +7,9 @@ trace_viewer project:
 https://code.google.com/p/trace-viewer/
 '''
 
-import telemetry.core.timeline.process as tracing_process
-
 # Register importers for data
 from telemetry.core.timeline import inspector_importer
-from telemetry.core.timeline import bounds
-from telemetry.core.timeline import trace_event_importer
-
+from telemetry.core.timeline.tracing import trace_event_importer
 _IMPORTERS = [
     inspector_importer.InspectorTimelineImporter,
     trace_event_importer.TraceEventTimelineImporter
@@ -21,22 +17,38 @@ _IMPORTERS = [
 
 class TimelineModel(object):
   def __init__(self, event_data=None, shift_world_to_zero=True):
-    self._bounds = bounds.Bounds()
-    self._processes = {}
+    self._root_events = []
+    self._all_events = []
     self._frozen = False
     self.import_errors = []
     self.metadata = []
+    self._bounds = None
 
     if event_data is not None:
       self.ImportTraces([event_data], shift_world_to_zero=shift_world_to_zero)
 
   @property
-  def bounds(self):
-    return self._bounds
+  def min_timestamp(self):
+    if self._bounds is None:
+      self.UpdateBounds()
+    return self._bounds[0]
 
   @property
-  def processes(self):
-    return self._processes
+  def max_timestamp(self):
+    if self._bounds is None:
+      self.UpdateBounds()
+    return self._bounds[1]
+
+  def AddEvent(self, event):
+    if self._frozen:
+      raise Exception("Cannot add events once recording is done")
+    self._root_events.append(event)
+
+  def DidFinishRecording(self):
+    for event in self._root_events:
+      self._all_events.extend(
+        event.GetAllChildrenRecursive(include_self=True))
+    self._frozen = True
 
   def ImportTraces(self, traces, shift_world_to_zero=True):
     if self._frozen:
@@ -52,71 +64,44 @@ class TimelineModel(object):
       # TODO: catch exceptions here and add it to error list
       importer.ImportEvents()
 
-    self.UpdateBounds()
-    if not self.bounds.is_empty:
-      for process in self._processes.itervalues():
-        process.AutoCloseOpenSlices(self.bounds.max)
-
     for importer in importers:
       importer.FinalizeImport()
 
     if shift_world_to_zero:
       self.ShiftWorldToZero()
-    self.UpdateBounds()
 
     # Because of FinalizeImport, it would probably be a good idea
     # to prevent the timeline from from being modified.
-    self._frozen = True
+    self.DidFinishRecording()
 
   def ShiftWorldToZero(self):
-    self.UpdateBounds()
-    if self._bounds.is_empty:
+    if not len(self._root_events):
       return
-    shift_amount = -self._bounds.min
-    for event in self.IterAllEvents():
-      event.start += shift_amount
+    self.UpdateBounds()
+    delta = min(self._root_events, key=lambda e: e.start).start
+    for event in self._root_events:
+      event.ShiftTimestampsForward(-delta)
 
   def UpdateBounds(self):
-    self._bounds.Reset()
-    for event in self.IterAllEvents():
-      self._bounds.AddValue(event.start)
-      self._bounds.AddValue(event.end)
+    if not len(self._root_events):
+      self._bounds = (0, 0)
+      return
 
-  def GetAllContainers(self):
-    containers = []
-    def Iter(container):
-      containers.append(container)
-      for container in container.IterChildContainers():
-        Iter(container)
-    for process in self._processes.itervalues():
-      Iter(process)
-    return containers
+    for e in self._root_events:
+      e.UpdateBounds()
 
-  def IterAllEvents(self):
-    for container in self.GetAllContainers():
-      for event in container.IterEventsInThisContainer():
-        yield event
+    first_event = min(self._root_events, key=lambda e: e.start)
+    last_event = max(self._root_events, key=lambda e: e.end)
+    self._bounds = (first_event.start, last_event.end)
 
-  def GetAllProcesses(self):
-    return self._processes.values()
-
-  def GetAllThreads(self):
-    threads = []
-    for process in self._processes.values():
-      threads.extend(process.threads.values())
-    return threads
+  def GetRootEvents(self):
+    return self._root_events
 
   def GetAllEvents(self):
-    return list(self.IterAllEvents())
+    return self._all_events
 
   def GetAllEventsOfName(self, name):
-    return [e for e in self.IterAllEvents() if e.name == name]
-
-  def GetOrCreateProcess(self, pid):
-    if pid not in self._processes:
-      assert not self._frozen
-      self._processes[pid] = tracing_process.Process(self, pid)
-    return self._processes[pid]
+    return [e for e in self._all_events if e.name == name]
 
   def _CreateImporter(self, event_data):
     for importer_class in _IMPORTERS:
