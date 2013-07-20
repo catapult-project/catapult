@@ -5,6 +5,7 @@ import logging
 
 from telemetry.core import util
 from telemetry.page import gtest_test_results
+from telemetry.page import test_expectations
 from telemetry.page import page_test_results
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
@@ -141,6 +142,11 @@ class PageTest(object):
     """Override to make this test generate its own page set instead of
     allowing arbitrary page sets entered from the command-line."""
     return None
+
+  def CreateExpectations(self, page_set):  # pylint: disable=W0613
+    """Override to make this test generate its own expectations instead of
+    any that may have been defined in the page set."""
+    return test_expectations.TestExpectations()
 
   def AddOutputOptions(self, parser):
     parser.add_option('--output-format',

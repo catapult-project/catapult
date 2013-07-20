@@ -16,6 +16,7 @@ from telemetry.page import page_measurement
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
+from telemetry.page import test_expectations
 
 
 class RecordPage(page_test.PageTest):
@@ -89,6 +90,8 @@ def Main(base_dir):
     parser.print_usage()
     sys.exit(1)
 
+  expectations = test_expectations.TestExpectations()
+
   # Set the archive path to something temporary.
   temp_target_wpr_file_path = tempfile.mkstemp()[1]
   ps.wpr_archive_info.AddNewTemporaryRecording(temp_target_wpr_file_path)
@@ -97,7 +100,7 @@ def Main(base_dir):
   options.wpr_mode = wpr_modes.WPR_RECORD
   options.no_proxy_server = True
   recorder.CustomizeBrowserOptions(options)
-  results = page_runner.Run(recorder, ps, options)
+  results = page_runner.Run(recorder, ps, expectations, options)
 
   if results.errors or results.failures:
     logging.warning('Some pages failed. The recording has not been updated for '

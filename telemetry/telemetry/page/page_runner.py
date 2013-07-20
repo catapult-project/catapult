@@ -138,7 +138,7 @@ def AddCommandLineOptions(parser):
   page_filter_module.PageFilter.AddCommandLineOptions(parser)
 
 
-def Run(test, page_set, options):
+def Run(test, page_set, expectations, options):
   """Runs a given test against a given page_set with the given options."""
   results = test.PrepareResults(options)
 
@@ -198,8 +198,12 @@ def Run(test, page_set, options):
           if options.profiler:
             state.StartProfiling(page, options)
 
+          expectation = expectations.GetExpectationForPage(
+              state.browser.platform, page)
+
           try:
-            _RunPage(test, page, state.tab, results_for_current_run, options)
+            _RunPage(test, page, state.tab, expectation,
+                     results_for_current_run, options)
             _CheckThermalThrottling(state.browser.platform)
           except exceptions.TabCrashException:
             stack_trace = state.browser.GetStackTrace()
@@ -309,7 +313,7 @@ def _CheckArchives(page_set, pages, results):
           pages_missing_archive_path + pages_missing_archive_data]
 
 
-def _RunPage(test, page, tab, results, options):
+def _RunPage(test, page, tab, expectation, results, options):
   if not test.CanRunForPage(page):
     logging.warning('Skipping test: it cannot run for %s', page.url)
     results.AddSkip(page, 'Test cannot run')
@@ -325,7 +329,11 @@ def _RunPage(test, page, tab, results, options):
     util.CloseConnections(tab)
   except page_test.Failure:
     logging.warning('%s:\n%s', page.url, traceback.format_exc())
-    results.AddFailure(page, sys.exc_info())
+    if expectation == 'fail':
+      logging.info('Failure was expected\n')
+      results.AddSuccess(page)
+    else:
+      results.AddFailure(page, sys.exc_info())
   except (util.TimeoutException, exceptions.LoginException):
     logging.error('%s:\n%s', page.url, traceback.format_exc())
     results.AddError(page, sys.exc_info())
@@ -337,6 +345,8 @@ def _RunPage(test, page, tab, results, options):
   except Exception:
     raise
   else:
+    if expectation == 'fail':
+      logging.warning('%s was expected to fail, but passed.\n', page.url)
     results.AddSuccess(page)
   finally:
     page_state.CleanUpPage(page, tab)

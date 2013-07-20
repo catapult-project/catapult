@@ -12,6 +12,7 @@ from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_runner
 from telemetry.unittest import options_for_unittests
+from telemetry.page import test_expectations
 
 SIMPLE_CREDENTIALS_STRING = """
 {
@@ -44,6 +45,7 @@ class PageRunnerTests(unittest.TestCase):
 
   def testHandlingOfCrashedTab(self):
     ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
     page1 = page_module.Page('chrome://crash', ps)
     ps.pages.append(page1)
 
@@ -53,12 +55,13 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
-    results = page_runner.Run(Test('RunTest'), ps, options)
+    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(1, len(results.errors))
 
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
         ps,
@@ -74,7 +77,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
-    results = page_runner.Run(Test('RunTest'), ps, options)
+    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
@@ -95,6 +98,7 @@ class PageRunnerTests(unittest.TestCase):
   def runCredentialsTest(self, # pylint: disable=R0201
                          credentials_backend):
     ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
         ps,
@@ -123,7 +127,7 @@ class PageRunnerTests(unittest.TestCase):
       test = TestThatInstallsCredentialsBackend(credentials_backend)
       options = options_for_unittests.GetCopy()
       options.output_format = 'none'
-      page_runner.Run(test, ps, options)
+      page_runner.Run(test, ps, expectations, options)
     finally:
       os.remove(f.name)
 
@@ -131,6 +135,7 @@ class PageRunnerTests(unittest.TestCase):
 
   def testUserAgent(self):
     ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
         ps,
@@ -152,13 +157,14 @@ class PageRunnerTests(unittest.TestCase):
     test = TestUserAgent('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
-    page_runner.Run(test, ps, options)
+    page_runner.Run(test, ps, expectations, options)
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
   # Ensure that page_runner forces exactly 1 tab before running a page.
   def testOneTab(self):
     ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
     page = page_module.Page(
         'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
         ps,
@@ -188,4 +194,4 @@ class PageRunnerTests(unittest.TestCase):
     test = TestOneTab('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
-    page_runner.Run(test, ps, options)
+    page_runner.Run(test, ps, expectations, options)

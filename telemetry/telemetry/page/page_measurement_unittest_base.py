@@ -7,6 +7,7 @@ import unittest
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set
+from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
 
 class PageMeasurementUnitTestBase(unittest.TestCase):
@@ -25,7 +26,9 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
     ps.pages.append(page)
     return ps
 
-  def RunMeasurement(self, measurement, ps, options=None):
+  def RunMeasurement(self, measurement, ps,
+      expectations=test_expectations.TestExpectations(),
+      options=None):
     """Runs a measurement against a pageset, returning the rows its outputs."""
     if options is None:
       options = options_for_unittests.GetCopy()
@@ -42,4 +45,4 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
     options.output_file = None
     options.output_format = 'none'
     options.output_trace_tag = None
-    return page_runner.Run(measurement, ps, options)
+    return page_runner.Run(measurement, ps, expectations, options)

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 from telemetry.page import page_runner
 from telemetry.page import page_set
+from telemetry.page import test_expectations
 from telemetry.page import page_test
 
 
@@ -25,7 +26,8 @@ class Test(object):
 
     test = self.test()
     ps = self.CreatePageSet(options)
-    results = page_runner.Run(test, ps, options)
+    expectations = self.CreateExpectations(ps)
+    results = page_runner.Run(test, ps, expectations, options)
     results.PrintSummary()
     return len(results.failures) + len(results.errors)
 
@@ -37,3 +39,14 @@ class Test(object):
     """
     assert hasattr(self, 'page_set'), 'This test has no "page_set" attribute.'
     return page_set.PageSet.FromFile(self.page_set)
+
+  def CreateExpectations(self, ps):  # pylint: disable=W0613
+    """Get the expectations this test will run with.
+
+    By default, it will create an empty expectations set. Override to generate
+    custom expectations.
+    """
+    if hasattr(self, 'expectations'):
+      return self.expectations
+    else:
+      return test_expectations.TestExpectations()

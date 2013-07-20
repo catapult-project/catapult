@@ -48,8 +48,10 @@ class PageSet(object):
       base_dir = file_path
     else:
       base_dir = os.path.dirname(file_path)
+
     for page_attributes in data['pages']:
       url = page_attributes.pop('url')
+
       page = page_module.Page(url, page_set, attributes=page_attributes,
                               base_dir=base_dir)
       page_set.pages.append(page)
