@@ -16,7 +16,7 @@ base.exportTo('ui', function() {
   // FIXME(pdr): Remove this extra scaling so our rasters are pixel-perfect.
   //             https://code.google.com/p/trace-viewer/issues/detail?id=228
   // FIXME(jjb): simplify until we have the camera working (or 228 happens ;-)
-  var RASTER_SCALE = 1.0; // Adjust the resolution of our backing canvases.
+  var RASTER_SCALE = 0.75; // Adjust the resolution of our backing canvases.
 
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
