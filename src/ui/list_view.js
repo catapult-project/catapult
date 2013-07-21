@@ -117,6 +117,9 @@ base.exportTo('ui', function() {
     },
 
     onKeyDown_: function(e) {
+      if (this.selectedElement === undefined)
+        return;
+
       if (e.keyCode == 38) { // Up arrow.
         var prev = this.selectedElement.previousSibling;
         if (prev) {
