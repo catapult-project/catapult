@@ -13,6 +13,7 @@ base.require('ui');
 base.exportTo('tracing.tracks', function() {
 
   var palette = tracing.getColorPalette();
+  var LAST_SAMPLE_PIXELS = 8;
 
   /**
    * A track that displays a Counter object.
@@ -24,7 +25,6 @@ base.exportTo('tracing.tracks', function() {
       ui.define('counter-track', tracing.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
-
     __proto__: tracing.tracks.HeadingTrack.prototype,
 
     decorate: function(viewport) {
@@ -130,8 +130,8 @@ base.exportTo('tracing.tracks', function() {
           var i = iLast + 1;
           if (i >= numSamples) {
             ctx.lineTo(xLast, yLastView);
-            ctx.lineTo(xLast + 8 * pixWidth, yLastView);
-            ctx.lineTo(xLast + 8 * pixWidth, height);
+            ctx.lineTo(xLast + LAST_SAMPLE_PIXELS * pixWidth, yLastView);
+            ctx.lineTo(xLast + LAST_SAMPLE_PIXELS * pixWidth, height);
             break;
           }
 
@@ -196,19 +196,21 @@ base.exportTo('tracing.tracks', function() {
         loWX, hiWX, viewPixWidthWorld, selection) {
 
       function getSampleWidth(x, i) {
-        if (i === counter.timestamps.length - 1)
-          return 0;
+        if (i === counter.timestamps.length - 1) {
+          var pixWidth = this.viewport.xViewVectorToWorld(1);
+          return LAST_SAMPLE_PIXELS * pixWidth;
+        }
         return counter.timestamps[i + 1] - counter.timestamps[i];
       }
 
       var counter = this.counter_;
       var iLo = base.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
-                                                   getSampleWidth,
+                                                   getSampleWidth.bind(this),
                                                    loWX);
       var iHi = base.findLowIndexInSortedIntervals(counter.timestamps,
                                                    function(x) { return x; },
-                                                   getSampleWidth,
+                                                   getSampleWidth.bind(this),
                                                    hiWX);
 
       // Iterate over every sample intersecting..
