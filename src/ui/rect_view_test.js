@@ -14,24 +14,34 @@ base.unittest.testSuite('ui.rect_view', function() {
 
   test('rect_size', function() {
     var quads = [
-      base.Quad.FromXYWH(100, 100, 300, 400),
-      base.Quad.FromXYWH(100, 100, 100, 100)
+      base.Quad.FromXYWH(0, 0, 640, 480),
+      base.Quad.FromXYWH(0, -100, 640, 480),
+      base.Quad.FromXYWH(100, 100, 640, 480)
     ];
     quads[0].stackingGroupId = 0;
     quads[1].stackingGroupId = 1;
+    quads[2].stackingGroupId = 2;
 
     var quadsBbox = new base.BBox2();
     quads.forEach(function(quad) { quadsBbox.addQuad(quad); });
 
     var stack = new ui.QuadStack();
 
-    var deviceViewportSizeForFrame = {width: 1000, height: 400};
+    var deviceViewportSizeForFrame = {width: 640, height: 480};
     stack.initialize(quadsBbox.asRect(), deviceViewportSizeForFrame);
     stack.quads = quads;
 
     this.addHTMLOutput(stack);
 
-    assertEquals('125px', stack.worldViewportRectView.style.width);
-    assertEquals((50 + 36) + 'px', stack.worldViewportRectView.style.height);
+    var expected = stack.viewport.devicePixelsPerWorldPixel *
+        deviceViewportSizeForFrame.width + 'px';
+
+    assertEquals(expected, stack.worldViewportRectView.style.width);
+
+    expected = (stack.viewport.devicePixelsPerWorldPixel *
+        deviceViewportSizeForFrame.height) +
+        stack.worldViewportRectView_.decorationHeight + 'px';
+
+    assertEquals(expected, stack.worldViewportRectView.style.height);
   });
 });

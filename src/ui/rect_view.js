@@ -35,26 +35,29 @@ base.exportTo('ui', function() {
       this.updateContents_();
     },
 
+    get decorationHeight() {
+      return DECORATION_HEIGHT;
+    },
+
     updateContents_: function() {
       if (this.viewport_ === undefined || this.rect_ === undefined)
         return;
-
-      var devicePixelsPerLayoutPixel = 1 / this.viewport_.devicePixelRatio;
 
       var topLeft = vec2.fromValues(this.rect_.x, this.rect_.y);
       var botRight = vec2.fromValues(
           topLeft[0] + this.rect_.width,
           topLeft[1] + this.rect_.height);
-      vec2.transformMat2d(topLeft, topLeft,
-          this.viewport_.getWorldToDevicePixelsTransform());
-      vec2.scale(topLeft, topLeft, devicePixelsPerLayoutPixel);
-      vec2.transformMat2d(botRight, botRight,
-          this.viewport_.getWorldToDevicePixelsTransform());
-      vec2.scale(botRight, botRight, devicePixelsPerLayoutPixel);
+
+      topLeft = this.viewport_.worldPixelsToLayoutPixels(topLeft);
+      botRight = this.viewport_.worldPixelsToLayoutPixels(botRight);
+
       this.style.width = botRight[0] - topLeft[0] + 'px';
+      // Under box-sizing: border box,
+      // our decoration counts in the element height.
       this.style.height = DECORATION_HEIGHT + botRight[1] - topLeft[1] + 'px';
       this.style.left = topLeft[0] + 'px';
-      this.style.top = DECORATION_HEIGHT + topLeft[1] + 'px';
+      this.style.top = topLeft[1] + 'px';
+      // The decoration image needs to be sized to our specification.
       this.style.backgroundSize = 'auto ' + DECORATION_HEIGHT + 'px';
     }
 

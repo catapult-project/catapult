@@ -40,7 +40,7 @@ quad-stack > view-container > rect-view {
   border: 1px solid #999;
   border-radius: 6px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-  margin-top: -72px;
-  padding-top: 72px;
+  margin-top: -36px;
+  padding-top: 36px;
   position: absolute;
 }

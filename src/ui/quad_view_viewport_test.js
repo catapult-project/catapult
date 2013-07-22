@@ -39,6 +39,20 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     assertEquals(2000, tmp[1]);
 
     assertRectEquals(bbox.asRect(), vp.unpaddedWorldRect);
+
+    assertEquals(2, vp.devicePixelsPerLayoutPixel);
+    assertEquals(1 / 16, vp.layoutPixelsPerWorldPixel);
+    assertEquals(0.125, vp.devicePixelsPerWorldPixel);
+
+    var product = mat2d.create();
+    mat2d.multiply(product, vp.getWorldToDevicePixelsTransform(),
+        vp.transformDevicePixelsToWorld_);
+    assertAlmostEquals(1, product[0]);
+    assertAlmostEquals(0, product[1]);
+    assertAlmostEquals(0, product[2]);
+    assertAlmostEquals(1, product[3]);
+    assertAlmostEquals(0, product[4]);
+    assertAlmostEquals(0, product[5]);
   });
 
   test('basicsHighDPI', function() {

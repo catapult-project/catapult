@@ -11,10 +11,16 @@ base.exportTo('ui', function() {
   // FIXME(pdr): Replace this padding with just what's necessary for
   //             drawing borders / highlights.
   //             https://code.google.com/p/trace-viewer/issues/detail?id=228
-  var DEFAULT_PAD_PERCENTAGE = 0.75;
+  var constants = {
+    // The ratio of quad stack pixels to world pixels before CSS scaling.
+    DEVICE_PIXELS_PER_WORLD_PIXEL: .125,
+    // Extra area surrounding the quad bounding box to help
+    // see border/highlights
+    DEFAULT_PAD_PERCENTAGE: 0.50
+  };
 
   function QuadViewViewport(worldRect,
-                            opt_quad_stack_scale,
+                            opt_devicePixelsPerWorldPixel,
                             opt_padding,
                             opt_devicePixelRatio) {
     base.EventTarget.call(this);
@@ -23,48 +29,66 @@ base.exportTo('ui', function() {
 
     // Physical pixels / device-independent pixels;
     // 1 is normal; higher for eg Retina
-    this.devicePixelRatio =
+    this.devicePixelsPerLayoutPixel_ =
         opt_devicePixelRatio || window.devicePixelRatio || 1;
 
     this.layoutRect_ = undefined;
     this.setWorldRect_(worldRect, opt_padding);
 
-    var scale;
-    if (opt_quad_stack_scale) {
-      scale = opt_quad_stack_scale;
-    } else {
-      scale = 0.125;
-      if (this.devicePixelRatio > 1)
-        scale = scale * this.devicePixelRatio;
-    }
-    this.worldPixelsPerDevicePixel_ = scale;
+    this.devicePixelsPerWorldPixel_ = opt_devicePixelsPerWorldPixel ||
+        constants.DEVICE_PIXELS_PER_WORLD_PIXEL;
 
-    this.updateScale_();
+    this.updateScale_(opt_devicePixelsPerWorldPixel ||
+        constants.DEVICE_PIXELS_PER_WORLD_PIXEL);
   }
 
   QuadViewViewport.prototype = {
 
     __proto__: base.EventTarget.prototype,
 
-    // The pixels in the original, traced browser are
-    // represented in a canvas 'world', scaled by a
-    // this 'scale' value.
-    set scale(scale) {
-      this.worldPixelsPerDevicePixel_ = scale;
-      this.updateScale_();
-      this.didChange_();
+    get devicePixelsPerWorldPixel() {
+      return this.devicePixelsPerWorldPixel_;
     },
 
-    get scale() {
-      return this.worldPixelsPerDevicePixel_;
+    get layoutPixelsPerWorldPixel() {
+      return this.layoutPixelsPerWorldPixel_;
     },
 
+    get devicePixelsPerLayoutPixel() {
+      return this.devicePixelsPerLayoutPixel_;
+    },
+
+    // The browsers internal coordinate limits, padded, no scaling.
     get worldRect() {
       return this.worldRect_;
     },
 
+    // The browsers original internal coodinate limits.
     get unpaddedWorldRect() {
       return this.unpaddedWorldRect_;
+    },
+
+    // Our DOM representation of the coordinate limits.
+    // A DOM element with this w x h will enclose the
+    // the world as represented by our canvases.
+    get layoutRect() {
+      return this.layoutRect_;
+    },
+
+    get transformDevicePixelsToWorld() {
+      return this.transformDevicePixelsToWorld_;
+    },
+
+    get transformWorldToDevicePixels() {
+      return transformWorldToDevicePixels_;
+    },
+
+    get scale() {
+      return devicePixelsPerWorldPixel_;
+    },
+
+    set scale(newValue) {
+      this.updateScale_(newValue);
     },
 
     updateBoxSize: function(canvas) {
@@ -89,7 +113,7 @@ base.exportTo('ui', function() {
 
     layoutPixelsToDevicePixels: function(v) {
       var res = vec2.create();
-      return vec2.scale(res, v, this.devicePixelRatio);
+      return vec2.scale(res, v, this.devicePixelsPerLayoutPixel_);
     },
 
     devicePixelsToWorldPixels: function(v) {
@@ -98,13 +122,22 @@ base.exportTo('ui', function() {
       return res;
     },
 
+    worldPixelsToLayoutPixels: function(v) {
+      var devicePixels = vec2.create();
+      vec2.transformMat2d(devicePixels, v,
+          this.transformWorldToDevicePixels_);
+      var res = vec2.create();
+      return vec2.scale(res, devicePixels,
+          1 / this.devicePixelsPerLayoutPixel_);
+    },
+
     getWorldToDevicePixelsTransform: function() {
       return this.transformWorldToDevicePixels_;
     },
 
     getDeviceLineWidthAssumingTransformIsApplied: function(
         desiredDeviceLineWidth) {
-      return desiredDeviceLineWidth / this.worldPixelsPerDevicePixel_;
+      return desiredDeviceLineWidth / this.devicePixelsPerWorldPixel_;
     },
 
     applyTransformToContext: function(ctx) {
@@ -119,11 +152,17 @@ base.exportTo('ui', function() {
 
     //-------------------------------------------
 
-    updateScale_: function() {
+    updateScale_: function(newValue) {
+      this.devicePixelsPerWorldPixel_ = newValue;
+
+      this.layoutPixelsPerWorldPixel_ = this.devicePixelsPerWorldPixel_ /
+          this.devicePixelsPerLayoutPixel_;
+
+
       this.worldWidthInDevicePixels_ =
-          this.worldRect_.width * this.worldPixelsPerDevicePixel_;
+          this.worldRect_.width * this.devicePixelsPerWorldPixel_;
       this.worldHeightInDevicePixels_ =
-          this.worldRect_.height * this.worldPixelsPerDevicePixel_;
+          this.worldRect_.height * this.devicePixelsPerWorldPixel_;
 
       this.updateLayoutRect_();
 
@@ -135,7 +174,7 @@ base.exportTo('ui', function() {
     /** Adjust the scaled world box for Retina-like displays */
     updateLayoutRect_: function() {
       var devicePixelsPerLayoutPixel =
-          this.worldPixelsPerDevicePixel_ / this.devicePixelRatio;
+          this.devicePixelsPerWorldPixel_ / this.devicePixelsPerLayoutPixel_;
       this.layoutRect_ = this.worldRect.scale(devicePixelsPerLayoutPixel);
     },
 
@@ -145,7 +184,7 @@ base.exportTo('ui', function() {
       if (opt_padding !== undefined) {
         padding = opt_padding;
       } else {
-        padding = DEFAULT_PAD_PERCENTAGE;
+        padding = constants.DEFAULT_PAD_PERCENTAGE;
       }
       worldPad = Math.min(worldRect.width,
                           worldRect.height) * padding;
@@ -163,11 +202,12 @@ base.exportTo('ui', function() {
           this.transformWorldToDevicePixels_,
           -this.worldRect_.x, -this.worldRect_.y);
       mat2d.scaleXY(this.transformWorldToDevicePixels_,
-          this.worldPixelsPerDevicePixel_,
-          this.worldPixelsPerDevicePixel_);
+          this.devicePixelsPerWorldPixel_,
+          this.devicePixelsPerWorldPixel_);
 
       mat2d.invert(this.transformDevicePixelsToWorld_,
                    this.transformWorldToDevicePixels_);
+      this.didChange_();
     },
 
     didChange_: function() {
