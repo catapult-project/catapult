@@ -8,6 +8,7 @@
  * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
+base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('tracing.timeline_view');
 base.requireTemplate('tracing.timeline_view');
 

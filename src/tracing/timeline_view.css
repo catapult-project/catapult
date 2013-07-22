@@ -3,11 +3,6 @@
  * found in the LICENSE file.
  */
 
-.timeline-view * {
-  -webkit-user-select: none;
-  box-sizing: border-box;
-}
-
 .timeline-view {
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;

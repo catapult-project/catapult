@@ -4,5 +4,6 @@
 
 'use strict';
 
+base.requireStylesheet('ui.trace_viewer');
 base.require('tracing.timeline_view');
 base.require('tracing.importer');

@@ -18,6 +18,7 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
+base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
 base.require('base.properties');
