@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('base.unittest');
 base.require('base.settings');
 base.require('base.unittest.test_error');
