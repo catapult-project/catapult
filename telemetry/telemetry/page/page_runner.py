@@ -138,6 +138,15 @@ def AddCommandLineOptions(parser):
   page_filter_module.PageFilter.AddCommandLineOptions(parser)
 
 
+def _LogStackTrace(title, browser):
+  stack_trace = browser.GetStackTrace()
+  stack_trace = (('\nStack Trace:\n') +
+            ('*' * 80) +
+            '\n\t' + stack_trace.replace('\n', '\n\t') + '\n' +
+            ('*' * 80))
+  logging.warning('%s%s', title, stack_trace)
+
+
 def Run(test, page_set, expectations, options):
   """Runs a given test against a given page_set with the given options."""
   results = test.PrepareResults(options)
@@ -206,12 +215,7 @@ def Run(test, page_set, expectations, options):
                      results_for_current_run, options)
             _CheckThermalThrottling(state.browser.platform)
           except exceptions.TabCrashException:
-            stack_trace = state.browser.GetStackTrace()
-            stack_trace = (('\nStack Trace:\n') +
-                      ('*' * 80) +
-                      '\n\t' + stack_trace.replace('\n', '\n\t') + '\n' +
-                      ('*' * 80))
-            logging.warning('Tab crashed: %s%s', page.url, stack_trace)
+            _LogStackTrace('Tab crashed: %s' % page.url, state.browser)
             state.StopBrowser()
 
           if options.profiler:
@@ -222,6 +226,7 @@ def Run(test, page_set, expectations, options):
 
           break
         except exceptions.BrowserGoneException:
+          _LogStackTrace('Browser crashed', state.browser)
           logging.warning('Lost connection to browser. Retrying.')
           state.StopBrowser()
           tries -= 1
