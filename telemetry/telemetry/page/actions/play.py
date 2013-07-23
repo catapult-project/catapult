@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -12,27 +12,24 @@ Other attributes to use are: wait_for_playing and wait_for_ended, which forces
 the action to wait until playing and ended events get fired respectively.
 """
 
-import os
-
+from telemetry.page.actions.media_action import MediaAction
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.page.actions import page_action
 
 
-class PlayAction(page_action.PageAction):
+class PlayAction(MediaAction):
   def __init__(self, attributes=None):
     super(PlayAction, self).__init__(attributes)
 
   def WillRunAction(self, page, tab):
     """Load the media metrics JS code prior to running the action."""
-    with open(os.path.join(os.path.dirname(__file__), 'play.js')) as f:
-      js = f.read()
-      tab.ExecuteJavaScript(js)
+    super(PlayAction, self).WillRunAction(page, tab)
+    self.LoadJS(tab, 'play.js')
 
   def RunAction(self, page, tab, previous_action):
     try:
       selector = self.selector if hasattr(self, 'selector') else ''
-      tab.ExecuteJavaScript('window.__playMedia(\'%s\');' % selector)
+      tab.ExecuteJavaScript('window.__playMedia("%s");' % selector)
       timeout = self.wait_timeout if hasattr(self, 'wait_timeout') else 60
       # Check if we need to wait for 'playing' event to fire.
       if hasattr(self, 'wait_for_playing') and self.wait_for_playing:
@@ -43,12 +40,3 @@ class PlayAction(page_action.PageAction):
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot play media element(s) with '
                                          'selector = %s.' % selector)
-
-  def WaitForEvent(self, tab, selector, event_name, timeout):
-    """Halts play action until the selector's event is fired."""
-    util.WaitFor(lambda: self.HasEventCompleted(tab, selector, event_name),
-                 timeout=timeout, poll_interval=0.5)
-
-  def HasEventCompleted(self, tab, selector, event_name):
-    return tab.EvaluateJavaScript(
-        'window.__hasEventCompleted(\'%s\', \'%s\');' % (selector, event_name))

@@ -2,24 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry.core import util
 from telemetry.page.actions import play
 from telemetry.unittest import tab_test_case
 
-AUDIO_1_PLAYING_CHECK = "window.__hasEventCompleted('#audio_1', 'playing');"
-VIDEO_1_PLAYING_CHECK = "window.__hasEventCompleted('#video_1', 'playing');"
-VIDEO_1_ENDED_CHECK = "window.__hasEventCompleted('#video_1', 'ended');"
+AUDIO_1_PLAYING_CHECK = 'window.__hasEventCompleted("#audio_1", "playing");'
+VIDEO_1_PLAYING_CHECK = 'window.__hasEventCompleted("#video_1", "playing");'
+VIDEO_1_ENDED_CHECK = 'window.__hasEventCompleted("#video_1", "ended");'
 
 
 class PlayActionTest(tab_test_case.TabTestCase):
 
   def setUp(self):
     tab_test_case.TabTestCase.setUp(self)
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self._tab.Navigate(self._browser.http_server.UrlOf('video_test.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
