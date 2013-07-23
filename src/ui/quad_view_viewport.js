@@ -80,11 +80,11 @@ base.exportTo('ui', function() {
     },
 
     get transformWorldToDevicePixels() {
-      return transformWorldToDevicePixels_;
+      return this.transformWorldToDevicePixels_;
     },
 
     get scale() {
-      return devicePixelsPerWorldPixel_;
+      return this.devicePixelsPerWorldPixel_;
     },
 
     set scale(newValue) {

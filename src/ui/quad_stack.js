@@ -42,8 +42,10 @@ base.exportTo('ui', function() {
       this.quads_ = undefined;
     },
 
-    initialize: function(unpaddedWorldRect, opt_worldViewportRect) {
+    initialize: function(unpaddedWorldRect, opt_worldViewportRect, opt_scale) {
       this.viewport_ = new ui.QuadViewViewport(unpaddedWorldRect);
+      if (opt_scale)
+        this.viewport_.scale = opt_scale;
 
       this.viewport_.addEventListener('change', function() {
         this.worldViewportRectView_.viewport = this.viewport_;

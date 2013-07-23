@@ -46,7 +46,7 @@ base.exportTo('cc', function() {
       this.appendChild(this.quadStackViewer_);
 
       var scaleSelector = ui.createSelector(
-          this.quadStackViewer_, 'scale',
+          this.quadStackViewer_.camera, 'zoom',
           'layerViewer.scale', 0.375,
           [{label: '6.25%', value: 0.0625},
            {label: '12.5%', value: 0.125},
@@ -320,8 +320,10 @@ base.exportTo('cc', function() {
       var lthiInstance = lthi.objectInstance;
       var worldViewportRect = base.Rect.FromXYWH(0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
+      var currentZoom = this.quadStackViewer_.camera.zoom;
       this.quadStackViewer_.quadStack.initialize(
-          lthiInstance.allLayersBBox.asRect(), worldViewportRect);
+          lthiInstance.allLayersBBox.asRect(), worldViewportRect,
+          currentZoom);
 
       this.quadStackViewer_.quadStack.quads = this.quads_;
 

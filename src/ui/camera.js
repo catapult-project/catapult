@@ -37,6 +37,16 @@ base.exportTo('ui', function() {
 
   Camera.prototype = {
 
+    get zoom() {
+      return this.targetElement_.viewport ?
+          this.targetElement_.viewport.scale : 0;
+    },
+
+    set zoom(newValue) {
+      if (this.targetElement_.viewport)
+        this.targetElement_.viewport.scale = newValue;
+    },
+
     scheduleRepaint: function() {
       if (this.repaintPending_)
         return;
