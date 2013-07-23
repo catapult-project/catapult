@@ -8,7 +8,7 @@ base.require('base.guid');
 base.require('base.rect');
 base.require('base.raf');
 base.require('tracing.trace_model.object_instance');
-base.require('cc.picture_as_canvas');
+base.require('cc.picture_as_image_data');
 base.require('cc.util');
 
 base.exportTo('cc', function() {
@@ -116,12 +116,12 @@ base.exportTo('cc', function() {
      *
      * @param {{opt_stopIndex: number, params}} The SkPicture operation to
      *     rasterize up to. If not defined, the entire SkPicture is rasterized.
-     * @param {function(cc.PictureAsCanvas)} The callback function that is
+     * @param {function(cc.PictureAsImageData)} The callback function that is
      *     called after rasterization is complete or fails.
      */
     rasterize: function(params, rasterCompleteCallback) {
       if (!PictureSnapshot.CanRasterize() || !PictureSnapshot.CanGetOps()) {
-        rasterCompleteCallback(new cc.PictureAsCanvas(
+        rasterCompleteCallback(new cc.PictureAsImageData(
             this, cc.PictureSnapshot.HowToEnablePictureDebugging()));
         return;
       }
@@ -146,13 +146,12 @@ base.exportTo('cc', function() {
         canvas.height = raster.height;
         var imageData = ctx.createImageData(raster.width, raster.height);
         imageData.data.set(new Uint8ClampedArray(raster.data));
-        ctx.putImageData(imageData, 0, 0);
-        rasterCompleteCallback(new cc.PictureAsCanvas(this, canvas));
+        rasterCompleteCallback(new cc.PictureAsImageData(this, imageData));
       } else {
         var error = 'Failed to rasterize picture. ' +
                 'Your recording may be from an old Chrome version. ' +
                 'The SkPicture format is not backward compatible.';
-        rasterCompleteCallback(new cc.PictureAsCanvas(this, error));
+        rasterCompleteCallback(new cc.PictureAsImageData(this, error));
       }
     }
   };

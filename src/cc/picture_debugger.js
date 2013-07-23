@@ -28,7 +28,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.pictureAsCanvas_ = undefined;
+      this.pictureAsImageData_ = undefined;
 
       this.leftPanel_ = document.createElement('left-panel');
 
@@ -137,16 +137,16 @@ base.exportTo('cc', function() {
       }
 
       // Return if picture hasn't finished rasterizing.
-      if (!this.pictureAsCanvas_)
+      if (!this.pictureAsImageData_)
         return;
 
       this.infoBar_.visible = false;
       this.infoBar_.removeAllButtons();
-      if (this.pictureAsCanvas_.error) {
+      if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function() {
           var overlay = new ui.Overlay();
-          overlay.textContent = this.pictureAsCanvas_.error;
+          overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           overlay.obeyCloseEvents = true;
         }.bind(this));
@@ -154,8 +154,10 @@ base.exportTo('cc', function() {
       }
 
       // FIXME(pdr): Append the canvas instead of using a background image.
-      if (this.pictureAsCanvas_.canvas) {
-        var imageUrl = this.pictureAsCanvas_.canvas.toDataURL();
+      if (this.pictureAsImageData_.imageData) {
+        var canvas = this.pictureAsImageData_.asCanvas();
+        var imageUrl = canvas.toDataURL();
+        canvas.width = 0; // Free the GPU texture.
         this.rasterArea_.style.backgroundImage = 'url("' + imageUrl + '")';
       } else {
         this.rasterArea_.style.backgroundImage = '';
@@ -170,8 +172,8 @@ base.exportTo('cc', function() {
       }
     },
 
-    onRasterComplete_: function(pictureAsCanvas) {
-      this.pictureAsCanvas_ = pictureAsCanvas;
+    onRasterComplete_: function(pictureAsImageData) {
+      this.pictureAsImageData_ = pictureAsImageData;
       this.scheduleUpdateContents_();
     },
 

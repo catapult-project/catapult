@@ -202,7 +202,7 @@
       'src/tracing/selection.js',
       'src/tcmalloc.js',
       'src/cc/picture.js',
-      'src/cc/picture_as_canvas.js',
+      'src/cc/picture_as_image_data.js',
       'src/cc/constants.js',
       'src/cc/layer_viewer.js',
       'src/cc/picture_view.js',

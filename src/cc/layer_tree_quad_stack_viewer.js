@@ -34,7 +34,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.pictureAsCanvas_ = {}; // Maps picture.guid to PictureAsCanvas.
+      this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.quads_ = [];
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
@@ -83,10 +83,11 @@ base.exportTo('cc', function() {
     },
 
     set layerTreeImpl(layerTreeImpl) {
-      // FIXME(pdr): We may want to clear pictureAsCanvas_ here to save memory
-      //             at the cost of performance. Note that pictureAsCanvas_ will
-      //             be cleared when this is destructed, but this view might
-      //             live for several layerTreeImpls.
+      // FIXME(pdr): We may want to clear pictureAsImageData_ here to save
+      //             memory at the cost of performance. Note that
+      //             pictureAsImageData_ will be cleared when this is
+      //             destructed, but this view might live for several
+      //             layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = null;
       this.updateContents_();
@@ -168,27 +169,27 @@ base.exportTo('cc', function() {
               continue;
             }
 
-            var pictureAsCanvas = this.pictureAsCanvas_[picture.guid];
-            if (!pictureAsCanvas) {
+            var pictureAsImageData = this.pictureAsImageData_[picture.guid];
+            if (!pictureAsImageData) {
               hasPendingRasterizeImage = true;
-              this.pictureAsCanvas_[picture.guid] =
-                  cc.PictureAsCanvas.Pending(this);
+              this.pictureAsImageData_[picture.guid] =
+                  cc.PictureAsImageData.Pending(this);
               picture.rasterize(
                   {stopIndex: undefined},
-                  function(pictureAsCanvas) {
-                    var picture_ = pictureAsCanvas.picture;
-                    this.pictureAsCanvas_[picture_.guid] = pictureAsCanvas;
+                  function(pictureImageData) {
+                    var picture_ = pictureImageData.picture;
+                    this.pictureAsImageData_[picture_.guid] = pictureImageData;
                     this.scheduleUpdateContents_();
                   }.bind(this));
               continue;
             }
-            if (pictureAsCanvas.isPending()) {
+            if (pictureAsImageData.isPending()) {
               hasPendingRasterizeImage = true;
               continue;
             }
-            if (pictureAsCanvas.error) {
+            if (pictureAsImageData.error) {
               if (!firstPictureError)
-                firstPictureError = pictureAsCanvas.error;
+                firstPictureError = pictureAsImageData.error;
               break;
             }
           }
@@ -245,11 +246,11 @@ base.exportTo('cc', function() {
         var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
 
-        var pictureAsCanvas = this.pictureAsCanvas_[picture.guid];
-        if (this.showContents && pictureAsCanvas.canvas)
-          iq.canvas = pictureAsCanvas.canvas;
+        var pictureAsImageData = this.pictureAsImageData_[picture.guid];
+        if (this.showContents && pictureAsImageData.imageData)
+          iq.imageData = pictureAsImageData.imageData;
         else
-          iq.canvas = undefined;
+          iq.imageData = undefined;
 
         iq.stackingGroupId = layerQuad.stackingGroupId;
         this.quads_.push(iq);

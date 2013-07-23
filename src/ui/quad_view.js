@@ -170,32 +170,37 @@ base.exportTo('ui', function() {
       // Background colors.
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        if (quad.canvas) {
+        if (quad.imageData) {
+          var quadCanvas = document.createElement('canvas');
+          quadCanvas.width = quad.imageData.width;
+          quadCanvas.height = quad.imageData.height;
+          quadCanvas.getContext('2d').putImageData(quad.imageData, 0, 0);
           if (quad.isRectangle()) {
             var bounds = quad.boundingRect();
-            ctx.drawImage(quad.canvas, 0, 0,
-                quad.canvas.width, quad.canvas.height,
+            ctx.drawImage(quadCanvas, 0, 0,
+                quadCanvas.width, quadCanvas.height,
                 bounds.x, bounds.y, bounds.width, bounds.height);
           } else {
             ctx.save();
             var quadBBox = new base.BBox2();
             quadBBox.addQuad(quad);
-            var iw = quad.canvas.width;
-            var ih = quad.canvas.height;
+            var iw = quadCanvas.width;
+            var ih = quadCanvas.height;
             drawTexturedTriangle(
-                ctx, quad.canvas,
+                ctx, quadCanvas,
                 quad.p1[0], quad.p1[1],
                 quad.p2[0], quad.p2[1],
                 quad.p4[0], quad.p4[1],
                 0, 0, iw, 0, 0, ih);
             drawTexturedTriangle(
-                ctx, quad.canvas,
+                ctx, quadCanvas,
                 quad.p2[0], quad.p2[1],
                 quad.p3[0], quad.p3[1],
                 quad.p4[0], quad.p4[1],
                 iw, 0, iw, ih, 0, ih);
             ctx.restore();
           }
+          quadCanvas.width = 0; // Free the GPU texture.
         }
 
         if (quad.backgroundColor) {
