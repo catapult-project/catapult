@@ -43,7 +43,9 @@ class TraceResultImpl(object):
   def AsTimelineModel(self):
     f = cStringIO.StringIO()
     self.Serialize(f)
-    return model.TimelineModel(event_data=f.getvalue())
+    return model.TimelineModel(
+      event_data=f.getvalue(),
+      shift_world_to_zero=False)
 
 class TracingBackend(object):
   def __init__(self, devtools_port):

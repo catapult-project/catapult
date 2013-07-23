@@ -26,8 +26,8 @@
 <a href="os.html">os</a><br>
 <a href="subprocess.html">subprocess</a><br>
 </td><td width="25%" valign=top><a href="sys.html">sys</a><br>
-<a href="tempfile.html">tempfile</a><br>
 <a href="time.html">time</a><br>
+<a href="telemetry.core.util.html">telemetry.core.util</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -81,6 +81,8 @@ Methods defined here:<br>
 
 <dl><dt><a name="AndroidBrowserBackend-GetRemotePort"><strong>GetRemotePort</strong></a>(self, local_port)</dt></dl>
 
+<dl><dt><a name="AndroidBrowserBackend-GetStackTrace"><strong>GetStackTrace</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="AndroidBrowserBackend-GetStandardOutput"><strong>GetStandardOutput</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="AndroidBrowserBackend-IsBrowserRunning"><strong>IsBrowserRunning</strong></a>(self)</dt></dl>
@@ -105,7 +107,7 @@ Methods inherited from <a href="telemetry.core.chrome.browser_backend.html#Brows
 
 <dl><dt><a name="AndroidBrowserBackend-SetBrowser"><strong>SetBrowser</strong></a>(self, browser)</dt></dl>
 
-<dl><dt><a name="AndroidBrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
+<dl><dt><a name="AndroidBrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>, timeout<font color="#909090">=60</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
 comma&nbsp;separated&nbsp;categories&nbsp;that&nbsp;will&nbsp;be&nbsp;traced&nbsp;instead&nbsp;of&nbsp;the<br>
 default&nbsp;category&nbsp;set.&nbsp;&nbsp;Example:&nbsp;use<br>
 "webkit,cc,disabled-by-default-cc.debug"&nbsp;to&nbsp;trace&nbsp;only&nbsp;those&nbsp;three<br>

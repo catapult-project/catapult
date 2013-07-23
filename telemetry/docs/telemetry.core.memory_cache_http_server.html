@@ -22,10 +22,11 @@
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="BaseHTTPServer.html">BaseHTTPServer</a><br>
 <a href="SimpleHTTPServer.html">SimpleHTTPServer</a><br>
 </td><td width="25%" valign=top><a href="SocketServer.html">SocketServer</a><br>
+<a href="StringIO.html">StringIO</a><br>
+</td><td width="25%" valign=top><a href="gzip.html">gzip</a><br>
 <a href="mimetypes.html">mimetypes</a><br>
 </td><td width="25%" valign=top><a href="os.html">os</a><br>
 <a href="sys.html">sys</a><br>
-</td><td width="25%" valign=top><a href="zlib.html">zlib</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -94,9 +95,6 @@ Static methods defined here:<br>
 
 <hr>
 Data descriptors defined here:<br>
-<dl><dt><strong>__dict__</strong></dt>
-<dd><tt>Return&nbsp;a&nbsp;new&nbsp;OrderedDict&nbsp;which&nbsp;maps&nbsp;field&nbsp;names&nbsp;to&nbsp;their&nbsp;values</tt></dd>
-</dl>
 <dl><dt><strong>from_byte</strong></dt>
 <dd><tt>Alias&nbsp;for&nbsp;field&nbsp;number&nbsp;0</tt></dd>
 </dl>
@@ -233,7 +231,7 @@ probably&nbsp;be&nbsp;diagnosed.)</tt></dd></dl>
 
 <hr>
 Data and other attributes inherited from <a href="SimpleHTTPServer.html#SimpleHTTPRequestHandler">SimpleHTTPServer.SimpleHTTPRequestHandler</a>:<br>
-<dl><dt><strong>extensions_map</strong> = {'': 'application/octet-stream', '.%': 'application/x-trash', '.323': 'text/h323', '.3gp': 'video/3gpp', '.7z': 'application/x-7z-compressed', '.a': 'application/octet-stream', '.abw': 'application/x-abiword', '.ai': 'application/postscript', '.aif': 'audio/x-aiff', '.aifc': 'audio/x-aiff', ...}</dl>
+<dl><dt><strong>extensions_map</strong> = {'': 'application/octet-stream', '.123': 'application/vnd.lotus-1-2-3', '.3dml': 'text/vnd.in3d.3dml', '.3g2': 'video/3gpp2', '.3gp': 'video/3gpp', '.7z': 'application/x-7z-compressed', '.a': 'application/octet-stream', '.aab': 'application/x-authorware-bin', '.aac': 'audio/x-aac', '.aam': 'application/x-authorware-map', ...}</dl>
 
 <dl><dt><strong>server_version</strong> = 'SimpleHTTP/0.6'</dl>
 
@@ -329,7 +327,7 @@ Data and other attributes inherited from <a href="BaseHTTPServer.html#BaseHTTPRe
 
 <dl><dt><strong>responses</strong> = {100: ('Continue', 'Request received, please continue'), 101: ('Switching Protocols', 'Switching to new protocol; obey Upgrade header'), 200: ('OK', 'Request fulfilled, document follows'), 201: ('Created', 'Document created, URL follows'), 202: ('Accepted', 'Request accepted, processing continues off-line'), 203: ('Non-Authoritative Information', 'Request fulfilled from cache'), 204: ('No Content', 'Request fulfilled, nothing follows'), 205: ('Reset Content', 'Clear input form for further input.'), 206: ('Partial Content', 'Partial content follows.'), 300: ('Multiple Choices', 'Object has several resources -- see URI list'), ...}</dl>
 
-<dl><dt><strong>sys_version</strong> = 'Python/2.7.3'</dl>
+<dl><dt><strong>sys_version</strong> = 'Python/2.7.2'</dl>
 
 <dl><dt><strong>weekdayname</strong> = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']</dl>
 
@@ -497,9 +495,6 @@ Static methods defined here:<br>
 
 <hr>
 Data descriptors defined here:<br>
-<dl><dt><strong>__dict__</strong></dt>
-<dd><tt>Return&nbsp;a&nbsp;new&nbsp;OrderedDict&nbsp;which&nbsp;maps&nbsp;field&nbsp;names&nbsp;to&nbsp;their&nbsp;values</tt></dd>
-</dl>
 <dl><dt><strong>byte_range</strong></dt>
 <dd><tt>Alias&nbsp;for&nbsp;field&nbsp;number&nbsp;1</tt></dd>
 </dl>

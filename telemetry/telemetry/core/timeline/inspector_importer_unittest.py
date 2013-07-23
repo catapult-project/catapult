@@ -50,7 +50,7 @@ class InspectorEventParsingTest(unittest.TestCase):
         .RawEventToTimelineEvent(_SAMPLE_MESSAGE))
     self.assertTrue(root_event)
     decode_image_event = [
-      child for child in root_event.GetAllChildrenRecursive()
+      child for child in root_event.IterEventsInThisContainerRecrusively()
       if child.name == 'DecodeImage'][0]
     self.assertEquals(decode_image_event.args['data']['imageType'], 'PNG')
     self.assertTrue(decode_image_event.duration > 0)
@@ -66,7 +66,7 @@ class InspectorEventParsingTest(unittest.TestCase):
     self.assertEquals(1, event.start)
     self.assertEquals(3, event.end)
     self.assertEquals(2, event.duration)
-    self.assertEquals([], event.children)
+    self.assertEquals([], event.sub_slices)
 
   def testParsingWithArgs(self):
     raw_event = {'type': 'Foo',
@@ -80,7 +80,7 @@ class InspectorEventParsingTest(unittest.TestCase):
     self.assertEquals(1, event.start)
     self.assertEquals(3, event.end)
     self.assertEquals(2, event.duration)
-    self.assertEquals([], event.children)
+    self.assertEquals([], event.sub_slices)
     self.assertEquals(7, event.args['foo'])
     self.assertEquals(1, event.args['bar']['x'])
 

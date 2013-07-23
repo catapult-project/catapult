@@ -20,13 +20,12 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.chrome.browser_backend.html">telemetry.core.chrome.browser_backend</a><br>
-<a href="telemetry.core.chrome.cros_util.html">telemetry.core.chrome.cros_util</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.exceptions.html">telemetry.core.exceptions</a><br>
-<a href="logging.html">logging</a><br>
-</td><td width="25%" valign=top><a href="os.html">os</a><br>
-<a href="subprocess.html">subprocess</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.util.html">telemetry.core.util</a><br>
-</td></tr></table></td></tr></table><p>
+<a href="telemetry.core.exceptions.html">telemetry.core.exceptions</a><br>
+</td><td width="25%" valign=top><a href="logging.html">logging</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="subprocess.html">subprocess</a><br>
+<a href="telemetry.core.util.html">telemetry.core.util</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -69,6 +68,8 @@ Methods defined here:<br>
 
 <dl><dt><a name="CrOSBrowserBackend-GetRemotePort"><strong>GetRemotePort</strong></a>(self, _)</dt></dl>
 
+<dl><dt><a name="CrOSBrowserBackend-GetStackTrace"><strong>GetStackTrace</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="CrOSBrowserBackend-GetStandardOutput"><strong>GetStandardOutput</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="CrOSBrowserBackend-IsBrowserRunning"><strong>IsBrowserRunning</strong></a>(self)</dt></dl>
@@ -80,6 +81,8 @@ Methods defined here:<br>
 <hr>
 Data descriptors defined here:<br>
 <dl><dt><strong>hwid</strong></dt>
+</dl>
+<dl><dt><strong>oobe</strong></dt>
 </dl>
 <dl><dt><strong>pid</strong></dt>
 <dd><tt>Locates&nbsp;the&nbsp;pid&nbsp;of&nbsp;the&nbsp;main&nbsp;chrome&nbsp;browser&nbsp;process.<br>
@@ -107,7 +110,7 @@ Methods inherited from <a href="telemetry.core.chrome.browser_backend.html#Brows
 
 <dl><dt><a name="CrOSBrowserBackend-SetBrowser"><strong>SetBrowser</strong></a>(self, browser)</dt></dl>
 
-<dl><dt><a name="CrOSBrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
+<dl><dt><a name="CrOSBrowserBackend-StartTracing"><strong>StartTracing</strong></a>(self, custom_categories<font color="#909090">=None</font>, timeout<font color="#909090">=60</font>)</dt><dd><tt>custom_categories&nbsp;is&nbsp;an&nbsp;optional&nbsp;string&nbsp;containing&nbsp;a&nbsp;list&nbsp;of<br>
 comma&nbsp;separated&nbsp;categories&nbsp;that&nbsp;will&nbsp;be&nbsp;traced&nbsp;instead&nbsp;of&nbsp;the<br>
 default&nbsp;category&nbsp;set.&nbsp;&nbsp;Example:&nbsp;use<br>
 "webkit,cc,disabled-by-default-cc.debug"&nbsp;to&nbsp;trace&nbsp;only&nbsp;those&nbsp;three<br>
