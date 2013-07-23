@@ -2,29 +2,25 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core.platform.profiler import iprofiler_profiler
-from telemetry.core.platform.profiler import java_heap_profiler
-from telemetry.core.platform.profiler import perf_profiler
-from telemetry.core.platform.profiler import sample_profiler
-from telemetry.core.platform.profiler import tcmalloc_heap_profiler
-from telemetry.core.platform.profiler import trace_profiler
+import os
 
-_PROFILERS = [
-    iprofiler_profiler.IprofilerProfiler,
-    java_heap_profiler.JavaHeapProfiler,
-    perf_profiler.PerfProfiler,
-    sample_profiler.SampleProfiler,
-    tcmalloc_heap_profiler.TCMallocHeapProfiler,
-    trace_profiler.TraceProfiler,
-]
+from telemetry.core import discover
+from telemetry.core import util
+from telemetry.core.platform import profiler
+
+
+def _DiscoverProfilers():
+  profiler_dir = os.path.dirname(__file__)
+  return discover.DiscoverClasses(profiler_dir, util.GetTelemetryDir(),
+                                  profiler.Profiler).values()
 
 
 def FindProfiler(name):
-  for profiler in _PROFILERS:
-    if profiler.name() == name:
-      return profiler
+  for p in _DiscoverProfilers():
+    if p.name() == name:
+      return p
   return None
 
 
 def GetAllAvailableProfilers():
-  return [p.name() for p in _PROFILERS]
+  return [p.name() for p in _DiscoverProfilers()]
