@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import collections
 import glob
 import logging
 import os
@@ -27,7 +28,7 @@ class _RunState(object):
     self._append_to_existing_wpr = False
     self._last_archive_path = None
     self._first_browser = True
-    self.first_page = True
+    self.first_page = collections.defaultdict(lambda: True)
     self.profiler_dir = None
 
   def StartBrowser(self, test, page_set, page, possible_browser,
@@ -69,8 +70,8 @@ class _RunState(object):
     if not self.tab:
       self.tab = self.browser.tabs[0]
 
-    if self.first_page:
-      self.first_page = False
+    if self.first_page[page]:
+      self.first_page[page] = False
       test.WillRunPageSet(self.tab)
 
   def StopBrowser(self):
@@ -93,7 +94,7 @@ class _RunState(object):
     output_file = os.path.join(self.profiler_dir, page.url_as_file_safe_name)
     if options.page_repeat != 1 or options.pageset_repeat != 1:
       output_file = _GetSequentialFileName(output_file)
-    self.browser.StartProfiling(options, output_file)
+    self.browser.StartProfiling(options.profiler, output_file)
 
   def StopProfiling(self):
     self.browser.StopProfiling()
@@ -192,7 +193,7 @@ def Run(test, page_set, expectations, options):
         else:
           possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
       results_for_current_run = results
-      if state.first_page and test.discard_first_result:
+      if state.first_page[page] and test.discard_first_result:
         # If discarding results, substitute a dummy object.
         results_for_current_run = type(results)()
       results_for_current_run.StartTest(page)

@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import logging
+import os
+import re
 import signal
 import subprocess
 import sys
@@ -40,6 +42,7 @@ class _SingleProcessPerfProfiler(object):
       self._tmp_output_file.close()
     print 'To view the profile, run:'
     print '  perf report -i %s' % self._output_file
+    return self._output_file
 
   def _GetStdOut(self):
     self._tmp_output_file.flush()
@@ -79,5 +82,33 @@ class PerfProfiler(profiler.Profiler):
       return False
 
   def CollectProfile(self):
+    output_files = []
     for single_process in self._process_profilers:
-      single_process.CollectProfile()
+      output_files.append(single_process.CollectProfile())
+    return output_files
+
+  @classmethod
+  def GetTopSamples(cls, file_name, number):
+    """Parses the perf generated profile in |file_name| and returns a
+    {function: period} dict of the |number| hottests functions.
+    """
+    assert os.path.exists(file_name)
+    report = subprocess.Popen(
+        ['perf', 'report', '--show-total-period', '-U', '-t', '^', '-i',
+         file_name],
+        stdout=subprocess.PIPE, stderr=open(os.devnull, 'w')).communicate()[0]
+    period_by_function = {}
+    for line in report.split('\n'):
+      if not line or line.startswith('#'):
+        continue
+      fields = line.split('^')
+      if len(fields) != 5:
+        continue
+      period = int(fields[1])
+      function = fields[4].partition(' ')[2]
+      function = re.sub('<.*>', '', function)  # Strip template params.
+      function = re.sub('[(].*[)]', '', function)  # Strip function params.
+      period_by_function[function] = period
+      if len(period_by_function) == number:
+        break
+    return period_by_function

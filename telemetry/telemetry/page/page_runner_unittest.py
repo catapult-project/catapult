@@ -62,11 +62,14 @@ class PageRunnerTests(unittest.TestCase):
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
-    page = page_module.Page(
+    ps.pages.append(page_module.Page(
         'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
         ps,
-        base_dir=os.path.dirname(__file__))
-    ps.pages.append(page)
+        base_dir=os.path.dirname(__file__)))
+    ps.pages.append(page_module.Page(
+        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        ps,
+        base_dir=os.path.dirname(__file__)))
 
     class Test(page_test.PageTest):
       @property
@@ -77,8 +80,23 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+
+    options.page_repeat = 1
+    options.pageset_repeat = 1
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+
+    options.page_repeat = 1
+    options.pageset_repeat = 2
+    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    self.assertEquals(2, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+
+    options.page_repeat = 2
+    options.pageset_repeat = 1
+    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
   def testCredentialsWhenLoginFails(self):

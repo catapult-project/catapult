@@ -192,26 +192,32 @@ class Browser(object):
     del result['ProcessCount']
     return result
 
-  def StartProfiling(self, options, base_output_file):
-    """Starts profiling using |options|.profiler_tool. Results are saved to
+  def StartProfiling(self, profiler_name, base_output_file):
+    """Starts profiling using |profiler_name|. Results are saved to
     |base_output_file|.<process_name>."""
     assert not self._active_profilers
 
-    profiler_class = profiler_finder.FindProfiler(options.profiler)
+    profiler_class = profiler_finder.FindProfiler(profiler_name)
 
-    if not profiler_class.is_supported(options):
+    if not profiler_class.is_supported(self._browser_backend.options):
       raise Exception('The %s profiler is not '
-                      'supported on this platform.' % options.profiler_tool)
+                      'supported on this platform.' % profiler_name)
 
     self._active_profilers.append(
         profiler_class(self._browser_backend, self._platform_backend,
             base_output_file))
 
   def StopProfiling(self):
-    """Stops all active profilers and saves their results."""
+    """Stops all active profilers and saves their results.
+
+    Returns:
+      A list of filenames produced by the profiler.
+    """
+    output_files = []
     for profiler in self._active_profilers:
-      profiler.CollectProfile()
+      output_files.extend(profiler.CollectProfile())
     self._active_profilers = []
+    return output_files
 
   def StartTracing(self, custom_categories=None, timeout=10):
     return self._browser_backend.StartTracing(custom_categories, timeout)
