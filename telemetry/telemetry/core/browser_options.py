@@ -1,14 +1,16 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import optparse
-import sys
-import shlex
-import logging
+
 import copy
+import logging
+import optparse
+import shlex
+import sys
 
 from telemetry.core import browser_finder
 from telemetry.core import profile_types
+from telemetry.core import repeat_options
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 
@@ -46,6 +48,8 @@ class BrowserOptions(optparse.Values):
     self.page_filter_exclude = None
 
     self.no_proxy_server = False
+
+    self.repeat_options = repeat_options.RepeatOptions()
 
   def Copy(self):
     return copy.deepcopy(self)
@@ -111,12 +115,6 @@ class BrowserOptions(optparse.Values):
 
     # Page set options
     group = optparse.OptionGroup(parser, 'Page set options')
-    group.add_option('--page-repeat', dest='page_repeat', default=1,
-        help='Number of times to repeat each individual ' +
-        'page in the pageset before proceeding.')
-    group.add_option('--pageset-repeat', dest='pageset_repeat', default=1,
-        help='Number of times to repeat the entire pageset ' +
-        'before finishing.')
     group.add_option('--pageset-shuffle', action='store_true',
         dest='pageset_shuffle',
         help='Shuffle the order of pages within a pageset.')
@@ -158,6 +156,9 @@ class BrowserOptions(optparse.Values):
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
     parser.add_option_group(group)
+
+    # Repeat options
+    repeat_options.RepeatOptions.AddCommandLineOptions(parser)
 
     real_parse = parser.parse_args
     def ParseArgs(args=None):
@@ -202,6 +203,10 @@ class BrowserOptions(optparse.Values):
         delattr(self, 'extra_wpr_args_as_string')
       if self.profile_type == 'default':
         self.dont_override_profile = True
+
+      # Parse repeat options
+      self.repeat_options.UpdateFromParseResults(self, parser)
+
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
       return ret
     parser.parse_args = ParseArgs
