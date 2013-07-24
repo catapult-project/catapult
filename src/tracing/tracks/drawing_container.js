@@ -13,7 +13,8 @@ base.require('ui');
 base.exportTo('tracing.tracks', function() {
   var DrawType = {
     SLICE: 1,
-    INSTANT_EVENT: 2
+    INSTANT_EVENT: 2,
+    BACKGROUND: 3
   };
 
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
@@ -60,16 +61,18 @@ base.exportTo('tracing.tracks', function() {
         this.updateCanvasSizeIfNeeded_();
 
         base.requestAnimationFrameInThisFrameIfPossible(function() {
-          for (var i = 0; i < this.children.length; ++i) {
-            if (!(this.children[i] instanceof tracing.tracks.Track))
-              continue;
-            this.children[i].drawTrack(DrawType.INSTANT_EVENT);
-          }
+          var types = [
+            DrawType.BACKGROUND,
+            DrawType.INSTANT_EVENT,
+            DrawType.SLICE
+          ];
 
-          for (var i = 0; i < this.children.length; ++i) {
-            if (!(this.children[i] instanceof tracing.tracks.Track))
-              continue;
-            this.children[i].drawTrack(DrawType.SLICE);
+          for (var idx in types) {
+            for (var i = 0; i < this.children.length; ++i) {
+              if (!(this.children[i] instanceof tracing.tracks.Track))
+                continue;
+              this.children[i].drawTrack(types[idx]);
+            }
           }
 
           var pixelRatio = window.devicePixelRatio || 1;

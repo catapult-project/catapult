@@ -40,9 +40,45 @@ base.exportTo('tracing.tracks', function() {
               worldBounds.right);
           ctx.restore();
           break;
+
+        case tracing.tracks.DrawType.BACKGROUND:
+          this.drawBackground_();
+          // Don't bother recursing further, Process is the only level that
+          // draws backgrounds.
+          return;
       }
 
       tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+    },
+
+    drawBackground_: function() {
+      var ctx = this.context();
+      if (ctx === undefined)
+        return;
+
+      ctx.save();
+      ctx.fillStyle = '#eee';
+
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+      var draw = false;
+      for (var i = 0; i < this.children.length; ++i) {
+        if (!(this.children[i] instanceof tracing.tracks.Track) ||
+            (this.children[i] instanceof tracing.tracks.SpacingTrack))
+          continue;
+
+        draw = !draw;
+        if (!draw)
+          continue;
+
+        var pixelRatio = window.devicePixelRatio || 1;
+
+        var bounds = this.children[i].getBoundingClientRect();
+        ctx.fillRect(0,
+                     (bounds.top - canvasBounds.top) * pixelRatio,
+                     ctx.canvas.width * pixelRatio,
+                     bounds.height * pixelRatio);
+      }
+      ctx.restore();
     },
 
     // Process maps to processBase because we derive from ProcessTrackBase.
