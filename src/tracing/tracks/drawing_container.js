@@ -14,7 +14,8 @@ base.exportTo('tracing.tracks', function() {
   var DrawType = {
     SLICE: 1,
     INSTANT_EVENT: 2,
-    BACKGROUND: 3
+    BACKGROUND: 3,
+    GRID: 4
   };
 
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
@@ -63,6 +64,7 @@ base.exportTo('tracing.tracks', function() {
         base.requestAnimationFrameInThisFrameIfPossible(function() {
           var types = [
             DrawType.BACKGROUND,
+            DrawType.GRID,
             DrawType.INSTANT_EVENT,
             DrawType.SLICE
           ];

@@ -211,6 +211,8 @@ base.exportTo('tracing.tracks', function() {
       var pixelRatio = window.devicePixelRatio || 1;
       ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
+      vp.majorMarkPositions = [];
+
       // Each iteration of this loop draws one major mark
       // and numTicksPerMajor minor ticks.
       //
@@ -230,6 +232,8 @@ base.exportTo('tracing.tracks', function() {
         ctx.fillText(tickLabels[roundedUnitValue],
                      curXView + 2 * pixelRatio, 0);
         ctx.beginPath();
+
+        vp.majorMarkPositions.push(curXView);
 
         // Major mark
         ctx.moveTo(curXView, 0);

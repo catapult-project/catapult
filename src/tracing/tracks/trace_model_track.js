@@ -93,6 +93,20 @@ base.exportTo('tracing.tracks', function() {
 
     drawTrack: function(type) {
       switch (type) {
+        case tracing.tracks.DrawType.GRID:
+          var ctx = this.context();
+          if (ctx === undefined)
+            break;
+
+          ctx.save();
+
+          var worldBounds = this.setupCanvasForDraw_();
+          this.viewport.drawGrid(ctx, worldBounds.left, worldBounds.right);
+          ctx.restore();
+
+          // The model is the only thing that draws grid lines.
+          return;
+
         case tracing.tracks.DrawType.INSTANT_EVENT:
           if (!this.model_.instantEvents ||
               this.model_.instantEvents.length === 0)

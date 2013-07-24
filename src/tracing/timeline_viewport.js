@@ -46,6 +46,7 @@ base.exportTo('tracing', function() {
         this.checkForAttach_.bind(this), 250);
 
     this.markers = [];
+    this.majorMarkPositions = [];
   }
 
   TimelineViewport.prototype = {
@@ -311,6 +312,17 @@ base.exportTo('tracing', function() {
         }
       }
       return undefined;
+    },
+
+    drawGrid: function(ctx, viewLWorld, viewRWorld) {
+      ctx.beginPath();
+      for (var idx in this.majorMarkPositions) {
+        var x = this.majorMarkPositions[idx];
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, ctx.canvas.height);
+      }
+      ctx.strokeStyle = '#ddd';
+      ctx.stroke();
     },
 
     drawGridLines: function(ctx, viewLWorld, viewRWorld) {
