@@ -125,6 +125,38 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
       measurement_results.results,
       expected)
 
+  def test_repeated_pages(self):
+    test_page_set = _MakePageSet()
+
+    measurement_results = SummarySavingPageMeasurementResults()
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[1])
+    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[1])
+    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.PrintSummary()
+    expected = ['RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
+                'Avg a_by_url: 3.500000seconds\nSd  a_by_url: 0.707107seconds',
+                'RESULT a_by_url: http___www.bar.com_= [7,8] seconds\n' +
+                'Avg a_by_url: 7.500000seconds\nSd  a_by_url: 0.707107seconds',
+                '*RESULT a: a= [3,4,7,8] seconds\n' +
+                'Avg a: 5.500000seconds\nSd  a: 2.380476seconds'
+                ]
+    self.assertEquals(
+      measurement_results.results,
+      expected)
+
   def test_overall_results(self):
     test_page_set = _MakePageSet()
 
