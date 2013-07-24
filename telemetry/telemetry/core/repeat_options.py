@@ -36,8 +36,8 @@ class RepeatOptions(object):
     parser.add_option_group(group)
 
   def _ParseRepeatOption(self, browser_options, input_str, parser):
-    match = re.match('([0-9]+)([sS]?)$', getattr(browser_options,
-                                                 input_str, ''))
+    match = re.match('([0-9]+)([sS]?)$', str(getattr(browser_options,
+                                                     input_str, '')))
     if match:
       if match.group(2):
         setattr(self, input_str + '_secs', float(match.group(1)))
