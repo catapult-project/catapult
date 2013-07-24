@@ -7,15 +7,14 @@ quad-stack {
   -webkit-flex: 1 1 100%;
   -webkit-flex-direction: column;
   display: -webkit-flex;
-  min-height: 357px;
   outline: none;
   position: relative;
   width: 100%;
   z-index: 10; /* cause our scrollbars to render above our children. */
 }
 
-quad-stack > view-container {
-  -webkit-flex: 1 1 100%;
+quad-stack > transformed-container {
+  -webkit-flex: 1 1 auto;
   -webkit-transform-style: preserve-3d;
   display: -webkit-flex;
   outline: none;
@@ -29,7 +28,7 @@ quad-stack quad-view {
   top: 0;
 }
 
-quad-stack > view-container > rect-view {
+quad-stack > transformed-container > rect-view {
   background-image:
     url('../images/chrome-left.png'),
     url('../images/chrome-right.png'),
