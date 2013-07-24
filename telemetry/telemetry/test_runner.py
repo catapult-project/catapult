@@ -117,18 +117,10 @@ def _GetScriptName():
   return os.path.basename(sys.argv[0])
 
 
-def _GetBaseDir():
-  main_module = sys.modules['__main__']
-  if hasattr(main_module, '__file__'):
-    return os.path.dirname(main_module.__file__)
-  else:
-    return os.getcwd()
-
-
 def _GetTests():
   # Lazy load and cache results.
   if not hasattr(_GetTests, 'tests'):
-    base_dir = _GetBaseDir()
+    base_dir = test.GetBaseDir()
     _GetTests.tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                                index_by_class_name=True)
   return _GetTests.tests
