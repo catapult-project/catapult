@@ -35,8 +35,8 @@ base.exportTo('ui', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.contentContainer_ = document.createElement('view-container');
-      this.appendChild(this.contentContainer_);
+      this.layerContainer_ = document.createElement('layer-container');
+      this.appendChild(this.layerContainer_);
       this.viewport_ = undefined;
       this.worldViewportRectView_ = new ui.RectView();
       this.quads_ = undefined;
@@ -92,8 +92,8 @@ base.exportTo('ui', function() {
       return this.worldViewportRectView_;
     },
 
-    get contentContainer() {
-      return this.contentContainer_;
+    get layerContainer() {
+      return this.layerContainer_;
     },
 
     updateContents_: function() {
@@ -108,15 +108,15 @@ base.exportTo('ui', function() {
       }
 
       // Remove worldViewportRectView to re-insert after Quads.
-      if (this.worldViewportRectView_.parentNode === this.contentContainer_)
-        this.contentContainer_.removeChild(this.worldViewportRectView_);
+      if (this.worldViewportRectView_.parentNode === this.layerContainer_)
+        this.layerContainer_.removeChild(this.worldViewportRectView_);
 
       // Get rid of old quad views if needed.
       var numStackingGroups = base.dictionaryValues(stackingGroupsById).length;
-      while (this.contentContainer_.children.length > numStackingGroups) {
-        var n = this.contentContainer_.children.length - 1;
-        this.contentContainer_.removeChild(
-            this.contentContainer_.children[n]);
+      while (this.layerContainer_.children.length > numStackingGroups) {
+        var n = this.layerContainer_.children.length - 1;
+        this.layerContainer_.removeChild(
+            this.layerContainer_.children[n]);
       }
 
       // Helper function to create a new quad view and track the current one.
@@ -125,11 +125,11 @@ base.exportTo('ui', function() {
       var curQuadView = undefined;
       function appendNewQuadView() {
         curQuadViewIndex++;
-        if (curQuadViewIndex < that.contentContainer_.children.length) {
-          curQuadView = that.contentContainer_.children[curQuadViewIndex];
+        if (curQuadViewIndex < that.layerContainer_.children.length) {
+          curQuadView = that.layerContainer_.children[curQuadViewIndex];
         } else {
           curQuadView = new QuadView();
-          that.contentContainer_.appendChild(curQuadView);
+          that.layerContainer_.appendChild(curQuadView);
         }
         curQuadView.quads = undefined;
         curQuadView.viewport = that.viewport_;
@@ -154,18 +154,18 @@ base.exportTo('ui', function() {
       }
 
       // Add worldViewportRectView after the Quads.
-      this.contentContainer_.appendChild(this.worldViewportRectView_);
+      this.layerContainer_.appendChild(this.worldViewportRectView_);
 
-      for (var i = 0; i < this.contentContainer_.children.length; i++) {
-        var child = this.contentContainer_.children[i];
+      for (var i = 0; i < this.layerContainer_.children.length; i++) {
+        var child = this.layerContainer_.children[i];
         if (child instanceof ui.QuadView) {
           child.quads = child.pendingQuads;
           delete child.pendingQuads;
         }
       }
 
-      this.viewport.updateBoxSize(this.contentContainer_);
-      this.layers = this.contentContainer_.children;
+      this.viewport.updateBoxSize(this.layerContainer_);
+      this.layers = this.layerContainer_.children;
     },
 
 
