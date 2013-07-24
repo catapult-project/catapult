@@ -81,20 +81,20 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
 
-    options.page_repeat = 1
-    options.pageset_repeat = 1
+    options.repeat_options.page_repeat_iters = 1
+    options.repeat_options.pageset_repeat_iters = 1
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
-    options.page_repeat = 1
-    options.pageset_repeat = 2
+    options.repeat_options.page_repeat_iters = 1
+    options.repeat_options.pageset_repeat_iters = 2
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
-    options.page_repeat = 2
-    options.pageset_repeat = 1
+    options.repeat_options.page_repeat_iters = 2
+    options.repeat_options.pageset_repeat_iters = 1
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
