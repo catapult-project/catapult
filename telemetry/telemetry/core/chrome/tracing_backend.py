@@ -18,10 +18,6 @@ from telemetry.core.timeline import model
 class TracingUnsupportedException(Exception):
   pass
 
-# This class supports legacy format of trace presentation within DevTools
-# protocol, where trace data were sent as JSON-serialized strings. DevTools
-# now send the data as raw objects within the protocol message JSON, so there's
-# no need in extra de-serialization. We might want to remove this in the future.
 class TraceResultImpl(object):
   def __init__(self, tracing_data):
     self._tracing_data = tracing_data
@@ -51,20 +47,6 @@ class TraceResultImpl(object):
       event_data=f.getvalue(),
       shift_world_to_zero=False)
 
-# RawTraceResultImpl differs from TraceResultImpl above in that
-# data are kept as a list of dicts, not strings.
-class RawTraceResultImpl(object):
-  def __init__(self, tracing_data):
-    self._tracing_data = tracing_data
-
-  def Serialize(self, f):
-    f.write('{"traceEvents":')
-    json.dump(self._tracing_data, f)
-    f.write('}')
-
-  def AsTimelineModel(self):
-    return model.TimelineModel(self._tracing_data)
-
 class TracingBackend(object):
   def __init__(self, devtools_port):
     debugger_url = 'ws://localhost:%i/devtools/browser' % devtools_port
@@ -93,12 +75,10 @@ class TracingBackend(object):
 
   def GetTraceResultAndReset(self):
     assert not self._thread
-    if self._tracing_data and type(self._tracing_data[0]) in [str, unicode]:
-      result_impl = TraceResultImpl(self._tracing_data)
-    else:
-      result_impl = RawTraceResultImpl(self._tracing_data)
+    ret = trace_result.TraceResult(
+      TraceResultImpl(self._tracing_data))
     self._tracing_data = []
-    return trace_result.TraceResult(result_impl)
+    return ret
 
   def Close(self):
     if self._socket:
@@ -115,12 +95,7 @@ class TracingBackend(object):
         logging.debug('got [%s]', data)
         if 'Tracing.dataCollected' == res.get('method'):
           value = res.get('params', {}).get('value')
-          if type(value) in [str, unicode]:
-            self._tracing_data.append(value)
-          elif type(value) is list:
-            self._tracing_data.extend(value)
-          else:
-            logging.warning('Unexpected type in tracing data')
+          self._tracing_data.append(value)
         elif 'Tracing.tracingComplete' == res.get('method'):
           break
       except (socket.error, websocket.WebSocketException):

@@ -36,27 +36,9 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # TODO(tengs): check model for correctness after trace_event_importer
     # is implemented (crbug.com/173327).
 
-
 class TracingResultImplTest(unittest.TestCase):
-  # Override TestCase.run to run a test with all possible
-  # implementations of TraceResult.
-  def __init__(self):
-    self._traceResultImplClass = None
-    super(TracingResultImplTest).__init__()
-
-  def run(self, result=None):
-    def RawTraceResultImplWrapper(strings):
-      return tracing_backend.RawTraceResultImpl(map(json.loads, strings))
-    classes = [
-        tracing_backend.TraceResultImpl,
-        RawTraceResultImplWrapper
-    ]
-    for cls in classes:
-      self._traceResultImplClass = cls
-      super(TracingResultImplTest, self).run(result)
-
   def testWrite1(self):
-    ri = self._traceResultImplClass([])
+    ri = tracing_backend.TraceResultImpl([])
     f = cStringIO.StringIO()
     ri.Serialize(f)
     v = f.getvalue()
@@ -66,7 +48,7 @@ class TracingResultImplTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], [])
 
   def testWrite2(self):
-    ri = self._traceResultImplClass([
+    ri = tracing_backend.TraceResultImpl([
         '"foo"',
         '"bar"'])
     f = cStringIO.StringIO()
@@ -78,7 +60,7 @@ class TracingResultImplTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], ['foo', 'bar'])
 
   def testWrite3(self):
-    ri = self._traceResultImplClass([
+    ri = tracing_backend.TraceResultImpl([
         '"foo"',
         '"bar"',
         '"baz"'])
