@@ -4,6 +4,7 @@
 """Finds desktop browsers that can be controlled by telemetry."""
 
 import logging
+from operator import attrgetter
 import os
 import platform
 import subprocess
@@ -33,11 +34,12 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   """A desktop browser that can be controlled."""
 
   def __init__(self, browser_type, options, executable, flash_path,
-               is_content_shell):
+               is_content_shell, is_local_build=False):
     super(PossibleDesktopBrowser, self).__init__(browser_type, options)
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
+    self.is_local_build = is_local_build
 
   def __repr__(self):
     return 'PossibleDesktopBrowser(browser_type=%s)' % self.browser_type
@@ -92,6 +94,21 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     if (len(options.extensions_to_load) != 0) and self._is_content_shell:
       return False
     return True
+
+  @property
+  def last_modification_time(self):
+    if os.path.exists(self._local_executable):
+      return os.path.getmtime(self._local_executable)
+    return -1
+
+def SelectDefaultBrowser(possible_browsers):
+  local_builds_by_date = [
+      b for b in sorted(possible_browsers,
+                        key=attrgetter('last_modification_time'))
+      if b.is_local_build]
+  if local_builds_by_date:
+    return local_builds_by_date[-1]
+  return None
 
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
@@ -163,7 +180,8 @@ def FindAllAvailableBrowsers(options):
       app = os.path.join(chrome_root, build_dir, type_dir, app_name)
       if os.path.exists(app):
         browsers.append(PossibleDesktopBrowser(browser_type, options,
-                                               app, flash_path, content_shell))
+                                               app, flash_path, content_shell,
+                                               is_local_build=True))
         return True
     return False
 

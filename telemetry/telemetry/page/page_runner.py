@@ -206,10 +206,16 @@ def Run(test, page_set, expectations, options):
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(options)
-  possible_browser = browser_finder.FindBrowser(options)
+  try:
+    possible_browser = browser_finder.FindBrowser(options)
+  except browser_finder.BrowserTypeRequiredException, e:
+    sys.stderr.write(str(e) + '\n')
+    sys.exit(1)
   if not possible_browser:
-    raise Exception('No browser found.\n'
-        'Use --browser=list to figure out which are available.')
+    sys.stderr.write(
+        'No browser found. Available browsers:\n' +
+        '\n'.join(browser_finder.GetAllAvailableBrowserTypes(options)) + '\n')
+    sys.exit(1)
 
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, options)

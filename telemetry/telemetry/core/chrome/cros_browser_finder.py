@@ -44,6 +44,13 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
+def SelectDefaultBrowser(possible_browsers):
+  if cros_interface.IsRunningOnCrosDevice():
+    for b in possible_browsers:
+      if b.browser_type == 'system':
+        return b
+  return None
+
 def FindAllAvailableBrowsers(options):
   """Finds all available chromeos browsers, locally and remotely."""
   if cros_interface.IsRunningOnCrosDevice():

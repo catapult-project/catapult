@@ -66,6 +66,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
+def SelectDefaultBrowser(_):
+  return None
+
 def FindAllAvailableBrowsers(options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""
   if not adb_commands.IsAndroidSupported():
