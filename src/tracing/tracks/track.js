@@ -133,7 +133,7 @@ base.exportTo('tracing.tracks', function() {
         loWX, hiWX, viewPixWidthWorld, selection) {
     },
 
-    drawInstantEvents_: function(instantEvents, viewLWorld, viewRWorld) {
+    drawEvents_: function(events, viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -154,36 +154,29 @@ base.exportTo('tracing.tracks', function() {
                                             palette);
       tr.setYandH(0, height);
 
-      var lowInstantEvent = base.findLowIndexInSortedArray(
-          instantEvents,
-          function(instantEvent) { return instantEvent.start; },
+      var lowEvent = base.findLowIndexInSortedArray(
+          events,
+          function(event) { return event.start + event.duration; },
           viewLWorld);
 
-      for (var i = lowInstantEvent; i < instantEvents.length; ++i) {
-        var instantEvent = instantEvents[i];
-        var x = instantEvent.start;
+      for (var i = lowEvent; i < events.length; ++i) {
+        var event = events[i];
+        var x = event.start;
         if (x > viewRWorld)
           break;
 
-        // Less than 0.001 causes short events to disappear when zoomed in.
-        var w = Math.max(instantEvent.duration, 0.001);
-        var colorId = instantEvent.selected ?
-            instantEvent.colorId + highlightIdBoost :
-            instantEvent.colorId;
-
-        // InstantEvent: draw a triangle.  If zoomed too far, collapse
-        // into the FastRectRenderer.
-        if (pixWidth > 0.001) {
-          tr.fillRect(x, pixWidth, colorId);
-        } else {
-          ctx.fillStyle = palette[colorId];
-          ctx.beginPath();
-          ctx.moveTo(x - (4 * pixWidth), height);
-          ctx.lineTo(x, 0);
-          ctx.lineTo(x + (4 * pixWidth), height);
-          ctx.closePath();
-          ctx.fill();
+        var w = pixWidth;
+        if (event.duration > 0) {
+          w = Math.max(event.duration, 0.001);
+          if (w < pixWidth)
+            w = pixWidth;
         }
+
+        var colorId = event.selected ?
+            event.colorId + highlightIdBoost :
+            event.colorId;
+
+        tr.fillRect(x, w, colorId);
       }
       tr.flush();
       ctx.restore();

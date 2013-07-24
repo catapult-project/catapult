@@ -103,94 +103,58 @@ base.exportTo('tracing.tracks', function() {
 
       // Begin rendering in world space.
       ctx.save();
-      vp.applyTransformToCanvas(ctx);
-
-      // Slices.
       if (this.asyncStyle_)
         ctx.globalAlpha = 0.25;
-      var tr = new tracing.FastRectRenderer(ctx, 2 * pixWidth, 2 * pixWidth,
-                                            palette);
-      tr.setYandH(0, height);
+
       var slices = this.slices_;
-      var lowSlice = base.findLowIndexInSortedArray(
-          slices,
-          function(slice) { return slice.start + slice.duration; },
-          viewLWorld);
-
-      for (var i = lowSlice; i < slices.length; ++i) {
-        var slice = slices[i];
-        var x = slice.start;
-        if (x > viewRWorld)
-          break;
-
-        // Less than 0.001 causes short events to disappear when zoomed in.
-        var w = Math.max(slice.duration, 0.001);
-        var colorId = slice.selected ?
-            slice.colorId + highlightIdBoost :
-            slice.colorId;
-
-        if (w < pixWidth)
-          w = pixWidth;
-        if (slice.duration > 0) {
-          tr.fillRect(x, w, colorId);
-        } else {
-          // Instant: draw a triangle.  If zoomed too far, collapse
-          // into the FastRectRenderer.
-          if (pixWidth > 0.001) {
-            tr.fillRect(x, pixWidth, colorId);
-          } else {
-            ctx.fillStyle = palette[colorId];
-            ctx.beginPath();
-            ctx.moveTo(x - (4 * pixWidth), height);
-            ctx.lineTo(x, 0);
-            ctx.lineTo(x + (4 * pixWidth), height);
-            ctx.closePath();
-            ctx.fill();
-          }
-        }
-      }
-      tr.flush();
+      this.drawEvents_(slices, viewLWorld, viewRWorld);
       ctx.restore();
 
+      if (height <= 8)
+        return;
+
       // Labels.
-      if (height > 8) {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.font = (10 * pixelRatio) + 'px sans-serif';
-        ctx.strokeStyle = 'rgb(0,0,0)';
-        ctx.fillStyle = 'rgb(0,0,0)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.font = (10 * pixelRatio) + 'px sans-serif';
+      ctx.strokeStyle = 'rgb(0,0,0)';
+      ctx.fillStyle = 'rgb(0,0,0)';
 
-        // Don't render text until until it is 20px wide
-        var quickDiscardThresshold = pixWidth * 20;
-        var shouldElide = this.SHOULD_ELIDE_TEXT;
-        for (var i = lowSlice; i < slices.length; ++i) {
-          var slice = slices[i];
-          if (slice.start > viewRWorld)
-            break;
+      var lowSlice = base.findLowIndexInSortedArray(
+          slices,
+          function(event) { return event.start + event.duration; },
+          viewLWorld);
 
-          if (slice.duration <= quickDiscardThresshold)
-            continue;
+      // Don't render text until until it is 20px wide
+      var quickDiscardThresshold = pixWidth * 20;
+      var shouldElide = this.SHOULD_ELIDE_TEXT;
+      for (var i = lowSlice; i < slices.length; ++i) {
+        var slice = slices[i];
+        if (slice.start > viewRWorld)
+          break;
 
-          var title = slice.title +
-              (slice.didNotFinish ? ' (Did Not Finish)' : '');
+        if (slice.duration <= quickDiscardThresshold)
+          continue;
 
-          var drawnTitle = title;
-          var drawnWidth = this.labelWidth(drawnTitle);
-          if (shouldElide &&
-              this.labelWidthWorld(drawnTitle, pixWidth) > slice.duration) {
-            var elidedValues = this.elidedTitleCache.get(
-                this, pixWidth,
-                drawnTitle, drawnWidth,
-                slice.duration);
-            drawnTitle = elidedValues.string;
-            drawnWidth = elidedValues.width;
-          }
+        var title = slice.title +
+            (slice.didNotFinish ? ' (Did Not Finish)' : '');
 
-          if (drawnWidth * pixWidth < slice.duration) {
+        var drawnTitle = title;
+        var drawnWidth = this.labelWidth(drawnTitle);
+        if (shouldElide &&
+            this.labelWidthWorld(drawnTitle, pixWidth) > slice.duration) {
+          var elidedValues = this.elidedTitleCache.get(
+              this, pixWidth,
+              drawnTitle, drawnWidth,
+              slice.duration);
+          drawnTitle = elidedValues.string;
+          drawnWidth = elidedValues.width;
+        }
 
-            var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
-            ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
-          }
+        if (drawnWidth * pixWidth < slice.duration) {
+
+          var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
+          ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
         }
       }
     },

@@ -34,7 +34,7 @@ base.exportTo('tracing.tracks', function() {
 
           ctx.save();
           var worldBounds = this.setupCanvasForDraw_();
-          this.drawInstantEvents_(
+          this.drawEvents_(
               this.processBase.instantEvents,
               worldBounds.left,
               worldBounds.right);
