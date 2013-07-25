@@ -122,7 +122,7 @@ base.exportTo('tracing', function() {
       if (e.button !== 0)
         return;
 
-      if (!this.activeMarker_.selected)
+      if (!this.activeMarker_ || !this.activeMarker_.selected)
         return;
 
       // Check if a range selection is finished now.
