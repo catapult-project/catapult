@@ -447,17 +447,6 @@ base.exportTo('tracing', function() {
       ctx.closePath();
       ctx.fillStyle = this.color;
       ctx.fill();
-
-      if (rulerHeight === canvasH)
-        return;
-
-      // Draw line from bottom of triangle to the bottom of our canvas.
-      ctx.beginPath();
-      ctx.moveTo(viewX, rulerHeight);
-      ctx.lineTo(viewX, canvasH);
-      ctx.closePath();
-      ctx.strokeStyle = this.color;
-      ctx.stroke();
     },
 
     drawLine: function(ctx, viewLWorld, viewRWorld, canvasH, vp) {
