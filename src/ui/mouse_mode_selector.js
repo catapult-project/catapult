@@ -16,10 +16,9 @@ base.require('ui');
 base.exportTo('ui', function() {
 
   /**
-   * Provides a panel for switching the interaction mode between
-   * panning, selecting and zooming. It handles the user interaction
-   * and dispatches events for the various modes, which are picked up
-   * and used by the Timeline Track View.
+   * Provides a panel for switching the interaction mode of the mouse.
+   * It handles the user interaction and dispatches events for the various
+   * modes.
    *
    * @constructor
    * @extends {HTMLDivElement}
@@ -45,6 +44,8 @@ base.exportTo('ui', function() {
           this.buttonsEl_.querySelector('.selection-mode-button');
       this.zoomModeButton_ =
           this.buttonsEl_.querySelector('.zoom-mode-button');
+      this.timingModeButton_ =
+          this.buttonsEl_.querySelector('.timing-mode-button');
 
       this.pos_ = {
         x: base.Settings.get('mouse_mode_selector.x', window.innerWidth - 50),
@@ -95,12 +96,19 @@ base.exportTo('ui', function() {
       if (this.currentMode_ === newMode)
         return;
 
+      var eventNames;
+      if (this.currentMode_) {
+        eventNames = this.getCurrentModeEventNames_();
+        this.dispatchEvent(new base.Event(eventNames.exit, true, true));
+      }
+
       var mouseModeConstants = tracing.mouseModeConstants;
 
       this.currentMode_ = newMode;
       this.panScanModeButton_.classList.remove('active');
       this.selectionModeButton_.classList.remove('active');
       this.zoomModeButton_.classList.remove('active');
+      this.timingModeButton_.classList.remove('active');
 
       switch (newMode) {
 
@@ -116,10 +124,17 @@ base.exportTo('ui', function() {
           this.zoomModeButton_.classList.add('active');
           break;
 
+        case mouseModeConstants.MOUSE_MODE_TIMING:
+          this.timingModeButton_.classList.add('active');
+          break;
+
         default:
           throw new Error('Unknown selection mode: ' + newMode);
           break;
       }
+
+      eventNames = this.getCurrentModeEventNames_();
+      this.dispatchEvent(new base.Event(eventNames.enter, true, true));
 
       base.Settings.set('mouse_mode_selector.mouseMode', newMode);
     },
@@ -128,29 +143,45 @@ base.exportTo('ui', function() {
 
       var mouseModeConstants = tracing.mouseModeConstants;
       var modeEventNames = {
+        enter: '',
         begin: '',
         update: '',
-        end: ''
+        end: '',
+        exit: ''
       };
 
       switch (this.mode) {
 
         case mouseModeConstants.MOUSE_MODE_PANSCAN:
+          modeEventNames.enter = 'enterpan';
           modeEventNames.begin = 'beginpan';
           modeEventNames.update = 'updatepan';
           modeEventNames.end = 'endpan';
+          modeEventNames.exit = 'exitpan';
           break;
 
         case mouseModeConstants.MOUSE_MODE_SELECTION:
+          modeEventNames.enter = 'enterselection';
           modeEventNames.begin = 'beginselection';
           modeEventNames.update = 'updateselection';
           modeEventNames.end = 'endselection';
+          modeEventNames.exit = 'exitselection';
           break;
 
         case mouseModeConstants.MOUSE_MODE_ZOOM:
+          modeEventNames.enter = 'enterzoom';
           modeEventNames.begin = 'beginzoom';
           modeEventNames.update = 'updatezoom';
           modeEventNames.end = 'endzoom';
+          modeEventNames.exit = 'exitzoom';
+          break;
+
+        case mouseModeConstants.MOUSE_MODE_TIMING:
+          modeEventNames.enter = 'entertiming';
+          modeEventNames.begin = 'begintiming';
+          modeEventNames.update = 'updatetiming';
+          modeEventNames.end = 'endtiming';
+          modeEventNames.exit = 'exittiming';
           break;
 
         default:
@@ -221,6 +252,10 @@ base.exportTo('ui', function() {
           this.mode = mouseModeConstants.MOUSE_MODE_ZOOM;
           break;
 
+        case this.timingModeButton_:
+          this.mode = mouseModeConstants.MOUSE_MODE_TIMING;
+          break;
+
         default:
           throw new Error('Unknown mouse mode button pressed');
           break;
@@ -247,6 +282,9 @@ base.exportTo('ui', function() {
           break;
         case 51:   // 3
           this.mode = mouseModeConstants.MOUSE_MODE_ZOOM;
+          break;
+        case 52:   // 4
+          this.mode = mouseModeConstants.MOUSE_MODE_TIMING;
           break;
       }
     },

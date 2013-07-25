@@ -10,6 +10,7 @@ base.exportTo('tracing', function() {
   mouseModeConstants.MOUSE_MODE_SELECTION = 1;
   mouseModeConstants.MOUSE_MODE_PANSCAN = 2;
   mouseModeConstants.MOUSE_MODE_ZOOM = 3;
+  mouseModeConstants.MOUSE_MODE_TIMING = 4;
 
   return {
     mouseModeConstants: mouseModeConstants

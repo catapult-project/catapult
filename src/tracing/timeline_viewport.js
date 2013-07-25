@@ -281,8 +281,13 @@ base.exportTo('tracing', function() {
       ctx.transform(this.scaleX_, 0, 0, 1, this.panX_ * this.scaleX_, 0);
     },
 
-    addMarker: function(positionWorld) {
-      var marker = new ViewportMarker(this, positionWorld);
+    createMarker: function(positionWorld) {
+      return new ViewportMarker(this, positionWorld);
+    },
+
+    addMarker: function(marker) {
+      if (this.markers.indexOf(marker) >= 0)
+        return false;
       this.markers.push(marker);
       this.dispatchChangeEvent();
       this.dispatchMarkersChangeEvent_();
@@ -354,6 +359,30 @@ base.exportTo('tracing', function() {
     },
 
     drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
+      // Dim the area left and right of the markers if there are 2.
+      if (this.markers.length === 2) {
+        var posWorld0 = this.markers[0].positionWorld;
+        var posWorld1 = this.markers[1].positionWorld;
+
+        var markerLWorld = Math.min(posWorld0, posWorld1);
+        var markerRWorld = Math.max(posWorld0, posWorld1);
+
+        var markerLView = this.xWorldToView(markerLWorld);
+        var markerRView = this.xWorldToView(markerRWorld);
+        var viewL = this.xWorldToView(viewLWorld);
+        var viewR = this.xWorldToView(viewRWorld);
+
+        ctx.fillStyle = 'rgb(0,0,0)';
+        ctx.globalAlpha = 0.2;
+
+        if (markerLWorld > viewLWorld)
+          ctx.fillRect(viewL, 0, markerLView, ctx.canvas.height);
+        if (markerRWorld < viewRWorld)
+          ctx.fillRect(markerRView, 0, viewR, ctx.canvas.height);
+
+        ctx.globalAlpha = 1.0;
+      }
+
       for (var i = 0; i < this.markers.length; ++i) {
         this.markers[i].drawLine(ctx, viewLWorld, viewRWorld,
             ctx.canvas.height, this);
@@ -381,7 +410,13 @@ base.exportTo('tracing', function() {
       this.viewport_.dispatchChangeEvent();
     },
 
+    get positionView() {
+      return this.viewport_.xWorldToView(this.positionWorld);
+    },
+
     set selected(selected) {
+      if (this.selected === selected)
+        return;
       this.selected_ = selected;
       this.viewport_.dispatchChangeEvent();
     },

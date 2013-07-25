@@ -23,9 +23,11 @@ base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
 base.require('base.properties');
 base.require('base.settings');
+base.require('tracing.constants');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
+base.require('tracing.timing_tool');
 base.require('tracing.mouse_mode_constants');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
@@ -37,7 +39,6 @@ base.exportTo('tracing', function() {
 
   var Selection = tracing.Selection;
   var Viewport = tracing.TimelineViewport;
-  var MIN_SELECTION_DISTANCE = 4;
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -128,7 +129,6 @@ base.exportTo('tracing', function() {
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
 
       this.addEventListener('mousemove', this.onMouseMove_);
-      this.addEventListener('dblclick', this.onDblClick_);
 
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
       this.lastMouseViewPos_ = {x: 0, y: 0};
@@ -137,6 +137,19 @@ base.exportTo('tracing', function() {
       this.isPanningAndScanning_ = false;
       this.isZooming_ = false;
 
+      this.timingTool_ = new tracing.TimingTool(this.viewport_,
+                                                this.rulerTrack_);
+
+      this.bindEventListener_(document, 'entertiming',
+          this.timingTool_.onEnterTiming, this.timingTool_);
+      this.bindEventListener_(document, 'begintiming',
+          this.timingTool_.onBeginTiming, this.timingTool_);
+      this.bindEventListener_(document, 'updatetiming',
+          this.timingTool_.onUpdateTiming, this.timingTool_);
+      this.bindEventListener_(document, 'endtiming',
+          this.timingTool_.onEndTiming, this.timingTool_);
+      this.bindEventListener_(document, 'exittiming',
+          this.timingTool_.onExitTiming, this.timingTool_);
     },
 
     distanceCoveredInPanScan_: function(e) {
@@ -492,7 +505,6 @@ base.exportTo('tracing', function() {
           'Space to switch between select / pan modes\n' +
           'Shift to temporarily switch between select / pan modes\n' +
           'Scroll to zoom in/out (in pan mode)\n' +
-          'Dbl-click to add timing markers\n' +
           'f to zoom into selection\n' +
           'z to reset zoom and pan to initial view\n' +
           '/ to search\n';
@@ -605,32 +617,9 @@ base.exportTo('tracing', function() {
     },
 
     canBeginInteraction_: function(e) {
-      if (e.button != 0)
+      if (e.button !== 0)
         return false;
-
-      // Ensure that we do not interfere with the user adding markers.
-      if (ui.elementIsChildOf(e.target, this.rulerTrack_))
-        return false;
-
       return true;
-    },
-
-    onDblClick_: function(e) {
-
-      if (this.isPanningAndScanning_) {
-        var endPanEvent = new base.Event('endpan');
-        endPanEvent.data = e;
-        this.onEndPanScan_(endPanEvent);
-      }
-
-      if (this.isZooming_) {
-        var endZoomEvent = new base.Event('endzoom');
-        endZoomEvent.data = e;
-        this.onEndZoom_(endZoomEvent);
-      }
-
-      this.rulerTrack_.placeAndBeginDraggingMarker(e.clientX);
-      e.preventDefault();
     },
 
     storeLastMousePos_: function(e) {
@@ -712,7 +701,8 @@ base.exportTo('tracing', function() {
 
       this.storeLastMousePos_(mouseEvent);
 
-      if (this.distanceCoveredInPanScan_(mouseEvent) > MIN_SELECTION_DISTANCE)
+      if (this.distanceCoveredInPanScan_(mouseEvent) >
+          tracing.constants.MIN_MOUSE_SELECTION_DISTANCE)
         return;
 
       this.dragBeginEvent_ = mouseEvent;

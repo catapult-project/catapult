@@ -34,7 +34,6 @@ base.exportTo('tracing.tracks', function() {
       this.classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
-      this.addEventListener('mousedown', this.onMouseDown);
 
       this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
       viewport.addEventListener('markersChange', this.viewportMarkersChange_);
@@ -48,56 +47,10 @@ base.exportTo('tracing.tracks', function() {
     },
 
     viewportMarkersChange_: function() {
-      if (this.viewport.markers.length < 2)
+      if (this.viewport.markers.length < 1)
         this.classList.remove('ruler-track-with-distance-measurements');
       else
         this.classList.add('ruler-track-with-distance-measurements');
-    },
-
-    onMouseDown: function(e) {
-      if (e.button !== 0)
-        return;
-      this.placeAndBeginDraggingMarker(e.clientX);
-    },
-
-    placeAndBeginDraggingMarker: function(clientX) {
-      var pixelRatio = window.devicePixelRatio || 1;
-
-      var viewX =
-          (clientX - this.offsetLeft - tracing.constants.HEADING_WIDTH) *
-              pixelRatio;
-      var worldX = this.viewport.xViewToWorld(viewX);
-      var marker = this.viewport.findMarkerNear(worldX, 6);
-
-      var createdMarker = false;
-      var movedMarker = false;
-      if (!marker) {
-        marker = this.viewport.addMarker(worldX);
-        createdMarker = true;
-      }
-      marker.selected = true;
-
-      var onMouseMove = function(e) {
-        var viewX =
-            (e.clientX - this.offsetLeft - tracing.constants.HEADING_WIDTH) *
-                pixelRatio;
-        var worldX = this.viewport.xViewToWorld(viewX);
-
-        marker.positionWorld = worldX;
-        movedMarker = true;
-      }.bind(this);
-
-      var onMouseUp = function(e) {
-        marker.selected = false;
-        if (!movedMarker && !createdMarker)
-          this.viewport.removeMarker(marker);
-
-        document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('mousemove', onMouseMove);
-      }.bind(this);
-
-      document.addEventListener('mouseup', onMouseUp);
-      document.addEventListener('mousemove', onMouseMove);
     },
 
     drawLine_: function(ctx, x1, y1, x2, y2, color) {
@@ -263,7 +216,6 @@ base.exportTo('tracing.tracks', function() {
 
         // Distance Variables.
         var displayDistance;
-        var unitDivisor;
         var displayTextColor = 'rgb(0,0,0)';
         var measurementsPosY = rulerHeight + 2;
 
@@ -273,6 +225,21 @@ base.exportTo('tracing.tracks', function() {
         var arrowPosY = measurementsPosY + 4;
         var arrowWidthView = 3;
         var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
+
+        // If there is only on marker, draw it's timestamp next to the line.
+        if (sortedMarkers.length === 1) {
+          var markerWorld = sortedMarkers[0].positionWorld;
+          var textPosY = rulerHeight + pixelRatio * 2;
+          var textLeftView =
+              vp.xWorldToView(markerWorld) + 4 * pixelRatio;
+
+          var displayValue = markerWorld / unitDivisor;
+          displayValue = Math.abs((Math.floor(displayValue * 1000) / 1000));
+          var textToDraw = displayValue + ' ' + unit;
+
+          ctx.fillStyle = displayTextColor;
+          ctx.fillText(textToDraw, textLeftView, textPosY);
+        }
 
         for (i = 0; i < sortedMarkers.length - 1; i++) {
           var rightMarker = sortedMarkers[i + 1];
