@@ -76,7 +76,6 @@ base.exportTo('cc', function() {
       if (!this.args.params.layerRect)
         throw new Error('Missing layer rect');
       this.layerRect_ = this.args.params.layerRect;
-      this.layerRect_ = base.Rect.FromArray(this.layerRect_);
     },
 
     get layerRect() {
@@ -100,8 +99,8 @@ base.exportTo('cc', function() {
       var ops = window.chrome.skiaBenchmarking.getOps({
         skp64: this.args.skp64,
         params: {
-          layer_rect: this.args.params.layerRect,
-          opaque_rect: this.args.params.opaqueRect
+          layer_rect: this.args.params.layerRect.toArray(),
+          opaque_rect: this.args.params.opaqueRect.toArray()
         }
       });
 

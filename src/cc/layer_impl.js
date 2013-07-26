@@ -7,6 +7,7 @@
 base.require('base.rect');
 base.require('cc.constants');
 base.require('cc.region');
+base.require('cc.tile_coverage_rect');
 base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
@@ -100,6 +101,15 @@ base.exportTo('cc', function() {
       }
       if (this.args.pictures) {
         this.pictures = this.args.pictures;
+      }
+
+      this.tileCoverageRects = [];
+      if (this.args.coverageTiles) {
+        for (var i = 0; i < this.args.coverageTiles.length; ++i) {
+          var rect = this.args.coverageTiles[i].geometryRect;
+          var tile = this.args.coverageTiles[i].tile;
+          this.tileCoverageRects.push(new cc.TileCoverageRect(rect, tile));
+        }
       }
     }
   };

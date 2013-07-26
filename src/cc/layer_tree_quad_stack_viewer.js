@@ -76,6 +76,12 @@ base.exportTo('cc', function() {
           'layerViewer.showContents', true,
           'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
+
+      var showTileCoverageRectsCheckbox = ui.createCheckBox(
+          this, 'showTileCoverageRects',
+          'layerViewer.showTileCoverageRects', true,
+          'Show tile coverage rects');
+      this.controls_.appendChild(showTileCoverageRectsCheckbox);
     },
 
     get layerTreeImpl() {
@@ -117,6 +123,15 @@ base.exportTo('cc', function() {
 
     set showInvalidations(show) {
       this.showInvalidations_ = show;
+      this.updateContents_();
+    },
+
+    get showTileCoverageRects() {
+      return this.showTileCoverageRects_;
+    },
+
+    set showTileCoverageRects(show) {
+      this.showTileCoverageRects_ = show;
       this.updateContents_();
     },
 
@@ -270,6 +285,31 @@ base.exportTo('cc', function() {
       }
     },
 
+    appendTileCoverageRectQuads_: function(layer, layerQuad) {
+      if (!layer.tileCoverageRects)
+        return;
+
+      for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
+        var rect = layer.tileCoverageRects[ct].geometryRect;
+        var tile = layer.tileCoverageRects[ct].tile;
+
+        var unitRect = rect.asUVRectInside(layer.bounds);
+        var quad = layerQuad.projectUnitRect(unitRect);
+
+        quad.backgroundColor = 'rgba(0, 0, 0, 0)';
+        quad.stackingGroupId = layerQuad.stackingGroupId;
+        // TODO(vmpstr): Map different types of tiles to different border
+        // colors.
+        if (tile) {
+          quad.borderColor = 'rgba(80, 200, 200, 0.4)';
+        } else {
+          quad.borderColor = 'rgba(255, 0, 0, 0.4)';
+        }
+
+        this.quads_.push(quad);
+      }
+    },
+
     appendSelectionQuads_: function(layer, layerQuad) {
       var selection = this.selection;
       var quad = this.layerTreeImpl_.whichTree == constants.ACTIVE_TREE ?
@@ -306,9 +346,11 @@ base.exportTo('cc', function() {
 
         this.appendImageQuads_(layer, layerQuad);
 
-        if (this.showInvalidations) {
+        if (this.showInvalidations)
           this.appendInvalidationQuads_(layer, layerQuad);
-        }
+
+        if (this.showTileCoverageRects)
+          this.appendTileCoverageRectQuads_(layer, layerQuad);
 
         // Push the layer quad last.
         this.quads_.push(layerQuad);

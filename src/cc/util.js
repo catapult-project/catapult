@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('base.quad');
+base.require('base.rect');
 base.require('tracing.trace_model.object_instance');
 
 base.exportTo('cc', function() {
@@ -106,6 +107,7 @@ base.exportTo('cc', function() {
         key = newKey;
       }
 
+      // Convert objects with keys ending with Quad to base.Quad type.
       if (/Quad$/.test(key) && !(object[key] instanceof base.Quad)) {
         var q;
         try {
@@ -115,6 +117,17 @@ base.exportTo('cc', function() {
         }
         object[key] = q;
         continue;
+      }
+
+      // Convert objects with keys ending with Rect to base.Rect type.
+      if (/Rect$/.test(key) && !(object[key] instanceof base.Rect)) {
+        var r;
+        try {
+          r = base.Rect.FromArray(object[key]);
+        } catch (e) {
+          console.log(e);
+        }
+        object[key] = r;
       }
 
       preInitializeObjectInner(object[key], true);

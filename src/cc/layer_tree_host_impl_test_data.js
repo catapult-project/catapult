@@ -89,6 +89,26 @@ var g_catLTHIEvents = [
                 'num_tiles': 1
               }
             ],
+            'coverage_tiles': [
+              {
+                'geometry_rect': [0, 0, 256, 256],
+                'tile': {
+                  'id_ref': 'TILE_1'
+                }
+              },
+              {
+                'geometry_rect': [256, 0, 256, 256]
+              },
+              {
+                'geometry_rect': [512, 0, 256, 256]
+              },
+              {
+                'geometry_rect': [0, 256, 256, 512]
+              },
+              {
+                'geometry_rect': [256, 256, 512, 512]
+              }
+            ],
             'gpu_memory_usage': 22069248,
             'draws_content': 1,
             'layer_id': 6,

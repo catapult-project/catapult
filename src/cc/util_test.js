@@ -6,6 +6,9 @@
 
 base.require('cc.util');
 
+base.require('base.quad');
+base.require('base.rect');
+
 base.unittest.testSuite('cc.util', function() {
   test('nameConvert', function() {
     assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
@@ -53,5 +56,53 @@ base.unittest.testSuite('cc.util', function() {
     };
     cc.preInitializeObject(object);
     assertObjectEquals(expected, object);
+  });
+
+  test('quadCoversion', function() {
+    var object = {
+      args: {
+        some_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    };
+    cc.preInitializeObject(object);
+    assertTrue(object.args.someQuad instanceof base.Quad);
+  });
+
+  test('quadConversionNested', function() {
+    var object = {
+      args: {
+        nested_field: {
+          a_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        non_nested_quad: [1, 2, 3, 4, 5, 6, 7, 8]
+      }
+    };
+    cc.preInitializeObject(object);
+    assertTrue(object.args.nestedField.aQuad instanceof base.Quad);
+    assertTrue(object.args.nonNestedQuad instanceof base.Quad);
+  });
+
+  test('rectCoversion', function() {
+    var object = {
+      args: {
+        some_rect: [1, 2, 3, 4]
+      }
+    };
+    cc.preInitializeObject(object);
+    assertTrue(object.args.someRect instanceof base.Rect);
+  });
+
+  test('rectCoversionNested', function() {
+    var object = {
+      args: {
+        nested_field: {
+          a_rect: [1, 2, 3, 4]
+        },
+        non_nested_rect: [1, 2, 3, 4]
+      }
+    };
+    cc.preInitializeObject(object);
+    assertTrue(object.args.nestedField.aRect instanceof base.Rect);
+    assertTrue(object.args.nonNestedRect instanceof base.Rect);
   });
 });

@@ -219,6 +219,7 @@
       'src/cc/raster_task_slice_view.js',
       'src/cc/picture_debugger.js',
       'src/cc/layer_tree_host_impl_view.js',
+      'src/cc/tile_coverage_rect.js',
       'src/cc/tile_view.js',
       'src/cc/selection.js',
     ],
