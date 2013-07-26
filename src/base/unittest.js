@@ -14,12 +14,19 @@ base.exportTo('base.unittest', function() {
   var TestResults = {
     FAILED: 0,
     PASSED: 1,
-    PENDING: 2
+    PENDING: 2,
+    SKIPPED: 3
   };
 
   var showCondensed_ = false;
+  var includePerfTests_ = false;
+
   function showCondensed(val) {
     showCondensed_ = val;
+  }
+
+  function includePerfTests(val) {
+    includePerfTests_ = val;
   }
 
   function logWarningMessage(message) {
@@ -167,6 +174,7 @@ base.exportTo('base.unittest', function() {
     this.duration_ = 0.0;
     this.resultsEl_ = undefined;
 
+    global.setupOnce = function(fn) { this.setupOnceFn_ = fn; }.bind(this);
     global.setup = function(fn) { this.setupFn_ = fn; }.bind(this);
     global.teardown = function(fn) { this.teardownFn_ = fn; }.bind(this);
 
@@ -178,11 +186,21 @@ base.exportTo('base.unittest', function() {
       this.testNames_[name] = true;
     }.bind(this);
 
+    global.perf_test = function(name, testRuns, test) {
+      if (this.testNames_[name] === true)
+        logWarningMessage('Duplicate test name detected: ' + name);
+
+      this.tests_.push(new PerfTest(name, test, testRuns));
+      this.testNames_[name] = true;
+    }.bind(this);
+
     suite.call();
 
+    global.setupOnce = undefined;
     global.setup = undefined;
     global.teardown = undefined;
     global.test = undefined;
+    global.perf_test = undefined;
   }
 
   TestSuite.prototype = {
@@ -241,6 +259,9 @@ base.exportTo('base.unittest', function() {
     runTests: function(testsToRun) {
       this.testsToRun_ = testsToRun;
 
+      if (this.setupOnceFn_ !== undefined)
+        this.setupOnceFn_();
+
       var start = new Date().getTime();
       this.results_ = TestResults.PENDING;
       this.tests_.forEach(function(test) {
@@ -248,32 +269,49 @@ base.exportTo('base.unittest', function() {
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        // Clear settings storage before each test.
-        global.sessionStorage.clear();
-        base.Settings.setAlternativeStorageInstance(global.sessionStorage);
-        base.onAnimationFrameError =
-            testRunner.onAnimationFrameError.bind(testRunner);
+        if (test.isPerfTest && !includePerfTests_) {
+          test.result = TestResults.SKIPPED;
+          return;
+        }
 
-        if (this.setupFn_ !== undefined)
-          this.setupFn_.bind(test).call();
+        for (var testIterationIndex = 0;
+             testIterationIndex < test.testRuns.length;
+             ++testIterationIndex) {
+          var runCount = test.testRuns[testIterationIndex];
 
-        var testWorkAreaEl_ = document.createElement('div');
+          // Clear settings storage before each test.
+          global.sessionStorage.clear();
+          base.Settings.setAlternativeStorageInstance(global.sessionStorage);
+          base.onAnimationFrameError =
+              testRunner.onAnimationFrameError.bind(testRunner);
 
-        this.resultsEl_.appendChild(testWorkAreaEl_);
-        test.run(testWorkAreaEl_);
-        this.resultsEl_.removeChild(testWorkAreaEl_);
+          if (this.setupFn_ !== undefined)
+            this.setupFn_.bind(test).call();
 
-        if (this.teardownFn_ !== undefined)
-          this.teardownFn_.bind(test).call();
+          var testWorkAreaEl_ = document.createElement('div');
 
-        if (test.result === TestResults.FAILED) {
-          this.failures_.push({
-            error: test.failure,
-            test: test.name
-          });
-          this.results_ = TestResults.FAILED;
+          this.resultsEl_.appendChild(testWorkAreaEl_);
+
+          var individualStart = new Date().getTime();
+          for (var c = 0; c < runCount; ++c)
+            test.run(testWorkAreaEl_);
+          test.duration[runCount] = new Date().getTime() - individualStart;
+
+          this.resultsEl_.removeChild(testWorkAreaEl_);
+
+          if (this.teardownFn_ !== undefined)
+            this.teardownFn_.bind(test).call();
+
+          if (test.result === TestResults.FAILED) {
+            this.failures_.push({
+              error: test.failure,
+              test: test.name
+            });
+            this.results_ = TestResults.FAILED;
+          }
         }
       }, this);
+
       if (this.results_ === TestResults.PENDING)
         this.results_ = TestResults.PASSED;
 
@@ -337,39 +375,49 @@ base.exportTo('base.unittest', function() {
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        var testEl = document.createElement('div');
-        testEl.className = 'individual-result';
+        for (var i = 0; i < test.testRuns.length; ++i) {
+          var runCount = test.testRuns[i];
 
-        var link = '/src/tests.html?suite=';
-        link += this.name.replace(/\./g, '/');
-        link += '&test=' + test.name.replace(/\./g, '/');
+          // Construct an individual result div.
+          var testEl = document.createElement('div');
+          testEl.className = 'individual-result';
 
-        var suiteInfo = document.createElement('a');
-        suiteInfo.href = link;
-        suiteInfo.innerText = test.name;
-        testEl.appendChild(suiteInfo);
+          var link = '/src/tests.html?suite=';
+          link += this.name.replace(/\./g, '/');
+          link += '&test=' + test.name.replace(/\./g, '/');
 
-        parent.appendChild(testEl);
+          var suiteInfo = document.createElement('a');
+          suiteInfo.href = link;
+          suiteInfo.innerText = test.name;
+          testEl.appendChild(suiteInfo);
 
-        var resultEl = document.createElement('span');
-        resultEl.classList.add('results');
-        testEl.appendChild(resultEl);
-        if (test.result === TestResults.PASSED) {
-          resultEl.classList.add('passed');
-          resultEl.innerText = 'passed';
-        } else {
-          resultEl.classList.add('failed');
-          resultEl.innerText = 'FAILED';
+          parent.appendChild(testEl);
 
-          var preEl = document.createElement('pre');
-          preEl.className = 'failure';
-          preEl.innerText = test.failure.stack;
-          testEl.appendChild(preEl);
+          var resultEl = document.createElement('span');
+          resultEl.classList.add('results');
+          testEl.appendChild(resultEl);
+          if (test.result === TestResults.PASSED) {
+            resultEl.classList.add('passed');
+            resultEl.innerText = 'passed (' + test.duration[runCount] + 'ms)';
+          } else if (test.result === TestResults.SKIPPED) {
+            resultEl.classList.add('skipped');
+            resultEl.innerText = 'skipped';
+          } else {
+            resultEl.classList.add('failed');
+            resultEl.innerText = 'FAILED';
+
+            var preEl = document.createElement('pre');
+            preEl.className = 'failure';
+            preEl.innerText = test.failure.stack;
+            testEl.appendChild(preEl);
+          }
+
+          if (runCount !== 1)
+            resultEl.innerText += ' (' + runCount + ' runs) ';
+
+          if (test.hasAppendedContent)
+            testEl.appendChild(test.appendedContent);
         }
-
-        if (test.hasAppendedContent)
-          testEl.appendChild(test.appendedContent);
-
       }.bind(this));
 
       return parent;
@@ -383,8 +431,11 @@ base.exportTo('base.unittest', function() {
   function Test(name, test) {
     this.name_ = name;
     this.test_ = test;
+    this.isPerfTest_ = false;
+    this.testRuns_ = [1];
     this.result_ = TestResults.FAILED;
     this.failure_ = undefined;
+    this.duration_ = {};
 
     this.appendedContent_ = undefined;
   }
@@ -411,8 +462,24 @@ base.exportTo('base.unittest', function() {
       return this.name_;
     },
 
+    get isPerfTest() {
+      return this.isPerfTest_;
+    },
+
+    get testRuns() {
+      return this.testRuns_;
+    },
+
     get result() {
       return this.result_;
+    },
+
+    set result(val) {
+      this.result_ = val;
+    },
+
+    get duration() {
+      return this.duration_;
     },
 
     get hasAppendedContent() {
@@ -433,6 +500,16 @@ base.exportTo('base.unittest', function() {
     }
   };
 
+  function PerfTest(name, test, testRuns) {
+    Test.apply(this, arguments);
+    this.isPerfTest_ = true;
+    this.testRuns_ = testRuns;
+  }
+
+  PerfTest.prototype = {
+    __proto__: Test.prototype
+  };
+
   var testRunner;
   function testSuite(name, suite) {
     testRunner.addSuite(new TestSuite(name, suite));
@@ -449,6 +526,7 @@ base.exportTo('base.unittest', function() {
 
   return {
     showCondensed: showCondensed,
+    includePerfTests: includePerfTests,
     testSuite: testSuite,
     runSuites: runSuites,
     Suites: Suites

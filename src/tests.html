@@ -59,7 +59,8 @@ found in the LICENSE file.
 
     function launchTestsIfAvailable() {
       if (base.unittest === undefined ||
-          base.unittest.showCondensed === undefined) {
+          base.unittest.showCondensed === undefined ||
+          base.unittest.includePerfTests === undefined) {
         window.setTimeout(launchTestsIfAvailable, 100);
         return;
       }
@@ -72,6 +73,16 @@ found in the LICENSE file.
         base.unittest.runSuites();
       });
       base.unittest.showCondensed(format.checked);
+
+      var perfTests = document.getElementById('include-perf-tests');
+      perfTests.checked =
+          localStorage.getItem('testing::include-perf-tests') === 'true';
+      perfTests.addEventListener('click', function(ev) {
+        localStorage.setItem('testing::include-perf-tests', ev.target.checked);
+        base.unittest.includePerfTests(ev.target.checked);
+        base.unittest.runSuites();
+      });
+      base.unittest.includePerfTests(perfTests.checked);
 
       launchTests();
     }
@@ -101,7 +112,12 @@ found in the LICENSE file.
       <a href="/src/tracing/record_selection_dialog_interactive_tests.html"
           class="unittest-error-link">Run manually</a>
     </div>
-    short format <input type='checkbox' id='short-format' />
+    <div class="unittest">
+      <input type="checkbox" id="include-perf-tests" /> Include perf tests
+    </div>
+    <div class="unittest">
+      <input type="checkbox" id="short-format" /> Short format
+    </div>
   </div>
 
   <div id='messages'>
