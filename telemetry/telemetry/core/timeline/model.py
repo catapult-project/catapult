@@ -60,6 +60,9 @@ class TimelineModel(object):
     for importer in importers:
       importer.FinalizeImport()
 
+    for process in self.processes.itervalues():
+      process.FinalizeImport()
+
     if shift_world_to_zero:
       self.ShiftWorldToZero()
     self.UpdateBounds()

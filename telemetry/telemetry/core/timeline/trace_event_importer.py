@@ -240,9 +240,6 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
 
-    for process in self._model.processes.itervalues():
-      process.FinalizeImport()
-
   def _CreateAsyncSlices(self):
     if len(self._all_async_events) == 0:
       return
