@@ -98,7 +98,7 @@ class TCMallocHeapProfiler(profiler.Profiler):
   def __init__(self, browser_backend, platform_backend, output_path):
     super(TCMallocHeapProfiler, self).__init__(
         browser_backend, platform_backend, output_path)
-    if self._browser_backend.options.browser_type.startswith('android'):
+    if platform_backend.GetOSName() == 'android':
       self._platform_profiler = _TCMallocHeapProfilerAndroid(
           browser_backend, output_path)
     else:
@@ -110,10 +110,8 @@ class TCMallocHeapProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, options):
-    if (not sys.platform.startswith('linux') or
-        options.browser_type.startswith('cros')):
-      return False
-    return True
+    return (sys.platform.startswith('linux') and
+            not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
     self._platform_profiler.CollectProfile()
