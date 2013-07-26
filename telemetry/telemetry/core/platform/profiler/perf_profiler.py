@@ -34,7 +34,13 @@ class _SingleProcessPerfProfiler(object):
     self._proc.send_signal(signal.SIGINT)
     exit_code = self._proc.wait()
     try:
-      if exit_code not in (0, -2):
+      if exit_code == 128:
+        raise Exception(
+            """perf failed with exit code 128.
+Try rerunning this script under sudo or setting
+/proc/sys/kernel/perf_event_paranoid to "-1".\nOutput:\n%s""" %
+            self._GetStdOut())
+      elif exit_code not in (0, -2):
         raise Exception(
             'perf failed with exit code %d. Output:\n%s' % (exit_code,
                                                             self._GetStdOut()))
