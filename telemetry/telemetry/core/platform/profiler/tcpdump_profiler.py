@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 
+from telemetry.core.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 
 
@@ -98,8 +99,13 @@ class TCPDumpProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, options):
-    return (sys.platform.startswith('linux') and
-            not options.browser_type.startswith('cros'))
+    if options and options.browser_type.startswith('cros'):
+      return False
+    if sys.platform.startswith('linux'):
+      return True
+    if not options:
+      return android_browser_finder.CanFindAvailableBrowsers()
+    return options.browser_type.startswith('android')
 
   def CollectProfile(self):
     self._platform_profiler.CollectProfile()

@@ -69,37 +69,48 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 def SelectDefaultBrowser(_):
   return None
 
+adb_works = None
+def CanFindAvailableBrowsers(logging=real_logging):
+  if not adb_commands.IsAndroidSupported():
+    return False
+
+  global adb_works
+
+  if adb_works == None:
+    try:
+      with open(os.devnull, 'w') as devnull:
+        proc = subprocess.Popen(['adb', 'devices'],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                stdin=devnull)
+        stdout, _ = proc.communicate()
+        if re.search(re.escape('????????????\tno permissions'), stdout) != None:
+          logging.warn(
+              ('adb devices reported a permissions error. Consider '
+               'restarting adb as root:'))
+          logging.warn('  adb kill-server')
+          logging.warn('  sudo `which adb` devices\n\n')
+        adb_works = True
+    except OSError:
+      platform_tools_path = os.path.join(
+          os.path.dirname(__file__), '..', '..', '..', '..', '..'
+          'third_party', 'android_tools', 'sdk', 'platform-tools')
+      if (sys.platform.startswith('linux') and
+          os.path.exists(os.path.join(platform_tools_path, 'adb'))):
+        os.environ['PATH'] = os.pathsep.join([platform_tools_path,
+                                              os.environ['PATH']])
+        adb_works = True
+      else:
+        adb_works = False
+
+  return adb_works
+
 def FindAllAvailableBrowsers(options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""
-  if not adb_commands.IsAndroidSupported():
+  if not CanFindAvailableBrowsers(logging=logging):
+    logging.info('No adb command found. ' +
+                 'Will not try searching for Android browsers.')
     return []
-
-  # See if adb even works.
-  try:
-    with open(os.devnull, 'w') as devnull:
-      proc = subprocess.Popen(['adb', 'devices'],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              stdin=devnull)
-      stdout, _ = proc.communicate()
-      if re.search(re.escape('????????????\tno permissions'), stdout) != None:
-        logging.warn(
-            ('adb devices reported a permissions error. Consider '
-            'restarting adb as root:'))
-        logging.warn('  adb kill-server')
-        logging.warn('  sudo `which adb` devices\n\n')
-  except OSError:
-    platform_tools_path = os.path.join(
-        os.path.dirname(__file__), '..', '..', '..', '..', '..'
-        'third_party', 'android_tools', 'sdk', 'platform-tools')
-    if (sys.platform.startswith('linux') and
-        os.path.exists(os.path.join(platform_tools_path, 'adb'))):
-      os.environ['PATH'] = os.pathsep.join([platform_tools_path,
-                                            os.environ['PATH']])
-    else:
-      logging.info('No adb command found. ' +
-                   'Will not try searching for Android browsers.')
-      return []
 
   device = None
   if options.android_device:

@@ -7,6 +7,7 @@ import subprocess
 import threading
 
 from telemetry.core import util
+from telemetry.core.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 
 class JavaHeapProfiler(profiler.Profiler):
@@ -31,6 +32,8 @@ class JavaHeapProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, options):
+    if not options:
+      return android_browser_finder.CanFindAvailableBrowsers()
     return options.browser_type.startswith('android')
 
   def CollectProfile(self):

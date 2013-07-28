@@ -110,11 +110,14 @@ def SelectDefaultBrowser(possible_browsers):
     return local_builds_by_date[-1]
   return None
 
+def CanFindAvailableBrowsers():
+  return not cros_interface.IsRunningOnCrosDevice()
+
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
   browsers = []
 
-  if cros_interface.IsRunningOnCrosDevice():
+  if not CanFindAvailableBrowsers():
     return []
 
   has_display = True

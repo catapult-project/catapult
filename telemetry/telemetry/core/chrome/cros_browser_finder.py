@@ -51,6 +51,11 @@ def SelectDefaultBrowser(possible_browsers):
         return b
   return None
 
+def CanFindAvailableBrowsers(options):
+  return (cros_interface.IsRunningOnCrosDevice() or
+          options.cros_remote or
+          cros_interface.HasSSH())
+
 def FindAllAvailableBrowsers(options):
   """Finds all available chromeos browsers, locally and remotely."""
   if cros_interface.IsRunningOnCrosDevice():

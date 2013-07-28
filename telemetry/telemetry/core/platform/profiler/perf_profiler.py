@@ -76,9 +76,10 @@ class PerfProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, options):
-    if (sys.platform != 'linux2'
-        or options.browser_type.startswith('android')
-        or options.browser_type.startswith('cros')):
+    if sys.platform != 'linux2':
+      return False
+    if options and (options.browser_type.startswith('android')
+                    or options.browser_type.startswith('cros')):
       return False
     try:
       return not subprocess.Popen(['perf', '--version'],

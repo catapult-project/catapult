@@ -135,11 +135,12 @@ class BrowserOptions(optparse.Values):
 
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
+    profiler_choices = profiler_finder.GetAllAvailableProfilers(None)
     group.add_option(
       '--profiler', default=None, type='choice',
-      choices=profiler_finder.GetAllAvailableProfilers(),
+      choices=profiler_choices,
       help=('Record profiling data using this tool. Supported values: ' +
-            ', '.join(profiler_finder.GetAllAvailableProfilers())))
+            ', '.join(profiler_choices)))
     group.add_option(
       '-v', '--verbose', action='count', dest='verbosity',
       help='Increase verbosity level (repeat as needed)')

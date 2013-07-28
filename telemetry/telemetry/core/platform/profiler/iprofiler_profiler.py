@@ -75,9 +75,12 @@ class IprofilerProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, options):
-    return (sys.platform == 'darwin'
-            and not options.browser_type.startswith('android')
-            and not options.browser_type.startswith('cros'))
+    if sys.platform != 'darwin':
+      return False
+    if not options:
+      return True
+    return (not options.browser_type.startswith('android') and
+            not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
     for single_process in self._process_profilers:
