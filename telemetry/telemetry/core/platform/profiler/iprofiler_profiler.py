@@ -6,13 +6,13 @@ import os
 import signal
 import sys
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.platform import profiler
 
 # pexpect is not available on all platforms so use the third_party version.
 sys.path.append(os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), '..', '..', '..', '..', '..',
-    '..', 'third_party', 'pexpect'))
+    util.GetChromiumSrcDir(), 'third_party', 'pexpect'))
 try:
   import pexpect  # pylint: disable=F0401
 except ImportError:
@@ -38,6 +38,13 @@ class _SingleProcessIprofilerProfiler(object):
           break
         print output
       self._proc.interact(escape_character='\x0d')
+      if 'Failed to authorize rights' in output:
+        raise exceptions.ProfilingException(
+            'Failed to authorize rights for iprofiler\n')
+      if 'iprofiler error' in output:
+        raise exceptions.ProfilingException(
+            'Failed to start iprofiler for process %s\n' %
+            self._output_path.split('.')[1])
       self._proc.write('\x0d')
       print
       def Echo():
@@ -55,6 +62,7 @@ class _SingleProcessIprofilerProfiler(object):
 
     print 'To view the profile, run:'
     print '  open -a Instruments %s.dtps' % self._output_path
+    return self._output_path
 
 
 class IprofilerProfiler(profiler.Profiler):
@@ -65,9 +73,12 @@ class IprofilerProfiler(profiler.Profiler):
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
     for pid, output_file in process_output_file_map.iteritems():
+      if '.utility' in output_file:
+        # The utility process may not have been started by Telemetry.
+        # So we won't have permissing to profile it
+        continue
       self._process_profilers.append(
           _SingleProcessIprofilerProfiler(pid, output_file))
-
 
   @classmethod
   def name(cls):
@@ -83,5 +94,7 @@ class IprofilerProfiler(profiler.Profiler):
             not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
+    output_files = []
     for single_process in self._process_profilers:
-      single_process.CollectProfile()
+      output_files.append(single_process.CollectProfile())
+    return output_files

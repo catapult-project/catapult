@@ -43,11 +43,14 @@ class JavaHeapProfiler(profiler.Profiler):
         self._DEFAULT_DEVICE_DIR, self._output_path)
     self._browser_backend.adb.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
+    output_files = []
     for f in os.listdir(self._output_path):
       if os.path.splitext(f)[1] == '.aprof':
         input_file = os.path.join(self._output_path, f)
         output_file = input_file.replace('.aprof', '.hprof')
         subprocess.call(['hprof-conv', input_file, output_file])
+        output_files.append(output_file)
+    return output_files
 
   def _OnTimer(self):
     self._DumpJavaHeap(False)

@@ -64,6 +64,7 @@ class _TCMallocHeapProfilerAndroid(object):
       with file(os.path.join(self._output_path,
                              'browser.pid'), 'w') as pid_file:
         pid_file.write(str(self._browser_backend.pid).rjust(5, '0'))
+    return [self._output_path]
 
 
 class _TCMallocHeapProfilerLinux(object):
@@ -92,6 +93,7 @@ class _TCMallocHeapProfilerLinux(object):
                            'browser.pid'), 'w') as pid_file:
       pid_file.write(str(self._browser_backend.pid))
     print 'TCMalloc dumps available ', os.environ['HEAPPROFILE']
+    return [os.environ['HEAPPROFILE']]
 
 
 class TCMallocHeapProfiler(profiler.Profiler):
@@ -120,4 +122,4 @@ class TCMallocHeapProfiler(profiler.Profiler):
     return options.browser_type.startswith('android')
 
   def CollectProfile(self):
-    self._platform_profiler.CollectProfile()
+    return self._platform_profiler.CollectProfile()

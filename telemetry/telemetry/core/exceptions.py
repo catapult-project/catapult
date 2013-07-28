@@ -21,3 +21,6 @@ class LoginException(Exception):
 
 class EvaluateException(Exception):
   pass
+
+class ProfilingException(Exception):
+  pass

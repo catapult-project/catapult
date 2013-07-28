@@ -365,7 +365,8 @@ def _RunPage(test, page, tab, expectation, results, options):
       results.AddSuccess(page)
     else:
       results.AddFailure(page, sys.exc_info())
-  except (util.TimeoutException, exceptions.LoginException):
+  except (util.TimeoutException, exceptions.LoginException,
+          exceptions.ProfilingException):
     logging.error('%s:\n%s', page.url, traceback.format_exc())
     results.AddError(page, sys.exc_info())
   except (exceptions.TabCrashException, exceptions.BrowserGoneException):

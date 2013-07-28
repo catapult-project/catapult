@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.platform import profiler
 
@@ -20,7 +21,12 @@ class _SingleProcessSampleProfiler(object):
         ['sample', str(pid), '-mayDie', '-file', self._output_path],
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
     def IsStarted():
-      return 'Sampling process' in self._GetStdOut()
+      stdout = self._GetStdOut()
+      if 'sample cannot examine process' in stdout:
+        raise exceptions.ProfilingException(
+            'Failed to start sample for process %s\n' %
+            self._output_path.split('.')[1])
+      return 'Sampling process' in stdout
     util.WaitFor(IsStarted, 120)
 
   def CollectProfile(self):
@@ -37,6 +43,8 @@ class _SingleProcessSampleProfiler(object):
 
     print 'To view the profile, run:'
     print '  open -a TextEdit %s' % self._output_path
+
+    return self._output_path
 
   def _GetStdOut(self):
     self._tmp_output_file.flush()
@@ -55,6 +63,10 @@ class SampleProfiler(profiler.Profiler):
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
     for pid, output_file in process_output_file_map.iteritems():
+      if '.utility' in output_file:
+        # The utility process may not have been started by Telemetry.
+        # So we won't have permissing to profile it
+        continue
       self._process_profilers.append(
           _SingleProcessSampleProfiler(pid, output_file))
 
@@ -72,5 +84,7 @@ class SampleProfiler(profiler.Profiler):
             not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
+    output_paths = []
     for single_process in self._process_profilers:
-      single_process.CollectProfile()
+      output_paths.append(single_process.CollectProfile())
+    return output_paths

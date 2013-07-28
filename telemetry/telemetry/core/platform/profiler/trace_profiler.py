@@ -37,3 +37,5 @@ class TraceProfiler(profiler.Profiler):
 
     print 'Trace saved as %s' % trace_file
     print 'To view, open in chrome://tracing'
+
+    return [trace_file]
