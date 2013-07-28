@@ -195,7 +195,7 @@ class Browser(object):
   def StartProfiling(self, profiler_name, base_output_file):
     """Starts profiling using |profiler_name|. Results are saved to
     |base_output_file|.<process_name>."""
-    assert not self._active_profilers
+    assert not self._active_profilers, 'Already profiling. Must stop first.'
 
     profiler_class = profiler_finder.FindProfiler(profiler_name)
 
