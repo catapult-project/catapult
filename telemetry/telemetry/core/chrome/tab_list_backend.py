@@ -1,14 +1,11 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import httplib
 import json
-import socket
 import urllib2
 import weakref
 
 from telemetry.core import util
-from telemetry.core import exceptions
 from telemetry.core import tab
 from telemetry.core.chrome import inspector_backend
 
@@ -44,7 +41,8 @@ class TabListBackend(object):
     tab_id = debugger_url.split('/')[-1]
     try:
       response = self._browser_backend.Request('close/%s' % tab_id,
-                                               timeout=timeout)
+                                               timeout=timeout,
+                                               throw_network_exception=True)
     except urllib2.HTTPError:
       raise Exception('Unable to close tab, tab id not found: %s' % tab_id)
     assert response == 'Target is closing'
@@ -62,7 +60,8 @@ class TabListBackend(object):
     tab_id = debugger_url.split('/')[-1]
     try:
       response = self._browser_backend.Request('activate/%s' % tab_id,
-                                               timeout=timeout)
+                                               timeout=timeout,
+                                               throw_network_exception=True)
     except urllib2.HTTPError:
       raise Exception('Unable to activate tab, tab id not found: %s' % tab_id)
     assert response == 'Target activated'
@@ -113,15 +112,10 @@ class TabListBackend(object):
       # TODO: For compatibility with Chrome before r177683.
       # This check is not completely correct, see crbug.com/190592.
       return not context['url'].startswith('chrome-extension://')
-    try:
-      data = self._browser_backend.Request('', timeout=timeout)
-      all_contexts = json.loads(data)
-      tabs = filter(_IsTab, all_contexts)
-      return tabs
-    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
-      if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException()
-      raise exceptions.BrowserConnectionGoneException()
+    data = self._browser_backend.Request('', timeout=timeout)
+    all_contexts = json.loads(data)
+    tabs = filter(_IsTab, all_contexts)
+    return tabs
 
   def _UpdateTabList(self):
     def GetDebuggerUrl(tab_info):

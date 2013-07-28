@@ -1,14 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import httplib
 import json
 import re
-import socket
-import urllib2
 import weakref
 
-from telemetry.core import exceptions
 from telemetry.core import extension_page
 from telemetry.core.chrome import inspector_backend
 
@@ -64,13 +60,8 @@ class ExtensionDictBackend(object):
     return None
 
   def _GetExtensionInfoList(self, timeout=None):
-    try:
-      data = self._browser_backend.Request('', timeout=timeout)
-      return self._FilterExtensions(json.loads(data))
-    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
-      if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException()
-      raise exceptions.BrowserConnectionGoneException()
+    data = self._browser_backend.Request('', timeout=timeout)
+    return self._FilterExtensions(json.loads(data))
 
   def _FilterExtensions(self, all_pages):
     return [page_info for page_info in all_pages

@@ -126,7 +126,8 @@ class BrowserBackend(object):
     def IsBrowserUp():
       try:
         self.Request('', timeout=timeout)
-      except (socket.error, httplib.BadStatusLine, urllib2.URLError):
+      except (exceptions.BrowserGoneException,
+              exceptions.BrowserConnectionGoneException):
         return False
       else:
         return True
@@ -183,12 +184,19 @@ class BrowserBackend(object):
     self._inspector_protocol_version = 1.0
     self._chrome_branch_number = 1025
 
-  def Request(self, path, timeout=None):
+  def Request(self, path, timeout=None, throw_network_exception=False):
     url = 'http://localhost:%i/json' % self._port
     if path:
       url += '/' + path
-    req = urllib2.urlopen(url, timeout=timeout)
-    return req.read()
+    try:
+      req = urllib2.urlopen(url, timeout=timeout)
+      return req.read()
+    except (socket.error, httplib.BadStatusLine, urllib2.URLError) as e:
+      if throw_network_exception:
+        raise e
+      if not self.IsBrowserRunning():
+        raise exceptions.BrowserGoneException()
+      raise exceptions.BrowserConnectionGoneException()
 
   @property
   def chrome_branch_number(self):

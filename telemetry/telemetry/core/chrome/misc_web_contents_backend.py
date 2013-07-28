@@ -1,12 +1,8 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import httplib
 import json
-import socket
-import urllib2
 
-from telemetry.core import exceptions
 from telemetry.core import web_contents
 from telemetry.core.chrome import inspector_backend
 
@@ -31,13 +27,8 @@ class MiscWebContentsBackend(object):
                                               debugger_url)
 
   def _ListWebContents(self, timeout=None):
-    try:
-      data = self._browser_backend.Request('', timeout=timeout)
-      return json.loads(data)
-    except (socket.error, httplib.BadStatusLine, urllib2.URLError):
-      if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException()
-      raise exceptions.BrowserConnectionGoneException()
+    data = self._browser_backend.Request('', timeout=timeout)
+    return json.loads(data)
 
   def _FindWebContentsInfo(self):
     for web_contents_info in self._ListWebContents():
