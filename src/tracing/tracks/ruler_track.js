@@ -276,29 +276,40 @@ base.exportTo('tracing.tracks', function() {
           // Set text positions.
           var textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
           var textRightView = textLeftView + textWidthView;
-          var textDrawn = false;
 
-          if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
-            // Print the display distance text.
+          if (sortedMarkers.length === 2 &&
+              spaceForArrowsAndTextView > distanceBetweenMarkersView) {
+            // Print the display distance text right of the 2 markers.
+            textLeftView = rightMarkerView + 2 * arrowSpacing;
             ctx.fillStyle = displayTextColor;
             ctx.fillText(textToDraw, textLeftView, textPosY);
-            textDrawn = true;
-          }
 
-          if (spaceForArrowsView <= distanceBetweenMarkersView) {
+            // Draw the arrows pointing from outside in and a line in between.
+            this.drawLine_(ctx, leftMarkerView, arrowPosY,
+                rightMarkerView, arrowPosY, arrowColor);
+            this.drawArrow_(ctx, leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
+                leftMarkerView, arrowPosY, arrowWidthView, arrowColor);
+            this.drawArrow_(ctx, rightMarkerView + 1.5 * arrowSpacing,
+                arrowPosY, rightMarkerView, arrowPosY, arrowWidthView,
+                arrowColor);
+          } else if (spaceForArrowsView <= distanceBetweenMarkersView) {
             var leftArrowStart;
             var rightArrowStart;
-            if (textDrawn) {
+            if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
+              // Print the display distance text.
+              ctx.fillStyle = displayTextColor;
+              ctx.fillText(textToDraw, textLeftView, textPosY);
+
               leftArrowStart = textLeftView - arrowSpacing;
               rightArrowStart = textRightView + arrowSpacing;
             } else {
               leftArrowStart = positionInMiddleOfMarkersView;
               rightArrowStart = positionInMiddleOfMarkersView;
             }
-            // Draw left arrow.
+
+            // Draw the arrows pointing inside out.
             this.drawArrow_(ctx, leftArrowStart, arrowPosY,
                 leftMarkerView, arrowPosY, arrowWidthView, arrowColor);
-            // Draw right arrow.
             this.drawArrow_(ctx, rightArrowStart, arrowPosY,
                 rightMarkerView, arrowPosY, arrowWidthView, arrowColor);
           }
