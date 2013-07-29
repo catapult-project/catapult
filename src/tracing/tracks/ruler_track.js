@@ -244,17 +244,17 @@ base.exportTo('tracing.tracks', function() {
         }
 
         for (i = 0; i < sortedMarkers.length - 1; i++) {
-          var rightMarker = sortedMarkers[i + 1];
           var leftMarker = sortedMarkers[i];
+          var rightMarker = sortedMarkers[i + 1];
+          var leftMarkerView = vp.xWorldToView(leftMarker.positionWorld);
+          var rightMarkerView = vp.xWorldToView(rightMarker.positionWorld);
+
           var distanceBetweenMarkers =
               rightMarker.positionWorld - leftMarker.positionWorld;
           var distanceBetweenMarkersView =
               vp.xWorldVectorToView(distanceBetweenMarkers);
-
-          var positionInMiddleOfMarkers = leftMarker.positionWorld +
-                                              distanceBetweenMarkers / 2;
           var positionInMiddleOfMarkersView =
-              vp.xWorldToView(positionInMiddleOfMarkers);
+              leftMarkerView + distanceBetweenMarkersView / 2;
 
           // Determine units.
           if (distanceBetweenMarkers < 100) {
@@ -270,18 +270,12 @@ base.exportTo('tracing.tracks', function() {
               Math.abs((Math.floor(displayDistance * 1000) / 1000));
           var textToDraw = roundedDisplayDistance + ' ' + unit;
           var textWidthView = ctx.measureText(textToDraw).width;
-          var textWidthWorld = vp.xViewVectorToWorld(textWidthView);
           var spaceForArrowsAndTextView = textWidthView +
                                           spaceForArrowsView + arrowSpacing;
 
           // Set text positions.
-          var textLeft = leftMarker.positionWorld +
-              (distanceBetweenMarkers / 2) - (textWidthWorld / 2);
-          var textRight = textLeft + textWidthWorld;
-          var textLeftView = vp.xWorldToView(textLeft);
-          var textRightView = vp.xWorldToView(textRight);
-          var leftMarkerView = vp.xWorldToView(leftMarker.positionWorld);
-          var rightMarkerView = vp.xWorldToView(rightMarker.positionWorld);
+          var textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
+          var textRightView = textLeftView + textWidthView;
           var textDrawn = false;
 
           if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
