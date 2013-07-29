@@ -18,15 +18,27 @@ base.exportTo('base.unittest', function() {
     SKIPPED: 3
   };
 
+  var TestTypes = {
+    NONE: 0,
+    UNITTEST: 1,
+    PERFTEST: 2
+  };
+
   var showCondensed_ = false;
   var includePerfTests_ = false;
+  var testType_ = TestTypes.NONE;
 
   function showCondensed(val) {
     showCondensed_ = val;
   }
 
-  function includePerfTests(val) {
-    includePerfTests_ = val;
+  function testType(val) {
+    if (val === 'unit-test')
+      testType_ = TestTypes.UNITTEST;
+    else if (val === 'perf-test')
+      testType_ = TestTypes.PERFTEST;
+    else
+      testType_ = TestTypes.NONE;
   }
 
   function logWarningMessage(message) {
@@ -111,16 +123,17 @@ base.exportTo('base.unittest', function() {
       }
 
       var suite = this.suites_[idx];
+      if (suite.needsToRun) {
+        suite.showLongResults = (suiteCount === 1);
+        suite.displayInfo();
+        suite.runTests(this.tests_);
 
-      suite.showLongResults = (suiteCount === 1);
-      suite.displayInfo();
-      suite.runTests(this.tests_);
+        this.stats_.duration += suite.duration;
+        this.stats_.tests += suite.testCount;
+        this.stats_.failures += suite.failureCount;
 
-      this.stats_.duration += suite.duration;
-      this.stats_.tests += suite.testCount;
-      this.stats_.failures += suite.failureCount;
-
-      this.updateStats_();
+        this.updateStats_();
+      }
 
       // Give the view time to update.
       window.setTimeout(function() {
@@ -173,6 +186,7 @@ base.exportTo('base.unittest', function() {
     this.showLongResults = false;
     this.duration_ = 0.0;
     this.resultsEl_ = undefined;
+    this.setupOnceRan_ = false;
 
     global.setupOnce = function(fn) { this.setupOnceFn_ = fn; }.bind(this);
     global.setup = function(fn) { this.setupFn_ = fn; }.bind(this);
@@ -230,6 +244,19 @@ base.exportTo('base.unittest', function() {
       return this.duration_;
     },
 
+    get needsToRun() {
+      // If any of the tests match the type, then the suite
+      // needs to run.
+      for (var i = 0; i < this.tests_.length; ++i) {
+        var test = this.tests_[i];
+        if ((test.isPerfTest && testType_ === TestTypes.PERFTEST) ||
+            (!test.isPerfTest && testType_ === TestTypes.UNITTEST)) {
+          return true;
+        }
+      }
+      return false;
+    },
+
     displayInfo: function() {
       this.resultsEl_ = document.createElement('div');
       this.resultsEl_.className = 'test-result';
@@ -259,9 +286,6 @@ base.exportTo('base.unittest', function() {
     runTests: function(testsToRun) {
       this.testsToRun_ = testsToRun;
 
-      if (this.setupOnceFn_ !== undefined)
-        this.setupOnceFn_();
-
       var start = new Date().getTime();
       this.results_ = TestResults.PENDING;
       this.tests_.forEach(function(test) {
@@ -269,9 +293,15 @@ base.exportTo('base.unittest', function() {
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        if (test.isPerfTest && !includePerfTests_) {
+        if ((test.isPerfTest && testType_ !== TestTypes.PERFTEST) ||
+            (!test.isPerfTest && testType_ !== TestTypes.UNITTEST)) {
           test.result = TestResults.SKIPPED;
           return;
+        }
+
+        if (!this.setupOnceRan_ && this.setupOnceFn_ !== undefined) {
+          this.setupOnceFn_();
+          this.setupOnceRan_ = true;
         }
 
         for (var testIterationIndex = 0;
@@ -412,8 +442,11 @@ base.exportTo('base.unittest', function() {
             testEl.appendChild(preEl);
           }
 
-          if (runCount !== 1)
-            resultEl.innerText += ' (' + runCount + ' runs) ';
+          if (runCount !== 1) {
+            var averageTime = test.duration[runCount] / runCount;
+            resultEl.innerText += ' (' + runCount + ' runs, ';
+            resultEl.innerText += 'avg ' + averageTime + 'ms/run)';
+          }
 
           if (test.hasAppendedContent)
             testEl.appendChild(test.appendedContent);
@@ -526,7 +559,7 @@ base.exportTo('base.unittest', function() {
 
   return {
     showCondensed: showCondensed,
-    includePerfTests: includePerfTests,
+    testType: testType,
     testSuite: testSuite,
     runSuites: runSuites,
     Suites: Suites

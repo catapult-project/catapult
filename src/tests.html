@@ -60,7 +60,7 @@ found in the LICENSE file.
     function launchTestsIfAvailable() {
       if (base.unittest === undefined ||
           base.unittest.showCondensed === undefined ||
-          base.unittest.includePerfTests === undefined) {
+          base.unittest.testType === undefined) {
         window.setTimeout(launchTestsIfAvailable, 100);
         return;
       }
@@ -74,16 +74,20 @@ found in the LICENSE file.
       });
       base.unittest.showCondensed(format.checked);
 
-      var perfTests = document.getElementById('include-perf-tests');
-      perfTests.checked =
-          localStorage.getItem('testing::include-perf-tests') === 'true';
-      perfTests.addEventListener('click', function(ev) {
-        localStorage.setItem('testing::include-perf-tests', ev.target.checked);
-        base.unittest.includePerfTests(ev.target.checked);
-        base.unittest.runSuites();
-      });
-      base.unittest.includePerfTests(perfTests.checked);
+      var testTypeInputs = document.getElementsByName('test-type');
+      var testType = localStorage.getItem('testing::test-type');
+      for (var i = 0; i < testTypeInputs.length; ++i) {
+        if (testTypeInputs[i].value === testType)
+          testTypeInputs[i].checked = true;
 
+        testTypeInputs[i].addEventListener('click', function(ev) {
+          localStorage.setItem('testing::test-type', ev.target.value);
+          base.unittest.testType(ev.target.value);
+          base.unittest.runSuites();
+        });
+      }
+
+      base.unittest.testType(testType);
       launchTests();
     }
 
@@ -113,7 +117,14 @@ found in the LICENSE file.
           class="unittest-error-link">Run manually</a>
     </div>
     <div class="unittest">
-      <input type="checkbox" id="include-perf-tests" /> Include perf tests
+      <input type="radio" name="test-type" value="unit-test">
+        Run unit tests
+      </input>
+    </div>
+    <div class="unittest">
+      <input type="radio" name="test-type" value="perf-test">
+        Run perf tests
+      </input>
     </div>
     <div class="unittest">
       <input type="checkbox" id="short-format" /> Short format
