@@ -129,8 +129,8 @@ base.exportTo('cc', function() {
           {
             skp64: this.args.skp64,
             params: {
-              layer_rect: this.args.params.layerRect,
-              opaque_rect: this.args.params.opaqueRect
+              layer_rect: this.args.params.layerRect.toArray(),
+              opaque_rect: this.args.params.opaqueRect.toArray()
             }
           },
           {
