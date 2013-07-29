@@ -14,31 +14,26 @@ base.exportTo('base.unittest', function() {
   var TestResults = {
     FAILED: 0,
     PASSED: 1,
-    PENDING: 2,
-    SKIPPED: 3
+    PENDING: 2
   };
 
   var TestTypes = {
-    NONE: 0,
-    UNITTEST: 1,
-    PERFTEST: 2
+    UNITTEST: 0,
+    PERFTEST: 1
   };
 
   var showCondensed_ = false;
-  var includePerfTests_ = false;
-  var testType_ = TestTypes.NONE;
+  var testType_ = TestTypes.UNITTEST;
 
   function showCondensed(val) {
     showCondensed_ = val;
   }
 
   function testType(val) {
-    if (val === 'unit-test')
-      testType_ = TestTypes.UNITTEST;
-    else if (val === 'perf-test')
+    if (val === 'perf-test')
       testType_ = TestTypes.PERFTEST;
     else
-      testType_ = TestTypes.NONE;
+      testType_ = TestTypes.UNITTEST;
   }
 
   function logWarningMessage(message) {
@@ -70,10 +65,6 @@ base.exportTo('base.unittest', function() {
   TestRunner.prototype = {
     __proto__: Object.prototype,
 
-    loadSuites: function() {
-      this.loadSuiteFiles();
-    },
-
     run: function() {
       this.clear_(document.querySelector('#test-results'));
       this.clear_(document.querySelector('#exception-list'));
@@ -89,21 +80,10 @@ base.exportTo('base.unittest', function() {
 
       this.suites_.push(suite);
       this.suiteNames_[suite.name] = true;
-
-      // This assumes one test suite per file.
-      if (this.suites_.length === this.suitePaths_.length)
-        this.run();
     },
 
-    loadSuiteFiles: function() {
-      var modules = [];
-      this.suitePaths_.forEach(function(path) {
-        var moduleName = path.slice(5, path.length - 3);
-        moduleName = moduleName.replace(/\//g, '.');
-        modules.push(moduleName);
-      });
-
-      base.require(modules);
+    get suiteCount() {
+      return this.suites_.length;
     },
 
     clear_: function(el) {
@@ -123,17 +103,15 @@ base.exportTo('base.unittest', function() {
       }
 
       var suite = this.suites_[idx];
-      if (suite.needsToRun) {
-        suite.showLongResults = (suiteCount === 1);
-        suite.displayInfo();
-        suite.runTests(this.tests_);
+      suite.showLongResults = (suiteCount === 1);
+      suite.displayInfo();
+      suite.runTests(this.tests_);
 
-        this.stats_.duration += suite.duration;
-        this.stats_.tests += suite.testCount;
-        this.stats_.failures += suite.failureCount;
+      this.stats_.duration += suite.duration;
+      this.stats_.tests += suite.testCount;
+      this.stats_.failures += suite.failureCount;
 
-        this.updateStats_();
-      }
+      this.updateStats_();
 
       // Give the view time to update.
       window.setTimeout(function() {
@@ -200,7 +178,7 @@ base.exportTo('base.unittest', function() {
       this.testNames_[name] = true;
     }.bind(this);
 
-    global.perf_test = function(name, testRuns, test) {
+    global.perfTest = function(name, testRuns, test) {
       if (this.testNames_[name] === true)
         logWarningMessage('Duplicate test name detected: ' + name);
 
@@ -244,19 +222,6 @@ base.exportTo('base.unittest', function() {
       return this.duration_;
     },
 
-    get needsToRun() {
-      // If any of the tests match the type, then the suite
-      // needs to run.
-      for (var i = 0; i < this.tests_.length; ++i) {
-        var test = this.tests_[i];
-        if ((test.isPerfTest && testType_ === TestTypes.PERFTEST) ||
-            (!test.isPerfTest && testType_ === TestTypes.UNITTEST)) {
-          return true;
-        }
-      }
-      return false;
-    },
-
     displayInfo: function() {
       this.resultsEl_ = document.createElement('div');
       this.resultsEl_.className = 'test-result';
@@ -293,12 +258,6 @@ base.exportTo('base.unittest', function() {
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        if ((test.isPerfTest && testType_ !== TestTypes.PERFTEST) ||
-            (!test.isPerfTest && testType_ !== TestTypes.UNITTEST)) {
-          test.result = TestResults.SKIPPED;
-          return;
-        }
-
         if (!this.setupOnceRan_ && this.setupOnceFn_ !== undefined) {
           this.setupOnceFn_();
           this.setupOnceRan_ = true;
@@ -313,7 +272,8 @@ base.exportTo('base.unittest', function() {
           global.sessionStorage.clear();
           base.Settings.setAlternativeStorageInstance(global.sessionStorage);
           base.onAnimationFrameError =
-              testRunner.onAnimationFrameError.bind(testRunner);
+              testRunners[testType_].onAnimationFrameError.bind(
+                  testRunners[testType_]);
 
           if (this.setupFn_ !== undefined)
             this.setupFn_.bind(test).call();
@@ -429,9 +389,6 @@ base.exportTo('base.unittest', function() {
           if (test.result === TestResults.PASSED) {
             resultEl.classList.add('passed');
             resultEl.innerText = 'passed (' + test.duration[runCount] + 'ms)';
-          } else if (test.result === TestResults.SKIPPED) {
-            resultEl.classList.add('skipped');
-            resultEl.innerText = 'skipped';
           } else {
             resultEl.classList.add('failed');
             resultEl.innerText = 'FAILED';
@@ -543,24 +500,51 @@ base.exportTo('base.unittest', function() {
     __proto__: Test.prototype
   };
 
-  var testRunner;
+  var testRunners = {};
+  var totalSuiteCount_ = 0;
+
+  function allSuitesLoaded_() {
+    return (testRunners[TestTypes.UNITTEST].suiteCount +
+        testRunners[TestTypes.PERFTEST].suiteCount) >= totalSuiteCount_;
+  }
+
   function testSuite(name, suite) {
-    testRunner.addSuite(new TestSuite(name, suite));
+    testRunners[TestTypes.UNITTEST].addSuite(new TestSuite(name, suite));
+    if (allSuitesLoaded_())
+      runSuites();
+  }
+
+  function perfTestSuite(name, suite) {
+    testRunners[TestTypes.PERFTEST].addSuite(new TestSuite(name, suite));
+    if (allSuitesLoaded_())
+      runSuites();
   }
 
   function Suites(suitePaths, tests) {
-    testRunner = new TestRunner(suitePaths, tests);
-    testRunner.loadSuites();
+    // Assume one suite per file.
+    totalSuiteCount_ = suitePaths.length;
+
+    testRunners[TestTypes.UNITTEST] = new TestRunner(tests);
+    testRunners[TestTypes.PERFTEST] = new TestRunner(tests);
+
+    var modules = [];
+    suitePaths.forEach(function(path) {
+      var moduleName = path.slice(5, path.length - 3);
+      moduleName = moduleName.replace(/\//g, '.');
+      modules.push(moduleName);
+    });
+    base.require(modules);
   }
 
   function runSuites() {
-    testRunner.run();
+    testRunners[testType_].run();
   }
 
   return {
     showCondensed: showCondensed,
     testType: testType,
     testSuite: testSuite,
+    perfTestSuite: perfTestSuite,
     runSuites: runSuites,
     Suites: Suites
   };

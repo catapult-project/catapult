@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.trace_event_importer');
 
-base.unittest.testSuite('tracing.importer.trace_event_importer_perf', function() { // @suppress longLineCheck
+base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf', function() { // @suppress longLineCheck
   var eventStrings = {};
 
   function getSynchronous(url) {
@@ -31,13 +31,13 @@ base.unittest.testSuite('tracing.importer.trace_event_importer_perf', function()
       eventStrings[urls[i]] = getSynchronous(urls[i]);
   });
 
-  perf_test('simple_trace', [1, 10, 100], function() {
+  perfTest('simple_trace', [1, 10, 100], function() {
     var events = getEvents('../test_data/simple_trace.json');
     var m = new tracing.TraceModel();
     m.importTraces([events], false, false);
   });
 
-  perf_test('lthi_cats', [1, 10], function() {
+  perfTest('lthi_cats', [1, 10], function() {
     var events = getEvents('../test_data/lthi_cats.json');
     var m = new tracing.TraceModel();
     m.importTraces([events], false, false);

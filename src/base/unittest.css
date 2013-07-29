@@ -89,10 +89,6 @@ span.results {
   color: darkgreen;
 }
 
-.skipped {
-  color: darkgoldenrod;
-}
-
 .failed {
   color: darkred;
   font-weight: bold;
