@@ -53,17 +53,18 @@ base.exportTo('tracing.tracks', function() {
         this.classList.add('ruler-track-with-distance-measurements');
     },
 
-    drawLine_: function(ctx, x1, y1, x2, y2, color) {
+    drawLine_: function(ctx, x1, y1, x2, y2) {
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
-      ctx.closePath();
-      ctx.strokeStyle = color;
       ctx.stroke();
     },
 
     drawArrow_: function(ctx, x1, y1, x2, y2, arrowWidth, color) {
-      this.drawLine_(ctx, x1, y1, x2, y2, color);
+      ctx.save();
+
+      ctx.strokeStyle = color;
+      this.drawLine_(ctx, x1, y1, x2, y2);
 
       var dx = x2 - x1;
       var dy = y2 - y1;
@@ -84,6 +85,8 @@ base.exportTo('tracing.tracks', function() {
       ctx.lineTo(bx + ax, by + ay);
       ctx.closePath();
       ctx.fill();
+
+      ctx.restore();
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
@@ -154,7 +157,7 @@ base.exportTo('tracing.tracks', function() {
           Math.floor(viewLWorld / majorMarkDistanceWorld) *
               majorMarkDistanceWorld;
 
-      var minorTickH = Math.floor(height * 0.25);
+      var minorTickH = Math.floor(rulerHeight * 0.25);
 
       ctx.fillStyle = 'rgb(0, 0, 0)';
       ctx.strokeStyle = 'rgb(0, 0, 0)';
@@ -202,12 +205,13 @@ base.exportTo('tracing.tracks', function() {
         ctx.stroke();
       }
       // Draw bottom bar.
-      ctx.moveTo(0, rulerHeight);
-      ctx.lineTo(width, rulerHeight);
-      ctx.stroke();
+      this.drawLine_(ctx, 0, height, width, height);
 
       // Give distance between directly adjacent markers.
       if (measurements) {
+        // Draw middle bar.
+        this.drawLine_(ctx, 0, rulerHeight, width, rulerHeight);
+
         // Obtain a sorted array of markers
         var sortedMarkers = vp.markers.slice();
         sortedMarkers.sort(function(a, b) {
@@ -285,8 +289,9 @@ base.exportTo('tracing.tracks', function() {
             ctx.fillText(textToDraw, textLeftView, textPosY);
 
             // Draw the arrows pointing from outside in and a line in between.
-            this.drawLine_(ctx, leftMarkerView, arrowPosY,
-                rightMarkerView, arrowPosY, arrowColor);
+            ctx.strokeStyle = arrowColor;
+            this.drawLine_(ctx, leftMarkerView, arrowPosY, rightMarkerView,
+                arrowPosY);
             this.drawArrow_(ctx, leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
                 leftMarkerView, arrowPosY, arrowWidthView, arrowColor);
             this.drawArrow_(ctx, rightMarkerView + 1.5 * arrowSpacing,
@@ -314,10 +319,6 @@ base.exportTo('tracing.tracks', function() {
                 rightMarkerView, arrowPosY, arrowWidthView, arrowColor);
           }
         }
-        // Draw bottom bar.
-        ctx.moveTo(0, rulerHeight * 2.5);
-        ctx.lineTo(width, rulerHeight * 2.5);
-        ctx.stroke();
       }
     },
 
