@@ -105,7 +105,7 @@ base.exportTo('tracing.tracks', function() {
       var measurements = this.classList.contains(
           'ruler-track-with-distance-measurements');
 
-      var rulerHeight = measurements ? height / 2 : height;
+      var rulerHeight = measurements ? height * 2 / 5 : height;
 
       var vp = this.viewport;
       vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
@@ -217,19 +217,21 @@ base.exportTo('tracing.tracks', function() {
         // Distance Variables.
         var displayDistance;
         var displayTextColor = 'rgb(0,0,0)';
-        var measurementsPosY = rulerHeight + 2;
 
         // Arrow Variables.
         var arrowSpacing = 10;
         var arrowColor = 'rgb(128,121,121)';
-        var arrowPosY = measurementsPosY + 4;
+        var arrowPosY = rulerHeight * 1.75;
         var arrowWidthView = 3;
         var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
 
-        // If there is only on marker, draw it's timestamp next to the line.
+        ctx.textBaseline = 'middle';
+        ctx.font = (14 * pixelRatio) + 'px sans-serif';
+        var textPosY = arrowPosY;
+
+        // If there is only one marker, draw it's timestamp next to the line.
         if (sortedMarkers.length === 1) {
           var markerWorld = sortedMarkers[0].positionWorld;
-          var textPosY = rulerHeight + pixelRatio * 2;
           var textLeftView =
               vp.xWorldToView(markerWorld) + 4 * pixelRatio;
 
@@ -276,7 +278,6 @@ base.exportTo('tracing.tracks', function() {
           var textLeft = leftMarker.positionWorld +
               (distanceBetweenMarkers / 2) - (textWidthWorld / 2);
           var textRight = textLeft + textWidthWorld;
-          var textPosY = measurementsPosY;
           var textLeftView = vp.xWorldToView(textLeft);
           var textRightView = vp.xWorldToView(textRight);
           var leftMarkerView = vp.xWorldToView(leftMarker.positionWorld);
@@ -309,8 +310,8 @@ base.exportTo('tracing.tracks', function() {
           }
         }
         // Draw bottom bar.
-        ctx.moveTo(0, rulerHeight * 2);
-        ctx.lineTo(width, rulerHeight * 2);
+        ctx.moveTo(0, rulerHeight * 2.5);
+        ctx.lineTo(width, rulerHeight * 2.5);
         ctx.stroke();
       }
     },
