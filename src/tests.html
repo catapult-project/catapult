@@ -76,6 +76,11 @@ found in the LICENSE file.
 
       var testTypeInputs = document.getElementsByName('test-type');
       var testType = localStorage.getItem('testing::test-type');
+      if (!testType) {
+        testType = 'unit-test';
+        localStorage.setItem('testing::test-type', 'unit-test');
+      }
+
       for (var i = 0; i < testTypeInputs.length; ++i) {
         if (testTypeInputs[i].value === testType)
           testTypeInputs[i].checked = true;
