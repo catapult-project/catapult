@@ -77,30 +77,22 @@ base.exportTo('tracing.tracks', function() {
 
     drawTrack: function(type) {
       var ctx = this.context();
-      if (ctx === undefined)
-        return;
 
-      ctx.save();
-      var worldBounds = this.setupCanvasForDraw_();
-      this.draw(type, worldBounds.left, worldBounds.right);
-      ctx.restore();
-    },
-
-    draw: function(type, viewLWorld, viewRWorld) {
-    },
-
-    setupCanvasForDraw_: function() {
-      var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
       var bounds = this.getBoundingClientRect();
       var canvasBounds = ctx.canvas.getBoundingClientRect();
 
+      ctx.save();
       ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
       var viewLWorld = this.viewport.xViewToWorld(0);
       var viewRWorld = this.viewport.xViewToWorld(bounds.width * pixelRatio);
 
-      return {left: viewLWorld, right: viewRWorld};
+      this.draw(type, viewLWorld, viewRWorld);
+      ctx.restore();
+    },
+
+    draw: function(type, viewLWorld, viewRWorld) {
     },
 
     /**
@@ -131,55 +123,6 @@ base.exportTo('tracing.tracks', function() {
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
-    },
-
-    drawEvents_: function(events, viewLWorld, viewRWorld) {
-      var ctx = this.context();
-      var pixelRatio = window.devicePixelRatio || 1;
-
-      var bounds = this.getBoundingClientRect();
-      var height = bounds.height * pixelRatio;
-
-      // Culling parameters.
-      var vp = this.viewport;
-      var pixWidth = vp.xViewVectorToWorld(1);
-
-      var palette = tracing.getColorPalette();
-
-      // Begin rendering in world space.
-      ctx.save();
-      vp.applyTransformToCanvas(ctx);
-
-      var tr = new tracing.FastRectRenderer(ctx, 2 * pixWidth, 2 * pixWidth,
-                                            palette);
-      tr.setYandH(0, height);
-
-      var lowEvent = base.findLowIndexInSortedArray(
-          events,
-          function(event) { return event.start + event.duration; },
-          viewLWorld);
-
-      for (var i = lowEvent; i < events.length; ++i) {
-        var event = events[i];
-        var x = event.start;
-        if (x > viewRWorld)
-          break;
-
-        var w = pixWidth;
-        if (event.duration > 0) {
-          w = Math.max(event.duration, 0.001);
-          if (w < pixWidth)
-            w = pixWidth;
-        }
-
-        var colorId = event.selected ?
-            event.colorId + highlightIdBoost :
-            event.colorId;
-
-        tr.fillRect(x, w, colorId);
-      }
-      tr.flush();
-      ctx.restore();
     }
   };
 

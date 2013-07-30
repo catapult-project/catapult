@@ -201,6 +201,8 @@
       'src/tracing/importer/trace_event_importer.js',
       'src/tracing/timeline_track_view.js',
       'src/tracing/selection.js',
+      'src/tracing/draw_helpers.js',
+      'src/tracing/elided_cache.js',
       'src/tcmalloc.js',
       'src/cc/picture.js',
       'src/cc/picture_as_image_data.js',

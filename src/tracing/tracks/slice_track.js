@@ -10,6 +10,7 @@ base.require('base.sorted_array_utils');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.fast_rect_renderer');
 base.require('tracing.color_scheme');
+base.require('tracing.draw_helpers');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
@@ -29,19 +30,9 @@ base.exportTo('tracing.tracks', function() {
 
     __proto__: tracing.tracks.HeadingTrack.prototype,
 
-    /**
-     * Should we elide text on trace labels?
-     * Without eliding, text that is too wide isn't drawn at all.
-     * Disable if you feel this causes a performance problem.
-     * This is a default value that can be overridden in tracks for testing.
-     * @const
-     */
-    SHOULD_ELIDE_TEXT: true,
-
     decorate: function(viewport) {
       tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('slice-track');
-      this.elidedTitleCache = new ElidedTitleCache();
       this.asyncStyle_ = false;
       this.slices_ = null;
     },
@@ -74,14 +65,6 @@ base.exportTo('tracing.tracks', function() {
       return this.slices.length > 0;
     },
 
-    labelWidth: function(title) {
-      return quickMeasureText(this.context(), title) + 2;
-    },
-
-    labelWidthWorld: function(title, pixWidth) {
-      return this.labelWidth(title) * pixWidth;
-    },
-
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tracing.tracks.DrawType.SLICE:
@@ -92,71 +75,30 @@ base.exportTo('tracing.tracks', function() {
 
     drawSlices_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
-      var pixelRatio = window.devicePixelRatio || 1;
 
-      var bounds = this.getBoundingClientRect();
-      var height = bounds.height * pixelRatio;
-
-      // Culling parameters.
-      var vp = this.viewport;
-      var pixWidth = vp.xViewVectorToWorld(1);
-
-      // Begin rendering in world space.
       ctx.save();
       if (this.asyncStyle_)
         ctx.globalAlpha = 0.25;
 
-      var slices = this.slices_;
-      this.drawEvents_(slices, viewLWorld, viewRWorld);
+      var bounds = this.getBoundingClientRect();
+      tracing.drawSlices(
+          ctx,
+          this.viewport,
+          viewLWorld,
+          viewRWorld,
+          bounds.height,
+          this.slices_);
       ctx.restore();
 
-      if (height <= 8)
+      if (bounds.height <= 8)
         return;
 
-      // Labels.
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.font = (10 * pixelRatio) + 'px sans-serif';
-      ctx.strokeStyle = 'rgb(0,0,0)';
-      ctx.fillStyle = 'rgb(0,0,0)';
-
-      var lowSlice = base.findLowIndexInSortedArray(
-          slices,
-          function(event) { return event.start + event.duration; },
-          viewLWorld);
-
-      // Don't render text until until it is 20px wide
-      var quickDiscardThresshold = pixWidth * 20;
-      var shouldElide = this.SHOULD_ELIDE_TEXT;
-      for (var i = lowSlice; i < slices.length; ++i) {
-        var slice = slices[i];
-        if (slice.start > viewRWorld)
-          break;
-
-        if (slice.duration <= quickDiscardThresshold)
-          continue;
-
-        var title = slice.title +
-            (slice.didNotFinish ? ' (Did Not Finish)' : '');
-
-        var drawnTitle = title;
-        var drawnWidth = this.labelWidth(drawnTitle);
-        if (shouldElide &&
-            this.labelWidthWorld(drawnTitle, pixWidth) > slice.duration) {
-          var elidedValues = this.elidedTitleCache.get(
-              this, pixWidth,
-              drawnTitle, drawnWidth,
-              slice.duration);
-          drawnTitle = elidedValues.string;
-          drawnWidth = elidedValues.width;
-        }
-
-        if (drawnWidth * pixWidth < slice.duration) {
-
-          var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
-          ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
-        }
-      }
+      tracing.drawLabels(
+          ctx,
+          this.viewport,
+          viewLWorld,
+          viewRWorld,
+          this.slices_);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
@@ -225,90 +167,6 @@ base.exportTo('tracing.tracks', function() {
       }
     }
   };
-
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
-
-  // TODO(jrg): possibly obsoleted with the elided string cache.
-  // Consider removing.
-  var textWidthMap = { };
-  function quickMeasureText(ctx, text) {
-    var w = textWidthMap[text];
-    if (!w) {
-      w = ctx.measureText(text).width;
-      textWidthMap[text] = w;
-    }
-    return w;
-  }
-
-  /**
-   * Cache for elided strings.
-   * Moved from the ElidedTitleCache protoype to a "global" for speed
-   * (variable reference is 100x faster).
-   *   key: String we wish to elide.
-   *   value: Another dict whose key is width
-   *     and value is an ElidedStringWidthPair.
-   */
-  var elidedTitleCacheDict = {};
-
-  /**
-   * A cache for elided strings.
-   * @constructor
-   */
-  function ElidedTitleCache() {
-  }
-
-  ElidedTitleCache.prototype = {
-    /**
-     * Return elided text.
-     * @param {track} A slice track or other object that defines
-     *                functions labelWidth() and labelWidthWorld().
-     * @param {pixWidth} Pixel width.
-     * @param {title} Original title text.
-     * @param {width} Drawn width in world coords.
-     * @param {sliceDuration} Where the title must fit (in world coords).
-     * @return {ElidedStringWidthPair} Elided string and width.
-     */
-    get: function(track, pixWidth, title, width, sliceDuration) {
-      var elidedDict = elidedTitleCacheDict[title];
-      if (!elidedDict) {
-        elidedDict = {};
-        elidedTitleCacheDict[title] = elidedDict;
-      }
-      var elidedDictForPixWidth = elidedDict[pixWidth];
-      if (!elidedDictForPixWidth) {
-        elidedDict[pixWidth] = {};
-        elidedDictForPixWidth = elidedDict[pixWidth];
-      }
-      var stringWidthPair = elidedDictForPixWidth[sliceDuration];
-      if (stringWidthPair === undefined) {
-        var newtitle = title;
-        var elided = false;
-        while (track.labelWidthWorld(newtitle, pixWidth) > sliceDuration) {
-          if (newtitle.length * 0.75 < 1)
-            break;
-          newtitle = newtitle.substring(0, newtitle.length * 0.75);
-          elided = true;
-        }
-        if (elided && newtitle.length > 3)
-          newtitle = newtitle.substring(0, newtitle.length - 3) + '...';
-        stringWidthPair = new ElidedStringWidthPair(
-            newtitle,
-            track.labelWidth(newtitle));
-        elidedDictForPixWidth[sliceDuration] = stringWidthPair;
-      }
-      return stringWidthPair;
-    }
-  };
-
-  /**
-   * A pair representing an elided string and world-coordinate width
-   * to draw it.
-   * @constructor
-   */
-  function ElidedStringWidthPair(string, width) {
-    this.string = string;
-    this.width = width;
-  }
 
   return {
     SliceTrack: SliceTrack

@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('tracing.tracks.process_track_base');
+base.require('tracing.draw_helpers');
 
 base.exportTo('tracing.tracks', function() {
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
@@ -29,16 +30,28 @@ base.exportTo('tracing.tracks', function() {
             break;
 
           var ctx = this.context();
-          if (ctx === undefined)
-            break;
+
+          var pixelRatio = window.devicePixelRatio || 1;
+          var bounds = this.getBoundingClientRect();
+          var canvasBounds = ctx.canvas.getBoundingClientRect();
 
           ctx.save();
-          var worldBounds = this.setupCanvasForDraw_();
-          this.drawEvents_(
-              this.processBase.instantEvents,
-              worldBounds.left,
-              worldBounds.right);
+          ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
+
+          var viewLWorld = this.viewport.xViewToWorld(0);
+          var viewRWorld = this.viewport.xViewToWorld(
+              bounds.width * pixelRatio);
+
+          tracing.drawSlices(
+              ctx,
+              this.viewport,
+              viewLWorld,
+              viewRWorld,
+              bounds.height,
+              this.processBase.instantEvents);
+
           ctx.restore();
+
           break;
 
         case tracing.tracks.DrawType.BACKGROUND:
@@ -53,14 +66,11 @@ base.exportTo('tracing.tracks', function() {
 
     drawBackground_: function() {
       var ctx = this.context();
-      if (ctx === undefined)
-        return;
-
-      ctx.save();
-      ctx.fillStyle = '#eee';
-
       var canvasBounds = ctx.canvas.getBoundingClientRect();
+      var pixelRatio = window.devicePixelRatio || 1;
+
       var draw = false;
+      ctx.fillStyle = '#eee';
       for (var i = 0; i < this.children.length; ++i) {
         if (!(this.children[i] instanceof tracing.tracks.Track) ||
             (this.children[i] instanceof tracing.tracks.SpacingTrack))
@@ -70,15 +80,10 @@ base.exportTo('tracing.tracks', function() {
         if (!draw)
           continue;
 
-        var pixelRatio = window.devicePixelRatio || 1;
-
         var bounds = this.children[i].getBoundingClientRect();
-        ctx.fillRect(0,
-                     (bounds.top - canvasBounds.top) * pixelRatio,
-                     ctx.canvas.width * pixelRatio,
-                     bounds.height * pixelRatio);
+        ctx.fillRect(0, pixelRatio * (bounds.top - canvasBounds.top),
+            ctx.canvas.width, pixelRatio * bounds.height);
       }
-      ctx.restore();
     },
 
     // Process maps to processBase because we derive from ProcessTrackBase.

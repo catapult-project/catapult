@@ -10,7 +10,7 @@ base.require('base.measuring_stick');
 base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.kernel_track');
 base.require('tracing.tracks.process_track');
-
+base.require('tracing.draw_helpers');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
@@ -92,18 +92,21 @@ base.exportTo('tracing.tracks', function() {
     },
 
     drawTrack: function(type) {
+      var ctx = this.context();
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.getBoundingClientRect();
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+
+      ctx.save();
+      ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
+
+      var viewLWorld = this.viewport.xViewToWorld(0);
+      var viewRWorld = this.viewport.xViewToWorld(bounds.width * pixelRatio);
+
       switch (type) {
         case tracing.tracks.DrawType.GRID:
-          var ctx = this.context();
-          if (ctx === undefined)
-            break;
-
-          ctx.save();
-
-          var worldBounds = this.setupCanvasForDraw_();
-          this.viewport.drawGrid(ctx, worldBounds.left, worldBounds.right);
-          ctx.restore();
-
+          this.viewport.drawMarkLines(ctx);
           // The model is the only thing that draws grid lines.
           return;
 
@@ -112,17 +115,17 @@ base.exportTo('tracing.tracks', function() {
               this.model_.instantEvents.length === 0)
             break;
 
-          var ctx = this.context();
-          if (ctx === undefined)
-            break;
+          tracing.drawSlices(
+              ctx,
+              this.viewport,
+              viewLWorld,
+              viewRWorld,
+              bounds.height,
+              this.model_.instantEvents);
 
-          ctx.save();
-          var worldBounds = this.setupCanvasForDraw_();
-          this.drawEvents_(
-              this.model_.instantEvents, worldBounds.left, worldBounds.right);
-          ctx.restore();
           break;
       }
+      ctx.restore();
 
       tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },

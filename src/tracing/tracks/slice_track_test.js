@@ -7,6 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.slice');
 base.require('tracing.timeline_track_view');
+base.require('tracing.draw_helpers');
 base.require('ui.dom_helpers');
 
 base.unittest.testSuite('tracing.tracks.slice_track', function() {
@@ -188,15 +189,29 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var pixWidth = track.viewport.xViewVectorToWorld(1);
 
     // Small titles on big slices are not elided.
-    stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
-        track.labelWidth(smalltitle), 1);
+    stringWidthPair =
+        tracing.elidedTitleCache_.get(
+            track.context(),
+            pixWidth,
+            smalltitle,
+            tracing.elidedTitleCache_.labelWidth(
+                track.context(),
+                smalltitle),
+            1);
     assertEquals(smalltitle, stringWidthPair.string);
 
     // Keep shrinking the slice until eliding starts.
     var elidedWhenSmallEnough = false;
     for (var sliceLength = 1; sliceLength >= 0.00001; sliceLength /= 2.0) {
-      stringWidthPair = track.elidedTitleCache.get(track, pixWidth, smalltitle,
-          track.labelWidth(smalltitle), sliceLength);
+      stringWidthPair =
+          tracing.elidedTitleCache_.get(
+              track.context(),
+              pixWidth,
+              smalltitle,
+              tracing.elidedTitleCache_.labelWidth(
+                  track.context(),
+                  smalltitle),
+              sliceLength);
       if (stringWidthPair.string.length < smalltitle.length) {
         elidedWhenSmallEnough = true;
         break;
@@ -209,8 +224,15 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     for (var x = 0; x < 10; x++) {
       superBigTitle += bigtitle;
     }
-    stringWidthPair = track.elidedTitleCache.get(track, pixWidth,
-        superBigTitle, track.labelWidth(superBigTitle), 1);
+    stringWidthPair =
+        tracing.elidedTitleCache_.get(
+            track.context(),
+            pixWidth,
+            superBigTitle,
+            tracing.elidedTitleCache_.labelWidth(
+                track.context(),
+                superBigTitle),
+            1);
     assertTrue(stringWidthPair.string.length < superBigTitle.length);
 
     // And elided text ends with ...

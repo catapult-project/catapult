@@ -8,6 +8,7 @@
  * @fileoverview Code for the viewport.
  */
 base.require('base.events');
+base.require('tracing.draw_helpers');
 
 base.exportTo('tracing', function() {
 
@@ -319,7 +320,7 @@ base.exportTo('tracing', function() {
       return undefined;
     },
 
-    drawGrid: function(ctx, viewLWorld, viewRWorld) {
+    drawMarkLines: function(ctx) {
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
@@ -328,8 +329,7 @@ base.exportTo('tracing', function() {
       ctx.beginPath();
       for (var idx in this.majorMarkPositions) {
         var x = Math.floor(this.majorMarkPositions[idx]);
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, ctx.canvas.height);
+        tracing.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
@@ -354,12 +354,12 @@ base.exportTo('tracing', function() {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
           var vx = Math.floor(this.xWorldToView(x));
-          ctx.moveTo(vx, 0);
-          ctx.lineTo(vx, ctx.canvas.height);
+          tracing.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
+
         x += this.gridStep;
       }
-      ctx.strokeStyle = 'rgba(255,0,0,0.25)';
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.25)';
       ctx.stroke();
 
       ctx.restore();
@@ -367,13 +367,16 @@ base.exportTo('tracing', function() {
 
     drawMarkerArrows: function(ctx, viewLWorld, viewRWorld, drawHeight) {
       for (var i = 0; i < this.markers.length; ++i) {
-        this.markers[i].drawTriangle_(ctx, viewLWorld, viewRWorld,
-                                      ctx.canvas.height, drawHeight, this);
+        var marker = this.markers[i];
+        var ts = marker.positionWorld;
+        if (ts < viewLWorld || ts > viewRWorld)
+          continue;
+        marker.drawArrow(ctx, drawHeight);
       }
     },
 
     drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
-      // Dim the area left and right of the markers if there are 2.
+      // Dim the area left and right of the markers if there are 2 markers.
       if (this.markers.length === 2) {
         var posWorld0 = this.markers[0].positionWorld;
         var posWorld1 = this.markers[1].positionWorld;
@@ -383,26 +386,30 @@ base.exportTo('tracing', function() {
 
         var markerLView = this.xWorldToView(markerLWorld);
         var markerRView = this.xWorldToView(markerRWorld);
-        var viewL = this.xWorldToView(viewLWorld);
-        var viewR = this.xWorldToView(viewRWorld);
 
-        ctx.fillStyle = 'rgb(0,0,0)';
-        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        if (markerLWorld > viewLWorld) {
+          ctx.fillRect(this.xWorldToView(viewLWorld), 0,
+              markerLView, ctx.canvas.height);
+        }
 
-        if (markerLWorld > viewLWorld)
-          ctx.fillRect(viewL, 0, markerLView, ctx.canvas.height);
-        if (markerRWorld < viewRWorld)
-          ctx.fillRect(markerRView, 0, viewR, ctx.canvas.height);
-
-        ctx.globalAlpha = 1.0;
+        if (markerRWorld < viewRWorld) {
+          ctx.fillRect(markerRView, 0,
+              this.xWorldToView(viewRWorld), ctx.canvas.height);
+        }
       }
 
       var pixelRatio = window.devicePixelRatio || 1;
       ctx.lineWidth = Math.round(pixelRatio);
 
       for (var i = 0; i < this.markers.length; ++i) {
-        this.markers[i].drawLine(ctx, viewLWorld, viewRWorld,
-            ctx.canvas.height, this);
+        var marker = this.markers[i];
+
+        var ts = marker.positionWorld;
+        if (ts < viewLWorld || ts >= viewRWorld)
+          continue;
+
+        marker.drawLine(ctx, ctx.canvas.height);
       }
 
       ctx.lineWidth = 1;
@@ -445,49 +452,37 @@ base.exportTo('tracing', function() {
     },
 
     get color() {
-      if (this.selected)
-        return 'rgb(255,0,0)';
-      return 'rgb(0,0,0)';
+      return this.selected ? 'rgb(255, 0, 0)' : 'rgb(0, 0, 0)';
     },
 
-    drawTriangle_: function(ctx, viewLWorld, viewRWorld,
-                            canvasH, rulerHeight, vp) {
-      var ts = this.positionWorld_;
-      if (ts < viewLWorld || ts > viewRWorld)
-        return;
-
-      var viewX = vp.xWorldToView(ts);
+    drawArrow: function(ctx, height) {
+      var viewX = this.viewport_.xWorldToView(this.positionWorld_);
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
-      ctx.beginPath();
-      ctx.moveTo(viewX, rulerHeight);
-      ctx.lineTo(viewX - 3, rulerHeight / 2);
-      ctx.lineTo(viewX + 3, rulerHeight / 2);
-      ctx.lineTo(viewX, rulerHeight);
-      ctx.closePath();
+      tracing.drawTriangle(ctx,
+          viewX, height,
+          viewX - 3, height / 2,
+          viewX + 3, height / 2);
       ctx.fillStyle = this.color;
       ctx.fill();
 
       ctx.restore();
     },
 
-    drawLine: function(ctx, viewLWorld, viewRWorld, canvasH, vp) {
+    drawLine: function(ctx, height) {
+      var viewX = this.viewport_.xWorldToView(this.positionWorld_);
+
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      var ts = this.positionWorld_;
-      if (ts >= viewLWorld && ts < viewRWorld) {
-        var viewX = vp.xWorldToView(ts);
-        ctx.moveTo(viewX, 0);
-        ctx.lineTo(viewX, canvasH);
-      }
+      tracing.drawLine(ctx, viewX, 0, viewX, height);
       ctx.strokeStyle = this.color;
       ctx.stroke();
 
