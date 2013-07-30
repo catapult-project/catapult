@@ -159,12 +159,21 @@ base.exportTo('tracing.tracks', function() {
 
       var minorTickH = Math.floor(rulerHeight * 0.25);
 
+      ctx.save();
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      ctx.lineWidth = Math.round(pixelRatio);
+
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      var crispLineCorrection = (ctx.lineWidth % 2) / 2;
+      ctx.translate(crispLineCorrection, -crispLineCorrection);
+
       ctx.fillStyle = 'rgb(0, 0, 0)';
       ctx.strokeStyle = 'rgb(0, 0, 0)';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
 
-      var pixelRatio = window.devicePixelRatio || 1;
       ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
       vp.majorMarkPositions = [];
@@ -320,6 +329,8 @@ base.exportTo('tracing.tracks', function() {
           }
         }
       }
+
+      ctx.restore();
     },
 
     /**

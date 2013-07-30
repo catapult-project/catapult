@@ -320,14 +320,21 @@ base.exportTo('tracing', function() {
     },
 
     drawGrid: function(ctx, viewLWorld, viewRWorld) {
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      ctx.save();
+      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
+
       ctx.beginPath();
       for (var idx in this.majorMarkPositions) {
-        var x = this.majorMarkPositions[idx];
+        var x = Math.floor(this.majorMarkPositions[idx]);
         ctx.moveTo(x, 0);
         ctx.lineTo(x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
+
+      ctx.restore();
     },
 
     drawGridLines: function(ctx, viewLWorld, viewRWorld) {
@@ -336,12 +343,17 @@ base.exportTo('tracing', function() {
 
       var x = this.gridTimebase;
 
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      ctx.save();
+      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
+
       ctx.beginPath();
       while (x < viewRWorld) {
         if (x >= viewLWorld) {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
-          var vx = this.xWorldToView(x);
+          var vx = Math.floor(this.xWorldToView(x));
           ctx.moveTo(vx, 0);
           ctx.lineTo(vx, ctx.canvas.height);
         }
@@ -349,6 +361,8 @@ base.exportTo('tracing', function() {
       }
       ctx.strokeStyle = 'rgba(255,0,0,0.25)';
       ctx.stroke();
+
+      ctx.restore();
     },
 
     drawMarkerArrows: function(ctx, viewLWorld, viewRWorld, drawHeight) {
@@ -383,10 +397,15 @@ base.exportTo('tracing', function() {
         ctx.globalAlpha = 1.0;
       }
 
+      var pixelRatio = window.devicePixelRatio || 1;
+      ctx.lineWidth = Math.round(pixelRatio);
+
       for (var i = 0; i < this.markers.length; ++i) {
         this.markers[i].drawLine(ctx, viewLWorld, viewRWorld,
             ctx.canvas.height, this);
       }
+
+      ctx.lineWidth = 1;
     }
   };
 
@@ -433,13 +452,18 @@ base.exportTo('tracing', function() {
 
     drawTriangle_: function(ctx, viewLWorld, viewRWorld,
                             canvasH, rulerHeight, vp) {
-      ctx.beginPath();
-
       var ts = this.positionWorld_;
       if (ts < viewLWorld || ts > viewRWorld)
         return;
 
       var viewX = vp.xWorldToView(ts);
+
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      ctx.save();
+      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
+
+      ctx.beginPath();
       ctx.moveTo(viewX, rulerHeight);
       ctx.lineTo(viewX - 3, rulerHeight / 2);
       ctx.lineTo(viewX + 3, rulerHeight / 2);
@@ -447,9 +471,16 @@ base.exportTo('tracing', function() {
       ctx.closePath();
       ctx.fillStyle = this.color;
       ctx.fill();
+
+      ctx.restore();
     },
 
     drawLine: function(ctx, viewLWorld, viewRWorld, canvasH, vp) {
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      ctx.save();
+      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
+
       ctx.beginPath();
       var ts = this.positionWorld_;
       if (ts >= viewLWorld && ts < viewRWorld) {
@@ -459,6 +490,8 @@ base.exportTo('tracing', function() {
       }
       ctx.strokeStyle = this.color;
       ctx.stroke();
+
+      ctx.restore();
     }
   };
 
