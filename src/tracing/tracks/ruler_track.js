@@ -89,7 +89,7 @@ base.exportTo('tracing.tracks', function() {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
-      var bounds = this.getBoundingClientRect();
+      var bounds = ctx.canvas.getBoundingClientRect();
       var width = bounds.width * pixelRatio;
       var height = bounds.height * pixelRatio;
 
@@ -236,12 +236,17 @@ base.exportTo('tracing.tracks', function() {
       // If there is only on marker, draw it's timestamp next to the line.
       if (sortedMarkers.length === 1) {
         var markerWorld = sortedMarkers[0].positionWorld;
-        var textLeftView =
-            vp.xWorldToView(markerWorld) + (4 * pixelRatio);
-
+        var markerView = vp.xWorldToView(markerWorld);
         var displayValue = markerWorld / unitDivisor;
         displayValue = Math.abs((Math.floor(displayValue * 1000) / 1000));
+
         var textToDraw = displayValue + ' ' + unit;
+        var textLeftView = markerView + 4 * pixelRatio;
+        var textWidthView = ctx.measureText(textToDraw).width;
+
+        // Put text to the left in case it gets cut off.
+        if (textLeftView + textWidthView > width)
+          textLeftView = markerView - 4 * pixelRatio - textWidthView;
 
         ctx.fillStyle = displayTextColor;
         ctx.fillText(textToDraw, textLeftView, textPosY);
@@ -286,6 +291,11 @@ base.exportTo('tracing.tracks', function() {
             spaceForArrowsAndTextView > distanceBetweenMarkersView) {
           // Print the display distance text right of the 2 markers.
           textLeftView = rightMarkerView + 2 * arrowSpacing;
+
+          // Put text to the left in case it gets cut off.
+          if (textLeftView + textWidthView > width)
+            textLeftView = leftMarkerView - 2 * arrowSpacing - textWidthView;
+
           ctx.fillStyle = displayTextColor;
           ctx.fillText(textToDraw, textLeftView, textPosY);
 
