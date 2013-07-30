@@ -997,7 +997,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(20, s20.args);
   });
 
-  test('iimportImplicitObjects', function() {
+  test('importImplicitObjects', function() {
     var events = [
       {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'c', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
       {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
@@ -1097,6 +1097,28 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     var taskSlice = p1.threads[1].sliceGroup.slices[0];
     assertEquals(foo15, taskSlice.args.my_object);
+  });
+
+  test('importArrayWithIDs', function() {
+    var events = [
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'a', args: { // @suppress longLineCheck
+        snapshot: { x: [
+          {id: 'foo/0x1001', value: 'bar1'},
+          {id: 'foo/0x1002', value: 'bar2'},
+          {id: 'foo/0x1003', value: 'bar3'},
+        ]}}}
+    ];
+
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var sA = p1.objects.getSnapshotAt('0x1000', 15);
+    assertTrue(sA.args.x instanceof Array);
+    assertEquals(3, sA.args.x.length);
+    assertTrue(sA.args.x[0] instanceof tracing.trace_model.ObjectSnapshot);
+    assertTrue(sA.args.x[1] instanceof tracing.trace_model.ObjectSnapshot);
+    assertTrue(sA.args.x[2] instanceof tracing.trace_model.ObjectSnapshot);
   });
 
   test('importDoesNotMutateEventList', function() {

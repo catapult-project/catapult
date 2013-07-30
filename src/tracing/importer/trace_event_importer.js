@@ -575,10 +575,10 @@ base.exportTo('tracing.importer', function() {
         if (!referencingObjectFieldValue)
           return;
 
-        if (referencingObjectFieldValue.id === undefined)
-          return;
         if (referencingObjectFieldValue instanceof
             tracing.trace_model.ObjectSnapshot)
+          return null;
+        if (referencingObjectFieldValue.id === undefined)
           return;
 
         var implicitSnapshot = referencingObjectFieldValue;
@@ -610,6 +610,15 @@ base.exportTo('tracing.importer', function() {
         return res.args;
       }
 
+      /**
+       * Iterates over the fields in the object, calling func for every
+       * field/value found.
+       *
+       * @return {object} If the function does not want the field's value to be
+       * iterated, return null. If iteration of the field value is desired, then
+       * return either undefined (if the field value did not change) or the new
+       * field value if it was changed.
+       */
       function iterObject(object, func, containingSnapshot, thisArg) {
         if (!(object instanceof Object))
           return;
@@ -618,6 +627,8 @@ base.exportTo('tracing.importer', function() {
           for (var i = 0; i < object.length; i++) {
             var res = func.call(thisArg, object, i, object[i],
                                 containingSnapshot);
+            if (res === null)
+              continue;
             if (res)
               iterObject(res, func, containingSnapshot, thisArg);
             else
@@ -629,6 +640,8 @@ base.exportTo('tracing.importer', function() {
         for (var key in object) {
           var res = func.call(thisArg, object, key, object[key],
                               containingSnapshot);
+          if (res === null)
+            continue;
           if (res)
             iterObject(res, func, containingSnapshot, thisArg);
           else
