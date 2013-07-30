@@ -47,7 +47,7 @@ Try rerunning this script under sudo or setting
     finally:
       self._tmp_output_file.close()
     print 'To view the profile, run:'
-    print '  perf report -i %s' % self._output_file
+    print '  perf report -n -i %s' % self._output_file
     return self._output_file
 
   def _GetStdOut(self):
