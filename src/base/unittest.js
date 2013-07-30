@@ -47,8 +47,7 @@ base.exportTo('base.unittest', function() {
     list.appendChild(li);
   }
 
-  function TestRunner(suitePaths, tests) {
-    this.suitePaths_ = suitePaths || [];
+  function TestRunner(tests) {
     this.suites_ = [];
     this.suiteNames_ = {};
     this.tests_ = tests || [];
