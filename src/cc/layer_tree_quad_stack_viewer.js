@@ -45,6 +45,11 @@ base.exportTo('cc', function() {
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackViewer_);
 
+      var scaleText = ui.createSpan({
+        textContent: 'Scale:'
+      });
+      this.controls_.appendChild(scaleText);
+
       var scaleSelector = ui.createSelector(
           this.quadStackViewer_.camera, 'zoom',
           'layerViewer.scale', 0.375,
@@ -58,6 +63,19 @@ base.exportTo('cc', function() {
            {label: '200%', value: 2}
           ]);
       this.controls_.appendChild(scaleSelector);
+
+      var tileRectsText = ui.createSpan({
+        textContent: 'Tiles to show:'
+      });
+      this.controls_.appendChild(tileRectsText);
+
+      this.tileRectsSelector_ = ui.createSelector(
+          this, 'howToShowTiles',
+          'layerViewer.howToShowTiles', 'none',
+          [{label: 'None', value: 'none'},
+           {label: 'Coverage Rects', value: 'coverage'},
+          ]);
+      this.controls_.appendChild(this.tileRectsSelector_);
 
       var showOtherLayersCheckbox = ui.createCheckBox(
           this, 'showOtherLayers',
@@ -76,12 +94,6 @@ base.exportTo('cc', function() {
           'layerViewer.showContents', true,
           'Show contents');
       this.controls_.appendChild(showContentsCheckbox);
-
-      var showTileCoverageRectsCheckbox = ui.createCheckBox(
-          this, 'showTileCoverageRects',
-          'layerViewer.showTileCoverageRects', true,
-          'Show tile coverage rects');
-      this.controls_.appendChild(showTileCoverageRectsCheckbox);
     },
 
     get layerTreeImpl() {
@@ -96,6 +108,7 @@ base.exportTo('cc', function() {
       //             layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = null;
+      this.updateTilesSelector_();
       this.updateContents_();
     },
 
@@ -126,12 +139,18 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
-    get showTileCoverageRects() {
-      return this.showTileCoverageRects_;
+    get howToShowTiles() {
+      return this.howToShowTiles_;
     },
 
-    set showTileCoverageRects(show) {
-      this.showTileCoverageRects_ = show;
+    set howToShowTiles(val) {
+      // Make sure val is something we expect.
+      console.assert(
+          (val === 'none') ||
+          (val === 'coverage') ||
+          !isNaN(parseFloat(val)));
+
+      this.howToShowTiles_ = val;
       this.updateContents_();
     },
 
@@ -158,6 +177,29 @@ base.exportTo('cc', function() {
 
       if (this.pictureLoadingComplete_())
         this.generateQuads_();
+    },
+
+    updateTilesSelector_: function() {
+      var data = [{label: 'None', value: 'none'},
+                  {label: 'Coverage Rects', value: 'coverage'}];
+
+      // First get all of the scales information from LTHI.
+      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      var scaleNames = lthi.getContentsScaleNames();
+      for (var scale in scaleNames) {
+        data.push({
+          label: 'Scale ' + scale + ' (' + scaleNames[scale] + ')',
+          value: scale
+        });
+      }
+
+      // Then create a new selector and replace the old one.
+      var new_selector = ui.createSelector(
+          this, 'howToShowTiles',
+          'layerViewer.howToShowTiles', 'none',
+          data);
+      this.controls_.replaceChild(new_selector, this.tileRectsSelector_);
+      this.tileRectsSelector_ = new_selector;
     },
 
     pictureLoadingComplete_: function() {
@@ -310,12 +352,39 @@ base.exportTo('cc', function() {
       }
     },
 
+    appendTilesWithScaleQuads_: function(layer, layerQuad, scale) {
+      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      for (var i = 0; i < lthi.tiles.length; ++i) {
+        var tile = lthi.tiles[i];
+        if (Math.abs(tile.contentsScale - scale) > 1e-6)
+          continue;
+
+        // TODO(vmpstr): Make the stiching of tiles and layers a part of
+        // tile construction (issue 346)
+        if (layer.layerId != tile.layerId)
+          continue;
+
+        var rect = tile.layerRect;
+        var unitRect = rect.asUVRectInside(layer.bounds);
+        var quad = layerQuad.projectUnitRect(unitRect);
+
+        quad.backgroundColor = 'rgba(0, 0, 0, 0)';
+        quad.stackingGroupId = layerQuad.stackingGroupId;
+        // TODO(vmpstr): Map different types of tiles to different border
+        // colors.
+        quad.borderColor = 'rgba(80, 200, 200, 0.4)';
+        this.quads_.push(quad);
+      }
+    },
+
     appendSelectionQuads_: function(layer, layerQuad) {
       var selection = this.selection;
-      var quad = this.layerTreeImpl_.whichTree == constants.ACTIVE_TREE ?
-          selection.quadIfActive : selection.quadIfPending;
-      if (!quad)
+      var rect = selection.layerRect;
+      if (!rect)
         return [];
+
+      var unitRect = rect.asUVRectInside(layer.bounds);
+      var quad = layerQuad.projectUnitRect(unitRect);
 
       var colorId = tracing.getStringColorId(selection.title);
       colorId += tracing.getColorPaletteHighlightIdBoost();
@@ -349,8 +418,12 @@ base.exportTo('cc', function() {
         if (this.showInvalidations)
           this.appendInvalidationQuads_(layer, layerQuad);
 
-        if (this.showTileCoverageRects)
+        if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(layer, layerQuad);
+        } else if (this.howToShowTiles !== 'none') {
+          this.appendTilesWithScaleQuads_(
+              layer, layerQuad, this.howToShowTiles);
+        }
 
         // Push the layer quad last.
         this.quads_.push(layerQuad);

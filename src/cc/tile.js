@@ -28,7 +28,14 @@ base.exportTo('cc', function() {
 
     initialize: function() {
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['layerId']);
+          this, ['layerId', 'contentsScale', 'contentRect']);
+      this.resolution = this.args.managedState.resolution;
+
+      // This check is for backward compatability. It can probably
+      // be removed once we're confident that most traces contain
+      // content_rect.
+      if (this.contentRect)
+        this.layerRect = this.contentRect.scale(1.0 / this.contentsScale);
     }
   };
 

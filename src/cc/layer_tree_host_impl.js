@@ -40,12 +40,32 @@ base.exportTo('cc', function() {
           this, ['pendingTree',
             'tiles']);
 
+      if (!this.tiles)
+        this.tiles = [];
+
       this.activeTree.layerTreeHostImpl = this;
       this.activeTree.whichTree = constants.ACTIVE_TREE;
       if (this.pendingTree) {
         this.pendingTree.layerTreeHostImpl = this;
         this.pendingTree.whichTree = constants.PENDING_TREE;
       }
+    },
+
+    /**
+     * Get all of tile scales and their associated names.
+     */
+    getContentsScaleNames: function() {
+      var scales = {};
+      for (var i = 0; i < this.tiles.length; ++i) {
+        var tile = this.tiles[i];
+        // Return scale -> scale name mappings.
+        // Example:
+        //  0.25 -> LOW_RESOLUTION
+        //  1.0 -> HIGH_RESOLUTION
+        //  0.75 -> NON_IDEAL_RESOLUTION
+        scales[tile.contentsScale] = tile.resolution;
+      }
+      return scales;
     },
 
     getTree: function(whichTree) {

@@ -124,12 +124,8 @@ base.exportTo('cc', function() {
       return this.tile_.layerId;
     },
 
-    get quadIfPending() {
-      return this.tile_.args.pendingPriority.currentScreenQuad;
-    },
-
-    get quadIfActive() {
-      return this.tile_.args.activePriority.currentScreenQuad;
+    get layerRect() {
+      return this.tile_.layerRect;
     },
 
     createAnalysis: function() {
@@ -172,12 +168,8 @@ base.exportTo('cc', function() {
       return this.tile.layerId;
     },
 
-    get quadIfPending() {
-      return this.tile.args.pendingPriority.currentScreenQuad;
-    },
-
-    get quadIfActive() {
-      return this.tile.args.activePriority.currentScreenQuad;
+    get layerRect() {
+      return this.tile.layerRect;
     },
 
     createAnalysis: function() {

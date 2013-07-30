@@ -183,31 +183,11 @@ var g_catLTHIEvents = [
           {
             'active_priority': {
               'time_to_visible_in_seconds': 0,
-              'current_screen_quad': [
-                1230,
-                256,
-                2460,
-                256,
-                2460,
-                767,
-                1230,
-                767
-              ],
               'resolution': 'HIGH_RESOLUTION',
               'distance_to_visible_in_pixels': 0
             },
             'pending_priority': {
               'time_to_visible_in_seconds': 3.4028234663852886e+38,
-              'current_screen_quad': [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-              ],
               'resolution': 'NON_IDEAL_RESOLUTION',
               'distance_to_visible_in_pixels': 3.4028234663852886e+38
             },
@@ -227,11 +207,12 @@ var g_catLTHIEvents = [
               'gpu_memmgr_stats_bin': 'NOW_BIN',
               'is_picture_pile_analyzed': true
             },
-            'layer_id': 'LAYER_1',
+            'layer_id': '6',
             'picture_pile': {
               'id_ref': 'PICTURE_1'
             },
             'contents_scale': 2,
+            'content_rect': [0, 0, 256, 256],
             'id': 'cc::Tile/TILE_1'
           }
         ]

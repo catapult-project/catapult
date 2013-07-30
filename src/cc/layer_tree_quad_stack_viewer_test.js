@@ -22,7 +22,7 @@ base.unittest.testSuite('cc.layer_tree_quad_stack_viewer', function() {
     var viewer = new cc.LayerTreeQuadStackViewer();
     viewer.layerTreeImpl = lthi.activeTree;
     viewer.selection = new cc.LayerSelection(layer);
-    viewer.showTileCoverageRects = false;
+    viewer.howToShowTiles = 'none';
     viewer.showInvalidations = false;
     viewer.showContents = false;
     viewer.showOtherLAyers = false;
@@ -30,7 +30,7 @@ base.unittest.testSuite('cc.layer_tree_quad_stack_viewer', function() {
     // There should be some quads drawn with all "show" checkboxes off,
     // but that number can change with new features added.
     var numQuads = viewer.quads_.length;
-    viewer.showTileCoverageRects = true;
+    viewer.howToShowTiles = 'coverage';
     var numCoverageRects = viewer.quads_.length - numQuads;
 
     // We know we have 5 coverage rects in lthi cats.
