@@ -10,6 +10,8 @@ base.require('tracing.analysis.analysis_link');
 base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.util');
+base.require('tracing.analysis.generic_object_view');
+
 base.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
@@ -55,10 +57,10 @@ base.exportTo('tracing.analysis', function() {
       tmp.parentElement.replaceChild(instanceLinkEl, tmp);
 
       var argsEl = this.querySelector('#args');
-      argsEl.textContent = JSON.stringify(
-          snapshot.args,
-          null,
-          2);
+      argsEl.textContent = '';
+      var objectView = tracing.analysis.GenericObjectView();
+      objectView.object = snapshot.args;
+      argsEl.appendChild(objectView);
     }
   };
 

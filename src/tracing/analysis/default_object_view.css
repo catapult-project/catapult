@@ -16,7 +16,6 @@
 }
 
 .default-object-view * {
-  display: block;
   -webkit-user-select: text;
 }
 
