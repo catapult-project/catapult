@@ -139,7 +139,7 @@ base.exportTo('base.unittest', function() {
           '</span> failures, ' +
           '<span class="exception">' + this.stats_.exceptions.length +
           '</span> exceptions,' +
-          ' in ' + this.stats_.duration + 'ms.';
+          ' in ' + this.stats_.duration.toFixed(2) + 'ms.';
     },
 
     appendException: function(exc) {
@@ -250,7 +250,10 @@ base.exportTo('base.unittest', function() {
     runTests: function(testsToRun) {
       this.testsToRun_ = testsToRun;
 
-      var start = new Date().getTime();
+      if (this.setupOnceFn_ !== undefined)
+        this.setupOnceFn_.bind(this).call();
+
+      var start = window.performance.now();
       this.results_ = TestResults.PENDING;
       this.tests_.forEach(function(test) {
         if (this.testsToRun_.length !== 0 &&
@@ -274,17 +277,17 @@ base.exportTo('base.unittest', function() {
               testRunners[testType_].onAnimationFrameError.bind(
                   testRunners[testType_]);
 
+          var testWorkAreaEl_ = document.createElement('div');
+          this.resultsEl_.appendChild(testWorkAreaEl_);
+
+          test.workArea = testWorkAreaEl_;
           if (this.setupFn_ !== undefined)
             this.setupFn_.bind(test).call();
 
-          var testWorkAreaEl_ = document.createElement('div');
-
-          this.resultsEl_.appendChild(testWorkAreaEl_);
-
-          var individualStart = new Date().getTime();
+          var individualStart = window.performance.now();
           for (var c = 0; c < runCount; ++c)
-            test.run(testWorkAreaEl_);
-          test.duration[runCount] = new Date().getTime() - individualStart;
+            test.run();
+          test.duration[runCount] = window.performance.now() - individualStart;
 
           this.resultsEl_.removeChild(testWorkAreaEl_);
 
@@ -304,7 +307,7 @@ base.exportTo('base.unittest', function() {
       if (this.results_ === TestResults.PENDING)
         this.results_ = TestResults.PASSED;
 
-      this.duration_ = new Date().getTime() - start;
+      this.duration_ = window.performance.now() - start;
       this.outputResults();
     },
 
@@ -329,7 +332,7 @@ base.exportTo('base.unittest', function() {
         status.classList.add('failed');
       }
 
-      status.innerText += ' (' + this.duration_ + 'ms)';
+      status.innerText += ' (' + this.duration_.toFixed(2) + 'ms)';
 
       var child = this.showLongResults ? this.outputLongResults() :
                                          this.outputShortResults();
@@ -387,7 +390,8 @@ base.exportTo('base.unittest', function() {
           testEl.appendChild(resultEl);
           if (test.result === TestResults.PASSED) {
             resultEl.classList.add('passed');
-            resultEl.innerText = 'passed (' + test.duration[runCount] + 'ms)';
+            resultEl.innerText =
+                'passed (' + test.duration[runCount].toFixed(2) + 'ms)';
           } else {
             resultEl.classList.add('failed');
             resultEl.innerText = 'FAILED';
@@ -401,7 +405,7 @@ base.exportTo('base.unittest', function() {
           if (runCount !== 1) {
             var averageTime = test.duration[runCount] / runCount;
             resultEl.innerText += ' (' + runCount + ' runs, ';
-            resultEl.innerText += 'avg ' + averageTime + 'ms/run)';
+            resultEl.innerText += 'avg ' + averageTime.toFixed(2) + 'ms/run)';
           }
 
           if (test.hasAppendedContent)
@@ -432,8 +436,7 @@ base.exportTo('base.unittest', function() {
   Test.prototype = {
     __proto__: Object.prototype,
 
-    run: function(workArea) {
-      this.testWorkArea_ = workArea;
+    run: function() {
       try {
         this.test_.bind(this).call();
         this.result_ = TestResults.PASSED;
@@ -477,6 +480,10 @@ base.exportTo('base.unittest', function() {
 
     get appendedContent() {
       return this.appendedContent_;
+    },
+
+    set workArea(workArea) {
+      this.testWorkArea_ = workArea;
     },
 
     addHTMLOutput: function(element) {

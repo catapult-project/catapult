@@ -70,11 +70,13 @@ base.exportTo('tracing.tracks', function() {
         var process = processes[i];
         if (!categoryFilter.matchProcess(process))
           return;
+
         var track = new tracing.tracks.ProcessTrack(this.viewport);
         track.categoryFilter = categoryFilter;
         track.process = process;
         if (!track.hasVisibleContent)
           continue;
+
         this.appendChild(track);
       }
     },

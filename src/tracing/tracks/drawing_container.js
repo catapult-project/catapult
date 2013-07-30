@@ -58,35 +58,40 @@ base.exportTo('tracing.tracks', function() {
 
       base.requestPreAnimationFrame(function() {
         this.rafPending_ = false;
-        this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
         this.updateCanvasSizeIfNeeded_();
 
         base.requestAnimationFrameInThisFrameIfPossible(function() {
-          var types = [
-            DrawType.BACKGROUND,
-            DrawType.GRID,
-            DrawType.INSTANT_EVENT,
-            DrawType.SLICE
-          ];
-
-          for (var idx in types) {
-            for (var i = 0; i < this.children.length; ++i) {
-              if (!(this.children[i] instanceof tracing.tracks.Track))
-                continue;
-              this.children[i].drawTrack(types[idx]);
-            }
-          }
-
-          var pixelRatio = window.devicePixelRatio || 1;
-          var bounds = this.canvas_.getBoundingClientRect();
-          var viewLWorld = this.viewport.xViewToWorld(0);
-          var viewRWorld = this.viewport.xViewToWorld(
-              bounds.width * pixelRatio);
-
-          this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
-          this.viewport.drawMarkerLines(this.ctx_, viewLWorld, viewRWorld);
+          this.drawTrackContents_();
         }, this);
       }, this);
+    },
+
+    drawTrackContents_: function() {
+      this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+
+      var types = [
+        DrawType.BACKGROUND,
+        DrawType.GRID,
+        DrawType.INSTANT_EVENT,
+        DrawType.SLICE
+      ];
+
+      for (var idx in types) {
+        for (var i = 0; i < this.children.length; ++i) {
+          if (!(this.children[i] instanceof tracing.tracks.Track))
+            continue;
+          this.children[i].drawTrack(types[idx]);
+        }
+      }
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var bounds = this.canvas_.getBoundingClientRect();
+      var viewLWorld = this.viewport.xViewToWorld(0);
+      var viewRWorld = this.viewport.xViewToWorld(
+          bounds.width * pixelRatio);
+
+      this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
+      this.viewport.drawMarkerLines(this.ctx_, viewLWorld, viewRWorld);
     },
 
     updateCanvasSizeIfNeeded_: function() {
