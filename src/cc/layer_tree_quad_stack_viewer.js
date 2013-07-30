@@ -261,9 +261,9 @@ base.exportTo('cc', function() {
         var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
 
-        var pictureAsImageData = this.pictureAsImageData_[picture.guid];
-        if (this.showContents && pictureAsImageData.imageData)
-          iq.imageData = pictureAsImageData.imageData;
+        var pictureData = this.pictureAsImageData_[picture.guid];
+        if (this.showContents && pictureData && pictureData.imageData)
+          iq.imageData = pictureData.imageData;
         else
           iq.imageData = undefined;
 
