@@ -6,12 +6,13 @@
 
 base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('base.unittest');
+
 base.require('base.settings');
 base.require('base.unittest.test_error');
 base.require('base.unittest.assertions');
 
 base.exportTo('base.unittest', function() {
-  var TestResults = {
+  var TestStatus = {
     FAILED: 0,
     PASSED: 1,
     PENDING: 2
@@ -67,7 +68,6 @@ base.exportTo('base.unittest', function() {
     run: function() {
       this.clear_(document.querySelector('#test-results'));
       this.clear_(document.querySelector('#exception-list'));
-      this.clear_(document.querySelector('#message-list'));
 
       this.updateStats_();
       this.runSuites_();
@@ -159,29 +159,51 @@ base.exportTo('base.unittest', function() {
     this.tests_ = [];
     this.testNames_ = {};
     this.failures_ = [];
-    this.results_ = TestResults.PENDING;
+    this.results_ = TestStatus.PENDING;
     this.showLongResults = false;
     this.duration_ = 0.0;
     this.resultsEl_ = undefined;
-    this.setupOnceRan_ = false;
 
     global.setupOnce = function(fn) { this.setupOnceFn_ = fn; }.bind(this);
     global.setup = function(fn) { this.setupFn_ = fn; }.bind(this);
     global.teardown = function(fn) { this.teardownFn_ = fn; }.bind(this);
 
-    global.test = function(name, test) {
+    global.test = function(name, test, options) {
       if (this.testNames_[name] === true)
         logWarningMessage('Duplicate test name detected: ' + name);
 
-      this.tests_.push(new Test(name, test));
+      this.tests_.push(new Test(name, test, options || {}));
       this.testNames_[name] = true;
     }.bind(this);
 
-    global.perfTest = function(name, testRuns, test) {
+    global.perfTest = function(name, test, options) {
       if (this.testNames_[name] === true)
         logWarningMessage('Duplicate test name detected: ' + name);
 
-      this.tests_.push(new PerfTest(name, test, testRuns));
+      this.tests_.push(new PerfTest(name, test, options || {}));
+      this.testNames_[name] = true;
+    }.bind(this);
+
+    global.timedPerfTest = function(name, test, options) {
+      if (options === undefined || options.iterations === undefined)
+        throw new Error('timedPerfTest must have iteration option provided.');
+
+      name += '_' + options.iterations;
+      if (this.testNames_[name] === true)
+        logWarningMessage('Duplicate test name detected: ' + name);
+
+      options.results = options.results || TimingTestResult;
+      var testWrapper = function(results) {
+        results.testCount = options.iterations;
+        for (var i = 0; i < options.iterations; ++i) {
+          var start = window.performance.now();
+          test.bind(this).call();
+          results.add(window.performance.now() - start);
+        }
+      };
+
+
+      this.tests_.push(new PerfTest(name, testWrapper, options));
       this.testNames_[name] = true;
     }.bind(this);
 
@@ -191,7 +213,8 @@ base.exportTo('base.unittest', function() {
     global.setup = undefined;
     global.teardown = undefined;
     global.test = undefined;
-    global.perf_test = undefined;
+    global.perfTest = undefined;
+    global.timedPerfTest = undefined;
   }
 
   TestSuite.prototype = {
@@ -254,65 +277,53 @@ base.exportTo('base.unittest', function() {
         this.setupOnceFn_.bind(this).call();
 
       var start = window.performance.now();
-      this.results_ = TestResults.PENDING;
+      this.results_ = TestStatus.PENDING;
       this.tests_.forEach(function(test) {
         if (this.testsToRun_.length !== 0 &&
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        if (!this.setupOnceRan_ && this.setupOnceFn_ !== undefined) {
-          this.setupOnceFn_();
-          this.setupOnceRan_ = true;
-        }
+        // Clear settings storage before each test.
+        global.sessionStorage.clear();
+        base.Settings.setAlternativeStorageInstance(global.sessionStorage);
+        base.onAnimationFrameError =
+            testRunners[testType_].onAnimationFrameError.bind(
+                testRunners[testType_]);
 
-        for (var testIterationIndex = 0;
-             testIterationIndex < test.testRuns.length;
-             ++testIterationIndex) {
-          var runCount = test.testRuns[testIterationIndex];
+        var testWorkAreaEl_ = document.createElement('div');
+        this.resultsEl_.appendChild(testWorkAreaEl_);
 
-          // Clear settings storage before each test.
-          global.sessionStorage.clear();
-          base.Settings.setAlternativeStorageInstance(global.sessionStorage);
-          base.onAnimationFrameError =
-              testRunners[testType_].onAnimationFrameError.bind(
-                  testRunners[testType_]);
+        test.workArea = testWorkAreaEl_;
+        if (this.setupFn_ !== undefined)
+          this.setupFn_.bind(test).call();
 
-          var testWorkAreaEl_ = document.createElement('div');
-          this.resultsEl_.appendChild(testWorkAreaEl_);
+        var individualStart = window.performance.now();
+        test.run();
+        test.duration = window.performance.now() - individualStart;
 
-          test.workArea = testWorkAreaEl_;
-          if (this.setupFn_ !== undefined)
-            this.setupFn_.bind(test).call();
+        this.resultsEl_.removeChild(testWorkAreaEl_);
 
-          var individualStart = window.performance.now();
-          for (var c = 0; c < runCount; ++c)
-            test.run();
-          test.duration[runCount] = window.performance.now() - individualStart;
+        if (this.teardownFn_ !== undefined)
+          this.teardownFn_.bind(test).call();
 
-          this.resultsEl_.removeChild(testWorkAreaEl_);
-
-          if (this.teardownFn_ !== undefined)
-            this.teardownFn_.bind(test).call();
-
-          if (test.result === TestResults.FAILED) {
-            this.failures_.push({
-              error: test.failure,
-              test: test.name
-            });
-            this.results_ = TestResults.FAILED;
-          }
+        if (test.status === TestStatus.FAILED) {
+          this.failures_.push({
+            error: test.failure,
+            test: test.name
+          });
+          this.results_ = TestStatus.FAILED;
         }
       }, this);
 
-      if (this.results_ === TestResults.PENDING)
-        this.results_ = TestResults.PASSED;
+      if (this.results_ === TestStatus.PENDING)
+        this.results_ = TestStatus.PASSED;
 
       this.duration_ = window.performance.now() - start;
       this.outputResults();
     },
 
     outputResults: function() {
-      if ((this.results === TestResults.PASSED) && showCondensed_ &&
+      if ((this.results === TestStatus.PASSED) && showCondensed_ &&
           !this.showLongResults) {
         var parent = this.resultsEl_.parentNode;
         parent.removeChild(this.resultsEl_);
@@ -324,7 +335,7 @@ base.exportTo('base.unittest', function() {
 
       var status = this.resultsEl_.querySelector('.results');
       status.classList.remove('pending');
-      if (this.results === TestResults.PASSED) {
+      if (this.results === TestStatus.PASSED) {
         status.innerText = 'passed';
         status.classList.add('passed');
       } else {
@@ -341,7 +352,7 @@ base.exportTo('base.unittest', function() {
     },
 
     outputShortResults: function() {
-      if (this.results === TestResults.PASSED)
+      if (this.results === TestStatus.PASSED)
         return undefined;
 
       var parent = document.createElement('div');
@@ -367,50 +378,40 @@ base.exportTo('base.unittest', function() {
             this.testsToRun_.indexOf(test.name) === -1)
           return;
 
-        for (var i = 0; i < test.testRuns.length; ++i) {
-          var runCount = test.testRuns[i];
+        // Construct an individual result div.
+        var testEl = document.createElement('div');
+        testEl.className = 'individual-result';
 
-          // Construct an individual result div.
-          var testEl = document.createElement('div');
-          testEl.className = 'individual-result';
+        var link = '/src/tests.html?suite=';
+        link += this.name.replace(/\./g, '/');
+        link += '&test=' + test.name.replace(/\./g, '/');
 
-          var link = '/src/tests.html?suite=';
-          link += this.name.replace(/\./g, '/');
-          link += '&test=' + test.name.replace(/\./g, '/');
+        var suiteInfo = document.createElement('a');
+        suiteInfo.href = link;
+        suiteInfo.innerText = test.name;
+        testEl.appendChild(suiteInfo);
 
-          var suiteInfo = document.createElement('a');
-          suiteInfo.href = link;
-          suiteInfo.innerText = test.name;
-          testEl.appendChild(suiteInfo);
+        parent.appendChild(testEl);
 
-          parent.appendChild(testEl);
+        var resultEl = document.createElement('span');
+        resultEl.classList.add('results');
+        testEl.appendChild(resultEl);
+        if (test.status === TestStatus.PASSED) {
+          resultEl.classList.add('passed');
+          resultEl.innerText =
+              'passed (' + test.output() + ')';
+        } else {
+          resultEl.classList.add('failed');
+          resultEl.innerText = 'FAILED';
 
-          var resultEl = document.createElement('span');
-          resultEl.classList.add('results');
-          testEl.appendChild(resultEl);
-          if (test.result === TestResults.PASSED) {
-            resultEl.classList.add('passed');
-            resultEl.innerText =
-                'passed (' + test.duration[runCount].toFixed(2) + 'ms)';
-          } else {
-            resultEl.classList.add('failed');
-            resultEl.innerText = 'FAILED';
-
-            var preEl = document.createElement('pre');
-            preEl.className = 'failure';
-            preEl.innerText = test.failure.stack;
-            testEl.appendChild(preEl);
-          }
-
-          if (runCount !== 1) {
-            var averageTime = test.duration[runCount] / runCount;
-            resultEl.innerText += ' (' + runCount + ' runs, ';
-            resultEl.innerText += 'avg ' + averageTime.toFixed(2) + 'ms/run)';
-          }
-
-          if (test.hasAppendedContent)
-            testEl.appendChild(test.appendedContent);
+          var preEl = document.createElement('pre');
+          preEl.className = 'failure';
+          preEl.innerText = test.failure.stack;
+          testEl.appendChild(preEl);
         }
+
+        if (test.hasAppendedContent)
+          testEl.appendChild(test.appendedContent);
       }.bind(this));
 
       return parent;
@@ -421,14 +422,14 @@ base.exportTo('base.unittest', function() {
     }
   };
 
-  function Test(name, test) {
+  function Test(name, test, options) {
     this.name_ = name;
     this.test_ = test;
     this.isPerfTest_ = false;
-    this.testRuns_ = [1];
-    this.result_ = TestResults.FAILED;
+    this.options_ = options;
     this.failure_ = undefined;
-    this.duration_ = {};
+    this.duration_ = 0;
+    this.status_ = TestStatus.FAILED;
 
     this.appendedContent_ = undefined;
   }
@@ -438,8 +439,8 @@ base.exportTo('base.unittest', function() {
 
     run: function() {
       try {
-        this.test_.bind(this).call();
-        this.result_ = TestResults.PASSED;
+        this.test_.call(this);
+        this.status_ = TestStatus.PASSED;
       } catch (e) {
         console.error(e, e.stack);
         this.failure_ = e;
@@ -462,16 +463,24 @@ base.exportTo('base.unittest', function() {
       return this.testRuns_;
     },
 
-    get result() {
-      return this.result_;
+    get status() {
+      return this.status_;
     },
 
-    set result(val) {
-      this.result_ = val;
+    set status(val) {
+      this.status_ = val;
     },
 
     get duration() {
       return this.duration_;
+    },
+
+    get options() {
+      return this.options_;
+    },
+
+    set duration(duration) {
+      this.duration_ = duration;
     },
 
     get hasAppendedContent() {
@@ -493,17 +502,37 @@ base.exportTo('base.unittest', function() {
 
     toString: function() {
       return this.name_;
+    },
+
+    output: function() {
+      return this.duration_.toFixed(2) + 'ms';
     }
   };
 
-  function PerfTest(name, test, testRuns) {
+  function PerfTest(name, test, options) {
     Test.apply(this, arguments);
     this.isPerfTest_ = true;
-    this.testRuns_ = testRuns;
+
+    var resultObject = options.results || TestResult;
+    this.results_ = new resultObject();
   }
 
   PerfTest.prototype = {
-    __proto__: Test.prototype
+    __proto__: Test.prototype,
+
+    run: function() {
+      try {
+        this.test_.call(this, this.results_);
+        this.status_ = TestStatus.PASSED;
+      } catch (e) {
+        console.error(e, e.stack);
+        this.failure_ = e;
+      }
+    },
+
+    output: function() {
+      return this.results_.output();
+    }
   };
 
   var testRunners = {};
@@ -545,6 +574,38 @@ base.exportTo('base.unittest', function() {
   function runSuites() {
     testRunners[testType_].run();
   }
+
+  function TestResult() {
+    this.results_ = [];
+  }
+  TestResult.prototype = {
+    add: function(result) {
+      this.results_.push(result);
+    },
+
+    output: function() {
+      return this.results_.join(', ');
+    }
+  };
+
+  function TimingTestResult() {
+    TestResult.apply(this, arguments);
+    this.runCount_ = 0;
+  }
+  TimingTestResult.prototype = {
+    __proto__: TestResult.prototype,
+
+    set testCount(runs) {
+      this.runCount_ = runs;
+    },
+
+    output: function() {
+      var totalTime = 0.0;
+      this.results_.forEach(function(t) { totalTime += t; });
+      return totalTime.toFixed(2) + 'ms) ' + this.runCount_ + ' runs, ' +
+          'avg ' + (totalTime / this.runCount_).toFixed(2) + 'ms/run';
+    }
+  };
 
   return {
     showCondensed: showCondensed,

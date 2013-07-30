@@ -27,7 +27,6 @@ base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf', function() 
 
   var drawingContainer;
   var viewportDiv;
-
   setup(function() {
     viewportDiv = document.createElement('div');
 
@@ -68,7 +67,9 @@ base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf', function() 
     drawingContainer = undefined;
   });
 
-  perfTest('drawTrackContents_softwareCanvas', [1, 10, 100], function() {
-    drawingContainer.drawTrackContents_();
+  [1, 10, 100].forEach(function(val) {
+    timedPerfTest('drawTrackContents_softwareCanvas', function() {
+      drawingContainer.drawTrackContents_();
+    }, {iterations: val});
   });
 });

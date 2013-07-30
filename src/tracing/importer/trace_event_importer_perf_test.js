@@ -24,22 +24,24 @@ base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf', functi
   }
 
   setupOnce(function() {
-    var urls = ['../test_data/simple_trace.json',
-                '../test_data/lthi_cats.json'];
-
+    var urls = ['/test_data/simple_trace.json', '/test_data/lthi_cats.json'];
     for (var i = 0; i < urls.length; ++i)
       eventStrings[urls[i]] = getSynchronous(urls[i]);
   });
 
-  perfTest('simple_trace', [1, 10, 100], function() {
-    var events = getEvents('../test_data/simple_trace.json');
-    var m = new tracing.TraceModel();
-    m.importTraces([events], false, false);
+  [1, 10, 100].forEach(function(val) {
+    timedPerfTest('simple_trace', function() {
+      var events = getEvents('/test_data/simple_trace.json');
+      var m = new tracing.TraceModel();
+      m.importTraces([events], false, false);
+    }, {iterations: val});
   });
 
-  perfTest('lthi_cats', [1, 10], function() {
-    var events = getEvents('../test_data/lthi_cats.json');
-    var m = new tracing.TraceModel();
-    m.importTraces([events], false, false);
+  [1, 10].forEach(function(val) {
+    timedPerfTest('lthi_cats', function() {
+      var events = getEvents('/test_data/lthi_cats.json');
+      var m = new tracing.TraceModel();
+      m.importTraces([events], false, false);
+    }, {iterations: val});
   });
 });
