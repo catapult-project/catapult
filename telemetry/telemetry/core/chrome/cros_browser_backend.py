@@ -140,7 +140,10 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
-            '--start-maximized'])
+            '--start-maximized',
+            # Debug logging for login flake (crbug.com/263527).
+            '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
+                '*/chromeos/login/*=2'])
 
     if not self._is_guest:
       # This extension bypasses gaia and logs us in.
