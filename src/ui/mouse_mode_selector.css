@@ -16,7 +16,6 @@
   left: calc(100% - 120px);
   position: fixed;
   top: 100px;
-  user-drag: element;
   user-select: none;
   width: 29px;
   z-index: 20;
