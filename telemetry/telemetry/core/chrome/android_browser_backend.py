@@ -197,7 +197,8 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
     self._adb.Adb().SetProtectedFileContents(
         self._backend_settings.cmdline_file, ' '.join(args))
 
-    # Start it up with a fresh log.
+
+  def Start(self):
     self._adb.RunShellCommand('logcat -c')
     self._adb.StartActivity(self._backend_settings.package,
                             self._backend_settings.activity,
@@ -206,7 +207,7 @@ class AndroidBrowserBackend(browser_backend.BrowserBackend):
                             'chrome://newtab/')
 
     self._adb.Forward('tcp:%d' % self._port,
-                      backend_settings.GetDevtoolsRemotePort())
+                      self._backend_settings.GetDevtoolsRemotePort())
 
     try:
       self._WaitForBrowserToComeUp()

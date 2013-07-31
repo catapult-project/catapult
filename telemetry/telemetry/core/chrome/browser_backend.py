@@ -242,6 +242,9 @@ class BrowserBackend(object):
   def GetRemotePort(self, _):
     return util.GetAvailableLocalPort()
 
+  def Start(self):
+    raise NotImplementedError()
+
   def Close(self):
     if self._tracing_backend:
       self._tracing_backend.Close()

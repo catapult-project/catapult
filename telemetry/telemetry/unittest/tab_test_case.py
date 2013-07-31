@@ -27,6 +27,7 @@ class TabTestCase(unittest.TestCase):
       raise Exception('No browser found, cannot continue test.')
     try:
       self._browser = browser_to_create.Create()
+      self._browser.Start()
       self._tab = self._browser.tabs[0]
     except:
       self.tearDown()

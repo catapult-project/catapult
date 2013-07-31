@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from telemetry.core import user_agent
+from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -63,11 +64,11 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
-        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
         ps,
         base_dir=os.path.dirname(__file__)))
     ps.pages.append(page_module.Page(
-        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
         ps,
         base_dir=os.path.dirname(__file__)))
 
@@ -118,7 +119,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
         ps,
         base_dir=os.path.dirname(__file__))
     page.credentials = "test"
@@ -136,7 +137,7 @@ class PageRunnerTests(unittest.TestCase):
           super(TestThatInstallsCredentialsBackend, self).__init__('RunTest')
           self._credentials_backend = credentials_backend
 
-        def SetUpBrowser(self, browser):
+        def DidStartBrowser(self, browser):
           browser.credentials.AddBackend(self._credentials_backend)
 
         def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
@@ -155,7 +156,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
         ps,
         base_dir=os.path.dirname(__file__))
     ps.pages.append(page)
@@ -184,7 +185,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join('..', '..', 'unittest_data', 'blank.html'),
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
         ps,
         base_dir=os.path.dirname(__file__))
     ps.pages.append(page)
@@ -198,7 +199,7 @@ class PageRunnerTests(unittest.TestCase):
                                          needs_browser_restart_after_each_run)
         self._browser = None
 
-      def SetUpBrowser(self, browser):
+      def DidStartBrowser(self, browser):
         self._browser = browser
         if self._browser.supports_tab_control:
           self._browser.tabs.New()
@@ -210,6 +211,42 @@ class PageRunnerTests(unittest.TestCase):
         assert len(self._browser.tabs) == 1
 
     test = TestOneTab('RunTest')
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    page_runner.Run(test, ps, expectations, options)
+
+  # Ensure that page_runner allows the test to customize the browser before it
+  # launches.
+  def testBrowserBeforeLaunch(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    page = page_module.Page(
+        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
+        ps,
+        base_dir=os.path.dirname(__file__))
+    ps.pages.append(page)
+
+    class TestBeforeLaunch(page_test.PageTest):
+      def __init__(self,
+                   test_method_name,
+                   action_name_to_run=''):
+        super(TestBeforeLaunch, self).__init__(
+            test_method_name, action_name_to_run, False)
+        self._did_call_will_start = False
+        self._did_call_did_start = False
+
+      def WillStartBrowser(self, browser):
+        self._did_call_will_start = True
+        # TODO(simonjam): Test that the profile is available.
+
+      def DidStartBrowser(self, browser):
+        assert self._did_call_will_start
+        self._did_call_did_start = True
+
+      def RunTest(self, page, tab, results): # pylint: disable=W0613,R0201
+        assert self._did_call_did_start
+
+    test = TestBeforeLaunch('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
     page_runner.Run(test, ps, expectations, options)

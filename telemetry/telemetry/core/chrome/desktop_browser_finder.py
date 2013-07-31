@@ -61,7 +61,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       raise NotImplementedError()
 
     b = browser.Browser(backend, p)
-    backend.SetBrowser(b)
     return (b, backend)
 
   def Create(self):
