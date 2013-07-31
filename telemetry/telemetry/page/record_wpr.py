@@ -82,10 +82,10 @@ def Main(base_dir):
 
   if args[0].endswith('.json'):
     ps = page_set.PageSet.FromFile(args[0])
-  elif args[0] in measurements:
-    ps = measurements[args[0]]().CreatePageSet(args, options)
   elif args[0] in tests:
     ps = tests[args[0]]().CreatePageSet(options)
+  elif args[0] in measurements:
+    ps = measurements[args[0]]().CreatePageSet(args, options)
   else:
     parser.print_usage()
     sys.exit(1)
