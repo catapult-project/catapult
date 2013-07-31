@@ -4,10 +4,11 @@
 import os
 import sys
 
+from telemetry.core import repeat_options
 from telemetry.page import page_runner
 from telemetry.page import page_set
-from telemetry.page import test_expectations
 from telemetry.page import page_test
+from telemetry.page import test_expectations
 
 
 def GetBaseDir():
@@ -35,12 +36,22 @@ class Test(object):
     for key, value in self.options.iteritems():
       setattr(options, key, value)
 
+    options.repeat_options = self._CreateRepeatOptions(options)
+
     test = self.test()
     ps = self.CreatePageSet(options)
     expectations = self.CreateExpectations(ps)
     results = page_runner.Run(test, ps, expectations, options)
     results.PrintSummary()
     return len(results.failures) + len(results.errors)
+
+  def _CreateRepeatOptions(self, options):
+    return repeat_options.RepeatOptions(
+        getattr(options, 'page_repeat_secs', None),
+        getattr(options, 'pageset_repeat_secs', None),
+        getattr(options, 'page_repeat_iters', 1),
+        getattr(options, 'pageset_repeat_iters', 1),
+      )
 
   def CreatePageSet(self, options):  # pylint: disable=W0613
     """Get the page set this test will run on.
