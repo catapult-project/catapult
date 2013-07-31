@@ -140,7 +140,10 @@ def AddCommandLineOptions(parser):
 
 
 def _LogStackTrace(title, browser):
-  stack_trace = browser.GetStackTrace()
+  if browser:
+    stack_trace = browser.GetStackTrace()
+  else:
+    stack_trace = 'Browser object is empty, no stack trace.'
   stack_trace = (('\nStack Trace:\n') +
             ('*' * 80) +
             '\n\t' + stack_trace.replace('\n', '\n\t') + '\n' +
