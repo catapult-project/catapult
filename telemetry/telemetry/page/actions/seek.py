@@ -35,8 +35,8 @@ class SeekAction(MediaAction):
     try:
       assert hasattr(self, 'seek_time')
       selector = self.selector if hasattr(self, 'selector') else ''
-      log_seek = self.log_seek if hasattr(self, 'log_seek') else True
-      tab.ExecuteJavaScript('window.__seekMedia("%s", "%s", "%s");' %
+      log_seek = self.log_seek == True if hasattr(self, 'log_seek') else True
+      tab.ExecuteJavaScript('window.__seekMedia("%s", "%s", %i);' %
                             (selector, self.seek_time, log_seek))
       timeout = self.wait_timeout if hasattr(self, 'wait_timeout') else 60
       # Check if we need to wait for 'seeked' event to fire.

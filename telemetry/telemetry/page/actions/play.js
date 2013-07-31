@@ -17,7 +17,7 @@
     if (element instanceof HTMLMediaElement)
       playHTML5Element(element);
     else
-      console.error('Can not play non HTML5 media elements.');
+      throw new Error('Can not play non HTML5 media elements.');
   }
 
   function playHTML5Element(element) {
@@ -25,7 +25,7 @@
       element[e.type + '_completed'] = true;
     }
     function onError(e) {
-      console.error('Error playing media :' + e.type);
+      throw new Error('Error playing media :' + e.type);
     }
     element.addEventListener('playing', logEventHappened);
     element.addEventListener('ended', logEventHappened);

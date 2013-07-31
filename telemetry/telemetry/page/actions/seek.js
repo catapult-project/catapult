@@ -16,20 +16,35 @@
     if (element instanceof HTMLMediaElement)
       seekHTML5Element(element, seekTime, logSeekTime);
     else
-      console.error('Can not seek non HTML5 media elements.');
+      throw new Error('Can not seek non HTML5 media elements.');
   }
 
   function seekHTML5Element(element, seekTime, logSeekTime) {
-    element['seeked_completed'] = false;
+    if (element.readyState == element.HAVE_NOTHING) {
+      var onLoadedMetaData = function(e) {
+        element.removeEventListener('loadedmetadata', onLoadedMetaData);
+        seekHTML5ElementPostLoad(element, seekTime, logSeekTime);
+      };
+      element.addEventListener('loadedmetadata', onLoadedMetaData);
+      element.load();
+    } else {
+      seekHTML5ElementPostLoad(element, seekTime, logSeekTime);
+    }
+  }
+
+  function seekHTML5ElementPostLoad(element, seekTime, logSeekTime) {
     var onSeeked = function(e) {
       element[e.type + '_completed'] = true;
       element.removeEventListener('seeked', onSeeked);
     };
     function onError(e) {
-      console.error('Error playing media :' + e.type);
+      throw new Error('Error playing media :' + e.type);
     }
+
+    element['seeked_completed'] = false;
     element.addEventListener('error', onError);
     element.addEventListener('abort', onError);
+    element.addEventListener('seeked', onSeeked);
 
     if (logSeekTime) {
       var willSeekEvent = document.createEvent('Event');
@@ -37,11 +52,10 @@
       willSeekEvent.seekLabel = seekTime;
       element.dispatchEvent(willSeekEvent);
     }
-    element.addEventListener('seeked', onSeeked);
     try {
       element.currentTime = seekTime;
     } catch (err) {
-      console.error('Cannot seek with network state: ' + element.networkState);
+      throw new Error('Cannot seek in network state: ' + element.networkState);
     }
   }
 
