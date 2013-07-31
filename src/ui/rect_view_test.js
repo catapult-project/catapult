@@ -12,9 +12,7 @@ base.require('ui.rect_view');
 
 base.unittest.testSuite('ui.rect_view', function() {
 
-  // TODO(johnjbarton): Fails on HighDPI,
-  // https://code.google.com/p/trace-viewer/issues/detail?id=339.
-  function FAILS_rect_size() {
+  test('rect_size', function() {
     var quads = [
       base.Quad.FromXYWH(0, 0, 640, 480),
       base.Quad.FromXYWH(0, -100, 640, 480),
@@ -35,15 +33,15 @@ base.unittest.testSuite('ui.rect_view', function() {
 
     this.addHTMLOutput(stack);
 
-    var expected = stack.viewport.devicePixelsPerWorldPixel *
+    var expected = stack.viewport.layoutPixelsPerWorldPixel *
         deviceViewportSizeForFrame.width + 'px';
 
     assertEquals(expected, stack.worldViewportRectView.style.width);
 
-    expected = (stack.viewport.devicePixelsPerWorldPixel *
+    expected = (stack.viewport.layoutPixelsPerWorldPixel *
         deviceViewportSizeForFrame.height) +
         stack.worldViewportRectView_.decorationHeight + 'px';
 
     assertEquals(expected, stack.worldViewportRectView.style.height);
-  }
+  });
 });
