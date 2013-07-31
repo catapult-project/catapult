@@ -24,10 +24,24 @@ base.exportTo('base.unittest', function() {
   };
 
   var showCondensed_ = false;
+  var alternativeDPI_ = false;
+  var builtInDevicePixelRatio = window.devicePixelRatio;
   var testType_ = TestTypes.UNITTEST;
 
   function showCondensed(val) {
     showCondensed_ = val;
+  }
+
+  function alternativeDPI(val) {
+    alternativeDPI_ = val;
+    if (alternativeDPI_) {
+      if (builtInDevicePixelRatio === 1)
+        window.devicePixelRatio = 2;
+      else
+        window.devicePixelRatio = 1;
+    } else {
+      window.devicePixelRatio = builtInDevicePixelRatio;
+    }
   }
 
   function testType(val) {
@@ -609,6 +623,7 @@ base.exportTo('base.unittest', function() {
 
   return {
     showCondensed: showCondensed,
+    alternativeDPI: alternativeDPI,
     testType: testType,
     testSuite: testSuite,
     perfTestSuite: perfTestSuite,

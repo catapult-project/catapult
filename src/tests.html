@@ -73,6 +73,16 @@ found in the LICENSE file.
         base.unittest.runSuites();
       });
       base.unittest.showCondensed(format.checked);
+      
+      var alternativeDPI = document.querySelector('.alternative-DPI');
+      alternativeDPI.checked = 
+          localStorage.getItem('testing::alternativeDPI') === 'true';
+      alternativeDPI.addEventListener('click', function(ev) {
+        localStorage.setItem('testing::alternativeDPI', ev.target.checked);
+        base.unittest.alternativeDPI(ev.target.checked);
+        window.location.reload();
+      });
+      base.unittest.alternativeDPI(alternativeDPI.checked);
 
       var testTypeInputs = document.getElementsByName('test-type');
       var testType = localStorage.getItem('testing::test-type');
@@ -130,6 +140,10 @@ found in the LICENSE file.
       <input type="radio" name="test-type" value="perf-test">
         Run perf tests
       </input>
+    </div>
+    <div class="unittest" 
+        title="Override built-in devicePixelRatio: 1 -> 2, >1 -> 1">
+      <input type="checkbox" class="alternative-DPI" /> Alternative DPI
     </div>
     <div class="unittest">
       <input type="checkbox" id="short-format" /> Short format
