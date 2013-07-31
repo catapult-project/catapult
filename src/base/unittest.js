@@ -45,7 +45,7 @@ base.exportTo('base.unittest', function() {
   }
 
   function testType(val) {
-    if (val === 'perf-test')
+    if (val === 'perf')
       testType_ = TestTypes.PERFTEST;
     else
       testType_ = TestTypes.UNITTEST;
@@ -270,6 +270,7 @@ base.exportTo('base.unittest', function() {
       } else {
         var link = '/src/tests.html?suite=';
         link += this.name.replace(/\./g, '/');
+        link += '&type=' + (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');
 
         var suiteInfo = document.createElement('a');
         suiteInfo.href = link;
@@ -399,6 +400,8 @@ base.exportTo('base.unittest', function() {
         var link = '/src/tests.html?suite=';
         link += this.name.replace(/\./g, '/');
         link += '&test=' + test.name.replace(/\./g, '/');
+        link += '&type=' +
+            (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');
 
         var suiteInfo = document.createElement('a');
         suiteInfo.href = link;

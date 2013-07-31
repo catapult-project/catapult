@@ -31,22 +31,17 @@ found in the LICENSE file.
       req.send(null);
     }
 
-    function launchTests() {
+    function launchTests(suite, tests, testType) {
       var stats = document.getElementById('stats');
+      base.unittest.testType(testType);
 
-      var suite = undefined;
-      var tests = [];
-
-      // Note, this is nieve, but works for our purposes. Would explode on
-      // encoded &'s.
-      var queryParams = window.location.search.substring(1).split('&');
-      queryParams.forEach(function(param) {
-        var parts = param.split('=');
-        if (parts[0] === 'suite')
-          suite = parts[1];
-        else if (parts[0] === 'test')
-          tests.push(parts[1]);
-      });
+      // Perf tests should never have condensed results.
+      if (testType === 'perf') {
+        base.unittest.showCondensed(false);
+      } else {
+        var val = localStorage.getItem('testing::short-format') === 'true';
+        base.unittest.showCondensed(val);
+      }
 
       if (suite !== undefined) {
         base.unittest.Suites(['/src/' + suite + '_test.js'], tests);
@@ -65,10 +60,31 @@ found in the LICENSE file.
         return;
       }
 
+      var suite = undefined;
+      var tests = [];
+      var testType = 'unit';
+
+      // Note, this is nieve, but works for our purposes. Would explode on
+      // encoded &'s.
+      var queryParams = window.location.search.substring(1).split('&');
+      queryParams.forEach(function(param) {
+        var parts = param.split('=');
+        if (parts[0] === 'suite')
+          suite = parts[1];
+        else if (parts[0] === 'test')
+          tests.push(parts[1]);
+        else if (parts[0] === 'type')
+          testType = (parts[1] === 'perf' ? 'perf' : 'unit');
+      });
+
       var format = document.getElementById('short-format');
       format.checked = localStorage.getItem('testing::short-format') === 'true';
       format.addEventListener('click', function(ev) {
         localStorage.setItem('testing::short-format', ev.target.checked);
+
+        if (testType === 'perf')
+          return;
+
         base.unittest.showCondensed(ev.target.checked);
         base.unittest.runSuites();
       });
@@ -85,25 +101,27 @@ found in the LICENSE file.
       base.unittest.alternativeDPI(alternativeDPI.checked);
 
       var testTypeInputs = document.getElementsByName('test-type');
-      var testType = localStorage.getItem('testing::test-type');
-      if (!testType) {
-        testType = 'unit-test';
-        localStorage.setItem('testing::test-type', 'unit-test');
-      }
-
       for (var i = 0; i < testTypeInputs.length; ++i) {
         if (testTypeInputs[i].value === testType)
           testTypeInputs[i].checked = true;
 
         testTypeInputs[i].addEventListener('click', function(ev) {
-          localStorage.setItem('testing::test-type', ev.target.value);
-          base.unittest.testType(ev.target.value);
-          base.unittest.runSuites();
+          testType = ev.target.value;
+
+          var loc = window.location.protocol + '//' + window.location.host +
+              window.location.pathname + '?';
+
+          if (suite !== undefined)
+            loc += 'suite=' + suite + '&';
+          if (tests.length !== 0)
+            loc += 'test=' + tests.join(',') + '&';
+          loc += 'type=' + testType;
+
+          window.location = loc;
+          return;
         });
       }
-
-      base.unittest.testType(testType);
-      launchTests();
+      launchTests(suite, tests, testType);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -132,16 +150,14 @@ found in the LICENSE file.
           class="unittest-error-link">Run manually</a>
     </div>
     <div class="unittest">
-      <input type="radio" name="test-type" value="unit-test">
+      <input type="radio" name="test-type" value="unit">
         Run unit tests
       </input>
-    </div>
-    <div class="unittest">
-      <input type="radio" name="test-type" value="perf-test">
+      <input type="radio" name="test-type" value="perf">
         Run perf tests
       </input>
     </div>
-    <div class="unittest" 
+    <div class="unittest"
         title="Override built-in devicePixelRatio: 1 -> 2, >1 -> 1">
       <input type="checkbox" class="alternative-DPI" /> Alternative DPI
     </div>
