@@ -14,7 +14,8 @@ def _MakePageSet():
       "archive_path": "foo.wpr",
       "pages": [
         {"url": "http://www.foo.com/"},
-        {"url": "http://www.bar.com/"}
+        {"url": "http://www.bar.com/"},
+        {"url": "http://www.baz.com/"}
         ]
       }, os.path.dirname(__file__))
 
@@ -46,6 +47,36 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
                 'RESULT a_by_url: http___www.bar.com_= 7 seconds',
                 '*RESULT a: a= [3,7] seconds\nAvg a: 5.000000seconds\n' +
                 'Sd  a: 2.828427seconds']
+    self.assertEquals(measurement_results.results, expected)
+
+  def test_basic_summary_nonuniform_results(self):
+    test_page_set = _MakePageSet()
+
+    measurement_results = SummarySavingPageMeasurementResults()
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.Add('b', 'seconds', 10)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[1])
+    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.Add('b', 'seconds', 10)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[2])
+    measurement_results.Add('a', 'seconds', 7)
+    # Note, page[2] does not report a 'b' metric.
+    measurement_results.DidMeasurePage()
+
+    measurement_results.PrintSummary()
+    expected = ['RESULT a_by_url: http___www.foo.com_= 3 seconds',
+                'RESULT a_by_url: http___www.bar.com_= 3 seconds',
+                'RESULT a_by_url: http___www.baz.com_= 7 seconds',
+                '*RESULT a: a= [3,3,7] seconds\nAvg a: 4.333333seconds\n' +
+                    'Sd  a: 2.309401seconds',
+                'RESULT b_by_url: http___www.foo.com_= 10 seconds',
+                'RESULT b_by_url: http___www.bar.com_= 10 seconds',
+                '*RESULT b: b= [10,10] seconds\nAvg b: 10.000000seconds']
     self.assertEquals(measurement_results.results, expected)
 
   def test_basic_summary_pass_and_fail_page(self):

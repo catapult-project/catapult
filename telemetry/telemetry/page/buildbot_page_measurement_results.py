@@ -87,6 +87,8 @@ class BuildbotPageMeasurementResults(
             continue
           url_value_map[url].append(value)
         for url in unique_page_urls:
+          if not len(url_value_map[url]):
+            continue
           self._PrintPerfResult(measurement + '_by_url', url,
                                 url_value_map[url], units, by_url_data_type)
 
