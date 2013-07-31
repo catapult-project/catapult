@@ -39,10 +39,7 @@ class _RunState(object):
       assert not self.tab
       self.browser = possible_browser.Create()
       self.browser.credentials.credentials_path = credentials_path
-
-      test.WillStartBrowser(self.browser)
-      self.browser.Start()
-      test.DidStartBrowser(self.browser)
+      test.SetUpBrowser(self.browser)
 
       if self._first_browser:
         self._first_browser = False

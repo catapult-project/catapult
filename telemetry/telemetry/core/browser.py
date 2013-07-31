@@ -229,10 +229,6 @@ class Browser(object):
     """Returns the result of the trace, as TraceResult object."""
     return self._browser_backend.GetTraceResultAndReset()
 
-  def Start(self):
-    self._browser_backend.Start()
-    self._browser_backend.SetBrowser(self)
-
   def Close(self):
     """Closes this browser."""
     self._platform.SetFullPerformanceModeEnabled(False)

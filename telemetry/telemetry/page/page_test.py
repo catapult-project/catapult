@@ -100,11 +100,7 @@ class PageTest(object):
     for action in GetCompoundActionFromPage(page, self._action_name_to_run):
       action.CustomizeBrowserOptions(options)
 
-  def WillStartBrowser(self, browser):
-    """Override to manipulate the browser environment before it launches."""
-    pass
-
-  def DidStartBrowser(self, browser):
+  def SetUpBrowser(self, browser):
     """Override to customize the browser right after it has launched."""
     pass
 

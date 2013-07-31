@@ -27,7 +27,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
-    self._forwarder = None
 
     self._login_ext_dir = os.path.join(os.path.dirname(__file__),
                                        'chromeos_login_ext')
@@ -67,6 +66,61 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       cri.PushFile(options.profile_dir + '/Default', profile_dir)
       cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', profile_dir])
 
+    # Escape all commas in the startup arguments we pass to Chrome
+    # because dbus-send delimits array elements by commas
+    startup_args = [a.replace(',', '\\,') for a in self.GetBrowserStartupArgs()]
+
+    # Restart Chrome with the login extension and remote debugging.
+    logging.info('Restarting Chrome with flags and login')
+    args = ['dbus-send', '--system', '--type=method_call',
+            '--dest=org.chromium.SessionManager',
+            '/org/chromium/SessionManager',
+            'org.chromium.SessionManagerInterface.EnableChromeTesting',
+            'boolean:true',
+            'array:string:"%s"' % ','.join(startup_args)]
+    cri.RunCmdOnDevice(args)
+
+    if not cri.local:
+      # Find a free local port.
+      self._port = util.GetAvailableLocalPort()
+
+      # Forward the remote debugging port.
+      logging.info('Forwarding remote debugging port')
+      self._forwarder = SSHForwarder(
+        cri, 'L',
+        util.PortPair(self._port, self._remote_debugging_port))
+
+    # Wait for the browser to come up.
+    logging.info('Waiting for browser to be ready')
+    try:
+      self._WaitForBrowserToComeUp()
+      self._PostBrowserStartupInitialization()
+    except:
+      import traceback
+      traceback.print_exc()
+      self.Close()
+      raise
+
+    # chrome_branch_number is set in _PostBrowserStartupInitialization.
+    # Without --skip-hwid-check (introduced in crrev.com/203397), devices/VMs
+    # will be stuck on the bad hwid screen.
+    if self.chrome_branch_number <= 1500 and not self.hwid:
+      raise exceptions.LoginException(
+          'Hardware id not set on device/VM. --skip-hwid-check not supported '
+          'with chrome branches 1500 or earlier.')
+
+    if self._is_guest:
+      pid = self.pid
+      self._NavigateGuestLogin()
+      # Guest browsing shuts down the current browser and launches an incognito
+      # browser in a separate process, which we need to wait for.
+      util.WaitFor(lambda: pid != self.pid, 10)
+      self._WaitForBrowserToComeUp()
+    else:
+      self._NavigateLogin()
+
+    logging.info('Browser is up!')
+
   def GetBrowserStartupArgs(self):
     self.webpagereplay_remote_http_port = self._cri.GetRemotePort()
     self.webpagereplay_remote_https_port = self._cri.GetRemotePort()
@@ -100,6 +154,7 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
       args.append('--skip-hwid-check')
 
     return args
+
 
   def _GetSessionManagerPid(self, procs):
     """Returns the pid of the session_manager process, given the list of
@@ -145,62 +200,6 @@ class CrOSBrowserBackend(browser_backend.BrowserBackend):
 
   def __del__(self):
     self.Close()
-
-  def Start(self):
-    # Escape all commas in the startup arguments we pass to Chrome
-    # because dbus-send delimits array elements by commas
-    startup_args = [a.replace(',', '\\,') for a in self.GetBrowserStartupArgs()]
-
-    # Restart Chrome with the login extension and remote debugging.
-    logging.info('Restarting Chrome with flags and login')
-    args = ['dbus-send', '--system', '--type=method_call',
-            '--dest=org.chromium.SessionManager',
-            '/org/chromium/SessionManager',
-            'org.chromium.SessionManagerInterface.EnableChromeTesting',
-            'boolean:true',
-            'array:string:"%s"' % ','.join(startup_args)]
-    self._cri.RunCmdOnDevice(args)
-
-    if not self._cri.local:
-      # Find a free local port.
-      self._port = util.GetAvailableLocalPort()
-
-      # Forward the remote debugging port.
-      logging.info('Forwarding remote debugging port')
-      self._forwarder = SSHForwarder(
-        self._cri, 'L',
-        util.PortPair(self._port, self._remote_debugging_port))
-
-    # Wait for the browser to come up.
-    logging.info('Waiting for browser to be ready')
-    try:
-      self._WaitForBrowserToComeUp()
-      self._PostBrowserStartupInitialization()
-    except:
-      import traceback
-      traceback.print_exc()
-      self.Close()
-      raise
-
-    # chrome_branch_number is set in _PostBrowserStartupInitialization.
-    # Without --skip-hwid-check (introduced in crrev.com/203397), devices/VMs
-    # will be stuck on the bad hwid screen.
-    if self.chrome_branch_number <= 1500 and not self.hwid:
-      raise exceptions.LoginException(
-          'Hardware id not set on device/VM. --skip-hwid-check not supported '
-          'with chrome branches 1500 or earlier.')
-
-    if self._is_guest:
-      pid = self.pid
-      self._NavigateGuestLogin()
-      # Guest browsing shuts down the current browser and launches an incognito
-      # browser in a separate process, which we need to wait for.
-      util.WaitFor(lambda: pid != self.pid, 10)
-      self._WaitForBrowserToComeUp()
-    else:
-      self._NavigateLogin()
-
-    logging.info('Browser is up!')
 
   def Close(self):
     super(CrOSBrowserBackend, self).Close()
