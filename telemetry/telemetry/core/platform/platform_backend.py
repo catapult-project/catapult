@@ -48,3 +48,12 @@ class PlatformBackend(object):
 
   def GetOSVersionName(self):
     return None
+
+  def CanFlushIndividualFilesFromSystemCache(self):
+    raise NotImplementedError()
+
+  def FlushEntireSystemCache(self):
+    raise NotImplementedError()
+
+  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
+    raise NotImplementedError()

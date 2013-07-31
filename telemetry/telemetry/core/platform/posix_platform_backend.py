@@ -6,10 +6,10 @@ import subprocess
 
 from collections import defaultdict
 
-from telemetry.core.platform import platform_backend
+from telemetry.core.platform import desktop_platform_backend
 
 
-class PosixPlatformBackend(platform_backend.PlatformBackend):
+class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   # This is an abstract class. It is OK to have abstract methods.
   # pylint: disable=W0223
@@ -60,3 +60,5 @@ class PosixPlatformBackend(platform_backend.PlatformBackend):
     command = self._GetPsOutput(['command'], pid)
     return command[0] if command else None
 
+  def GetFlushUtilityName(self):
+    return 'clear_system_cache'

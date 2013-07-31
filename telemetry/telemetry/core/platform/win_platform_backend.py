@@ -18,10 +18,10 @@ except ImportError:
   win32con = None
   win32process = None
 
-from telemetry.core.platform import platform_backend
+from telemetry.core.platform import desktop_platform_backend
 
 
-class WinPlatformBackend(platform_backend.PlatformBackend):
+class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def _GetProcessHandle(self, pid):
     mask = (win32con.PROCESS_QUERY_INFORMATION |
             win32con.PROCESS_VM_READ)
@@ -159,3 +159,9 @@ class WinPlatformBackend(platform_backend.PlatformBackend):
       return 'win7'
     if os_version.startswith('6.2.'):
       return 'win8'
+
+  def CanFlushIndividualFilesFromSystemCache(self):
+    return True
+
+  def GetFlushUtilityName(self):
+    return 'clear_system_cache.exe'

@@ -85,3 +85,16 @@ def CloseConnections(tab):
                              chrome.benchmarking.closeConnections()""")
   except Exception:
     pass
+
+def GetBuildDirectories():
+  """Yields all combination of Chromium build output directories."""
+  build_dirs = ['build',
+                'out',
+                'sconsbuild',
+                'xcodebuild']
+
+  build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64']
+
+  for build_dir in build_dirs:
+    for build_type in build_types:
+      yield build_dir, build_type

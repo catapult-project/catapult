@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import subprocess
 try:
   import resource  # pylint: disable=F0401
 except ImportError:
@@ -61,3 +62,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return 'mountainlion'
     #if os_version.startswith('13.'):
     #  return 'mavericks'
+
+  def CanFlushIndividualFilesFromSystemCache(self):
+    return False
+
+  def FlushEntireSystemCache(self):
+    p = subprocess.Popen(['purge'])
+    p.wait()
+    assert p.returncode == 0, 'Failed to flush system cache'

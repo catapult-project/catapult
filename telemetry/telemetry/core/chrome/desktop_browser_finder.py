@@ -13,6 +13,7 @@ import sys
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core import profile_types
+from telemetry.core import util
 from telemetry.core.chrome import cros_interface
 from telemetry.core.chrome import desktop_browser_backend
 from telemetry.core.platform import linux_platform_backend
@@ -128,8 +129,7 @@ def FindAllAvailableBrowsers(options):
   if options.chrome_root:
     chrome_root = options.chrome_root
   else:
-    chrome_root = os.path.join(os.path.dirname(__file__),
-                               '..', '..', '..', '..', '..')
+    chrome_root = util.GetChromiumSrcDir()
 
   if sys.platform == 'darwin':
     chromium_app_name = 'Chromium.app/Contents/MacOS/Chromium'
@@ -172,28 +172,21 @@ def FindAllAvailableBrowsers(options):
       logging.warning('%s specified by browser_executable does not exist',
                       normalized_executable)
 
-  build_dirs = ['build',
-                'out',
-                'sconsbuild',
-                'xcodebuild']
-
-  def AddIfFound(browser_type, type_dir, app_name, content_shell):
-    for build_dir in build_dirs:
-      app = os.path.join(chrome_root, build_dir, type_dir, app_name)
-      if os.path.exists(app):
-        browsers.append(PossibleDesktopBrowser(browser_type, options,
-                                               app, flash_path, content_shell,
-                                               is_local_build=True))
-        return True
+  def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
+    app = os.path.join(chrome_root, build_dir, type_dir, app_name)
+    if os.path.exists(app):
+      browsers.append(PossibleDesktopBrowser(browser_type, options,
+                                             app, flash_path, content_shell,
+                                             is_local_build=True))
+      return True
     return False
 
   # Add local builds
-  AddIfFound('debug', 'Debug', chromium_app_name, False)
-  AddIfFound('debug_x64', 'Debug_x64', chromium_app_name, False)
-  AddIfFound('content-shell-debug', 'Debug', content_shell_app_name, True)
-  AddIfFound('release', 'Release', chromium_app_name, False)
-  AddIfFound('release_x64', 'Release_x64', chromium_app_name, False)
-  AddIfFound('content-shell-release', 'Release', content_shell_app_name, True)
+  for build_dir, build_type in util.GetBuildDirectories():
+    AddIfFound(build_type.lower(), build_dir, build_type,
+               chromium_app_name, False)
+    AddIfFound('content-shell-' + build_type.lower(), build_dir, build_type,
+               content_shell_app_name, True)
 
   # Mac-specific options.
   if sys.platform == 'darwin':
@@ -231,18 +224,24 @@ def FindAllAvailableBrowsers(options):
                         os.getenv('PROGRAMFILES'),
                         os.getenv('LOCALAPPDATA')]
 
+    def AddIfFoundWin(browser_name, app_path):
+      app = os.path.join(path, app_path, chromium_app_name)
+      if os.path.exists(app):
+        browsers.append(PossibleDesktopBrowser(browser_name, options,
+                                               app, flash_path, False))
+        return True
+      return False
+
     for path in win_search_paths:
       if not path:
         continue
-      if AddIfFound('canary', os.path.join(path, canary_path),
-                    chromium_app_name, False):
+      if AddIfFoundWin('canary', canary_path):
         break
 
     for path in win_search_paths:
       if not path:
         continue
-      if AddIfFound('system', os.path.join(path, system_path),
-                    chromium_app_name, False):
+      if AddIfFoundWin('system', system_path):
         break
 
   if len(browsers) and not has_display:

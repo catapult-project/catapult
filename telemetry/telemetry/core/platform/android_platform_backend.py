@@ -122,3 +122,13 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
 
   def GetOSName(self):
     return 'android'
+
+  def CanFlushIndividualFilesFromSystemCache(self):
+    return False
+
+  def FlushEntireSystemCache(self):
+    cache_control = perf_tests_helper.CacheControl(self._adb.Adb())
+    cache_control.DropRamCaches()
+
+  def FlushSystemCacheForDirectory(self, directory, ignoring=None):
+    raise NotImplementedError()

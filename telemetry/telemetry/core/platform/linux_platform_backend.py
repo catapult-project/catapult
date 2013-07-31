@@ -2,12 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-try:
-  import resource  # pylint: disable=F0401
-except ImportError:
-  resource = None  # Not available on all platforms
+import subprocess
 
 from telemetry.core.platform import posix_platform_backend
+from telemetry.core.platform import proc_util
 
 
 class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
@@ -27,40 +25,26 @@ class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def _GetProcFileDict(self, filename):
-    retval = {}
-    for line in self._GetFileContents(filename).splitlines():
-      key, value = line.split(':')
-      retval[key.strip()] = value.strip()
-    return retval
-
-  def _ConvertKbToByte(self, value):
-    return int(value.replace('kB','')) * 1024
-
   def GetSystemCommitCharge(self):
-    meminfo = self._GetProcFileDict('/proc/meminfo')
-    return (self._ConvertKbToByte(meminfo['MemTotal'])
-            - self._ConvertKbToByte(meminfo['MemFree'])
-            - self._ConvertKbToByte(meminfo['Buffers'])
-            - self._ConvertKbToByte(meminfo['Cached']))
+    meminfo_contents = self._GetFileContents('/proc/meminfo')
+    return proc_util.GetSystemCommitCharge(meminfo_contents)
 
   def GetMemoryStats(self, pid):
-    status = self._GetProcFileDict('/proc/%s/status' % pid)
+    status = self._GetFileContents('/proc/%s/status' % pid)
     stats = self._GetFileContents('/proc/%s/stat' % pid).split()
-
-    if not status or not stats or 'Z' in status['State']:
-      return {}
-    return {'VM': int(stats[22]),
-            'VMPeak': self._ConvertKbToByte(status['VmPeak']),
-            'WorkingSetSize': int(stats[23]) * resource.getpagesize(),
-            'WorkingSetSizePeak': self._ConvertKbToByte(status['VmHWM'])}
+    return proc_util.GetMemoryStats(status, stats)
 
   def GetIOStats(self, pid):
-    io = self._GetProcFileDict('/proc/%s/io' % pid)
-    return {'ReadOperationCount': int(io['syscr']),
-            'WriteOperationCount': int(io['syscw']),
-            'ReadTransferCount': int(io['rchar']),
-            'WriteTransferCount': int(io['wchar'])}
+    io_contents = self._GetFileContents('/proc/%s/io' % pid)
+    return proc_util.GetIOStats(io_contents)
 
   def GetOSName(self):
     return 'linux'
+
+  def CanFlushIndividualFilesFromSystemCache(self):
+    return True
+
+  def FlushEntireSystemCache(self):
+    p = subprocess.Popen(['/sbin/sysctl', '-w', 'vm.drop_caches=3'])
+    p.wait()
+    assert p.returncode == 0, 'Failed to flush system cache'
