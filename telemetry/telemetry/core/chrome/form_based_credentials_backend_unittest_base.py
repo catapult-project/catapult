@@ -36,6 +36,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     with browser_finder.FindBrowser(options).Create() as b:
+      b.Start()
       b.credentials.credentials_path = credentials_path
       if not b.credentials.CanLogin(self._credentials_type):
         return
@@ -53,6 +54,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
 
     # Login once to make sure our default profile is logged in.
     with browser_finder.FindBrowser(options).Create() as b:
+      b.Start()
       b.credentials.credentials_path = credentials_path
 
       if not b.credentials.CanLogin(self._credentials_type):

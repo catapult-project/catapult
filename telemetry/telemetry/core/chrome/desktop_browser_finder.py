@@ -62,8 +62,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       raise NotImplementedError()
 
     b = browser.Browser(backend, p)
-    backend.SetBrowser(b)
-    return (b, backend)
+    return b
 
   def Create(self):
     # If a dirty profile is needed, instantiate an initial browser object and
@@ -83,12 +82,10 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
       # Now create another browser to run tests on using the dirty profile
       # we just created.
-      (b, backend) = \
-          self._CreateBrowserInternal(delete_profile_dir_after_run=True)
+      b = self._CreateBrowserInternal(delete_profile_dir_after_run=True)
       backend.SetProfileDirectory(dirty_profile_dir)
     else:
-      (b, backend) = \
-          self._CreateBrowserInternal(delete_profile_dir_after_run=True)
+      b = self._CreateBrowserInternal(delete_profile_dir_after_run=True)
     return b
 
   def SupportsOptions(self, options):

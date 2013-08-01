@@ -36,7 +36,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self.browser_type, self._options, self._cri, self._is_guest)
     b = browser.Browser(backend,
                         cros_platform_backend.CrosPlatformBackend(self._cri))
-    backend.SetBrowser(b)
     return b
 
   def SupportsOptions(self, options):

@@ -46,19 +46,24 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
     self._profile_dir = None
     self._supports_net_benchmarking = True
     self._delete_profile_dir_after_run = delete_profile_dir_after_run
-    self._LaunchBrowser(options)
 
-    # For old chrome versions, might have to relaunch to have the
-    # correct net_benchmarking switch.
-    if self._chrome_branch_number < 1418:
-      self.Close()
-      self._supports_net_benchmarking = False
-      self._LaunchBrowser(options)
+    self._SetupProfile()
 
-  def _LaunchBrowser(self, options):
+  def _SetupProfile(self):
+    if not self.options.dont_override_profile:
+      self._tmpdir = tempfile.mkdtemp()
+      profile_dir = self._profile_dir or self.options.profile_dir
+      if profile_dir:
+        if self.is_content_shell:
+          logging.critical('Profiles cannot be used with content shell')
+          sys.exit(1)
+        shutil.rmtree(self._tmpdir)
+        shutil.copytree(profile_dir, self._tmpdir)
+
+  def _LaunchBrowser(self):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
-    if not options.show_stdout:
+    if not self.options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
       self._proc = subprocess.Popen(
           args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
@@ -84,14 +89,6 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
       else:
         args.append('--enable-benchmarking')
       if not self.options.dont_override_profile:
-        self._tmpdir = tempfile.mkdtemp()
-        profile_dir = self._profile_dir or self.options.profile_dir
-        if profile_dir:
-          if self.is_content_shell:
-            logging.critical('Profiles cannot be used with content shell')
-            sys.exit(1)
-          shutil.rmtree(self._tmpdir)
-          shutil.copytree(profile_dir, self._tmpdir)
         args.append('--user-data-dir=%s' % self._tmpdir)
     return args
 
@@ -105,12 +102,21 @@ class DesktopBrowserBackend(browser_backend.BrowserBackend):
 
     self._profile_dir = profile_dir
 
+  def Start(self):
+    self._LaunchBrowser()
+
+    # For old chrome versions, might have to relaunch to have the
+    # correct net_benchmarking switch.
+    if self._chrome_branch_number < 1418:
+      self.Close()
+      self._supports_net_benchmarking = False
+      self._LaunchBrowser()
+
   @property
   def pid(self):
     if self._proc:
       return self._proc.pid
     return None
-
 
   @property
   def profile_directory(self):

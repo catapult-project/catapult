@@ -37,6 +37,7 @@ class BrowserTest(unittest.TestCase):
     if not browser_to_create:
       raise Exception('No browser found, cannot continue test.')
     self._browser = browser_to_create.Create()
+    self._browser.Start()
 
     unittest_data_dir = os.path.join(os.path.dirname(__file__),
                                      '..', '..', 'unittest_data')
