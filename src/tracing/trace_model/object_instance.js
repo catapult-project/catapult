@@ -8,6 +8,7 @@
  * @fileoverview Provides the ObjectSnapshot and ObjectHistory classes.
  */
 base.require('base.range');
+base.require('base.guid');
 base.require('base.sorted_array_utils');
 base.require('tracing.trace_model.object_snapshot');
 
@@ -21,6 +22,7 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function ObjectInstance(parent, id, category, name, creationTs) {
+    this.guid_ = base.GUID.allocate();
     this.parent = parent;
     this.id = id;
     this.category = category;
@@ -41,6 +43,10 @@ base.exportTo('tracing.trace_model', function() {
 
     get typeName() {
       return this.name;
+    },
+
+    get guid() {
+      return this.guid_;
     },
 
     addSnapshot: function(ts, args) {

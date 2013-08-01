@@ -36,6 +36,7 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
   test('asyncSlice_toJSON', function() {
     var js = [
       '{',
+      '  "guid_" : __S_GUID__,',
       '  "category" : "",',
       '  "title" : "a",',
       '  "colorId" : 0,',
@@ -45,6 +46,7 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
       '  "startThread" : __T1_GUID__,',
       '  "endThread" : __T1_GUID__,',
       '  "subSlices" : [ {',
+      '        "guid_" : __SUB_S_GUID__,',
       '        "category" : "",',
       '        "title" : "a",',
       '        "colorId" : 0,',
@@ -61,8 +63,10 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
     var t1 = new Thread(p1, 1);
     var s = newAsyncSlice(0, 1, t1, t1);
 
-    // Replace __T1_GUID__ with t1's actual GUID
-    js = js.replace(/__T1_GUID__/g, t1.guid);
+    // Replace placeholders with GUIDs
+    js = js.replace(/__T1_GUID__/g, t1.guid)
+           .replace(/__S_GUID__/g, s.guid)
+           .replace(/__SUB_S_GUID__/g, s.subSlices[0].guid);
 
     // Modify whitespace of "js" so that string compare with another
     // JSON.stringified version can succeed.

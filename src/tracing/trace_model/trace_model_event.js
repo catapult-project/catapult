@@ -4,6 +4,8 @@
 
 'use strict';
 
+base.require('base.guid');
+
 /**
  * @fileoverview Provides the TraceModelEvent class.
  */
@@ -16,6 +18,7 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function TraceModelEvent(category, title, colorId, start, args) {
+    this.guid_ = base.GUID.allocate();
     this.category = category || '';
     this.title = title;
     this.colorId = colorId;
@@ -32,6 +35,10 @@ base.exportTo('tracing.trace_model', function() {
 
     get end() {
       return this.start;
+    },
+
+    get guid() {
+      return this.guid_;
     }
   };
 
