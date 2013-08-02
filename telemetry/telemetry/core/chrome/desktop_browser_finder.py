@@ -11,14 +11,12 @@ import subprocess
 import sys
 
 from telemetry.core import browser
+from telemetry.core import platform as core_platform
 from telemetry.core import possible_browser
 from telemetry.core import profile_types
 from telemetry.core import util
 from telemetry.core.chrome import cros_interface
 from telemetry.core.chrome import desktop_browser_backend
-from telemetry.core.platform import linux_platform_backend
-from telemetry.core.platform import mac_platform_backend
-from telemetry.core.platform import win_platform_backend
 
 ALL_BROWSER_TYPES = ','.join([
     'exact',
@@ -52,16 +50,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         self._options, self._local_executable, self._flash_path,
         self._is_content_shell,
         delete_profile_dir_after_run=delete_profile_dir_after_run)
-    if sys.platform.startswith('linux'):
-      p = linux_platform_backend.LinuxPlatformBackend()
-    elif sys.platform == 'darwin':
-      p = mac_platform_backend.MacPlatformBackend()
-    elif sys.platform == 'win32':
-      p = win_platform_backend.WinPlatformBackend()
-    else:
-      raise NotImplementedError()
-
-    b = browser.Browser(backend, p)
+    b = browser.Browser(backend,
+                        core_platform.CreatePlatformBackendForCurrentOS())
     return b
 
   def Create(self):

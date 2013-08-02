@@ -7,9 +7,10 @@ import subprocess
 
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core.chrome import browser_backend
+from telemetry.core.backends import browser_backend
+from telemetry.core.backends.chrome import chrome_browser_backend
 
-class CrOSBrowserBackend(browser_backend.BrowserBackend):
+class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   # Some developers' workflow includes running the Chrome process from
   # /usr/local/... instead of the default location. We have to check for both
   # paths in order to support this workflow.

@@ -11,7 +11,7 @@ from telemetry.core import tab_list
 from telemetry.core import temporary_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
-from telemetry.core.chrome import browser_backend
+from telemetry.core.backends import browser_backend
 from telemetry.core.platform.profiler import profiler_finder
 
 class Browser(object):

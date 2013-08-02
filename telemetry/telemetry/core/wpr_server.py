@@ -17,6 +17,17 @@ import webpagereplay  # pylint: disable=F0401
 def GetChromeFlags(replay_host, http_port, https_port):
   return webpagereplay.GetChromeFlags(replay_host, http_port, https_port)
 
+class _WebPageReplayServer(webpagereplay.ReplayServer): # pylint: disable=W0232
+  def _AddDefaultReplayOptions(self):
+    """Override. Because '--no-dns_forwarding' is added by default in parent
+       while webdriver-based backends need dns forwarding."""
+    self.replay_options += [
+        '--port', str(self._http_port),
+        '--ssl_port', str(self._https_port),
+        '--use_closest_match',
+        '--log_level', 'warning'
+        ]
+
 class ReplayServer(object):
   def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
                make_javascript_deterministic, webpagereplay_host,
@@ -47,7 +58,8 @@ class ReplayServer(object):
         options.append('--record')
     if not make_javascript_deterministic:
       options.append('--inject_scripts=')
-    self._web_page_replay = webpagereplay.ReplayServer(
+    browser_backend.AddReplayServerOptions(options)
+    self._web_page_replay = _WebPageReplayServer(
         path,
         self._webpagereplay_host,
         self._webpagereplay_local_http_port,

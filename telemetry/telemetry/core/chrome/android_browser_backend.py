@@ -10,8 +10,9 @@ import time
 
 from telemetry.core import exceptions
 from telemetry.core import util
+from telemetry.core.backends import browser_backend
+from telemetry.core.backends.chrome import chrome_browser_backend
 from telemetry.core.chrome import adb_commands
-from telemetry.core.chrome import browser_backend
 
 
 class AndroidBrowserBackendSettings(object):
@@ -142,7 +143,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
     return '/data/data/%s/app_webview/' % self.package
 
 
-class AndroidBrowserBackend(browser_backend.BrowserBackend):
+class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
   def __init__(self, options, backend_settings):

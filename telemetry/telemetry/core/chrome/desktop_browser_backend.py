@@ -9,9 +9,10 @@ import sys
 import tempfile
 
 from telemetry.core import util
-from telemetry.core.chrome import browser_backend
+from telemetry.core.backends import browser_backend
+from telemetry.core.backends.chrome import chrome_browser_backend
 
-class DesktopBrowserBackend(browser_backend.BrowserBackend):
+class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """

@@ -1,41 +1,38 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import urllib2
 import httplib
-import socket
 import json
 import re
+import socket
 import sys
+import urllib2
 
-from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.core import user_agent
+from telemetry.core import util
 from telemetry.core import web_contents
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
+from telemetry.core.backends import browser_backend
 from telemetry.core.chrome import extension_dict_backend
+from telemetry.core.chrome import misc_web_contents_backend
 from telemetry.core.chrome import tab_list_backend
 from telemetry.core.chrome import tracing_backend
-from telemetry.core.chrome import misc_web_contents_backend
 from telemetry.unittest import options_for_unittests
 
-class ExtensionsNotSupportedException(Exception):
-  pass
-
-class BrowserBackend(object):
-  """A base class for browser backends. Provides basic functionality
+class ChromeBrowserBackend(browser_backend.BrowserBackend):
+  """An abstract class for chrome browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
-
-  WEBPAGEREPLAY_HOST = '127.0.0.1'
+  # It is OK to have abstract methods. pylint: disable=W0223
 
   def __init__(self, is_content_shell, supports_extensions, options):
-    self.browser_type = options.browser_type
-    self.is_content_shell = is_content_shell
-    self._supports_extensions = supports_extensions
-    self.options = options
-    self._browser = None
+    super(ChromeBrowserBackend, self).__init__(
+        is_content_shell=is_content_shell,
+        supports_extensions=supports_extensions,
+        options=options,
+        tab_list_backend=tab_list_backend.TabListBackend)
     self._port = None
 
     self._inspector_protocol_version = 0
@@ -54,34 +51,19 @@ class BrowserBackend(object):
                        'extensions.\n')
     self._misc_web_contents_backend = (
         misc_web_contents_backend.MiscWebContentsBackend(self))
-    self._tab_list_backend = tab_list_backend.TabListBackend(self)
     self._extension_dict_backend = None
     if supports_extensions:
       self._extension_dict_backend = (
           extension_dict_backend.ExtensionDictBackend(self))
 
-  def SetBrowser(self, browser):
-    self._browser = browser
-    self._tab_list_backend.Init()
-
-  @property
-  def browser(self):
-    return self._browser
-
-  @property
-  def supports_extensions(self):
-    """True if this browser backend supports extensions."""
-    return self._supports_extensions
+  def AddReplayServerOptions(self, options):
+    options.append('--no-dns_forwarding')
 
   @property
   def misc_web_contents_backend(self):
     """Access to chrome://oobe/login page which is neither a tab nor an
     extension."""
     return self._misc_web_contents_backend
-
-  @property
-  def tab_list_backend(self):
-    return self._tab_list_backend
 
   @property
   def extension_dict_backend(self):
@@ -117,10 +99,6 @@ class BrowserBackend(object):
       args.append('--no-proxy-server')
 
     return args
-
-  @property
-  def wpr_mode(self):
-    return self.options.wpr_mode
 
   def _WaitForBrowserToComeUp(self, timeout=None):
     def IsBrowserUp():
@@ -239,37 +217,7 @@ class BrowserBackend(object):
       return 'browser'
     return m.group(1)
 
-  def GetRemotePort(self, _):
-    return util.GetAvailableLocalPort()
-
-  def Start(self):
-    raise NotImplementedError()
-
   def Close(self):
     if self._tracing_backend:
       self._tracing_backend.Close()
       self._tracing_backend = None
-
-  def CreateForwarder(self, *port_pairs):
-    raise NotImplementedError()
-
-  def IsBrowserRunning(self):
-    raise NotImplementedError()
-
-  def GetStandardOutput(self):
-    raise NotImplementedError()
-
-  def GetStackTrace(self):
-    raise NotImplementedError()
-
-class DoNothingForwarder(object):
-  def __init__(self, *port_pairs):
-    self._host_port = port_pairs[0].local_port
-
-  @property
-  def url(self):
-    assert self._host_port
-    return 'http://127.0.0.1:%i' % self._host_port
-
-  def Close(self):
-    self._host_port = None
