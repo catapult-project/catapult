@@ -104,7 +104,9 @@ class Browser(object):
         child_process_name = self._browser_backend.GetProcessName(
             child_cmd_line)
       except Exception:
-        child_process_name = 'renderer'
+        # The cmd line was unavailable, assume it'll be impossible to track
+        # any further stats about this process.
+        continue
       process_name_type_key_map = {'gpu-process': 'Gpu', 'renderer': 'Renderer'}
       if child_process_name in process_name_type_key_map:
         child_process_type_key = process_name_type_key_map[child_process_name]
