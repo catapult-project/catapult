@@ -43,5 +43,5 @@ base.unittest.testSuite('ui.rect_view', function() {
         stack.worldViewportRectView_.decorationHeight + 'px';
 
     assertEquals(expected, stack.worldViewportRectView.style.height);
-  });
+  }, {dpiAware: true});
 });

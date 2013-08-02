@@ -24,24 +24,10 @@ base.exportTo('base.unittest', function() {
   };
 
   var showCondensed_ = false;
-  var alternativeDPI_ = false;
-  var builtInDevicePixelRatio = window.devicePixelRatio;
   var testType_ = TestTypes.UNITTEST;
 
   function showCondensed(val) {
     showCondensed_ = val;
-  }
-
-  function alternativeDPI(val) {
-    alternativeDPI_ = val;
-    if (alternativeDPI_) {
-      if (builtInDevicePixelRatio === 1)
-        window.devicePixelRatio = 2;
-      else
-        window.devicePixelRatio = 1;
-    } else {
-      window.devicePixelRatio = builtInDevicePixelRatio;
-    }
   }
 
   function testType(val) {
@@ -183,10 +169,38 @@ base.exportTo('base.unittest', function() {
     global.teardown = function(fn) { this.teardownFn_ = fn; }.bind(this);
 
     global.test = function(name, test, options) {
+      options = options || {};
+
       if (this.testNames_[name] === true)
         logWarningMessage('Duplicate test name detected: ' + name);
 
-      this.tests_.push(new Test(name, test, options || {}));
+      var testName = name;
+      // If the test cares about DPI settings then we first push a test
+      // that fakes the DPI as the low or hi Dpi version, depending on what
+      // we're current using.
+      if (options.dpiAware) {
+        var defaultDevicePixelRatio = window.devicePixelRatio;
+        var dpi = defaultDevicePixelRatio > 1 ? 1 : 2;
+
+        var testWrapper = function() {
+          window.devicePixelRatio = dpi;
+          test.bind(this).call();
+          window.devicePixelRatio = defaultDevicePixelRatio;
+        };
+
+        var newName = name;
+        if (dpi === 1) {
+          newName += '_loDPI';
+          testName += '_hiDPI';
+        } else {
+          newName += '_hiDPI';
+          testName += '_loDPI';
+        }
+
+        this.tests_.push(new Test(newName, testWrapper, options || {}));
+      }
+
+      this.tests_.push(new Test(testName, test, options || {}));
       this.testNames_[name] = true;
     }.bind(this);
 
@@ -215,7 +229,6 @@ base.exportTo('base.unittest', function() {
           results.add(window.performance.now() - start);
         }
       };
-
 
       this.tests_.push(new PerfTest(name, testWrapper, options));
       this.testNames_[name] = true;
@@ -626,11 +639,12 @@ base.exportTo('base.unittest', function() {
 
   return {
     showCondensed: showCondensed,
-    alternativeDPI: alternativeDPI,
     testType: testType,
     testSuite: testSuite,
     perfTestSuite: perfTestSuite,
     runSuites: runSuites,
-    Suites: Suites
+    Suites: Suites,
+
+    TestSuite_: TestSuite
   };
 });
