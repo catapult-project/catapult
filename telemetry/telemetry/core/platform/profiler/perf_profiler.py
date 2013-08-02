@@ -67,6 +67,8 @@ class PerfProfiler(profiler.Profiler):
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
     for pid, output_file in process_output_file_map.iteritems():
+      if 'zygote' in output_file:
+        continue
       self._process_profilers.append(
           _SingleProcessPerfProfiler(pid, output_file, platform_backend))
 
@@ -87,6 +89,11 @@ class PerfProfiler(profiler.Profiler):
                                   stdout=subprocess.PIPE).wait()
     except OSError:
       return False
+
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.AppendExtraBrowserArg('--no-sandbox')
+    options.AppendExtraBrowserArg('--allow-sandbox-debugging')
 
   def CollectProfile(self):
     output_files = []

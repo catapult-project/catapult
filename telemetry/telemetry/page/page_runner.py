@@ -16,6 +16,7 @@ from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
+from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
@@ -212,6 +213,9 @@ def Run(test, page_set, expectations, options):
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(options)
+  if options.profiler:
+    profiler_class = profiler_finder.FindProfiler(options.profiler)
+    profiler_class.CustomizeBrowserOptions(options)
   try:
     possible_browser = browser_finder.FindBrowser(options)
   except browser_finder.BrowserTypeRequiredException, e:

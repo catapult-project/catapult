@@ -22,6 +22,11 @@ class Profiler(object):
     """True iff this profiler is currently supported by the platform."""
     raise NotImplementedError()
 
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    """Override to customize the Browser's options before it is created."""
+    pass
+
   def _GetProcessOutputFileMap(self):
     """Returns a dict with pid: output_file."""
     all_pids = ([self._browser_backend.pid] +
