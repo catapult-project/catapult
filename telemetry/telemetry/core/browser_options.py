@@ -5,12 +5,14 @@
 import copy
 import logging
 import optparse
+import os
 import shlex
 import sys
 
 from telemetry.core import browser_finder
 from telemetry.core import profile_types
 from telemetry.core import repeat_options
+from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 
@@ -87,7 +89,9 @@ class BrowserOptions(optparse.Values):
         help='The IP address of a remote ChromeOS device to use.')
     group.add_option('--identity',
         dest='cros_ssh_identity',
-        default=None,
+        default=os.path.join(
+            util.GetChromiumSrcDir(),
+            'third_party', 'chromite', 'ssh_keys', 'testing_rsa'),
         help='The identity file to use when ssh\'ing into the ChromeOS device')
     parser.add_option_group(group)
 
