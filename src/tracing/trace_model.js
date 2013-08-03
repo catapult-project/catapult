@@ -48,6 +48,7 @@ base.exportTo('tracing', function() {
     this.categories = [];
     this.bounds = new base.Range();
     this.instantEvents = [];
+    this.flowEvents = [];
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -121,10 +122,13 @@ base.exportTo('tracing', function() {
         return;
       var timeBase = this.bounds.min;
       this.kernel.shiftTimestampsForward(-timeBase);
+
       for (var id in this.instantEvents)
         this.instantEvents[id].start -= timeBase;
+
       for (var pid in this.processes)
         this.processes[pid].shiftTimestampsForward(-timeBase);
+
       this.updateBounds();
     },
 

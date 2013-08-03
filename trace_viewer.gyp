@@ -126,6 +126,7 @@
       'src/tracing/trace_model/async_slice.js',
       'src/tracing/trace_model/async_slice_group.js',
       'src/tracing/trace_model/slice_group.js',
+      'src/tracing/trace_model/flow_event.js',
       'src/tracing/trace_model/thread.js',
       'src/tracing/trace_model/object_snapshot.js',
       'src/tracing/trace_model/sample.js',

@@ -12,6 +12,7 @@ base.require('base.quad');
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
 base.require('tracing.trace_model.instant_event');
+base.require('tracing.trace_model.flow_event');
 base.require('tracing.trace_model.counter_series');
 
 base.exportTo('tracing.importer', function() {
@@ -53,6 +54,7 @@ base.exportTo('tracing.importer', function() {
     this.systemTraceEvents_ = undefined;
     this.eventsWereFromString_ = false;
     this.allAsyncEvents_ = [];
+    this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -140,8 +142,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Helper to process an 'async finish' event, which will close an open slice
-     * on a AsyncSliceGroup object.
+     * Helper to process an async event.
      */
     processAsyncEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
@@ -149,6 +150,18 @@ base.exportTo('tracing.importer', function() {
       this.allAsyncEvents_.push({
         event: event,
         thread: thread});
+    },
+
+    /**
+     * Helper to process a flow event.
+     */
+    processFlowEvent: function(event) {
+      var thread = this.model_.getOrCreateProcess(event.pid).
+          getOrCreateThread(event.tid);
+      this.allFlowEvents_.push({
+        event: event,
+        thread: thread
+      });
     },
 
     /**
@@ -319,7 +332,7 @@ base.exportTo('tracing.importer', function() {
           this.processAsyncEvent(event);
 
         // Note, I is historic. The instant event marker got changed, but we
-        // want to support loading load trace files so we have both I and i.
+        // want to support loading old trace files so we have both I and i.
         } else if (event.ph == 'I' || event.ph == 'i') {
           this.processInstantEvent(event);
 
@@ -336,7 +349,7 @@ base.exportTo('tracing.importer', function() {
           this.processObjectEvent(event);
 
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
-          // NB: toss flow events until there's proper support
+          this.processFlowEvent(event);
 
         } else {
           this.model_.importErrors.push('Unrecognized event phase: ' +
@@ -351,6 +364,7 @@ base.exportTo('tracing.importer', function() {
      */
     finalizeImport: function() {
       this.createAsyncSlices_();
+      this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
     },
@@ -364,7 +378,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     createAsyncSlices_: function() {
-      if (this.allAsyncEvents_.length == 0)
+      if (this.allAsyncEvents_.length === 0)
         return;
 
       this.allAsyncEvents_.sort(function(x, y) {
@@ -381,7 +395,7 @@ base.exportTo('tracing.importer', function() {
         var name = event.name;
         if (name === undefined) {
           this.model_.importErrors.push(
-              'Async events (ph: S, T or F) require an name parameter.');
+              'Async events (ph: S, T or F) require a name parameter.');
           continue;
         }
 
@@ -394,7 +408,7 @@ base.exportTo('tracing.importer', function() {
 
         // TODO(simonjam): Add a synchronous tick on the appropriate thread.
 
-        if (event.ph == 'S') {
+        if (event.ph === 'S') {
           if (asyncEventStatesByNameThenID[name] === undefined)
             asyncEventStatesByNameThenID[name] = {};
           if (asyncEventStatesByNameThenID[name][id]) {
@@ -421,7 +435,7 @@ base.exportTo('tracing.importer', function() {
           var events = asyncEventStatesByNameThenID[name][id];
           events.push(asyncEventState);
 
-          if (event.ph == 'F') {
+          if (event.ph === 'F') {
             // Create a slice from start to end.
             var slice = new tracing.trace_model.AsyncSlice(
                 events[0].event.cat,
@@ -440,7 +454,7 @@ base.exportTo('tracing.importer', function() {
             // Create subSlices for each step.
             for (var j = 1; j < events.length; ++j) {
               var subName = name;
-              if (events[j - 1].event.ph == 'T')
+              if (events[j - 1].event.ph === 'T')
                 subName = name + ':' + events[j - 1].event.args.step;
               var subSlice = new tracing.trace_model.AsyncSlice(
                   events[0].event.cat,
@@ -468,6 +482,60 @@ base.exportTo('tracing.importer', function() {
             slice.startThread.asyncSliceGroup.push(slice);
             delete asyncEventStatesByNameThenID[name][id];
           }
+        }
+      }
+    },
+
+    createFlowSlices_: function() {
+      if (this.allFlowEvents_.length === 0)
+        return;
+
+      var flowIdToEvent = {};
+      for (var i = 0; i < this.allFlowEvents_.length; ++i) {
+        var data = this.allFlowEvents_[i];
+        var event = data.event;
+        var thread = data.thread;
+
+        if (event.name === undefined) {
+          this.model_.importErrors.push(
+              'Flow events (ph: s, t or f) require a name parameter.');
+          continue;
+        }
+
+        if (event.id === undefined) {
+          this.model_.importErrors.push(
+              'Flow events (ph: s, t or f) require an id parameter.');
+          continue;
+        }
+
+        var slice = new tracing.trace_model.FlowEvent(
+            event.cat,
+            event.id,
+            event.name,
+            tracing.getStringColorId(event.name),
+            event.ts / 1000,
+            this.deepCopyIfNeeded_(event.args));
+
+        thread.sliceGroup.pushSlice(slice);
+        this.model_.flowEvents.push(slice);
+
+        if (event.ph === 's') {
+          flowIdToEvent[event.id] = slice;
+
+        } else if (event.ph === 't' || event.ph === 'f') {
+          var flowPosition = flowIdToEvent[event.id];
+          if (flowPosition === undefined) {
+            this.model_.importErrors.push(
+                'Found flow step for id: ' + event.id + ' but no start found');
+            continue;
+          }
+
+          while (!flowPosition.isFlowEnd())
+            flowPosition = flowPosition.nextEvent;
+          flowPosition.nextEvent = slice;
+
+          if (event.ph === 'f')
+            delete flowIdToEvent[event.id];
         }
       }
     },

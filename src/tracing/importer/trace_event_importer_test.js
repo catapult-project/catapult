@@ -1166,6 +1166,51 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
         {my_object: {id_ref: '0x1000'}});
   });
 
+  test('importFlowEvent', function() {
+    var events = [
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} }   // @suppress longLineCheck
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+
+    assertNotUndefined(t);
+    assertEquals(3, t.sliceGroup.slices.length);
+    assertEquals(3, m.flowEvents.length);
+
+    var start = m.flowEvents[0];
+    var step = m.flowEvents[1];
+    var finish = m.flowEvents[2];
+
+    assertEquals('a', start.title);
+    assertEquals('foo', start.category);
+    assertEquals(72, start.id);
+    assertEquals(0, start.start);
+    assertEquals(0, start.duration);
+
+    assertEquals(start.title, step.title);
+    assertEquals(start.category, step.category);
+    assertEquals(start.id, step.id);
+    assertAlmostEquals(12 / 1000, step.start);
+    assertEquals(0, step.duration);
+
+    assertEquals(start.title, finish.title);
+    assertEquals(start.category, finish.category);
+    assertEquals(start.id, finish.id);
+    assertAlmostEquals((20 + 12) / 1000, finish.start);
+    assertEquals(0, finish.duration);
+
+    assertEquals(step, start.nextEvent);
+    assertEquals(finish, step.nextEvent);
+    assertUndefined(finish.nextEvent);
+
+    assertFalse(start.isFlowEnd());
+    assertFalse(step.isFlowEnd());
+    assertTrue(finish.isFlowEnd());
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 });
