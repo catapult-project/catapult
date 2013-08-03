@@ -15,7 +15,8 @@ base.exportTo('tracing.tracks', function() {
     SLICE: 1,
     INSTANT_EVENT: 2,
     BACKGROUND: 3,
-    GRID: 4
+    GRID: 4,
+    FLOW_ARROWS: 5
   };
 
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
@@ -73,7 +74,8 @@ base.exportTo('tracing.tracks', function() {
         DrawType.BACKGROUND,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
-        DrawType.SLICE
+        DrawType.SLICE,
+        DrawType.FLOW_ARROWS
       ];
 
       for (var idx in types) {

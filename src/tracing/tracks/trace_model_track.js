@@ -130,6 +130,18 @@ base.exportTo('tracing.tracks', function() {
         case tracing.tracks.DrawType.GRID:
           this.viewport.drawMarkLines(ctx);
           // The model is the only thing that draws grid lines.
+          ctx.restore();
+          return;
+
+        case tracing.tracks.DrawType.FLOW_ARROWS:
+          if (!this.model_.flowEvents ||
+              this.model_.flowEvents.length === 0) {
+            ctx.restore();
+            return;
+          }
+
+          this.drawFlowArrows_(viewLWorld, viewRWorld);
+          ctx.restore();
           return;
 
         case tracing.tracks.DrawType.INSTANT_EVENT:
@@ -150,6 +162,76 @@ base.exportTo('tracing.tracks', function() {
       ctx.restore();
 
       tracing.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
+    },
+
+    drawFlowArrows_: function(viewLWorld, viewRWorld) {
+      var ctx = this.context();
+      this.viewport.applyTransformToCanvas(ctx);
+
+      var pixWidth = this.viewport.xViewVectorToWorld(1);
+
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
+
+      var events = this.model_.flowEvents;
+      var lowEvent = base.findLowIndexInSortedArray(
+          events,
+          function(event) { return event.start + event.duration; },
+          viewLWorld);
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var canvasBounds = ctx.canvas.getBoundingClientRect();
+
+      for (var i = lowEvent; i < events.length; ++i) {
+        var event = events[i];
+        if (event.isFlowEnd())
+          continue;
+
+        var startEvent = event;
+        var endEvent = event.nextEvent;
+
+        var startTrack = this.viewport.trackForSlice(startEvent);
+        var endTrack = this.viewport.trackForSlice(endEvent);
+
+        // If we didn't draw one end, because it's off screen, we can't draw
+        // the flow arrow, so skip it.
+        if (endTrack === undefined || startTrack === undefined)
+          continue;
+
+        var startBounds = startTrack.getBoundingClientRect();
+        var endBounds = endTrack.getBoundingClientRect();
+
+        var startY =
+            (startBounds.top - canvasBounds.top + (startBounds.height / 2));
+        var endY = (endBounds.top - canvasBounds.top + (endBounds.height / 2));
+
+        var pixelStartY = pixelRatio * startY;
+        var pixelEndY = pixelRatio * endY;
+
+        // Skip lines that will be, essentially, vertical.
+        var minWidth = 2 * pixWidth;
+        var distance =
+            Math.abs((startEvent.start + startEvent.duration) - endEvent.start);
+        if (distance <= minWidth)
+          continue;
+
+        var half =
+            (endEvent.start - (startEvent.start + startEvent.duration)) / 2;
+        var width = pixWidth;
+        if (startEvent.duration > 0) {
+          w = Math.max(startEvent.duration, 0.001);
+          if (w < pixWidth)
+            w = pixWidth;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(startEvent.start + startEvent.duration, pixelStartY);
+        ctx.bezierCurveTo(
+            startEvent.start + startEvent.duration + half, pixelStartY,
+            startEvent.start + startEvent.duration + half, pixelEndY,
+            endEvent.start, pixelEndY);
+        ctx.stroke();
+      }
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
