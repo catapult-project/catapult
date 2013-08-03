@@ -79,6 +79,26 @@ base.exportTo('tracing.tracks', function() {
 
         this.appendChild(track);
       }
+      this.memoizeSlices_();
+    },
+
+    memoizeSlices_: function() {
+      if (!this.model_ || !this.categoryFilter)
+        return;
+
+      this.viewport_.clearSliceMemoization();
+
+      var tracks = this.children;
+      for (var i = 0; i < tracks.length; ++i)
+        tracks[i].memoizeSlices_();
+
+      if (this.instantEvents === undefined)
+        return;
+
+      var vp = this.viewport_;
+      this.instantEvents.forEach(function(ev) {
+        vp.sliceMemoization(ev, this);
+      }.bind(this));
     },
 
     appendKernelTrack_: function() {

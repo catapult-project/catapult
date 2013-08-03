@@ -159,6 +159,14 @@ base.exportTo('tcmalloc', function() {
       ctx.lineWidth = 1;
     },
 
+    memoizeSlices_: function() {
+      var vp = this.viewport_;
+      var objectSnapshots = this.objectInstance_.snapshots;
+      objectSnapshots.forEach(function(obj) {
+        vp.sliceMemoization(obj, this);
+      }.bind(this));
+    },
+
     /**
      * Used to hit-test clicks in the graph.
      */

@@ -137,6 +137,12 @@ base.exportTo('tracing.tracks', function() {
       this.didAppendTracks_();
     },
 
+    memoizeSlices_: function() {
+      this.tracks_.forEach(function(track) {
+        track.memoizeSlices_();
+      });
+    },
+
     willAppendTracks_: function() {
     },
 

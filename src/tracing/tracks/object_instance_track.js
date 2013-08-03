@@ -165,6 +165,22 @@ base.exportTo('tracing.tracks', function() {
       ctx.lineWidth = 1;
     },
 
+    memoizeSlices_: function() {
+      var vp = this.viewport_;
+
+      if (this.objectInstance_ !== undefined) {
+        this.objectInstance_.forEach(function(obj) {
+          vp.sliceMemoization(obj, this);
+        }.bind(this));
+      }
+
+      if (this.objectSnapshots_ !== undefined) {
+        this.objectSnapshots_.forEach(function(obj) {
+          vp.sliceMemoization(obj, this);
+        }.bind(this));
+      }
+    },
+
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       var that = this;

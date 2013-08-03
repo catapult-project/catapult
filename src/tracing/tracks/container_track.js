@@ -70,6 +70,11 @@ base.exportTo('tracing.tracks', function() {
           apply(this, arguments);
     },
 
+    memoizeSlices_: function() {
+      for (var i = 0; i < this.children.length; ++i)
+        this.children[i].memoizeSlices_();
+    },
+
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       for (var i = 0; i < this.tracks_.length; i++)
         this.tracks_[i].addAllObjectsMatchingFilterToSelection(

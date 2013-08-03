@@ -101,6 +101,16 @@ base.exportTo('tracing.tracks', function() {
           this.slices_);
     },
 
+    memoizeSlices_: function() {
+      if (this.slices_ === undefined || this.slices_ === null)
+        return;
+
+      var vp = this.viewport_;
+      this.slices_.forEach(function(slice) {
+        vp.sliceMemoization(slice, this);
+      }.bind(this));
+    },
+
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(slice) {

@@ -103,6 +103,9 @@ base.exportTo('tracing.tracks', function() {
     decorateHit: function(hit) {
     },
 
+    memoizeSlices_: function() {
+    },
+
     addIntersectingItemsInRangeToSelection: function(
         loVX, hiVX, loVY, hiVY, selection) {
 

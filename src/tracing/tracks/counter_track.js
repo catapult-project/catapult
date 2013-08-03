@@ -192,6 +192,10 @@ base.exportTo('tracing.tracks', function() {
       ctx.restore();
     },
 
+    memoizeSlices_: function() {
+      this.viewport_.sliceMemoization(this.counter_, this);
+    },
+
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
 

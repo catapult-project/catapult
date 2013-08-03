@@ -48,6 +48,8 @@ base.exportTo('tracing', function() {
 
     this.markers = [];
     this.majorMarkPositions = [];
+
+    this.modelGuidToTrackMap_ = {};
   }
 
   TimelineViewport.prototype = {
@@ -413,6 +415,18 @@ base.exportTo('tracing', function() {
       }
 
       ctx.lineWidth = 1;
+    },
+
+    clearSliceMemoization: function() {
+      this.modelGuidToTrackMap_ = {};
+    },
+
+    sliceMemoization: function(slice, track) {
+      this.modelGuidToTrackMap_[slice.guid] = track;
+    },
+
+    trackForSlice: function(slice) {
+      return this.modelGuidToTrackMap_[slice.guid];
     }
   };
 
