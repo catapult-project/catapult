@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('base.unittest.test_error');
+
 base.exportTo('base.unittest', function() {
   function forAllAssertMethodsIn_(prototype, fn) {
     for (var fieldName in prototype) {
@@ -180,7 +181,7 @@ base.exportTo('base.unittest', function() {
       } catch (e) {
         var message = opt_message || 'Expected to not throw from ' + fn +
             ' but got: ' + e;
-        throw new TestError(message);
+        throw new base.unittest.TestError(message);
       }
     },
 
