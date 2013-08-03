@@ -5,6 +5,7 @@
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
 import cStringIO
+import hashlib
 import logging
 import os
 import subprocess
@@ -17,6 +18,10 @@ from telemetry.core import util
 
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
 _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
+
+
+class CloudStorageError(Exception):
+  pass
 
 
 def _DownloadGsutil():
@@ -56,7 +61,7 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    raise Exception(stderr.splitlines()[-1])
+    raise CloudStorageError(stderr.splitlines()[-1])
 
   return stdout
 
@@ -82,3 +87,15 @@ def Insert(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
   logging.debug('Uploading %s to %s' % (local_path, url))
   _RunCommand(['cp', local_path, url])
+
+
+def GetHash(file_path):
+  sha1 = hashlib.sha1()
+  with open(file_path, 'rb') as f:
+    while True:
+      # Read in 1mb chunks, so it doesn't all have to be loaded into memory.
+      chunk = f.read(1024*1024)
+      if not chunk:
+        break
+      sha1.update(chunk)
+  return sha1.hexdigest()
