@@ -152,7 +152,7 @@ base.exportTo('ui', function() {
       document.removeEventListener('mousemove', this.onMouseMove_);
       document.removeEventListener('mouseup', this.onMouseUp_);
       this.updateCamera_(e.x, e.y);
-    },
+    }
 
   };
 

@@ -167,7 +167,7 @@ base.exportTo('ui', function() {
 
       this.viewport.updateBoxSize(this.transformedContainer_);
       this.layers = this.transformedContainer_.children;
-    },
+    }
 
 
   };

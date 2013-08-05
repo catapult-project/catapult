@@ -141,7 +141,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
 
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: ' +
           'prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ' +
-          '==> next_comm=ndroid.launcher next_pid=584 next_prio=120',
+          '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
     ];
 
     var m = new tracing.TraceModel(lines.join('\n'), false);

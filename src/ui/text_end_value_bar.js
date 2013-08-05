@@ -70,7 +70,7 @@ base.exportTo('ui', function() {
       this.copyOwnProperties_(element.style,
           this.highestValueProperties_.style);
       element.textContent = this.highestValueProperties_.textContent || '';
-    },
+    }
 
   };
 

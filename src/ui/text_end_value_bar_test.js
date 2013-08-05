@@ -30,13 +30,13 @@ base.unittest.testSuite('ui.text_end_value_bar', function() {
 
     valueBar.lowestValueProperties = {
       style: {
-        'fontSize': '24px',
+        'fontSize': '24px'
       },
       textContent: 'Z'
     };
     valueBar.highestValueProperties = {
       style: {
-        'fontSize': '24px',
+        'fontSize': '24px'
       },
       textContent: 'Y'
     };

@@ -1105,7 +1105,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
         snapshot: { x: [
           {id: 'foo/0x1001', value: 'bar1'},
           {id: 'foo/0x1002', value: 'bar2'},
-          {id: 'foo/0x1003', value: 'bar3'},
+          {id: 'foo/0x1003', value: 'bar3'}
         ]}}}
     ];
 

@@ -216,13 +216,13 @@ base.exportTo('ui', function() {
       this.previewValue = this.convertPixelOffsetToValue_(pixelOffset);
     },
     /**
-      @param {Event} event: mouse event relative to slider control
+      @param {Event} event: mouse event relative to slider control.
     */
     slideStart_: function(event) {
       this.slideStart_ = event;
     },
     /**
-      @param {Event} event: mouse event relative to slider control
+      @param {Event} event: mouse event relative to slider control.
     */
     slideValue_: function(event) {
       var pixelOffset = this.eventToPixelOffset_(event);
@@ -326,7 +326,7 @@ base.exportTo('ui', function() {
       valueSlider.addEventListener('mouse-tracker-end',
           this.slideEnd_.bind(this));
       return valueSlider;
-    },
+    }
 
   };
 

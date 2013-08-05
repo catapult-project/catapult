@@ -73,7 +73,7 @@ base.exportTo('cc', function() {
           this, 'howToShowTiles',
           'layerViewer.howToShowTiles', 'none',
           [{label: 'None', value: 'none'},
-           {label: 'Coverage Rects', value: 'coverage'},
+           {label: 'Coverage Rects', value: 'coverage'}
           ]);
       this.controls_.appendChild(this.tileRectsSelector_);
 
