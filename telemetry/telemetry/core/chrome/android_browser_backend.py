@@ -193,6 +193,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args = map(QuoteIfNeeded, args)
     self._adb.Adb().SetProtectedFileContents(
         self._backend_settings.cmdline_file, ' '.join(args))
+    cmdline = self._adb.Adb().GetProtectedFileContents(
+        self._backend_settings.cmdline_file)
+    if len(cmdline) != 1 or cmdline[0] != ' '.join(args):
+      logging.critical('Failed to set Chrome command line. '
+                       'Fix this by flashing to a userdebug build.')
+      sys.exit(1)
 
   def Start(self):
     self._adb.RunShellCommand('logcat -c')
@@ -210,10 +216,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._PostBrowserStartupInitialization()
     except exceptions.BrowserGoneException:
       logging.critical('Failed to connect to browser.')
-      if not self._adb.IsRootEnabled():
+      if not self._adb.Adb().CanAccessProtectedFileContents():
         logging.critical(
-          'Ensure web debugging is enabled in Chrome at '
-          '"Settings > Developer tools > Enable USB Web debugging".')
+          'Resolve this by either: '
+          '(1) Flashing to a userdebug build OR '
+          '(2) Manually enabling web debugging in Chrome at '
+          'Settings > Developer tools > Enable USB Web debugging.')
       sys.exit(1)
     except:
       import traceback
