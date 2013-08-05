@@ -52,7 +52,6 @@ class BrowserOptions(optparse.Values):
     self.no_proxy_server = False
 
     self.repeat_options = repeat_options.RepeatOptions()
-    self.output_file = None
 
   def Copy(self):
     return copy.deepcopy(self)
@@ -205,10 +204,6 @@ class BrowserOptions(optparse.Values):
         delattr(self, 'extra_wpr_args_as_string')
       if self.profile_type == 'default':
         self.dont_override_profile = True
-
-      if ((hasattr(self, 'output_format') and self.output_format == 'html') and
-          (not hasattr(self, 'output_file') or not self.output_file)):
-        self.output_file = os.path.join(util.GetBaseDir(), 'results.html')
 
       # Parse repeat options
       self.repeat_options.UpdateFromParseResults(self, parser)

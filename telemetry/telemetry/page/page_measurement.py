@@ -7,7 +7,6 @@ import sys
 from telemetry.page import block_page_measurement_results
 from telemetry.page import buildbot_page_measurement_results
 from telemetry.page import csv_page_measurement_results
-from telemetry.page import html_page_measurement_results
 from telemetry.page import page_measurement_results
 from telemetry.page import page_test
 
@@ -67,18 +66,14 @@ class PageMeasurement(page_test.PageTest):
     parser.add_option('--output-trace-tag',
                       default='',
                       help='Append a tag to the key of each result trace.')
-    parser.add_option('--reset-html-results', action='store_true',
-                      help='Delete all stored runs in HTML output')
 
   @property
   def output_format_choices(self):
-    return ['html', 'buildbot', 'block', 'csv', 'none']
+    return ['buildbot', 'block', 'csv', 'none']
 
   def PrepareResults(self, options):
     if hasattr(options, 'output_file') and options.output_file:
-      output_file = os.path.expanduser(options.output_file)
-      open(output_file, 'a').close()  # Create file if it doesn't exist.
-      output_stream = open(output_file, 'r+')
+      output_stream = open(os.path.expanduser(options.output_file), 'w')
     else:
       output_stream = sys.stdout
     if not hasattr(options, 'output_format'):
@@ -96,10 +91,6 @@ class PageMeasurement(page_test.PageTest):
     elif options.output_format == 'buildbot':
       return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
           trace_tag=options.output_trace_tag)
-    elif options.output_format == 'html':
-      return html_page_measurement_results.HtmlPageMeasurementResults(
-          output_stream, self.__class__.__name__, options.reset_html_results,
-          options.browser_type, trace_tag=options.output_trace_tag)
     elif options.output_format == 'none':
       return page_measurement_results.PageMeasurementResults(
           trace_tag=options.output_trace_tag)

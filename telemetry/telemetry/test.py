@@ -2,13 +2,21 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import sys
 
 from telemetry.core import repeat_options
-from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import test_expectations
+
+
+def GetBaseDir():
+  main_module = sys.modules['__main__']
+  if hasattr(main_module, '__file__'):
+    return os.path.dirname(os.path.abspath(main_module.__file__))
+  else:
+    return os.getcwd()
 
 
 class Test(object):
@@ -52,8 +60,7 @@ class Test(object):
     page_set attribute. Override to generate a custom page set.
     """
     assert hasattr(self, 'page_set'), 'This test has no "page_set" attribute.'
-    return page_set.PageSet.FromFile(
-        os.path.join(util.GetBaseDir(), self.page_set))
+    return page_set.PageSet.FromFile(os.path.join(GetBaseDir(), self.page_set))
 
   def CreateExpectations(self, ps):  # pylint: disable=W0613
     """Get the expectations this test will run with.
