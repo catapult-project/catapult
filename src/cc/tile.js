@@ -7,6 +7,7 @@
 base.require('base.rect');
 base.require('tracing.trace_model.object_instance');
 base.require('cc.util');
+base.require('cc.debug_colors');
 
 base.exportTo('cc', function() {
 
@@ -30,12 +31,36 @@ base.exportTo('cc', function() {
       cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['layerId', 'contentsScale', 'contentRect']);
       this.resolution = this.args.managedState.resolution;
+      this.isSolidColor = this.args.managedState.isSolidColor;
+      this.hasResource = this.args.managedState.hasResource;
 
       // This check is for backward compatability. It can probably
       // be removed once we're confident that most traces contain
       // content_rect.
       if (this.contentRect)
         this.layerRect = this.contentRect.scale(1.0 / this.contentsScale);
+
+      if (this.isSolidColor)
+        this.type_ = cc.tileTypes.solidColor;
+      else if (!this.hasResource)
+        this.type_ = cc.tileTypes.missing;
+      else if (this.resolution === 'HIGH_RESOLUTION')
+        this.type_ = cc.tileTypes.highRes;
+      else if (this.resolution === 'LOW_RESOLUTION')
+        this.type_ = cc.tileTypes.lowRes;
+      else
+        this.type_ = cc.tileTypes.unknown;
+    },
+
+    getTypeForLayer: function(layer) {
+      var type = this.type_;
+      if (type == cc.tileTypes.unknown) {
+        if (this.contentsScale < layer.idealContentsScale)
+          type = cc.tileTypes.extraLowRes;
+        else if (this.contentsScale > layer.idealContentsScale)
+          type = cc.tileTypes.extraHighRes;
+      }
+      return type;
     }
   };
 

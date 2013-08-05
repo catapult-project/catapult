@@ -41,7 +41,8 @@ base.exportTo('cc', function() {
           this, ['layerId', 'children',
             'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['maskLayer', 'replicaLayer']);
+          this, ['maskLayer', 'replicaLayer',
+            'idealContentsScale']);
 
       // Leave bounds in both places.
       this.bounds = base.Rect.FromXYWH(

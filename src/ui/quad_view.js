@@ -228,6 +228,12 @@ base.exportTo('ui', function() {
           ctx.strokeStyle = quad.borderColor;
         else
           ctx.strokeStyle = 'rgb(128,128,128)';
+
+        if (quad.borderWidth)
+          ctx.lineWidth = quad.borderWidth;
+        else
+          ctx.lineWidth = 1;
+
         ctx.stroke();
       }
 

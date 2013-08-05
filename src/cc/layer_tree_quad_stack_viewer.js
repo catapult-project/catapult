@@ -15,6 +15,7 @@ base.require('base.properties');
 base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');
+base.require('cc.debug_colors');
 base.require('ui.quad_stack_viewer');
 base.require('ui.info_bar');
 
@@ -340,13 +341,12 @@ base.exportTo('cc', function() {
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
-        // TODO(vmpstr): Map different types of tiles to different border
-        // colors.
-        if (tile) {
-          quad.borderColor = 'rgba(80, 200, 200, 0.4)';
-        } else {
-          quad.borderColor = 'rgba(255, 0, 0, 0.4)';
-        }
+        var type = cc.tileTypes.missing;
+        if (tile)
+          type = tile.getTypeForLayer(layer);
+
+        quad.borderColor = cc.tileBorder[type].color;
+        quad.borderWidth = cc.tileBorder[type].width;
 
         this.quads_.push(quad);
       }
@@ -370,9 +370,10 @@ base.exportTo('cc', function() {
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
-        // TODO(vmpstr): Map different types of tiles to different border
-        // colors.
-        quad.borderColor = 'rgba(80, 200, 200, 0.4)';
+
+        var type = tile.getTypeForLayer(layer);
+        quad.borderColor = cc.tileBorder[type].color;
+        quad.borderWidth = cc.tileBorder[type].width;
         this.quads_.push(quad);
       }
     },

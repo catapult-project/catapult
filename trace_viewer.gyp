@@ -205,6 +205,7 @@
       'src/tracing/draw_helpers.js',
       'src/tracing/elided_cache.js',
       'src/tcmalloc.js',
+      'src/cc/debug_colors.js',
       'src/cc/picture.js',
       'src/cc/picture_as_image_data.js',
       'src/cc/constants.js',
