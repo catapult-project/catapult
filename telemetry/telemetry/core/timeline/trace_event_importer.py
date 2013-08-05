@@ -175,6 +175,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       thread = (self._GetOrCreateProcess(event['pid'])
           .GetOrCreateThread(event['tid']))
       thread.name = event['args']['name']
+    if event['name'] == 'process_name':
+      process = self._GetOrCreateProcess(event['pid'])
+      process.name = event['args']['name']
     else:
       self._model.import_errors.append(
           'Unrecognized metadata name: ' + event['name'])
