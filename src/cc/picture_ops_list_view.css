@@ -40,6 +40,10 @@ picture-ops-list-view > .x-list-view .list-item > .elementInfo {
   font-weight: bold;
 }
 
+picture-ops-list-view > .x-list-view .list-item > .time {
+  color: rgb(136, 0, 0);
+}
+
 .x-list-view:focus > .list-item[beforeSelection] {
   background-color: rgb(171, 217, 202);
   outline: 1px dotted rgba(0, 0, 0, 0.1);

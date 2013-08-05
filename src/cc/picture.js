@@ -46,6 +46,16 @@ base.exportTo('cc', function() {
     return true;
   }
 
+  PictureSnapshot.CanGetOpTimings = function() {
+    if (!window.chrome)
+      return false;
+    if (!window.chrome.skiaBenchmarking)
+      return false;
+    if (!window.chrome.skiaBenchmarking.getOpTimings)
+      return false;
+    return true;
+  }
+
   PictureSnapshot.HowToEnablePictureDebugging = function() {
     var usualReason = [
       'For pictures to show up, you need to have Chrome running with ',
@@ -60,7 +70,9 @@ base.exportTo('cc', function() {
     if (!window.chrome.skiaBenchmarking.rasterize)
       return 'Your chrome is old';
     if (!window.chrome.skiaBenchmarking.getOps)
-      return 'Your chrome is old, skiaBenchmarking.getOps not found';
+      return 'Your chrome is old: skiaBenchmarking.getOps not found';
+    if (!window.chrome.skiaBenchmarking.getOpTimings)
+      return 'Your chrome is old: skiaBenchmarking.getOpTimings not found';
     return 'Rasterizing is on';
   }
 
@@ -108,6 +120,26 @@ base.exportTo('cc', function() {
         console.error('Failed to get picture ops.');
 
       return ops;
+    },
+
+    getOpTimings: function() {
+      if (!PictureSnapshot.CanGetOpTimings()) {
+        console.error(PictureSnapshot.HowToEnablePictureDebugging());
+        return undefined;
+      }
+
+      var opTimings = window.chrome.skiaBenchmarking.getOpTimings({
+        skp64: this.args.skp64,
+        params: {
+          layer_rect: this.args.params.layerRect.toArray(),
+          opaque_rect: this.args.params.opaqueRect.toArray()
+        }
+      });
+
+      if (!opTimings)
+        console.error('Failed to get picture op timings.');
+
+      return opTimings;
     },
 
     /**

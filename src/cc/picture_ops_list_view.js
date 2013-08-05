@@ -12,6 +12,7 @@ base.require('ui.list_view');
 base.require('ui.dom_helpers');
 
 base.exportTo('cc', function() {
+  var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
   var ANNOTATION = 'Comment';
   var BEGIN_ANNOTATION = 'BeginCommentGroup';
   var END_ANNOTATION = 'EndCommentGroup';
@@ -60,6 +61,8 @@ base.exportTo('cc', function() {
       if (!ops)
         return;
 
+      ops = this.opsTaggedWithTiming_(ops);
+
       ops = this.opsTaggedWithAnnotations_(ops);
 
       for (var i = 0; i < ops.length; i++) {
@@ -89,6 +92,15 @@ base.exportTo('cc', function() {
           infoItem.textContent = info;
           item.appendChild(infoItem);
         });
+
+        // Display the op timing, if available.
+        if (op.cmd_time && op.cmd_time >= 0.0001) {
+          var time = document.createElement('span');
+          time.classList.add('time');
+          var rounded = op.cmd_time.toFixed(4);
+          time.textContent = '(' + rounded + 'ms)';
+          item.appendChild(time);
+        }
 
         this.opsList_.appendChild(item);
       }
@@ -188,7 +200,39 @@ base.exportTo('cc', function() {
             opsWithoutAnnotations.push(op);
         }
       }
+
       return opsWithoutAnnotations;
+    },
+
+    /**
+     * Tag each op with the time it takes to rasterize.
+     *
+     * FIXME: We should use real statistics to get better numbers here, see
+     *        https://code.google.com/p/trace-viewer/issues/detail?id=357
+     *
+     * @param {Array} ops Array of Skia operations.
+     * @return {Array} Skia ops where op.cmd_time contains the associated time
+     *         for a given op.
+     */
+    opsTaggedWithTiming_: function(ops) {
+      var opTimings = new Array();
+      for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
+        opTimings[iteration] = this.picture_.getOpTimings();
+        if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
+          return ops;
+        if (opTimings[iteration].cmd_times.length != ops.length)
+          return ops;
+      }
+
+      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
+        var average = 0;
+        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
+          average += opTimings[i].cmd_times[opIndex];
+        average /= OPS_TIMING_ITERATIONS;
+        ops[opIndex].cmd_time = average;
+      }
+
+      return ops;
     }
   };
 
