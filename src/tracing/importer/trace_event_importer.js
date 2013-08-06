@@ -533,6 +533,7 @@ base.exportTo('tracing.importer', function() {
           while (!flowPosition.isFlowEnd())
             flowPosition = flowPosition.nextEvent;
           flowPosition.nextEvent = slice;
+          slice.prevEvent = flowPosition;
 
           if (event.ph === 'f')
             delete flowIdToEvent[event.id];

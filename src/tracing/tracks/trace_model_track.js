@@ -179,48 +179,68 @@ base.exportTo('tracing.tracks', function() {
           function(event) { return event.start + event.duration; },
           viewLWorld);
 
-      var pixelRatio = window.devicePixelRatio || 1;
       var canvasBounds = ctx.canvas.getBoundingClientRect();
 
       for (var i = lowEvent; i < events.length; ++i) {
-        var event = events[i];
-        if (event.isFlowEnd())
+        var startEvent = events[i];
+        if (startEvent.start > viewRWorld)
+          break;
+
+        if (startEvent.isFlowStart() && startEvent.isFlowEnd())
           continue;
 
-        var startEvent = event;
-        var endEvent = event.nextEvent;
+        if (!startEvent.isFlowEnd()) {
+          this.drawFlowArrowBetween_(
+              ctx, startEvent, startEvent.nextEvent, canvasBounds, pixWidth);
+        }
 
-        var startTrack = this.viewport.trackForSlice(startEvent);
-        var endTrack = this.viewport.trackForSlice(endEvent);
-
-        var startBounds = startTrack.getBoundingClientRect();
-        var endBounds = endTrack.getBoundingClientRect();
-
-        var startY =
-            (startBounds.top - canvasBounds.top + (startBounds.height / 2));
-        var endY = (endBounds.top - canvasBounds.top + (endBounds.height / 2));
-
-        var pixelStartY = pixelRatio * startY;
-        var pixelEndY = pixelRatio * endY;
-
-        // Skip lines that will be, essentially, vertical.
-        var minWidth = 2 * pixWidth;
-        var distance =
-            Math.abs((startEvent.start + startEvent.duration) - endEvent.start);
-        if (distance <= minWidth)
+        if (startEvent.isFlowStart())
           continue;
 
-        var half =
-            (endEvent.start - (startEvent.start + startEvent.duration)) / 2;
-
-        ctx.beginPath();
-        ctx.moveTo(startEvent.start + startEvent.duration, pixelStartY);
-        ctx.bezierCurveTo(
-            startEvent.start + startEvent.duration + half, pixelStartY,
-            startEvent.start + startEvent.duration + half, pixelEndY,
-            endEvent.start, pixelEndY);
-        ctx.stroke();
+        var prevEvent = startEvent.prevEvent;
+        // We want to force the line to draw from our previous event if it is
+        // outside the world left view.
+        if ((prevEvent.start + prevEvent.duration) < viewLWorld) {
+          this.drawFlowArrowBetween_(
+              ctx, prevEvent, startEvent, canvasBounds, pixWidth);
+        }
       }
+    },
+
+    drawFlowArrowBetween_: function(ctx, startEvent, endEvent,
+                                    canvasBounds, pixWidth) {
+      var pixelRatio = window.devicePixelRatio || 1;
+
+      var startTrack = this.viewport.trackForSlice(startEvent);
+      var endTrack = this.viewport.trackForSlice(endEvent);
+
+      var startBounds = startTrack.getBoundingClientRect();
+      var endBounds = endTrack.getBoundingClientRect();
+
+      var startY =
+          (startBounds.top - canvasBounds.top + (startBounds.height / 2));
+      var endY = (endBounds.top - canvasBounds.top + (endBounds.height / 2));
+
+      var pixelStartY = pixelRatio * startY;
+      var pixelEndY = pixelRatio * endY;
+
+      // Skip lines that will be, essentially, vertical.
+      var minWidth = 2 * pixWidth;
+      var distance =
+          Math.abs((startEvent.start + startEvent.duration) - endEvent.start);
+      if (distance <= minWidth)
+        return;
+
+      var half =
+          (endEvent.start - (startEvent.start + startEvent.duration)) / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(startEvent.start + startEvent.duration, pixelStartY);
+      ctx.bezierCurveTo(
+          startEvent.start + startEvent.duration + half, pixelStartY,
+          startEvent.start + startEvent.duration + half, pixelEndY,
+          endEvent.start, pixelEndY);
+      ctx.stroke();
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
