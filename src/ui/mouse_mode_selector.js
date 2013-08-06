@@ -10,6 +10,7 @@ base.requireStylesheet('ui.mouse_mode_selector');
 base.requireTemplate('ui.mouse_mode_selector');
 
 base.require('base.events');
+base.require('tracing.constants');
 base.require('tracing.mouse_mode_constants');
 base.require('ui');
 
@@ -58,6 +59,9 @@ base.exportTo('ui', function() {
       this.isDraggingModeSelectorDragHandle_ = false;
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
+      this.mousePos_ = {x: 0, y: 0};
+      this.mouseDownPos_ = {x: 0, y: 0};
+
       this.dragHandleEl_.addEventListener('mousedown',
           this.onDragHandleMouseDown_.bind(this));
       document.addEventListener('mousemove',
@@ -85,6 +89,7 @@ base.exportTo('ui', function() {
 
       this.isInTemporaryAlternativeMouseMode_ = false;
       this.isInteracting_ = false;
+      this.isClick_ = false;
     },
 
     get mode() {
@@ -139,8 +144,7 @@ base.exportTo('ui', function() {
       base.Settings.set('mouse_mode_selector.mouseMode', newMode);
     },
 
-    getCurrentModeEventNames_: function() {
-
+    getModeEventNames_: function(mode) {
       var mouseModeConstants = tracing.mouseModeConstants;
       var modeEventNames = {
         enter: '',
@@ -150,7 +154,7 @@ base.exportTo('ui', function() {
         exit: ''
       };
 
-      switch (this.mode) {
+      switch (mode) {
 
         case mouseModeConstants.MOUSE_MODE_PANSCAN:
           modeEventNames.enter = 'enterpan';
@@ -192,19 +196,34 @@ base.exportTo('ui', function() {
       return modeEventNames;
     },
 
+    getCurrentModeEventNames_: function() {
+      return this.getModeEventNames_(this.mode);
+    },
+
+    setPositionFromEvent_: function(pos, e) {
+      pos.x = e.clientX;
+      pos.y = e.clientY;
+    },
+
     onMouseDown_: function(e) {
+      this.setPositionFromEvent_(this.mouseDownPos_, e);
       var eventNames = this.getCurrentModeEventNames_();
       var mouseEvent = new base.Event(eventNames.begin, true, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
+      this.isClick_ = true;
     },
 
     onMouseMove_: function(e) {
+      this.setPositionFromEvent_(this.mousePos_, e);
       var eventNames = this.getCurrentModeEventNames_();
       var mouseEvent = new base.Event(eventNames.update, true, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
+
+      if (this.isInteracting_)
+        this.checkIsClick_(e);
     },
 
     onMouseUp_: function(e) {
@@ -215,7 +234,14 @@ base.exportTo('ui', function() {
           (!base.isMac && !e.ctrlKey);
 
       mouseEvent.data = e;
+      mouseEvent.consumed = false;
+      mouseEvent.isClick = this.isClick_;
+
       this.dispatchEvent(mouseEvent);
+
+      if (this.isClick_ && !mouseEvent.consumed)
+        this.dispatchClickEvents_(e);
+
       this.isInteracting_ = false;
 
       if (this.isInTemporaryAlternativeMouseMode_ && userHasReleasedShiftKey &&
@@ -384,6 +410,34 @@ base.exportTo('ui', function() {
     onWindowResize_: function(e) {
       this.constrainPositionToWindowBounds_();
       this.updateStylesFromPosition_();
+    },
+
+    checkIsClick_: function(e) {
+      if (!this.isInteracting_ || !this.isClick_)
+        return;
+
+      var deltaX = this.mousePos_.x - this.mouseDownPos_.x;
+      var deltaY = this.mousePos_.y - this.mouseDownPos_.y;
+      var minDist = tracing.constants.MIN_MOUSE_SELECTION_DISTANCE;
+
+      if (deltaX * deltaX + deltaY * deltaY > minDist * minDist)
+        this.isClick_ = false;
+    },
+
+    dispatchClickEvents_: function(e) {
+      if (!this.isClick_)
+        return;
+
+      var eventNames = this.getModeEventNames_(
+          tracing.mouseModeConstants.MOUSE_MODE_SELECTION);
+
+      var mouseEvent = new base.Event(eventNames.begin, true, true);
+      mouseEvent.data = e;
+      this.dispatchEvent(mouseEvent);
+
+      mouseEvent = new base.Event(eventNames.end, true, true);
+      mouseEvent.data = e;
+      this.dispatchEvent(mouseEvent);
     }
   };
 

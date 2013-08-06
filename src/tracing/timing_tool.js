@@ -118,12 +118,14 @@ base.exportTo('tracing', function() {
     },
 
     onEndTiming: function(e) {
-      e = e.data;
-      if (e.button !== 0)
+      var mouseEvent = e.data;
+      if (mouseEvent.button !== 0)
         return;
 
       if (!this.activeMarker_ || !this.activeMarker_.selected)
         return;
+
+      e.consumed = true;
 
       // Check if a range selection is finished now.
       if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
@@ -142,8 +144,10 @@ base.exportTo('tracing', function() {
           this.viewport.removeMarker(this.rangeEndMarker_);
 
           this.viewport.addMarker(this.cursorMarker_);
-          this.cursorMarker_.positionWorld = this.getWorldXFromEvent_(e);
+          this.cursorMarker_.positionWorld =
+              this.getWorldXFromEvent_(mouseEvent);
           this.activeMarker_ = this.cursorMarker_;
+          e.consumed = false;
         }
         return;
       }

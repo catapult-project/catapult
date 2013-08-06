@@ -23,12 +23,10 @@ base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
 base.require('base.properties');
 base.require('base.settings');
-base.require('tracing.constants');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
 base.require('tracing.timing_tool');
-base.require('tracing.mouse_mode_constants');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
 base.require('tracing.tracks.ruler_track');
@@ -150,13 +148,6 @@ base.exportTo('tracing', function() {
           this.timingTool_.onEndTiming, this.timingTool_);
       this.bindEventListener_(document, 'exittiming',
           this.timingTool_.onExitTiming, this.timingTool_);
-    },
-
-    distanceCoveredInPanScan_: function(e) {
-      var x = this.lastMouseViewPos_.x - this.mouseViewPosAtMouseDown_.x;
-      var y = this.lastMouseViewPos_.y - this.mouseViewPosAtMouseDown_.y;
-
-      return Math.sqrt(x * x + y * y);
     },
 
     /**
@@ -302,7 +293,6 @@ base.exportTo('tracing', function() {
     },
 
     onKeypress_: function(e) {
-      var mouseModeConstants = tracing.mouseModeConstants;
       var vp = this.viewport_;
       if (!this.listenToKeys_)
         return;
@@ -362,7 +352,6 @@ base.exportTo('tracing', function() {
       if (!this.listenToKeys_)
         return;
       var sel;
-      var mouseModeConstants = tracing.mouseModeConstants;
       var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
 
@@ -701,13 +690,8 @@ base.exportTo('tracing', function() {
 
       this.storeLastMousePos_(mouseEvent);
 
-      if (this.distanceCoveredInPanScan_(mouseEvent) >
-          tracing.constants.MIN_MOUSE_SELECTION_DISTANCE)
-        return;
-
-      this.dragBeginEvent_ = mouseEvent;
-      this.onEndSelection_(e);
-
+      if (!e.isClick)
+        e.consumed = true;
     },
 
     onBeginSelection_: function(e) {
@@ -756,6 +740,7 @@ base.exportTo('tracing', function() {
     },
 
     onEndSelection_: function(e) {
+      e.consumed = true;
 
       if (!this.dragBeginEvent_)
         return;
@@ -821,6 +806,9 @@ base.exportTo('tracing', function() {
 
     onEndZoom_: function(e) {
       this.isZooming_ = false;
+
+      if (!e.isClick)
+        e.consumed = true;
     }
   };
 
