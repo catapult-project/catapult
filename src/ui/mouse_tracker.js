@@ -21,17 +21,28 @@ base.exportTo('ui', function() {
    * @param {HTMLElement} targetElement will recv events 'mouse-tracker-start',
    *     'mouse-tracker-move', 'mouse-tracker-end'.
    */
-  function MouseTracker(targetElement) {
-    this.targetElement_ = targetElement;
+  function MouseTracker(opt_targetElement) {
+    this.targetElement = opt_targetElement;
 
     this.onMouseDown_ = this.onMouseDown_.bind(this);
     this.onMouseMove_ = this.onMouseMove_.bind(this);
     this.onMouseUp_ = this.onMouseUp_.bind(this);
 
-    this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
   }
 
   MouseTracker.prototype = {
+
+    get targetElement() {
+      return this.targetElement_;
+    },
+
+    set targetElement(targetElement) {
+      if (this.targetElement_)
+        this.targetElement_.removeEventListener('mousedown', this.onMouseDown_);
+      this.targetElement_ = targetElement;
+      if (this.targetElement_)
+        this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
+    },
 
     onMouseDown_: function(e) {
       if (e.button !== 0)
@@ -76,7 +87,19 @@ base.exportTo('ui', function() {
 
   };
 
+  function trackMouseMovesUntilMouseUp(mouseMoveHandler, opt_mouseUpHandler) {
+    function cleanupAndDispatchToMouseUp(e) {
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', cleanupAndDispatchToMouseUp);
+      if (opt_mouseUpHandler)
+        opt_mouseUpHandler(e);
+    }
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', cleanupAndDispatchToMouseUp);
+  }
+
   return {
-    MouseTracker: MouseTracker
+    MouseTracker: MouseTracker,
+    trackMouseMovesUntilMouseUp: trackMouseMovesUntilMouseUp
   };
 });

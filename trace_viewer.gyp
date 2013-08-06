@@ -116,7 +116,6 @@
       'src/tracing/record_selection_dialog.js',
       'src/tracing/standalone_timeline_view.js',
       'src/tracing/importer.js',
-      'src/tracing/mouse_mode_constants.js',
       'src/tracing/timing_tool.js',
       'src/tracing/trace_model.js',
       'src/tracing/trace_model_settings.js',

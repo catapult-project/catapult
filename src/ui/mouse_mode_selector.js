@@ -11,10 +11,18 @@ base.requireTemplate('ui.mouse_mode_selector');
 
 base.require('base.events');
 base.require('tracing.constants');
-base.require('tracing.mouse_mode_constants');
+base.require('base.utils');
 base.require('ui');
+base.require('ui.mouse_tracker');
 
 base.exportTo('ui', function() {
+
+  var MOUSE_SELECTOR_MODE = {};
+  MOUSE_SELECTOR_MODE.SELECTION = 0x1;
+  MOUSE_SELECTOR_MODE.PANSCAN = 0x2;
+  MOUSE_SELECTOR_MODE.ZOOM = 0x4;
+  MOUSE_SELECTOR_MODE.TIMING = 0x8;
+  MOUSE_SELECTOR_MODE.ALL_MODES = 0xF;
 
   /**
    * Provides a panel for switching the interaction mode of the mouse.
@@ -29,10 +37,8 @@ base.exportTo('ui', function() {
   MouseModeSelector.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function(parentEl) {
-
+    decorate: function(opt_targetElement) {
       this.classList.add('mouse-mode-selector');
-      this.parentEl_ = parentEl;
 
       var node = base.instantiateTemplate('#mouse-mode-selector-template');
       this.appendChild(node);
@@ -56,7 +62,6 @@ base.exportTo('ui', function() {
       this.constrainPositionToWindowBounds_();
       this.updateStylesFromPosition_();
 
-      this.isDraggingModeSelectorDragHandle_ = false;
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
       this.mousePos_ = {x: 0, y: 0};
@@ -64,32 +69,59 @@ base.exportTo('ui', function() {
 
       this.dragHandleEl_.addEventListener('mousedown',
           this.onDragHandleMouseDown_.bind(this));
-      document.addEventListener('mousemove',
-          this.onDragHandleMouseMove_.bind(this));
-      document.addEventListener('mouseup',
-          this.onDragHandleMouseUp_.bind(this));
       window.addEventListener('resize',
           this.onWindowResize_.bind(this));
+
+      this.onMouseDown_ = this.onMouseDown_.bind(this);
+      this.onMouseMove_ = this.onMouseMove_.bind(this);
+      this.onMouseUp_ = this.onMouseUp_.bind(this);
 
       this.buttonsEl_.addEventListener('mouseup', this.onButtonMouseUp_);
       this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
       this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
 
-      document.addEventListener('mousemove', this.onMouseMove_.bind(this));
-      document.addEventListener('mouseup', this.onMouseUp_.bind(this));
-      this.parentEl_.addEventListener('mousedown',
-          this.onMouseDown_.bind(this));
-
+      // TODO(nduca): Fix these,
+      // https://code.google.com/p/trace-viewer/issues/detail?id=375.
       document.addEventListener('keypress', this.onKeyPress_.bind(this));
       document.addEventListener('keydown', this.onKeyDown_.bind(this));
       document.addEventListener('keyup', this.onKeyUp_.bind(this));
 
-      this.mode = base.Settings.get('mouse_mode_selector.mouseMode',
-          tracing.mouseModeConstants.MOUSE_MODE_PANSCAN);
+      var mode = base.Settings.get('mouse_mode_selector.mouseMode',
+          MOUSE_SELECTOR_MODE.PANSCAN);
+      // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
+      // settings to the best of our abilities.
+      if (mode == 3) {
+        mode = MOUSE_SELECTOR_MODE.ZOOM;
+        base.Settings.set('mouse_mode_selector.mouseMode', mode);
+      }
+      this.mode = mode;
 
+      this.supportedModeMask_ = MOUSE_SELECTOR_MODE.ALL_MODES;
+      this.targetElement = opt_targetElement;
       this.isInTemporaryAlternativeMouseMode_ = false;
       this.isInteracting_ = false;
       this.isClick_ = false;
+    },
+
+    set targetElement(target) {
+      if (this.targetElement_)
+        this.targetElement_.removeEventListener('mousedown', this.onMouseDown_);
+      this.targetElement_ = target;
+      if (this.targetElement_)
+        this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
+    },
+
+    /**
+     * Sets the supported modes. Should be an OR-ing of MOUSE_SELECTOR_MODE
+     * values.
+     */
+    set supportedModeMask(supportedModeMask) {
+      this.supportedModeMask_ = supportedModeMask;
+      // TODO(nduca): Implement this.
+    },
+
+    get supportedModeMask() {
+      return this.supportedModeMask_;
     },
 
     get mode() {
@@ -107,8 +139,6 @@ base.exportTo('ui', function() {
         this.dispatchEvent(new base.Event(eventNames.exit, true, true));
       }
 
-      var mouseModeConstants = tracing.mouseModeConstants;
-
       this.currentMode_ = newMode;
       this.panScanModeButton_.classList.remove('active');
       this.selectionModeButton_.classList.remove('active');
@@ -117,19 +147,19 @@ base.exportTo('ui', function() {
 
       switch (newMode) {
 
-        case mouseModeConstants.MOUSE_MODE_PANSCAN:
+        case MOUSE_SELECTOR_MODE.PANSCAN:
           this.panScanModeButton_.classList.add('active');
           break;
 
-        case mouseModeConstants.MOUSE_MODE_SELECTION:
+        case MOUSE_SELECTOR_MODE.SELECTION:
           this.selectionModeButton_.classList.add('active');
           break;
 
-        case mouseModeConstants.MOUSE_MODE_ZOOM:
+        case MOUSE_SELECTOR_MODE.ZOOM:
           this.zoomModeButton_.classList.add('active');
           break;
 
-        case mouseModeConstants.MOUSE_MODE_TIMING:
+        case MOUSE_SELECTOR_MODE.TIMING:
           this.timingModeButton_.classList.add('active');
           break;
 
@@ -145,7 +175,6 @@ base.exportTo('ui', function() {
     },
 
     getModeEventNames_: function(mode) {
-      var mouseModeConstants = tracing.mouseModeConstants;
       var modeEventNames = {
         enter: '',
         begin: '',
@@ -156,7 +185,7 @@ base.exportTo('ui', function() {
 
       switch (mode) {
 
-        case mouseModeConstants.MOUSE_MODE_PANSCAN:
+        case MOUSE_SELECTOR_MODE.PANSCAN:
           modeEventNames.enter = 'enterpan';
           modeEventNames.begin = 'beginpan';
           modeEventNames.update = 'updatepan';
@@ -164,7 +193,7 @@ base.exportTo('ui', function() {
           modeEventNames.exit = 'exitpan';
           break;
 
-        case mouseModeConstants.MOUSE_MODE_SELECTION:
+        case MOUSE_SELECTOR_MODE.SELECTION:
           modeEventNames.enter = 'enterselection';
           modeEventNames.begin = 'beginselection';
           modeEventNames.update = 'updateselection';
@@ -172,7 +201,7 @@ base.exportTo('ui', function() {
           modeEventNames.exit = 'exitselection';
           break;
 
-        case mouseModeConstants.MOUSE_MODE_ZOOM:
+        case MOUSE_SELECTOR_MODE.ZOOM:
           modeEventNames.enter = 'enterzoom';
           modeEventNames.begin = 'beginzoom';
           modeEventNames.update = 'updatezoom';
@@ -180,7 +209,7 @@ base.exportTo('ui', function() {
           modeEventNames.exit = 'exitzoom';
           break;
 
-        case mouseModeConstants.MOUSE_MODE_TIMING:
+        case MOUSE_SELECTOR_MODE.TIMING:
           modeEventNames.enter = 'entertiming';
           modeEventNames.begin = 'begintiming';
           modeEventNames.update = 'updatetiming';
@@ -216,6 +245,7 @@ base.exportTo('ui', function() {
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
+      ui.trackMouseMovesUntilMouseUp(this.onMouseMove_, this.onMouseUp_);
     },
 
     onMouseMove_: function(e) {
@@ -252,7 +282,7 @@ base.exportTo('ui', function() {
 
       if (this.isInTemporaryAlternativeMouseMode_ && userHasReleasedShiftKey &&
           userHasReleasedCmdOrCtrl) {
-        this.mode = tracing.mouseModeConstants.MOUSE_MODE_PANSCAN;
+        this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
       }
     },
 
@@ -268,24 +298,23 @@ base.exportTo('ui', function() {
 
     onButtonPress_: function(e) {
 
-      var mouseModeConstants = tracing.mouseModeConstants;
-      var newInteractionMode = mouseModeConstants.MOUSE_MODE_PANSCAN;
+      var newInteractionMode = MOUSE_SELECTOR_MODE.PANSCAN;
 
       switch (e.target) {
         case this.panScanModeButton_:
-          this.mode = mouseModeConstants.MOUSE_MODE_PANSCAN;
+          this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
           break;
 
         case this.selectionModeButton_:
-          this.mode = mouseModeConstants.MOUSE_MODE_SELECTION;
+          this.mode = MOUSE_SELECTOR_MODE.SELECTION;
           break;
 
         case this.zoomModeButton_:
-          this.mode = mouseModeConstants.MOUSE_MODE_ZOOM;
+          this.mode = MOUSE_SELECTOR_MODE.ZOOM;
           break;
 
         case this.timingModeButton_:
-          this.mode = mouseModeConstants.MOUSE_MODE_TIMING;
+          this.mode = MOUSE_SELECTOR_MODE.TIMING;
           break;
 
         default:
@@ -303,20 +332,18 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
-      var mouseModeConstants = tracing.mouseModeConstants;
-
       switch (e.keyCode) {
         case 49:   // 1
-          this.mode = mouseModeConstants.MOUSE_MODE_PANSCAN;
+          this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
           break;
         case 50:   // 2
-          this.mode = mouseModeConstants.MOUSE_MODE_SELECTION;
+          this.mode = MOUSE_SELECTOR_MODE.SELECTION;
           break;
         case 51:   // 3
-          this.mode = mouseModeConstants.MOUSE_MODE_ZOOM;
+          this.mode = MOUSE_SELECTOR_MODE.ZOOM;
           break;
         case 52:   // 4
-          this.mode = mouseModeConstants.MOUSE_MODE_TIMING;
+          this.mode = MOUSE_SELECTOR_MODE.TIMING;
           break;
       }
     },
@@ -327,19 +354,18 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
-      var mouseModeConstants = tracing.mouseModeConstants;
       var userIsPressingCmdOrCtrl = (base.isMac && e.metaKey) ||
           (!base.isMac && e.ctrlKey);
       var userIsPressingShiftKey = e.shiftKey;
 
-      if (this.mode !== mouseModeConstants.MOUSE_MODE_PANSCAN)
+      if (this.mode !== MOUSE_SELECTOR_MODE.PANSCAN)
         return;
 
       if (userIsPressingCmdOrCtrl || userIsPressingShiftKey) {
 
         this.mode = userIsPressingCmdOrCtrl ?
-            mouseModeConstants.MOUSE_MODE_ZOOM :
-            mouseModeConstants.MOUSE_MODE_SELECTION;
+            MOUSE_SELECTOR_MODE.ZOOM :
+            MOUSE_SELECTOR_MODE.SELECTION;
 
         this.isInTemporaryAlternativeMouseMode_ = true;
         e.preventDefault();
@@ -352,14 +378,13 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
-      var mouseModeConstants = tracing.mouseModeConstants;
       var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
           (!base.isMac && !e.ctrlKey);
       var userHasReleasedShiftKey = e.shiftKey;
 
       if (this.isInTemporaryAlternativeMouseMode_ &&
           (userHasReleasedCmdOrCtrl || userHasReleasedShiftKey)) {
-        this.mode = mouseModeConstants.MOUSE_MODE_PANSCAN;
+        this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
       }
 
       this.isInTemporaryAlternativeMouseMode_ = false;
@@ -391,26 +416,17 @@ base.exportTo('ui', function() {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      this.isDraggingModeSelectorDragHandle_ = true;
-
       this.initialRelativeMouseDownPos_.x = e.clientX - this.offsetLeft;
       this.initialRelativeMouseDownPos_.y = e.clientY - this.offsetTop;
-
+      ui.trackMouseMovesUntilMouseUp(this.onDragHandleMouseMove_.bind(this));
     },
 
     onDragHandleMouseMove_: function(e) {
-      if (!this.isDraggingModeSelectorDragHandle_)
-        return;
-
       this.pos_.x = (e.clientX - this.initialRelativeMouseDownPos_.x);
       this.pos_.y = (e.clientY - this.initialRelativeMouseDownPos_.y);
 
       this.constrainPositionToWindowBounds_();
       this.updateStylesFromPosition_();
-    },
-
-    onDragHandleMouseUp_: function(e) {
-      this.isDraggingModeSelectorDragHandle_ = false;
     },
 
     onWindowResize_: function(e) {
@@ -435,7 +451,7 @@ base.exportTo('ui', function() {
         return;
 
       var eventNames = this.getModeEventNames_(
-          tracing.mouseModeConstants.MOUSE_MODE_SELECTION);
+          MOUSE_SELECTOR_MODE.SELECTION);
 
       var mouseEvent = new base.Event(eventNames.begin, true, true);
       mouseEvent.data = e;
@@ -448,6 +464,7 @@ base.exportTo('ui', function() {
   };
 
   return {
-    MouseModeSelector: MouseModeSelector
+    MouseModeSelector: MouseModeSelector,
+    MOUSE_SELECTOR_MODE: MOUSE_SELECTOR_MODE
   };
 });
