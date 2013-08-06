@@ -171,6 +171,7 @@ base.exportTo('tracing.tracks', function() {
       var pixWidth = this.viewport.xViewVectorToWorld(1);
 
       ctx.strokeStyle = '#000';
+      ctx.fillStyle = '#000';
       ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
 
       var events = this.model_.flowEvents;
@@ -241,6 +242,19 @@ base.exportTo('tracing.tracks', function() {
           startEvent.start + startEvent.duration + half, pixelEndY,
           endEvent.start, pixelEndY);
       ctx.stroke();
+
+      var arrowWidth = 5 * pixWidth * pixelRatio;
+      if (distance <= (2 * arrowWidth))
+        return;
+
+      var tipX = endEvent.start;
+      var tipY = pixelEndY;
+      var arrowHeight = (endBounds.height / 4) * pixelRatio;
+      tracing.drawTriangle(ctx,
+          tipX, tipY,
+          tipX - arrowWidth, tipY - arrowHeight,
+          tipX - arrowWidth, tipY + arrowHeight);
+      ctx.fill();
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
