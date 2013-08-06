@@ -29,6 +29,7 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.pictureAsImageData_ = undefined;
+      this.showOverdraw_ = false;
 
       this.leftPanel_ = document.createElement('left-panel');
 
@@ -47,11 +48,17 @@ base.exportTo('cc', function() {
       exportButton.textContent = 'Export';
       exportButton.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
+      var overdrawCheckbox = ui.createCheckBox(
+          this, 'showOverdraw',
+          'pictureViewer.showOverdraw', false,
+          'Show overdraw');
       this.pictureInfo_.appendChild(this.title_);
       this.pictureInfo_.appendChild(this.sizeInfo_);
       this.pictureInfo_.appendChild(document.createElement('br'));
       this.pictureInfo_.appendChild(this.filename_);
       this.pictureInfo_.appendChild(exportButton);
+      this.pictureInfo_.appendChild(document.createElement('br'));
+      this.pictureInfo_.appendChild(overdrawCheckbox);
 
       this.titleDragHandle_ = new ui.DragHandle();
       this.titleDragHandle_.horizontal = true;
@@ -167,7 +174,10 @@ base.exportTo('cc', function() {
     rasterize_: function() {
       if (this.picture_) {
         this.picture_.rasterize(
-            {stopIndex: this.drawOpsView_.selectedOpIndex},
+            {
+              stopIndex: this.drawOpsView_.selectedOpIndex,
+              showOverdraw: this.showOverdraw_
+            },
             this.onRasterComplete_.bind(this));
       }
     },
@@ -180,6 +190,11 @@ base.exportTo('cc', function() {
     onChangeDrawOps_: function() {
       this.rasterize_();
       this.scheduleUpdateContents_();
+    },
+
+    set showOverdraw(v) {
+      this.showOverdraw_ = v;
+      this.rasterize_();
     }
   };
 

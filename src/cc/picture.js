@@ -147,6 +147,8 @@ base.exportTo('cc', function() {
      *
      * @param {{opt_stopIndex: number, params}} The SkPicture operation to
      *     rasterize up to. If not defined, the entire SkPicture is rasterized.
+     * @param {{opt_showOverdraw: bool, params}} Defines whether pixel overdraw
+           should be visualized in the image.
      * @param {function(cc.PictureAsImageData)} The callback function that is
      *     called after rasterization is complete or fails.
      */
@@ -167,6 +169,7 @@ base.exportTo('cc', function() {
           },
           {
             stop: params.stopIndex === undefined ? -1 : params.stopIndex,
+            overdraw: !!params.showOverdraw,
             params: { }
           });
 
