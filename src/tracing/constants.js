@@ -7,7 +7,8 @@
 base.exportTo('tracing', function() {
   var constants = {
     HEADING_WIDTH: 250,
-    MIN_MOUSE_SELECTION_DISTANCE: 4
+    MIN_MOUSE_SELECTION_DISTANCE: 4,
+    LEFT_MOUSE_BUTTON: 0
   };
 
   return {

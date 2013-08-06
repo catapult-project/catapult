@@ -206,6 +206,9 @@ base.exportTo('ui', function() {
     },
 
     onMouseDown_: function(e) {
+      if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
+        return;
+
       this.setPositionFromEvent_(this.mouseDownPos_, e);
       var eventNames = this.getCurrentModeEventNames_();
       var mouseEvent = new base.Event(eventNames.begin, true, true);
@@ -227,6 +230,9 @@ base.exportTo('ui', function() {
     },
 
     onMouseUp_: function(e) {
+      if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
+        return;
+
       var eventNames = this.getCurrentModeEventNames_();
       var mouseEvent = new base.Event(eventNames.end, true, true);
       var userHasReleasedShiftKey = !e.shiftKey;

@@ -46,11 +46,8 @@ base.exportTo('tracing', function() {
     },
 
     onBeginTiming: function(e) {
-      e = e.data;
-      if (e.button !== 0)
-        return;
-
-      var worldX = this.getWorldXFromEvent_(e);
+      var mouseEvent = e.data;
+      var worldX = this.getWorldXFromEvent_(mouseEvent);
 
       // Check if click was on a range marker that can be moved.
       if (!this.activeMarker_) {
@@ -82,9 +79,8 @@ base.exportTo('tracing', function() {
     },
 
     onUpdateTiming: function(e) {
-      e = e.data;
-
-      var worldX = this.getWorldXFromEvent_(e);
+      var mouseEvent = e.data;
+      var worldX = this.getWorldXFromEvent_(mouseEvent);
 
       // Update the position of the active marker to the cursor position.
       // This is either the cursor marker, the end marker when creating a range,
@@ -119,8 +115,6 @@ base.exportTo('tracing', function() {
 
     onEndTiming: function(e) {
       var mouseEvent = e.data;
-      if (mouseEvent.button !== 0)
-        return;
 
       if (!this.activeMarker_ || !this.activeMarker_.selected)
         return;

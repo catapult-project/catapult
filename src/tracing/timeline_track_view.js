@@ -605,12 +605,6 @@ base.exportTo('tracing', function() {
           (numIntervalsSinceStart + 1) * this.viewport_.gridStep_;
     },
 
-    canBeginInteraction_: function(e) {
-      if (e.button !== 0)
-        return false;
-      return true;
-    },
-
     storeLastMousePos_: function(e) {
       this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
     },
@@ -649,9 +643,6 @@ base.exportTo('tracing', function() {
     onBeginPanScan_: function(e) {
       var vp = this.viewport_;
       var mouseEvent = e.data;
-
-      if (!this.canBeginInteraction_(mouseEvent))
-        return;
 
       this.viewportStateAtMouseDown_ = vp.getStateInViewCoordinates();
       this.isPanningAndScanning_ = true;
@@ -695,11 +686,7 @@ base.exportTo('tracing', function() {
     },
 
     onBeginSelection_: function(e) {
-
       var mouseEvent = e.data;
-
-      if (!this.canBeginInteraction_(mouseEvent))
-        return;
 
       var canv = this.modelTrackContainer_.canvas;
       var rect = this.modelTrack_.getBoundingClientRect();
@@ -778,12 +765,7 @@ base.exportTo('tracing', function() {
     },
 
     onBeginZoom_: function(e) {
-
       var mouseEvent = e.data;
-
-      if (!this.canBeginInteraction_(mouseEvent))
-        return;
-
       this.isZooming_ = true;
 
       this.storeInitialInteractionPositionsAndFocus_(mouseEvent);
