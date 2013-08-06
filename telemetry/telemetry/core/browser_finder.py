@@ -8,13 +8,11 @@ import logging
 from telemetry.core.chrome import android_browser_finder
 from telemetry.core.chrome import cros_browser_finder
 from telemetry.core.chrome import desktop_browser_finder
-from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
 
 BROWSER_FINDERS = [
   desktop_browser_finder,
   android_browser_finder,
-  cros_browser_finder,
-  webdriver_desktop_browser_finder
+  cros_browser_finder
   ]
 
 ALL_BROWSER_TYPES = ','.join([bf.ALL_BROWSER_TYPES for bf in BROWSER_FINDERS])
