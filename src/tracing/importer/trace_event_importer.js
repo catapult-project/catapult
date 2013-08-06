@@ -538,6 +538,14 @@ base.exportTo('tracing.importer', function() {
             delete flowIdToEvent[event.id];
         }
       }
+
+      this.model_.flowEvents = this.model_.flowEvents.sort(function(a, b) {
+        if (a.start < b.start)
+          return -1;
+        if (a.start === b.start)
+          return 0;
+        return 1;
+      });
     },
 
     /**

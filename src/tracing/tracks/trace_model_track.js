@@ -193,11 +193,6 @@ base.exportTo('tracing.tracks', function() {
         var startTrack = this.viewport.trackForSlice(startEvent);
         var endTrack = this.viewport.trackForSlice(endEvent);
 
-        // If we didn't draw one end, because it's off screen, we can't draw
-        // the flow arrow, so skip it.
-        if (endTrack === undefined || startTrack === undefined)
-          continue;
-
         var startBounds = startTrack.getBoundingClientRect();
         var endBounds = endTrack.getBoundingClientRect();
 
@@ -217,12 +212,6 @@ base.exportTo('tracing.tracks', function() {
 
         var half =
             (endEvent.start - (startEvent.start + startEvent.duration)) / 2;
-        var width = pixWidth;
-        if (startEvent.duration > 0) {
-          w = Math.max(startEvent.duration, 0.001);
-          if (w < pixWidth)
-            w = pixWidth;
-        }
 
         ctx.beginPath();
         ctx.moveTo(startEvent.start + startEvent.duration, pixelStartY);

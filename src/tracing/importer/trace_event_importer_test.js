@@ -1211,6 +1211,23 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertTrue(finish.isFlowEnd());
   });
 
+  test('importOutOfOrderFlowEvent', function() {
+    var events = [
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 148, ph: 's', args: {} },  // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 570, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} }   // @suppress longLineCheck
+    ];
+
+    var expected = [0.0, 0.4, 0.412, 0.422, 0.432];
+    var m = new tracing.TraceModel(events);
+    var order = m.flowEvents.map(function(x) { return x.start });
+
+    for (var i = 0; i < expected.length; ++i)
+      assertAlmostEquals(expected[i], order[i]);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 });
