@@ -17,6 +17,7 @@ import sys
 from telemetry import test
 from telemetry.core import browser_options
 from telemetry.core import discover
+from telemetry.core import util
 
 
 class Command(object):
@@ -120,7 +121,7 @@ def _GetScriptName():
 def _GetTests():
   # Lazy load and cache results.
   if not hasattr(_GetTests, 'tests'):
-    base_dir = test.GetBaseDir()
+    base_dir = util.GetBaseDir()
     _GetTests.tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                                index_by_class_name=True)
   return _GetTests.tests
