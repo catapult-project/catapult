@@ -15,6 +15,7 @@
 .timeline-track-view {
   -webkit-box-orient: vertical;
   display: -webkit-box;
+  position: relative;
 }
 
 .timeline-track-view .mode-indicator {

@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('base.iteration_helpers');
+base.require('base.rect');
 
 base.exportTo('base', function() {
   /**
@@ -55,13 +56,26 @@ base.exportTo('base', function() {
     return stack.slice(2);
   }
 
+  function windowRectForElement(element) {
+    var position = [element.offsetLeft, element.offsetTop];
+    var size = [element.offsetWidth, element.offsetHeight];
+    var node = element.offsetParent;
+    while (node) {
+      position[0] += node.offsetLeft;
+      position[1] += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return base.Rect.FromXYWH(position[0], position[1], size[0], size[1]);
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
     tracedFunction: tracedFunction,
     normalizeException: normalizeException,
     instantiateTemplate: instantiateTemplate,
-    stackTrace: stackTrace
+    stackTrace: stackTrace,
+    windowRectForElement: windowRectForElement
   };
 });
 

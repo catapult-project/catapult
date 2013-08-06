@@ -59,9 +59,6 @@ base.exportTo('ui', function() {
         y: base.Settings.get('mouse_mode_selector.y', 100)
       };
 
-      this.constrainPositionToWindowBounds_();
-      this.updateStylesFromPosition_();
-
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
       this.mousePos_ = {x: 0, y: 0};
@@ -392,10 +389,11 @@ base.exportTo('ui', function() {
     },
 
     constrainPositionToWindowBounds_: function() {
+      var parentRect = base.windowRectForElement(this.offsetParent);
       var top = 0;
-      var bottom = window.innerHeight - this.offsetHeight;
+      var bottom = parentRect.height - this.offsetHeight;
       var left = 0;
-      var right = window.innerWidth - this.offsetWidth;
+      var right = parentRect.width - this.offsetWidth;
 
       this.pos_.x = Math.max(this.pos_.x, left);
       this.pos_.x = Math.min(this.pos_.x, right);

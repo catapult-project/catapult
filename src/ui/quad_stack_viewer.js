@@ -10,6 +10,7 @@
  */
 
 base.require('ui.quad_stack');
+base.require('ui.mouse_mode_selector');
 
 base.exportTo('ui', function() {
   /**
@@ -27,6 +28,12 @@ base.exportTo('ui', function() {
       this.quadStack_ = new ui.QuadStack();
       this.appendChild(this.quadStack_);
 
+      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.mouseModeSelector_.supportedModeMask =
+          ui.MOUSE_SELECTOR_MODE.PANSCAN;
+
+      this.appendChild(this.mouseModeSelector_);
+
       this.camera_ = new ui.Camera(this.quadStack_);
     },
 
@@ -37,7 +44,6 @@ base.exportTo('ui', function() {
     get camera() {
       return this.camera_;
     }
-
   };
 
   return {

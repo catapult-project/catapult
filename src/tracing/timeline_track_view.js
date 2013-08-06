@@ -98,6 +98,12 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.mouseModeSelector_.supportedModeMask =
+          ui.MOUSE_SELECTOR_MODE.SELECTION |
+          ui.MOUSE_SELECTOR_MODE.PANSCAN |
+          ui.MOUSE_SELECTOR_MODE.ZOOM |
+          ui.MOUSE_SELECTOR_MODE.TIMING;
+
       this.appendChild(this.mouseModeSelector_);
 
       this.dragBox_ = this.ownerDocument.createElement('div');
@@ -107,21 +113,28 @@ base.exportTo('tracing', function() {
 
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
 
-      this.bindEventListener_(document, 'beginpan', this.onBeginPanScan_, this);
-      this.bindEventListener_(document, 'updatepan',
-          this.onUpdatePanScan_, this);
-      this.bindEventListener_(document, 'endpan', this.onEndPanScan_, this);
+      this.mouseModeSelector_.addEventListener('beginpan',
+          this.onBeginPanScan_.bind(this));
+      this.mouseModeSelector_.addEventListener('beginpan',
+          this.onBeginPanScan_.bind(this));
+      this.mouseModeSelector_.addEventListener('updatepan',
+          this.onUpdatePanScan_.bind(this));
+      this.mouseModeSelector_.addEventListener('endpan',
+          this.onEndPanScan_.bind(this));
 
-      this.bindEventListener_(document, 'beginselection',
-          this.onBeginSelection_, this);
-      this.bindEventListener_(document, 'updateselection',
-          this.onUpdateSelection_, this);
-      this.bindEventListener_(document, 'endselection',
-          this.onEndSelection_, this);
+      this.mouseModeSelector_.addEventListener('beginselection',
+          this.onBeginSelection_.bind(this));
+      this.mouseModeSelector_.addEventListener('updateselection',
+          this.onUpdateSelection_.bind(this));
+      this.mouseModeSelector_.addEventListener('endselection',
+          this.onEndSelection_.bind(this));
 
-      this.bindEventListener_(document, 'beginzoom', this.onBeginZoom_, this);
-      this.bindEventListener_(document, 'updatezoom', this.onUpdateZoom_, this);
-      this.bindEventListener_(document, 'endzoom', this.onEndZoom_, this);
+      this.mouseModeSelector_.addEventListener('beginzoom',
+          this.onBeginZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('updatezoom',
+          this.onUpdateZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('endzoom',
+          this.onEndZoom_.bind(this));
 
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
@@ -138,16 +151,16 @@ base.exportTo('tracing', function() {
       this.timingTool_ = new tracing.TimingTool(this.viewport_,
                                                 this.rulerTrack_);
 
-      this.bindEventListener_(document, 'entertiming',
-          this.timingTool_.onEnterTiming, this.timingTool_);
-      this.bindEventListener_(document, 'begintiming',
-          this.timingTool_.onBeginTiming, this.timingTool_);
-      this.bindEventListener_(document, 'updatetiming',
-          this.timingTool_.onUpdateTiming, this.timingTool_);
-      this.bindEventListener_(document, 'endtiming',
-          this.timingTool_.onEndTiming, this.timingTool_);
-      this.bindEventListener_(document, 'exittiming',
-          this.timingTool_.onExitTiming, this.timingTool_);
+      this.mouseModeSelector_.addEventListener('entertiming',
+          this.timingTool_.onEnterTiming.bind(this.timingTool_));
+      this.mouseModeSelector_.addEventListener('begintiming',
+          this.timingTool_.onBeginTiming.bind(this.timingTool_));
+      this.mouseModeSelector_.addEventListener('updatetiming',
+          this.timingTool_.onUpdateTiming.bind(this.timingTool_));
+      this.mouseModeSelector_.addEventListener('endtiming',
+          this.timingTool_.onEndTiming.bind(this.timingTool_));
+      this.mouseModeSelector_.addEventListener('exittiming',
+          this.timingTool_.onExitTiming.bind(this.timingTool_));
     },
 
     /**
