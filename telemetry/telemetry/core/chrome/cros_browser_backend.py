@@ -85,6 +85,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--disable-default-apps',
             # Jump to the login screen, skipping network selection, eula, etc.
             '--login-screen=login',
+            # Skip user image selection screen, and post login screens.
+            '--oobe-skip-postlogin',
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
@@ -286,8 +288,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _HandleUserImageSelectionScreen(self):
     """If we're stuck on the user image selection screen, we click the ok
-    button. TODO(achuith): Figure out a better way to bypass user image
-    selection. crbug.com/249182."""
+    button.
+    """
     oobe = self.oobe
     if oobe:
       try:
@@ -303,7 +305,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _IsLoggedIn(self):
     """Returns True if we're logged in (cryptohome has mounted), and the oobe
     has been dismissed."""
-    self._HandleUserImageSelectionScreen()
+    if self.chrome_branch_number <= 1547:
+      self._HandleUserImageSelectionScreen()
     return self._IsCryptohomeMounted() and not self.oobe
 
   def _StartupWindow(self):
