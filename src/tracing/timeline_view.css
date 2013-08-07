@@ -87,7 +87,6 @@
 }
 
 .find-control {
-  -webkit-user-select: none;
   display: -webkit-box;
   position: relative;
 }
@@ -104,7 +103,6 @@
 }
 
 .find-control input {
-  -webkit-user-select: auto;
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
@@ -135,6 +133,7 @@
 }
 
 .button {
+  -webkit-user-select: none;
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
   color: rgba(0,0,0,0.8);

@@ -4,6 +4,7 @@
  */
 
 .ruler-track {
+  -webkit-user-select: none;
   height: 12px;
 }
 

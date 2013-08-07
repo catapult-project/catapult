@@ -4,15 +4,10 @@
  */
 
 .x-list-view {
-  -webkit-user-select: none;
   display: block;
 }
 .x-list-view:focus {
   outline: none;
-}
-
-.x-list-view * {
-  -webkit-user-select: none;
 }
 
 .x-list-view > .list-item {

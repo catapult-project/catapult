@@ -9,7 +9,6 @@
 }
 
 .analysis-results * {
-  -webkit-user-select: text !important;
   cursor: text;
 }
 .analysis-table {

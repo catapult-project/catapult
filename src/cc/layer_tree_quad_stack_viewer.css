@@ -6,6 +6,7 @@
 
 layer-tree-quad-stack-viewer > top-controls {
   -webkit-flex: 0 0 auto;
+  -webkit-user-select: none;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
                                      from(#E5E5E5),

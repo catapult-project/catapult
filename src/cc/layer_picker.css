@@ -10,6 +10,7 @@ layer-picker {
 
 layer-picker > top-controls {
   -webkit-flex: 0 0 auto;
+  -webkit-user-select: none;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
                                      from(#E5E5E5),
@@ -32,6 +33,5 @@ layer-picker > x-generic-object-view {
 }
 
 layer-picker > x-generic-object-view * {
-  -webkit-user-select: text !important;
   cursor: text;
 }

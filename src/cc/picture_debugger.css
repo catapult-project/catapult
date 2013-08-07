@@ -36,7 +36,6 @@ picture-debugger > x-drag-handle {
 }
 
 picture-debugger .filename {
-  -webkit-user-select: text;
   margin-left: 5px;
 }
 

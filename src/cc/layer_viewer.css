@@ -23,10 +23,6 @@ layer-viewer > layer-viewer-analysis {
   overflow-y: auto;
 }
 
-layer-viewer > layer-viewer-analysis * {
-  -webkit-user-select: text;
-}
-
 .labeled-checkbox {
   white-space: nowrap;
 }

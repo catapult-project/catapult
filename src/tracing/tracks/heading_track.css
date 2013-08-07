@@ -6,6 +6,7 @@
 .heading-track {
   -webkit-box-align: stretch;
   -webkit-box-orient: horizontal;
+  -webkit-user-select: none;
   display: -webkit-box;
   margin: 0;
   padding: 0 5px 0 0;
@@ -13,6 +14,7 @@
 
 .heading-track > heading {
   -webkit-box-sizing: border-box;
+  -webkit-user-select: text;
   background-color: rgba(214, 221, 229, 0.3);
   border-right: 1px solid #8e8e8e;
   box-sizing: border-box;
