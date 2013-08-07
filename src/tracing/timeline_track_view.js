@@ -97,14 +97,7 @@ base.exportTo('tracing', function() {
       this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
-      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
-      this.mouseModeSelector_.supportedModeMask =
-          ui.MOUSE_SELECTOR_MODE.SELECTION |
-          ui.MOUSE_SELECTOR_MODE.PANSCAN |
-          ui.MOUSE_SELECTOR_MODE.ZOOM |
-          ui.MOUSE_SELECTOR_MODE.TIMING;
-
-      this.appendChild(this.mouseModeSelector_);
+      this.initMouseModeSelector();
 
       this.dragBox_ = this.ownerDocument.createElement('div');
       this.dragBox_.className = 'drag-box';
@@ -176,6 +169,18 @@ base.exportTo('tracing', function() {
         event: event,
         boundFunc: boundFunc});
       object.addEventListener(event, boundFunc);
+    },
+
+    initMouseModeSelector: function() {
+      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.appendChild(this.mouseModeSelector_);
+      this.mouseModeSelector_.settingsKey =
+          'timelineTrackView.mouseModeSelector';
+      var m = ui.MOUSE_SELECTOR_MODE;
+      this.mouseModeSelector_.setKeyCodeForMode(m.PANSCAN, '2'.charCodeAt(0));
+      this.mouseModeSelector_.setKeyCodeForMode(m.SELECTION, '1'.charCodeAt(0));
+      this.mouseModeSelector_.setKeyCodeForMode(m.ZOOM, '3'.charCodeAt(0));
+      this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
     },
 
     detach: function() {

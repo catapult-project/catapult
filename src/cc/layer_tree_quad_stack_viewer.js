@@ -42,6 +42,11 @@ base.exportTo('cc', function() {
       this.infoBar_ = new ui.InfoBar();
       this.quadStackViewer_ = new ui.QuadStackViewer();
 
+      var m = ui.MOUSE_SELECTOR_MODE;
+      var mms = this.quadStackViewer_.mouseModeSelector;
+      mms.settingsKey = 'cc.layerTreeQuadStackViewer.mouseModeSelector';
+      mms.setKeyCodeForMode(m.PANSCAN, 'z'.charCodeAt(0));
+
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackViewer_);

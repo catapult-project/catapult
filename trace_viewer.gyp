@@ -70,6 +70,7 @@
       'src/base/range.js',
       'src/base/raf.js',
       'src/base/gl_matrix.js',
+      'src/base/key_event_manager.js',
       'src/base/rect.js',
       'src/base/settings.js',
       'src/base/quad.js',

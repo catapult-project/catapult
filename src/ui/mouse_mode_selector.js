@@ -11,7 +11,10 @@ base.requireTemplate('ui.mouse_mode_selector');
 
 base.require('base.events');
 base.require('tracing.constants');
+base.require('base.events');
+base.require('base.iteration_helpers');
 base.require('base.utils');
+base.require('base.key_event_manager');
 base.require('ui');
 base.require('ui.mouse_tracker');
 
@@ -23,6 +26,51 @@ base.exportTo('ui', function() {
   MOUSE_SELECTOR_MODE.ZOOM = 0x4;
   MOUSE_SELECTOR_MODE.TIMING = 0x8;
   MOUSE_SELECTOR_MODE.ALL_MODES = 0xF;
+
+  var allModeInfo = {};
+  allModeInfo[MOUSE_SELECTOR_MODE.PANSCAN] = {
+    className: 'pan-scan-mode-button',
+    cmdOrCtrlAlternate: MOUSE_SELECTOR_MODE.ZOOM,
+    shiftAlternate: MOUSE_SELECTOR_MODE.SELECTION,
+    eventNames: {
+      enter: 'enterpan',
+      begin: 'beginpan',
+      update: 'updatepan',
+      end: 'endpan',
+      exit: 'exitpan'
+    }
+  };
+  allModeInfo[MOUSE_SELECTOR_MODE.SELECTION] = {
+    className: 'selection-mode-button',
+    eventNames: {
+      enter: 'enterselection',
+      begin: 'beginselection',
+      update: 'updateselection',
+      end: 'endselection',
+      exit: 'exitselection'
+    }
+  };
+
+  allModeInfo[MOUSE_SELECTOR_MODE.ZOOM] = {
+    className: 'zoom-mode-button',
+    eventNames: {
+      enter: 'enterzoom',
+      begin: 'beginzoom',
+      update: 'updatezoom',
+      end: 'endzoom',
+      exit: 'exitzoom'
+    }
+  };
+  allModeInfo[MOUSE_SELECTOR_MODE.TIMING] = {
+    className: 'timing-mode-button',
+    eventNames: {
+      enter: 'entertiming',
+      begin: 'begintiming',
+      update: 'updatetiming',
+      end: 'endtiming',
+      exit: 'exittiming'
+    }
+  };
 
   /**
    * Provides a panel for switching the interaction mode of the mouse.
@@ -45,29 +93,23 @@ base.exportTo('ui', function() {
 
       this.buttonsEl_ = this.querySelector('.buttons');
       this.dragHandleEl_ = this.querySelector('.drag-handle');
-      this.panScanModeButton_ =
-          this.buttonsEl_.querySelector('.pan-scan-mode-button');
-      this.selectionModeButton_ =
-          this.buttonsEl_.querySelector('.selection-mode-button');
-      this.zoomModeButton_ =
-          this.buttonsEl_.querySelector('.zoom-mode-button');
-      this.timingModeButton_ =
-          this.buttonsEl_.querySelector('.timing-mode-button');
 
-      this.pos_ = {
-        x: base.Settings.get('mouse_mode_selector.x', window.innerWidth - 50),
-        y: base.Settings.get('mouse_mode_selector.y', 100)
+      this.supportedModeMask = MOUSE_SELECTOR_MODE.ALL_MODES;
+
+      this.pos = {
+        x: window.innerWidth - 50,
+        y: 100
       };
 
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
+      this.defaultMode_ = MOUSE_SELECTOR_MODE.PANSCAN;
+      this.settingsKey_ = undefined;
       this.mousePos_ = {x: 0, y: 0};
       this.mouseDownPos_ = {x: 0, y: 0};
 
       this.dragHandleEl_.addEventListener('mousedown',
           this.onDragHandleMouseDown_.bind(this));
-      window.addEventListener('resize',
-          this.onWindowResize_.bind(this));
 
       this.onMouseDown_ = this.onMouseDown_.bind(this);
       this.onMouseMove_ = this.onMouseMove_.bind(this);
@@ -77,25 +119,21 @@ base.exportTo('ui', function() {
       this.buttonsEl_.addEventListener('mousedown', this.onButtonMouseDown_);
       this.buttonsEl_.addEventListener('click', this.onButtonPress_.bind(this));
 
-      // TODO(nduca): Fix these,
-      // https://code.google.com/p/trace-viewer/issues/detail?id=375.
-      document.addEventListener('keypress', this.onKeyPress_.bind(this));
-      document.addEventListener('keydown', this.onKeyDown_.bind(this));
-      document.addEventListener('keyup', this.onKeyUp_.bind(this));
+      base.KeyEventManager.instance.addListener(
+          'keydown', this.onKeyDown_, this);
+      base.KeyEventManager.instance.addListener(
+          'keypress', this.onKeyPress_, this);
+      base.KeyEventManager.instance.addListener(
+          'keyup', this.onKeyUp_, this);
 
-      var mode = base.Settings.get('mouse_mode_selector.mouseMode',
-          MOUSE_SELECTOR_MODE.PANSCAN);
-      // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
-      // settings to the best of our abilities.
-      if (mode == 3) {
-        mode = MOUSE_SELECTOR_MODE.ZOOM;
-        base.Settings.set('mouse_mode_selector.mouseMode', mode);
-      }
-      this.mode = mode;
+      this.mode_ = undefined;
+      this.modeToKeyCodeMap_ = {};
 
-      this.supportedModeMask_ = MOUSE_SELECTOR_MODE.ALL_MODES;
       this.targetElement = opt_targetElement;
-      this.isInTemporaryAlternativeMouseMode_ = false;
+      this.isInAlternativeMode_ = false;
+      this.modeBeforeAlternativeModeActivated_ = undefined;
+      this.exitAlternativeModeOnShift_ = false;
+
       this.isInteracting_ = false;
       this.isClick_ = false;
     },
@@ -108,17 +146,73 @@ base.exportTo('ui', function() {
         this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
     },
 
+    get defaultMode() {
+      return this.defaultMode_;
+    },
+
+    set defaultMode(defaultMode) {
+      this.defaultMode_ = defaultMode;
+    },
+
+    get settingsKey() {
+      return this.settingsKey_;
+    },
+
+    set settingsKey(settingsKey) {
+      this.settingsKey_ = settingsKey;
+      if (!this.settingsKey_)
+        return;
+
+      var mode = base.Settings.get(this.settingsKey_ + '.mode', undefined);
+      // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
+      // settings to the best of our abilities.
+      if (allModeInfo[mode] === undefined)
+        mode = undefined;
+
+      // Restoring settings against unsupported modes should just go back to the
+      // default mode.
+      if ((mode & this.supportedModeMask_) === 0)
+        mode = undefined;
+
+      if (!mode)
+        mode = this.defaultMode_;
+      this.mode = mode;
+
+      var pos = base.Settings.get(this.settingsKey_ + '.pos', undefined);
+      if (pos)
+        this.pos = pos;
+    },
+
+    get supportedModeMask() {
+      return this.supportedModeMask_;
+    },
+
     /**
      * Sets the supported modes. Should be an OR-ing of MOUSE_SELECTOR_MODE
      * values.
      */
     set supportedModeMask(supportedModeMask) {
-      this.supportedModeMask_ = supportedModeMask;
-      // TODO(nduca): Implement this.
-    },
+      if (this.mode && (supportedModeMask & this.mode) === 0)
+        throw new Error('supportedModeMask must include current mode.');
 
-    get supportedModeMask() {
-      return this.supportedModeMask_;
+      function createButtonForMode(mode) {
+        var button = document.createElement('div');
+        button.mode = mode;
+        button.classList.add('tool-button');
+        button.classList.add(allModeInfo[mode].className);
+        return button;
+      }
+
+      this.supportedModeMask_ = supportedModeMask;
+      this.buttonsEl_.textContent = '';
+      for (var modeName in MOUSE_SELECTOR_MODE) {
+        if (modeName == 'ALL_MODES')
+          continue;
+        var mode = MOUSE_SELECTOR_MODE[modeName];
+        if ((this.supportedModeMask_ & mode) === 0)
+          continue;
+        this.buttonsEl_.appendChild(createButtonForMode(mode));
+      }
     },
 
     get mode() {
@@ -126,104 +220,46 @@ base.exportTo('ui', function() {
     },
 
     set mode(newMode) {
+      if (newMode !== undefined) {
+        if (typeof newMode !== 'number')
+          throw new Error('Mode must be a number');
+        if ((newMode & this.supportedModeMask_) === 0)
+          throw new Error('Cannot switch to this mode, it is not supported');
+        if (allModeInfo[newMode] === undefined)
+          throw new Error('Unrecognized mode');
+      }
+
+      var modeInfo;
 
       if (this.currentMode_ === newMode)
         return;
 
-      var eventNames;
       if (this.currentMode_) {
-        eventNames = this.getCurrentModeEventNames_();
-        this.dispatchEvent(new base.Event(eventNames.exit, true, true));
+        modeInfo = allModeInfo[this.currentMode_];
+        var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
+        if (buttonEl)
+          buttonEl.classList.remove('active');
+        base.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
       }
 
       this.currentMode_ = newMode;
-      this.panScanModeButton_.classList.remove('active');
-      this.selectionModeButton_.classList.remove('active');
-      this.zoomModeButton_.classList.remove('active');
-      this.timingModeButton_.classList.remove('active');
 
-      switch (newMode) {
-
-        case MOUSE_SELECTOR_MODE.PANSCAN:
-          this.panScanModeButton_.classList.add('active');
-          break;
-
-        case MOUSE_SELECTOR_MODE.SELECTION:
-          this.selectionModeButton_.classList.add('active');
-          break;
-
-        case MOUSE_SELECTOR_MODE.ZOOM:
-          this.zoomModeButton_.classList.add('active');
-          break;
-
-        case MOUSE_SELECTOR_MODE.TIMING:
-          this.timingModeButton_.classList.add('active');
-          break;
-
-        default:
-          throw new Error('Unknown selection mode: ' + newMode);
-          break;
+      if (this.currentMode_) {
+        modeInfo = allModeInfo[this.currentMode_];
+        var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
+        if (buttonEl)
+          buttonEl.classList.add('active');
+        base.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
       }
 
-      eventNames = this.getCurrentModeEventNames_();
-      this.dispatchEvent(new base.Event(eventNames.enter, true, true));
-
-      base.Settings.set('mouse_mode_selector.mouseMode', newMode);
+      if (this.settingsKey_)
+        base.Settings.set(this.settingsKey_ + '.mode', this.mode);
     },
 
-    getModeEventNames_: function(mode) {
-      var modeEventNames = {
-        enter: '',
-        begin: '',
-        update: '',
-        end: '',
-        exit: ''
-      };
-
-      switch (mode) {
-
-        case MOUSE_SELECTOR_MODE.PANSCAN:
-          modeEventNames.enter = 'enterpan';
-          modeEventNames.begin = 'beginpan';
-          modeEventNames.update = 'updatepan';
-          modeEventNames.end = 'endpan';
-          modeEventNames.exit = 'exitpan';
-          break;
-
-        case MOUSE_SELECTOR_MODE.SELECTION:
-          modeEventNames.enter = 'enterselection';
-          modeEventNames.begin = 'beginselection';
-          modeEventNames.update = 'updateselection';
-          modeEventNames.end = 'endselection';
-          modeEventNames.exit = 'exitselection';
-          break;
-
-        case MOUSE_SELECTOR_MODE.ZOOM:
-          modeEventNames.enter = 'enterzoom';
-          modeEventNames.begin = 'beginzoom';
-          modeEventNames.update = 'updatezoom';
-          modeEventNames.end = 'endzoom';
-          modeEventNames.exit = 'exitzoom';
-          break;
-
-        case MOUSE_SELECTOR_MODE.TIMING:
-          modeEventNames.enter = 'entertiming';
-          modeEventNames.begin = 'begintiming';
-          modeEventNames.update = 'updatetiming';
-          modeEventNames.end = 'endtiming';
-          modeEventNames.exit = 'exittiming';
-          break;
-
-        default:
-          throw new Error('Unsupported interaction mode');
-          break;
-      }
-
-      return modeEventNames;
-    },
-
-    getCurrentModeEventNames_: function() {
-      return this.getModeEventNames_(this.mode);
+    setKeyCodeForMode: function(mode, keyCode) {
+      if ((mode & this.supportedModeMask_) === 0)
+        throw new Error('Mode not supported');
+      this.modeToKeyCodeMap_[mode] = keyCode;
     },
 
     setPositionFromEvent_: function(pos, e) {
@@ -236,8 +272,8 @@ base.exportTo('ui', function() {
         return;
 
       this.setPositionFromEvent_(this.mouseDownPos_, e);
-      var eventNames = this.getCurrentModeEventNames_();
-      var mouseEvent = new base.Event(eventNames.begin, true, true);
+      var mouseEvent = new base.Event(
+          allModeInfo[this.mode].eventNames.begin, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
@@ -247,8 +283,8 @@ base.exportTo('ui', function() {
 
     onMouseMove_: function(e) {
       this.setPositionFromEvent_(this.mousePos_, e);
-      var eventNames = this.getCurrentModeEventNames_();
-      var mouseEvent = new base.Event(eventNames.update, true, true);
+      var mouseEvent = new base.Event(
+          allModeInfo[this.mode].eventNames.update, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
 
@@ -260,11 +296,8 @@ base.exportTo('ui', function() {
       if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
         return;
 
-      var eventNames = this.getCurrentModeEventNames_();
-      var mouseEvent = new base.Event(eventNames.end, true, true);
-      var userHasReleasedShiftKey = !e.shiftKey;
-      var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
-          (!base.isMac && !e.ctrlKey);
+      var mouseEvent = new base.Event(
+          allModeInfo[this.mode].eventNames.end, true);
 
       mouseEvent.data = e;
       mouseEvent.consumed = false;
@@ -277,9 +310,10 @@ base.exportTo('ui', function() {
 
       this.isInteracting_ = false;
 
-      if (this.isInTemporaryAlternativeMouseMode_ && userHasReleasedShiftKey &&
-          userHasReleasedCmdOrCtrl) {
-        this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
+      if (this.isInAlternativeMode_) {
+        this.mode = this.modeBeforeAlternativeModeActivated_;
+        this.modeBeforeAlternativeModeActivated_ = undefined;
+        this.isInAlternativeMode_ = false;
       }
     },
 
@@ -294,33 +328,9 @@ base.exportTo('ui', function() {
     },
 
     onButtonPress_: function(e) {
-
-      var newInteractionMode = MOUSE_SELECTOR_MODE.PANSCAN;
-
-      switch (e.target) {
-        case this.panScanModeButton_:
-          this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
-          break;
-
-        case this.selectionModeButton_:
-          this.mode = MOUSE_SELECTOR_MODE.SELECTION;
-          break;
-
-        case this.zoomModeButton_:
-          this.mode = MOUSE_SELECTOR_MODE.ZOOM;
-          break;
-
-        case this.timingModeButton_:
-          this.mode = MOUSE_SELECTOR_MODE.TIMING;
-          break;
-
-        default:
-          throw new Error('Unknown mouse mode button pressed');
-          break;
-      }
-
+      this.mode = e.target.mode;
+      this.isInAlternativeMode_ = false;
       e.preventDefault();
-      this.isInTemporaryAlternativeMouseMode_ = false;
     },
 
     onKeyPress_: function(e) {
@@ -329,20 +339,18 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
-      switch (e.keyCode) {
-        case 49:   // 1
-          this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
-          break;
-        case 50:   // 2
-          this.mode = MOUSE_SELECTOR_MODE.SELECTION;
-          break;
-        case 51:   // 3
-          this.mode = MOUSE_SELECTOR_MODE.ZOOM;
-          break;
-        case 52:   // 4
-          this.mode = MOUSE_SELECTOR_MODE.TIMING;
-          break;
-      }
+      var modeInfo = allModeInfo[this.mode];
+      var handled = false;
+      base.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
+        var mode = parseInt(modeStr);
+        if (e.keyCode === keyCode) {
+          this.mode = mode;
+          this.isInAlternativeMode_ = false;
+          this.modeBeforeAlternativeModeActivated_ = undefined;
+          handled = true;
+        }
+      }, this);
+      return handled;
     },
 
     onKeyDown_: function(e) {
@@ -351,63 +359,94 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
+      var modeInfo = allModeInfo[this.mode];
+
+      var alternateMode;
+      var exitAlternativeModeOnShift;
+      if (e.shiftKey && modeInfo.shiftAlternate) {
+        alternateMode = modeInfo.shiftAlternate;
+        exitAlternativeModeOnShift = true;
+      }
+
       var userIsPressingCmdOrCtrl = (base.isMac && e.metaKey) ||
           (!base.isMac && e.ctrlKey);
-      var userIsPressingShiftKey = e.shiftKey;
+      if (userIsPressingCmdOrCtrl && modeInfo.cmdOrCtrlAlternate) {
+        alternateMode = modeInfo.cmdOrCtrlAlternate;
+        exitAlternativeModeOnShift = false;
+      }
 
-      if (this.mode !== MOUSE_SELECTOR_MODE.PANSCAN)
+      if (!alternateMode)
         return;
 
-      if (userIsPressingCmdOrCtrl || userIsPressingShiftKey) {
+      if ((alternateMode & this.supportedModeMask_) === 0)
+        return;
 
-        this.mode = userIsPressingCmdOrCtrl ?
-            MOUSE_SELECTOR_MODE.ZOOM :
-            MOUSE_SELECTOR_MODE.SELECTION;
+      this.isInAlternativeMode_ = true;
+      this.modeBeforeAlternativeModeActivated_ = this.mode;
+      this.exitAlternativeModeOnShift_ = false;
 
-        this.isInTemporaryAlternativeMouseMode_ = true;
-        e.preventDefault();
-      }
+      this.mode = alternateMode;
+      e.preventDefault();
     },
 
     onKeyUp_: function(e) {
-
       // Prevent the user from changing modes during an interaction.
       if (this.isInteracting_)
         return;
 
-      var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
-          (!base.isMac && !e.ctrlKey);
-      var userHasReleasedShiftKey = e.shiftKey;
+      if (!this.isInAlternativeMode_)
+        return;
 
-      if (this.isInTemporaryAlternativeMouseMode_ &&
-          (userHasReleasedCmdOrCtrl || userHasReleasedShiftKey)) {
-        this.mode = MOUSE_SELECTOR_MODE.PANSCAN;
+      if (!e.shiftKey && this.exitAlternativeModeOnShift_) {
+        this.mode = this.modeBeforeAlternativeModeActivated_;
+        this.modeBeforeAlternativeModeActivated_ = undefined;
+        this.isInAlternativeMode_ = false;
+        return;
       }
 
-      this.isInTemporaryAlternativeMouseMode_ = false;
-
+      var userHasReleasedCmdOrCtrl = (base.isMac && !e.metaKey) ||
+          (!base.isMac && !e.ctrlKey);
+      if (userHasReleasedCmdOrCtrl && !this.exitAlternativeModeOnShift_) {
+        this.mode = this.modeBeforeAlternativeModeActivated_;
+        this.modeBeforeAlternativeModeActivated_ = undefined;
+        this.isInAlternativeMode_ = false;
+        return;
+      }
     },
 
-    constrainPositionToWindowBounds_: function() {
-      var parentRect = base.windowRectForElement(this.offsetParent);
+    get pos() {
+      return {
+        x: parseInt(this.style.left),
+        y: parseInt(this.style.top)
+      };
+    },
+
+    set pos(pos) {
+      pos = this.constrainPositionToBounds_(pos);
+
+      this.style.left = pos.x + 'px';
+      this.style.top = pos.y + 'px';
+
+      if (this.settingsKey_)
+        base.Settings.set(this.settingsKey_ + '.pos', this.pos);
+    },
+
+    constrainPositionToBounds_: function(pos) {
+      var parent = this.offsetParent || document.body;
+      var parentRect = base.windowRectForElement(parent);
+
       var top = 0;
       var bottom = parentRect.height - this.offsetHeight;
       var left = 0;
       var right = parentRect.width - this.offsetWidth;
 
-      this.pos_.x = Math.max(this.pos_.x, left);
-      this.pos_.x = Math.min(this.pos_.x, right);
+      var res = {};
+      res.x = Math.max(pos.x, left);
+      res.x = Math.min(res.x, right);
 
-      this.pos_.y = Math.max(this.pos_.y, top);
-      this.pos_.y = Math.min(this.pos_.y, bottom);
-    },
-
-    updateStylesFromPosition_: function() {
-      this.style.left = this.pos_.x + 'px';
-      this.style.top = this.pos_.y + 'px';
-
-      base.Settings.set('mouse_mode_selector.x', this.pos_.x);
-      base.Settings.set('mouse_mode_selector.y', this.pos_.y);
+      res.y = Math.max(pos.y, top);
+      res.y = Math.min(res.y, bottom);
+      return res;
     },
 
     onDragHandleMouseDown_: function(e) {
@@ -420,16 +459,10 @@ base.exportTo('ui', function() {
     },
 
     onDragHandleMouseMove_: function(e) {
-      this.pos_.x = (e.clientX - this.initialRelativeMouseDownPos_.x);
-      this.pos_.y = (e.clientY - this.initialRelativeMouseDownPos_.y);
-
-      this.constrainPositionToWindowBounds_();
-      this.updateStylesFromPosition_();
-    },
-
-    onWindowResize_: function(e) {
-      this.constrainPositionToWindowBounds_();
-      this.updateStylesFromPosition_();
+      var pos = {};
+      pos.x = (e.clientX - this.initialRelativeMouseDownPos_.x);
+      pos.y = (e.clientY - this.initialRelativeMouseDownPos_.y);
+      this.pos = pos;
     },
 
     checkIsClick_: function(e) {
@@ -448,14 +481,13 @@ base.exportTo('ui', function() {
       if (!this.isClick_)
         return;
 
-      var eventNames = this.getModeEventNames_(
-          MOUSE_SELECTOR_MODE.SELECTION);
+      var eventNames = allModeInfo[MOUSE_SELECTOR_MODE.SELECTION].eventNames;
 
-      var mouseEvent = new base.Event(eventNames.begin, true, true);
+      var mouseEvent = new base.Event(eventNames.begin, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
 
-      mouseEvent = new base.Event(eventNames.end, true, true);
+      mouseEvent = new base.Event(eventNames.end, true);
       mouseEvent.data = e;
       this.dispatchEvent(mouseEvent);
     }

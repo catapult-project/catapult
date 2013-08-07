@@ -28,13 +28,18 @@ base.exportTo('ui', function() {
       this.quadStack_ = new ui.QuadStack();
       this.appendChild(this.quadStack_);
 
+      this.settingsKey_ = undefined;
+
       this.mouseModeSelector_ = new ui.MouseModeSelector(this);
       this.mouseModeSelector_.supportedModeMask =
           ui.MOUSE_SELECTOR_MODE.PANSCAN;
-
       this.appendChild(this.mouseModeSelector_);
 
       this.camera_ = new ui.Camera(this.quadStack_);
+    },
+
+    get mouseModeSelector() {
+      return this.mouseModeSelector_;
     },
 
     get quadStack() {
