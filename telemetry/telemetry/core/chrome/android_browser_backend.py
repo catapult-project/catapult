@@ -28,7 +28,7 @@ class AndroidBrowserBackendSettings(object):
 
   def RemoveProfile(self):
     self.adb.RunShellCommand(
-        'su -c rm -r "%s"' % self._profile_dir)
+        'su -c rm -r "%s"' % self.profile_dir)
 
   def PushProfile(self, _):
     logging.critical('Profiles cannot be overriden with current configuration')
@@ -39,7 +39,7 @@ class AndroidBrowserBackendSettings(object):
     return False
 
   @property
-  def _profile_dir(self):
+  def profile_dir(self):
     raise NotImplementedError()
 
 
@@ -59,10 +59,10 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:chrome_devtools_remote'
 
   def PushProfile(self, new_profile_dir):
-    self.adb.Push(new_profile_dir, self._profile_dir)
+    self.adb.Push(new_profile_dir, self.profile_dir)
 
   @property
-  def _profile_dir(self):
+  def profile_dir(self):
     return '/data/data/%s/app_chrome/' % self.package
 
 
@@ -83,7 +83,7 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
     return True
 
   @property
-  def _profile_dir(self):
+  def profile_dir(self):
     return '/data/data/%s/app_content_shell/' % self.package
 
 
@@ -104,7 +104,7 @@ class ChromiumTestShellBackendSettings(AndroidBrowserBackendSettings):
     return True
 
   @property
-  def _profile_dir(self):
+  def profile_dir(self):
     return '/data/data/%s/app_chromiumtestshell/' % self.package
 
 
@@ -139,7 +139,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
   @property
-  def _profile_dir(self):
+  def profile_dir(self):
     return '/data/data/%s/app_webview/' % self.package
 
 
@@ -243,6 +243,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def pid(self):
     return int(self._adb.ExtractPid(self._backend_settings.package)[0])
+
+  @property
+  def browser_directory(self):
+    return None
+
+  @property
+  def profile_directory(self):
+    return self._backend_settings.profile_dir
 
   def __del__(self):
     self.Close()

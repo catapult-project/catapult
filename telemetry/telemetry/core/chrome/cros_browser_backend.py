@@ -18,8 +18,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                   '/usr/local/opt/google/chrome/chrome ']
 
   def __init__(self, browser_type, options, cri, is_guest):
-    super(CrOSBrowserBackend, self).__init__(is_content_shell=False,
-        supports_extensions=not is_guest, options=options)
+    super(CrOSBrowserBackend, self).__init__(
+        is_content_shell=False, supports_extensions=not is_guest,
+        options=options)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type
     self._options = options
@@ -110,9 +111,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return pid
     return None
 
-  @property
-  def pid(self):
-    """Locates the pid of the main chrome browser process.
+  def _GetChromeProcess(self):
+    """Locates the the main chrome browser process.
 
     Chrome on cros is usually in /opt/google/chrome, but could be in
     /usr/local/ for developer workflows - debug chrome is too large to fit on
@@ -134,8 +134,26 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         continue
       for path in self.CHROME_PATHS:
         if process.startswith(path):
-          return pid
+          return {'pid': pid, 'path': path}
     return None
+
+  @property
+  def pid(self):
+    result = self._GetChromeProcess()
+    if 'pid' in result:
+      return result['pid']
+    return None
+
+  @property
+  def browser_directory(self):
+    result = self._GetChromeProcess()
+    if 'path' in result:
+      return result['path']
+    return None
+
+  @property
+  def profile_directory(self):
+    return '/home/chronos/Default'
 
   @property
   def hwid(self):

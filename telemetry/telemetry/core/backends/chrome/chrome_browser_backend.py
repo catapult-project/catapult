@@ -177,6 +177,14 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       raise exceptions.BrowserConnectionGoneException()
 
   @property
+  def browser_directory(self):
+    raise NotImplementedError()
+
+  @property
+  def profile_directory(self):
+    raise NotImplementedError()
+
+  @property
   def chrome_branch_number(self):
     return self._chrome_branch_number
 

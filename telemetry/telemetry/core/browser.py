@@ -232,6 +232,16 @@ class Browser(object):
     return self._browser_backend.GetTraceResultAndReset()
 
   def Start(self):
+    options = self._browser_backend.options
+    if options.clear_sytem_cache_for_browser_and_profile_on_start:
+      if self._platform.CanFlushIndividualFilesFromSystemCache():
+        self._platform.FlushSystemCacheForDirectory(
+            self._browser_backend.profile_directory)
+        self._platform.FlushSystemCacheForDirectory(
+            self._browser_backend.browser_directory)
+      else:
+        self._platform.FlushEntireSystemCache()
+
     self._browser_backend.Start()
     self._browser_backend.SetBrowser(self)
 

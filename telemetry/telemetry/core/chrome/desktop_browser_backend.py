@@ -17,7 +17,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   Mac or Windows.
   """
   def __init__(self, options, executable, flash_path, is_content_shell,
-               delete_profile_dir_after_run=True):
+               browser_directory, delete_profile_dir_after_run=True):
     super(DesktopBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=not is_content_shell,
@@ -43,6 +43,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise browser_backend.ExtensionsNotSupportedException(
           'Content shell does not support extensions.')
 
+    self._browser_directory = browser_directory
     self._port = util.GetAvailableLocalPort()
     self._profile_dir = None
     self._supports_net_benchmarking = True
@@ -118,6 +119,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._proc:
       return self._proc.pid
     return None
+
+  @property
+  def browser_directory(self):
+    return self._browser_directory
 
   @property
   def profile_directory(self):

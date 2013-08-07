@@ -37,6 +37,7 @@ class BrowserOptions(optparse.Values):
     self.extra_wpr_args = []
     self.show_stdout = False
     self.extensions_to_load = []
+    self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
     self.cros_remote = None
     self.wpr_mode = wpr_modes.WPR_OFF
