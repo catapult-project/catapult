@@ -170,8 +170,8 @@ base.exportTo('tracing.tracks', function() {
 
       var pixWidth = this.viewport.xViewVectorToWorld(1);
 
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle = '#000';
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
       ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
 
       var events = this.model_.flowEvents;
