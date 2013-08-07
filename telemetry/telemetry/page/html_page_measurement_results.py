@@ -28,10 +28,6 @@ _PLUGINS = [('third_party', 'flot', 'jquery.flot.min.js'),
 _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 
 
-def _DatetimeInEs5CompatibleFormat(dt):
-  return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
-
-
 class HtmlPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
   def __init__(self, output_stream, test_name, reset_results, browser_type,
@@ -42,11 +38,19 @@ class HtmlPageMeasurementResults(
     self._reset_results = reset_results
     self._test_name = test_name
     self._result_json = {
-        'buildTime': _DatetimeInEs5CompatibleFormat(datetime.datetime.utcnow()),
-        'revision': lastchange.FetchVersionInfo(None).revision,
+        'buildTime': self._GetBuildTime(),
+        'revision': self._GetRevision(),
         'platform': browser_type,
         'tests': {}
         }
+
+  def _GetBuildTime(self):
+    def _DatetimeInEs5CompatibleFormat(dt):
+      return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
+    return _DatetimeInEs5CompatibleFormat(datetime.datetime.utcnow())
+
+  def _GetRevision(self):
+    return lastchange.FetchVersionInfo(None).revision
 
   def _GetHtmlTemplate(self):
     return open(_TEMPLATE_HTML_PATH, 'r').read()
@@ -75,6 +79,7 @@ class HtmlPageMeasurementResults(
   def _SaveResults(self, results):
     self._output_stream.seek(0)
     self._output_stream.write(results)
+    self._output_stream.truncate()
 
   def _PrintPerfResult(self, measurement, trace, values, units,
                        result_type='default'):
