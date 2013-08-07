@@ -1045,6 +1045,29 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(20, subObject2.snapshots[0].ts);
   });
 
+  test('importImplicitObjectWithCategoryOverride', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'cat', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'otherCat', id: '0x1000', name: 'a',
+        args: { snapshot: [
+          { id: 'subObject/0x1',
+            cat: 'cat',
+            foo: 1
+          }
+        ]}}
+    ];
+
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
+        'subObject'];
+
+    assertEquals(1, subObjectInstances.length);
+  });
+
   test('importIDRefs', function() {
     var events = [
       // An object with two snapshots.

@@ -714,9 +714,14 @@ base.exportTo('tracing.importer', function() {
         var name = m[1];
         var id = m[2];
         var res;
+        var cat;
+        if (implicitSnapshot.cat !== undefined)
+          cat = implicitSnapshot.cat;
+        else
+          cat = containingSnapshot.objectInstance.category;
         try {
           res = process.objects.addSnapshot(
-              id, containingSnapshot.objectInstance.category,
+              id, cat,
               name, containingSnapshot.ts,
               implicitSnapshot);
         } catch (e) {
