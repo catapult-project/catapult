@@ -40,7 +40,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'SurfaceFlinger-4831  [001] ...1 80909.599104: tracing_mark_write: E'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -58,7 +58,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'Surface Flinger -4831  [001] ...1 80909.598604: tracing_mark_write: E' // @suppress longLineCheck
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -80,7 +80,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
               '1113053968'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -128,7 +128,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'SurfaceFlinger-4831  [001] ...1 80909.599104: 0: E'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -151,7 +151,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2' // @suppress longLineCheck
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);

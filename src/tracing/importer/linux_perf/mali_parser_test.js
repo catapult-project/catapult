@@ -180,8 +180,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
         new tracing.TraceModel(linesNoThread.join('\n'), false);
     var traceWithThread =
         new tracing.TraceModel(linesWithThread.join('\n'), false);
-    assertEquals(0, traceNoThread.importErrors.length);
-    assertEquals(0, traceWithThread.importErrors.length);
+    assertFalse(traceNoThread.hasImportWarnings);
+    assertFalse(traceWithThread.hasImportWarnings);
 
     var threadsNoThread = traceNoThread.getAllThreads();
     var threadsWithThread = traceWithThread.getAllThreads();
@@ -204,7 +204,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
                      'frequency=400'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
     assertEquals(1, counters.length);
@@ -222,7 +222,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
                      'voltage=1100000'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
     assertEquals(1, counters.length);
@@ -240,7 +240,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
                      'utilization=37'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
     assertEquals(1, counters.length);
@@ -460,7 +460,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.mali_parser', function() {
                      'mali_hwc_VCACHE_MISS: val=70'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
     assertEquals(103, counters.length);

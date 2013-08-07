@@ -265,7 +265,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
@@ -291,7 +291,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
@@ -306,7 +306,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
       ''
     ];
     var m = new tracing.TraceModel(lines.join('\n'));
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
   });
 
   test('clockSync', function() {
@@ -326,7 +326,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'trace_event_clock_sync: parent_ts=0.1'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);
@@ -351,7 +351,7 @@ base.unittest.testSuite('tracing.importer.linux_perf_importer', function() {
           'trace_event_clock_sync: parent_ts=0'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
     assertEquals(2, c.slices.length);

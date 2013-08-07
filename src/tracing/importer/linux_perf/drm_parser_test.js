@@ -14,7 +14,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.drm_parser', function() {
       ' <idle>-0     [000]    71.669851: drm_vblank_event: crtc=0, seq=4234'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
     assertEquals(1, threads.length);

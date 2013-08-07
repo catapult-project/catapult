@@ -71,7 +71,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var sA = findSliceNamed(t.sliceGroup, 'a');
 
     assertEquals(2, sA.args.x);
-    assertEquals(m.importErrors.length, 1);
+    assertTrue(m.hasImportWarnings);
+    assertEquals(m.importWarnings.length, 1);
   });
 
   test('categoryBeginEndMismatchPrefersBegin', function() {
@@ -437,7 +438,8 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', t.sliceGroup.slices[0].category);
     assertEquals(0.004, t.sliceGroup.slices[0].start);
     assertEquals(0.001, t.sliceGroup.slices[0].duration);
-    assertEquals(1, m.importErrors.length);
+    assertTrue(m.hasImportWarnings);
+    assertEquals(1, m.importWarnings.length);
   });
 
   test('immediateParsing', function() {
@@ -947,7 +949,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('a', t.samples_[0].title);
     assertEquals('b', t.samples_[1].title);
     assertEquals('c', t.samples_[2].title);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
   });
 
   test('importSamplesMissingArgs', function() {
@@ -963,7 +965,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertNotUndefined(t);
     assertNotUndefined(t);
     assertEquals(3, t.samples_.length);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
   });
 
   test('importSimpleObject', function() {
@@ -977,7 +979,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     m.importTraces([events], false);
     assertEquals(10, m.bounds.min);
     assertEquals(50, m.bounds.max);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var p = m.processes[1];
     assertNotUndefined(p);
@@ -1155,7 +1157,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     } finally {
       tracing.trace_model.ObjectSnapshot.unregister('a');
     }
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     // Verify that the events array wasn't modified.
     assertObjectEquals(

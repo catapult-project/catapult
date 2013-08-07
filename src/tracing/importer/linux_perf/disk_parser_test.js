@@ -33,7 +33,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.disk_parser', function() {
           '179,0 R () 3255288 + 8 [0]'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var blockThread = undefined;
     var ext4Thread = undefined;

@@ -162,31 +162,6 @@
   border: solid 1px;
 }
 
-.view-import-errors-button {
-  border: solid 1px rgba(128, 0, 0, 0.2);
-  color: darkred;
-}
-
-.view-import-errors-button:hover {
-  border: solid 1px red;
-  color: red;
-}
-
-.view-import-errors-overlay {
-  -webkit-user-select: text;
-  max-height: 500px;
-  max-width: 800px;
-  min-height: 200px;
-  min-width: 400px;
-  overflow: auto;
-}
-
-.import-errors-dialog-text {
-  font-family: monospace;
-  margin: 8px;
-  white-space: pre;
-}
-
 .metadata-dialog {
   max-height: 500px;
   max-width: 800px;

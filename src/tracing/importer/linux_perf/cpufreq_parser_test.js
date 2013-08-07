@@ -17,7 +17,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpu=0 load=12 cur=1000000 actual=1000000 targ=200000\n'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -43,7 +43,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpu=1 load=10 cur=700000 actual=1000000 targ=200000\n'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -67,7 +67,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpufreq_interactive_setspeed: cpu=0 targ=200000 actual=700000\n'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -83,7 +83,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
           '<idle>-0     [000] ..s3  1043.738822: cpufreq_interactive_already: cpu=0 load=18 cur=200000 actual=700000 targ=200000\n' // @suppress longLineCheck
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -102,7 +102,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpufreq_interactive_boost: pulse\n'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -117,7 +117,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpufreq_interactive_unboost: pulse\n'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -132,7 +132,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpufreq_interactive_up: cpu=1 targ=1400000 actual=800000'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -149,7 +149,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.cpufreq_parser',
               'cpufreq_interactive_down: cpu=3 targ=800000 actual=1000000'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);

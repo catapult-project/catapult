@@ -18,7 +18,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
                  'type=2 state=1300000 cpu_id=1'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
@@ -41,7 +41,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
                      'state=800000 cpu_id=0'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);
@@ -68,7 +68,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.power_parser', function() {
           'state=4294967295 cpu_id=1'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
     assertEquals(0, c0.slices.length);

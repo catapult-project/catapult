@@ -142,10 +142,12 @@ base.exportTo('tracing.importer', function() {
         var counterValues = counterData['c'];
         var counter = process.getOrCreateCounter('streamed', counterName);
         if (counterSeriesNames.length != counterSeriesColors.length) {
-          var importError = 'Streamed counter name length does not match' +
-                            'counter color length' + counterSeriesNames.length +
-                            ' vs ' + counterSeriesColors.length;
-          this.model_.importErrors.push(importError);
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Streamed counter name length does not match' +
+                ' counter color length' + counterSeriesNames.length +
+                ' vs ' + counterSeriesColors.length
+          });
           return;
         }
         if (counter.series.length === 0) {
@@ -155,9 +157,11 @@ base.exportTo('tracing.importer', function() {
           }
         } else {
           if (counter.series.length != counterSeriesNames.length) {
-            var importError = 'Streamed counter ' + counterName +
-                'changed number of seriesNames';
-            this.model_.importErrors.push(importError);
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Streamed counter ' + counterName +
+                  ' changed number of seriesNames'
+            });
             return;
           } else {
             for (var i = 0; i < counter.series.length; i++) {
@@ -165,11 +169,12 @@ base.exportTo('tracing.importer', function() {
               var newSeriesName = counterSeriesNames[i];
 
               if (oldSeriesName != newSeriesName) {
-                var importError = 'Streamed counter ' + counterName +
-                    'series name changed from ' +
-                    oldSeriesName + ' to ' +
-                    newSeriesName;
-                this.model_.importErrors.push(importError);
+                this.model_.importWarning({
+                  type: 'parse_error',
+                  message: 'Streamed counter ' + counterName +
+                      ' series name changed from ' + oldSeriesName + ' to ' +
+                      newSeriesName
+                });
                 return;
               }
             }

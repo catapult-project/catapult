@@ -52,7 +52,6 @@ base.exportTo('tracing', function() {
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
 
-      this.rightControls.appendChild(this.createImportErrorsButton_());
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
@@ -72,34 +71,6 @@ base.exportTo('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.dragEl_.target = this.analysisEl_;
-    },
-
-    createImportErrorsButton_: function() {
-      var node = base.instantiateTemplate('#import-errors-btn-template');
-      var showEl = node.querySelector('.view-import-errors-button');
-      var containerEl = node.querySelector('.info-button-container');
-      var textEl = containerEl.querySelector('.info-button-text');
-
-      var dlg = new ui.Overlay();
-      dlg.classList.add('view-import-errors-overlay');
-      dlg.obeyCloseEvents = true;
-      dlg.appendChild(containerEl);
-
-      function onClick() {
-        dlg.visible = true;
-        textEl.textContent = this.model.importErrors.join('\n');
-      }
-      showEl.addEventListener('click', onClick.bind(this));
-
-      function updateVisibility() {
-        showEl.style.display =
-            (this.model && this.model.importErrors.length) ? '' : 'none';
-      }
-      var updateVisibility_ = updateVisibility.bind(this);
-      updateVisibility_();
-      this.addEventListener('modelChange', updateVisibility_);
-
-      return showEl;
     },
 
     updateCategoryFilter_: function(categories) {

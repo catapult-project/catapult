@@ -94,8 +94,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
             .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
           if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(ts)) {
-            this.model_.importErrors.push(
-                'Timestamps are moving backward.');
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Timestamps are moving backward.'
+            });
             return false;
           }
 
@@ -123,10 +125,12 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var args = parseArgs(eventData[3]);
           for (var arg in args) {
             if (slice.args[arg] !== undefined) {
-              this.model_.importErrors.push(
-                  'Both the B and E events of ' + slice.title +
-                  'provided values for argument ' + arg + '. ' +
-                  'The value of the E event will be used.');
+              this.model_.importWarning({
+                type: 'parse_error',
+                message: 'Both the B and E events of ' + slice.title +
+                    ' provided values for argument ' + arg + '.' +
+                    ' The value of the E event will be used.'
+              });
             }
             slice.args[arg] = args[arg];
           }

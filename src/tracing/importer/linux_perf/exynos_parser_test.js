@@ -15,7 +15,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
           ' X-945   [001] ....   113.995561: exynos_flip_complete: pipe=0'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
@@ -37,7 +37,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
               'exynos_busfreq_target_mif: frequency=200000'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
 
         var c0 = m.kernel.cpus[0];
         assertEquals(0, c0.slices.length);

@@ -40,8 +40,11 @@ base.exportTo('tracing.importer.linux_perf', function() {
       var targetCpu = this.importer.getOrCreateCpuState(targetCpuNumber);
       var powerCounter;
       if (eventType != '1') {
-        this.importer.importError('Don\'t understand power_start events of ' +
-            'type ' + eventType);
+        this.importer.model.importWarning({
+          type: 'parse_error',
+          message: 'Don\'t understand power_start events of ' +
+              'type ' + eventType
+        });
         return;
       }
       powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');

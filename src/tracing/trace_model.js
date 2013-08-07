@@ -43,12 +43,14 @@ base.exportTo('tracing', function() {
   function TraceModel(opt_eventData, opt_shiftWorldToZero) {
     this.kernel = new Kernel(this);
     this.processes = {};
-    this.importErrors = [];
     this.metadata = [];
     this.categories = [];
     this.bounds = new base.Range();
     this.instantEvents = [];
     this.flowEvents = [];
+
+    this.importWarnings_ = [];
+    this.reportedImportWarnings_ = {};
 
     if (opt_eventData)
       this.importTraces([opt_eventData], opt_shiftWorldToZero);
@@ -306,6 +308,32 @@ base.exportTo('tracing', function() {
       // Run initializers.
       for (var pid in this.processes)
         this.processes[pid].initializeObjects();
+    },
+
+    /**
+     * @param {Object} data The import warning data. Data must provide two
+     *    accessors: type, message. The types are used to determine if we
+     *    should output the message, we'll only output one message of each type.
+     *    The message is the actual warning content.
+     */
+    importWarning: function(data) {
+      this.importWarnings_.push(data);
+
+      // Only log each warning type once. We may want to add some kind of
+      // flag to allow reporting all importer warnings.
+      if (this.reportedImportWarnings_[data.type] === true)
+        return;
+
+      console.warn(data.message);
+      this.reportedImportWarnings_[data.type] = true;
+    },
+
+    get hasImportWarnings() {
+      return (this.importWarnings_.length > 0);
+    },
+
+    get importWarnings() {
+      return this.importWarnings_;
     }
   };
 

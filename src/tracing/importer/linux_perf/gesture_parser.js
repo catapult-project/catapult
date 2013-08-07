@@ -46,9 +46,12 @@ base.exportTo('tracing.importer.linux_perf', function() {
       if (thread.sliceGroup.openSliceCount) {
         var slice = thread.sliceGroup.mostRecentlyOpenedPartialSlice;
         if (slice.title != title) {
-          this.importer.importError('Titles do not match. Title is ' +
-              slice.title + ' in openSlice, and is ' +
-              title + ' in endSlice');
+          this.importer.model.importWarning({
+            type: 'title_match_error',
+            message: 'Titles do not match. Title is ' +
+                slice.title + ' in openSlice, and is ' +
+                title + ' in endSlice'
+          });
         } else {
           thread.sliceGroup.endSlice(ts);
         }

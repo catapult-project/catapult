@@ -40,7 +40,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.i915_parser', function() {
                  'write reg=0x100030, len=8, val=(0xfca9001, 0xfce8007)'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var i915GemThread = undefined;
     var i915FlipThread = undefined;

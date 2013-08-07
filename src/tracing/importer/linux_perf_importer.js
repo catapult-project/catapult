@@ -543,8 +543,11 @@ base.exportTo('tracing.importer', function() {
           } else {
             slices.push(new tracing.trace_model.Slice('', 'UNKNOWN', ioWaitId,
                 prevSlice.end, {}, midDuration));
-            this.model_.importErrors.push('Unrecognized sleep state: ' +
-                prevSlice.args.stateWhenDescheduled);
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Unrecognized sleep state: ' +
+                  prevSlice.args.stateWhenDescheduled
+            });
           }
 
           slices.push(new tracing.trace_model.Slice('', 'Running', runningId,
@@ -618,8 +621,10 @@ base.exportTo('tracing.importer', function() {
         delete process.threads[thread.tid];
         delete this.model_.processes[process.pid];
       }
-      this.model_.importErrors.push(
-          'Cannot import kernel trace without a clock sync.');
+      this.model_.importWarning({
+        type: 'clock_sync',
+        message: 'Cannot import kernel trace without a clock sync.'
+      });
     },
 
     /**
@@ -668,12 +673,6 @@ base.exportTo('tracing.importer', function() {
       this.wakeups_.push({ts: ts, tid: pid, fromTid: fromPid});
     },
 
-    importError: function(message) {
-      this.model_.importErrors.push(
-          'Line ' + (this.lineNumberBase + this.lineNumber + 1) +
-          ': ' + message);
-    },
-
     /**
      * Processes a trace_event_clock_sync event.
      */
@@ -712,7 +711,10 @@ base.exportTo('tracing.importer', function() {
       var writeEventName = eventName + ':' + eventBase.subEventName;
       var handler = this.eventHandlers_[writeEventName];
       if (!handler) {
-        this.importError('Unknown trace_marking_write event ' + writeEventName);
+        this.model_.importWarning({
+          type: 'parse_error',
+          message: 'Unknown trace_marking_write event ' + writeEventName
+        });
         return true;
       }
       return handler(writeEventName, cpuNumber, pid, ts, eventBase, threadName);
@@ -742,13 +744,19 @@ base.exportTo('tracing.importer', function() {
         if (lineParser == null) {
           lineParser = autoDetectLineParser(line);
           if (lineParser == null) {
-            this.importError('Cannot parse line: ' + line);
+            this.model_.importWarning({
+              type: 'parse_error',
+              message: 'Cannot parse line: ' + line
+            });
             continue;
           }
         }
         var eventBase = lineParser(line);
         if (!eventBase) {
-          this.importError('Unrecognized line: ' + line);
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Unrecognized line: ' + line
+          });
           continue;
         }
 
@@ -759,11 +767,18 @@ base.exportTo('tracing.importer', function() {
 
         var handler = this.eventHandlers_[eventName];
         if (!handler) {
-          this.importError('Unknown event ' + eventName + ' (' + line + ')');
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Unknown event ' + eventName + ' (' + line + ')'
+          });
           continue;
         }
-        if (!handler(eventName, cpuNumber, pid, ts, eventBase))
-          this.importError('Malformed ' + eventName + ' event (' + line + ')');
+        if (!handler(eventName, cpuNumber, pid, ts, eventBase)) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Malformed ' + eventName + ' event (' + line + ')'
+          });
+        }
       }
     }
   };

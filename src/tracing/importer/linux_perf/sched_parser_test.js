@@ -63,7 +63,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     ];
 
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var cpuSlices = thread.cpuSlices;
@@ -106,8 +106,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     assertDoesNotThrow(function() {
       m = new tracing.TraceModel(lines.join('\n'), false);
     });
-    assertTrue(m.importErrors.length > 0);
-    assertEquals('Unrecognized sleep state: F|O', m.importErrors[0]);
+    assertTrue(m.hasImportWarnings);
+    assertEquals('Unrecognized sleep state: F|O', m.importWarnings[0].message);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var cpuSlices = thread.cpuSlices;
@@ -145,7 +145,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     ];
 
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var cpuSlices = thread.cpuSlices;

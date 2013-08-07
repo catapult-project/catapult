@@ -82,7 +82,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
       thread.name = eventBase.threadName;
       var slices = thread.kernelSliceGroup;
       if (!slices.isTimestampValidForBeginOrEnd(ts)) {
-        this.model_.importErrors.push('Timestamps are moving backward.');
+        this.model_.importWarning({
+          type: 'parse_error',
+          message: 'Timestamps are moving backward.'
+        });
         return false;
       }
 

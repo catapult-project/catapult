@@ -30,7 +30,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.sync_parser', function() { 
     ];
 
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
     assertEquals(4, threads.length);

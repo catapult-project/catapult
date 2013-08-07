@@ -277,7 +277,9 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
     socket.dispatchAllPendingMessages();
 
     assertNotUndefined(model.processes[1]);
-    assertEquals(model.importErrors.length, 1);
+    assertTrue(model.hasImportWarnings);
+    assertEquals(model.importWarnings.length, 1);
+
     // test for series number change
     socket.pushMessage({
       cmd: 'pcd',
@@ -300,7 +302,7 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
     });
 
     socket.dispatchAllPendingMessages();
-    assertEquals(model.importErrors.length, 2);
+    assertEquals(model.importWarnings.length, 2);
 
     // test for sn.length != sc.length
     socket.pushMessage({
@@ -325,6 +327,6 @@ base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() 
 
 
     socket.dispatchAllPendingMessages();
-    assertEquals(model.importErrors.length, 3);
+    assertEquals(model.importWarnings.length, 3);
   });
 });

@@ -97,7 +97,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
               'log: end: LogHardwareState'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
 
@@ -170,7 +170,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
               'log: end: TimerLogOutputs'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(0, m.importErrors.length);
+        assertFalse(m.hasImportWarnings);
         var threads = m.getAllThreads();
         assertEquals(1, threads.length);
       });
@@ -195,6 +195,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
               'HandleTimer: end: IntegralGestureFilterInterpreter'
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertEquals(7, m.importErrors.length);
+        assertTrue(m.hasImportWarnings);
+        assertEquals(7, m.importWarnings.length);
       });
     });

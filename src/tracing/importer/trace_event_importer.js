@@ -186,8 +186,11 @@ base.exportTo('tracing.importer', function() {
         }
 
         if (ctr.numSeries === 0) {
-          this.model_.importErrors.push('Expected counter ' + event.name +
-              ' to have at least one argument to use as a value.');
+          this.model_.importWarning({
+            type: 'counter_parse_error',
+            message: 'Expected counter ' + event.name +
+                ' to have at least one argument to use as a value.'
+          });
 
           // Drop the counter.
           delete ctr.parent.counters[ctr.name];
@@ -214,8 +217,10 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
       if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(event.ts / 1000)) {
-        this.model_.importErrors.push(
-            'Timestamps are moving backward.');
+        this.model_.importWarning({
+          type: 'duration_parse_error',
+          message: 'Timestamps are moving backward.'
+        });
         return;
       }
 
@@ -224,18 +229,22 @@ base.exportTo('tracing.importer', function() {
                                      this.deepCopyIfNeeded_(event.args));
       } else {
         if (!thread.sliceGroup.openSliceCount) {
-          this.model_.importErrors.push(
-              'E phase event without a matching B phase event.');
+          this.model_.importWarning({
+            type: 'duration_parse_error',
+            message: 'E phase event without a matching B phase event.'
+          });
           return;
         }
 
         var slice = thread.sliceGroup.endSlice(event.ts / 1000);
         for (var arg in event.args) {
           if (slice.args[arg] !== undefined) {
-            this.model_.importErrors.push(
-                'Both the B and E phases of ' + slice.name +
-                'provided values for argument ' + arg + '. ' +
-                'The value of the E phase event will be used.');
+            this.model_.importWarning({
+              type: 'duration_parse_error',
+              message: 'Both the B and E phases of ' + slice.name +
+                  ' provided values for argument ' + arg + '.' +
+                  ' The value of the E phase event will be used.'
+            });
           }
           slice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
         }
@@ -262,8 +271,10 @@ base.exportTo('tracing.importer', function() {
             getOrCreateThread(event.tid);
         thread.sortIndex = event.args.sort_index;
       } else {
-        this.model_.importErrors.push(
-            'Unrecognized metadata name: ' + event.name);
+        this.model_.importWarning({
+          type: 'metadata_parse_error',
+          message: 'Unrecognized metadata name: ' + event.name
+        });
       }
     },
 
@@ -352,8 +363,11 @@ base.exportTo('tracing.importer', function() {
           this.processFlowEvent(event);
 
         } else {
-          this.model_.importErrors.push('Unrecognized event phase: ' +
-              event.ph + ' (' + event.name + ')');
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Unrecognized event phase: ' +
+                event.ph + ' (' + event.name + ')'
+          });
         }
       }
     },
@@ -394,15 +408,19 @@ base.exportTo('tracing.importer', function() {
         var event = asyncEventState.event;
         var name = event.name;
         if (name === undefined) {
-          this.model_.importErrors.push(
-              'Async events (ph: S, T or F) require a name parameter.');
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'Async events (ph: S, T or F) require a name parameter.'
+          });
           continue;
         }
 
         var id = event.id;
         if (id === undefined) {
-          this.model_.importErrors.push(
-              'Async events (ph: S, T or F) require an id parameter.');
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'Async events (ph: S, T or F) require an id parameter.'
+          });
           continue;
         }
 
@@ -412,24 +430,30 @@ base.exportTo('tracing.importer', function() {
           if (asyncEventStatesByNameThenID[name] === undefined)
             asyncEventStatesByNameThenID[name] = {};
           if (asyncEventStatesByNameThenID[name][id]) {
-            this.model_.importErrors.push(
-                'At ' + event.ts + ', a slice of the same id ' + id +
-                ' was alrady open.');
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'At ' + event.ts + ', a slice of the same id ' + id +
+                  ' was alrady open.'
+            });
             continue;
           }
           asyncEventStatesByNameThenID[name][id] = [];
           asyncEventStatesByNameThenID[name][id].push(asyncEventState);
         } else {
           if (asyncEventStatesByNameThenID[name] === undefined) {
-            this.model_.importErrors.push(
-                'At ' + event.ts + ', no slice named ' + name +
-                ' was open.');
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'At ' + event.ts + ', no slice named ' + name +
+                  ' was open.'
+            });
             continue;
           }
           if (asyncEventStatesByNameThenID[name][id] === undefined) {
-            this.model_.importErrors.push(
-                'At ' + event.ts + ', no slice named ' + name +
-                ' with id=' + id + ' was open.');
+            this.model_.importWarning({
+              type: 'async_slice_parse_error',
+              message: 'At ' + event.ts + ', no slice named ' + name +
+                  ' with id=' + id + ' was open.'
+            });
             continue;
           }
           var events = asyncEventStatesByNameThenID[name][id];
@@ -497,14 +521,18 @@ base.exportTo('tracing.importer', function() {
         var thread = data.thread;
 
         if (event.name === undefined) {
-          this.model_.importErrors.push(
-              'Flow events (ph: s, t or f) require a name parameter.');
+          this.model_.importWarning({
+            type: 'flow_slice_parse_error',
+            message: 'Flow events (ph: s, t or f) require a name parameter.'
+          });
           continue;
         }
 
         if (event.id === undefined) {
-          this.model_.importErrors.push(
-              'Flow events (ph: s, t or f) require an id parameter.');
+          this.model_.importWarning({
+            type: 'flow_slice_parse_error',
+            message: 'Flow events (ph: s, t or f) require an id parameter.'
+          });
           continue;
         }
 
@@ -525,8 +553,11 @@ base.exportTo('tracing.importer', function() {
         } else if (event.ph === 't' || event.ph === 'f') {
           var flowPosition = flowIdToEvent[event.id];
           if (flowPosition === undefined) {
-            this.model_.importErrors.push(
-                'Found flow step for id: ' + event.id + ' but no start found');
+            this.model_.importWarning({
+              type: 'flow_slice_parse_error',
+              message: 'Found flow step for id: ' + event.id +
+                  ' but no start found'
+            });
             continue;
           }
 
@@ -561,15 +592,19 @@ base.exportTo('tracing.importer', function() {
         var event = objectEventState.event;
         var thread = objectEventState.thread;
         if (event.name === undefined) {
-          this.model_.importErrors.push(
-              'While processing ' + JSON.stringify(event) + ': ' +
-              'Object events require an name parameter.');
+          this.model_.importWarning({
+            type: 'object_parse_error',
+            message: 'While processing ' + JSON.stringify(event) + ': ' +
+                'Object events require an name parameter.'
+          });
         }
 
         if (event.id === undefined) {
-          this.model_.importErrors.push(
-              'While processing ' + JSON.stringify(event) + ': ' +
-              'Object events require an id parameter.');
+          this.model_.importWarning({
+            type: 'object_parse_error',
+            message: 'While processing ' + JSON.stringify(event) + ': ' +
+                'Object events require an id parameter.'
+          });
         }
         var process = thread.parent;
         var ts = event.ts / 1000;
@@ -579,16 +614,20 @@ base.exportTo('tracing.importer', function() {
             instance = process.objects.idWasCreated(
                 event.id, event.cat, event.name, ts);
           } catch (e) {
-            this.model_.importErrors.push(
-                'While processing create of ' +
-                event.id + ' at ts=' + ts + ': ' + e);
+            this.model_.importWarning({
+              type: 'object_parse_error',
+              message: 'While processing create of ' +
+                  event.id + ' at ts=' + ts + ': ' + e
+            });
             return;
           }
         } else if (event.ph == 'O') {
           if (event.args.snapshot === undefined) {
-            this.model_.importErrors.push(
-                'While processing ' + event.id + ' at ts=' + ts + ': ' +
-                'Snapshots must have args: {snapshot: ...}');
+            this.model_.importWarning({
+              type: 'object_parse_error',
+              message: 'While processing ' + event.id + ' at ts=' + ts + ': ' +
+                  'Snapshots must have args: {snapshot: ...}'
+            });
             return;
           }
           var snapshot;
@@ -597,9 +636,11 @@ base.exportTo('tracing.importer', function() {
                 event.id, event.cat, event.name, ts,
                 this.deepCopyIfNeeded_(event.args.snapshot));
           } catch (e) {
-            this.model_.importErrors.push(
-                'While processing snapshot of ' +
-                event.id + ' at ts=' + ts + ': ' + e);
+            this.model_.importWarning({
+              type: 'object_parse_error',
+              message: 'While processing snapshot of ' +
+                  event.id + ' at ts=' + ts + ': ' + e
+            });
             return;
           }
           instance = snapshot.objectInstance;
@@ -608,9 +649,11 @@ base.exportTo('tracing.importer', function() {
             instance = process.objects.idWasDeleted(
                 event.id, event.cat, event.name, ts);
           } catch (e) {
-            this.model_.importErrors.push(
-                'While processing delete of ' +
-                event.id + ' at ts=' + ts + ': ' + e);
+            this.model_.importWarning({
+              type: 'object_parse_error',
+              message: 'While processing delete of ' +
+                  event.id + ' at ts=' + ts + ': ' + e
+            });
             return;
           }
         }
@@ -629,7 +672,10 @@ base.exportTo('tracing.importer', function() {
         try {
           processEvent.call(this, objectEventState);
         } catch (e) {
-          this.model_.importErrors.push(e.message);
+          this.model_.importWarning({
+            type: 'object_parse_error',
+            message: e.message
+          });
         }
       }
     },
@@ -674,9 +720,11 @@ base.exportTo('tracing.importer', function() {
               name, containingSnapshot.ts,
               implicitSnapshot);
         } catch (e) {
-          this.model_.importErrors.push(
-              'While processing implicit snapshot of ' +
-              rawId + ' at ts=' + containingSnapshot.ts + ': ' + e);
+          this.model_.importWarning({
+            type: 'object_snapshot_parse_error',
+            message: 'While processing implicit snapshot of ' +
+                rawId + ' at ts=' + containingSnapshot.ts + ': ' + e
+          });
           return;
         }
         res.objectInstance.hasImplicitSnapshots = true;

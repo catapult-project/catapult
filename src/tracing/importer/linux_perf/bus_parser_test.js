@@ -50,7 +50,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.bus_parser', function() {
 
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
     assertEquals(10, counters.length);

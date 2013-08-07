@@ -50,7 +50,10 @@ base.unittest.testSuite('tracing.timeline_view', function() {
     model.updateCategories_();
 
     // Add a known problematic piece of data to test the import errors UI.
-    model.importErrors.push('Synthetic Import Error');
+    model.importWarning({
+      type: 'test_error',
+      message: 'Synthetic Import Error'
+    });
     model.updateBounds();
 
     // Add data with metadata information stored

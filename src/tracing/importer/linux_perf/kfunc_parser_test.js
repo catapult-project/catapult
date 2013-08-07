@@ -23,7 +23,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser', function() {
       'Binder_2-127  ( 127) [001] ....  3431.906906: graph_ret: func=sys_write'
     ];
     var m = new tracing.TraceModel(lines.join('\n'), false);
-    assertEquals(0, m.importErrors.length);
+    assertFalse(m.hasImportWarnings);
 
     var process = m.processes[127];
     assertNotNull(process);
