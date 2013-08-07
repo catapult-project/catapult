@@ -45,13 +45,10 @@ base.exportTo('tracing.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.expandEl_ = document.createElement('expand-button');
-      this.expandEl_.classList.add('expand-button-expanded');
-
       this.processNameEl_ = ui.createSpan();
+      this.processNameEl_.classList.add('process-track-name');
 
       this.headerEl_ = ui.createDiv({className: 'process-track-header'});
-      this.headerEl_.appendChild(this.expandEl_);
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
@@ -75,24 +72,16 @@ base.exportTo('tracing.tracks', function() {
     },
 
     get expanded() {
-      return this.expandEl_.classList.contains('expand-button-expanded');
+      return this.classList.contains('expanded');
     },
 
     set expanded(expanded) {
       expanded = !!expanded;
 
-      var wasExpanded = this.expandEl_.classList.contains(
-          'expand-button-expanded');
-      if (wasExpanded === expanded)
+      if (this.expanded === expanded)
         return;
 
-      if (expanded) {
-        this.classList.add('expanded');
-        this.expandEl_.classList.add('expand-button-expanded');
-      } else {
-        this.classList.remove('expanded');
-        this.expandEl_.classList.remove('expand-button-expanded');
-      }
+      this.classList.toggle('expanded');
 
       // Expanding and collapsing tracks is, essentially, growing and shrinking
       // the viewport. We dispatch a change event to trigger any processing

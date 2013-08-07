@@ -18,17 +18,11 @@
   display: none;
 }
 
-/* A plus icon */
-.process-track-header > expand-button {
-  display: inline;
-  padding: 2px 4px 2px 4px;
+.process-track-name:before {
+  content: '\25B8'; /* Right triangle */
+  padding: 0 5px;
 }
 
-.process-track-header > expand-button.expand-button-expanded {
-  content: url(../../images/collapse.png);
-}
-
-/* A minus icon */
-.process-track-header> expand-button:not(.expand-button-expanded) {
-  content: url(../../images/expand.png);
+.process-track-base.expanded .process-track-name:before {
+  content: '\25BE'; /* Down triangle */
 }
