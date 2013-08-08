@@ -22,12 +22,11 @@ base.exportTo('ui', function() {
    *     'mouse-tracker-move', 'mouse-tracker-end'.
    */
   function MouseTracker(opt_targetElement) {
-    this.targetElement = opt_targetElement;
-
     this.onMouseDown_ = this.onMouseDown_.bind(this);
     this.onMouseMove_ = this.onMouseMove_.bind(this);
     this.onMouseUp_ = this.onMouseUp_.bind(this);
 
+    this.targetElement = opt_targetElement;
   }
 
   MouseTracker.prototype = {
