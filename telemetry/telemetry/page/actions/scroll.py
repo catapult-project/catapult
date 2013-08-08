@@ -72,7 +72,7 @@ class ScrollAction(page_action.PageAction):
     return True
 
   def CustomizeBrowserOptions(self, options):
-    options.extra_browser_args.append('--enable-gpu-benchmarking')
+    options.AppendExtraBrowserArg('--enable-gpu-benchmarking')
 
   def BindMeasurementJavaScript(self, tab, start_js, stop_js):
     # Make the scroll action start and stop measurement automatically.
