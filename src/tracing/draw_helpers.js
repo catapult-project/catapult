@@ -126,6 +126,60 @@ base.exportTo('tracing', function() {
   }
 
   /**
+   * Draw the provided instant slices as lines to the screen.
+   *
+   * Each of the elements in |slices| must provide the follow methods:
+   *   * start
+   *   * duration with value of 0.
+   *   * colorId
+   *   * selected
+   *
+   * @param {Context} ctx The canvas context.
+   * @param {TimelineViewport} vp The viewport.
+   * @param {float} viewLWorld The left most point of the world viewport.
+   * @param {float} viewLWorld The right most point of the world viewport.
+   * @param {float} viewHeight The height of the viewport.
+   * @param {Array} slices The slices to draw.
+   * @param {Numer} lineWidthInPixels The width of the lines.
+   */
+  function drawInstantSlicesAsLines(
+      ctx, vp, viewLWorld, viewRWorld, viewHeight, slices, lineWidthInPixels) {
+    var pixelRatio = window.devicePixelRatio || 1;
+    var height = viewHeight * pixelRatio;
+
+    var pixWidth = vp.xViewVectorToWorld(1);
+    var palette = tracing.getColorPalette();
+
+    // Begin rendering in world space.
+    ctx.save();
+    ctx.lineWidth = pixWidth * lineWidthInPixels;
+    vp.applyTransformToCanvas(ctx);
+    ctx.beginPath();
+
+    var lowSlice = base.findLowIndexInSortedArray(
+        slices,
+        function(slice) { return slice.start; },
+        viewLWorld);
+
+    for (var i = lowSlice; i < slices.length; ++i) {
+      var slice = slices[i];
+      var x = slice.start;
+      if (x > viewRWorld)
+        break;
+
+      var colorId = slice.selected ?
+          slice.colorId + highlightIdBoost :
+          slice.colorId;
+
+      ctx.strokeStyle = palette[colorId];
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /**
    * Draws the labels for the given slices.
    *
    * The |slices| array must contain objects with the following API:
@@ -193,6 +247,7 @@ base.exportTo('tracing', function() {
 
   return {
     drawSlices: drawSlices,
+    drawInstantSlicesAsLines: drawInstantSlicesAsLines,
     drawLabels: drawLabels,
 
     drawLine: drawLine,

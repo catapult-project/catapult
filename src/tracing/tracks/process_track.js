@@ -42,7 +42,7 @@ base.exportTo('tracing.tracks', function() {
           var viewRWorld = this.viewport.xViewToWorld(
               bounds.width * pixelRatio);
 
-          tracing.drawSlices(
+          tracing.drawInstantSlicesAsLines(
               ctx,
               this.viewport,
               viewLWorld,
