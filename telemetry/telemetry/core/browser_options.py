@@ -107,6 +107,10 @@ class BrowserOptions(optparse.Values):
         choices=profile_choices,
         help=('The user profile to use. A clean profile is used by default. '
               'Supported values: ' + ', '.join(profile_choices)))
+    group.add_option('--profile-dir',
+        dest='profile_dir',
+        help='Profile directory to launch the browser with. '
+             'A clean profile is used by default')
     group.add_option('--extra-browser-args',
         dest='extra_browser_args_as_string',
         help='Additional arguments to pass to the browser when it starts')
@@ -214,7 +218,12 @@ class BrowserOptions(optparse.Values):
       # Parse repeat options
       self.repeat_options.UpdateFromParseResults(self, parser)
 
-      self.profile_dir = profile_types.GetProfileDir(self.profile_type)
+      # TODO(jeremy): I'm in the process of adding explicit knowledge of profile
+      # directories to Telemetry. As part of this work profile_type needs to be
+      # reworked to not override profile_dir.
+      if not self.profile_dir:
+        self.profile_dir = profile_types.GetProfileDir(self.profile_type)
+
       return ret
     parser.parse_args = ParseArgs
     return parser

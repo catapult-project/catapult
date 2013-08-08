@@ -58,3 +58,15 @@ class BrowserOptionsTest(unittest.TestCase):
     options_ret, _ = parser.parse_args(['--browser', 'any'])
     self.assertEquals(options_ret, options)
     self.assertFalse(options.verbosity)
+
+  def testProfileDirDefault(self):
+    options = browser_options.BrowserOptions()
+    parser = options.CreateParser()
+    parser.parse_args(['--browser', 'any'])
+    self.assertEquals(options.profile_dir, None)
+
+  def testProfileDir(self):
+    options = browser_options.BrowserOptions()
+    parser = options.CreateParser()
+    parser.parse_args(['--browser', 'any', '--profile-dir', 'foo'])
+    self.assertEquals(options.profile_dir, 'foo')
