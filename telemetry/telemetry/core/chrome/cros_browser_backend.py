@@ -87,6 +87,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--login-screen=login',
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
+            # Skip hwid check, for VMs and pre-MP lab devices.
+            '--skip-hwid-check',
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
@@ -98,10 +100,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not self._is_guest:
       # This extension bypasses gaia and logs us in.
       args.append('--auth-ext-path=%s' % self._login_ext_dir)
-
-    # Skip hwid check on systems that don't have a hwid set, eg VMs.
-    if not self.hwid:
-      args.append('--skip-hwid-check')
 
     return args
 
