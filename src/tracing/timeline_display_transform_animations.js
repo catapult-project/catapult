@@ -21,13 +21,12 @@ base.exportTo('tracing', function() {
    */
   function TimelineDisplayTransformPanAnimation(
       deltaX, deltaY, opt_durationMs) {
+    this.deltaX = deltaX;
+    this.deltaY = deltaY;
     if (opt_durationMs === undefined)
       this.durationMs = kDefaultPanAnimatoinDurationMs;
     else
       this.durationMs = opt_durationMs;
-
-    this.deltaX = deltaX;
-    this.deltaY = deltaY;
 
     this.startPanX = undefined;
     this.startPanY = undefined;
