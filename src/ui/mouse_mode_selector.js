@@ -286,6 +286,8 @@ base.exportTo('ui', function() {
       var mouseEvent = new base.Event(
           allModeInfo[this.mode].eventNames.update, true);
       mouseEvent.data = e;
+      mouseEvent.deltaX = e.x - this.mouseDownPos_.x;
+      mouseEvent.deltaY = e.y - this.mouseDownPos_.y;
       this.dispatchEvent(mouseEvent);
 
       if (this.isInteracting_)
