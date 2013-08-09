@@ -22,6 +22,8 @@ base.unittest.testSuite('tracing.tracks.ruler_track', function() {
     drawingContainer.appendChild(track);
     drawingContainer.invalidate();
 
-    track.viewport.setPanAndScale(0, track.clientWidth / 1000);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.setPanAndScale(0, track.clientWidth / 1000);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 });

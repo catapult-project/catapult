@@ -20,4 +20,3 @@ base.unittest.testSuite('tracing.timeline_viewport', function() {
     assertUndefined(vp.trackForSlice(slice));
   });
 });
-

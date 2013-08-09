@@ -33,6 +33,8 @@ base.unittest.testSuite('tracing.tracks.cpu_track', function() {
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
-    track.viewport.xSetWorldBounds(0, 11.1, track.clientWidth);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 11.1, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 });

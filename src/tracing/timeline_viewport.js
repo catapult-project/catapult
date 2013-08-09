@@ -9,8 +9,13 @@
  */
 base.require('base.events');
 base.require('tracing.draw_helpers');
+base.require('tracing.timeline_display_transform');
+base.require('ui.animation');
+base.require('ui.animation_controller');
 
 base.exportTo('tracing', function() {
+
+  var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -27,13 +32,16 @@ base.exportTo('tracing', function() {
    */
   function TimelineViewport(parentEl) {
     this.parentEl_ = parentEl;
-    this.modelTrackContainer_ = null;
-    this.scaleX_ = 1;
-    this.panX_ = 0;
-    this.panY_ = 0;
+    this.modelTrackContainer_ = undefined;
+    this.currentDisplayTransform_ = new TimelineDisplayTransform();
+    this.initAnimationController_();
+
+    // Grid system.
     this.gridTimebase_ = 0;
     this.gridStep_ = 1000 / 60;
     this.gridEnabled_ = false;
+
+    // Init logic.
     this.hasCalledSetupFunction_ = false;
 
     this.onResize_ = this.onResize_.bind(this);
@@ -141,25 +149,95 @@ base.exportTo('tracing', function() {
       }
     },
 
-    getStateInViewCoordinates: function() {
-      return {
-        panX: this.xWorldVectorToView(this.panX),
-        panY: this.panY,
-        scaleX: this.scaleX
+    initAnimationController_: function() {
+      this.dtAnimationController_ = new ui.AnimationController();
+      this.dtAnimationController_.addEventListener(
+          'didtick', function(e) {
+            this.onCurentDisplayTransformChange_(e.oldTargetState);
+          }.bind(this));
+
+      var that = this;
+      this.dtAnimationController_.target = {
+        get panX() {
+          return that.currentDisplayTransform_.panX;
+        },
+
+        set panX(panX) {
+          that.currentDisplayTransform_.panX = panX;
+        },
+
+        get panY() {
+          return that.currentDisplayTransform_.panY;
+        },
+
+        set panY(panY) {
+          that.currentDisplayTransform_.panY = panY;
+        },
+
+        get scaleX() {
+          return that.currentDisplayTransform_.scaleX;
+        },
+
+        set scaleX(scaleX) {
+          that.currentDisplayTransform_.scaleX = scaleX;
+        },
+
+        cloneAnimationState: function() {
+          return that.currentDisplayTransform_.clone();
+        },
+
+        xPanWorldPosToViewPos: function(xWorld, xView) {
+          that.currentDisplayTransform_.xPanWorldPosToViewPos(
+              xWorld, xView, that.modelTrackContainer_.canvas.clientWidth);
+        }
       };
     },
 
-    setStateInViewCoordinates: function(state) {
-      this.panX = this.xViewVectorToWorld(state.panX);
-      this.panY = state.panY;
+    get currentDisplayTransform() {
+      return this.currentDisplayTransform_;
+    },
+
+    setDisplayTransformImmediately: function(displayTransform) {
+      this.dtAnimationController_.cancelActiveAnimation();
+
+      var oldDisplayTransform =
+          this.dtAnimationController_.target.cloneAnimationState();
+      this.currentDisplayTransform_.set(displayTransform);
+      this.onCurentDisplayTransformChange_(oldDisplayTransform);
+    },
+
+    queueDisplayTransformAnimation: function(animation) {
+      if (!(animation instanceof ui.Animation))
+        throw new Error('animation must be instanceof ui.Animation');
+      this.dtAnimationController_.queueAnimation(animation);
+    },
+
+    onCurentDisplayTransformChange_: function(oldDisplayTransform) {
+      // Ensure panY stays clamped in the track container's scroll range.
+      if (this.modelTrackContainer_) {
+        this.currentDisplayTransform.panY = base.clamp(
+            this.currentDisplayTransform.panY,
+            0,
+            this.modelTrackContainer_.scrollHeight -
+                this.modelTrackContainer_.clientHeight);
+      }
+
+      var changed = !this.currentDisplayTransform.equals(oldDisplayTransform);
+      var yChanged = this.currentDisplayTransform.panY !==
+          oldDisplayTransform.panY;
+      if (yChanged)
+        this.modelTrackContainer_.scrollTop = this.currentDisplayTransform.panY;
+      if (changed)
+        this.dispatchChangeEvent();
     },
 
     onModelTrackControllerScroll_: function(e) {
-      this.panY_ = this.modelTrackContainer_.scrollTop;
+      this.dtAnimationController_.cancelActiveAnimation();
+      var panY = this.modelTrackContainer_.scrollTop;
+      this.currentDisplayTransform_.panY = panY;
     },
 
     set modelTrackContainer(m) {
-
       if (this.modelTrackContainer_)
         this.modelTrackContainer_.removeEventListener('scroll',
             this.onModelTrackControllerScroll_);
@@ -167,90 +245,6 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_ = m;
       this.modelTrackContainer_.addEventListener('scroll',
           this.onModelTrackControllerScroll_);
-    },
-
-    get scaleX() {
-      return this.scaleX_;
-    },
-    set scaleX(s) {
-      var changed = this.scaleX_ != s;
-      if (changed) {
-        this.scaleX_ = s;
-        this.dispatchChangeEvent();
-      }
-    },
-
-    get panX() {
-      return this.panX_;
-    },
-    set panX(p) {
-      var changed = this.panX_ != p;
-      if (changed) {
-        this.panX_ = p;
-        this.dispatchChangeEvent();
-      }
-    },
-
-    get panY() {
-      return this.panY_;
-    },
-    set panY(p) {
-      this.panY_ = p;
-      this.modelTrackContainer_.scrollTop = p;
-    },
-
-    setPanAndScale: function(p, s) {
-      var changed = this.scaleX_ != s || this.panX_ != p;
-      if (changed) {
-        this.scaleX_ = s;
-        this.panX_ = p;
-        this.dispatchChangeEvent();
-      }
-    },
-
-    xWorldToView: function(x) {
-      return (x + this.panX_) * this.scaleX_;
-    },
-
-    xWorldVectorToView: function(x) {
-      return x * this.scaleX_;
-    },
-
-    xViewToWorld: function(x) {
-      return (x / this.scaleX_) - this.panX_;
-    },
-
-    xViewVectorToWorld: function(x) {
-      return x / this.scaleX_;
-    },
-
-    xPanWorldPosToViewPos: function(worldX, viewX, viewWidth) {
-      if (typeof viewX == 'string') {
-        if (viewX == 'left') {
-          viewX = 0;
-        } else if (viewX == 'center') {
-          viewX = viewWidth / 2;
-        } else if (viewX == 'right') {
-          viewX = viewWidth - 1;
-        } else {
-          throw new Error('unrecognized string for viewPos. left|center|right');
-        }
-      }
-      this.panX = (viewX / this.scaleX_) - worldX;
-    },
-
-    xPanWorldBoundsIntoView: function(worldMin, worldMax, viewWidth) {
-      if (this.xWorldToView(worldMin) < 0)
-        this.xPanWorldPosToViewPos(worldMin, 'left', viewWidth);
-      else if (this.xWorldToView(worldMax) > viewWidth)
-        this.xPanWorldPosToViewPos(worldMax, 'right', viewWidth);
-    },
-
-    xSetWorldBounds: function(worldMin, worldMax, viewWidth) {
-      var worldWidth = worldMax - worldMin;
-      var scaleX = viewWidth / worldWidth;
-      var panX = -worldMin;
-      this.setPanAndScale(panX, scaleX);
     },
 
     get gridEnabled() {
@@ -280,10 +274,6 @@ base.exportTo('tracing', function() {
       return this.gridStep_;
     },
 
-    applyTransformToCanvas: function(ctx) {
-      ctx.transform(this.scaleX_, 0, 0, 1, this.panX_ * this.scaleX_, 0);
-    },
-
     createMarker: function(positionWorld) {
       return new ViewportMarker(this, positionWorld);
     },
@@ -310,7 +300,8 @@ base.exportTo('tracing', function() {
 
     findMarkerNear: function(positionWorld, nearnessInViewPixels) {
       // Converts pixels into distance in world.
-      var nearnessThresholdWorld = this.xViewVectorToWorld(
+      var dt = this.currentDisplayTransform;
+      var nearnessThresholdWorld = dt.xViewVectorToWorld(
           nearnessInViewPixels);
       for (var i = 0; i < this.markers.length; ++i) {
         if (Math.abs(this.markers[i].positionWorld - positionWorld) <=
@@ -343,6 +334,7 @@ base.exportTo('tracing', function() {
       if (!this.gridEnabled)
         return;
 
+      var dt = this.currentDisplayTransform;
       var x = this.gridTimebase;
 
       // Apply subpixel translate to get crisp lines.
@@ -355,7 +347,7 @@ base.exportTo('tracing', function() {
         if (x >= viewLWorld) {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
-          var vx = Math.floor(this.xWorldToView(x));
+          var vx = Math.floor(dt.xWorldToView(x));
           tracing.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
 
@@ -379,6 +371,7 @@ base.exportTo('tracing', function() {
 
     drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
       // Dim the area left and right of the markers if there are 2 markers.
+      var dt = this.currentDisplayTransform;
       if (this.markers.length === 2) {
         var posWorld0 = this.markers[0].positionWorld;
         var posWorld1 = this.markers[1].positionWorld;
@@ -386,18 +379,18 @@ base.exportTo('tracing', function() {
         var markerLWorld = Math.min(posWorld0, posWorld1);
         var markerRWorld = Math.max(posWorld0, posWorld1);
 
-        var markerLView = this.xWorldToView(markerLWorld);
-        var markerRView = this.xWorldToView(markerRWorld);
+        var markerLView = dt.xWorldToView(markerLWorld);
+        var markerRView = dt.xWorldToView(markerRWorld);
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         if (markerLWorld > viewLWorld) {
-          ctx.fillRect(this.xWorldToView(viewLWorld), 0,
+          ctx.fillRect(dt.xWorldToView(viewLWorld), 0,
               markerLView, ctx.canvas.height);
         }
 
         if (markerRWorld < viewRWorld) {
           ctx.fillRect(markerRView, 0,
-              this.xWorldToView(viewRWorld), ctx.canvas.height);
+              dt.xWorldToView(viewRWorld), ctx.canvas.height);
         }
       }
 
@@ -451,7 +444,8 @@ base.exportTo('tracing', function() {
     },
 
     get positionView() {
-      return this.viewport_.xWorldToView(this.positionWorld);
+      return this.viewport_.currentDisplayTransform.xWorldToView(
+          this.positionWorld);
     },
 
     set selected(selected) {
@@ -470,7 +464,8 @@ base.exportTo('tracing', function() {
     },
 
     drawArrow: function(ctx, height) {
-      var viewX = this.viewport_.xWorldToView(this.positionWorld_);
+      var dt = this.viewport_.currentDisplayTransform;
+      var viewX = dt.xWorldToView(this.positionWorld_);
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -488,7 +483,8 @@ base.exportTo('tracing', function() {
     },
 
     drawLine: function(ctx, height) {
-      var viewX = this.viewport_.xWorldToView(this.positionWorld_);
+      var dt = this.viewport_.currentDisplayTransform;
+      var viewX = dt.xWorldToView(this.positionWorld_);
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/

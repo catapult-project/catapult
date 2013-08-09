@@ -23,7 +23,14 @@ base.exportTo('base', function() {
     if (rafScheduled)
       return;
     rafScheduled = true;
-    window.webkitRequestAnimationFrame(processRequests);
+    if (window.requestAnimationFrame) {
+      window.requestAnimationFrame(processRequests);
+    } else {
+      var delta = Date.now() - window.performance.now();
+      window.webkitRequestAnimationFrame(function(domTimeStamp) {
+        processRequests(domTimeStamp - delta);
+      });
+    }
   }
 
   function onAnimationFrameError(e, opt_stack) {
@@ -36,15 +43,15 @@ base.exportTo('base', function() {
       console.error(e);
   }
 
-  function runTask(task) {
+  function runTask(task, frameBeginTime) {
     try {
-      task.callback.call(task.context);
+      task.callback.call(task.context, frameBeginTime);
     } catch (e) {
       base.onAnimationFrameError(e, task.stack);
     }
   }
 
-  function processRequests() {
+  function processRequests(frameBeginTime) {
     rafScheduled = false;
 
     var currentPreAFs = pendingPreAFs;
@@ -53,10 +60,10 @@ base.exportTo('base', function() {
     pendingRAFs = [];
 
     for (var i = 0; i < currentPreAFs.length; i++)
-      runTask(currentPreAFs[i]);
+      runTask(currentPreAFs[i], frameBeginTime);
 
     while (currentRAFDispatchList.length > 0)
-      runTask(currentRAFDispatchList.shift());
+      runTask(currentRAFDispatchList.shift(), frameBeginTime);
     currentRAFDispatchList = undefined;
   }
 
@@ -97,11 +104,19 @@ base.exportTo('base', function() {
       stack: getStack_()});
     scheduleRAF();
   }
+
+  function forcePendingRAFTasksToRun(frameBeginTime) {
+    if (!rafScheduled)
+      return;
+    processRequests(frameBeginTime);
+  }
+
   return {
     onAnimationFrameError: onAnimationFrameError,
     requestPreAnimationFrame: requestPreAnimationFrame,
     requestAnimationFrame: requestAnimationFrame,
     requestAnimationFrameInThisFrameIfPossible:
-        requestAnimationFrameInThisFrameIfPossible
+        requestAnimationFrameInThisFrameIfPossible,
+    forcePendingRAFTasksToRun: forcePendingRAFTasksToRun
   };
 });

@@ -44,7 +44,9 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var h = track.getBoundingClientRect().height;
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    track.viewport.xSetWorldBounds(0, wW, vW);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, wW, vW);
+    track.viewport.setDisplayTransformImmediately(dt);
 
     var selection = new Selection();
     var x = (1.5 / wW) * vW;

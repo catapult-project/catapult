@@ -76,22 +76,22 @@ base.exportTo('tracing', function() {
    *   * selected
    *
    * @param {Context} ctx The canvas context.
-   * @param {TimelineViewport} vp The viewport.
+   * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
    * @param {float} viewLWorld The right most point of the world viewport.
    * @param {float} viewHeight The height of the viewport.
    * @param {Array} slices The slices to draw.
    */
-  function drawSlices(ctx, vp, viewLWorld, viewRWorld, viewHeight, slices) {
+  function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices) {
     var pixelRatio = window.devicePixelRatio || 1;
     var height = viewHeight * pixelRatio;
 
-    var pixWidth = vp.xViewVectorToWorld(1);
+    var pixWidth = dt.xViewVectorToWorld(1);
     var palette = tracing.getColorPalette();
 
     // Begin rendering in world space.
     ctx.save();
-    vp.applyTransformToCanvas(ctx);
+    dt.applyTransformToCanvas(ctx);
 
     var tr = new tracing.FastRectRenderer(
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
@@ -135,7 +135,7 @@ base.exportTo('tracing', function() {
    *   * selected
    *
    * @param {Context} ctx The canvas context.
-   * @param {TimelineViewport} vp The viewport.
+   * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
    * @param {float} viewLWorld The right most point of the world viewport.
    * @param {float} viewHeight The height of the viewport.
@@ -143,17 +143,17 @@ base.exportTo('tracing', function() {
    * @param {Numer} lineWidthInPixels The width of the lines.
    */
   function drawInstantSlicesAsLines(
-      ctx, vp, viewLWorld, viewRWorld, viewHeight, slices, lineWidthInPixels) {
+      ctx, dt, viewLWorld, viewRWorld, viewHeight, slices, lineWidthInPixels) {
     var pixelRatio = window.devicePixelRatio || 1;
     var height = viewHeight * pixelRatio;
 
-    var pixWidth = vp.xViewVectorToWorld(1);
+    var pixWidth = dt.xViewVectorToWorld(1);
     var palette = tracing.getColorPalette();
 
     // Begin rendering in world space.
     ctx.save();
     ctx.lineWidth = pixWidth * lineWidthInPixels;
-    vp.applyTransformToCanvas(ctx);
+    dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
     var lowSlice = base.findLowIndexInSortedArray(
@@ -189,14 +189,14 @@ base.exportTo('tracing', function() {
    *   * didNotFinish (optional)
    *
    * @param {Context} ctx The graphics context.
-   * @param {TimelineViewport} vp The viewport.
+   * @param {TimelineDrawTransform} dt The draw transform.
    * @param {float} viewLWorld The left most point of the world viewport.
    * @param {float} viewLWorld The right most point of the world viewport.
    * @param {Array} slices The slices to label.
    */
-  function drawLabels(ctx, vp, viewLWorld, viewRWorld, slices) {
+  function drawLabels(ctx, dt, viewLWorld, viewRWorld, slices) {
     var pixelRatio = window.devicePixelRatio || 1;
-    var pixWidth = vp.xViewVectorToWorld(1);
+    var pixWidth = dt.xViewVectorToWorld(1);
 
     ctx.save();
 
@@ -238,7 +238,7 @@ base.exportTo('tracing', function() {
       }
 
       if (drawnWidth * pixWidth < slice.duration) {
-        var cX = vp.xWorldToView(slice.start + 0.5 * slice.duration);
+        var cX = dt.xWorldToView(slice.start + 0.5 * slice.duration);
         ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
       }
     }

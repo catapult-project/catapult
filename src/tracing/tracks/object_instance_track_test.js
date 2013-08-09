@@ -48,7 +48,9 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
 
     track.heading = 'testBasic';
     track.objectInstances = frames;
-    track.viewport.xSetWorldBounds(0, 50, track.clientWidth);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 50, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('selectionHitTestingWithThreadTrack', function() {

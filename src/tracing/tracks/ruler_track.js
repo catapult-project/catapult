@@ -99,11 +99,13 @@ base.exportTo('tracing.tracks', function() {
       var rulerHeight = measurements ? (height * 2) / 5 : height;
 
       var vp = this.viewport;
+      var dt = vp.currentDisplayTransform;
+
       vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
 
       var idealMajorMarkDistancePix = 150 * pixelRatio;
       var idealMajorMarkDistanceWorld =
-          vp.xViewVectorToWorld(idealMajorMarkDistancePix);
+          dt.xViewVectorToWorld(idealMajorMarkDistancePix);
 
       var majorMarkDistanceWorld;
 
@@ -117,7 +119,7 @@ base.exportTo('tracing.tracks', function() {
       var divisors = [10, 5, 2, 1];
       for (var i = 0; i < divisors.length; ++i) {
         var tightenedGuess = conservativeGuess / divisors[i];
-        if (vp.xWorldVectorToView(tightenedGuess) < idealMajorMarkDistancePix)
+        if (dt.xWorldVectorToView(tightenedGuess) < idealMajorMarkDistancePix)
           continue;
         majorMarkDistanceWorld = conservativeGuess / divisors[i - 1];
         break;
@@ -138,7 +140,7 @@ base.exportTo('tracing.tracks', function() {
 
       var numTicksPerMajor = 5;
       var minorMarkDistanceWorld = majorMarkDistanceWorld / numTicksPerMajor;
-      var minorMarkDistancePx = vp.xWorldVectorToView(minorMarkDistanceWorld);
+      var minorMarkDistancePx = dt.xWorldVectorToView(minorMarkDistanceWorld);
 
       var firstMajorMark =
           Math.floor(viewLWorld / majorMarkDistanceWorld) *
@@ -175,7 +177,7 @@ base.exportTo('tracing.tracks', function() {
            curX < viewRWorld;
            curX += majorMarkDistanceWorld) {
 
-        var curXView = Math.floor(vp.xWorldToView(curX));
+        var curXView = Math.floor(dt.xWorldToView(curX));
 
         var unitValue = curX / unitDivisor;
         var roundedUnitValue = Math.floor(unitValue * 100000) / 100000;
@@ -236,7 +238,7 @@ base.exportTo('tracing.tracks', function() {
       // If there is only on marker, draw it's timestamp next to the line.
       if (sortedMarkers.length === 1) {
         var markerWorld = sortedMarkers[0].positionWorld;
-        var markerView = vp.xWorldToView(markerWorld);
+        var markerView = dt.xWorldToView(markerWorld);
         var displayValue = markerWorld / unitDivisor;
         displayValue = Math.abs((Math.floor(displayValue * 1000) / 1000));
 
@@ -255,13 +257,13 @@ base.exportTo('tracing.tracks', function() {
       for (i = 0; i < sortedMarkers.length - 1; i++) {
         var leftMarker = sortedMarkers[i];
         var rightMarker = sortedMarkers[i + 1];
-        var leftMarkerView = vp.xWorldToView(leftMarker.positionWorld);
-        var rightMarkerView = vp.xWorldToView(rightMarker.positionWorld);
+        var leftMarkerView = dt.xWorldToView(leftMarker.positionWorld);
+        var rightMarkerView = dt.xWorldToView(rightMarker.positionWorld);
 
         var distanceBetweenMarkers =
             rightMarker.positionWorld - leftMarker.positionWorld;
         var distanceBetweenMarkersView =
-            vp.xWorldVectorToView(distanceBetweenMarkers);
+            dt.xWorldVectorToView(distanceBetweenMarkers);
         var positionInMiddleOfMarkersView =
             leftMarkerView + (distanceBetweenMarkersView / 2);
 

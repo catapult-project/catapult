@@ -85,8 +85,9 @@ base.exportTo('tracing.tracks', function() {
       ctx.save();
       ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
-      var viewLWorld = this.viewport.xViewToWorld(0);
-      var viewRWorld = this.viewport.xViewToWorld(bounds.width * pixelRatio);
+      var dt = this.viewport.currentDisplayTransform;
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
 
       this.draw(type, viewLWorld, viewRWorld);
       ctx.restore();
@@ -110,9 +111,10 @@ base.exportTo('tracing.tracks', function() {
         loVX, hiVX, loVY, hiVY, selection) {
 
       var pixelRatio = window.devicePixelRatio || 1;
-      var viewPixWidthWorld = this.viewport.xViewVectorToWorld(1);
-      var loWX = this.viewport.xViewToWorld(loVX * pixelRatio);
-      var hiWX = this.viewport.xViewToWorld(hiVX * pixelRatio);
+      var dt = this.viewport.currentDisplayTransform;
+      var viewPixWidthWorld = dt.xViewVectorToWorld(1);
+      var loWX = dt.xViewToWorld(loVX * pixelRatio);
+      var hiWX = dt.xViewToWorld(hiVX * pixelRatio);
 
       var clientRect = this.getBoundingClientRect();
       var a = Math.max(loVY, clientRect.top);

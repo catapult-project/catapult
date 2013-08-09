@@ -123,8 +123,9 @@ base.exportTo('tracing.tracks', function() {
       ctx.save();
       ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
-      var viewLWorld = this.viewport.xViewToWorld(0);
-      var viewRWorld = this.viewport.xViewToWorld(bounds.width * pixelRatio);
+      var dt = this.viewport.currentDisplayTransform;
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
 
       switch (type) {
         case tracing.tracks.DrawType.GRID:
@@ -151,7 +152,7 @@ base.exportTo('tracing.tracks', function() {
 
           tracing.drawSlices(
               ctx,
-              this.viewport,
+              this.viewport.currentDisplayTransform,
               viewLWorld,
               viewRWorld,
               bounds.height,
@@ -166,9 +167,10 @@ base.exportTo('tracing.tracks', function() {
 
     drawFlowArrows_: function(viewLWorld, viewRWorld) {
       var ctx = this.context();
-      this.viewport.applyTransformToCanvas(ctx);
+      var dt = this.viewport.currentDisplayTransform;
+      dt.applyTransformToCanvas(ctx);
 
-      var pixWidth = this.viewport.xViewVectorToWorld(1);
+      var pixWidth = dt.xViewVectorToWorld(1);
 
       ctx.strokeStyle = 'rgba(0,0,0,0.4)';
       ctx.fillStyle = 'rgba(0,0,0,0.4)';

@@ -1048,7 +1048,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('importImplicitObjectWithCategoryOverride', function() {
     var events = [
       {ts: 10000, pid: 1, tid: 1, ph: 'N', cat: 'cat', id: '0x1000', name: 'a', args: {}}, // @suppress longLineCheck
-      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'otherCat', id: '0x1000', name: 'a',
+      {ts: 15000, pid: 1, tid: 1, ph: 'O', cat: 'otherCat', id: '0x1000', name: 'a', // @suppress longLineCheck
         args: { snapshot: [
           { id: 'subObject/0x1',
             cat: 'cat',

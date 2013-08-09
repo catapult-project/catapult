@@ -68,6 +68,15 @@ base.exportTo('base', function() {
     return base.Rect.FromXYWH(position[0], position[1], size[0], size[1]);
   }
 
+  function clamp(x, lo, hi) {
+    return Math.min(Math.max(x, lo), hi);
+  }
+
+  function lerp(percentage, lo, hi) {
+    var range = hi - lo;
+    return lo + percentage * range;
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
@@ -75,7 +84,10 @@ base.exportTo('base', function() {
     normalizeException: normalizeException,
     instantiateTemplate: instantiateTemplate,
     stackTrace: stackTrace,
-    windowRectForElement: windowRectForElement
+
+    windowRectForElement: windowRectForElement,
+
+    clamp: clamp,
+    lerp: lerp
   };
 });
-

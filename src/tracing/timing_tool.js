@@ -39,7 +39,7 @@ base.exportTo('tracing', function() {
       var viewX =
           (e.clientX - this.markerView_.offsetLeft - constants.HEADING_WIDTH) *
               pixelRatio;
-      return this.viewport.xViewToWorld(viewX);
+      return this.viewport.currentDisplayTransform.xViewToWorld(viewX);
     },
 
     onEnterTiming: function(e) {

@@ -26,6 +26,7 @@ base.require('base.settings');
 base.require('tracing.filter');
 base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
+base.require('tracing.timeline_display_transform_animations');
 base.require('tracing.timing_tool');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
@@ -37,6 +38,8 @@ base.exportTo('tracing', function() {
 
   var Selection = tracing.Selection;
   var Viewport = tracing.TimelineViewport;
+
+  var tempDisplayTransform = new tracing.TimelineDisplayTransform();
 
   function intersectRect_(r1, r2) {
     var results = new Object;
@@ -76,7 +79,7 @@ base.exportTo('tracing', function() {
       this.categoryFilter_ = new tracing.CategoryFilter();
 
       this.viewport_ = new Viewport(this);
-      this.viewportStateAtMouseDown_ = null;
+      this.viewportDisplayTransformAtMouseDown_ = null;
 
       this.rulerTrackContainer_ =
           new tracing.tracks.DrawingContainer(this.viewport_);
@@ -251,9 +254,11 @@ base.exportTo('tracing', function() {
         range = this.model_.bounds.range;
       }
       var boost = range * 0.15;
-      this.viewport_.xSetWorldBounds(min - boost,
-                                     min + range + boost,
-                                     w);
+      tempDisplayTransform.set(this.viewport.currentDisplayTransform);
+      tempDisplayTransform.xSetWorldBounds(min - boost,
+                                           min + range + boost,
+                                           w);
+      this.viewport.setDisplayTransformImmediately(tempDisplayTransform);
     },
 
     /**
@@ -323,11 +328,11 @@ base.exportTo('tracing', function() {
 
         case 119:  // w
         case 44:   // ,
-          this.zoomBy_(1.5);
+          this.zoomBy_(1.5, true);
           break;
         case 115:  // s
         case 111:  // o
-          this.zoomBy_(1 / 1.5);
+          this.zoomBy_(1 / 1.5, true);
           break;
         case 103:  // g
           this.onGridToggle_(true);
@@ -337,24 +342,24 @@ base.exportTo('tracing', function() {
           break;
         case 87:  // W
         case 60:  // <
-          this.zoomBy_(10);
+          this.zoomBy_(10, true);
           break;
         case 83:  // S
         case 79:  // O
-          this.zoomBy_(1 / 10);
+          this.zoomBy_(1 / 10, true);
           break;
         case 97:  // a
-          vp.panX += vp.xViewVectorToWorld(viewWidth * 0.1);
+          this.queueSmoothPan_(viewWidth * 0.3, 0);
           break;
         case 100:  // d
         case 101:  // e
-          vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.1);
+          this.queueSmoothPan_(viewWidth * -0.3, 0);
           break;
         case 65:  // A
-          vp.panX += vp.xViewVectorToWorld(viewWidth * 0.5);
+          this.queueSmoothPan_(viewWidth * 0.5, 0);
           break;
         case 68:  // D
-          vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.5);
+          this.queueSmoothPan_(viewWidth * -0.5, 0);
           break;
         case 48:  // 0
         case 122: // z
@@ -371,7 +376,7 @@ base.exportTo('tracing', function() {
       if (!this.listenToKeys_)
         return;
       var sel;
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
 
       switch (e.keyCode) {
@@ -382,7 +387,7 @@ base.exportTo('tracing', function() {
             this.panToSelection();
             e.preventDefault();
           } else {
-            vp.panX += vp.xViewVectorToWorld(viewWidth * 0.1);
+            this.queueSmoothPan_(viewWidth * 0.3, 0);
           }
           break;
         case 39:   // right arrow
@@ -392,7 +397,7 @@ base.exportTo('tracing', function() {
             this.panToSelection();
             e.preventDefault();
           } else {
-            vp.panX -= vp.xViewVectorToWorld(viewWidth * 0.1);
+            this.queueSmoothPan_(-viewWidth * 0.3, 0);
           }
           break;
         case 9:    // TAB
@@ -419,18 +424,41 @@ base.exportTo('tracing', function() {
 
     },
 
+    queueSmoothPan_: function(viewDeltaX, deltaY) {
+      var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
+          viewDeltaX);
+      var animation = new tracing.TimelineDisplayTransformPanAnimation(
+          deltaX, deltaY);
+      this.viewport_.queueDisplayTransformAnimation(animation);
+    },
+
     /**
      * Zoom in or out on the timeline by the given scale factor.
-     * @param {integer} scale The scale factor to apply.  If <1, zooms out.
+     * @param {Number} scale The scale factor to apply.  If <1, zooms out.
+     * @param {boolean} Whether to change the zoom level smoothly.
      */
-    zoomBy_: function(scale) {
-      var vp = this.viewport_;
+    zoomBy_: function(scale, smooth) {
+      smooth = !!smooth;
+      var vp = this.viewport;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var pixelRatio = window.devicePixelRatio || 1;
-      var curMouseV = this.lastMouseViewPos_.x * pixelRatio;
-      var curCenterW = vp.xViewToWorld(curMouseV);
-      vp.scaleX = vp.scaleX * scale;
-      vp.xPanWorldPosToViewPos(curCenterW, curMouseV, viewWidth);
+
+      var goalFocalPointXView = this.lastMouseViewPos_.x * pixelRatio;
+      var goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
+          goalFocalPointXView);
+      if (smooth) {
+        var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
+            goalFocalPointXWorld, goalFocalPointXView,
+            vp.currentDisplayTransform.panY,
+            scale);
+        vp.queueDisplayTransformAnimation(animation);
+      } else {
+        tempDisplayTransform.set(vp.currentDisplayTransform);
+        tempDisplayTransform.scaleX = tempDisplayTransform.scaleX * scale;
+        tempDisplayTransform.xPanWorldPosToViewPos(
+            goalFocalPointXWorld, goalFocalPointXView, viewWidth);
+        vp.setDisplayTransformImmediately(tempDisplayTransform);
+      }
     },
 
     /**
@@ -445,11 +473,15 @@ base.exportTo('tracing', function() {
         return;
 
       var worldCenter = bounds.center;
-      var worldRangeHalf = bounds.range * 0.5;
-      var boost = worldRangeHalf * 0.5;
-      this.viewport_.xSetWorldBounds(worldCenter - worldRangeHalf - boost,
-                                     worldCenter + worldRangeHalf + boost,
-                                     this.modelTrackContainer_.canvas.width);
+      var adjustedWorldRange = bounds.range * 1.25;
+      var newScale = this.modelTrackContainer_.canvas.width /
+          adjustedWorldRange;
+      var zoomInRatio = newScale / this.viewport.currentDisplayTransform.scaleX;
+      var animation = new tracing.TimelineDisplayTransformZoomToAnimation(
+          worldCenter, 'center',
+          this.viewport.currentDisplayTransform.panY,
+          zoomInRatio);
+      this.viewport.queueDisplayTransformAnimation(animation);
     },
 
     /**
@@ -463,23 +495,30 @@ base.exportTo('tracing', function() {
       var worldCenter = bounds.center;
       var viewWidth = this.modelTrackContainer_.canvas.width;
 
+      var dt = this.viewport.currentDisplayTransform;
       if (!bounds.range) {
-        if (this.viewport_.xWorldToView(bounds.center) < 0 ||
-            this.viewport_.xWorldToView(bounds.center) > viewWidth) {
-          this.viewport_.xPanWorldPosToViewPos(
+        if (dt.xWorldToView(bounds.center) < 0 ||
+            dt.xWorldToView(bounds.center) > viewWidth) {
+          tempDisplayTransform.set(dt);
+          tempDisplayTransform.xPanWorldPosToViewPos(
               worldCenter, 'center', viewWidth);
+          this.viewport.setDisplayTransformSmoothly(tempDisplayTransform);
         }
         return;
       }
 
       var worldRangeHalf = bounds.range * 0.5;
       var boost = worldRangeHalf * 0.5;
-      this.viewport_.xPanWorldBoundsIntoView(
+
+      tempDisplayTransform.set(dt);
+      tempDisplayTransform.xPanWorldBoundsIntoView(
           worldCenter - worldRangeHalf - boost,
           worldCenter + worldRangeHalf + boost,
           viewWidth);
 
-      this.viewport_.xPanWorldBoundsIntoView(bounds.min, bounds.max, viewWidth);
+      tempDisplayTransform.xPanWorldBoundsIntoView(
+          bounds.min, bounds.max, viewWidth);
+      this.viewport.setDisplayTransformSmoothly(tempDisplayTransform);
     },
 
     get keyHelp() {
@@ -541,7 +580,7 @@ base.exportTo('tracing', function() {
       if (this.selection_.length &&
           this.selection_[0].track)
         this.selection_[0].track.scrollIntoViewIfNeeded();
-      this.viewport_.dispatchChangeEvent(); // Triggers a redraw.
+      this.viewport.dispatchChangeEvent(); // Triggers a redraw.
     },
 
     hideDragBox_: function() {
@@ -585,9 +624,10 @@ base.exportTo('tracing', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var canv = this.modelTrackContainer_.canvas;
-      var loWX = this.viewport_.xViewToWorld(
+      var dt = this.viewport.currentDisplayTransform;
+      var loWX = dt.xViewToWorld(
           (loX - canv.offsetLeft) * pixelRatio);
-      var hiWX = this.viewport_.xViewToWorld(
+      var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
@@ -604,24 +644,24 @@ base.exportTo('tracing', function() {
 
       // Toggle the grid off if the grid is on, the marker position is the same
       // and the same element is selected (same timebase).
-      if (this.viewport_.gridEnabled &&
-          this.viewport_.gridSide === left &&
-          this.viewport_.gridInitialTimebase === tb) {
-        this.viewport_.gridside = undefined;
-        this.viewport_.gridEnabled = false;
-        this.viewport_.gridInitialTimebase = undefined;
+      if (this.viewport.gridEnabled &&
+          this.viewport.gridSide === left &&
+          this.viewport.gridInitialTimebase === tb) {
+        this.viewport.gridside = undefined;
+        this.viewport.gridEnabled = false;
+        this.viewport.gridInitialTimebase = undefined;
         return;
       }
 
       // Shift the timebase left until its just left of model_.bounds.min.
       var numIntervalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
-          this.viewport_.gridStep_);
+          this.viewport.gridStep_);
 
-      this.viewport_.gridEnabled = true;
-      this.viewport_.gridSide = left;
-      this.viewport_.gridInitialTimebase = tb;
-      this.viewport_.gridTimebase = tb -
-          (numIntervalsSinceStart + 1) * this.viewport_.gridStep_;
+      this.viewport.gridEnabled = true;
+      this.viewport.gridSide = left;
+      this.viewport.gridInitialTimebase = tb;
+      this.viewport.gridTimebase = tb -
+          (numIntervalsSinceStart + 1) * this.viewport.gridStep_;
     },
 
     storeLastMousePos_: function(e) {
@@ -660,10 +700,11 @@ base.exportTo('tracing', function() {
     },
 
     onBeginPanScan_: function(e) {
-      var vp = this.viewport_;
+      var vp = this.viewport;
       var mouseEvent = e.data;
 
-      this.viewportStateAtMouseDown_ = vp.getStateInViewCoordinates();
+      this.viewportDisplayTransformAtMouseDown_ =
+          vp.currentDisplayTransform.clone();
       this.isPanningAndScanning_ = true;
 
       this.storeInitialInteractionPositionsAndFocus_(mouseEvent);
@@ -674,19 +715,20 @@ base.exportTo('tracing', function() {
       if (!this.isPanningAndScanning_)
         return;
 
-      var vp = this.viewport_;
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
       var mouseEvent = e.data;
 
-      var x = this.viewportStateAtMouseDown_.panX + (this.lastMouseViewPos_.x -
+      var pixelRatio = window.devicePixelRatio || 1;
+      var xDeltaView = pixelRatio * (this.lastMouseViewPos_.x -
           this.mouseViewPosAtMouseDown_.x);
-      var y = this.viewportStateAtMouseDown_.panY - (this.lastMouseViewPos_.y -
-          this.mouseViewPosAtMouseDown_.y);
 
-      vp.setStateInViewCoordinates({
-        panX: x,
-        panY: y
-      });
+      var yDelta = this.lastMouseViewPos_.y -
+          this.mouseViewPosAtMouseDown_.y;
+
+      tempDisplayTransform.set(this.viewportDisplayTransformAtMouseDown_);
+      tempDisplayTransform.incrementPanXInViewUnits(xDeltaView);
+      tempDisplayTransform.panY -= yDelta;
+      this.viewport.setDisplayTransformImmediately(tempDisplayTransform);
 
       mouseEvent.preventDefault();
       mouseEvent.stopPropagation();
@@ -801,7 +843,7 @@ base.exportTo('tracing', function() {
       var zoomScaleValue = 1 + (this.lastMouseViewPos_.y -
           newPosition.y) * 0.01;
 
-      this.zoomBy_(zoomScaleValue);
+      this.zoomBy_(zoomScaleValue, false);
       this.storeLastMousePos_(mouseEvent);
     },
 

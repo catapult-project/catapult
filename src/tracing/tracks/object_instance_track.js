@@ -85,14 +85,14 @@ base.exportTo('tracing.tracks', function() {
       var twoPi = Math.PI * 2;
 
       // Culling parameters.
-      var vp = this.viewport;
+      var dt = this.viewport.currentDisplayTransform;
       var snapshotRadiusView = this.snapshotRadiusView;
-      var snapshotRadiusWorld = vp.xViewVectorToWorld(height);
+      var snapshotRadiusWorld = dt.xViewVectorToWorld(height);
       var loI;
 
       // Begin rendering in world space.
       ctx.save();
-      vp.applyTransformToCanvas(ctx);
+      dt.applyTransformToCanvas(ctx);
 
       // Instances
       var objectInstances = this.objectInstances_;
@@ -136,7 +136,7 @@ base.exportTo('tracing.tracks', function() {
         var x = snapshot.ts;
         if (x - snapshotRadiusWorld > viewRWorld)
           break;
-        var xView = vp.xWorldToView(x);
+        var xView = dt.xWorldToView(x);
 
         var colorId = snapshot.selected ?
             snapshot.objectInstance.colorId + highlightIdBoost :

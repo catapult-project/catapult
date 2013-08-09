@@ -35,7 +35,10 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       new Slice('', 'b', 1, 7, {}, 0.5),
       new Slice('', 'c', 2, 7.6, {}, 0.4)
     ];
-    track.viewport.xSetWorldBounds(0, 8.8, track.clientWidth);
+
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 8.8, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('instantiate_shrinkingSliceSize', function() {
@@ -60,7 +63,9 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       slices.push(s);
     }
     track.slices = slices;
-    track.viewport.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 1.1 * x, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('instantiate_elide', function() {
@@ -95,7 +100,9 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
         new Slice('', 'cccc cccc cccc', 1, 7, {}, 0.5),
         new Slice('', 'd', 2, 7.6, {}, 1.0)
       ];
-      track.viewport.xSetWorldBounds(0, 9.5, track.clientWidth);
+      var dt = new tracing.TimelineDisplayTransform();
+      dt.xSetWorldBounds(0, 9.5, track.clientWidth);
+      track.viewport.setDisplayTransformImmediately(dt);
     }
   });
 
@@ -139,7 +146,10 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     var pixelRatio = window.devicePixelRatio || 1;
     var wW = 10;
     var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    track.viewport.xSetWorldBounds(0, wW, vW * pixelRatio);
+
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, wW, vW * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
 
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
@@ -183,10 +193,12 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
       new Slice('', bigtitle, 0, 1, {}, 1),
       new Slice('', smalltitle, 1, 2, {}, 1)
     ];
-    track.viewport.xSetWorldBounds(0, 3.3, track.clientWidth);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 3.3, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
 
     var stringWidthPair = undefined;
-    var pixWidth = track.viewport.xViewVectorToWorld(1);
+    var pixWidth = dt.xViewVectorToWorld(1);
 
     // Small titles on big slices are not elided.
     stringWidthPair =

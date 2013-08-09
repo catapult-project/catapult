@@ -88,8 +88,9 @@ base.exportTo('tracing.tracks', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var bounds = this.canvas_.getBoundingClientRect();
-      var viewLWorld = this.viewport.xViewToWorld(0);
-      var viewRWorld = this.viewport.xViewToWorld(
+      var dt = this.viewport.currentDisplayTransform;
+      var viewLWorld = dt.xViewToWorld(0);
+      var viewRWorld = dt.xViewToWorld(
           bounds.width * pixelRatio);
 
       this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);

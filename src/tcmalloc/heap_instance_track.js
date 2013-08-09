@@ -90,7 +90,7 @@ base.exportTo('tcmalloc', function() {
       var height = bounds.height * pixelRatio;
 
       // Culling parameters.
-      var vp = this.viewport;
+      var dt = this.viewport.currentDisplayTransform;
 
       // Scale by the size of the largest snapshot.
       var maxBytes = this.maxBytes_;
@@ -112,7 +112,7 @@ base.exportTo('tcmalloc', function() {
         var left = snapshot.ts;
         if (left > viewRWorld)
           break;
-        var leftView = vp.xWorldToView(left);
+        var leftView = dt.xWorldToView(left);
         if (leftView < 0)
           leftView = 0;
 
@@ -122,7 +122,7 @@ base.exportTo('tcmalloc', function() {
           right = objectSnapshots[i + 1].ts;
         else
           right = objectSnapshots[objectSnapshots.length - 1].ts + 5000;
-        var rightView = vp.xWorldToView(right);
+        var rightView = dt.xWorldToView(right);
         if (rightView > width)
           rightView = width;
 

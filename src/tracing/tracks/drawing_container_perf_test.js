@@ -59,7 +59,9 @@ base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf', function() 
     var range = model.bounds.range;
 
     var boost = range * 0.15;
-    viewport.xSetWorldBounds(min - boost, min + range + boost, w);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(min - boost, min + range + boost, w);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 
   teardown(function() {

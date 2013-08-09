@@ -83,7 +83,7 @@ base.exportTo('tracing.tracks', function() {
       var bounds = this.getBoundingClientRect();
       tracing.drawSlices(
           ctx,
-          this.viewport,
+          this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
           bounds.height,
@@ -95,7 +95,7 @@ base.exportTo('tracing.tracks', function() {
 
       tracing.drawLabels(
           ctx,
-          this.viewport,
+          this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
           this.slices_);

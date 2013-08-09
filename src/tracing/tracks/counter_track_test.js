@@ -49,7 +49,9 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
 
     track.heading = ctr.name;
     track.counter = ctr;
-    track.viewport.xSetWorldBounds(0, 10, track.clientWidth * pixelRatio);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 10, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
 
     testFn(ctr, drawingContainer, track);
   };
@@ -87,7 +89,9 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
 
     track.heading = ctr.name;
     track.counter = ctr;
-    track.viewport.xSetWorldBounds(0, 7.7, track.clientWidth);
+    var dt = new tracing.TimelineDisplayTransform();
+    dt.xSetWorldBounds(0, 7.7, track.clientWidth);
+    track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('basicCounterXPointPicking', function() {

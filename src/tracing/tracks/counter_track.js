@@ -86,15 +86,16 @@ base.exportTo('tracing.tracks', function() {
 
       // Culling parametrs.
       var vp = this.viewport;
-      var pixWidth = vp.xViewVectorToWorld(1);
+      var dt = vp.currentDisplayTransform;
+      var pixWidth = dt.xViewVectorToWorld(1);
 
       // Drop sampels that are less than skipDistancePix apart.
       var skipDistancePix = 1;
-      var skipDistanceWorld = vp.xViewVectorToWorld(skipDistancePix);
+      var skipDistanceWorld = dt.xViewVectorToWorld(skipDistancePix);
 
       // Begin rendering in world space.
       ctx.save();
-      vp.applyTransformToCanvas(ctx);
+      dt.applyTransformToCanvas(ctx);
 
       // Figure out where drawing should begin.
       var numSeries = counter.numSeries;
@@ -201,7 +202,8 @@ base.exportTo('tracing.tracks', function() {
 
       function getSampleWidth(x, i) {
         if (i === counter.timestamps.length - 1) {
-          var pixWidth = this.viewport.xViewVectorToWorld(1);
+          var dt = this.viewport.currentDisplayTransform;
+          var pixWidth = dt.xViewVectorToWorld(1);
           return LAST_SAMPLE_PIXELS * pixWidth;
         }
         return counter.timestamps[i + 1] - counter.timestamps[i];

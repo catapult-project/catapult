@@ -38,13 +38,14 @@ base.exportTo('tracing.tracks', function() {
           ctx.save();
           ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
-          var viewLWorld = this.viewport.xViewToWorld(0);
-          var viewRWorld = this.viewport.xViewToWorld(
+          var dt = this.viewport.currentDisplayTransform;
+          var viewLWorld = dt.xViewToWorld(0);
+          var viewRWorld = dt.xViewToWorld(
               bounds.width * pixelRatio);
 
           tracing.drawInstantSlicesAsLines(
               ctx,
-              this.viewport,
+              this.viewport.currentDisplayTransform,
               viewLWorld,
               viewRWorld,
               bounds.height,
