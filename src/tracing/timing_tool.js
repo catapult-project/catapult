@@ -18,7 +18,7 @@ base.exportTo('tracing', function() {
    * Viewportmarkers.
    * @constructor
    */
-  var TimingTool = function(viewport, markerView) {
+  var TimingTool = function(viewport, markerView, targetElement) {
     this.viewport = viewport;
     this.markerView_ = markerView;
 
@@ -26,6 +26,10 @@ base.exportTo('tracing', function() {
     this.rangeEndMarker_ = viewport.createMarker(0);
     this.cursorMarker_ = viewport.createMarker(0);
     this.activeMarker_ = this.cursorMarker_;
+
+    // Prepare the event handler to be added and removed repeatedly.
+    this.onMouseMove_ = this.onMouseMove_.bind(this);
+    this.targetElement_ = targetElement;
   };
 
   TimingTool.prototype = {
@@ -43,6 +47,8 @@ base.exportTo('tracing', function() {
       // range markers should be left.
       if (this.activeMarker_ === this.cursorMarker_)
         this.viewport.addMarker(this.cursorMarker_);
+
+      this.targetElement_.addEventListener('mousemove', this.onMouseMove_);
     },
 
     onBeginTiming: function(e) {
@@ -79,37 +85,25 @@ base.exportTo('tracing', function() {
     },
 
     onUpdateTiming: function(e) {
+      if (!this.activeMarker_ || this.activeMarker_ === this.cursorMarker_)
+        return;
+
       var mouseEvent = e.data;
       var worldX = this.getWorldXFromEvent_(mouseEvent);
 
       // Update the position of the active marker to the cursor position.
-      // This is either the cursor marker, the end marker when creating a range,
-      // or one of the range markers when they are moved.
-      if (this.activeMarker_) {
-        this.activeMarker_.positionWorld = worldX;
+      // This is either the end marker when creating a range, or one of the
+      // range markers when they are moved.
+      this.activeMarker_.positionWorld = worldX;
 
-        // When creating a range, only show the start marker after the range
-        // exceeds a certain amount. This prevents a short flicker showing the
-        // dimmed areas left and right of the range when clicking.
-        if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
-          var rangeX = Math.abs(this.rangeStartMarker_.positionView -
-                                this.rangeEndMarker_.positionView);
-          if (rangeX >= constants.MIN_MOUSE_SELECTION_DISTANCE)
-            this.viewport.addMarker(this.rangeStartMarker_);
-        }
-        return;
-      }
-
-      // If there is no active marker then look for a marker close to the cursor
-      // and indicate that it can be moved by displaying it selected.
-      var marker = this.viewport.findMarkerNear(worldX, 6);
-      if (marker === this.rangeStartMarker_ ||
-          marker === this.rangeEndMarker_) {
-        marker.selected = true;
-      } else {
-        // Otherwise deselect markers that may have been selected before.
-        this.rangeEndMarker_.selected = false;
-        this.rangeStartMarker_.selected = false;
+      // When creating a range, only show the start marker after the range
+      // exceeds a certain amount. This prevents a short flicker showing the
+      // dimmed areas left and right of the range when clicking.
+      if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
+        var rangeX = Math.abs(this.rangeStartMarker_.positionView -
+                              this.rangeEndMarker_.positionView);
+        if (rangeX >= constants.MIN_MOUSE_SELECTION_DISTANCE)
+          this.viewport.addMarker(this.rangeStartMarker_);
       }
     },
 
@@ -156,6 +150,32 @@ base.exportTo('tracing', function() {
       // cursor marker gets removed.
       if (this.activeMarker_ === this.cursorMarker_)
         this.viewport.removeMarker(this.cursorMarker_);
+
+      this.targetElement_.removeEventListener('mousemove', this.onMouseMove_);
+    },
+
+    onMouseMove_: function(e) {
+      var worldX = this.getWorldXFromEvent_(e);
+
+      if (this.activeMarker_) {
+        // Update the position of the cursor marker.
+        if (this.activeMarker_ === this.cursorMarker_)
+          this.cursorMarker_.positionWorld = worldX;
+
+        return;
+      }
+
+      // If there is no active marker then look for a marker close to the cursor
+      // and indicate that it can be moved by displaying it selected.
+      var marker = this.viewport.findMarkerNear(worldX, 6);
+      if (marker === this.rangeStartMarker_ ||
+          marker === this.rangeEndMarker_) {
+        marker.selected = true;
+      } else {
+        // Otherwise deselect markers that may have been selected before.
+        this.rangeEndMarker_.selected = false;
+        this.rangeStartMarker_.selected = false;
+      }
     }
   };
 

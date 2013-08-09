@@ -97,6 +97,10 @@ base.exportTo('tracing', function() {
       this.modelTrack_ = new tracing.tracks.TraceModelTrack(this.viewport_);
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
+      this.timingTool_ = new tracing.TimingTool(this.viewport_,
+                                                this.rulerTrack_,
+                                                this);
+
       this.initMouseModeSelector();
 
       this.dragBox_ = this.ownerDocument.createElement('div');
@@ -105,6 +109,37 @@ base.exportTo('tracing', function() {
       this.hideDragBox_();
 
       this.bindEventListener_(document, 'keypress', this.onKeypress_, this);
+      this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
+      this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
+
+      this.addEventListener('mousemove', this.onMouseMove_);
+
+      this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
+      this.lastMouseViewPos_ = {x: 0, y: 0};
+      this.selection_ = new Selection();
+
+      this.isPanningAndScanning_ = false;
+      this.isZooming_ = false;
+    },
+
+    /**
+     * Wraps the standard addEventListener but automatically binds the provided
+     * func to the provided target, tracking the resulting closure. When detach
+     * is called, these listeners will be automatically removed.
+     */
+    bindEventListener_: function(object, event, func, target) {
+      if (!this.boundListeners_)
+        this.boundListeners_ = [];
+      var boundFunc = func.bind(target);
+      this.boundListeners_.push({object: object,
+        event: event,
+        boundFunc: boundFunc});
+      object.addEventListener(event, boundFunc);
+    },
+
+    initMouseModeSelector: function() {
+      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
           this.onBeginPanScan_.bind(this));
@@ -129,21 +164,6 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.addEventListener('endzoom',
           this.onEndZoom_.bind(this));
 
-      this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
-      this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
-
-      this.addEventListener('mousemove', this.onMouseMove_);
-
-      this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
-      this.lastMouseViewPos_ = {x: 0, y: 0};
-      this.selection_ = new Selection();
-
-      this.isPanningAndScanning_ = false;
-      this.isZooming_ = false;
-
-      this.timingTool_ = new tracing.TimingTool(this.viewport_,
-                                                this.rulerTrack_);
-
       this.mouseModeSelector_.addEventListener('entertiming',
           this.timingTool_.onEnterTiming.bind(this.timingTool_));
       this.mouseModeSelector_.addEventListener('begintiming',
@@ -154,26 +174,7 @@ base.exportTo('tracing', function() {
           this.timingTool_.onEndTiming.bind(this.timingTool_));
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
-    },
 
-    /**
-     * Wraps the standard addEventListener but automatically binds the provided
-     * func to the provided target, tracking the resulting closure. When detach
-     * is called, these listeners will be automatically removed.
-     */
-    bindEventListener_: function(object, event, func, target) {
-      if (!this.boundListeners_)
-        this.boundListeners_ = [];
-      var boundFunc = func.bind(target);
-      this.boundListeners_.push({object: object,
-        event: event,
-        boundFunc: boundFunc});
-      object.addEventListener(event, boundFunc);
-    },
-
-    initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
-      this.appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
           'timelineTrackView.mouseModeSelector';
       var m = ui.MOUSE_SELECTOR_MODE;
