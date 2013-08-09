@@ -4,8 +4,8 @@
 import csv
 import json
 import os
-import urlparse
 
+from telemetry.page import cloud_storage
 from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
 
@@ -25,12 +25,8 @@ class PageSet(object):
     self.pages = []
 
     if self.archive_data_file:
-      if os.path.isdir(file_path):
-        base_dir = file_path
-      else:
-        base_dir = os.path.dirname(file_path)
       self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-          os.path.join(base_dir, self.archive_data_file), file_path)
+          os.path.join(self._base_dir, self.archive_data_file), file_path)
     else:
       self.wpr_archive_info = None
 
@@ -38,29 +34,49 @@ class PageSet(object):
   def FromFile(cls, file_path):
     with open(file_path, 'r') as f:
       contents = f.read()
-      data = json.loads(contents)
-      return cls.FromDict(data, file_path)
+    data = json.loads(contents)
+    return cls.FromDict(data, file_path)
 
   @classmethod
   def FromDict(cls, data, file_path):
     page_set = cls(file_path, data)
-    if os.path.isdir(file_path):
-      base_dir = file_path
-    else:
-      base_dir = os.path.dirname(file_path)
 
     for page_attributes in data['pages']:
       url = page_attributes.pop('url')
 
       page = page_module.Page(url, page_set, attributes=page_attributes,
-                              base_dir=base_dir)
+          base_dir=page_set._base_dir)  # pylint: disable=W0212
       page_set.pages.append(page)
+
+    all_serving_dirs = set()
+    for page in page_set:
+      if page.is_file:
+        serving_dirs, _ = page.serving_dirs_and_file
+        if isinstance(serving_dirs, list):
+          all_serving_dirs |= set(serving_dirs)
+        else:
+          all_serving_dirs.add(serving_dirs)
+    for serving_dir in all_serving_dirs:
+      for dirpath, _, filenames in os.walk(serving_dir):
+        for filename in filenames:
+          file_path, extension = os.path.splitext(
+              os.path.join(dirpath, filename))
+          if extension != '.sha1':
+            continue
+          cloud_storage.GetIfChanged(cloud_storage.DEFAULT_BUCKET, file_path)
+
     return page_set
+
+  @property
+  def _base_dir(self):
+    if os.path.isdir(self.file_path):
+      return self.file_path
+    else:
+      return os.path.dirname(self.file_path)
 
   def ContainsOnlyFileURLs(self):
     for page in self.pages:
-      parsed_url = urlparse.urlparse(page.url)
-      if parsed_url.scheme != 'file':
+      if not page.is_file:
         return False
     return True
 

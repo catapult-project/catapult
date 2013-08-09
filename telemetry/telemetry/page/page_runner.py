@@ -9,7 +9,6 @@ import sys
 import tempfile
 import time
 import traceback
-import urlparse
 import random
 
 from telemetry.core import browser_finder
@@ -110,8 +109,7 @@ class PageState(object):
     self._did_login = False
 
   def PreparePage(self, page, tab, test=None):
-    parsed_url = urlparse.urlparse(page.url)
-    if parsed_url[0] == 'file':
+    if page.is_file:
       serving_dirs, filename = page.serving_dirs_and_file
       if tab.browser.SetHTTPServerDirectories(serving_dirs) and test:
         test.DidStartHTTPServer(tab)
@@ -308,8 +306,7 @@ def _CheckArchives(page_set, pages, results):
   Logs warnings if any are missing."""
   page_set_has_live_sites = False
   for page in pages:
-    parsed_url = urlparse.urlparse(page.url)
-    if parsed_url.scheme != 'chrome' and parsed_url.scheme != 'file':
+    if not page.is_local:
       page_set_has_live_sites = True
       break
 
@@ -330,8 +327,7 @@ def _CheckArchives(page_set, pages, results):
   pages_missing_archive_data = []
 
   for page in pages:
-    parsed_url = urlparse.urlparse(page.url)
-    if parsed_url.scheme == 'chrome' or parsed_url.scheme == 'file':
+    if page.is_local:
       continue
 
     if not page.archive_path:

@@ -67,6 +67,16 @@ class Page(object):
     raise AttributeError()
 
   @property
+  def is_file(self):
+    parsed_url = urlparse.urlparse(self.url)
+    return parsed_url.scheme == 'file'
+
+  @property
+  def is_local(self):
+    parsed_url = urlparse.urlparse(self.url)
+    return parsed_url.scheme == 'file' or parsed_url.scheme == 'chrome'
+
+  @property
   def serving_dirs_and_file(self):
     parsed_url = urlparse.urlparse(self.url)
     path = _UrlPathJoin(self.base_dir, parsed_url.netloc, parsed_url.path)
@@ -88,11 +98,10 @@ class Page(object):
 
   @property
   def display_url(self):
-    if self.url.startswith('http'):
+    if not self.is_local:
       return self.url
     url_paths = ['/'.join(p.url.strip('/').split('/')[:-1])
-                 for p in self.page_set
-                 if p.url.startswith('file://')]
+                 for p in self.page_set if p.is_file]
     common_prefix = os.path.commonprefix(url_paths)
     return self.url[len(common_prefix):].strip('/')
 

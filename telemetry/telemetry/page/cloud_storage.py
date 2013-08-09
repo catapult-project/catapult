@@ -16,6 +16,9 @@ import urllib2
 from telemetry.core import util
 
 
+DEFAULT_BUCKET = 'chromium-wpr'
+
+
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
 _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 
@@ -73,23 +76,36 @@ def List(bucket):
 
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.debug('Deleting %s' % url)
+  logging.info('Deleting %s' % url)
   _RunCommand(['rm', url])
 
 
 def Get(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.debug('Downloading %s to %s' % (url, local_path))
+  logging.info('Downloading %s to %s' % (url, local_path))
   _RunCommand(['cp', url, local_path])
 
 
 def Insert(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.debug('Uploading %s to %s' % (local_path, url))
+  logging.info('Uploading %s to %s' % (local_path, url))
   _RunCommand(['cp', local_path, url])
 
 
+def GetIfChanged(bucket, file_path):
+  """Gets the file at file_path if it has a hash file that doesn't match."""
+  hash_path = file_path + '.sha1'
+  if not os.path.exists(hash_path):
+    return
+
+  with open(hash_path, 'rb') as f:
+    expected_hash = f.read(1024).rstrip()
+  if not os.path.exists(file_path) or GetHash(file_path) != expected_hash:
+    Get(bucket, expected_hash, file_path)
+
+
 def GetHash(file_path):
+  """Calculates and returns the hash of the file at file_path."""
   sha1 = hashlib.sha1()
   with open(file_path, 'rb') as f:
     while True:
