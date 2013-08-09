@@ -89,11 +89,15 @@ class BrowserOptions(optparse.Values):
         '--remote',
         dest='cros_remote',
         help='The IP address of a remote ChromeOS device to use.')
+    identity = None
+    testing_rsa = os.path.join(
+        util.GetChromiumSrcDir(),
+        'third_party', 'chromite', 'ssh_keys', 'testing_rsa')
+    if os.path.exists(testing_rsa):
+      identity = testing_rsa
     group.add_option('--identity',
         dest='cros_ssh_identity',
-        default=os.path.join(
-            util.GetChromiumSrcDir(),
-            'third_party', 'chromite', 'ssh_keys', 'testing_rsa'),
+        default=identity,
         help='The identity file to use when ssh\'ing into the ChromeOS device')
     parser.add_option_group(group)
 
