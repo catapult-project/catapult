@@ -18,6 +18,7 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_filter as page_filter_module
+from telemetry.page import page_measurement_results
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
 
@@ -165,7 +166,7 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
   results_for_current_run = results
   if state.first_page[page] and test.discard_first_result:
     # If discarding results, substitute a dummy object.
-    results_for_current_run = type(results)()
+    results_for_current_run = page_measurement_results.PageMeasurementResults()
   results_for_current_run.StartTest(page)
   tries = 3
   while tries:

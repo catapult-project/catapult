@@ -9,6 +9,7 @@ import unittest
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.page import page as page_module
+from telemetry.page import page_measurement
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_runner
@@ -72,32 +73,40 @@ class PageRunnerTests(unittest.TestCase):
         ps,
         base_dir=os.path.dirname(__file__)))
 
-    class Test(page_test.PageTest):
+    class Measurement(page_measurement.PageMeasurement):
       @property
       def discard_first_result(self):
         return True
-      def RunTest(self, *args):
+      def MeasurePage(self, *args):
         pass
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    options.reset_html_results = None
 
     options.repeat_options.page_repeat_iters = 1
     options.repeat_options.pageset_repeat_iters = 1
-    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
     options.repeat_options.page_repeat_iters = 1
     options.repeat_options.pageset_repeat_iters = 2
-    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
     options.repeat_options.page_repeat_iters = 2
     options.repeat_options.pageset_repeat_iters = 1
-    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+
+    options.output_format = 'html'
+    options.repeat_options.page_repeat_iters = 1
+    options.repeat_options.pageset_repeat_iters = 1
+    results = page_runner.Run(Measurement(), ps, expectations, options)
+    self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
   def testCredentialsWhenLoginFails(self):
