@@ -106,20 +106,29 @@ base.exportTo('tracing', function() {
       goalFocalPointXWorld,
       goalFocalPointXView,
       goalFocalPointY,
-      zoomInRatioX) {
+      zoomInRatioX,
+      opt_durationMs) {
     this.goalFocalPointXWorld = goalFocalPointXWorld;
     this.goalFocalPointXView = goalFocalPointXView;
     this.goalFocalPointY = goalFocalPointY;
     this.zoomInRatioX = zoomInRatioX;
+    if (opt_durationMs === undefined)
+      this.durationMs = kDefaultPanAnimatoinDurationMs;
+    else
+      this.durationMs = opt_durationMs;
 
+    this.startTimeMs = undefined;
+    this.startScaleX = undefined;
     this.goalScaleX = undefined;
+    this.startPanY = undefined;
+    this.goalPanY = undefined;
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
     __proto__: ui.Animation.prototype,
 
     get affectsPanY() {
-      return true;
+      return this.startPanY != this.goalPanY;
     },
 
     canTakeOverFor: function(existingAnimation) {
@@ -127,19 +136,29 @@ base.exportTo('tracing', function() {
     },
 
     takeOverFor: function(existingAnimation, timestamp, target) {
-      throw new Error('Should not be called');
+      this.goalScaleX = target.scaleX * this.zoomInRatioX;
     },
 
     start: function(timestamp, target) {
+      this.startTimeMs = timestamp;
+      this.startScaleX = target.scaleX;
       this.goalScaleX = this.zoomInRatioX * target.scaleX;
+      this.startPanY = target.panY;
     },
 
     tick: function(timestamp, target) {
-      target.scaleX = this.goalScaleX;
+      var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
+      percentDone = base.clamp(percentDone, 0, 1);
+
+      target.scaleX = base.lerp(percentDone, this.startScaleX, this.goalScaleX);
+      if (this.affectsPanY) {
+        target.panY = base.lerp(
+            percentDone, this.startPanY, this.goalFocalPointY);
+      }
+
       target.xPanWorldPosToViewPos(
           this.goalFocalPointXWorld, this.goalFocalPointXView);
-      target.panY = this.goalFocalPointY;
-      return true;
+      return timestamp >= this.startTimeMs + this.durationMs;
     }
   };
 
