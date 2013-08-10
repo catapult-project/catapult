@@ -1,0 +1,30 @@
+{
+  "name": "DOMFuture",
+  "description": "",
+  "author": "Alex Russell <slightlyoff@chromium.org>",
+  "version" : "0.0.1",
+  "license": "...",
+  "main": "./bin/Promise.min.js",
+  "url": "https://github.com/slightlyoff/Promises",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/slightlyoff/Promises.git"
+  },
+  "contributors": [
+    {
+      "name": "Alex Russell",
+      "email": "slightlyoff@chromium.org",
+      "url": "http://infrequently.org"
+    }
+  ],
+  "scripts": {
+    "test": "cd tests; node test.js && node promises-tests.js"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "eval" : "*",
+    "filemap":  "*"
+  },
+  "engines" : { "node" : ">=0.8.x" }
+}

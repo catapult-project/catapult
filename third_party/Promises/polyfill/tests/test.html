@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+// Copyright (C) 2013:
+//    Alex Russell <slightlyoff@chromium.org>
+// Use of this source code is governed by
+//    http://www.apache.org/licenses/LICENSE-2.0
+-->
+
+<html>
+  <head>
+    <title>Promise Tests</title>
+    <meta charset="utf-8">
+    <script src="../third_party/doh/runner_async.js"></script>
+    <script>
+      this.runningUnderTest = true;
+
+      var append = function(n, h) { (h||document.body).appendChild(n); return n; };
+      var t = function(text) { return document.createTextNode(text); };
+      var el = function(type, html, text) {
+        var node = document.createElement(type);
+        if (html) { node.innerHTML = html; }
+        if (text) { node.appendChild(t(text)); }
+        return node;
+      };
+
+      var domLog = function() {
+        var al = arguments.length;
+        var pre = append(el("pre"));
+        for(var x = 0; x < al; x++) {
+          append(t(arguments[x]), pre);
+          append(t("\n"), pre);
+        }
+      };
+
+      doh.squelch = false;
+      var printLog = [];
+      doh._print = function(s) { printLog.push(s); }
+      doh._report = (function(r) {
+        return function() {
+          r.call(doh);
+          append(el("pre", printLog.join("\n")));
+          printLog.length = 0;
+        }
+      })(doh._report);
+    </script>
+    <script src="../src/Promise.js"></script>
+    <script src="Promise-tests.js"></script>
+    <script>doh.run();</script>
+  </head>
+  <body>
+    <h1>DOM Promise Polyfill Tests</h1>
+  </body>
+</html>

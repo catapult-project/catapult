@@ -1,0 +1,291 @@
+/*
+ * Copyright (C) 2013 Google Inc. All rights reserved.
+ */
+
+//
+// Design Notes
+// ============
+//
+//  Goals:
+//
+//    This design for a DOM-compatible Promise type aims to be
+//    usable in the majority of the web's single-response asynchronous APIs,
+//    either directly or through subclass (e.g., to add progress notification).
+//
+//    It also aims to enable end-users (non-spec authors) to build systems
+//    using these types directly without appealing to libraries or DOM magic
+//    for creating/fulfilling Promises.
+//
+//    We identify the following features as required:
+//
+//      * Chaining of .then() calls
+//      * Subclassing by DOM API designers (see ProgressPromise.idl, e.g.)
+//      * Eventual import or subsetting by TC39 for adding Promises to the
+//        language directly.
+//
+//  Non-Goals:
+//
+//    Unifying or describing the internal behavior of events is a non-goal.
+//    Promises are a single-request/single-repose formalism and may capture
+//    values from past resposes. Events, on the other hand, describe a series
+//    of future events. They cover separate use-cases and we do not seek to
+//    join them here.
+//
+//    Compatibility with existing promises/futures/deferreds libraries or
+//    terminology is a non-goal. Where adopting existing terminology improves
+//    the usability of this design, we will. Otherwise, appeals to
+//    compatibility with published libraries, specifications, and practice are
+//    not compelling. So far, this is compatible with the
+//    Promises/A+ spec, although largely by accident and in part because it
+//    leaves core compatibility points (such as defining what it means to be a
+//    testable "Promise" type in return handling) undefined:
+//
+//      https://github.com/promises-aplus/promises-spec
+//
+//  Basic API:
+//
+//    DOM Promises represent the completion of a single operation, past or
+//    future, an error handling for that operation.
+//
+//    Promises take an initialization function as their only parameter. This
+//    function is called back synchronously (by the time construction finishes)
+//    with references to the the resolve and reject functions that can later be
+//    used to resolve the Promise.
+//
+//      function doAsyncWork() {
+//        return new Promise(function(r) {
+//          setTimeout(function() { // ...time passes
+//            // Do work here
+//            r.resolve("success");
+//          }, 100);
+//        });
+//      }
+//
+//      // Callers of the function can be notified of resolution easily:
+//      doAsyncWork().then(console.log.bind(console));
+//
+//    Promises provide a way for others to be notified when the resolution
+//    occurs without handing them the ability to resolve the future itself.
+//    This is accomplished either by providing callbacks to the ".then()"
+//    method.
+//
+//  Processing model:
+//
+//    the delivery of any resolution or error must be "apparently
+//    asynchronous", specifically they must be delayed at least to the "end of
+//    microtask" as defined for the delivery of mutation observer and
+//    object.observe() notifications. delivery at any point beyond that, e.g.
+//    in the next turn or microtask, is allowed, but all implementations must
+//    demonstrate the following behavior:
+//
+//      var callbacks;
+//      var f = new Promise(function(c) { callbacks = c; });
+//      // Polyfills in debugging mode provide a "_state" property to track
+//      // progress.
+//      assertTrue(f._state == "pending");
+//      callbacks.resolve(null);
+//      assertTrue(f._state == "pending");
+//
+//      try {
+//        callbacks.resolve(null);
+//        // Not reached
+//        assertTrue(false);
+//      } catch(e) {
+//        // Catch the AlreadyResolved error thrown by the second resolve()
+//        assertTrue(e instanceof AlreadyResolved);
+//      }
+//
+//  Chaining:
+//
+//    Chaining is a requirement, meaning that it must be possible to call
+//    ".then()" and receive a sensible result from which you can ".then()"
+//    again.
+//
+//    Promises return a new automatically-generated Promise from each
+//    "then()" call. The then()-generated Promises are resolved by the
+//    callbacks passed to each "then()" invocation. These functions are called
+//    based on the resolution and their return values are passed onward to the
+//    next auto-generated Promise:
+//
+//      // Example invocation
+//      var doItAsync = function() {
+//        var callbacks;
+//        var f = new Promise(function(c) { callbacks = c; });
+//        // ...
+//        return f;
+//      };
+//      doItAsync()
+//          .then(fulfill, reject)
+//          .then(fulfillIntermediate)
+//          .then(fulfillFinal);
+//
+//    Chaining fast-forwards un-handled values to the next item in the chain
+//    which registers a handler for that particular disposition (fulfill &
+//    reject). As in RSVP.js, the "onerror" function passed to then() is
+//    called here, logging the exception:
+//
+//      doItAsync()
+//          .then(function(){ throw new Error("spurious!"); })
+//          .then(fulfill) // "fulfill" is not called, and we fast-forward
+//          .then(null, console.error.bind(console));
+//
+//    If the second call were to handle "error", the final callback would not
+//    receive an "error" unless it also rejected its Promise. e.g.:
+//
+//      doItAsync()
+//          .then(function(){ throw new Error("spurious!"); })
+//          .then(fulfill, console.error.bind(console)) // logs the error
+//          .then(null, console.error.bind(console));    // does nothing
+//
+//  Return Value Sniffing, value/error Chaining, and Forwarding:
+//
+//    Like many other Promise systems, the callbacks for fulfill & error
+//    are used to resolve the auto-generated Promise returned from a call to
+//    then(). Below is the basic logic for then() callback return handling.
+//    Major features:
+//
+//      * If the return is a Promise, merge the generated Promise's behavior
+//        with it.
+//      * If the callback throws, reject() the generated future with the thrown
+//        value, even if the value is not an Error.
+//      * If the return value is any other kind, use it as the "value" for
+//        resolving the generated Promise.
+//
+//    TODO(slightlyoff): updated example logic
+//
+//    Similar logic is in place when using the resolve() method to provide a
+//    value to resolve the Promise with; if a value passed to resolve() is a
+//    Promise, the value of the "local" future assumes the value of the "far"
+//    future. If it is any other value, it will be passed to fulfill(). The
+//    behavior of fulfill is to move the Promise to the "fulfilled" state and
+//    set .value to whatever value is passed (regardless of type).
+//
+//    Pseudo-code for resolve():
+//
+//      resolverInstance.resolve = function(value) {
+//        if (isBrandedAsPromise(value)) {
+//          value.then(this.resolve, this.reject);
+//          return;
+//        }
+//        this.fulfill(value);
+//      }.bind(resolverInstance);
+//
+//  Delivery order:
+//
+//    1) then() callbacks in the order of registration
+//    2) then() callbacks added after initial dispatch phase ends
+//
+//    2 provides for a Promise to have then() callbacks added after it is
+//    resolved, allowing programmers to treat a Promise object as something
+//    which is safe to call .then() on at all times. For example, both calls to
+//    then() in the following example will succeed and both callbacks will
+//    receive the resolution value, albiet at different times:
+//
+//      var callbacks;
+//      var f = new Promise(function(c) { callbacks = c; });
+//      setTimeout(callbacks.fulfill.bind(callbacks, "Success!"), 1);
+//      f.then(function(value) {
+//        // Just to illuminate the timing, we make sure that our next then()
+//        // call occurs well outside the current turn.
+//        setTimeout(function() {
+//          f.then(console.log.bind(console));
+//        }, 1);
+//      });
+//
+//    We observe that the second then()-added callback *DOES* log to the
+//    console, but well after the initial resolution. All conforming
+//    implementations MUST provide the ability for post-resolution then() calls
+//    to resolve this way.
+//
+//  Cancelation and Timeouts:
+//
+//    The passed set of callbacks includes cancel() and timeout() functions.
+//    These are syntactic sugar that generate Error objects with known name
+//    values ("Cancel" and "Timeout", respectively). Handling these values is
+//    done through the usual reject handler of a Promise. Using only fulfill()
+//    and reject() we can re-create these sugar functions easily:
+//
+//      var callbacks;
+//      var f = new Promise(function(c) { callbacks = c; });
+//      // Compatible, ad-hoc versions of cancel() and timeout()
+//      var cancel = function() { callbacks.reject(new Error("Cancel")); };
+//      var timeout = function() { callbacks.reject(new Error("Timeout")); };
+//
+//      // Register a reject handler that understands cancelation and timeout:
+//      f.then(fulfill, function(reason) {
+//        switch(reason.name) {
+//          case "Cancel":
+//            // handle cancelation...
+//            break;
+//          case "Timeout":
+//            // ...
+//            break;
+//          default:
+//            break;
+//        }
+//      });
+//
+//    Calling either the ad-hoc cancel() or callbacks.cancel() will have the
+//    same effect.
+//
+//  Errors and Exceptions:
+//
+//    As seen in the example code above, exceptions throw by callback handlers
+//    are caught by the system. This leads to some particular debugging hazards
+//    which other systems have treated in various ways. Some have opted simply
+//    not to swallow errors. Some propagate errors in various ways (this design
+//    employs a variant of that approach).
+//
+//    No matter what approach is pursued, integration with developer tooling is
+//    key. Developer consoles SHOULD log un-caught errors from future chains.
+//    That is to say, if future.then(onresponse); is the only handler given for
+//    a resolver which is eventually rejected, developer tools should log the
+//    unhandled error.
+
+interface PromiseResolver {
+  // Directly resolves the Promise with the passed value
+  void fulfill(optional any value);
+
+  // Indirectly resolves the Promise, chaining any passed Promise's resolution
+  void resolve(optional any value);
+
+  // Rejects the future
+  void reject(optional any error);
+
+  // Note that implementations may keep internal state here, notably an
+  // "isResovled" flag.
+};
+
+callback PromiseCallback = void (PromiseResolver resolver);
+callback AnyCallback = any (optional any value);
+
+[Constructor(PromiseCallback init)]
+interface Promise {
+  /////////////////////////////////
+  // Instance Methods
+
+  // Returns a Promise whose fulfillment value will be the return value
+  // from whichever of the callbacks is eventually invoked.
+  Promise then(optional AnyCallback fulfill, optional AnyCallback reject);
+
+  // A shorthand for not registering only an reject callback. Desugars to:
+  //
+  //    Promise.prototype.catch = function(reject) {
+  //      return this.then(undefined, reject);
+  //    };
+  //
+  Promise catch(optional AnyCallback reject);
+
+  /////////////////////////////////
+  // Statics
+
+  static Promise fulfill(any value);
+  static Promise resolve(any value); // same as any(value)
+  static Promise reject(any value);
+
+  // exposed as "any" in JavaScript, without "_"
+  static Promise _any(any... values);
+  // FIXME: Should be "all"?
+  static Promise every(any... values);
+  static Promise some(any... values);
+};

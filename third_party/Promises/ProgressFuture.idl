@@ -1,0 +1,28 @@
+// Copyright (C) 2013:
+//    Alex Russell <slightlyoff@chromium.org>
+//    Yehuda Katz
+//
+// Use of this source code is governed by
+//    http://www.apache.org/licenses/LICENSE-2.0
+
+// A subclass of Future which adds support for progress notification.
+//
+// Usage
+// =====
+//
+//  doItAsyncWithProgress(...).
+//    progress(function(progressValue) { ... }).
+//    then(onaccept, onreject);
+
+interface ProgressFutureResolver extends FutureResolver {
+  // Provide new progress which onprogress handlers will be notified of
+  void progress(optional any progressValue);
+};
+
+callback ProgressFutureInit = void (ProgressFutureResolver resolver);
+
+[Constructor(ProgressFutureInit init)]
+interface ProgressFuture : Future {
+  // Returns the Future from which it was called ("this").
+  ProgressFuture progress(optional AnyCallback progressHandler);
+};

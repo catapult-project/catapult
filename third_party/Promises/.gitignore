@@ -1,0 +1,15 @@
+.d8_history
+v8.log
+tmp
+out
+.svn
+*.swp
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+npm-debug.log
+out.prof
+/node_modules/*
+/polyfill/node_modules/*
+/polyfill/dist/*
+/dist/*
