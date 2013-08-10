@@ -263,7 +263,7 @@ def Run(test, page_set, expectations, options):
   try:
     test.WillRunTest(state.tab)
     repeat_state = page_runner_repeat.PageRunnerRepeatState(
-                       options.repeat_options)
+        options.repeat_options)
 
     repeat_state.WillRunPageSet()
     while repeat_state.ShouldRepeatPageSet():

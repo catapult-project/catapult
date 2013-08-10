@@ -235,3 +235,7 @@ class BrowserOptions(optparse.Values):
   def AppendExtraBrowserArg(self, arg):
     if arg not in self.extra_browser_args:
       self.extra_browser_args.append(arg)
+
+  def MergeDefaultValues(self, defaults):
+    for k, v in defaults.__dict__.items():
+      self.ensure_value(k, v)
