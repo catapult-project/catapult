@@ -504,7 +504,7 @@ base.exportTo('tracing', function() {
               worldCenter, 'center', viewWidth);
           var deltaX = tempDisplayTransform.panX - dt.panX;
           var animation = new tracing.TimelineDisplayTransformPanAnimation(
-            deltaX, 0);
+              deltaX, 0);
           this.viewport.queueDisplayTransformAnimation(animation);
         }
         return;
@@ -517,7 +517,7 @@ base.exportTo('tracing', function() {
           viewWidth);
       var deltaX = tempDisplayTransform.panX - dt.panX;
       var animation = new tracing.TimelineDisplayTransformPanAnimation(
-        deltaX, 0);
+          deltaX, 0);
       this.viewport.queueDisplayTransformAnimation(animation);
     },
 
