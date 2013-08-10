@@ -496,29 +496,29 @@ base.exportTo('tracing', function() {
       var viewWidth = this.modelTrackContainer_.canvas.width;
 
       var dt = this.viewport.currentDisplayTransform;
-      if (!bounds.range) {
+      if (false && !bounds.range) {
         if (dt.xWorldToView(bounds.center) < 0 ||
             dt.xWorldToView(bounds.center) > viewWidth) {
           tempDisplayTransform.set(dt);
           tempDisplayTransform.xPanWorldPosToViewPos(
               worldCenter, 'center', viewWidth);
-          this.viewport.setDisplayTransformSmoothly(tempDisplayTransform);
+          var deltaX = tempDisplayTransform.panX - dt.panX;
+          var animation = new tracing.TimelineDisplayTransformPanAnimation(
+            deltaX, 0);
+          this.viewport.queueDisplayTransformAnimation(animation);
         }
         return;
       }
 
-      var worldRangeHalf = bounds.range * 0.5;
-      var boost = worldRangeHalf * 0.5;
-
       tempDisplayTransform.set(dt);
       tempDisplayTransform.xPanWorldBoundsIntoView(
-          worldCenter - worldRangeHalf - boost,
-          worldCenter + worldRangeHalf + boost,
+          bounds.min,
+          bounds.max,
           viewWidth);
-
-      tempDisplayTransform.xPanWorldBoundsIntoView(
-          bounds.min, bounds.max, viewWidth);
-      this.viewport.setDisplayTransformSmoothly(tempDisplayTransform);
+      var deltaX = tempDisplayTransform.panX - dt.panX;
+      var animation = new tracing.TimelineDisplayTransformPanAnimation(
+        deltaX, 0);
+      this.viewport.queueDisplayTransformAnimation(animation);
     },
 
     get keyHelp() {
