@@ -46,6 +46,10 @@ base.exportTo('ui', function() {
       this.target_ = target;
     },
 
+    get activeAnimation() {
+      return this.activeAnimation;
+    },
+
     get hasActiveAnimation() {
       return !!this.activeAnimation_;
     },

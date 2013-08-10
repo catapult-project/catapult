@@ -232,7 +232,9 @@ base.exportTo('tracing', function() {
     },
 
     onModelTrackControllerScroll_: function(e) {
-      this.dtAnimationController_.cancelActiveAnimation();
+      if (this.dtAnimationController_.activeAnimation &&
+          this.dtAnimationController_.activeAnimation.affectsPanY)
+        this.dtAnimationController_.cancelActiveAnimation();
       var panY = this.modelTrackContainer_.scrollTop;
       this.currentDisplayTransform_.panY = panY;
     },

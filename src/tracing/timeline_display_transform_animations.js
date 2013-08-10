@@ -36,6 +36,10 @@ base.exportTo('tracing', function() {
   TimelineDisplayTransformPanAnimation.prototype = {
     __proto__: ui.Animation.prototype,
 
+    get affectsPanY() {
+      return this.deltaY !== 0;
+    },
+
     canTakeOverFor: function(existingAnimation) {
       return existingAnimation instanceof TimelineDisplayTransformPanAnimation;
     },
@@ -63,7 +67,8 @@ base.exportTo('tracing', function() {
       percentDone = base.clamp(percentDone, 0, 1);
 
       target.panX = base.lerp(percentDone, this.startPanX, this.goalPanX);
-      target.panY = base.lerp(percentDone, this.startPanY, this.goalPanY);
+      if (this.affectsPanY)
+        target.panY = base.lerp(percentDone, this.startPanY, this.goalPanY);
       return timestamp >= this.startTimeMs + this.durationMs;
     },
 
@@ -112,6 +117,10 @@ base.exportTo('tracing', function() {
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
     __proto__: ui.Animation.prototype,
+
+    get affectsPanY() {
+      return true;
+    },
 
     canTakeOverFor: function(existingAnimation) {
       return false;
