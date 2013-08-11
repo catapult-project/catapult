@@ -47,7 +47,7 @@ base.exportTo('ui', function() {
     },
 
     get activeAnimation() {
-      return this.activeAnimation;
+      return this.activeAnimation_;
     },
 
     get hasActiveAnimation() {
