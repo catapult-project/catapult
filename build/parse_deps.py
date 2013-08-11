@@ -255,10 +255,14 @@ class Module(object):
       all_resources["style_sheets"][name] = style_sheet
       self.style_sheets.append(style_sheet)
 
-  def compute_load_sequence_recursive(self, load_sequence, already_loaded_set):
+  def compute_load_sequence_recursive(self, load_sequence, already_loaded_set, depth=0):
+    print depth
+    if depth > 32:
+      print 'bam'
+      raise Exception('Include loop detected on %s', self.name)
     for dependent_module in self.dependent_modules:
       dependent_module.compute_load_sequence_recursive(load_sequence,
-                                                       already_loaded_set)
+                                                       already_loaded_set, depth+1)
     if self.name not in already_loaded_set:
       already_loaded_set.add(self.name)
       load_sequence.append(self)
