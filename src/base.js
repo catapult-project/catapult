@@ -125,17 +125,18 @@ this.base = (function() {
       var msg = 'You have a module problem: ' +
           serverSideException.message;
       var baseWarningEl = document.createElement('div');
+      baseWarningEl.style.backgroundColor = 'white';
+      baseWarningEl.style.border = '3px solid red';
       baseWarningEl.style.boxSizing = 'border-box';
+      baseWarningEl.style.color = 'black';
+      baseWarningEl.style.display = '-webkit-flex';
+      baseWarningEl.style.height = '100%';
+      baseWarningEl.style.left = 0;
+      baseWarningEl.style.padding = '8px';
       baseWarningEl.style.position = 'fixed';
       baseWarningEl.style.top = 0;
-      baseWarningEl.style.left = 0;
-      baseWarningEl.style.width = '100%';
-      baseWarningEl.style.height = '100%';
-      baseWarningEl.style.display = '-webkit-flex';
       baseWarningEl.style.webkitFlexDirection = 'column';
-      baseWarningEl.style.border = '3px solid red';
-      baseWarningEl.style.color = 'black';
-      baseWarningEl.style.padding = '8px';
+      baseWarningEl.style.width = '100%';
       baseWarningEl.innerHTML =
           '<h2>Module parsing problem</h2>' +
           '<div id="message"></div>' +
