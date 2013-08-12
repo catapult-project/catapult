@@ -119,49 +119,84 @@ found in the LICENSE file.
     });
 
   </script>
+  <style>
+    html, body {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    #test-harness {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: -webkit-flex;
+      -webkit-flex-direction: column;
+    }
+
+    #test-harness > * {
+      -webkit-flex: 0 0 auto;
+    }
+
+    #test-results {
+      -webkit-flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    #exceptions {
+      -webkit-flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
+    }
+  </style>
 </head>
 
-<body id="test-harness">
-  <h1><a href='/src/tests.html'>Trace-Viewer Tests</a></h1>
+<body>
+  <div id="test-harness">
+    <h1><a href='/src/tests.html'>Trace-Viewer Tests</a></h1>
 
-  <div id="stats">
-    <br />
-  </div>
-
-  <div id='individual-tests'>
-    <div class="unittest">
-      View a trace file:
-      <a href="/examples/trace_viewer.html"
-          class="unittest-error-link">Trace viewer</a>
+    <div id="stats">
+      <br />
     </div>
-    <div class="unittest">
-      Record Selection Interactive Tests:
-      <a href="/src/tracing/record_selection_dialog_interactive_tests.html"
-          class="unittest-error-link">Run manually</a>
+
+    <div id='individual-tests'>
+      <div class="unittest">
+        View a trace file:
+        <a href="/examples/trace_viewer.html"
+            class="unittest-error-link">Trace viewer</a>
+      </div>
+      <div class="unittest">
+        Record Selection Interactive Tests:
+        <a href="/src/tracing/record_selection_dialog_interactive_tests.html"
+            class="unittest-error-link">Run manually</a>
+      </div>
+      <div class="unittest">
+        <input type="radio" name="test-type" value="unit" />
+        Run unit tests
+
+        <input type="radio" name="test-type" value="perf" />
+        Run perf tests
+      </div>
+      <div class="unittest">
+        <input type="checkbox" id="short-format" /> Short format
+      </div>
     </div>
-    <div class="unittest">
-      <input type="radio" name="test-type" value="unit" />
-      Run unit tests
 
-      <input type="radio" name="test-type" value="perf" />
-      Run perf tests
+    <div id='messages'>
+      <h1>Warning</h1>
+      <ul id='message-list'></ul>
     </div>
-    <div class="unittest">
-      <input type="checkbox" id="short-format" /> Short format
+
+    <div id='test-results'>
     </div>
-  </div>
 
-  <div id='messages'>
-    <h1>Warning</h1>
-    <ul id='message-list'></ul>
-  </div>
-
-  <div id='test-results'>
-  </div>
-
-  <div id='exceptions'>
-    <h1>Exceptions</h1>
-    <ol id="exception-list"></ol>
+    <div id='exceptions'>
+      <h1>Exceptions</h1>
+      <ol id="exception-list"></ol>
+    </div>
   </div>
 </body>
 </html>
