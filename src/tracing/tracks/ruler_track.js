@@ -54,29 +54,6 @@ base.exportTo('tracing.tracks', function() {
         this.classList.add('ruler-track-with-distance-measurements');
     },
 
-    drawArrow: function(ctx, x1, y1, x2, y2, arrowWidth) {
-      var dx = x2 - x1;
-      var dy = y2 - y1;
-      var len = Math.sqrt(dx * dx + dy * dy);
-      var perc = (len - 10) / len;
-      var bx = x1 + perc * dx;
-      var by = y1 + perc * dy;
-      var ux = dx / len;
-      var uy = dy / len;
-      var ax = uy * arrowWidth;
-      var ay = -ux * arrowWidth;
-
-      ctx.beginPath();
-      tracing.drawLine(ctx, x1, y1, x2, y2);
-      ctx.stroke();
-
-      tracing.drawTriangle(ctx,
-          bx + ax, by + ay,
-          x2, y2,
-          bx - ax, by - ay);
-      ctx.fill();
-    },
-
     draw: function(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tracing.tracks.DrawType.SLICE:
@@ -229,6 +206,7 @@ base.exportTo('tracing.tracks', function() {
       var arrowColor = 'rgb(128,121,121)';
       var arrowPosY = rulerHeight * 1.75;
       var arrowWidthView = 3;
+      var arrowLengthView = 10;
       var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
 
       ctx.textBaseline = 'middle';
@@ -309,10 +287,14 @@ base.exportTo('tracing.tracks', function() {
           ctx.stroke();
 
           ctx.fillStyle = arrowColor;
-          this.drawArrow(ctx, leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
-              leftMarkerView, arrowPosY, arrowWidthView);
-          this.drawArrow(ctx, rightMarkerView + 1.5 * arrowSpacing,
-              arrowPosY, rightMarkerView, arrowPosY, arrowWidthView);
+          tracing.drawArrow(ctx,
+              leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
+              leftMarkerView, arrowPosY,
+              arrowLengthView, arrowWidthView);
+          tracing.drawArrow(ctx,
+              rightMarkerView + 1.5 * arrowSpacing, arrowPosY,
+              rightMarkerView, arrowPosY,
+              arrowLengthView, arrowWidthView);
 
         } else if (spaceForArrowsView <= distanceBetweenMarkersView) {
           var leftArrowStart;
@@ -332,10 +314,14 @@ base.exportTo('tracing.tracks', function() {
           // Draw the arrows pointing inside out.
           ctx.strokeStyle = arrowColor;
           ctx.fillStyle = arrowColor;
-          this.drawArrow(ctx, leftArrowStart, arrowPosY,
-              leftMarkerView, arrowPosY, arrowWidthView);
-          this.drawArrow(ctx, rightArrowStart, arrowPosY,
-              rightMarkerView, arrowPosY, arrowWidthView);
+          tracing.drawArrow(ctx,
+              leftArrowStart, arrowPosY,
+              leftMarkerView, arrowPosY,
+              arrowLengthView, arrowWidthView);
+          tracing.drawArrow(ctx,
+              rightArrowStart, arrowPosY,
+              rightMarkerView, arrowPosY,
+              arrowLengthView, arrowWidthView);
         }
       }
 

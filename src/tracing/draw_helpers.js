@@ -26,10 +26,9 @@ base.exportTo('tracing', function() {
   var SHOULD_ELIDE_TEXT = true;
 
   /**
-   * Draw the define line into |ctx| in the given |color|.
+   * Draw the define line into |ctx|.
    *
    * @param {Context} ctx The context to draw into.
-   * @param {String} color The color to draw the lines.
    * @param {float} x1 The start x position of the line.
    * @param {float} y1 The start y position of the line.
    * @param {float} x2 The end x position of the line.
@@ -42,12 +41,6 @@ base.exportTo('tracing', function() {
 
   /**
    * Draw the defined triangle into |ctx|.
-   *
-   * Each arrow must have the following API:
-   *   * x1, y1
-   *   * x2, y2
-   *   * x3, y3
-   *   * color  optional
    *
    * @param {Context} ctx The context to draw into.
    * @param {float} x1 The first corner x.
@@ -62,8 +55,41 @@ base.exportTo('tracing', function() {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.lineTo(x3, y3);
-    ctx.lineTo(x1, y1);
     ctx.closePath();
+  }
+
+  /**
+   * Draw an arrow into |ctx|.
+   *
+   * @param {Context} ctx The context to draw into.
+   * @param {float} x1 The shaft x.
+   * @param {float} y1 The shaft y.
+   * @param {float} x2 The head x.
+   * @param {float} y2 The head y.
+   * @param {float} arrowLength The length of the head.
+   * @param {float} arrowWidth The width of the head.
+   */
+  function drawArrow(ctx, x1, y1, x2, y2, arrowLength, arrowWidth) {
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var perc = (len - arrowLength) / len;
+    var bx = x1 + perc * dx;
+    var by = y1 + perc * dy;
+    var ux = dx / len;
+    var uy = dy / len;
+    var ax = uy * arrowWidth;
+    var ay = -ux * arrowWidth;
+
+    ctx.beginPath();
+    drawLine(ctx, x1, y1, x2, y2);
+    ctx.stroke();
+
+    drawTriangle(ctx,
+        bx + ax, by + ay,
+        x2, y2,
+        bx - ax, by - ay);
+    ctx.fill();
   }
 
   /**
@@ -252,6 +278,7 @@ base.exportTo('tracing', function() {
 
     drawLine: drawLine,
     drawTriangle: drawTriangle,
+    drawArrow: drawArrow,
 
     elidedTitleCache_: elidedTitleCache
   };
