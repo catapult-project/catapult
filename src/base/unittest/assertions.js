@@ -65,8 +65,22 @@ base.exportTo('base.unittest', function() {
     assertEquals: function(a, b, opt_message) {
       if (a === b)
         return;
-      var message = opt_message || 'Expected\n"' + JSON.stringify(a) +
-          '"\ngot\n"' + JSON.stringify(b) + '"';
+      if (opt_message)
+        throw new base.unittest.TestError(opt_message);
+
+      var message = 'Expected\n"';
+      if (typeof(a) === 'string' || a instanceof String)
+        message += a;
+      else
+        message += JSON.stringify(a);
+
+      message += '"\n\ngot\n\n"';
+      if (typeof(b) === 'string' || b instanceof String)
+        message += b;
+      else
+        message += JSON.stringify(b);
+
+      message += '"';
       throw new base.unittest.TestError(message);
     },
 

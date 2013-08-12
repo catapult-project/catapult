@@ -86,6 +86,7 @@
       'src/base/color.js',
       'src/base/event_target.js',
       'src/base/iteration_helpers.js',
+      'src/base/interval_tree.js',
       'src/about_tracing/profiling_view.js',
       'src/about_tracing/tracing_controller.js',
       'src/ui.js',
