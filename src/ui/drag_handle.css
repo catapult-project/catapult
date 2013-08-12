@@ -4,6 +4,7 @@
  */
 
 x-drag-handle {
+  -webkit-user-select: none;
   box-sizing: border-box;
   display: block;
 }

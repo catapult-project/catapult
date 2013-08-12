@@ -4,6 +4,7 @@
  */
 
 .timeline-track-view * {
+  -webkit-user-select: none;
   cursor: default;
 }
 

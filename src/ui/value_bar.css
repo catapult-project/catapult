@@ -14,6 +14,7 @@
 }
 
 .value-bar .value-control {
+  -webkit-user-select: none;
   background-color: whitesmoke;
   border: 1px solid gray;
   cursor: pointer;

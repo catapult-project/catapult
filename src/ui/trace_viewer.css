@@ -6,5 +6,6 @@
 /* Global CSS values, applied application-wide */
 
 body * {
+  -webkit-user-select: none;
   box-sizing: border-box;
 }

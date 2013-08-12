@@ -15,6 +15,10 @@
   overflow: auto;
 }
 
+.default-object-view * {
+  -webkit-user-select: text;
+}
+
 .default-object-view .title,
 .default-object-view .title {
   border-bottom: 1px solid rgb(128, 128, 128);

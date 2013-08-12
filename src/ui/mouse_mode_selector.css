@@ -4,7 +4,9 @@
  */
 
 .mouse-mode-selector {
+
   -webkit-user-drag: element;
+  -webkit-user-select: none;
 
   background: #DDD;
   border: 1px solid #BBB;

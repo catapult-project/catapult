@@ -4,12 +4,14 @@
  */
 
 .overlay-root * {
+  -webkit-user-select: none;
   box-sizing: border-box;
 }
 
 .overlay-root {
   -webkit-flex-flow: row;
   -webkit-justify-content: center;
+  -webkit-user-select: none;
   background: rgba(0, 0, 0, 0.8);
   display: -webkit-flex;
   font-family: sans-serif;
@@ -28,7 +30,12 @@
 .overlay-root > .content-host {
   -webkit-flex-flow: column;
   -webkit-justify-content: center;
+  -webkit-user-select: auto;
   display: -webkit-flex;
+}
+
+.overlay * {
+  -webkit-user-select: auto;
 }
 
 .overlay-root > .content-host > * {

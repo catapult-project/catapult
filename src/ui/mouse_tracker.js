@@ -52,6 +52,8 @@ base.exportTo('ui', function() {
       document.addEventListener('mousemove', this.onMouseMove_);
       document.addEventListener('mouseup', this.onMouseUp_);
       this.targetElement_.addEventListener('blur', this.onMouseUp_);
+      this.savePreviousUserSelect_ = document.body.style['-webkit-user-select'];
+      document.body.style['-webkit-user-select'] = 'none';
       e.preventDefault();
       return true;
     },
@@ -65,6 +67,8 @@ base.exportTo('ui', function() {
       document.removeEventListener('mousemove', this.onMouseMove_);
       document.removeEventListener('mouseup', this.onMouseUp_);
       this.targetElement_.removeEventListener('blur', this.onMouseUp_);
+      document.body.style['-webkit-user-select'] =
+          this.savePreviousUserSelect_;
       e = this.remakeEvent_(e, 'mouse-tracker-end');
       this.targetElement_.dispatchEvent(e);
     },
