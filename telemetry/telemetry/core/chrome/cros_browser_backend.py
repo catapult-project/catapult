@@ -140,14 +140,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def pid(self):
     result = self._GetChromeProcess()
-    if 'pid' in result:
+    if result and 'pid' in result:
       return result['pid']
     return None
 
   @property
   def browser_directory(self):
     result = self._GetChromeProcess()
-    if 'path' in result:
+    if result and 'path' in result:
       return result['path']
     return None
 
