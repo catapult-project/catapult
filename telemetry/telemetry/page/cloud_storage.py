@@ -27,6 +27,14 @@ class CloudStorageError(Exception):
   pass
 
 
+class CredentialsError(CloudStorageError):
+  def __init__(self, gsutil_path):
+    super(CredentialsError, self).__init__(
+        'Attempted to download a file from Cloud Storage but you have no '
+        'configured credentials. Run "%s config" to configure your '
+        'credentials. The project-id field can be left blank.' % gsutil_path)
+
+
 def _DownloadGsutil():
   logging.info('Downloading gsutil')
   response = urllib2.urlopen(_GSUTIL_URL)
@@ -64,7 +72,10 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    raise CloudStorageError(stderr.splitlines()[-1])
+    if ('You are attempting to access protected data with '
+        'no configured credentials.' in stderr):
+      raise CredentialsError(gsutil_path)
+    raise CloudStorageError(stderr)
 
   return stdout
 
