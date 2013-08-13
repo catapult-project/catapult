@@ -64,7 +64,7 @@ base.exportTo('tracing.importer', function() {
         else
           name = this.lastActiveComm;
 
-        var slice = new tracing.trace_model.Slice(
+        var slice = new tracing.trace_model.CpuSlice(
             '', name,
             tracing.getStringColorId(name),
             this.lastActiveTs,
@@ -75,6 +75,7 @@ base.exportTo('tracing.importer', function() {
               stateWhenDescheduled: prevState
             },
             duration);
+        slice.cpu = this.cpu;
         this.cpu.slices.push(slice);
       }
 
@@ -406,7 +407,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Builds the cpuSlices array on each thread based on our knowledge of what
+     * Builds the timeSlices array on each thread based on our knowledge of what
      * each Cpu is doing.  This is done only for Threads that are
      * already in the model, on the assumption that not having any traced data
      * on a thread means that it is not of interest to the user.
@@ -418,14 +419,17 @@ base.exportTo('tracing.importer', function() {
         var cpu = cpuState.cpu;
 
         for (var i = 0; i < cpu.slices.length; i++) {
-          var slice = cpu.slices[i];
+          var cpuSlice = cpu.slices[i];
 
-          var thread = this.threadsByLinuxPid[slice.args.tid];
+          var thread = this.threadsByLinuxPid[cpuSlice.args.tid];
           if (!thread)
             continue;
+
+          cpuSlice.threadThatWasRunning = thread;
+
           if (!thread.tempCpuSlices)
             thread.tempCpuSlices = [];
-          thread.tempCpuSlices.push(slice);
+          thread.tempCpuSlices.push(cpuSlice);
         }
       }
 
@@ -470,12 +474,16 @@ base.exportTo('tracing.importer', function() {
             var wakeup = wakeups.shift();
             var wakeupDuration = slice.start - wakeup.ts;
             var args = {'wakeup from tid': wakeup.fromTid};
-            slices.push(new tracing.trace_model.Slice(
-                '', 'Runnable', runnableId, wakeup.ts, args, wakeupDuration));
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Runnable', runnableId,
+                wakeup.ts, args, wakeupDuration));
           }
 
-          slices.push(new tracing.trace_model.Slice('', 'Running', runningId,
-              slice.start, {}, slice.duration));
+          var runningSlice = new tracing.trace_model.ThreadTimeSlice(
+              thread, '', 'Running', runningId,
+              slice.start, {}, slice.duration);
+          runningSlice.cpuOnWhichThreadWasRunning = slice.cpu;
+          slices.push(runningSlice);
         }
 
         var wakeup = undefined;
@@ -496,12 +504,14 @@ base.exportTo('tracing.importer', function() {
             if (wakeup !== undefined) {
               midDuration = wakeup.ts - prevSlice.end;
             }
-            slices.push(new tracing.trace_model.Slice(
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread,
                 '', title, id, prevSlice.end, {}, midDuration));
             if (wakeup !== undefined) {
               var wakeupDuration = nextSlice.start - wakeup.ts;
               var args = {'wakeup from tid': wakeup.fromTid};
-              slices.push(new tracing.trace_model.Slice(
+              slices.push(new tracing.trace_model.ThreadTimeSlice(
+                  thread,
                   '', 'Runnable', runnableId, wakeup.ts, args, wakeupDuration));
               wakeup = undefined;
             }
@@ -511,37 +521,46 @@ base.exportTo('tracing.importer', function() {
             pushSleep('Sleeping', sleepingId);
           } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
                      prevSlice.args.stateWhenDescheduled == 'R+') {
-            slices.push(new tracing.trace_model.Slice(
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread,
                 '', 'Runnable', runnableId, prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D') {
             pushSleep('Uninterruptible Sleep', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'T') {
-            slices.push(new tracing.trace_model.Slice('', '__TASK_STOPPED',
-                ioWaitId, prevSlice.end, {}, midDuration));
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', '__TASK_STOPPED', ioWaitId,
+                prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 't') {
-            slices.push(new tracing.trace_model.Slice('', 'debug', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'debug', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
-            slices.push(new tracing.trace_model.Slice('', 'Zombie', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Zombie', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
-            slices.push(new tracing.trace_model.Slice('', 'Exit Dead', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Exit Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'x') {
-            slices.push(new tracing.trace_model.Slice('', 'Task Dead', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Task Dead', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'K') {
-            slices.push(new tracing.trace_model.Slice('', 'Wakekill', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Wakekill', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'W') {
-            slices.push(new tracing.trace_model.Slice('', 'Waking', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'Waking', ioWaitId,
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'D|K') {
             pushSleep('Uninterruptible Sleep | WakeKill', ioWaitId);
           } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
             pushSleep('Uninterruptible Sleep | Waking', ioWaitId);
           } else {
-            slices.push(new tracing.trace_model.Slice('', 'UNKNOWN', ioWaitId,
+            slices.push(new tracing.trace_model.ThreadTimeSlice(
+                thread, '', 'UNKNOWN', ioWaitId,
                 prevSlice.end, {}, midDuration));
             this.model_.importWarning({
               type: 'parse_error',
@@ -550,10 +569,13 @@ base.exportTo('tracing.importer', function() {
             });
           }
 
-          slices.push(new tracing.trace_model.Slice('', 'Running', runningId,
-              nextSlice.start, {}, nextSlice.duration));
+          var runningSlice = new tracing.trace_model.ThreadTimeSlice(
+              thread, '', 'Running', runningId,
+              nextSlice.start, {}, nextSlice.duration);
+          runningSlice.cpuOnWhichThreadWasRunning = prevSlice.cpu;
+          slices.push(runningSlice);
         }
-        thread.cpuSlices = slices;
+        thread.timeSlices = slices;
       }, this);
     },
 
@@ -663,7 +685,7 @@ base.exportTo('tracing.importer', function() {
 
     /**
      * Records the fact that a pid has become runnable. This data will
-     * eventually get used to derive each thread's cpuSlices array.
+     * eventually get used to derive each thread's timeSlices array.
      */
     markPidRunnable: function(ts, pid, comm, prio, fromPid) {
       // The the pids that get passed in to this function are Linux kernel

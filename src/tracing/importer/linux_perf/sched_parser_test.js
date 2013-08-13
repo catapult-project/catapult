@@ -66,26 +66,26 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var cpuSlices = thread.cpuSlices;
-    assertEquals(4, cpuSlices.length);
+    var timeSlices = thread.timeSlices;
+    assertEquals(4, timeSlices.length);
 
-    var runningSlice = cpuSlices[0];
+    var runningSlice = timeSlices[0];
     assertEquals('Running', runningSlice.title);
     assertAlmostEquals(12622506.890, runningSlice.start);
     assertAlmostEquals(.918 - .890, runningSlice.duration);
 
-    var sleepSlice = cpuSlices[1];
+    var sleepSlice = timeSlices[1];
     assertEquals('Uninterruptible Sleep', sleepSlice.title);
     assertAlmostEquals(12622506.918, sleepSlice.start);
     assertAlmostEquals(.936 - .918, sleepSlice.duration);
 
-    var wakeupSlice = cpuSlices[2];
+    var wakeupSlice = timeSlices[2];
     assertEquals('Runnable', wakeupSlice.title);
     assertAlmostEquals(12622506.936, wakeupSlice.start);
     assertAlmostEquals(.950 - .936, wakeupSlice.duration);
     assertEquals(584, wakeupSlice.args['wakeup from tid']);
 
-    var runningSlice2 = cpuSlices[3];
+    var runningSlice2 = timeSlices[3];
     assertEquals('Running', runningSlice2.title);
     assertAlmostEquals(12622506.950, runningSlice2.start);
     assertAlmostEquals(7.253 - 6.950, runningSlice2.duration);
@@ -110,9 +110,9 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     assertEquals('Unrecognized sleep state: F|O', m.importWarnings[0].message);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var cpuSlices = thread.cpuSlices;
+    var timeSlices = thread.timeSlices;
 
-    assertEquals('UNKNOWN', cpuSlices[1].title);
+    assertEquals('UNKNOWN', timeSlices[1].title);
   });
 
   test('importWithUninterruptibleSleep', function() {
@@ -148,10 +148,10 @@ base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
     assertFalse(m.hasImportWarnings);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var cpuSlices = thread.cpuSlices;
-    assertEquals(4, cpuSlices.length);
+    var timeSlices = thread.timeSlices;
+    assertEquals(4, timeSlices.length);
 
-    var wakeKillSlice = cpuSlices[1];
+    var wakeKillSlice = timeSlices[1];
     assertEquals('Uninterruptible Sleep | WakeKill', wakeKillSlice.title);
     assertAlmostEquals(12622506.918, wakeKillSlice.start);
     assertAlmostEquals(.936 - .918, wakeKillSlice.duration);

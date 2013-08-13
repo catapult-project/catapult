@@ -31,6 +31,10 @@ base.exportTo('tracing.trace_model', function() {
 
   Slice.prototype = {
     __proto__: tracing.trace_model.TimedEvent.prototype,
+
+    get analysisTypeName() {
+      return this.title;
+    }
   };
 
   return {

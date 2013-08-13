@@ -65,7 +65,7 @@ base.exportTo('tracing.trace_model', function() {
     this.sortIndex = 0;
     this.tid = tid;
     this.sliceGroup = new SliceGroup(ThreadSlice);
-    this.cpuSlices = undefined;
+    this.timeSlices = undefined;
     this.samples_ = [];
     this.kernelSliceGroup = new SliceGroup();
     this.asyncSliceGroup = new AsyncSliceGroup();
@@ -151,9 +151,9 @@ base.exportTo('tracing.trace_model', function() {
     shiftTimestampsForward: function(amount) {
       this.sliceGroup.shiftTimestampsForward(amount);
 
-      if (this.cpuSlices) {
-        for (var i = 0; i < this.cpuSlices.length; i++) {
-          var slice = this.cpuSlices[i];
+      if (this.timeSlices) {
+        for (var i = 0; i < this.timeSlices.length; i++) {
+          var slice = this.timeSlices[i];
           slice.start += amount;
         }
       }
@@ -178,7 +178,7 @@ base.exportTo('tracing.trace_model', function() {
         return false;
       if (this.sliceGroup.openSliceCount)
         return false;
-      if (this.cpuSlices && this.cpuSlices.length)
+      if (this.timeSlices && this.timeSlices.length)
         return false;
       if (this.kernelSliceGroup.length)
         return false;
@@ -205,10 +205,10 @@ base.exportTo('tracing.trace_model', function() {
       this.asyncSliceGroup.updateBounds();
       this.bounds.addRange(this.asyncSliceGroup.bounds);
 
-      if (this.cpuSlices && this.cpuSlices.length) {
-        this.bounds.addValue(this.cpuSlices[0].start);
+      if (this.timeSlices && this.timeSlices.length) {
+        this.bounds.addValue(this.timeSlices[0].start);
         this.bounds.addValue(
-            this.cpuSlices[this.cpuSlices.length - 1].end);
+            this.timeSlices[this.timeSlices.length - 1].end);
       }
       if (this.samples_.length) {
         this.bounds.addValue(this.samples_[0].start);
@@ -265,6 +265,19 @@ base.exportTo('tracing.trace_model', function() {
       if (!parentKey)
         return undefined;
       return parentKey + '.' + this.name;
+    },
+
+    /*
+     * Returns the index of the slice in the timeSlices array, or undefined.
+     */
+    indexOfTimeSlice: function(timeSlice) {
+      var i = base.findLowIndexInSortedArray(
+          this.timeSlices,
+          function(slice) { return slice.start; },
+          timeSlice.start);
+      if (this.timeSlices[i] !== timeSlice)
+        return undefined;
+      return i;
     }
   };
 

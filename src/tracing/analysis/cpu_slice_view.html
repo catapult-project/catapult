@@ -1,0 +1,28 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="cpu-slice-view-template">
+  <table>
+    <tr class="analysis-table-row">
+      <td colspan=2><b>CPU Time Slice</b></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Running process:</td><td id="process-name"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Running thread:</td><td id="thread-name"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Start:</td><td id="start"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Duration:</td><td id="duration"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Active slices:</td><td id="running-thread"></td>
+    </tr>
+  </table>
+</template>

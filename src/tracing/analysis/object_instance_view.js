@@ -16,6 +16,10 @@ base.exportTo('tracing.analysis', function() {
       this.objectInstance_ = undefined;
     },
 
+    get requiresTallView() {
+      return true;
+    },
+
     set modelObject(obj) {
       this.objectInstance = obj;
     },

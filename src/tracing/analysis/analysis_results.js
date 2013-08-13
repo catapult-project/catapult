@@ -21,6 +21,10 @@ base.exportTo('tracing.analysis', function() {
       this.className = 'analysis-results';
     },
 
+    get requiresTallView() {
+      return false;
+    },
+
     clear: function() {
       this.textContent = '';
     },

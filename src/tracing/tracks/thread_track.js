@@ -75,17 +75,17 @@ base.exportTo('tracing.tracks', function() {
         this.appendChild(samplesTrack);
       }
 
-      if (this.thread_.cpuSlices) {
-        var cpuTrack = new tracing.tracks.SliceTrack(this.viewport);
-        cpuTrack.categoryFilter = this.categoryFilter;
-        cpuTrack.heading = '';
-        cpuTrack.height = '4px';
-        cpuTrack.decorateHit = function(hit) {
+      if (this.thread_.timeSlices) {
+        var timeSlicesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        timeSlicesTrack.categoryFilter = this.categoryFilter;
+        timeSlicesTrack.heading = '';
+        timeSlicesTrack.height = '4px';
+        timeSlicesTrack.decorateHit = function(hit) {
           hit.thread = this.thread_;
         }
-        cpuTrack.slices = this.thread_.cpuSlices;
-        if (cpuTrack.hasVisibleContent)
-          this.appendChild(cpuTrack);
+        timeSlicesTrack.slices = this.thread_.timeSlices;
+        if (timeSlicesTrack.hasVisibleContent)
+          this.appendChild(timeSlicesTrack);
       }
 
       if (this.thread_.sliceGroup.length) {

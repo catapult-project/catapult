@@ -1,0 +1,38 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="thread-time-slice-view-template">
+  <table>
+    <tr class="analysis-table-row">
+      <td>Running process:</td><td id="process-name"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Running thread:</td><td id="thread-name"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>State:</td>
+      <td><b><span id="state"></span></b></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Start:</td><td id="start"></td>
+    </tr>
+    <tr class="analysis-table-row">
+      <td>Duration:</td><td id="duration"></td>
+    </tr>
+
+    <tr class="analysis-table-row">
+      <td>On CPU:</td><td id="on-cpu"></td>
+    </tr>
+
+    <tr class="analysis-table-row">
+      <td>Running instead:</td><td id="running-instead"></td>
+    </tr>
+
+    <tr class="analysis-table-row">
+      <td>Args:</td><td id="args"></td>
+    </tr>
+  </table>
+</template>

@@ -26,7 +26,7 @@ base.exportTo('tracing.trace_model', function() {
   }
 
   Sample.prototype = {
-    __proto__: tracing.trace_model.TimedEvent.prototype,
+    __proto__: tracing.trace_model.TimedEvent.prototype
   };
 
   return {

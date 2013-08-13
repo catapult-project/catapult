@@ -13,6 +13,148 @@ base.require('tracing.trace_model.counter');
 base.exportTo('tracing.trace_model', function() {
 
   var Counter = tracing.trace_model.Counter;
+  var Slice = tracing.trace_model.Slice;
+
+  /**
+   * A CpuSlice represents an slice of time on a CPU.
+   *
+   * @constructor
+   */
+  function CpuSlice(cat, title, colorId, start, args, opt_duration) {
+    Slice.apply(this, arguments);
+    this.threadThatWasRunning = undefined;
+    this.cpu = undefined;
+  }
+
+  CpuSlice.prototype = {
+    __proto__: Slice.prototype,
+
+    get analysisTypeName() {
+      return 'tracing.analysis.CpuSlice';
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'cpu' || key == 'threadThatWasRunning') {
+          if (this[key])
+            obj[key] = this[key].guid;
+          continue;
+        }
+        obj[key] = this[key];
+      }
+      return obj;
+    },
+
+    getAssociatedTimeslice: function() {
+      if (!this.threadThatWasRunning)
+        return undefined;
+      var timeSlices = this.threadThatWasRunning.timeSlices;
+      for (var i = 0; i < timeSlices.length; i++) {
+        var timeSlice = timeSlices[i];
+        if (timeSlice.start !== this.start)
+          continue;
+        if (timeSlice.duration !== this.duration)
+          continue;
+        return timeSlice;
+      }
+      return undefined;
+    }
+  };
+
+  /**
+   * A ThreadTimeSlice is a slice of time on a specific thread where that thread
+   * was running on a specific CPU, or in a specific sleep state.
+   *
+   * As a thread switches moves through its life, it sometimes goes to sleep and
+   * can't run. Other times, its runnable but isn't actually assigned to a CPU.
+   * Finally, sometimes it gets put on a CPU to actually execute. Each of these
+   * states is represented by a ThreadTimeSlice:
+   *
+   *   Sleeping or runnable: cpuOnWhichThreadWasRunning is undefined
+   *   Running:  cpuOnWhichThreadWasRunning is set.
+   *
+   * @constructor
+   */
+  function ThreadTimeSlice(
+      thread, cat, title, colorId, start, args, opt_duration) {
+    Slice.call(this, cat, title, colorId, start, args, opt_duration);
+    this.thread = thread;
+    this.cpuOnWhichThreadWasRunning = undefined;
+  }
+
+  ThreadTimeSlice.prototype = {
+    __proto__: Slice.prototype,
+
+    get analysisTypeName() {
+      return 'tracing.analysis.ThreadTimeSlice';
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'thread' || key == 'cpuOnWhichThreadWasRunning') {
+          if (this[key])
+            obj[key] = this[key].guid;
+          continue;
+        }
+        obj[key] = this[key];
+      }
+      return obj;
+    },
+
+    getAssociatedCpuSlice: function() {
+      if (!this.cpuOnWhichThreadWasRunning)
+        return undefined;
+      var cpuSlices = this.cpuOnWhichThreadWasRunning.slices;
+      for (var i = 0; i < cpuSlices.length; i++) {
+        var cpuSlice = cpuSlices[i];
+        if (cpuSlice.start !== this.start)
+          continue;
+        if (cpuSlice.duration !== this.duration)
+          continue;
+        return cpuSlice;
+      }
+      return undefined;
+    },
+
+    getCpuSliceThatTookCpu: function() {
+      if (this.cpuOnWhichThreadWasRunning)
+        return undefined;
+      var curIndex = this.thread.indexOfTimeSlice(this);
+      var cpuSliceWhenLastRunning;
+      while (curIndex >= 0) {
+        var curSlice = this.thread.timeSlices[curIndex];
+        if (!curSlice.cpuOnWhichThreadWasRunning) {
+          curIndex--;
+          continue;
+        }
+        cpuSliceWhenLastRunning = curSlice.getAssociatedCpuSlice();
+        break;
+      }
+      if (!cpuSliceWhenLastRunning)
+        return undefined;
+
+      var cpu = cpuSliceWhenLastRunning.cpu;
+      var indexOfSliceOnCpuWhenLastRunning =
+          cpu.indexOf(cpuSliceWhenLastRunning);
+      var nextRunningSlice = cpu.slices[indexOfSliceOnCpuWhenLastRunning + 1];
+      if (!nextRunningSlice)
+        return undefined;
+      if (Math.abs(nextRunningSlice.start - cpuSliceWhenLastRunning.end) <
+          0.00001)
+        return nextRunningSlice;
+      return undefined;
+    }
+  };
 
   /**
    * The Cpu represents a Cpu from the kernel's point of view.
@@ -72,8 +214,24 @@ base.exportTo('tracing.trace_model', function() {
         categoriesDict[this.slices[i].category] = true;
       for (var id in this.counters)
         categoriesDict[this.counters[id].category] = true;
-    }
+    },
 
+    get userFriendlyName() {
+      return 'CPU ' + this.cpuNumber;
+    },
+
+    /*
+     * Returns the index of the slice in the CPU's slices, or undefined.
+     */
+    indexOf: function(cpuSlice) {
+      var i = base.findLowIndexInSortedArray(
+          this.slices,
+          function(slice) { return slice.start; },
+          cpuSlice.start);
+      if (this.slices[i] !== cpuSlice)
+        return undefined;
+      return i;
+    }
   };
 
   /**
@@ -85,6 +243,8 @@ base.exportTo('tracing.trace_model', function() {
 
 
   return {
-    Cpu: Cpu
+    Cpu: Cpu,
+    CpuSlice: CpuSlice,
+    ThreadTimeSlice: ThreadTimeSlice
   };
 });

@@ -71,10 +71,10 @@
   padding-left: 2px;
   padding-right: 2px;
 }
-.timeline-view > .analysis-view:not(.viewing-object) {
+.timeline-view > .analysis-view:not(.tall-mode) {
   height: 250px;
 }
-.timeline-view > .analysis-view.viewing-object {
+.timeline-view > .analysis-view.tall-mode {
   height: 500px;
 }
 

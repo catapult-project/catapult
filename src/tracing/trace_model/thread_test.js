@@ -44,7 +44,7 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
   test('threadBounds_Cpu', function() {
     var model = new tracing.TraceModel();
     var t = new Thread(new Process(model, 7), 1);
-    t.cpuSlices = [newSliceNamed('x', 0, 1)];
+    t.timeSlices = [newSliceNamed('x', 0, 1)];
     t.updateBounds();
     assertEquals(0, t.bounds.min);
     assertEquals(1, t.bounds.max);
@@ -55,7 +55,7 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
     var t = new Thread(new Process(model, 7), 1);
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 0, {}, 3));
     t.asyncSliceGroup.push(newAsyncSlice(0, 5, t, t));
-    t.cpuSlices = [newSliceNamed('x', 0, 1)];
+    t.timeSlices = [newSliceNamed('x', 0, 1)];
 
     var shiftCount = 0;
     t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
@@ -67,7 +67,7 @@ base.unittest.testSuite('tracing.trace_model.thread', function() {
 
     assertEquals(1, shiftCount);
     assertEquals(0.32, t.sliceGroup.slices[0].start);
-    assertEquals(0.32, t.cpuSlices[0].start);
+    assertEquals(0.32, t.timeSlices[0].start);
   });
 
   test('shiftTimestampsForwardWithoutCpu', function() {

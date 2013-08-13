@@ -23,6 +23,9 @@ base.require('ui.dom_helpers');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
 
+base.require('tracing.analysis.cpu_slice_view');
+base.require('tracing.analysis.thread_time_slice_view');
+
 base.exportTo('tracing', function() {
 
   /**

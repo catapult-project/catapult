@@ -57,7 +57,7 @@ base.exportTo('tracing.tracks', function() {
       if (slices.length) {
         var track = new tracing.tracks.SliceTrack(this.viewport);
         track.slices = slices;
-        track.heading = 'CPU ' + this.cpu_.cpuNumber + ':';
+        track.heading = this.cpu_.userFriendlyName + ':';
         this.appendChild(track);
       }
 
@@ -66,7 +66,7 @@ base.exportTo('tracing.tracks', function() {
         if (!this.categoryFilter_.matchCounter(counter))
           return;
         track = new tracing.tracks.CounterTrack(this.viewport);
-        track.heading = 'CPU ' + this.cpu_.cpuNumber + ' ' +
+        track.heading = this.cpu_.userFriendlyName + ' ' +
             counter.name + ':';
         track.counter = counter;
         track.categoryFilter = this.categoryFilter_;

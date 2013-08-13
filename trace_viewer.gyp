@@ -12,6 +12,8 @@
       'src/tracing/record_selection_dialog.html',
       'src/tracing/timeline_view.html',
       'src/tracing/category_filter_dialog.html',
+      'src/tracing/analysis/cpu_slice_view.html',
+      'src/tracing/analysis/thread_time_slice_view.html',
       'src/ui/mouse_mode_selector.html',
     ],
     'tracing_css_files': [
@@ -152,6 +154,8 @@
       'src/tracing/analysis/object_instance_view.js',
       'src/tracing/analysis/analysis_link.js',
       'src/tracing/analysis/analysis_results.js',
+      'src/tracing/analysis/cpu_slice_view.js',
+      'src/tracing/analysis/thread_time_slice_view.js',
       'src/tracing/analysis/util.js',
       'src/tracing/analysis/slice_view.js',
       'src/tracing/analysis/generic_object_view.js',

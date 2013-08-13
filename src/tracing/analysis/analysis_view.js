@@ -47,10 +47,21 @@ base.exportTo('tracing.analysis', function() {
         this.currentView_ = undefined;
         throw e;
       }
-      if (this.currentView_ instanceof tracing.analysis. AnalysisResults)
-        this.classList.remove('viewing-object');
+
+      this.updateClassList_();
+    },
+    updateClassList_: function() {
+      if (this.currentView_ instanceof tracing.analysis.AnalysisResults)
+        this.classList.remove('viewing-old-style-analysis');
       else
-        this.classList.add('viewing-object');
+        this.classList.add('viewing-old-style-analysis');
+
+      if (this.currentView_ &&
+          this.currentView_.requiresTallView) {
+        this.classList.add('tall-mode');
+      } else {
+        this.classList.remove('tall-mode');
+      }
     },
 
     get currentView() {
@@ -104,6 +115,7 @@ base.exportTo('tracing.analysis', function() {
       }
 
       this.changeViewType(tracing.analysis.AnalysisResults);
+
       this.currentView.clear();
       this.currentSelection_ = selection;
       tracing.analysis.analyzeHitsByType(this.currentView, hitsByType);
@@ -125,7 +137,7 @@ base.exportTo('tracing.analysis', function() {
         viewBaseType = tracing.analysis.ObjectInstanceView;
         defaultViewType = tracing.analysis.DefaultObjectInstanceView;
       } else if (hit instanceof tracing.SelectionSliceHit) {
-        typeName = obj.title;
+        typeName = obj.analysisTypeName;
         viewBaseType = tracing.analysis.SliceView;
         defaultViewType = undefined;
       } else {

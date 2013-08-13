@@ -8,7 +8,7 @@
   display: -webkit-flex;
 }
 
-.analysis-view:not(.viewing-object) {
+.analysis-view.viewing-old-style-analysis {
   overflow: auto;
 }
 
