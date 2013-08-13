@@ -114,6 +114,17 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     except util.TimeoutException:
       raise exceptions.BrowserGoneException(self.GetStackTrace())
 
+    # Old versions of Chrome require a workaround for a race condition
+    # with evaluating JavaScript that could cause extension bindings not to
+    # be initialized (crbug.com/263162).
+    if self._chrome_branch_number < 1600:
+      for e in self.options.extensions_to_load:
+        if e.extension_id not in self._extension_dict_backend:
+          continue
+        extension_page = self._extension_dict_backend[e.extension_id]
+        if extension_page.EvaluateJavaScript('chrome.runtime == null'):
+          extension_page.Reload()
+
     def AllExtensionsLoaded():
       # Extension pages are loaded from an about:blank page,
       # so we need to check that the document URL is the extension
@@ -127,8 +138,14 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         if not e.extension_id in self._extension_dict_backend:
           return False
         extension_object = self._extension_dict_backend[e.extension_id]
-        res = extension_object.EvaluateJavaScript(
-            extension_ready_js % e.extension_id)
+        try:
+          res = extension_object.EvaluateJavaScript(
+              extension_ready_js % e.extension_id)
+        except exceptions.EvaluteException:
+          # If the inspected page is not ready, we will get an error
+          # when we evaluate a JS expression, but we can just keep polling
+          # until the page is ready (crbug.com/251913).
+          res = None
         if not res:
           return False
       return True
