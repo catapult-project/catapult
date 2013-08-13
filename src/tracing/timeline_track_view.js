@@ -101,7 +101,6 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_.appendChild(this.modelTrack_);
 
       this.timingTool_ = new tracing.TimingTool(this.viewport_,
-                                                this.rulerTrack_,
                                                 this);
 
       this.initMouseModeSelector();

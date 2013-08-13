@@ -239,6 +239,10 @@ base.exportTo('tracing', function() {
       this.currentDisplayTransform_.panY = panY;
     },
 
+    get modelTrackContainer() {
+      return this.modelTrackContainer_;
+    },
+
     set modelTrackContainer(m) {
       if (this.modelTrackContainer_)
         this.modelTrackContainer_.removeEventListener('scroll',

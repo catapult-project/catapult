@@ -18,9 +18,8 @@ base.exportTo('tracing', function() {
    * Viewportmarkers.
    * @constructor
    */
-  var TimingTool = function(viewport, markerView, targetElement) {
+  var TimingTool = function(viewport, targetElement) {
     this.viewport = viewport;
-    this.markerView_ = markerView;
 
     this.rangeStartMarker_ = viewport.createMarker(0);
     this.rangeEndMarker_ = viewport.createMarker(0);
@@ -36,9 +35,10 @@ base.exportTo('tracing', function() {
 
     getWorldXFromEvent_: function(e) {
       var pixelRatio = window.devicePixelRatio || 1;
-      var viewX =
-          (e.clientX - this.markerView_.offsetLeft - constants.HEADING_WIDTH) *
-              pixelRatio;
+      var modelTrackContainer = this.viewport.modelTrackContainer;
+      var viewX = (e.clientX -
+                   modelTrackContainer.offsetLeft -
+                   constants.HEADING_WIDTH) * pixelRatio;
       return this.viewport.currentDisplayTransform.xViewToWorld(viewX);
     },
 
