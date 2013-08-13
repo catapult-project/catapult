@@ -55,12 +55,15 @@ base.unittest.testSuite('ui', function() {
     assertTrue(baseInstance instanceof Base);
     assertTrue(baseInstance.decoratedAsBase);
 
+    assertEquals(baseInstance.constructor, Base);
+    assertEquals(baseInstance.constructor.name, 'div');
+
     baseInstance.basePropertySet = 7;
     assertEquals(7, baseInstance.basePropertySet);
   });
 
   test('subclassing', function() {
-    var Sub = ui.define('Sub', Base);
+    var Sub = ui.define('sub', Base);
     Sub.prototype = {
       __proto__: Base.prototype,
       decorate: function() {
@@ -74,6 +77,9 @@ base.unittest.testSuite('ui', function() {
 
     assertTrue(subInstance instanceof Base);
     assertFalse(subInstance.decoratedAsBase);
+
+    assertEquals(subInstance.constructor, Sub);
+    assertEquals(subInstance.constructor.name, 'sub');
 
     subInstance.baseProperty = true;
     assertTrue(subInstance.basePropertySet);
@@ -105,7 +111,7 @@ base.unittest.testSuite('ui', function() {
     }
   };
 
-  var ArgsChild = ui.define('child', Args);
+  var ArgsChild = ui.define('args-child', Args);
   ArgsChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(_, second) {
@@ -123,7 +129,7 @@ base.unittest.testSuite('ui', function() {
     }
   };
 
-  var ArgsDecoratingChild = ui.define('child', Args);
+  var ArgsDecoratingChild = ui.define('args-decorating-child', Args);
   ArgsDecoratingChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(first, second) {

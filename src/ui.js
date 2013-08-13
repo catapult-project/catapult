@@ -105,6 +105,11 @@ base.exportTo('ui', function() {
       return el;
     }
 
+    // f.name is not directly writable. So make it writable anyway.
+    Object.defineProperty(
+        f, 'name',
+        {value: tagName, writable: false, configurable: false});
+
     /**
      * Decorates an element as a UI element class.
      * @param {!Element} el The element to decorate.
@@ -112,6 +117,7 @@ base.exportTo('ui', function() {
     f.decorate = function(el) {
       el.__proto__ = f.prototype;
       el.decorate.apply(el, arguments[1]);
+      el.constructor = f;
     };
 
     f.tagName = tagName;
