@@ -36,6 +36,9 @@ base.exportTo('tracing', function() {
     this.currentDisplayTransform_ = new TimelineDisplayTransform();
     this.initAnimationController_();
 
+    // Flow events
+    this.showFlowEvents_ = false;
+
     // Grid system.
     this.gridTimebase_ = 0;
     this.gridStep_ = 1000 / 60;
@@ -251,6 +254,15 @@ base.exportTo('tracing', function() {
       this.modelTrackContainer_ = m;
       this.modelTrackContainer_.addEventListener('scroll',
           this.onModelTrackControllerScroll_);
+    },
+
+    get showFlowEvents() {
+      return this.showFlowEvents_;
+    },
+
+    set showFlowEvents(showFlowEvents) {
+      this.showFlowEvents_ = showFlowEvents;
+      this.dispatchChangeEvent();
     },
 
     get gridEnabled() {

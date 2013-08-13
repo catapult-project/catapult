@@ -70,19 +70,20 @@ base.exportTo('tracing.tracks', function() {
     drawTrackContents_: function() {
       this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
 
-      var types = [
+      var typesToDraw = [
         DrawType.BACKGROUND,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
-        DrawType.SLICE,
-        DrawType.FLOW_ARROWS
+        DrawType.SLICE
       ];
+      if (this.viewport.showFlowEvents)
+        typesToDraw.push(DrawType.FLOW_ARROWS);
 
-      for (var idx in types) {
+      for (var idx in typesToDraw) {
         for (var i = 0; i < this.children.length; ++i) {
           if (!(this.children[i] instanceof tracing.tracks.Track))
             continue;
-          this.children[i].drawTrack(types[idx]);
+          this.children[i].drawTrack(typesToDraw[idx]);
         }
       }
 

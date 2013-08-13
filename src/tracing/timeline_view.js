@@ -19,6 +19,7 @@ base.require('tracing.category_filter_dialog');
 base.require('tracing.filter');
 base.require('tracing.find_control');
 base.require('tracing.timeline_track_view');
+base.require('ui.dom_helpers');
 base.require('ui.overlay');
 base.require('ui.drag_handle');
 
@@ -52,6 +53,12 @@ base.exportTo('tracing', function() {
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
 
+      this.showFlowEvents_ = false;
+      this.rightControls.appendChild(ui.createCheckBox(
+          this, 'showFlowEvents',
+          'tracing.TimelineView.showFlowEvents', false,
+          'Flow events'));
+
       this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
@@ -71,6 +78,17 @@ base.exportTo('tracing', function() {
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.dragEl_.target = this.analysisEl_;
+    },
+
+    get showFlowEvents() {
+      return this.showFlowEvents_;
+    },
+
+    set showFlowEvents(showFlowEvents) {
+      this.showFlowEvents_ = showFlowEvents;
+      if (!this.timeline_)
+        return;
+      this.timeline_.viewport.showFlowEvents = showFlowEvents;
     },
 
     updateCategoryFilter_: function(categories) {
@@ -225,7 +243,7 @@ base.exportTo('tracing', function() {
         this.findCtl_.controller.timeline = this.timeline_;
         this.timeline_.addEventListener(
             'selectionChange', this.onSelectionChanged_);
-
+        this.timeline_.viewport.showFlowEvents = this.showFlowEvents;
         this.analysisEl_.clearSelectionHistory();
       }
 
