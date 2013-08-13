@@ -32,7 +32,6 @@ class _RunState(object):
     self._first_browser = True
     self.first_page = collections.defaultdict(lambda: True)
     self.profiler_dir = None
-    self.repeat_state = None
 
   def StartBrowser(self, test, page_set, page, possible_browser,
                    credentials_path, archive_path):
@@ -111,9 +110,12 @@ class PageState(object):
 
   def PreparePage(self, page, tab, test=None):
     if page.is_file:
-      serving_dirs = page.serving_dirs_and_file[0]
+      serving_dirs, filename = page.serving_dirs_and_file
       if tab.browser.SetHTTPServerDirectories(serving_dirs) and test:
         test.DidStartHTTPServer(tab)
+      target_side_url = tab.browser.http_server.UrlOf(filename)
+    else:
+      target_side_url = page.url
 
     if page.credentials:
       if not tab.browser.credentials.LoginNeeded(tab, page.credentials):
@@ -123,19 +125,6 @@ class PageState(object):
     if test:
       if test.clear_cache_before_each_run:
         tab.ClearCache()
-
-  def ImplicitPageNavigation(self, page, tab, test=None):
-    """Executes the implicit navigation that occurs for every page iteration.
-
-    This function will be called once per page before any actions are executed.
-    """
-    if page.is_file:
-      filename = page.serving_dirs_and_file[1]
-      target_side_url = tab.browser.http_server.UrlOf(filename)
-    else:
-      target_side_url = page.url
-
-    if test:
       test.WillNavigateToPage(page, tab)
     tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     if test:
@@ -192,7 +181,7 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
           state.browser.platform, page)
 
       try:
-        _RunPage(test, page, state, expectation,
+        _RunPage(test, page, state.tab, expectation,
                  results_for_current_run, options)
         _CheckThermalThrottling(state.browser.platform)
       except exceptions.TabCrashException:
@@ -273,19 +262,19 @@ def Run(test, page_set, expectations, options):
 
   try:
     test.WillRunTest(state.tab)
-    state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
-                             options.repeat_options)
+    repeat_state = page_runner_repeat.PageRunnerRepeatState(
+        options.repeat_options)
 
-    state.repeat_state.WillRunPageSet()
-    while state.repeat_state.ShouldRepeatPageSet():
+    repeat_state.WillRunPageSet()
+    while repeat_state.ShouldRepeatPageSet():
       for page in pages:
-        state.repeat_state.WillRunPage()
-        while state.repeat_state.ShouldRepeatPage():
+        repeat_state.WillRunPage()
+        while repeat_state.ShouldRepeatPage():
           # execute test on page
           _PrepareAndRunPage(test, page_set, expectations, options, page,
                              credentials_path, possible_browser, results, state)
-          state.repeat_state.DidRunPage()
-      state.repeat_state.DidRunPageSet()
+          repeat_state.DidRunPage()
+      repeat_state.DidRunPageSet()
 
     test.DidRunTest(state.tab, results)
   finally:
@@ -367,16 +356,13 @@ def _CheckArchives(page_set, pages, results):
           pages_missing_archive_path + pages_missing_archive_data]
 
 
-def _RunPage(test, page, state, expectation, results, options):
+def _RunPage(test, page, tab, expectation, results, options):
   logging.info('Running %s' % page.url)
 
   page_state = PageState()
-  tab = state.tab
 
   try:
     page_state.PreparePage(page, tab, test)
-    if state.repeat_state.ShouldNavigate(options.skip_navigate_on_repeat):
-      page_state.ImplicitPageNavigation(page, tab, test)
     test.Run(options, page, tab, results)
     util.CloseConnections(tab)
   except page_test.Failure:
