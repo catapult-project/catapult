@@ -18,6 +18,7 @@ base.exportTo('tracing.trace_model', function() {
    */
   function Event() {
     this.guid_ = base.GUID.allocate();
+    this.selected = false;
   }
 
   Event.prototype = {

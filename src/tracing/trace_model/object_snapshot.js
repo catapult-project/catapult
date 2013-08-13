@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('base.guid');
+base.require('tracing.trace_model.event');
 
 base.exportTo('tracing.trace_model', function() {
   /**
@@ -30,19 +30,14 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function ObjectSnapshot(objectInstance, ts, args) {
-    this.guid_ = base.GUID.allocate();
+    tracing.trace_model.Event.call(this);
     this.objectInstance = objectInstance;
     this.ts = ts;
     this.args = args;
-    this.selected = false;
   }
 
   ObjectSnapshot.prototype = {
-    __proto__: Object.prototype,
-
-    get guid() {
-      return this.guid_;
-    },
+    __proto__: tracing.trace_model.Event.prototype,
 
     /**
      * See ObjectSnapshot constructor notes on object initialization.

@@ -13,7 +13,6 @@ base.exportTo('tracing.trace_model', function() {
     this.series_ = series;
     this.timestamp_ = timestamp;
     this.value_ = value;
-    this.selected = false;
   }
 
   CounterSample.groupByTimestamp = function(samples) {
