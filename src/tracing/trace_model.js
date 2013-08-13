@@ -22,6 +22,7 @@
  */
 base.require('base.range');
 base.require('base.events');
+base.require('base.interval_tree');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
 base.require('tracing.filter');
@@ -48,6 +49,10 @@ base.exportTo('tracing', function() {
     this.bounds = new base.Range();
     this.instantEvents = [];
     this.flowEvents = [];
+
+    this.flowIntervalTree = new base.IntervalTree(
+        function(s) { return s.start; },
+        function(e) { return e.start; });
 
     this.importWarnings_ = [];
     this.reportedImportWarnings_ = {};
@@ -291,11 +296,16 @@ base.exportTo('tracing', function() {
       }
 
       this.updateBounds();
-
       this.updateCategories_();
 
       if (opt_shiftWorldToZero)
         this.shiftWorldToZero();
+
+      // Build the flow event interval tree.
+      for (var i = 0; i < this.flowEvents.length; ++i) {
+        var pair = this.flowEvents[i];
+        this.flowIntervalTree.insert(pair[0], pair[1]);
+      }
 
       // Join refs.
       for (var i = 0; i < importers.length; i++)

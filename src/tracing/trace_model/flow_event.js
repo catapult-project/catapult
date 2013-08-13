@@ -26,36 +26,10 @@ base.exportTo('tracing.trace_model', function() {
     this.args = args;
 
     this.id = id;
-    this.nextEvent_ = undefined;
-    this.prevEvent_ = undefined;
   }
 
   FlowEvent.prototype = {
-    __proto__: tracing.trace_model.TimedEvent.prototype,
-
-    set nextEvent(event) {
-      this.nextEvent_ = event;
-    },
-
-    set prevEvent(event) {
-      this.prevEvent_ = event;
-    },
-
-    get nextEvent() {
-      return this.nextEvent_;
-    },
-
-    get prevEvent() {
-      return this.prevEvent_;
-    },
-
-    isFlowStart: function() {
-      return (this.prevEvent_ === undefined);
-    },
-
-    isFlowEnd: function() {
-      return (this.nextEvent_ === undefined);
-    }
+    __proto__: tracing.trace_model.TimedEvent.prototype
   };
 
   return {

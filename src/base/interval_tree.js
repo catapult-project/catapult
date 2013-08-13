@@ -110,7 +110,6 @@ base.exportTo('base', function() {
       return colour === Colour.RED ? Colour.BLACK : Colour.RED;
     },
 
-
     /* There is probably a smarter way to do this by starting from the inserted
      * node, but need to handle the rotations correctly. Went the easy route
      * for now. */

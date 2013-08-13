@@ -1203,11 +1203,11 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
     assertNotUndefined(t);
     assertEquals(3, t.sliceGroup.slices.length);
-    assertEquals(3, m.flowEvents.length);
+    assertEquals(2, m.flowEvents.length);
 
-    var start = m.flowEvents[0];
-    var step = m.flowEvents[1];
-    var finish = m.flowEvents[2];
+    var start = m.flowEvents[0][0];
+    var step = m.flowEvents[0][1];
+    var finish = m.flowEvents[1][1];
 
     assertEquals('a', start.title);
     assertEquals('foo', start.category);
@@ -1227,28 +1227,23 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertAlmostEquals((20 + 12) / 1000, finish.start);
     assertEquals(0, finish.duration);
 
-    assertEquals(step, start.nextEvent);
-    assertEquals(finish, step.nextEvent);
-    assertUndefined(finish.nextEvent);
-
-    assertFalse(start.isFlowEnd());
-    assertFalse(step.isFlowEnd());
-    assertTrue(finish.isFlowEnd());
+    assertEquals(2, m.flowIntervalTree.size);
   });
 
   test('importOutOfOrderFlowEvent', function() {
     var events = [
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
-      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 148, ph: 's', args: {} },  // @suppress longLineCheck
-      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 570, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 148, ph: 's', args: {} },  // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 73, pid: 52, tid: 53, ts: 570, ph: 'f', args: {} },   // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
       { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} }   // @suppress longLineCheck
     ];
 
-    var expected = [0.0, 0.4, 0.412, 0.422, 0.432];
+    var expected = [0.4, 0.0, 0.412];
     var m = new tracing.TraceModel(events);
-    var order = m.flowEvents.map(function(x) { return x.start });
+    assertEquals(3, m.flowIntervalTree.size);
 
+    var order = m.flowEvents.map(function(x) { return x[0].start });
     for (var i = 0; i < expected.length; ++i)
       assertAlmostEquals(expected[i], order[i]);
   });

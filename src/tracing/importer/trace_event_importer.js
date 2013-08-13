@@ -514,6 +514,10 @@ base.exportTo('tracing.importer', function() {
       if (this.allFlowEvents_.length === 0)
         return;
 
+      this.allFlowEvents_.sort(function(x, y) {
+        return x.event.ts - y.event.ts;
+      });
+
       var flowIdToEvent = {};
       for (var i = 0; i < this.allFlowEvents_.length; ++i) {
         var data = this.allFlowEvents_[i];
@@ -543,41 +547,37 @@ base.exportTo('tracing.importer', function() {
             tracing.getStringColorId(event.name),
             event.ts / 1000,
             this.deepCopyIfNeeded_(event.args));
-
         thread.sliceGroup.pushSlice(slice);
-        this.model_.flowEvents.push(slice);
 
         if (event.ph === 's') {
+          if (flowIdToEvent[event.id] !== undefined) {
+            this.model_.importWarning({
+              type: 'flow_slice_start_error',
+              message: 'event id ' + event.id + ' already seen when ' +
+                  'encountering start of flow event.'});
+          }
           flowIdToEvent[event.id] = slice;
 
         } else if (event.ph === 't' || event.ph === 'f') {
           var flowPosition = flowIdToEvent[event.id];
           if (flowPosition === undefined) {
             this.model_.importWarning({
-              type: 'flow_slice_parse_error',
-              message: 'Found flow step for id: ' + event.id +
-                  ' but no start found'
+              type: 'flow_slice_ordering_error',
+              message: 'Found flow phase ' + event.ph + ' for id: ' + event.id +
+                  ' but no flow start found.'
             });
             continue;
           }
+          this.model_.flowEvents.push([flowPosition, slice]);
 
-          while (!flowPosition.isFlowEnd())
-            flowPosition = flowPosition.nextEvent;
-          flowPosition.nextEvent = slice;
-          slice.prevEvent = flowPosition;
-
-          if (event.ph === 'f')
-            delete flowIdToEvent[event.id];
+          if (event.ph === 'f') {
+            flowIdToEvent[event.id] = undefined;
+          } else {
+            // Make this slice the next start event in this flow.
+            flowIdToEvent[event.id] = slice;
+          }
         }
       }
-
-      this.model_.flowEvents = this.model_.flowEvents.sort(function(a, b) {
-        if (a.start < b.start)
-          return -1;
-        if (a.start === b.start)
-          return 0;
-        return 1;
-      });
     },
 
     /**

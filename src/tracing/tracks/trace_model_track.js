@@ -135,8 +135,7 @@ base.exportTo('tracing.tracks', function() {
           return;
 
         case tracing.tracks.DrawType.FLOW_ARROWS:
-          if (!this.model_.flowEvents ||
-              this.model_.flowEvents.length === 0) {
+          if (this.model_.flowIntervalTree.size === 0) {
             ctx.restore();
             return;
           }
@@ -172,41 +171,27 @@ base.exportTo('tracing.tracks', function() {
 
       var pixWidth = dt.xViewVectorToWorld(1);
 
-      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
 
-      var events = this.model_.flowEvents;
-      var lowEvent = base.findLowIndexInSortedArray(
-          events,
-          function(event) { return event.start + event.duration; },
-          viewLWorld);
+      var events =
+          this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
 
+      var minWidth = 2 * pixWidth;
       var canvasBounds = ctx.canvas.getBoundingClientRect();
 
-      for (var i = lowEvent; i < events.length; ++i) {
-        var startEvent = events[i];
-        if (startEvent.start > viewRWorld)
-          break;
+      for (var i = 0; i < events.length; ++i) {
+        var startEvent = events[i][0];
+        var endEvent = events[i][1];
 
-        if (startEvent.isFlowStart() && startEvent.isFlowEnd())
+        // Skip lines that will be, essentially, vertical.
+        var distance = endEvent.start - startEvent.start;
+        if (distance <= minWidth)
           continue;
 
-        if (!startEvent.isFlowEnd()) {
-          this.drawFlowArrowBetween_(
-              ctx, startEvent, startEvent.nextEvent, canvasBounds, pixWidth);
-        }
-
-        if (startEvent.isFlowStart())
-          continue;
-
-        var prevEvent = startEvent.prevEvent;
-        // We want to force the line to draw from our previous event if it is
-        // outside the world left view.
-        if ((prevEvent.start + prevEvent.duration) < viewLWorld) {
-          this.drawFlowArrowBetween_(
-              ctx, prevEvent, startEvent, canvasBounds, pixWidth);
-        }
+        this.drawFlowArrowBetween_(
+            ctx, startEvent, endEvent, canvasBounds, pixWidth);
       }
     },
 
@@ -226,26 +211,18 @@ base.exportTo('tracing.tracks', function() {
 
       var pixelStartY = pixelRatio * startY;
       var pixelEndY = pixelRatio * endY;
-
-      // Skip lines that will be, essentially, vertical.
-      var minWidth = 2 * pixWidth;
-      var distance =
-          Math.abs((startEvent.start + startEvent.duration) - endEvent.start);
-      if (distance <= minWidth)
-        return;
-
-      var half =
-          (endEvent.start - (startEvent.start + startEvent.duration)) / 2;
+      var half = (endEvent.start - startEvent.start) / 2;
 
       ctx.beginPath();
-      ctx.moveTo(startEvent.start + startEvent.duration, pixelStartY);
+      ctx.moveTo(startEvent.start, pixelStartY);
       ctx.bezierCurveTo(
-          startEvent.start + startEvent.duration + half, pixelStartY,
-          startEvent.start + startEvent.duration + half, pixelEndY,
+          startEvent.start + half, pixelStartY,
+          startEvent.start + half, pixelEndY,
           endEvent.start, pixelEndY);
       ctx.stroke();
 
       var arrowWidth = 5 * pixWidth * pixelRatio;
+      var distance = endEvent.start - startEvent.start;
       if (distance <= (2 * arrowWidth))
         return;
 
