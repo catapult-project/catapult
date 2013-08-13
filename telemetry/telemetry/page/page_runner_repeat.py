@@ -52,3 +52,10 @@ class PageRunnerRepeatState(object):
           self.page_iters >= self.options.page_repeat_iters):
       return False
     return True
+
+  def ShouldNavigate(self, skip_navigate_on_repeat):
+    """Returns whether we are navigating to pages on page repeats.
+
+    Always navigate on the first iteration of a page and on every new pageset.
+    """
+    return self.page_iters == 0 or not skip_navigate_on_repeat

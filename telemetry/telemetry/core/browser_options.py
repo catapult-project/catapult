@@ -54,6 +54,7 @@ class BrowserOptions(optparse.Values):
 
     self.repeat_options = repeat_options.RepeatOptions()
     self.output_file = None
+    self.skip_navigate_on_repeat = False
 
   def Copy(self):
     return copy.deepcopy(self)
