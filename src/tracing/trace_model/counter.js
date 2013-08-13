@@ -72,7 +72,10 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     addSeries: function(series) {
+      series.counter = this;
+      series.seriesIndex = this.series_.length;
       this.series_.push(series);
+      return series;
     },
 
     getSeries: function(idx) {

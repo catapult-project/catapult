@@ -9,10 +9,14 @@ base.require('tracing.trace_model.counter');
 base.require('tracing.trace_model.counter_series');
 
 base.unittest.testSuite('tracing.trace_model.counter', function() {
+  var Counter = tracing.trace_model.Counter;
+  var CounterSeries = tracing.trace_model.CounterSeries;
+  var CounterSample = tracing.trace_model.CounterSample;
+
   var createCounterWithTwoSeries = function() {
-    var ctr = new tracing.trace_model.Counter(null, 0, '', 'myCounter');
-    var aSeries = new tracing.trace_model.CounterSeries('a', 0);
-    var bSeries = new tracing.trace_model.CounterSeries('b', 0);
+    var ctr = new Counter(null, 0, '', 'myCounter');
+    var aSeries = new CounterSeries('a', 0);
+    var bSeries = new CounterSeries('b', 0);
     ctr.addSeries(aSeries);
     ctr.addSeries(bSeries);
 

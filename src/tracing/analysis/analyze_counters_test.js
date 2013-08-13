@@ -33,12 +33,12 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
 
     var selection = new Selection();
     var t1track = {};
-    selection.addCounterSample(t1track, ctr, 1);
+    selection.addCounterSample(t1track, ctr.getSeries(0).samples[1]);
 
     if (numSamples === 1)
       return selection;
 
-    selection.addCounterSample(t1track, ctr, 0);
+    selection.addCounterSample(t1track, ctr.getSeries(0).samples[0]);
     return selection;
   };
 
@@ -65,7 +65,8 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     var selection = new Selection();
     var t1track = {};
 
-    selection.addCounterSample(t1track, ctr, 1);
+    selection.addCounterSample(t1track, ctr.getSeries(0).samples[1]);
+    selection.addCounterSample(t1track, ctr.getSeries(1).samples[1]);
     return selection;
   };
 
@@ -78,40 +79,45 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
 
     var selection = new Selection();
     var t1track = {};
-    selection.addCounterSample(t1track, ctr1, 1);
-    selection.addCounterSample(t1track, ctr2, 2);
+
+    selection.addCounterSample(t1track, ctr1.getSeries(0).samples[1]);
+    selection.addCounterSample(t1track, ctr1.getSeries(1).samples[1]);
+
+
+    selection.addCounterSample(t1track, ctr2.getSeries(0).samples[2]);
+    selection.addCounterSample(t1track, ctr2.getSeries(1).samples[2]);
     return selection;
   };
 
   var createSelectionWithTwoCountersDiffSeriesDiffHits = function() {
     var ctr1 = new Counter(null, 0, '', 'a');
-    var allocatedSeries = new CounterSeries('bytesallocated', 0);
-    ctr1.addSeries(allocatedSeries);
+    var ctr1AllocatedSeries = new CounterSeries('bytesallocated', 0);
+    ctr1.addSeries(ctr1AllocatedSeries);
 
-    allocatedSeries.addSample(0, 0);
-    allocatedSeries.addSample(10, 25);
-    allocatedSeries.addSample(20, 15);
+    ctr1AllocatedSeries.addSample(0, 0);
+    ctr1AllocatedSeries.addSample(10, 25);
+    ctr1AllocatedSeries.addSample(20, 15);
 
     assertEquals('a', ctr1.name);
     assertEquals(3, ctr1.numSamples);
     assertEquals(1, ctr1.numSeries);
 
     var ctr2 = new Counter(null, 0, '', 'b');
-    var allocatedSeries = new CounterSeries('bytesallocated', 0);
-    var freeSeries = new CounterSeries('bytesfree', 1);
+    var ctr2AllocatedSeries = new CounterSeries('bytesallocated', 0);
+    var ctr2FreeSeries = new CounterSeries('bytesfree', 1);
 
-    ctr2.addSeries(allocatedSeries);
-    ctr2.addSeries(freeSeries);
+    ctr2.addSeries(ctr2AllocatedSeries);
+    ctr2.addSeries(ctr2FreeSeries);
 
-    allocatedSeries.addSample(0, 0);
-    allocatedSeries.addSample(10, 25);
-    allocatedSeries.addSample(20, 10);
-    allocatedSeries.addSample(30, 15);
+    ctr2AllocatedSeries.addSample(0, 0);
+    ctr2AllocatedSeries.addSample(10, 25);
+    ctr2AllocatedSeries.addSample(20, 10);
+    ctr2AllocatedSeries.addSample(30, 15);
 
-    freeSeries.addSample(0, 20);
-    freeSeries.addSample(10, 5);
-    freeSeries.addSample(20, 25);
-    freeSeries.addSample(30, 0);
+    ctr2FreeSeries.addSample(0, 20);
+    ctr2FreeSeries.addSample(10, 5);
+    ctr2FreeSeries.addSample(20, 25);
+    ctr2FreeSeries.addSample(30, 0);
 
     assertEquals('b', ctr2.name);
     assertEquals(4, ctr2.numSamples);
@@ -119,8 +125,11 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
 
     var selection = new Selection();
     var t1track = {};
-    selection.addCounterSample(t1track, ctr1, 1);
-    selection.addCounterSample(t1track, ctr2, 2);
+    var t2track = {};
+
+    selection.addCounterSample(t1track, ctr1AllocatedSeries.samples[1]);
+    selection.addCounterSample(t2track, ctr2AllocatedSeries.samples[2]);
+    selection.addCounterSample(t2track, ctr2FreeSeries.samples[2]);
 
     return selection;
   };
@@ -158,34 +167,11 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     assertEquals(10, table.rows[2].text);
   });
 
-  test('analyzeSelectionWithBasicTwoSeriesTwoCounters', function() {
-    var selection = createSelectionWithTwoSeriesTwoCounters();
-
-    var results = new StubAnalysisResults();
-    tracing.analysis.analyzeSelection(results, selection);
-    assertEquals(1, results.tables.length);
-    var table = results.tables[0];
-    assertEquals('Counters:', table.tableHeader);
-    assertEquals(4, table.rows.length);
-
-    assertEquals('ctr1: series(bytesallocated)', table.rows[0].label);
-    assertEquals('ctr1: series(bytesfree)', table.rows[1].label);
-    assertEquals('ctr2: series(bytesallocated)', table.rows[2].label);
-    assertEquals('ctr2: series(bytesfree)', table.rows[3].label);
-  });
-
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
     var selection = createSelectionWithTwoCountersDiffSeriesDiffHits();
 
     var results = new StubAnalysisResults();
     tracing.analysis.analyzeSelection(results, selection);
-    assertEquals(1, results.tables.length);
-    var table = results.tables[0];
-    assertEquals('Counters:', table.tableHeader);
-    assertEquals(3, table.rows.length);
-
-    assertEquals('a: series(bytesallocated)', table.rows[0].label);
-    assertEquals('b: series(bytesallocated)', table.rows[1].label);
-    assertEquals('b: series(bytesfree)', table.rows[2].label);
+    assertEquals(2, results.tables.length);
   });
 });

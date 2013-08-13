@@ -108,10 +108,16 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
       var x = 0.15 * clientRect.width;
       track.addIntersectingItemsInRangeToSelection(x, x + 1, y75, y75 + 1, sel);
 
-      assertEquals(1, sel.length);
+      assertEquals(2, sel.length);
       assertEquals(track, sel[0].track);
-      assertEquals(ctr, sel[0].counter);
-      assertEquals(1, sel[0].sampleIndex);
+      assertEquals(ctr, sel[0].counterSample.series.counter);
+      assertEquals(1, sel[0].counterSample.getSampleIndex());
+      assertEquals(0, sel[0].counterSample.series.seriesIndex);
+
+      assertEquals(track, sel[1].track);
+      assertEquals(ctr, sel[1].counterSample.series.counter);
+      assertEquals(1, sel[1].counterSample.getSampleIndex());
+      assertEquals(1, sel[1].counterSample.series.seriesIndex);
 
       // Outside bounds.
       sel = new tracing.Selection();

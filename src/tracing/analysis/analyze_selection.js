@@ -34,13 +34,8 @@ base.exportTo('tracing.analysis', function() {
       tracing.analysis.analyzeMultipleSliceHits(results, sliceHits);
     }
 
-    if (counterSampleHits.length == 1) {
-      tracing.analysis.analyzeSingleCounterSampleHit(
-          results, counterSampleHits[0]);
-    } else if (counterSampleHits.length > 1) {
-      tracing.analysis.analyzeMultipleCounterSampleHits(
-          results, counterSampleHits);
-    }
+    if (counterSampleHits.length != 0)
+      tracing.analysis.analyzeCounterSampleHits(results, counterSampleHits);
 
     if (objectHits.length)
       analyzeObjectHits(results, objectHits);

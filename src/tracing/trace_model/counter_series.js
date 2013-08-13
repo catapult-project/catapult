@@ -4,46 +4,13 @@
 
 'use strict';
 
-base.require('base.guid');
+base.require('tracing.trace_model.counter_sample');
 
 /**
  * @fileoverview Provides the CounterSeries class.
  */
 base.exportTo('tracing.trace_model', function() {
-
-  function CounterSample(timestamp, value) {
-    this.guid_ = base.GUID.allocate();
-    this.timestamp_ = timestamp;
-    this.value_ = value;
-  }
-
-  CounterSample.prototype = {
-    __proto__: Object.prototype,
-
-    get value() {
-      return this.value_;
-    },
-
-    set timestamp(timestamp) {
-      this.timestamp_ = timestamp;
-    },
-
-    toJSON: function() {
-      var obj = new Object();
-      var keys = Object.keys(this);
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (typeof this[key] == 'function')
-          continue;
-        if (key == 'parent') {
-          obj[key] = this[key].guid;
-          continue;
-        }
-        obj[key] = this[key];
-      }
-      return obj;
-    }
-  };
+  var CounterSample = tracing.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
     this.guid_ = base.GUID.allocate();
@@ -53,6 +20,10 @@ base.exportTo('tracing.trace_model', function() {
 
     this.timestamps_ = [];
     this.samples_ = [];
+
+    // Set by counter.addSeries
+    this.counter = undefined;
+    this.seriesIndex = undefined;
   }
 
   CounterSeries.prototype = {
@@ -65,7 +36,7 @@ base.exportTo('tracing.trace_model', function() {
         var key = keys[i];
         if (typeof this[key] == 'function')
           continue;
-        if (key == 'parent') {
+        if (key == 'counter') {
           obj[key] = this[key].guid;
           continue;
         }
@@ -104,7 +75,9 @@ base.exportTo('tracing.trace_model', function() {
 
     addSample: function(ts, val) {
       this.timestamps_.push(ts);
-      this.samples_.push(new CounterSample(ts, val));
+      var sample = new CounterSample(this, ts, val);
+      this.samples_.push(sample);
+      return sample;
     },
 
     getStatistics: function(sampleIndices) {

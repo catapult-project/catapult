@@ -34,32 +34,26 @@ base.exportTo('tracing', function() {
     }
   };
 
-  function SelectionCounterSampleHit(track, counter, sampleIndex) {
+  function SelectionCounterSampleHit(track, counterSample) {
     this.track = track;
-    this.counter = counter;
-    this.sampleIndex = sampleIndex;
+    this.counterSample = counterSample;
   }
 
   SelectionCounterSampleHit.prototype = {
     get modelObject() {
-      return this.sampleIndex;
+      return this.counterSample;
     },
 
     get selected() {
-      return this.track.selectedSamples[this.sampleIndex] == true;
+      return this.counterSample.selected;
     },
 
     set selected(v) {
-      if (v)
-        this.track.selectedSamples[this.sampleIndex] = true;
-      else
-        this.track.selectedSamples[this.sampleIndex] = false;
+      this.counterSample.selected = !!v;
     },
 
     addBoundsToRange: function(range) {
-      if (!this.track.timestamps)
-        return;
-      range.addValue(this.track.timestamps[this.sampleIndex]);
+      range.addValue(this.counterSample.timestamp);
     }
   };
 
@@ -194,10 +188,11 @@ base.exportTo('tracing', function() {
       return this.push_(new SelectionSliceHit(track, slice));
     },
 
-    addCounterSample: function(track, counter, sampleIndex) {
+    addCounterSample: function(track, counterSample) {
+      if (! (counterSample instanceof tracing.trace_model.CounterSample))
+        throw new Error('Must be a sample');
       return this.push_(
-          new SelectionCounterSampleHit(
-          track, counter, sampleIndex));
+          new SelectionCounterSampleHit(track, counterSample));
     },
 
     addObjectSnapshot: function(track, objectSnapshot) {

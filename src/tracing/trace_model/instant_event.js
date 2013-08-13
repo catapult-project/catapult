@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('tracing.trace_model.trace_model_event');
+base.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the InstantEvent class.
@@ -17,13 +17,21 @@ base.exportTo('tracing.trace_model', function() {
   };
 
   function InstantEvent(category, title, colorId, start, args) {
-    tracing.trace_model.TraceModelEvent.apply(this, arguments);
+    tracing.trace_model.TimedEvent.call(this);
+
+    this.category = category || '';
+    this.title = title;
+    this.colorId = colorId;
+    this.start = start;
+    this.args = args;
 
     this.type = undefined;
   };
 
   InstantEvent.prototype = {
-    __proto__: tracing.trace_model.TraceModelEvent.prototype
+    __proto__: tracing.trace_model.TimedEvent.prototype,
+
+    selected: false
   };
 
   function GlobalInstantEvent(category, title, colorId, start, args) {

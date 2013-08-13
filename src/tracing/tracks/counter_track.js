@@ -30,7 +30,6 @@ base.exportTo('tracing.tracks', function() {
     decorate: function(viewport) {
       tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
-      this.selectedSamples_ = {};
       this.categoryFilter_ = new tracing.Filter();
     },
 
@@ -57,14 +56,6 @@ base.exportTo('tracing.tracks', function() {
 
     set categoryFilter(v) {
       this.categoryFilter_ = v;
-    },
-
-    /**
-     * @return {Object} A sparse, mutable map from sample index to bool. Samples
-     * indices the map that are true are drawn as selected.
-     */
-    get selectedSamples() {
-      return this.selectedSamples_;
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
@@ -104,13 +95,15 @@ base.exportTo('tracing.tracks', function() {
           counter.timestamps,
           function(x) { return x; },
           viewLWorld);
+      var timestamps = counter.timestamps;
 
       startIndex = startIndex - 1 > 0 ? startIndex - 1 : 0;
       // Draw indices one by one until we fall off the viewRWorld.
       var yScale = height / counter.maxTotal;
       for (var seriesIndex = counter.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
-        var colorId = counter.series[seriesIndex].color;
+        var series = counter.series[seriesIndex];
+        var colorId = series.color;
         ctx.fillStyle = palette[colorId];
         ctx.beginPath();
 
@@ -118,7 +111,7 @@ base.exportTo('tracing.tracks', function() {
         // startIndex sample.
         var iLast = startIndex - 1;
         var xLast = iLast >= 0 ?
-            counter.timestamps[iLast] - skipDistanceWorld : -1;
+            timestamps[iLast] - skipDistanceWorld : -1;
         var yLastView = height;
 
         // Iterate over samples from iLast onward until we either fall off the
@@ -136,7 +129,7 @@ base.exportTo('tracing.tracks', function() {
             break;
           }
 
-          var x = counter.timestamps[i];
+          var x = timestamps[i];
           var y = counter.totals[i * numSeries + seriesIndex];
           var yView = height - (yScale * y);
 
@@ -147,7 +140,7 @@ base.exportTo('tracing.tracks', function() {
           }
 
           if (i + 1 < numSamples) {
-            var xNext = counter.timestamps[i + 1];
+            var xNext = timestamps[i + 1];
             if (xNext - xLast <= skipDistanceWorld && xNext < viewRWorld) {
               iLast = i;
               continue;
@@ -175,19 +168,24 @@ base.exportTo('tracing.tracks', function() {
         }
         ctx.closePath();
         ctx.fill();
+
       }
 
       ctx.fillStyle = 'rgba(255, 0, 0, 1)';
-      for (var i in this.selectedSamples_) {
-        if (!this.selectedSamples_[i])
-          continue;
-
-        var x = counter.timestamps[i];
-        for (var seriesIndex = counter.numSeries - 1;
-             seriesIndex >= 0; seriesIndex--) {
-          var y = counter.totals[i * numSeries + seriesIndex];
-          var yView = height - (yScale * y);
-          ctx.fillRect(x - pixWidth, yView - 1, 3 * pixWidth, 3);
+      for (var seriesIndex = counter.numSeries - 1;
+           seriesIndex >= 0; seriesIndex--) {
+        var series = counter.series[seriesIndex];
+        var seriesSamples = series.samples;
+        for (var i = startIndex; timestamps[i] < viewRWorld; i++) {
+          if (!seriesSamples[i].selected)
+            continue;
+          var x = timestamps[i];
+          for (var seriesIndex = counter.numSeries - 1;
+               seriesIndex >= 0; seriesIndex--) {
+            var y = counter.totals[i * numSeries + seriesIndex];
+            var yView = height - (yScale * y);
+            ctx.fillRect(x - pixWidth, yView - 1, 3 * pixWidth, 3);
+          }
         }
       }
       ctx.restore();
@@ -220,15 +218,21 @@ base.exportTo('tracing.tracks', function() {
                                                    hiWX);
 
       // Iterate over every sample intersecting..
-      for (var i = iLo; i <= iHi; i++) {
-        if (i < 0)
+      for (var sampleIndex = iLo; sampleIndex <= iHi; sampleIndex++) {
+        if (sampleIndex < 0)
           continue;
-        if (i >= counter.timestamps.length)
+        if (sampleIndex >= counter.timestamps.length)
           continue;
 
         // TODO(nduca): Pick the seriesIndexHit based on the loY - hiY values.
-        var hit = selection.addCounterSample(this, this.counter, i);
-        this.decorateHit(hit);
+        for (var seriesIndex = 0;
+             seriesIndex < this.counter.numSeries;
+             seriesIndex++) {
+          var series = this.counter.series[seriesIndex];
+          var hit = selection.addCounterSample(
+              this, series.samples[sampleIndex]);
+          this.decorateHit(hit);
+        }
       }
     },
 

@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('tracing.trace_model.trace_model_event');
+base.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the Sample class.
@@ -17,11 +17,16 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Sample(category, title, colorId, start, args) {
-    tracing.trace_model.TraceModelEvent.apply(this, arguments);
+    tracing.trace_model.TimedEvent.call(this, start);
+
+    this.category = category || '';
+    this.title = title;
+    this.colorId = colorId;
+    this.args = args;
   }
 
   Sample.prototype = {
-    __proto__: tracing.trace_model.TraceModelEvent.prototype
+    __proto__: tracing.trace_model.TimedEvent.prototype,
   };
 
   return {

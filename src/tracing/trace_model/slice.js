@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('tracing.trace_model.trace_model_event');
+base.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the Slice class.
@@ -17,19 +17,20 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Slice(category, title, colorId, start, args, opt_duration) {
-    tracing.trace_model.TraceModelEvent.
-        call(this, category, title, colorId, start, args);
+    tracing.trace_model.TimedEvent.call(this, start);
+
+    this.category = category || '';
+    this.title = title;
+    this.colorId = colorId;
+    this.args = args;
+    this.didNotFinish = false;
 
     if (opt_duration !== undefined)
       this.duration = opt_duration;
   }
 
   Slice.prototype = {
-    __proto__: tracing.trace_model.TraceModelEvent.prototype,
-
-    get end() {
-      return this.start + this.duration;
-    }
+    __proto__: tracing.trace_model.TimedEvent.prototype,
   };
 
   return {
