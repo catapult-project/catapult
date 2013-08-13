@@ -22,7 +22,7 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     flush_command_mtime = 0
 
     chrome_root = util.GetChromiumSrcDir()
-    for build_type, build_dir in util.BuildDirectoryIterator():
+    for build_dir, build_type in util.GetBuildDirectories():
       candidate = os.path.join(chrome_root, build_dir, build_type,
                                self.GetFlushUtilityName())
       if os.access(candidate, os.X_OK):
@@ -43,8 +43,11 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     args = [flush_command, '--recurse']
     directory_contents = os.listdir(directory)
     for item in directory_contents:
-      if item not in ignoring:
+      if not ignoring or item not in ignoring:
         args.append(os.path.join(directory, item))
+
+    if len(args) < 3:
+      return
 
     p = subprocess.Popen(args)
     p.wait()

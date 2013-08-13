@@ -71,6 +71,10 @@ class PageTest(object):
     the first run of the test can warm things up. """
     return self._discard_first_result
 
+  @discard_first_result.setter
+  def discard_first_result(self, discard):
+    self._discard_first_result = discard
+
   @property
   def clear_cache_before_each_run(self):
     """When set to True, the browser's disk and memory cache will be cleared
