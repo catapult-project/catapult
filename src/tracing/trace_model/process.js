@@ -62,7 +62,7 @@ base.exportTo('tracing.trace_model', function() {
     get userFriendlyName() {
       var res;
       if (this.name)
-        res = this.name;
+        res = this.name + ' (pid ' + this.pid + ')';
       else
         res = 'Process ' + this.pid;
       if (this.labels.length)
