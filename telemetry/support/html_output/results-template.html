@@ -212,8 +212,8 @@ function PerfTestMetric(name, metric, unit, isImportant) {
                 unit == 'KB' ||
                 unit == 'MB' ||
                 unit == 'bytes' ||
-                !metric.indexOf('V8.') ||
-                metric == 'processes');
+                unit == 'count' ||
+                !metric.indexOf('V8.'));
     }
     this.addResult = function (newResult) {
         testResults.push(newResult);
