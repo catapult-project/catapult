@@ -43,8 +43,6 @@ class ExtensionTest(unittest.TestCase):
       logging.warning('Did not find a browser that supports extensions, '
                       'skipping test.')
       return
-    self.assertTrue(
-        self._extension.EvaluateJavaScript('chrome.runtime != null'))
     self._extension.ExecuteJavaScript('setTestVar("abcdef")')
     self.assertEquals('abcdef',
                       self._extension.EvaluateJavaScript('_testVar'))
@@ -128,8 +126,6 @@ class MultipleExtensionTest(unittest.TestCase):
     for load_extension in self._extensions_to_load:
       extension = self._browser.extensions[load_extension]
       assert extension
-      self.assertTrue(
-          extension.EvaluateJavaScript('chrome.runtime != null'))
       extension.ExecuteJavaScript('setTestVar("abcdef")')
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
 
@@ -151,8 +147,6 @@ class ComponentExtensionTest(unittest.TestCase):
     with browser_to_create.Create() as b:
       b.Start()
       extension = b.extensions[load_extension]
-      self.assertTrue(
-          extension.EvaluateJavaScript('chrome.runtime != null'))
       extension.ExecuteJavaScript('setTestVar("abcdef")')
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
 

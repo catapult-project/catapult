@@ -45,8 +45,6 @@ class ExtensionDictBackend(object):
     if not extension_info or not 'webSocketDebuggerUrl' in extension_info:
       raise ExtensionNotFoundException()
     return extension_page.ExtensionPage(
-        extension_id,
-        extension_info['url'],
         self._CreateInspectorBackendForDebuggerUrl(
             extension_info['webSocketDebuggerUrl']))
 
