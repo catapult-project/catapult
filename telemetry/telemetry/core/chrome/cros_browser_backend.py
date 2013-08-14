@@ -106,7 +106,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _GetSessionManagerPid(self, procs):
     """Returns the pid of the session_manager process, given the list of
     processes."""
-    for pid, process, _ in procs:
+    for pid, process, _, _ in procs:
       if process.startswith('/sbin/session_manager '):
         return pid
     return None
@@ -129,7 +129,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return None
 
     # Find the chrome process that is the child of the session_manager.
-    for pid, process, ppid in procs:
+    for pid, process, ppid, _ in procs:
       if ppid != session_manager_pid:
         continue
       for path in self.CHROME_PATHS:

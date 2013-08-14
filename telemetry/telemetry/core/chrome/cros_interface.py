@@ -245,19 +245,19 @@ class CrOSInterface(object):
         return res
 
   def ListProcesses(self):
-    """Returns a tuple (pid, cmd, ppid) of all processes on the device."""
+    """Returns (pid, cmd, ppid, state) of all processes on the device."""
     stdout, stderr = self.RunCmdOnDevice([
         '/bin/ps', '--no-headers',
         '-A',
-        '-o', 'pid,ppid,args'], quiet=True)
+        '-o', 'pid,ppid,args,state'], quiet=True)
     assert stderr == '', stderr
     procs = []
     for l in stdout.split('\n'): # pylint: disable=E1103
       if l == '':
         continue
-      m = re.match('^\s*(\d+)\s+(\d+)\s+(.+)', l, re.DOTALL)
+      m = re.match('^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)
       assert m
-      procs.append((int(m.group(1)), m.group(3), int(m.group(2))))
+      procs.append((int(m.group(1)), m.group(3), int(m.group(2)), m.group(4)))
     logging.debug("ListProcesses(<predicate>)->[%i processes]" % len(procs))
     return procs
 
@@ -267,7 +267,7 @@ class CrOSInterface(object):
 
   def KillAllMatching(self, predicate):
     kills = ['kill', '-KILL']
-    for pid, cmd, _ in self.ListProcesses():
+    for pid, cmd, _, _ in self.ListProcesses():
       if predicate(cmd):
         logging.info('Killing %s, pid %d' % cmd, pid)
         kills.append(pid)

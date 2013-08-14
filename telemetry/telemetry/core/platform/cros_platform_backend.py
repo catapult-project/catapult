@@ -53,6 +53,18 @@ class CrosPlatformBackend(platform_backend.PlatformBackend):
   def GetOSName(self):
     return 'chromeos'
 
+  def GetChildPids(self, pid):
+    """Returns a list of child pids of |pid|."""
+    all_process_info = self._cri.ListProcesses()
+    processes = []
+    for pid, _, ppid, state in all_process_info:
+      processes.append((pid, ppid, state))
+    return proc_util.GetChildPids(processes, pid)
+
+  def GetCommandLine(self, pid):
+    command = self._GetPsOutput(['command'], pid)
+    return command[0] if command else None
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 
