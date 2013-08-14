@@ -59,7 +59,26 @@ class PageRunnerTests(unittest.TestCase):
     options.output_format = 'none'
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(results.failures))
     self.assertEquals(1, len(results.errors))
+
+  def testHandlingOfCrashedTabWithExpectedFailure(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    expectations.Fail('chrome://crash')
+    page1 = page_module.Page('chrome://crash', ps)
+    ps.pages.append(page1)
+
+    class Test(page_test.PageTest):
+      def RunTest(self, *args):
+        pass
+
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    self.assertEquals(1, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.errors))
 
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()

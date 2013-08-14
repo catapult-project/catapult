@@ -373,6 +373,14 @@ def _RunPage(test, page, state, expectation, results, options):
   page_state = PageState()
   tab = state.tab
 
+  def ProcessError():
+    logging.error('%s:\n%s', page.url, traceback.format_exc())
+    if expectation == 'fail':
+      logging.info('Error was expected\n')
+      results.AddSuccess(page)
+    else:
+      results.AddError(page, sys.exc_info())
+
   try:
     page_state.PreparePage(page, tab, test)
     if state.repeat_state.ShouldNavigate(options.skip_navigate_on_repeat):
@@ -388,11 +396,9 @@ def _RunPage(test, page, state, expectation, results, options):
       results.AddFailure(page, sys.exc_info())
   except (util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
-    logging.error('%s:\n%s', page.url, traceback.format_exc())
-    results.AddError(page, sys.exc_info())
+    ProcessError()
   except (exceptions.TabCrashException, exceptions.BrowserGoneException):
-    logging.error('%s:\n%s', page.url, traceback.format_exc())
-    results.AddError(page, sys.exc_info())
+    ProcessError()
     # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
     raise
   except Exception:
