@@ -32,7 +32,7 @@
   padding-top: 1px;
 }
 
-.timeline-view > .control > .controls.category-filter {
+.timeline-view > .control > #right-controls {
   margin-left: auto;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .timeline-view > .control > .controls > button,
-.timeline-view > .control > .controls > label {
+.timeline-view > .control > .controls label {
   font-size: 11px;
   height: 19px;
   margin: 1px 2px 1px 2px;
