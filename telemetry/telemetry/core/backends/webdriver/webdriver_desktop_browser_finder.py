@@ -60,9 +60,6 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   def last_modification_time(self):
     return -1
 
-  def SelectDefaultBrowser(self, possible_browsers):  # pylint: disable=W0613
-    return None
-
 
 class PossibleDesktopIE(PossibleWebDriverBrowser):
   def __init__(self, browser_type, options, architecture):
@@ -78,6 +75,8 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
     return webdriver_browser_backend.WebDriverBrowserBackend(
         DriverCreator, False, self.options)
 
+def SelectDefaultBrowser(_):
+  return None
 
 def FindAllAvailableBrowsers(options):
   """Finds all the desktop browsers available on this machine."""
