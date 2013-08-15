@@ -38,6 +38,21 @@ base.unittest.testSuite('ui.quad_view_viewport', function() {
     assertEquals(4000, tmp[0]);
     assertEquals(2000, tmp[1]);
 
+    // Top left.
+    var tmp = vp.worldPixelsToLayoutPixels(vec2.createXY(0, 0));
+    assertEquals(0, tmp[0]);
+    assertEquals(0, tmp[1]);
+
+    // World center.
+    var tmp = vp.worldPixelsToLayoutPixels(vec2.createXY(2000, 1000));
+    assertEquals(125, tmp[0]);
+    assertEquals(62.5, tmp[1]);
+
+    // Bottom right.
+    var tmp = vp.worldPixelsToLayoutPixels(vec2.createXY(4000, 2000));
+    assertEquals(250, tmp[0]);
+    assertEquals(125, tmp[1]);
+
     assertRectEquals(bbox.asRect(), vp.unpaddedWorldRect);
 
     assertEquals(2, vp.devicePixelsPerLayoutPixel);

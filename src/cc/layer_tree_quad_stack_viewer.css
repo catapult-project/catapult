@@ -15,17 +15,3 @@ layer-tree-quad-stack-viewer > top-controls {
   display: inline;
   position: relative;
 }
-
-layer-tree-quad-stack-viewer > quad-stack-viewer {
-  -webkit-flex: 1 1 100%;
-  display: block;
-  overflow: scroll;
-  position: relative;
-}
-
-.camera-debug-indicator {
-  left: 0;
-  position: absolute;
-  top:  0;
-  z-index: 11;
-}

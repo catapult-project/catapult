@@ -13,10 +13,10 @@ base.exportTo('ui', function() {
   //             https://code.google.com/p/trace-viewer/issues/detail?id=228
   var constants = {
     // The ratio of quad stack pixels to world pixels before CSS scaling.
-    DEVICE_PIXELS_PER_WORLD_PIXEL: .125,
+    DEVICE_PIXELS_PER_WORLD_PIXEL: 1.0,
     // Extra area surrounding the quad bounding box to help
     // see border/highlights
-    DEFAULT_PAD_PERCENTAGE: 0.50
+    DEFAULT_PAD_PERCENTAGE: 0.00
   };
 
   function QuadViewViewport(worldRect,
@@ -35,9 +35,6 @@ base.exportTo('ui', function() {
     this.layoutRect_ = undefined;
     this.setWorldRect_(worldRect, opt_padding);
 
-    this.devicePixelsPerWorldPixel_ = opt_devicePixelsPerWorldPixel ||
-        constants.DEVICE_PIXELS_PER_WORLD_PIXEL;
-
     this.updateScale_(opt_devicePixelsPerWorldPixel ||
         constants.DEVICE_PIXELS_PER_WORLD_PIXEL);
   }
@@ -45,10 +42,6 @@ base.exportTo('ui', function() {
   QuadViewViewport.prototype = {
 
     __proto__: base.EventTarget.prototype,
-
-    get devicePixelsPerWorldPixel() {
-      return this.devicePixelsPerWorldPixel_;
-    },
 
     get layoutPixelsPerWorldPixel() {
       return this.layoutPixelsPerWorldPixel_;
@@ -83,15 +76,18 @@ base.exportTo('ui', function() {
       return this.transformWorldToDevicePixels_;
     },
 
-    get scale() {
+    get devicePixelsPerWorldPixel() {
       return this.devicePixelsPerWorldPixel_;
     },
 
-    set scale(newValue) {
+    set devicePixelsPerWorldPixel(newValue) {
       this.updateScale_(newValue);
     },
 
     updateBoxSize: function(canvas) {
+      // http://www.html5rocks.com/en/tutorials/canvas/hidpi/
+      // The |ratio| in the above article is our devicePixelsPerLayoutPixel
+      //
       var resizedCanvas = false;
       if (canvas.width !== this.worldWidthInDevicePixels_) {
         canvas.width = this.worldWidthInDevicePixels_ * ui.RASTER_SCALE;

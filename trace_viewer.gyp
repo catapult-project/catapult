@@ -32,6 +32,7 @@
       'src/ui/filter_control.css',
       'src/ui/drag_handle.css',
       'src/ui/trace_viewer.css',
+      'src/ui/quad_stack_viewer.css',
       'src/tcmalloc/tcmalloc_instance_view.css',
       'src/tcmalloc/tcmalloc_snapshot_view.css',
       'src/tcmalloc/heap_instance_track.css',

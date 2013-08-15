@@ -15,7 +15,7 @@ layer-viewer > layer-tree-quad-stack-viewer {
   -webkit-flex: 1 1 100%;
   -webkit-flex-direction: column;
   display: -webkit-flex;
-  overflow: auto;
+  width: 100%;
 }
 
 layer-viewer > layer-viewer-analysis {

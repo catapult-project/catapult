@@ -21,10 +21,6 @@ base.require('ui.info_bar');
 
 
 base.exportTo('cc', function() {
-  var constants = {
-    // The ratio of quad stack pixels to world pixels before CSS scaling.
-    QUAD_STACK_SCALE: 0.5
-  };
 
   /**
    * @constructor
@@ -50,25 +46,6 @@ base.exportTo('cc', function() {
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackViewer_);
-
-      var scaleText = ui.createSpan({
-        textContent: 'Scale:'
-      });
-      this.controls_.appendChild(scaleText);
-
-      var scaleSelector = ui.createSelector(
-          this.quadStackViewer_.camera, 'zoom',
-          'layerViewer.scale', 0.375,
-          [{label: '6.25%', value: 0.0625},
-           {label: '12.5%', value: 0.125},
-           {label: '25%', value: 0.25},
-           {label: '37.5%', value: 0.375},
-           {label: '50%', value: 0.5},
-           {label: '75%', value: 0.75},
-           {label: '100%', value: 1},
-           {label: '200%', value: 2}
-          ]);
-      this.controls_.appendChild(scaleSelector);
 
       var tileRectsText = ui.createSpan({
         textContent: 'Tiles to show:'
@@ -442,10 +419,10 @@ base.exportTo('cc', function() {
       var lthiInstance = lthi.objectInstance;
       var worldViewportRect = base.Rect.FromXYWH(0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
-      var currentZoom = this.quadStackViewer_.camera.zoom;
+      var camera = this.quadStackViewer_.camera;
       this.quadStackViewer_.quadStack.initialize(
           lthiInstance.allLayersBBox.asRect(), worldViewportRect,
-          currentZoom);
+          camera.scheduledLayoutPixelsPerWorldPixel);
 
       this.quadStackViewer_.quadStack.quads = this.quads_;
 

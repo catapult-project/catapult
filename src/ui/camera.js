@@ -6,50 +6,127 @@
 
 base.exportTo('ui', function() {
 
-  function lerp(a, b, interp) {
-    return (a * (1 - interp)) +
-        (b * interp);
-  }
+  var constants = {
+    DEFAULT_ZOOM: 0.5, // needs to be large enough to fill view
+    DEFAULT_Z_OFFSET_RATIO_TO_WORLD_SIZE: 0.02,
+    MAXIMUM_ZOOM: 2.0,
+    RESCALE_TIMEOUT_MS: 200,
+    MAXIMUM_TILT: 75, // degrees
+  };
+
 
   /**
    * @constructor
    */
   function Camera(targetElement) {
-    this.targetElement_ = targetElement;
+    this.quadStack_ = targetElement;
 
-    this.onMouseDown_ = this.onMouseDown_.bind(this);
-    this.onMouseMove_ = this.onMouseMove_.bind(this);
-    this.onMouseUp_ = this.onMouseUp_.bind(this);
+    this.scheduledLayoutPixelsPerWorldPixel_ = constants.DEFAULT_ZOOM;
+    this.tiltAroundXInDegrees_ = 0;
+    this.tiltAroundYInDegrees_ = 0;
+    this.panXInLayoutPixels_ = 0;
+    this.panYInLayoutPixels_ = 0;
+    this.thicknessRatio = constants.DEFAULT_Z_OFFSET_RATIO_TO_WORLD_SIZE;
 
-    this.cameraStart_ = {x: 0, y: 0};
-    this.rotations_ = {x: 0, y: 0};
-    this.rotationStart_ = {x: 0, y: 0};
-    this.matrixParameters_ = {
-      thicknessRatio: 0.012, // Ratio of thickness to world size.
-      strengthRatioX: 0.7, // Ratio of mousemove X pixels to degrees rotated.
-      strengthRatioY: 0.25 // Ratio of mousemove Y pixels to degrees rotated.
-    };
-
-    this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
-    this.targetElement_.addEventListener('layersChange',
+    this.quadStack_.addEventListener('layersChange',
         this.scheduleRepaint.bind(this));
+
+    this.quadStack_.addEventListener('viewportChange', function(event) {
+      var viewport = event.newValue;
+      if (viewport) {
+        viewport.addEventListener('change', this.scheduleRepaint.bind(this));
+      }
+    }.bind(this));
+
+    window.addEventListener('resize', function() {
+      delete this.maximumPanRectCache_;
+    }.bind(this));
+
   }
 
   Camera.prototype = {
 
-    get zoom() {
-      return this.targetElement_.viewport ?
-          this.targetElement_.viewport.scale : 0;
+    get scheduledLayoutPixelsPerWorldPixel() {
+      return this.scheduledLayoutPixelsPerWorldPixel_;
     },
 
-    set zoom(newValue) {
-      if (this.targetElement_.viewport)
-        this.targetElement_.viewport.scale = newValue;
+    set scheduledLayoutPixelsPerWorldPixel(newValue) {
+      var maxZoom = this.zoomLimitsVec2();
+      if (newValue < maxZoom[0])
+        return;
+      if (newValue > maxZoom[1])
+        return;
+      this.scheduledLayoutPixelsPerWorldPixel_ = newValue;
+      this.scheduleRescale_();
+      this.scheduleRepaint();
+    },
+
+    get tiltAroundXInDegrees() {
+      return this.tiltAroundXInDegrees_;
+    },
+
+    set tiltAroundXInDegrees(tilt) {
+      if (Math.abs(tilt) > constants.MAXIMUM_TILT) {
+        tilt = sign(tilt) * constants.MAXIMUM_TILT;
+        return;
+      }
+
+      this.tiltAroundXInDegrees_ = tilt;
+      this.scheduleRepaint();
+    },
+
+    get tiltAroundYInDegrees() {
+      return this.tiltAroundYInDegrees_;
+    },
+
+    set tiltAroundYInDegrees(tilt) {
+      if (Math.abs(tilt) > constants.MAXIMUM_TILT)
+        return;
+      this.tiltAroundYInDegrees_ = tilt;
+      this.scheduleRepaint();
+    },
+
+    get panXInLayoutPixels() {
+      return this.panXInLayoutPixels_;
+    },
+
+    set panXInLayoutPixels(newValue) {
+      if (newValue < this.maximumPanRect.x)
+        return;
+      if (newValue > this.maximumPanRect.x + this.maximumPanRect.width)
+        return;
+      this.panXInLayoutPixels_ = newValue;
+      this.scheduleRepaint();
+    },
+
+    get panYInLayoutPixels() {
+      return this.panYInLayoutPixels_;
+    },
+
+    set panYInLayoutPixels(newValue) {
+      if (newValue < this.maximumPanRect.y)
+        return;
+      if (newValue > this.maximumPanRect.y + this.maximumPanRect.height)
+        return;
+      this.panYInLayoutPixels_ = newValue;
+      this.scheduleRepaint();
+    },
+
+    get maximumPanRect() {
+      // TODO rely on cache
+      this.maximumPanRectCache_ = this.maximumPanRect_();
+      return this.maximumPanRectCache_;
+    },
+
+    get interimCSSScale() {
+      return this.scheduledLayoutPixelsPerWorldPixel_ /
+          this.quadStack_.viewport.layoutPixelsPerWorldPixel;
     },
 
     scheduleRepaint: function() {
       if (this.repaintPending_)
         return;
+      delete this.maximumPanRectCache_;
       this.repaintPending_ = true;
       base.requestAnimationFrameInThisFrameIfPossible(
           this.repaint_, this);
@@ -61,97 +138,172 @@ base.exportTo('ui', function() {
       this.repaint_();
     },
 
+    zoomToFillViewWithWorld: function() {
+      var elementPixelsPerLayoutPixel = this.scaleToFillViewWithLayout();
+      return elementPixelsPerLayoutPixel *
+          this.quadStack_.viewport.layoutPixelsPerWorldPixel;
+    },
+
+    scaleToFillViewWithLayout: function() {
+      var containerElementRect =
+          this.quadStack_.parentElement.getBoundingClientRect();
+      var layoutRect = this.quadStack_.viewport.layoutRect;
+      var widthScale = containerElementRect.width / layoutRect.width;
+      var heightScale = containerElementRect.height / layoutRect.height;
+
+      if (widthScale > 0 && heightScale > 0)
+        return Math.min(widthScale, heightScale);
+      return widthScale || heightScale || 1.0;
+    },
+
+    zoomLimitsVec2: function() {
+      var min = 0.9 * this.zoomToFillViewWithWorld();
+      var max = constants.MAXIMUM_ZOOM;
+      return vec2.fromValues(min, max);
+    },
+
+    maximumPanRect_: function() {
+      // Any value in this function that changes must cause
+      // delete on this.maximumPanRectCache_.
+      // Depends on viewport.
+      var rect = this.quadStack_.viewport.layoutRect.clone();
+      // Depends on cssScale
+      rect = rect.scale(this.interimCSSScale);
+      // Depends on resize.
+      var eltRect = this.quadStack_.parentElement.getBoundingClientRect();
+
+      if (rect.width > eltRect.width)
+        rect.width = rect.width - eltRect.width;
+      else
+        rect.width = eltRect.width - rect.width;
+      rect.x = -rect.width / 2;
+
+      if (rect.height > eltRect.height)
+        rect.height = rect.height - eltRect.height;
+      else
+        rect.height = eltRect.height - rect.height;
+      rect.y = -rect.height / 2;
+      return rect;
+    },
+
+    centerInLayoutUnitsVec2_: function() {
+      var vp = this.quadStack_.viewport;
+      var objectRect = vp.layoutRect;
+      return vec2.createXY(
+          objectRect.width / 2,
+          objectRect.height / 2);
+    },
+
+    panInLayoutPixelsVec2_: function(cssScale) {
+      return vec2.fromValues(this.panXInLayoutPixels, this.panYInLayoutPixels);
+    },
+
+    centeringPanInLayoutUnitsVec2_: function() {
+      var objectCenter = this.centerInLayoutUnitsVec2_();
+      var viewClientRect =
+          this.quadStack_.parentElement.getBoundingClientRect();
+      var viewCenter = vec2.createXY(
+          viewClientRect.width / 2,
+          viewClientRect.height / 2);
+
+      var deltaCenter = vec2.create();
+      vec2.subtract(deltaCenter, viewCenter, objectCenter);
+      return deltaCenter;
+    },
+
+    rebasePanInLayoutPixels_: function(cssScale) {
+      var basePan = this.centeringPanInLayoutUnitsVec2_();
+      var pan = vec2.create();
+      vec2.add(pan, basePan, this.panInLayoutPixelsVec2_());
+      return pan;
+    },
+
+    originAtPanInLayoutPixels_: function() {
+      var center = this.centerInLayoutUnitsVec2_();
+      var origin = vec2.create();
+      vec2.subtract(origin, center, this.panInLayoutPixelsVec2_());
+      return origin;
+    },
+
+    translateLayersByZ_: function(worldRect, layers, cssScale) {
+      var artificalThickness = this.thicknessRatio *
+          Math.min(worldRect.width, worldRect.height);
+      artificalThickness = Math.max(artificalThickness, 15);
+
+      // Set depth of each layer such that they center around 0.
+      var numLayers = layers.length;
+      var deepestLayerZ = -artificalThickness * 0.5;
+      var depthIncreasePerLayer = artificalThickness /
+          Math.max(1, numLayers - 1);
+      for (var i = 0; i < numLayers; i++) {
+        var layer = layers[i];
+        var newDepth = deepestLayerZ + i * depthIncreasePerLayer;
+        newDepth = newDepth / cssScale;
+        layer.style.webkitTransform = 'translateZ(' + newDepth + 'px)';
+      }
+    },
+
+    shiftOriginToScaleAroundPan_: function(container, cssScale) {
+      if (cssScale !== 1) {
+        this.origin_ = this.originAtPanInLayoutPixels_();
+        container.style.webkitTransformOrigin =
+            this.origin_[0] + 'px ' + this.origin_[1] + 'px ';
+      } else {
+        container.style.webkitTransformOrigin = '';
+      }
+    },
+
     repaint_: function() {
       if (!this.repaintPending_)
         return;
 
       this.repaintPending_ = false;
-      var layers = this.targetElement_.layers;
+      var layers = this.quadStack_.layers;
 
       if (!layers)
         return;
 
-      var numLayers = layers.length;
+      var vp = this.quadStack_.viewport;
+      var container = this.quadStack_.transformedContainer;
 
-      var vpThickness;
-      if (this.targetElement_.viewport) {
-        vpThickness = this.matrixParameters_.thicknessRatio *
-            Math.min(this.targetElement_.viewport.worldRect.width,
-                     this.targetElement_.viewport.worldRect.height);
-      } else {
-        vpThickness = 0;
-      }
-      vpThickness = Math.max(vpThickness, 15);
+      var cssScale = this.interimCSSScale;
 
-      // When viewing the stack head-on, we want no foreshortening effects. As
-      // we move off axis, let the thickness grow as well as the amount of
-      // perspective foreshortening.
-      var maxRotation = Math.max(Math.abs(this.rotations_.x),
-                                 Math.abs(this.rotations_.y));
-      var clampLimit = 30;
-      var clampedMaxRotation = Math.min(maxRotation, clampLimit);
-      var percentToClampLimit = clampedMaxRotation / clampLimit;
-      var persp = Math.pow(Math.E,
-                           lerp(Math.log(5000), Math.log(500),
-                                percentToClampLimit));
-      this.targetElement_.webkitPerspective = persp;
-      var effectiveThickness = vpThickness * percentToClampLimit;
+      this.translateLayersByZ_(vp.worldRect, layers, cssScale);
+      this.shiftOriginToScaleAroundPan_(container, cssScale);
 
-      // Set depth of each layer such that they center around 0.
-      var deepestLayerZ = -effectiveThickness * 0.5;
-      var depthIncreasePerLayer = effectiveThickness /
-          Math.max(1, numLayers - 1);
-      for (var i = 0; i < numLayers; i++) {
-        var layer = layers[i];
-        var newDepth = deepestLayerZ + i * depthIncreasePerLayer;
-        layer.style.webkitTransform = 'translateZ(' + newDepth + 'px)';
-      }
-
-      // Set rotation matrix to whatever is stored.
       var transformString = '';
-      transformString += 'rotateX(' + this.rotations_.x + 'deg)';
-      transformString += ' rotateY(' + this.rotations_.y + 'deg)';
-      var container = this.targetElement_.transformedContainer;
+
+      var panInLayoutPixels =
+          this.rebasePanInLayoutPixels_(cssScale);
+      transformString += ' translateX(' + panInLayoutPixels[0] + 'px)';
+      transformString += ' translateY(' + panInLayoutPixels[1] + 'px)';
+
+      transformString += ' scale(' + cssScale + ')';
+
+      transformString += ' rotateX(' + this.tiltAroundXInDegrees_ + 'deg)';
+      transformString += ' rotateY(' + this.tiltAroundYInDegrees_ + 'deg)';
       container.style.webkitTransform = transformString;
     },
 
-    updateCameraStart_: function(x, y) {
-      this.cameraStart_.x = x;
-      this.cameraStart_.y = y;
-      this.rotationStart_.x = this.rotations_.x;
-      this.rotationStart_.y = this.rotations_.y;
+    scheduleRescale_: function() {
+      if (this.rescaleTimeoutID_) {
+        clearTimeout(this.rescaleTimeoutID_);
+      }
+      this.rescaleTimeoutID_ = setTimeout(this.rescale_.bind(this),
+          constants.RESCALE_TIMEOUT_MS);
     },
 
-    updateCamera_: function(x, y) {
-      var delta = {
-        x: this.cameraStart_.x - x,
-        y: this.cameraStart_.y - y
-      };
-      // update new rotation matrix (note the parameter swap)
-      // "strength" is ration between mouse dist and rotation amount.
-      this.rotations_.x = this.rotationStart_.x + delta.y *
-          this.matrixParameters_.strengthRatioY;
-      this.rotations_.y = this.rotationStart_.y + -delta.x *
-          this.matrixParameters_.strengthRatioX;
-      this.scheduleRepaint();
+    rescalePanToMaintainOrigin_: function() {
+      this.panXInLayoutPixels_ *= this.scheduledLayoutPixelsPerWorldPixel_;
+      this.panYInLayoutPixels_ *= this.scheduledLayoutPixelsPerWorldPixel_;
     },
 
-    onMouseDown_: function(e) {
-      this.updateCameraStart_(e.x, e.y);
-      document.addEventListener('mousemove', this.onMouseMove_);
-      document.addEventListener('mouseup', this.onMouseUp_);
-      e.preventDefault();
-      return true;
-    },
-
-    onMouseMove_: function(e) {
-      this.updateCamera_(e.x, e.y);
-    },
-
-    onMouseUp_: function(e) {
-      document.removeEventListener('mousemove', this.onMouseMove_);
-      document.removeEventListener('mouseup', this.onMouseUp_);
-      this.updateCamera_(e.x, e.y);
+    rescale_: function() {
+      delete this.rescaleTimeoutID_;
+      this.rescalePanToMaintainOrigin_();
+      var vp = this.quadStack_.viewport;
+      vp.devicePixelsPerWorldPixel = this.scheduledLayoutPixelsPerWorldPixel_ *
+          vp.devicePixelsPerLayoutPixel;
     }
 
   };

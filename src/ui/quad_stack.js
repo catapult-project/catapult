@@ -17,6 +17,12 @@ base.require('ui.camera');
 base.require('ui.rect_view');
 
 base.exportTo('ui', function() {
+  var constants = {
+    DEFAULT_WORLD_VIEWPORT_RECT_WIDTH: 341, // sum image widths
+    DEFAULT_WORLD_VIEWPORT_RECT_HEIGHT: 341,
+    DEFAULT_WORLD_VIEWPORT_PAD: 72
+  };
+
   var QuadView = ui.QuadView;
 
   function validateQuads(quads) {
@@ -43,23 +49,41 @@ base.exportTo('ui', function() {
       this.quads_ = undefined;
     },
 
-    initialize: function(unpaddedWorldRect, opt_worldViewportRect, opt_scale) {
-      this.viewport_ = new ui.QuadViewViewport(unpaddedWorldRect);
-      if (opt_scale)
-        this.viewport_.scale = opt_scale;
+    // unpaddedWorldRect controls over all object size.
+    // worldViewportRect controls the browser-frame decoration size.
+    // devicePixelsPerWorldPixel controls resolution of the content.
+    // devicePixelsPerLayoutPixel controls hiDPI efforts.
+
+    initialize: function(unpaddedWorldRect, opt_worldViewportRect,
+        opt_devicePixelsPerWorldPixel, opt_devicePixelsPerLayoutPixel) {
+
+      if (opt_worldViewportRect) {
+        this.worldViewportRect_ = base.Rect.FromXYWH(
+            opt_worldViewportRect.x || 0,
+            opt_worldViewportRect.y || 0,
+            opt_worldViewportRect.width,
+            opt_worldViewportRect.height
+            );
+      } else {
+        this.worldViewportRect_ = base.Rect.FromXYWH(0, 0,
+            constants.DEFAULT_WORLD_VIEWPORT_RECT_WIDTH,
+            constants.DEFAULT_WORLD_VIEWPORT_RECT_HEIGHT);
+      }
+
+      var paddedWorldRect = unpaddedWorldRect.clone();
+      if (paddedWorldRect.y > -constants.DEFAULT_WORLD_VIEWPORT_PAD)
+        paddedWorldRect.y = -constants.DEFAULT_WORLD_VIEWPORT_PAD;
+
+      this.viewport = new ui.QuadViewViewport(paddedWorldRect,
+          opt_devicePixelsPerWorldPixel, undefined,
+          opt_devicePixelsPerLayoutPixel);
 
       this.viewport_.addEventListener('change', function() {
+        // FIXME jjb the RectView should listen for changes
         this.worldViewportRectView_.viewport = this.viewport_;
+        this.viewport.updateBoxSize(this.transformedContainer_);
       }.bind(this));
 
-      this.worldViewportRect_ = base.Rect.FromXYWH(
-          opt_worldViewportRect.x || 0,
-          opt_worldViewportRect.y || 0,
-          opt_worldViewportRect.width,
-          opt_worldViewportRect.height
-          );
-
-      this.worldViewportRectView_.viewport = this.viewport_;
       this.worldViewportRectView_.rect = this.worldViewportRect_;
     },
 
@@ -83,6 +107,11 @@ base.exportTo('ui', function() {
 
     get viewport() {
       return this.viewport_;
+    },
+
+    set viewport(newValue) {
+      base.setPropertyAndDispatchChange(this, 'viewport', newValue);
+      this.worldViewportRectView_.viewport = this.viewport_;
     },
 
     get worldViewportRect() {

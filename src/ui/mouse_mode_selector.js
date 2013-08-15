@@ -288,6 +288,7 @@ base.exportTo('ui', function() {
       mouseEvent.data = e;
       mouseEvent.deltaX = e.x - this.mouseDownPos_.x;
       mouseEvent.deltaY = e.y - this.mouseDownPos_.y;
+      mouseEvent.mouseDownPosition = this.mouseDownPos_;
       this.dispatchEvent(mouseEvent);
 
       if (this.isInteracting_)

@@ -35,14 +35,14 @@ base.exportTo('cc', function() {
           'selection-changed',
           this.onLayerPickerSelectionChanged_.bind(this));
 
-      this.dragHandle_ = new ui.DragHandle();
-      this.dragHandle_.horizontal = false;
-      this.dragHandle_.target = this.layerPicker_;
-
       this.layerViewer_ = new cc.LayerViewer();
       this.layerViewer_.addEventListener(
           'selection-changed',
           this.onLayerViewerSelectionChanged_.bind(this));
+
+      this.dragHandle_ = new ui.DragHandle();
+      this.dragHandle_.horizontal = false;
+      this.dragHandle_.target = this.layerViewer_;
 
       this.appendChild(this.layerPicker_);
       this.appendChild(this.dragHandle_);
