@@ -175,6 +175,27 @@ base.exportTo('tracing.tracks', function() {
           this.decorateHit(hit);
         }
       }
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      function onPickInterval(slice, x) {
+        var hit = selection.addSlice(this, slice);
+        this.decorateHit(hit);
+
+        var clientRect = this.getBoundingClientRect();
+        hit.eventX = x;
+        hit.eventY = clientRect.top;
+        hit.eventHeight = clientRect.height;
+      }
+
+      base.findClosestIntervalInSortedIntervals(
+          this.slices_,
+          function(x) { return x.start; },
+          function(x) { return x.end; },
+          worldX,
+          worldMaxDist,
+          onPickInterval.bind(this));
     }
   };
 

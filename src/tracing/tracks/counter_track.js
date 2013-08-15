@@ -237,6 +237,38 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      var counter = this.counter;
+      if (!counter.numSeries)
+        return;
+
+      var stackHeight = 0;
+
+      for (var i = 0; i < counter.numSeries; i++) {
+        var counterSample = base.findClosestElementInSortedArray(
+            counter.series_[i].samples_,
+            function(x) { return x.timestamp; },
+            worldX,
+            worldMaxDist);
+
+        if (!counterSample)
+          continue;
+
+        var hit = selection.addCounterSample(this, counterSample);
+        this.decorateHit(hit);
+
+        var clientRect = this.getBoundingClientRect();
+        var sampleHeight =
+            clientRect.height * counterSample.value / counter.maxTotal;
+        stackHeight += sampleHeight;
+
+        hit.eventX = counterSample.timestamp;
+        hit.eventY = clientRect.bottom - stackHeight;
+        hit.eventHeight = sampleHeight;
+      }
     }
   };
 

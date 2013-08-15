@@ -128,6 +128,45 @@ base.exportTo('tracing.tracks', function() {
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
+    },
+
+    /**
+     * Gets implemented by supporting track types. The method adds the event
+     * closest to worldX to the selection and decorates the hit with additional
+     * data of the event's position:
+     *   * {number} eventX X position of the event.
+     *   * {number} eventY Y position of the event.
+     *   * {number} eventHeight Height of the event.
+     *
+     * @param {number} worldX The position that is looked for.
+     * @param {number} worldMaxDist The maximum distance allowed from worldX to
+     *     the event.
+     * @param {number} loY Lower Y bound of the search interval in view space.
+     * @param {number} hiY Upper Y bound of the search interval in view space.
+     * @param {Selection} selection Selection to which to add hits.
+     */
+    addClosestEventToSelection: function(
+        worldX, worldMaxDist, loY, hiY, selection) {
+    },
+
+    addClosestInstantEventToSelection: function(instantEvents, worldX,
+                                                worldMaxDist, selection) {
+      var instantEvent = base.findClosestElementInSortedArray(
+          instantEvents,
+          function(x) { return x.start; },
+          worldX,
+          worldMaxDist);
+
+      if (!instantEvent)
+        return;
+
+      var hit = selection.addSlice(this, instantEvent);
+      this.decorateHit(hit);
+
+      var clientRect = this.getBoundingClientRect();
+      hit.eventX = instantEvent.start;
+      hit.eventY = clientRect.top;
+      hit.eventHeight = clientRect.height;
     }
   };
 

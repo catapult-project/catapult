@@ -131,4 +131,61 @@ base.unittest.testSuite('tracing.tracks.counter_track', function() {
       assertEquals(0, sel.length);
     });
   });
+
+  test('counterTrackAddClosestEventToSelection', function() {
+    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    var samples = [[0, 4, 1, 2, 3, 1, 3, 3.1],
+                   [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
+
+    runTest.call(this, timestamps, samples, function(ctr, container, track) {
+      // Before with not range.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(-1, 0, 0, 0, sel);
+      assertEquals(0, sel.length);
+
+      // Before with negative range.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(-1, -10, 0, 0, sel);
+      assertEquals(0, sel.length);
+
+      // Before first sample.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(-1, 1, 0, 0, sel);
+      assertEquals(2, sel.length);
+      assertEquals(0, sel[0].counterSample.getSampleIndex());
+
+      assertNotUndefined(sel[0].eventX);
+      assertNotUndefined(sel[0].eventY);
+      assertNotUndefined(sel[0].eventHeight);
+      assertEquals(ctr.timestamps[0], sel[0].eventX);
+
+      // Between and closer to sample before.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
+      assertEquals(1, sel[0].counterSample.getSampleIndex());
+      assertEquals(ctr.timestamps[1], sel[0].eventX);
+
+      // Between samples with bad range.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(1.45, 0.25, 0, 0, sel);
+      assertEquals(0, sel.length);
+
+      // Between and closer to next sample.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
+      assertEquals(5, sel[0].counterSample.getSampleIndex());
+      assertEquals(ctr.timestamps[5], sel[0].eventX);
+
+      // After last sample with good range.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
+      assertEquals(7, sel[0].counterSample.getSampleIndex());
+      assertEquals(ctr.timestamps[7], sel[0].eventX);
+
+      // After last sample with bad range.
+      var sel = new tracing.Selection();
+      track.addClosestEventToSelection(10, 1, 0, 0, sel);
+      assertEquals(0, sel.length);
+    });
+  });
 });

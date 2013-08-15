@@ -302,4 +302,74 @@ base.unittest.testSuite('tracing.tracks.slice_track', function() {
     assertFalse(ret);
     assertEquals(0, selNone.length);
   });
+
+  test('sliceTrackAddClosestEventToSelection', function() {
+    var track = new SliceTrack(new tracing.TimelineViewport());
+    track.slices = [
+      new Slice('', 'a', 0, 1, {}, 1),
+      new Slice('', 'b', 1, 2.1, {}, 4.8),
+      new Slice('', 'b', 1, 7, {}, 0.5),
+      new Slice('', 'c', 2, 7.6, {}, 0.4)
+    ];
+
+    // Before with not range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(0, 0, 0, 0, sel);
+    assertEquals(0, sel.length);
+
+    // Before with negative range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(1.5, -10, 0, 0, sel);
+    assertEquals(0, sel.length);
+
+    // Before first slice.
+    var sel = new Selection();
+    track.addClosestEventToSelection(0.5, 1, 0, 0, sel);
+    assertEquals(1, sel.length);
+    assertEquals(track.slices[0], sel[0].slice);
+
+    assertNotUndefined(sel[0].eventX);
+    assertNotUndefined(sel[0].eventY);
+    assertNotUndefined(sel[0].eventHeight);
+    assertEquals(track.slices[0].start, sel[0].eventX);
+
+    // Within first slice closer to start.
+    var sel = new Selection();
+    track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
+    assertEquals(track.slices[0], sel[0].slice);
+    assertEquals(track.slices[0].start, sel[0].eventX);
+
+    // Between slices with good range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(2.08, 3, 0, 0, sel);
+    assertEquals(track.slices[1], sel[0].slice);
+    assertEquals(track.slices[1].start, sel[0].eventX);
+
+    // Between slices with bad range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(2.05, 0.03, 0, 0, sel);
+    assertEquals(0, sel.length);
+
+    // Within slice closer to end.
+    var sel = new Selection();
+    track.addClosestEventToSelection(6, 100, 0, 0, sel);
+    assertEquals(track.slices[1], sel[0].slice);
+    assertEquals(track.slices[1].end, sel[0].eventX);
+
+    // Within slice with bad range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(1.8, 0.1, 0, 0, sel);
+    assertEquals(0, sel.length);
+
+    // After last slice with good range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(8.5, 1, 0, 0, sel);
+    assertEquals(track.slices[3], sel[0].slice);
+    assertEquals(track.slices[3].end, sel[0].eventX);
+
+    // After last slice with bad range.
+    var sel = new Selection();
+    track.addClosestEventToSelection(10, 1, 0, 0, sel);
+    assertEquals(0, sel.length);
+  });
 });

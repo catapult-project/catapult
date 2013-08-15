@@ -167,10 +167,105 @@ base.exportTo('base', function() {
     return tmp;
   }
 
+  /**
+   * Finds the element in the array whose value is closest to |val|.
+   *
+   * The same restrictions on sortedness as for findLowIndexInSortedArray apply.
+   *
+   * @param {Array} ary An array of arbitrary objects.
+   * @param {function():*} mapFn Callback that produces a key value
+   *     from an element in ary.
+   * @param {number} val Value for which to search.
+   * @param {number} maxDiff Maximum allowed difference in value between |val|
+   *     and an element's value.
+   * @return {object} Object in the array whose value is closest to |val|, or
+   *     null if no object is within range.
+   */
+  function findClosestElementInSortedArray(ary, mapFn, val, maxDiff) {
+    if (ary.length === 0)
+      return null;
+
+    var aftIdx = findLowIndexInSortedArray(ary, mapFn, val);
+    var befIdx = aftIdx > 0 ? aftIdx - 1 : 0;
+
+    if (aftIdx === ary.length)
+      aftIdx -= 1;
+
+    var befDiff = Math.abs(val - mapFn(ary[befIdx]));
+    var aftDiff = Math.abs(val - mapFn(ary[aftIdx]));
+
+    if (befDiff > maxDiff && aftDiff > maxDiff)
+      return null;
+
+    var idx = befDiff < aftDiff ? befIdx : aftIdx;
+    return ary[idx];
+  }
+
+  /**
+   * Finds the closest interval in the implicit array of intervals
+   * defined by ary, mapLoFn and mapHiFn.
+   *
+   * This function uses the same scheme as findLowIndexInSortedArray
+   * to define the intervals. The same restrictions on sortedness and
+   * non-overlappingness apply.
+   *
+   * @param {Array} ary An array of objects that can be converted into sorted
+   *     nonoverlapping ranges [x,y) using the mapLoFn and mapHiFn.
+   * @param {function():*} mapLoFn Callback that produces the low value for the
+   *     interval represented by an element in the array.
+   * @param {function():*} mapHiFn Callback that produces the high for the
+   *     interval represented by an element in the array.
+   * @param {number} val The value for the search.
+   * @param {number} maxDiff Maximum allowed difference in value between |val|
+   *     and an interval's low or high value.
+   * @param {function():*=} opt_cb Optional function to run on the found
+   *     interval. The interval and the closer low or high values are passed as
+   *     arguments.
+   * @return {interval} Interval in the array whose high or low value is closest
+   *     to |val|, or null if no interval is within range.
+   */
+  function findClosestIntervalInSortedIntervals(ary, mapLoFn, mapHiFn, val,
+                                                maxDiff, opt_cb) {
+    if (ary.length === 0)
+      return null;
+
+    var idx = findLowIndexInSortedArray(ary, mapLoFn, val);
+    if (idx > 0)
+      idx -= 1;
+
+    var hiInt = ary[idx];
+    var loInt = hiInt;
+
+    if (val > mapHiFn(hiInt) && idx + 1 < ary.length)
+      loInt = ary[idx + 1];
+
+    var loDiff = Math.abs(val - mapLoFn(loInt));
+    var hiDiff = Math.abs(val - mapHiFn(hiInt));
+
+    if (loDiff > maxDiff && hiDiff > maxDiff)
+      return null;
+
+    var interval;
+    if (loDiff < hiDiff) {
+      interval = loInt;
+      val = mapLoFn(interval);
+    } else {
+      interval = hiInt;
+      val = mapHiFn(interval);
+    }
+
+    if (opt_cb)
+      opt_cb(interval, val);
+
+    return interval;
+  }
+
   return {
     findLowIndexInSortedArray: findLowIndexInSortedArray,
     findLowIndexInSortedIntervals: findLowIndexInSortedIntervals,
     iterateOverIntersectingIntervals: iterateOverIntersectingIntervals,
-    getIntersectingIntervals: getIntersectingIntervals
+    getIntersectingIntervals: getIntersectingIntervals,
+    findClosestElementInSortedArray: findClosestElementInSortedArray,
+    findClosestIntervalInSortedIntervals: findClosestIntervalInSortedIntervals
   };
 });

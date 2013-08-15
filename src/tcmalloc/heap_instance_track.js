@@ -210,6 +210,33 @@ base.exportTo('tcmalloc', function() {
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      var snapshot = base.findClosestElementInSortedArray(
+          this.objectInstance_.snapshots,
+          function(x) { return x.ts; },
+          worldX,
+          worldMaxDist);
+
+      if (!snapshot)
+        return;
+
+      // Get the amount of bytes in the hit's snapshot.
+      var snapshotBytes = 0;
+      var keys = Object.keys(snapshot.heap_.children);
+      for (var i = 0; i < keys.length; i++)
+        snapshotBytes += snapshot.heap_.children[keys[i]].currentBytes;
+
+      var hit = selection.addObjectSnapshot(this, snapshot);
+      this.decorateHit(hit);
+
+      var clientRect = this.getBoundingClientRect();
+      var barHeight = clientRect.height * snapshotBytes / this.maxBytes_;
+      hit.eventX = snapshot.ts;
+      hit.eventY = clientRect.bottom - barHeight;
+      hit.eventHeight = barHeight;
     }
   };
 

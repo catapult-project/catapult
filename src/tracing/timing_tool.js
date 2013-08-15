@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('tracing.constants');
+base.require('tracing.selection');
 
 /**
  * @fileoverview Provides the TimingTool class.
@@ -73,9 +74,10 @@ base.exportTo('tracing', function() {
         this.viewport.addMarker(this.rangeEndMarker_);
       }
 
-      // Set both range markers to the mouse position and select them.
-      this.rangeStartMarker_.positionWorld = worldX;
-      this.rangeEndMarker_.positionWorld = worldX;
+      // Set the range markers to the mouse or snapped position and select them.
+      var snapPos = this.getSnappedToEventPosition_(mouseEvent);
+      this.updateMarkerToSnapPosition_(this.rangeStartMarker_, snapPos);
+      this.updateMarkerToSnapPosition_(this.rangeEndMarker_, snapPos);
 
       this.rangeStartMarker_.selected = true;
       this.rangeEndMarker_.selected = true;
@@ -89,12 +91,12 @@ base.exportTo('tracing', function() {
         return;
 
       var mouseEvent = e.data;
-      var worldX = this.getWorldXFromEvent_(mouseEvent);
 
       // Update the position of the active marker to the cursor position.
       // This is either the end marker when creating a range, or one of the
       // range markers when they are moved.
-      this.activeMarker_.positionWorld = worldX;
+      var snapPos = this.getSnappedToEventPosition_(mouseEvent);
+      this.updateMarkerToSnapPosition_(this.activeMarker_, snapPos);
 
       // When creating a range, only show the start marker after the range
       // exceeds a certain amount. This prevents a short flicker showing the
@@ -159,9 +161,10 @@ base.exportTo('tracing', function() {
 
       if (this.activeMarker_) {
         // Update the position of the cursor marker.
-        if (this.activeMarker_ === this.cursorMarker_)
-          this.cursorMarker_.positionWorld = worldX;
-
+        if (this.activeMarker_ === this.cursorMarker_) {
+          var snapPos = this.getSnappedToEventPosition_(e);
+          this.updateMarkerToSnapPosition_(this.cursorMarker_, snapPos);
+        }
         return;
       }
 
@@ -176,6 +179,97 @@ base.exportTo('tracing', function() {
         this.rangeEndMarker_.selected = false;
         this.rangeStartMarker_.selected = false;
       }
+    },
+
+    /**
+     * Get the closest position of an event within a vertical range of the mouse
+     * position if possible, otherwise use the position of the mouse pointer.
+     * @param {MouseEvent} e Mouse event with the current mouse coordinates.
+     * @return {
+     *   {Number} x, The x coordinate in world space.
+     *   {Number} y, The y coordinate in world space.
+     *   {Number} height, The height of the event.
+     *   {boolean} snapped Whether the coordinates are from a snapped event or
+     *     the mouse position.
+     * }
+     */
+    getSnappedToEventPosition_: function(e) {
+      var pixelRatio = window.devicePixelRatio || 1;
+      var EVENT_SNAP_RANGE = 16 * pixelRatio;
+
+      var modelTrackContainer = this.viewport.modelTrackContainer;
+      var modelTrackContainerRect = modelTrackContainer.getBoundingClientRect();
+
+      var dt = this.viewport.currentDisplayTransform;
+      var worldMaxDist = dt.xViewVectorToWorld(EVENT_SNAP_RANGE);
+
+      var worldX = this.getWorldXFromEvent_(e);
+      var mouseY = e.clientY;
+
+      var selection = new tracing.Selection();
+
+      // Look at the track under mouse position first for better performance.
+      modelTrackContainer.addClosestEventToSelection(
+          worldX, worldMaxDist, mouseY, mouseY, selection);
+
+      // Look at all tracks visible on screen.
+      if (!selection.length) {
+        modelTrackContainer.addClosestEventToSelection(
+            worldX, worldMaxDist,
+            modelTrackContainerRect.top, modelTrackContainerRect.bottom,
+            selection);
+      }
+
+      var minDistX = worldMaxDist;
+      var minDistY = Infinity;
+      var pixWidth = dt.xViewVectorToWorld(1);
+
+      // Create result object with the mouse coordinates.
+      var result = {
+        x: worldX,
+        y: mouseY - modelTrackContainerRect.top,
+        height: 0,
+        snapped: false
+      };
+
+      for (var i = 0; i < selection.length; i++) {
+        var hit = selection[i];
+        var distX = Math.abs(hit.eventX - worldX);
+        var distY = Math.abs(hit.eventY + hit.eventHeight / 2 - mouseY);
+
+        // Prefer events with a closer y position if their x difference is below
+        // the width of a pixel.
+        if ((distX <= minDistX || Math.abs(distX - minDistX) < pixWidth) &&
+            distY < minDistY) {
+          minDistX = distX;
+          minDistY = distY;
+
+          // Retrieve the event position from the hit.
+          result.x = hit.eventX;
+          result.y = hit.eventY +
+              modelTrackContainer.scrollTop - modelTrackContainerRect.top;
+          result.height = hit.eventHeight;
+          result.snapped = true;
+        }
+      }
+
+      return result;
+    },
+
+    /**
+     * Update the marker to the snapped position.
+     * @param {ViewportMarker} marker The marker to be updated.
+     * @param {
+     *   {Number} x, The new positionWorld of the marker.
+     *   {Number} y, The new indicatorY of the marker.
+     *   {Number} height, The new indicatorHeight of the marker.
+     *   {boolean} snapped Whether the coordinates are from a snapped event or
+     *     the mouse position.
+     * } snapPos
+     */
+    updateMarkerToSnapPosition_: function(marker, snapPos) {
+      marker.setSnapIndicator(snapPos.snapped, snapPos.y, snapPos.height);
+      marker.positionWorld = snapPos.x;
     }
   };
 

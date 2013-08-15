@@ -246,6 +246,30 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      var snapshot = base.findClosestElementInSortedArray(
+          this.objectSnapshots_,
+          function(x) { return x.ts; },
+          worldX,
+          worldMaxDist);
+
+      if (!snapshot)
+        return;
+
+      var hit = selection.addObjectSnapshot(this, snapshot);
+      this.decorateHit(hit);
+
+      var clientRect = this.getBoundingClientRect();
+      hit.eventX = snapshot.ts;
+      hit.eventY = clientRect.top;
+      hit.eventHeight = clientRect.height;
+
+      // TODO(egraether): Search for object instances as well, which was not
+      // implemented because it makes little sense with the current visual and
+      // needs to take care of overlapping intervals.
     }
   };
 

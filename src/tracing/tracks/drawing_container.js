@@ -134,6 +134,24 @@ base.exportTo('tracing.tracks', function() {
       if (!(element instanceof tracing.tracks.Track))
         return false;
       return window.getComputedStyle(element).display !== 'none';
+    },
+
+    addClosestEventToSelection: function(
+        worldX, worldMaxDist, loY, hiY, selection) {
+      for (var i = 0; i < this.children.length; ++i) {
+        if (!(this.children[i] instanceof tracing.tracks.Track))
+          continue;
+        var trackClientRect = this.children[i].getBoundingClientRect();
+        var a = Math.max(loY, trackClientRect.top);
+        var b = Math.min(hiY, trackClientRect.bottom);
+        if (a <= b) {
+          this.children[i].addClosestEventToSelection(
+              worldX, worldMaxDist, loY, hiY, selection);
+        }
+      }
+
+      tracing.tracks.Track.prototype.addClosestEventToSelection.
+          apply(this, arguments);
     }
   };
 

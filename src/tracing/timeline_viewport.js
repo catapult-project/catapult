@@ -397,8 +397,8 @@ base.exportTo('tracing', function() {
         var markerLWorld = Math.min(posWorld0, posWorld1);
         var markerRWorld = Math.max(posWorld0, posWorld1);
 
-        var markerLView = dt.xWorldToView(markerLWorld);
-        var markerRView = dt.xWorldToView(markerRWorld);
+        var markerLView = Math.round(dt.xWorldToView(markerLWorld));
+        var markerRView = Math.round(dt.xWorldToView(markerRWorld));
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         if (markerLWorld > viewLWorld) {
@@ -449,6 +449,12 @@ base.exportTo('tracing', function() {
     this.viewport_ = vp;
     this.positionWorld_ = positionWorld;
     this.selected_ = false;
+
+    this.snapIndicator_ = {
+      show: false,
+      y: 0,
+      height: 0
+    };
   }
 
   ViewportMarker.prototype = {
@@ -483,7 +489,7 @@ base.exportTo('tracing', function() {
 
     drawArrow: function(ctx, height) {
       var dt = this.viewport_.currentDisplayTransform;
-      var viewX = dt.xWorldToView(this.positionWorld_);
+      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
       var pixelRatio = window.devicePixelRatio || 1;
 
       // Apply subpixel translate to get crisp lines.
@@ -503,7 +509,7 @@ base.exportTo('tracing', function() {
 
     drawLine: function(ctx, height) {
       var dt = this.viewport_.currentDisplayTransform;
-      var viewX = dt.xWorldToView(this.positionWorld_);
+      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -515,7 +521,32 @@ base.exportTo('tracing', function() {
       ctx.strokeStyle = this.color;
       ctx.stroke();
 
+      if (this.snapIndicator_.show) {
+        var pixelRatio = window.devicePixelRatio || 1;
+        var viewY = this.snapIndicator_.y * devicePixelRatio;
+        var viewHeight = this.snapIndicator_.height * devicePixelRatio;
+        var arrowSize = 4 * pixelRatio;
+
+        ctx.fillStyle = this.color;
+        tracing.drawTriangle(ctx,
+            viewX - arrowSize * 0.75, viewY,
+            viewX + arrowSize * 0.75, viewY,
+            viewX, viewY + arrowSize);
+        ctx.fill();
+        tracing.drawTriangle(ctx,
+            viewX - arrowSize * 0.75, viewY + viewHeight,
+            viewX + arrowSize * 0.75, viewY + viewHeight,
+            viewX, viewY + viewHeight - arrowSize);
+        ctx.fill();
+      }
+
       ctx.restore();
+    },
+
+    setSnapIndicator: function(show, y, height) {
+      this.snapIndicator_.show = show;
+      this.snapIndicator_.y = y;
+      this.snapIndicator_.height = height;
     }
   };
 

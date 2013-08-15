@@ -112,6 +112,14 @@ base.exportTo('tracing.tracks', function() {
       tracing.tracks.ContainerTrack.prototype.
           addIntersectingItemsInRangeToSelectionInWorldSpace.
           apply(this, arguments);
+    },
+
+    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+                                         selection) {
+      this.addClosestInstantEventToSelection(this.processBase.instantEvents,
+                                             worldX, worldMaxDist, selection);
+      tracing.tracks.ContainerTrack.prototype.addClosestEventToSelection.
+          apply(this, arguments);
     }
   };
 
