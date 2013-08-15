@@ -1,12 +1,15 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import glob
+import heapq
 import logging
 import os
 import subprocess as subprocess
 import shutil
 import sys
 import tempfile
+import time
 
 from telemetry.core import util
 from telemetry.core.backends import browser_backend
@@ -25,7 +28,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
-    self._tmpdir = None
+    self._tmp_profile_dir = None
     self._tmp_output_file = None
 
     self._executable = executable
@@ -48,29 +51,33 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._profile_dir = None
     self._supports_net_benchmarking = True
     self._delete_profile_dir_after_run = delete_profile_dir_after_run
+    self._tmp_minidump_dir = tempfile.mkdtemp()
 
     self._SetupProfile()
 
   def _SetupProfile(self):
     if not self.options.dont_override_profile:
-      self._tmpdir = tempfile.mkdtemp()
+      self._tmp_profile_dir = tempfile.mkdtemp()
       profile_dir = self._profile_dir or self.options.profile_dir
       if profile_dir:
         if self.is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
           sys.exit(1)
-        shutil.rmtree(self._tmpdir)
-        shutil.copytree(profile_dir, self._tmpdir)
+        shutil.rmtree(self._tmp_profile_dir)
+        shutil.copytree(profile_dir, self._tmp_profile_dir)
 
   def _LaunchBrowser(self):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
+    env = os.environ.copy()
+    env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
+    env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
     if not self.options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
       self._proc = subprocess.Popen(
-          args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
+          args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
     else:
-      self._proc = subprocess.Popen(args)
+      self._proc = subprocess.Popen(args, env=env)
 
     try:
       self._WaitForBrowserToComeUp()
@@ -82,6 +89,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--remote-debugging-port=%i' % self._port)
+    args.append('--enable-crash-reporter-for-testing')
     if not self.is_content_shell:
       args.append('--window-size=1280,1024')
       if self._flash_path:
@@ -91,7 +99,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       else:
         args.append('--enable-benchmarking')
       if not self.options.dont_override_profile:
-        args.append('--user-data-dir=%s' % self._tmpdir)
+        args.append('--user-data-dir=%s' % self._tmp_profile_dir)
     return args
 
   def SetProfileDirectory(self, profile_dir):
@@ -126,7 +134,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def profile_directory(self):
-    return self._tmpdir
+    return self._tmp_profile_dir
 
   def IsBrowserRunning(self):
     return self._proc.poll() == None
@@ -141,10 +149,42 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return ''
 
   def GetStackTrace(self):
-    # crbug.com/223572, symbolize stack trace for desktop browsers.
-    logging.warning('Stack traces not supported on desktop browsers, '
-                    'returning stdout')
-    return self.GetStandardOutput()
+    executable_dir = os.path.dirname(self._executable)
+    stackwalk = os.path.join(executable_dir, 'minidump_stackwalk')
+    if not os.path.exists(stackwalk):
+      logging.warning('minidump_stackwalk binary not found. Must build it to '
+                      'symbolize crash dumps. Returning browser stdout.')
+      return self.GetStandardOutput()
+
+    dumps = glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
+    if not dumps:
+      logging.warning('No crash dump found. Returning browser stdout.')
+      return self.GetStandardOutput()
+    most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
+    if os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60)):
+      logging.warn('Crash dump is older than 5 minutes. May not be correct.')
+
+    minidump = most_recent_dump + '.stripped'
+    with open(most_recent_dump, 'rb') as infile:
+      with open(minidump, 'wb') as outfile:
+        outfile.write(''.join(infile.read().partition('MDMP')[1:]))
+
+    symbols = glob.glob(os.path.join(executable_dir, 'chrome.breakpad.*'))[0]
+    if not symbols:
+      logging.warning('No breakpad symbols found. Returning browser stdout.')
+      return self.GetStandardOutput()
+
+    symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
+    with open(symbols, 'r') as f:
+      _, _, _, sha, binary = f.readline().split()
+    symbol_path = os.path.join(symbols_path, binary, sha)
+    os.makedirs(symbol_path)
+    shutil.copyfile(symbols, os.path.join(symbol_path, binary + '.sym'))
+
+    error = tempfile.NamedTemporaryFile('w', 0)
+    return subprocess.Popen(
+        [stackwalk, minidump, symbols_path],
+        stdout=subprocess.PIPE, stderr=error).communicate()[0]
 
   def __del__(self):
     self.Close()
@@ -178,9 +218,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           raise Exception('Could not shutdown the browser.')
 
     if self._delete_profile_dir_after_run and \
-        self._tmpdir and os.path.exists(self._tmpdir):
-      shutil.rmtree(self._tmpdir, ignore_errors=True)
-      self._tmpdir = None
+        self._tmp_profile_dir and os.path.exists(self._tmp_profile_dir):
+      shutil.rmtree(self._tmp_profile_dir, ignore_errors=True)
+      self._tmp_profile_dir = None
 
     if self._tmp_output_file:
       self._tmp_output_file.close()
