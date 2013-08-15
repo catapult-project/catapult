@@ -88,6 +88,9 @@ class OsModuleStub(object):
     def exists(self, path):
       return path in self.files
 
+    def isfile(self, path):
+      return path in self.files
+
     def join(self, *paths):
       def IsAbsolutePath(path):
         if self.sys.platform.startswith('win'):
@@ -115,6 +118,8 @@ class OsModuleStub(object):
     def dirname(self, filename): # pylint: disable=R0201
       return os.path.dirname(filename)
 
+  X_OK = os.X_OK
+
   def __init__(self, sys_module=real_sys):
     self.path = OsModuleStub.OsPathModuleStub(sys_module)
     self.display = ':0'
@@ -122,6 +127,9 @@ class OsModuleStub(object):
     self.program_files = None
     self.program_files_x86 = None
     self.devnull = os.devnull
+
+  def access(self, path, _):
+    return path in self.path.files
 
   def getenv(self, name):
     if name == 'DISPLAY':

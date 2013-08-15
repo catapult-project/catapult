@@ -150,10 +150,13 @@ def FindAllAvailableBrowsers(options):
   else:
     raise Exception('Platform not recognized')
 
+  def IsExecutable(path):
+    return os.path.isfile(path) and os.access(path, os.X_OK)
+
   # Add the explicit browser executable if given.
   if options.browser_executable:
     normalized_executable = os.path.expanduser(options.browser_executable)
-    if os.path.exists(normalized_executable):
+    if IsExecutable(normalized_executable):
       browser_directory = os.path.dirname(options.browser_executable)
       browsers.append(PossibleDesktopBrowser('exact', options,
                                              normalized_executable, flash_path,
@@ -165,7 +168,7 @@ def FindAllAvailableBrowsers(options):
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
-    if os.path.exists(app):
+    if IsExecutable(app):
       browsers.append(PossibleDesktopBrowser(browser_type, options,
                                              app, flash_path, content_shell,
                                              browser_directory,
@@ -186,12 +189,12 @@ def FindAllAvailableBrowsers(options):
     mac_canary = mac_canary_root + 'Contents/MacOS/Google Chrome Canary'
     mac_system_root = '/Applications/Google Chrome.app'
     mac_system = mac_system_root + '/Contents/MacOS/Google Chrome'
-    if os.path.exists(mac_canary):
+    if IsExecutable(mac_canary):
       browsers.append(PossibleDesktopBrowser('canary', options,
                                              mac_canary, None, False,
                                              mac_canary_root))
 
-    if os.path.exists(mac_system):
+    if IsExecutable(mac_system):
       browsers.append(PossibleDesktopBrowser('system', options,
                                              mac_system, None, False,
                                              mac_system_root))
@@ -223,7 +226,7 @@ def FindAllAvailableBrowsers(options):
     def AddIfFoundWin(browser_name, app_path):
       browser_directory = os.path.join(path, app_path)
       app = os.path.join(browser_directory, chromium_app_name)
-      if os.path.exists(app):
+      if IsExecutable(app):
         browsers.append(PossibleDesktopBrowser(browser_name, options,
                                                app, flash_path, False,
                                                browser_directory))
