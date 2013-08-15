@@ -72,3 +72,7 @@ class Test(object):
       return self.expectations
     else:
       return test_expectations.TestExpectations()
+
+  @staticmethod
+  def AddCommandLineOptions(parser):
+    page_runner.AddCommandLineOptions(parser)

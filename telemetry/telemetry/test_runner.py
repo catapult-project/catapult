@@ -93,6 +93,9 @@ class Run(Command):
     parser = options.CreateParser('%%prog %s %s' % (self.name, self.usage))
     return parser
 
+  def AddParserOptions(self, parser):
+    test.Test.AddCommandLineOptions(parser)
+
   def ValidateCommandLine(self, parser, options, args):
     if not args:
       parser.error('Must provide at least one test name')
