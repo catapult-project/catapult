@@ -149,13 +149,14 @@ base.exportTo('tracing.tracks', function() {
               this.model_.instantEvents.length === 0)
             break;
 
-          tracing.drawSlices(
+          tracing.drawInstantSlicesAsLines(
               ctx,
               this.viewport.currentDisplayTransform,
               viewLWorld,
               viewRWorld,
               bounds.height,
-              this.model_.instantEvents);
+              this.model_.instantEvents,
+              1);
 
           break;
       }

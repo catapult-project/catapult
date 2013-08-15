@@ -49,7 +49,8 @@ base.exportTo('tracing.tracks', function() {
               viewLWorld,
               viewRWorld,
               bounds.height,
-              this.processBase.instantEvents);
+              this.processBase.instantEvents,
+              1);
 
           ctx.restore();
 
