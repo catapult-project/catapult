@@ -20,6 +20,7 @@ from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_measurement_results
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
+from telemetry.page.actions import navigate
 
 
 class _RunState(object):
@@ -129,20 +130,14 @@ class PageState(object):
 
     This function will be called once per page before any actions are executed.
     """
-    if page.is_file:
-      filename = page.serving_dirs_and_file[1]
-      target_side_url = tab.browser.http_server.UrlOf(filename)
-    else:
-      target_side_url = page.url
-
     if test:
       test.WillNavigateToPage(page, tab)
-    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
-    if test:
+      test.RunNavigateSteps(page, tab)
       test.DidNavigateToPage(page, tab)
-
-    page.WaitToLoad(tab, 60)
-    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    else:
+      i = navigate.NavigateAction()
+      i.RunAction(page, tab, None)
+      page.WaitToLoad(tab, 60)
 
   def CleanUpPage(self, page, tab):
     if page.credentials and self._did_login:

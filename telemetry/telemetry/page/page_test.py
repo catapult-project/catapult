@@ -8,6 +8,7 @@ from telemetry.page import gtest_test_results
 from telemetry.page import test_expectations
 from telemetry.page import page_test_results
 from telemetry.page.actions import all_page_actions
+from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
 
 def _GetActionFromData(action_data):
@@ -193,7 +194,7 @@ class PageTest(object):
     finally:
       self.options = None
 
-  def _RunCompoundAction(self, page, tab, actions):
+  def _RunCompoundAction(self, page, tab, actions, run_setup_methods=True):
     for i, action in enumerate(actions):
       prev_action = actions[i - 1] if i > 0 else None
       next_action = actions[i + 1] if i < len(actions) - 1 else None
@@ -205,15 +206,37 @@ class PageTest(object):
 
       if not (next_action and next_action.RunsPreviousAction()):
         action.WillRunAction(page, tab)
-        self.WillRunAction(page, tab, action)
+        if run_setup_methods:
+          self.WillRunAction(page, tab, action)
         try:
           action.RunAction(page, tab, prev_action)
         finally:
-          self.DidRunAction(page, tab, action)
+          if run_setup_methods:
+            self.DidRunAction(page, tab, action)
 
       # Closing the connections periodically is needed; otherwise we won't be
       # able to open enough sockets, and the pages will time out.
       util.CloseConnections(tab)
+
+  def RunNavigateSteps(self, page, tab):
+    """Navigates the tab to the page URL attribute.
+
+    If 'navigate_steps' is defined for the page, this will attempt to
+    run it as a compound action.
+    """
+    if hasattr(page, 'navigate_steps'):
+      navigate_actions = GetCompoundActionFromPage(page, 'navigate_steps')
+      if not any(isinstance(action, navigate.NavigateAction)
+          for action in navigate_actions):
+        raise page_action.PageActionFailed(
+            'No NavigateAction in navigate_steps')
+      self._RunCompoundAction(page, tab, navigate_actions, False)
+    else:
+      # TODO(edmundyan): Make a default navigate_steps action on the page object
+      # once we can deprecate page.WaitToLoad()
+      i = navigate.NavigateAction()
+      i.RunAction(page, tab, None)
+      page.WaitToLoad(tab, 60)
 
   @property
   def action_name_to_run(self):

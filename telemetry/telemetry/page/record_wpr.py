@@ -47,8 +47,7 @@ class RecordPage(page_test.PageTest):
     should_reload = False
     for compound_action in self._CompoundActionsForPage(page):
       if should_reload:
-        tab.Navigate(page.url)
-        tab.WaitForDocumentReadyStateToBeComplete()
+        self.RunNavigateSteps(page, tab)
       self._RunCompoundAction(page, tab, compound_action)
       should_reload = True
 
