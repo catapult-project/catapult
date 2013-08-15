@@ -484,6 +484,7 @@ base.exportTo('tracing', function() {
     drawArrow: function(ctx, height) {
       var dt = this.viewport_.currentDisplayTransform;
       var viewX = dt.xWorldToView(this.positionWorld_);
+      var pixelRatio = window.devicePixelRatio || 1;
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -492,8 +493,8 @@ base.exportTo('tracing', function() {
 
       tracing.drawTriangle(ctx,
           viewX, height,
-          viewX - 3, height / 2,
-          viewX + 3, height / 2);
+          viewX - 3 * devicePixelRatio, height / 2,
+          viewX + 3 * devicePixelRatio, height / 2);
       ctx.fillStyle = this.color;
       ctx.fill();
 

@@ -202,11 +202,11 @@ base.exportTo('tracing.tracks', function() {
       var displayTextColor = 'rgb(0,0,0)';
 
       // Arrow Variables.
-      var arrowSpacing = 10;
+      var arrowSpacing = 10 * pixelRatio;
       var arrowColor = 'rgb(128,121,121)';
       var arrowPosY = rulerHeight * 1.75;
-      var arrowWidthView = 3;
-      var arrowLengthView = 10;
+      var arrowWidthView = 3 * pixelRatio;
+      var arrowLengthView = 10 * pixelRatio;
       var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
 
       ctx.textBaseline = 'middle';
