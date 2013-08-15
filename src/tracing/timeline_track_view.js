@@ -821,7 +821,7 @@ base.exportTo('tracing', function() {
       // Activate the new selection, and zoom if ctrl key held down.
       this.selection = selection;
       if ((base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey))
-        this.zoomToSelection_();
+        this.zoomToSelection();
     },
 
     onBeginZoom_: function(e) {
