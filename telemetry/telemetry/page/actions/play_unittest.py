@@ -58,7 +58,8 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
 
-  def testPlayWaitForPlayTimeout(self):
+  # http://crbug.com/273887
+  def DISABLED_testPlayWaitForPlayTimeout(self):
     """Tests that wait_for_playing timeouts if video does not play."""
     data = {'selector': '#video_1',
             'wait_for_playing': True,
