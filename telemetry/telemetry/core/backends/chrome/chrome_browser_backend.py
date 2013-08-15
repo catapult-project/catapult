@@ -18,6 +18,7 @@ from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
 from telemetry.core.chrome import extension_dict_backend
 from telemetry.core.chrome import misc_web_contents_backend
+from telemetry.core.chrome import system_info_backend
 from telemetry.core.chrome import tab_list_backend
 from telemetry.core.chrome import tracing_backend
 from telemetry.unittest import options_for_unittests
@@ -38,6 +39,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._inspector_protocol_version = 0
     self._chrome_branch_number = 0
     self._tracing_backend = None
+    self._system_info_backend = None
 
     self.webpagereplay_local_http_port = util.GetAvailableLocalPort()
     self.webpagereplay_local_https_port = util.GetAvailableLocalPort()
@@ -229,3 +231,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self._tracing_backend:
       self._tracing_backend.Close()
       self._tracing_backend = None
+    if self._system_info_backend:
+      self._system_info_backend.Close()
+      self._system_info_backend = None
+
+  @property
+  def supports_system_info(self):
+    return self.GetSystemInfo() != None
+
+  def GetSystemInfo(self):
+    if self._system_info_backend is None:
+      self._system_info_backend = system_info_backend.SystemInfoBackend(
+          self._port)
+    return self._system_info_backend.GetSystemInfo()

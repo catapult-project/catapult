@@ -55,6 +55,10 @@ class BrowserBackend(object):
   def supports_tracing(self):
     raise NotImplementedError()
 
+  @property
+  def supports_system_info(self):
+    return False
+
   def StartTracing(self, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
@@ -81,6 +85,9 @@ class BrowserBackend(object):
     raise NotImplementedError()
 
   def GetStackTrace(self):
+    raise NotImplementedError()
+
+  def GetSystemInfo(self):
     raise NotImplementedError()
 
 class DoNothingForwarder(object):

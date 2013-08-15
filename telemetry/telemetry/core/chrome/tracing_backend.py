@@ -9,9 +9,9 @@ import socket
 import threading
 
 
-from telemetry.core import util
 from telemetry.core.chrome import trace_result
 from telemetry.core.chrome import websocket
+from telemetry.core.chrome import websocket_browser_connection as browser_conn
 from telemetry.core.timeline import model
 
 
@@ -67,10 +67,7 @@ class RawTraceResultImpl(object):
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
-    debugger_url = 'ws://localhost:%i/devtools/browser' % devtools_port
-    self._socket = websocket.create_connection(debugger_url)
-    self._next_request_id = 0
-    self._cur_socket_timeout = 0
+    self._conn = browser_conn.WebSocketBrowserConnection(devtools_port)
     self._thread = None
     self._tracing_data = []
 
@@ -79,7 +76,7 @@ class TracingBackend(object):
     req = {'method': 'Tracing.start'}
     if custom_categories:
       req['params'] = {'categories': custom_categories}
-    self._SyncRequest(req, timeout)
+    self._conn.SendRequest(req, timeout)
     # Tracing.start will send asynchronous notifications containing trace
     # data, until Tracing.end is called.
     self._thread = threading.Thread(target=self._TracingReader)
@@ -87,7 +84,7 @@ class TracingBackend(object):
 
   def EndTracing(self):
     req = {'method': 'Tracing.end'}
-    self._SyncRequest(req)
+    self._conn.SendRequest(req)
     self._thread.join()
     self._thread = None
 
@@ -100,15 +97,10 @@ class TracingBackend(object):
     self._tracing_data = []
     return trace_result.TraceResult(result_impl)
 
-  def Close(self):
-    if self._socket:
-      self._socket.close()
-      self._socket = None
-
   def _TracingReader(self):
-    while self._socket:
+    while self._conn.socket:
       try:
-        data = self._socket.recv()
+        data = self._conn.socket.recv()
         if not data:
           break
         res = json.loads(data)
@@ -126,36 +118,15 @@ class TracingBackend(object):
       except (socket.error, websocket.WebSocketException):
         logging.warning('Timeout waiting for tracing response, unusual.')
 
-  def _SyncRequest(self, req, timeout=10):
-    self._SetTimeout(timeout)
-    req['id'] = self._next_request_id
-    self._next_request_id += 1
-    data = json.dumps(req)
-    logging.debug('will send [%s]', data)
-    self._socket.send(data)
-
-  def _SetTimeout(self, timeout):
-    if self._cur_socket_timeout != timeout:
-      self._socket.settimeout(timeout)
-      self._cur_socket_timeout = timeout
+  def Close(self):
+    self._conn.Close()
 
   def _CheckNotificationSupported(self):
     """Ensures we're running against a compatible version of chrome."""
     req = {'method': 'Tracing.hasCompleted'}
-    self._SyncRequest(req)
-    while True:
-      try:
-        data = self._socket.recv()
-      except (socket.error, websocket.WebSocketException):
-        raise util.TimeoutException(
-            'Timed out waiting for reply. This is unusual.')
-      logging.debug('got [%s]', data)
-      res = json.loads(data)
-      if res['id'] != req['id']:
-        logging.debug('Dropped reply: %s', json.dumps(res))
-        continue
-      if res.get('response'):
-        raise TracingUnsupportedException(
-            'Tracing not supported for this browser')
-      elif 'error' in res:
-        return
+    res = self._conn.SyncRequest(req)
+    if res.get('response'):
+      raise TracingUnsupportedException(
+          'Tracing not supported for this browser')
+    elif 'error' in res:
+      return

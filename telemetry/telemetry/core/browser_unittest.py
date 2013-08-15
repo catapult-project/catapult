@@ -6,6 +6,9 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
+from telemetry.core import gpu_device
+from telemetry.core import gpu_info
+from telemetry.core import system_info
 from telemetry.unittest import options_for_unittests
 
 class BrowserTest(unittest.TestCase):
@@ -123,3 +126,22 @@ class BrowserTest(unittest.TestCase):
       return
 
     self.assertEquals(1, len(b.tabs))
+
+  def testGetSystemInfo(self):
+    b = self.CreateBrowser()
+    if not b.supports_system_info:
+      logging.warning(
+          'Browser does not support getting system info, skipping test.')
+      return
+
+    info = b.GetSystemInfo()
+
+    self.assertTrue(isinstance(info, system_info.SystemInfo))
+    self.assertTrue(hasattr(info, 'model_name'))
+    self.assertTrue(hasattr(info, 'gpu'))
+    self.assertTrue(isinstance(info.gpu, gpu_info.GPUInfo))
+    self.assertTrue(hasattr(info.gpu, 'devices'))
+    self.assertTrue(len(info.gpu.devices) > 0)
+    for g in info.gpu.devices:
+      self.assertTrue(isinstance(g, gpu_device.GPUDevice))
+

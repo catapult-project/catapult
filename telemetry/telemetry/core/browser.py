@@ -317,3 +317,13 @@ class Browser(object):
 
   def GetStackTrace(self):
     return self._browser_backend.GetStackTrace()
+
+  @property
+  def supports_system_info(self):
+    return self._browser_backend.supports_system_info
+
+  def GetSystemInfo(self):
+    """Returns low-level information about the system, if available.
+
+       See the documentation of the SystemInfo class for more details."""
+    return self._browser_backend.GetSystemInfo()
