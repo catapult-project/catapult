@@ -119,9 +119,7 @@ def Main(args, start_dir, top_level_dir, runner=None):
 
   options_for_unittests.Set(default_options,
                             browser_to_create.browser_type)
-  olddir = os.getcwd()
   try:
-    os.chdir(top_level_dir)
     success = True
     for _ in range(
         default_options.run_test_repeat_count): # pylint: disable=E1101
@@ -131,7 +129,6 @@ def Main(args, start_dir, top_level_dir, runner=None):
     if success:
       return 0
   finally:
-    os.chdir(olddir)
     options_for_unittests.Set(None, None)
     if default_options.verbosity == 0:
       # Restore logging level.
