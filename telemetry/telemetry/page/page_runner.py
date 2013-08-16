@@ -20,6 +20,7 @@ from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_measurement_results
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
+from telemetry.page import results_options
 from telemetry.page.actions import navigate
 
 
@@ -146,6 +147,7 @@ class PageState(object):
 
 def AddCommandLineOptions(parser):
   page_filter_module.PageFilter.AddCommandLineOptions(parser)
+  results_options.AddResultsOptions(parser)
 
 
 def _LogStackTrace(title, browser):
@@ -214,7 +216,7 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
 
 def Run(test, page_set, expectations, options):
   """Runs a given test against a given page_set with the given options."""
-  results = test.PrepareResults(options)
+  results = results_options.PrepareResults(test, options)
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(options)

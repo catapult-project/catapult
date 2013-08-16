@@ -143,7 +143,6 @@ class PageTestRunner(object):
         page_test = test.test()
       else:
         page_test = test
-      page_test.AddOutputOptions(self._parser)
       page_test.AddCommandLineOptions(self._parser)
     page_runner.AddCommandLineOptions(self._parser)
 

@@ -4,12 +4,11 @@
 import logging
 
 from telemetry.core import util
-from telemetry.page import gtest_test_results
 from telemetry.page import test_expectations
-from telemetry.page import page_test_results
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
+
 
 def _GetActionFromData(action_data):
   action_name = action_data['action']
@@ -20,6 +19,7 @@ def _GetActionFromData(action_data):
                      'log for possible Python loading/compilation errors.')
     raise Exception('Action "%s" not found.' % action_name)
   return action(action_data)
+
 
 def GetCompoundActionFromPage(page, action_name):
   if not action_name:
@@ -39,10 +39,12 @@ def GetCompoundActionFromPage(page, action_name):
     action_list += subaction * subaction_data.get('repeat', 1)
   return action_list
 
+
 class Failure(Exception):
   """Exception that can be thrown from PageMeasurement to indicate an
   undesired but designed-for problem."""
   pass
+
 
 class PageTest(object):
   """A class styled on unittest.TestCase for creating page-specific tests."""
@@ -166,32 +168,6 @@ class PageTest(object):
     """Override to make this test generate its own expectations instead of
     any that may have been defined in the page set."""
     return test_expectations.TestExpectations()
-
-  def AddOutputOptions(self, parser):
-    parser.add_option('--output-format',
-                      default=self.output_format_choices[0],
-                      choices=self.output_format_choices,
-                      help='Output format. Defaults to "%%default". '
-                      'Can be %s.' % ', '.join(self.output_format_choices))
-
-  @property
-  def output_format_choices(self):
-    """Allowed output formats. The default is the first item in the list."""
-    return ['gtest', 'none']
-
-  def PrepareResults(self, options):
-    if not hasattr(options, 'output_format'):
-      options.output_format = self.output_format_choices[0]
-
-    if options.output_format == 'gtest':
-      return gtest_test_results.GTestTestResults()
-    elif options.output_format == 'none':
-      return page_test_results.PageTestResults()
-    else:
-      # Should never be reached. The parser enforces the choices.
-      raise Exception('Invalid --output-format "%s". Valid choices are: %s'
-                      % (options.output_format,
-                         ', '.join(self.output_format_choices)))
 
   def Run(self, options, page, tab, results):
     self.options = options

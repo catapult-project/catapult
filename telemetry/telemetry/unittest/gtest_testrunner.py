@@ -9,6 +9,7 @@ This output is ported from gtest.cc's PrettyUnitTestResultPrinter, but
 designed to be a drop-in replacement for unittest's TextTestRunner.
 """
 
+import sys
 import time
 import unittest
 
@@ -44,7 +45,7 @@ class GTestTestRunner(object):
   def run(self, test):
     "Run the given test case or test suite."
     if not self.result:
-      self.result = gtest_test_results.GTestTestResults()
+      self.result = gtest_test_results.GTestTestResults(sys.stdout)
     test(self.result)
     if self.print_result_after_run:
       self.result.PrintSummary()

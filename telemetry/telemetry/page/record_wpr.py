@@ -71,7 +71,6 @@ def Main(base_dir):
 
   recorder = RecordPage(measurements)
   recorder.AddCommandLineOptions(parser)
-  recorder.AddOutputOptions(parser)
 
   _, args = parser.parse_args()
 

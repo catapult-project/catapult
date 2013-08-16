@@ -216,10 +216,6 @@ class BrowserOptions(optparse.Values):
       if self.profile_type == 'default':
         self.dont_override_profile = True
 
-      if ((hasattr(self, 'output_format') and self.output_format == 'html') and
-          (not hasattr(self, 'output_file') or not self.output_file)):
-        self.output_file = os.path.join(util.GetBaseDir(), 'results.html')
-
       # Parse repeat options
       self.repeat_options.UpdateFromParseResults(self, parser)
 
