@@ -1,17 +1,12 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
-import sys
 
 from telemetry.core import util
 
-# Get chrome/test/functional scripts into our path.
 # TODO(tonyg): Move webpagereplay.py to a common location.
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__),
-                     '..', '..', '..', '..', 'chrome', 'test', 'functional')))
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'chrome', 'test', 'functional')
 import webpagereplay  # pylint: disable=F0401
 
 def GetChromeFlags(replay_host, http_port, https_port):

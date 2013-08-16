@@ -11,8 +11,7 @@ from telemetry.core import util
 from telemetry.core.platform import profiler
 
 # pexpect is not available on all platforms so use the third_party version.
-sys.path.append(os.path.join(
-    util.GetChromiumSrcDir(), 'third_party', 'pexpect'))
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'third_party', 'pexpect')
 try:
   import pexpect  # pylint: disable=F0401
 except ImportError:

@@ -4,22 +4,19 @@
 """Brings in Chrome Android's android_commands module, which itself is a
 thin(ish) wrapper around adb."""
 import os
-import sys
+
+from telemetry.core import util
 
 # This is currently a thin wrapper around Chrome Android's
 # build scripts, located in chrome/build/android. This file exists mainly to
 # deal with locating the module.
 
-# Get build/android scripts into our path.
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__),
-                     '..', '..', '..', '..', '..', 'build', 'android')))
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
-  from pylib import android_commands # pylint: disable=F0401
-  from pylib import cmd_helper # pylint: disable=F0401
-  from pylib import forwarder # pylint: disable=F0401
-  from pylib import ports # pylint: disable=F0401
+  from pylib import android_commands  # pylint: disable=F0401
+  from pylib import cmd_helper  # pylint: disable=F0401
+  from pylib import forwarder  # pylint: disable=F0401
+  from pylib import ports  # pylint: disable=F0401
 except Exception:
   android_commands = None
 

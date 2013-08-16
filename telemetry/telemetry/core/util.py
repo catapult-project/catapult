@@ -7,8 +7,10 @@ import socket
 import sys
 import time
 
+
 class TimeoutException(Exception):
   pass
+
 
 def GetBaseDir():
   main_module = sys.modules['__main__']
@@ -17,15 +19,26 @@ def GetBaseDir():
   else:
     return os.getcwd()
 
+
 def GetTelemetryDir():
   return os.path.normpath(os.path.join(
       __file__, os.pardir, os.pardir, os.pardir))
 
+
 def GetUnittestDataDir():
   return os.path.join(GetTelemetryDir(), 'unittest_data')
 
+
 def GetChromiumSrcDir():
   return os.path.normpath(os.path.join(GetTelemetryDir(), os.pardir, os.pardir))
+
+
+def AddDirToPythonPath(*path_parts):
+  path = os.path.abspath(os.path.join(*path_parts))
+  assert os.path.isdir(path)
+  if path not in sys.path:
+    sys.path.append(path)
+
 
 def WaitFor(condition,
             timeout, poll_interval=0.1,
@@ -51,6 +64,7 @@ def WaitFor(condition,
                              (timeout, condition_string))
     time.sleep(poll_interval)
 
+
 def FindElementAndPerformAction(tab, text, callback_code):
   """JavaScript snippet for finding an element with a given text on a page."""
   code = """
@@ -73,10 +87,12 @@ def FindElementAndPerformAction(tab, text, callback_code):
       })();"""
   return tab.EvaluateJavaScript(code)
 
+
 class PortPair(object):
   def __init__(self, local_port, remote_port):
     self.local_port = local_port
     self.remote_port = remote_port
+
 
 def GetAvailableLocalPort():
   tmp = socket.socket()
@@ -86,6 +102,7 @@ def GetAvailableLocalPort():
 
   return port
 
+
 def CloseConnections(tab):
   """Closes all TCP sockets held open by the browser."""
   try:
@@ -93,6 +110,7 @@ def CloseConnections(tab):
                              chrome.benchmarking.closeConnections()""")
   except Exception:
     pass
+
 
 def GetBuildDirectories():
   """Yields all combination of Chromium build output directories."""

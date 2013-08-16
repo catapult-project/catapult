@@ -5,16 +5,14 @@ import os
 import unittest
 
 from telemetry.core import discover
+from telemetry.core import util
 
 class DiscoverTest(unittest.TestCase):
   def testDiscoverClasses(self):
-    telemetry_dir = os.path.join(
-        os.path.dirname(discover.__file__), '..', '..')
-    telemetry_dir = os.path.abspath(telemetry_dir)
-    top_level_dir = os.path.join(telemetry_dir, 'unittest_data')
-    start_dir = os.path.join(top_level_dir, 'discoverable_classes')
+    base_dir = util.GetUnittestDataDir()
+    start_dir = os.path.join(base_dir, 'discoverable_classes')
     base_class = Exception
-    classes = discover.DiscoverClasses(start_dir, top_level_dir, base_class)
+    classes = discover.DiscoverClasses(start_dir, base_dir, base_class)
     self.assertTrue(len(classes) > 0)
 
     found_dummy_exception = False

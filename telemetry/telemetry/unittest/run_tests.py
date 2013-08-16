@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 import logging
 import os
-import sys
 import unittest
 
 from telemetry.core import browser_options
 from telemetry.core import discover
+from telemetry.core import util
 from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import options_for_unittests
 
@@ -84,9 +84,7 @@ def DiscoverAndRunTests(
 def Main(args, start_dir, top_level_dir, runner=None):
   """Unit test suite that collects all test cases for telemetry."""
   # Add unittest_data to the path so we can import packages from it.
-  unittest_data_dir = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '..', '..', 'unittest_data'))
-  sys.path.append(unittest_data_dir)
+  util.AddDirToPythonPath(util.GetUnittestDataDir())
 
   default_options = browser_options.BrowserOptions()
   default_options.browser_type = 'any'

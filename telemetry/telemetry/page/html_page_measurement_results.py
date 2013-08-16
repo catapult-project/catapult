@@ -7,14 +7,11 @@ import json
 import logging
 import os
 import re
-import sys
 
 from telemetry.core import util
 from telemetry.page import buildbot_page_measurement_results
 
-# Get build/util scripts into our path.
-sys.path.append(os.path.abspath(os.path.join(
-    util.GetChromiumSrcDir(), 'build', 'util')))
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
 import lastchange  # pylint: disable=F0401
 
 

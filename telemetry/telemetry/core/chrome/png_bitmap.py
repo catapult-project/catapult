@@ -1,18 +1,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import sys
-import os
 import base64
 
-def _EnsurePngIsInPath():
-  png_path = os.path.join(os.path.dirname(__file__),
-                          '..', '..', '..', 'third_party', 'png')
-  if png_path not in sys.path:
-    sys.path.append(png_path)
+from telemetry.core import util
 
-_EnsurePngIsInPath()
-import png # pylint: disable=F0401
+util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
+import png  # pylint: disable=F0401
+
 
 class PngColor(object):
   """Encapsulates an RGB color retreived from a PngBitmap"""
@@ -38,6 +33,7 @@ class PngColor(object):
 
   def AssertIsRGBA(self, r, g, b, a, tolerance=0):
     assert self.IsEqual(PngColor(r, g, b, a), tolerance)
+
 
 class PngBitmap(object):
   """Utilities for parsing and inspecting inspecting a PNG"""

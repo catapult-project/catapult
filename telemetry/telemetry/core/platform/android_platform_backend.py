@@ -3,23 +3,18 @@
 # found in the LICENSE file.
 
 import logging
-import os
-import sys
 
 from telemetry.core import platform
+from telemetry.core import util
 from telemetry.core.platform import platform_backend
 
 # Get build/android scripts into our path.
-sys.path.append(
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__),
-                     '../../../build/android')))
-
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 from pylib import perf_tests_helper  # pylint: disable=F0401
 from pylib import thermal_throttle  # pylint: disable=F0401
 
 try:
-  from pylib import surface_stats_collector # pylint: disable=F0401
+  from pylib import surface_stats_collector  # pylint: disable=F0401
 except Exception:
   surface_stats_collector = None
 
