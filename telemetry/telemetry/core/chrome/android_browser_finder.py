@@ -108,10 +108,12 @@ def CanFindAvailableBrowsers(logging=real_logging):
     pids  = [p.pid for p in psutil.process_iter() if 'adb' in p.name]
     with open(os.devnull, 'w') as devnull:
       for pid in pids:
-        subprocess.check_call(['taskset', '-p', '0x1', str(pid)],
+        ret = subprocess.call(['taskset', '-p', '0x1', str(pid)],
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE,
                               stdin=devnull)
+        if ret:
+          logging.warn('Failed to taskset %d (%s)', pid, ret)
 
   return adb_works
 
