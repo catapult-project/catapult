@@ -181,18 +181,22 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       with open(minidump, 'wb') as outfile:
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
-    symbols = glob.glob(os.path.join(os.path.dirname(stackwalk),
-                                     'chrome.breakpad.*'))
+    symbols = glob.glob(os.path.join(os.path.dirname(stackwalk), '*.breakpad*'))
     if not symbols:
       logging.warning('No breakpad symbols found. Returning browser stdout.')
       return self.GetStandardOutput()
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-    with open(symbols[0], 'r') as f:
-      _, _, _, sha, binary = f.readline().split()
-    symbol_path = os.path.join(symbols_path, binary, sha)
-    os.makedirs(symbol_path)
-    shutil.copyfile(symbols[0], os.path.join(symbol_path, binary + '.sym'))
+    for symbol in symbols:
+      with open(symbol, 'r') as f:
+        fields = f.readline().split()
+        if not fields:
+          continue
+        sha = fields[3]
+        binary = ' '.join(fields[4:])
+      symbol_path = os.path.join(symbols_path, binary, sha)
+      os.makedirs(symbol_path)
+      shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
 
     error = tempfile.NamedTemporaryFile('w', 0)
     return subprocess.Popen(
