@@ -15,12 +15,19 @@ base.require('base.properties');
 base.require('base.raf');
 base.require('cc.constants');
 base.require('cc.picture');
+base.require('cc.tile');
 base.require('cc.debug_colors');
 base.require('ui.quad_stack_viewer');
 base.require('ui.info_bar');
 
 
 base.exportTo('cc', function() {
+
+  var TILE_HEATMAP_TYPE = {};
+  TILE_HEATMAP_TYPE.NONE = 0;
+  TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 1;
+  TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 2;
+  TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 3;
 
   /**
    * @constructor
@@ -59,6 +66,25 @@ base.exportTo('cc', function() {
            {label: 'Coverage Rects', value: 'coverage'}
           ]);
       this.controls_.appendChild(this.tileRectsSelector_);
+
+      var tileHeatmapText = ui.createSpan({
+        textContent: 'Tile heatmap:'
+      });
+      this.controls_.appendChild(tileHeatmapText);
+
+      var tileHeatmapSelector = ui.createSelector(
+          this, 'tileHeatmapType',
+          'layerViewer.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
+          [{label: 'None',
+            value: TILE_HEATMAP_TYPE.NONE},
+           {label: 'Scheduled Priority',
+            value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
+           {label: 'Distance to Visible',
+            value: TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE},
+           {label: 'Time to Visible',
+            value: TILE_HEATMAP_TYPE.TIME_TO_VISIBLE}
+          ]);
+      this.controls_.appendChild(tileHeatmapSelector);
 
       var showOtherLayersCheckbox = ui.createCheckBox(
           this, 'showOtherLayers',
@@ -134,6 +160,15 @@ base.exportTo('cc', function() {
           !isNaN(parseFloat(val)));
 
       this.howToShowTiles_ = val;
+      this.updateContents_();
+    },
+
+    get tileHeatmapType() {
+      return this.tileHeatmapType_;
+    },
+
+    set tileHeatmapType(val) {
+      this.tileHeatmapType_ = val;
       this.updateContents_();
     },
 
@@ -310,9 +345,19 @@ base.exportTo('cc', function() {
       }
     },
 
-    appendTileCoverageRectQuads_: function(layer, layerQuad) {
+    appendTileCoverageRectQuads_: function(layer, layerQuad, heatmapType) {
       if (!layer.tileCoverageRects)
         return;
+
+      var tiles = [];
+      for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
+        var tile = layer.tileCoverageRects[ct].tile;
+        if (tile !== undefined)
+          tiles.push(tile);
+      }
+
+      var heatmapColors = this.computeHeatmapColors_(tiles, heatmapType);
+      var heatIndex = 0;
 
       for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
         var rect = layer.tileCoverageRects[ct].geometryRect;
@@ -324,8 +369,11 @@ base.exportTo('cc', function() {
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
         var type = cc.tileTypes.missing;
-        if (tile)
+        if (tile) {
           type = tile.getTypeForLayer(layer);
+          quad.backgroundColor = heatmapColors[heatIndex];
+          ++heatIndex;
+        }
 
         quad.borderColor = cc.tileBorder[type].color;
         quad.borderWidth = cc.tileBorder[type].width;
@@ -334,10 +382,54 @@ base.exportTo('cc', function() {
       }
     },
 
-    appendTilesWithScaleQuads_: function(layer, layerQuad, scale) {
+    getValueForHeatmap_: function(tile, heatmapType) {
+      if (heatmapType == TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY)
+        return tile.scheduledPriority;
+      else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE)
+        return tile.distanceToVisible;
+      else if (heatmapType == TILE_HEATMAP_TYPE.TIME_TO_VISIBLE)
+        return tile.timeToVisible;
+    },
+
+    computeHeatmapColors_: function(tiles, heatmapType) {
+      var maxValue = 0;
+      for (var i = 0; i < tiles.length; ++i) {
+        var tile = tiles[i];
+        var value = this.getValueForHeatmap_(tile, heatmapType);
+        if (value !== undefined)
+          maxValue = Math.max(value, maxValue);
+      }
+
+      if (maxValue == 0)
+        maxValue = 1;
+
+      var color = function(value) {
+        var hue = 120 * (1 - value / maxValue);
+        if (hue < 0)
+          hue = 0;
+        return 'hsla(' + hue + ', 100%, 50%, 0.5)';
+      };
+
+      var values = [];
+      for (var i = 0; i < tiles.length; ++i) {
+        var tile = tiles[i];
+        var value = this.getValueForHeatmap_(tile, heatmapType);
+        if (value !== undefined)
+          values.push(color(value));
+        else
+          values.push(undefined);
+      }
+
+      return values;
+    },
+
+    appendTilesWithScaleQuads_: function(layer, layerQuad, scale, heatmapType) {
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+
+      var tiles = [];
       for (var i = 0; i < lthi.tiles.length; ++i) {
         var tile = lthi.tiles[i];
+
         if (Math.abs(tile.contentsScale - scale) > 1e-6)
           continue;
 
@@ -346,6 +438,14 @@ base.exportTo('cc', function() {
         if (layer.layerId != tile.layerId)
           continue;
 
+        tiles.push(tile);
+      }
+
+      var heatmapColors =
+          this.computeHeatmapColors_(tiles, heatmapType);
+
+      for (var i = 0; i < tiles.length; ++i) {
+        var tile = tiles[i];
         var rect = tile.layerRect;
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
@@ -356,6 +456,8 @@ base.exportTo('cc', function() {
         var type = tile.getTypeForLayer(layer);
         quad.borderColor = cc.tileBorder[type].color;
         quad.borderWidth = cc.tileBorder[type].width;
+
+        quad.backgroundColor = heatmapColors[i];
         this.quads_.push(quad);
       }
     },
@@ -402,10 +504,11 @@ base.exportTo('cc', function() {
           this.appendInvalidationQuads_(layer, layerQuad);
 
         if (this.howToShowTiles === 'coverage') {
-          this.appendTileCoverageRectQuads_(layer, layerQuad);
+          this.appendTileCoverageRectQuads_(
+              layer, layerQuad, this.tileHeatmapType);
         } else if (this.howToShowTiles !== 'none') {
           this.appendTilesWithScaleQuads_(
-              layer, layerQuad, this.howToShowTiles);
+              layer, layerQuad, this.howToShowTiles, this.tileHeatmapType);
         }
 
         // Push the layer quad last.

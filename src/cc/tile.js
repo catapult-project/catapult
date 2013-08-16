@@ -33,6 +33,11 @@ base.exportTo('cc', function() {
       this.resolution = this.args.managedState.resolution;
       this.isSolidColor = this.args.managedState.isSolidColor;
       this.hasResource = this.args.managedState.hasResource;
+      this.scheduledPriority = this.args.managedState.scheduledPriority;
+      this.distanceToVisible = this.args.managedState.distanceToVisibleInPixels;
+      this.timeToVisible = this.args.managedState.timeToNeededInSeconds;
+      if (this.timeToVisible > 60)
+        this.timeToVisible = 60;
 
       // This check is for backward compatability. It can probably
       // be removed once we're confident that most traces contain
