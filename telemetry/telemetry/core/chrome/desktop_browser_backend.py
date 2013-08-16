@@ -149,9 +149,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return ''
 
   def GetStackTrace(self):
-    executable_dir = os.path.dirname(self._executable)
-    stackwalk = os.path.join(executable_dir, 'minidump_stackwalk')
-    if not os.path.exists(stackwalk):
+    stackwalk = util.FindSupportBinary('minidump_stackwalk')
+    if not stackwalk:
       logging.warning('minidump_stackwalk binary not found. Must build it to '
                       'symbolize crash dumps. Returning browser stdout.')
       return self.GetStandardOutput()
@@ -169,17 +168,18 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       with open(minidump, 'wb') as outfile:
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
-    symbols = glob.glob(os.path.join(executable_dir, 'chrome.breakpad.*'))[0]
+    symbols = glob.glob(os.path.join(os.path.dirname(stackwalk),
+                                     'chrome.breakpad.*'))
     if not symbols:
       logging.warning('No breakpad symbols found. Returning browser stdout.')
       return self.GetStandardOutput()
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-    with open(symbols, 'r') as f:
+    with open(symbols[0], 'r') as f:
       _, _, _, sha, binary = f.readline().split()
     symbol_path = os.path.join(symbols_path, binary, sha)
     os.makedirs(symbol_path)
-    shutil.copyfile(symbols, os.path.join(symbol_path, binary + '.sym'))
+    shutil.copyfile(symbols[0], os.path.join(symbol_path, binary + '.sym'))
 
     error = tempfile.NamedTemporaryFile('w', 0)
     return subprocess.Popen(

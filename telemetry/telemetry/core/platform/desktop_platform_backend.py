@@ -17,26 +17,10 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
   def GetFlushUtilityName(self):
     return NotImplementedError()
 
-  def _FindNewestFlushUtility(self):
-    flush_command = None
-    flush_command_mtime = 0
-
-    chrome_root = util.GetChromiumSrcDir()
-    for build_dir, build_type in util.GetBuildDirectories():
-      candidate = os.path.join(chrome_root, build_dir, build_type,
-                               self.GetFlushUtilityName())
-      if os.access(candidate, os.X_OK):
-        candidate_mtime = os.stat(candidate).st_mtime
-        if candidate_mtime > flush_command_mtime:
-          flush_command = candidate
-          flush_command_mtime = candidate_mtime
-
-    return flush_command
-
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     assert directory and os.path.exists(directory), \
         'Target directory %s must exist' % directory
-    flush_command = self._FindNewestFlushUtility()
+    flush_command = util.FindSupportBinary(self.GetFlushUtilityName())
     assert flush_command, \
         'You must build %s first' % self.GetFlushUtilityName()
 
