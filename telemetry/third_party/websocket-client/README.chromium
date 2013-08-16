@@ -2,8 +2,8 @@ Name: Python websocket-client
 Short Name: websocket-client
 URL: https://github.com/liris/websocket-client
 Version: 0
-Revision: 861f9cf354833fe3992315b60292865c5245c821
-Date: Tue Jul 10 19:57:00 2012 -0700
+Revision: b4a72e379b50c85af1fe6e607f0a0305bcffa08b
+Date: Wed Aug 7 15:42:46 2013 +0900
 License: LGPL-2.1
 License File: NOT_SHIPPED
 Security Critical: no
