@@ -186,11 +186,11 @@ class BrowserOptions(optparse.Values):
       ret = real_parse(args, self) # pylint: disable=E1121
 
       if self.verbosity >= 2:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
       elif self.verbosity:
-        logging.basicConfig(level=logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
       else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.getLogger().setLevel(logging.WARNING)
 
       if self.browser_executable and not self.browser_type:
         self.browser_type = 'exact'

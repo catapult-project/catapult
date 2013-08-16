@@ -125,15 +125,15 @@ def IsUpdateDocsNeeded():
 def Main(args):
   parser = optparse.OptionParser()
   parser.add_option(
-      '-v', '--verbose', action='count', default=0,
+      '-v', '--verbose', action='count', dest='verbosity',
       help='Increase verbosity level (repeat as needed)')
   options, args = parser.parse_args(args)
-  if options.verbose >= 2:
-    logging.basicConfig(level=logging.DEBUG)
-  elif options.verbose:
-    logging.basicConfig(level=logging.INFO)
+  if options.verbosity >= 2:
+    logging.getLogger().setLevel(logging.DEBUG)
+  elif options.verbosity:
+    logging.getLogger().setLevel(logging.INFO)
   else:
-    logging.basicConfig(level=logging.WARNING)
+    logging.getLogger().setLevel(logging.WARNING)
 
   assert os.path.isdir(docs_dir)
 
