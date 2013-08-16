@@ -275,11 +275,13 @@ def Run(test, page_set, expectations, options):
     while state.repeat_state.ShouldRepeatPageSet():
       for page in pages:
         state.repeat_state.WillRunPage()
+        test.WillRunPageRepeats(page, state.tab)
         while state.repeat_state.ShouldRepeatPage():
           # execute test on page
           _PrepareAndRunPage(test, page_set, expectations, options, page,
                              credentials_path, possible_browser, results, state)
           state.repeat_state.DidRunPage()
+        test.DidRunPageRepeats(page, state.tab)
       state.repeat_state.DidRunPageSet()
 
     test.DidRunTest(state.tab, results)

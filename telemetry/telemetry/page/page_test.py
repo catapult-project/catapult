@@ -128,6 +128,14 @@ class PageTest(object):
     """
     pass
 
+  def WillRunPageRepeats(self, page, tab):
+    """Override to do operations before each page is iterated over."""
+    pass
+
+  def DidRunPageRepeats(self, page, tab):
+    """Override to do operations after each page is iterated over."""
+    pass
+
   def DidStartHTTPServer(self, tab):
     """Override to do operations after the HTTP server is started."""
     pass

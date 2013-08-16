@@ -17,7 +17,11 @@ class CsvPageMeasurementResults(
 
   def DidMeasurePage(self):
     assert self.values_for_current_page, 'Failed to call WillMeasurePage'
-    if not self._output_after_every_page:
+
+    if (not self.values_for_current_page.values or
+        not self._output_after_every_page):
+      # Do not output if no results were added on this page or if output flag
+      # is not set.
       super(CsvPageMeasurementResults, self).DidMeasurePage()
       return
 

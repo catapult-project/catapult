@@ -14,6 +14,11 @@ class BlockPageMeasurementResults(
   def DidMeasurePage(self):
     page_values = self.values_for_current_page
 
+    if not page_values.values:
+      # Do not output if no results were added on this page.
+      super(BlockPageMeasurementResults, self).DidMeasurePage()
+      return
+
     lines = ['url: %s' %
              self.values_for_current_page.page.url]
     sorted_measurement_names = page_values.measurement_names

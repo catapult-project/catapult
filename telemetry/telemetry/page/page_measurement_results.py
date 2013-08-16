@@ -108,5 +108,8 @@ class PageMeasurementResults(page_test_results.PageTestResults):
 
   def DidMeasurePage(self):
     assert self._values_for_current_page, 'Failed to call WillMeasurePage'
+    if not self.values_for_current_page.values:
+      # Do not store to page_results list if no results were added on this page.
+      return
     self._page_results.append(self._values_for_current_page)
     self._values_for_current_page = None
