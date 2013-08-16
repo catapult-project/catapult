@@ -148,7 +148,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def browser_directory(self):
     result = self._GetChromeProcess()
     if result and 'path' in result:
-      return result['path']
+      return os.path.dirname(result['path'])
     return None
 
   @property
