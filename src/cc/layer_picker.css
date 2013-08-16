@@ -17,6 +17,7 @@ layer-picker > top-controls {
   border-bottom: 1px solid #8e8e8e;
   border-top: 1px solid white;
   display: inline;
+  font-size: 14px;
 }
 
 layer-picker > .x-list-view {

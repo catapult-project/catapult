@@ -44,13 +44,15 @@ base.exportTo('cc', function() {
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
            {label: 'Pending tree', value: constants.PENDING_TREE}]));
 
-      this.hidePureTransformLayers_ = true;
-      var hideTransformLayers = ui.createCheckBox(
-          this, 'hidePureTransformLayers',
-          'layerPicker.hideTransformLayers', true,
-          'Hide transform layers');
-      hideTransformLayers.classList.add('hide-transform-layers');
-      this.controls_.appendChild(hideTransformLayers);
+      this.showPureTransformLayers_ = false;
+      var showPureTransformLayers = ui.createCheckBox(
+          this, 'showPureTransformLayers',
+          'layerPicker.showPureTransformLayers', false,
+          'Transform layers');
+      showPureTransformLayers.classList.add('show-transform-layers');
+      showPureTransformLayers.title =
+          'When checked, pure transform layers are shown';
+      this.controls_.appendChild(showPureTransformLayers);
     },
 
     get lthiSnapshot() {
@@ -71,12 +73,14 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
-    get hidePureTransformLayers() {
-      return this.hidePureTransformLayers_;
+    get showPureTransformLayers() {
+      return this.showPureTransformLayers_;
     },
 
-    set hidePureTransformLayers(hide) {
-      this.hidePureTransformLayers_ = hide;
+    set showPureTransformLayers(show) {
+      if (this.showPureTransformLayers_ === show)
+        return;
+      this.showPureTransformLayers_ = show;
       this.updateContents_();
     },
 
@@ -90,7 +94,7 @@ base.exportTo('cc', function() {
 
       var layerInfos = [];
 
-      var hidePureTransformLayers = this.hidePureTransformLayers_;
+      var showPureTransformLayers = this.showPureTransformLayers_;
 
       function isPureTransformLayer(layer) {
         if (layer.args.compositingReasons &&
@@ -119,7 +123,7 @@ base.exportTo('cc', function() {
         info.isMaskLayer = isMask;
         info.replicaLayer = isReplica;
 
-        if (!hidePureTransformLayers || !isPureTransformLayer(layer))
+        if (showPureTransformLayers || !isPureTransformLayer(layer))
           layerInfos.push(info);
 
       };
