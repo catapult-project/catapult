@@ -15,12 +15,6 @@ from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 
-try:
-  import resource  # pylint: disable=F0401
-except ImportError:
-  resource = None  # Not available on all platforms
-
-
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
@@ -58,13 +52,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._supports_net_benchmarking = True
     self._delete_profile_dir_after_run = delete_profile_dir_after_run
     self._tmp_minidump_dir = tempfile.mkdtemp()
-
-    if resource:
-      # Mac has a low soft limit for number of open files that can cause
-      # Chrome to hang when rapidly loading pages. Raise the limit if possible.
-      _, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
-      resource.setrlimit(resource.RLIMIT_NOFILE,
-                         (min(4096, hard_limit), hard_limit))
 
     self._SetupProfile()
 

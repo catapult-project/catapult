@@ -385,6 +385,7 @@ def _RunPage(test, page, state, expectation, results, options):
     if state.repeat_state.ShouldNavigate(options.skip_navigate_on_repeat):
       page_state.ImplicitPageNavigation(page, tab, test)
     test.Run(options, page, tab, results)
+    util.CloseConnections(tab)
   except page_test.Failure:
     logging.warning('%s:\n%s', page.url, traceback.format_exc())
     if expectation == 'fail':
