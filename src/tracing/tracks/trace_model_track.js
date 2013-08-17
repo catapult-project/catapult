@@ -206,9 +206,16 @@ base.exportTo('tracing.tracks', function() {
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
 
-      var startY =
-          (startBounds.top - canvasBounds.top + (startBounds.height / 2));
-      var endY = (endBounds.top - canvasBounds.top + (endBounds.height / 2));
+      var startSize = startBounds.left + startBounds.top +
+          startBounds.bottom + startBounds.right;
+      var endSize = endBounds.left + endBounds.top +
+          endBounds.bottom + endBounds.right;
+      // Nothing to do if both ends of the track are collapsed.
+      if (startSize === 0 && endSize === 0)
+        return;
+
+      var startY = this.calculateTrackY_(startTrack, canvasBounds);
+      var endY = this.calculateTrackY_(endTrack, canvasBounds);
 
       var pixelStartY = pixelRatio * startY;
       var pixelEndY = pixelRatio * endY;
@@ -235,6 +242,15 @@ base.exportTo('tracing.tracks', function() {
           tipX - arrowWidth, tipY - arrowHeight,
           tipX - arrowWidth, tipY + arrowHeight);
       ctx.fill();
+    },
+
+    calculateTrackY_: function(track, canvasBounds) {
+      var bounds = track.getBoundingClientRect();
+      var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
+      if (size === 0)
+        return this.calculateTrackY_(track.parentNode, canvasBounds);
+
+      return bounds.top - canvasBounds.top + (bounds.height / 2);
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
