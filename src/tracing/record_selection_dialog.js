@@ -115,37 +115,29 @@ base.exportTo('tracing', function() {
     },
 
     categoryFilter: function() {
-      var positive_categories = this.categoriesForFilter_(
-          this.selectedCategories_(), false);
-      var negated_categories = this.categoriesForFilter_(
-          this.unselectedCategories_(), true);
-
-      var disabledCategories = this.enabledDisabledByDefaultCategories_();
-      disabledCategories = disabledCategories.join(',');
-
-      var results = [];
-      if (positive_categories !== '')
-        results.push(positive_categories);
-      if (negated_categories !== '')
-        results.push(negated_categories);
-      if (disabledCategories !== '')
-        results.push(disabledCategories);
-
-      return results.join(',');
-    },
-
-    categoriesForFilter_: function(categories, negated) {
+      var categories = this.unselectedCategories_();
       var categories_length = categories.length;
-      var result_categories = [];
+      var negated_categories = [];
       for (var i = 0; i < categories_length; ++i) {
         // Skip any category with a , as it will cause issues when we negate.
         // Both sides should have been added as separate categories, these can
         // only come from settings.
         if (categories[i].match(/,/))
           continue;
-        result_categories.push((negated ? '-' : '') + categories[i]);
+        negated_categories.push('-' + categories[i]);
       }
-      return result_categories.join(',');
+      categories = negated_categories.join(',');
+
+      var disabledCategories = this.enabledDisabledByDefaultCategories_();
+      disabledCategories = disabledCategories.join(',');
+
+      var results = [];
+      if (categories !== '')
+        results.push(categories);
+      if (disabledCategories !== '')
+        results.push(disabledCategories);
+
+      return results.join(',');
     },
 
     onRecord_: function() {
@@ -169,12 +161,6 @@ base.exportTo('tracing', function() {
       var inputs =
           this.enabledCategoriesContainerEl_.querySelectorAll('input');
       return this.collectInputs_(inputs, false);
-    },
-
-    selectedCategories_: function() {
-      var inputs =
-          this.enabledCategoriesContainerEl_.querySelectorAll('input');
-      return this.collectInputs_(inputs, true);
     },
 
     enabledDisabledByDefaultCategories_: function() {

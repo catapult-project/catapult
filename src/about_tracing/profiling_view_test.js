@@ -225,7 +225,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
     var categories = tracingController.beginTracingCategories;
     // Renderer is disabled in settings, skia is clicked off.
-    assertEquals('cc,gpu,-renderer,-skia', categories);
+    assertEquals('-renderer,-skia', categories);
 
     view.detach_();
   });
@@ -255,7 +255,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       assertNotEquals('baz,zap', inputs[i].id);
     }
     var categories = tracingController.beginTracingCategories;
-    assertEquals('baz,gpu,zap', categories);
+    assertEquals('', categories);
 
     view.detach_();
   });

@@ -30,7 +30,7 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     assertEquals('disabled-by-default-one', checkboxes[2].value);
     assertEquals(false, checkboxes[2].checked);
 
-    assertEquals('three,two', dlg.categoryFilter());
+    assertEquals('', dlg.categoryFilter());
 
     var labels = dlg.formEl_.getElementsByTagName('label');
     assertEquals(3, labels.length);
@@ -62,7 +62,7 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     assertEquals('disabled-by-default-one', checkboxes[2].value);
     assertEquals(false, checkboxes[2].checked);
 
-    assertEquals('two,-three', dlg.categoryFilter());
+    assertEquals('-three', dlg.categoryFilter());
 
     var labels = dlg.formEl_.getElementsByTagName('label');
     assertEquals(3, labels.length);
@@ -80,12 +80,12 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     dlg.settings_key = 'categories';
     dlg.updateForm_();
 
-    assertEquals('baz', dlg.categoryFilter());
+    assertEquals('', dlg.categoryFilter());
 
     var inputs =
         dlg.formEl_.querySelector('input#disabled-by-default-bar').click();
 
-    assertEquals('baz,disabled-by-default-bar', dlg.categoryFilter());
+    assertEquals('disabled-by-default-bar', dlg.categoryFilter());
 
     assertEquals(false,
         settings.get('disabled-by-default-foo', false, 'categories'));
@@ -116,7 +116,7 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
 
     // Enables the three option, two already enabled.
     dlg.formEl_.querySelector('.default-enabled-categories .all-btn').click();
-    assertEquals('three,two', dlg.categoryFilter());
+    assertEquals('', dlg.categoryFilter());
     assertEquals(true, settings.get('three', false, 'categories'));
 
     // Disables three and two.
@@ -132,14 +132,14 @@ base.unittest.testSuite('tracing.record_selection_dialog', function() {
     // Enables disabled category.
     dlg.formEl_.
         querySelector('.default-disabled-categories .all-btn').click();
-    assertEquals('three,two,disabled-by-default-one', dlg.categoryFilter());
+    assertEquals('disabled-by-default-one', dlg.categoryFilter());
     assertEquals(true,
         settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
     dlg.formEl_.
         querySelector('.default-disabled-categories .none-btn').click();
-    assertEquals('three,two', dlg.categoryFilter());
+    assertEquals('', dlg.categoryFilter());
     assertEquals(false,
         settings.get('disabled-by-default-one', false, 'categories'));
   });
