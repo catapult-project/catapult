@@ -53,10 +53,6 @@ base.exportTo('tracing.tracks', function() {
       if (this.thread_.asyncSliceGroup.length) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
         asyncTrack.categoryFilter = this.categoryFilter;
-        asyncTrack.decorateHit = function(hit) {
-          // TODO(simonjam): figure out how to associate subSlice hits back
-          // to their parent slice.
-        };
         asyncTrack.group = this.thread_.asyncSliceGroup;
         if (asyncTrack.hasVisibleContent)
           this.appendChild(asyncTrack);
@@ -67,11 +63,6 @@ base.exportTo('tracing.tracks', function() {
         samplesTrack.categoryFilter = samplesTrack;
         samplesTrack.group = this.thread_;
         samplesTrack.slices = this.thread_.samples;
-        samplesTrack.decorateHit = function(hit) {
-          // TODO(johnmccutchan): Figure out what else should be associated
-          // with the hit.
-          hit.thread = this.thread_;
-        }
         this.appendChild(samplesTrack);
       }
 
@@ -80,9 +71,6 @@ base.exportTo('tracing.tracks', function() {
         timeSlicesTrack.categoryFilter = this.categoryFilter;
         timeSlicesTrack.heading = '';
         timeSlicesTrack.height = '4px';
-        timeSlicesTrack.decorateHit = function(hit) {
-          hit.thread = this.thread_;
-        }
         timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
           this.appendChild(timeSlicesTrack);
@@ -93,10 +81,6 @@ base.exportTo('tracing.tracks', function() {
         track.categoryFilter = this.categoryFilter;
         track.heading = this.thread_.userFriendlyName;
         track.tooltip = this.thread_.userFriendlyDetails;
-
-        track.decorateHit = function(hit) {
-          hit.thread = this.thread_;
-        };
         track.group = this.thread_.sliceGroup;
         if (track.hasVisibleContent)
           this.appendChild(track);

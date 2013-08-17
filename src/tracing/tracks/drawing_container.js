@@ -152,6 +152,14 @@ base.exportTo('tracing.tracks', function() {
 
       tracing.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
+    },
+
+    addEventsToTrackMap: function(eventToTrackMap) {
+      for (var i = 0; i < this.children.length; ++i) {
+        if (!(this.children[i] instanceof tracing.tracks.Track))
+          continue;
+        this.children[i].addEventsToTrackMap(eventToTrackMap);
+      }
     }
   };
 

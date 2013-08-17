@@ -33,12 +33,12 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
 
     var selection = new Selection();
     var t1track = {};
-    selection.addCounterSample(t1track, ctr.getSeries(0).samples[1]);
+    selection.push(ctr.getSeries(0).samples[1]);
 
     if (numSamples === 1)
       return selection;
 
-    selection.addCounterSample(t1track, ctr.getSeries(0).samples[0]);
+    selection.push(ctr.getSeries(0).samples[0]);
     return selection;
   };
 
@@ -65,8 +65,8 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     var selection = new Selection();
     var t1track = {};
 
-    selection.addCounterSample(t1track, ctr.getSeries(0).samples[1]);
-    selection.addCounterSample(t1track, ctr.getSeries(1).samples[1]);
+    selection.push(ctr.getSeries(0).samples[1]);
+    selection.push(ctr.getSeries(1).samples[1]);
     return selection;
   };
 
@@ -80,16 +80,16 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     var selection = new Selection();
     var t1track = {};
 
-    selection.addCounterSample(t1track, ctr1.getSeries(0).samples[1]);
-    selection.addCounterSample(t1track, ctr1.getSeries(1).samples[1]);
+    selection.push(ctr1.getSeries(0).samples[1]);
+    selection.push(ctr1.getSeries(1).samples[1]);
 
 
-    selection.addCounterSample(t1track, ctr2.getSeries(0).samples[2]);
-    selection.addCounterSample(t1track, ctr2.getSeries(1).samples[2]);
+    selection.push(ctr2.getSeries(0).samples[2]);
+    selection.push(ctr2.getSeries(1).samples[2]);
     return selection;
   };
 
-  var createSelectionWithTwoCountersDiffSeriesDiffHits = function() {
+  var createSelectionWithTwoCountersDiffSeriesDiffEvents = function() {
     var ctr1 = new Counter(null, 0, '', 'a');
     var ctr1AllocatedSeries = new CounterSeries('bytesallocated', 0);
     ctr1.addSeries(ctr1AllocatedSeries);
@@ -127,9 +127,9 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     var t1track = {};
     var t2track = {};
 
-    selection.addCounterSample(t1track, ctr1AllocatedSeries.samples[1]);
-    selection.addCounterSample(t2track, ctr2AllocatedSeries.samples[2]);
-    selection.addCounterSample(t2track, ctr2FreeSeries.samples[2]);
+    selection.push(ctr1AllocatedSeries.samples[1]);
+    selection.push(ctr2AllocatedSeries.samples[2]);
+    selection.push(ctr2FreeSeries.samples[2]);
 
     return selection;
   };
@@ -168,7 +168,7 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
   });
 
   test('analyzeSelectionWithComplexSeriesTwoCounters', function() {
-    var selection = createSelectionWithTwoCountersDiffSeriesDiffHits();
+    var selection = createSelectionWithTwoCountersDiffSeriesDiffEvents();
 
     var results = new StubAnalysisResults();
     tracing.analysis.analyzeSelection(results, selection);

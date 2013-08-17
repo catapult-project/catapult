@@ -47,9 +47,10 @@ base.unittest.testSuite('tracing.find_control', function() {
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
       var n = this.addAllObjectsMatchingFilterToSelectionReturnValue.length;
-      for (var i = 0; i < n; i++)
-        selection.push_(
+      for (var i = 0; i < n; i++) {
+        selection.push(
             this.addAllObjectsMatchingFilterToSelectionReturnValue[i]);
+      }
     }
   };
 
@@ -191,7 +192,7 @@ base.unittest.testSuite('tracing.find_control', function() {
     controller.filterText = 'a';
     controller.findNext();
     assertEquals(1, timeline.selection.length);
-    assertEquals(t1.sliceGroup.slices[0], timeline.selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], timeline.selection[0]);
 
     controller.filterText = 'xxx';
     controller.findNext();

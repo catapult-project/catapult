@@ -42,10 +42,10 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
 
     var track = {};
     var selection = new Selection();
-    selection.addObjectInstance(track, i10);
-    selection.addObjectSnapshot(track, s10);
-    selection.addObjectSnapshot(track, s25);
-    selection.addObjectSnapshot(track, s40);
+    selection.push(i10);
+    selection.push(s10);
+    selection.push(s25);
+    selection.push(s40);
 
     var analysisEl = new AnalysisView();
     analysisEl.selection = selection;
@@ -57,7 +57,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     var selection = new Selection();
-    selection.addObjectSnapshot({}, s10);
+    selection.push(s10);
 
     var view = new AnalysisView();
     view.selection = selection;
@@ -70,7 +70,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
     var s10 = i10.addSnapshot(10, {foo: 1});
 
     var selection = new Selection();
-    selection.addObjectSnapshot({}, s10);
+    selection.push(s10);
 
     var MyView = ui.define(
         'my-view', tracing.analysis.ObjectSnapshotView);
@@ -100,7 +100,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
     var i10 = new ObjectInstance({}, '0x1000', 'cat', 'someUnhandledName', 10);
 
     var selection = new Selection();
-    selection.addObjectInstance({}, i10);
+    selection.push(i10);
 
     var view = new AnalysisView();
     view.selection = selection;
@@ -112,7 +112,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
     var i10 = new ObjectInstance({}, '0x1000', 'cat', 'MyView', 10);
 
     var selection = new Selection();
-    selection.addObjectInstance({}, i10);
+    selection.push(i10);
 
     var MyView = ui.define(
         'my-view', tracing.analysis.ObjectInstanceView);
@@ -142,7 +142,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view', function() {
     var s10 = new tracing.trace_model.Slice('cat', 'MySlice', 0, 10, {}, 4);
 
     var selection = new tracing.Selection();
-    selection.addSlice({}, s10);
+    selection.push(s10);
 
     var MySlice = ui.define(
         'my-slice', tracing.analysis.SliceView);

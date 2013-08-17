@@ -71,13 +71,13 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
     assertEquals(1, selection.length);
-    assertEquals(1, selection.getNumObjectSnapshotHits());
+    assertTrue(selection[0] instanceof tracing.trace_model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new Selection();
     track.addIntersectingItemsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
     assertEquals(1, selection.length);
-    assertEquals(1, selection.getNumObjectInstanceHits());
+    assertTrue(selection[0] instanceof tracing.trace_model.ObjectInstance);
   });
 });

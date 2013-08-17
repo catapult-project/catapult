@@ -18,56 +18,57 @@ base.exportTo('tracing.analysis', function() {
    * @param {Selection} selection What to analyze.
    */
   function analyzeSelection(results, selection) {
-    analyzeHitsByType(results, selection.getHitsOrganizedByType());
+    analyzeEventsByType(results, selection.getEventsOrganizedByType());
   }
 
-  function analyzeHitsByType(results, hitsByType) {
-    var sliceHits = hitsByType.slices;
-    var counterSampleHits = hitsByType.counterSamples;
-    var objectHits = new tracing.Selection();
-    objectHits.addSelection(hitsByType.objectSnapshots);
-    objectHits.addSelection(hitsByType.objectInstances);
+  function analyzeEventsByType(results, eventsByType) {
+    var sliceEvents = eventsByType.slices;
+    var counterSampleEvents = eventsByType.counterSamples;
+    var objectEvents = new tracing.Selection();
+    objectEvents.addSelection(eventsByType.objectSnapshots);
+    objectEvents.addSelection(eventsByType.objectInstances);
 
-    if (sliceHits.length == 1) {
-      tracing.analysis.analyzeSingleSliceHit(results, sliceHits[0]);
-    } else if (sliceHits.length > 1) {
-      tracing.analysis.analyzeMultipleSliceHits(results, sliceHits);
+    if (sliceEvents.length == 1) {
+      tracing.analysis.analyzeSingleSlice(results, sliceEvents[0]);
+    } else if (sliceEvents.length > 1) {
+      tracing.analysis.analyzeMultipleSlices(results, sliceEvents);
     }
 
-    if (counterSampleHits.length != 0)
-      tracing.analysis.analyzeCounterSampleHits(results, counterSampleHits);
+    if (counterSampleEvents.length != 0)
+      tracing.analysis.analyzeCounterSamples(results, counterSampleEvents);
 
-    if (objectHits.length)
-      analyzeObjectHits(results, objectHits);
+    if (objectEvents.length)
+      analyzeObjectEvents(results, objectEvents);
   }
 
   /**
    * Extremely simplistic analysis of objects. Mainly exists to provide
    * click-through to the main object's analysis view.
    */
-  function analyzeObjectHits(results, objectHits) {
-    objectHits = base.asArray(objectHits).sort(base.Range.compareByMinTimes);
+  function analyzeObjectEvents(results, objectEvents) {
+    objectEvents = base.asArray(objectEvents).sort(
+        base.Range.compareByMinTimes);
 
     var table = results.appendTable('analysis-object-sample-table', 2);
     results.appendTableHeader(table, 'Selected Objects:');
 
-    objectHits.forEach(function(hit) {
+    objectEvents.forEach(function(event) {
       var row = results.appendTableRow(table);
       var ts;
       var objectText;
       var selectionGenerator;
-      if (hit instanceof tracing.SelectionObjectSnapshotHit) {
-        var objectSnapshot = hit.objectSnapshot;
+      if (event instanceof tracing.trace_model.ObjectSnapshot) {
+        var objectSnapshot = event;
         ts = tracing.analysis.tsRound(objectSnapshot.ts);
         objectText = objectSnapshot.objectInstance.typeName + ' ' +
             objectSnapshot.objectInstance.id;
         selectionGenerator = function() {
           var selection = new tracing.Selection();
-          selection.addObjectSnapshot(hit.track, objectSnapshot);
+          selection.push(objectSnapshot);
           return selection;
         };
       } else {
-        var objectInstance = hit.objectInstance;
+        var objectInstance = event;
 
         var deletionTs = objectInstance.deletionTs == Number.MAX_VALUE ?
             '' : tracing.analysis.tsRound(objectInstance.deletionTs);
@@ -79,7 +80,7 @@ base.exportTo('tracing.analysis', function() {
 
         selectionGenerator = function() {
           var selection = new tracing.Selection();
-          selection.addObjectInstance(hit.track, objectInstance);
+          selection.push(objectInstance);
           return selection;
         };
       }
@@ -93,6 +94,6 @@ base.exportTo('tracing.analysis', function() {
 
   return {
     analyzeSelection: analyzeSelection,
-    analyzeHitsByType: analyzeHitsByType
+    analyzeEventsByType: analyzeEventsByType
   };
 });

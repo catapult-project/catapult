@@ -79,25 +79,23 @@ base.exportTo('tracing.tracks', function() {
 
         this.appendChild(track);
       }
-      this.memoizeSlices_();
+      this.viewport_.rebuildEventToTrackMap();
     },
 
-    memoizeSlices_: function() {
+    addEventsToTrackMap: function(eventToTrackMap) {
       if (!this.model_ || !this.categoryFilter)
         return;
 
-      this.viewport_.clearSliceMemoization();
-
       var tracks = this.children;
       for (var i = 0; i < tracks.length; ++i)
-        tracks[i].memoizeSlices_();
+        tracks[i].addEventsToTrackMap(eventToTrackMap);
 
       if (this.instantEvents === undefined)
         return;
 
       var vp = this.viewport_;
       this.instantEvents.forEach(function(ev) {
-        vp.sliceMemoization(ev, this);
+        eventToTrackMap.addEvent(ev, this);
       }.bind(this));
     },
 
@@ -200,8 +198,8 @@ base.exportTo('tracing.tracks', function() {
                                     canvasBounds, pixWidth) {
       var pixelRatio = window.devicePixelRatio || 1;
 
-      var startTrack = this.viewport.trackForSlice(startEvent);
-      var endTrack = this.viewport.trackForSlice(endEvent);
+      var startTrack = this.viewport.trackForEvent(startEvent);
+      var endTrack = this.viewport.trackForEvent(endEvent);
 
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
@@ -256,8 +254,7 @@ base.exportTo('tracing.tracks', function() {
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
-        var hit = selection.addSlice(this, instantEvent);
-        this.decorateHit(hit);
+        selection.push(instantEvent);
       }
       base.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },

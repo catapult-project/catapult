@@ -26,11 +26,11 @@ base.exportTo('tracing.analysis', function() {
       return false;
     },
 
-    set modelObject(obj) {
+    set modelEvent(obj) {
       this.slice = obj;
     },
 
-    get modelObject() {
+    get modelEvent() {
       return this.slice;
     },
 

@@ -338,7 +338,7 @@ base.exportTo('tracing.tracks', function() {
      *     viewspace.
      * @param {number} hiVY Upper Y bound of the interval to search, in
      *     viewspace.
-     * @param {Selection} selection Selection to which to add hits.
+     * @param {Selection} selection Selection to which to add results.
      */
     addIntersectingItemsInRangeToSelection: function(
         loVX, hiVX, loY, hiY, selection) {

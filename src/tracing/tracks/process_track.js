@@ -100,8 +100,7 @@ base.exportTo('tracing.tracks', function() {
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
-        var hit = selection.addSlice(this, instantEvent);
-        this.decorateHit(hit);
+        selection.push(instantEvent);
       }
       base.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },

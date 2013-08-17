@@ -57,6 +57,10 @@ base.exportTo('tracing.trace_model', function() {
       this.timestamp_ = timestamp;
     },
 
+    addBoundsToRange: function(range) {
+      range.addValue(this.timestamp);
+    },
+
     toJSON: function() {
       var obj = new Object();
       var keys = Object.keys(this);

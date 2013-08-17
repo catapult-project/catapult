@@ -60,7 +60,7 @@ base.exportTo('tracing', function() {
     this.markers = [];
     this.majorMarkPositions = [];
 
-    this.modelGuidToTrackMap_ = {};
+    this.eventToTrackMap_ = {};
   }
 
   TimelineViewport.prototype = {
@@ -428,16 +428,21 @@ base.exportTo('tracing', function() {
       ctx.lineWidth = 1;
     },
 
-    clearSliceMemoization: function() {
-      this.modelGuidToTrackMap_ = {};
+    rebuildEventToTrackMap: function() {
+      this.eventToTrackMap_ = undefined;
+
+      var eventToTrackMap = {};
+      eventToTrackMap.addEvent = function(event, track) {
+        if (!track)
+          throw new Error('Must provide a track.');
+        this[event.guid] = track;
+      };
+      this.modelTrackContainer_.addEventsToTrackMap(eventToTrackMap);
+      this.eventToTrackMap_ = eventToTrackMap;
     },
 
-    sliceMemoization: function(slice, track) {
-      this.modelGuidToTrackMap_[slice.guid] = track;
-    },
-
-    trackForSlice: function(slice) {
-      return this.modelGuidToTrackMap_[slice.guid];
+    trackForEvent: function(event) {
+      return this.eventToTrackMap_[event.guid];
     }
   };
 

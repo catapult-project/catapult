@@ -53,7 +53,7 @@ base.exportTo('tracing.tracks', function() {
      *     viewspace space.
      * @param {number} hiY Upper Y bound of the interval to search, in
      *     viewspace space.
-     * @param {Selection} selection Selection to which to add hits.
+     * @param {Selection} selection Selection to which to add results.
      */
     addIntersectingItemsInRangeToSelection: function(
         loVX, hiVX, loY, hiY, selection) {
@@ -70,9 +70,9 @@ base.exportTo('tracing.tracks', function() {
           apply(this, arguments);
     },
 
-    memoizeSlices_: function() {
+    addEventsToTrackMap: function(eventToTrackMap) {
       for (var i = 0; i < this.children.length; ++i)
-        this.children[i].memoizeSlices_();
+        this.children[i].addEventsToTrackMap(eventToTrackMap);
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {

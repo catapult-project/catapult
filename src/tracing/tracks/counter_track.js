@@ -33,14 +33,6 @@ base.exportTo('tracing.tracks', function() {
       this.categoryFilter_ = new tracing.Filter();
     },
 
-    /**
-     * Called by all the addToSelection functions on the created selection
-     * hit objects. Override this function on parent classes to add
-     * context-specific information to the hit.
-     */
-    decorateHit: function(hit) {
-    },
-
     get counter() {
       return this.counter_;
     },
@@ -191,8 +183,13 @@ base.exportTo('tracing.tracks', function() {
       ctx.restore();
     },
 
-    memoizeSlices_: function() {
-      this.viewport_.sliceMemoization(this.counter_, this);
+    addEventsToTrackMap: function(eventToTrackMap) {
+      var allSeries = this.counter_.series;
+      for (var seriesIndex = 0; seriesIndex < allSeries.length; seriesIndex++) {
+        var samples = allSeries[seriesIndex].samples;
+        for (var i = 0; i < samples.length; i++)
+          eventToTrackMap.addEvent(samples[i], this);
+      }
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
@@ -229,11 +226,19 @@ base.exportTo('tracing.tracks', function() {
              seriesIndex < this.counter.numSeries;
              seriesIndex++) {
           var series = this.counter.series[seriesIndex];
-          var hit = selection.addCounterSample(
-              this, series.samples[sampleIndex]);
-          this.decorateHit(hit);
+          selection.push(series.samples[sampleIndex]);
         }
       }
+    },
+
+    addItemNearToProvidedEventToSelection: function(sample, offset, selection) {
+      var index = sample.getSampleIndex();
+      var newIndex = index + offset;
+      if (newIndex < 0 || newIndex >= sample.series.samples.length)
+        return false;
+
+      selection.push(sample.series.samples[newIndex]);
+      return true;
     },
 
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
@@ -257,17 +262,7 @@ base.exportTo('tracing.tracks', function() {
         if (!counterSample)
           continue;
 
-        var hit = selection.addCounterSample(this, counterSample);
-        this.decorateHit(hit);
-
-        var clientRect = this.getBoundingClientRect();
-        var sampleHeight =
-            clientRect.height * counterSample.value / counter.maxTotal;
-        stackHeight += sampleHeight;
-
-        hit.eventX = counterSample.timestamp;
-        hit.eventY = clientRect.bottom - stackHeight;
-        hit.eventHeight = sampleHeight;
+        selection.push(counterSample);
       }
     }
   };

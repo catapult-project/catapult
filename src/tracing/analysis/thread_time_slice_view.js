@@ -59,7 +59,7 @@ base.exportTo('tracing.analysis', function() {
             timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
         cpuLink.selectionGenerator = function() {
           var selection = new tracing.Selection();
-          selection.addSlice(undefined, timeSlice.getAssociatedCpuSlice());
+          selection.push(timeSlice.getAssociatedCpuSlice());
           return selection;
         }.bind(this);
         onCpuEl.appendChild(cpuLink);
@@ -75,7 +75,7 @@ base.exportTo('tracing.analysis', function() {
             cpuLink.textContent = cpuSliceThatTookCpu.title;
           cpuLink.selectionGenerator = function() {
             var selection = new tracing.Selection();
-            selection.addSlice(undefined, cpuSliceThatTookCpu);
+            selection.push(cpuSliceThatTookCpu);
             return selection;
           }.bind(this);
           runningInsteadEl.appendChild(cpuLink);

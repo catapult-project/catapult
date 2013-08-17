@@ -36,14 +36,14 @@ base.unittest.testSuite('tracing.analysis.cpu_slice_view', function() {
     assertEquals(cpuSlice.threadThatWasRunning, thread);
 
     var view = new tracing.analysis.CpuSliceView();
-    view.modelObject = cpuSlice;
+    view.modelEvent = cpuSlice;
     this.addHTMLOutput(view);
 
     // Clicking the analysis link should focus the Binder1's timeslice.
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
       assertEquals(1, e.selection.length);
-      assertEquals(thread.timeSlices[0], e.selection[0].slice);
+      assertEquals(thread.timeSlices[0], e.selection[0]);
       didSelectionChangeHappen = true;
     });
     view.querySelector('.analysis-link').click();
@@ -60,7 +60,7 @@ base.unittest.testSuite('tracing.analysis.cpu_slice_view', function() {
     assertUndefined(cpuSlice.thread);
 
     var view = new tracing.analysis.CpuSliceView();
-    view.modelObject = cpuSlice;
+    view.modelEvent = cpuSlice;
     this.addHTMLOutput(view);
   });
 

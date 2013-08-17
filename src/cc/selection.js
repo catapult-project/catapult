@@ -173,8 +173,8 @@ base.exportTo('cc', function() {
     },
 
     createAnalysis: function() {
-      var sel = tracing.createSelectionFromObjectAndView(
-          this.rasterTask_, this);
+      var sel = new tracing.Selection();
+      sel.push(this.rasterTask_);
       var analysis = new tracing.analysis.AnalysisResults();
       tracing.analysis.analyzeSelection(analysis, sel);
       return analysis;

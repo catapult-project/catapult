@@ -44,6 +44,10 @@ base.exportTo('tracing.trace_model', function() {
       return this.name;
     },
 
+    addBoundsToRange: function(range) {
+      range.addRange(this.bounds);
+    },
+
     addSnapshot: function(ts, args) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');

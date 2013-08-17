@@ -31,7 +31,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
 
     return selection;
@@ -47,8 +47,8 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
-    selection.addSlice(t53track, t53.sliceGroup.slices[1]);
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
 
     return selection;
   };
@@ -63,8 +63,8 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t53track.thread = t53;
 
     var selection = new Selection();
-    selection.addSlice(t53track, t53.sliceGroup.slices[0]);
-    selection.addSlice(t53track, t53.sliceGroup.slices[1]);
+    selection.push(t53.sliceGroup.slices[0]);
+    selection.push(t53.sliceGroup.slices[1]);
 
     return selection;
   };
@@ -208,7 +208,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t1track.thread = t1;
 
     var selection = new Selection();
-    selection.addSlice(t1track, t1.sliceGroup.slices[0]);
+    selection.push(t1.sliceGroup.slices[0]);
     assertEquals(1, selection.length);
 
     var analysisEl = new AnalysisView();

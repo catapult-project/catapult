@@ -51,13 +51,13 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     var selection = new Selection();
     var x = (1.5 / wW) * vW;
     track.addIntersectingItemsInRangeToSelection(x, x + 1, y, y + 1, selection);
-    assertEquals(t1.sliceGroup.slices[0], selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], selection[0]);
 
     var selection = new Selection();
     track.addIntersectingItemsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
-    assertEquals(t1.sliceGroup.slices[0], selection[0].slice);
+    assertEquals(t1.sliceGroup.slices[0], selection[0]);
   });
 
   test('filterThreadSlices', function() {

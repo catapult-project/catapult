@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('base.range');
 base.require('tracing.constants');
 base.require('tracing.selection');
 
@@ -200,7 +201,8 @@ base.exportTo('tracing', function() {
       var modelTrackContainer = this.viewport.modelTrackContainer;
       var modelTrackContainerRect = modelTrackContainer.getBoundingClientRect();
 
-      var dt = this.viewport.currentDisplayTransform;
+      var viewport = this.viewport;
+      var dt = viewport.currentDisplayTransform;
       var worldMaxDist = dt.xViewVectorToWorld(EVENT_SNAP_RANGE);
 
       var worldX = this.getWorldXFromEvent_(e);
@@ -232,10 +234,27 @@ base.exportTo('tracing', function() {
         snapped: false
       };
 
+      var eventBounds = new base.Range();
       for (var i = 0; i < selection.length; i++) {
-        var hit = selection[i];
-        var distX = Math.abs(hit.eventX - worldX);
-        var distY = Math.abs(hit.eventY + hit.eventHeight / 2 - mouseY);
+        var event = selection[i];
+        var track = viewport.trackForEvent(event);
+        var trackRect = track.getBoundingClientRect();
+
+        eventBounds.reset();
+        event.addBoundsToRange(eventBounds);
+        var eventX;
+        if (Math.abs(eventBounds.min - worldX) <
+            Math.abs(eventBounds.max - worldX)) {
+          eventX = eventBounds.min;
+        } else {
+          eventX = eventBounds.max;
+        }
+
+        var distX = eventX - worldX;
+
+        var eventY = trackRect.top;
+        var eventHeight = trackRect.height;
+        var distY = Math.abs(eventY + eventHeight / 2 - mouseY);
 
         // Prefer events with a closer y position if their x difference is below
         // the width of a pixel.
@@ -245,10 +264,10 @@ base.exportTo('tracing', function() {
           minDistY = distY;
 
           // Retrieve the event position from the hit.
-          result.x = hit.eventX;
-          result.y = hit.eventY +
+          result.x = eventX;
+          result.y = eventY +
               modelTrackContainer.scrollTop - modelTrackContainerRect.top;
-          result.height = hit.eventHeight;
+          result.height = eventHeight;
           result.snapped = true;
         }
       }

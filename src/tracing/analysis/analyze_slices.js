@@ -10,8 +10,7 @@ base.require('tracing.analysis.util');
 base.require('ui');
 base.exportTo('tracing.analysis', function() {
 
-  function analyzeSingleSliceHit(results, sliceHit) {
-    var slice = sliceHit.slice;
+  function analyzeSingleSlice(results, slice) {
     var table = results.appendTable('analysis-slice-table', 2);
 
     results.appendTableHeader(table, 'Selected slice:');
@@ -42,25 +41,20 @@ base.exportTo('tracing.analysis', function() {
     }
   }
 
-  function analyzeMultipleSliceHits(results, sliceHits) {
-    var tsLo = sliceHits.bounds.min;
-    var tsHi = sliceHits.bounds.max;
-
-    // compute total sliceHits duration
-    var titles = sliceHits.map(function(i) { return i.slice.title; });
+  function analyzeMultipleSlices(results, slices) {
+    var tsLo = slices.bounds.min;
+    var tsHi = slices.bounds.max;
 
     var numTitles = 0;
-    var sliceHitsByTitle = {};
-    for (var i = 0; i < sliceHits.length; i++) {
-      var slice = sliceHits[i].slice;
-      if (!sliceHitsByTitle[slice.title]) {
-        sliceHitsByTitle[slice.title] = {
-          hits: []
-        };
+    var slicesByTitle = {};
+    for (var i = 0; i < slices.length; i++) {
+      var slice = slices[i];
+      if (slicesByTitle[slice.title] === undefined) {
+        slicesByTitle[slice.title] = [];
         numTitles++;
       }
-      var sliceGroup = sliceHitsByTitle[slice.title];
-      sliceGroup.hits.push(sliceHits[i]);
+      var sliceGroup = slicesByTitle[slice.title];
+      sliceGroup.push(slices[i]);
     }
 
     var table;
@@ -68,8 +62,8 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableHeader(table, 'Slices:');
 
     var totalDuration = 0;
-    base.iterItems(sliceHitsByTitle,
-        function(sliceHitGroupTitle, sliceHitGroup) {
+    base.iterItems(slicesByTitle,
+        function(sliceGroupTitle, sliceGroup) {
           var duration = 0;
           var avg = 0;
           var startOfFirstOccurrence = Number.MAX_VALUE;
@@ -77,8 +71,8 @@ base.exportTo('tracing.analysis', function() {
           var frequencyDetails = undefined;
           var min = Number.MAX_VALUE;
           var max = -Number.MAX_VALUE;
-          for (var i = 0; i < sliceHitGroup.hits.length; i++) {
-            var slice = sliceHitGroup.hits[i].slice;
+          for (var i = 0; i < sliceGroup.length; i++) {
+            var slice = sliceGroup[i];
             duration += slice.duration;
             startOfFirstOccurrence = Math.min(slice.start,
                 startOfFirstOccurrence);
@@ -90,9 +84,9 @@ base.exportTo('tracing.analysis', function() {
 
           totalDuration += duration;
 
-          if (sliceHitGroup.hits.length == 0)
+          if (sliceGroup.length == 0)
             avg = 0;
-          avg = duration / sliceHitGroup.hits.length;
+          avg = duration / sliceGroup.length;
 
           var statistics = {min: min,
             max: max,
@@ -103,27 +97,27 @@ base.exportTo('tracing.analysis', function() {
 
           // Compute the stddev of the slice durations.
           var sumOfSquaredDistancesToMean = 0;
-          for (var i = 0; i < sliceHitGroup.hits.length; i++) {
+          for (var i = 0; i < sliceGroup.length; i++) {
             var signedDistance =
-                statistics.avg - sliceHitGroup.hits[i].slice.duration;
+                statistics.avg - sliceGroup[i].duration;
             sumOfSquaredDistancesToMean += signedDistance * signedDistance;
           }
 
           statistics.avg_stddev = Math.sqrt(
-              sumOfSquaredDistancesToMean / (sliceHitGroup.hits.length - 1));
+              sumOfSquaredDistancesToMean / (sliceGroup.length - 1));
 
           // We require at least 3 samples to compute the stddev.
           var elapsed = startOfLastOccurrence - startOfFirstOccurrence;
-          if (sliceHitGroup.hits.length > 2 && elapsed > 0) {
-            var numDistances = sliceHitGroup.hits.length - 1;
+          if (sliceGroup.length > 2 && elapsed > 0) {
+            var numDistances = sliceGroup.length - 1;
             statistics.frequency = (1000 * numDistances) / elapsed;
 
             // Compute the stddev.
             sumOfSquaredDistancesToMean = 0;
-            for (var i = 1; i < sliceHitGroup.hits.length; i++) {
+            for (var i = 1; i < sliceGroup.length; i++) {
               var currentFrequency = 1000 /
-                  (sliceHitGroup.hits[i].slice.start -
-                  sliceHitGroup.hits[i - 1].slice.start);
+                  (sliceGroup[i].start -
+                  sliceGroup[i - 1].start);
               var signedDistance = statistics.frequency - currentFrequency;
               sumOfSquaredDistancesToMean += signedDistance * signedDistance;
             }
@@ -132,24 +126,24 @@ base.exportTo('tracing.analysis', function() {
                 sumOfSquaredDistancesToMean / (numDistances - 1));
           }
           results.appendDataRow(
-              table, sliceHitGroupTitle, duration, sliceHitGroup.hits.length,
+              table, sliceGroupTitle, duration, sliceGroup.length,
               statistics,
               function() {
-                return new tracing.Selection(sliceHitGroup.hits);
+                return new tracing.Selection(sliceGroup);
               });
 
           // The whole selection is a single type so list out the information
           // for each sub slice.
           if (numTitles === 1) {
-            for (var i = 0; i < sliceHitGroup.hits.length; i++) {
-              analyzeSingleSliceHit(results, sliceHitGroup.hits[i]);
+            for (var i = 0; i < sliceGroup.length; i++) {
+              analyzeSingleSlice(results, sliceGroup[i]);
             }
           }
         });
 
     // Only one row so we already know the totals.
     if (numTitles !== 1) {
-      results.appendDataRow(table, '*Totals', totalDuration, sliceHits.length);
+      results.appendDataRow(table, '*Totals', totalDuration, slices.length);
       results.appendSpacingRow(table);
     }
 
@@ -158,7 +152,7 @@ base.exportTo('tracing.analysis', function() {
   }
 
   return {
-    analyzeSingleSliceHit: analyzeSingleSliceHit,
-    analyzeMultipleSliceHits: analyzeMultipleSliceHits
+    analyzeSingleSlice: analyzeSingleSlice,
+    analyzeMultipleSlices: analyzeMultipleSlices
   };
 });

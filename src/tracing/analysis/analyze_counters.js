@@ -11,18 +11,17 @@ base.exportTo('tracing.analysis', function() {
 
   var CounterSample = tracing.trace_model.CounterSample;
 
-  function analyzeCounterSampleHits(results, allHits) {
-    var hitsByCounter = {};
-    for (var i = 0; i < allHits.length; i++) {
-      var ctr = allHits[i].counterSample.series.counter;
-      if (!hitsByCounter[ctr.guid])
-        hitsByCounter[ctr.guid] = [];
-      hitsByCounter[ctr.guid].push(allHits[i]);
+  function analyzeCounterSamples(results, allSamples) {
+    var samplesByCounter = {};
+    for (var i = 0; i < allSamples.length; i++) {
+      var ctr = allSamples[i].series.counter;
+      if (!samplesByCounter[ctr.guid])
+        samplesByCounter[ctr.guid] = [];
+      samplesByCounter[ctr.guid].push(allSamples[i]);
     }
 
-    for (var guid in hitsByCounter) {
-      var hits = hitsByCounter[guid];
-      var samples = hits.map(function(hit) { return hit.counterSample; });
+    for (var guid in samplesByCounter) {
+      var samples = samplesByCounter[guid];
       var ctr = samples[0].series.counter;
 
       var timestampGroups = CounterSample.groupByTimestamp(samples);
@@ -71,7 +70,7 @@ base.exportTo('tracing.analysis', function() {
   }
 
   return {
-    analyzeCounterSampleHits: analyzeCounterSampleHits,
+    analyzeCounterSamples: analyzeCounterSamples,
     analyzeSingleCounterTimestamp: analyzeSingleCounterTimestamp,
     analyzeMultipleCounterTimestamps: analyzeMultipleCounterTimestamps
   };

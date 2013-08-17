@@ -83,23 +83,23 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
 
-    var expected = [{slice: t1asg.slices[0].subSlices[0]},
-                    {slice: t1.sliceGroup.slices[0]}];
+    var expected = [t1asg.slices[0].subSlices[0],
+                    t1.sliceGroup.slices[0]];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('a'), result);
     assertEquals(2, result.length);
-    assertEquals(expected[0].slice, result[0].slice);
-    assertEquals(expected[1].slice, result[1].slice);
+    assertEquals(expected[0], result[0]);
+    assertEquals(expected[1], result[1]);
 
-    var expected = [{slice: t1asg.slices[1].subSlices[0]},
-                    {slice: t1.sliceGroup.slices[1]}];
+    var expected = [t1asg.slices[1].subSlices[0],
+                    t1.sliceGroup.slices[1]];
     var result = new tracing.Selection();
     timeline.addAllObjectsMatchingFilterToSelection(
         new tracing.TitleFilter('b'), result);
     assertEquals(2, result.length);
-    assertEquals(expected[0].slice, result[0].slice);
-    assertEquals(expected[1].slice, result[1].slice);
+    assertEquals(expected[0], result[0]);
+    assertEquals(expected[1], result[1]);
   });
 
   test('emptyThreadsDeleted', function() {

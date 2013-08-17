@@ -159,12 +159,11 @@ base.exportTo('tcmalloc', function() {
       ctx.lineWidth = 1;
     },
 
-    memoizeSlices_: function() {
-      var vp = this.viewport_;
+    addEventsToTrackMap: function(eventToTrackMap) {
       var objectSnapshots = this.objectInstance_.snapshots;
       objectSnapshots.forEach(function(obj) {
-        vp.sliceMemoization(obj, this);
-      }.bind(this));
+        eventToTrackMap.addEvent(obj, this);
+      }, this);
     },
 
     /**
@@ -173,38 +172,36 @@ base.exportTo('tcmalloc', function() {
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
       var that = this;
-      function onSnapshotHit(snapshot) {
-        selection.addObjectSnapshot(that, snapshot);
+      function onSnapshot(snapshot) {
+        selection.push(snapshot);
       }
       base.iterateOverIntersectingIntervals(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           function(x) { return 5000; },
           loWX, hiWX,
-          onSnapshotHit);
+          onSnapshot);
     },
 
     /**
-     * Add the item to the left or right of the provided hit, if any, to the
+     * Add the item to the left or right of the provided item, if any, to the
      * selection.
      * @param {slice} The current slice.
-     * @param {Number} offset Number of slices away from the hit to look.
-     * @param {Selection} selection The selection to add a hit to,
+     * @param {Number} offset Number of slices away from the object to look.
+     * @param {Selection} selection The selection to add an event to,
      * if found.
-     * @return {boolean} Whether a hit was found.
+     * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedHitToSelection: function(hit, offset, selection) {
-      if (hit instanceof tracing.SelectionObjectSnapshotHit) {
-        var objectSnapshots = this.objectInstance_.snapshots;
-        var index = objectSnapshots.indexOf(hit.objectSnapshot);
-        var newIndex = index + offset;
-        if (newIndex >= 0 && newIndex < objectSnapshots.length) {
-          selection.addObjectSnapshot(this, objectSnapshots[newIndex]);
-          return true;
-        }
-      } else {
-        throw new Error('Unrecognized hit');
+    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+      if (!(event instanceof tracing.trace_model.ObjectSnapshot))
+        throw new Error('Unrecognized event');
+      var objectSnapshots = this.objectInstance_.snapshots;
+      var index = objectSnapshots.indexOf(event);
+      var newIndex = index + offset;
+      if (newIndex >= 0 && newIndex < objectSnapshots.length) {
+        selection.push(objectSnapshots[newIndex]);
+        return true;
       }
       return false;
     },
@@ -223,20 +220,7 @@ base.exportTo('tcmalloc', function() {
       if (!snapshot)
         return;
 
-      // Get the amount of bytes in the hit's snapshot.
-      var snapshotBytes = 0;
-      var keys = Object.keys(snapshot.heap_.children);
-      for (var i = 0; i < keys.length; i++)
-        snapshotBytes += snapshot.heap_.children[keys[i]].currentBytes;
-
-      var hit = selection.addObjectSnapshot(this, snapshot);
-      this.decorateHit(hit);
-
-      var clientRect = this.getBoundingClientRect();
-      var barHeight = clientRect.height * snapshotBytes / this.maxBytes_;
-      hit.eventX = snapshot.ts;
-      hit.eventY = clientRect.bottom - barHeight;
-      hit.eventHeight = barHeight;
+      selection.push(snapshot);
     }
   };
 

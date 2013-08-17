@@ -55,7 +55,7 @@ base.exportTo('tracing.analysis', function() {
         threadLink.textContent = 'Click to select';
         threadLink.selectionGenerator = function() {
           var selection = new tracing.Selection();
-          selection.addSlice(undefined, timeSlice);
+          selection.push(timeSlice);
           return selection;
         }.bind(this);
         runningThreadEl.appendChild(threadLink);

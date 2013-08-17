@@ -380,7 +380,8 @@ base.exportTo('tracing', function() {
 
       switch (e.keyCode) {
         case 37:   // left arrow
-          sel = this.selection.getShiftedSelection(-1);
+          sel = this.selection.getShiftedSelection(
+              this.viewport, -1);
           if (sel) {
             this.selection = sel;
             this.panToSelection();
@@ -390,7 +391,8 @@ base.exportTo('tracing', function() {
           }
           break;
         case 39:   // right arrow
-          sel = this.selection.getShiftedSelection(1);
+          sel = this.selection.getShiftedSelection(
+              this.viewport, 1);
           if (sel) {
             this.selection = sel;
             this.panToSelection();
@@ -576,9 +578,10 @@ base.exportTo('tracing', function() {
       base.dispatchSimpleEvent(this, 'selectionChange');
       for (i = 0; i < this.selection_.length; i++)
         this.selection_[i].selected = true;
-      if (this.selection_.length &&
-          this.selection_[0].track)
-        this.selection_[0].track.scrollIntoViewIfNeeded();
+      if (this.selection_.length) {
+        var track = this.viewport.trackForEvent(this.selection_[0]);
+        track.scrollIntoViewIfNeeded();
+      }
       this.viewport.dispatchChangeEvent(); // Triggers a redraw.
     },
 
@@ -813,7 +816,7 @@ base.exportTo('tracing', function() {
       var loVX = loX - canv.offsetLeft;
       var hiVX = hiX - canv.offsetLeft;
 
-      // Figure out what has been hit.
+      // Figure out what has been selected.
       var selection = new Selection();
       this.modelTrack_.addIntersectingItemsInRangeToSelection(
           loVX, hiVX, loY, hiY, selection);

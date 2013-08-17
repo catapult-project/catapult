@@ -29,6 +29,11 @@ base.exportTo('tracing.trace_model', function() {
 
     get end() {
       return this.start + this.duration;
+    },
+
+    addBoundsToRange: function(range) {
+      range.addValue(this.start);
+      range.addValue(this.end);
     }
   };
 

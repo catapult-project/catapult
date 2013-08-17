@@ -14,7 +14,7 @@ base.unittest.testSuite('tracing.analysis.analysis_results', function() {
     var track = {};
     var linkEl = r.createSelectionChangingLink('hello', function() {
       var selection = new tracing.Selection();
-      selection.addSlice(track, {});
+      selection.push({});
       return selection;
     });
     var didRequestSelectionChange = false;

@@ -126,9 +126,9 @@ base.exportTo('tracing.tracks', function() {
       this.didAppendTracks_();
     },
 
-    memoizeSlices_: function() {
+    addEventsToTrackMap: function(eventToTrackMap) {
       this.tracks_.forEach(function(track) {
-        track.memoizeSlices_();
+        track.addEventsToTrackMap(eventToTrackMap);
       });
     },
 

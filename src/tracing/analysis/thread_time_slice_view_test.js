@@ -6,7 +6,9 @@
 
 base.require('tracing.analysis.cpu_slice_view');
 base.require('tracing.trace_model');
+base.require('tracing.timeline_view');
 base.require('tracing.importer.linux_perf_importer');
+
 
 base.unittest.testSuite('tracing.analysis.thread_time_slice_view', function() {
   function createBasicModel() {
@@ -36,14 +38,14 @@ base.unittest.testSuite('tracing.analysis.thread_time_slice_view', function() {
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
     var view = new tracing.analysis.ThreadTimeSliceView();
-    view.modelObject = thread.timeSlices[0];
+    view.modelEvent = thread.timeSlices[0];
     this.addHTMLOutput(view);
 
     // Clicking the analysis link should focus the Binder1's timeslice.
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
       assertEquals(1, e.selection.length);
-      assertEquals(binderSlice, e.selection[0].slice);
+      assertEquals(binderSlice, e.selection[0]);
       didSelectionChangeHappen = true;
     });
     view.querySelector('.analysis-link').click();
@@ -63,14 +65,14 @@ base.unittest.testSuite('tracing.analysis.thread_time_slice_view', function() {
     var thread = m.findAllThreadsNamed('Binder_1')[0];
 
     var view = new tracing.analysis.ThreadTimeSliceView();
-    view.modelObject = thread.timeSlices[1];
+    view.modelEvent = thread.timeSlices[1];
     this.addHTMLOutput(view);
 
     // Clicking the analysis link should focus the Android.launcher slice
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
       assertEquals(1, e.selection.length);
-      assertEquals(launcherSlice, e.selection[0].slice);
+      assertEquals(launcherSlice, e.selection[0]);
       didSelectionChangeHappen = true;
     });
     view.querySelector('.analysis-link').click();

@@ -57,15 +57,9 @@ base.exportTo('tracing.tracks', function() {
       this.updateContents_();
     },
 
-    set decorateHit(f) {
-      this.decorateHit_ = f;
-      this.updateContents_();
-    },
-
     addSliceTrack_: function(slices) {
       var track = new tracing.tracks.SliceTrack(this.viewport);
       track.slices = slices;
-      track.decorateHit = this.decorateHit_;
       track.categoryFilter_ = this.categoryFilter;
       this.appendChild(track);
       return track;

@@ -8,15 +8,21 @@ base.require('tracing.timeline_viewport');
 
 base.unittest.testSuite('tracing.timeline_viewport', function() {
   test('memoization', function() {
+
     var vp = new tracing.TimelineViewport(document.createElement('div'));
 
     var slice = { guid: 1 };
-    assertUndefined(vp.trackForSlice(slice));
 
-    vp.sliceMemoization(slice, 'track');
-    assertEquals('track', vp.trackForSlice(slice));
+    vp.modelTrackContainer = {
+      addEventsToTrackMap: function(eventToTrackMap) {
+        eventToTrackMap.addEvent(slice, 'track');
+      },
+      addEventListener: function() {}
+    };
 
-    vp.clearSliceMemoization();
-    assertUndefined(vp.trackForSlice(slice));
+    assertUndefined(vp.trackForEvent(slice));
+    vp.rebuildEventToTrackMap();
+
+    assertEquals('track', vp.trackForEvent(slice));
   });
 });

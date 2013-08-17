@@ -20,11 +20,11 @@ base.exportTo('tracing.analysis', function() {
       return true;
     },
 
-    set modelObject(obj) {
+    set modelEvent(obj) {
       this.objectSnapshot = obj;
     },
 
-    get modelObject() {
+    get modelEvent() {
       return this.objectSnapshot;
     },
 

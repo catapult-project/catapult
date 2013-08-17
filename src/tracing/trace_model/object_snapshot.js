@@ -49,6 +49,10 @@ base.exportTo('tracing.trace_model', function() {
      * See ObjectSnapshot constructor notes on object initialization.
      */
     initialize: function() {
+    },
+
+    addBoundsToRange: function(range) {
+      range.addValue(this.ts);
     }
   };
 

@@ -165,30 +165,26 @@ base.exportTo('tracing.tracks', function() {
       ctx.lineWidth = 1;
     },
 
-    memoizeSlices_: function() {
-      var vp = this.viewport_;
-
+    addEventsToTrackMap: function(eventToTrackMap) {
       if (this.objectInstance_ !== undefined) {
         this.objectInstance_.forEach(function(obj) {
-          vp.sliceMemoization(obj, this);
-        }.bind(this));
+          eventToTrackMap.addEvent(obj, this);
+        }, this);
       }
 
       if (this.objectSnapshots_ !== undefined) {
         this.objectSnapshots_.forEach(function(obj) {
-          vp.sliceMemoization(obj, this);
-        }.bind(this));
+          eventToTrackMap.addEvent(obj, this);
+        }, this);
       }
     },
 
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
-      var that = this;
-
       // Pick snapshots first.
       var foundSnapshot = false;
-      function onSnapshotHit(snapshot) {
-        selection.addObjectSnapshot(that, snapshot);
+      function onSnapshot(snapshot) {
+        selection.push(snapshot);
         foundSnapshot = true;
       }
       var snapshotRadiusView = this.snapshotRadiusView;
@@ -198,49 +194,42 @@ base.exportTo('tracing.tracks', function() {
           function(x) { return x.ts - snapshotRadiusWorld; },
           function(x) { return 2 * snapshotRadiusWorld; },
           loWX, hiWX,
-          onSnapshotHit);
+          onSnapshot);
       if (foundSnapshot)
         return;
 
       // Try picking instances.
-      function onInstanceHit(instance) {
-        selection.addObjectInstance(that, instance);
-      }
       base.iterateOverIntersectingIntervals(
           this.objectInstances_,
           function(x) { return x.creationTs; },
           function(x) { return x.deletionTs - x.creationTs; },
           loWX, hiWX,
-          onInstanceHit);
+          selection.push.bind(selection));
     },
 
     /**
-     * Add the item to the left or right of the provided hit, if any, to the
+     * Add the item to the left or right of the provided event, if any, to the
      * selection.
-     * @param {slice} The current slice.
-     * @param {Number} offset Number of slices away from the hit to look.
-     * @param {Selection} selection The selection to add a hit to,
+     * @param {event} The current event item.
+     * @param {Number} offset Number of slices away from the event to look.
+     * @param {Selection} selection The selection to add an event to,
      * if found.
-     * @return {boolean} Whether a hit was found.
+     * @return {boolean} Whether an event was found.
      * @private
      */
-    addItemNearToProvidedHitToSelection: function(hit, offset, selection) {
-      if (hit instanceof tracing.SelectionObjectSnapshotHit) {
-        var index = this.objectSnapshots_.indexOf(hit.objectSnapshot);
-        var newIndex = index + offset;
-        if (newIndex >= 0 && newIndex < this.objectSnapshots_.length) {
-          selection.addObjectSnapshot(this, this.objectSnapshots_[newIndex]);
-          return true;
-        }
-      } else if (hit instanceof tracing.SelectionObjectInstanceHit) {
-        var index = this.objectInstances_.indexOf(hit.objectInstance);
-        var newIndex = index + offset;
-        if (newIndex >= 0 && newIndex < this.objectInstances_.length) {
-          selection.addObjectInstance(this, this.objectInstances_[newIndex]);
-          return true;
-        }
-      } else {
-        throw new Error('Unrecognized hit');
+    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+      if (event instanceof tracing.trace_model.ObjectSnapshot)
+        events = this.objectSnapshots_;
+      else if (event instanceof tracing.trace_model.ObjectInstance)
+        events = this.objectInstances_;
+      else
+        throw new Error('Unrecognized event');
+
+      var index = events.indexOf(event);
+      var newIndex = index + offset;
+      if (newIndex >= 0 && newIndex < events.length) {
+        selection.push(events[newIndex]);
+        return true;
       }
       return false;
     },
@@ -259,13 +248,7 @@ base.exportTo('tracing.tracks', function() {
       if (!snapshot)
         return;
 
-      var hit = selection.addObjectSnapshot(this, snapshot);
-      this.decorateHit(hit);
-
-      var clientRect = this.getBoundingClientRect();
-      hit.eventX = snapshot.ts;
-      hit.eventY = clientRect.top;
-      hit.eventHeight = clientRect.height;
+      selection.push(snapshot);
 
       // TODO(egraether): Search for object instances as well, which was not
       // implemented because it makes little sense with the current visual and

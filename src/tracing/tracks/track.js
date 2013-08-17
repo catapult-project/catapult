@@ -96,15 +96,7 @@ base.exportTo('tracing.tracks', function() {
     draw: function(type, viewLWorld, viewRWorld) {
     },
 
-    /**
-     * Called by all the addToSelection functions on the created selection
-     * hit objects. Override this function on parent classes to add
-     * context-specific information to the hit.
-     */
-    decorateHit: function(hit) {
-    },
-
-    memoizeSlices_: function() {
+    addEventsToTrackMap: function(eventToTrackMap) {
     },
 
     addIntersectingItemsInRangeToSelection: function(
@@ -132,11 +124,7 @@ base.exportTo('tracing.tracks', function() {
 
     /**
      * Gets implemented by supporting track types. The method adds the event
-     * closest to worldX to the selection and decorates the hit with additional
-     * data of the event's position:
-     *   * {number} eventX X position of the event.
-     *   * {number} eventY Y position of the event.
-     *   * {number} eventHeight Height of the event.
+     * closest to worldX to the selection.
      *
      * @param {number} worldX The position that is looked for.
      * @param {number} worldMaxDist The maximum distance allowed from worldX to
@@ -160,13 +148,7 @@ base.exportTo('tracing.tracks', function() {
       if (!instantEvent)
         return;
 
-      var hit = selection.addSlice(this, instantEvent);
-      this.decorateHit(hit);
-
-      var clientRect = this.getBoundingClientRect();
-      hit.eventX = instantEvent.start;
-      hit.eventY = clientRect.top;
-      hit.eventHeight = clientRect.height;
+      selection.push(instantEvent);
     }
   };
 
