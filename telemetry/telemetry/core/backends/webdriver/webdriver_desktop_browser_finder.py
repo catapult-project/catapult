@@ -14,15 +14,12 @@ from telemetry.core import util
 from telemetry.core.backends.webdriver import webdriver_browser_backend
 
 # Try to import the selenium python lib which may be not available.
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'third_party', 'webdriver', 'pylib')
 try:
   from selenium import webdriver  # pylint: disable=F0401
 except ImportError:
-  try:
-    util.AddDirToPythonPath(
-        util.GetChromiumSrcDir(), 'third_party', 'webdriver', 'pylib')
-    from selenium import webdriver  # pylint: disable=F0401
-  except (AssertionError, ImportError):
-    webdriver = None
+  webdriver = None
 
 ALL_BROWSER_TYPES = ''
 if webdriver:

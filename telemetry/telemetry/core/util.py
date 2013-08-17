@@ -35,8 +35,7 @@ def GetChromiumSrcDir():
 
 def AddDirToPythonPath(*path_parts):
   path = os.path.abspath(os.path.join(*path_parts))
-  assert os.path.isdir(path)
-  if path not in sys.path:
+  if os.path.isdir(path) and path not in sys.path:
     sys.path.append(path)
 
 
