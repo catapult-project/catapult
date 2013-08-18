@@ -83,12 +83,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             # Disables the start page, as well as other external apps that can
             # steal focus or make measurements inconsistent.
             '--disable-default-apps',
-            # Jump to the login screen, skipping network selection, eula, etc.
-            '--login-screen=login',
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
-            # Skip hwid check, for VMs and pre-MP lab devices.
-            '--skip-hwid-check',
             # Allow devtools to connect to chrome.
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
@@ -97,9 +93,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
                 '*/chromeos/login/*=2'])
 
-    if not self._is_guest:
-      # This extension bypasses gaia and logs us in.
-      args.append('--auth-ext-path=%s' % self._login_ext_dir)
+
+    if self.chrome_branch_number <= 1599:
+      args.extend([
+          # Jump to the login screen, skipping network selection, eula, etc.
+          '--login-screen=login',
+          # Skip hwid check, for VMs and pre-MP lab devices.
+          '--skip-hwid-check',])
+      if not self._is_guest:
+        # This extension bypasses gaia and logs us in.
+        args.append('--auth-ext-path=%s' % self._login_ext_dir)
 
     return args
 
@@ -347,7 +350,20 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateLogin(self):
     """Navigates through oobe login screen"""
-    # Dismiss the user image selection screen.
+    if self.chrome_branch_number > 1599:
+      util.WaitFor(lambda: self.oobe, 10)
+      util.WaitFor(lambda: self.oobe.EvaluateJavaScript(
+          'typeof Oobe !== \'undefined\''), 10)
+
+      if self.oobe.EvaluateJavaScript(
+          'typeof Oobe.loginForTesting == \'undefined\''):
+        raise exceptions.LoginException('Oobe.loginForTesting js api missing')
+
+      username = 'test@test.test'
+      password = 'test'
+      self.oobe.ExecuteJavaScript(
+          'Oobe.loginForTesting(\'%s\', \'%s\');' % (username, password))
+
     try:
       util.WaitFor(lambda: self._IsLoggedIn(), 60) # pylint: disable=W0108
     except util.TimeoutException:
