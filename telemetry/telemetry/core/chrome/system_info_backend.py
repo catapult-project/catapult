@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core import camel_case
 from telemetry.core import system_info
 from telemetry.core.chrome import websocket_browser_connection as browser_conn
-from telemetry.core.chrome import camel_case_converter as camel_case
 
 
 class SystemInfoBackend(object):
@@ -20,4 +20,4 @@ class SystemInfoBackend(object):
     if 'error' in res:
       return None
     return system_info.SystemInfo.FromDict(
-        camel_case.CamelCaseConverter.FromCamelCase(res['result']))
+        camel_case.ToUnderscore(res['result']))

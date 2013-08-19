@@ -1,10 +1,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import fnmatch
 import inspect
 import os
 import re
+
+from telemetry.core import camel_case
 
 
 def DiscoverModules(start_dir, top_level_dir, pattern='*'):
@@ -65,7 +68,7 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
       if (inspect.isclass(obj) and obj is not base_class and
           issubclass(obj, base_class)):
         if index_by_class_name:
-          key_name = re.sub('(?!^)([A-Z]+)', r'_\1', obj.__name__).lower()
+          key_name = camel_case.ToUnderscore(obj.__name__)
         else:
           key_name = module.__name__.split('.')[-1]
         classes[key_name] = obj
