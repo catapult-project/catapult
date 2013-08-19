@@ -54,11 +54,6 @@ base.exportTo('cc', function() {
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackViewer_);
 
-      var tileRectsText = ui.createSpan({
-        textContent: 'Tiles to show:'
-      });
-      this.controls_.appendChild(tileRectsText);
-
       this.tileRectsSelector_ = ui.createSelector(
           this, 'howToShowTiles',
           'layerViewer.howToShowTiles', 'none',
@@ -89,19 +84,25 @@ base.exportTo('cc', function() {
       var showOtherLayersCheckbox = ui.createCheckBox(
           this, 'showOtherLayers',
           'layerViewer.showOtherLayers', true,
-          'Show other layers');
+          'Other layers');
+      showOtherLayersCheckbox.title =
+          'When checked, show all layers, selected or not.';
       this.controls_.appendChild(showOtherLayersCheckbox);
 
       var showInvalidationsCheckbox = ui.createCheckBox(
           this, 'showInvalidations',
           'layerViewer.showInvalidations', true,
-          'Show invalidations');
+          'Invalidations');
+      showInvalidationsCheckbox.title =
+          'When checked, compositing invalidations are highlighted in red';
       this.controls_.appendChild(showInvalidationsCheckbox);
 
       var showContentsCheckbox = ui.createCheckBox(
           this, 'showContents',
           'layerViewer.showContents', true,
-          'Show contents');
+          'Contents');
+      showContentsCheckbox.title =
+          'When checked, show the rendered contents inside the layer outlines';
       this.controls_.appendChild(showContentsCheckbox);
     },
 

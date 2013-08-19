@@ -13,5 +13,10 @@ layer-tree-quad-stack-viewer > top-controls {
   border-bottom: 1px solid #8e8e8e;
   border-top: 1px solid white;
   display: inline;
-  position: relative;
+  font-size:  14px;
+  padding-left: 2px;
+}
+
+layer-tree-quad-stack-viewer > top-controls input[type='checkbox'] {
+    vertical-align: -2px;
 }

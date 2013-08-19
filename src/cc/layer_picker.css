@@ -18,6 +18,11 @@ layer-picker > top-controls {
   border-top: 1px solid white;
   display: inline;
   font-size: 14px;
+  padding-left: 2px;
+}
+
+layer-picker > top-controls input[type='checkbox'] {
+    vertical-align: -2px;
 }
 
 layer-picker > .x-list-view {
