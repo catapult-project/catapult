@@ -523,39 +523,42 @@ base.exportTo('tracing', function() {
     },
 
     get keyHelp() {
-      var mod = navigator.platform.indexOf('Mac') == 0 ? 'cmd' : 'ctrl';
-      var help = 'Qwerty Controls\n' +
-          ' w/s                   : Zoom in/out     (with shift: go faster)\n' +
-          ' a/d                   : Pan left/right\n\n' +
+      var mod = base.isMac ? 'cmd ' : 'ctrl';
+      var help =
+          'Qwerty Controls\n' +
+          ' w/s              : Zoom in/out          (+shift: faster)\n' +
+          ' a/d              : Pan left/right\n\n' +
           'Dvorak Controls\n' +
-          ' ,/o                   : Zoom in/out     (with shift: go faster)\n' +
-          ' a/e                   : Pan left/right\n\n' +
+          ' ,/o              : Zoom in/out          (+shift: faster)\n' +
+          ' a/e              : Pan left/right\n\n' +
           'Mouse Controls\n' +
-          ' drag (Selection mode) : Select slices   (with ' + mod +
-                                                        ': zoom to slices)\n' +
-          ' drag (Pan mode)       : Pan left/right/up/down)\n\n';
+          ' click            : Select event         (+' + mod + ': zoom in)\n' +
+          ' drag (selection) : Box select           (+' + mod + ': zoom in)\n' +
+          ' drag (pan)       : Pan the view\n' +
+          ' drag (zoom)      : Zoom in/out by dragging up/down\n' +
+          ' drag (timing)    : Create a marker range or move markers\n\n' +
+          'General Navigation\n' +
+          ' 1-4              : Switch mouse mode\n' +
+          ' shift            : Hold to switch from pan to selection\n' +
+          ' ' + mod + '             : Hold to switch from pan to zoom\n\n' +
+          ' ?                : Show help\n' +
+          ' /                : Search\n' +
+          ' enter            : Step through search results\n\n' +
+          ' f                : Zoom into selection\n' +
+          ' z/0              : Reset zoom and pan\n' +
+          ' g/G              : Add 60fps grid to start/end of\n' +
+          '                    selected event\n\n';
 
       if (this.focusElement.tabIndex) {
         help +=
-            ' <-                 : Select previous event on current ' +
-            'timeline\n' +
-            ' ->                 : Select next event on current timeline\n';
+            ' <-               : Select previous event\n' +
+            ' ->               : Select next event\n\n';
       } else {
-        help += 'General Navigation\n' +
-            ' g/General          : Shows grid at the start/end of the ' +
-            ' selected task\n' +
-            ' <-,^TAB            : Select previous event on current ' +
-            'timeline\n' +
-            ' ->, TAB            : Select next event on current timeline\n';
+        help +=
+            ' <-/^TAB          : Select previous event\n' +
+            ' ->/ TAB          : Select next event\n\n';
       }
-      help +=
-          '\n' +
-          'Space to switch between select / pan modes\n' +
-          'Shift to temporarily switch between select / pan modes\n' +
-          'Scroll to zoom in/out (in pan mode)\n' +
-          'f to zoom into selection\n' +
-          'z to reset zoom and pan to initial view\n' +
-          '/ to search\n';
+
       return help;
     },
 
