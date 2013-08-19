@@ -114,7 +114,8 @@ class AdbCommands(object):
   def StartActivity(self, package, activity, wait_for_completion=False,
                     action='android.intent.action.VIEW',
                     category=None, data=None,
-                    extras=None, trace_file_name=None):
+                    extras=None, trace_file_name=None,
+                    flags=None):
     """Starts |package|'s activity on the device.
 
     Args:
@@ -131,7 +132,8 @@ class AdbCommands(object):
     return self._adb.StartActivity(package, activity, wait_for_completion,
                     action,
                     category, data,
-                    extras, trace_file_name)
+                    extras, trace_file_name,
+                    flags)
 
   def Push(self, local, remote):
     return self._adb.Adb().Push(local, remote)
