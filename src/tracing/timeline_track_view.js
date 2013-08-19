@@ -531,12 +531,13 @@ base.exportTo('tracing', function() {
           'Dvorak Controls\n' +
           ' ,/o              : Zoom in/out          (+shift: faster)\n' +
           ' a/e              : Pan left/right\n\n' +
-          'Mouse Controls\n' +
-          ' click            : Select event         (+' + mod + ': zoom in)\n' +
-          ' drag (selection) : Box select           (+' + mod + ': zoom in)\n' +
-          ' drag (pan)       : Pan the view\n' +
-          ' drag (zoom)      : Zoom in/out by dragging up/down\n' +
-          ' drag (timing)    : Create a marker range or move markers\n\n' +
+          'Mouse Controls (mode)\n' +
+          ' click                 : Select event    (+' + mod + ': zoom in)\n' +
+          ' drag (selection)      : Box select      (+' + mod + ': zoom in)\n' +
+          ' drag (pan)            : Pan the view\n' +
+          ' drag (zoom)           : Zoom in/out by dragging up/down\n' +
+          ' drag (timing)         : Create range or move markers\n' +
+          ' double click (timing) : Set marker range to slice\n\n' +
           'General Navigation\n' +
           ' 1-4              : Switch mouse mode\n' +
           ' shift            : Hold to switch from pan to selection\n' +
@@ -547,7 +548,7 @@ base.exportTo('tracing', function() {
           ' f                : Zoom into selection\n' +
           ' z/0              : Reset zoom and pan\n' +
           ' g/G              : Add 60fps grid to start/end of\n' +
-          '                    selected event\n\n';
+          '                    selected event\n';
 
       if (this.focusElement.tabIndex) {
         help +=

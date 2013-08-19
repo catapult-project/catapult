@@ -7,6 +7,7 @@
 base.require('base.range');
 base.require('tracing.constants');
 base.require('tracing.selection');
+base.require('tracing.trace_model.slice');
 
 /**
  * @fileoverview Provides the TimingTool class.
@@ -28,8 +29,9 @@ base.exportTo('tracing', function() {
     this.cursorMarker_ = viewport.createMarker(0);
     this.activeMarker_ = this.cursorMarker_;
 
-    // Prepare the event handler to be added and removed repeatedly.
+    // Prepare the event handlers to be added and removed repeatedly.
     this.onMouseMove_ = this.onMouseMove_.bind(this);
+    this.onDblClick_ = this.onDblClick_.bind(this);
     this.targetElement_ = targetElement;
   };
 
@@ -51,6 +53,7 @@ base.exportTo('tracing', function() {
         this.viewport.addMarker(this.cursorMarker_);
 
       this.targetElement_.addEventListener('mousemove', this.onMouseMove_);
+      this.targetElement_.addEventListener('dblclick', this.onDblClick_);
     },
 
     onBeginTiming: function(e) {
@@ -155,6 +158,7 @@ base.exportTo('tracing', function() {
         this.viewport.removeMarker(this.cursorMarker_);
 
       this.targetElement_.removeEventListener('mousemove', this.onMouseMove_);
+      this.targetElement_.removeEventListener('dblclick', this.onDblClick_);
     },
 
     onMouseMove_: function(e) {
@@ -180,6 +184,48 @@ base.exportTo('tracing', function() {
         this.rangeEndMarker_.selected = false;
         this.rangeStartMarker_.selected = false;
       }
+    },
+
+    onDblClick_: function(e) {
+      var modelTrackContainer = this.viewport.modelTrackContainer;
+      var modelTrackContainerRect = modelTrackContainer.getBoundingClientRect();
+
+      var eventWorldX = this.getWorldXFromEvent_(e);
+      var y = e.clientY;
+
+      var selection = new tracing.Selection();
+      modelTrackContainer.addClosestEventToSelection(
+          eventWorldX, Infinity, y, y, selection);
+
+      if (!selection.length)
+        return;
+
+      var slice = selection[0];
+
+      if (!(slice instanceof tracing.trace_model.Slice))
+        return;
+
+      if (slice.start > eventWorldX || slice.end < eventWorldX)
+        return;
+
+      var track = this.viewport.trackForEvent(slice);
+      var trackRect = track.getBoundingClientRect();
+
+      var snapPos = {
+        x: slice.start,
+        y: trackRect.top +
+            modelTrackContainer.scrollTop - modelTrackContainerRect.top,
+        height: trackRect.height,
+        snapped: true
+      };
+      this.updateMarkerToSnapPosition_(this.rangeStartMarker_, snapPos);
+      snapPos.x = slice.end;
+      this.updateMarkerToSnapPosition_(this.rangeEndMarker_, snapPos);
+
+      this.viewport.addMarker(this.rangeStartMarker_);
+      this.viewport.addMarker(this.rangeEndMarker_);
+      this.viewport.removeMarker(this.cursorMarker_);
+      this.activeMarker_ = null;
     },
 
     /**
