@@ -29,6 +29,7 @@ base.exportTo('ui', function() {
 
   var allModeInfo = {};
   allModeInfo[MOUSE_SELECTOR_MODE.PANSCAN] = {
+    title: 'pan',
     className: 'pan-scan-mode-button',
     cmdOrCtrlAlternate: MOUSE_SELECTOR_MODE.ZOOM,
     shiftAlternate: MOUSE_SELECTOR_MODE.SELECTION,
@@ -41,6 +42,7 @@ base.exportTo('ui', function() {
     }
   };
   allModeInfo[MOUSE_SELECTOR_MODE.SELECTION] = {
+    title: 'selection',
     className: 'selection-mode-button',
     eventNames: {
       enter: 'enterselection',
@@ -52,6 +54,7 @@ base.exportTo('ui', function() {
   };
 
   allModeInfo[MOUSE_SELECTOR_MODE.ZOOM] = {
+    title: 'zoom',
     className: 'zoom-mode-button',
     eventNames: {
       enter: 'enterzoom',
@@ -62,6 +65,7 @@ base.exportTo('ui', function() {
     }
   };
   allModeInfo[MOUSE_SELECTOR_MODE.TIMING] = {
+    title: 'timing',
     className: 'timing-mode-button',
     eventNames: {
       enter: 'entertiming',
@@ -198,6 +202,7 @@ base.exportTo('ui', function() {
       function createButtonForMode(mode) {
         var button = document.createElement('div');
         button.mode = mode;
+        button.title = allModeInfo[mode].title;
         button.classList.add('tool-button');
         button.classList.add(allModeInfo[mode].className);
         return button;
@@ -260,6 +265,16 @@ base.exportTo('ui', function() {
       if ((mode & this.supportedModeMask_) === 0)
         throw new Error('Mode not supported');
       this.modeToKeyCodeMap_[mode] = keyCode;
+
+      if (!this.buttonsEl_)
+        return;
+
+      var modeInfo = allModeInfo[mode];
+      var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
+      if (buttonEl) {
+        buttonEl.title =
+            modeInfo.title + ' (' + String.fromCharCode(keyCode) + ')';
+      }
     },
 
     setPositionFromEvent_: function(pos, e) {
