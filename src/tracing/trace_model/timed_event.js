@@ -19,7 +19,6 @@ base.exportTo('tracing.trace_model', function() {
    */
   function TimedEvent(start) {
     tracing.trace_model.Event.call(this);
-    this.guid_ = base.GUID.allocate();
     this.start = start;
     this.duration = 0;
   }
