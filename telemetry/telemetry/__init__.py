@@ -1,9 +1,9 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""
-A library for cross-platform browser tests.
-"""
+
+"""A library for cross-platform browser tests."""
+
 import inspect
 import os
 import sys
@@ -42,9 +42,11 @@ def _RemoveAllStalePycFiles():
       pyc_path = os.path.join(dirname, filename)
       py_path = os.path.join(dirname, root + '.py')
       if not os.path.exists(py_path):
+        print >> sys.stderr, 'Removing stale .pyc file:', pyc_path
         os.remove(pyc_path)
 
-    if not os.listdir(dirname):
+    if os.path.isdir(dirname) and not os.listdir(dirname):
+      print >> sys.stderr, 'Removing empty directory:', dirname
       os.removedirs(dirname)
 
 
