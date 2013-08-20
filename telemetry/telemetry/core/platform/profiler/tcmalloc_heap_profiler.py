@@ -121,5 +121,9 @@ class TCMallocHeapProfiler(profiler.Profiler):
       return android_browser_finder.CanFindAvailableBrowsers()
     return options.browser_type.startswith('android')
 
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.AppendExtraBrowserArg('--no-sandbox')
+
   def CollectProfile(self):
     return self._platform_profiler.CollectProfile()
