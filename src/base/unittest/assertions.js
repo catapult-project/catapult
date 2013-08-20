@@ -71,14 +71,24 @@ base.exportTo('base.unittest', function() {
       var message = 'Expected\n"';
       if (typeof(a) === 'string' || a instanceof String)
         message += a;
-      else
-        message += JSON.stringify(a);
+      else {
+        try {
+          message += JSON.stringify(a);
+        } catch (e) {
+          message += a;
+        }
+      }
 
       message += '"\n\ngot\n\n"';
       if (typeof(b) === 'string' || b instanceof String)
         message += b;
-      else
-        message += JSON.stringify(b);
+      else {
+        try {
+          message += JSON.stringify(b);
+        } catch (e) {
+          message += b;
+        }
+      }
 
       message += '"';
       throw new base.unittest.TestError(message);

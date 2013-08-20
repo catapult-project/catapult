@@ -100,6 +100,24 @@ base.unittest.testSuite('base.unittest.assertions', function() {
     rawAssertNotThrows(function() {
       assertEquals(1, 1);
     });
+
+    try {
+      var f = {};
+      f.foo = f;
+      assertEquals(1, f);
+      throw new base.unittest.TestError('Failed to throw');
+    } catch (e) {
+      assertNotEquals('Converting circular structure to JSON', e.message);
+    }
+
+    try {
+      var f = {};
+      f.foo = f;
+      assertEquals(f, 1);
+      throw new base.unittest.TestError('Failed to throw');
+    } catch (e) {
+      assertNotEquals('Converting circular structure to JSON', e.message);
+    }
   });
 
   test('assertNotEquals', function() {
