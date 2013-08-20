@@ -145,8 +145,6 @@ base.exportTo('tracing', function() {
 
       this.mouseModeSelector_.addEventListener('beginpan',
           this.onBeginPanScan_.bind(this));
-      this.mouseModeSelector_.addEventListener('beginpan',
-          this.onBeginPanScan_.bind(this));
       this.mouseModeSelector_.addEventListener('updatepan',
           this.onUpdatePanScan_.bind(this));
       this.mouseModeSelector_.addEventListener('endpan',
