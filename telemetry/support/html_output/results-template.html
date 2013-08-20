@@ -10,6 +10,14 @@ section {
     position: relative;
 }
 
+.collapsed:before {
+    content: '\25B8\00A0';
+}
+
+.expanded:before {
+    content: '\25BE\00A0';
+}
+
 .time-plots {
     padding-left: 25px;
 }
@@ -365,7 +373,7 @@ function formatPercentage(fraction) {
 }
 
 function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
-    $('#container').html('<thead><tr><th>Test</th><th>Unit</th>' + runs.map(function (run, index) {
+    $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
         return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}">' + run.label() + '</th>';
     }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
 
@@ -421,7 +429,7 @@ var warningSign = '<svg viewBox="0 0 100 100" style="width: 18px; height: 18px; 
     + '</svg>';
 
 function createTableRow(runs, test, referenceIndex) {
-    var tableRow = $('<tr><td class="test"' + (test.isImportant ? ' style="font-weight:bold"' : '') + '>' + test.name() + '</td><td class="unit">' + test.unit() + '</td></tr>');
+    var tableRow = $('<tr><td class="test collapsed"' + (test.isImportant ? ' style="font-weight:bold"' : '') + '>' + test.name() + '</td><td class="unit">' + test.unit() + '</td></tr>');
 
     function markupForRun(result, referenceResult) {
         var comparisonCell = '';
@@ -492,6 +500,8 @@ function createTableRow(runs, test, referenceIndex) {
         if (firstCell.children('section').length) {
             firstCell.children('section').remove();
             tableRow.children('td').css({'padding-bottom': ''});
+            tableRow.children('td').first().addClass('collapsed');
+            tableRow.children('td').first().removeClass('expanded');
         } else {
             var plot = createPlot(firstCell, test);
             plot.css({'position': 'absolute', 'z-index': 2});
@@ -500,6 +510,8 @@ function createTableRow(runs, test, referenceIndex) {
             offset.top += tableRow.outerHeight();
             plot.offset(offset);
             tableRow.children('td').css({'padding-bottom': plot.outerHeight() + 5});
+            tableRow.children('td').first().removeClass('collapsed');
+            tableRow.children('td').first().addClass('expanded');
         }
 
         return false;
@@ -514,7 +526,8 @@ function createTableRow(runs, test, referenceIndex) {
         toggle();
     });
 
-    if (test.isImportant) {
+    if (test.isImportant && window.isFirstImportantRow === undefined) {
+        window.isFirstImportantRow = false;
         toggle();
     }
 }
@@ -538,27 +551,23 @@ function init() {
         var run = new TestRun(entry);
         runs.push(run);
 
-        function addTests(tests, parentFullName) {
+        function addTests(tests) {
             for (var testName in tests) {
-                var fullTestName = parentFullName + '/' + testName;
                 var rawMetrics = tests[testName].metrics;
 
                 for (var metricName in rawMetrics) {
-                    var fullMetricName = fullTestName + ':' + metricName;
+                    var fullMetricName = testName + ':' + metricName;
                     var metric = metrics[fullMetricName];
                     if (!metric) {
-                        metric = new PerfTestMetric(fullTestName, metricName, rawMetrics[metricName].units, rawMetrics[metricName].important);
+                        metric = new PerfTestMetric(testName, metricName, rawMetrics[metricName].units, rawMetrics[metricName].important);
                         metrics[fullMetricName] = metric;
                     }
                     metric.addResult(new TestResult(metric, rawMetrics[metricName].current, run));
                 }
-
-                if (tests[testName].tests)
-                    addTests(tests[testName].tests, fullTestName);
             }
         }
 
-        addTests(entry.tests, '');
+        addTests(entry.tests);
     });
 
     var shouldIgnoreMemory= true;
