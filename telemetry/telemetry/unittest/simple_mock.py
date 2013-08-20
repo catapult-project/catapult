@@ -77,7 +77,7 @@ class MockObject(object):
     return call
 
   def _install_hook(self, func_name):
-    def handler(*args):
+    def handler(*args, **_):
       got_call = MockFunctionCall(
         func_name).WithArgs(*args).WillReturn(DONT_CARE)
       if self._trace.next_call_index >= len(self._trace.expected_calls):
@@ -93,6 +93,3 @@ class MockObject(object):
       return expected_call.return_value
     handler.is_hook = True
     setattr(self, func_name, handler)
-
-
-
