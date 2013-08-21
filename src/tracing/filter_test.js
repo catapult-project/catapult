@@ -29,22 +29,6 @@ base.unittest.testSuite('tracing.filter', function() {
     assertTrue(new TitleFilter('A').matchSlice(s2));
     assertTrue(new TitleFilter('cA').matchSlice(s2));
     assertFalse(new TitleFilter('X').matchSlice(s2));
-
-    var c0 = tracing.test_utils.newCounterNamed(null, 'a');
-    assertFalse(new TitleFilter('').matchCounter(c0));
-
-    assertTrue(new TitleFilter('a').matchCounter(c0));
-    assertFalse(new TitleFilter('x').matchCounter(c0));
-
-    var c1 = tracing.test_utils.newCounterNamed(null, 'ba');
-    assertTrue(new TitleFilter('a').matchCounter(c1));
-    assertTrue(new TitleFilter('ba').matchCounter(c1));
-    assertFalse(new TitleFilter('x').matchCounter(c1));
-
-    var c2 = tracing.test_utils.newCounterNamed(null, 'cA');
-    assertTrue(new TitleFilter('a').matchCounter(c2));
-    assertTrue(new TitleFilter('Ca').matchCounter(c2));
-    assertFalse(new TitleFilter('X').matchCounter(c2));
   });
 
   test('exactTitleFilter', function() {
@@ -103,20 +87,5 @@ base.unittest.testSuite('tracing.filter', function() {
     assertEquals('ba', matched[0].title);
     assertEquals('ab', matched[1].title);
     assertEquals('axa', matched[2].title);
-  });
-
-  test('filterCounterArray', function() {
-    var counters = [
-      tracing.test_utils.newCounterNamed(null, 'ba'),
-      tracing.test_utils.newCounterNamed(null, 'ab'),
-      tracing.test_utils.newCounterNamed(null, 'x'),
-      tracing.test_utils.newCounterNamed(null, 'axa')
-    ];
-    var filter = new TitleFilter('a');
-    var matched = tracing.filterCounterArray(filter, counters);
-    assertEquals(3, matched.length);
-    assertEquals('ba', matched[0].name);
-    assertEquals('ab', matched[1].name);
-    assertEquals('axa', matched[2].name);
   });
 });

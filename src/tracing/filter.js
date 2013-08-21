@@ -18,18 +18,6 @@ base.exportTo('tracing', function() {
     return matched;
   }
 
-  function filterCounterArray(filter, counters) {
-    if (filter === undefined)
-      return counters;
-
-    var matched = [];
-    for (var i = 0; i < counters.length; ++i) {
-      if (filter.matchCounter(counters[i]))
-        matched.push(counters[i]);
-    }
-    return matched;
-  }
-
   /**
    * @constructor The generic base class for filtering a TraceModel based on
    * various rules. The base class returns true for everything.
@@ -71,14 +59,6 @@ base.exportTo('tracing', function() {
   }
   TitleFilter.prototype = {
     __proto__: Filter.prototype,
-
-    matchCounter: function(counter) {
-      if (this.text_.length === 0)
-        return false;
-      if (counter.name === undefined)
-        return false;
-      return counter.name.toLowerCase().indexOf(this.text_) !== -1;
-    },
 
     matchSlice: function(slice) {
       if (this.text_.length === 0)
@@ -139,7 +119,6 @@ base.exportTo('tracing', function() {
   };
 
   return {
-    filterCounterArray: filterCounterArray,
     filterSliceArray: filterSliceArray,
     Filter: Filter,
     TitleFilter: TitleFilter,
