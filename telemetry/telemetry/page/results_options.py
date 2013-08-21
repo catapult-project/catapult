@@ -33,8 +33,6 @@ def AddResultsOptions(parser):
   group.add_option('--output-trace-tag',
                     default='',
                     help='Append a tag to the key of each result trace.')
-  group.add_option('--reset-html-results', action='store_true',
-                    help='Delete all stored runs in HTML output')
   parser.add_option_group(group)
 
 
@@ -75,8 +73,8 @@ def PrepareResults(test, options):
     return gtest_test_results.GTestTestResults(output_stream)
   elif options.output_format == 'html':
     return html_page_measurement_results.HtmlPageMeasurementResults(
-        output_stream, test.__class__.__name__, options.reset_html_results,
-        options.browser_type, trace_tag=options.output_trace_tag)
+        output_stream, test.__class__.__name__, options.browser_type,
+        trace_tag=options.output_trace_tag)
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'

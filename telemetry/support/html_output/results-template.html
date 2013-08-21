@@ -29,6 +29,21 @@ section {
     margin-right: 10px;
 }
 
+.closeButton {
+    background: #fff;
+    border: 1px solid black;
+    border-radius: 2px;
+    display: inline-block;
+    float: right;
+    line-height: 11px;
+    margin-top: 3px;
+    width: 11px;
+}
+
+.closeButton:hover {
+    background: #F09C9C;
+}
+
 section h1 {
     text-align: center;
     font-size: 1em;
@@ -142,7 +157,6 @@ td.missing {
 <div style="padding: 0 10px; white-space: nowrap;">
 Result <span id="time-memory" class="checkbox"><span class="checked">Time</span><span>Memory</span></span>
 Reference <span id="reference" class="checkbox"></span>
-Run Telemetry with --reset-html-results to clear all runs
 </div>
 <table id="container"></table>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
@@ -178,6 +192,7 @@ function TestResult(metric, values, associatedRun) {
 }
 
 function TestRun(entry) {
+    this.id = function() { return entry['buildTime']; }
     this.description = function () { return entry['description']; }
     this.revision = function () { return entry['revision']; }
     this.label = function () {
@@ -186,6 +201,10 @@ function TestRun(entry) {
             label += ' &dash; ' + this.description();
         return label;
     }
+    this.isHidden = function() { return localStorage[hiddenKey]; }
+    this.hide = function() { localStorage[hiddenKey] = true; }
+
+    var hiddenKey = 'telemetry_hide_' + this.id();
 }
 
 function PerfTestMetric(name, metric, unit, isImportant) {
@@ -375,17 +394,30 @@ function formatPercentage(fraction) {
 
 function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
     $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
-        return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}">' + run.label() + '</th>';
+        return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}">' + run.label() + '<div class="closeButton" id="' + run.id() + '">x</div></th>';
     }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
 
     var testNames = [];
     for (testName in tests)
         testNames.push(testName);
 
+    window.isFirstImportantRow = true;
+
     testNames.sort().map(function (testName) {
         var test = tests[testName];
         if (test.isMemoryTest() != shouldIgnoreMemory)
             createTableRow(runs, test, referenceIndex);
+    });
+
+    $('.closeButton').click(function(event) {
+        for (var i = 0; i < runs.length; i++) {
+            if (runs[i].id() == event.target.id) {
+                runs[i].hide();
+                location.reload();
+                break;
+            }
+        }
+        event.stopPropagation();
     });
 
     $('#container').tablesorter({widgets: ['zebra']});
@@ -527,7 +559,7 @@ function createTableRow(runs, test, referenceIndex) {
         toggle();
     });
 
-    if (test.isImportant && window.isFirstImportantRow === undefined) {
+    if (test.isImportant && window.isFirstImportantRow) {
         window.isFirstImportantRow = false;
         toggle();
     }
@@ -550,6 +582,10 @@ function init() {
     var metrics = {};
     $.each(JSON.parse(document.getElementById('results-json').textContent), function (index, entry) {
         var run = new TestRun(entry);
+        if (run.isHidden()) {
+            return;
+        }
+
         runs.push(run);
 
         function addTests(tests) {
