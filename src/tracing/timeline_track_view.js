@@ -525,10 +525,10 @@ base.exportTo('tracing', function() {
       var help =
           'Qwerty Controls\n' +
           ' w/s              : Zoom in/out          (+shift: faster)\n' +
-          ' a/d              : Pan left/right\n\n' +
+          ' a/d              : Pan left/right       (+shift: faster)\n\n' +
           'Dvorak Controls\n' +
           ' ,/o              : Zoom in/out          (+shift: faster)\n' +
-          ' a/e              : Pan left/right\n\n' +
+          ' a/e              : Pan left/right       (+shift: faster)\n\n' +
           'Mouse Controls (mode)\n' +
           ' click                 : Select event    (+' + mod + ': zoom in)\n' +
           ' drag (selection)      : Box select      (+' + mod + ': zoom in)\n' +
