@@ -1,7 +1,7 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import optparse
+
 import os
 
 from telemetry.core import repeat_options
@@ -36,7 +36,7 @@ class Test(object):
     expectations = self.CreateExpectations(ps)
 
     # Ensure the test's default options are set if needed.
-    parser = optparse.OptionParser()
+    parser = options.CreateParser()
     test.AddCommandLineOptions(parser)
     options.MergeDefaultValues(parser.get_default_values())
 
