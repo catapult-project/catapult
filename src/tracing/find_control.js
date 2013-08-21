@@ -49,6 +49,7 @@ base.exportTo('tracing', function() {
           this.filterTextChanged_.bind(this));
 
       this.filterEl_.addEventListener('keydown', function(e) {
+        e.stopPropagation();
         if (e.keyCode == 13) {
           if (e.shiftKey)
             this.findPrevious_();
