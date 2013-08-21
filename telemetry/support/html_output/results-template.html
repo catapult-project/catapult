@@ -210,6 +210,7 @@ function TestRun(entry) {
     this.setLabel = function(label) { localStorage[labelKey] = label; }
     this.isHidden = function() { return localStorage[hiddenKey]; }
     this.hide = function() { localStorage[hiddenKey] = true; }
+    this.description = function() { return new Date(entry['buildTime']).toLocaleString() + '\n' + entry['platform'] + ' r' + entry['revision']; }
 
     var labelKey = 'telemetry_label_' + this.id();
     var hiddenKey = 'telemetry_hide_' + this.id();
@@ -402,7 +403,7 @@ function formatPercentage(fraction) {
 
 function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
     $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
-        return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}" id="' + run.id() + '"><span class="label">' + run.label() + '</span><div class="closeButton">x</div></th>';
+         return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}" id="' + run.id() + '" title="' + run.description() + '"><span class="label" title="Edit run label">' + run.label() + '</span><div class="closeButton" title="Delete run">x</div></th>';
     }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
 
     var testNames = [];
@@ -653,7 +654,7 @@ function init() {
     });
 
     runs.map(function (run, index) {
-        $('#reference').append('<span value="' + index + '"' + (index == referenceIndex ? ' class="checked"' : '') + '>' + run.label() + '</span>');
+        $('#reference').append('<span value="' + index + '"' + (index == referenceIndex ? ' class="checked"' : '') + ' title="' + run.description() + '">' + run.label() + '</span>');
     })
 
     $('#reference').bind('change', function (event, checkedElement) {
