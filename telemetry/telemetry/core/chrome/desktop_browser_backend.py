@@ -35,6 +35,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
 
+    self._SetBranchNumber(self._GetChromeVersion())
+
     self._flash_path = flash_path
     if self._flash_path and not os.path.exists(self._flash_path):
       logging.warning(('Could not find flash at %s. Running without flash.\n\n'
@@ -117,7 +119,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # For old chrome versions, might have to relaunch to have the
     # correct net_benchmarking switch.
-    if self._chrome_branch_number < 1418:
+    if self.chrome_branch_number < 1418:
       self.Close()
       self._supports_net_benchmarking = False
       self._LaunchBrowser()
@@ -189,6 +191,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return subprocess.Popen(
         [stackwalk, minidump, symbols_path],
         stdout=subprocess.PIPE, stderr=error).communicate()[0]
+
+  def _GetChromeVersion(self):
+    return subprocess.Popen([self._executable, '--version'],
+                            stdout=subprocess.PIPE).communicate()[0]
 
   def __del__(self):
     self.Close()
