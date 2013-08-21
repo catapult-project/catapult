@@ -165,6 +165,7 @@ td.missing {
 <div style="padding: 0 10px; white-space: nowrap;">
 Result <span id="time-memory" class="checkbox"><span class="checked">Time</span><span>Memory</span></span>
 Reference <span id="reference" class="checkbox"></span>
+<span class="checkbox"><span class="checked" id="undelete">Undelete</span></span>
 </div>
 <table id="container"></table>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
@@ -279,6 +280,34 @@ function PerfTestMetric(name, metric, unit, isImportant) {
         return window.unitToBiggerIsBetter[unit];
     }
 }
+
+function UndeleteManager() {
+    var key = 'telemetry_undeleteIds'
+    var undeleteIds = localStorage[key];
+    if (undeleteIds) {
+        undeleteIds = JSON.parse(undeleteIds);
+    } else {
+        undeleteIds = [];
+    }
+
+    this.ondelete = function(id) {
+        undeleteIds.push(id);
+        localStorage[key] = JSON.stringify(undeleteIds);
+    }
+    this.undeleteMostRecent = function() {
+        if (!this.mostRecentlyDeletedId())
+            return;
+        var id = undeleteIds.pop();
+        localStorage.removeItem(id);
+        localStorage[key] = JSON.stringify(undeleteIds);
+    }
+    this.mostRecentlyDeletedId = function() {
+        if (!undeleteIds.length)
+            return undefined;
+        return undeleteIds[undeleteIds.length-1];
+    }
+}
+var undeleteManager = new UndeleteManager();
 
 var plotColor = 'rgb(230,50,50)';
 var subpointsPlotOptions = {
@@ -422,6 +451,7 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
         for (var i = 0; i < runs.length; i++) {
             if (runs[i].id() == event.target.parentNode.id) {
                 runs[i].hide();
+                undeleteManager.ondelete(runs[i].id());
                 location.reload();
                 break;
             }
@@ -616,9 +646,11 @@ function init() {
 
     var runs = [];
     var metrics = {};
+    var deletedRunsById = {};
     $.each(JSON.parse(document.getElementById('results-json').textContent), function (index, entry) {
         var run = new TestRun(entry);
         if (run.isHidden()) {
+            deletedRunsById[run.id()] = run;
             return;
         }
 
@@ -671,6 +703,17 @@ function init() {
             $(checkbox).trigger('change', $(this));
         });
     });
+
+    if (undeleteManager.mostRecentlyDeletedId()) {
+        $('#undelete').html('Undelete ' + deletedRunsById[undeleteManager.mostRecentlyDeletedId()].label());
+        $('#undelete').attr('title', deletedRunsById[undeleteManager.mostRecentlyDeletedId()].description());
+        $('#undelete').click(function (event) {
+            undeleteManager.undeleteMostRecent();
+            location.reload();
+        });
+    } else {
+        $('#undelete').hide();
+    }
 }
 
 </script>
