@@ -19,6 +19,7 @@ class Expectation(object):
     self.os_conditions = []
     self.gpu_conditions = []
     self.config_conditions = []
+    self.device_id_conditions = []
 
     # Make sure that non-absolute paths are searchable
     if not '://' in self.url_pattern:
@@ -26,15 +27,20 @@ class Expectation(object):
 
     if conditions:
       for c in conditions:
-        condition = c.lower()
-        if condition in OS_MODIFIERS:
-          self.os_conditions.append(condition)
-        elif condition in GPU_MODIFIERS:
-          self.gpu_conditions.append(condition)
-        elif condition in CONFIG_MODIFIERS:
-          self.config_conditions.append(condition)
+        if isinstance(c, tuple):
+          c0 = c[0].lower()
+          if c0 in GPU_MODIFIERS:
+            self.device_id_conditions.append((c0, c[1]))
         else:
-          raise ValueError('Unknown expectation condition: "%s"' % condition)
+          condition = c.lower()
+          if condition in OS_MODIFIERS:
+            self.os_conditions.append(condition)
+          elif condition in GPU_MODIFIERS:
+            self.gpu_conditions.append(condition)
+          elif condition in CONFIG_MODIFIERS:
+            self.config_conditions.append(condition)
+          else:
+            raise ValueError('Unknown expectation condition: "%s"' % condition)
 
 class TestExpectations(object):
   """A class which defines the expectations for a page set test execution"""
@@ -54,19 +60,55 @@ class TestExpectations(object):
     self.expectations.append(Expectation(expectation, url_pattern, conditions,
       bug))
 
-  def GetExpectationForPage(self, platform, page):
+  def GetExpectationForPage(self, browser, page):
+    platform = browser.platform
+    gpu_info = None
+    if browser.supports_system_info:
+      gpu_info = browser.GetSystemInfo().gpu
+
     for e in self.expectations:
       if fnmatch.fnmatch(page.url, e.url_pattern):
-        if self._ModifiersApply(platform, e):
+        if self._ModifiersApply(platform, gpu_info, e):
           return e.expectation
     return 'pass'
 
-  def _ModifiersApply(self, platform, expectation):
+  def _GetGpuVendorString(self, gpu_info):
+    if gpu_info:
+      primary_gpu = gpu_info.devices[0]
+      if primary_gpu:
+        vendor_string = primary_gpu.vendor_string.lower()
+        vendor_id = primary_gpu.vendor_id
+        if vendor_string:
+          return vendor_string
+        elif vendor_id == 0x10DE:
+          return 'nvidia'
+        elif vendor_id == 0x1002:
+          return 'amd'
+        elif vendor_id == 0x8086:
+          return 'intel'
+
+    return 'unknown_gpu'
+
+  def _GetGpuDeviceId(self, gpu_info):
+    if gpu_info:
+      primary_gpu = gpu_info.devices[0]
+      if primary_gpu:
+        return primary_gpu.device_id
+
+    return 0
+
+  def _ModifiersApply(self, platform, gpu_info, expectation):
     """Determines if the conditions for an expectation apply to this system."""
     os_matches = (not expectation.os_conditions or
-          platform.GetOSName() in expectation.os_conditions or
-          platform.GetOSVersionName() in expectation.os_conditions)
+        platform.GetOSName() in expectation.os_conditions or
+        platform.GetOSVersionName() in expectation.os_conditions)
 
-    # TODO: Add checks against other modifiers (GPU, configuration, etc.)
+    gpu_vendor = self._GetGpuVendorString(gpu_info)
+    gpu_device_id = self._GetGpuDeviceId(gpu_info)
 
-    return os_matches
+    gpu_matches = ((not expectation.gpu_conditions and
+        not expectation.device_id_conditions) or
+        gpu_vendor in expectation.gpu_conditions or
+        (gpu_vendor, gpu_device_id) in expectation.device_id_conditions)
+
+    return os_matches and gpu_matches

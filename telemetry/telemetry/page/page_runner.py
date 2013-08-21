@@ -185,8 +185,7 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
       if options.profiler:
         state.StartProfiling(page, options)
 
-      expectation = expectations.GetExpectationForPage(
-          state.browser.platform, page)
+      expectation = expectations.GetExpectationForPage(state.browser, page)
 
       try:
         _RunPage(test, page, state, expectation,
