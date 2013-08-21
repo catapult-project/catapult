@@ -1,16 +1,14 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 
+from telemetry.core import util
 from telemetry.page.actions import click_element
 from telemetry.unittest import tab_test_case
 
 class ClickElementActionTest(tab_test_case.TabTestCase):
   def testClickWithSelectorWaitForNavigation(self):
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
@@ -27,9 +25,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         '/blank.html')
 
   def testClickWithTextWaitForRefChange(self):
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()

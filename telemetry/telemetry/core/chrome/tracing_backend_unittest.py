@@ -5,7 +5,6 @@
 import cStringIO
 import json
 import logging
-import os
 import unittest
 
 from telemetry.core import util
@@ -15,9 +14,7 @@ from telemetry.unittest import tab_test_case
 
 class TracingBackendTest(tab_test_case.TabTestCase):
   def _StartServer(self):
-    base_dir = os.path.dirname(__file__)
-    self._browser.SetHTTPServerDirectories(
-        os.path.join(base_dir, '..', '..', '..', 'unittest_data'))
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
   def _WaitForAnimationFrame(self):
     def _IsDone():

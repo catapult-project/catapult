@@ -4,12 +4,11 @@
 import os
 
 from telemetry.core import discover
+from telemetry.core import util
 from telemetry.page.actions import page_action
 
 _page_action_classes = discover.DiscoverClasses(
-    os.path.dirname(__file__),
-    os.path.join(os.path.dirname(__file__), '..', '..', '..'),
-    page_action.PageAction)
+    os.path.dirname(__file__), util.GetTelemetryDir(), page_action.PageAction)
 
 def GetAllClasses():
   return list(_page_action_classes.values())

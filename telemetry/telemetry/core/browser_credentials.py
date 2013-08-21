@@ -5,6 +5,7 @@ import logging
 import json
 import os
 
+from telemetry.core import util
 from telemetry.core.chrome import facebook_credentials_backend
 from telemetry.core.chrome import google_credentials_backend
 from telemetry.unittest import options_for_unittests
@@ -126,11 +127,8 @@ class BrowserCredentials(object):
                                        page_set.credentials_path)))
       files_to_tweak.append('~/.telemetry-credentials')
 
-      example_credentials_file = (
-        os.path.relpath(
-          os.path.join(
-            os.path.dirname(__file__),
-            '..', 'examples', 'credentials_example.json')))
+      example_credentials_file = os.path.join(
+          util.GetTelemetryDir(), 'examples', 'credentials_example.json')
 
       logging.warning("""
         Credentials for %s were not found. %i pages will not be tested.

@@ -1,9 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
+
 import unittest
 
+from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set
@@ -15,12 +16,11 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
   for a measurement."""
 
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
-    return self.CreatePageSet('file:///' + os.path.join(
-        '..', '..', 'unittest_data', test_filename))
+    return self.CreatePageSet('file:///' + test_filename)
 
   def CreatePageSet(self, test_filename):
-    base_dir = os.path.dirname(__file__)
-    ps = page_set.PageSet(file_path=os.path.join(base_dir, 'foo.json'))
+    base_dir = util.GetUnittestDataDir()
+    ps = page_set.PageSet(file_path=base_dir)
     page = page_module.Page(test_filename, ps, base_dir=base_dir)
     setattr(page, 'smoothness', {'action': 'scroll'})
     ps.pages.append(page)

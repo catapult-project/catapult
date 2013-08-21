@@ -1,12 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 
+from telemetry.core import util
 from telemetry.unittest import tab_test_case
 
-unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                 '..', '..', '..', 'unittest_data')
 
 class InspectorPageTest(tab_test_case.TabTestCase):
   def __init__(self, *args):
@@ -14,7 +12,7 @@ class InspectorPageTest(tab_test_case.TabTestCase):
 
   def setUp(self):
     super(InspectorPageTest, self).setUp()
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
   def testPageNavigateToNormalUrl(self):
     self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))

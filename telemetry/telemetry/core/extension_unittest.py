@@ -9,14 +9,13 @@ import unittest
 
 from telemetry.core import browser_finder
 from telemetry.core import extension_to_load
+from telemetry.core import util
 from telemetry.core.chrome import extension_dict_backend
 from telemetry.unittest import options_for_unittests
 
 class ExtensionTest(unittest.TestCase):
   def setUp(self):
-    extension_path = os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'simple_extension')
-
+    extension_path = os.path.join(util.GetUnittestDataDir(), 'simple_extension')
     options = options_for_unittests.GetCopy()
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type)
@@ -60,8 +59,7 @@ class ExtensionTest(unittest.TestCase):
 class NonExistentExtensionTest(unittest.TestCase):
   def testNonExistentExtensionPath(self):
     """Test that a non-existent extension path will raise an exception."""
-    extension_path = os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'foo')
+    extension_path = os.path.join(util.GetUnittestDataDir(), 'foo')
     options = options_for_unittests.GetCopy()
     self.assertRaises(extension_to_load.ExtensionPathNonExistentException,
                       lambda: extension_to_load.ExtensionToLoad(
@@ -69,8 +67,7 @@ class NonExistentExtensionTest(unittest.TestCase):
 
   def testExtensionNotLoaded(self):
     """Querying an extension that was not loaded will return None"""
-    extension_path = os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'simple_extension')
+    extension_path = os.path.join(util.GetUnittestDataDir(), 'simple_extension')
     options = options_for_unittests.GetCopy()
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type)
@@ -87,8 +84,8 @@ class MultipleExtensionTest(unittest.TestCase):
     number of temporary directories to load as extensions"""
     self._extension_dirs = [tempfile.mkdtemp()
                             for i in range(3)] # pylint: disable=W0612
-    src_extension_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'simple_extension'))
+    src_extension_dir = os.path.join(
+        util.GetUnittestDataDir(), 'simple_extension')
     manifest_path = os.path.join(src_extension_dir, 'manifest.json')
     script_path = os.path.join(src_extension_dir, 'background.js')
     for d in self._extension_dirs:
@@ -131,8 +128,8 @@ class MultipleExtensionTest(unittest.TestCase):
 
 class ComponentExtensionTest(unittest.TestCase):
   def testComponentExtensionBasic(self):
-    extension_path = os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'component_extension')
+    extension_path = os.path.join(
+        util.GetUnittestDataDir(), 'component_extension')
     options = options_for_unittests.GetCopy()
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type, is_component=True)
@@ -152,8 +149,7 @@ class ComponentExtensionTest(unittest.TestCase):
 
   def testComponentExtensionNoPublicKey(self):
     # simple_extension does not have a public key.
-    extension_path = os.path.join(os.path.dirname(__file__),
-        '..', '..', 'unittest_data', 'simple_extension')
+    extension_path = os.path.join(util.GetUnittestDataDir(), 'simple_extension')
     options = options_for_unittests.GetCopy()
     self.assertRaises(extension_to_load.MissingPublicKeyException,
                       lambda: extension_to_load.ExtensionToLoad(

@@ -84,13 +84,9 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     ps.pages.append(page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__)))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir()))
     ps.pages.append(page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__)))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir()))
 
     class Measurement(page_measurement.PageMeasurement):
       @property
@@ -147,9 +143,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir())
     page.credentials = "test"
     ps.pages.append(page)
 
@@ -184,9 +178,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir())
     ps.pages.append(page)
     ps.user_agent_type = 'tablet'
 
@@ -213,9 +205,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir())
     ps.pages.append(page)
 
     class TestOneTab(page_test.PageTest):
@@ -249,9 +239,7 @@ class PageRunnerTests(unittest.TestCase):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
     page = page_module.Page(
-        'file:///' + os.path.join(util.GetUnittestDataDir(), 'blank.html'),
-        ps,
-        base_dir=os.path.dirname(__file__))
+        'file:///blank.html', ps, base_dir=util.GetUnittestDataDir())
     ps.pages.append(page)
 
     class TestBeforeLaunch(page_test.PageTest):

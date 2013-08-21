@@ -6,6 +6,7 @@ import os
 import unittest
 
 from telemetry.core import browser_finder
+from telemetry.core import util
 from telemetry.unittest import simple_mock
 from telemetry.unittest import options_for_unittests
 from telemetry.unittest import DisabledTest
@@ -15,9 +16,8 @@ _ = simple_mock.DONT_CARE
 
 def _GetCredentialsPath():
   # TODO: This shouldn't depend on tools/perf.
-  credentials_path = os.path.join(
-      os.path.dirname(__file__),
-      '..', '..', '..', '..', 'perf', 'data', 'credentials.json')
+  credentials_path = os.path.join(util.GetChromiumSrcDir(),
+      'tools', 'perf', 'data', 'credentials.json')
   if not os.path.exists(credentials_path):
     return None
   return credentials_path

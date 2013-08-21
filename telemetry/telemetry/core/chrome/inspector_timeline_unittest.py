@@ -1,7 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 
 from telemetry.core import util
 from telemetry.core.chrome import inspector_timeline
@@ -9,9 +8,7 @@ from telemetry.unittest import tab_test_case
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):
   def _StartServer(self):
-    base_dir = os.path.dirname(__file__)
-    self._browser.SetHTTPServerDirectories(os.path.join(base_dir, '..', '..',
-        'unittest_data'))
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
   def _WaitForAnimationFrame(self):
     def _IsDone():

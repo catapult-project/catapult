@@ -6,6 +6,7 @@ import os
 
 from telemetry.core import discover
 from telemetry.core import profile_creator
+from telemetry.core import util
 
 BASE_PROFILE_TYPES = ['clean', 'default']
 
@@ -60,8 +61,8 @@ def GetProfileDir(profile_type):
       profile_type in PROFILE_CREATORS):
     return None
 
-  path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-      '..', '..', '..', '..', *PROFILE_TYPE_MAPPING[profile_type].split('/')))
+  path = os.path.join(
+    util.GetChromiumSrcDir(), *PROFILE_TYPE_MAPPING[profile_type].split('/'))
   assert os.path.exists(path)
   return path
 

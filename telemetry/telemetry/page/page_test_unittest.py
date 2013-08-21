@@ -1,18 +1,18 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
+
 import unittest
 
+from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page import page_test
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
 
 def _CreatePage(test_filename):
-  url = 'file:///' + os.path.join('..', '..', 'unittest_data', test_filename)
-  base_dir = os.path.dirname(__file__)
-  page = page_module.Page(url, None, base_dir=base_dir)
+  url = 'file:///' + test_filename
+  page = page_module.Page(url, None, base_dir=util.GetUnittestDataDir())
   return page
 
 class DoNothingPageTest(page_test.PageTest):

@@ -11,9 +11,7 @@ class ScrollAction(page_action.PageAction):
     super(ScrollAction, self).__init__(attributes)
 
   def WillRunAction(self, page, tab):
-    with open(
-      os.path.join(os.path.dirname(__file__),
-                   'scroll.js')) as f:
+    with open(os.path.join(os.path.dirname(__file__), 'scroll.js')) as f:
       js = f.read()
       tab.ExecuteJavaScript(js)
 

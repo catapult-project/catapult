@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
-import os
 import unittest
 
 from telemetry.core import browser_finder
 from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
+from telemetry.core import util
 from telemetry.unittest import options_for_unittests
 
 class BrowserTest(unittest.TestCase):
@@ -42,9 +42,7 @@ class BrowserTest(unittest.TestCase):
     self._browser = browser_to_create.Create()
     self._browser.Start()
 
-    unittest_data_dir = os.path.join(os.path.dirname(__file__),
-                                     '..', '..', 'unittest_data')
-    self._browser.SetHTTPServerDirectories(unittest_data_dir)
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
     return self._browser
 

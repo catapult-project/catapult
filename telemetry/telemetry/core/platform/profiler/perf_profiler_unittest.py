@@ -5,6 +5,7 @@ import os
 import logging
 import unittest
 
+from telemetry.core import util
 from telemetry.core.platform.profiler import perf_profiler
 from telemetry.unittest import options_for_unittests
 from telemetry.unittest import simple_mock
@@ -16,8 +17,8 @@ class TestPerfProfiler(unittest.TestCase):
       logging.warning('PerfProfiler is not supported. Skipping test')
       return
 
-    profile_file = os.path.join(os.path.dirname(__file__),
-                                'testdata', 'perf_report_output.txt')
+    profile_file = os.path.join(
+        util.GetUnittestDataDir(), 'perf_report_output.txt')
     perf_report_output = open(profile_file, 'r').read()
 
     mock_popen = simple_mock.MockObject()
