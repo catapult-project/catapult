@@ -44,6 +44,14 @@ section {
     background: #F09C9C;
 }
 
+.label {
+    cursor: text;
+}
+
+.label:hover {
+    background: #ffcc66;
+}
+
 section h1 {
     text-align: center;
     font-size: 1em;
@@ -193,17 +201,17 @@ function TestResult(metric, values, associatedRun) {
 
 function TestRun(entry) {
     this.id = function() { return entry['buildTime']; }
-    this.description = function () { return entry['description']; }
     this.revision = function () { return entry['revision']; }
     this.label = function () {
-        var label = 'r' + this.revision();
-        if (this.description())
-            label += ' &dash; ' + this.description();
-        return label;
+        if (labelKey in localStorage)
+            return localStorage[labelKey];
+        return 'r' + this.revision();
     }
+    this.setLabel = function(label) { localStorage[labelKey] = label; }
     this.isHidden = function() { return localStorage[hiddenKey]; }
     this.hide = function() { localStorage[hiddenKey] = true; }
 
+    var labelKey = 'telemetry_label_' + this.id();
     var hiddenKey = 'telemetry_hide_' + this.id();
 }
 
@@ -394,7 +402,7 @@ function formatPercentage(fraction) {
 
 function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
     $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
-        return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}">' + run.label() + '<div class="closeButton" id="' + run.id() + '">x</div></th>';
+        return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}" id="' + run.id() + '"><span class="label">' + run.label() + '</span><div class="closeButton">x</div></th>';
     }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
 
     var testNames = [];
@@ -411,9 +419,36 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
 
     $('.closeButton').click(function(event) {
         for (var i = 0; i < runs.length; i++) {
-            if (runs[i].id() == event.target.id) {
+            if (runs[i].id() == event.target.parentNode.id) {
                 runs[i].hide();
                 location.reload();
+                break;
+            }
+        }
+        event.stopPropagation();
+    });
+
+    $('.label').click(function(event) {
+        for (var i = 0; i < runs.length; i++) {
+            if (runs[i].id() == event.target.parentNode.id) {
+                $(event.target).replaceWith('<input id="labelEditor" type="text" value="' + runs[i].label()  + '">');
+                $('#labelEditor').focusout(function() {
+                    runs[i].setLabel(this.value);
+                    location.reload();
+                });
+                $('#labelEditor').keypress(function(event) {
+                    if (event.which == 13) {
+                        runs[i].setLabel(this.value);
+                        location.reload();
+                    }
+                });
+                $('#labelEditor').click(function (event) {
+                    event.stopPropagation();
+                });
+                $('#labelEditor').mousedown(function (event) {
+                    event.stopPropagation();
+                });
+                $('#labelEditor').select();
                 break;
             }
         }
