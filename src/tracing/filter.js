@@ -90,6 +90,23 @@ base.exportTo('tracing', function() {
   };
 
   /**
+   * @constructor A filter that matches objects with the exact given title.
+   */
+  function ExactTitleFilter(text) {
+    Filter.call(this);
+    this.text_ = text;
+  }
+  ExactTitleFilter.prototype = {
+    __proto__: Filter.prototype,
+
+    matchSlice: function(slice) {
+      if (this.text_.length === 0)
+        return false;
+      return slice.title === this.text_;
+    }
+  };
+
+  /**
    * @constructor A filter that filters objects by their category.
    * Objects match if they are NOT in the list of categories
    * @param {Array<string>=} opt_categories Categories to blacklist.
@@ -126,6 +143,7 @@ base.exportTo('tracing', function() {
     filterSliceArray: filterSliceArray,
     Filter: Filter,
     TitleFilter: TitleFilter,
+    ExactTitleFilter: ExactTitleFilter,
     CategoryFilter: CategoryFilter
   };
 });

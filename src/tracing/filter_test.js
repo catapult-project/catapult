@@ -10,6 +10,7 @@ base.require('tracing.filter');
 
 base.unittest.testSuite('tracing.filter', function() {
   var TitleFilter = tracing.TitleFilter;
+  var ExactTitleFilter = tracing.ExactTitleFilter;
   var CategoryFilter = tracing.CategoryFilter;
 
   test('titleFilter', function() {
@@ -44,6 +45,21 @@ base.unittest.testSuite('tracing.filter', function() {
     assertTrue(new TitleFilter('a').matchCounter(c2));
     assertTrue(new TitleFilter('Ca').matchCounter(c2));
     assertFalse(new TitleFilter('X').matchCounter(c2));
+  });
+
+  test('exactTitleFilter', function() {
+    var s0 = tracing.test_utils.newSliceNamed('a', 1, 3);
+    assertFalse(new ExactTitleFilter('').matchSlice(s0));
+    assertTrue(new ExactTitleFilter('a').matchSlice(s0));
+    assertFalse(new ExactTitleFilter('b').matchSlice(s0));
+    assertFalse(new ExactTitleFilter('A').matchSlice(s0));
+
+    var s1 = tracing.test_utils.newSliceNamed('abc', 1, 3);
+    assertFalse(new ExactTitleFilter('').matchSlice(s1));
+    assertTrue(new ExactTitleFilter('abc').matchSlice(s1));
+    assertFalse(new ExactTitleFilter('Abc').matchSlice(s1));
+    assertFalse(new ExactTitleFilter('bc').matchSlice(s1));
+    assertFalse(new ExactTitleFilter('a').matchSlice(s1));
   });
 
   test('categoryFilter', function() {

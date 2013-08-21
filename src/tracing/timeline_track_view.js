@@ -114,6 +114,8 @@ base.exportTo('tracing', function() {
       this.bindEventListener_(document, 'keydown', this.onKeydown_, this);
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
 
+      this.bindEventListener_(this, 'dblclick', this.onDblClick_, this);
+
       this.addEventListener('mousemove', this.onMouseMove_);
 
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
@@ -423,6 +425,20 @@ base.exportTo('tracing', function() {
 
     },
 
+    onDblClick_: function(e) {
+      if (this.mouseModeSelector_.mode !== ui.MOUSE_SELECTOR_MODE.SELECTION)
+        return;
+
+      if (!this.selection.length || !this.selection[0].title)
+        return;
+
+      var selection = new Selection();
+      var filter = new tracing.ExactTitleFilter(this.selection[0].title);
+      this.addAllObjectsMatchingFilterToSelection(filter, selection);
+
+      this.selection = selection;
+    },
+
     queueSmoothPan_: function(viewDeltaX, deltaY) {
       var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
           viewDeltaX);
@@ -524,38 +540,42 @@ base.exportTo('tracing', function() {
       var mod = base.isMac ? 'cmd ' : 'ctrl';
       var help =
           'Qwerty Controls\n' +
-          ' w/s              : Zoom in/out          (+shift: faster)\n' +
-          ' a/d              : Pan left/right       (+shift: faster)\n\n' +
+          ' w/s              : Zoom in/out                (+shift: faster)\n' +
+          ' a/d              : Pan left/right             ' +
+              '(+shift: faster)\n\n' +
           'Dvorak Controls\n' +
-          ' ,/o              : Zoom in/out          (+shift: faster)\n' +
-          ' a/e              : Pan left/right       (+shift: faster)\n\n' +
+          ' ,/o              : Zoom in/out                (+shift: faster)\n' +
+          ' a/e              : Pan left/right             ' +
+              '(+shift: faster)\n\n' +
           'Mouse Controls (mode)\n' +
-          ' click                 : Select event    (+' + mod + ': zoom in)\n' +
-          ' drag (selection)      : Box select      (+' + mod + ': zoom in)\n' +
-          ' drag (pan)            : Pan the view\n' +
-          ' drag (zoom)           : Zoom in/out by dragging up/down\n' +
-          ' drag (timing)         : Create range or move markers\n' +
-          ' double click (timing) : Set marker range to slice\n\n' +
+          ' click                    : Select event       ' +
+              '(+' + mod + ': zoom in)\n' +
+          ' drag (selection)         : Box select         ' +
+              '(+' + mod + ': zoom in)\n' +
+          ' drag (pan)               : Pan the view\n' +
+          ' drag (zoom)              : Zoom in/out by dragging up/down\n' +
+          ' drag (timing)            : Create marker range or move markers\n' +
+          ' double click (selection) : Select all events with same title\n' +
+          ' double click (timing)    : Set marker range to slice\n\n' +
           'General Navigation\n' +
-          ' 1-4              : Switch mouse mode\n' +
-          ' shift            : Hold to switch from pan to selection\n' +
-          ' ' + mod + '             : Hold to switch from pan to zoom\n\n' +
-          ' ?                : Show help\n' +
-          ' /                : Search\n' +
-          ' enter            : Step through search results\n\n' +
-          ' f                : Zoom into selection\n' +
-          ' z/0              : Reset zoom and pan\n' +
-          ' g/G              : Add 60fps grid to start/end of\n' +
-          '                    selected event\n';
+          ' 1-4            : Switch mouse mode\n' +
+          ' shift          : Hold to switch from pan to selection\n' +
+          ' ' + mod + '           : Hold to switch from pan to zoom\n\n' +
+          ' ?              : Show help\n' +
+          ' /              : Search\n' +
+          ' enter          : Step through search results\n\n' +
+          ' f              : Zoom into selection\n' +
+          ' z/0            : Reset zoom and pan\n' +
+          ' g/G            : Add 60fps grid to start/end of selected event\n';
 
       if (this.focusElement.tabIndex) {
         help +=
-            ' <-               : Select previous event\n' +
-            ' ->               : Select next event\n\n';
+            ' <-             : Select previous event\n' +
+            ' ->             : Select next event\n\n';
       } else {
         help +=
-            ' <-/^TAB          : Select previous event\n' +
-            ' ->/ TAB          : Select next event\n\n';
+            ' <-/^TAB        : Select previous event\n' +
+            ' ->/ TAB        : Select next event\n\n';
       }
 
       return help;
