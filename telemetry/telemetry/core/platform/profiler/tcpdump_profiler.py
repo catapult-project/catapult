@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 
-from telemetry.core.chrome import android_browser_finder
+from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 
 
