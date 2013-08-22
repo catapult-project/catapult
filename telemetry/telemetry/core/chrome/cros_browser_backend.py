@@ -31,6 +31,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = self._remote_debugging_port
     self._forwarder = None
 
+    self._SetBranchNumber(self._GetChromeVersion())
+
     self._login_ext_dir = os.path.join(os.path.dirname(__file__),
                                        'chromeos_login_ext')
 
@@ -136,6 +138,13 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         if process.startswith(path):
           return {'pid': pid, 'path': path}
     return None
+
+  def _GetChromeVersion(self):
+    result = self._GetChromeProcess()
+    assert result and result['path']
+    (version, _) = self._cri.RunCmdOnDevice([result['path'], '--version'])
+    assert version
+    return version
 
   @property
   def pid(self):

@@ -37,7 +37,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._port = None
 
     self._inspector_protocol_version = 0
-    self._chrome_branch_number = 0
+    self._chrome_branch_number = None
     self._tracing_backend = None
     self._system_info_backend = None
 
@@ -145,6 +145,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if 'Protocol-Version' in resp:
       self._inspector_protocol_version = resp['Protocol-Version']
 
+      if self._chrome_branch_number:
+        return
+
       if 'Browser' in resp:
         branch_number_match = re.search('Chrome/\d+\.\d+\.(\d+)\.\d+',
                                         resp['Browser'])
@@ -191,15 +194,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   @property
   def chrome_branch_number(self):
+    assert self._chrome_branch_number
     return self._chrome_branch_number
 
   @property
   def supports_tab_control(self):
-    return self._chrome_branch_number >= 1303
+    return self.chrome_branch_number >= 1303
 
   @property
   def supports_tracing(self):
-    return self.is_content_shell or self._chrome_branch_number >= 1385
+    return self.is_content_shell or self.chrome_branch_number >= 1385
 
   def StartTracing(self, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
@@ -247,3 +251,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self._port)
     return self._system_info_backend.GetSystemInfo()
+
+  def _SetBranchNumber(self, version):
+    assert version
+    self._chrome_branch_number = re.search(r'\d+\.\d+\.(\d+)\.\d+',
+                                           version).group(1)

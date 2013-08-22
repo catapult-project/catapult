@@ -117,7 +117,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # For old chrome versions, might have to relaunch to have the
     # correct net_benchmarking switch.
-    if self._chrome_branch_number < 1418:
+    if self.chrome_branch_number < 1418:
       self.Close()
       self._supports_net_benchmarking = False
       self._LaunchBrowser()

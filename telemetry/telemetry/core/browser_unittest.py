@@ -73,7 +73,7 @@ class BrowserTest(unittest.TestCase):
     v = b._browser_backend._inspector_protocol_version # pylint: disable=W0212
     self.assertTrue(v > 0)
 
-    v = b._browser_backend._chrome_branch_number > 0 # pylint: disable=W0212
+    v = b._browser_backend.chrome_branch_number # pylint: disable=W0212
     self.assertTrue(v > 0)
 
   def testNewCloseTab(self):
