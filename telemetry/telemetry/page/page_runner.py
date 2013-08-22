@@ -180,12 +180,12 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
       state.StartBrowser(test, page_set, page, possible_browser,
                          credentials_path, page.archive_path)
 
+      expectation = expectations.GetExpectationForPage(state.browser, page)
+
       _WaitForThermalThrottlingIfNeeded(state.browser.platform)
 
       if options.profiler:
         state.StartProfiling(page, options)
-
-      expectation = expectations.GetExpectationForPage(state.browser, page)
 
       try:
         _RunPage(test, page, state, expectation,

@@ -63,11 +63,11 @@ class TestExpectations(object):
   def GetExpectationForPage(self, browser, page):
     platform = browser.platform
     gpu_info = None
-    if browser.supports_system_info:
-      gpu_info = browser.GetSystemInfo().gpu
 
     for e in self.expectations:
       if fnmatch.fnmatch(page.url, e.url_pattern):
+        if gpu_info == None and browser.supports_system_info:
+          gpu_info = browser.GetSystemInfo().gpu
         if self._ModifiersApply(platform, gpu_info, e):
           return e.expectation
     return 'pass'
