@@ -9,9 +9,8 @@ from telemetry.core import util
 from telemetry.page.actions import page_action
 
 class WaitAction(page_action.PageAction):
-  DEFAULT_TIMEOUT = 60
-
   def __init__(self, attributes=None):
+    self.timeout = 60
     super(WaitAction, self).__init__(attributes)
 
   def RunsPreviousAction(self):
@@ -29,19 +28,19 @@ class WaitAction(page_action.PageAction):
       if not previous_action:
         raise page_action.PageActionFailed('You need to perform an action '
                                            'before waiting for navigate.')
-      previous_action.WillRunAction()
+      previous_action.WillRunAction(page, tab)
       action_to_perform = lambda: previous_action.RunAction(page, tab, None)
-      tab.PerformActionAndWaitForNavigate(action_to_perform)
+      tab.PerformActionAndWaitForNavigate(action_to_perform, self.timeout)
 
     elif self.condition == 'href_change':
       if not previous_action:
         raise page_action.PageActionFailed('You need to perform an action '
                                            'before waiting for a href change.')
-      previous_action.WillRunAction()
+      previous_action.WillRunAction(page, tab)
       old_url = tab.EvaluateJavaScript('document.location.href')
       previous_action.RunAction(page, tab, None)
       util.WaitFor(lambda: tab.EvaluateJavaScript(
-          'document.location.href') != old_url, self.DEFAULT_TIMEOUT)
+          'document.location.href') != old_url, self.timeout)
 
     elif self.condition == 'element':
       assert hasattr(self, 'text') or hasattr(self, 'selector')
@@ -49,13 +48,13 @@ class WaitAction(page_action.PageAction):
         callback_code = 'function(element) { return element != null; }'
         util.WaitFor(
             lambda: util.FindElementAndPerformAction(
-                tab, self.text, callback_code), self.DEFAULT_TIMEOUT)
+                tab, self.text, callback_code), self.timeout)
       else:
         util.WaitFor(lambda: tab.EvaluateJavaScript(
              'document.querySelector("%s") != null' % re.escape(self.selector)),
-             self.DEFAULT_TIMEOUT)
+             self.timeout)
 
     elif self.condition == 'javascript':
       assert hasattr(self, 'javascript')
       util.WaitFor(lambda: tab.EvaluateJavaScript(self.javascript),
-                   self.DEFAULT_TIMEOUT)
+                   self.timeout)

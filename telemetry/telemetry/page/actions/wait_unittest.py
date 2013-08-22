@@ -23,3 +23,16 @@ class WaitActionTest(tab_test_case.TabTestCase):
     start_time = time.time()
     i.RunAction(None, self._tab, None)
     self.assertAlmostEqual(time.time() - start_time, 1, places=1)
+
+  def testWaitActionTimeout(self):
+    wait_action = wait.WaitAction({
+      'condition': 'javascript',
+      'javascript': '1 + 1 === 3',
+      'timeout': 1
+    })
+
+    start_time = time.time()
+    self.assertRaises(
+        util.TimeoutException,
+        lambda: wait_action.RunAction(None, self._tab, None))
+    self.assertTrue(time.time() - start_time < 5)
