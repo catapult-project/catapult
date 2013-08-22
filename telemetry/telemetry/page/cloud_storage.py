@@ -35,6 +35,10 @@ class CredentialsError(CloudStorageError):
         'credentials. The project-id field can be left blank.' % gsutil_path)
 
 
+class NotFoundError(CloudStorageError):
+  pass
+
+
 def _DownloadGsutil():
   logging.info('Downloading gsutil')
   response = urllib2.urlopen(_GSUTIL_URL)
@@ -75,6 +79,8 @@ def _RunCommand(args):
     if ('You are attempting to access protected data with '
         'no configured credentials.' in stderr):
       raise CredentialsError(gsutil_path)
+    if stderr.startswith('InvalidUriError') or 'No such object' in stderr:
+      raise NotFoundError(stderr)
     raise CloudStorageError(stderr)
 
   return stdout
@@ -104,15 +110,24 @@ def Insert(bucket, remote_path, local_path):
 
 
 def GetIfChanged(bucket, file_path):
-  """Gets the file at file_path if it has a hash file that doesn't match."""
+  """Gets the file at file_path if it has a hash file that doesn't match.
+
+  If the file is not in Cloud Storage, log a warning instead of raising an
+  exception. We assume that the user just hasn't uploaded the file yet.
+  """
   hash_path = file_path + '.sha1'
   if not os.path.exists(hash_path):
     return
 
   with open(hash_path, 'rb') as f:
     expected_hash = f.read(1024).rstrip()
-  if not os.path.exists(file_path) or GetHash(file_path) != expected_hash:
+  if os.path.exists(file_path) and GetHash(file_path) == expected_hash:
+    return
+
+  try:
     Get(bucket, expected_hash, file_path)
+  except NotFoundError:
+    logging.warning('Unable to update file %s from Cloud Storage.' % file_path)
 
 
 def GetHash(file_path):
