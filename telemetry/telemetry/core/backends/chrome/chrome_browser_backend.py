@@ -77,6 +77,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--disable-background-networking')
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
+    args.append('--no-proxy-server')
     if self.options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
           self.WEBPAGEREPLAY_HOST,
@@ -169,7 +170,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if path:
       url += '/' + path
     try:
-      req = urllib2.urlopen(url, timeout=timeout)
+      proxy_handler = urllib2.ProxyHandler({})  # Bypass any system proxy.
+      opener = urllib2.build_opener(proxy_handler)
+      req = opener.open(url, timeout=timeout)
       return req.read()
     except (socket.error, httplib.BadStatusLine, urllib2.URLError) as e:
       if throw_network_exception:
