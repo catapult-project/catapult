@@ -16,11 +16,11 @@ from telemetry.core import web_contents
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
-from telemetry.core.backends.chrome import extension_dict_backend
-from telemetry.core.backends.chrome import misc_web_contents_backend
-from telemetry.core.backends.chrome import system_info_backend
-from telemetry.core.backends.chrome import tab_list_backend
-from telemetry.core.backends.chrome import tracing_backend
+from telemetry.core.chrome import extension_dict_backend
+from telemetry.core.chrome import misc_web_contents_backend
+from telemetry.core.chrome import system_info_backend
+from telemetry.core.chrome import tab_list_backend
+from telemetry.core.chrome import tracing_backend
 from telemetry.unittest import options_for_unittests
 
 class ChromeBrowserBackend(browser_backend.BrowserBackend):

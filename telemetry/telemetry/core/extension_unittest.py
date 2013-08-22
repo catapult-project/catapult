@@ -1,7 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import logging
 import os
 import shutil
@@ -11,9 +10,8 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.core import extension_to_load
 from telemetry.core import util
-from telemetry.core.backends.chrome import extension_dict_backend
+from telemetry.core.chrome import extension_dict_backend
 from telemetry.unittest import options_for_unittests
-
 
 class ExtensionTest(unittest.TestCase):
   def setUp(self):
@@ -127,7 +125,6 @@ class MultipleExtensionTest(unittest.TestCase):
       assert extension
       extension.ExecuteJavaScript('setTestVar("abcdef")')
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
-
 
 class ComponentExtensionTest(unittest.TestCase):
   def testComponentExtensionBasic(self):
