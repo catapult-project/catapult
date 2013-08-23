@@ -78,6 +78,7 @@ base.exportTo('tracing', function() {
 
       // Bookkeeping.
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+      document.addEventListener('keydown', this.onKeyDown_.bind(this), true);
       document.addEventListener('keypress', this.onKeypress_.bind(this), true);
 
       this.dragEl_.target = this.analysisEl_;
@@ -312,15 +313,27 @@ base.exportTo('tracing', function() {
       return true;
     },
 
+    onKeyDown_: function(e) {
+      if (!this.listenToKeys_)
+        return;
+
+      if (e.keyCode === 27) { // ESC
+        this.focus();
+        e.preventDefault();
+      }
+    },
+
     onKeypress_: function(e) {
       if (!this.listenToKeys_)
         return;
 
-      if (event.keyCode == '/'.charCodeAt(0)) { // / key
-        this.findCtl_.focus();
-        event.preventDefault();
-        return;
-      } else if (e.keyCode == '?'.charCodeAt(0)) {
+      if (e.keyCode === '/'.charCodeAt(0)) {
+        if (this.findCtl_.hasFocus())
+          this.focus();
+        else
+          this.findCtl_.focus();
+        e.preventDefault();
+      } else if (e.keyCode === '?'.charCodeAt(0)) {
         this.querySelector('.view-help-button').click();
         e.preventDefault();
       }

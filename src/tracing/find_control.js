@@ -55,9 +55,6 @@ base.exportTo('tracing', function() {
             this.findPrevious_();
           else
             this.findNext_();
-        } else if (e.keyCode == 27) {
-          this.filterEl_.blur();
-          this.updateHitCountEl_();
         }
       }.bind(this));
 
@@ -98,6 +95,10 @@ base.exportTo('tracing', function() {
 
     focus: function() {
       this.filterEl_.focus();
+    },
+
+    hasFocus: function() {
+      return this.filterEl_ === document.activeElement;
     },
 
     filterTextChanged_: function() {
