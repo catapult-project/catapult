@@ -6,6 +6,7 @@
 .analysis-view {
   background-color: white;
   display: -webkit-flex;
+  overflow: auto;
 }
 
 .analysis-view.viewing-old-style-analysis {
