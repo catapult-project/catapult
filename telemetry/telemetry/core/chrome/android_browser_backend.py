@@ -252,6 +252,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def profile_directory(self):
     return self._backend_settings.profile_dir
 
+  @property
+  def package(self):
+    return self._backend_settings.package
+
   def __del__(self):
     self.Close()
 
