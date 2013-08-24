@@ -43,17 +43,27 @@ class WaitAction(page_action.PageAction):
           'document.location.href') != old_url, self.timeout)
 
     elif self.condition == 'element':
-      assert hasattr(self, 'text') or hasattr(self, 'selector')
       if hasattr(self, 'text'):
         callback_code = 'function(element) { return element != null; }'
         util.WaitFor(
             lambda: util.FindElementAndPerformAction(
                 tab, self.text, callback_code), self.timeout)
-      else:
+      elif hasattr(self, 'selector'):
         util.WaitFor(lambda: tab.EvaluateJavaScript(
              'document.querySelector("%s") != null' % re.escape(self.selector)),
              self.timeout)
-
+      elif hasattr(self, 'xpath'):
+        code = ('document.evaluate("%s",'
+                                   'document,'
+                                   'null,'
+                                   'XPathResult.FIRST_ORDERED_NODE_TYPE,'
+                                   'null)'
+                  '.singleNodeValue' % re.escape(self.xpath))
+        util.WaitFor(lambda: tab.EvaluateJavaScript('%s != null' % code),
+             self.timeout)
+      else:
+        raise page_action.PageActionFailed(
+            'No element condition given to wait')
     elif self.condition == 'javascript':
       assert hasattr(self, 'javascript')
       util.WaitFor(lambda: tab.EvaluateJavaScript(self.javascript),

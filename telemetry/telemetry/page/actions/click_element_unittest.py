@@ -40,3 +40,20 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
+
+  def testClickWithXPathWaitForRefChange(self):
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
+    self._tab.Navigate(
+      self._browser.http_server.UrlOf('page_with_link.html'))
+    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/page_with_link.html')
+
+    data = {'xpath': '//a[@id="clickme"]', 'wait_for_href_change': True}
+    i = click_element.ClickElementAction(data)
+    i.RunAction(None, self._tab, None)
+
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/blank.html')
