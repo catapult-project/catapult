@@ -115,11 +115,9 @@ base.exportTo('ui', function() {
       // Apply new size to the container.
       var curSize = this.getTargetSize_();
       var newSize;
-      if (this.target_ == this.nextSibling) {
+      if (this.target_ === this.nextSibling) {
         newSize = curSize + delta;
       } else {
-        if (this.target_ != this.previousSibling)
-          throw Error('Must be next sibling');
         newSize = curSize - delta;
       }
       this.setTargetSize_(newSize);

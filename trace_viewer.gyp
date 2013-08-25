@@ -15,6 +15,7 @@
       'src/tracing/analysis/cpu_slice_view.html',
       'src/tracing/analysis/thread_time_slice_view.html',
       'src/ui/mouse_mode_selector.html',
+      'src/cc/picture_debugger.html',
     ],
     'tracing_css_files': [
       'src/base/unittest.css',

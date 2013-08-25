@@ -5,6 +5,7 @@
 
 picture-ops-list-view {
   -webkit-flex-direction: column;
+  border-top: 1px solid grey;
   display: -webkit-flex;
 }
 

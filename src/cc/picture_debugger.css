@@ -25,7 +25,7 @@ picture-debugger > left-panel > picture-info {
   padding-top: 2px;
 }
 
-picture-debugger > left-panel > picture-info > .title {
+picture-debugger > left-panel > picture-info .title {
   font-weight: bold;
   margin-left: 5px;
   margin-right: 5px;

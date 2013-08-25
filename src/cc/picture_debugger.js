@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.requireTemplate('cc.picture_debugger');
 base.requireStylesheet('cc.picture_debugger');
 
 base.require('cc.picture');
@@ -28,61 +29,43 @@ base.exportTo('cc', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
+      var node = base.instantiateTemplate('#picture-debugger-template');
+      this.appendChild(node);
+
       this.pictureAsImageData_ = undefined;
       this.showOverdraw_ = false;
 
-      this.leftPanel_ = document.createElement('left-panel');
+      this.sizeInfo_ = this.querySelector('.size');
+      this.rasterArea_ = this.querySelector('raster-area');
+      this.filename_ = this.querySelector('.filename');
 
-      this.pictureInfo_ = document.createElement('picture-info');
-
-      this.title_ = document.createElement('span');
-      this.title_.textContent = 'Skia Picture';
-      this.title_.classList.add('title');
-      this.sizeInfo_ = document.createElement('span');
-      this.sizeInfo_.classList.add('size');
-      this.filename_ = document.createElement('input');
-      this.filename_.classList.add('filename');
-      this.filename_.type = 'text';
-      this.filename_.value = 'skpicture.skp';
-      var exportButton = document.createElement('button');
-      exportButton.textContent = 'Export';
+      var exportButton = this.querySelector('.export');
       exportButton.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
+
       var overdrawCheckbox = ui.createCheckBox(
           this, 'showOverdraw',
           'pictureViewer.showOverdraw', false,
           'Show overdraw');
-      this.pictureInfo_.appendChild(this.title_);
-      this.pictureInfo_.appendChild(this.sizeInfo_);
-      this.pictureInfo_.appendChild(document.createElement('br'));
-      this.pictureInfo_.appendChild(this.filename_);
-      this.pictureInfo_.appendChild(exportButton);
-      this.pictureInfo_.appendChild(document.createElement('br'));
-      this.pictureInfo_.appendChild(overdrawCheckbox);
 
-      this.titleDragHandle_ = new ui.DragHandle();
-      this.titleDragHandle_.horizontal = true;
-      this.titleDragHandle_.target = this.pictureInfo_;
+      var pictureInfo = this.querySelector('picture-info');
+      pictureInfo.appendChild(overdrawCheckbox);
 
       this.drawOpsView_ = new cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
-      this.leftPanel_.appendChild(this.pictureInfo_);
-      this.leftPanel_.appendChild(this.titleDragHandle_);
-      this.leftPanel_.appendChild(this.drawOpsView_);
+      var leftPanel = this.querySelector('left-panel');
+      leftPanel.appendChild(this.drawOpsView_);
 
-      this.middleDragHandle_ = new ui.DragHandle();
-      this.middleDragHandle_.horizontal = false;
-      this.middleDragHandle_.target = this.leftPanel_;
+      var middleDragHandle = new ui.DragHandle();
+      middleDragHandle.horizontal = false;
+      middleDragHandle.target = leftPanel;
 
       this.infoBar_ = new ui.InfoBar();
-      this.rasterArea_ = document.createElement('raster-area');
-
-      this.appendChild(this.leftPanel_);
-      this.appendChild(this.middleDragHandle_);
       this.rasterArea_.appendChild(this.infoBar_);
-      this.appendChild(this.rasterArea_);
+
+      this.insertBefore(middleDragHandle, this.rasterArea_);
 
       this.picture_ = undefined;
     },
