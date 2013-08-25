@@ -80,4 +80,19 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
     assertEquals(1, selection.length);
     assertTrue(selection[0] instanceof tracing.trace_model.ObjectInstance);
   });
+
+  test('addItemNearToProvidedEventToSelection', function() {
+    var objects = createObjects();
+    var frames = objects.getAllInstancesByTypeName()['Frame'];
+
+    var track = ObjectInstanceTrack(new Viewport());
+    track.objectInstances = frames;
+
+    var instance = new tracing.trace_model.ObjectInstance(
+        {}, '0x1000', 'cat', 'n', 10);
+
+    assertDoesNotThrow(function() {
+      track.addItemNearToProvidedEventToSelection(instance, 0, undefined);
+    });
+  });
 });

@@ -218,6 +218,7 @@ base.exportTo('tracing.tracks', function() {
      * @private
      */
     addItemNearToProvidedEventToSelection: function(event, offset, selection) {
+      var events;
       if (event instanceof tracing.trace_model.ObjectSnapshot)
         events = this.objectSnapshots_;
       else if (event instanceof tracing.trace_model.ObjectInstance)
