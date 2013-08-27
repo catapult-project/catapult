@@ -61,7 +61,7 @@ base.exportTo('cc', function() {
       if (!ops)
         return;
 
-      ops = this.opsTaggedWithTiming_(ops);
+      ops = this.picture_.tagOpsWithTimings(ops);
 
       ops = this.opsTaggedWithAnnotations_(ops);
 
@@ -202,37 +202,6 @@ base.exportTo('cc', function() {
       }
 
       return opsWithoutAnnotations;
-    },
-
-    /**
-     * Tag each op with the time it takes to rasterize.
-     *
-     * FIXME: We should use real statistics to get better numbers here, see
-     *        https://code.google.com/p/trace-viewer/issues/detail?id=357
-     *
-     * @param {Array} ops Array of Skia operations.
-     * @return {Array} Skia ops where op.cmd_time contains the associated time
-     *         for a given op.
-     */
-    opsTaggedWithTiming_: function(ops) {
-      var opTimings = new Array();
-      for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
-        opTimings[iteration] = this.picture_.getOpTimings();
-        if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
-          return ops;
-        if (opTimings[iteration].cmd_times.length != ops.length)
-          return ops;
-      }
-
-      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
-        var average = 0;
-        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
-          average += opTimings[i].cmd_times[opIndex];
-        average /= OPS_TIMING_ITERATIONS;
-        ops[opIndex].cmd_time = average;
-      }
-
-      return ops;
     }
   };
 

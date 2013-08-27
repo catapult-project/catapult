@@ -9,6 +9,7 @@ base.requireStylesheet('cc.picture_debugger');
 
 base.require('cc.picture');
 base.require('cc.picture_ops_list_view');
+base.require('cc.picture_ops_chart_view');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
 base.require('ui.info_bar');
@@ -39,6 +40,8 @@ base.exportTo('cc', function() {
       this.rasterArea_ = this.querySelector('raster-area');
       this.filename_ = this.querySelector('.filename');
 
+      this.drawOpsChartView_ = new cc.PictureOpsChartView();
+
       var exportButton = this.querySelector('.export');
       exportButton.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
@@ -48,14 +51,21 @@ base.exportTo('cc', function() {
           'pictureViewer.showOverdraw', false,
           'Show overdraw');
 
+      var chartCheckbox = ui.createCheckBox(
+          this, 'showChart',
+          'pictureViewer.showChart', false,
+          'Show timing chart');
+
       var pictureInfo = this.querySelector('picture-info');
       pictureInfo.appendChild(overdrawCheckbox);
+      pictureInfo.appendChild(chartCheckbox);
 
       this.drawOpsView_ = new cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
       var leftPanel = this.querySelector('left-panel');
+      leftPanel.appendChild(this.drawOpsChartView_);
       leftPanel.appendChild(this.drawOpsView_);
 
       var middleDragHandle = new ui.DragHandle();
@@ -68,6 +78,25 @@ base.exportTo('cc', function() {
       this.insertBefore(middleDragHandle, this.rasterArea_);
 
       this.picture_ = undefined;
+
+      // Add a mutation observer so that when the view is resized we can
+      // update the chart view.
+      this.mutationObserver_ = new MutationObserver(
+          this.onMutation_.bind(this));
+      this.mutationObserver_.observe(leftPanel, { attributes: true });
+    },
+
+    onMutation_: function(mutations) {
+
+      for (var m = 0; m < mutations.length; m++) {
+        // A style change would indicate that the element has resized
+        // so we should re-render the chart.
+        if (mutations[m].attributeName === 'style') {
+          this.drawOpsChartView_.requiresRedraw = true;
+          this.drawOpsChartView_.updateChartContents();
+          break;
+        }
+      }
     },
 
     onSaveAsSkPictureClicked_: function() {
@@ -102,6 +131,7 @@ base.exportTo('cc', function() {
 
     set picture(picture) {
       this.drawOpsView_.picture = picture;
+      this.drawOpsChartView_.picture = picture;
       this.picture_ = picture;
       this.rasterize_();
 
@@ -178,6 +208,13 @@ base.exportTo('cc', function() {
     set showOverdraw(v) {
       this.showOverdraw_ = v;
       this.rasterize_();
+    },
+
+    set showChart(chartShouldBeVisible) {
+      if (chartShouldBeVisible)
+        this.drawOpsChartView_.show();
+      else
+        this.drawOpsChartView_.hide();
     }
   };
 
