@@ -138,7 +138,6 @@ class PageState(object):
     else:
       i = navigate.NavigateAction()
       i.RunAction(page, tab, None)
-      page.WaitToLoad(tab, 60)
 
   def CleanUpPage(self, page, tab):
     if page.credentials and self._did_login:
