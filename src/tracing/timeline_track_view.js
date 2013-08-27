@@ -184,6 +184,13 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.SELECTION, '1'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.ZOOM, '3'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
+
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          m.SELECTION, ui.MODIFIER.SHIFT);
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          m.PANSCAN, ui.MODIFIER.SPACE);
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          m.ZOOM, ui.MODIFIER.CMD_OR_CTRL);
     },
 
     detach: function() {
@@ -548,10 +555,8 @@ base.exportTo('tracing', function() {
           ' a/e              : Pan left/right             ' +
               '(+shift: faster)\n\n' +
           'Mouse Controls (mode)\n' +
-          ' click                    : Select event       ' +
-              '(+' + mod + ': zoom in)\n' +
-          ' drag (selection)         : Box select         ' +
-              '(+' + mod + ': zoom in)\n' +
+          ' click                    : Select event\n' +
+          ' drag (selection)         : Box select\n' +
           ' drag (pan)               : Pan the view\n' +
           ' drag (zoom)              : Zoom in/out by dragging up/down\n' +
           ' drag (timing)            : Create marker range or move markers\n' +
@@ -559,11 +564,12 @@ base.exportTo('tracing', function() {
           ' double click (timing)    : Set marker range to slice\n\n' +
           'General Navigation\n' +
           ' 1-4            : Switch mouse mode\n' +
-          ' shift          : Hold to switch from pan to selection\n' +
-          ' ' + mod + '           : Hold to switch from pan to zoom\n\n' +
+          ' shift          : Hold for temporary selection mode\n' +
+          ' space          : Hold for temporary pan mode\n' +
+          ' ' + mod + '           : Hold for temporary zoom mode\n\n' +
           ' ?              : Show help\n' +
           ' /              : Search\n' +
-          ' enter          : Step through search results\n\n' +
+          ' enter          : Step through search results\n' +
           ' f              : Zoom into selection\n' +
           ' z/0            : Reset zoom and pan\n' +
           ' g/G            : Add 60fps grid to start/end of selected event\n';
@@ -843,12 +849,8 @@ base.exportTo('tracing', function() {
       this.modelTrack_.addIntersectingItemsInRangeToSelection(
           loVX, hiVX, loY, hiY, selection);
 
-      // Activate the new selection, and zoom if ctrl key held down.
+      // Activate the new selection.
       this.selection = selection;
-      if ((base.isMac && mouseEvent.metaKey) ||
-          (!base.isMac && mouseEvent.ctrlKey)) {
-        this.zoomToSelection();
-      }
     },
 
     onBeginZoom_: function(e) {
