@@ -205,15 +205,22 @@ class PageTest(object):
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
 
-    Runs the 'navigate_steps' page attribute as a compound action.
+    If 'navigate_steps' is defined for the page, this will attempt to
+    run it as a compound action.
     """
-    navigate_actions = GetCompoundActionFromPage(page, 'navigate_steps')
-    if not any(isinstance(action, navigate.NavigateAction)
-        for action in navigate_actions):
-      raise page_action.PageActionFailed(
-          'No NavigateAction in navigate_steps')
-
-    self._RunCompoundAction(page, tab, navigate_actions, False)
+    if hasattr(page, 'navigate_steps'):
+      navigate_actions = GetCompoundActionFromPage(page, 'navigate_steps')
+      if not any(isinstance(action, navigate.NavigateAction)
+          for action in navigate_actions):
+        raise page_action.PageActionFailed(
+            'No NavigateAction in navigate_steps')
+      self._RunCompoundAction(page, tab, navigate_actions, False)
+    else:
+      # TODO(edmundyan): Make a default navigate_steps action on the page object
+      # once we can deprecate page.WaitToLoad()
+      i = navigate.NavigateAction()
+      i.RunAction(page, tab, None)
+      page.WaitToLoad(tab, 60)
 
   @property
   def action_name_to_run(self):

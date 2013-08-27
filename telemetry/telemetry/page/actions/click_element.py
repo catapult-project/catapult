@@ -6,6 +6,7 @@ import re
 
 from telemetry.core import util
 from telemetry.core import exceptions
+from telemetry.page import page as page_module
 from telemetry.page.actions import page_action
 
 class ClickElementAction(page_action.PageAction):
@@ -44,5 +45,15 @@ class ClickElementAction(page_action.PageAction):
         raise page_action.PageActionFailed(
             'No condition given to click_element')
 
-    DoClick()
+    if hasattr(self, 'wait_for_navigate'):
+      tab.PerformActionAndWaitForNavigate(DoClick)
+    elif hasattr(self, 'wait_for_href_change'):
+      old_url = tab.EvaluateJavaScript('document.location.href')
+      DoClick()
+      util.WaitFor(lambda: tab.EvaluateJavaScript(
+          'document.location.href') != old_url, 60)
+    else:
+      DoClick()
+
+    page_module.Page.WaitForPageToLoad(self, tab, 60)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

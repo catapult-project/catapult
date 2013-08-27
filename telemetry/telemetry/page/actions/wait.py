@@ -14,14 +14,17 @@ class WaitAction(page_action.PageAction):
     super(WaitAction, self).__init__(attributes)
 
   def RunsPreviousAction(self):
-    return (getattr(self, 'condition', None) == 'navigate' or
-            getattr(self, 'condition', None) == 'href_change')
+    assert hasattr(self, 'condition')
+    return self.condition == 'navigate' or self.condition == 'href_change'
 
   def RunAction(self, page, tab, previous_action):
-    if hasattr(self, 'seconds'):
+    assert hasattr(self, 'condition')
+
+    if self.condition == 'duration':
+      assert hasattr(self, 'seconds')
       time.sleep(self.seconds)
 
-    elif getattr(self, 'condition', None) == 'navigate':
+    elif self.condition == 'navigate':
       if not previous_action:
         raise page_action.PageActionFailed('You need to perform an action '
                                            'before waiting for navigate.')
@@ -29,7 +32,7 @@ class WaitAction(page_action.PageAction):
       action_to_perform = lambda: previous_action.RunAction(page, tab, None)
       tab.PerformActionAndWaitForNavigate(action_to_perform, self.timeout)
 
-    elif getattr(self, 'condition', None) == 'href_change':
+    elif self.condition == 'href_change':
       if not previous_action:
         raise page_action.PageActionFailed('You need to perform an action '
                                            'before waiting for a href change.')
@@ -39,7 +42,7 @@ class WaitAction(page_action.PageAction):
       util.WaitFor(lambda: tab.EvaluateJavaScript(
           'document.location.href') != old_url, self.timeout)
 
-    elif getattr(self, 'condition', None) == 'element':
+    elif self.condition == 'element':
       if hasattr(self, 'text'):
         callback_code = 'function(element) { return element != null; }'
         util.WaitFor(
@@ -61,8 +64,7 @@ class WaitAction(page_action.PageAction):
       else:
         raise page_action.PageActionFailed(
             'No element condition given to wait')
-    elif hasattr(self, 'javascript'):
+    elif self.condition == 'javascript':
+      assert hasattr(self, 'javascript')
       util.WaitFor(lambda: tab.EvaluateJavaScript(self.javascript),
                    self.timeout)
-    else:
-      raise page_action.PageActionFailed('No wait condition found')

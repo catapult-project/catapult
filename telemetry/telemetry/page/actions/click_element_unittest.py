@@ -4,7 +4,6 @@
 
 from telemetry.core import util
 from telemetry.page.actions import click_element
-from telemetry.page.actions import wait
 from telemetry.unittest import tab_test_case
 
 class ClickElementActionTest(tab_test_case.TabTestCase):
@@ -17,11 +16,9 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
 
-    data = {'selector': 'a[id="clickme"]'}
+    data = {'selector': 'a[id="clickme"]', 'wait_for_href_change': True}
     i = click_element.ClickElementAction(data)
-    data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    i.RunAction(None, self._tab, None)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -36,11 +33,9 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
 
-    data = {'text': 'Click me'}
+    data = {'text': 'Click me', 'wait_for_href_change': True}
     i = click_element.ClickElementAction(data)
-    data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    i.RunAction(None, self._tab, None)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
