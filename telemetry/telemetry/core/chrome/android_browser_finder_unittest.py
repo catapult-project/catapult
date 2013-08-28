@@ -27,7 +27,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self._stubs.Restore()
 
   def test_no_adb(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
 
     def NoAdb(*args, **kargs): # pylint: disable=W0613
       raise OSError('not found')
@@ -36,14 +36,14 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self.assertEquals(0, len(browsers))
 
   def test_adb_no_devices(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
 
     browsers = android_browser_finder.FindAllAvailableBrowsers(options)
     self.assertEquals(0, len(browsers))
 
 
   def test_adb_permissions_error(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
 
     self._stubs.subprocess.Popen.communicate_result = (
         """List of devices attached
@@ -60,7 +60,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
 
 
   def test_adb_two_devices(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
 
     self._stubs.adb_commands.attached_devices = ['015d14fec128220c',
                                                  '015d14fec128220d']
@@ -72,7 +72,7 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     self.assertEquals(0, len(browsers))
 
   def test_adb_one_device(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
 
     self._stubs.adb_commands.attached_devices = ['015d14fec128220c']
 

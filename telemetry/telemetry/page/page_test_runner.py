@@ -130,7 +130,7 @@ class PageTestRunner(object):
     # Need to collect profile creators before creating command line parser.
     profile_types.FindProfileCreators(base_dir, base_dir)
 
-    self._options = browser_options.BrowserOptions()
+    self._options = browser_options.BrowserFinderOptions()
     self._parser = self._options.CreateParser(
         '%%prog [options] %s page_set' % self.test_class_name)
 

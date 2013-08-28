@@ -16,7 +16,7 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 
-class BrowserOptions(optparse.Values):
+class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering and launching a browser."""
 
   def __init__(self, browser_type=None):

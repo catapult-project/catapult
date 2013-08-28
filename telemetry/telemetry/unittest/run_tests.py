@@ -85,7 +85,7 @@ def Main(args, start_dir, top_level_dir, runner=None):
   # Add unittest_data to the path so we can import packages from it.
   util.AddDirToPythonPath(util.GetUnittestDataDir())
 
-  default_options = browser_options.BrowserOptions()
+  default_options = browser_options.BrowserFinderOptions()
   default_options.browser_type = 'any'
 
   parser = default_options.CreateParser('run_tests [options] [test names]')

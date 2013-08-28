@@ -15,7 +15,7 @@ from telemetry.unittest import system_stub
 
 class FindTestBase(unittest.TestCase):
   def setUp(self):
-    self._options = browser_options.BrowserOptions()
+    self._options = browser_options.BrowserFinderOptions()
     self._options.chrome_root = '../../../'
     self._stubs = system_stub.Override(desktop_browser_finder,
                                        ['os', 'subprocess', 'sys'])

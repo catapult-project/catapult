@@ -89,7 +89,7 @@ class Run(Command):
   usage = 'test_name [...] [<args>]'
 
   def CreateParser(self):
-    options = browser_options.BrowserOptions()
+    options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser('%%prog %s %s' % (self.name, self.usage))
     return parser
 

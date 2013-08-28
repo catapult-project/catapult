@@ -12,7 +12,7 @@ from telemetry.core import browser_finder
 from telemetry.core import browser_options
 
 def Main(args):
-  options = browser_options.BrowserOptions()
+  options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser('telemetry_perf_test.py')
   options, args = parser.parse_args(args)
 

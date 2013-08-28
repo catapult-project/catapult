@@ -65,7 +65,7 @@ def Main(base_dir):
                                           page_measurement.PageMeasurement)
   tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                    index_by_class_name=True)
-  options = browser_options.BrowserOptions()
+  options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser('%prog <PageSet|Measurement|Test>')
   page_runner.AddCommandLineOptions(parser)
 

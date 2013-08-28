@@ -9,7 +9,7 @@ import os
 import sys
 
 from telemetry.core.browser import Browser
-from telemetry.core.browser_options import BrowserOptions
+from telemetry.core.browser_options import BrowserFinderOptions
 from telemetry.core.tab import Tab
 
 from telemetry.page.page_measurement import PageMeasurement
