@@ -8,6 +8,7 @@ import time
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.unittest import tab_test_case
+from telemetry.unittest import DisabledTest
 
 
 def _IsDocumentVisible(tab):
@@ -55,6 +56,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
     self._extra_browser_args = ['--enable-gpu-benchmarking']
     super(GpuTabTest, self).setUp()
 
+  @DisabledTest
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')
