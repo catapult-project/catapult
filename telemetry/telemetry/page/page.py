@@ -3,10 +3,8 @@
 # found in the LICENSE file.
 import os
 import re
-import time
 import urlparse
 
-from telemetry.core import util
 
 def _UrlPathJoin(*args):
   """Joins each path in |args| for insertion into a URL path.
@@ -111,30 +109,3 @@ class Page(object):
 
   def __str__(self):
     return self.url
-
-  def WaitToLoad(self, tab, timeout, poll_interval=0.1):
-    Page.WaitForPageToLoad(self, tab, timeout, poll_interval)
-
-  # TODO(dtu): Remove this method when no page sets use a click interaction
-  # with a wait condition. crbug.com/168431
-  @staticmethod
-  def WaitForPageToLoad(obj, tab, timeout, poll_interval=0.1):
-    """Waits for various wait conditions present in obj."""
-    if hasattr(obj, 'wait_seconds'):
-      time.sleep(obj.wait_seconds)
-    if hasattr(obj, 'wait_for_element_with_text'):
-      callback_code = 'function(element) { return element != null; }'
-      util.WaitFor(
-          lambda: util.FindElementAndPerformAction(
-              tab, obj.wait_for_element_with_text, callback_code),
-          timeout, poll_interval)
-    if hasattr(obj, 'wait_for_element_with_selector'):
-      util.WaitFor(lambda: tab.EvaluateJavaScript(
-           'document.querySelector(\'' + obj.wait_for_element_with_selector +
-           '\') != null'), timeout, poll_interval)
-    if hasattr(obj, 'post_navigate_javascript_to_execute'):
-      tab.EvaluateJavaScript(obj.post_navigate_javascript_to_execute)
-    if hasattr(obj, 'wait_for_javascript_expression'):
-      util.WaitFor(
-          lambda: tab.EvaluateJavaScript(obj.wait_for_javascript_expression),
-          timeout, poll_interval)

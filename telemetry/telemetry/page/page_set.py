@@ -17,6 +17,7 @@ class PageSet(object):
     self.credentials_path = None
     self.user_agent_type = None
     self.make_javascript_deterministic = True
+    self.navigate_steps = {'action': 'navigate'}
 
     if attributes:
       for k, v in attributes.iteritems():
