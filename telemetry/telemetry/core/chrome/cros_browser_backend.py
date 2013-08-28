@@ -143,6 +143,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   def _GetChromeVersion(self):
+    util.WaitFor(lambda: self._GetChromeProcess(), # pylint: disable=W0108
+                 timeout=30)
     result = self._GetChromeProcess()
     assert result and result['path']
     (version, _) = self._cri.RunCmdOnDevice([result['path'], '--version'])
