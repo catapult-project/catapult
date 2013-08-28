@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+<title>Skia Debugger</title>
+<script src="/src/base.js"></script>
+<style>
+  picture-ops-list-view {
+    height: 500px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <select id="skp_file"></select>
+  </div>
+
+  <div class="view"></div>
+
+  <script>
+  base.require('cc.picture');
+  base.require('cc.picture_debugger');
+  </script>
+  <script>
+  'use strict';
+
+  /* Public Domain code from Mozilla
+   *   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Base64_encoding_and_decoding
+   */
+  function b64ToUint6 (nChr) {
+    return nChr > 64 && nChr < 91 ?
+        nChr - 65
+      : nChr > 96 && nChr < 123 ?
+        nChr - 71
+      : nChr > 47 && nChr < 58 ?
+        nChr + 4
+      : nChr === 43 ?
+        62
+      : nChr === 47 ?
+        63
+      : 0;
+  }
+
+  function base64DecToArr (sBase64, nBlocksSize) {
+    var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+    var nInLen = sB64Enc.length;
+    var nOutLen = nBlocksSize ?
+        Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize :
+        nInLen * 3 + 1 >> 2;
+    var taBytes = new Uint8Array(nOutLen);
+
+    for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0;
+        nInIdx < nInLen;
+        nInIdx++) {
+      nMod4 = nInIdx & 3;
+      nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+      if (nMod4 === 3 || nInLen - nInIdx === 1) {
+        for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+          taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+        }
+        nUint24 = 0;
+      }
+    }
+    return taBytes;
+  }
+  /* End Mozilla Code */
+
+  function getPicture(skp64) {
+    var skpAsArrayBuffer = base64DecToArr(skp64).buffer;
+    var skpAsDataView = new DataView(skpAsArrayBuffer);
+
+    // TODO(dsinclair): Remove this and replace with a call to something like
+    //    window.chrome.skiaBenchmarking.getSkpInfo(skp64);
+    var width = skpAsDataView.getUint32(4, true);
+    var height = skpAsDataView.getUint32(8, true);
+
+    return new cc.Picture(skp64, base.Rect.FromXYWH(0, 0, width, height),
+        base.Rect.FromXYWH(0, 0, width, height));
+  };
+
+  var debuggerEl;
+
+  function loadSkp(filename, onSkpLoaded) {
+    getAsync(filename, function(trace) {
+      onSkpLoaded(filename, trace);
+    });
+  }
+
+  function getAsync(url, callback) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.onreadystatechange = function(aEvt) {
+      if (req.readyState === 4) {
+        window.setTimeout(function() {
+          if (req.status === 200) {
+            callback(req.responseText);
+          } else {
+            console.log('Failed to load ' + url);
+          }
+        }, 0);
+      }
+    };
+    req.send(null);
+  }
+
+  function createViewFromSkp(filename, skp) {
+    var p = getPicture(skp);
+    debuggerEl.picture = p;
+  }
+
+  function onSelectionChange() {
+    var select = document.querySelector('#skp_file');
+    window.location.hash = '#' + select[select.selectedIndex].value;
+  }
+
+  function onHashChange() {
+    var file = window.location.hash.substr(1);
+    var select = document.querySelector('#skp_file');
+    if (select[select.selectedIndex].value != file) {
+      for (var i = 0; i < select.children.length; i++) {
+        if (select.children[i].value == file) {
+          select.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    reload();
+  }
+
+  function cleanFilename(file) {
+    function upcase(letter) {
+      return ' ' + letter.toUpperCase();
+    }
+    return file.replace(/_/g, ' ')
+               .replace(/\.[^\.]*$/, '')
+               .replace(/ ([a-z])/g, upcase)
+               .replace(/^[a-z]/, upcase);
+  }
+
+  function reload() {
+    var file = window.location.hash.substr(1);
+    var filename = '/skp_data/' + file;
+    loadSkp(filename, createViewFromSkp);
+  }
+
+  function onLoad() {
+    debuggerEl = new cc.PictureDebugger()
+    document.querySelector('.view').appendChild(debuggerEl);
+
+    getAsync('/json/examples/skp', function(data) {
+      var select = document.querySelector('#skp_file');
+      var files = JSON.parse(data);
+
+      for (var i = 0; i < files.length; ++i) {
+        var opt = document.createElement('option');
+        opt.value = files[i];
+        opt.textContent = cleanFilename(files[i]);
+        select.appendChild(opt);
+      }
+      select.selectedIndex = 0;
+      select.onchange = onSelectionChange;
+
+      if (!window.location.hash) {
+        // This will trigger an onHashChange so no need to reload directly.
+        window.location.hash = '#' + select[select.selectedIndex].value;
+      } else {
+        onHashChange();
+      }
+    });
+  }
+
+  window.addEventListener('hashchange', onHashChange);
+  window.addEventListener('load', onLoad);
+  </script>
+</body>
+</html>
+
