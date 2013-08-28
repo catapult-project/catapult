@@ -55,7 +55,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
   # http://crbug.com/273887
-  def DISABLED_testSeekWaitForSeekTimeout(self):
+  def testSeekWaitForSeekTimeout(self):
     """Tests that wait_for_seeked timeouts if video does not seek."""
     data = {'selector': '#video_1',
             'wait_for_seeked': True,
