@@ -103,7 +103,7 @@ def CanFindAvailableBrowsers(logging=real_logging):
         adb_works = False
   if adb_works and sys.platform.startswith('linux'):
     # Workaround for crbug.com/268450
-    import psutil
+    import psutil  # pylint: disable=F0401
     adb_commands.GetAttachedDevices()
     pids  = [p.pid for p in psutil.process_iter() if 'adb' in p.name]
     with open(os.devnull, 'w') as devnull:
