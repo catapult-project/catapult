@@ -56,13 +56,14 @@ base.exportTo('tracing', function() {
   function TitleFilter(text) {
     Filter.call(this);
     this.text_ = text.toLowerCase();
+
+    if (!text.length)
+      throw new Error('Filter text is empty.');
   }
   TitleFilter.prototype = {
     __proto__: Filter.prototype,
 
     matchSlice: function(slice) {
-      if (this.text_.length === 0)
-        return false;
       if (slice.title === undefined)
         return false;
       return slice.title.toLowerCase().indexOf(this.text_) !== -1;
@@ -75,13 +76,14 @@ base.exportTo('tracing', function() {
   function ExactTitleFilter(text) {
     Filter.call(this);
     this.text_ = text;
+
+    if (!text.length)
+      throw new Error('Filter text is empty.');
   }
   ExactTitleFilter.prototype = {
     __proto__: Filter.prototype,
 
     matchSlice: function(slice) {
-      if (this.text_.length === 0)
-        return false;
       return slice.title === this.text_;
     }
   };

@@ -168,8 +168,6 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
   test('titleFilter', function() {
     var s0 = tracing.test_utils.newSlice(1, 3);
-    assertFalse(new TitleFilter('').matchSlice(s0));
-
     assertTrue(new TitleFilter('a').matchSlice(s0));
     assertFalse(new TitleFilter('x').matchSlice(s0));
 
