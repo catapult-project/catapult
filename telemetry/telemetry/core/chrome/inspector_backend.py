@@ -147,7 +147,7 @@ class InspectorBackend(object):
       })()
     """)
     if snap:
-      return png_bitmap.PngBitmap(snap['data'])
+      return png_bitmap.PngBitmap.FromBase64(snap['data'])
     return None
 
   # Console public methods.

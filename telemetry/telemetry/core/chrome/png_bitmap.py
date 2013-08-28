@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import base64
+import cStringIO
 
 from telemetry.core import util
 
@@ -36,10 +37,10 @@ class PngColor(object):
 
 
 class PngBitmap(object):
-  """Utilities for parsing and inspecting inspecting a PNG"""
+  """Utilities for parsing and inspecting a PNG"""
 
-  def __init__(self, base64_png):
-    self._png_data = base64.b64decode(base64_png)
+  def __init__(self, png_data):
+    self._png_data = png_data
     self._png = png.Reader(bytes=self._png_data)
     rgba8_data = self._png.asRGBA8()
     self._width = rgba8_data[0]
@@ -66,3 +67,70 @@ class PngBitmap(object):
   def WriteFile(self, path):
     with open(path, "wb") as f:
       f.write(self._png_data)
+
+  @staticmethod
+  def FromFile(path):
+    with open(path, "rb") as f:
+      return PngBitmap(f.read())
+
+  @staticmethod
+  def FromBase64(base64_png):
+    return PngBitmap(base64.b64decode(base64_png))
+
+  def IsEqual(self, expected_png, tolerance=0):
+    """Verifies that two PngBitmaps are identical within a given tolerance"""
+
+    # Dimensions must be equal
+    if self.width != expected_png.width or self.height != expected_png.height:
+      return False
+
+    # Loop over each pixel and test for equality
+    for y in range(self.height):
+      for x in range(self.width):
+        c0 = self.GetPixelColor(x, y)
+        c1 = expected_png.GetPixelColor(x, y)
+        if not c0.IsEqual(c1, tolerance):
+          return False
+
+    return True
+
+  def Diff(self, other_png):
+    """Returns a new PngBitmap that represents the difference between this image
+    and another PngBitmap"""
+
+    # Output dimensions will be the maximum of the two input dimensions
+    out_width = max(self.width, other_png.width)
+    out_height = max(self.height, other_png.height)
+
+    diff = [[0 for x in xrange(out_width * 3)] for x in xrange(out_height)]
+
+    # Loop over each pixel and test for equality
+    for y in range(out_height):
+      for x in range(out_width):
+        if x < self.width and y < self.height:
+          c0 = self.GetPixelColor(x, y)
+        else:
+          c0 = PngColor(0, 0, 0, 0)
+
+        if x < other_png.width and y < other_png.height:
+          c1 = other_png.GetPixelColor(x, y)
+        else:
+          c1 = PngColor(0, 0, 0, 0)
+
+        offset = x * 3
+        diff[y][offset] = abs(c0.r - c1.r)
+        diff[y][offset+1] = abs(c0.g - c1.g)
+        diff[y][offset+2] = abs(c0.b - c1.b)
+
+    # This particular method can only save to a file, so the result will be
+    # written into an in-memory buffer and read back into a PngBitmap
+    diff_img = png.from_array(diff, mode='RGB')
+    output = cStringIO.StringIO()
+    try:
+      diff_img.save(output)
+      diff_png = PngBitmap(output.getvalue())
+    finally:
+      output.close()
+
+    return diff_png
+
