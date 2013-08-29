@@ -15,6 +15,7 @@ base.exportTo('base', function() {
 
   var pendingPreAFs = [];
   var pendingRAFs = [];
+  var pendingIdleCallbacks = [];
   var currentRAFDispatchList = undefined;
 
   var rafScheduled = false;
@@ -52,6 +53,10 @@ base.exportTo('base', function() {
   }
 
   function processRequests(frameBeginTime) {
+    // We assume that we want to do a maximum of 10ms optional work per frame.
+    // Hopefully rAF will eventually pass this in for us.
+    var rafCompletionDeadline = frameBeginTime + 10;
+
     rafScheduled = false;
 
     var currentPreAFs = pendingPreAFs;
@@ -65,6 +70,13 @@ base.exportTo('base', function() {
     while (currentRAFDispatchList.length > 0)
       runTask(currentRAFDispatchList.shift(), frameBeginTime);
     currentRAFDispatchList = undefined;
+
+    while (pendingIdleCallbacks.length > 0 &&
+           window.performance.now() < rafCompletionDeadline)
+      runTask(pendingIdleCallbacks.shift());
+
+    if (pendingIdleCallbacks.length > 0)
+      scheduleRAF();
   }
 
   function getStack_() {
@@ -105,6 +117,14 @@ base.exportTo('base', function() {
     scheduleRAF();
   }
 
+  function requestIdleCallback(callback, opt_this) {
+    pendingIdleCallbacks.push({
+      callback: callback,
+      context: opt_this || window,
+      stack: getStack_()});
+    scheduleRAF();
+  }
+
   function forcePendingRAFTasksToRun(frameBeginTime) {
     if (!rafScheduled)
       return;
@@ -117,6 +137,7 @@ base.exportTo('base', function() {
     requestAnimationFrame: requestAnimationFrame,
     requestAnimationFrameInThisFrameIfPossible:
         requestAnimationFrameInThisFrameIfPossible,
+    requestIdleCallback: requestIdleCallback,
     forcePendingRAFTasksToRun: forcePendingRAFTasksToRun
   };
 });
