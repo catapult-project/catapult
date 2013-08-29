@@ -4,6 +4,7 @@
 
 'use strict';
 
+base.require('tracing.importer.gzip_importer');
 base.require('tracing.importer.linux_perf_importer');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.importer.v8_log_importer');

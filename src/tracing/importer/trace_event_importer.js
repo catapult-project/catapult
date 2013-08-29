@@ -11,11 +11,14 @@
 base.require('base.quad');
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
+base.require('tracing.importer.importer');
 base.require('tracing.trace_model.instant_event');
 base.require('tracing.trace_model.flow_event');
 base.require('tracing.trace_model.counter_series');
 
 base.exportTo('tracing.importer', function() {
+
+  var Importer = tracing.importer.Importer;
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
@@ -124,7 +127,7 @@ base.exportTo('tracing.importer', function() {
 
   TraceEventImporter.prototype = {
 
-    __proto__: Object.prototype,
+    __proto__: Importer.prototype,
 
     extractSubtrace: function() {
       var tmp = this.systemTraceEvents_;

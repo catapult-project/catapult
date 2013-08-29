@@ -186,6 +186,8 @@
       'src/tracing/fast_rect_renderer.js',
       'src/tracing/color_scheme.js',
       'src/tracing/filter.js',
+      'src/tracing/importer/gzip_importer.js',
+      'src/tracing/importer/importer.js',
       'src/tracing/importer/v8/codemap.js',
       'src/tracing/importer/v8/log_reader.js',
       'src/tracing/importer/v8/splaytree.js',

@@ -7,6 +7,7 @@
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
+base.require('tracing.importer.importer');
 base.require('tracing.trace_model');
 base.require('tracing.trace_model.slice');
 base.require('tracing.color_scheme');
@@ -14,6 +15,8 @@ base.require('tracing.importer.v8.log_reader');
 base.require('tracing.importer.v8.codemap');
 
 base.exportTo('tracing.importer', function() {
+
+  var Importer = tracing.importer.Importer;
 
   function V8LogImporter(model, eventData) {
 
@@ -61,11 +64,7 @@ base.exportTo('tracing.importer', function() {
 
   V8LogImporter.prototype = {
 
-    __proto__: Object.prototype,
-
-    extractSubtrace: function() {
-      return undefined;
-    },
+    __proto__: Importer.prototype,
 
     processTimerEvent_: function(name, start, length) {
       var args = TimerEventDefaultArgs[name];
@@ -224,20 +223,6 @@ base.exportTo('tracing.importer', function() {
         logreader.processLogLine(lines[i]);
       }
     },
-
-    /**
-     * Called by the Model after all other importers have imported their
-     * events.
-     */
-    finalizeImport: function() {
-    },
-
-    /**
-     * Called by the model to join references between objects, after final model
-     * bounds have been computed.
-     */
-    joinRefs: function() {
-    }
   };
 
   tracing.TraceModel.registerImporter(V8LogImporter);

@@ -20,6 +20,7 @@
 
 base.require('tracing.trace_model');
 base.require('tracing.color_scheme');
+base.require('tracing.importer.importer');
 base.require('tracing.importer.linux_perf.bus_parser');
 base.require('tracing.importer.linux_perf.clock_parser');
 base.require('tracing.importer.linux_perf.cpufreq_parser');
@@ -37,6 +38,9 @@ base.require('tracing.importer.linux_perf.android_parser');
 base.require('tracing.importer.linux_perf.kfunc_parser');
 
 base.exportTo('tracing.importer', function() {
+
+  var Importer = tracing.importer.Importer;
+
   /**
    * Represents the scheduling state for a single thread.
    * @constructor
@@ -310,11 +314,7 @@ base.exportTo('tracing.importer', function() {
   };
 
   LinuxPerfImporter.prototype = {
-    __proto__: Object.prototype,
-
-    extractSubtrace: function() {
-      return undefined;
-    },
+    __proto__: Importer.prototype,
 
     get model() {
       return this.model_;
@@ -390,20 +390,6 @@ base.exportTo('tracing.importer', function() {
         return;
       this.buildMapFromLinuxPidsToThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
-    },
-
-    /**
-     * Called by the Model after all other importers have imported their
-     * events.
-     */
-    finalizeImport: function() {
-    },
-
-    /**
-     * Called by the model to join references between objects, after final model
-     * bounds have been computed.
-     */
-    joinRefs: function() {
     },
 
     /**
