@@ -66,6 +66,7 @@ base.exportTo('tracing.trace_model', function() {
     ProcessInstantEvent: ProcessInstantEvent,
     ThreadInstantEvent: ThreadInstantEvent,
 
-    InstantEventType: InstantEventType
+    InstantEventType: InstantEventType,
+    InstantEvent: InstantEvent
   };
 });

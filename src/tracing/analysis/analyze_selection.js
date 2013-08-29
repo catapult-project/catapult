@@ -24,6 +24,7 @@ base.exportTo('tracing.analysis', function() {
   function analyzeEventsByType(results, eventsByType) {
     var sliceEvents = eventsByType.slices;
     var counterSampleEvents = eventsByType.counterSamples;
+    var instantEvents = eventsByType.instantEvents;
     var objectEvents = new tracing.Selection();
     objectEvents.addSelection(eventsByType.objectSnapshots);
     objectEvents.addSelection(eventsByType.objectInstances);
@@ -32,6 +33,12 @@ base.exportTo('tracing.analysis', function() {
       tracing.analysis.analyzeSingleSlice(results, sliceEvents[0]);
     } else if (sliceEvents.length > 1) {
       tracing.analysis.analyzeMultipleSlices(results, sliceEvents);
+    }
+
+    if (instantEvents.length == 1) {
+      tracing.analysis.analyzeSingleSlice(results, instantEvents[0]);
+    } else if (instantEvents.length > 1) {
+      tracing.analysis.analyzeMultipleSlices(results, instantEvents);
     }
 
     if (counterSampleEvents.length != 0)

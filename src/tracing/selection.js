@@ -10,7 +10,9 @@
 base.require('base.events');
 base.require('base.guid');
 base.require('base.range');
+base.require('tracing.trace_model.instant_event');
 base.require('tracing.trace_model');
+
 base.exportTo('tracing', function() {
 
   var EVENT_TYPES = [
@@ -18,6 +20,11 @@ base.exportTo('tracing', function() {
       constructor: tracing.trace_model.Slice,
       name: 'slice',
       pluralName: 'slices'
+    },
+    {
+      constructor: tracing.trace_model.InstantEvent,
+      name: 'instantEvent',
+      pluralName: 'instantEvents'
     },
     {
       constructor: tracing.trace_model.CounterSample,
