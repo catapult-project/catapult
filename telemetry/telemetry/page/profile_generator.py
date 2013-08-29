@@ -5,6 +5,7 @@
 """Handles generating profiles and transferring them to/from mobile devices."""
 
 import logging
+import optparse
 import os
 import shutil
 import sys
@@ -57,6 +58,9 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   if not os.path.exists(generated_profiles_dir):
     os.makedirs(generated_profiles_dir)
   out_path = os.path.join(generated_profiles_dir, profile_creator_name)
+  if os.path.exists(out_path):
+    shutil.rmtree(out_path)
+
   shutil.move(temp_output_directory, out_path)
   sys.stderr.write("SUCCESS: Generated profile copied to: '%s'.\n" % out_path)
 
@@ -64,20 +68,29 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
 
 def Main():
   profile_creators = _DiscoverProfileCreatorClasses()
+  legal_profile_creators = '|'.join(profile_creators.keys())
 
   options = browser_options.BrowserFinderOptions()
-  parser = options.CreateParser("%%prog <profile_type> <--browser=...>")
+  parser = options.CreateParser(
+      "%%prog <--profile-type-to-generate=...> <--browser=...>")
   page_runner.AddCommandLineOptions(parser)
-  _, args = parser.parse_args()
+
+  group = optparse.OptionGroup(parser, 'Profile generation options')
+  group.add_option('--profile-type-to-generate',
+      dest='profile_type_to_generate',
+      default=None,
+      help='Type of profile to generate. '
+           'Supported values: %s' % legal_profile_creators)
+  parser.add_option_group(group)
+
+  _, _ = parser.parse_args()
 
   # Sanity check arguments.
-  legal_profile_creators = '|'.join(profile_creators.keys())
-  if len(args) != 1:
-    raise Exception("No profile type argument specified legal values are: %s" %
-        legal_profile_creators)
+  if not options.profile_type_to_generate:
+    raise Exception("Must specify --profile-type-to-generate option.")
 
-  if args[0] not in profile_creators.keys():
-    raise Exception("Invalid profile type, legal values are: %s" %
+  if options.profile_type_to_generate not in profile_creators.keys():
+    raise Exception("Invalid profile type, legal values are: %s." %
         legal_profile_creators)
 
   if not options.browser_type:
@@ -87,5 +100,6 @@ def Main():
     raise Exception("Can't use existing profile when generating profile.")
 
   # Generate profile.
-  profile_creator_class = profile_creators[args[0]]
-  return GenerateProfiles(profile_creator_class, args[0], options)
+  profile_creator_class = profile_creators[options.profile_type_to_generate]
+  return GenerateProfiles(profile_creator_class,
+      options.profile_type_to_generate, options)
