@@ -27,12 +27,24 @@ class CloudStorageError(Exception):
   pass
 
 
-class CredentialsError(CloudStorageError):
+class PermissionError(CloudStorageError):
+  def __init__(self, gsutil_path):
+    super(PermissionError, self).__init__(
+        'Attempted to access a file from Cloud Storage but you don\'t '
+        'have permission. ' + self._GetConfigInstructions(gsutil_path))
+
+  @staticmethod
+  def _GetConfigInstructions(gsutil_path):
+    return ('Run "%s config" to configure your credentials. '
+        'If you have a @google.com account, use that one. '
+        'The project-id field can be left blank.' % gsutil_path)
+
+
+class CredentialsError(PermissionError):
   def __init__(self, gsutil_path):
     super(CredentialsError, self).__init__(
-        'Attempted to download a file from Cloud Storage but you have no '
-        'configured credentials. Run "%s config" to configure your '
-        'credentials. The project-id field can be left blank.' % gsutil_path)
+        'Attempted to access a file from Cloud Storage but you have no '
+        'configured credentials. ' + self._GetConfigInstructions(gsutil_path))
 
 
 class NotFoundError(CloudStorageError):
@@ -76,9 +88,11 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    if ('You are attempting to access protected data with '
-        'no configured credentials.' in stderr):
+    if stderr.startswith('You are attempting to access protected data with '
+        'no configured credentials.'):
       raise CredentialsError(gsutil_path)
+    if 'status=403' in stderr:
+      raise PermissionError(gsutil_path)
     if stderr.startswith('InvalidUriError') or 'No such object' in stderr:
       raise NotFoundError(stderr)
     raise CloudStorageError(stderr)
