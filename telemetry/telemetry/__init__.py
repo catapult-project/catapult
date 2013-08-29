@@ -22,7 +22,7 @@ __all__ = []
 for x in dir():
   if x.startswith('_'):
     continue
-  if x in (inspect, sys):
+  if x in (inspect, os, sys):
     continue
   m = sys.modules[__name__]
   if (inspect.isclass(getattr(m, x)) or
@@ -30,8 +30,8 @@ for x in dir():
     __all__.append(x)
 
 
-def _RemoveAllStalePycFiles():
-  for dirname, _, filenames in os.walk(os.path.dirname(__file__)):
+def RemoveAllStalePycFiles(base_dir):
+  for dirname, _, filenames in os.walk(base_dir):
     if '.svn' in dirname or '.git' in dirname:
       continue
     for filename in filenames:
@@ -41,13 +41,23 @@ def _RemoveAllStalePycFiles():
 
       pyc_path = os.path.join(dirname, filename)
       py_path = os.path.join(dirname, root + '.py')
-      if not os.path.exists(py_path):
-        print >> sys.stderr, 'Removing stale .pyc file:', pyc_path
+      if os.path.exists(py_path):
+        continue
+
+      try:
         os.remove(pyc_path)
+      except OSError:
+        # Avoid race, in case we're running simultaneous instances.
+        pass
 
-    if os.path.isdir(dirname) and not os.listdir(dirname):
-      print >> sys.stderr, 'Removing empty directory:', dirname
+    if os.listdir(dirname):
+      continue
+
+    try:
       os.removedirs(dirname)
+    except OSError:
+      # Avoid race, in case we're running simultaneous instances.
+      pass
 
 
-_RemoveAllStalePycFiles()
+RemoveAllStalePycFiles(os.path.dirname(__file__))
