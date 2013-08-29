@@ -56,33 +56,21 @@ base.unittest.testSuite('tracing.find_control', function() {
 
   test('instantiate', function() {
     var ctl = new tracing.FindControl();
-    var didFindPrevious = false;
-    var didFindNext = false;
     ctl.controller = {
       findNext: function() {
-        didFindNext = true;
       },
 
       findPrevious: function() {
-        didFindPrevious = true;
       },
 
       reset: function() {},
 
-      filterHits: [],
+      filterHits: ['a', 'b'],
 
       currentHitIndex: 0
     };
 
     this.addHTMLOutput(ctl);
-
-    ctl.querySelector('input').focus();
-    ctl.querySelector('input').blur();
-
-    ctl.querySelector('.find-previous').click();
-    assertTrue(didFindPrevious);
-    ctl.querySelector('.find-next').click();
-    assertTrue(didFindNext);
   });
 
   test('findControllerNoTimeline', function() {
