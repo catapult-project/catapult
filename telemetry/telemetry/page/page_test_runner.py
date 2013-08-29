@@ -7,7 +7,6 @@ import sys
 from telemetry import test as test_module
 from telemetry.core import browser_options
 from telemetry.core import discover
-from telemetry.core import profile_types
 from telemetry.page import page_test as page_test_module
 from telemetry.page import page_runner
 from telemetry.page import page_set
@@ -127,9 +126,6 @@ class PageTestRunner(object):
                     page_set_arg)
 
   def ParseCommandLine(self, args, base_dir, page_set_filenames):
-    # Need to collect profile creators before creating command line parser.
-    profile_types.FindProfileCreators(base_dir, base_dir)
-
     self._options = browser_options.BrowserFinderOptions()
     self._parser = self._options.CreateParser(
         '%%prog [options] %s page_set' % self.test_class_name)

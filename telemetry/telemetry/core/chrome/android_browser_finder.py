@@ -11,7 +11,6 @@ import sys
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core import profile_types
 from telemetry.core import util
 from telemetry.core.chrome import adb_commands
 from telemetry.core.chrome import android_browser_backend
@@ -51,9 +50,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
   def Create(self):
-    if profile_types.GetProfileCreator(self.options.profile_type):
-      raise Exception("Profile creation not currently supported on Android")
-
     backend = android_browser_backend.AndroidBrowserBackend(
         self._options, self._backend_settings)
     platform_backend = android_platform_backend.AndroidPlatformBackend(

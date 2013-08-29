@@ -39,6 +39,9 @@ class BrowserFinderOptions(optparse.Values):
     self.extensions_to_load = []
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
+    # If set, copy the generated profile to this path on exit.
+    self.output_profile_path = None
+
     self.cros_remote = None
     self.wpr_mode = wpr_modes.WPR_OFF
 

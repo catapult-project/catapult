@@ -270,6 +270,15 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._adb.RunShellCommand('rm %s' % self._backend_settings.cmdline_file)
     self._adb.CloseApplication(self._backend_settings.package)
 
+    if self._options.output_profile_path:
+      logging.info("Pulling profile directory from device: '%s'->'%s'." %
+          (self._backend_settings.profile_dir,
+          self._options.output_profile_path))
+      # To minimize bandwidth it might be good to look at whether all the data
+      # pulled down is really needed e.g. .pak files.
+      self._adb.Pull(self._backend_settings.profile_dir,
+          self._options.output_profile_path)
+
   def IsBrowserRunning(self):
     pids = self._adb.ExtractPid(self._backend_settings.package)
     return len(pids) != 0
