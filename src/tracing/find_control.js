@@ -7,6 +7,8 @@
 /**
  * @fileoverview FindControl and FindController.
  */
+base.requireTemplate('tracing.find_control');
+
 base.require('tracing.timeline_track_view');
 base.require('tracing.filter');
 base.exportTo('tracing', function() {
@@ -15,32 +17,27 @@ base.exportTo('tracing', function() {
    * FindControl
    * @constructor
    */
-  var FindControl = ui.define('div');
+  var FindControl = ui.define('find-control');
 
   FindControl.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.classList.add('find-control');
+      var shadow = this.webkitCreateShadowRoot();
+      shadow.applyAuthorStyles = true;
+      shadow.resetStyleInheritance = true;
 
-      this.hitCountEl_ = document.createElement('div');
-      this.hitCountEl_.className = 'hit-count-label';
-      this.hitCountEl_.textContent = '1 of 7';
+      shadow.appendChild(base.instantiateTemplate('#find-control-template'));
 
-      var findPreviousBn = document.createElement('div');
-      findPreviousBn.className = 'button find-previous';
-      findPreviousBn.textContent = '\u2190';
-      findPreviousBn.addEventListener('click', this.findPrevious_.bind(this));
+      this.hitCountEl_ = shadow.querySelector('.hit-count-label');
 
-      var findNextBn = document.createElement('div');
-      findNextBn.className = 'button find-next';
-      findNextBn.textContent = '\u2192';
-      findNextBn.addEventListener('click', this.findNext_.bind(this));
+      shadow.querySelector('.find-previous')
+          .addEventListener('click', this.findPrevious_.bind(this));
 
-      // Filter input element.
-      this.filterEl_ = document.createElement('input');
-      this.filterEl_.type = 'input';
+      shadow.querySelector('.find-next')
+          .addEventListener('click', this.findNext_.bind(this));
 
+      this.filterEl_ = shadow.querySelector('#find-control-filter');
       this.filterEl_.addEventListener('input',
           this.filterTextChanged_.bind(this));
 
@@ -69,13 +66,6 @@ base.exportTo('tracing', function() {
       this.filterEl_.addEventListener('mouseup', function(e) {
         e.preventDefault();
       });
-
-      // Attach everything.
-      this.appendChild(this.filterEl_);
-
-      this.appendChild(findPreviousBn);
-      this.appendChild(findNextBn);
-      this.appendChild(this.hitCountEl_);
 
       this.updateHitCountEl_();
     },
@@ -115,7 +105,7 @@ base.exportTo('tracing', function() {
     },
 
     updateHitCountEl_: function() {
-      if (!this.controller || document.activeElement != this.filterEl_) {
+      if (!this.controller || document.activeElement !== this) {
         this.hitCountEl_.textContent = '';
         return;
       }

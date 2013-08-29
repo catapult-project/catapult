@@ -86,48 +86,8 @@
   margin: 0;
 }
 
-.find-control {
-  -webkit-user-select: none;
-  display: -webkit-box;
-  position: relative;
-}
-
-.find-control .hit-count-label {
-  left: 0;
-  opacity: 0.25;
-  pointer-events: none;
-  position: absolute;
-  text-align: right;
-  top: 2px;
-  width: 170px;
-  z-index: 1;
-}
-
-.find-control input {
-  -webkit-user-select: auto;
-  background-color: #f8f8f8;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  box-sizing: border-box;
-  height: 19px;
-  margin-bottom: 1px;
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 1px;
-  padding: 0;
-  width: 170px;
-}
-.find-control input:focus {
-  background-color: white;
-}
-
-.button.find-previous {
-  border-left: none;
-  margin-left: 0;
-  margin-right: 0;
-}
-.button.find-next {
-  border-left: none;
-  margin-left: 0;
+.view-help-overlay {
+  padding: 6px;
 }
 
 .button {

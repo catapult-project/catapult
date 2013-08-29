@@ -1,0 +1,57 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="find-control-template">
+  <style>
+    @host {
+      :scope {
+        -webkit-user-select: none;
+        display: -webkit-box;
+        position: relative;
+      }
+    }
+    input {
+      -webkit-user-select: auto;
+      background-color: #f8f8f8;
+      border: 1px solid rgba(0, 0, 0, 0.5);
+      box-sizing: border-box;
+      height: 19px;
+      margin-bottom: 1px;
+      margin-left: 0;
+      margin-right: 0;
+      margin-top: 1px;
+      padding: 0;
+      width: 170px;
+    }
+    input:focus {
+      background-color: white;
+    }
+    .button {
+      border-left: none;
+      height: 17px;
+      margin-left: 0;
+    }
+    .find-previous {
+      margin-right: 0;
+    }
+    .hit-count-label {
+      height: 19px;
+      left: 0;
+      opacity: 0.25;
+      pointer-events: none;
+      position: absolute;
+      text-align: right;
+      top: 2px;
+      width: 170px;
+      z-index: 1;
+    }
+  </style>
+
+  <input type='text' id='find-control-filter' />
+  <div class="button find-previous">&larr;</div>
+  <div class="button find-next">&rarr;</div>
+  <div class="hit-count-label">1 of 7</div>
+</template>

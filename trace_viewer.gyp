@@ -14,6 +14,7 @@
       'src/tracing/category_filter_dialog.html',
       'src/tracing/analysis/cpu_slice_view.html',
       'src/tracing/analysis/thread_time_slice_view.html',
+      'src/tracing/find_control.html',
       'src/ui/mouse_mode_selector.html',
       'src/ui/overlay.html',
       'src/cc/picture_debugger.html',
