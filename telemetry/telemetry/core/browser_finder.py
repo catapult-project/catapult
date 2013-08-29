@@ -6,9 +6,9 @@
 import logging
 
 from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
-from telemetry.core.backends.chrome import android_browser_finder
-from telemetry.core.backends.chrome import cros_browser_finder
-from telemetry.core.backends.chrome import desktop_browser_finder
+from telemetry.core.chrome import android_browser_finder
+from telemetry.core.chrome import cros_browser_finder
+from telemetry.core.chrome import desktop_browser_finder
 
 BROWSER_FINDERS = [
   desktop_browser_finder,

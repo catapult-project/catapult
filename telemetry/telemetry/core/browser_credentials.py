@@ -1,16 +1,14 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import logging
 import json
 import os
 
 from telemetry.core import util
-from telemetry.core.backends import facebook_credentials_backend
-from telemetry.core.backends import google_credentials_backend
+from telemetry.core.chrome import facebook_credentials_backend
+from telemetry.core.chrome import google_credentials_backend
 from telemetry.unittest import options_for_unittests
-
 
 class BrowserCredentials(object):
   def __init__(self, backends = None):

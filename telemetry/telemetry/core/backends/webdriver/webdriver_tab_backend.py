@@ -4,7 +4,8 @@
 
 import logging
 
-from telemetry.core.backends import png_bitmap
+# TODO(chrisgao): Make png_bitmap sharable for both chrome and webdriver.
+from telemetry.core.chrome import png_bitmap
 
 class WebDriverTabBackend(object):
   def __init__(self, browser_backend, window_handle):
