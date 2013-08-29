@@ -9,23 +9,19 @@
  */
 base.require('tracing.timeline_track_view');
 base.require('tracing.filter');
-base.require('ui.overlay');
 base.exportTo('tracing', function() {
 
   /**
    * FindControl
    * @constructor
-   * @extends {ui.Overlay}
    */
   var FindControl = ui.define('div');
 
   FindControl.prototype = {
-    __proto__: ui.Overlay.prototype,
+    __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      ui.Overlay.prototype.decorate.call(this);
-
-      this.className = 'find-control';
+      this.classList.add('find-control');
 
       this.hitCountEl_ = document.createElement('div');
       this.hitCountEl_.className = 'hit-count-label';

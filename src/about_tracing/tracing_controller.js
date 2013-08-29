@@ -25,7 +25,7 @@ base.exportTo('about_tracing', function() {
   function TracingController(sendFn) {
     this.sendFn_ = sendFn;
     this.overlay_ = new ui.Overlay();
-    this.overlay_.className = 'tracing-overlay';
+    this.overlay_.classList.add('tracing-overlay');
 
     this.statusDiv_ = document.createElement('div');
     this.overlay_.appendChild(this.statusDiv_);
@@ -102,7 +102,7 @@ base.exportTo('about_tracing', function() {
 
       this.stopButton_.hidden = false;
       this.statusDiv_.textContent = 'Tracing active.';
-      this.overlay_.obeyCloseEvents = false;
+      this.overlay_.userCanClose = false;
       this.overlay_.visible = true;
 
       this.tracingEnabled_ = true;

@@ -13,30 +13,24 @@ found in the LICENSE file.
   <div class="container"></div>
 </template>
 
-<template id="track-selector-btn-template">
-  <div class="track-selector-anchor">
-    <button class="button track-selector-button track-selector-closed">
-      Track Selector
-    </button>
-  </div>
-</template>
-
 <template id="category-filter-btn-template">
   <div class="button view-info-button">Categories</div>
 </template>
 
 <template id="help-btn-template">
   <div class="button view-help-button">?</div>
-  <div class="view-help-text"
-      style="white-space: pre; font-family: monospace"></div>
+
+  <div class="header">
+    chrome://tracing
+  </div>
+  <div class="view-help-text"></div>
 </template>
 
 <template id="metadata-btn-template">
-  <div class="button view-metadata-button view-info-button">
-    Metadata
+  <div class="button view-metadata-button view-info-button">Metadata</div>
+
+  <div class="header">
+    Metadata Info
   </div>
-  <div class="info-button-container metadata-dialog">
-    Metadata Info:
-    <div class="info-button-text metadata-dialog-text"></div>
-  </div>
+  <div class="info-button-text metadata-dialog-text"></div>
 </template>

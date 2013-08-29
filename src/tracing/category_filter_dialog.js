@@ -23,8 +23,7 @@ base.exportTo('tracing', function() {
     decorate: function() {
       ui.Overlay.prototype.decorate.call(this);
 
-      this.className = 'view-category-filter-overlay';
-      this.obeyCloseEvents = true;
+      this.classList.add('view-category-filter-overlay');
 
       var node =
           base.instantiateTemplate('#view-category-filter-dialog-template');
@@ -56,9 +55,8 @@ base.exportTo('tracing', function() {
     },
 
     onVisibleChange_: function() {
-      if (this.visible) {
+      if (this.visible)
         this.updateForm_();
-      }
     },
 
     updateForm_: function() {

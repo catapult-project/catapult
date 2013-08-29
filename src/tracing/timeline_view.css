@@ -130,10 +130,6 @@
   margin-left: 0;
 }
 
-.view-help-overlay {
-  padding: 6px;
-}
-
 .button {
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
@@ -162,32 +158,13 @@
   border: solid 1px;
 }
 
-.metadata-dialog {
-  max-height: 500px;
-  max-width: 800px;
-  min-height: 200px;
-  min-width: 400px;
-  overflow: auto;
+.view-help-text {
+  font-family: monospace;
+  white-space: pre;
 }
 
 .metadata-dialog-text {
   font-family: monospace;
-  margin: 8px;
   white-space: pre;
 }
 
-.category-filter-dialog {
-  max-height: 500px;
-  min-width: 400px;
-  overflow-y: auto;
-  padding: 20px;
-}
-
-.category-filter-dialog-form {
-  font-size: 80%;
-  padding: 10px;
-}
-
-.category-filter-dialog-form input {
-  margin-right: 7px;
-}

@@ -232,7 +232,7 @@ base.exportTo('about_tracing', function() {
 
     onSave_: function() {
       this.overlayEl_ = new ui.Overlay();
-      this.overlayEl_.className = 'profiling-overlay';
+      this.overlayEl_.classList.add('profiling-overlay');
 
       var labelEl = document.createElement('div');
       labelEl.className = 'label';
@@ -259,7 +259,7 @@ base.exportTo('about_tracing', function() {
 
     onLoad_: function() {
       this.overlayEl_ = new ui.Overlay();
-      this.overlayEl_.className = 'profiling-overlay';
+      this.overlayEl_.classList.add('profiling-overlay');
 
       var labelEl = document.createElement('div');
       labelEl.className = 'label';

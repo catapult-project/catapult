@@ -24,8 +24,7 @@ base.exportTo('tracing', function() {
     decorate: function() {
       ui.Overlay.prototype.decorate.call(this);
 
-      this.className = 'record-dialog-overlay';
-      this.obeyCloseEvents = true;
+      this.classList.add('record-dialog-overlay');
 
       var node = base.instantiateTemplate('#record-selection-dialog-template');
       this.appendChild(node);
@@ -170,9 +169,8 @@ base.exportTo('tracing', function() {
     },
 
     onVisibleChange_: function() {
-      if (this.visible) {
+      if (this.visible)
         this.updateForm_();
-      }
     },
 
     buildInputs_: function(inputs, checkedDefault, parent) {

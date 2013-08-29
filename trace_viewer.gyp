@@ -15,6 +15,7 @@
       'src/tracing/analysis/cpu_slice_view.html',
       'src/tracing/analysis/thread_time_slice_view.html',
       'src/ui/mouse_mode_selector.html',
+      'src/ui/overlay.html',
       'src/cc/picture_debugger.html',
     ],
     'tracing_css_files': [
@@ -24,7 +25,6 @@
       'src/ui/info_bar.css',
       'src/ui/quad_stack.css',
       'src/ui/quad_view.css',
-      'src/ui/overlay.css',
       'src/ui/list_view.css',
       'src/ui/tool_button.css',
       'src/ui/mouse_mode_selector.css',

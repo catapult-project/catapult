@@ -18,19 +18,3 @@
   -webkit-box-flex: 1;
   display: -webkit-box;
 }
-
-.profiling-overlay {
-  -webkit-box-orient: vertical;
-  display: -webkit-box;
-  text-align: center;
-}
-
-.profiling-overlay .raw-text {
-  -webkit-box-flex: 1;
-  overflow: auto;
-}
-
-.profiling-overlay .error {
-  border: 1px solid red;
-  text-align: center;
-}

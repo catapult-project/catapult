@@ -3,16 +3,6 @@
  * found in the LICENSE file.
  */
 
-.tracing-overlay {
-  -webkit-box-align: center;
-  -webkit-box-orient: vertical;
-  -webkit-box-pack: center;
-  display: -webkit-box;
-  height: 80px;
-  text-align: center;
-  width: 200px;
-}
-
 .tracing-start-button {
   -webkit-margin-start: 5px;
   background: rgb(255, 0, 0);

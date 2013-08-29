@@ -22,28 +22,26 @@ base.unittest.testSuite('ui.overlay', function() {
     this.addHTMLOutput(btn);
   });
 
-  test('showHideUnparented', function() {
-    var overlay = new ui.Overlay();
-    overlay.innerHTML =
-        '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
-    overlay.visible = true;
-    assertNotEquals(overlay.parentNode, null);
+  test('instantiate_disableUserClose', function() {
+    var dlg = new ui.Overlay();
+    dlg.classList.add('example-overlay');
+    dlg.userCanClose = false;
+    dlg.innerHTML = '<div class="header">ExampleOverlay</div>';
 
-    overlay.visible = false;
-    assertEquals(overlay.parentNode, null);
-  });
+    var btn = document.createElement('button');
+    btn.innerText = 'close';
+    btn.addEventListener('click', function(e) {
+      dlg.visible = false;
+    });
+    dlg.appendChild(btn);
 
-  test('showHideParented', function() {
-    var overlay = new ui.Overlay();
-    overlay.innerHTML =
-        '<h3>Hello</h3>B1:<button>foo</button></p>B2:<button>blah</button>';
+    btn = document.createElement('button');
+    btn.innerText = 'Launch Overlay';
+    btn.addEventListener('click', function(e) {
+      dlg.visible = true;
+      e.stopPropagation();
+    });
 
-    document.body.appendChild(overlay);
-    overlay.visible = true;
-    assertNotEquals(overlay.parentNode, null);
-
-    overlay.visible = false;
-    assertEquals(overlay.parentNode, document.body);
-    document.body.removeChild(overlay);
+    this.addHTMLOutput(btn);
   });
 });

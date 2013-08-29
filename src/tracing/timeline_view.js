@@ -105,12 +105,16 @@ base.exportTo('tracing', function() {
       var node = base.instantiateTemplate('#category-filter-btn-template');
       var showEl = node.querySelector('.view-info-button');
 
-      function onClick() {
-        var dlg = new tracing.CategoryFilterDialog();
+      var dlg = new tracing.CategoryFilterDialog();
+      dlg.settings_key = 'categories';
+      dlg.settingUpdatedCallback = this.updateCategoryFilter_.bind(this);
+
+      function onClick(e) {
         dlg.categories = this.model.categories;
-        dlg.settings_key = 'categories';
-        dlg.settingUpdatedCallback = this.updateCategoryFilter_.bind(this);
         dlg.visible = true;
+
+        e.stopPropagation();
+        return false;
       }
       showEl.addEventListener('click', onClick.bind(this));
 
@@ -131,9 +135,7 @@ base.exportTo('tracing', function() {
 
       var dlg = new ui.Overlay();
       dlg.classList.add('view-help-overlay');
-      dlg.obeyCloseEvents = true;
-      dlg.additionalCloseKeyCodes.push('?'.charCodeAt(0));
-      dlg.appendChild(helpTextEl);
+      dlg.appendChild(node);
 
       function onClick(e) {
         dlg.visible = true;
@@ -153,15 +155,13 @@ base.exportTo('tracing', function() {
     createMetadataButton_: function() {
       var node = base.instantiateTemplate('#metadata-btn-template');
       var showEl = node.querySelector('.view-metadata-button');
-      var containerEl = node.querySelector('.info-button-container');
-      var textEl = containerEl.querySelector('.info-button-text');
+      var textEl = node.querySelector('.info-button-text');
 
       var dlg = new ui.Overlay();
       dlg.classList.add('view-metadata-overlay');
-      dlg.obeyCloseEvents = true;
-      dlg.appendChild(containerEl);
+      dlg.appendChild(node);
 
-      function onClick() {
+      function onClick(e) {
         dlg.visible = true;
 
         var metadataStrings = [];
@@ -175,6 +175,9 @@ base.exportTo('tracing', function() {
           metadataStrings.push(name + ': ' + value);
         }
         textEl.textContent = metadataStrings.join('\n');
+
+        e.stopPropagation();
+        return false;
       }
       showEl.addEventListener('click', onClick.bind(this));
 

@@ -537,7 +537,7 @@ base.exportTo('cc', function() {
       if (infoBarMessages.length) {
         this.infoBar_.removeAllButtons();
         this.infoBar_.message = 'Some problems were encountered...';
-        this.infoBar_.addButton('More info...', function() {
+        this.infoBar_.addButton('More info...', function(e) {
           var overlay = new ui.Overlay();
           overlay.textContent = '';
           infoBarMessages.forEach(function(message) {
@@ -551,7 +551,9 @@ base.exportTo('cc', function() {
             overlay.appendChild(details);
           });
           overlay.visible = true;
-          overlay.obeyCloseEvents = true;
+
+          e.stopPropagation();
+          return false;
         });
         this.infoBar_.visible = true;
       } else {

@@ -164,11 +164,12 @@ base.exportTo('cc', function() {
       this.infoBar_.removeAllButtons();
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
-        this.infoBar_.addButton('More info...', function() {
+        this.infoBar_.addButton('More info...', function(e) {
           var overlay = new ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
-          overlay.obeyCloseEvents = true;
+          e.stopPropagation();
+          return false;
         }.bind(this));
         this.infoBar_.visible = true;
       }

@@ -1,0 +1,109 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="overlay-template">
+  <style>
+    @host {
+      :scope {
+        left: 0;
+        padding: 8px;
+        position: absolute;
+        top: 0;
+        z-index: 1000;
+      }
+      :scope:focus {
+        outline: none;
+      }
+    }
+    .overlay-container {
+      -webkit-justify-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      display: -webkit-flex;
+      height: 100%;
+      left: 0;
+      position: fixed;
+      top: 0;
+      width: 100%;
+    }
+    .overlay-subcontainer {
+      -webkit-align-items: center;
+      -webkit-justify-content: center;
+      display: -webkit-flex;
+    }
+    .body {
+      display: -webkit-flex;
+      z-index: 1100;
+    }
+    .container {
+      background: rgb(255, 255, 255);
+      border: 1px solid #ccc;
+      margin: 2px;
+    }
+    .header {
+      -webkit-align-content: stretch;
+      -webkit-flex-direction: row;
+      border-bottom: 1px solid #ccc;
+      background-color: #ddd;
+      display: -webkit-flex;
+      font-size: 2em;
+      font-weight; bold;
+      height: 32px;
+      padding: 5px;
+    }
+    .title {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1 1 auto;
+    }
+    .close {
+      -webkit-align-self: flex-end;
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 0 auto;
+      float: right;
+      border: 1px solid #eee;
+      background-color: #999;
+      font-size: 0.5em;
+      font-weight: bold;
+      height: 16px;
+      margin: 5px 0 0 20px;
+      padding: 0;
+      padding-bottom: 5px;
+      text-align: center;
+      width: 16px;
+    }
+    .close:hover {
+      background-color: #ddd;
+      border-color: black;
+      cursor: pointer;
+    }
+    .content {
+      clear: both;
+      max-height: 500px;
+      max-width: 800px;
+      min-height: 200px;
+      min-width: 400px;
+      overflow: auto;
+      padding: 10px;
+    }
+  </style>
+
+  <div class='overlay-container'>
+    <div class='overlay-subcontainer'>
+      <div class="body">
+        <div class="container">
+          <div class="header">
+            <div class="title">
+              <content select=".header"></content>
+            </div>
+            <div class="close">x</div>
+          </div>
+          <div class="content">
+            <content></content>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
