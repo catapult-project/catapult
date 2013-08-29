@@ -95,13 +95,13 @@ class _RunState(object):
       # not overwrite it.
       self._append_to_existing_wpr = True
 
-  def StartProfiling(self, page, options):
+  def StartProfiling(self, page, finder_options):
     if not self.profiler_dir:
       self.profiler_dir = tempfile.mkdtemp()
     output_file = os.path.join(self.profiler_dir, page.url_as_file_safe_name)
-    if options.repeat_options.IsRepeating():
+    if finder_options.repeat_options.IsRepeating():
       output_file = _GetSequentialFileName(output_file)
-    self.browser.StartProfiling(options.profiler, output_file)
+    self.browser.StartProfiling(finder_options.profiler, output_file)
 
   def StopProfiling(self):
     self.browser.StopProfiling()
@@ -161,13 +161,13 @@ def _LogStackTrace(title, browser):
   logging.warning('%s%s', title, stack_trace)
 
 
-def _PrepareAndRunPage(test, page_set, expectations, options, page,
+def _PrepareAndRunPage(test, page_set, expectations, finder_options, page,
                        credentials_path, possible_browser, results, state):
-  if options.wpr_mode != wpr_modes.WPR_RECORD:
+  if finder_options.wpr_mode != wpr_modes.WPR_RECORD:
     if page.archive_path and os.path.isfile(page.archive_path):
-      possible_browser.options.wpr_mode = wpr_modes.WPR_REPLAY
+      possible_browser.finder_options.wpr_mode = wpr_modes.WPR_REPLAY
     else:
-      possible_browser.options.wpr_mode = wpr_modes.WPR_OFF
+      possible_browser.finder_options.wpr_mode = wpr_modes.WPR_OFF
   results_for_current_run = results
   if state.first_page[page] and test.discard_first_result:
     # If discarding results, substitute a dummy object.
@@ -183,18 +183,18 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
 
       _WaitForThermalThrottlingIfNeeded(state.browser.platform)
 
-      if options.profiler:
-        state.StartProfiling(page, options)
+      if finder_options.profiler:
+        state.StartProfiling(page, finder_options)
 
       try:
         _RunPage(test, page, state, expectation,
-                 results_for_current_run, options)
+                 results_for_current_run, finder_options)
         _CheckThermalThrottling(state.browser.platform)
       except exceptions.TabCrashException:
         _LogStackTrace('Tab crashed: %s' % page.url, state.browser)
         state.StopBrowser()
 
-      if options.profiler:
+      if finder_options.profiler:
         state.StopProfiling()
 
       if test.NeedsBrowserRestartAfterEachRun(state.tab):
@@ -212,31 +212,32 @@ def _PrepareAndRunPage(test, page_set, expectations, options, page,
   results_for_current_run.StopTest(page)
 
 
-def Run(test, page_set, expectations, options):
+def Run(test, page_set, expectations, finder_options):
   """Runs a given test against a given page_set with the given options."""
-  results = results_options.PrepareResults(test, options)
+  results = results_options.PrepareResults(test, finder_options)
 
   # Create a possible_browser with the given options.
-  test.CustomizeBrowserOptions(options)
-  if options.profiler:
-    profiler_class = profiler_finder.FindProfiler(options.profiler)
-    profiler_class.CustomizeBrowserOptions(options)
+  test.CustomizeBrowserOptions(finder_options)
+  if finder_options.profiler:
+    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
+    profiler_class.CustomizeBrowserOptions(finder_options)
   try:
-    possible_browser = browser_finder.FindBrowser(options)
+    possible_browser = browser_finder.FindBrowser(finder_options)
   except browser_finder.BrowserTypeRequiredException, e:
     sys.stderr.write(str(e) + '\n')
     sys.exit(1)
   if not possible_browser:
     sys.stderr.write(
         'No browser found. Available browsers:\n' +
-        '\n'.join(browser_finder.GetAllAvailableBrowserTypes(options)) + '\n')
+        '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)) +
+        '\n')
     sys.exit(1)
 
   # Reorder page set based on options.
-  pages = _ShuffleAndFilterPageSet(page_set, options)
+  pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
-  if (not options.allow_live_sites and
-      options.wpr_mode != wpr_modes.WPR_RECORD):
+  if (not finder_options.allow_live_sites and
+      finder_options.wpr_mode != wpr_modes.WPR_RECORD):
     pages = _CheckArchives(page_set, pages, results)
 
   # Verify credentials path.
@@ -249,10 +250,10 @@ def Run(test, page_set, expectations, options):
 
   # Set up user agent.
   if page_set.user_agent_type:
-    options.browser_user_agent_type = page_set.user_agent_type
+    finder_options.browser_user_agent_type = page_set.user_agent_type
 
   for page in pages:
-    test.CustomizeBrowserOptionsForPage(page, possible_browser.options)
+    test.CustomizeBrowserOptionsForPage(page, possible_browser.finder_options)
 
   for page in list(pages):
     if not test.CanRunForPage(page):
@@ -269,7 +270,7 @@ def Run(test, page_set, expectations, options):
   try:
     test.WillRunTest(state.tab)
     state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
-                             options.repeat_options)
+                             finder_options.repeat_options)
 
     state.repeat_state.WillRunPageSet()
     while state.repeat_state.ShouldRepeatPageSet():
@@ -278,7 +279,7 @@ def Run(test, page_set, expectations, options):
         test.WillRunPageRepeats(page, state.tab)
         while state.repeat_state.ShouldRepeatPage():
           # execute test on page
-          _PrepareAndRunPage(test, page_set, expectations, options, page,
+          _PrepareAndRunPage(test, page_set, expectations, finder_options, page,
                              credentials_path, possible_browser, results, state)
           state.repeat_state.DidRunPage()
         test.DidRunPageRepeats(page, state.tab)
@@ -291,18 +292,19 @@ def Run(test, page_set, expectations, options):
   return results
 
 
-def _ShuffleAndFilterPageSet(page_set, options):
-  if options.pageset_shuffle_order_file and not options.pageset_shuffle:
+def _ShuffleAndFilterPageSet(page_set, finder_options):
+  if (finder_options.pageset_shuffle_order_file and
+      not finder_options.pageset_shuffle):
     raise Exception('--pageset-shuffle-order-file requires --pageset-shuffle.')
 
-  if options.pageset_shuffle_order_file:
-    return page_set.ReorderPageSet(options.pageset_shuffle_order_file)
+  if finder_options.pageset_shuffle_order_file:
+    return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
 
-  page_filter = page_filter_module.PageFilter(options)
+  page_filter = page_filter_module.PageFilter(finder_options)
   pages = [page for page in page_set.pages[:]
            if not page.disabled and page_filter.IsSelected(page)]
 
-  if options.pageset_shuffle:
+  if finder_options.pageset_shuffle:
     random.Random().shuffle(pages)
 
   return pages
@@ -364,7 +366,7 @@ def _CheckArchives(page_set, pages, results):
           pages_missing_archive_path + pages_missing_archive_data]
 
 
-def _RunPage(test, page, state, expectation, results, options):
+def _RunPage(test, page, state, expectation, results, finder_options):
   logging.info('Running %s' % page.url)
 
   page_state = PageState()
@@ -380,9 +382,10 @@ def _RunPage(test, page, state, expectation, results, options):
 
   try:
     page_state.PreparePage(page, tab, test)
-    if state.repeat_state.ShouldNavigate(options.skip_navigate_on_repeat):
+    if state.repeat_state.ShouldNavigate(
+        finder_options.skip_navigate_on_repeat):
       page_state.ImplicitPageNavigation(page, tab, test)
-    test.Run(options, page, tab, results)
+    test.Run(finder_options, page, tab, results)
     util.CloseConnections(tab)
   except page_test.Failure:
     logging.warning('%s:\n%s', page.url, traceback.format_exc())

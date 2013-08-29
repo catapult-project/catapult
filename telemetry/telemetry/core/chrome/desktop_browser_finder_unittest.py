@@ -15,8 +15,8 @@ from telemetry.unittest import system_stub
 
 class FindTestBase(unittest.TestCase):
   def setUp(self):
-    self._options = browser_options.BrowserFinderOptions()
-    self._options.chrome_root = '../../../'
+    self._finder_options = browser_options.BrowserFinderOptions()
+    self._finder_options.chrome_root = '../../../'
     self._stubs = system_stub.Override(desktop_browser_finder,
                                        ['os', 'subprocess', 'sys'])
 
@@ -28,7 +28,7 @@ class FindTestBase(unittest.TestCase):
     return self._stubs.os.path.files
 
   def DoFindAll(self):
-    return desktop_browser_finder.FindAllAvailableBrowsers(self._options)
+    return desktop_browser_finder.FindAllAvailableBrowsers(self._finder_options)
 
   def DoFindAllTypes(self):
     browsers = self.DoFindAll()
@@ -134,7 +134,7 @@ class LinuxFindTest(FindTestBase):
              'content-shell-debug', 'content-shell-release']))
 
   def testFindWithProvidedExecutable(self):
-    self._options.browser_executable = '/foo/chrome'
+    self._finder_options.browser_executable = '/foo/chrome'
     self.assertTrue('exact' in self.DoFindAllTypes())
 
   def testFindUsingDefaults(self):
@@ -178,7 +178,7 @@ class WinFindTest(FindTestBase):
                            'system', 'canary']))
 
   def testFindAllWithExact(self):
-    self._options.browser_executable = 'c:\\tmp\\chrome.exe'
+    self._finder_options.browser_executable = 'c:\\tmp\\chrome.exe'
     types = self.DoFindAllTypes()
     self.assertEquals(
         set(types),

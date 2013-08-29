@@ -42,8 +42,8 @@ WEBVIEW_PACKAGE = 'com.android.webview.chromium.shell'
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
-  def __init__(self, browser_type, options, backend_settings):
-    super(PossibleAndroidBrowser, self).__init__(browser_type, options)
+  def __init__(self, browser_type, finder_options, backend_settings):
+    super(PossibleAndroidBrowser, self).__init__(browser_type, finder_options)
     self._backend_settings = backend_settings
 
   def __repr__(self):
@@ -51,14 +51,15 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def Create(self):
     backend = android_browser_backend.AndroidBrowserBackend(
-        self._options, self._backend_settings)
+        self.finder_options, self._backend_settings)
     platform_backend = android_platform_backend.AndroidPlatformBackend(
-        self._backend_settings.adb.Adb(), self._options.no_performance_mode)
+        self._backend_settings.adb.Adb(),
+        self.finder_options.no_performance_mode)
     b = browser.Browser(backend, platform_backend)
     return b
 
-  def SupportsOptions(self, options):
-    if len(options.extensions_to_load) != 0:
+  def SupportsOptions(self, finder_options):
+    if len(finder_options.extensions_to_load) != 0:
       return False
     return True
 
@@ -113,7 +114,7 @@ def CanFindAvailableBrowsers(logging=real_logging):
 
   return adb_works
 
-def FindAllAvailableBrowsers(options, logging=real_logging):
+def FindAllAvailableBrowsers(finder_options, logging=real_logging):
   """Finds all the desktop browsers available on this machine."""
   if not CanFindAvailableBrowsers(logging=logging):
     logging.info('No adb command found. ' +
@@ -121,8 +122,8 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
     return []
 
   device = None
-  if options.android_device:
-    devices = [options.android_device]
+  if finder_options.android_device:
+    devices = [finder_options.android_device]
   else:
     devices = adb_commands.GetAttachedDevices()
 
@@ -144,21 +145,22 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
   if 'package:' + CONTENT_SHELL_PACKAGE in packages:
     b = PossibleAndroidBrowser(
         'android-content-shell',
-        options, android_browser_backend.ContentShellBackendSettings(
+        finder_options, android_browser_backend.ContentShellBackendSettings(
             adb, CONTENT_SHELL_PACKAGE))
     possible_browsers.append(b)
 
   if 'package:' + CHROMIUM_TESTSHELL_PACKAGE in packages:
     b = PossibleAndroidBrowser(
         'android-chromium-testshell',
-        options, android_browser_backend.ChromiumTestShellBackendSettings(
+        finder_options,
+        android_browser_backend.ChromiumTestShellBackendSettings(
             adb, CHROMIUM_TESTSHELL_PACKAGE))
     possible_browsers.append(b)
 
   if 'package:' + WEBVIEW_PACKAGE in packages:
     b = PossibleAndroidBrowser(
         'android-webview',
-        options,
+        finder_options,
         android_browser_backend.WebviewBackendSettings(adb, WEBVIEW_PACKAGE))
     possible_browsers.append(b)
 
@@ -166,7 +168,7 @@ def FindAllAvailableBrowsers(options, logging=real_logging):
     if 'package:' + package in packages:
       b = PossibleAndroidBrowser(
           name,
-          options,
+          finder_options,
           android_browser_backend.ChromeBackendSettings(adb, package))
       possible_browsers.append(b)
 

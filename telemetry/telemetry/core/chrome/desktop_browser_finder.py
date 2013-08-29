@@ -31,9 +31,9 @@ ALL_BROWSER_TYPES = ','.join([
 class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   """A desktop browser that can be controlled."""
 
-  def __init__(self, browser_type, options, executable, flash_path,
+  def __init__(self, browser_type, finder_options, executable, flash_path,
                is_content_shell, browser_directory, is_local_build=False):
-    super(PossibleDesktopBrowser, self).__init__(browser_type, options)
+    super(PossibleDesktopBrowser, self).__init__(browser_type, finder_options)
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -45,15 +45,15 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
-        self._options, self._local_executable, self._flash_path,
+        self.finder_options, self._local_executable, self._flash_path,
         self._is_content_shell, self._browser_directory,
-        output_profile_path=self._options.output_profile_path)
+        output_profile_path=self.finder_options.output_profile_path)
     b = browser.Browser(backend,
                         core_platform.CreatePlatformBackendForCurrentOS())
     return b
 
-  def SupportsOptions(self, options):
-    if (len(options.extensions_to_load) != 0) and self._is_content_shell:
+  def SupportsOptions(self, finder_options):
+    if (len(finder_options.extensions_to_load) != 0) and self._is_content_shell:
       return False
     return True
 
@@ -75,7 +75,7 @@ def SelectDefaultBrowser(possible_browsers):
 def CanFindAvailableBrowsers():
   return not cros_interface.IsRunningOnCrosDevice()
 
-def FindAllAvailableBrowsers(options):
+def FindAllAvailableBrowsers(finder_options):
   """Finds all the desktop browsers available on this machine."""
   browsers = []
 
@@ -88,8 +88,8 @@ def FindAllAvailableBrowsers(options):
     has_display = False
 
   # Look for a browser in the standard chrome build locations.
-  if options.chrome_root:
-    chrome_root = options.chrome_root
+  if finder_options.chrome_root:
+    chrome_root = finder_options.chrome_root
   else:
     chrome_root = util.GetChromiumSrcDir()
 
@@ -127,11 +127,12 @@ def FindAllAvailableBrowsers(options):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
   # Add the explicit browser executable if given.
-  if options.browser_executable:
-    normalized_executable = os.path.expanduser(options.browser_executable)
+  if finder_options.browser_executable:
+    normalized_executable = os.path.expanduser(
+        finder_options.browser_executable)
     if IsExecutable(normalized_executable):
-      browser_directory = os.path.dirname(options.browser_executable)
-      browsers.append(PossibleDesktopBrowser('exact', options,
+      browser_directory = os.path.dirname(finder_options.browser_executable)
+      browsers.append(PossibleDesktopBrowser('exact', finder_options,
                                              normalized_executable, flash_path,
                                              False, browser_directory))
     else:
@@ -142,7 +143,7 @@ def FindAllAvailableBrowsers(options):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
     if IsExecutable(app):
-      browsers.append(PossibleDesktopBrowser(browser_type, options,
+      browsers.append(PossibleDesktopBrowser(browser_type, finder_options,
                                              app, flash_path, content_shell,
                                              browser_directory,
                                              is_local_build=True))
@@ -163,12 +164,12 @@ def FindAllAvailableBrowsers(options):
     mac_system_root = '/Applications/Google Chrome.app'
     mac_system = mac_system_root + '/Contents/MacOS/Google Chrome'
     if IsExecutable(mac_canary):
-      browsers.append(PossibleDesktopBrowser('canary', options,
+      browsers.append(PossibleDesktopBrowser('canary', finder_options,
                                              mac_canary, None, False,
                                              mac_canary_root))
 
     if IsExecutable(mac_system):
-      browsers.append(PossibleDesktopBrowser('system', options,
+      browsers.append(PossibleDesktopBrowser('system', finder_options,
                                              mac_system, None, False,
                                              mac_system_root))
 
@@ -183,7 +184,7 @@ def FindAllAvailableBrowsers(options):
     except OSError:
       pass
     if found:
-      browsers.append(PossibleDesktopBrowser('system', options,
+      browsers.append(PossibleDesktopBrowser('system', finder_options,
                                              'google-chrome', None, False,
                                              '/opt/google/chrome'))
 
@@ -200,7 +201,7 @@ def FindAllAvailableBrowsers(options):
       browser_directory = os.path.join(path, app_path)
       app = os.path.join(browser_directory, chromium_app_name)
       if IsExecutable(app):
-        browsers.append(PossibleDesktopBrowser(browser_name, options,
+        browsers.append(PossibleDesktopBrowser(browser_name, finder_options,
                                                app, flash_path, False,
                                                browser_directory))
         return True

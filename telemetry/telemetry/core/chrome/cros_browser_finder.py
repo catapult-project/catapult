@@ -19,8 +19,8 @@ ALL_BROWSER_TYPES = ','.join([
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable chromeos browser instance."""
-  def __init__(self, browser_type, options, cri, is_guest):
-    super(PossibleCrOSBrowser, self).__init__(browser_type, options)
+  def __init__(self, browser_type, finder_options, cri, is_guest):
+    super(PossibleCrOSBrowser, self).__init__(browser_type, finder_options)
     self._cri = cri
     self._is_guest = is_guest
 
@@ -28,18 +28,18 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
   def Create(self):
-    if self._options.output_profile_path:
+    if self.finder_options.output_profile_path:
       raise Exception("Profile generation is not currently supported on Chrome"
           " OS")
 
     backend = cros_browser_backend.CrOSBrowserBackend(
-        self.browser_type, self._options, self._cri, self._is_guest)
+        self.browser_type, self.finder_options, self._cri, self._is_guest)
     b = browser.Browser(backend,
                         cros_platform_backend.CrosPlatformBackend(self._cri))
     return b
 
-  def SupportsOptions(self, options):
-    if (len(options.extensions_to_load) != 0) and self._is_guest:
+  def SupportsOptions(self, finder_options):
+    if (len(finder_options.extensions_to_load) != 0) and self._is_guest:
       return False
     return True
 
@@ -50,30 +50,30 @@ def SelectDefaultBrowser(possible_browsers):
         return b
   return None
 
-def CanFindAvailableBrowsers(options):
+def CanFindAvailableBrowsers(finder_options):
   return (cros_interface.IsRunningOnCrosDevice() or
-          options.cros_remote or
+          finder_options.cros_remote or
           cros_interface.HasSSH())
 
-def FindAllAvailableBrowsers(options):
+def FindAllAvailableBrowsers(finder_options):
   """Finds all available chromeos browsers, locally and remotely."""
   if cros_interface.IsRunningOnCrosDevice():
-    return [PossibleCrOSBrowser('system', options,
+    return [PossibleCrOSBrowser('system', finder_options,
                                 cros_interface.CrOSInterface(),
                                 is_guest=False),
-            PossibleCrOSBrowser('system-guest', options,
+            PossibleCrOSBrowser('system-guest', finder_options,
                                 cros_interface.CrOSInterface(),
                                 is_guest=True)]
 
-  if options.cros_remote == None:
+  if finder_options.cros_remote == None:
     logging.debug('No --remote specified, will not probe for CrOS.')
     return []
 
   if not cros_interface.HasSSH():
     logging.debug('ssh not found. Cannot talk to CrOS devices.')
     return []
-  cri = cros_interface.CrOSInterface(options.cros_remote,
-                                     options.cros_ssh_identity)
+  cri = cros_interface.CrOSInterface(finder_options.cros_remote,
+                                     finder_options.cros_ssh_identity)
 
   # Check ssh
   try:
@@ -81,7 +81,7 @@ def FindAllAvailableBrowsers(options):
   except cros_interface.LoginException, ex:
     if isinstance(ex, cros_interface.KeylessLoginRequiredException):
       logging.warn('Could not ssh into %s. Your device must be configured',
-                      options.cros_remote)
+                   finder_options.cros_remote)
       logging.warn('to allow passwordless login as root.')
       logging.warn('For a test-build device, pass this to your script:')
       logging.warn('   --identity $(CHROMITE)/ssh_keys/testing_rsa')
@@ -106,5 +106,7 @@ def FindAllAvailableBrowsers(options):
   if not cri.FileExistsOnDevice('/opt/google/chrome/chrome'):
     logging.warn('Could not find a chrome on ' % cri.hostname)
 
-  return [PossibleCrOSBrowser('cros-chrome', options, cri, is_guest=False),
-          PossibleCrOSBrowser('cros-chrome-guest', options, cri, is_guest=True)]
+  return [PossibleCrOSBrowser('cros-chrome', finder_options, cri,
+                              is_guest=False),
+          PossibleCrOSBrowser('cros-chrome-guest', finder_options, cri,
+                              is_guest=True)]

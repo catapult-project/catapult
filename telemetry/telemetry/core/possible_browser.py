@@ -7,9 +7,9 @@ class PossibleBrowser(object):
   Call Create() to launch the browser and begin manipulating it..
   """
 
-  def __init__(self, browser_type, options):
+  def __init__(self, browser_type, finder_options):
     self._browser_type = browser_type
-    self._options = options
+    self._finder_options = finder_options
 
   def __repr__(self):
     return 'PossibleBrowser(browser_type=%s)' % self.browser_type
@@ -19,12 +19,12 @@ class PossibleBrowser(object):
     return self._browser_type
 
   @property
-  def options(self):
-    return self._options
+  def finder_options(self):
+    return self._finder_options
 
   def Create(self):
     raise NotImplementedError()
 
-  def SupportsOptions(self, options):
+  def SupportsOptions(self, finder_options):
     """Tests for extension support."""
     raise NotImplementedError()
