@@ -14,6 +14,7 @@ import tempfile
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
+from telemetry.core import profile_types
 from telemetry.page import page_runner
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
@@ -53,8 +54,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
     return 1
 
   # Everything is a-ok, move results to final destination.
-  generated_profiles_dir = os.path.abspath(os.path.join(util.GetBaseDir(),
-      os.pardir, os.pardir, 'out', 'Release', 'generated_profiles'))
+  generated_profiles_dir = profile_types.GetGeneratedProfilesDir()
   if not os.path.exists(generated_profiles_dir):
     os.makedirs(generated_profiles_dir)
   out_path = os.path.join(generated_profiles_dir, profile_creator_name)

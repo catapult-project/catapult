@@ -222,9 +222,10 @@ class BrowserFinderOptions(optparse.Values):
       # Parse repeat options
       self.repeat_options.UpdateFromParseResults(self, parser)
 
-      # TODO(jeremy): I'm in the process of adding explicit knowledge of profile
-      # directories to Telemetry. As part of this work profile_type needs to be
-      # reworked to not override profile_dir.
+      if self.profile_dir and self.profile_type != 'clean':
+        raise Exception("It's illegal to specify both --profile-type and"
+            " --profile-dir.")
+
       if not self.profile_dir:
         self.profile_dir = profile_types.GetProfileDir(self.profile_type)
 

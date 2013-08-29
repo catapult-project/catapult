@@ -69,6 +69,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         if self.is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
           sys.exit(1)
+        logging.info("Using profile directory:'%s'." % profile_dir)
         shutil.rmtree(self._tmp_profile_dir)
         shutil.copytree(profile_dir, self._tmp_profile_dir)
 
