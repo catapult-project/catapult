@@ -55,9 +55,11 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
 
-    data = {'xpath': '//a[@id="clickme"]', 'wait_for_href_change': True}
+    data = {'xpath': '//a[@id="clickme"]'}
     i = click_element.ClickElementAction(data)
-    i.RunAction(None, self._tab, None)
+    data = {'condition': 'href_change'}
+    j = wait.WaitAction(data)
+    j.RunAction(None, self._tab, i)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
