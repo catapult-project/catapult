@@ -40,6 +40,11 @@ base.exportTo('tracing', function() {
       constructor: tracing.trace_model.ObjectInstance,
       name: 'objectInstance',
       pluralName: 'objectInstances'
+    },
+    {
+      constructor: tracing.trace_model.Sample,
+      name: 'sample',
+      pluralName: 'samples'
     }
   ];
 
