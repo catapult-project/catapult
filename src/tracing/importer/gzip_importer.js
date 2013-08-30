@@ -22,26 +22,37 @@ base.exportTo('tracing.importer', function() {
   var GZIP_DEFLATE_COMPRESSION = 8;
 
   function GzipImporter(model, eventData) {
+    // Normalize the data into an Uint8Array.
+    if (typeof(eventData) === 'string' || eventData instanceof String) {
+      eventData = GzipImporter.unescapeData_(eventData);
+      eventData = JSZip.utils.transformTo('uint8array', eventData);
+    } else if (eventData instanceof ArrayBuffer) {
+      eventData = new Uint8Array(eventData);
+    } else
+      throw new Error('Unknown gzip data format');
     this.model_ = model;
     this.gzipData_ = eventData;
   }
 
   /**
-   * @param {eventData} Possibly gzip compressed data. Assumed to be escaped
-   *                    as described in {unescapeData_} below.
+   * @param {eventData} Possibly gzip compressed data as a string or an
+   *                    ArrayBuffer. If this is a string, it is assumed to be
+   *                    escaped as described in {unescapeData_} below.
    * @return {boolean} Whether obj looks like gzip compressed data.
    */
   GzipImporter.canImport = function(eventData) {
-    if (typeof(eventData) !== 'string' && !(eventData instanceof String))
+    var header;
+    if (eventData instanceof ArrayBuffer)
+      header = new Uint8Array(eventData.slice(0, 3));
+    else if (typeof(eventData) === 'string' || eventData instanceof String) {
+      header = this.unescapeData_(eventData.substring(0, 7));
+      header =
+          [header.charCodeAt(0), header.charCodeAt(1), header.charCodeAt(2)];
+    } else
       return false;
-    // To avoid unescaping the entire data set, construct the equivalent
-    // escaped gzip header and check against it.
-    var expected_header = this.escapeData_(
-        String.fromCharCode(GZIP_HEADER_ID1) +
-        String.fromCharCode(GZIP_HEADER_ID2) +
-        String.fromCharCode(GZIP_DEFLATE_COMPRESSION));
-    var actual_header = eventData.slice(0, expected_header.length);
-    return actual_header === expected_header;
+    return header[0] == GZIP_HEADER_ID1 &&
+        header[1] == GZIP_HEADER_ID2 &&
+        header[2] == GZIP_DEFLATE_COMPRESSION;
   };
 
   /**
@@ -90,7 +101,7 @@ base.exportTo('tracing.importer', function() {
     function getByte() {
       if (position >= data.length)
         throw new Error('Unexpected end of gzip data');
-      return data.charCodeAt(position++) & 0xff;
+      return data[position++];
     }
 
     function getWord() {
@@ -136,8 +147,8 @@ base.exportTo('tracing.importer', function() {
       getWord();
 
     // Inflate the data using jszip.
-    var buffer = JSZip.utils.transformTo('uint8array', data.substr(position));
-    var inflated_data = JSZip.compressions['DEFLATE'].uncompress(buffer);
+    var inflated_data =
+        JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
     return JSZip.utils.transformTo('string', inflated_data);
   },
 
@@ -149,8 +160,7 @@ base.exportTo('tracing.importer', function() {
      * subtrace is passed on to other importers that can recognize it.
      */
     extractSubtrace: function() {
-      var data = GzipImporter.unescapeData_(this.gzipData_);
-      return GzipImporter.inflateGzipData_(data);
+      return GzipImporter.inflateGzipData_(this.gzipData_);
     },
   };
 

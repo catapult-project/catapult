@@ -319,7 +319,11 @@ base.exportTo('about_tracing', function() {
             console.log('Unable to import the provided trace file.', e.message);
           }
         };
-        reader.readAsText(files[i]);
+        var is_binary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
+        if (is_binary)
+          reader.readAsArrayBuffer(files[i]);
+        else
+          reader.readAsText(files[i]);
       }
       return false;
     }

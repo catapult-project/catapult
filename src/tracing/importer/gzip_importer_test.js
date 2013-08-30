@@ -24,11 +24,25 @@ base.unittest.testSuite('tracing.importer.gzip_importer', function() {
     self.assertFalse(tracing.importer.GzipImporter.canImport(''));
   });
 
-  test('inflate', function() {
-    // Test inflating the data directly.
+  test('inflateString', function() {
+    // Test inflating the data from a string.
     var gzip_data = atob(gzip_data_base64);
-    self.assertEquals(original_data,
-        tracing.importer.GzipImporter.inflateGzipData_(gzip_data));
+    gzip_data = tracing.importer.GzipImporter.escapeData_(gzip_data);
+    var importer = new tracing.importer.GzipImporter(null, gzip_data);
+    self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
+    self.assertEquals(original_data, importer.extractSubtrace());
+  });
+
+  test('inflateArrayBuffer', function() {
+    // Test inflating the data from an ArrayBuffer.
+    var gzip_data = atob(gzip_data_base64);
+    var buffer = new ArrayBuffer(gzip_data.length);
+    var view = new Uint8Array(buffer);
+    for (var i = 0; i < gzip_data.length; i++)
+      view[i] = gzip_data.charCodeAt(i);
+    var importer = new tracing.importer.GzipImporter(null, buffer);
+    self.assertTrue(tracing.importer.GzipImporter.canImport(buffer));
+    self.assertEquals(original_data, importer.extractSubtrace());
   });
 
   test('import', function() {

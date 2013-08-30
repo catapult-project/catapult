@@ -20,6 +20,10 @@ base.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
   function ZipImporter(model, eventData) {
+    if (eventData instanceof ArrayBuffer)
+      eventData = new Uint8Array(eventData);
+    else if (typeof(eventData) === 'string' || eventData instanceof String)
+      eventData = tracing.importer.GzipImporter.unescapeData_(eventData);
     this.model_ = model;
     this.eventData_ = eventData;
   }
@@ -29,17 +33,21 @@ base.exportTo('tracing.importer', function() {
    * @return {boolean} Whether eventData looks like zip compressed data.
    */
   ZipImporter.canImport = function(eventData) {
-    if (typeof(eventData) !== 'string' && !(eventData instanceof String))
+    var header;
+    if (eventData instanceof ArrayBuffer)
+      header = new Uint8Array(eventData.slice(0, 2));
+    else if (typeof(eventData) === 'string' || eventData instanceof String)
+      header = [eventData.charCodeAt(0), eventData.charCodeAt(1)];
+    else
       return false;
-    return eventData[0] === 'P' && eventData[1] === 'K';
+    return header[0] === 'P'.charCodeAt(0) && header[1] === 'K'.charCodeAt(0);
   };
 
   ZipImporter.prototype = {
     __proto__: Importer.prototype,
 
     extractSubtrace: function() {
-      var zip = new JSZip(
-          tracing.importer.GzipImporter.unescapeData_(this.eventData_));
+      var zip = new JSZip(this.eventData_);
 
       // TODO(dsinclair): We're only extracting the first file for now. Do
       //    we want to pull all files out of the archive if multiple exist?

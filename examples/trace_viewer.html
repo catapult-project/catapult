@@ -61,13 +61,16 @@ found in the LICENSE file.
 
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
+    var is_binary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.open('GET', url, true);
+    if (is_binary)
+      req.responseType = 'arraybuffer';
     req.onreadystatechange = function(aEvt) {
       if (req.readyState == 4) {
         window.setTimeout(function() {
           if (req.status == 200) {
-            cb(req.responseText);
+            cb(is_binary ? req.response : req.responseText);
           } else {
             console.log('Failed to load ' + url);
           }
