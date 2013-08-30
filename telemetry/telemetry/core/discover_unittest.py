@@ -14,11 +14,10 @@ class DiscoverTest(unittest.TestCase):
     base_class = Exception
     classes = discover.DiscoverClasses(start_dir, base_dir, base_class)
     self.assertTrue(len(classes) > 0)
-
-    found_dummy_exception = False
     for c in classes.values():
-      if c.__name__ == 'DummyException':
-        found_dummy_exception = True
       self.assertTrue(issubclass(c, Exception))
 
-    self.assertTrue(found_dummy_exception)
+    # discover_dummyclass is a base class and should not show up.
+    self.assertFalse('discover_dummyclass' in classes)
+    self.assertEqual(classes['another_discover_dummyclass'].__name__,
+                     'AnotherDummyException')

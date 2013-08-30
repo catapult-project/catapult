@@ -50,6 +50,8 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
                     index_by_class_name=False):
   """Discover all classes in |start_dir| which subclass |base_class|.
 
+  Base classes that contain subclasses are ignored by default.
+
   Args:
     start_dir: The directory to recursively search.
     top_level_dir: The top level of the package, for importing.
@@ -66,7 +68,8 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
   for module in modules:
     for _, obj in inspect.getmembers(module):
       if (inspect.isclass(obj) and obj is not base_class and
-          issubclass(obj, base_class)):
+          issubclass(obj, base_class) and obj.__module__ == module.__name__
+          and len(obj.__subclasses__()) == 0):
         if index_by_class_name:
           key_name = camel_case.ToUnderscore(obj.__name__)
         else:
