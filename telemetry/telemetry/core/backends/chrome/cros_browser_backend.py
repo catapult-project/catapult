@@ -17,13 +17,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   CHROME_PATHS = ['/opt/google/chrome/chrome ',
                   '/usr/local/opt/google/chrome/chrome ']
 
-  def __init__(self, browser_type, options, cri, is_guest):
+  def __init__(self, browser_type, finder_options, cri, is_guest):
     super(CrOSBrowserBackend, self).__init__(
         is_content_shell=False, supports_extensions=not is_guest,
-        options=options)
+        finder_options=finder_options)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type
-    self._options = options
     self._cri = cri
     self._is_guest = is_guest
 
@@ -49,7 +48,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
     # the owner of the extensions is set to chronos.
-    for e in options.extensions_to_load:
+    for e in finder_options.extensions_to_load:
       output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
       extension_dir = output[0].rstrip()
       cri.PushFile(e.path, extension_dir)
@@ -61,14 +60,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     util.WaitFor(lambda: self.IsBrowserRunning(), 20)  # pylint: disable=W0108
 
     # Delete test@test.test's cryptohome vault (user data directory).
-    if not options.dont_override_profile:
+    if not finder_options.dont_override_profile:
       logging.info('Deleting user\'s cryptohome vault (the user data dir)')
       self._cri.RunCmdOnDevice(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
-    if options.profile_dir:
+    if finder_options.profile_dir:
       profile_dir = '/home/chronos/Default'
       cri.RunCmdOnDevice(['rm', '-rf', profile_dir])
-      cri.PushFile(options.profile_dir + '/Default', profile_dir)
+      cri.PushFile(finder_options.profile_dir + '/Default', profile_dir)
       cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', profile_dir])
 
   def GetBrowserStartupArgs(self):
@@ -249,7 +248,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RmRF(self._login_ext_dir)
       self._login_ext_dir = None
 
-    for e in self._options.extensions_to_load:
+    for e in self.finder_options.extensions_to_load:
       self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
