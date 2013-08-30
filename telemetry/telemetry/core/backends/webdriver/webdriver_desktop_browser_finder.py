@@ -12,6 +12,7 @@ from telemetry.core import possible_browser
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends.webdriver import webdriver_browser_backend
+from telemetry.page import cloud_storage
 
 # Try to import the selenium python lib which may be not available.
 util.AddDirToPythonPath(
@@ -63,9 +64,11 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
   def CreateWebDriverBackend(self):
     assert webdriver
     def DriverCreator():
-      # TODO(chrisgao): Check in IEDriverServer.exe and specify path to it when
-      # creating the webdriver instance. crbug.com/266170
-      return webdriver.Ie()
+      ie_driver_exe = os.path.join(util.GetTelemetryDir(), 'bin',
+                                   'IEDriverServer_%s.exe' % self._architecture)
+      cloud_storage.GetIfChanged(cloud_storage.CHROMIUM_TELEMETRY_BUCKET,
+                                 ie_driver_exe)
+      return webdriver.Ie(executable_path=ie_driver_exe)
     return webdriver_browser_backend.WebDriverBrowserBackend(
         DriverCreator, False, self.finder_options)
 
