@@ -21,6 +21,7 @@ base.exportTo('cc', function() {
   var LABEL_INTERLEAVE_OFFSET = 15;
   var BAR_PADDING = 5;
   var VERTICAL_TICKS = 5;
+  var HUE_CHAR_CODE_ADJUSTMENT = 5.7;
 
   /**
    * Provides a chart showing the cumulative time spent in Skia operations
@@ -267,13 +268,27 @@ base.exportTo('cc', function() {
         opLabel = opData.cmd_string;
         barLeft = CHART_PADDING_LEFT + b * barWidth;
 
-        this.chartCtx_.fillStyle = 'hsl(' + Math.round(120 - opTiming * 120) +
-            ', 100%, 50%)';
+        this.chartCtx_.fillStyle = this.getOpColor_(opLabel);
 
         this.chartCtx_.fillRect(barLeft + BAR_PADDING, AXIS_PADDING_TOP +
             height - opHeight, barWidth - 2 * BAR_PADDING, opHeight);
       }
 
+    },
+
+    getOpColor_: function(opName) {
+
+      var characters = opName.split('');
+      var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
+
+      return 'hsl(' + hue + ', 30%, 50%)';
+    },
+
+    reduceNameToHue: function(previousValue, currentValue, index, array) {
+      // Get the char code and apply a magic adjustment value so we get
+      // pretty colors from around the rainbow.
+      return Math.round(previousValue + currentValue.charCodeAt(0) *
+          HUE_CHAR_CODE_ADJUSTMENT);
     },
 
     drawChartAxes_: function() {
