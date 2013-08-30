@@ -11,9 +11,6 @@ from telemetry.page.actions import page_action
 
 
 class MediaAction(page_action.PageAction):
-  def __init__(self, attributes=None):
-    super(MediaAction, self).__init__(attributes)
-
   def WillRunAction(self, page, tab):
     """Loads the common media action JS code prior to running the action."""
     self.LoadJS(tab, 'media_action.js')
