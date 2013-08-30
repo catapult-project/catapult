@@ -381,12 +381,12 @@ base.exportTo('cc', function() {
       this.chartCtx_.restore();
 
       this.chartCtx_.fillStyle = '#222';
+      this.chartCtx_.textAlign = 'left';
       this.chartCtx_.textBaseline = 'top';
       this.chartCtx_.font = '800 12px Arial';
       this.chartCtx_.fillText(tooltipTitle, left + 8, top + 8);
 
       this.chartCtx_.fillStyle = '#555';
-      this.chartCtx_.textBaseline = 'top';
       this.chartCtx_.font = '400 italic 10px Arial';
       this.chartCtx_.fillText(tooltipTime + 'ms (' +
           toolTipTimePercentage + '%)', left + 8, top + 22);
