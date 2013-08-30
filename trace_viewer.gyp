@@ -187,6 +187,7 @@
       'src/tracing/color_scheme.js',
       'src/tracing/filter.js',
       'src/tracing/importer/gzip_importer.js',
+      'src/tracing/importer/zip_importer.js',
       'src/tracing/importer/importer.js',
       'src/tracing/importer/v8/codemap.js',
       'src/tracing/importer/v8/log_reader.js',

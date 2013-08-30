@@ -61,6 +61,7 @@ found in the LICENSE file.
 
   function getAsync(url, cb) {
     var req = new XMLHttpRequest();
+    req.overrideMimeType('text/plain; charset=x-user-defined');
     req.open('GET', url, true);
     req.onreadystatechange = function(aEvt) {
       if (req.readyState == 4) {
