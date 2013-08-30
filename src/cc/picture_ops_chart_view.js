@@ -84,6 +84,7 @@ base.exportTo('cc', function() {
       this.picture_ = picture;
       this.pictureOps_ = picture.tagOpsWithTimings(picture.getOps());
       this.processPictureData_();
+      this.dimensionsHaveChanged = true;
     },
 
     processPictureData_: function() {
