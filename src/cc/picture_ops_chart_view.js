@@ -53,6 +53,7 @@ base.exportTo('cc', function() {
       this.currentBarMouseOverTarget_ = undefined;
 
       this.ninetyFifthPercentileCost_ = 0;
+      this.totalOpCost_ = 0;
 
       this.chart_.addEventListener('click', this.onClick_.bind(this));
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
@@ -86,8 +87,12 @@ base.exportTo('cc', function() {
     },
 
     processPictureData_: function() {
+
+      var totalOpCost = 0;
+
       // Take a copy of the picture ops data for sorting.
       this.opCosts_ = this.pictureOps_.map(function(op) {
+        totalOpCost += op.cmd_time;
         return op.cmd_time;
       });
       this.opCosts_.sort();
@@ -96,6 +101,8 @@ base.exportTo('cc', function() {
           this.opCosts_.length * 0.95);
       this.ninetyFifthPercentileCost_ =
           this.opCosts_[ninetyFifthPercentileCostIndex];
+
+      this.totalOpCost_ = totalOpCost;
     },
 
     extractBarIndex_: function(e) {
@@ -229,8 +236,8 @@ base.exportTo('cc', function() {
       this.drawSelection_();
       this.drawBars_();
       this.drawChartAxes_();
+      this.drawLinesAtTickMarks_();
       this.drawLineAtBottomOfChart_();
-      this.drawLineAtNinetyFifthPercentile_();
 
       if (this.currentBarMouseOverTarget_ === undefined)
         return;
@@ -303,13 +310,28 @@ base.exportTo('cc', function() {
       this.chartCtx_.restore();
     },
 
-    drawLineAtNinetyFifthPercentile_: function() {
-      this.chartCtx_.strokeStyle = '#DDD';
+    drawLinesAtTickMarks_: function() {
+
+      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
+      var width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
+      var tickYInterval = height / (VERTICAL_TICKS - 1);
+      var tickYPosition = 0;
+
+      this.chartCtx_.save();
+
+      this.chartCtx_.translate(AXIS_PADDING_LEFT + 0.5, AXIS_PADDING_TOP + 0.5);
       this.chartCtx_.beginPath();
-      this.chartCtx_.moveTo(CHART_PADDING_LEFT, CHART_PADDING_TOP + 0.5);
-      this.chartCtx_.lineTo(this.chartWidth_ - CHART_PADDING_RIGHT,
-          CHART_PADDING_TOP + 0.5);
-      this.chartCtx_.stroke();
+      this.chartCtx_.strokeStyle = 'rgba(0,0,0,0.05)';
+
+      for (var t = 0; t < VERTICAL_TICKS; t++) {
+        tickYPosition = Math.round(t * tickYInterval);
+
+        this.chartCtx_.moveTo(0, tickYPosition);
+        this.chartCtx_.lineTo(width, tickYPosition);
+        this.chartCtx_.stroke();
+      }
+
+      this.chartCtx_.restore();
       this.chartCtx_.closePath();
     },
 
@@ -327,8 +349,10 @@ base.exportTo('cc', function() {
       var tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
+      var toolTipTimePercentage =
+          ((tooltipData.cmd_time / this.totalOpCost_) * 100).toFixed(2);
 
-      var tooltipWidth = 110;
+      var tooltipWidth = 120;
       var tooltipHeight = 40;
       var chartInnerWidth = this.chartWidth_ - CHART_PADDING_RIGHT -
           CHART_PADDING_LEFT;
@@ -364,8 +388,8 @@ base.exportTo('cc', function() {
       this.chartCtx_.fillStyle = '#555';
       this.chartCtx_.textBaseline = 'top';
       this.chartCtx_.font = '400 italic 10px Arial';
-      this.chartCtx_.fillText('Total: ' + tooltipTime + 'ms',
-          left + 8, top + 22);
+      this.chartCtx_.fillText(tooltipTime + 'ms (' +
+          toolTipTimePercentage + '%)', left + 8, top + 22);
     },
 
     drawBars_: function() {
