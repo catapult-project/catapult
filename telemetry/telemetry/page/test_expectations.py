@@ -56,6 +56,9 @@ class TestExpectations(object):
   def Fail(self, url_pattern, conditions=None, bug=None):
     self._Expect('fail', url_pattern, conditions, bug)
 
+  def Skip(self, url_pattern, conditions=None, bug=None):
+    self._Expect('skip', url_pattern, conditions, bug)
+
   def _Expect(self, expectation, url_pattern, conditions=None, bug=None):
     self.expectations.append(Expectation(expectation, url_pattern, conditions,
       bug))
