@@ -220,6 +220,11 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
+      // If we have an alias args, that means this picture was represented
+      // by an alias, and the real args is in alias.args.
+      if (this.args.alias)
+        this.args = this.args.alias.args;
+
       if (!this.args.params.layerRect)
         throw new Error('Missing layer rect');
 
