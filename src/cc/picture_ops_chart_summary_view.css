@@ -3,12 +3,16 @@
  * found in the LICENSE file.
  */
 
-picture-ops-chart-view {
+picture-ops-chart-summary-view {
+  -webkit-flex: 0 0 auto;
   font-size: 0;
-  height: 160px;
   margin: 0;
-  overflow-x: scroll;
-  overflow-y: hidden;
+  min-height: 200px;
+  min-width: 200px;
+  overflow: hidden;
   padding: 0;
-  position: relative;
+}
+
+picture-ops-chart-summary-view.hidden {
+  display: none;
 }

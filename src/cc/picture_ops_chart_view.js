@@ -8,19 +8,20 @@ base.requireStylesheet('cc.picture_ops_chart_view');
 
 base.exportTo('cc', function() {
 
-  var OPS_TIMING_ITERATIONS = 3;
+  var BAR_PADDING = 1;
+  var BAR_WIDTH = 5;
   var CHART_PADDING_LEFT = 65;
-  var CHART_PADDING_RIGHT = 40;
-  var AXIS_PADDING_LEFT = 60;
-  var AXIS_PADDING_RIGHT = 35;
-  var AXIS_PADDING_TOP = 25;
-  var AXIS_PADDING_BOTTOM = 45;
+  var CHART_PADDING_RIGHT = 30;
+  var CHART_PADDING_BOTTOM = 15;
+  var CHART_PADDING_TOP = 20;
+  var AXIS_PADDING_LEFT = 55;
+  var AXIS_PADDING_RIGHT = 30;
+  var AXIS_PADDING_BOTTOM = 15;
+  var AXIS_PADDING_TOP = 20;
+  var AXIS_TICK_SIZE = 5;
   var AXIS_LABEL_PADDING = 5;
-  var AXIS_TICK_SIZE = 10;
-  var LABEL_PADDING = 5;
-  var LABEL_INTERLEAVE_OFFSET = 15;
-  var BAR_PADDING = 5;
   var VERTICAL_TICKS = 5;
+  var HUE_CHAR_CODE_ADJUSTMENT = 5.7;
 
   /**
    * Provides a chart showing the cumulative time spent in Skia operations
@@ -35,7 +36,8 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.picture_ = undefined;
-      this.pictureDataProcessed_ = false;
+      this.pictureOps_ = undefined;
+      this.opCosts_ = undefined;
 
       this.chartScale_ = window.devicePixelRatio;
 
@@ -43,23 +45,34 @@ base.exportTo('cc', function() {
       this.chartCtx_ = this.chart_.getContext('2d');
       this.appendChild(this.chart_);
 
-      this.opsTimingData_ = [];
-
+      this.selectedOpIndex_ = undefined;
       this.chartWidth_ = 0;
       this.chartHeight_ = 0;
-      this.requiresRedraw_ = true;
+      this.dimensionsHaveChanged_ = true;
 
-      this.currentBarMouseOverTarget_ = null;
+      this.currentBarMouseOverTarget_ = undefined;
 
+      this.ninetyFifthPercentileCost_ = 0;
+
+      this.chart_.addEventListener('click', this.onClick_.bind(this));
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
+
     },
 
-    get requiresRedraw() {
-      return this.requiresRedraw_;
+    get dimensionsHaveChanged() {
+      return this.dimensionsHaveChanged_;
     },
 
-    set requiresRedraw(requiresRedraw) {
-      this.requiresRedraw_ = requiresRedraw;
+    set dimensionsHaveChanged(dimensionsHaveChanged) {
+      this.dimensionsHaveChanged_ = dimensionsHaveChanged;
+    },
+
+    get selectedOpIndex() {
+      return this.selectedOpIndex_;
+    },
+
+    set selectedOpIndex(selectedOpIndex) {
+      this.selectedOpIndex_ = selectedOpIndex;
     },
 
     get picture() {
@@ -68,56 +81,73 @@ base.exportTo('cc', function() {
 
     set picture(picture) {
       this.picture_ = picture;
-      this.pictureDataProcessed_ = false;
-
-      if (this.classList.contains('hidden'))
-        return;
-
+      this.pictureOps_ = picture.tagOpsWithTimings(picture.getOps());
       this.processPictureData_();
-      this.requiresRedraw = true;
-      this.updateChartContents();
     },
 
-    hide: function() {
-      this.classList.add('hidden');
+    processPictureData_: function() {
+      // Take a copy of the picture ops data for sorting.
+      this.opCosts_ = this.pictureOps_.map(function(op) {
+        return op.cmd_time;
+      });
+      this.opCosts_.sort();
+
+      var ninetyFifthPercentileCostIndex = Math.floor(
+          this.opCosts_.length * 0.95);
+      this.ninetyFifthPercentileCost_ =
+          this.opCosts_[ninetyFifthPercentileCostIndex];
     },
 
-    show: function() {
+    extractBarIndex_: function(e) {
 
-      this.classList.remove('hidden');
+      var index = undefined;
 
-      if (this.pictureDataProcessed_)
+      if (this.pictureOps_.length === 0)
+        return index;
+
+      var x = e.offsetX;
+      var y = e.offsetY;
+
+      var totalBarWidth = (BAR_WIDTH + BAR_PADDING) * this.pictureOps_.length;
+
+      var chartLeft = CHART_PADDING_LEFT;
+      var chartTop = 0;
+      var chartBottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
+      var chartRight = chartLeft + totalBarWidth;
+
+      if (x < chartLeft || x > chartRight || y < chartTop || y > chartBottom)
+        return index;
+
+      index = Math.floor((x - chartLeft) / totalBarWidth *
+          this.pictureOps_.length);
+
+      index = base.clamp(index, 0, this.pictureOps_.length - 1);
+
+      return index;
+    },
+
+    onClick_: function(e) {
+
+      var barClicked = this.extractBarIndex_(e);
+
+      if (barClicked === undefined)
         return;
 
-      this.processPictureData_();
-      this.requiresRedraw = true;
-      this.updateChartContents();
+      // If we click on the already selected item we should deselect.
+      if (barClicked === this.selectedOpIndex)
+        this.selectedOpIndex = undefined;
+      else
+        this.selectedOpIndex = barClicked;
 
+      e.preventDefault();
+
+      base.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onMouseMove_: function(e) {
 
       var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
-      this.currentBarMouseOverTarget_ = null;
-
-      var x = e.offsetX;
-      var y = e.offsetY;
-
-      var chartLeft = CHART_PADDING_LEFT;
-      var chartRight = this.chartWidth_ - CHART_PADDING_RIGHT;
-      var chartTop = AXIS_PADDING_TOP;
-      var chartBottom = this.chartHeight_ - AXIS_PADDING_BOTTOM;
-      var chartInnerWidth = chartRight - chartLeft;
-
-      if (x > chartLeft && x < chartRight && y > chartTop && y < chartBottom) {
-
-        this.currentBarMouseOverTarget_ = Math.floor(
-            (x - chartLeft) / chartInnerWidth * this.opsTimingData_.length);
-
-        this.currentBarMouseOverTarget_ = base.clamp(
-            this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
-
-      }
+      this.currentBarMouseOverTarget_ = this.extractBarIndex_(e);
 
       if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget)
         return;
@@ -125,16 +155,50 @@ base.exportTo('cc', function() {
       this.drawChartContents_();
     },
 
+    scrollSelectedItemIntoViewIfNecessary: function() {
+
+      if (this.selectedOpIndex === undefined)
+        return;
+
+      var width = this.offsetWidth;
+      var left = this.scrollLeft;
+      var right = left + width;
+      var targetLeft = CHART_PADDING_LEFT +
+          (BAR_WIDTH + BAR_PADDING) * this.selectedOpIndex;
+
+      if (targetLeft > left && targetLeft < right)
+        return;
+
+      this.scrollLeft = (targetLeft - width * 0.5);
+    },
+
     updateChartContents: function() {
 
-      if (this.requiresRedraw)
+      if (this.dimensionsHaveChanged)
         this.updateChartDimensions_();
 
       this.drawChartContents_();
     },
 
     updateChartDimensions_: function() {
-      this.chartWidth_ = this.offsetWidth;
+
+      if (!this.pictureOps_)
+        return;
+
+      var width = CHART_PADDING_LEFT + CHART_PADDING_RIGHT +
+          ((BAR_WIDTH + BAR_PADDING) * this.pictureOps_.length);
+
+      if (width < this.offsetWidth)
+        width = this.offsetWidth;
+
+      // Allow the element to be its natural size as set by flexbox, then lock
+      // the width in before we set the width of the canvas.
+      this.style.width = 'auto';
+      this.chart_.style.display = 'none';
+      this.style.width = this.offsetWidth + 'px';
+      this.chart_.style.display = 'block';
+
+      this.chartWidth_ = width;
       this.chartHeight_ = this.offsetHeight;
 
       // Scale up the canvas according to the devicePixelRatio, then reduce it
@@ -147,58 +211,120 @@ base.exportTo('cc', function() {
       this.chart_.style.height = this.chartHeight_ + 'px';
 
       this.chartCtx_.scale(this.chartScale_, this.chartScale_);
-    },
 
-    processPictureData_: function() {
-
-      this.resetOpsTimingData_();
-      this.pictureDataProcessed_ = true;
-
-      if (!this.picture_)
-        return;
-
-      var ops = this.picture_.getOps();
-      if (!ops)
-        return;
-
-      ops = this.picture_.tagOpsWithTimings(ops);
-
-      // Check that there are valid times.
-      if (ops[0].cmd_time === undefined)
-        return;
-
-      this.collapseOpsToTimingBuckets_(ops);
+      this.dimensionsHaveChanged = false;
     },
 
     drawChartContents_: function() {
 
       this.clearChartContents_();
 
-      if (this.opsTimingData_.length === 0) {
+      if (this.pictureOps_.length === 0 ||
+          this.pictureOps_[0].cmd_time === undefined) {
+
         this.showNoTimingDataMessage_();
         return;
       }
 
-      this.drawChartAxes_();
+      this.drawSelection_();
       this.drawBars_();
+      this.drawChartAxes_();
       this.drawLineAtBottomOfChart_();
+      this.drawLineAtNinetyFifthPercentile_();
 
-      if (this.currentBarMouseOverTarget_ === null)
+      if (this.currentBarMouseOverTarget_ === undefined)
         return;
 
       this.drawTooltip_();
     },
 
+    drawSelection_: function() {
+
+      if (this.selectedOpIndex === undefined)
+        return;
+
+      var width = (BAR_WIDTH + BAR_PADDING) * this.selectedOpIndex;
+      this.chartCtx_.fillStyle = 'rgb(223, 235, 230)';
+      this.chartCtx_.fillRect(CHART_PADDING_LEFT, CHART_PADDING_TOP,
+          width, this.chartHeight_ - CHART_PADDING_TOP - CHART_PADDING_BOTTOM);
+    },
+
+    drawChartAxes_: function() {
+
+      var min = this.opCosts_[0];
+      var max = this.opCosts_[this.opCosts_.length - 1];
+      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
+
+      var tickYInterval = height / (VERTICAL_TICKS - 1);
+      var tickYPosition = 0;
+      var tickValInterval = (max - min) / (VERTICAL_TICKS - 1);
+      var tickVal = 0;
+
+      this.chartCtx_.fillStyle = '#333';
+      this.chartCtx_.strokeStyle = '#777';
+      this.chartCtx_.save();
+
+      // Translate half a pixel to avoid blurry lines.
+      this.chartCtx_.translate(0.5, 0.5);
+
+      // Sides.
+      this.chartCtx_.beginPath();
+      this.chartCtx_.moveTo(AXIS_PADDING_LEFT, AXIS_PADDING_TOP);
+      this.chartCtx_.lineTo(AXIS_PADDING_LEFT, this.chartHeight_ -
+          AXIS_PADDING_BOTTOM);
+      this.chartCtx_.lineTo(this.chartWidth_ - AXIS_PADDING_RIGHT,
+          this.chartHeight_ - AXIS_PADDING_BOTTOM);
+      this.chartCtx_.stroke();
+      this.chartCtx_.closePath();
+
+      // Y-axis ticks.
+      this.chartCtx_.translate(AXIS_PADDING_LEFT, AXIS_PADDING_TOP);
+
+      this.chartCtx_.font = '10px Arial';
+      this.chartCtx_.textAlign = 'right';
+      this.chartCtx_.textBaseline = 'middle';
+
+      this.chartCtx_.beginPath();
+      for (var t = 0; t < VERTICAL_TICKS; t++) {
+
+        tickYPosition = Math.round(t * tickYInterval);
+        tickVal = (max - t * tickValInterval).toFixed(4);
+
+        this.chartCtx_.moveTo(0, tickYPosition);
+        this.chartCtx_.lineTo(-AXIS_TICK_SIZE, tickYPosition);
+        this.chartCtx_.fillText(tickVal,
+            -AXIS_TICK_SIZE - AXIS_LABEL_PADDING, tickYPosition);
+
+      }
+
+      this.chartCtx_.stroke();
+      this.chartCtx_.closePath();
+
+      this.chartCtx_.restore();
+    },
+
+    drawLineAtNinetyFifthPercentile_: function() {
+      this.chartCtx_.strokeStyle = '#DDD';
+      this.chartCtx_.beginPath();
+      this.chartCtx_.moveTo(CHART_PADDING_LEFT, CHART_PADDING_TOP + 0.5);
+      this.chartCtx_.lineTo(this.chartWidth_ - CHART_PADDING_RIGHT,
+          CHART_PADDING_TOP + 0.5);
+      this.chartCtx_.stroke();
+      this.chartCtx_.closePath();
+    },
+
     drawLineAtBottomOfChart_: function() {
       this.chartCtx_.strokeStyle = '#AAA';
+      this.chartCtx_.beginPath();
       this.chartCtx_.moveTo(0, this.chartHeight_ - 0.5);
       this.chartCtx_.lineTo(this.chartWidth_, this.chartHeight_ - 0.5);
       this.chartCtx_.stroke();
+      this.chartCtx_.closePath();
     },
 
     drawTooltip_: function() {
 
-      var tooltipData = this.opsTimingData_[this.currentBarMouseOverTarget_];
+      var tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
 
@@ -206,7 +332,7 @@ base.exportTo('cc', function() {
       var tooltipHeight = 40;
       var chartInnerWidth = this.chartWidth_ - CHART_PADDING_RIGHT -
           CHART_PADDING_LEFT;
-      var barWidth = chartInnerWidth / this.opsTimingData_.length;
+      var barWidth = BAR_WIDTH + BAR_PADDING;
       var tooltipOffset = Math.round((tooltipWidth - barWidth) * 0.5);
 
       var left = CHART_PADDING_LEFT + this.currentBarMouseOverTarget_ *
@@ -244,124 +370,52 @@ base.exportTo('cc', function() {
 
     drawBars_: function() {
 
-      var len = this.opsTimingData_.length;
-      var max = this.opsTimingData_[0].cmd_time;
-      var min = this.opsTimingData_[len - 1].cmd_time;
+      var op;
+      var opColor = 0;
+      var opHeight = 0;
+      var opWidth = BAR_WIDTH + BAR_PADDING;
+      var opHover = false;
 
-      var width = this.chartWidth_ - CHART_PADDING_LEFT - CHART_PADDING_RIGHT;
-      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
-      var barWidth = Math.floor(width / len);
+      var bottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
+      var maxHeight = this.chartHeight_ - CHART_PADDING_BOTTOM -
+          CHART_PADDING_TOP;
 
-      var opData;
-      var opTiming;
-      var opHeight;
-      var opLabel;
-      var barLeft;
+      for (var b = 0; b < this.pictureOps_.length; b++) {
 
-      for (var b = 0; b < len; b++) {
+        op = this.pictureOps_[b];
+        opHeight = Math.round(
+            (op.cmd_time / this.ninetyFifthPercentileCost_) * maxHeight);
+        opHeight = Math.max(opHeight, 1);
+        opHover = (b === this.currentBarMouseOverTarget_);
+        opColor = this.getOpColor_(op.cmd_string, opHover);
 
-        opData = this.opsTimingData_[b];
-        opTiming = opData.cmd_time / max;
+        if (b === this.selectedOpIndex)
+          this.chartCtx_.fillStyle = '#FFFF00';
+        else
+          this.chartCtx_.fillStyle = opColor;
 
-        opHeight = Math.round(Math.max(1, opTiming * height));
-        opLabel = opData.cmd_string;
-        barLeft = CHART_PADDING_LEFT + b * barWidth;
-
-        this.chartCtx_.fillStyle = 'hsl(' + Math.round(120 - opTiming * 120) +
-            ', 100%, 50%)';
-
-        this.chartCtx_.fillRect(barLeft + BAR_PADDING, AXIS_PADDING_TOP +
-            height - opHeight, barWidth - 2 * BAR_PADDING, opHeight);
+        this.chartCtx_.fillRect(CHART_PADDING_LEFT + b * opWidth,
+            bottom - opHeight, BAR_WIDTH, opHeight);
       }
 
     },
 
-    drawChartAxes_: function() {
+    getOpColor_: function(opName, hover) {
 
-      var len = this.opsTimingData_.length;
-      var max = this.opsTimingData_[0].cmd_time;
-      var min = this.opsTimingData_[len - 1].cmd_time;
+      var characters = opName.split('');
 
-      var width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
-      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
+      var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
+      var saturation = 30;
+      var lightness = hover ? '75%' : '50%';
 
-      var totalBarWidth = this.chartWidth_ - CHART_PADDING_LEFT -
-          CHART_PADDING_RIGHT;
-      var barWidth = Math.floor(totalBarWidth / len);
-      var tickYInterval = height / (VERTICAL_TICKS - 1);
-      var tickYPosition = 0;
-      var tickValInterval = (max - min) / (VERTICAL_TICKS - 1);
-      var tickVal = 0;
+      return 'hsl(' + hue + ', ' + saturation + '%, ' + lightness + '%)';
+    },
 
-      this.chartCtx_.fillStyle = '#333';
-      this.chartCtx_.strokeStyle = '#777';
-      this.chartCtx_.save();
-
-      // Translate half a pixel to avoid blurry lines.
-      this.chartCtx_.translate(0.5, 0.5);
-
-      // Sides.
-
-      this.chartCtx_.save();
-
-      this.chartCtx_.translate(AXIS_PADDING_LEFT, AXIS_PADDING_TOP);
-      this.chartCtx_.moveTo(0, 0);
-      this.chartCtx_.lineTo(0, height);
-      this.chartCtx_.lineTo(width, height);
-
-      // Y-axis ticks.
-      this.chartCtx_.font = '10px Arial';
-      this.chartCtx_.textAlign = 'right';
-      this.chartCtx_.textBaseline = 'middle';
-
-      for (var t = 0; t < VERTICAL_TICKS; t++) {
-
-        tickYPosition = Math.round(t * tickYInterval);
-        tickVal = (max - t * tickValInterval).toFixed(4);
-
-        this.chartCtx_.moveTo(0, tickYPosition);
-        this.chartCtx_.lineTo(-AXIS_TICK_SIZE, tickYPosition);
-        this.chartCtx_.fillText(tickVal,
-            -AXIS_TICK_SIZE - AXIS_LABEL_PADDING, tickYPosition);
-
-      }
-
-      this.chartCtx_.stroke();
-
-      this.chartCtx_.restore();
-
-
-      // Labels.
-
-      this.chartCtx_.save();
-
-      this.chartCtx_.translate(CHART_PADDING_LEFT + Math.round(barWidth * 0.5),
-          AXIS_PADDING_TOP + height + LABEL_PADDING);
-
-      this.chartCtx_.font = '10px Arial';
-      this.chartCtx_.textAlign = 'center';
-      this.chartCtx_.textBaseline = 'top';
-
-      var labelTickLeft;
-      var labelTickBottom;
-      for (var l = 0; l < len; l++) {
-
-        labelTickLeft = Math.round(l * barWidth);
-        labelTickBottom = l % 2 * LABEL_INTERLEAVE_OFFSET;
-
-        this.chartCtx_.save();
-        this.chartCtx_.moveTo(labelTickLeft, -LABEL_PADDING);
-        this.chartCtx_.lineTo(labelTickLeft, labelTickBottom);
-        this.chartCtx_.stroke();
-        this.chartCtx_.restore();
-
-        this.chartCtx_.fillText(this.opsTimingData_[l].cmd_string,
-            labelTickLeft, labelTickBottom);
-      }
-
-      this.chartCtx_.restore();
-
-      this.chartCtx_.restore();
+    reduceNameToHue: function(previousValue, currentValue, index, array) {
+      // Get the char code and apply a magic adjustment value so we get
+      // pretty colors from around the rainbow.
+      return Math.round(previousValue + currentValue.charCodeAt(0) *
+          HUE_CHAR_CODE_ADJUSTMENT);
     },
 
     clearChartContents_: function() {
@@ -375,71 +429,6 @@ base.exportTo('cc', function() {
       this.chartCtx_.textBaseline = 'middle';
       this.chartCtx_.fillText('No timing data available.',
           this.chartWidth_ * 0.5, this.chartHeight_ * 0.5);
-    },
-
-    collapseOpsToTimingBuckets_: function(ops) {
-
-      var opsTimingDataIndexHash_ = {};
-      var timingData = this.opsTimingData_;
-      var op;
-      var opIndex;
-
-      for (var i = 0; i < ops.length; i++) {
-
-        op = ops[i];
-
-        if (op.cmd_time === undefined)
-          continue;
-
-        // Try to locate the entry for the current operation
-        // based on its name. If that fails, then create one for it.
-        opIndex = opsTimingDataIndexHash_[op.cmd_string] || null;
-
-        if (opIndex === null) {
-          timingData.push({
-            cmd_time: 0,
-            cmd_string: op.cmd_string
-          });
-
-          opIndex = timingData.length - 1;
-          opsTimingDataIndexHash_[op.cmd_string] = opIndex;
-        }
-
-        timingData[opIndex].cmd_time += op.cmd_time;
-
-      }
-
-      timingData.sort(this.sortTimingBucketsByOpTimeDescending_);
-
-      this.collapseTimingBucketsToOther_(4);
-    },
-
-    collapseTimingBucketsToOther_: function(count) {
-
-      var timingData = this.opsTimingData_;
-      var otherSource = timingData.splice(count, timingData.length - count);
-      var otherDestination = null;
-
-      if (!otherSource.length)
-        return;
-
-      timingData.push({
-        cmd_time: 0,
-        cmd_string: 'Other'
-      });
-
-      otherDestination = timingData[timingData.length - 1];
-      for (var i = 0; i < otherSource.length; i++) {
-        otherDestination.cmd_time += otherSource[i].cmd_time;
-      }
-    },
-
-    sortTimingBucketsByOpTimeDescending_: function(a, b) {
-      return b.cmd_time - a.cmd_time;
-    },
-
-    resetOpsTimingData_: function() {
-      this.opsTimingData_.length = 0;
     }
   };
 

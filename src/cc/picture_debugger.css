@@ -40,8 +40,14 @@ picture-debugger .filename {
   margin-left: 5px;
 }
 
-picture-debugger > raster-area {
-  -webkit-flex: 1 0 auto;
+picture-debugger > right-panel {
+  -webkit-flex: 1 1 auto;
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
+}
+
+picture-debugger > right-panel > raster-area {
+  -webkit-flex: 1 1 auto;
 }
 
 /******************************************************************************/

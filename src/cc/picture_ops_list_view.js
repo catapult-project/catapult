@@ -139,6 +139,17 @@ base.exportTo('cc', function() {
       return this.selectedOpIndex_;
     },
 
+    set selectedOpIndex(s) {
+      this.selectedOpIndex_ = s;
+
+      if (s === undefined) {
+        this.opsList_.selectedElement = this.selectedOp_;
+        this.onSelectionChanged_();
+      } else {
+        this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
+      }
+    },
+
     /**
      * Return Skia operations tagged by annotation.
      *

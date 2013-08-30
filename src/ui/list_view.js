@@ -98,6 +98,10 @@ base.exportTo('ui', function() {
       el.selected = true;
     },
 
+    getElementByIndex: function(index) {
+      return this.querySelector('.list-item:nth-child(' + index + ')');
+    },
+
     clear: function() {
       var changed = this.selectedElement !== undefined;
       ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);

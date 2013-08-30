@@ -9,6 +9,7 @@ base.requireStylesheet('cc.picture_debugger');
 
 base.require('cc.picture');
 base.require('cc.picture_ops_list_view');
+base.require('cc.picture_ops_chart_summary_view');
 base.require('cc.picture_ops_chart_view');
 base.require('tracing.analysis.generic_object_view');
 base.require('ui.drag_handle');
@@ -40,7 +41,10 @@ base.exportTo('cc', function() {
       this.rasterArea_ = this.querySelector('raster-area');
       this.filename_ = this.querySelector('.filename');
 
+      this.drawOpsChartSummaryView_ = new cc.PictureOpsChartSummaryView();
       this.drawOpsChartView_ = new cc.PictureOpsChartView();
+      this.drawOpsChartView_.addEventListener(
+          'selection-changed', this.onChartBarClicked_.bind(this));
 
       var exportButton = this.querySelector('.export');
       exportButton.addEventListener(
@@ -52,9 +56,9 @@ base.exportTo('cc', function() {
           'Show overdraw');
 
       var chartCheckbox = ui.createCheckBox(
-          this, 'showChart',
-          'pictureViewer.showChart', false,
-          'Show timing chart');
+          this, 'showSummaryChart',
+          'pictureViewer.showSummaryChart', false,
+          'Show timing summary');
 
       var pictureInfo = this.querySelector('picture-info');
       pictureInfo.appendChild(overdrawCheckbox);
@@ -65,22 +69,25 @@ base.exportTo('cc', function() {
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
       var leftPanel = this.querySelector('left-panel');
-      leftPanel.appendChild(this.drawOpsChartView_);
+      leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
       var middleDragHandle = new ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
+      var rightPanel = this.querySelector('right-panel');
+      rightPanel.insertBefore(this.drawOpsChartView_, this.rasterArea_);
+
       this.infoBar_ = new ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);
 
-      this.insertBefore(middleDragHandle, this.rasterArea_);
+      this.insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
       // Add a mutation observer so that when the view is resized we can
-      // update the chart view.
+      // update the chart summary view.
       this.mutationObserver_ = new MutationObserver(
           this.onMutation_.bind(this));
       this.mutationObserver_.observe(leftPanel, { attributes: true });
@@ -92,7 +99,10 @@ base.exportTo('cc', function() {
         // A style change would indicate that the element has resized
         // so we should re-render the chart.
         if (mutations[m].attributeName === 'style') {
-          this.drawOpsChartView_.requiresRedraw = true;
+          this.drawOpsChartSummaryView_.requiresRedraw = true;
+          this.drawOpsChartSummaryView_.updateChartContents();
+
+          this.drawOpsChartView_.dimensionsHaveChanged = true;
           this.drawOpsChartView_.updateChartContents();
           break;
         }
@@ -132,6 +142,7 @@ base.exportTo('cc', function() {
     set picture(picture) {
       this.drawOpsView_.picture = picture;
       this.drawOpsChartView_.picture = picture;
+      this.drawOpsChartSummaryView_.picture = picture;
       this.picture_ = picture;
       this.rasterize_();
 
@@ -155,6 +166,9 @@ base.exportTo('cc', function() {
             this.picture_.layerRect.width + ' x ' +
             this.picture_.layerRect.height + ')';
       }
+
+      this.drawOpsChartView_.updateChartContents();
+      this.drawOpsChartView_.scrollSelectedItemIntoViewIfNecessary();
 
       // Return if picture hasn't finished rasterizing.
       if (!this.pictureAsImageData_)
@@ -201,9 +215,17 @@ base.exportTo('cc', function() {
       this.scheduleUpdateContents_();
     },
 
-    onChangeDrawOps_: function() {
+    onChartBarClicked_: function(e) {
+      this.drawOpsView_.selectedOpIndex =
+          this.drawOpsChartView_.selectedOpIndex;
+    },
+
+    onChangeDrawOps_: function(e) {
       this.rasterize_();
       this.scheduleUpdateContents_();
+
+      this.drawOpsChartView_.selectedOpIndex =
+          this.drawOpsView_.selectedOpIndex;
     },
 
     set showOverdraw(v) {
@@ -211,11 +233,11 @@ base.exportTo('cc', function() {
       this.rasterize_();
     },
 
-    set showChart(chartShouldBeVisible) {
+    set showSummaryChart(chartShouldBeVisible) {
       if (chartShouldBeVisible)
-        this.drawOpsChartView_.show();
+        this.drawOpsChartSummaryView_.show();
       else
-        this.drawOpsChartView_.hide();
+        this.drawOpsChartSummaryView_.hide();
     }
   };
 
