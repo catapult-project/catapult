@@ -543,50 +543,6 @@ base.exportTo('tracing', function() {
       this.viewport.queueDisplayTransformAnimation(animation);
     },
 
-    get keyHelp() {
-      var mod = base.isMac ? 'cmd ' : 'ctrl';
-      var help =
-          'Qwerty Controls\n' +
-          ' w/s              : Zoom in/out                (+shift: faster)\n' +
-          ' a/d              : Pan left/right             ' +
-              '(+shift: faster)\n\n' +
-          'Dvorak Controls\n' +
-          ' ,/o              : Zoom in/out                (+shift: faster)\n' +
-          ' a/e              : Pan left/right             ' +
-              '(+shift: faster)\n\n' +
-          'Mouse Controls (mode)\n' +
-          ' click                    : Select event\n' +
-          ' drag (selection)         : Box select\n' +
-          ' drag (pan)               : Pan the view\n' +
-          ' drag (zoom)              : Zoom in/out by dragging up/down\n' +
-          ' drag (timing)            : Create marker range or move markers\n' +
-          ' double click (selection) : Select all events with same title\n' +
-          ' double click (timing)    : Set marker range to slice\n\n' +
-          'General Navigation\n' +
-          ' 1-4            : Switch mouse mode\n' +
-          ' shift          : Hold for temporary selection mode\n' +
-          ' space          : Hold for temporary pan mode\n' +
-          ' ' + mod + '           : Hold for temporary zoom mode\n\n' +
-          ' ?              : Show help\n' +
-          ' /              : Search\n' +
-          ' enter          : Step through search results\n' +
-          ' f              : Zoom into selection\n' +
-          ' z/0            : Reset zoom and pan\n' +
-          ' g/G            : Add 60fps grid to start/end of selected event\n';
-
-      if (this.focusElement.tabIndex) {
-        help +=
-            ' <-             : Select previous event\n' +
-            ' ->             : Select next event\n\n';
-      } else {
-        help +=
-            ' <-/^TAB        : Select previous event\n' +
-            ' ->/ TAB        : Select next event\n\n';
-      }
-
-      return help;
-    },
-
     get selection() {
       return this.selection_;
     },

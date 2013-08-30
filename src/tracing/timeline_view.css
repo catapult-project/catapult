@@ -86,10 +86,6 @@
   margin: 0;
 }
 
-.view-help-overlay {
-  padding: 6px;
-}
-
 .button {
   background-color: #f8f8f8;
   border: 1px solid rgba(0, 0, 0, 0.5);
@@ -118,13 +114,44 @@
   border: solid 1px;
 }
 
-.view-help-text {
-  font-family: monospace;
-  white-space: pre;
-}
-
 .metadata-dialog-text {
   font-family: monospace;
   white-space: pre;
 }
 
+.view-help-text {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  display: -webkit-flex;
+  width: 700px;
+}
+.view-help-text .column {
+  width: 50%;
+}
+.view-help-text h2,
+.view-help-text h3 {
+  font-size: 1.2em;
+  margin: 0;
+  margin-left: 155px;
+  margin-top: 5px;
+  padding: 0;
+}
+.view-help-text h3 {
+  font-size: 0.9em;
+}
+.view-help-text .pair {
+  -webkit-box-flex: 1;
+  -webkit-box-orient: horizontal;
+  display: -webkit-flex;
+}
+.view-help-text .command {
+  font-family: monospace;
+  margin-right: 5px;
+  text-align: right;
+  width: 150px;
+}
+.view-help-text .action {
+  font-size: 0.9em;
+  text-align: left;
+  width: 200px;
+}

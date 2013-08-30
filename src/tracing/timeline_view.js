@@ -140,8 +140,11 @@ base.exportTo('tracing', function() {
       function onClick(e) {
         dlg.visible = true;
 
-        helpTextEl.textContent = this.timeline_ ? this.timeline_.keyHelp :
-            'No content loaded. For interesting help, load something.';
+        var mod = base.isMac ? 'cmd ' : 'ctrl';
+        var spans = helpTextEl.querySelectorAll('span.mod');
+        for (var i = 0; i < spans.length; i++) {
+          spans[i].textContent = mod;
+        }
 
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
