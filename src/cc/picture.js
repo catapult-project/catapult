@@ -23,11 +23,16 @@ base.exportTo('cc', function() {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
     this.opaqueRect_ = opaqueRect;
+    this.guid_ = base.GUID.allocate();
   }
 
   Picture.prototype = {
     get layerRect() {
       return this.layerRect_;
+    },
+
+    get guid() {
+      return this.guid_;
     },
 
     getBase64SkpData: function() {
@@ -158,7 +163,6 @@ base.exportTo('cc', function() {
    */
   function PictureSnapshot() {
     ObjectSnapshot.apply(this, arguments);
-    this.guid_ = base.GUID.allocate();
   }
 
   PictureSnapshot.CanRasterize = function() {
@@ -238,7 +242,7 @@ base.exportTo('cc', function() {
     },
 
     get guid() {
-      return this.guid_;
+      return this.picture_.guid;
     },
 
     getBase64SkpData: function() {
