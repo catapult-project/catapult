@@ -330,7 +330,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _WaitForAccountPicker(self):
     """Waits for the oobe screen to be in the account picker state."""
-    util.WaitFor(lambda: self._SigninUIState() == 2, 20)
+    try:
+      util.WaitFor(lambda: self._SigninUIState() == 2, 60)
+    except util.TimeoutException:
+      self._cri.TakeScreenShot('guest-screen')
+      raise exceptions.LoginException('Timed out waiting for account picker, '
+                                      'signin state %d' % self._SigninUIState())
 
   def _ClickBrowseAsGuest(self):
     """Click the Browse As Guest button on the account picker screen. This will
