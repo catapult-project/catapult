@@ -14,7 +14,6 @@ import tempfile
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
-from telemetry.core import profile_types
 from telemetry.page import page_runner
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
@@ -54,7 +53,7 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
     return 1
 
   # Everything is a-ok, move results to final destination.
-  generated_profiles_dir = profile_types.GetGeneratedProfilesDir()
+  generated_profiles_dir = os.path.abspath(options.output_dir)
   if not os.path.exists(generated_profiles_dir):
     os.makedirs(generated_profiles_dir)
   out_path = os.path.join(generated_profiles_dir, profile_creator_name)
@@ -72,7 +71,8 @@ def Main():
 
   options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser(
-      "%%prog <--profile-type-to-generate=...> <--browser=...>")
+      "%%prog <--profile-type-to-generate=...> <--browser=...>"
+      " <--output-directory>")
   page_runner.AddCommandLineOptions(parser)
 
   group = optparse.OptionGroup(parser, 'Profile generation options')
@@ -81,6 +81,9 @@ def Main():
       default=None,
       help='Type of profile to generate. '
            'Supported values: %s' % legal_profile_creators)
+  group.add_option('--output-dir',
+      dest='output_dir',
+      help='Generated profile is placed in this directory.')
   parser.add_option_group(group)
 
   _, _ = parser.parse_args()
@@ -95,6 +98,9 @@ def Main():
 
   if not options.browser_type:
     raise Exception("Must specify --browser option.")
+
+  if not options.output_dir:
+    raise Exception("Must specify --output-dir option.")
 
   if options.dont_override_profile:
     raise Exception("Can't use existing profile when generating profile.")
