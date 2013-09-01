@@ -28,11 +28,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   once a remote-debugger port has been established."""
   # It is OK to have abstract methods. pylint: disable=W0223
 
-  def __init__(self, is_content_shell, supports_extensions, finder_options):
+  def __init__(self, is_content_shell, supports_extensions, options):
     super(ChromeBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=supports_extensions,
-        finder_options=finder_options,
+        options=options,
         tab_list_backend=tab_list_backend.TabListBackend)
     self._port = None
 
@@ -46,8 +46,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self.webpagereplay_remote_http_port = self.webpagereplay_local_http_port
     self.webpagereplay_remote_https_port = self.webpagereplay_local_https_port
 
-    if (finder_options.dont_override_profile and
-        not options_for_unittests.AreSet()):
+    if options.dont_override_profile and not options_for_unittests.AreSet():
       sys.stderr.write('Warning: Not overriding profile. This can cause '
                        'unexpected effects due to profile-specific settings, '
                        'such as about:flags settings, cookies, and '
@@ -59,8 +58,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._extension_dict_backend = (
           extension_dict_backend.ExtensionDictBackend(self))
 
-  def AddReplayServerOptions(self, finder_options):
-    finder_options.append('--no-dns_forwarding')
+  def AddReplayServerOptions(self, options):
+    options.append('--no-dns_forwarding')
 
   @property
   def misc_web_contents_backend(self):
@@ -74,34 +73,32 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = []
-    args.extend(self.finder_options.extra_browser_args)
+    args.extend(self.options.extra_browser_args)
     args.append('--disable-background-networking')
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
     args.append('--no-proxy-server')
-    if self.finder_options.wpr_mode != wpr_modes.WPR_OFF:
+    if self.options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
           self.WEBPAGEREPLAY_HOST,
           self.webpagereplay_remote_http_port,
           self.webpagereplay_remote_https_port))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
-        self.finder_options.browser_user_agent_type))
+        self.options.browser_user_agent_type))
 
     extensions = [extension.local_path for extension in
-                  self.finder_options.extensions_to_load
-                  if not extension.is_component]
+                  self.options.extensions_to_load if not extension.is_component]
     extension_str = ','.join(extensions)
     if len(extensions) > 0:
       args.append('--load-extension=%s' % extension_str)
 
     component_extensions = [extension.local_path for extension in
-                            self.finder_options.extensions_to_load
-                            if extension.is_component]
+                  self.options.extensions_to_load if extension.is_component]
     component_extension_str = ','.join(component_extensions)
     if len(component_extensions) > 0:
       args.append('--load-component-extension=%s' % component_extension_str)
 
-    if self.finder_options.no_proxy_server:
+    if self.options.no_proxy_server:
       args.append('--no-proxy-server')
 
     return args
@@ -129,7 +126,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           (document.readyState == 'complete' ||
            document.readyState == 'interactive')
       """
-      for e in self.finder_options.extensions_to_load:
+      for e in self.options.extensions_to_load:
         if not e.extension_id in self._extension_dict_backend:
           return False
         extension_object = self._extension_dict_backend[e.extension_id]

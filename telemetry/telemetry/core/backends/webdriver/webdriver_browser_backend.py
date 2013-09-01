@@ -10,11 +10,11 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
   instance, on Linux, Mac, and Windows.
   """
 
-  def __init__(self, driver_creator, supports_extensions, finder_options):
+  def __init__(self, driver_creator, supports_extensions, options):
     super(WebDriverBrowserBackend, self).__init__(
         is_content_shell=False,
         supports_extensions=supports_extensions,
-        finder_options=finder_options,
+        options=options,
         tab_list_backend=webdriver_tab_list_backend.WebDriverTabListBackend)
 
     self._driver_creator = driver_creator

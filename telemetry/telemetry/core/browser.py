@@ -201,7 +201,7 @@ class Browser(object):
 
     profiler_class = profiler_finder.FindProfiler(profiler_name)
 
-    if not profiler_class.is_supported(self._browser_backend.finder_options):
+    if not profiler_class.is_supported(self._browser_backend.options):
       raise Exception('The %s profiler is not '
                       'supported on this platform.' % profiler_name)
 
@@ -232,8 +232,8 @@ class Browser(object):
     return self._browser_backend.GetTraceResultAndReset()
 
   def Start(self):
-    finder_options = self._browser_backend.finder_options
-    if finder_options.clear_sytem_cache_for_browser_and_profile_on_start:
+    options = self._browser_backend.options
+    if options.clear_sytem_cache_for_browser_and_profile_on_start:
       if self._platform.CanFlushIndividualFilesFromSystemCache():
         self._platform.FlushSystemCacheForDirectory(
             self._browser_backend.profile_directory)
