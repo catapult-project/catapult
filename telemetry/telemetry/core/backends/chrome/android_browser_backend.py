@@ -146,19 +146,18 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
-  def __init__(self, options, backend_settings):
+  def __init__(self, finder_options, backend_settings):
     super(AndroidBrowserBackend, self).__init__(
         is_content_shell=backend_settings.is_content_shell,
-        supports_extensions=False, options=options)
-    if len(options.extensions_to_load) > 0:
+        supports_extensions=False, finder_options=finder_options)
+    if len(finder_options.extensions_to_load) > 0:
       raise browser_backend.ExtensionsNotSupportedException(
           'Android browser does not support extensions.')
     # Initialize fields so that an explosion during init doesn't break in Close.
-    self._options = options
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
     self._saved_cmdline = None
-    if not options.keep_test_server_ports:
+    if not finder_options.keep_test_server_ports:
       adb_commands.ResetTestServerPortAllocation()
     self._port = adb_commands.AllocateTestServerPort()
 
@@ -166,10 +165,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb.CloseApplication(self._backend_settings.package)
 
     if self._adb.Adb().CanAccessProtectedFileContents():
-      if not options.dont_override_profile:
+      if not finder_options.dont_override_profile:
         self._backend_settings.RemoveProfile()
-      if options.profile_dir:
-        self._backend_settings.PushProfile(options.profile_dir)
+      if finder_options.profile_dir:
+        self._backend_settings.PushProfile(finder_options.profile_dir)
 
     # Set up the command line.
     self._saved_cmdline = ''.join(self._adb.Adb().GetProtectedFileContents(
