@@ -84,7 +84,7 @@ base.exportTo('tracing', function() {
     },
 
     hasFocus: function() {
-      return this.filterEl_ === document.activeElement;
+      return this === document.activeElement;
     },
 
     filterTextChanged_: function() {
@@ -105,7 +105,7 @@ base.exportTo('tracing', function() {
     },
 
     updateHitCountEl_: function() {
-      if (!this.controller || document.activeElement !== this) {
+      if (!this.controller || !this.hasFocus()) {
         this.hitCountEl_.textContent = '';
         return;
       }
