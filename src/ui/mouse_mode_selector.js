@@ -378,7 +378,6 @@ base.exportTo('ui', function() {
         return;
 
       this.setAlternateMode_(modifier);
-      e.preventDefault();
     },
 
     onKeyUp_: function(e) {
