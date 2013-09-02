@@ -170,11 +170,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if finder_options.profile_dir:
         self._backend_settings.PushProfile(finder_options.profile_dir)
 
-    # Set up the command line.
-    self._saved_cmdline = ''.join(self._adb.Adb().GetProtectedFileContents(
-        self._backend_settings.cmdline_file) or [])
-    args = [backend_settings.pseudo_exec_name]
-    args.extend(self.GetBrowserStartupArgs())
+    self._SetUpCommandLine()
+
+  def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
       # Escape 'key=valueA valueB' to 'key="valueA valueB"'
       # Already quoted values, or values without space are left untouched.
@@ -189,15 +187,32 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if values[0] in '"\'' and values[-1] == values[0]:
         return arg
       return '%s="%s"' % (key, values)
-    args = map(QuoteIfNeeded, args)
-    self._adb.Adb().SetProtectedFileContents(
-        self._backend_settings.cmdline_file, ' '.join(args))
-    cmdline = self._adb.Adb().GetProtectedFileContents(
-        self._backend_settings.cmdline_file)
-    if len(cmdline) != 1 or cmdline[0] != ' '.join(args):
-      logging.critical('Failed to set Chrome command line. '
-                       'Fix this by flashing to a userdebug build.')
-      sys.exit(1)
+
+    args = [self._backend_settings.pseudo_exec_name]
+    args.extend(self.GetBrowserStartupArgs())
+    args = ' '.join(map(QuoteIfNeeded, args))
+
+    self._SetCommandLineFile(args)
+
+  def _SetCommandLineFile(self, file_contents):
+    def IsProtectedFile(name):
+      ls_output = self._adb.RunShellCommand('ls -l %s' % name)[0].split()
+      return ls_output[1] == 'root'
+
+    if IsProtectedFile(self._backend_settings.cmdline_file):
+      if not self._adb.Adb().CanAccessProtectedFileContents():
+        logging.critical('Cannot set Chrome command line. '
+                         'Fix this by flashing to a userdebug build.')
+        sys.exit(1)
+      self._saved_cmdline = ''.join(self._adb.Adb().GetProtectedFileContents(
+          self._backend_settings.cmdline_file) or [])
+      self._adb.Adb().SetProtectedFileContents(
+          self._backend_settings.cmdline_file, file_contents)
+    else:
+      self._saved_cmdline = ''.join(self._adb.Adb().GetFileContents(
+          self._backend_settings.cmdline_file) or [])
+      self._adb.Adb().SetFileContents(self._backend_settings.cmdline_file,
+                                      file_contents)
 
   def Start(self):
     self._adb.RunShellCommand('logcat -c')
@@ -260,13 +275,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-
-    if self._saved_cmdline:
-      self._adb.Adb().SetProtectedFileContents(
-          self._backend_settings.cmdline_file,
-          self._saved_cmdline)
-    else:
-      self._adb.RunShellCommand('rm %s' % self._backend_settings.cmdline_file)
+    self._SetCommandLineFile(self._saved_cmdline or '')
     self._adb.CloseApplication(self._backend_settings.package)
 
     if self._options.output_profile_path:
