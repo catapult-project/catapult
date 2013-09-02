@@ -16,6 +16,7 @@ from telemetry.core.backends.chrome import inspector_page
 from telemetry.core.backends.chrome import inspector_runtime
 from telemetry.core.backends.chrome import inspector_timeline
 from telemetry.core.backends.chrome import websocket
+from telemetry.core.jsheap import model
 
 class InspectorException(Exception):
   pass
@@ -294,7 +295,7 @@ class InspectorBackend(object):
         self._HandleNotification(res)
         continue
 
-      if res['id'] != req['id']:
+      if 'id' not in res or res['id'] != req['id']:
         logging.debug('Dropped reply: %s', json.dumps(res))
         continue
       return res
@@ -324,3 +325,34 @@ class InspectorBackend(object):
 
   def CollectGarbage(self):
     self._page.CollectGarbage()
+
+  def TakeJSHeapSnapshot(self, timeout=120):
+    # This is a hack to make the nested function be able to modify the
+    # variables.
+    snapshot_uid = [0]
+    snapshot = [[]]
+
+    def OnNotification(res):
+      if res['method'] == 'HeapProfiler.addProfileHeader':
+        snapshot_uid[0] = res['params']['header']['uid']
+      elif res['method'] == 'HeapProfiler.addHeapSnapshotChunk':
+        snapshot[0].append(res['params']['chunk'])
+      elif res['method'] == 'HeapProfiler.finishHeapSnapshot':
+        snapshot[0] = ''.join(snapshot[0])
+
+    def OnClose():
+      pass
+
+    self.RegisterDomain('HeapProfiler', OnNotification, OnClose)
+
+    self.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
+    self.SyncRequest({'method': 'Debugger.enable'}, timeout)
+    self.SyncRequest({'method': 'HeapProfiler.clearProfiles'}, timeout)
+    self.SyncRequest({'method': 'HeapProfiler.takeHeapSnapshot',
+                      'params': {'detailed': True}}, timeout)
+    self.SyncRequest({'method': 'HeapProfiler.getHeapSnapshot',
+                      'params': {'uid': snapshot_uid[0]}}, timeout)
+
+    self.UnregisterDomain('HeapProfiler')
+
+    return model.JsHeapSnapshotModel(snapshot[0])
