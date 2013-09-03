@@ -128,6 +128,7 @@ base.exportTo('cc', function() {
   ObjectSnapshot.register('cc::TextureLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::TiledLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::VideoLayerImpl', LayerImplSnapshot);
+  ObjectSnapshot.register('cc::PaintedScrollbarLayerImpl', LayerImplSnapshot);
 
   return {
     LayerImplSnapshot: LayerImplSnapshot,
