@@ -377,16 +377,6 @@ base.exportTo('tracing', function() {
       ctx.restore();
     },
 
-    drawMarkerArrows: function(ctx, viewLWorld, viewRWorld, drawHeight) {
-      for (var i = 0; i < this.markers.length; ++i) {
-        var marker = this.markers[i];
-        var ts = marker.positionWorld;
-        if (ts < viewLWorld || ts > viewRWorld)
-          continue;
-        marker.drawArrow(ctx, drawHeight);
-      }
-    },
-
     drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
       // Dim the area left and right of the markers if there are 2 markers.
       var dt = this.currentDisplayTransform;
@@ -426,6 +416,17 @@ base.exportTo('tracing', function() {
       }
 
       ctx.lineWidth = 1;
+    },
+
+    drawMarkerIndicators: function(ctx, viewLWorld, viewRWorld) {
+      for (var i = 0; i < this.markers.length; ++i) {
+        var marker = this.markers[i];
+        var ts = marker.positionWorld;
+        if (ts < viewLWorld || ts >= viewRWorld)
+          continue;
+
+        marker.drawIndicator(ctx);
+      }
     },
 
     rebuildEventToTrackMap: function() {
@@ -492,26 +493,6 @@ base.exportTo('tracing', function() {
       return this.selected ? 'rgb(255, 0, 0)' : 'rgb(0, 0, 0)';
     },
 
-    drawArrow: function(ctx, height) {
-      var dt = this.viewport_.currentDisplayTransform;
-      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
-      var pixelRatio = window.devicePixelRatio || 1;
-
-      // Apply subpixel translate to get crisp lines.
-      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
-      ctx.save();
-      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
-
-      tracing.drawTriangle(ctx,
-          viewX, height,
-          viewX - 3 * devicePixelRatio, height / 2,
-          viewX + 3 * devicePixelRatio, height / 2);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-
-      ctx.restore();
-    },
-
     drawLine: function(ctx, height) {
       var dt = this.viewport_.currentDisplayTransform;
       var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
@@ -526,24 +507,37 @@ base.exportTo('tracing', function() {
       ctx.strokeStyle = this.color;
       ctx.stroke();
 
-      if (this.snapIndicator_.show) {
-        var pixelRatio = window.devicePixelRatio || 1;
-        var viewY = this.snapIndicator_.y * devicePixelRatio;
-        var viewHeight = this.snapIndicator_.height * devicePixelRatio;
-        var arrowSize = 4 * pixelRatio;
+      ctx.restore();
+    },
 
-        ctx.fillStyle = this.color;
-        tracing.drawTriangle(ctx,
-            viewX - arrowSize * 0.75, viewY,
-            viewX + arrowSize * 0.75, viewY,
-            viewX, viewY + arrowSize);
-        ctx.fill();
-        tracing.drawTriangle(ctx,
-            viewX - arrowSize * 0.75, viewY + viewHeight,
-            viewX + arrowSize * 0.75, viewY + viewHeight,
-            viewX, viewY + viewHeight - arrowSize);
-        ctx.fill();
-      }
+    drawIndicator: function(ctx) {
+      if (!this.snapIndicator_.show)
+        return;
+
+      var dt = this.viewport_.currentDisplayTransform;
+      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
+
+      // Apply subpixel translate to get crisp lines.
+      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
+      ctx.save();
+      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var viewY = this.snapIndicator_.y * devicePixelRatio;
+      var viewHeight = this.snapIndicator_.height * devicePixelRatio;
+      var arrowSize = 4 * pixelRatio;
+
+      ctx.fillStyle = this.color;
+      tracing.drawTriangle(ctx,
+          viewX - arrowSize * 0.75, viewY,
+          viewX + arrowSize * 0.75, viewY,
+          viewX, viewY + arrowSize);
+      ctx.fill();
+      tracing.drawTriangle(ctx,
+          viewX - arrowSize * 0.75, viewY + viewHeight,
+          viewX + arrowSize * 0.75, viewY + viewHeight,
+          viewX, viewY + viewHeight - arrowSize);
+      ctx.fill();
 
       ctx.restore();
     },

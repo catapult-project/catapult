@@ -59,6 +59,9 @@ base.exportTo('tracing.tracks', function() {
         case tracing.tracks.DrawType.SLICE:
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
+        case tracing.tracks.DrawType.MARKERS:
+          this.viewport.drawMarkerLines(this.context(), viewLWorld, viewRWorld);
+          break;
       }
     },
 
@@ -77,8 +80,6 @@ base.exportTo('tracing.tracks', function() {
 
       var vp = this.viewport;
       var dt = vp.currentDisplayTransform;
-
-      vp.drawMarkerArrows(ctx, viewLWorld, viewRWorld, rulerHeight);
 
       var idealMajorMarkDistancePix = 150 * pixelRatio;
       var idealMajorMarkDistanceWorld =

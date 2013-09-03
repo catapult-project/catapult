@@ -157,6 +157,12 @@ base.exportTo('tracing.tracks', function() {
               1);
 
           break;
+
+        case tracing.tracks.DrawType.MARKERS:
+          this.viewport.drawMarkerLines(ctx, viewLWorld, viewRWorld);
+          this.viewport.drawMarkerIndicators(ctx, viewLWorld, viewRWorld);
+          ctx.restore();
+          return;
       }
       ctx.restore();
 

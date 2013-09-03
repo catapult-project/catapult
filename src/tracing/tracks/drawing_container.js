@@ -16,7 +16,8 @@ base.exportTo('tracing.tracks', function() {
     INSTANT_EVENT: 2,
     BACKGROUND: 3,
     GRID: 4,
-    FLOW_ARROWS: 5
+    FLOW_ARROWS: 5,
+    MARKERS: 6
   };
 
   var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
@@ -74,7 +75,8 @@ base.exportTo('tracing.tracks', function() {
         DrawType.BACKGROUND,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
-        DrawType.SLICE
+        DrawType.SLICE,
+        DrawType.MARKERS
       ];
       if (this.viewport.showFlowEvents)
         typesToDraw.push(DrawType.FLOW_ARROWS);
@@ -95,7 +97,6 @@ base.exportTo('tracing.tracks', function() {
           bounds.width * pixelRatio);
 
       this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
-      this.viewport.drawMarkerLines(this.ctx_, viewLWorld, viewRWorld);
     },
 
     updateCanvasSizeIfNeeded_: function() {
