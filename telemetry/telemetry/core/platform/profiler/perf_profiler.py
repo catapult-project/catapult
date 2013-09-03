@@ -10,27 +10,42 @@ import subprocess
 import sys
 import tempfile
 
+from telemetry.core import util
 from telemetry.core.platform import profiler
 
 
 class _SingleProcessPerfProfiler(object):
   """An internal class for using perf for a given process."""
-  def __init__(self, pid, output_file, platform_backend):
+  def __init__(self, pid, output_file, browser_backend, platform_backend):
     self._pid = pid
+    self._browser_backend = browser_backend
     self._platform_backend = platform_backend
     self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
-    self._proc = subprocess.Popen(
-        ['perf', 'record', '--call-graph',
+    self._is_android = platform_backend.GetOSName() == 'android'
+    cmd_prefix = []
+    if self._is_android:
+      cmd_prefix = ['adb', '-s', browser_backend.adb.device(), 'shell',
+                    '/data/local/tmp/perf']
+      output_file = os.path.join('/sdcard', os.path.basename(output_file))
+    else:
+      cmd_prefix = ['perf']
+    self._proc = subprocess.Popen(cmd_prefix +
+        ['record', '--call-graph',
          '--pid', str(pid), '--output', output_file],
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def CollectProfile(self):
     if ('renderer' in self._output_file and
+        not self._is_android and
         not self._platform_backend.GetCommandLine(self._pid)):
       logging.warning('Renderer was swapped out during profiling. '
                       'To collect a full profile rerun with '
                       '"--extra-browser-args=--single-process"')
+    if self._is_android:
+      perf_pids = self._browser_backend.adb.Adb().ExtractPid('perf')
+      self._browser_backend.adb.Adb().RunShellCommand(
+          'kill -SIGINT ' + ' '.join(perf_pids))
     self._proc.send_signal(signal.SIGINT)
     exit_code = self._proc.wait()
     try:
@@ -46,8 +61,32 @@ Try rerunning this script under sudo or setting
                                                             self._GetStdOut()))
     finally:
       self._tmp_output_file.close()
+    cmd = 'perf report'
+    if self._is_android:
+      self._browser_backend.adb.Adb().Adb().Pull(
+          os.path.join('/sdcard', os.path.basename(self._output_file)),
+          self._output_file)
+      host_symfs = os.path.join(os.path.dirname(self._output_file),
+                                'data', 'app-lib')
+      if not os.path.exists(host_symfs):
+        os.makedirs(host_symfs)
+        # On Android, the --symfs parameter needs to map a directory structure
+        # similar to the device, that is:
+        # --symfs=/tmp/foobar and then inside foobar there'll be something like
+        # /tmp/foobar/data/app-lib/$PACKAGE/libname.so
+        # Assume the symbolized library under out/Release/lib is equivalent to
+        # the one in the device, and symlink it in the host to match --symfs.
+        device_dir = filter(
+            lambda app_lib: app_lib.startswith(self._browser_backend.package),
+            self._browser_backend.adb.Adb().RunShellCommand('ls /data/app-lib'))
+        os.symlink(os.path.join(util.GetChromiumSrcDir(),
+                                'out', 'Release', 'lib'),
+                   os.path.join(host_symfs, device_dir[0]))
+      print 'On Android, assuming out/Release/lib has a fresh symbolized '
+      print 'library matching the one on device.'
+      cmd = 'perfhost report --symfs %s' % os.path.dirname(self._output_file)
     print 'To view the profile, run:'
-    print '  perf report -n -i %s' % self._output_file
+    print '  %s -n -i %s' % (cmd, self._output_file)
     return self._output_file
 
   def _GetStdOut(self):
@@ -70,7 +109,8 @@ class PerfProfiler(profiler.Profiler):
       if 'zygote' in output_file:
         continue
       self._process_profilers.append(
-          _SingleProcessPerfProfiler(pid, output_file, platform_backend))
+          _SingleProcessPerfProfiler(
+              pid, output_file, browser_backend, platform_backend))
 
   @classmethod
   def name(cls):
@@ -80,9 +120,12 @@ class PerfProfiler(profiler.Profiler):
   def is_supported(cls, options):
     if sys.platform != 'linux2':
       return False
-    if options and (options.browser_type.startswith('android')
-                    or options.browser_type.startswith('cros')):
+    if options and options.browser_type.startswith('cros'):
       return False
+    return cls._CheckLinuxPerf() or cls._CheckAndroidPerf()
+
+  @classmethod
+  def _CheckLinuxPerf(cls):
     try:
       return not subprocess.Popen(['perf', '--version'],
                                   stderr=subprocess.STDOUT,
@@ -95,6 +138,16 @@ class PerfProfiler(profiler.Profiler):
     options.AppendExtraBrowserArg('--no-sandbox')
     options.AppendExtraBrowserArg('--allow-sandbox-debugging')
 
+  @classmethod
+  def _CheckAndroidPerf(cls):
+    try:
+      return not subprocess.Popen(['perfhost', '--version'],
+                                  stderr=subprocess.STDOUT,
+                                  stdout=subprocess.PIPE).wait()
+    except OSError:
+      return False
+
+
   def CollectProfile(self):
     output_files = []
     for single_process in self._process_profilers:
@@ -102,13 +155,16 @@ class PerfProfiler(profiler.Profiler):
     return output_files
 
   @classmethod
-  def GetTopSamples(cls, file_name, number):
+  def GetTopSamples(cls, os_name, file_name, number):
     """Parses the perf generated profile in |file_name| and returns a
     {function: period} dict of the |number| hottests functions.
     """
     assert os.path.exists(file_name)
+    cmd = 'perf'
+    if os_name == 'android':
+      cmd = 'perfhost'
     report = subprocess.Popen(
-        ['perf', 'report', '--show-total-period', '-U', '-t', '^', '-i',
+        [cmd, 'report', '--show-total-period', '-U', '-t', '^', '-i',
          file_name],
         stdout=subprocess.PIPE, stderr=open(os.devnull, 'w')).communicate()[0]
     period_by_function = {}
