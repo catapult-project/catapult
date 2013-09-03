@@ -138,7 +138,7 @@ base.exportTo('tracing', function() {
       dlg.appendChild(node);
 
       function onClick(e) {
-        dlg.visible = true;
+        dlg.visible = !dlg.visible;
 
         var mod = base.isMac ? 'cmd ' : 'ctrl';
         var spans = helpTextEl.querySelectorAll('span.mod');
