@@ -391,7 +391,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       page_state.ImplicitPageNavigation(page, tab, test)
     test.Run(finder_options, page, tab, results)
     util.CloseConnections(tab)
-  except page_test.Failure:
+  except (page_test.Failure, LookupError):
     logging.warning('%s:\n%s', page.url, traceback.format_exc())
     if expectation == 'fail':
       logging.info('Failure was expected\n')
