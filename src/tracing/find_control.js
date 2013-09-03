@@ -51,6 +51,10 @@ base.exportTo('tracing', function() {
         }
       }.bind(this));
 
+      this.filterEl_.addEventListener('keypress', function(e) {
+        e.stopPropagation();
+      });
+
       this.filterEl_.addEventListener('blur', function(e) {
         this.updateHitCountEl_();
       }.bind(this));
