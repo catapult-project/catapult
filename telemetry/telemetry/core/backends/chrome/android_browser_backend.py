@@ -11,6 +11,7 @@ import time
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
+from telemetry.core.backends import android_rndis
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
 
@@ -170,6 +171,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if finder_options.profile_dir:
         self._backend_settings.PushProfile(finder_options.profile_dir)
 
+    # Pre-configure RNDIS forwarding.
+    self._rndis_forwarder = None
+    if finder_options.android_rndis:
+      self._rndis_forwarder = android_rndis.RndisForwarderWithRoot(self._adb)
+      self.WEBPAGEREPLAY_HOST = self._rndis_forwarder.host_ip
+    # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
+    self._override_dns = False
+
     self._SetUpCommandLine()
 
   def _SetUpCommandLine(self):
@@ -245,6 +254,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
+    if self._override_dns:
+      args = [arg for arg in args
+              if not arg.startswith('--host-resolver-rules')]
     args.append('--enable-remote-debugging')
     args.append('--no-restore-state')
     args.append('--disable-fre')
@@ -321,5 +333,21 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 
+  def AddReplayServerOptions(self, options):
+    """Override. Only add --no-dns_forwarding if not using RNDIS."""
+    if not self._override_dns:
+      options.append('--no-dns_forwarding')
+
   def CreateForwarder(self, *port_pairs):
+    if self._rndis_forwarder:
+      forwarder = self._rndis_forwarder
+      forwarder.SetPorts(*port_pairs)
+      assert self.WEBPAGEREPLAY_HOST == forwarder.host_ip, (
+        'Host IP address on the RNDIS interface changed. Must restart browser!')
+      if self._override_dns:
+        forwarder.OverrideDns()
+      return forwarder
+    assert not self._override_dns, ('The user-space forwarder does not support '
+                                    'DNS override!')
+    logging.warning('Using the user-space forwarder.\n')
     return adb_commands.Forwarder(self._adb, *port_pairs)

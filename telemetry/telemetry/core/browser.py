@@ -305,12 +305,7 @@ class Browser(object):
         archive_path,
         use_record_mode,
         append_to_existing_wpr,
-        make_javascript_deterministic,
-        self._browser_backend.WEBPAGEREPLAY_HOST,
-        self._browser_backend.webpagereplay_local_http_port,
-        self._browser_backend.webpagereplay_local_https_port,
-        self._browser_backend.webpagereplay_remote_http_port,
-        self._browser_backend.webpagereplay_remote_https_port)
+        make_javascript_deterministic)
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()

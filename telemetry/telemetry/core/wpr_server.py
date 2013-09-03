@@ -12,38 +12,20 @@ import webpagereplay  # pylint: disable=F0401
 def GetChromeFlags(replay_host, http_port, https_port):
   return webpagereplay.GetChromeFlags(replay_host, http_port, https_port)
 
-class _WebPageReplayServer(webpagereplay.ReplayServer): # pylint: disable=W0232
-  def _AddDefaultReplayOptions(self):
-    """Override. Because '--no-dns_forwarding' is added by default in parent
-       while webdriver-based backends need dns forwarding."""
-    self.replay_options += [
-        '--port', str(self._http_port),
-        '--ssl_port', str(self._https_port),
-        '--use_closest_match',
-        '--log_level', 'warning'
-        ]
-
 class ReplayServer(object):
   def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
-               make_javascript_deterministic, webpagereplay_host,
-               webpagereplay_local_http_port, webpagereplay_local_https_port,
-               webpagereplay_remote_http_port, webpagereplay_remote_https_port):
+               make_javascript_deterministic):
     self._browser_backend = browser_backend
     self._forwarder = None
     self._web_page_replay = None
     self._is_record_mode = is_record_mode
     self._is_append_mode = is_append_mode
-    self._webpagereplay_host = webpagereplay_host
-    self._webpagereplay_local_http_port = webpagereplay_local_http_port
-    self._webpagereplay_local_https_port = webpagereplay_local_https_port
-    self._webpagereplay_remote_http_port = webpagereplay_remote_http_port
-    self._webpagereplay_remote_https_port = webpagereplay_remote_https_port
 
     self._forwarder = browser_backend.CreateForwarder(
-        util.PortPair(self._webpagereplay_local_http_port,
-                      self._webpagereplay_remote_http_port),
-        util.PortPair(self._webpagereplay_local_https_port,
-                      self._webpagereplay_remote_https_port))
+        util.PortPair(browser_backend.webpagereplay_local_http_port,
+                      browser_backend.webpagereplay_remote_http_port),
+        util.PortPair(browser_backend.webpagereplay_local_https_port,
+                      browser_backend.webpagereplay_remote_https_port))
 
     options = browser_backend.finder_options.extra_wpr_args
     if self._is_record_mode:
@@ -54,12 +36,15 @@ class ReplayServer(object):
     if not make_javascript_deterministic:
       options.append('--inject_scripts=')
     browser_backend.AddReplayServerOptions(options)
-    self._web_page_replay = _WebPageReplayServer(
+    self._web_page_replay = webpagereplay.ReplayServer(
         path,
-        self._webpagereplay_host,
-        self._webpagereplay_local_http_port,
-        self._webpagereplay_local_https_port,
+        browser_backend.WEBPAGEREPLAY_HOST,
+        browser_backend.webpagereplay_local_http_port,
+        browser_backend.webpagereplay_local_https_port,
         options)
+    # Remove --no-dns_forwarding if it wasn't explicitly requested by backend.
+    if '--no-dns_forwarding' not in options:
+      self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     self._web_page_replay.StartServer()
 
   def __enter__(self):

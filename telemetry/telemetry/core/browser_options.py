@@ -174,6 +174,11 @@ class BrowserFinderOptions(optparse.Values):
         'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
+    group.add_option('--android-rndis', dest='android_rndis', default=False,
+        action='store_true', help='Use RNDIS forwarding on Android.')
+    group.add_option('--no-android-rndis', dest='android_rndis',
+        action='store_false', help='Do not use RNDIS forwarding on Android.'
+        ' [default]')
     parser.add_option_group(group)
 
     # Repeat options

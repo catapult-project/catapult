@@ -167,11 +167,6 @@ class Forwarder(object):
     self._port_pairs = new_port_pairs
     forwarder.Forwarder.Map(new_port_pairs, self._adb)
 
-  @staticmethod
-  def _GetBuildType():
-    assert HasForwarder()
-    return 'Debug' if HasForwarder('Debug') else 'Release'
-
   @property
   def url(self):
     return 'http://localhost:%i' % self._host_port
