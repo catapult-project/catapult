@@ -107,8 +107,10 @@ base.exportTo('tracing', function() {
    * @param {float} viewLWorld The right most point of the world viewport.
    * @param {float} viewHeight The height of the viewport.
    * @param {Array} slices The slices to draw.
+   * @param {bool} async Whether the slices are drawn with async style.
    */
-  function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices) {
+  function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices,
+                      async) {
     var pixelRatio = window.devicePixelRatio || 1;
     var height = viewHeight * pixelRatio;
 
@@ -145,7 +147,9 @@ base.exportTo('tracing', function() {
           slice.colorId + highlightIdBoost :
           slice.colorId;
 
-      tr.fillRect(x, w, colorId);
+      var alpha = async ? 0.25 : 1.0;
+
+      tr.fillRect(x, w, colorId, alpha);
     }
     tr.flush();
     ctx.restore();
@@ -219,8 +223,9 @@ base.exportTo('tracing', function() {
    * @param {float} viewLWorld The left most point of the world viewport.
    * @param {float} viewLWorld The right most point of the world viewport.
    * @param {Array} slices The slices to label.
+   * @param {bool} async Whether the slice labels are drawn with async style.
    */
-  function drawLabels(ctx, dt, viewLWorld, viewRWorld, slices) {
+  function drawLabels(ctx, dt, viewLWorld, viewRWorld, slices, async) {
     var pixelRatio = window.devicePixelRatio || 1;
     var pixWidth = dt.xViewVectorToWorld(1);
 
@@ -231,6 +236,9 @@ base.exportTo('tracing', function() {
     ctx.font = (10 * pixelRatio) + 'px sans-serif';
     ctx.strokeStyle = 'rgb(0,0,0)';
     ctx.fillStyle = 'rgb(0,0,0)';
+
+    if (async)
+      ctx.font = 'italic ' + ctx.font;
 
     var lowSlice = base.findLowIndexInSortedArray(
         slices,

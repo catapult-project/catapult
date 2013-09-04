@@ -21,7 +21,8 @@
  *
  * - Rather than expending compute cycles trying to figure out an average
  *   color for fused rectangles from css strings, you instead draw using
- *   palletized colors. The fused rect is the max pallete index encountered.
+ *   palletized colors. The fused rect color is choosen from the rectangle with
+ *   the higher alpha value, if equal the max pallete index encountered.
  *
  * Make sure to flush the trackRenderer before finishing drawing in order
  * to commit any queued drawing operations.
@@ -54,6 +55,8 @@ base.exportTo('tracing', function() {
     merging_: false,
     mergeStartX_: 0,
     mergeCurRight_: 0,
+    mergedColorId_: 0,
+    mergedAlpha_: 0,
 
     /**
      * Changes the y position and height for subsequent fillRect
@@ -71,8 +74,9 @@ base.exportTo('tracing', function() {
      * The drawing operation may not take effect until flush is called.
      * @param {number} colorId The color of this rectangle, as an index
      *     in the renderer's color pallete.
+     * @param {number} alpha The opacity of the rectangle as 0.0-1.0 number.
      */
-    fillRect: function(x, w, colorId) {
+    fillRect: function(x, w, colorId, alpha) {
       var r = x + w;
       if (w < this.minRectSize_) {
         if (r - this.mergeStartX_ > this.maxMergeDist_)
@@ -81,15 +85,22 @@ base.exportTo('tracing', function() {
           this.merging_ = true;
           this.mergeStartX_ = x;
           this.mergeCurRight_ = r;
-          this.mergedColorId = colorId;
+          this.mergedColorId_ = colorId;
+          this.mergedAlpha_ = alpha;
         } else {
           this.mergeCurRight_ = r;
-          this.mergedColorId = Math.max(this.mergedColorId, colorId);
+
+          if (this.mergedAlpha_ < alpha ||
+              (this.mergedAlpha_ === alpha && this.mergedColorId_ < colorId)) {
+            this.mergedAlpha_ = alpha;
+            this.mergedColorId_ = colorId;
+          }
         }
       } else {
         if (this.merging_)
           this.flush();
         this.ctx_.fillStyle = this.pallette_[colorId];
+        this.ctx_.globalAlpha = alpha;
         this.ctx_.fillRect(x, this.y_, w, this.h_);
       }
     },
@@ -100,7 +111,8 @@ base.exportTo('tracing', function() {
      */
     flush: function() {
       if (this.merging_) {
-        this.ctx_.fillStyle = this.pallette_[this.mergedColorId];
+        this.ctx_.fillStyle = this.pallette_[this.mergedColorId_];
+        this.ctx_.globalAlpha = this.mergedAlpha_;
         this.ctx_.fillRect(this.mergeStartX_, this.y_,
                            this.mergeCurRight_ - this.mergeStartX_, this.h_);
         this.merging_ = false;

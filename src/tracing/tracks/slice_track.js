@@ -77,9 +77,6 @@ base.exportTo('tracing.tracks', function() {
       var ctx = this.context();
 
       ctx.save();
-      if (this.asyncStyle_)
-        ctx.globalAlpha = 0.25;
-
       var bounds = this.getBoundingClientRect();
       tracing.drawSlices(
           ctx,
@@ -87,7 +84,8 @@ base.exportTo('tracing.tracks', function() {
           viewLWorld,
           viewRWorld,
           bounds.height,
-          this.slices_);
+          this.slices_,
+          this.asyncStyle_);
       ctx.restore();
 
       if (bounds.height <= 8)
@@ -98,7 +96,8 @@ base.exportTo('tracing.tracks', function() {
           this.viewport.currentDisplayTransform,
           viewLWorld,
           viewRWorld,
-          this.slices_);
+          this.slices_,
+          this.asyncStyle_);
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
