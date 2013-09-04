@@ -705,8 +705,8 @@ base.exportTo('tracing.importer', function() {
       if (!event) {
         // Check if the event matches events traced by the Android framework
         var tag = eventBase.details.substring(0, 2);
-        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'C|' ||
-            tag == 'S|' || tag == 'F|') {
+        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'X|' ||
+            tag == 'C|' || tag == 'S|' || tag == 'F|') {
           eventBase.subEventName = 'android';
         } else {
           return false;

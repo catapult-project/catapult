@@ -254,6 +254,14 @@ base.exportTo('tracing.importer', function() {
       }
     },
 
+    processCompleteEvent: function(event) {
+      var thread = this.model_.getOrCreateProcess(event.pid)
+          .getOrCreateThread(event.tid);
+      thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
+          event.ts / 1000, event.dur / 1000,
+          this.deepCopyIfNeeded_(event.args));
+    },
+
     processMetadataEvent: function(event) {
       if (event.name == 'process_name') {
         var process = this.model_.getOrCreateProcess(event.pid);
@@ -341,6 +349,9 @@ base.exportTo('tracing.importer', function() {
         var event = events[eI];
         if (event.ph === 'B' || event.ph === 'E') {
           this.processDurationEvent(event);
+
+        } else if (event.ph === 'X') {
+          this.processCompleteEvent(event);
 
         } else if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T') {
           this.processAsyncEvent(event);

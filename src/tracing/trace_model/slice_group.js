@@ -77,6 +77,7 @@ base.exportTo('tracing.trace_model', function() {
      * Calls to beginSlice and
      * endSlice must be made with non-monotonically-decreasing timestamps.
      *
+     * @param {String} category Category name of the slice to add.
      * @param {String} title Title of the slice to add.
      * @param {Number} ts The timetsamp of the slice, in milliseconds.
      * @param {Object.<string, Object>=} opt_args Arguments associated with
@@ -139,6 +140,26 @@ base.exportTo('tracing.trace_model', function() {
       slice.duration = ts - slice.start;
       this.pushSlice(slice);
 
+      return slice;
+    },
+
+    /**
+     * Push a complete event as a Slice into the slice list.
+     * The timestamp can be in any order.
+     *
+     * @param {String} category Category name of the slice to add.
+     * @param {String} title Title of the slice to add.
+     * @param {Number} ts The timetsamp of the slice, in milliseconds.
+     * @param {Number} duration The duration of the slice, in milliseconds.
+     * @param {Object.<string, Object>=} opt_args Arguments associated with
+     * the slice.
+     */
+    pushCompleteSlice: function(category, title, ts, duration, opt_args) {
+      var colorId = tracing.getStringColorId(title);
+      var slice = new this.sliceConstructor(category, title, colorId, ts,
+                                            opt_args ? opt_args : {},
+                                            duration);
+      this.pushSlice(slice);
       return slice;
     },
 
