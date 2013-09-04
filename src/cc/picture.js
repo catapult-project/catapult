@@ -100,11 +100,10 @@ base.exportTo('cc', function() {
       }
 
       for (var opIndex = 0; opIndex < ops.length; opIndex++) {
-        var average = 0;
+        var min = Number.MAX_VALUE;
         for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
-          average += opTimings[i].cmd_times[opIndex];
-        average /= OPS_TIMING_ITERATIONS;
-        ops[opIndex].cmd_time = average;
+          min = Math.min(min, opTimings[i].cmd_times[opIndex]);
+        ops[opIndex].cmd_time = min;
       }
 
       return ops;
