@@ -17,10 +17,10 @@ base.exportTo('tracing.importer', function() {
     __proto__: Object.prototype,
 
     /**
-     * Called by the Model to extract a subtrace from the event data.
+     * Called by the Model to extract one or more subtraces from the event data.
      */
-    extractSubtrace: function() {
-      return undefined;
+    extractSubtraces: function() {
+      return [];
     },
 
     /**

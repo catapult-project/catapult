@@ -46,13 +46,12 @@ base.exportTo('tracing.importer', function() {
   ZipImporter.prototype = {
     __proto__: Importer.prototype,
 
-    extractSubtrace: function() {
+    extractSubtraces: function() {
       var zip = new JSZip(this.eventData_);
-
-      // TODO(dsinclair): We're only extracting the first file for now. Do
-      //    we want to pull all files out of the archive if multiple exist?
+      var subtraces = [];
       for (var idx in zip.files)
-        return zip.files[idx].asText();
+        subtraces.push(zip.files[idx].asText());
+      return subtraces;
     },
   };
 

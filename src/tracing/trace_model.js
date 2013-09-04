@@ -23,12 +23,14 @@
 base.require('base.range');
 base.require('base.events');
 base.require('base.interval_tree');
+base.require('tracing.importer.importer');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
 base.require('tracing.filter');
 
 base.exportTo('tracing', function() {
 
+  var Importer = tracing.importer.Importer;
   var Process = tracing.trace_model.Process;
   var Kernel = tracing.trace_model.Kernel;
 
@@ -248,14 +250,14 @@ base.exportTo('tracing', function() {
         importers.push(this.createImporter_(traces[i]));
 
       // Some traces have other traces inside them. Before doing the full
-      // import, ask the importer if it has any subtraces, and if so, create an
-      // importer for that, also.
+      // import, ask the importer if it has any subtraces, and if so, create
+      // importers for them, also.
       for (var i = 0; i < importers.length; i++) {
-        var subTrace = importers[i].extractSubtrace();
-        if (!subTrace)
-          continue;
-        traces.push(subTrace);
-        importers.push(this.createImporter_(subTrace));
+        var subtraces = importers[i].extractSubtraces();
+        for (var j = 0; j < subtraces.length; j++) {
+          traces.push(subtraces[j]);
+          importers.push(this.createImporter_(subtraces[j]));
+        }
       }
 
       // Sort them on priority. This ensures importing happens in a predictable
@@ -365,17 +367,7 @@ base.exportTo('tracing', function() {
   };
 
   TraceModelEmptyImporter.prototype = {
-    __proto__: Object.prototype,
-
-    extractSubtrace: function() {
-      return undefined;
-    },
-    importEvents: function() {
-    },
-    finalizeImport: function() {
-    },
-    joinRefs: function() {
-    }
+    __proto__: Importer.prototype,
   };
 
   TraceModel.registerImporter(TraceModelEmptyImporter);

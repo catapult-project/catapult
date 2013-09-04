@@ -30,7 +30,7 @@ base.unittest.testSuite('tracing.importer.gzip_importer', function() {
     gzip_data = tracing.importer.GzipImporter.escapeData_(gzip_data);
     var importer = new tracing.importer.GzipImporter(null, gzip_data);
     self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
-    self.assertEquals(original_data, importer.extractSubtrace());
+    self.assertEquals(original_data, importer.extractSubtraces()[0]);
   });
 
   test('inflateArrayBuffer', function() {
@@ -42,7 +42,7 @@ base.unittest.testSuite('tracing.importer.gzip_importer', function() {
       view[i] = gzip_data.charCodeAt(i);
     var importer = new tracing.importer.GzipImporter(null, buffer);
     self.assertTrue(tracing.importer.GzipImporter.canImport(buffer));
-    self.assertEquals(original_data, importer.extractSubtrace());
+    self.assertEquals(original_data, importer.extractSubtraces()[0]);
   });
 
   test('import', function() {

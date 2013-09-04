@@ -156,11 +156,12 @@ base.exportTo('tracing.importer', function() {
     __proto__: Importer.prototype,
 
     /**
-     * Called by the Model to extract a subtrace from the event data. The
-     * subtrace is passed on to other importers that can recognize it.
+     * Called by the Model to extract subtraces from the event data. The
+     * subtraces are passed on to other importers that can recognize them.
      */
-    extractSubtrace: function() {
-      return GzipImporter.inflateGzipData_(this.gzipData_);
+    extractSubtraces: function() {
+      var eventData = GzipImporter.inflateGzipData_(this.gzipData_);
+      return eventData ? [eventData] : [];
     },
   };
 

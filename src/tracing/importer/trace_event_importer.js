@@ -87,7 +87,7 @@ base.exportTo('tracing.importer', function() {
 
       // Some trace_event implementations put linux_perf_importer traces as a
       // huge string inside container.systemTraceEvents. If we see that, pull it
-      // out. It will be picked up by extractSubtrace later on.
+      // out. It will be picked up by extractSubtraces later on.
       this.systemTraceEvents_ = container.systemTraceEvents;
 
       // Any other fields in the container should be treated as metadata.
@@ -129,10 +129,10 @@ base.exportTo('tracing.importer', function() {
 
     __proto__: Importer.prototype,
 
-    extractSubtrace: function() {
+    extractSubtraces: function() {
       var tmp = this.systemTraceEvents_;
       this.systemTraceEvents_ = undefined;
-      return tmp;
+      return tmp ? [tmp] : [];
     },
 
     /**
