@@ -149,7 +149,9 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'SandboxedProces-2894  [001] ...1   253.780686: tracing_mark_write: B|2867|MessageLoop::RunTask|source=ipc/ipc_sync_message_filter.cc:Send|cat2', // @suppress longLineCheck
           'SandboxedProces-2894  [001] ...1   253.780700: tracing_mark_write: E|2867|MessageLoop::RunTask||cat1', // @suppress longLineCheck
           'SandboxedProces-2894  [001] ...1   253.780750: tracing_mark_write: C|2867|counter1|10|cat1', // @suppress longLineCheck
-          'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2' // @suppress longLineCheck
+          'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2', // @suppress longLineCheck
+          'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: S|2867|async|1113053968|arg1=1;arg2=2|cat1', // @suppress longLineCheck
+          'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: F|2867|async|1113053968|arg3=3|cat1' // @suppress longLineCheck
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
         assertFalse(m.hasImportWarnings);
@@ -177,6 +179,11 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
 
         assertEquals('1', thread.sliceGroup.slices[3].args['arg1']);
         assertEquals('2', thread.sliceGroup.slices[3].args['arg2']);
+
+        assertEquals(1, thread.asyncSliceGroup.length);
+        assertEquals('1', thread.asyncSliceGroup.slices[0].args['arg1']);
+        assertEquals('2', thread.asyncSliceGroup.slices[0].args['arg2']);
+        assertEquals('3', thread.asyncSliceGroup.slices[0].args['arg3']);
 
         var counters = m.getAllCounters();
         assertEquals(1, counters.length);

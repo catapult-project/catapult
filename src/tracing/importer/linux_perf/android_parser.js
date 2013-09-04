@@ -47,13 +47,13 @@ base.exportTo('tracing.importer.linux_perf', function() {
   AndroidParser.prototype = {
     __proto__: Parser.prototype,
 
-    openAsyncSlice: function(thread, category, name, cookie, ts) {
+    openAsyncSlice: function(thread, category, name, cookie, ts, args) {
       var slice = new tracing.trace_model.AsyncSlice(
           category, name, tracing.getStringColorId(name), ts);
-      var key = name + ':' + cookie;
+      var key = category + ':' + name + ':' + cookie;
       slice.id = cookie;
       slice.startThread = thread;
-
+      slice.args = args;
 
       if (!this.openAsyncSlices) {
         this.openAsyncSlices = { };
@@ -61,17 +61,29 @@ base.exportTo('tracing.importer.linux_perf', function() {
       this.openAsyncSlices[key] = slice;
     },
 
-    closeAsyncSlice: function(thread, name, cookie, ts) {
+    closeAsyncSlice: function(thread, category, name, cookie, ts, args) {
       if (!this.openAsyncSlices) {
         // No async slices have been started.
         return;
       }
 
-      var key = name + ':' + cookie;
+      var key = category + ':' + name + ':' + cookie;
       var slice = this.openAsyncSlices[key];
       if (!slice) {
         // No async slices w/ this key have been started.
         return;
+      }
+
+      for (var arg in args) {
+        if (slice.args[arg] !== undefined) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Both the S and F events of ' + slice.title +
+                ' provided values for argument ' + arg + '.' +
+                ' The value of the F event will be used.'
+          });
+        }
+        slice.args[arg] = args[arg];
       }
 
       slice.endThread = thread;
@@ -177,12 +189,15 @@ base.exportTo('tracing.importer.linux_perf', function() {
           var ppid = parseInt(eventData[1]);
           var name = eventData[2];
           var cookie = parseInt(eventData[3]);
+          var args = parseArgs(eventData[4]);
+          var category = eventData[5];
+
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
 
           this.ppids_[pid] = ppid;
-          this.openAsyncSlice(thread, null, name, cookie, ts);
+          this.openAsyncSlice(thread, category, name, cookie, ts, args);
 
           break;
 
@@ -198,8 +213,10 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
           var name = eventData[2];
           var cookie = parseInt(eventData[3]);
+          var args = parseArgs(eventData[4]);
+          var category = eventData[5];
 
-          this.closeAsyncSlice(thread, name, cookie, ts);
+          this.closeAsyncSlice(thread, category, name, cookie, ts, args);
 
           break;
 
