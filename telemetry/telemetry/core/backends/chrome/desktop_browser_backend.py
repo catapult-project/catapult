@@ -97,6 +97,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
+    # Temporarily disable vsync to see the effect on performance results.
+    # http://crbug.com/281709
+    args.append('--disable-gpu-vsync')
     if not self.is_content_shell:
       args.append('--window-size=1280,1024')
       if self._flash_path:
