@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import logging
 
-from telemetry.core import util
 from telemetry.page import test_expectations
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import navigate
@@ -198,9 +197,10 @@ class PageTest(object):
           if run_setup_methods:
             self.DidRunAction(page, tab, action)
 
-      # Closing the connections periodically is needed; otherwise we won't be
-      # able to open enough sockets, and the pages will time out.
-      util.CloseConnections(tab)
+      # Note that we must not call util.CloseConnections here. Many tests
+      # navigate to a URL in the first action and then wait for a condition
+      # in the second action. Calling util.CloseConnections here often
+      # aborts resource loads performed by the page.
 
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
