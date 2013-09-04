@@ -93,13 +93,11 @@ class CrOSInterface(object):
       return
 
     self._ssh_identity = None
-    self._hostfile = tempfile.NamedTemporaryFile()
-    self._hostfile.flush()
     self._ssh_args = ['-o ConnectTimeout=5',
                       '-o StrictHostKeyChecking=no',
                       '-o KbdInteractiveAuthentication=no',
                       '-o PreferredAuthentications=publickey',
-                      '-o UserKnownHostsFile=%s' % self._hostfile.name]
+                      '-o UserKnownHostsFile=/dev/null']
 
     if ssh_identity:
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
