@@ -18,8 +18,7 @@ class RepeatOptions(object):
     return RepeatOptions(self.page_repeat_secs, self.pageset_repeat_secs,
                          self.page_repeat_iters, self.pageset_repeat_iters)
 
-  @staticmethod
-  def AddCommandLineOptions(parser):
+  def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Repeat options')
     group.add_option('--page-repeat', dest='page_repeat', default='1',
                      help='Number of iterations or length of time to repeat '
@@ -35,8 +34,8 @@ class RepeatOptions(object):
                      'seconds.')
     parser.add_option_group(group)
 
-  def _ParseRepeatOption(self, browser_options, input_str, parser):
-    match = re.match('([0-9]+)([sS]?)$', str(getattr(browser_options,
+  def _ParseRepeatOption(self, finder_options, input_str, parser):
+    match = re.match('([0-9]+)([sS]?)$', str(getattr(finder_options,
                                                      input_str, '')))
     if match:
       if match.group(2):
@@ -45,15 +44,15 @@ class RepeatOptions(object):
         setattr(self, input_str + '_iters', 1)
       else:
         setattr(self, input_str + '_iters', int(match.group(1)))
-      delattr(browser_options, input_str)
+      delattr(finder_options, input_str)
     else:
       parser.error('Usage: --%s only accepts an int '
                    'followed by only an \'s\' if using time. '
                    'e.g. \'10\' or \'10s\'\n' % input_str.replace('_','-'))
 
-  def UpdateFromParseResults(self, browser_options, parser):
-    self._ParseRepeatOption(browser_options, 'page_repeat', parser)
-    self._ParseRepeatOption(browser_options, 'pageset_repeat', parser)
+  def UpdateFromParseResults(self, finder_options, parser):
+    self._ParseRepeatOption(finder_options, 'page_repeat', parser)
+    self._ParseRepeatOption(finder_options, 'pageset_repeat', parser)
 
   def IsRepeating(self):
     """Returns True if we will be repeating pages or pagesets."""

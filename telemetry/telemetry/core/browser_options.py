@@ -181,8 +181,8 @@ class BrowserFinderOptions(optparse.Values):
         ' [default]')
     parser.add_option_group(group)
 
-    # Repeat options
-    repeat_options.RepeatOptions.AddCommandLineOptions(parser)
+    # Repeat options.
+    self.repeat_options.AddCommandLineOptions(parser)
 
     real_parse = parser.parse_args
     def ParseArgs(args=None):
@@ -224,7 +224,7 @@ class BrowserFinderOptions(optparse.Values):
       if self.profile_type == 'default':
         self.dont_override_profile = True
 
-      # Parse repeat options
+      # Parse repeat options.
       self.repeat_options.UpdateFromParseResults(self, parser)
 
       if self.profile_dir and self.profile_type != 'clean':
