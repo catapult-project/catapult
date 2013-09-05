@@ -70,7 +70,7 @@ PageMeasurement.results_are_the_same_on_every_page to return False.
     self._did_output_header = True
     self._header_names_written_to_writer = list(all_measurement_names)
 
-    row = ['url']
+    row = ['page_name']
     for measurement_name in all_measurement_names:
       measurement_data = \
           self.all_measurements_that_have_been_seen[measurement_name]
@@ -78,7 +78,7 @@ PageMeasurement.results_are_the_same_on_every_page to return False.
     self._results_writer.writerow(row)
 
   def _OutputValuesForPage(self, page_values):
-    row = [page_values.page.display_url]
+    row = [page_values.page.display_name]
     for measurement_name in self._header_names_written_to_writer:
       value = page_values.FindValueByMeasurementName(measurement_name)
       if value:

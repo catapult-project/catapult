@@ -52,6 +52,7 @@ class Page(object):
     # These attributes can be set dynamically by the page.
     self.credentials = None
     self.disabled = False
+    self.name = None
     self.script_to_evaluate_on_commit = None
 
     if attributes:
@@ -88,14 +89,16 @@ class Page(object):
 
     return os.path.split(path)
 
-  # A version of this page's URL that's safe to use as a filename.
   @property
-  def url_as_file_safe_name(self):
+  def file_safe_name(self):
+    """A version of display_name that's safe to use as a filename."""
     # Just replace all special characters in the url with underscore.
-    return re.sub('[^a-zA-Z0-9]', '_', self.display_url)
+    return re.sub('[^a-zA-Z0-9]', '_', self.display_name)
 
   @property
-  def display_url(self):
+  def display_name(self):
+    if self.name:
+      return self.name
     if not self.is_local:
       return self.url
     url_paths = ['/'.join(p.url.strip('/').split('/')[:-1])

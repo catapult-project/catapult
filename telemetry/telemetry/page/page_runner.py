@@ -98,7 +98,7 @@ class _RunState(object):
   def StartProfiling(self, page, finder_options):
     if not self.profiler_dir:
       self.profiler_dir = tempfile.mkdtemp()
-    output_file = os.path.join(self.profiler_dir, page.url_as_file_safe_name)
+    output_file = os.path.join(self.profiler_dir, page.file_safe_name)
     if finder_options.repeat_options.IsRepeating():
       output_file = _GetSequentialFileName(output_file)
     self.browser.StartProfiling(finder_options.profiler, output_file)

@@ -53,7 +53,7 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.DidMeasurePage()
     self.assertEquals(
       self.output_header_row,
-      ['url', 'foo (seconds)'])
+      ['page_name', 'foo (seconds)'])
     self.assertEquals(
       self.output_data_rows[0],
       [self._page_set[0].url, '3'])
@@ -96,11 +96,11 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
 
     self.assertEquals(
       self.output_header_row,
-      ['url', 'bar (seconds)', 'foo (seconds)'])
+      ['page_name', 'bar (seconds)', 'foo (seconds)'])
     self.assertEquals(
       self.output_data_rows,
-      [[self._page_set[0].url, '-', '3'],
-       [self._page_set[1].url, '4', '-']])
+      [[self._page_set[0].display_name, '-', '3'],
+       [self._page_set[1].display_name, '4', '-']])
 
   def test_histogram(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, False)
@@ -120,8 +120,8 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
 
     self.assertEquals(
       self.output_header_row,
-      ['url', 'a ()'])
+      ['page_name', 'a ()'])
     self.assertEquals(
       self.output_data_rows,
-      [[self._page_set[0].url, '1.5'],
-       [self._page_set[1].url, '2.5']])
+      [[self._page_set[0].display_name, '1.5'],
+       [self._page_set[1].display_name, '2.5']])

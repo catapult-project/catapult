@@ -53,10 +53,10 @@ class BlockPageMeasurementResultsTest(unittest.TestCase):
     results.DidMeasurePage()
 
     expected = [
-      ['url', 'http://www.foo.com/'],
+      ['name', 'http://www.foo.com/'],
       ['foo (seconds)', '3'],
       [''],
-      ['url', 'http://www.bar.com/'],
+      ['name', 'http://www.bar.com/'],
       ['bar (seconds)', '4'],
       ['']
     ]

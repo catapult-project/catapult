@@ -34,16 +34,16 @@ class BuildbotPageMeasurementResults(
 
     # Print out the list of unique pages.
     # Use a set and a list to efficiently create an order preserving list of
-    # unique URLs.
-    unique_page_urls = []
-    unique_page_urls_set = set()
+    # unique page display_names.
+    unique_pages = []
+    unique_pages_set = set()
     for page_values in success_page_results:
-      url = page_values.page.display_url
-      if url in unique_page_urls_set:
+      name = page_values.page.display_name
+      if name in unique_pages_set:
         continue
-      unique_page_urls.append(url)
-      unique_page_urls_set.add(url)
-    perf_tests_helper.PrintPages(unique_page_urls)
+      unique_pages.append(name)
+      unique_pages_set.add(name)
+    perf_tests_helper.PrintPages(unique_pages)
 
     # Build the results summary.
     results_summary = defaultdict(list)
@@ -56,48 +56,51 @@ class BuildbotPageMeasurementResults(
         measurement_units_type = (measurement_name,
                                   value.units,
                                   value.data_type)
-        value_url = (value.value, page_values.page.display_url)
-        results_summary[measurement_units_type].append(value_url)
+        value_and_display_name = (value.value, page_values.page.display_name)
+        results_summary[measurement_units_type].append(value_and_display_name)
 
-    # Output the results summary sorted by name, then units, then data type.
-    for measurement_units_type, value_url_list in sorted(
+    # Output the results summary sorted by measurement name, then units, then
+    # data type.
+    for measurement_units_type, value_and_display_name_list in sorted(
         results_summary.iteritems()):
       measurement, units, data_type = measurement_units_type
 
       if 'histogram' in data_type:
-        by_url_data_type = 'unimportant-histogram'
+        by_name_data_type = 'unimportant-histogram'
       else:
-        by_url_data_type = 'unimportant'
+        by_name_data_type = 'unimportant'
       if '.' in measurement and 'histogram' not in data_type:
         measurement, trace = measurement.split('.', 1)
         trace += self._trace_tag
       else:
         trace = measurement + self._trace_tag
 
-      # Print individual _by_url results if there's more than 1 successful page,
-      # or if there's exactly 1 successful page but a failure exists.
-      if not self._trace_tag and (len(value_url_list) > 1 or
-          ((self.errors or self.failures) and len(value_url_list) == 1)):
-        url_value_map = defaultdict(list)
-        for value, url in value_url_list:
-          if 'histogram' in data_type and url_value_map[url]:
+      # Print individual _by_name results if there's more than 1 successful
+      # page, or if there's exactly 1 successful page but a failure exists.
+      if not self._trace_tag and (len(value_and_display_name_list) > 1 or
+          ((self.errors or self.failures) and
+           len(value_and_display_name_list) == 1)):
+        name_value_map = defaultdict(list)
+        for value, name in value_and_display_name_list:
+          if 'histogram' in data_type and name_value_map[name]:
             # TODO(tonyg/marja): The histogram processing code only accepts one
             # histogram, so we only report the first histogram. Once histograms
             # support aggregating multiple values, this can be removed.
             continue
-          url_value_map[url].append(value)
-        for url in unique_page_urls:
-          if not len(url_value_map[url]):
+          name_value_map[name].append(value)
+        for name in unique_pages:
+          if not len(name_value_map[name]):
             continue
-          self._PrintPerfResult(measurement + '_by_url', url,
-                                url_value_map[url], units, by_url_data_type)
+          self._PrintPerfResult(measurement + '_by_name', name,
+                                name_value_map[name], units, by_name_data_type)
 
       # If there were no page failures, print the average data.
-      # For histograms, we don't print the average data, only the _by_url,
-      # unless there is only 1 page in which case the _by_urls are omitted.
+      # For histograms, we don't print the average data, only the _by_name,
+      # unless there is only 1 page in which case the _by_names are omitted.
       if not (self.errors or self.failures):
-        if 'histogram' not in data_type or len(value_url_list) == 1:
-          values = [i[0] for i in value_url_list]
+        if ('histogram' not in data_type or
+            len(value_and_display_name_list) == 1):
+          values = [i[0] for i in value_and_display_name_list]
           if isinstance(values[0], list):
             values = list(chain.from_iterable(values))
           self._PrintPerfResult(measurement, trace, values, units, data_type)

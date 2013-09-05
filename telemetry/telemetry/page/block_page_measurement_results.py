@@ -19,8 +19,8 @@ class BlockPageMeasurementResults(
       super(BlockPageMeasurementResults, self).DidMeasurePage()
       return
 
-    lines = ['url: %s' %
-             self.values_for_current_page.page.url]
+    lines = ['name: %s' %
+             self.values_for_current_page.page.display_name]
     sorted_measurement_names = page_values.measurement_names
     sorted_measurement_names.sort()
 
