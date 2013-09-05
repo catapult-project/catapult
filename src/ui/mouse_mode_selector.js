@@ -261,7 +261,7 @@ base.exportTo('ui', function() {
           base.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
       }
 
-      if (this.settingsKey_)
+      if (this.settingsKey_ && !this.isInAlternativeMode_)
         base.Settings.set(this.settingsKey_ + '.mode', this.mode);
     },
 
