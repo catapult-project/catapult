@@ -122,7 +122,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     return False
 
   def FlushEntireSystemCache(self):
-    cache_control = perf_tests_helper.CacheControl(self._adb.Adb())
+    cache_control = perf_tests_helper.CacheControl(self._adb)
     cache_control.DropRamCaches()
 
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
