@@ -82,6 +82,13 @@ base.exportTo('tracing.trace_model', function() {
 
     getSettingsKey: function() {
       return 'kernel';
+    },
+
+    iterateAllEvents: function(callback) {
+      for (var cpuNumber in this.cpus)
+        this.cpus[cpuNumber].iterateAllEvents(callback);
+
+      ProcessBase.prototype.iterateAllEvents.call(this, callback);
     }
   };
 

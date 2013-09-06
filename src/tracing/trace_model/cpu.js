@@ -231,6 +231,13 @@ base.exportTo('tracing.trace_model', function() {
       if (this.slices[i] !== cpuSlice)
         return undefined;
       return i;
+    },
+
+    iterateAllEvents: function(callback) {
+      this.slices.forEach(callback);
+
+      for (var id in this.counters)
+        this.counters[id].iterateAllEvents(callback);
     }
   };
 

@@ -278,6 +278,17 @@ base.exportTo('tracing.trace_model', function() {
       if (this.timeSlices[i] !== timeSlice)
         return undefined;
       return i;
+    },
+
+    iterateAllEvents: function(callback) {
+      this.sliceGroup.iterateAllEvents(callback);
+      this.kernelSliceGroup.iterateAllEvents(callback);
+      this.asyncSliceGroup.iterateAllEvents(callback);
+
+      if (this.timeSlices && this.timeSlices.length)
+        this.timeSlices.forEach(callback);
+
+      this.samples_.forEach(callback);
     }
   };
 

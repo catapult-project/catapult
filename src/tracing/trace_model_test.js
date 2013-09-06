@@ -249,4 +249,14 @@ base.unittest.testSuite('tracing.trace_model', function() {
     m.updateCategories_();
     assertArrayEquals(['categoryA', 'categoryB'], m.categories);
   });
+
+  test('traceModel_iterateAllEvents', function() {
+    var m = createTraceModelWithOneOfEverything();
+    var wasCalled = false;
+    m.iterateAllEvents(function(event) {
+      assertTrue(event instanceof tracing.trace_model.Event);
+      wasCalled = true;
+    });
+    assertTrue(wasCalled);
+  });
 });

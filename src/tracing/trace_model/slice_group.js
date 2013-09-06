@@ -218,6 +218,11 @@ base.exportTo('tracing.trace_model', function() {
           slice.args, slice.duration);
       newSlice.didNotFinish = slice.didNotFinish;
       return newSlice;
+    },
+
+    iterateAllEvents: function(callback) {
+      this.slices.forEach(callback);
+      this.openPartialSlices_.forEach(callback);
     }
   };
 

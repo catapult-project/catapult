@@ -37,7 +37,7 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
     var js = [
       '{',
       '  "guid_" : __S_GUID__,',
-      '  "selected": false,',
+      '  "selectionState": 0,',
       '  "start" : 0,',
       '  "duration" : 1,',
       '  "category" : "",',
@@ -48,7 +48,7 @@ base.unittest.testSuite('tracing.trace_model.async_slice_group', function() {
       '  "endThread" : __T1_GUID__,',
       '  "subSlices" : [ {',
       '        "guid_" : __SUB_S_GUID__,',
-      '        "selected": false,',
+      '        "selectionState": 0,',
       '        "start" : 0,',
       '        "duration" : 1,',
       '        "category" : "",',

@@ -107,6 +107,10 @@ base.exportTo('tracing.trace_model', function() {
         this.timestamps_[i] += amount;
         this.samples_[i].timestamp = this.timestamps_[i];
       }
+    },
+
+    iterateAllEvents: function(callback) {
+      this.samples_.forEach(callback);
     }
   };
 

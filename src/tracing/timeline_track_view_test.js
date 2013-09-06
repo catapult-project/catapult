@@ -9,6 +9,10 @@ base.require('tracing.timeline_track_view');
 base.require('tracing.importer.trace_event_importer');
 
 base.unittest.testSuite('tracing.timeline_track_view', function() {
+
+  var Selection = tracing.Selection;
+  var SelectionState = tracing.trace_model.SelectionState;
+
   var NoCountersFilter = function() {
   };
 
@@ -47,6 +51,37 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     matchThread: function(c) {
       return false;
     }
+  };
+
+  function contains(array, element) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] === element) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  function checkSelectionStates(timeline, selection, highlight) {
+    selection = selection || [];
+    highlight = highlight || [];
+
+    assertEquals(selection.length, timeline.selection.length);
+    assertEquals(highlight.length, timeline.highlight.length);
+
+    assertArrayEquals(selection, timeline.selection);
+    assertArrayEquals(highlight, timeline.highlight);
+
+    timeline.model.iterateAllEvents(function(event) {
+      if (contains(selection, event))
+        assertEquals(SelectionState.SELECTED, event.selectionState);
+      else if (contains(highlight, event))
+        assertEquals(SelectionState.HIGHLIGHTED, event.selectionState);
+      else if (highlight.length)
+        assertEquals(SelectionState.DIMMED, event.selectionState);
+      else
+        assertEquals(SelectionState.NONE, event.selectionState);
+    });
   };
 
   test('instantiate', function() {
@@ -174,5 +209,89 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
 
     timeline.categoryFilter = new NoThreadsFilter();
     assertFalse(timeline.hasVisibleContent);
+  });
+
+  test('selectionAndHighlight', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'ab', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'B'}
+    ];
+    var model = new tracing.TraceModel(events);
+    var timeline = new tracing.TimelineTrackView();
+    timeline.model = model;
+
+    var selection = new Selection();
+    timeline.addAllObjectsMatchingFilterToSelection(
+        new tracing.TitleFilter('a'), selection);
+
+    var highlight = new Selection();
+    timeline.addAllObjectsMatchingFilterToSelection(
+        new tracing.TitleFilter('b'), highlight);
+
+    // Test for faulty input.
+    assertThrows(function() {
+      timeline.selection = 'selection';
+    });
+
+    assertThrows(function() {
+      timeline.highlight = 1;
+    });
+
+    assertThrows(function() {
+      timeline.setSelectionAndHighlight(0, false);
+    });
+
+    // Check state after reset.
+    timeline.setSelectionAndHighlight(null, null);
+    checkSelectionStates(timeline, null, null);
+
+    // Add selection only.
+    timeline.selection = selection;
+    assertNotEquals(selection, timeline.selection);
+    checkSelectionStates(timeline, selection, null);
+
+    // Reset selection.
+    timeline.selection = null;
+    assertEquals(0, timeline.selection.length);
+    checkSelectionStates(timeline, null, null);
+
+    // Add highlight only.
+    timeline.highlight = highlight;
+    assertNotEquals(highlight, timeline.highlight);
+    checkSelectionStates(timeline, null, highlight);
+
+    // Reset highlight
+    timeline.highlight = null;
+    assertEquals(0, timeline.highlight.length);
+    checkSelectionStates(timeline, null, null);
+
+    // Add selection and highlight.
+    timeline.setSelectionAndHighlight(selection, highlight);
+    checkSelectionStates(timeline, selection, highlight);
+
+    // Selection replaces old selection.
+    var subSelection = selection.subSelection(0, 1);
+    timeline.selection = subSelection;
+    checkSelectionStates(timeline, subSelection, highlight);
+
+    // Highlight replaces old highlight.
+    var subHighlight = highlight.subSelection(1, 2);
+    timeline.highlight = subHighlight;
+    checkSelectionStates(timeline, subSelection, subHighlight);
+
+    // Set selection and clear highlight.
+    timeline.setSelectionAndClearHighlight(selection);
+    checkSelectionStates(timeline, selection, null);
+
+    // Set highlight and clear selection.
+    timeline.setHighlightAndClearSelection(highlight);
+    checkSelectionStates(timeline, null, highlight);
+
+    // Reset both.
+    timeline.setSelectionAndHighlight(null, null);
+    checkSelectionStates(timeline, null, null);
   });
 });

@@ -28,6 +28,7 @@ base.require('tracing.selection');
 base.require('tracing.timeline_viewport');
 base.require('tracing.timeline_display_transform_animations');
 base.require('tracing.timing_tool');
+base.require('tracing.trace_model.event');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
 base.require('tracing.tracks.ruler_track');
@@ -37,6 +38,7 @@ base.require('ui.mouse_mode_selector');
 base.exportTo('tracing', function() {
 
   var Selection = tracing.Selection;
+  var SelectionState = tracing.trace_model.SelectionState;
   var Viewport = tracing.TimelineViewport;
 
   var tempDisplayTransform = new tracing.TimelineDisplayTransform();
@@ -120,7 +122,9 @@ base.exportTo('tracing', function() {
 
       this.mouseViewPosAtMouseDown_ = {x: 0, y: 0};
       this.lastMouseViewPos_ = {x: 0, y: 0};
+
       this.selection_ = new Selection();
+      this.highlight_ = new Selection();
 
       this.isPanningAndScanning_ = false;
       this.isZooming_ = false;
@@ -390,7 +394,7 @@ base.exportTo('tracing', function() {
           sel = this.selection.getShiftedSelection(
               this.viewport, -1);
           if (sel) {
-            this.selection = sel;
+            this.setSelectionAndClearHighlight(sel);
             this.panToSelection();
             e.preventDefault();
           } else {
@@ -401,7 +405,7 @@ base.exportTo('tracing', function() {
           sel = this.selection.getShiftedSelection(
               this.viewport, 1);
           if (sel) {
-            this.selection = sel;
+            this.setSelectionAndClearHighlight(sel);
             this.panToSelection();
             e.preventDefault();
           } else {
@@ -443,7 +447,7 @@ base.exportTo('tracing', function() {
       var filter = new tracing.ExactTitleFilter(this.selection[0].title);
       this.addAllObjectsMatchingFilterToSelection(filter, selection);
 
-      this.selection = selection;
+      this.setSelectionAndClearHighlight(selection);
     },
 
     queueSmoothPan_: function(viewDeltaX, deltaY) {
@@ -487,10 +491,10 @@ base.exportTo('tracing', function() {
      * Zoom into the current selection.
      */
     zoomToSelection: function() {
-      if (!this.selection || !this.selection.length)
+      if (!this.selectionOfInterest.length)
         return;
 
-      var bounds = this.selection.bounds;
+      var bounds = this.selectionOfInterest.bounds;
       if (!bounds.range)
         return;
 
@@ -510,10 +514,10 @@ base.exportTo('tracing', function() {
      * Pan the view so the current selection becomes visible.
      */
     panToSelection: function() {
-      if (!this.selection || !this.selection.length)
+      if (!this.selectionOfInterest.length)
         return;
 
-      var bounds = this.selection.bounds;
+      var bounds = this.selectionOfInterest.bounds;
       var worldCenter = bounds.center;
       var viewWidth = this.modelTrackContainer_.canvas.width;
 
@@ -543,30 +547,148 @@ base.exportTo('tracing', function() {
       this.viewport.queueDisplayTransformAnimation(animation);
     },
 
+    /**
+     * Sets the selected events and changes the SelectionState of the events to
+     *   SELECTED.
+     * @param {Selection} selection A Selection of the new selected events.
+     */
+    set selection(selection) {
+      this.setSelectionAndHighlight(selection, this.highlight_);
+    },
+
     get selection() {
       return this.selection_;
     },
 
-    set selection(selection) {
-      if (!(selection instanceof Selection))
+    /**
+     * Sets the highlighted events and changes the SelectionState of the events
+     *   to HIGHLIGHTED. All other events are set to DIMMED, except SELECTED
+     *   ones.
+     * @param {Selection} selection A Selection of the new selected events.
+     */
+    set highlight(highlight) {
+      this.setSelectionAndHighlight(this.selection_, highlight);
+    },
+
+    get highlight() {
+      return this.highlight_;
+    },
+
+    /**
+     * Getter for events of interest, primarily SELECTED and secondarily
+     *   HIGHLIGHTED events.
+     */
+    get selectionOfInterest() {
+      if (!this.selection_.length && this.highlight_.length)
+        return this.highlight_;
+      return this.selection_;
+    },
+
+    /**
+     * Sets the selected events, changes the SelectionState of the events to
+     *   SELECTED and clears the highlighted events.
+     * @param {Selection} selection A Selection of the new selected events.
+     */
+    setSelectionAndClearHighlight: function(selection) {
+      this.setSelectionAndHighlight(selection, null);
+    },
+
+    /**
+     * Sets the highlighted events, changes the SelectionState of the events to
+     *   HIGHLIGHTED and clears the selected events. All other events are set to
+     *   DIMMED.
+     * @param {Selection} highlight A Selection of the new highlighted events.
+     */
+    setHighlightAndClearSelection: function(highlight) {
+      this.setSelectionAndHighlight(null, highlight);
+    },
+
+    /**
+     * Sets both selected and highlighted events. If an event is both it will be
+     *   set to SELECTED. All other events are set to DIMMED.
+     * @param {Selection} selection A Selection of the new selected events.
+     * @param {Selection} highlight A Selection of the new highlighted events.
+     */
+    setSelectionAndHighlight: function(selection, highlight) {
+      if (selection === this.selection_ && highlight === this.highlight_)
+        return;
+
+      if ((selection !== null && !(selection instanceof Selection)) ||
+          (highlight !== null && !(highlight instanceof Selection))) {
         throw new Error('Expected Selection');
+      }
 
-      // Clear old selection.
-      var i;
-      for (i = 0; i < this.selection_.length; i++)
-        this.selection_[i].selected = false;
+      if (highlight && highlight.length) {
+        // Set all events to DIMMED. This needs to be done before clearing the
+        // old highlight, so that the old events are still available. This is
+        // also necessary when the highlight doesn't change, because it might
+        // have overlapping events with selection.
+        this.resetEventsTo_(SelectionState.DIMMED);
 
-      this.selection_.clear();
-      this.selection_.addSelection(selection);
+        // Clear and update the current highlight.
+        if (highlight !== this.highlight_) {
+          this.highlight_.clear();
+          this.highlight_.addSelection(highlight);
+        }
+
+        // Set HIGHLIGHTED on the events of the new highlight.
+        this.setSelectionState_(highlight, SelectionState.HIGHLIGHTED);
+      } else {
+        // If no highlight is active the SelectionState needs to be cleared.
+        // Note that this also clears old SELECTED events, so it doesn't need
+        // to be called again when setting the selection.
+        this.resetEventsTo_(SelectionState.NONE);
+        this.highlight_.clear();
+      }
+
+      if (selection && selection.length) {
+        // Clear and update the current selection.
+        if (selection !== this.selection_) {
+          this.selection_.clear();
+          this.selection_.addSelection(selection);
+        }
+
+        // Set SELECTED on the events of the new highlight.
+        this.setSelectionState_(selection, SelectionState.SELECTED);
+      } else
+        this.selection.clear();
 
       base.dispatchSimpleEvent(this, 'selectionChange');
-      for (i = 0; i < this.selection_.length; i++)
-        this.selection_[i].selected = true;
-      if (this.selection_.length) {
-        var track = this.viewport.trackForEvent(this.selection_[0]);
+
+      if (this.selectionOfInterest.length) {
+        var track = this.viewport.trackForEvent(this.selectionOfInterest[0]);
         track.scrollIntoViewIfNeeded();
       }
+
       this.viewport.dispatchChangeEvent(); // Triggers a redraw.
+    },
+
+    /**
+     * Sets a new SelectionState on all events in the selection.
+     * @param {Selection} selection The affected selection.
+     * @param {SelectionState} selectionState The new selection state.
+     */
+    setSelectionState_: function(selection, selectionState) {
+      for (var i = 0; i < selection.length; i++)
+        selection[i].selectionState = selectionState;
+    },
+
+    /**
+     * Resets all events to the provided SelectionState. When the SelectionState
+     *   changes from or to DIMMED all events in the model need to get updated.
+     * @param {SelectionState} selectionState The SelectionState to reset to.
+     */
+    resetEventsTo_: function(selectionState) {
+      var dimmed = this.highlight_.length;
+      var resetAll = (dimmed && selectionState !== SelectionState.DIMMED) ||
+                     (!dimmed && selectionState === SelectionState.DIMMED);
+      if (resetAll) {
+        this.model.iterateAllEvents(
+            function(event) { event.selectionState = selectionState; });
+      } else {
+        this.setSelectionState_(this.selection_, selectionState);
+        this.setSelectionState_(this.highlight_, selectionState);
+      }
     },
 
     hideDragBox_: function() {
@@ -626,7 +748,7 @@ base.exportTo('tracing', function() {
     },
 
     onGridToggle_: function(left) {
-      var tb = left ? this.selection_.bounds.min : this.selection_.bounds.max;
+      var tb = left ? this.selection.bounds.min : this.selection.bounds.max;
 
       // Toggle the grid off if the grid is on, the marker position is the same
       // and the same element is selected (same timebase).
@@ -806,7 +928,7 @@ base.exportTo('tracing', function() {
           loVX, hiVX, loY, hiY, selection);
 
       // Activate the new selection.
-      this.selection = selection;
+      this.setSelectionAndClearHighlight(selection);
     },
 
     onBeginZoom_: function(e) {

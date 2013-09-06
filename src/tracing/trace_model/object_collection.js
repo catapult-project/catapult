@@ -179,6 +179,13 @@ base.exportTo('tracing.trace_model', function() {
     toJSON: function() {
       // TODO(nduca): Implement this if we need it.
       return {};
+    },
+
+    iterateAllEvents: function(callback) {
+      this.iterObjectInstances(function(instance) {
+        callback(instance);
+        instance.snapshots.forEach(callback);
+      });
     }
   };
 

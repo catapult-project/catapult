@@ -346,6 +346,19 @@ base.exportTo('tracing', function() {
 
     get importWarnings() {
       return this.importWarnings_;
+    },
+
+    /**
+     * Iterates all events in the model and calls callback on each event.
+     * @param {function(event)} callback The callback called for every event.
+     */
+    iterateAllEvents: function(callback) {
+      this.instantEvents.forEach(callback);
+
+      this.kernel.iterateAllEvents(callback);
+
+      for (var pid in this.processes)
+        this.processes[pid].iterateAllEvents(callback);
     }
   };
 

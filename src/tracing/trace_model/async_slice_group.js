@@ -83,6 +83,10 @@ base.exportTo('tracing.trace_model', function() {
         groups.push(group);
       }
       return groups;
+    },
+
+    iterateAllEvents: function(callback) {
+      this.slices.forEach(callback);
     }
   };
 

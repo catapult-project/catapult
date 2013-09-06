@@ -6,6 +6,7 @@
 
 base.require('tracing.test_utils');
 base.require('tracing.selection');
+base.require('tracing.trace_model.event');
 base.require('tracing.trace_model.object_collection');
 base.require('tracing.timeline_viewport');
 base.require('tracing.tracks.drawing_container');
@@ -33,7 +34,8 @@ base.unittest.testSuite('tracing.tracks.object_instance_track', function() {
   test('instantiate', function() {
     var objects = createObjects();
     var frames = objects.getAllInstancesByTypeName()['Frame'];
-    frames[0].snapshots[1].selected = true;
+    frames[0].snapshots[1].selectionState =
+        tracing.trace_model.SelectionState.SELECTED;
 
     var div = document.createElement('div');
     this.addHTMLOutput(div);

@@ -197,6 +197,16 @@ base.exportTo('tracing.trace_model', function() {
 
     getSettingsKey: function() {
       throw new Error('Not implemented');
+    },
+
+    iterateAllEvents: function(callback) {
+      for (var tid in this.threads)
+        this.threads[tid].iterateAllEvents(callback);
+
+      for (var id in this.counters)
+        this.counters[id].iterateAllEvents(callback);
+
+      this.objects.iterateAllEvents(callback);
     }
   };
 

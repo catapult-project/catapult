@@ -164,8 +164,12 @@ base.exportTo('tracing.trace_model', function() {
 
         this.maxTotal = Math.max(total, this.maxTotal);
       }
-    }
+    },
 
+    iterateAllEvents: function(callback) {
+      for (var i = 0; i < this.series_.length; i++)
+        this.series_[i].iterateAllEvents(callback);
+    }
   };
 
   /**

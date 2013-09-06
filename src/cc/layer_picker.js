@@ -10,6 +10,7 @@ base.require('cc.constants');
 base.require('cc.layer_tree_host_impl');
 base.require('cc.selection');
 base.require('tracing.analysis.generic_object_view');
+base.require('tracing.trace_model.event');
 base.require('ui.drag_handle');
 base.require('ui.list_view');
 base.require('ui.dom_helpers');
@@ -164,7 +165,7 @@ base.exportTo('cc', function() {
         this.layerList_.appendChild(item);
 
         if (layer.layerId == selectedLayerId)
-          layer.selected = true;
+          layer.selectionState = tracing.trace_model.SelectionState.SELECTED;
       }, this);
     },
 
