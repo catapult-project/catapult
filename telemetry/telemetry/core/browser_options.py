@@ -35,7 +35,6 @@ class BrowserFinderOptions(optparse.Values):
     self.profile_type = None
     self._extra_browser_args = set()
     self.extra_wpr_args = []
-    self.show_stdout = False
     self.extensions_to_load = []
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
@@ -56,6 +55,7 @@ class BrowserFinderOptions(optparse.Values):
     self.no_proxy_server = False
 
     self.repeat_options = repeat_options.RepeatOptions()
+    self.browser_options = BrowserOptions()
     self.output_file = None
     self.skip_navigate_on_repeat = False
 
@@ -126,9 +126,6 @@ class BrowserFinderOptions(optparse.Values):
         dest='extra_wpr_args_as_string',
         help=('Additional arguments to pass to Web Page Replay. '
               'See third_party/webpagereplay/replay.py for usage.'))
-    group.add_option('--show-stdout',
-        action='store_true',
-        help='When possible, will display the stdout of the process')
     parser.add_option_group(group)
 
     # Page set options
@@ -184,6 +181,9 @@ class BrowserFinderOptions(optparse.Values):
     # Repeat options.
     self.repeat_options.AddCommandLineOptions(parser)
 
+    # Browser options.
+    self.browser_options.AddCommandLineOptions(parser)
+
     real_parse = parser.parse_args
     def ParseArgs(args=None):
       defaults = parser.get_default_values()
@@ -227,6 +227,9 @@ class BrowserFinderOptions(optparse.Values):
       # Parse repeat options.
       self.repeat_options.UpdateFromParseResults(self, parser)
 
+      # Parse browser options.
+      self.browser_options.UpdateFromParseResults(self)
+
       if self.profile_dir and self.profile_type != 'clean':
         raise Exception("It's illegal to specify both --profile-type and"
             " --profile-dir.")
@@ -255,4 +258,20 @@ class BrowserFinderOptions(optparse.Values):
 class BrowserOptions():
   """Options to be used for launching a browser."""
   def __init__(self):
-    pass
+    self.show_stdout = False
+
+  def AddCommandLineOptions(self, parser):
+    group = optparse.OptionGroup(parser, 'Browser options')
+    group.add_option('--show-stdout',
+        action='store_true',
+        help='When possible, will display the stdout of the process')
+    parser.add_option_group(group)
+
+  def UpdateFromParseResults(self, finder_options):
+    """Copies our options from finder_options"""
+    browser_options_list = ['show_stdout']
+    for o in browser_options_list:
+      a = getattr(finder_options, o)
+      if a:
+        setattr(self, o, a)
+        delattr(finder_options, o)

@@ -21,6 +21,7 @@ class BrowserBackend(object):
     self._supports_extensions = supports_extensions
     # TODO(achuith): Replace with browser options. crbug.com/269131.
     self.finder_options = finder_options
+    self.browser_options = finder_options.browser_options
     self._browser = None
     self._tab_list_backend = tab_list_backend(self)
 
