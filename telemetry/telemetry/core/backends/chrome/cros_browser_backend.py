@@ -32,18 +32,20 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._SetBranchNumber(self._GetChromeVersion())
 
-    self._login_ext_dir = os.path.join(os.path.dirname(__file__),
-                                       'chromeos_login_ext')
+    self._login_ext_dir = None
+    if not self._use_oobe_login_for_testing:
+      self._login_ext_dir = os.path.join(os.path.dirname(__file__),
+                                         'chromeos_login_ext')
 
-    # Push a dummy login extension to the device.
-    # This extension automatically logs in as test@test.test
-    # Note that we also perform this copy locally to ensure that
-    # the owner of the extensions is set to chronos.
-    logging.info('Copying dummy login extension to the device')
-    cri.PushFile(self._login_ext_dir, '/tmp/')
-    self._login_ext_dir = '/tmp/chromeos_login_ext'
-    cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos',
-                        self._login_ext_dir])
+      # Push a dummy login extension to the device.
+      # This extension automatically logs in as test@test.test
+      # Note that we also perform this copy locally to ensure that
+      # the owner of the extensions is set to chronos.
+      logging.info('Copying dummy login extension to the device')
+      cri.PushFile(self._login_ext_dir, '/tmp/')
+      self._login_ext_dir = '/tmp/chromeos_login_ext'
+      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos',
+                          self._login_ext_dir])
 
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
@@ -94,16 +96,17 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
                 '*/chromeos/login/*=2'])
 
-
-    if self.chrome_branch_number <= 1599:
+    if self._is_guest:
       args.extend([
           # Jump to the login screen, skipping network selection, eula, etc.
           '--login-screen=login',
           # Skip hwid check, for VMs and pre-MP lab devices.
-          '--skip-hwid-check',])
-      if not self._is_guest:
-        # This extension bypasses gaia and logs us in.
-        args.append('--auth-ext-path=%s' % self._login_ext_dir)
+          '--skip-hwid-check'
+      ])
+    elif not self._use_oobe_login_for_testing:
+      # This extension bypasses gaia and logs us in.
+      logging.info('Using --auth-ext-path=%s to login', self._login_ext_dir)
+      args.append('--auth-ext-path=%s' % self._login_ext_dir)
 
     return args
 
@@ -171,6 +174,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def hwid(self):
     return self._cri.RunCmdOnDevice(['/usr/bin/crossystem', 'hwid'])[0]
+
+  @property
+  def _use_oobe_login_for_testing(self):
+    """Oobe.LoginForTesting was introduced after branch 1599."""
+    return self.chrome_branch_number > 1599
 
   def GetRemotePort(self, _):
     return self._cri.GetRemotePort()
@@ -328,13 +336,17 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         if startup_window_ext_id in self.extension_dict_backend
         else self.tab_list_backend.Get(0, None))
 
-  def _WaitForAccountPicker(self):
-    """Waits for the oobe screen to be in the account picker state."""
+  def _WaitForSigininScreen(self):
+    """Waits for oobe to be on the signin or account picker screen."""
+    def OnAccountPickerScreen():
+      signin_state = self._SigninUIState()
+      # GAIA_SIGNIN or ACCOUNT_PICKER screens.
+      return signin_state == 1 or signin_state == 2
     try:
-      util.WaitFor(lambda: self._SigninUIState() == 2, 60)
+      util.WaitFor(OnAccountPickerScreen, 60)
     except util.TimeoutException:
       self._cri.TakeScreenShot('guest-screen')
-      raise exceptions.LoginException('Timed out waiting for account picker, '
+      raise exceptions.LoginException('Timed out waiting for signin screen, '
                                       'signin state %d' % self._SigninUIState())
 
   def _ClickBrowseAsGuest(self):
@@ -359,13 +371,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
     assert self.oobe
-    self._WaitForAccountPicker()
+    self._WaitForSigininScreen()
     self._ClickBrowseAsGuest()
     self._WaitForGuestFsMounted()
 
   def _NavigateLogin(self):
     """Navigates through oobe login screen"""
-    if self.chrome_branch_number > 1599:
+    if self._use_oobe_login_for_testing:
+      logging.info('Invoking Oobe.loginForTesting')
       util.WaitFor(lambda: self.oobe, 10)
       util.WaitFor(lambda: self.oobe.EvaluateJavaScript(
           'typeof Oobe !== \'undefined\''), 10)
@@ -383,10 +396,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       util.WaitFor(lambda: self._IsLoggedIn(), 60) # pylint: disable=W0108
     except util.TimeoutException:
       self._cri.TakeScreenShot('login-screen')
-      raise exceptions.LoginException(
-          'Timed out going through oobe screen. Make sure the custom auth '
-          'extension passed through --auth-ext-path is valid and belongs '
-          'to user "chronos".')
+      raise exceptions.LoginException('Timed out going through login screen')
 
     if self.chrome_branch_number < 1500:
       # Wait for the startup window, then close it. Startup window doesn't exist
