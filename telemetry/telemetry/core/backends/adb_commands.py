@@ -14,7 +14,7 @@ from telemetry.core import util
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import android_commands  # pylint: disable=F0401
-  from pylib import cmd_helper  # pylint: disable=F0401
+  from pylib import constants  # pylint: disable=F0401
   from pylib import forwarder  # pylint: disable=F0401
   from pylib import ports  # pylint: disable=F0401
 except Exception:
@@ -39,10 +39,6 @@ def AllocateTestServerPort():
 
 def ResetTestServerPortAllocation():
   return ports.ResetTestServerPortAllocation()
-
-
-def GetOutDirectory():
-  return cmd_helper.OutDirectory.get()
 
 
 class AdbCommands(object):
@@ -151,10 +147,11 @@ def HasForwarder(buildtype=None):
   if not buildtype:
     return (HasForwarder(buildtype='Release') or
             HasForwarder(buildtype='Debug'))
-  return (os.path.exists(os.path.join(GetOutDirectory(), buildtype,
-                                      'device_forwarder')) and
-          os.path.exists(os.path.join(GetOutDirectory(), buildtype,
-                                      'host_forwarder')))
+  device_forwarder = os.path.join(
+      constants.GetOutDirectory(build_type=buildtype), 'device_forwarder')
+  host_forwarder = os.path.join(
+      constants.GetOutDirectory(build_type=buildtype), 'host_forwarder')
+  return os.path.exists(device_forwarder) and os.path.exists(host_forwarder)
 
 class Forwarder(object):
   def __init__(self, adb, *port_pairs):
@@ -165,6 +162,12 @@ class Forwarder(object):
                       for port_pair in port_pairs]
 
     self._port_pairs = new_port_pairs
+    if HasForwarder('Release'):
+      constants.SetBuildType('Release')
+    elif HasForwarder('Debug'):
+      constants.SetBuildType('Debug')
+    else:
+      raise Exception('Build forwarder2')
     forwarder.Forwarder.Map(new_port_pairs, self._adb)
 
   @property
