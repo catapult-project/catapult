@@ -23,6 +23,8 @@ base.unittest.testSuite('base.interval_tree', function() {
     tree.insert({start: 4}, {end: 8});
     tree.insert({start: 0}, {end: 2});
 
+    tree.updateHighValues();
+
     return tree;
   }
 
@@ -51,12 +53,16 @@ base.unittest.testSuite('base.interval_tree', function() {
 
   test('findIntersection_emptyTree', function() {
     var tree = new base.IntervalTree();
+    tree.updateHighValues();
+
     var intersect = tree.findIntersection(2, 4);
     assertArrayEquals([], intersect);
   });
 
   test('findIntersection_emptyInterval', function() {
     var tree = new base.IntervalTree();
+    tree.updateHighValues();
+
     assertThrows(function() {
       tree.findIntersection();
     });
@@ -77,6 +83,7 @@ base.unittest.testSuite('base.interval_tree', function() {
 
     tree.insert({start: 1}, {end: 4});
     tree.insert({start: 3}, {end: 5});
+    tree.updateHighValues();
 
     var outTree = {
       'left': {
@@ -98,6 +105,7 @@ base.unittest.testSuite('base.interval_tree', function() {
 
     tree.insert({start: 3, end: 5});
     tree.insert({start: 1, end: 4});
+    tree.updateHighValues();
 
     var outTree = {
       'left': {
@@ -119,6 +127,7 @@ base.unittest.testSuite('base.interval_tree', function() {
 
     for (var i = 0; i < 10; ++i)
       tree.insert({start: i, end: 5});
+    tree.updateHighValues();
 
     var outTree = {
       'left': {
@@ -166,6 +175,7 @@ base.unittest.testSuite('base.interval_tree', function() {
     tree.insert({start: 3}, {end: 5});
     tree.insert({start: 3}, {end: 5});
     tree.insert({start: 3}, {end: 6});
+    tree.updateHighValues();
 
     var outTree = {
       'left': {

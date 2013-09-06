@@ -308,6 +308,7 @@ base.exportTo('tracing', function() {
         var pair = this.flowEvents[i];
         this.flowIntervalTree.insert(pair[0], pair[1]);
       }
+      this.flowIntervalTree.updateHighValues();
 
       // Join refs.
       for (var i = 0; i < importers.length; i++)

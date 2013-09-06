@@ -52,8 +52,6 @@ base.exportTo('base', function() {
 
       this.root_ = this.insertNode_(this.root_, node);
       this.root_.colour = Colour.BLACK;
-
-      this.updateHighValues_(this.root_);
     },
 
     insertNode_: function(root, node) {
@@ -108,6 +106,12 @@ base.exportTo('base', function() {
 
     flipColour_: function(colour) {
       return colour === Colour.RED ? Colour.BLACK : Colour.RED;
+    },
+
+    /* The high values are used to find intersection. It should be called after
+     * all of the nodes are inserted. Doing it each insert is _slow_. */
+    updateHighValues: function() {
+      this.updateHighValues_(this.root_);
     },
 
     /* There is probably a smarter way to do this by starting from the inserted
