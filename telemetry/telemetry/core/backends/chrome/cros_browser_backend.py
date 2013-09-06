@@ -336,7 +336,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         if startup_window_ext_id in self.extension_dict_backend
         else self.tab_list_backend.Get(0, None))
 
-  def _WaitForSigininScreen(self):
+  def _WaitForSigninScreen(self):
     """Waits for oobe to be on the signin or account picker screen."""
     def OnAccountPickerScreen():
       signin_state = self._SigninUIState()
@@ -371,7 +371,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
     assert self.oobe
-    self._WaitForSigininScreen()
+    self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
     self._WaitForGuestFsMounted()
 
