@@ -104,11 +104,6 @@ base.exportTo('ui', function() {
 
       this.supportedModeMask = MOUSE_SELECTOR_MODE.ALL_MODES;
 
-      this.pos = {
-        x: window.innerWidth - 50,
-        y: 100
-      };
-
       this.initialRelativeMouseDownPos_ = {x: 0, y: 0};
 
       this.defaultMode_ = MOUSE_SELECTOR_MODE.PANSCAN;

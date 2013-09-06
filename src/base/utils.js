@@ -77,6 +77,10 @@ base.exportTo('base', function() {
     return lo + percentage * range;
   }
 
+  function deg2rad(deg) {
+    return (Math.PI * deg) / 180.0;
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
@@ -88,6 +92,7 @@ base.exportTo('base', function() {
     windowRectForElement: windowRectForElement,
 
     clamp: clamp,
-    lerp: lerp
+    lerp: lerp,
+    deg2rad: deg2rad
   };
 });

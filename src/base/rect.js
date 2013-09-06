@@ -101,6 +101,10 @@ base.exportTo('base', function() {
       return rect;
     },
 
+    scaleSize: function(s) {
+      return Rect.FromXYWH(this.x, this.y, this.width * s, this.height * s);
+    },
+
     scaleFast: function(out, s) {
       out.x = this.x * s;
       out.y = this.y * s;
@@ -139,6 +143,14 @@ base.exportTo('base', function() {
       ok &= this.y < that.bottom;
       ok &= this.bottom > that.y;
       return ok;
+    },
+
+    equalTo: function(rect) {
+      return rect &&
+             (this.x === rect.x) &&
+             (this.y === rect.y) &&
+             (this.width === rect.width) &&
+             (this.height === rect.height);
     }
   };
 

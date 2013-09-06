@@ -4,20 +4,12 @@
 
 'use strict';
 
-base.requireStylesheet('ui.quad_view');
-
 base.require('base.color');
 base.require('base.events');
 base.require('base.raf');
 base.require('ui');
-base.require('ui.quad_view_viewport');
 
 base.exportTo('ui', function() {
-  // FIXME(pdr): Remove this extra scaling so our rasters are pixel-perfect.
-  //             https://code.google.com/p/trace-viewer/issues/detail?id=228
-  // FIXME(jjb): simplify until we have the camera working (or 228 happens ;-)
-  var RASTER_SCALE = 1.0; // Adjust the resolution of our backing canvases.
-
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
   function drawTexturedTriangle(
@@ -60,173 +52,100 @@ base.exportTo('ui', function() {
     ctx.restore();
   }
 
-  var QuadView = ui.define('quad-view');
+  function transform(point, matrix) {
+    var transformed = vec4.clone([point[0], point[1], 0, 1]);
+    vec4.transformMat4(transformed, transformed, matrix);
+
+    for (var i = 0; i < 4; ++i) {
+      transformed[i] /= transformed[3];
+    }
+    return transformed;
+  }
+
+  function QuadView() {
+  }
 
   QuadView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    drawQuadsToCanvas: function(canvas, matrix, quads) {
+      var ctx = canvas.getContext('2d');
+      if (!(quads instanceof Array))
+        quads = [quads];
 
-    decorate: function() {
-      base.EventTargetHelper.decorate(this);
-
-      this.quads_ = undefined;
-      this.viewport_ = undefined;
-      this.canvas_ = document.createElement('canvas');
-
-      this.appendChild(this.canvas_);
-
-      this.onViewportChanged_ = this.onViewportChanged_.bind(this);
-
-      this.onMouseDown_ = this.onMouseDown_.bind(this);
-      this.onMouseMove_ = this.onMouseMove_.bind(this);
-      this.onMouseUp_ = this.onMouseUp_.bind(this);
-      this.canvas_.addEventListener('mousedown', this.onMouseDown_);
-
-      this.canvas_.addEventListener('focus', this.redrawCanvas_.bind(this));
-      this.canvas_.addEventListener('blur', this.redrawCanvas_.bind(this));
-      this.canvas_.tabIndex = 0;
-    },
-
-    get viewport() {
-      return this.viewport_;
-    },
-
-    set viewport(viewport) {
-      if (this.viewport_)
-        this.viewport_.removeEventListener('change', this.onViewportChanged_);
-      this.viewport_ = viewport;
-      if (this.viewport_)
-        this.viewport_.addEventListener('change', this.onViewportChanged_);
-      this.updateChildren_();
-    },
-
-    onViewportChanged_: function() {
-      if (!this.hasRequiredProprties_)
-        return;
-      this.redrawCanvas_();
-    },
-
-    get quads() {
-      return this.quads_;
-    },
-
-    set quads(quads) {
-      this.quads_ = quads;
-      if (!this.quads_) {
-        this.updateChildren_();
-        return;
-      }
-      this.viewport_ = this.viewport_ ||
-          this.createViewportFromQuads_(this.quads_);
-      this.updateChildren_();
-    },
-
-    get hasRequiredProprties_() {
-      return this.quads_ &&
-          this.viewport_;
-    },
-
-    updateChildren_: function() {
-      var canvas = this.canvas_;
-      if (!this.hasRequiredProprties_) {
-        canvas.width = 0;
-        canvas.height = 0;
-        return;
-      }
-
-      this.scheduleRedrawCanvas_();
-    },
-
-    scheduleRedrawCanvas_: function() {
-      if (this.redrawScheduled_)
-        return false;
-      this.redrawScheduled_ = true;
-      base.requestAnimationFrameInThisFrameIfPossible(
-          this.redrawCanvas_, this);
-    },
-
-    redrawCanvas_: function() {
-      this.redrawScheduled_ = false;
-
-      var resizedCanvas = this.viewport_.updateBoxSize(this.canvas_);
-      var ctx = this.canvas_.getContext('2d');
-
-      var vp = this.viewport_;
-
-      if (!resizedCanvas) // Canvas resizing automatically clears the context.
-        ctx.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
-
-      ctx.save();
-      ctx.scale(ui.RASTER_SCALE, ui.RASTER_SCALE);
-
-      // The quads are in the world coordinate system. We are drawing
-      // into a canvas with 0,0 in the top left corner. Tell the canvas to
-      // transform drawing ops from world to canvas coordinates.
-      vp.applyTransformToContext(ctx);
-      ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(1.0);
-
-      var quads = this.quads_ || [];
+      var quadCanvas = document.createElement('canvas');
 
       // Background colors.
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
+        var p1 = transform(quad.p1, matrix);
+        var p2 = transform(quad.p2, matrix);
+        var p3 = transform(quad.p3, matrix);
+        var p4 = transform(quad.p4, matrix);
+
         if (quad.imageData) {
-          var quadCanvas = document.createElement('canvas');
           quadCanvas.width = quad.imageData.width;
           quadCanvas.height = quad.imageData.height;
           quadCanvas.getContext('2d').putImageData(quad.imageData, 0, 0);
-          if (quad.isRectangle()) {
-            var bounds = quad.boundingRect();
-            ctx.drawImage(quadCanvas, 0, 0,
-                quadCanvas.width, quadCanvas.height,
-                bounds.x, bounds.y, bounds.width, bounds.height);
-          } else {
-            ctx.save();
-            var quadBBox = new base.BBox2();
-            quadBBox.addQuad(quad);
-            var iw = quadCanvas.width;
-            var ih = quadCanvas.height;
-            drawTexturedTriangle(
-                ctx, quadCanvas,
-                quad.p1[0], quad.p1[1],
-                quad.p2[0], quad.p2[1],
-                quad.p4[0], quad.p4[1],
-                0, 0, iw, 0, 0, ih);
-            drawTexturedTriangle(
-                ctx, quadCanvas,
-                quad.p2[0], quad.p2[1],
-                quad.p3[0], quad.p3[1],
-                quad.p4[0], quad.p4[1],
-                iw, 0, iw, ih, 0, ih);
-            ctx.restore();
-          }
-          quadCanvas.width = 0; // Free the GPU texture.
+          ctx.save();
+          var quadBBox = new base.BBox2();
+          quadBBox.addQuad(quad);
+          var iw = quadCanvas.width;
+          var ih = quadCanvas.height;
+          drawTexturedTriangle(
+              ctx, quadCanvas,
+              p1[0], p1[1],
+              p2[0], p2[1],
+              p4[0], p4[1],
+              0, 0, iw, 0, 0, ih);
+          drawTexturedTriangle(
+              ctx, quadCanvas,
+              p2[0], p2[1],
+              p3[0], p3[1],
+              p4[0], p4[1],
+              iw, 0, iw, ih, 0, ih);
+          ctx.restore();
         }
 
         if (quad.backgroundColor) {
           ctx.fillStyle = quad.backgroundColor;
           ctx.beginPath();
-          ctx.moveTo(quad.p1[0], quad.p1[1]);
-          ctx.lineTo(quad.p2[0], quad.p2[1]);
-          ctx.lineTo(quad.p3[0], quad.p3[1]);
-          ctx.lineTo(quad.p4[0], quad.p4[1]);
+          ctx.moveTo(p1[0], p1[1]);
+          ctx.lineTo(p2[0], p2[1]);
+          ctx.lineTo(p3[0], p3[1]);
+          ctx.lineTo(p4[0], p4[1]);
           ctx.closePath();
           ctx.fill();
         }
       }
 
+      quadCanvas.width = 0; // Free the GPU texture.
+
       // Outlines.
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
+        var p1 = transform(quad.p1, matrix);
+        var p2 = transform(quad.p2, matrix);
+        var p3 = transform(quad.p3, matrix);
+        var p4 = transform(quad.p4, matrix);
+
         ctx.beginPath();
-        ctx.moveTo(quad.p1[0], quad.p1[1]);
-        ctx.lineTo(quad.p2[0], quad.p2[1]);
-        ctx.lineTo(quad.p3[0], quad.p3[1]);
-        ctx.lineTo(quad.p4[0], quad.p4[1]);
+        ctx.moveTo(p1[0], p1[1]);
+        ctx.lineTo(p2[0], p2[1]);
+        ctx.lineTo(p3[0], p3[1]);
+        ctx.lineTo(p4[0], p4[1]);
         ctx.closePath();
+        ctx.save();
         if (quad.borderColor)
           ctx.strokeStyle = quad.borderColor;
         else
           ctx.strokeStyle = 'rgb(128,128,128)';
+
+        if (quad.shadowOffset) {
+          ctx.shadowColor = 'rgb(0, 0, 0)';
+          ctx.shadowOffsetX = quad.shadowOffset[0];
+          ctx.shadowOffsetY = quad.shadowOffset[1];
+          if (quad.shadowBlur)
+            ctx.shadowBlur = quad.shadowBlur;
+        }
 
         if (quad.borderWidth)
           ctx.lineWidth = quad.borderWidth;
@@ -234,98 +153,36 @@ base.exportTo('ui', function() {
           ctx.lineWidth = 1;
 
         ctx.stroke();
+        ctx.restore();
       }
 
       // Selection outlines.
-      ctx.lineWidth = vp.getDeviceLineWidthAssumingTransformIsApplied(8.0);
-      var rules = window.getMatchedCSSRules(this.canvas_);
+      ctx.lineWidth = 8;
 
-      // TODO(nduca): Figure out how to get these from css.
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
+        var p1 = transform(quad.p1, matrix);
+        var p2 = transform(quad.p2, matrix);
+        var p3 = transform(quad.p3, matrix);
+        var p4 = transform(quad.p4, matrix);
+
         if (!quad.upperBorderColor)
           continue;
-        if (document.activeElement == this.canvas_) {
-          var tmp = base.Color.fromString(quad.upperBorderColor).brighten(0.25);
-          ctx.strokeStyle = tmp.toString();
-        } else {
-          ctx.strokeStyle = quad.upperBorderColor;
-        }
+
+        ctx.strokeStyle = quad.upperBorderColor;
 
         ctx.beginPath();
-        ctx.moveTo(quad.p1[0], quad.p1[1]);
-        ctx.lineTo(quad.p2[0], quad.p2[1]);
-        ctx.lineTo(quad.p3[0], quad.p3[1]);
-        ctx.lineTo(quad.p4[0], quad.p4[1]);
+        ctx.moveTo(p1[0], p1[1]);
+        ctx.lineTo(p2[0], p2[1]);
+        ctx.lineTo(p3[0], p3[1]);
+        ctx.lineTo(p4[0], p4[1]);
         ctx.closePath();
         ctx.stroke();
       }
-
-      ctx.restore();
-    },
-
-    selectQuadsAtCanvasClientPoint: function(clientX, clientY) {
-      clientX *= ui.RASTER_SCALE;
-      clientY *= ui.RASTER_SCALE;
-      var selectedQuadIndices = this.findQuadsAtCanvasClientPoint(
-          clientX, clientY);
-      var e = new base.Event('selectionChanged');
-      e.selectedQuadIndices = selectedQuadIndices;
-      this.dispatchEvent(e);
-      this.viewport_.forceRedrawAll();
-    },
-
-    findQuadsAtCanvasClientPoint: function(clientX, clientY) {
-      var bounds = this.canvas_.getBoundingClientRect();
-      var vecInLayout = vec2.createXY(clientX - bounds.left,
-                                      clientY - bounds.top);
-      var vecInWorldPixels =
-          this.viewport_.layoutPixelsToWorldPixels(vecInLayout);
-
-      var quads = this.quads_;
-      var hitIndices = [];
-      for (var i = 0; i < quads.length; i++) {
-        var hit = quads[i].vecInside(vecInWorldPixels);
-        if (hit)
-          hitIndices.push(i);
-      }
-      return hitIndices;
-    },
-
-    createViewportFromQuads_: function() {
-      var quads = this.quads_ || [];
-      var quadBBox = new base.BBox2();
-      quads.forEach(function(quad) {
-        quadBBox.addQuad(quad);
-      });
-      return new ui.QuadViewViewport(quadBBox.asRect());
-    },
-
-    onMouseDown_: function(e) {
-      if (!this.hasEventListener('selectionChanged'))
-        return;
-      this.selectQuadsAtCanvasClientPoint(e.clientX, e.clientY);
-      document.addEventListener('mousemove', this.onMouseMove_);
-      document.addEventListener('mouseup', this.onMouseUp_);
-      e.preventDefault();
-      this.canvas_.focus();
-      return true;
-    },
-
-    onMouseMove_: function(e) {
-      this.selectQuadsAtCanvasClientPoint(e.clientX, e.clientY);
-    },
-
-    onMouseUp_: function(e) {
-      this.selectQuadsAtCanvasClientPoint(e.clientX, e.clientY);
-      document.removeEventListener('mousemove', this.onMouseMove_);
-      document.removeEventListener('mouseup', this.onMouseUp_);
     }
-
   };
 
   return {
-    QuadView: QuadView,
-    RASTER_SCALE: RASTER_SCALE
+    QuadView: QuadView
   };
 });

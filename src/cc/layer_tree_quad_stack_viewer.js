@@ -523,12 +523,8 @@ base.exportTo('cc', function() {
       var lthiInstance = lthi.objectInstance;
       var worldViewportRect = base.Rect.FromXYWH(0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
-      var camera = this.quadStackViewer_.camera;
-      this.quadStackViewer_.quadStack.initialize(
-          lthiInstance.allLayersBBox.asRect(), worldViewportRect,
-          camera.scheduledLayoutPixelsPerWorldPixel);
-
-      this.quadStackViewer_.quadStack.quads = this.quads_;
+      this.quadStackViewer_.deviceRect = worldViewportRect;
+      this.quadStackViewer_.quads = this.quads_;
 
       this.updateInfoBar_(this.messages_);
     },

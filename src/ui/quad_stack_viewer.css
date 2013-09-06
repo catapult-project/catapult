@@ -10,5 +10,20 @@ quad-stack-viewer {
   height: 100%;
   overflow: hidden;
   position: relative; /* For the absolute positioned mouse-mode-selector */
-  width: 900px;
+  width: 100%;
+}
+
+quad-stack-viewer > #chrome-left {
+  content: url('../images/chrome-left.png');
+  display: none;
+}
+
+quad-stack-viewer > #chrome-mid {
+  content: url('../images/chrome-mid.png');
+  display: none;
+}
+
+quad-stack-viewer > #chrome-right {
+  content: url('../images/chrome-right.png');
+  display: none;
 }
