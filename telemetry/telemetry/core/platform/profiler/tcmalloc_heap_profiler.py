@@ -123,7 +123,7 @@ class TCMallocHeapProfiler(profiler.Profiler):
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
-    options.AppendExtraBrowserArg('--no-sandbox')
+    options.AppendExtraBrowserArgs('--no-sandbox')
 
   def CollectProfile(self):
     return self._platform_profiler.CollectProfile()

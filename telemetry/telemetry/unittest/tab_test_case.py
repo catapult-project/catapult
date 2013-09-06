@@ -19,8 +19,7 @@ class TabTestCase(unittest.TestCase):
     self.CustomizeBrowserOptions(options)
 
     if self._extra_browser_args:
-      for arg in self._extra_browser_args:
-        options.extra_browser_args.append(arg)
+      options.AppendExtraBrowserArgs(self._extra_browser_args)
 
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:

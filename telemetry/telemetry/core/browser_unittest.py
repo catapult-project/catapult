@@ -34,7 +34,7 @@ class BrowserTest(unittest.TestCase):
       options.profile_type = profile_type
 
     if extra_browser_args:
-      options.extra_browser_args.extend(extra_browser_args)
+      options.AppendExtraBrowserArgs(extra_browser_args)
 
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:

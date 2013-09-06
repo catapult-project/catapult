@@ -33,7 +33,7 @@ class BrowserFinderOptions(optparse.Values):
     self.dont_override_profile = False
     self.profile_dir = None
     self.profile_type = None
-    self.extra_browser_args = []
+    self._extra_browser_args = set()
     self.extra_wpr_args = []
     self.show_stdout = False
     self.extensions_to_load = []
@@ -214,7 +214,7 @@ class BrowserFinderOptions(optparse.Values):
       if self.extra_browser_args_as_string: # pylint: disable=E1101
         tmp = shlex.split(
           self.extra_browser_args_as_string) # pylint: disable=E1101
-        self.extra_browser_args.extend(tmp)
+        self._extra_browser_args.update(tmp)
         delattr(self, 'extra_browser_args_as_string')
       if self.extra_wpr_args_as_string: # pylint: disable=E1101
         tmp = shlex.split(
@@ -238,13 +238,19 @@ class BrowserFinderOptions(optparse.Values):
     parser.parse_args = ParseArgs
     return parser
 
-  def AppendExtraBrowserArg(self, arg):
-    if arg not in self.extra_browser_args:
-      self.extra_browser_args.append(arg)
+  def AppendExtraBrowserArgs(self, args):
+    if isinstance(args, list):
+      self._extra_browser_args.update(args)
+    else:
+      self._extra_browser_args.add(args)
 
   def MergeDefaultValues(self, defaults):
     for k, v in defaults.__dict__.items():
       self.ensure_value(k, v)
+
+  @property
+  def extra_browser_args(self):
+    return self._extra_browser_args
 
 class BrowserOptions():
   """Options to be used for launching a browser."""

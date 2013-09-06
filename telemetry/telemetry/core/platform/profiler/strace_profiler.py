@@ -228,8 +228,10 @@ class StraceProfiler(profiler.Profiler):
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
-    options.AppendExtraBrowserArg('--no-sandbox')
-    options.AppendExtraBrowserArg('--allow-sandbox-debugging')
+    options.AppendExtraBrowserArgs([
+        '--no-sandbox',
+        '--allow-sandbox-debugging'
+    ])
 
   def CollectProfile(self):
     print 'Processing trace...'

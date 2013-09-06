@@ -135,8 +135,10 @@ class PerfProfiler(profiler.Profiler):
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
-    options.AppendExtraBrowserArg('--no-sandbox')
-    options.AppendExtraBrowserArg('--allow-sandbox-debugging')
+    options.AppendExtraBrowserArgs([
+        '--no-sandbox',
+        '--allow-sandbox-debugging',
+    ])
 
   @classmethod
   def _CheckAndroidPerf(cls):
