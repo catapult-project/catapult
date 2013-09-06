@@ -11,6 +11,7 @@ base.require('base.key_event_manager');
 base.require('base.settings');
 base.require('base.unittest.test_error');
 base.require('base.unittest.assertions');
+base.requireRawScript('../third_party/Promises/polyfill/src/Promise.js');
 
 base.exportTo('base.unittest', function() {
   var TestStatus = {
@@ -105,18 +106,14 @@ base.exportTo('base.unittest', function() {
       var suite = this.suites_[idx];
       suite.showLongResults = (suiteCount === 1);
       suite.displayInfo();
-      suite.runTests(this.tests_);
+      return suite.runTests(this.tests_).then(function(ignored) {
+        this.stats_.duration += suite.duration;
+        this.stats_.tests += suite.testCount;
+        this.stats_.failures += suite.failureCount;
 
-      this.stats_.duration += suite.duration;
-      this.stats_.tests += suite.testCount;
-      this.stats_.failures += suite.failureCount;
-
-      this.updateStats_();
-
-      // Give the view time to update.
-      window.setTimeout(function() {
-        this.runSuites_(idx + 1);
-      }.bind(this), 1);
+        this.updateStats_();
+        return this.runSuites_(idx + 1);
+      }.bind(this));
     },
 
     onAnimationFrameError: function(e, opt_stack) {
@@ -305,51 +302,77 @@ base.exportTo('base.unittest', function() {
       if (this.setupOnceFn_ !== undefined)
         this.setupOnceFn_.bind(this).call();
 
-      var start = window.performance.now();
+      var remainingTests;
+      if (testsToRun.length) {
+        remainingTests = this.tests_.reduce(function(remainingTests, test) {
+          if (this.testsToRun_.indexOf(test.name) !== -1)
+            remainingTests.push(test);
+          return remainingTests;
+        }.bind(this), []);
+      } else {
+        remainingTests = this.tests_.slice(0);
+      }
+
       this.results_ = TestStatus.PENDING;
-      this.tests_.forEach(function(test) {
-        if (this.testsToRun_.length !== 0 &&
-            this.testsToRun_.indexOf(test.name) === -1)
-          return;
+      return this.runRemainingTests_(remainingTests).then(
+          function resolve(ignored) {
+            this.results_ = TestStatus.PASSED;
+            this.duration_ = this.tests_.reduce(function(total, test) {
+              return total += test.duration;
+            }, 0);
+            this.outputResults();
+          }.bind(this),
+          function reject(e) {
+            console.error(e);
+            this.outputResults();
+          }.bind(this)
+      );
+    },
 
-        // Clear settings storage before each test.
-        global.sessionStorage.clear();
-        base.Settings.setAlternativeStorageInstance(global.sessionStorage);
-        base.onAnimationFrameError =
-            testRunners[testType_].onAnimationFrameError.bind(
-                testRunners[testType_]);
-        base.KeyEventManager.resetInstanceForUnitTesting();
+    runRemainingTests_: function(remainingTests) {
+      if (!remainingTests.length)
+        return Promise.resolve();
+      var test = remainingTests.pop();
 
-        var testWorkAreaEl_ = document.createElement('div');
-        this.resultsEl_.appendChild(testWorkAreaEl_);
+      // Clear settings storage before each test.
+      global.sessionStorage.clear();
+      base.Settings.setAlternativeStorageInstance(global.sessionStorage);
+      base.onAnimationFrameError =
+          testRunners[testType_].onAnimationFrameError.bind(
+              testRunners[testType_]);
+      base.KeyEventManager.resetInstanceForUnitTesting();
 
-        test.workArea = testWorkAreaEl_;
-        if (this.setupFn_ !== undefined)
-          this.setupFn_.bind(test).call();
+      var testWorkAreaEl_ = document.createElement('div');
+      this.resultsEl_.appendChild(testWorkAreaEl_);
 
-        var individualStart = window.performance.now();
-        test.run();
-        test.duration = window.performance.now() - individualStart;
+      test.workArea = testWorkAreaEl_;
+      if (this.setupFn_ !== undefined)
+        this.setupFn_.bind(test).call();
 
-        this.resultsEl_.removeChild(testWorkAreaEl_);
+      var suite = this;
+      return test.run.then(function(ignore) {
+        test.status = TestStatus.PASSED;
+        suite.testTearDown_(test);
+        return suite.runRemainingTests_(remainingTests);
+      }, function(error) {
+        console.error(error, error.stack);
+        test.status = TestStatus.FAILED;
+        test.failure = error;
+        suite.failures_.push({
+          error: test.failure,
+          test: test.name
+        });
+        suite.results_ = TestStatus.FAILED;
+        suite.testTearDown_(test);
+        return suite.runRemainingTests_(remainingTests);
+      });
+    },
 
-        if (this.teardownFn_ !== undefined)
-          this.teardownFn_.bind(test).call();
+    testTearDown_: function(test) {
+      this.resultsEl_.removeChild(test.workArea);
 
-        if (test.status === TestStatus.FAILED) {
-          this.failures_.push({
-            error: test.failure,
-            test: test.name
-          });
-          this.results_ = TestStatus.FAILED;
-        }
-      }, this);
-
-      if (this.results_ === TestStatus.PENDING)
-        this.results_ = TestStatus.PASSED;
-
-      this.duration_ = window.performance.now() - start;
-      this.outputResults();
+      if (this.teardownFn_ !== undefined)
+        this.teardownFn_.bind(test).call();
     },
 
     outputResults: function() {
@@ -461,7 +484,7 @@ base.exportTo('base.unittest', function() {
     this.options_ = options;
     this.failure_ = undefined;
     this.duration_ = 0;
-    this.status_ = TestStatus.FAILED;
+    this.status_ = TestStatus.PENDING;
 
     this.appendedContent_ = undefined;
   }
@@ -469,14 +492,27 @@ base.exportTo('base.unittest', function() {
   Test.prototype = {
     __proto__: Object.prototype,
 
-    run: function() {
-      try {
-        this.test_.call(this);
-        this.status_ = TestStatus.PASSED;
-      } catch (e) {
-        console.error(e, e.stack);
-        this.failure_ = e;
-      }
+    get run() {
+      var test = this;
+      return new Promise(function(r) {
+        var startTime = window.performance.now();
+        try {
+          var maybePromise = test.test_();
+          if (maybePromise) {
+            // An async test may not have completed.
+            maybePromise.then(function(ignored) {
+              test.duration = window.performance.now() - startTime;
+              r.resolve();
+            }, r.reject);
+          } else {
+            test.duration = window.performance.now() - startTime;
+            r.resolve();
+          }
+        } catch (e) {
+          test.duration = window.performance.now() - startTime;
+          r.reject(e);
+        }
+      });
     },
 
     get failure() {
@@ -521,6 +557,10 @@ base.exportTo('base.unittest', function() {
 
     get appendedContent() {
       return this.appendedContent_;
+    },
+
+    get workArea() {
+      return this.testWorkArea_;
     },
 
     set workArea(workArea) {

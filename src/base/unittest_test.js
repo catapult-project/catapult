@@ -23,13 +23,28 @@ base.unittest.testSuite('base.unittest', function() {
 
     var ts = new base.unittest.TestSuite_('test', suite);
     ts.displayInfo();
-    ts.runTests([]);
+    ts.runTests([]).then(function(ignored) {
+      assertEquals(2, ts.testCount);
+      assertArrayEquals([1, alternateDevicePixelRatio], dpi.sort());
+      assertArrayEquals(['dpiTest_hiDPI', 'dpiTest_loDPI'], names.sort());
 
-    assertEquals(2, ts.testCount);
-    assertArrayEquals([1, alternateDevicePixelRatio], dpi.sort());
-    assertArrayEquals(['dpiTest_hiDPI', 'dpiTest_loDPI'], names.sort());
-
-    // Verify we reset back to the default value.
-    assertEquals(currentDevicePixelRatio, window.devicePixelRatio);
+      // Verify we reset back to the default value.
+      assertEquals(currentDevicePixelRatio, window.devicePixelRatio);
+    });
   });
+
+  test('promise', function() {
+    return new Promise(function(r) {
+      r.resolve();
+    });
+  });
+
+  test('async', function() {
+    return new Promise(function(r) {
+      base.requestAnimationFrame(function() {
+        r.resolve();
+      });
+    });
+  });
+
 });
