@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('base.unittest');
+base.require('base.raf');
 
 base.unittest.testSuite('base.unittest', function() {
   test('dpiAware', function() {

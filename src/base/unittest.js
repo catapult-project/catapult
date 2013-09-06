@@ -519,6 +519,10 @@ base.exportTo('base.unittest', function() {
       return this.failure_;
     },
 
+    set failure(val) {
+      this.failure_ = val;
+    },
+
     get name() {
       return this.name_;
     },
