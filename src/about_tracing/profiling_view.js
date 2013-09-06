@@ -24,6 +24,7 @@ base.require('ui.overlay');
 base.require('tracing.importer');
 base.require('cc');
 base.require('tcmalloc');
+base.require('system_stats');
 
 base.exportTo('about_tracing', function() {
   /**
