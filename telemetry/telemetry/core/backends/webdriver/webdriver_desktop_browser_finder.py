@@ -11,7 +11,7 @@ from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.core.backends.webdriver import webdriver_browser_backend
+from telemetry.core.backends.webdriver import webdriver_ie_backend
 from telemetry.page import cloud_storage
 
 # Try to import the selenium python lib which may be not available.
@@ -39,12 +39,13 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   def __init__(self, browser_type, finder_options):
     super(PossibleWebDriverBrowser, self).__init__(browser_type, finder_options)
 
-  def CreateWebDriverBackend(self):
+  def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()
 
   def Create(self):
-    backend = self.CreateWebDriverBackend()
-    b = browser.Browser(backend, platform.CreatePlatformBackendForCurrentOS())
+    platform_backend = platform.CreatePlatformBackendForCurrentOS()
+    backend = self.CreateWebDriverBackend(platform_backend)
+    b = browser.Browser(backend, platform_backend)
     return b
 
   def SupportsOptions(self, finder_options):
@@ -61,7 +62,7 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
     super(PossibleDesktopIE, self).__init__(browser_type, finder_options)
     self._architecture = architecture
 
-  def CreateWebDriverBackend(self):
+  def CreateWebDriverBackend(self, platform_backend):
     assert webdriver
     def DriverCreator():
       ie_driver_exe = os.path.join(util.GetTelemetryDir(), 'bin',
@@ -69,8 +70,8 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
       cloud_storage.GetIfChanged(cloud_storage.CHROMIUM_TELEMETRY_BUCKET,
                                  ie_driver_exe)
       return webdriver.Ie(executable_path=ie_driver_exe)
-    return webdriver_browser_backend.WebDriverBrowserBackend(
-        DriverCreator, False, self.finder_options)
+    return webdriver_ie_backend.WebDriverIEBackend(
+        platform_backend, DriverCreator, self.finder_options)
 
 def SelectDefaultBrowser(_):
   return None

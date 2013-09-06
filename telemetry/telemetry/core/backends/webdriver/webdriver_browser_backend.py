@@ -45,7 +45,7 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
     # webdriver API.
     return False
 
-  def GetProcessName(self, _):
+  def GetProcessName(self, cmd_line):
     # Leave implementation details to subclass as process name depends on the
     # type of browser.
     raise NotImplementedError()
@@ -61,10 +61,6 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
   def IsBrowserRunning(self):
     # Assume the browser is running if not explicitly closed.
     return self._driver is not None
-
-  def GetStandardOutput(self):
-    # TODO(chrisgao): check if python client can get stdout of browsers.
-    return ''
 
   def __del__(self):
     self.Close()
