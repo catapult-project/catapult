@@ -147,10 +147,11 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
-  def __init__(self, finder_options, backend_settings):
+  def __init__(self, finder_options, backend_settings, output_profile_path):
     super(AndroidBrowserBackend, self).__init__(
         is_content_shell=backend_settings.is_content_shell,
-        supports_extensions=False, finder_options=finder_options)
+        supports_extensions=False, finder_options=finder_options,
+        output_profile_path=output_profile_path)
     if len(finder_options.extensions_to_load) > 0:
       raise browser_backend.ExtensionsNotSupportedException(
           'Android browser does not support extensions.')
@@ -298,14 +299,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._SetCommandLineFile(self._saved_cmdline or '')
     self._adb.CloseApplication(self._backend_settings.package)
 
-    if self.finder_options.output_profile_path:
-      logging.info("Pulling profile directory from device: '%s'->'%s'." %
-          (self._backend_settings.profile_dir,
-          self.finder_options.output_profile_path))
+    if self._output_profile_path:
+      logging.info("Pulling profile directory from device: '%s'->'%s'.",
+                   self._backend_settings.profile_dir,
+                   self._output_profile_path)
       # To minimize bandwidth it might be good to look at whether all the data
       # pulled down is really needed e.g. .pak files.
       self._adb.Pull(self._backend_settings.profile_dir,
-          self.finder_options.output_profile_path)
+                     self._output_profile_path)
 
   def IsBrowserRunning(self):
     pids = self._adb.ExtractPid(self._backend_settings.package)

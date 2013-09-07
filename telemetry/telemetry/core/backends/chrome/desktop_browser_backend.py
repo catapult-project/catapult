@@ -20,11 +20,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   Mac or Windows.
   """
   def __init__(self, finder_options, executable, flash_path, is_content_shell,
-               browser_directory, output_profile_path=None):
+               browser_directory, output_profile_path):
     super(DesktopBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=not is_content_shell,
-        finder_options=finder_options)
+        finder_options=finder_options,
+        output_profile_path=output_profile_path)
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
@@ -50,7 +51,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = util.GetAvailableLocalPort()
     self._profile_dir = None
     self._supports_net_benchmarking = True
-    self._output_profile_path = output_profile_path
     self._tmp_minidump_dir = tempfile.mkdtemp()
 
     self._SetupProfile()

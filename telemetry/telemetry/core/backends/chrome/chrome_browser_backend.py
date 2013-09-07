@@ -28,7 +28,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   once a remote-debugger port has been established."""
   # It is OK to have abstract methods. pylint: disable=W0223
 
-  def __init__(self, is_content_shell, supports_extensions, finder_options):
+  def __init__(self, is_content_shell, supports_extensions, finder_options,
+               output_profile_path=None):
     super(ChromeBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=supports_extensions,
@@ -40,6 +41,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._chrome_branch_number = None
     self._tracing_backend = None
     self._system_info_backend = None
+
+    self._output_profile_path = output_profile_path
 
     self.webpagereplay_local_http_port = util.GetAvailableLocalPort()
     self.webpagereplay_local_https_port = util.GetAvailableLocalPort()
