@@ -49,7 +49,8 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
     return b
 
   def SupportsOptions(self, finder_options):
-    # TODO(chrisgao): Check if some options are not supported.
+    if len(finder_options.extensions_to_load) != 0:
+      return False
     return True
 
   @property
