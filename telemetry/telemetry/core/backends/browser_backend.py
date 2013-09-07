@@ -25,7 +25,7 @@ class BrowserBackend(object):
     self._browser = None
     self._tab_list_backend = tab_list_backend(self)
 
-  def AddReplayServerOptions(self, finder_options):
+  def AddReplayServerOptions(self, extra_wpr_args):
     pass
 
   def SetBrowser(self, browser):

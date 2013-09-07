@@ -62,8 +62,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._extension_dict_backend = (
           extension_dict_backend.ExtensionDictBackend(self))
 
-  def AddReplayServerOptions(self, finder_options):
-    finder_options.append('--no-dns_forwarding')
+  def AddReplayServerOptions(self, extra_wpr_args):
+    extra_wpr_args.append('--no-dns_forwarding')
 
   @property
   def misc_web_contents_backend(self):

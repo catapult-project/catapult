@@ -27,23 +27,23 @@ class ReplayServer(object):
         util.PortPair(browser_backend.webpagereplay_local_https_port,
                       browser_backend.webpagereplay_remote_https_port))
 
-    options = browser_backend.browser_options.extra_wpr_args
+    wpr_args = browser_backend.browser_options.extra_wpr_args
     if self._is_record_mode:
       if self._is_append_mode:
-        options.append('--append')
+        wpr_args.append('--append')
       else:
-        options.append('--record')
+        wpr_args.append('--record')
     if not make_javascript_deterministic:
-      options.append('--inject_scripts=')
-    browser_backend.AddReplayServerOptions(options)
+      wpr_args.append('--inject_scripts=')
+    browser_backend.AddReplayServerOptions(wpr_args)
     self._web_page_replay = webpagereplay.ReplayServer(
         path,
         browser_backend.WEBPAGEREPLAY_HOST,
         browser_backend.webpagereplay_local_http_port,
         browser_backend.webpagereplay_local_https_port,
-        options)
+        wpr_args)
     # Remove --no-dns_forwarding if it wasn't explicitly requested by backend.
-    if '--no-dns_forwarding' not in options:
+    if '--no-dns_forwarding' not in wpr_args:
       self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     self._web_page_replay.StartServer()
 

@@ -342,10 +342,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 
-  def AddReplayServerOptions(self, options):
+  def AddReplayServerOptions(self, extra_wpr_args):
     """Override. Only add --no-dns_forwarding if not using RNDIS."""
     if not self._override_dns:
-      options.append('--no-dns_forwarding')
+      extra_wpr_args.append('--no-dns_forwarding')
 
   def CreateForwarder(self, *port_pairs):
     if self._rndis_forwarder:
