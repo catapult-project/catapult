@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('system_stats.system_stats_snapshot');
+base.require('system_stats.system_stats_snapshot_view');
 
 base.exportTo('system_stats', function() {
   return {};
