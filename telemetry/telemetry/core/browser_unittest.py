@@ -31,7 +31,7 @@ class BrowserTest(unittest.TestCase):
       if not is_running_on_desktop:
         logging.warn("Desktop-only test, skipping.")
         return None
-      options.profile_type = profile_type
+      options.browser_options.profile_type = profile_type
 
     if extra_browser_args:
       options.AppendExtraBrowserArgs(extra_browser_args)

@@ -46,7 +46,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self.webpagereplay_remote_http_port = self.webpagereplay_local_http_port
     self.webpagereplay_remote_https_port = self.webpagereplay_local_https_port
 
-    if (finder_options.dont_override_profile and
+    if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
       sys.stderr.write('Warning: Not overriding profile. This can cause '
                        'unexpected effects due to profile-specific settings, '
@@ -74,7 +74,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = []
-    args.extend(self.finder_options.extra_browser_args)
+    args.extend(self.browser_options.extra_browser_args)
     args.append('--disable-background-networking')
     args.append('--metrics-recording-only')
     args.append('--no-first-run')

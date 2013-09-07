@@ -56,7 +56,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._SetupProfile()
 
   def _SetupProfile(self):
-    if not self.finder_options.dont_override_profile:
+    if not self.browser_options.dont_override_profile:
       if self._output_profile_path:
         # If both |_output_profile_path| and |profile_dir| are specified then
         # the calling code will throw an exception, so we don't need to worry
@@ -64,7 +64,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._tmp_profile_dir = self._output_profile_path
       else:
         self._tmp_profile_dir = tempfile.mkdtemp()
-      profile_dir = self._profile_dir or self.finder_options.profile_dir
+      profile_dir = self._profile_dir or self.browser_options.profile_dir
       if profile_dir:
         if self.is_content_shell:
           logging.critical('Profiles cannot be used with content shell')
@@ -105,7 +105,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         args.append('--enable-net-benchmarking')
       else:
         args.append('--enable-benchmarking')
-      if not self.finder_options.dont_override_profile:
+      if not self.browser_options.dont_override_profile:
         args.append('--user-data-dir=%s' % self._tmp_profile_dir)
     return args
 

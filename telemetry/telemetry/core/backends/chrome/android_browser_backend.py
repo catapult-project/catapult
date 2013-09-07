@@ -166,10 +166,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb.CloseApplication(self._backend_settings.package)
 
     if self._adb.Adb().CanAccessProtectedFileContents():
-      if not finder_options.dont_override_profile:
+      if not self.browser_options.dont_override_profile:
         self._backend_settings.RemoveProfile()
-      if finder_options.profile_dir:
-        self._backend_settings.PushProfile(finder_options.profile_dir)
+      if self.browser_options.profile_dir:
+        self._backend_settings.PushProfile(self.browser_options.profile_dir)
 
     # Pre-configure RNDIS forwarding.
     self._rndis_forwarder = None

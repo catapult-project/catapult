@@ -27,7 +27,7 @@ class ReplayServer(object):
         util.PortPair(browser_backend.webpagereplay_local_https_port,
                       browser_backend.webpagereplay_remote_https_port))
 
-    options = browser_backend.finder_options.extra_wpr_args
+    options = browser_backend.browser_options.extra_wpr_args
     if self._is_record_mode:
       if self._is_append_mode:
         options.append('--append')

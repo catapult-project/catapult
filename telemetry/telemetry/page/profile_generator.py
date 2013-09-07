@@ -102,7 +102,7 @@ def Main():
   if not options.output_dir:
     raise Exception("Must specify --output-dir option.")
 
-  if options.dont_override_profile:
+  if options.browser_options.dont_override_profile:
     raise Exception("Can't use existing profile when generating profile.")
 
   # Generate profile.

@@ -28,13 +28,6 @@ class BrowserFinderOptions(optparse.Values):
     self.android_device = None
     self.cros_ssh_identity = None
 
-    # When set to True, the browser will use the default profile.  Telemetry
-    # will not provide an alternate profile directory.
-    self.dont_override_profile = False
-    self.profile_dir = None
-    self.profile_type = None
-    self._extra_browser_args = set()
-    self.extra_wpr_args = []
     self.extensions_to_load = []
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
@@ -105,29 +98,6 @@ class BrowserFinderOptions(optparse.Values):
         dest='cros_ssh_identity',
         default=identity,
         help='The identity file to use when ssh\'ing into the ChromeOS device')
-    parser.add_option_group(group)
-
-    # Browser options
-    group = optparse.OptionGroup(parser, 'Browser options')
-    profile_choices = profile_types.GetProfileTypes()
-    group.add_option('--profile-type',
-        dest='profile_type',
-        type='choice',
-        default='clean',
-        choices=profile_choices,
-        help=('The user profile to use. A clean profile is used by default. '
-              'Supported values: ' + ', '.join(profile_choices)))
-    group.add_option('--profile-dir',
-        dest='profile_dir',
-        help='Profile directory to launch the browser with. '
-             'A clean profile is used by default')
-    group.add_option('--extra-browser-args',
-        dest='extra_browser_args_as_string',
-        help='Additional arguments to pass to the browser when it starts')
-    group.add_option('--extra-wpr-args',
-        dest='extra_wpr_args_as_string',
-        help=('Additional arguments to pass to Web Page Replay. '
-              'See third_party/webpagereplay/replay.py for usage.'))
     parser.add_option_group(group)
 
     # Page set options
@@ -213,18 +183,6 @@ class BrowserFinderOptions(optparse.Values):
         sys.stdout.write('Available browsers:\n')
         sys.stdout.write('  %s\n' % '\n  '.join(types))
         sys.exit(0)
-      if self.extra_browser_args_as_string: # pylint: disable=E1101
-        tmp = shlex.split(
-          self.extra_browser_args_as_string) # pylint: disable=E1101
-        self._extra_browser_args.update(tmp)
-        delattr(self, 'extra_browser_args_as_string')
-      if self.extra_wpr_args_as_string: # pylint: disable=E1101
-        tmp = shlex.split(
-          self.extra_wpr_args_as_string) # pylint: disable=E1101
-        self.extra_wpr_args.extend(tmp)
-        delattr(self, 'extra_wpr_args_as_string')
-      if self.profile_type == 'default':
-        self.dont_override_profile = True
 
       # Parse repeat options.
       self.repeat_options.UpdateFromParseResults(self, parser)
@@ -232,38 +190,51 @@ class BrowserFinderOptions(optparse.Values):
       # Parse browser options.
       self.browser_options.UpdateFromParseResults(self)
 
-      if self.profile_dir and self.profile_type != 'clean':
-        raise Exception("It's illegal to specify both --profile-type and"
-            " --profile-dir.")
-
-      if not self.profile_dir:
-        self.profile_dir = profile_types.GetProfileDir(self.profile_type)
-
       return ret
     parser.parse_args = ParseArgs
     return parser
 
   def AppendExtraBrowserArgs(self, args):
-    if isinstance(args, list):
-      self._extra_browser_args.update(args)
-    else:
-      self._extra_browser_args.add(args)
+    self.browser_options.AppendExtraBrowserArgs(args)
 
   def MergeDefaultValues(self, defaults):
     for k, v in defaults.__dict__.items():
       self.ensure_value(k, v)
-
-  @property
-  def extra_browser_args(self):
-    return self._extra_browser_args
 
 class BrowserOptions():
   """Options to be used for launching a browser."""
   def __init__(self):
     self.show_stdout = False
 
+    # When set to True, the browser will use the default profile.  Telemetry
+    # will not provide an alternate profile directory.
+    self.dont_override_profile = False
+    self.profile_dir = None
+    self.profile_type = None
+    self._extra_browser_args = set()
+    self.extra_wpr_args = []
+
   def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Browser options')
+    profile_choices = profile_types.GetProfileTypes()
+    group.add_option('--profile-type',
+        dest='profile_type',
+        type='choice',
+        default='clean',
+        choices=profile_choices,
+        help=('The user profile to use. A clean profile is used by default. '
+              'Supported values: ' + ', '.join(profile_choices)))
+    group.add_option('--profile-dir',
+        dest='profile_dir',
+        help='Profile directory to launch the browser with. '
+             'A clean profile is used by default')
+    group.add_option('--extra-browser-args',
+        dest='extra_browser_args_as_string',
+        help='Additional arguments to pass to the browser when it starts')
+    group.add_option('--extra-wpr-args',
+        dest='extra_wpr_args_as_string',
+        help=('Additional arguments to pass to Web Page Replay. '
+              'See third_party/webpagereplay/replay.py for usage.'))
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
@@ -271,9 +242,43 @@ class BrowserOptions():
 
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
-    browser_options_list = ['show_stdout']
+    browser_options_list = [
+        'profile_type', 'profile_dir',
+        'extra_browser_args_as_string', 'extra_wpr_args_as_string',
+        'show_stdout'
+        ]
     for o in browser_options_list:
       a = getattr(finder_options, o)
       if a:
         setattr(self, o, a)
         delattr(finder_options, o)
+
+    if hasattr(self, 'extra_browser_args_as_string'): # pylint: disable=E1101
+      tmp = shlex.split(
+        self.extra_browser_args_as_string) # pylint: disable=E1101
+      self._extra_browser_args.extend(tmp)
+      delattr(self, 'extra_browser_args_as_string')
+    if hasattr(self, 'extra_wpr_args_as_string'): # pylint: disable=E1101
+      tmp = shlex.split(
+        self.extra_wpr_args_as_string) # pylint: disable=E1101
+      self.extra_wpr_args.extend(tmp)
+      delattr(self, 'extra_wpr_args_as_string')
+    if self.profile_type == 'default':
+      self.dont_override_profile = True
+
+    if self.profile_dir and self.profile_type != 'clean':
+      raise Exception("It's illegal to specify both --profile-type and"
+          " --profile-dir.")
+
+    if not self.profile_dir:
+      self.profile_dir = profile_types.GetProfileDir(self.profile_type)
+
+  @property
+  def extra_browser_args(self):
+    return self._extra_browser_args
+
+  def AppendExtraBrowserArgs(self, args):
+    if isinstance(args, list):
+      self._extra_browser_args.update(args)
+    else:
+      self._extra_browser_args.add(args)

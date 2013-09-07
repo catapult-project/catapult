@@ -62,14 +62,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     util.WaitFor(lambda: self.IsBrowserRunning(), 20)  # pylint: disable=W0108
 
     # Delete test@test.test's cryptohome vault (user data directory).
-    if not finder_options.dont_override_profile:
+    if not self.browser_options.dont_override_profile:
       logging.info('Deleting user\'s cryptohome vault (the user data dir)')
       self._cri.RunCmdOnDevice(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
-    if finder_options.profile_dir:
+    if self.browser_options.profile_dir:
       profile_dir = '/home/chronos/Default'
       cri.RunCmdOnDevice(['rm', '-rf', profile_dir])
-      cri.PushFile(finder_options.profile_dir + '/Default', profile_dir)
+      cri.PushFile(self.browser_options.profile_dir + '/Default', profile_dir)
       cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', profile_dir])
 
   def GetBrowserStartupArgs(self):
