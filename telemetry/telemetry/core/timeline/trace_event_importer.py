@@ -274,8 +274,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           async_event_states_by_name_then_id[name] = {}
         if event_id in async_event_states_by_name_then_id[name]:
           self._model.import_errors.append(
-              'At ' + event['ts'] + ', a slice of the same id ' + event_id +
-              ' was alrady open.')
+              'At %d, a slice of the same id %s was alrady open.' % (
+                  event['ts'], event_id))
           continue
 
         async_event_states_by_name_then_id[name][event_id] = []
@@ -284,13 +284,12 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       else:
         if name not in async_event_states_by_name_then_id:
           self._model.import_errors.append(
-              'At ' + str(event['ts']) + ', no slice named ' + name +
-              ' was open.')
+              'At %d, no slice named %s was open.' % (event['ts'], name,))
           continue
         if event_id not in async_event_states_by_name_then_id[name]:
           self._model.import_errors.append(
-              'At ' + str(event['ts']) + ', no slice named ' + name +
-              ' with id=' + event_id + ' was open.')
+              'At %d, no slice named %s with id=%s was open.' % (
+                  event['ts'], name, event_id))
           continue
         events = async_event_states_by_name_then_id[name][event_id]
         events.append(async_event_state)
