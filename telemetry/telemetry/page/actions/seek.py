@@ -15,17 +15,15 @@ Action attributes are:
                    Default false.
 - wait_timeout: Timeout to wait for seeked event. Only valid with
                 wait_for_seeked=true
+- seek_label: A suffix string to name the seek perf measurement.
 """
 
-from telemetry.page.actions.media_action import MediaAction
 from telemetry.core import exceptions
 from telemetry.page.actions import page_action
+import telemetry.page.actions.media_action as media_action
 
 
-class SeekAction(MediaAction):
-  def __init__(self, attributes=None):
-    super(SeekAction, self).__init__(attributes)
-
+class SeekAction(media_action.MediaAction):
   def WillRunAction(self, page, tab):
     """Load the media metrics JS code prior to running the action."""
     super(SeekAction, self).WillRunAction(page, tab)
@@ -36,8 +34,9 @@ class SeekAction(MediaAction):
       assert hasattr(self, 'seek_time')
       selector = self.selector if hasattr(self, 'selector') else ''
       log_seek = self.log_seek == True if hasattr(self, 'log_seek') else True
-      tab.ExecuteJavaScript('window.__seekMedia("%s", "%s", %i);' %
-                            (selector, self.seek_time, log_seek))
+      seek_label = self.seek_label if hasattr(self, 'seek_label') else ''
+      tab.ExecuteJavaScript('window.__seekMedia("%s", "%s", %i, "%s");' %
+                            (selector, self.seek_time, log_seek, seek_label))
       timeout = self.wait_timeout if hasattr(self, 'wait_timeout') else 60
       # Check if we need to wait for 'seeked' event to fire.
       if hasattr(self, 'wait_for_seeked') and self.wait_for_seeked:
