@@ -31,6 +31,12 @@ class PlatformBackend(object):
   def GetSystemCommitCharge(self):
     raise NotImplementedError()
 
+  def GetCpuStats(self, pid):  # pylint: disable=W0613
+    return {}
+
+  def GetCpuTimestamp(self):  # pylint: disable=W0613
+    return {}
+
   def GetMemoryStats(self, pid):  # pylint: disable=W0613
     return {}
 

@@ -168,6 +168,35 @@ class Browser(object):
     return result
 
   @property
+  def cpu_stats(self):
+    """Returns a dict of cpu statistics for the system.
+    { 'Browser': {
+        'CpuProcessTime': S,
+        'TotalTime': T
+      },
+      'Gpu': {
+        'CpuProcessTime': S,
+        'TotalTime': T
+      },
+      'Renderer': {
+        'CpuProcessTime': S,
+        'TotalTime': T
+      }
+    }
+    Any of the above keys may be missing on a per-platform basis.
+    """
+    result = self._GetStatsCommon(self._platform_backend.GetCpuStats)
+    del result['ProcessCount']
+
+    # We want a single time value, not the sum for all processes.
+    for process_type in result:
+      # Skip any process_types that are empty
+      if not len(result[process_type]):
+        continue
+      result[process_type].update(self._platform_backend.GetCpuTimestamp())
+    return result
+
+  @property
   def io_stats(self):
     """Returns a dict of IO statistics for the browser:
     { 'Browser': {

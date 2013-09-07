@@ -22,12 +22,43 @@ def _GetProcFileDict(contents):
   return retval
 
 
+def _GetProcJiffies(timer_list):
+  """Parse '/proc/timer_list' output and returns the first jiffies attribute.
+
+  Multi-CPU machines will have multiple 'jiffies:' lines, all of which will be
+  essentially the same.  Return the first one."""
+  for line in timer_list.splitlines():
+    if line.startswith('jiffies:'):
+      _, value = line.split(':')
+      return value
+  raise Exception('Unable to find jiffies from /proc/timer_list')
+
+
 def GetSystemCommitCharge(meminfo_contents):
   meminfo = _GetProcFileDict(meminfo_contents)
   return (_ConvertKbToByte(meminfo['MemTotal'])
           - _ConvertKbToByte(meminfo['MemFree'])
           - _ConvertKbToByte(meminfo['Buffers'])
           - _ConvertKbToByte(meminfo['Cached']))
+
+
+def GetCpuStats(stats, add_children=False):
+  utime = float(stats[13])
+  stime = float(stats[14])
+  cutime = float(stats[15])
+  cstime = float(stats[16])
+
+  cpu_process_jiffies = utime + stime
+  if add_children:
+    cpu_process_jiffies += cutime + cstime
+
+  return {'CpuProcessTime': cpu_process_jiffies}
+
+
+def GetTimestampJiffies(timer_list):
+  """Return timestamp of system in jiffies."""
+  total_jiffies = float(_GetProcJiffies(timer_list))
+  return {'TotalTime': total_jiffies}
 
 
 def GetMemoryStats(status_contents, stats):
