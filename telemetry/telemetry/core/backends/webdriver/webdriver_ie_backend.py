@@ -9,11 +9,11 @@ from telemetry.core.backends.webdriver import webdriver_browser_backend
 class WebDriverIEBackend(webdriver_browser_backend.WebDriverBrowserBackend):
   # For unsupported functions. pylint: disable=W0223
 
-  def __init__(self, platform_backend, driver_creator, options):
+  def __init__(self, platform_backend, driver_creator, finder_options):
     super(WebDriverIEBackend, self).__init__(
         driver_creator=driver_creator,
         supports_extensions=False,
-        options=options)
+        finder_options=finder_options)
     self._platform_backend = platform_backend
 
   def GetProcessName(self, cmd_line):
