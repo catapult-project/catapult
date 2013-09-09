@@ -43,7 +43,7 @@ class BrowserBackend(object):
 
   @property
   def wpr_mode(self):
-    return self.finder_options.wpr_mode
+    return self.browser_options.wpr_mode
 
   @property
   def supports_tab_control(self):

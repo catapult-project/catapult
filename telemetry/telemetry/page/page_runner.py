@@ -161,13 +161,14 @@ def _LogStackTrace(title, browser):
   logging.warning('%s%s', title, stack_trace)
 
 
-def _PrepareAndRunPage(test, page_set, expectations, finder_options, page,
-                       credentials_path, possible_browser, results, state):
-  if finder_options.wpr_mode != wpr_modes.WPR_RECORD:
-    if page.archive_path and os.path.isfile(page.archive_path):
-      possible_browser.finder_options.wpr_mode = wpr_modes.WPR_REPLAY
-    else:
-      possible_browser.finder_options.wpr_mode = wpr_modes.WPR_OFF
+def _PrepareAndRunPage(test, page_set, expectations, finder_options,
+                       browser_options, page, credentials_path,
+                       possible_browser, results, state):
+  if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+    possible_browser.finder_options.browser_options.wpr_mode = (
+        wpr_modes.WPR_REPLAY
+        if page.archive_path and os.path.isfile(page.archive_path)
+        else wpr_modes.WPR_OFF)
   results_for_current_run = results
   if state.first_page[page] and test.discard_first_result:
     # If discarding results, substitute a dummy object.
@@ -215,6 +216,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options, page,
 def Run(test, page_set, expectations, finder_options):
   """Runs a given test against a given page_set with the given options."""
   results = results_options.PrepareResults(test, finder_options)
+  browser_options = finder_options.browser_options
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(finder_options)
@@ -237,7 +239,7 @@ def Run(test, page_set, expectations, finder_options):
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
   if (not finder_options.allow_live_sites and
-      finder_options.wpr_mode != wpr_modes.WPR_RECORD):
+      browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     pages = _CheckArchives(page_set, pages, results)
 
   # Verify credentials path.
@@ -250,7 +252,7 @@ def Run(test, page_set, expectations, finder_options):
 
   # Set up user agent.
   if page_set.user_agent_type:
-    finder_options.browser_user_agent_type = page_set.user_agent_type
+    browser_options.browser_user_agent_type = page_set.user_agent_type
 
   for page in pages:
     test.CustomizeBrowserOptionsForPage(page, possible_browser.finder_options)
@@ -279,8 +281,9 @@ def Run(test, page_set, expectations, finder_options):
         test.WillRunPageRepeats(page, state.tab)
         while state.repeat_state.ShouldRepeatPage():
           # execute test on page
-          _PrepareAndRunPage(test, page_set, expectations, finder_options, page,
-                             credentials_path, possible_browser, results, state)
+          _PrepareAndRunPage(test, page_set, expectations, finder_options,
+                             browser_options, page, credentials_path,
+                             possible_browser, results, state)
           state.repeat_state.DidRunPage()
         test.DidRunPageRepeats(page, state.tab)
       state.repeat_state.DidRunPageSet()

@@ -82,13 +82,13 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
     args.append('--no-proxy-server')
-    if self.finder_options.wpr_mode != wpr_modes.WPR_OFF:
+    if self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
           self.WEBPAGEREPLAY_HOST,
           self.webpagereplay_remote_http_port,
           self.webpagereplay_remote_https_port))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
-        self.finder_options.browser_user_agent_type))
+        self.browser_options.browser_user_agent_type))
 
     extensions = [extension.local_path for extension in
                   self.finder_options.extensions_to_load
@@ -104,7 +104,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if len(component_extensions) > 0:
       args.append('--load-component-extension=%s' % component_extension_str)
 
-    if self.finder_options.no_proxy_server:
+    if self.browser_options.no_proxy_server:
       args.append('--no-proxy-server')
 
     return args

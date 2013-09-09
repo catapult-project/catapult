@@ -35,17 +35,12 @@ class BrowserFinderOptions(optparse.Values):
     self.output_profile_path = None
 
     self.cros_remote = None
-    self.wpr_mode = wpr_modes.WPR_OFF
-
-    self.browser_user_agent_type = None
 
     self.profiler = None
     self.verbosity = 0
 
     self.page_filter = None
     self.page_filter_exclude = None
-
-    self.no_proxy_server = False
 
     self.repeat_options = repeat_options.RepeatOptions()
     self.browser_options = BrowserOptions()
@@ -213,6 +208,10 @@ class BrowserOptions():
     self.profile_type = None
     self._extra_browser_args = set()
     self.extra_wpr_args = []
+    self.wpr_mode = wpr_modes.WPR_OFF
+
+    self.no_proxy_server = False
+    self.browser_user_agent_type = None
 
   def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Browser options')

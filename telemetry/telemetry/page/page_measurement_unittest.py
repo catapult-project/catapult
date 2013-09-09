@@ -55,7 +55,7 @@ class PageMeasurementUnitTest(
 
   def setUp(self):
     self._options = options_for_unittests.GetCopy()
-    self._options.wpr_mode = wpr_modes.WPR_OFF
+    self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
 
   def testGotToBlank(self):
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
@@ -102,7 +102,7 @@ class PageMeasurementUnitTest(
       measurement = MeasurementForReplay()
 
       # First record an archive with only www.google.com.
-      self._options.wpr_mode = wpr_modes.WPR_RECORD
+      self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
 
       ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', json.loads(archive_info_template %
@@ -112,7 +112,7 @@ class PageMeasurementUnitTest(
       self.assertEquals(0, len(all_results.failures))
 
       # Now replay it and verify that google.com is found but foo.com is not.
-      self._options.wpr_mode = wpr_modes.WPR_REPLAY
+      self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
 
       ps.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo(
           '', '', json.loads(archive_info_template % (test_archive, foo_url)))

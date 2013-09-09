@@ -114,8 +114,8 @@ def Main(base_dir):
   ps.wpr_archive_info.AddNewTemporaryRecording(temp_target_wpr_file_path)
 
   # Do the actual recording.
-  options.wpr_mode = wpr_modes.WPR_RECORD
-  options.no_proxy_server = True
+  options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
+  options.browser_options.no_proxy_server = True
   recorder.CustomizeBrowserOptions(options)
   results = page_runner.Run(recorder, ps, expectations, options)
 
