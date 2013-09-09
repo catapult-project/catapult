@@ -132,6 +132,7 @@ base.exportTo('cc', function() {
 
   ObjectSnapshot.register('ClankPatchLayer', LayerImplSnapshot);
   ObjectSnapshot.register('TabBorderLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('CounterLayer', LayerImplSnapshot);
 
   return {
     LayerImplSnapshot: LayerImplSnapshot,
