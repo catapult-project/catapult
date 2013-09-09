@@ -194,7 +194,7 @@ base.exportTo('ui', function() {
     },
 
     updateRotateByDelta: function(delta) {
-      this.rotation_[0] += base.deg2rad(delta[1]);
+      this.rotation_[0] -= base.deg2rad(delta[1]);
       this.rotation_[1] += base.deg2rad(delta[0]);
 
       var tiltLimitInRad = base.deg2rad(constants.MAXIMUM_TILT);
