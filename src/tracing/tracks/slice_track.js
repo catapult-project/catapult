@@ -9,20 +9,16 @@ base.requireStylesheet('tracing.tracks.slice_track');
 base.require('base.sorted_array_utils');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.fast_rect_renderer');
-base.require('tracing.color_scheme');
 base.require('tracing.draw_helpers');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
-
-  var palette = tracing.getColorPalette();
 
   /**
    * A track that displays an array of Slice objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-
   var SliceTrack = ui.define(
       'slice-track', tracing.tracks.HeadingTrack);
 

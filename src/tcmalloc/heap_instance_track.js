@@ -14,8 +14,7 @@ base.require('ui');
 
 base.exportTo('tcmalloc', function() {
 
-  var palette = tracing.getColorPalette();
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
+  var EventPresenter = tracing.EventPresenter;
 
   /**
    * A track that displays heap memory data.
@@ -142,13 +141,8 @@ base.exportTo('tcmalloc', function() {
               this.objectInstance_.selectedTraces[0] == keys[k]) {
             // A trace selected in the analysis view is bright yellow.
             ctx.fillStyle = 'rgb(239, 248, 206)';
-          } else {
-            // Selected snapshots get a lighter color.
-            var colorId = snapshot.selected ?
-                snapshot.objectInstance.colorId + highlightIdBoost :
-                snapshot.objectInstance.colorId;
-            ctx.fillStyle = palette[colorId + k];
-          }
+          } else
+            ctx.fillStyle = EventPresenter.getHeapSnapshotColor(snapshot, k);
 
           var barHeight = height * trace.currentBytes / maxBytes;
           ctx.fillRect(leftView, currentY - barHeight,

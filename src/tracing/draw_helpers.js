@@ -14,7 +14,8 @@ base.require('tracing.elided_cache');
  */
 base.exportTo('tracing', function() {
   var elidedTitleCache = new tracing.ElidedTitleCache();
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
+  var palette = tracing.getColorPalette();
+  var EventPresenter = tracing.EventPresenter;
 
   /**
    * Should we elide text on trace labels?
@@ -112,10 +113,8 @@ base.exportTo('tracing', function() {
   function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices,
                       async) {
     var pixelRatio = window.devicePixelRatio || 1;
-    var height = viewHeight * pixelRatio;
-
     var pixWidth = dt.xViewVectorToWorld(1);
-    var palette = tracing.getColorPalette();
+    var height = viewHeight * pixelRatio;
 
     // Begin rendering in world space.
     ctx.save();
@@ -143,12 +142,8 @@ base.exportTo('tracing', function() {
           w = pixWidth;
       }
 
-      var colorId = slice.selected ?
-          slice.colorId + highlightIdBoost :
-          slice.colorId;
-
-      var alpha = async ? 0.25 : 1.0;
-
+      var colorId = EventPresenter.getSliceColorId(slice);
+      var alpha = EventPresenter.getSliceAlpha(slice, async);
       tr.fillRect(x, w, colorId, alpha);
     }
     tr.flush();
@@ -178,7 +173,6 @@ base.exportTo('tracing', function() {
     var height = viewHeight * pixelRatio;
 
     var pixWidth = dt.xViewVectorToWorld(1);
-    var palette = tracing.getColorPalette();
 
     // Begin rendering in world space.
     ctx.save();
@@ -197,11 +191,8 @@ base.exportTo('tracing', function() {
       if (x > viewRWorld)
         break;
 
-      var colorId = slice.selected ?
-          slice.colorId + highlightIdBoost :
-          slice.colorId;
+      ctx.strokeStyle = EventPresenter.getInstantSliceColor(slice);
 
-      ctx.strokeStyle = palette[colorId];
       ctx.moveTo(x, 0);
       ctx.lineTo(x, height);
     }
@@ -234,8 +225,6 @@ base.exportTo('tracing', function() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.font = (10 * pixelRatio) + 'px sans-serif';
-    ctx.strokeStyle = 'rgb(0,0,0)';
-    ctx.fillStyle = 'rgb(0,0,0)';
 
     if (async)
       ctx.font = 'italic ' + ctx.font;
@@ -272,6 +261,7 @@ base.exportTo('tracing', function() {
       }
 
       if (drawnWidth * pixWidth < slice.duration) {
+        ctx.fillStyle = EventPresenter.getTextColor(slice);
         var cX = dt.xWorldToView(slice.start + 0.5 * slice.duration);
         ctx.fillText(drawnTitle, cX, 2.5 * pixelRatio, drawnWidth);
       }

@@ -4,10 +4,14 @@
 
 'use strict';
 
+base.require('tracing.trace_model.event');
+
 /**
  * @fileoverview Provides color scheme related functions.
  */
 base.exportTo('tracing', function() {
+
+  var SelectionState = tracing.trace_model.SelectionState;
 
   // The color palette is split in half, with the upper
   // half of the palette being the "highlighted" verison
@@ -74,8 +78,11 @@ base.exportTo('tracing', function() {
       g: Math.min(255, c.g + Math.floor(c.g * k)),
       b: Math.min(255, c.b + Math.floor(c.b * k))};
   }
-  function colorToString(c) {
+  function colorToRGBString(c) {
     return 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+  }
+  function colorToRGBAString(c, a) {
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
   }
 
   /**
@@ -84,8 +91,8 @@ base.exportTo('tracing', function() {
   var numRegularColorIds = paletteBase.length - numReservedColorIds;
   var highlightIdBoost = paletteBase.length;
 
-  var palette = paletteBase.concat(paletteBase.map(brighten)).
-      map(colorToString);
+  var paletteRaw = paletteBase.concat(paletteBase.map(brighten));
+  var palette = paletteRaw.map(colorToRGBString);
   /**
    * Computes a simplistic hashcode of the provide name. Used to chose colors
    * for slices.
@@ -149,11 +156,75 @@ base.exportTo('tracing', function() {
     return stringColorIdCache[string];
   }
 
+  /**
+   * Provides methods to get view values for events.
+   */
+  var EventPresenter = {
+    getAlpha_: function(event) {
+      if (event.selectionState === SelectionState.DIMMED)
+        return 0.3;
+      return 1.0;
+    },
+
+    getColorIdOffset_: function(event) {
+      if (event.selectionState === SelectionState.SELECTED)
+        return highlightIdBoost;
+      return 0;
+    },
+
+    getTextColor: function(event) {
+      if (event.selectionState === SelectionState.DIMMED)
+        return 'rgb(60,60,60)';
+      return 'rgb(0,0,0)';
+    },
+
+    getSliceColorId: function(slice) {
+      return slice.colorId + this.getColorIdOffset_(slice);
+    },
+
+    getSliceAlpha: function(slice, async) {
+      var alpha = this.getAlpha_(slice);
+      if (async)
+        alpha *= 0.3;
+      return alpha;
+    },
+
+    getInstantSliceColor: function(instant) {
+      var colorId = instant.colorId + this.getColorIdOffset_(instant);
+      return colorToRGBAString(paletteRaw[colorId], this.getAlpha_(instant));
+    },
+
+    getObjectInstanceColor: function(instance) {
+      var colorId = instance.colorId + this.getColorIdOffset_(instance);
+      return colorToRGBAString(paletteRaw[colorId], 0.25);
+    },
+
+    getObjectSnapshotColor: function(snapshot) {
+      var colorId =
+          snapshot.objectInstance.colorId + this.getColorIdOffset_(snapshot);
+      return palette[colorId];
+    },
+
+    getCounterSeriesColor: function(colorId, selectionState) {
+      return colorToRGBAString(
+          paletteRaw[colorId],
+          this.getAlpha_({selectionState: selectionState}));
+    },
+
+    getHeapSnapshotColor: function(snapshot, offset) {
+      var colorId =
+          (snapshot.objectInstance.colorId + offset) % numRegularColorIds;
+      colorId += this.getColorIdOffset_(snapshot);
+      return colorToRGBAString(paletteRaw[colorId], this.getAlpha_(snapshot));
+    }
+  };
+
   return {
     getColorPalette: getColorPalette,
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
     getColorIdByName: getColorIdByName,
     getStringHash: getStringHash,
-    getStringColorId: getStringColorId
+    getStringColorId: getStringColorId,
+    EventPresenter: EventPresenter
   };
 });

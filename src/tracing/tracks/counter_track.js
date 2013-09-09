@@ -6,13 +6,15 @@
 
 base.requireStylesheet('tracing.tracks.counter_track');
 
+base.require('tracing.trace_model.event');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
 
-  var palette = tracing.getColorPalette();
+  var SelectionState = tracing.trace_model.SelectionState;
+  var EventPresenter = tracing.EventPresenter;
   var LAST_SAMPLE_PIXELS = 8;
 
   /**
@@ -95,8 +97,18 @@ base.exportTo('tracing.tracks', function() {
       for (var seriesIndex = counter.numSeries - 1;
            seriesIndex >= 0; seriesIndex--) {
         var series = counter.series[seriesIndex];
-        var colorId = series.color;
-        ctx.fillStyle = palette[colorId];
+
+        // For performance reasons we only check the SelectionState of the first
+        // sample. If it's DIMMED we assume that the whole series is DIMMED.
+        // TODO(egraether): Allow partial highlight.
+        var selectionState = SelectionState.NONE;
+        if (series.samples.length &&
+            series.samples[0].selectionState === SelectionState.DIMMED) {
+          selectionState = SelectionState.DIMMED;
+        }
+
+        ctx.fillStyle = EventPresenter.getCounterSeriesColor(
+            series.color, selectionState);
         ctx.beginPath();
 
         // Set iLast and xLast such that the first sample we draw is the

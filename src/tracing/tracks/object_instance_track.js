@@ -7,14 +7,15 @@
 base.requireStylesheet('tracing.tracks.object_instance_track');
 
 base.require('base.sorted_array_utils');
+base.require('tracing.trace_model.event');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
 base.exportTo('tracing.tracks', function() {
 
-  var palette = tracing.getColorPalette();
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
+  var SelectionState = tracing.trace_model.SelectionState;
+  var EventPresenter = tracing.EventPresenter;
 
   /**
    * A track that displays an array of Slice objects.
@@ -102,7 +103,6 @@ base.exportTo('tracing.tracks', function() {
             return instance.deletionTs;
           },
           viewLWorld);
-      ctx.globalAlpha = 0.25;
       ctx.strokeStyle = 'rgb(0,0,0)';
       for (var i = loI; i < objectInstances.length; ++i) {
         var instance = objectInstances[i];
@@ -110,16 +110,11 @@ base.exportTo('tracing.tracks', function() {
         if (x > viewRWorld)
           break;
 
-        var colorId = instance.selected ?
-            instance.colorId + highlightIdBoost :
-            instance.colorId;
-
         var right = instance.deletionTs == Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
-        ctx.fillStyle = palette[colorId];
+        ctx.fillStyle = EventPresenter.getObjectInstanceColor(instance);
         ctx.fillRect(x, pixelRatio, right - x, height - 2 * pixelRatio);
       }
-      ctx.globalAlpha = 1;
       ctx.restore();
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
@@ -127,8 +122,7 @@ base.exportTo('tracing.tracks', function() {
       loI = base.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
-            return snapshot.ts +
-                snapshotRadiusWorld;
+            return snapshot.ts + snapshotRadiusWorld;
           },
           viewLWorld);
       for (var i = loI; i < objectSnapshots.length; ++i) {
@@ -138,11 +132,7 @@ base.exportTo('tracing.tracks', function() {
           break;
         var xView = dt.xWorldToView(x);
 
-        var colorId = snapshot.selected ?
-            snapshot.objectInstance.colorId + highlightIdBoost :
-            snapshot.objectInstance.colorId;
-
-        ctx.fillStyle = palette[colorId];
+        ctx.fillStyle = EventPresenter.getObjectSnapshotColor(snapshot);
         ctx.beginPath();
         ctx.arc(xView, halfHeight, snapshotRadiusView, 0, twoPi);
         ctx.fill();
@@ -163,6 +153,23 @@ base.exportTo('tracing.tracks', function() {
         }
       }
       ctx.lineWidth = 1;
+
+      // For performance reasons we only check the SelectionState of the first
+      // instance. If it's DIMMED we assume that all are DIMMED.
+      // TODO(egraether): Allow partial highlight.
+      var selectionState = SelectionState.NONE;
+      if (objectInstances.length &&
+          objectInstances[0].selectionState === SelectionState.DIMMED) {
+        selectionState = SelectionState.DIMMED;
+      }
+
+      // Dim the track when there is an active highlight.
+      if (selectionState === SelectionState.DIMMED) {
+        var width = bounds.width * pixelRatio;
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+      }
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {

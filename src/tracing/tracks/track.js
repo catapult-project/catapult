@@ -14,11 +14,8 @@ base.requireStylesheet('tracing.tracks.track');
 
 base.require('ui');
 base.require('ui.container_that_decorates_its_children');
-base.require('tracing.color_scheme');
 
 base.exportTo('tracing.tracks', function() {
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
-
   /**
    * The base class for all tracks.
    * @constructor
