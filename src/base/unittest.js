@@ -157,7 +157,6 @@ base.exportTo('base.unittest', function() {
     this.tests_ = [];
     this.testNames_ = {};
     this.failures_ = [];
-    this.results_ = TestStatus.PENDING;
     this.showLongResults = false;
     this.duration_ = 0.0;
     this.resultsEl_ = undefined;
@@ -250,7 +249,7 @@ base.exportTo('base.unittest', function() {
     },
 
     get results() {
-      return this.results_;
+      return (this.failureCount > 0) ? TestStatus.FAILED : TestStatus.PASSED;
     },
 
     get testCount() {
@@ -313,10 +312,8 @@ base.exportTo('base.unittest', function() {
         remainingTests = this.tests_.slice(0);
       }
 
-      this.results_ = TestStatus.PENDING;
       return this.runRemainingTests_(remainingTests).then(
           function resolve(ignored) {
-            this.results_ = TestStatus.PASSED;
             this.duration_ = this.tests_.reduce(function(total, test) {
               return total += test.duration;
             }, 0);
@@ -362,7 +359,6 @@ base.exportTo('base.unittest', function() {
           error: test.failure,
           test: test.name
         });
-        suite.results_ = TestStatus.FAILED;
         suite.testTearDown_(test);
         return suite.runRemainingTests_(remainingTests);
       });

@@ -48,4 +48,9 @@ base.unittest.testSuite('base.unittest', function() {
     });
   });
 
+  /* To test failures remove comments
+  test('fail', function() {
+    assertEquals(true, false);
+  });
+  */
 });
