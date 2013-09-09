@@ -152,7 +152,11 @@ base.exportTo('tracing', function() {
         return;
       this.filterText_ = f;
       this.filterHitsDirty_ = true;
-      this.showHits_(this.filterHits);
+
+      if (!this.timeline)
+        return;
+
+      this.timeline.setHighlightAndClearSelection(this.filterHits);
     },
 
     get filterHits() {
@@ -174,18 +178,6 @@ base.exportTo('tracing', function() {
       return this.currentHitIndex_;
     },
 
-    showHits_: function(selection, zoom, pan) {
-      if (!this.timeline)
-        return;
-
-      this.timeline.selection = selection;
-
-      if (zoom)
-        this.timeline.zoomToSelection();
-      else if (pan)
-        this.timeline.panToSelection();
-    },
-
     find_: function(dir) {
       var firstHit = this.currentHitIndex_ === -1;
       if (firstHit && dir < 0)
@@ -194,12 +186,11 @@ base.exportTo('tracing', function() {
       var N = this.filterHits.length;
       this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
-      // We allow the zoom level to change only on the first hit. But, when
-      // then cycling through subsequent changes, restrict it to panning.
-      var zoom = firstHit;
-      var pan = true;
-      var subSelection = this.filterHits.subSelection(this.currentHitIndex_);
-      this.showHits_(subSelection, zoom, pan);
+      if (!this.timeline)
+        return;
+
+      this.timeline.selection =
+          this.filterHits.subSelection(this.currentHitIndex_, 1);
     },
 
     findNext: function() {

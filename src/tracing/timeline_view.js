@@ -366,7 +366,7 @@ base.exportTo('tracing', function() {
       var oldScrollTop = this.timelineContainer_.scrollTop;
 
       var selection = this.timeline_ ?
-          this.timeline_.selection :
+          this.timeline_.selectionOfInterest :
           new tracing.Selection();
       this.analysisEl_.selection = selection;
       this.timelineContainer_.scrollTop = oldScrollTop;
