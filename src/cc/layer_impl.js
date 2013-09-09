@@ -130,6 +130,9 @@ base.exportTo('cc', function() {
   ObjectSnapshot.register('cc::VideoLayerImpl', LayerImplSnapshot);
   ObjectSnapshot.register('cc::PaintedScrollbarLayerImpl', LayerImplSnapshot);
 
+  ObjectSnapshot.register('ClankPatchLayer', LayerImplSnapshot);
+  ObjectSnapshot.register('TabBorderLayer', LayerImplSnapshot);
+
   return {
     LayerImplSnapshot: LayerImplSnapshot,
     PictureLayerImplSnapshot: PictureLayerImplSnapshot
