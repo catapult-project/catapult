@@ -117,6 +117,7 @@ base.exportTo('tracing', function() {
       this.bindEventListener_(document, 'keyup', this.onKeyup_, this);
 
       this.bindEventListener_(this, 'dblclick', this.onDblClick_, this);
+      this.bindEventListener_(this, 'mousewheel', this.onMouseWheel_, this);
 
       this.addEventListener('mousemove', this.onMouseMove_);
 
@@ -448,6 +449,16 @@ base.exportTo('tracing', function() {
       this.addAllObjectsMatchingFilterToSelection(filter, selection);
 
       this.setSelectionAndClearHighlight(selection);
+    },
+
+    onMouseWheel_: function(e) {
+      if (!e.altKey)
+        return;
+
+      var delta = e.wheelDelta / 120;
+      var zoomScale = Math.pow(1.5, delta);
+      this.zoomBy_(zoomScale);
+      e.preventDefault();
     },
 
     queueSmoothPan_: function(viewDeltaX, deltaY) {
