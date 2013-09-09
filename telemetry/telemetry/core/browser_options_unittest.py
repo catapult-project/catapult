@@ -72,6 +72,14 @@ class BrowserOptionsTest(unittest.TestCase):
     parser.parse_args(['--browser', 'any', '--profile-dir', 'foo'])
     self.assertEquals(options.browser_options.profile_dir, 'foo')
 
+  def testExtraBrowserArgs(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args(['--extra-browser-args=--foo --bar'])
+
+    self.assertEquals(options.browser_options.extra_browser_args,
+                      set(['--foo','--bar']))
+
   def testMergeDefaultValues(self):
     options = browser_options.BrowserFinderOptions()
     options.already_true = True

@@ -256,7 +256,7 @@ class BrowserOptions():
     if hasattr(self, 'extra_browser_args_as_string'): # pylint: disable=E1101
       tmp = shlex.split(
         self.extra_browser_args_as_string) # pylint: disable=E1101
-      self._extra_browser_args.extend(tmp)
+      self.AppendExtraBrowserArgs(tmp)
       delattr(self, 'extra_browser_args_as_string')
     if hasattr(self, 'extra_wpr_args_as_string'): # pylint: disable=E1101
       tmp = shlex.split(
