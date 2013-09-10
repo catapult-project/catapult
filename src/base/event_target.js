@@ -77,8 +77,10 @@ base.exportTo('base', function() {
       event.__defineGetter__('target', function() {
         return self;
       });
+      var realPreventDefault = event.preventDefault;
       event.preventDefault = function() {
-        this.returnValue = false;
+        realPreventDefault.call(this);
+        this.rawReturnValue = false;
       };
 
       var type = event.type;
@@ -94,7 +96,7 @@ base.exportTo('base', function() {
         }
       }
 
-      return !prevented && event.returnValue;
+      return !prevented && event.rawReturnValue;
     },
 
     hasEventListener: function(type) {
