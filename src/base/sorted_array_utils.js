@@ -218,14 +218,11 @@ base.exportTo('base', function() {
    * @param {number} val The value for the search.
    * @param {number} maxDiff Maximum allowed difference in value between |val|
    *     and an interval's low or high value.
-   * @param {function():*=} opt_cb Optional function to run on the found
-   *     interval. The interval and the closer low or high values are passed as
-   *     arguments.
    * @return {interval} Interval in the array whose high or low value is closest
    *     to |val|, or null if no interval is within range.
    */
   function findClosestIntervalInSortedIntervals(ary, mapLoFn, mapHiFn, val,
-                                                maxDiff, opt_cb) {
+                                                maxDiff) {
     if (ary.length === 0)
       return null;
 
@@ -245,19 +242,10 @@ base.exportTo('base', function() {
     if (loDiff > maxDiff && hiDiff > maxDiff)
       return null;
 
-    var interval;
-    if (loDiff < hiDiff) {
-      interval = loInt;
-      val = mapLoFn(interval);
-    } else {
-      interval = hiInt;
-      val = mapHiFn(interval);
-    }
-
-    if (opt_cb)
-      opt_cb(interval, val);
-
-    return interval;
+    if (loDiff < hiDiff)
+      return loInt;
+    else
+      return hiInt;
   }
 
   return {

@@ -166,17 +166,15 @@ base.exportTo('tracing.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      function onPickInterval(slice) {
-        selection.push(slice);
-      }
-
-      base.findClosestIntervalInSortedIntervals(
+      var slice = base.findClosestIntervalInSortedIntervals(
           this.slices_,
           function(x) { return x.start; },
           function(x) { return x.end; },
           worldX,
-          worldMaxDist,
-          onPickInterval.bind(this));
+          worldMaxDist);
+
+      if (slice)
+        selection.push(slice);
     }
   };
 
