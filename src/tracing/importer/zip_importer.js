@@ -52,7 +52,7 @@ base.exportTo('tracing.importer', function() {
       for (var idx in zip.files)
         subtraces.push(zip.files[idx].asText());
       return subtraces;
-    },
+    }
   };
 
   tracing.TraceModel.registerImporter(ZipImporter);
@@ -61,4 +61,3 @@ base.exportTo('tracing.importer', function() {
     ZipImporter: ZipImporter
   };
 });
-

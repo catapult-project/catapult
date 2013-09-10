@@ -21,7 +21,7 @@ base.unittest.testSuite('ui.camera', function() {
       base.Quad.FromXYWH(-250, -250, 250, 250), // crosshairs
       base.Quad.FromXYWH(0, -250, 250, 250), // crosshairs
       base.Quad.FromXYWH(-250, 0, 250, 250), // crosshairs
-      base.Quad.FromXYWH(0, 0, 250, 250), // crosshairs
+      base.Quad.FromXYWH(0, 0, 250, 250) // crosshairs
     ];
     quads[0].stackingGroupId = 0;
     quads[1].stackingGroupId = 0;

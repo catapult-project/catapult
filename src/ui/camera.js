@@ -13,7 +13,7 @@ base.exportTo('ui', function() {
     MINIMUM_SCALE: 0.1,
     MAXIMUM_SCALE: 2.0,
     RESCALE_TIMEOUT_MS: 200,
-    MAXIMUM_TILT: 90, // degrees
+    MAXIMUM_TILT: 90 // degrees
   };
 
 

@@ -1251,7 +1251,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   test('importCompleteEvent', function() {
     var events = [
       { name: 'a', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X' },  // @suppress longLineCheck
-      { name: 'b', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X' }  // @suppress longLineCheck
     ];
 
     var m = new tracing.TraceModel(events);

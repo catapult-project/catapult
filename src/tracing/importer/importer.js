@@ -41,11 +41,10 @@ base.exportTo('tracing.importer', function() {
      * model bounds have been computed.
      */
     joinRefs: function() {
-    },
+    }
   };
 
   return {
     Importer: Importer
   };
 });
-

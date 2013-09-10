@@ -162,7 +162,7 @@ base.exportTo('tracing.importer', function() {
     extractSubtraces: function() {
       var eventData = GzipImporter.inflateGzipData_(this.gzipData_);
       return eventData ? [eventData] : [];
-    },
+    }
   };
 
   tracing.TraceModel.registerImporter(GzipImporter);

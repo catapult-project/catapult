@@ -381,7 +381,7 @@ base.exportTo('tracing', function() {
   };
 
   TraceModelEmptyImporter.prototype = {
-    __proto__: Importer.prototype,
+    __proto__: Importer.prototype
   };
 
   TraceModel.registerImporter(TraceModelEmptyImporter);

@@ -166,7 +166,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
     var outerTraceEvents = [
       {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
         my_object: {id_ref: '0x1000'}
-      }},
+      }}
     ];
 
     var innerTraceEvents = [
@@ -180,7 +180,7 @@ base.unittest.testSuite('tracing.trace_model', function() {
 
     var outerTrace = JSON.stringify({
       traceEvents: outerTraceEvents,
-      systemTraceEvents: innerTrace,
+      systemTraceEvents: innerTrace
     });
 
     var m = new TraceModel();

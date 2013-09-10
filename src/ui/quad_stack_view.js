@@ -255,7 +255,7 @@ base.exportTo('ui', function() {
       this.appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
           'quadStackView.mouseModeSelector';
-    },
+    }
   };
 
   return {

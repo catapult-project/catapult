@@ -222,7 +222,7 @@ base.exportTo('tracing.importer', function() {
       for (var i = 0; i < lines.length; i++) {
         logreader.processLogLine(lines[i]);
       }
-    },
+    }
   };
 
   tracing.TraceModel.registerImporter(V8LogImporter);

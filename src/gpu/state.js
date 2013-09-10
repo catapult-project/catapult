@@ -34,12 +34,12 @@ base.exportTo('gpu', function() {
      */
     get screenshot() {
       return this.screenshot_;
-    },
+    }
   };
 
   ObjectSnapshot.register('gpu::State', StateSnapshot);
 
   return {
-    StateSnapshot: StateSnapshot,
+    StateSnapshot: StateSnapshot
   };
 });

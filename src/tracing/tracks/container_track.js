@@ -95,7 +95,7 @@ base.exportTo('tracing.tracks', function() {
 
       tracing.tracks.Track.prototype.addClosestEventToSelection.
           apply(this, arguments);
-    },
+    }
   };
 
   return {
