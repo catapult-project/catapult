@@ -128,16 +128,16 @@
 .view-help-text .column {
   width: 50%;
 }
-.view-help-text h2,
-.view-help-text h3 {
+.view-help-text h2 {
   font-size: 1.2em;
   margin: 0;
-  margin-left: 155px;
   margin-top: 5px;
-  padding: 0;
+  text-align: center;
 }
 .view-help-text h3 {
-  font-size: 0.9em;
+  margin: 0;
+  margin-left: 126px;
+  margin-top: 10px;
 }
 .view-help-text .pair {
   -webkit-box-flex: 1;
@@ -154,4 +154,29 @@
   font-size: 0.9em;
   text-align: left;
   width: 200px;
+}
+.view-help-text .mouse-mode-icon {
+  background-image: url(../images/ui-states.png);
+  border: 1px solid #888;
+  border-radius: 3px;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+  display: inline-block;
+  height: 26px;
+  margin-right: 1px;
+  position: relative;
+  top: 4px;
+  width: 27px;
+  zoom: 0.75;
+}
+.view-help-text .mouse-mode-icon.pan-mode {
+  background-position: -1px -11px;
+}
+.view-help-text .mouse-mode-icon.select-mode {
+  background-position: -1px -41px;
+}
+.view-help-text .mouse-mode-icon.zoom-mode {
+  background-position: -1px -71px;
+}
+.view-help-text .mouse-mode-icon.timing-mode {
+  background-position: -1px -101px;
 }
