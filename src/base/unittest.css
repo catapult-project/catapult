@@ -20,6 +20,10 @@
   overflow-y: auto;
 }
 
+#test-results * {
+  -webkit-user-select: auto;
+}
+
 #test-harness h1 {
   counter-reset: suite-count;
   margin-bottom: 0;
