@@ -208,9 +208,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _SetCommandLineFile(self, file_contents):
     def IsProtectedFile(name):
       if self._adb.Adb().FileExistsOnDevice(name):
-        ls_output = self._adb.RunShellCommand('ls -l %s' % name)[0]
-        return ls_output == 'opendir failed, Permission denied' or \
-            ls_output.split()[1] == 'root'
+        return not self._adb.Adb().IsFileWritableOnDevice(name)
       else:
         parent_name = os.path.dirname(name)
         if parent_name != '':
