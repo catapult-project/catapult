@@ -74,11 +74,6 @@ class BrowserFinderOptions(optparse.Values):
         dest='android_device',
         help='The android device ID to use'
              'If not specified, only 0 or 1 connected devcies are supported.')
-    group.add_option('--keep_test_server_ports', action='store_true',
-        help='Indicates the test server ports must be '
-             'kept. When this is run via a sharder '
-             'the test server ports should be kept and '
-             'should not be reset.')
     group.add_option(
         '--remote',
         dest='cros_remote',
@@ -213,6 +208,8 @@ class BrowserOptions():
     self.no_proxy_server = False
     self.browser_user_agent_type = None
 
+    self.keep_test_server_ports = False
+
   def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
@@ -237,6 +234,15 @@ class BrowserOptions():
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
+    parser.add_option_group(group)
+
+    # Android options. TODO(achuith): Move to AndroidBrowserOptions.
+    group = optparse.OptionGroup(parser, 'Android options')
+    group.add_option('--keep_test_server_ports',
+        action='store_true',
+        help='Indicates the test server ports must be kept. When this is run '
+             'via a sharder the test server ports should be kept and should '
+             'not be reset.')
     parser.add_option_group(group)
 
   def UpdateFromParseResults(self, finder_options):
