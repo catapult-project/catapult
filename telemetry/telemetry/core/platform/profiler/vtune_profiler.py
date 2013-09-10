@@ -84,11 +84,11 @@ class VTuneProfiler(profiler.Profiler):
     return 'vtune'
 
   @classmethod
-  def is_supported(cls, options):
+  def is_supported(cls, browser_type):
     if sys.platform != 'linux2':
       return False
-    if options and (options.browser_type.startswith('android')
-                    or options.browser_type.startswith('cros')):
+    if (browser_type.startswith('android') or
+        browser_type.startswith('cros')):
       return False
     try:
       return not subprocess.Popen(['amplxe-cl', '-version'],
