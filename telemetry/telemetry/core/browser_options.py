@@ -29,7 +29,6 @@ class BrowserFinderOptions(optparse.Values):
     self.cros_ssh_identity = None
 
     self.extensions_to_load = []
-    self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
     # If set, copy the generated profile to this path on exit.
     self.output_profile_path = None
@@ -209,6 +208,8 @@ class BrowserOptions():
     self.browser_user_agent_type = None
 
     self.keep_test_server_ports = False
+
+    self.clear_sytem_cache_for_browser_and_profile_on_start = False
 
   def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Browser options')
