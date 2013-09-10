@@ -48,7 +48,9 @@ base.exportTo('cc', function() {
       var m = ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
       mms.settingsKey = 'cc.layerTreeQuadStackView.mouseModeSelector';
-      mms.setKeyCodeForMode(m.PANSCAN, 'z'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.PANSCAN, 'Z'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.ZOOM, 'X'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.ROTATE, 'C'.charCodeAt(0));
 
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);

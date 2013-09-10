@@ -182,9 +182,11 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
+      var m = ui.MOUSE_SELECTOR_MODE;
+      this.mouseModeSelector_.supportedModeMask =
+          m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
           'timelineTrackView.mouseModeSelector';
-      var m = ui.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.setKeyCodeForMode(m.PANSCAN, '2'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.SELECTION, '1'.charCodeAt(0));
       this.mouseModeSelector_.setKeyCodeForMode(m.ZOOM, '3'.charCodeAt(0));
@@ -373,7 +375,6 @@ base.exportTo('tracing', function() {
           this.queueSmoothPan_(viewWidth * -0.5, 0);
           break;
         case 48:  // 0
-        case 122: // z
           this.setInitialViewport_();
           break;
         case 102:  // f

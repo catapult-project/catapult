@@ -249,7 +249,10 @@ base.exportTo('ui', function() {
     trackMouse_: function() {
       this.mouseModeSelector_ = new ui.MouseModeSelector(this);
       this.mouseModeSelector_.supportedModeMask =
-          ui.MOUSE_SELECTOR_MODE.ALL_MODES;
+          ui.MOUSE_SELECTOR_MODE.SELECT |
+          ui.MOUSE_SELECTOR_MODE.PANSCAN |
+          ui.MOUSE_SELECTOR_MODE.ZOOM |
+          ui.MOUSE_SELECTOR_MODE.ROTATE;
       this.mouseModeSelector_.mode = ui.MOUSE_SELECTOR_MODE.PANSCAN;
       this.mouseModeSelector_.pos = {x: 0, y: 100};
       this.appendChild(this.mouseModeSelector_);

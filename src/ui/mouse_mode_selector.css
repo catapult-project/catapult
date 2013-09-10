@@ -66,3 +66,13 @@
 .mouse-mode-selector .timing-mode-button.active {
   background-position: -30px -100px;
 }
+
+.mouse-mode-selector .rotate-mode-button {
+  background-image: url(../images/ui-states.png);
+  background-position: 0 -130px;
+  border-bottom: none;
+}
+
+.mouse-mode-selector .rotate-mode-button.active {
+  background-position: -30px -130px;
+}

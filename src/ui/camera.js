@@ -39,13 +39,11 @@ base.exportTo('ui', function() {
       this.eventSource_.addEventListener('endzoom',
           this.onZoomEnd_.bind(this));
 
-      // TODO(vmpstr): Change this to listen to rotate events
-      // once those are in.
-      this.eventSource_.addEventListener('begintiming',
+      this.eventSource_.addEventListener('beginrotate',
           this.onRotateBegin_.bind(this));
-      this.eventSource_.addEventListener('updatetiming',
+      this.eventSource_.addEventListener('updaterotate',
           this.onRotateUpdate_.bind(this));
-      this.eventSource_.addEventListener('endtiming',
+      this.eventSource_.addEventListener('endrotate',
           this.onRotateEnd_.bind(this));
 
       this.listeners_ = {};

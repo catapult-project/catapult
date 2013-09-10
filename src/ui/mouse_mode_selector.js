@@ -25,7 +25,8 @@ base.exportTo('ui', function() {
   MOUSE_SELECTOR_MODE.PANSCAN = 0x2;
   MOUSE_SELECTOR_MODE.ZOOM = 0x4;
   MOUSE_SELECTOR_MODE.TIMING = 0x8;
-  MOUSE_SELECTOR_MODE.ALL_MODES = 0xF;
+  MOUSE_SELECTOR_MODE.ROTATE = 0x10;
+  MOUSE_SELECTOR_MODE.ALL_MODES = 0x1F;
 
   var allModeInfo = {};
   allModeInfo[MOUSE_SELECTOR_MODE.PANSCAN] = {
@@ -71,6 +72,17 @@ base.exportTo('ui', function() {
       update: 'updatetiming',
       end: 'endtiming',
       exit: 'exittiming'
+    }
+  };
+  allModeInfo[MOUSE_SELECTOR_MODE.ROTATE] = {
+    title: 'rotate',
+    className: 'rotate-mode-button',
+    eventNames: {
+      enter: 'enterrotate',
+      begin: 'beginrotate',
+      update: 'updaterotate',
+      end: 'endrotate',
+      exit: 'exitrotate'
     }
   };
 
@@ -381,13 +393,21 @@ base.exportTo('ui', function() {
       if (this.isInteracting_)
         return;
 
+      var didHandleKey = false;
       base.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
         if (e.keyCode === keyCode) {
           this.setAlternateMode_(null);
           var mode = parseInt(modeStr);
           this.mode = mode;
+          didHandleKey = true;
         }
       }, this);
+
+      if (didHandleKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
 
       if (!this.isInAlternativeMode_)
         return;
