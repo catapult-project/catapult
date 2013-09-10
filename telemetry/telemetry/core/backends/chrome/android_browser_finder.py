@@ -53,7 +53,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def Create(self):
     backend = android_browser_backend.AndroidBrowserBackend(
         self.finder_options, self._backend_settings,
-        self.finder_options.android_rndis,
         output_profile_path=self.finder_options.output_profile_path)
     platform_backend = android_platform_backend.AndroidPlatformBackend(
         self._backend_settings.adb.Adb(),

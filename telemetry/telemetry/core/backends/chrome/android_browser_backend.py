@@ -147,8 +147,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
-  def __init__(self, finder_options, backend_settings, rndis,
-               output_profile_path):
+  def __init__(self, finder_options, backend_settings, output_profile_path):
     super(AndroidBrowserBackend, self).__init__(
         is_content_shell=backend_settings.is_content_shell,
         supports_extensions=False, finder_options=finder_options,
@@ -160,7 +159,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
     self._saved_cmdline = None
-    if not self.browser_options.keep_test_server_ports:
+    if not finder_options.keep_test_server_ports:
       adb_commands.ResetTestServerPortAllocation()
     self._port = adb_commands.AllocateTestServerPort()
 
@@ -175,7 +174,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Pre-configure RNDIS forwarding.
     self._rndis_forwarder = None
-    if rndis:
+    if finder_options.android_rndis:
       self._rndis_forwarder = android_rndis.RndisForwarderWithRoot(self._adb)
       self.WEBPAGEREPLAY_HOST = self._rndis_forwarder.host_ip
     # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
