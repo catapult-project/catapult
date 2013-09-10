@@ -243,6 +243,10 @@ base.exportTo('tracing.trace_model', function() {
       }
     },
 
+    createSubSlices: function() {
+      this.sliceGroup.createSubSlices();
+    },
+
     /**
      * @return {String} A user-friendly name for this thread.
      */

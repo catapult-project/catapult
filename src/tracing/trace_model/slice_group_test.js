@@ -27,20 +27,188 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(2, sliceB.duration);
   });
 
-  test('nestedBeginEnd', function() {
+  test('subSlicesBuilderBasic', function() {
     var group = new SliceGroup();
-    assertEquals(group.openSliceCount, 0);
-    group.beginSlice('', 'a', 1);
-    group.beginSlice('', 'b', 2);
-    group.endSlice(2.5);
-    group.endSlice(3);
+    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
 
-    assertEquals(2, group.slices.length);
-    assertEquals('b', group.slices[0].title);
-    assertEquals(0.5, group.slices[0].duration);
+    group.createSubSlices();
 
-    assertEquals('a', group.slices[1].title);
-    assertEquals(2, group.slices[1].duration);
+    assertEquals(2, group.topLevelSlices.length);
+    assertArrayEquals([sA, sB], group.topLevelSlices);
+  });
+
+  test('subSlicesBuilderBasic2', function() {
+    var group = new SliceGroup();
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sA], group.topLevelSlices);
+
+    assertEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertEquals(3, sA.selfTime);
+
+    assertTrue(sB.parentSlice == sA);
+  });
+
+  test('subSlicesBuilderNestedExactly', function() {
+    var group = new SliceGroup();
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 4));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sB], group.topLevelSlices);
+
+    assertEquals(1, sB.subSlices.length);
+    assertArrayEquals([sA], sB.subSlices);
+    assertEquals(0, sB.selfTime);
+
+    assertTrue(sA.parentSlice == sB);
+  });
+
+  test('subSlicesBuilderInstantEvents', function() {
+    var group = new SliceGroup();
+    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+    var sB = group.pushSlice(newSliceNamed('b', 2, 0));
+
+    group.createSubSlices();
+
+    assertEquals(2, group.topLevelSlices.length);
+    assertArrayEquals([sA, sB], group.topLevelSlices);
+  });
+
+  test('subSlicesBuilderTwoInstantEvents', function() {
+    var group = new SliceGroup();
+    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sA], group.topLevelSlices);
+
+    assertEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertEquals(0, sA.selfTime);
+
+    assertTrue(sB.parentSlice == sA);
+  });
+
+  test('subSlicesBuilderOutOfOrderAddition', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [    a     ][   b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 2));
+
+    group.createSubSlices();
+
+    assertEquals(2, group.topLevelSlices.length);
+    assertArrayEquals([sA, sB], group.topLevelSlices);
+  });
+
+  test('subRowBuilderOutOfOrderAddition2', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]
+    //   [  b   ]
+    // Where insertion is done backward.
+    var sB = group.pushSlice(newSliceNamed('b', 3, 1));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 5));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sA], group.topLevelSlices);
+
+    assertEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertEquals(4, sA.selfTime);
+
+    assertTrue(sB.parentSlice == sA);
+  });
+
+  test('subSlicesBuilderOnNestedZeroLength', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [    a    ]
+    // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    var sB1 = group.pushSlice(newSliceNamed('b1', 1, 2));
+    var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sA], group.topLevelSlices);
+
+    assertEquals(2, sA.subSlices.length);
+    assertArrayEquals([sB1, sB2], sA.subSlices);
+    assertEquals(1, sA.selfTime);
+
+    assertTrue(sB1.parentSlice == sA);
+    assertTrue(sB2.parentSlice == sA);
+  });
+
+  test('subSlicesBuilderOnGroup1', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]   [  c   ]
+    //   [  b   ]
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed('c', 5, 0));
+
+    group.createSubSlices();
+
+    assertEquals(2, group.topLevelSlices.length);
+    assertArrayEquals([sA, sC], group.topLevelSlices);
+
+    assertArrayEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertEquals(2, sA.selfTime);
+
+    assertTrue(sB.parentSlice == sA);
+  });
+
+  test('subSlicesBuilderOnGroup2', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [    a     ]   [  d   ]
+    //   [  b   ]
+    //    [ c ]
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1.5, 1));
+    var sC = group.pushSlice(newSliceNamed('c', 1.75, 0.5));
+    var sD = group.pushSlice(newSliceNamed('d', 5, 0.25));
+
+    group.createSubSlices();
+
+    assertEquals(2, group.topLevelSlices.length);
+    assertArrayEquals([sA, sD], group.topLevelSlices);
+
+    assertArrayEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertEquals(2, sA.selfTime);
+
+    assertTrue(sB.parentSlice == sA);
+    assertEquals(1, sB.subSlices.length);
+    assertArrayEquals([sC], sB.subSlices);
+    assertEquals(0.5, sB.selfTime);
+
+    assertTrue(sC.parentSlice == sB);
   });
 
   test('basicMerge', function() {
@@ -396,6 +564,4 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertTrue(group.slices[2].didNotFinish);
     assertEquals(2, group.slices[2].duration);
   });
-
-  // TODO: test cretion of subSlices
 });

@@ -113,12 +113,99 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', sA.category);
     assertEquals(0.001, sA.start);
     assertEquals(0.003, sA.duration);
+    assertEquals(0.002, sA.selfTime);
 
     assertEquals('b', sB.title);
     assertEquals('bar', sB.category);
     assertEquals(0.002, sB.start);
     assertEquals(0.001, sB.duration);
+
+    assertTrue(sA.subSlices.length == 1);
+    assertTrue(sA.subSlices[0] == sB);
+    assertTrue(sB.parentSlice == sA);
   });
+
+  test('nestedParsingWithTwoSubSlices', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'c', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 7, cat: 'baz', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tracing.TraceModel(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+    var sC = findSliceNamed(t.sliceGroup, 'c');
+
+    assertEquals('a', sA.title);
+    assertEquals('foo', sA.category);
+    assertEquals(0.001, sA.start);
+    assertEquals(0.007, sA.duration);
+    assertEquals(0.004, sA.selfTime);
+
+    assertEquals('b', sB.title);
+    assertEquals('bar', sB.category);
+    assertEquals(0.002, sB.start);
+    assertEquals(0.001, sB.duration);
+
+    assertEquals('c', sC.title);
+    assertEquals('baz', sC.category);
+    assertEquals(0.005, sC.start);
+    assertEquals(0.002, sC.duration);
+
+    assertTrue(sA.subSlices.length == 2);
+    assertTrue(sA.subSlices[0] == sB);
+    assertTrue(sA.subSlices[1] == sC);
+    assertTrue(sB.parentSlice == sA);
+    assertTrue(sC.parentSlice == sA);
+  });
+
+  test('nestedParsingWithDoubleNesting', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 3, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'E'},
+      {name: 'b', args: {}, pid: 1, ts: 7, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
+    ];
+    var m = new tracing.TraceModel(events, false);
+    var t = m.processes[1].threads[1];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+    var sC = findSliceNamed(t.sliceGroup, 'c');
+
+    assertEquals('a', sA.title);
+    assertEquals('foo', sA.category);
+    assertEquals(0.001, sA.start);
+    assertEquals(0.007, sA.duration);
+    assertEquals(0.002, sA.selfTime);
+
+    assertEquals('b', sB.title);
+    assertEquals('bar', sB.category);
+    assertEquals(0.002, sB.start);
+    assertEquals(0.005, sB.duration);
+    assertEquals(0.002, sA.selfTime);
+
+    assertEquals('c', sC.title);
+    assertEquals('baz', sC.category);
+    assertEquals(0.003, sC.start);
+    assertEquals(0.002, sC.duration);
+
+    assertTrue(sA.subSlices.length == 1);
+    assertTrue(sA.subSlices[0] == sB);
+    assertTrue(sB.parentSlice == sA);
+
+    assertTrue(sB.subSlices.length == 1);
+    assertTrue(sB.subSlices[0] == sC);
+    assertTrue(sC.parentSlice == sB);
+  });
+
 
   test('autoclosing', function() {
     var events = [

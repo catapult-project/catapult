@@ -391,6 +391,7 @@ base.exportTo('tracing.importer', function() {
      * events.
      */
     finalizeImport: function() {
+      this.createSubSlices_();
       this.createAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
@@ -403,6 +404,14 @@ base.exportTo('tracing.importer', function() {
      */
     joinRefs: function() {
       this.joinObjectRefs_();
+    },
+
+    createSubSlices_: function() {
+      base.iterItems(this.model_.processes, function(pid, process) {
+        base.iterItems(process.threads, function(tid, thread) {
+          thread.createSubSlices();
+        }, this);
+      }, this);
     },
 
     createAsyncSlices_: function() {
