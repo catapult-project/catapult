@@ -146,8 +146,8 @@ class PageTest(object):
     pass
 
   def DidNavigateToPage(self, page, tab):
-    """Override to do operations right after the page is navigated, but before
-    any waiting for completion has occurred."""
+    """Override to do operations right after the page is navigated and after
+    all waiting for completion has occurred."""
     pass
 
   def WillRunAction(self, page, tab, action):
