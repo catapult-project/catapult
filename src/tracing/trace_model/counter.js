@@ -26,6 +26,7 @@ base.exportTo('tracing.trace_model', function() {
     this.name = name;
 
     this.series_ = [];
+    this.totals = [];
     this.bounds = new base.Range();
   }
 

@@ -26,13 +26,6 @@ base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
 
     assertEquals(1, track.children.length);
     assertTrue(track.hasVisibleContent);
-
-    track.categoryFilter = new tracing.TitleFilter('x');
-    assertFalse(track.hasVisibleContent);
-
-    track.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(track.hasVisibleContent);
-    assertEquals(1, track.children.length);
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {

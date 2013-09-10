@@ -185,7 +185,6 @@ base.exportTo('tracing.tracks', function() {
         if (!trackConstructor)
           trackConstructor = tracing.tracks.ObjectInstanceTrack;
         var track = new trackConstructor(this.viewport);
-        track.categoryFilter = this.categoryFilter_;
         track.objectInstances = visibleInstances;
         this.appendChild(track);
         didAppendAtLeastOneTrack = true;
@@ -196,14 +195,12 @@ base.exportTo('tracing.tracks', function() {
 
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
-      var counters = base.dictionaryValues(this.processBase.counters).
-          filter(this.categoryFilter.matchCounter, this.categoryFilter);
+      var counters = base.dictionaryValues(this.processBase.counters);
       counters.sort(tracing.trace_model.Counter.compare);
 
       // Create the counters for this process.
       counters.forEach(function(counter) {
         var track = new tracing.tracks.CounterTrack(this.viewport);
-        track.categoryFilter = this.categoryFilter_;
         track.counter = counter;
         this.appendChild(track);
         this.appendChild(new SpacingTrack(this.viewport));
@@ -212,16 +209,12 @@ base.exportTo('tracing.tracks', function() {
 
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
-      var threads = base.dictionaryValues(this.processBase.threads).
-          filter(function(thread) {
-            return this.categoryFilter_.matchThread(thread);
-          }, this);
+      var threads = base.dictionaryValues(this.processBase.threads);
       threads.sort(tracing.trace_model.Thread.compare);
 
       // Create the threads.
       threads.forEach(function(thread) {
         var track = new tracing.tracks.ThreadTrack(this.viewport);
-        track.categoryFilter = this.categoryFilter_;
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;

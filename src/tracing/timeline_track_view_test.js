@@ -13,46 +13,6 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;
 
-  var NoCountersFilter = function() {
-  };
-
-  NoCountersFilter.prototype = {
-    __proto__: tracing.Filter.prototype,
-    matchCounter: function(c) {
-      return false;
-    }
-  };
-
-  var NoCpusFilter = function() {
-  };
-
-  NoCpusFilter.prototype = {
-    __proto__: tracing.Filter.prototype,
-    matchCpu: function(c) {
-      return false;
-    }
-  };
-
-  var NoProcessesFilter = function() {
-  };
-
-  NoProcessesFilter.prototype = {
-    __proto__: tracing.Filter.prototype,
-    matchProcess: function(c) {
-      return false;
-    }
-  };
-
-  var NoThreadsFilter = function() {
-  };
-
-  NoThreadsFilter.prototype = {
-    __proto__: tracing.Filter.prototype,
-    matchThread: function(c) {
-      return false;
-    }
-  };
-
   function contains(array, element) {
     for (var i = 0; i < array.length; i++) {
       if (array[i] === element) {
@@ -163,9 +123,6 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
-
-    timeline.categoryFilter = new NoCountersFilter();
-    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCpus', function() {
@@ -177,9 +134,6 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
-
-    timeline.categoryFilter = new NoCpusFilter();
-    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredProcesses', function() {
@@ -191,9 +145,6 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
-
-    timeline.categoryFilter = new NoProcessesFilter();
-    assertFalse(timeline.hasVisibleContent);
   });
 
   test('filteredThreads', function() {
@@ -206,9 +157,6 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
     timeline.model = model;
 
     assertTrue(timeline.hasVisibleContent);
-
-    timeline.categoryFilter = new NoThreadsFilter();
-    assertFalse(timeline.hasVisibleContent);
   });
 
   test('selectionAndHighlight', function() {

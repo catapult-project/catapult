@@ -15,8 +15,6 @@ base.requireTemplate('tracing.timeline_view');
 base.require('base.utils');
 base.require('base.settings');
 base.require('tracing.analysis.analysis_view');
-base.require('tracing.category_filter_dialog');
-base.require('tracing.filter');
 base.require('tracing.find_control');
 base.require('tracing.timeline_track_view');
 base.require('ui.dom_helpers');
@@ -49,10 +47,6 @@ base.exportTo('tracing', function() {
       this.rightControlsEl_ = this.querySelector('#right-controls');
       this.timelineContainer_ = this.querySelector('.container');
 
-      this.categoryFilterButton_ = this.createCategoryFilterButton_();
-      this.categoryFilterButton_.callback =
-          this.updateCategoryFilter_.bind(this);
-
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
 
@@ -62,7 +56,6 @@ base.exportTo('tracing', function() {
           'tracing.TimelineView.showFlowEvents', false,
           'Flow events'));
 
-      this.rightControls.appendChild(this.categoryFilterButton_);
       this.rightControls.appendChild(this.createMetadataButton_());
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
@@ -93,39 +86,6 @@ base.exportTo('tracing', function() {
       if (!this.timeline_)
         return;
       this.timeline_.viewport.showFlowEvents = showFlowEvents;
-    },
-
-    updateCategoryFilter_: function(categories) {
-      if (!this.timeline_)
-        return;
-      this.timeline_.categoryFilter = new tracing.CategoryFilter(categories);
-    },
-
-    createCategoryFilterButton_: function() {
-      var node = base.instantiateTemplate('#category-filter-btn-template');
-      var showEl = node.querySelector('.view-info-button');
-
-      var dlg = new tracing.CategoryFilterDialog();
-      dlg.settings_key = 'categories';
-      dlg.settingUpdatedCallback = this.updateCategoryFilter_.bind(this);
-
-      function onClick(e) {
-        dlg.categories = this.model.categories;
-        dlg.visible = true;
-
-        e.stopPropagation();
-        return false;
-      }
-      showEl.addEventListener('click', onClick.bind(this));
-
-      function updateVisibility() {
-        showEl.style.display = this.model ? '' : 'none';
-      }
-      var updateVisibility_ = updateVisibility.bind(this);
-      updateVisibility_();
-      this.addEventListener('modelChange', updateVisibility_);
-
-      return showEl;
     },
 
     createHelpButton_: function() {

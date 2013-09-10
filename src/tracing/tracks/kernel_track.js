@@ -37,18 +37,13 @@ base.exportTo('tracing.tracks', function() {
     },
 
     willAppendTracks_: function() {
-      var categoryFilter = this.categoryFilter;
-
       var cpus = base.dictionaryValues(this.kernel.cpus);
       cpus.sort(tracing.trace_model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;
       for (var i = 0; i < cpus.length; ++i) {
         var cpu = cpus[i];
-        if (!categoryFilter.matchCpu(cpu))
-          return;
         var track = new tracing.tracks.CpuTrack(this.viewport);
-        track.categoryFilter = categoryFilter;
         track.cpu = cpu;
         if (!track.hasVisibleContent)
           continue;

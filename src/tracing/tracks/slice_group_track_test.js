@@ -207,16 +207,5 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
     assertEquals(2, track.subRows.length);
     assertTrue(track.hasVisibleContent);
-
-    track.categoryFilter = new tracing.TitleFilter('x');
-    assertFalse(track.hasVisibleContent);
-
-    track.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(track.hasVisibleContent);
-    assertEquals(1, track.subRows.length);
-
-    track.categoryFilter = new tracing.TitleFilter('b');
-    assertTrue(track.hasVisibleContent);
-    assertEquals(1, track.subRows.length);
   });
 });

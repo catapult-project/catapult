@@ -5,19 +5,6 @@
 'use strict';
 
 base.exportTo('tracing', function() {
-
-  function filterSliceArray(filter, slices) {
-    if (filter === undefined)
-      return slices;
-
-    var matched = [];
-    for (var i = 0; i < slices.length; ++i) {
-      if (filter.matchSlice(slices[i]))
-        matched.push(slices[i]);
-    }
-    return matched;
-  }
-
   /**
    * @constructor The generic base class for filtering a TraceModel based on
    * various rules. The base class returns true for everything.
@@ -88,43 +75,8 @@ base.exportTo('tracing', function() {
     }
   };
 
-  /**
-   * @constructor A filter that filters objects by their category.
-   * Objects match if they are NOT in the list of categories
-   * @param {Array<string>=} opt_categories Categories to blacklist.
-   */
-  function CategoryFilter(opt_categories) {
-    Filter.call(this);
-    this.categories_ = {};
-    var cats = opt_categories || [];
-    for (var i = 0; i < cats.length; i++)
-      this.addCategory(cats[i]);
-  }
-  CategoryFilter.prototype = {
-    __proto__: Filter.prototype,
-
-    addCategory: function(cat) {
-      this.categories_[cat] = true;
-    },
-
-    matchCounter: function(counter) {
-      if (!counter.category)
-        return true;
-      return !this.categories_[counter.category];
-    },
-
-    matchSlice: function(slice) {
-      if (!slice.category)
-        return true;
-      return !this.categories_[slice.category];
-    }
-  };
-
   return {
-    filterSliceArray: filterSliceArray,
-    Filter: Filter,
     TitleFilter: TitleFilter,
-    ExactTitleFilter: ExactTitleFilter,
-    CategoryFilter: CategoryFilter
+    ExactTitleFilter: ExactTitleFilter
   };
 });

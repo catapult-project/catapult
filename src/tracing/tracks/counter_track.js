@@ -32,7 +32,6 @@ base.exportTo('tracing.tracks', function() {
     decorate: function(viewport) {
       tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
       this.classList.add('counter-track');
-      this.categoryFilter_ = new tracing.Filter();
     },
 
     get counter() {
@@ -42,14 +41,6 @@ base.exportTo('tracing.tracks', function() {
     set counter(counter) {
       this.counter_ = counter;
       this.heading = counter.name + ': ';
-    },
-
-    get categoryFilter() {
-      return this.categoryFilter_;
-    },
-
-    set categoryFilter(v) {
-      this.categoryFilter_ = v;
     },
 
     draw: function(type, viewLWorld, viewRWorld) {

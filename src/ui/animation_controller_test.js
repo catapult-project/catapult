@@ -87,6 +87,9 @@ base.unittest.testSuite('ui.animation_controller', function() {
   });
 
   test('queueTwo', function() {
+    // Clear all pending rafs so if something is lingering it will blow up here.
+    base.forcePendingRAFTasksToRun(0);
+
     var target = {
       x: 0,
       cloneAnimationState: function() { return {x: this.x}; }

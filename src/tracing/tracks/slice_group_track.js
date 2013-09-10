@@ -60,7 +60,6 @@ base.exportTo('tracing.tracks', function() {
     addSliceTrack_: function(slices) {
       var track = new tracing.tracks.SliceTrack(this.viewport);
       track.slices = slices;
-      track.categoryFilter_ = this.categoryFilter;
       this.appendChild(track);
       return track;
     },
@@ -81,8 +80,7 @@ base.exportTo('tracing.tracks', function() {
         return;
       }
 
-      var slices = tracing.filterSliceArray(this.categoryFilter,
-                                            this.group_.slices);
+      var slices = this.group_.slices;
       if (this.areArrayContentsSame_(this.filteredSlices_, slices)) {
         this.updateHeadingAndTooltip_();
         return;

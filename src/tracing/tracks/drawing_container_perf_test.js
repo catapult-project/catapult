@@ -45,7 +45,6 @@ base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf', function() 
     var modelTrack = new tracing.tracks.TraceModelTrack(viewport);
     drawingContainer.appendChild(modelTrack);
 
-    modelTrack.categoryFilter = new tracing.CategoryFilter();
     modelTrack.model = model;
 
     viewportDiv.appendChild(drawingContainer);

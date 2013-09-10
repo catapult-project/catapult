@@ -11,7 +11,6 @@
     'tracing_html_files': [
       'src/tracing/record_selection_dialog.html',
       'src/tracing/timeline_view.html',
-      'src/tracing/category_filter_dialog.html',
       'src/tracing/analysis/cpu_slice_view.html',
       'src/tracing/analysis/thread_time_slice_view.html',
       'src/tracing/find_control.html',
@@ -116,7 +115,6 @@
       'src/tcmalloc/heap.js',
       'src/tcmalloc/tcmalloc_snapshot_view.js',
       'src/tracing/constants.js',
-      'src/tracing/category_filter_dialog.js',
       'src/tracing/record_selection_dialog.js',
       'src/tracing/standalone_timeline_view.js',
       'src/tracing/importer.js',

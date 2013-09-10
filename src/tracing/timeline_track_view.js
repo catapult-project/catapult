@@ -78,8 +78,6 @@ base.exportTo('tracing', function() {
 
       this.classList.add('timeline-track-view');
 
-      this.categoryFilter_ = new tracing.CategoryFilter();
-
       this.viewport_ = new Viewport(this);
       this.viewportDisplayTransformAtMouseDown_ = null;
 
@@ -215,17 +213,6 @@ base.exportTo('tracing', function() {
       return this.viewport_;
     },
 
-    get categoryFilter() {
-      return this.categoryFilter_;
-    },
-
-    set categoryFilter(filter) {
-      this.modelTrackContainer_.invalidate();
-
-      this.categoryFilter_ = filter;
-      this.modelTrack_.categoryFilter = filter;
-    },
-
     get model() {
       return this.model_;
     },
@@ -237,7 +224,6 @@ base.exportTo('tracing', function() {
       var modelInstanceChanged = this.model_ != model;
       this.model_ = model;
       this.modelTrack_.model = model;
-      this.modelTrack_.categoryFilter = this.categoryFilter;
 
       // Set up a reasonable viewport.
       if (modelInstanceChanged)
@@ -281,8 +267,8 @@ base.exportTo('tracing', function() {
      * TitleFilter.
      */
     addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-      this.modelTrack_.addAllObjectsMatchingFilterToSelection(filter,
-                                                              selection);
+      this.modelTrack_.addAllObjectsMatchingFilterToSelection(
+          filter, selection);
     },
 
     /**

@@ -72,13 +72,6 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     assertEquals(t.tracks_.length, 2);
     assertTrue(t.tracks_[0] instanceof tracing.tracks.AsyncSliceGroupTrack);
     assertTrue(t.tracks_[1] instanceof tracing.tracks.SliceGroupTrack);
-
-    t.categoryFilter = new tracing.TitleFilter('x');
-    assertEquals(0, t.tracks_.length);
-
-    t.categoryFilter = new tracing.TitleFilter('a');
-    assertTrue(t.tracks_[0] instanceof tracing.tracks.AsyncSliceGroupTrack);
-    assertTrue(t.tracks_[1] instanceof tracing.tracks.SliceGroupTrack);
   });
 
   test('sampleThreadSlices', function() {

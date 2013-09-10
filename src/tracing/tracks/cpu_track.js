@@ -52,8 +52,7 @@ base.exportTo('tracing.tracks', function() {
       this.detach();
       if (!this.cpu_)
         return;
-      var slices = tracing.filterSliceArray(this.categoryFilter_,
-                                            this.cpu_.slices);
+      var slices = this.cpu_.slices;
       if (slices.length) {
         var track = new tracing.tracks.SliceTrack(this.viewport);
         track.slices = slices;
@@ -63,13 +62,10 @@ base.exportTo('tracing.tracks', function() {
 
       for (var counterName in this.cpu_.counters) {
         var counter = this.cpu_.counters[counterName];
-        if (!this.categoryFilter_.matchCounter(counter))
-          return;
         track = new tracing.tracks.CounterTrack(this.viewport);
         track.heading = this.cpu_.userFriendlyName + ' ' +
             counter.name + ':';
         track.counter = counter;
-        track.categoryFilter = this.categoryFilter_;
         this.appendChild(track);
       }
     }

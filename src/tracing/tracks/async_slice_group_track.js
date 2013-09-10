@@ -44,8 +44,7 @@ base.exportTo('tracing.tracks', function() {
      * doesn't fit in any subrow, make another subRow.
      */
     buildSubRows_: function() {
-      var slices = tracing.filterSliceArray(this.categoryFilter,
-                                            this.group_.slices);
+      var slices = this.group_.slices;
       slices.sort(function(x, y) {
         return x.start - y.start;
       });

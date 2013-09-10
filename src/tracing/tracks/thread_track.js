@@ -52,7 +52,6 @@ base.exportTo('tracing.tracks', function() {
 
       if (this.thread_.asyncSliceGroup.length) {
         var asyncTrack = new tracing.tracks.AsyncSliceGroupTrack(this.viewport);
-        asyncTrack.categoryFilter = this.categoryFilter;
         asyncTrack.group = this.thread_.asyncSliceGroup;
         if (asyncTrack.hasVisibleContent)
           this.appendChild(asyncTrack);
@@ -60,7 +59,6 @@ base.exportTo('tracing.tracks', function() {
 
       if (this.thread_.samples.length) {
         var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
-        samplesTrack.categoryFilter = samplesTrack;
         samplesTrack.group = this.thread_;
         samplesTrack.slices = this.thread_.samples;
         this.appendChild(samplesTrack);
@@ -68,7 +66,6 @@ base.exportTo('tracing.tracks', function() {
 
       if (this.thread_.timeSlices) {
         var timeSlicesTrack = new tracing.tracks.SliceTrack(this.viewport);
-        timeSlicesTrack.categoryFilter = this.categoryFilter;
         timeSlicesTrack.heading = '';
         timeSlicesTrack.height = '4px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
@@ -78,7 +75,6 @@ base.exportTo('tracing.tracks', function() {
 
       if (this.thread_.sliceGroup.length) {
         var track = new tracing.tracks.SliceGroupTrack(this.viewport);
-        track.categoryFilter = this.categoryFilter;
         track.heading = this.thread_.userFriendlyName;
         track.tooltip = this.thread_.userFriendlyDetails;
         track.group = this.thread_.sliceGroup;

@@ -31,7 +31,6 @@ base.exportTo('tracing.tracks', function() {
 
       this.viewport_ = viewport;
       this.classList.add('track');
-      this.categoryFilter_ = undefined;
     },
 
     get viewport() {
@@ -48,20 +47,7 @@ base.exportTo('tracing.tracks', function() {
       return this.parentNode.context();
     },
 
-    get categoryFilter() {
-      return this.categoryFilter_;
-    },
-
-    set categoryFilter(categoryFilter) {
-      if (this.categoryFilter_ == categoryFilter)
-        return;
-      this.categoryFilter_ = categoryFilter;
-      this.updateContents_();
-    },
-
     decorateChild_: function(childTrack) {
-      if (childTrack instanceof Track)
-        childTrack.categoryFilter = this.categoryFilter;
     },
 
     undecorateChild_: function(childTrack) {

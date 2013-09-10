@@ -49,16 +49,10 @@ base.exportTo('tracing.tracks', function() {
       return this.children.length > 0;
     },
 
-    applyCategoryFilter_: function() {
-      this.updateContents_();
-    },
-
     updateContents_: function() {
       this.textContent = '';
-      if (!this.model_ || !this.categoryFilter)
+      if (!this.model_)
         return;
-
-      var categoryFilter = this.categoryFilter;
 
       this.appendKernelTrack_();
 
@@ -68,11 +62,8 @@ base.exportTo('tracing.tracks', function() {
 
       for (var i = 0; i < processes.length; ++i) {
         var process = processes[i];
-        if (!categoryFilter.matchProcess(process))
-          return;
 
         var track = new tracing.tracks.ProcessTrack(this.viewport);
-        track.categoryFilter = categoryFilter;
         track.process = process;
         if (!track.hasVisibleContent)
           continue;
@@ -83,7 +74,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
-      if (!this.model_ || !this.categoryFilter)
+      if (!this.model_)
         return;
 
       var tracks = this.children;
@@ -101,10 +92,7 @@ base.exportTo('tracing.tracks', function() {
 
     appendKernelTrack_: function() {
       var kernel = this.model.kernel;
-      if (!this.categoryFilter.matchProcess(kernel))
-        return;
       var track = new tracing.tracks.KernelTrack(this.viewport);
-      track.categoryFilter = this.categoryFilter;
       track.kernel = this.model.kernel;
       if (!track.hasVisibleContent)
         return;
