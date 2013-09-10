@@ -254,13 +254,13 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     measurement_results = SummarySavingPageMeasurementResults()
     measurement_results.WillMeasurePage(test_page_set.pages[0])
-    measurement_results.Add('a', '',
+    measurement_results.Add('a', 'units',
                           '{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
                           data_type='histogram')
     measurement_results.DidMeasurePage()
 
     measurement_results.WillMeasurePage(test_page_set.pages[1])
-    measurement_results.Add('a', '',
+    measurement_results.Add('a', 'units',
                           '{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
                           data_type='histogram')
     measurement_results.DidMeasurePage()
@@ -269,9 +269,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     expected = [
         'HISTOGRAM a_by_name: http___www.foo.com_= ' +
-        '{"buckets": [{"low": 1, "high": 2, "count": 1}]}\n' +
-        'Avg a_by_name: 1.500000',
+        '{"buckets": [{"low": 1, "high": 2, "count": 1}]} units\n' +
+        'Avg a_by_name: 1.500000units',
         'HISTOGRAM a_by_name: http___www.bar.com_= ' +
-        '{"buckets": [{"low": 2, "high": 3, "count": 1}]}\n' +
-        'Avg a_by_name: 2.500000']
+        '{"buckets": [{"low": 2, "high": 3, "count": 1}]} units\n' +
+        'Avg a_by_name: 2.500000units']
     self.assertEquals(measurement_results.results, expected)
