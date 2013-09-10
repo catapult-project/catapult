@@ -9,7 +9,7 @@
  * type of layer content shown and info bar for content-loading warnings.
  */
 
-base.requireStylesheet('cc.layer_tree_quad_stack_viewer');
+base.requireStylesheet('cc.layer_tree_quad_stack_view');
 
 base.require('base.properties');
 base.require('base.raf');
@@ -17,7 +17,7 @@ base.require('cc.constants');
 base.require('cc.picture');
 base.require('cc.tile');
 base.require('cc.debug_colors');
-base.require('ui.quad_stack_viewer');
+base.require('ui.quad_stack_view');
 base.require('ui.info_bar');
 
 
@@ -32,9 +32,9 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerTreeQuadStackViewer = ui.define('layer-tree-quad-stack-viewer');
+  var LayerTreeQuadStackView = ui.define('layer-tree-quad-stack-view');
 
-  LayerTreeQuadStackViewer.prototype = {
+  LayerTreeQuadStackView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
@@ -43,20 +43,20 @@ base.exportTo('cc', function() {
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
       this.infoBar_ = new ui.InfoBar();
-      this.quadStackViewer_ = new ui.QuadStackViewer();
+      this.quadStackView_ = new ui.QuadStackView();
 
       var m = ui.MOUSE_SELECTOR_MODE;
-      var mms = this.quadStackViewer_.mouseModeSelector;
-      mms.settingsKey = 'cc.layerTreeQuadStackViewer.mouseModeSelector';
+      var mms = this.quadStackView_.mouseModeSelector;
+      mms.settingsKey = 'cc.layerTreeQuadStackView.mouseModeSelector';
       mms.setKeyCodeForMode(m.PANSCAN, 'z'.charCodeAt(0));
 
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
-      this.appendChild(this.quadStackViewer_);
+      this.appendChild(this.quadStackView_);
 
       this.tileRectsSelector_ = ui.createSelector(
           this, 'howToShowTiles',
-          'layerViewer.howToShowTiles', 'none',
+          'layerView.howToShowTiles', 'none',
           [{label: 'None', value: 'none'},
            {label: 'Coverage Rects', value: 'coverage'}
           ]);
@@ -69,7 +69,7 @@ base.exportTo('cc', function() {
 
       var tileHeatmapSelector = ui.createSelector(
           this, 'tileHeatmapType',
-          'layerViewer.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
+          'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
           [{label: 'None',
             value: TILE_HEATMAP_TYPE.NONE},
            {label: 'Scheduled Priority',
@@ -83,7 +83,7 @@ base.exportTo('cc', function() {
 
       var showOtherLayersCheckbox = ui.createCheckBox(
           this, 'showOtherLayers',
-          'layerViewer.showOtherLayers', true,
+          'layerView.showOtherLayers', true,
           'Other layers');
       showOtherLayersCheckbox.title =
           'When checked, show all layers, selected or not.';
@@ -91,7 +91,7 @@ base.exportTo('cc', function() {
 
       var showInvalidationsCheckbox = ui.createCheckBox(
           this, 'showInvalidations',
-          'layerViewer.showInvalidations', true,
+          'layerView.showInvalidations', true,
           'Invalidations');
       showInvalidationsCheckbox.title =
           'When checked, compositing invalidations are highlighted in red';
@@ -99,7 +99,7 @@ base.exportTo('cc', function() {
 
       var showContentsCheckbox = ui.createCheckBox(
           this, 'showContents',
-          'layerViewer.showContents', true,
+          'layerView.showContents', true,
           'Contents');
       showContentsCheckbox.title =
           'When checked, show the rendered contents inside the layer outlines';
@@ -215,7 +215,7 @@ base.exportTo('cc', function() {
       // Then create a new selector and replace the old one.
       var new_selector = ui.createSelector(
           this, 'howToShowTiles',
-          'layerViewer.howToShowTiles', 'none',
+          'layerView.howToShowTiles', 'none',
           data);
       this.controls_.replaceChild(new_selector, this.tileRectsSelector_);
       this.tileRectsSelector_ = new_selector;
@@ -523,8 +523,8 @@ base.exportTo('cc', function() {
       var lthiInstance = lthi.objectInstance;
       var worldViewportRect = base.Rect.FromXYWH(0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
-      this.quadStackViewer_.deviceRect = worldViewportRect;
-      this.quadStackViewer_.quads = this.quads_;
+      this.quadStackView_.deviceRect = worldViewportRect;
+      this.quadStackView_.quads = this.quads_;
 
       this.updateInfoBar_(this.messages_);
     },
@@ -561,6 +561,6 @@ base.exportTo('cc', function() {
   };
 
   return {
-    LayerTreeQuadStackViewer: LayerTreeQuadStackViewer
+    LayerTreeQuadStackView: LayerTreeQuadStackView
   };
 });

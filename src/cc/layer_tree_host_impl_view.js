@@ -8,7 +8,7 @@ base.requireStylesheet('cc.layer_tree_host_impl_view');
 
 base.require('cc.layer_tree_host_impl');
 base.require('cc.layer_picker');
-base.require('cc.layer_viewer');
+base.require('cc.layer_view');
 base.require('cc.tile');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('ui.drag_handle');
@@ -35,18 +35,18 @@ base.exportTo('cc', function() {
           'selection-changed',
           this.onLayerPickerSelectionChanged_.bind(this));
 
-      this.layerViewer_ = new cc.LayerViewer();
-      this.layerViewer_.addEventListener(
+      this.layerView_ = new cc.LayerView();
+      this.layerView_.addEventListener(
           'selection-changed',
-          this.onLayerViewerSelectionChanged_.bind(this));
+          this.onLayerViewSelectionChanged_.bind(this));
 
       this.dragHandle_ = new ui.DragHandle();
       this.dragHandle_.horizontal = false;
-      this.dragHandle_.target = this.layerViewer_;
+      this.dragHandle_.target = this.layerView_;
 
       this.appendChild(this.layerPicker_);
       this.appendChild(this.dragHandle_);
-      this.appendChild(this.layerViewer_);
+      this.appendChild(this.layerView_);
     },
 
     get objectSnapshot() {
@@ -61,7 +61,7 @@ base.exportTo('cc', function() {
       if (lthi)
         layerTreeImpl = lthi.getTree(this.layerPicker_.whichTree);
       this.layerPicker_.lthiSnapshot = lthi;
-      this.layerViewer_.layerTreeImpl = layerTreeImpl;
+      this.layerView_.layerTreeImpl = layerTreeImpl;
 
       if (!this.selection_)
         return;
@@ -75,16 +75,16 @@ base.exportTo('cc', function() {
     set selection(selection) {
       this.selection_ = selection;
       this.layerPicker_.selection = selection;
-      this.layerViewer_.selection = selection;
+      this.layerView_.selection = selection;
     },
 
     onLayerPickerSelectionChanged_: function() {
       this.selection_ = this.layerPicker_.selection;
-      this.layerViewer_.selection = this.selection;
+      this.layerView_.selection = this.selection;
     },
 
-    onLayerViewerSelectionChanged_: function() {
-      this.selection_ = this.layerViewer_.selection;
+    onLayerViewSelectionChanged_: function() {
+      this.selection_ = this.layerView_.selection;
       this.layerPicker_.selection = this.selection;
     }
 

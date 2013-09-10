@@ -5,15 +5,15 @@
 'use strict';
 
 /**
- * @fileoverview LayerViewer coordinates graphical and analysis views of layers.
+ * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-base.requireStylesheet('cc.layer_viewer');
+base.requireStylesheet('cc.layer_view');
 
 base.require('base.raf');
 base.require('base.settings');
 base.require('cc.constants');
-base.require('cc.layer_tree_quad_stack_viewer');
+base.require('cc.layer_tree_quad_stack_view');
 base.require('tracing.analysis.util');
 base.require('ui.drag_handle');
 
@@ -23,43 +23,43 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerViewer = ui.define('layer-viewer');
+  var LayerView = ui.define('layer-view');
 
-  LayerViewer.prototype = {
+  LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.layerTreeQuadStackViewer_ = new cc.LayerTreeQuadStackViewer();
+      this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
       this.dragBar_ = new ui.DragHandle();
-      this.analysisEl_ = document.createElement('layer-viewer-analysis');
+      this.analysisEl_ = document.createElement('layer-view-analysis');
 
       this.dragBar_.target = this.analysisEl_;
 
-      this.appendChild(this.layerTreeQuadStackViewer_);
+      this.appendChild(this.layerTreeQuadStackView_);
       this.appendChild(this.dragBar_);
       this.appendChild(this.analysisEl_);
 
-      this.layerTreeQuadStackViewer_.addEventListener('selectionChange',
-          this.layerTreeQuadStackViewerSelectionChanged_.bind(this));
+      this.layerTreeQuadStackView_.addEventListener('selectionChange',
+          this.layerTreeQuadStackViewSelectionChanged_.bind(this));
     },
 
     get layerTreeImpl() {
-      return this.layerTreeQuadStackViewer_.layerTreeImpl;
+      return this.layerTreeQuadStackView_.layerTreeImpl;
     },
 
     set layerTreeImpl(newValue) {
-      return this.layerTreeQuadStackViewer_.layerTreeImpl = newValue;
+      return this.layerTreeQuadStackView_.layerTreeImpl = newValue;
     },
 
     get selection() {
-      return this.layerTreeQuadStackViewer_.selection;
+      return this.layerTreeQuadStackView_.selection;
     },
 
     set selection(newValue) {
-      this.layerTreeQuadStackViewer_.selection = newValue;
+      this.layerTreeQuadStackView_.selection = newValue;
     },
 
-    layerTreeQuadStackViewerSelectionChanged_: function(event) {
+    layerTreeQuadStackViewSelectionChanged_: function(event) {
       var selection = event.newValue;
       if (selection) {
         this.dragBar_.style.display = '';
@@ -73,12 +73,12 @@ base.exportTo('cc', function() {
         var analysis = this.analysisEl_.firstChild;
         if (analysis)
           this.analysisEl_.removeChild(analysis);
-        this.layerTreeQuadStackViewer_.style.height =
+        this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
     }
   };
   return {
-    LayerViewer: LayerViewer
+    LayerView: LayerView
   };
 });

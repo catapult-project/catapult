@@ -5,12 +5,12 @@
 'use strict';
 
 base.require('cc');
-base.require('cc.layer_viewer');
+base.require('cc.layer_view');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
 
-base.unittest.testSuite('cc.layer_viewer', function() {
+base.unittest.testSuite('cc.layer_view', function() {
   test('instantiate', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
@@ -19,12 +19,12 @@ base.unittest.testSuite('cc.layer_viewer', function() {
     var lthi = instance.snapshots[0];
     var layer = lthi.activeTree.renderSurfaceLayerList[0];
 
-    var viewer = new cc.LayerViewer();
-    viewer.style.height = '500px';
-    viewer.layerTreeImpl = lthi.activeTree;
-    viewer.selection = new cc.LayerSelection(layer);
+    var view = new cc.LayerView();
+    view.style.height = '500px';
+    view.layerTreeImpl = lthi.activeTree;
+    view.selection = new cc.LayerSelection(layer);
 
-    this.addHTMLOutput(viewer);
+    this.addHTMLOutput(view);
   });
 
   test('instantiate_withTileHighlight', function() {
@@ -36,10 +36,10 @@ base.unittest.testSuite('cc.layer_viewer', function() {
     var layer = lthi.activeTree.renderSurfaceLayerList[0];
     var tile = lthi.tiles[0];
 
-    var viewer = new cc.LayerViewer();
-    viewer.style.height = '500px';
-    viewer.layerTreeImpl = lthi.activeTree;
-    viewer.selection = new cc.TileSelection(tile);
-    this.addHTMLOutput(viewer);
+    var view = new cc.LayerView();
+    view.style.height = '500px';
+    view.layerTreeImpl = lthi.activeTree;
+    view.selection = new cc.TileSelection(tile);
+    this.addHTMLOutput(view);
   });
 });

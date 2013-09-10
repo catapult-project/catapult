@@ -8,7 +8,7 @@ base.require('base.rect');
 base.require('base.quad');
 base.require('base.unittest');
 base.require('base.bbox2');
-base.require('ui.quad_stack_viewer');
+base.require('ui.quad_stack_view');
 
 base.unittest.testSuite('ui.camera', function() {
 
@@ -34,25 +34,25 @@ base.unittest.testSuite('ui.camera', function() {
     return quads;
   }
 
-  function createQuadStackViewer(testFramework) {
+  function createQuadStackView(testFramework) {
     var quads = createQuads();
-    var viewer = new ui.QuadStackViewer();
-    // simulate the constraints of the layer-tree-viewer
-    viewer.style.height = '400px';
-    viewer.style.width = '800px';
-    viewer.deviceRect = base.Rect.FromXYWH(-250, -250, 500, 500);
-    viewer.quads = quads;
+    var view = new ui.QuadStackView();
+    // simulate the constraints of the layer-tree-view
+    view.style.height = '400px';
+    view.style.width = '800px';
+    view.deviceRect = base.Rect.FromXYWH(-250, -250, 500, 500);
+    view.quads = quads;
 
-    testFramework.addHTMLOutput(viewer);
-    return viewer;
+    testFramework.addHTMLOutput(view);
+    return view;
   }
 
   test('initialState', function() {
-    var viewer = createQuadStackViewer(this);
+    var view = createQuadStackView(this);
 
-    var viewerRect =
-        viewer.getBoundingClientRect();
-    assertEquals(400, viewerRect.height);
-    assertEquals(800, viewerRect.width);
+    var viewRect =
+        view.getBoundingClientRect();
+    assertEquals(400, viewRect.height);
+    assertEquals(800, viewRect.width);
   });
 });

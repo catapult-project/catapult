@@ -5,12 +5,12 @@
 'use strict';
 
 base.require('cc');
-base.require('cc.layer_tree_quad_stack_viewer');
+base.require('cc.layer_tree_quad_stack_view');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
 
-base.unittest.testSuite('cc.layer_tree_quad_stack_viewer', function() {
+base.unittest.testSuite('cc.layer_tree_quad_stack_view', function() {
   test('tileCoverageRectCount', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];
@@ -19,19 +19,19 @@ base.unittest.testSuite('cc.layer_tree_quad_stack_viewer', function() {
     var lthi = instance.snapshots[0];
     var layer = lthi.activeTree.renderSurfaceLayerList[0];
 
-    var viewer = new cc.LayerTreeQuadStackViewer();
-    viewer.layerTreeImpl = lthi.activeTree;
-    viewer.selection = new cc.LayerSelection(layer);
-    viewer.howToShowTiles = 'none';
-    viewer.showInvalidations = false;
-    viewer.showContents = false;
-    viewer.showOtherLAyers = false;
+    var view = new cc.LayerTreeQuadStackView();
+    view.layerTreeImpl = lthi.activeTree;
+    view.selection = new cc.LayerSelection(layer);
+    view.howToShowTiles = 'none';
+    view.showInvalidations = false;
+    view.showContents = false;
+    view.showOtherLAyers = false;
 
     // There should be some quads drawn with all "show" checkboxes off,
     // but that number can change with new features added.
-    var numQuads = viewer.quads_.length;
-    viewer.howToShowTiles = 'coverage';
-    var numCoverageRects = viewer.quads_.length - numQuads;
+    var numQuads = view.quads_.length;
+    view.howToShowTiles = 'coverage';
+    var numCoverageRects = view.quads_.length - numQuads;
 
     // We know we have 5 coverage rects in lthi cats.
     assertEquals(5, numCoverageRects);

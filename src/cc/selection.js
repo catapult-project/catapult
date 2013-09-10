@@ -51,7 +51,7 @@ base.exportTo('cc', function() {
     },
 
     /**
-     * Called when the selection is made active in the layer viewer. Must return
+     * Called when the selection is made active in the layer view. Must return
      * an HTMLElement that explains this selection in detail.
      */
     createAnalysis: function() {

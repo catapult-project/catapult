@@ -8,7 +8,6 @@
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('about_tracing.profiling_view');
 base.requireStylesheet('ui.trace_viewer');
 base.require('about_tracing.tracing_controller');

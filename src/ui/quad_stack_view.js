@@ -5,12 +5,12 @@
 'use strict';
 
 /**
- * @fileoverview QuadStackViewer controls the content and viewing angle a
+ * @fileoverview QuadStackView controls the content and viewing angle a
  * QuadStack.
  */
-base.requireStylesheet('ui.quad_stack_viewer');
+base.requireStylesheet('ui.quad_stack_view');
 
-base.requireTemplate('ui.quad_stack_viewer');
+base.requireTemplate('ui.quad_stack_view');
 
 base.require('base.raf');
 base.require('ui.quad_view');
@@ -25,15 +25,15 @@ base.exportTo('ui', function() {
   /**
    * @constructor
    */
-  var QuadStackViewer = ui.define('quad-stack-viewer');
+  var QuadStackView = ui.define('quad-stack-view');
 
-  QuadStackViewer.prototype = {
+  QuadStackView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.className = 'quad-stack-viewer';
+      this.className = 'quad-stack-view';
 
-      var node = base.instantiateTemplate('#quad-stack-viewer-template');
+      var node = base.instantiateTemplate('#quad-stack-view-template');
       this.appendChild(node);
 
       this.canvas_ = this.querySelector('#canvas');
@@ -254,11 +254,11 @@ base.exportTo('ui', function() {
       this.mouseModeSelector_.pos = {x: 0, y: 100};
       this.appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
-          'quadStackViewer.mouseModeSelector';
+          'quadStackView.mouseModeSelector';
     },
   };
 
   return {
-    QuadStackViewer: QuadStackViewer
+    QuadStackView: QuadStackView
   };
 });

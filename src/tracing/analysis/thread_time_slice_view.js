@@ -86,9 +86,9 @@ base.exportTo('tracing.analysis', function() {
 
       var argsEl = this.querySelector('#args');
       if (base.dictionaryKeys(timeSlice.args).length > 0) {
-        var argsViewer = new tracing.analysis.GenericObjectView();
-        argsViewer.object = timeSlice.args;
-        argsEl.appendChild(argsViewer);
+        var argsView = new tracing.analysis.GenericObjectView();
+        argsView.object = timeSlice.args;
+        argsEl.appendChild(argsView);
       } else {
         argsEl.parentElement.removeChild(argsEl);
       }

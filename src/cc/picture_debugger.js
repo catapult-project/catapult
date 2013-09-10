@@ -52,12 +52,12 @@ base.exportTo('cc', function() {
 
       var overdrawCheckbox = ui.createCheckBox(
           this, 'showOverdraw',
-          'pictureViewer.showOverdraw', false,
+          'pictureView.showOverdraw', false,
           'Show overdraw');
 
       var chartCheckbox = ui.createCheckBox(
           this, 'showSummaryChart',
-          'pictureViewer.showSummaryChart', false,
+          'pictureView.showSummaryChart', false,
           'Show timing summary');
 
       var pictureInfo = this.querySelector('picture-info');

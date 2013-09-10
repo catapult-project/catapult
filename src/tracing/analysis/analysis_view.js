@@ -110,7 +110,7 @@ base.exportTo('tracing.analysis', function() {
       var eventsByType = selection.getEventsOrganizedByType();
       if (selection.length == 1 &&
           eventsByType.counterSamples.length == 0) {
-        if (this.tryToProcessSelectionUsingCustomViewer(selection[0]))
+        if (this.tryToProcessSelectionUsingCustomView(selection[0]))
           return;
       }
 
@@ -121,7 +121,7 @@ base.exportTo('tracing.analysis', function() {
       tracing.analysis.analyzeEventsByType(this.currentView, eventsByType);
     },
 
-    tryToProcessSelectionUsingCustomViewer: function(event) {
+    tryToProcessSelectionUsingCustomView: function(event) {
       var obj;
       var typeName;
       var viewBaseType;
@@ -148,7 +148,7 @@ base.exportTo('tracing.analysis', function() {
       var viewType = customViewInfo ?
           customViewInfo.constructor : defaultViewType;
 
-      // Some view types don't have default viewers. In those cases, we fall
+      // Some view types don't have default views. In those cases, we fall
       // back to the standard analysis sytem.
       if (!viewType)
         return false;

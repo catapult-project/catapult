@@ -4,7 +4,7 @@
  */
 
 
-layer-tree-quad-stack-viewer > top-controls {
+layer-tree-quad-stack-view > top-controls {
   -webkit-flex: 0 0 auto;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
@@ -17,6 +17,6 @@ layer-tree-quad-stack-viewer > top-controls {
   padding-left: 2px;
 }
 
-layer-tree-quad-stack-viewer > top-controls input[type='checkbox'] {
+layer-tree-quad-stack-view > top-controls input[type='checkbox'] {
     vertical-align: -2px;
 }

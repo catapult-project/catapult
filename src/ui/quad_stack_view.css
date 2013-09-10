@@ -4,7 +4,7 @@
  */
 
 
-quad-stack-viewer {
+quad-stack-view {
   display: block;
   float: left;
   height: 100%;
@@ -13,17 +13,17 @@ quad-stack-viewer {
   width: 100%;
 }
 
-quad-stack-viewer > #chrome-left {
+quad-stack-view > #chrome-left {
   content: url('../images/chrome-left.png');
   display: none;
 }
 
-quad-stack-viewer > #chrome-mid {
+quad-stack-view > #chrome-mid {
   content: url('../images/chrome-mid.png');
   display: none;
 }
 
-quad-stack-viewer > #chrome-right {
+quad-stack-view > #chrome-right {
   content: url('../images/chrome-right.png');
   display: none;
 }
