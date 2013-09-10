@@ -111,7 +111,7 @@ class BrowserFinderOptions(optparse.Values):
 
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
-    profiler_choices = profiler_finder.GetAllAvailableProfilers()
+    profiler_choices = profiler_finder.GetAllAvailableProfilers(None)
     group.add_option(
       '--profiler', default=None, type='choice',
       choices=profiler_choices,

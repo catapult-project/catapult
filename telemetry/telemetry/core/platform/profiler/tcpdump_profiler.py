@@ -98,14 +98,14 @@ class TCPDumpProfiler(profiler.Profiler):
     return 'tcpdump'
 
   @classmethod
-  def is_supported(cls, browser_type):
-    if browser_type.startswith('cros'):
+  def is_supported(cls, options):
+    if options and options.browser_type.startswith('cros'):
       return False
     if sys.platform.startswith('linux'):
       return True
-    if browser_type == 'any':
+    if not options:
       return android_browser_finder.CanFindAvailableBrowsers()
-    return browser_type.startswith('android')
+    return options.browser_type.startswith('android')
 
   def CollectProfile(self):
     self._platform_profiler.CollectProfile()

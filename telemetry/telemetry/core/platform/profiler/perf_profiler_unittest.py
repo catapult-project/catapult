@@ -13,7 +13,7 @@ from telemetry.unittest import simple_mock
 class TestPerfProfiler(unittest.TestCase):
   def testPerfProfiler(self):
     options = options_for_unittests.GetCopy()
-    if not perf_profiler.PerfProfiler.is_supported(options.browser_type):
+    if not perf_profiler.PerfProfiler.is_supported(options):
       logging.warning('PerfProfiler is not supported. Skipping test')
       return
 

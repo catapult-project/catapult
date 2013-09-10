@@ -84,13 +84,13 @@ class IprofilerProfiler(profiler.Profiler):
     return 'iprofiler'
 
   @classmethod
-  def is_supported(cls, browser_type):
+  def is_supported(cls, options):
     if sys.platform != 'darwin':
       return False
-    if browser_type == 'any':
+    if not options:
       return True
-    return (not browser_type.startswith('android') and
-            not browser_type.startswith('cros'))
+    return (not options.browser_type.startswith('android') and
+            not options.browser_type.startswith('cros'))
 
   def CollectProfile(self):
     output_files = []

@@ -217,12 +217,12 @@ class StraceProfiler(profiler.Profiler):
     return 'strace'
 
   @classmethod
-  def is_supported(cls, browser_type):
+  def is_supported(cls, options):
     if sys.platform != 'linux2':
       return False
     # TODO(tonyg): This should be supported on android and cros.
-    if (browser_type.startswith('android') or
-       browser_type.startswith('cros')):
+    if options and (options.browser_type.startswith('android')
+                    or options.browser_type.startswith('cros')):
       return False
     return True
 

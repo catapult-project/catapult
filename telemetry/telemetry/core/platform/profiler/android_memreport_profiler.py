@@ -28,10 +28,10 @@ class AndroidMemReportProfiler(profiler.Profiler):
     return 'android-memreport'
 
   @classmethod
-  def is_supported(cls, browser_type):
-    if browser_type == 'any':
+  def is_supported(cls, options):
+    if not options:
       return android_browser_finder.CanFindAvailableBrowsers()
-    return browser_type.startswith('android')
+    return options.browser_type.startswith('android')
 
   def CollectProfile(self):
     self._memreport.communicate(input='\n')

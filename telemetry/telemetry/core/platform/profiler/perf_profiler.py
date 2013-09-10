@@ -117,10 +117,10 @@ class PerfProfiler(profiler.Profiler):
     return 'perf'
 
   @classmethod
-  def is_supported(cls, browser_type):
+  def is_supported(cls, options):
     if sys.platform != 'linux2':
       return False
-    if browser_type.startswith('cros'):
+    if options and options.browser_type.startswith('cros'):
       return False
     return cls._CheckLinuxPerf() or cls._CheckAndroidPerf()
 
