@@ -66,6 +66,7 @@
       'src/cc/layer_view.css',
       'src/cc/layer_tree_host_impl_view.css',
       'src/cc/picture_debugger.css',
+      'src/gpu/state_view.css',
     ],
     'tracing_js_files': [
       'src/base.js',
@@ -240,8 +241,12 @@
       'src/cc/tile_coverage_rect.js',
       'src/cc/tile_view.js',
       'src/cc/selection.js',
+      'src/gpu.js',
+      'src/gpu/state.js',
+      'src/gpu/state_view.js',
     ],
     'tracing_img_files': [
+      'src/images/checkerboard.png',
       'src/images/chrome-left.png',
       'src/images/chrome-right.png',
       'src/images/chrome-mid.png',
