@@ -230,7 +230,7 @@ class Browser(object):
 
     profiler_class = profiler_finder.FindProfiler(profiler_name)
 
-    if not profiler_class.is_supported(self._browser_backend.finder_options):
+    if not profiler_class.is_supported(self._browser_backend.browser_type):
       raise Exception('The %s profiler is not '
                       'supported on this platform.' % profiler_name)
 

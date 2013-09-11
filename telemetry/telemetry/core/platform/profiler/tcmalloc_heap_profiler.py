@@ -112,14 +112,14 @@ class TCMallocHeapProfiler(profiler.Profiler):
     return 'tcmalloc-heap'
 
   @classmethod
-  def is_supported(cls, options):
-    if options and options.browser_type.startswith('cros'):
+  def is_supported(cls, browser_type):
+    if browser_type.startswith('cros'):
       return False
     if sys.platform.startswith('linux'):
       return True
-    if not options:
+    if browser_type == 'any':
       return android_browser_finder.CanFindAvailableBrowsers()
-    return options.browser_type.startswith('android')
+    return browser_type.startswith('android')
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):

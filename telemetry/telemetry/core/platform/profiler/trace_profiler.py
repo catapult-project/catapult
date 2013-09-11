@@ -20,7 +20,7 @@ class TraceProfiler(profiler.Profiler):
     return 'trace'
 
   @classmethod
-  def is_supported(cls, options):
+  def is_supported(cls, browser_type):
     return True
 
   def CollectProfile(self):

@@ -22,6 +22,6 @@ def FindProfiler(name):
   return None
 
 
-def GetAllAvailableProfilers(options):
+def GetAllAvailableProfilers():
   return sorted([p.name() for p in _DiscoverProfilers()
-                 if p.is_supported(options)])
+                 if p.is_supported(browser_type='any')])

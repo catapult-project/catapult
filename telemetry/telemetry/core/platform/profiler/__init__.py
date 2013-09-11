@@ -18,7 +18,7 @@ class Profiler(object):
     raise NotImplementedError()
 
   @classmethod
-  def is_supported(cls, options):
+  def is_supported(cls, browser_type):
     """True iff this profiler is currently supported by the platform."""
     raise NotImplementedError()
 

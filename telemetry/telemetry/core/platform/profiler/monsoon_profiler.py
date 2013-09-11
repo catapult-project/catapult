@@ -79,7 +79,7 @@ class MonsoonProfiler(profiler.Profiler):
     return 'monsoon'
 
   @classmethod
-  def is_supported(cls, options):
+  def is_supported(cls, browser_type):
     if not monsoon:
       return False
     try:
