@@ -198,7 +198,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
 
     // Add selection only.
     timeline.selection = selection;
-    assertNotEquals(selection, timeline.selection);
+    assertEquals(selection, timeline.selection);
     checkSelectionStates(timeline, selection, null);
 
     // Reset selection.
@@ -208,7 +208,7 @@ base.unittest.testSuite('tracing.timeline_track_view', function() {
 
     // Add highlight only.
     timeline.highlight = highlight;
-    assertNotEquals(highlight, timeline.highlight);
+    assertEquals(highlight, timeline.highlight);
     checkSelectionStates(timeline, null, highlight);
 
     // Reset highlight

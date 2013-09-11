@@ -162,7 +162,7 @@ base.exportTo('tracing', function() {
     get filterHits() {
       if (this.filterHitsDirty_) {
         this.filterHitsDirty_ = false;
-        this.filterHits_.clear();
+        this.filterHits_ = new tracing.Selection();
         this.currentHitIndex_ = -1;
 
         if (this.timeline_ && this.filterText.length) {

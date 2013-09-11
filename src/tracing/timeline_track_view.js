@@ -623,11 +623,9 @@ base.exportTo('tracing', function() {
         // have overlapping events with selection.
         this.resetEventsTo_(SelectionState.DIMMED);
 
-        // Clear and update the current highlight.
-        if (highlight !== this.highlight_) {
-          this.highlight_.clear();
-          this.highlight_.addSelection(highlight);
-        }
+        // Switch the highlight.
+        if (highlight !== this.highlight_)
+          this.highlight_ = highlight;
 
         // Set HIGHLIGHTED on the events of the new highlight.
         this.setSelectionState_(highlight, SelectionState.HIGHLIGHTED);
@@ -636,20 +634,18 @@ base.exportTo('tracing', function() {
         // Note that this also clears old SELECTED events, so it doesn't need
         // to be called again when setting the selection.
         this.resetEventsTo_(SelectionState.NONE);
-        this.highlight_.clear();
+        this.highlight_ = new Selection();
       }
 
       if (selection && selection.length) {
-        // Clear and update the current selection.
-        if (selection !== this.selection_) {
-          this.selection_.clear();
-          this.selection_.addSelection(selection);
-        }
+        // Switch the selection
+        if (selection !== this.selection_)
+          this.selection_ = selection;
 
         // Set SELECTED on the events of the new highlight.
         this.setSelectionState_(selection, SelectionState.SELECTED);
       } else
-        this.selection.clear();
+        this.selection_ = new Selection();
 
       base.dispatchSimpleEvent(this, 'selectionChange');
 
