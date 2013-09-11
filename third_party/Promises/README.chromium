@@ -12,4 +12,4 @@ Promises Design for DOM, currently in IDL. Also a p(r)ollyfill and re-worked
 APIs to take advantage of the new semantics.
 
 Local Modifications:
-None.
+Modified isThennable to not throw when passed undefined.

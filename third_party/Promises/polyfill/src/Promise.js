@@ -97,6 +97,8 @@ var _public = function(v) { return _method(v, 1); };
 //
 
 var isThenable = function(any) {
+  if (any === undefined)
+    return false;
   try {
     var f = any.then;
     if (typeof f == "function") {
