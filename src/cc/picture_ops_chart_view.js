@@ -88,6 +88,8 @@ base.exportTo('cc', function() {
     },
 
     processPictureData_: function() {
+      if (this.pictureOps_ === undefined)
+        return;
 
       var totalOpCost = 0;
 
@@ -227,7 +229,8 @@ base.exportTo('cc', function() {
 
       this.clearChartContents_();
 
-      if (this.pictureOps_.length === 0 ||
+      if (this.pictureOps_ === undefined ||
+          this.pictureOps_.length === 0 ||
           this.pictureOps_[0].cmd_time === undefined) {
 
         this.showNoTimingDataMessage_();

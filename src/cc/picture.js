@@ -164,10 +164,16 @@ base.exportTo('cc', function() {
     ObjectSnapshot.apply(this, arguments);
   }
 
-  PictureSnapshot.CanRasterize = function() {
+  PictureSnapshot.HasSkiaBenchmarking = function() {
     if (!window.chrome)
       return false;
     if (!window.chrome.skiaBenchmarking)
+      return false;
+    return true;
+  }
+
+  PictureSnapshot.CanRasterize = function() {
+    if (!PictureSnapshot.HasSkiaBenchmarking())
       return false;
     if (!window.chrome.skiaBenchmarking.rasterize)
       return false;
@@ -175,9 +181,7 @@ base.exportTo('cc', function() {
   }
 
   PictureSnapshot.CanGetOps = function() {
-    if (!window.chrome)
-      return false;
-    if (!window.chrome.skiaBenchmarking)
+    if (!PictureSnapshot.HasSkiaBenchmarking())
       return false;
     if (!window.chrome.skiaBenchmarking.getOps)
       return false;
@@ -185,11 +189,17 @@ base.exportTo('cc', function() {
   }
 
   PictureSnapshot.CanGetOpTimings = function() {
-    if (!window.chrome)
-      return false;
-    if (!window.chrome.skiaBenchmarking)
+    if (!PictureSnapshot.HasSkiaBenchmarking())
       return false;
     if (!window.chrome.skiaBenchmarking.getOpTimings)
+      return false;
+    return true;
+  }
+
+  PictureSnapshot.CanGetInfo = function() {
+    if (!PictureSnapshot.HasSkiaBenchmarking())
+      return false;
+    if (!window.chrome.skiaBenchmarking.getInfo)
       return false;
     return true;
   }
@@ -211,6 +221,8 @@ base.exportTo('cc', function() {
       return 'Your chrome is old: skiaBenchmarking.getOps not found';
     if (!window.chrome.skiaBenchmarking.getOpTimings)
       return 'Your chrome is old: skiaBenchmarking.getOpTimings not found';
+    if (!window.chrome.skiaBenchmarking.getInfo)
+      return 'Your chrome is old: skiaBenchmarking.getInfo not found';
     return 'Rasterizing is on';
   }
 
