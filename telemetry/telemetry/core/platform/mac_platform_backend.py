@@ -2,17 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import ctypes
 import os
 import subprocess
+import time
 try:
   import resource  # pylint: disable=F0401
 except ImportError:
   resource = None  # Not available on all platforms
 
+from ctypes import util
 from telemetry.core.platform import posix_platform_backend
 
-
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
+  def __init__(self):
+    super(MacPlatformBackend, self).__init__()
+    self.libproc = None
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -28,6 +33,48 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
+
+  def GetCpuStats(self, pid):
+    """Return current cpu processing time of pid in seconds."""
+    class ProcTaskInfo(ctypes.Structure):
+      """Struct for proc_pidinfo() call."""
+      _fields_ = [("pti_virtual_size", ctypes.c_uint64),
+                  ("pti_resident_size", ctypes.c_uint64),
+                  ("pti_total_user", ctypes.c_uint64),
+                  ("pti_total_system", ctypes.c_uint64),
+                  ("pti_threads_user", ctypes.c_uint64),
+                  ("pti_threads_system", ctypes.c_uint64),
+                  ("pti_policy", ctypes.c_int32),
+                  ("pti_faults", ctypes.c_int32),
+                  ("pti_pageins", ctypes.c_int32),
+                  ("pti_cow_faults", ctypes.c_int32),
+                  ("pti_messages_sent", ctypes.c_int32),
+                  ("pti_messages_received", ctypes.c_int32),
+                  ("pti_syscalls_mach", ctypes.c_int32),
+                  ("pti_syscalls_unix", ctypes.c_int32),
+                  ("pti_csw", ctypes.c_int32),
+                  ("pti_threadnum", ctypes.c_int32),
+                  ("pti_numrunning", ctypes.c_int32),
+                  ("pti_priority", ctypes.c_int32)]
+      PROC_PIDTASKINFO = 4
+      def __init__(self):
+        self.size = ctypes.sizeof(self)
+        super(ProcTaskInfo, self).__init__()
+
+    proc_info = ProcTaskInfo()
+    if not self.libproc:
+      self.libproc = ctypes.CDLL(util.find_library('libproc'))
+    self.libproc.proc_pidinfo(pid, proc_info.PROC_PIDTASKINFO, 0,
+                              ctypes.byref(proc_info), proc_info.size)
+
+    # Convert nanoseconds to seconds
+    cpu_time = (proc_info.pti_total_user / 1000000000.0 +
+                proc_info.pti_total_system / 1000000000.0)
+    return {'CpuProcessTime': cpu_time}
+
+  def GetCpuTimestamp(self):
+    """Return current timestamp in seconds."""
+    return {'TotalTime': time.time()}
 
   def GetSystemCommitCharge(self):
     vm_stat = self._RunCommand(['vm_stat'])
