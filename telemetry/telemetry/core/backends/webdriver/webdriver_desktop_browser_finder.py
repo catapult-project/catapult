@@ -72,7 +72,7 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
                                  ie_driver_exe)
       return webdriver.Ie(executable_path=ie_driver_exe)
     return webdriver_ie_backend.WebDriverIEBackend(
-        platform_backend, DriverCreator, self.finder_options)
+        platform_backend, DriverCreator, self.finder_options.browser_options)
 
 def SelectDefaultBrowser(_):
   return None

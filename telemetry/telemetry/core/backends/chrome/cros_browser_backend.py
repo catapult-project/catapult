@@ -17,11 +17,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   CHROME_PATHS = ['/opt/google/chrome/chrome ',
                   '/usr/local/opt/google/chrome/chrome ']
 
-  def __init__(self, browser_type, finder_options, cri, is_guest,
+  def __init__(self, browser_type, browser_options, cri, is_guest,
                extensions_to_load):
     super(CrOSBrowserBackend, self).__init__(
         is_content_shell=False, supports_extensions=not is_guest,
-        finder_options=finder_options,
+        browser_options=browser_options,
         output_profile_path=None, extensions_to_load=extensions_to_load)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type

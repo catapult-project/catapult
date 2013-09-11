@@ -193,6 +193,7 @@ class BrowserFinderOptions(optparse.Values):
 class BrowserOptions():
   """Options to be used for launching a browser."""
   def __init__(self):
+    self.browser_type = None
     self.show_stdout = False
 
     # When set to True, the browser will use the default profile.  Telemetry
@@ -258,6 +259,8 @@ class BrowserOptions():
       if a:
         setattr(self, o, a)
         delattr(finder_options, o)
+
+    self.browser_type = finder_options.browser_type
 
     if hasattr(self, 'extra_browser_args_as_string'): # pylint: disable=E1101
       tmp = shlex.split(

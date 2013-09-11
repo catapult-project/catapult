@@ -147,11 +147,11 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android.
   """
-  def __init__(self, finder_options, backend_settings, rndis,
+  def __init__(self, browser_options, backend_settings, rndis,
                output_profile_path, extensions_to_load):
     super(AndroidBrowserBackend, self).__init__(
         is_content_shell=backend_settings.is_content_shell,
-        supports_extensions=False, finder_options=finder_options,
+        supports_extensions=False, browser_options=browser_options,
         output_profile_path=output_profile_path,
         extensions_to_load=extensions_to_load)
     if len(extensions_to_load) > 0:

@@ -14,14 +14,12 @@ class BrowserBackend(object):
 
   WEBPAGEREPLAY_HOST = '127.0.0.1'
 
-  def __init__(self, is_content_shell, supports_extensions, finder_options,
+  def __init__(self, is_content_shell, supports_extensions, browser_options,
                tab_list_backend):
-    self.browser_type = finder_options.browser_type
+    self.browser_type = browser_options.browser_type
     self.is_content_shell = is_content_shell
     self._supports_extensions = supports_extensions
-    # TODO(achuith): Replace with browser options. crbug.com/269131.
-    self.finder_options = finder_options
-    self.browser_options = finder_options.browser_options
+    self.browser_options = browser_options
     self._browser = None
     self._tab_list_backend = tab_list_backend(self)
 

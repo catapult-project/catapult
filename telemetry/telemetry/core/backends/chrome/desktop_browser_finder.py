@@ -45,8 +45,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
-        self.finder_options, self._local_executable, self._flash_path,
-        self._is_content_shell, self._browser_directory,
+        self.finder_options.browser_options, self._local_executable,
+        self._flash_path, self._is_content_shell, self._browser_directory,
         output_profile_path=self.finder_options.output_profile_path,
         extensions_to_load=self.finder_options.extensions_to_load)
     b = browser.Browser(backend,
