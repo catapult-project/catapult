@@ -86,7 +86,12 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     iterateAllEvents: function(callback) {
-      this.slices.forEach(callback);
+      for (var i = 0; i < this.slices.length; i++) {
+        var slice = this.slices[i];
+        callback(slice);
+        if (slice.subSlices)
+          slice.subSlices.forEach(callback);
+      }
     }
   };
 
