@@ -7,6 +7,7 @@ import logging
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.platform import platform_backend
+from telemetry.core.platform import proc_util
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
@@ -78,6 +79,22 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
       if line.startswith('Total PSS: '):
         return int(line.split()[2]) * 1024
     return 0
+
+  def GetCpuStats(self, pid):
+    if not self._adb.CanAccessProtectedFileContents():
+      logging.warning('CPU stats cannot be retrieved on non-rooted device.')
+      return {}
+    stats = self._adb.GetProtectedFileContents('/proc/%s/stat' % pid,
+                                               log_result=False)[0].split()
+    return proc_util.GetCpuStats(stats)
+
+  def GetCpuTimestamp(self):
+    if not self._adb.CanAccessProtectedFileContents():
+      logging.warning('CPU stats cannot be retrieved on non-rooted device.')
+      return {}
+    timer_list = self._adb.GetProtectedFileContents('/proc/timer_list',
+                                                    log_result=False)
+    return proc_util.GetTimestampJiffies(timer_list)
 
   def GetMemoryStats(self, pid):
     memory_usage = self._adb.GetMemoryUsageForPid(pid)[0]

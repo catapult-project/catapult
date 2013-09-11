@@ -29,7 +29,7 @@ class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     meminfo_contents = self._GetFileContents('/proc/meminfo')
     return proc_util.GetSystemCommitCharge(meminfo_contents)
 
-  def GetCpuStats(self, pid=None):
+  def GetCpuStats(self, pid):
     stats = self._GetFileContents('/proc/%s/stat' % pid).split()
     return proc_util.GetCpuStats(stats)
 

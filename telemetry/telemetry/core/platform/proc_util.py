@@ -27,7 +27,9 @@ def _GetProcJiffies(timer_list):
 
   Multi-CPU machines will have multiple 'jiffies:' lines, all of which will be
   essentially the same.  Return the first one."""
-  for line in timer_list.splitlines():
+  if isinstance(timer_list, str):
+    timer_list = timer_list.splitlines()
+  for line in timer_list:
     if line.startswith('jiffies:'):
       _, value = line.split(':')
       return value
