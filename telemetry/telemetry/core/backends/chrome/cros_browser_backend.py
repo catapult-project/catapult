@@ -216,7 +216,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Wait for the browser to come up.
     logging.info('Waiting for browser to be ready')
     try:
-      self._WaitForBrowserToComeUp()
+      self._WaitForBrowserToComeUp(wait_for_extensions=False)
       self._PostBrowserStartupInitialization()
     except:
       import traceback
@@ -399,6 +399,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except util.TimeoutException:
       self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException('Timed out going through login screen')
+
+    # Wait for extensions to load.
+    self._WaitForBrowserToComeUp()
 
     if self.chrome_branch_number < 1500:
       # Wait for the startup window, then close it. Startup window doesn't exist

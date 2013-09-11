@@ -110,7 +110,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     return args
 
-  def _WaitForBrowserToComeUp(self, timeout=None):
+  def _WaitForBrowserToComeUp(self, wait_for_extensions=True, timeout=None):
     def IsBrowserUp():
       try:
         self.Request('', timeout=timeout)
@@ -142,7 +142,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         if not res:
           return False
       return True
-    if self._supports_extensions:
+    if wait_for_extensions and self._supports_extensions:
       util.WaitFor(AllExtensionsLoaded, timeout=30)
 
   def _PostBrowserStartupInitialization(self):
