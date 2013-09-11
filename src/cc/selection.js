@@ -11,8 +11,10 @@ base.require('tracing.analysis.analysis_results');
 base.exportTo('cc', function() {
   var tsRound = tracing.analysis.tsRound;
 
-  function Selection() {
+  var GenericObjectViewWithLabel = tracing.analysis.GenericObjectViewWithLabel;
 
+  function Selection() {
+    this.selectionToSetIfClicked = undefined;
   };
   Selection.prototype = {
     /**
@@ -92,7 +94,8 @@ base.exportTo('cc', function() {
     },
 
     createAnalysis: function() {
-      var dataView = new tracing.analysis.GenericObjectView();
+      var dataView = new GenericObjectViewWithLabel();
+      dataView.label = 'Layer ' + this.layer_.layerId;
       dataView.object = this.layer_.args;
       return dataView;
     },
@@ -129,7 +132,9 @@ base.exportTo('cc', function() {
     },
 
     createAnalysis: function() {
-      var analysis = new tracing.analysis.GenericObjectView();
+      var analysis = new GenericObjectViewWithLabel();
+      analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
+          this.tile_.layerId;
       analysis.object = this.tile_.args;
       return analysis;
     },
@@ -147,6 +152,43 @@ base.exportTo('cc', function() {
       if (!tileSnapshot)
         return undefined;
       return new TileSelection(tileSnapshot);
+    }
+  };
+
+  /**
+   * @constructor
+   */
+  function LayerRectSelection(layer, rectType, rect, opt_data) {
+    this.layer_ = layer;
+    this.rectType_ = rectType;
+    this.rect_ = rect;
+    this.data_ = opt_data !== undefined ? opt_data : rect;
+  }
+
+  LayerRectSelection.prototype = {
+    __proto__: Selection.prototype,
+
+    get associatedLayerId() {
+      return this.layer_.layerId;
+    },
+
+    get layerRect() {
+      return this.rect_;
+    },
+
+    createAnalysis: function() {
+      var analysis = new GenericObjectViewWithLabel();
+      analysis.label = this.rectType_ + ' on layer ' + this.layer_.layerId;
+      analysis.object = this.data_;
+      return analysis;
+    },
+
+    get title() {
+      return this.rectType_;
+    },
+
+    findEquivalent: function(lthi) {
+      return undefined;
     }
   };
 
@@ -194,6 +236,7 @@ base.exportTo('cc', function() {
     Selection: Selection,
     LayerSelection: LayerSelection,
     TileSelection: TileSelection,
+    LayerRectSelection: LayerRectSelection,
     RasterTaskSelection: RasterTaskSelection
   };
 });

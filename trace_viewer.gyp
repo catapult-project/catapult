@@ -105,7 +105,6 @@
       'src/ui/list_view.js',
       'src/ui/mouse_mode_selector.js',
       'src/ui/mouse_tracker.js',
-      'src/ui/quad_view.js',
       'src/ui/quad_stack_view.js',
       'src/ui/dom_helpers.js',
       'src/system_stats/system_stats_snapshot.js',

@@ -40,7 +40,10 @@ base.exportTo('cc', function() {
       this.appendChild(this.analysisEl_);
 
       this.layerTreeQuadStackView_.addEventListener('selectionChange',
-          this.layerTreeQuadStackViewSelectionChanged_.bind(this));
+          function() {
+            this.layerTreeQuadStackViewSelectionChanged_();
+          }.bind(this));
+      this.layerTreeQuadStackViewSelectionChanged_();
     },
 
     get layerTreeImpl() {
@@ -59,8 +62,8 @@ base.exportTo('cc', function() {
       this.layerTreeQuadStackView_.selection = newValue;
     },
 
-    layerTreeQuadStackViewSelectionChanged_: function(event) {
-      var selection = event.newValue;
+    layerTreeQuadStackViewSelectionChanged_: function() {
+      var selection = this.layerTreeQuadStackView_.selection;
       if (selection) {
         this.dragBar_.style.display = '';
         this.analysisEl_.style.display = '';

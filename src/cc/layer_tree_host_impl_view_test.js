@@ -19,7 +19,7 @@ base.unittest.testSuite('cc.layer_tree_host_impl_view', function() {
     var snapshot = instance.snapshots[0];
 
     var view = new cc.LayerTreeHostImplSnapshotView();
-    view.style.width = '800px';
+    view.style.width = '900px';
     view.style.height = '400px';
     view.objectSnapshot = snapshot;
 

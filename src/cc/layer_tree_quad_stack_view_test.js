@@ -29,9 +29,10 @@ base.unittest.testSuite('cc.layer_tree_quad_stack_view', function() {
 
     // There should be some quads drawn with all "show" checkboxes off,
     // but that number can change with new features added.
-    var numQuads = view.quads_.length;
+    var aQuads = view.generateQuads();
     view.howToShowTiles = 'coverage';
-    var numCoverageRects = view.quads_.length - numQuads;
+    var bQuads = view.generateQuads();
+    var numCoverageRects = bQuads.length - aQuads.length;
 
     // We know we have 5 coverage rects in lthi cats.
     assertEquals(5, numCoverageRects);

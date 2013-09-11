@@ -82,9 +82,9 @@ base.exportTo('base', function() {
   };
 
   Quad.prototype = {
-    vecInside: function(vec) {
-      return vecInTriangle2(vec, this.p1, this.p2, this.p3) ||
-          vecInTriangle2(vec, this.p1, this.p3, this.p4);
+    pointInside: function(point) {
+      return pointInImplicitQuad(point,
+                                 this.p1, this.p2, this.p3, this.p4);
     },
 
     boundingRect: function() {
@@ -208,15 +208,21 @@ base.exportTo('base', function() {
         (p2[0] - p3[0]) * (p1[1] - p3[1]);
   }
 
-  function vecInTriangle2(pt, p1, p2, p3) {
+  function pointInTriangle2(pt, p1, p2, p3) {
     var b1 = sign(pt, p1, p2) < 0.0;
     var b2 = sign(pt, p2, p3) < 0.0;
     var b3 = sign(pt, p3, p1) < 0.0;
     return ((b1 == b2) && (b2 == b3));
   }
 
+  function pointInImplicitQuad(point, p1, p2, p3, p4) {
+    return pointInTriangle2(point, p1, p2, p3) ||
+        pointInTriangle2(point, p1, p3, p4);
+  }
+
   return {
-    vecInTriangle2: vecInTriangle2,
+    pointInTriangle2: pointInTriangle2,
+    pointInImplicitQuad: pointInImplicitQuad,
     Quad: Quad
   };
 });

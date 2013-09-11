@@ -9,7 +9,7 @@ base.require('base.rect');
 
 base.unittest.testSuite('base.quad', function() {
   test('pointInTri', function() {
-    var res = base.vecInTriangle2(
+    var res = base.pointInTriangle2(
         [0.25, 0.25],
         [0, 0],
         [1, 0],
@@ -18,7 +18,7 @@ base.unittest.testSuite('base.quad', function() {
   });
 
   test('pointNotInTri', function() {
-    var res = base.vecInTriangle2(
+    var res = base.pointInTriangle2(
         [0.75, 0.75],
         [0, 0],
         [1, 0],
@@ -31,7 +31,7 @@ base.unittest.testSuite('base.quad', function() {
                                 [1, 0],
                                 [1, 1],
                                 [0, 1]);
-    var res = q.vecInside([0.5, 0.5]);
+    var res = q.pointInside([0.5, 0.5]);
     assertTrue(res);
   });
 
@@ -40,7 +40,7 @@ base.unittest.testSuite('base.quad', function() {
                                 [1, 0],
                                 [1, 1],
                                 [0, 1]);
-    var res = q.vecInside([1.5, 0.5]);
+    var res = q.pointInside([1.5, 0.5]);
     assertFalse(res);
   });
 

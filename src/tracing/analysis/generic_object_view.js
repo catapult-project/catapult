@@ -81,6 +81,11 @@ base.exportTo('tracing.analysis', function() {
         return;
       }
 
+      if (object instanceof base.Rect) {
+        this.appendSimpleText_(label, indent, object.toString(), suffix);
+        return;
+      }
+
       if (object instanceof Array) {
         this.appendElementsForArray_(
             label, object, indent, depth, maxDepth, suffix);
@@ -166,7 +171,41 @@ base.exportTo('tracing.analysis', function() {
 
   };
 
+  /**
+   * @constructor
+   */
+  var GenericObjectViewWithLabel = ui.define(
+      'x-generic-object-view-with-label');
+
+  GenericObjectViewWithLabel.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.labelEl_ = document.createElement('div');
+      this.genericObjectView_ = new tracing.analysis.GenericObjectView();
+      this.appendChild(this.labelEl_);
+      this.appendChild(this.genericObjectView_);
+    },
+
+    get label() {
+      return this.labelEl_.textContent;
+    },
+
+    set label(label) {
+      this.labelEl_.textContent = label;
+    },
+
+    get object() {
+      return this.genericObjectView_.object;
+    },
+
+    set object(object) {
+      this.genericObjectView_.object = object;
+    }
+  };
+
   return {
-    GenericObjectView: GenericObjectView
+    GenericObjectView: GenericObjectView,
+    GenericObjectViewWithLabel: GenericObjectViewWithLabel
   };
 });

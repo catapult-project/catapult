@@ -11,6 +11,7 @@
 
 base.requireStylesheet('cc.layer_tree_quad_stack_view');
 
+base.require('base.color');
 base.require('base.properties');
 base.require('base.raf');
 base.require('cc.constants');
@@ -39,18 +40,20 @@ base.exportTo('cc', function() {
 
     decorate: function() {
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
-      this.quads_ = [];
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
       this.infoBar_ = new ui.InfoBar();
       this.quadStackView_ = new ui.QuadStackView();
+      this.quadStackView_.addEventListener(
+          'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
 
       var m = ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
       mms.settingsKey = 'cc.layerTreeQuadStackView.mouseModeSelector';
-      mms.setKeyCodeForMode(m.PANSCAN, 'Z'.charCodeAt(0));
-      mms.setKeyCodeForMode(m.ZOOM, 'X'.charCodeAt(0));
-      mms.setKeyCodeForMode(m.ROTATE, 'C'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.SELECTION, 'Z'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.PANSCAN, 'X'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.ZOOM, 'C'.charCodeAt(0));
+      mms.setKeyCodeForMode(m.ROTATE, 'V'.charCodeAt(0));
 
       this.appendChild(this.controls_);
       this.appendChild(this.infoBar_);
@@ -119,7 +122,7 @@ base.exportTo('cc', function() {
       //             destructed, but this view might live for several
       //             layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
-      this.selection = null;
+      this.selection = undefined;
       this.updateTilesSelector_();
       this.updateContents_();
     },
@@ -184,6 +187,25 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
+    onQuadStackViewSelectionChange_: function(e) {
+      var selectableQuads = e.quads.filter(function(q) {
+        return q.selectionToSetIfClicked !== undefined;
+      });
+      if (selectableQuads.length == 0) {
+        this.selection = undefined;
+        return;
+      }
+
+      // Sort the quads low to high on stackingGroupId.
+      selectableQuads.sort(function(x, y) {
+        return x.stackingGroupId - y.stackingGroupId;
+      });
+
+      // TODO(nduca): Support selecting N things at once.
+      var quadToSelect = selectableQuads[selectableQuads.length - 1];
+      this.selection = quadToSelect.selectionToSetIfClicked;
+    },
+
     scheduleUpdateContents_: function() {
       if (this.updateContentsPending_)
         return;
@@ -196,8 +218,19 @@ base.exportTo('cc', function() {
       if (!this.layerTreeImpl_)
         return;
 
-      if (this.pictureLoadingComplete_())
-        this.generateQuads_();
+
+      var status = this.computePictureLoadingStatus_();
+      if (!status.picturesComplete)
+        return;
+
+      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      var lthiInstance = lthi.objectInstance;
+      var worldViewportRect = base.Rect.FromXYWH(
+          0, 0,
+          lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
+      this.quadStackView_.deviceRect = worldViewportRect;
+      this.quadStackView_.quads = this.generateQuads();
+      this.updateInfoBar_(messages);
     },
 
     updateTilesSelector_: function() {
@@ -223,11 +256,14 @@ base.exportTo('cc', function() {
       this.tileRectsSelector_ = new_selector;
     },
 
-    pictureLoadingComplete_: function() {
+    computePictureLoadingStatus_: function() {
       // Figure out if we can draw the quads yet. While we're at it, figure out
       // if we have any warnings we need to show.
       var layers = this.layers;
-      var messages = [];
+      var status = {
+        messages: [],
+        picturesComplete: true
+      };
       if (this.showContents) {
         var hasPendingRasterizeImage = false;
         var firstPictureError = undefined;
@@ -272,29 +308,29 @@ base.exportTo('cc', function() {
             }
           }
         }
-        if (hasPendingRasterizeImage)
-          return false;
-
-        if (hasUnresolvedPictureRef) {
-          messages.push({
-            header: 'Missing picture',
-            details: 'Your trace didnt have pictures for every layer. ' +
-                'Old chrome versions had this problem'});
-        }
-        if (hasMissingLayerRect) {
-          messages.push({
-            header: 'Missing layer rect',
-            details: 'Your trace may be corrupt or from a very old ' +
-                'Chrome revision.'});
-        }
-        if (firstPictureError) {
-          messages.push({
-            header: 'Cannot rasterize',
-            details: firstPictureError});
+        if (hasPendingRasterizeImage) {
+          status.picturesComplete = false;
+        } else {
+          if (hasUnresolvedPictureRef) {
+            status.messages.push({
+              header: 'Missing picture',
+              details: 'Your trace didnt have pictures for every layer. ' +
+                  'Old chrome versions had this problem'});
+          }
+          if (hasMissingLayerRect) {
+            status.messages.push({
+              header: 'Missing layer rect',
+              details: 'Your trace may be corrupt or from a very old ' +
+                  'Chrome revision.'});
+          }
+          if (firstPictureError) {
+            status.messages.push({
+              header: 'Cannot rasterize',
+              details: firstPictureError});
+          }
         }
       }
-      this.messages_ = messages;
-      return true;
+      return status;
     },
 
     get selectedLayer() {
@@ -314,7 +350,7 @@ base.exportTo('cc', function() {
       return layers;
     },
 
-    appendImageQuads_: function(layer, layerQuad) {
+    appendImageQuads_: function(quads, layer, layerQuad) {
       // Generate image quads for the layer
       for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
         var picture = layer.pictures[ir];
@@ -331,11 +367,11 @@ base.exportTo('cc', function() {
           iq.imageData = undefined;
 
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        this.quads_.push(iq);
+        quads.push(iq);
       }
     },
 
-    appendInvalidationQuads_: function(layer, layerQuad) {
+    appendInvalidationQuads_: function(quads, layer, layerQuad) {
       // Generate the invalidation rect quads.
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
         var rect = layer.invalidation.rects[ir];
@@ -344,11 +380,14 @@ base.exportTo('cc', function() {
         iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        this.quads_.push(iq);
+        iq.selectionToSetIfClicked = new cc.InavlidationRectSelection(
+            layer, rect);
+        quads.push(iq);
       }
     },
 
-    appendTileCoverageRectQuads_: function(layer, layerQuad, heatmapType) {
+    appendTileCoverageRectQuads_: function(
+        quads, layer, layerQuad, heatmapType) {
       if (!layer.tileCoverageRects)
         return;
 
@@ -380,8 +419,15 @@ base.exportTo('cc', function() {
 
         quad.borderColor = cc.tileBorder[type].color;
         quad.borderWidth = cc.tileBorder[type].width;
+        var label;
+        if (tile)
+          label = 'coverageRect';
+        else
+          label = 'checkerboard coverageRect';
+        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
+            layer, label, rect, layer.tileCoverageRects[ct]);
 
-        this.quads_.push(quad);
+        quads.push(quad);
       }
     },
 
@@ -426,7 +472,8 @@ base.exportTo('cc', function() {
       return values;
     },
 
-    appendTilesWithScaleQuads_: function(layer, layerQuad, scale, heatmapType) {
+    appendTilesWithScaleQuads_: function(
+        quads, layer, layerQuad, scale, heatmapType) {
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
 
       var tiles = [];
@@ -461,11 +508,12 @@ base.exportTo('cc', function() {
         quad.borderWidth = cc.tileBorder[type].width;
 
         quad.backgroundColor = heatmapColors[i];
-        this.quads_.push(quad);
+        quad.selectionToSetIfClicked = new cc.TileSelection(tile);
+        quads.push(quad);
       }
     },
 
-    appendSelectionQuads_: function(layer, layerQuad) {
+    appendSelectionQuads_: function(quads, layer, layerQuad) {
       var selection = this.selection;
       var rect = selection.layerRect;
       if (!rect)
@@ -483,52 +531,47 @@ base.exportTo('cc', function() {
       quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();
       quadForDrawing.borderColor = color.withAlpha(1.0).darken().toString();
       quadForDrawing.stackingGroupId = layerQuad.stackingGroupId;
-      return [quadForDrawing];
+      quads.push(quadForDrawing);
     },
 
-    generateQuads_: function() {
+    generateQuads: function() {
       this.updateContentsPending_ = false;
 
       // Generate the quads for the view.
       var layers = this.layers;
-      this.quads_ = [];
+      var quads = [];
       for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
 
         var layerQuad = layer.layerQuad.clone();
         layerQuad.borderColor = 'rgba(0,0,0,0.75)';
         layerQuad.stackingGroupId = i;
+        layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
 
-        this.appendImageQuads_(layer, layerQuad);
+        this.appendImageQuads_(quads, layer, layerQuad);
+        quads.push(layerQuad);
+
 
         if (this.showInvalidations)
-          this.appendInvalidationQuads_(layer, layerQuad);
+          this.appendInvalidationQuads_(quads, layer, layerQuad);
 
         if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(
-              layer, layerQuad, this.tileHeatmapType);
+              quads, layer, layerQuad, this.tileHeatmapType);
         } else if (this.howToShowTiles !== 'none') {
           this.appendTilesWithScaleQuads_(
-              layer, layerQuad, this.howToShowTiles, this.tileHeatmapType);
+              quads, layer, layerQuad,
+              this.howToShowTiles, this.tileHeatmapType);
         }
 
-        // Push the layer quad last.
-        this.quads_.push(layerQuad);
-
-        if (this.selectedLayer === layer) {
-          this.appendSelectionQuads_(layer, layerQuad);
-        }
+        if (this.selectedLayer === layer)
+          this.appendSelectionQuads_(quads, layer, layerQuad);
       }
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-      var lthiInstance = lthi.objectInstance;
-      var worldViewportRect = base.Rect.FromXYWH(0, 0,
-          lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
-      this.quadStackView_.deviceRect = worldViewportRect;
-      this.quadStackView_.quads = this.quads_;
 
-      this.updateInfoBar_(this.messages_);
+
+      return quads;
     },
 
     updateInfoBar_: function(infoBarMessages) {
