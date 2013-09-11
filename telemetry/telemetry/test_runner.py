@@ -96,6 +96,11 @@ class Run(Command):
   def AddParserOptions(self, parser):
     test.Test.AddCommandLineOptions(parser)
 
+    # Allow tests to add their own command line options
+    for arg in sys.argv[1:]:
+      if arg in _GetTests():
+        _GetTests()[arg].AddTestCommandLineOptions(parser)
+
   def ValidateCommandLine(self, parser, options, args):
     if not args:
       parser.error('Must provide at least one test name')

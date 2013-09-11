@@ -76,3 +76,8 @@ class Test(object):
   @staticmethod
   def AddCommandLineOptions(parser):
     page_runner.AddCommandLineOptions(parser)
+
+  @staticmethod
+  def AddTestCommandLineOptions(parser):
+    """Override to accept custom command line options."""
+    pass
