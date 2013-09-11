@@ -29,7 +29,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   # It is OK to have abstract methods. pylint: disable=W0223
 
   def __init__(self, is_content_shell, supports_extensions, finder_options,
-               output_profile_path=None):
+               output_profile_path, extensions_to_load):
     super(ChromeBrowserBackend, self).__init__(
         is_content_shell=is_content_shell,
         supports_extensions=supports_extensions,
@@ -43,6 +43,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._system_info_backend = None
 
     self._output_profile_path = output_profile_path
+    self._extensions_to_load = extensions_to_load
 
     self.webpagereplay_local_http_port = util.GetAvailableLocalPort()
     self.webpagereplay_local_https_port = util.GetAvailableLocalPort()
@@ -90,15 +91,15 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.browser_options.browser_user_agent_type))
 
-    extensions = [extension.local_path for extension in
-                  self.finder_options.extensions_to_load
+    extensions = [extension.local_path
+                  for extension in self._extensions_to_load
                   if not extension.is_component]
     extension_str = ','.join(extensions)
     if len(extensions) > 0:
       args.append('--load-extension=%s' % extension_str)
 
-    component_extensions = [extension.local_path for extension in
-                            self.finder_options.extensions_to_load
+    component_extensions = [extension.local_path
+                            for extension in self._extensions_to_load
                             if extension.is_component]
     component_extension_str = ','.join(component_extensions)
     if len(component_extensions) > 0:
@@ -132,7 +133,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           (document.readyState == 'complete' ||
            document.readyState == 'interactive')
       """
-      for e in self.finder_options.extensions_to_load:
+      for e in self._extensions_to_load:
         if not e.extension_id in self._extension_dict_backend:
           return False
         extension_object = self._extension_dict_backend[e.extension_id]

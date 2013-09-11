@@ -17,10 +17,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   CHROME_PATHS = ['/opt/google/chrome/chrome ',
                   '/usr/local/opt/google/chrome/chrome ']
 
-  def __init__(self, browser_type, finder_options, cri, is_guest):
+  def __init__(self, browser_type, finder_options, cri, is_guest,
+               extensions_to_load):
     super(CrOSBrowserBackend, self).__init__(
         is_content_shell=False, supports_extensions=not is_guest,
-        finder_options=finder_options)
+        finder_options=finder_options,
+        output_profile_path=None, extensions_to_load=extensions_to_load)
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type
     self._cri = cri
@@ -50,7 +52,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
     # the owner of the extensions is set to chronos.
-    for e in finder_options.extensions_to_load:
+    for e in extensions_to_load:
       output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
       extension_dir = output[0].rstrip()
       cri.PushFile(e.path, extension_dir)
@@ -256,7 +258,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RmRF(self._login_ext_dir)
       self._login_ext_dir = None
 
-    for e in self.finder_options.extensions_to_load:
+    for e in self._extensions_to_load:
       self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None

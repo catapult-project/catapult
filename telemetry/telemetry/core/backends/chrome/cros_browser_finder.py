@@ -33,7 +33,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
           " OS")
 
     backend = cros_browser_backend.CrOSBrowserBackend(
-        self.browser_type, self.finder_options, self._cri, self._is_guest)
+        self.browser_type, self.finder_options, self._cri, self._is_guest,
+        extensions_to_load=self.finder_options.extensions_to_load)
     b = browser.Browser(backend,
                         cros_platform_backend.CrosPlatformBackend(self._cri))
     return b
