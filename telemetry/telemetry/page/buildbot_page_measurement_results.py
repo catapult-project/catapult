@@ -91,7 +91,7 @@ class BuildbotPageMeasurementResults(
         for name in unique_pages:
           if not len(name_value_map[name]):
             continue
-          self._PrintPerfResult(measurement + '_by_name', name,
+          self._PrintPerfResult(measurement + '_by_url', name,
                                 name_value_map[name], units, by_name_data_type)
 
       # If there were no page failures, print the average data.
