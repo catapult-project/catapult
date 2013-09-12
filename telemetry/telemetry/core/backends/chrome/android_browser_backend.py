@@ -238,7 +238,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                             self._backend_settings.activity,
                             True,
                             None,
-                            'chrome://newtab/')
+                            None,
+                            'about:blank')
 
     self._adb.Forward('tcp:%d' % self._port,
                       self._backend_settings.GetDevtoolsRemotePort())
