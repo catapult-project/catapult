@@ -16,6 +16,16 @@ base.exportTo('system_stats', function() {
     ObjectSnapshot.apply(this, arguments);
   }
 
+  /**
+   * @constructor
+   */
+  function SystemStatsSnapshot(objectInstance, ts, args) {
+    this.objectInstance = objectInstance;
+    this.ts = ts;
+    this.args = args;
+    this.stats = args;
+  }
+
   SystemStatsSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 

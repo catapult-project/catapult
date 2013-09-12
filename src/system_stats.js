@@ -6,6 +6,7 @@
 
 base.require('system_stats.system_stats_snapshot');
 base.require('system_stats.system_stats_snapshot_view');
+base.require('system_stats.system_stats_instance_track');
 
 base.exportTo('system_stats', function() {
   return {};
