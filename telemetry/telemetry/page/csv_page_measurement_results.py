@@ -9,7 +9,8 @@ class CsvPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
   def __init__(self, output_stream, output_after_every_page=None):
     super(CsvPageMeasurementResults, self).__init__()
-    self._results_writer = csv.writer(output_stream)
+    self._output_stream = output_stream
+    self._results_writer = csv.writer(self._output_stream)
     self._did_output_header = False
     self._header_names_written_to_writer = None
     self._output_after_every_page = output_after_every_page
@@ -76,6 +77,7 @@ PageMeasurement.results_are_the_same_on_every_page to return False.
           self.all_measurements_that_have_been_seen[measurement_name]
       row.append('%s (%s)' % (measurement_name, measurement_data['units']))
     self._results_writer.writerow(row)
+    self._output_stream.flush()
 
   def _OutputValuesForPage(self, page_values):
     row = [page_values.page.display_name]
@@ -86,3 +88,4 @@ PageMeasurement.results_are_the_same_on_every_page to return False.
       else:
         row.append('-')
     self._results_writer.writerow(row)
+    self._output_stream.flush()

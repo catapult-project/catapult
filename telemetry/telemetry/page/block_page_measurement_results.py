@@ -34,5 +34,6 @@ class BlockPageMeasurementResults(
       self._output_file.write(line)
       self._output_file.write(os.linesep)
     self._output_file.write(os.linesep)
+    self._output_file.flush()
 
     super(BlockPageMeasurementResults, self).DidMeasurePage()
