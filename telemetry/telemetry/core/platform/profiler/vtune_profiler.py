@@ -99,8 +99,10 @@ class VTuneProfiler(profiler.Profiler):
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
-    options.AppendExtraBrowserArg('--no-sandbox')
-    options.AppendExtraBrowserArg('--allow-sandbox-debugging')
+    options.AppendExtraBrowserArgs([
+        '--no-sandbox',
+        '--allow-sandbox-debugging',
+    ])
 
   def CollectProfile(self):
     print 'Processing profile, this will take a few minutes...'
