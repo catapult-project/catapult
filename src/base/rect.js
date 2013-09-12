@@ -21,7 +21,7 @@ base.exportTo('base', function() {
     this.width = 0;
     this.height = 0;
   };
-  Rect.FromXYWH = function(x, y, w, h) {
+  Rect.fromXYWH = function(x, y, w, h) {
     var rect = new Rect();
     rect.x = x;
     rect.y = y;
@@ -29,7 +29,7 @@ base.exportTo('base', function() {
     rect.height = h;
     return rect;
   }
-  Rect.FromArray = function(ary) {
+  Rect.fromArray = function(ary) {
     if (ary.length != 4)
       throw new Error('ary.length must be 4');
     var rect = new Rect();
@@ -102,7 +102,7 @@ base.exportTo('base', function() {
     },
 
     scaleSize: function(s) {
-      return Rect.FromXYWH(this.x, this.y, this.width * s, this.height * s);
+      return Rect.fromXYWH(this.x, this.y, this.width * s, this.height * s);
     },
 
     scaleFast: function(out, s) {

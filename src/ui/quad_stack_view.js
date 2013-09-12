@@ -225,7 +225,7 @@ base.exportTo('ui', function() {
       this.cameraWasReset_ = false;
       this.camera_.canvas = this.canvas_;
 
-      this.viewportRect_ = base.Rect.FromXYWH(0, 0, 0, 0);
+      this.viewportRect_ = base.Rect.fromXYWH(0, 0, 0, 0);
 
       this.stackingDistance_ = 30;
       this.pixelRatio_ = window.devicePixelRatio || 1;
@@ -261,7 +261,7 @@ base.exportTo('ui', function() {
     resize: function() {
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
       var height = parseInt(window.getComputedStyle(this.offsetParent).height);
-      var rect = base.Rect.FromXYWH(0, 0, width, height);
+      var rect = base.Rect.fromXYWH(0, 0, width, height);
 
       if (rect.equalTo(this.viewportRect_))
         return false;
@@ -340,12 +340,12 @@ base.exportTo('ui', function() {
           this.chromeImages_.right, leftWidth + s * midWidth, 0);
 
       // Construct the quad.
-      var chromeRect = base.Rect.FromXYWH(
+      var chromeRect = base.Rect.fromXYWH(
           this.deviceRect_.x,
           this.deviceRect_.y - offsetY,
           this.deviceRect_.width,
           this.deviceRect_.height + offsetY);
-      var chromeQuad = base.Quad.FromRect(chromeRect);
+      var chromeQuad = base.Quad.fromRect(chromeRect);
       chromeQuad.stackingGroupId = this.maxStachingGroupId_ + 1;
       chromeQuad.imageData = chromeCtx.getImageData(
           0, 0, chromeCanvas.width, chromeCanvas.height);

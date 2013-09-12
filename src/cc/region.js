@@ -15,13 +15,13 @@ base.exportTo('cc', function() {
     this.rects = [];
   }
 
-  Region.FromArray = function(array) {
+  Region.fromArray = function(array) {
     if (array.length % 4 != 0)
       throw new Error('Array must consist be a multiple of 4 in length');
 
     var r = new Region();
     for (var i = 0; i < array.length; i += 4) {
-      r.rects.push(base.Rect.FromXYWH(array[i], array[i + 1],
+      r.rects.push(base.Rect.fromXYWH(array[i], array[i + 1],
                                       array[i + 2], array[i + 3]));
     }
     return r;
@@ -29,12 +29,12 @@ base.exportTo('cc', function() {
 
   /**
    * @return {Region} If array is undefined, returns an empty region. Otherwise
-   * returns RegionFromArray(array).
+   * returns Region.fromArray(array).
    */
-  Region.FromArrayOrUndefined = function(array) {
+  Region.fromArrayOrUndefined = function(array) {
     if (array === undefined)
       return new Region();
-    return Region.FromArray(array);
+    return Region.fromArray(array);
   };
 
   Region.prototype = {

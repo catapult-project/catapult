@@ -45,7 +45,7 @@ base.exportTo('cc', function() {
             'maskLayer', 'replicaLayer', 'idealContentsScale']);
 
       // Leave bounds in both places.
-      this.bounds = base.Rect.FromXYWH(
+      this.bounds = base.Rect.fromXYWH(
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
@@ -104,7 +104,7 @@ base.exportTo('cc', function() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
       if (this.args.invalidation) {
-        this.invalidation = cc.Region.FromArray(this.args.invalidation);
+        this.invalidation = cc.Region.fromArray(this.args.invalidation);
         delete this.args.invalidation;
       }
       if (this.args.pictures) {

@@ -138,7 +138,7 @@ base.exportTo('base', function() {
     },
 
     asRect: function() {
-      return base.Rect.FromXYWH(
+      return base.Rect.fromXYWH(
           this.min_[0],
           this.min_[1],
           this.max_[0] - this.min_[0],

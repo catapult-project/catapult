@@ -9,6 +9,18 @@ base.require('tracing.test_utils');
 base.require('tracing.record_selection_dialog');
 
 base.unittest.testSuite('tracing.record_selection_dialog', function() {
+  test('instantiate', function() {
+    var settings = new base.Settings();
+
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.categories = ['disabled-by-default-one', 'two', 'three'];
+    dlg.settings = settings;
+    dlg.settings_key = 'key';
+    //dlg.updateForm_();
+    dlg.shadow_.style.display = 'none';
+    this.addHTMLOutput(dlg);
+  });
+
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
     var settings = new base.Settings();
 

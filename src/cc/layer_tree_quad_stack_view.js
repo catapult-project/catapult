@@ -225,7 +225,7 @@ base.exportTo('cc', function() {
 
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
-      var worldViewportRect = base.Rect.FromXYWH(
+      var worldViewportRect = base.Rect.fromXYWH(
           0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
       this.quadStackView_.deviceRect = worldViewportRect;

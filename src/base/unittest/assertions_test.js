@@ -202,22 +202,22 @@ base.unittest.testSuite('base.unittest.assertions', function() {
   test('assertQuadEquals', function() {
     rawAssertThrows(function() {
       assertQuadEquals(
-          base.Quad.FromXYWH(1, 1, 2, 2), base.Quad.FromXYWH(1, 1, 2, 3));
+          base.Quad.fromXYWH(1, 1, 2, 2), base.Quad.fromXYWH(1, 1, 2, 3));
     });
     rawAssertNotThrows(function() {
       assertQuadEquals(
-          base.Quad.FromXYWH(1, 1, 2, 2), base.Quad.FromXYWH(1, 1, 2, 2));
+          base.Quad.fromXYWH(1, 1, 2, 2), base.Quad.fromXYWH(1, 1, 2, 2));
     });
   });
 
   test('assertRectEquals', function() {
     rawAssertThrows(function() {
       assertRectEquals(
-          base.Rect.FromXYWH(1, 1, 2, 2), base.Rect.FromXYWH(1, 1, 2, 3));
+          base.Rect.fromXYWH(1, 1, 2, 2), base.Rect.fromXYWH(1, 1, 2, 3));
     });
     rawAssertNotThrows(function() {
       assertRectEquals(
-          base.Rect.FromXYWH(1, 1, 2, 2), base.Rect.FromXYWH(1, 1, 2, 2));
+          base.Rect.fromXYWH(1, 1, 2, 2), base.Rect.fromXYWH(1, 1, 2, 2));
     });
   });
 

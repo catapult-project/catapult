@@ -69,6 +69,15 @@ base.exportTo('base', function() {
   }
 
   Color.prototype = {
+    clone: function() {
+      var c = new Color();
+      c.r = this.r;
+      c.g = this.g;
+      c.b = this.b;
+      c.a = this.a;
+      return c;
+    },
+
     brighten: function(opt_k) {
       var k;
       k = opt_k || 0.45;

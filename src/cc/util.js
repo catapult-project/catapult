@@ -111,7 +111,7 @@ base.exportTo('cc', function() {
       if (/Quad$/.test(key) && !(object[key] instanceof base.Quad)) {
         var q;
         try {
-          q = base.Quad.From8Array(object[key]);
+          q = base.Quad.from8Array(object[key]);
         } catch (e) {
           console.log(e);
         }
@@ -123,7 +123,7 @@ base.exportTo('cc', function() {
       if (/Rect$/.test(key) && !(object[key] instanceof base.Rect)) {
         var r;
         try {
-          r = base.Rect.FromArray(object[key]);
+          r = base.Rect.fromArray(object[key]);
         } catch (e) {
           console.log(e);
         }

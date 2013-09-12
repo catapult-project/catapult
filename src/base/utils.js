@@ -65,7 +65,7 @@ base.exportTo('base', function() {
       position[1] += node.offsetTop;
       node = node.offsetParent;
     }
-    return base.Rect.FromXYWH(position[0], position[1], size[0], size[1]);
+    return base.Rect.fromXYWH(position[0], position[1], size[0], size[1]);
   }
 
   function clamp(x, lo, hi) {
