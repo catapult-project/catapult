@@ -430,6 +430,8 @@ base.exportTo('cc', function() {
 
       for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
         var rect = layer.tileCoverageRects[ct].geometryRect;
+        rect = rect.scale(1.0 / layer.geometryContentsScale);
+
         var tile = layer.tileCoverageRects[ct].tile;
 
         var unitRect = rect.asUVRectInside(layer.bounds);

@@ -41,8 +41,8 @@ base.exportTo('cc', function() {
           this, ['layerId', 'children',
             'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, [
-            'maskLayer', 'replicaLayer', 'idealContentsScale']);
+          this, ['maskLayer', 'replicaLayer',
+            'idealContentsScale', 'geometryContentsScale']);
 
       // Leave bounds in both places.
       this.bounds = base.Rect.fromXYWH(
@@ -55,6 +55,8 @@ base.exportTo('cc', function() {
         this.maskLayer.parentLayer = this;
       if (this.replicaLayer)
         this.maskLayer.replicaLayer = this;
+      if (!this.geometryContentsScale)
+        this.geometryContentsScale = 1.0;
 
       this.touchEventHandlerRegion = cc.Region.fromArrayOrUndefined(
           this.args.touchEventHandlerRegion);
