@@ -7,7 +7,15 @@
 base.require('base.rect');
 
 base.exportTo('cc', function() {
-  function RegionFromArray(array) {
+
+  /**
+   * @constructor
+   */
+  function Region() {
+    this.rects = [];
+  }
+
+  Region.FromArray = function(array) {
     if (array.length % 4 != 0)
       throw new Error('Array must consist be a multiple of 4 in length');
 
@@ -20,11 +28,14 @@ base.exportTo('cc', function() {
   }
 
   /**
-   * @constructor
+   * @return {Region} If array is undefined, returns an empty region. Otherwise
+   * returns RegionFromArray(array).
    */
-  function Region() {
-    this.rects = [];
-  }
+  Region.FromArrayOrUndefined = function(array) {
+    if (array === undefined)
+      return new Region();
+    return Region.FromArray(array);
+  };
 
   Region.prototype = {
     __proto__: Region.prototype,
@@ -39,7 +50,6 @@ base.exportTo('cc', function() {
   };
 
   return {
-    Region: Region,
-    RegionFromArray: RegionFromArray
+    Region: Region
   };
 });

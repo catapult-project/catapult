@@ -33,13 +33,13 @@ base.exportTo('cc', function() {
       this.rootLayer.layerTreeImpl = this;
     },
 
-    iterLayers: function(func) {
+    iterLayers: function(func, thisArg) {
       var visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
         if (visitedLayers[layer.layerId])
           return;
         visitedLayers[layer.layerId] = true;
-        func(layer, depth, isMask, isReplica);
+        func.call(thisArg, layer, depth, isMask, isReplica);
         for (var i = 0; i < layer.children.length; i++)
           visitLayer(layer.children[i], depth + 1);
         if (layer.maskLayer)

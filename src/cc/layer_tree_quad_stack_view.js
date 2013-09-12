@@ -380,10 +380,30 @@ base.exportTo('cc', function() {
         iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new cc.InvalidationRectSelection(
-            layer, rect);
+        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+            layer, 'Invalidation rect', rect, rect);
         quads.push(iq);
       }
+    },
+
+    appendSlowScrollQuads_: function(quads, layer, layerQuad, stackingGroupId) {
+      function processRegion(region, label) {
+        for (var ir = 0; ir < region.rects.length; ir++) {
+          var rect = region.rects[ir];
+          var unitRect = rect.asUVRectInside(layer.bounds);
+          var iq = layerQuad.projectUnitRect(unitRect);
+          iq.backgroundColor = 'rgba(253, 200, 34, 0.4)';
+          iq.borderColor = 'rgba(230, 145, 34, 1)';
+          iq.stackingGroupId = stackingGroupId;
+          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+              layer, label, rect, rect);
+          quads.push(iq);
+        }
+      }
+
+      processRegion(layer.touchEventHandlerRegion, 'Touch listener');
+      processRegion(layer.wheelEventHandlerRegion, 'Wheel listener');
+      processRegion(layer.nonFastScrollableRegion, 'Invalidates on scroll');
     },
 
     appendTileCoverageRectQuads_: function(
@@ -540,12 +560,15 @@ base.exportTo('cc', function() {
       // Generate the quads for the view.
       var layers = this.layers;
       var quads = [];
+      var nextStackingGroupId = 0;
+      var alreadyVisitedLayerIds = {};
       for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
+        alreadyVisitedLayerIds[layer.layerId] = true;
 
         var layerQuad = layer.layerQuad.clone();
         layerQuad.borderColor = 'rgba(0,0,0,0.75)';
-        layerQuad.stackingGroupId = i;
+        layerQuad.stackingGroupId = nextStackingGroupId++;
         layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
@@ -556,6 +579,8 @@ base.exportTo('cc', function() {
 
         if (this.showInvalidations)
           this.appendInvalidationQuads_(quads, layer, layerQuad);
+        this.appendSlowScrollQuads_(quads, layer, layerQuad,
+                                    layerQuad.stackingGroupId);
 
         if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(
@@ -570,6 +595,15 @@ base.exportTo('cc', function() {
           this.appendSelectionQuads_(quads, layer, layerQuad);
       }
 
+      this.layerTreeImpl.iterLayers(function(layer, depth, isMask, isReplica) {
+        if (!this.showOtherLayers && this.selectedLayer != layer)
+          return;
+        if (alreadyVisitedLayerIds[layer.layerId])
+          return;
+        var layerQuad = layer.layerQuad;
+        var stackingGroupId = nextStackingGroupId++;
+        this.appendSlowScrollQuads_(quads, layer, layerQuad, stackingGroupId);
+      }, this);
 
       return quads;
     },

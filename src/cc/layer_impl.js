@@ -41,8 +41,8 @@ base.exportTo('cc', function() {
           this, ['layerId', 'children',
             'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['maskLayer', 'replicaLayer',
-            'idealContentsScale']);
+          this, [
+            'maskLayer', 'replicaLayer', 'idealContentsScale']);
 
       // Leave bounds in both places.
       this.bounds = base.Rect.FromXYWH(
@@ -55,6 +55,13 @@ base.exportTo('cc', function() {
         this.maskLayer.parentLayer = this;
       if (this.replicaLayer)
         this.maskLayer.replicaLayer = this;
+
+      this.touchEventHandlerRegion = cc.Region.fromArrayOrUndefined(
+          this.args.touchEventHandlerRegion);
+      this.wheelEventHandlerRegion = cc.Region.fromArrayOrUndefined(
+          this.args.wheelEventHandlerRegion);
+      this.nonFastScrollableRegion = cc.Region.fromArrayOrUndefined(
+          this.args.nonFastScrollableRegion);
     },
 
     get layerTreeImpl() {
@@ -97,7 +104,7 @@ base.exportTo('cc', function() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
       if (this.args.invalidation) {
-        this.invalidation = cc.RegionFromArray(this.args.invalidation);
+        this.invalidation = cc.Region.FromArray(this.args.invalidation);
         delete this.args.invalidation;
       }
       if (this.args.pictures) {
