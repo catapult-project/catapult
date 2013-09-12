@@ -387,13 +387,17 @@ base.exportTo('cc', function() {
     },
 
     appendSlowScrollQuads_: function(quads, layer, layerQuad, stackingGroupId) {
-      function processRegion(region, label) {
+      function processRegion(region, label, borderColor) {
+        var backgroundColor = borderColor.clone();
+        backgroundColor.a = 0.4 * (borderColor.a || 1.0);
+
         for (var ir = 0; ir < region.rects.length; ir++) {
           var rect = region.rects[ir];
           var unitRect = rect.asUVRectInside(layer.bounds);
           var iq = layerQuad.projectUnitRect(unitRect);
-          iq.backgroundColor = 'rgba(253, 200, 34, 0.4)';
-          iq.borderColor = 'rgba(230, 145, 34, 1)';
+          iq.backgroundColor = backgroundColor.toString();
+          iq.borderColor = borderColor.toString();
+          iq.borderWidth = 4.0;
           iq.stackingGroupId = stackingGroupId;
           iq.selectionToSetIfClicked = new cc.LayerRectSelection(
               layer, label, rect, rect);
@@ -401,9 +405,12 @@ base.exportTo('cc', function() {
         }
       }
 
-      processRegion(layer.touchEventHandlerRegion, 'Touch listener');
-      processRegion(layer.wheelEventHandlerRegion, 'Wheel listener');
-      processRegion(layer.nonFastScrollableRegion, 'Invalidates on scroll');
+      processRegion(layer.touchEventHandlerRegion, 'Touch listener',
+                    base.Color.fromString('rgb(228, 226, 27)'));
+      processRegion(layer.wheelEventHandlerRegion, 'Wheel listener',
+                    base.Color.fromString('rgb(176, 205, 29)'));
+      processRegion(layer.nonFastScrollableRegion, 'Repaints on scroll',
+                    base.Color.fromString('rgb(213, 134, 32)'));
     },
 
     appendTileCoverageRectQuads_: function(
