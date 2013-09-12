@@ -230,7 +230,7 @@ base.exportTo('cc', function() {
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
       this.quadStackView_.deviceRect = worldViewportRect;
       this.quadStackView_.quads = this.generateQuads();
-      this.updateInfoBar_(messages);
+      this.updateInfoBar_(status.messages);
     },
 
     updateTilesSelector_: function() {
