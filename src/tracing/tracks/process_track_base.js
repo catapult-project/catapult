@@ -64,8 +64,16 @@ base.exportTo('tracing.tracks', function() {
 
       if (this.processBase_) {
         var modelSettings = new TraceModelSettings(this.processBase_.model);
+        var defaultValue;
+        if (this.processBase_.labels !== undefined &&
+            this.processBase_.labels.length == 1 &&
+            this.processBase_.labels[0] == 'chrome://tracing') {
+          defaultValue = false;
+        } else {
+          defaultValue = true;
+        }
         this.expanded = modelSettings.getSettingFor(
-            this.processBase_, 'expanded', true);
+            this.processBase_, 'expanded', defaultValue);
       }
 
       this.updateContents_();
