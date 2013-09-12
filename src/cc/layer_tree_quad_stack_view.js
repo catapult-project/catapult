@@ -380,7 +380,7 @@ base.exportTo('cc', function() {
         iq.backgroundColor = 'rgba(255, 0, 0, 0.1)';
         iq.borderColor = 'rgba(255, 0, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new cc.InavlidationRectSelection(
+        iq.selectionToSetIfClicked = new cc.InvalidationRectSelection(
             layer, rect);
         quads.push(iq);
       }
