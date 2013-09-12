@@ -259,6 +259,9 @@ base.exportTo('ui', function() {
     },
 
     resize: function() {
+      if (!this.offsetParent)
+        return true;
+
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
       var height = parseInt(window.getComputedStyle(this.offsetParent).height);
       var rect = base.Rect.fromXYWH(0, 0, width, height);
