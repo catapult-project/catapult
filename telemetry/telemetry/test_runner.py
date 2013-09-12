@@ -34,10 +34,10 @@ class Command(object):
   def CreateParser(self):
     return optparse.OptionParser('%%prog %s %s' % (self.name, self.usage))
 
-  def AddParserOptions(self, parser):
+  def AddCommandLineOptions(self, parser):
     pass
 
-  def ValidateCommandLine(self, parser, options, args):
+  def ProcessCommandLine(self, parser, options, args):
     pass
 
   def Run(self, options, args):
@@ -48,23 +48,37 @@ class Help(Command):
   """Display help information"""
 
   def Run(self, options, args):
-    print ('usage: %s <command> [<args>]' % _GetScriptName())
-    print 'Available commands are:'
+    print >> sys.stderr, ('usage: %s <command> [<options>]' % _GetScriptName())
+    print >> sys.stderr, 'Available commands are:'
     for command in COMMANDS:
-      print '  %-10s %s' % (command.name, command.description)
+      print >> sys.stderr, '  %-10s %s' % (command.name, command.description)
     return 0
 
 
 class List(Command):
   """Lists the available tests"""
 
-  def AddParserOptions(self, parser):
+  usage = '[test_name] [<options>]'
+
+  def __init__(self):
+    super(List, self).__init__()
+    self._tests = None
+
+  def AddCommandLineOptions(self, parser):
     parser.add_option('-j', '--json', action='store_true')
+
+  def ProcessCommandLine(self, parser, options, args):
+    if not args:
+      self._tests = _GetTests()
+    elif len(args) == 1:
+      self._tests = _MatchTestName(args[0])
+    else:
+      parser.error('Must provide at most one test name.')
 
   def Run(self, options, args):
     if options.json:
       test_list = []
-      for test_name, test_class in sorted(_GetTests().items()):
+      for test_name, test_class in sorted(self._tests.items()):
         test_list.append({
               'name': test_name,
               'description': test_class.__doc__,
@@ -73,48 +87,58 @@ class List(Command):
             })
       print json.dumps(test_list)
     else:
-      print 'Available tests are:'
-      for test_name, test_class in sorted(_GetTests().items()):
-        if test_class.__doc__:
-          print '  %-20s %s' % (test_name,
-              test_class.__doc__.splitlines()[0])
-        else:
-          print '  %-20s' % test_name
+      print >> sys.stderr, 'Available tests are:'
+      _PrintTestList(self._tests)
     return 0
 
 
 class Run(Command):
   """Run one or more tests"""
 
-  usage = 'test_name [...] [<args>]'
+  usage = 'test_name [<options>]'
+
+  def __init__(self):
+    super(Run, self).__init__()
+    self._test = None
 
   def CreateParser(self):
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser('%%prog %s %s' % (self.name, self.usage))
     return parser
 
-  def AddParserOptions(self, parser):
+  def AddCommandLineOptions(self, parser):
     test.Test.AddCommandLineOptions(parser)
 
-    # Allow tests to add their own command line options
+    # Allow tests to add their own command line options.
+    matching_tests = {}
     for arg in sys.argv[1:]:
-      if arg in _GetTests():
-        _GetTests()[arg].AddTestCommandLineOptions(parser)
+      matching_tests.update(_MatchTestName(arg))
+    for test_class in matching_tests.itervalues():
+      test_class.AddTestCommandLineOptions(parser)
 
-  def ValidateCommandLine(self, parser, options, args):
-    if not args:
-      parser.error('Must provide at least one test name')
-    for test_name in args:
-      if test_name not in _GetTests():
-        parser.error('No test named "%s"' % test_name)
+  def ProcessCommandLine(self, parser, options, args):
+    if len(args) != 1:
+      parser.error('Must provide one test name.')
+
+    input_test_name = args[0]
+    matching_tests = _MatchTestName(input_test_name)
+    if not matching_tests:
+      print >> sys.stderr, 'No test named "%s".' % input_test_name
+      print >> sys.stderr
+      print >> sys.stderr, 'Available tests:'
+      _PrintTestList(_GetTests())
+      sys.exit(1)
+    if len(matching_tests) > 1:
+      print >> sys.stderr, 'Multiple tests named "%s".' % input_test_name
+      print >> sys.stderr
+      print >> sys.stderr, 'Did you mean one of these?'
+      _PrintTestList(matching_tests)
+      sys.exit(1)
+
+    self._test = matching_tests.popitem()[1]
 
   def Run(self, options, args):
-    total_failures = 0
-    for test_name in args:
-      test_failures = _GetTests()[test_name]().Run(copy.copy(options))
-      total_failures += test_failures
-
-    return min(255, total_failures)
+    return min(255, self._test().Run(copy.copy(options)))
 
 
 COMMANDS = [cls() for _, cls in inspect.getmembers(sys.modules[__name__])
@@ -130,9 +154,34 @@ def _GetTests():
   # Lazy load and cache results.
   if not hasattr(_GetTests, 'tests'):
     base_dir = util.GetBaseDir()
-    _GetTests.tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
-                                               index_by_class_name=True)
+    tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
+                                     index_by_class_name=True)
+    tests = dict((test.GetName(), test) for test in tests.itervalues())
+    _GetTests.tests = tests
   return _GetTests.tests
+
+
+def _MatchTestName(input_test_name):
+  def _Matches(input_string, search_string):
+    for part in search_string.split('.'):
+      if part.startswith(input_string):
+        return True
+    return False
+
+  return dict((test_name, test_class)
+      for test_name, test_class in _GetTests().iteritems()
+      if _Matches(input_test_name, test_name))
+
+
+def _PrintTestList(tests):
+  for test_name, test_class in sorted(tests.items()):
+    if test_class.__doc__:
+      description = test_class.__doc__.splitlines()[0]
+      # Align the test names to the longest one.
+      format_string = '  %%-%ds %%s' % max(map(len, tests.iterkeys()))
+      print >> sys.stderr, format_string % (test_name, description)
+    else:
+      print >> sys.stderr, '  %s' % test_name
 
 
 def Main():
@@ -162,9 +211,9 @@ def Main():
 
   # Parse and run the command.
   parser = command.CreateParser()
-  command.AddParserOptions(parser)
+  command.AddCommandLineOptions(parser)
   options, args = parser.parse_args()
   if commands:
     args = args[1:]
-  command.ValidateCommandLine(parser, options, args)
+  command.ProcessCommandLine(parser, options, args)
   return command.Run(options, args)
