@@ -163,6 +163,8 @@ def _GetTests():
 
 def _MatchTestName(input_test_name):
   def _Matches(input_string, search_string):
+    if search_string.startswith(input_string):
+      return True
     for part in search_string.split('.'):
       if part.startswith(input_string):
         return True
