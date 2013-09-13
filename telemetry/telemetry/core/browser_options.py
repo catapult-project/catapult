@@ -255,8 +255,8 @@ class BrowserOptions():
         'show_stdout'
         ]
     for o in browser_options_list:
-      a = getattr(finder_options, o)
-      if a:
+      a = getattr(finder_options, o, None)
+      if a is not None:
         setattr(self, o, a)
         delattr(finder_options, o)
 
