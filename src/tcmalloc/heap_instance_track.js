@@ -117,10 +117,19 @@ base.exportTo('tcmalloc', function() {
 
         // Compute the edges for the column graph bar.
         var right;
-        if (i < objectSnapshots.length - 1)
+        if (i != objectSnapshots.length - 1) {
           right = objectSnapshots[i + 1].ts;
-        else
-          right = objectSnapshots[objectSnapshots.length - 1].ts + 5000;
+        } else {
+          // If this is the last snaphot of multiple snapshots, use the width of
+          // the previous snapshot for the width.
+          if (objectSnapshots.length > 1)
+            right = objectSnapshots[i].ts + (objectSnapshots[i].ts -
+                    objectSnapshots[i - 1].ts);
+          else
+            // If there's only one snapshot, use max bounds as the width.
+            right = this.objectInstance_.parent.model.bounds.max;
+        }
+
         var rightView = dt.xWorldToView(right);
         if (rightView > width)
           rightView = width;
@@ -165,14 +174,26 @@ base.exportTo('tcmalloc', function() {
      */
     addIntersectingItemsInRangeToSelectionInWorldSpace: function(
         loWX, hiWX, viewPixWidthWorld, selection) {
-      var that = this;
       function onSnapshot(snapshot) {
         selection.push(snapshot);
       }
+
+      var snapshots = this.objectInstance_.snapshots;
+      var maxBounds = this.objectInstance_.parent.model.bounds.max;
+
       base.iterateOverIntersectingIntervals(
-          this.objectInstance_.snapshots,
+          snapshots,
           function(x) { return x.ts; },
-          function(x) { return 5000; },
+          function(x, i) {
+            if (i == snapshots.length - 1) {
+              if (snapshots.length == 1)
+                return maxBounds;
+
+              return snapshots[i].ts - snapshots[i - 1].ts;
+            }
+
+            return snapshots[i + 1].ts - snapshots[i].ts;
+          },
           loWX, hiWX,
           onSnapshot);
     },
