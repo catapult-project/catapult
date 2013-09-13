@@ -19,6 +19,25 @@ base.exportTo('system_stats', function() {
 
   var statCount;
 
+  var excludedStats = {'meminfo': {
+                        'pswpin': 0,
+                        'pswpout': 0,
+                        'pgmajfault': 0},
+                      'diskinfo': {
+                        'io': 0,
+                        'io_time': 0,
+                        'read_time': 0,
+                        'reads': 0,
+                        'reads_merged': 0,
+                        'sectors_read': 0,
+                        'sectors_written': 0,
+                        'weighted_io_time': 0,
+                        'write_time': 0,
+                        'writes': 0,
+                        'writes_merged': 0},
+                      'swapinfo': {}
+                      };
+
   /**
    * Tracks that display system stats data.
    *
@@ -47,9 +66,73 @@ base.exportTo('system_stats', function() {
       if (objectInstances.length != 1)
         throw new Error('Bad object instance count.');
       this.objectInstance_ = objectInstances[0];
-      if (this.objectInstance_ !== null)
-        this.maxStats_ = (this.computeMaxStats_(
-            this.objectInstance_.snapshots));
+      if (this.objectInstance_ !== null) {
+        this.computeRates_(this.objectInstance_.snapshots);
+        this.maxStats_ = this.computeMaxStats_(
+            this.objectInstance_.snapshots);
+      }
+    },
+
+    computeRates_: function(snapshots) {
+      for (var i = 0; i < snapshots.length; i++) {
+        var snapshot = snapshots[i];
+        var stats = snapshot.getStats();
+        var prevSnapshot;
+        var prevStats;
+
+        if (i == 0) {
+          // Deltas will be zero.
+          prevSnapshot = snapshots[0];
+        } else {
+          prevSnapshot = snapshots[i - 1];
+        }
+        prevStats = prevSnapshot.getStats();
+        var timeIntervalSeconds = (snapshot.ts - prevSnapshot.ts) / 1000;
+        // Prevent divide by zero.
+        if (timeIntervalSeconds == 0)
+          timeIntervalSeconds = 1;
+
+        this.computeRatesRecursive_(prevStats, stats,
+                                    timeIntervalSeconds);
+      }
+    },
+
+    computeRatesRecursive_: function(prevStats, stats,
+                                     timeIntervalSeconds) {
+      for (var statName in stats) {
+        if (stats[statName] instanceof Object) {
+          this.computeRatesRecursive_(prevStats[statName],
+                                      stats[statName],
+                                      timeIntervalSeconds);
+        } else {
+          if (statName == 'sectors_read') {
+            stats['bytes_read_per_sec'] = (stats['sectors_read'] -
+                                           prevStats['sectors_read']) *
+                                          512 / timeIntervalSeconds;
+          }
+          if (statName == 'sectors_written') {
+            stats['bytes_written_per_sec'] =
+                (stats['sectors_written'] -
+                 prevStats['sectors_written']) *
+                512 / timeIntervalSeconds;
+          }
+          if (statName == 'pgmajfault') {
+            stats['pgmajfault_per_sec'] = (stats['pgmajfault'] -
+                                           prevStats['pgmajfault']) /
+                                          timeIntervalSeconds;
+          }
+          if (statName == 'pswpin') {
+            stats['bytes_swpin_per_sec'] = (stats['pswpin'] -
+                                            prevStats['pswpin']) *
+                                           1000 / timeIntervalSeconds;
+          }
+          if (statName == 'pswpout') {
+            stats['bytes_swpout_per_sec'] = (stats['pswpout'] -
+                                             prevStats['pswpout']) *
+                                            1000 / timeIntervalSeconds;
+          }
+        }
+      }
     },
 
     computeMaxStats_: function(snapshots) {
@@ -60,21 +143,24 @@ base.exportTo('system_stats', function() {
         var snapshot = snapshots[i];
         var stats = snapshot.getStats();
 
-        // Descend into nested stats.
-        this.computeMaxStatsRecursive_(stats, maxStats);
+        this.computeMaxStatsRecursive_(stats, maxStats,
+                                       excludedStats);
       }
 
       return maxStats;
     },
 
-    computeMaxStatsRecursive_: function(stats, maxStats) {
+    computeMaxStatsRecursive_: function(stats, maxStats, excludedStats) {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
           if (!(statName in maxStats))
             maxStats[statName] = new Object();
           this.computeMaxStatsRecursive_(stats[statName],
-                                         maxStats[statName]);
+                                         maxStats[statName],
+                                         excludedStats[statName]);
         } else {
+          if (statName in excludedStats)
+            continue;
           if (!(statName in maxStats)) {
             maxStats[statName] = 0;
             statCount++;
