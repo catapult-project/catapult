@@ -595,7 +595,7 @@ base.exportTo('cc', function() {
 
         if (this.showInvalidations)
           this.appendInvalidationQuads_(quads, layer, layerQuad);
-        this.appendSlowScrollQuads_(quads, layer, layerQuad,
+        this.appendBottleneckQuads_(quads, layer, layerQuad,
                                     layerQuad.stackingGroupId);
 
         if (this.howToShowTiles === 'coverage') {
@@ -618,7 +618,7 @@ base.exportTo('cc', function() {
           return;
         var layerQuad = layer.layerQuad;
         var stackingGroupId = nextStackingGroupId++;
-        this.appendSlowScrollQuads_(quads, layer, layerQuad, stackingGroupId);
+        this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
       }, this);
 
       return quads;

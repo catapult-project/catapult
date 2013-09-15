@@ -450,16 +450,17 @@ base.exportTo('ui', function() {
       this.mouseModeSelector_.settingsKey =
           'quadStackView.mouseModeSelector';
 
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          ui.MOUSE_SELECTOR_MODE.ROTATE, ui.MODIFIER.SHIFT);
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          ui.MOUSE_SELECTOR_MODE.PANSCAN, ui.MODIFIER.SPACE);
+      this.mouseModeSelector_.setModifierForAlternateMode(
+          ui.MOUSE_SELECTOR_MODE.ZOOM, ui.MODIFIER.CMD_OR_CTRL);
+
       this.mouseModeSelector_.addEventListener('updateselection',
           this.onSelectionUpdate_.bind(this));
       this.mouseModeSelector_.addEventListener('endselection',
           this.onSelectionUpdate_.bind(this));
-      /*
-      this.eventSource_.addEventListener('beginselection',
-          this.onSelectionBegin_.bind(this));
-      this.eventSource_.addEventListener('endselection',
-          this.onSelectionEnd_.bind(this));
-      */
     },
 
     extractRelativeMousePosition_: function(e) {
