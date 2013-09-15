@@ -18,6 +18,15 @@ base.exportTo('cc', function() {
   };
   Selection.prototype = {
     /**
+     * When two things are picked in the UI, one must occasionally tie-break
+     * between them to decide what was really clicked. Things with higher
+     * specicifity will win.
+     */
+    get specicifity() {
+      throw new Error('Not implemented');
+    },
+
+    /**
      * If a selection is related to a specific layer, then this returns the
      * layerId of that layer. If the selection is not related to a layer, for
      * example if the device viewport is selected, then this returns undefined.
@@ -81,6 +90,10 @@ base.exportTo('cc', function() {
   LayerSelection.prototype = {
     __proto__: Selection.prototype,
 
+    get specicifity() {
+      return 1;
+    },
+
     get associatedLayerId() {
       return this.layer_.layerId;
     },
@@ -122,6 +135,10 @@ base.exportTo('cc', function() {
 
   TileSelection.prototype = {
     __proto__: Selection.prototype,
+
+    get specicifity() {
+      return 2;
+    },
 
     get associatedLayerId() {
       return this.tile_.layerId;
@@ -168,6 +185,10 @@ base.exportTo('cc', function() {
   LayerRectSelection.prototype = {
     __proto__: Selection.prototype,
 
+    get specicifity() {
+      return 2;
+    },
+
     get associatedLayerId() {
       return this.layer_.layerId;
     },
@@ -201,6 +222,10 @@ base.exportTo('cc', function() {
 
   RasterTaskSelection.prototype = {
     __proto__: Selection.prototype,
+
+    get specicifity() {
+      return 3;
+    },
 
     get tile() {
       return this.rasterTask_.args.data.tile_id;

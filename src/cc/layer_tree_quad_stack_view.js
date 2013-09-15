@@ -198,7 +198,11 @@ base.exportTo('cc', function() {
 
       // Sort the quads low to high on stackingGroupId.
       selectableQuads.sort(function(x, y) {
-        return x.stackingGroupId - y.stackingGroupId;
+        var z = x.stackingGroupId - y.stackingGroupId;
+        if (z != 0)
+          return z;
+        return x.selectionToSetIfClicked.specicifity -
+            y.selectionToSetIfClicked.specicifity;
       });
 
       // TODO(nduca): Support selecting N things at once.
@@ -386,7 +390,7 @@ base.exportTo('cc', function() {
       }
     },
 
-    appendSlowScrollQuads_: function(quads, layer, layerQuad, stackingGroupId) {
+    appendBottleneckQuads_: function(quads, layer, layerQuad, stackingGroupId) {
       function processRegion(region, label, borderColor) {
         var backgroundColor = borderColor.clone();
         backgroundColor.a = 0.4 * (borderColor.a || 1.0);
@@ -574,11 +578,14 @@ base.exportTo('cc', function() {
       for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
         alreadyVisitedLayerIds[layer.layerId] = true;
+        if (layer.objectInstance.name == 'cc::NinePatchLayerImpl')
+          continue;
 
         var layerQuad = layer.layerQuad.clone();
         layerQuad.borderColor = 'rgba(0,0,0,0.75)';
         layerQuad.stackingGroupId = nextStackingGroupId++;
         layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
+        layerQuad.layer = layer;
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
 
