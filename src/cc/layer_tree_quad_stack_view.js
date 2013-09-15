@@ -30,6 +30,13 @@ base.exportTo('cc', function() {
   TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 2;
   TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 3;
 
+  function createTileRectsSelectorBaseOptions() {
+    // TODO(vmpstr): reenable coverage rects when the work properly in
+    // highdpi. Namely, add this in here:
+    //   {label: 'Coverage Rects', value: 'coverage'}
+    return [{label: 'None', value: 'none'}];
+  }
+
   /**
    * @constructor
    */
@@ -62,9 +69,7 @@ base.exportTo('cc', function() {
       this.tileRectsSelector_ = ui.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
-          [{label: 'None', value: 'none'},
-           {label: 'Coverage Rects', value: 'coverage'}
-          ]);
+          createTileRectsSelectorBaseOptions());
       this.controls_.appendChild(this.tileRectsSelector_);
 
       var tileHeatmapText = ui.createSpan({
@@ -238,8 +243,7 @@ base.exportTo('cc', function() {
     },
 
     updateTilesSelector_: function() {
-      var data = [{label: 'None', value: 'none'},
-                  {label: 'Coverage Rects', value: 'coverage'}];
+      var data = createTileRectsSelectorBaseOptions();
 
       // First get all of the scales information from LTHI.
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
