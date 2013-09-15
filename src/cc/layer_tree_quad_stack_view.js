@@ -107,6 +107,14 @@ base.exportTo('cc', function() {
           'When checked, compositing invalidations are highlighted in red';
       this.controls_.appendChild(showInvalidationsCheckbox);
 
+      var showBottlenecksCheckbox = ui.createCheckBox(
+          this, 'showBottlenecks',
+          'layerView.showBottlenecks', true,
+          'Bottlenecks');
+      showBottlenecksCheckbox.title =
+          'When checked, scroll bottlenecks are highlighted';
+      this.controls_.appendChild(showBottlenecksCheckbox);
+
       var showContentsCheckbox = ui.createCheckBox(
           this, 'showContents',
           'layerView.showContents', true,
@@ -156,6 +164,15 @@ base.exportTo('cc', function() {
 
     set showInvalidations(show) {
       this.showInvalidations_ = show;
+      this.updateContents_();
+    },
+
+    get showBottlenecks() {
+      return this.showBottlenecks_;
+    },
+
+    set showBottlenecks(show) {
+      this.showBottlenecks_ = show;
       this.updateContents_();
     },
 
@@ -536,6 +553,8 @@ base.exportTo('cc', function() {
       for (var i = 0; i < tiles.length; ++i) {
         var tile = tiles[i];
         var rect = tile.layerRect;
+        if (!tile.layerRect)
+          continue;
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
 
@@ -601,8 +620,9 @@ base.exportTo('cc', function() {
 
         if (this.showInvalidations)
           this.appendInvalidationQuads_(quads, layer, layerQuad);
-        this.appendBottleneckQuads_(quads, layer, layerQuad,
-                                    layerQuad.stackingGroupId);
+        if (this.showBottlenecks)
+          this.appendBottleneckQuads_(quads, layer, layerQuad,
+                                      layerQuad.stackingGroupId);
 
         if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(
@@ -624,7 +644,8 @@ base.exportTo('cc', function() {
           return;
         var layerQuad = layer.layerQuad;
         var stackingGroupId = nextStackingGroupId++;
-        this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
+        if (this.showBottlenecks)
+          this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
       }, this);
 
       return quads;

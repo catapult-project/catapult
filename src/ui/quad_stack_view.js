@@ -227,7 +227,7 @@ base.exportTo('ui', function() {
 
       this.viewportRect_ = base.Rect.fromXYWH(0, 0, 0, 0);
 
-      this.stackingDistance_ = 30;
+      this.stackingDistance_ = 45;
       this.pixelRatio_ = window.devicePixelRatio || 1;
     },
 
