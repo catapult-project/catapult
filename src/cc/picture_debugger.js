@@ -80,8 +80,8 @@ base.exportTo('cc', function() {
 
       var rightPanel = this.querySelector('right-panel');
       rightPanel.replaceChild(
-        this.drawOpsChartView_,
-        rightPanel.querySelector('picture-ops-chart-view'));
+          this.drawOpsChartView_,
+          rightPanel.querySelector('picture-ops-chart-view'));
 
       this.infoBar_ = new ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);

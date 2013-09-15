@@ -55,7 +55,6 @@
       'src/tracing/tracks/slice_track.css',
       'src/tracing/tracks/spacing_track.css',
       'src/tracing/timeline_track_view.css',
-      'src/tracing/record_selection_dialog.css',
       'src/cc/layer_picker.css',
       'src/cc/layer_tree_quad_stack_view.css',
       'src/cc/raster_task_slice_view.css',

@@ -25,7 +25,7 @@ base.exportTo('about_tracing', function() {
   function TracingController(sendFn) {
     this.sendFn_ = sendFn;
     this.overlay_ = new ui.Overlay();
-    this.overlay_.classList.add('tracing-overlay');
+    this.overlay_.classList.add('recording-status-overlay');
 
     this.statusDiv_ = document.createElement('div');
     this.overlay_.appendChild(this.statusDiv_);

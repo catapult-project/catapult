@@ -55,15 +55,43 @@ base.exportTo('ui', function() {
       this.shadow_ = this.webkitCreateShadowRoot();
       this.shadow_.appendChild(base.instantiateTemplate('#overlay-template'));
 
+      this.closeBtn_ = this.shadow_.querySelector('close-button');
+      this.closeBtn_.addEventListener('click', this.onClose_);
+
       this.shadow_
-          .querySelector('.body')
+          .querySelector('overlay-frame')
           .addEventListener('click', this.onClick_);
+
+      this.observer_ = new WebKitMutationObserver(
+          this.didButtonBarMutate_.bind(this));
+      this.observer_.observe(this.shadow_.querySelector('button-bar'),
+                             { childList: true });
+
+      // title is a variable on regular HTMLElements. However, we want to
+      // use it for something more useful.
+      Object.defineProperty(
+          this, 'title', {
+            get: function() {
+              return this.shadow_.querySelector('title').textContent;
+            },
+            set: function(title) {
+              this.shadow_.querySelector('title').textContent = title;
+            }
+          });
     },
 
     set userCanClose(userCanClose) {
       this.userCanClose_ = userCanClose;
-      this.shadow_.querySelector('.close').style.display =
+      this.closeBtn_.style.display =
           userCanClose ? 'block' : 'none';
+    },
+
+    get leftButtons() {
+      return this.shadow_.querySelector('left-buttons');
+    },
+
+    get rightButtons() {
+      return this.shadow_.querySelector('right-buttons');
     },
 
     get visible() {
@@ -91,9 +119,6 @@ base.exportTo('ui', function() {
 
       this.parentEl_.addEventListener('focusin', this.onFocusIn_);
       this.tabIndex = 0;
-
-      this.closeBtn_ = this.shadow_.querySelector('.close');
-      this.closeBtn_.addEventListener('click', this.onClose_);
 
       // Focus the first thing we find that makes sense. (Skip the close button
       // as it doesn't make sense as the first thing to focus.)
@@ -137,6 +162,15 @@ base.exportTo('ui', function() {
       window.setTimeout(function() { this.focus(); }, 0);
       e.preventDefault();
       e.stopPropagation();
+    },
+
+    didButtonBarMutate_: function(e) {
+      var hasButtons = this.leftButtons.children.length +
+          this.rightButtons.children.length > 0;
+      if (hasButtons)
+        this.shadow_.querySelector('button-bar').style.display = undefined;
+      else
+        this.shadow_.querySelector('button-bar').style.display = 'none';
     },
 
     onKeyDown_: function(e) {

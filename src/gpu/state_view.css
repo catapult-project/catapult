@@ -5,7 +5,7 @@
 
 .gpu-state-snapshot-view {
   background: url('../images/checkerboard.png');
-  layout: -webkit-flex;
+  display: -webkit-flex;
   overflow: auto;
 }
 

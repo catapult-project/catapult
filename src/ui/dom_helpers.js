@@ -112,11 +112,13 @@ base.exportTo('ui', function() {
 
     var initialValue = base.Settings.get(settingsKey, defaultValue);
     buttonEl.checked = !!initialValue;
-    targetEl[targetElProperty] = initialValue;
+    if (targetEl)
+      targetEl[targetElProperty] = initialValue;
 
     function onChange() {
       base.Settings.set(settingsKey, buttonEl.checked);
-      targetEl[targetElProperty] = buttonEl.checked;
+      if (targetEl)
+        targetEl[targetElProperty] = buttonEl.checked;
     }
 
     buttonEl.addEventListener('change', onChange);

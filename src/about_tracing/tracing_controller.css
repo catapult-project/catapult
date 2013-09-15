@@ -20,3 +20,7 @@
   text-decoration: none;
   top: -1px;
 }
+
+.recording-status-overlay > div {
+  width: 300px;
+}

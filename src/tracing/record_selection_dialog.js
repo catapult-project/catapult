@@ -8,12 +8,12 @@
  * @fileoverview RecordSelectionDialog presents the available categories
  * to be enabled/disabled during tracing.
  */
-base.requireStylesheet('tracing.record_selection_dialog');
 base.requireTemplate('tracing.record_selection_dialog');
 
 base.require('base.utils');
 base.require('tracing.filter');
 base.require('ui.overlay');
+base.require('ui.dom_helpers');
 
 base.exportTo('tracing', function() {
   var RecordSelectionDialog = ui.define('div');
@@ -23,29 +23,36 @@ base.exportTo('tracing', function() {
 
     decorate: function() {
       ui.Overlay.prototype.decorate.call(this);
+      this.title = 'Record a new trace...';
 
       this.classList.add('record-dialog-overlay');
 
       var node = base.instantiateTemplate('#record-selection-dialog-template');
       this.appendChild(node);
 
-      this.formEl_ = this.querySelector('form');
+      this.recordButtonEl_ = document.createElement('button');
+      this.recordButtonEl_.textContent = 'Record';
+      this.recordButtonEl_.addEventListener(
+          'click',
+          this.onRecordButtonClicked_.bind(this));
+      this.recordButtonEl_.style.fontSize = '110%';
+      this.rightButtons.appendChild(this.recordButtonEl_);
 
-      this.recordButtonEl_ = this.querySelector('.record-categories');
-      this.recordButtonEl_.onclick = this.onRecord_.bind(this);
-
-      this.continuousTracingBn_ =
-          this.querySelector('.continuous-tracing-button');
-      this.continuousTracingBn_.onchange = this.updateDlgSetting_.bind(this);
-
-      this.systemTracingBn_ = this.querySelector('.system-tracing-button');
-      this.systemTracingBn_.onchange = this.updateDlgSetting_.bind(this);
-
-      this.samplingBn_ = this.querySelector('.sampling-button');
-      this.samplingBn_.onchange = this.updateDlgSetting_.bind(this);
-
-      this.systemTracingLabelEl_ = this.querySelector('.system-tracing-label');
-      this.systemTracingLabelEl_.style.display = 'none';
+      this.continuousTracingBn_ = ui.createCheckBox(
+          undefined, undefined,
+          'recordSelectionDialog.useContinuousTracing', true,
+          'Continuous tracing');
+      this.systemTracingBn_ = ui.createCheckBox(
+          undefined, undefined,
+          'recordSelectionDialog.useSystemTracing', true,
+          'System tracing');
+      this.samplingTracingBn_ = ui.createCheckBox(
+          undefined, undefined,
+          'recordSelectionDialog.useSampling', false,
+          'State sampling');
+      this.leftButtons.appendChild(this.continuousTracingBn_);
+      this.leftButtons.appendChild(this.systemTracingBn_);
+      this.leftButtons.appendChild(this.samplingTracingBn_);
 
       this.enabledCategoriesContainerEl_ =
           this.querySelector('.default-enabled-categories .categories');
@@ -61,9 +68,33 @@ base.exportTo('tracing', function() {
       this.addEventListener('visibleChange', this.onVisibleChange_.bind(this));
     },
 
-    updateDlgSetting_: function(e) {
-      var checkbox = e.target;
-      this.settings_.set(checkbox.value, checkbox.checked, 'record_dlg');
+    set supportsSystemTracing(s) {
+      if (s) {
+        this.systemTracingBn_.style.display = undefined;
+      } else {
+        this.systemTracingBn_.style.display = 'none';
+        this.useSystemTracing = false;
+      }
+    },
+
+    get useContinuousTracing() {
+      return this.continuousTracingBn_.checked;
+    },
+    set useContinuousTracing(value) {
+      this.continuousTracingBn_.checked = !!value;
+    },
+
+    get useSystemTracing() {
+      return this.systemTracingBn_.checked;
+    },
+    set useSystemTracing(value) {
+      this.systemTracingBn_.checked = !!value;
+    },
+    get useSampling() {
+      return this.samplingTracingBn_.checked;
+    },
+    set useSampling(value) {
+      this.samplingTracingBn_.checked = !!value;
     },
 
     set categories(c) {
@@ -75,42 +106,7 @@ base.exportTo('tracing', function() {
     },
 
     set settings(s) {
-      this.settings_ = s;
-
-      this.continuousTracingBn_.checked =
-          this.settings_.get('continuousTracing', true, 'record_dlg');
-      this.systemTracingBn_.checked =
-          this.settings_.get('systemTracing', false, 'record_dlg');
-      this.samplingBn_.checked =
-          this.settings_.get('enableSampling', false, 'record_dlg');
-    },
-
-    set recordCallback(cb) {
-      this.recordCallback_ = cb;
-    },
-
-    set showSystemTracing(isEnabled) {
-      if ((this.settings_ === undefined) ||
-          (this.settings_.get('systemTracing',
-                              undefined,
-                              'record_dlg') === undefined)) {
-        this.systemTracingBn_.checked = isEnabled;
-      }
-
-      this.systemTracingLabelEl_.style.display =
-          isEnabled ? 'inline-block' : 'none';
-    },
-
-    isContinuousTracingEnabled: function() {
-      return this.continuousTracingBn_.checked;
-    },
-
-    isSystemTracingEnabled: function() {
-      return this.systemTracingBn_.checked;
-    },
-
-    isSamplingEnabled: function() {
-      return this.samplingBn_.checked;
+      throw new Error('Dont use this!');
     },
 
     categoryFilter: function() {
@@ -139,9 +135,13 @@ base.exportTo('tracing', function() {
       return results.join(',');
     },
 
-    onRecord_: function() {
+    clickRecordButton: function() {
+      this.recordButtonEl_.click();
+    },
+
+    onRecordButtonClicked_: function() {
       this.visible = false;
-      this.recordCallback_();
+      base.dispatchSimpleEvent(this, 'recordclicked');
       return false;
     },
 
@@ -183,7 +183,7 @@ base.exportTo('tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked = this.settings_.get(
+        inputEl.checked = base.Settings.get(
             category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
@@ -209,7 +209,7 @@ base.exportTo('tracing', function() {
       // returned when we query the category list.
       var set = {};
       var allCategories =
-          this.categories_.concat(this.settings_.keys(this.settings_key_));
+          this.categories_.concat(base.Settings.keys(this.settings_key_));
       var allCategoriesLength = allCategories.length;
       for (var i = 0; i < allCategoriesLength; ++i) {
         set[allCategories[i]] = true;
@@ -237,7 +237,7 @@ base.exportTo('tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-      this.settings_.set(checkbox.value, checkbox.checked, this.settings_key_);
+      base.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
     },
 
     createGroupSelectButtons_: function(parent) {

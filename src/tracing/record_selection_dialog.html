@@ -5,48 +5,66 @@ found in the LICENSE file.
 -->
 
 <template id="record-selection-dialog-template">
-  <div class="record-selection-dialog">
-    <form>
-      <table>
-        <tr>
-          <td class="default-enabled-categories">
-            <div>Record&nbsp;Categories</div>
-            <div class="group-selectors">
-              Select
-              <button class="all-btn">All</button>
-              <button class="none-btn">None</button>
-            </div>
-            <div class="categories"></div>
-          </td>
-          <td class="default-disabled-categories">
-            <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
-            <div class="group-selectors">
-              Select
-              <button class="all-btn">All</button>
-              <button class="none-btn">None</button>
-            </div>
-            <div class="categories"></div>
-          </td>
-        </tr>
-      </table>
-    </form>
+  <style>
+    .record-selection-dialog {
+      display: -webkit-flex;
+      -webkit-flex-direction: row;
+      min-height: 0;
+      min-width: 0;
+      font-family: sans-serif;
+    }
 
-    <div class="options">
-      <button class="record-categories">Record</button>
-      <label class="continuous-tracing-label">
-        Continuous tracing
-        <input type="checkbox" value="continuousTracing" checked="checked"
-               class="continuous-tracing-button" />
-      </label>
-      <label class="system-tracing-label">
-        System events
-        <input type="checkbox" value="systemTracing"
-               class="system-tracing-button" />
-      </label>
-      <label class="sampling-label">
-        Enable sampling
-        <input type="checkbox" value="enableSampling" class="sampling-button" />
-      </label>
+    .default-enabled-categories,
+    .default-disabled-categories {
+      -webkit-flex: 1 1 auto;
+      display: -webkit-flex;
+      -webkit-flex-direction: column;
+      padding: 4px;
+      width: 300px;
+    }
+
+    .default-disabled-categories {
+      border-left: 2px solid #ddd;
+    }
+
+    .categories {
+      font-size: 80%;
+      padding: 10px;
+      overflow: auto;
+      max-height: 400px;
+      -webkit-flex: 1 1 auto;
+    }
+
+    .group-selectors {
+      font-size: 80%;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+      -webkit-flex: 0 0 auto;
+    }
+
+    .group-selectors button {
+      padding: 1px;
+    }
+
+  </style>
+  <div class="record-selection-dialog">
+    <div class="default-enabled-categories">
+      <div>Record&nbsp;Categories</div>
+      <div class="group-selectors">
+        Select
+        <button class="all-btn">All</button>
+        <button class="none-btn">None</button>
+      </div>
+      <div class="categories"></div>
+    </div>
+    <div class="default-disabled-categories">
+      <div>Disabled&nbsp;by&nbsp;Default&nbsp;Categories</div>
+      <div class="group-selectors">
+        Select
+        <button class="all-btn">All</button>
+        <button class="none-btn">None</button>
+      </div>
+      <div class="categories"></div>
     </div>
   </div>
 </template>

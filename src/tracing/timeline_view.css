@@ -117,6 +117,7 @@
 .metadata-dialog-text {
   font-family: monospace;
   white-space: pre;
+  overflow: auto;
 }
 
 .view-help-text {

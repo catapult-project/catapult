@@ -45,7 +45,7 @@ base.exportTo('about_tracing', function() {
       this.recordBn_.className = 'record';
       this.recordBn_.textContent = 'Record';
       this.recordBn_.addEventListener('click',
-                                      this.onSelectCategories_.bind(this));
+          this.onProfilingViewRecordButtonClicked_.bind(this));
 
       this.saveBn_ = document.createElement('button');
       this.saveBn_.className = 'save';
@@ -81,7 +81,7 @@ base.exportTo('about_tracing', function() {
       document.addEventListener('dragover', this.ignoreHandler_, false);
       document.addEventListener('drop', this.dropHandler_, false);
 
-      this.selectingCategories = false;
+      this.currentRecordSelectionDialog_ = undefined;
 
       this.addEventListener('tracingControllerChange',
           this.refresh_.bind(this), true);
@@ -134,18 +134,10 @@ base.exportTo('about_tracing', function() {
     onKeypress_: function(event) {
       if (event.keyCode === 114 &&  // r
           !this.tracingController.isTracingEnabled &&
-          !this.selectingCategories &&
+          !this.currentRecordSelectionDialog &&
           document.activeElement.nodeName !== 'INPUT') {
-        this.onSelectCategories_();
+        this.onProfilingViewRecordButtonClicked_();
       }
-    },
-
-    get selectingCategories() {
-      return this.selectingCategories_;
-    },
-
-    set selectingCategories(val) {
-      this.selectingCategories_ = val;
     },
 
     get timelineView() {
@@ -164,60 +156,66 @@ base.exportTo('about_tracing', function() {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    onSelectCategories_: function() {
-      this.selectingCategories = true;
+    clickRecordButton: function() {
+      this.recordBn_.click();
+    },
+
+    get currentRecordSelectionDialog() {
+      return this.currentRecordSelectionDialog_;
+    },
+
+    onProfilingViewRecordButtonClicked_: function() {
+      if (this.categoryCollectionPending_)
+        return;
+      this.categoryCollectionPending_ = true;
       var tc = this.tracingController;
       tc.collectCategories();
       tc.addEventListener('categoriesCollected', this.onCategoriesCollected_);
     },
 
     onCategoriesCollected_: function(event) {
+      this.categoryCollectionPending_ = false;
       var tc = this.tracingController;
 
-      var categories = event.categories;
-      var categories_length = categories.length;
+      var knownCategories = event.categories;
       // Do not allow categories with ,'s in their name.
-      for (var i = 0; i < categories_length; ++i) {
-        var split = categories[i].split(',');
-        categories[i] = split.shift();
+      for (var i = 0; i < knownCategories.length; ++i) {
+        var split = knownCategories[i].split(',');
+        knownCategories[i] = split.shift();
         if (split.length > 0)
-          categories = categories.concat(split);
+          knownCategories = knownCategories.concat(split);
       }
 
       var dlg = new tracing.RecordSelectionDialog();
-      dlg.categories = categories;
-      dlg.settings = this.timelineView_.settings;
+      dlg.categories = knownCategories;
       dlg.settings_key = 'record_categories';
-      dlg.recordCallback = this.onRecord_.bind(this);
-      dlg.showSystemTracing = this.tracingController.supportsSystemTracing;
+      dlg.supportsSystemTracing = this.tracingController.supportsSystemTracing;
       dlg.visible = true;
-      dlg.addEventListener('visibleChange', function(ev) {
-        if (!dlg.visible)
-          this.selectingCategories = false;
+      dlg.addEventListener('recordclicked', function() {
+        this.currentRecordSelectionDialog_ = undefined;
+
+        var categories = dlg.categoryFilter();
+        console.log('Recording: ' + categories);
+
+        this.timelineView_.viewTitle = '-_-';
+        tc.beginTracing(dlg.useSystemTracing,
+                        dlg.useContinuousTracing,
+                        dlg.useSampling,
+                        categories);
+
+        tc.addEventListener('traceEnded', this.onTraceEnded_);
       }.bind(this));
-      this.recordSelectionDialog_ = dlg;
+      dlg.addEventListener('visibleChange', function(ev) {
+        if (dlg.visible)
+          return;
+        this.currentRecordSelectionDialog_ = undefined;
+      }.bind(this));
+      this.currentRecordSelectionDialog_ = dlg;
 
       setTimeout(function() {
         tc.removeEventListener('categoriesCollected',
                                this.onCategoriesCollected_);
       }, 0);
-    },
-
-    onRecord_: function() {
-      this.selectingCategories = false;
-
-      var tc = this.tracingController;
-
-      var categories = this.recordSelectionDialog_.categoryFilter();
-      console.log('Recording: ' + categories);
-
-      this.timelineView_.viewTitle = '-_-';
-      tc.beginTracing(this.recordSelectionDialog_.isSystemTracingEnabled(),
-                      this.recordSelectionDialog_.isContinuousTracingEnabled(),
-                      this.recordSelectionDialog_.isSamplingEnabled(),
-                      categories);
-
-      tc.addEventListener('traceEnded', this.onTraceEnded_);
     },
 
     onTraceEnded_: function() {
@@ -238,6 +236,7 @@ base.exportTo('about_tracing', function() {
       var labelEl = document.createElement('div');
       labelEl.className = 'label';
       labelEl.textContent = 'Saving...';
+      this.overlayEl_.userCanClose = false;
       this.overlayEl_.appendChild(labelEl);
       this.overlayEl_.visible = true;
 
@@ -266,6 +265,7 @@ base.exportTo('about_tracing', function() {
       labelEl.className = 'label';
       labelEl.textContent = 'Loading...';
       this.overlayEl_.appendChild(labelEl);
+      this.overlayEl_.userCanClose = false;
       this.overlayEl_.visible = true;
 
       var that = this;

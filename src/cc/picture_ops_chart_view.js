@@ -61,9 +61,9 @@ base.exportTo('cc', function() {
 
       this.usePercentileScale_ = false;
       this.usePercentileScaleCheckbox_ = ui.createCheckBox(
-        this, 'usePercentileScale',
-        'PictureOpsChartView.usePercentileScale', false,
-        'Limit to 95%-ile');
+          this, 'usePercentileScale',
+          'PictureOpsChartView.usePercentileScale', false,
+          'Limit to 95%-ile');
       this.usePercentileScaleCheckbox_.classList.add('use-percentile-scale');
       this.appendChild(this.usePercentileScaleCheckbox_);
     },
