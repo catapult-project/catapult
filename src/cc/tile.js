@@ -30,12 +30,22 @@ base.exportTo('cc', function() {
     initialize: function() {
       cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['layerId', 'contentsScale', 'contentRect']);
-      this.resolution = this.args.managedState.resolution;
-      this.isSolidColor = this.args.managedState.isSolidColor;
-      this.hasResource = this.args.managedState.hasResource;
-      this.scheduledPriority = this.args.managedState.scheduledPriority;
-      this.distanceToVisible = this.args.managedState.distanceToVisibleInPixels;
-      this.timeToVisible = this.args.managedState.timeToNeededInSeconds;
+      if (this.args.managedState) {
+        this.resolution = this.args.managedState.resolution;
+        this.isSolidColor = this.args.managedState.isSolidColor;
+        this.hasResource = this.args.managedState.hasResource;
+        this.scheduledPriority = this.args.managedState.scheduledPriority;
+        this.distanceToVisible =
+            this.args.managedState.distanceToVisibleInPixels;
+        this.timeToVisible = this.args.managedState.timeToNeededInSeconds;
+      } else {
+        this.resolution = 'HIGH_RESOLUTION';
+        this.isSolidColor = false;
+        this.hasResource = false;
+        this.scheduledPriority = undefined;
+        this.distanceToVisible = undefined;
+        this.timeToVisible = undefined;
+      }
       if (this.timeToVisible > 60)
         this.timeToVisible = 60;
 
