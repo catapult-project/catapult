@@ -68,11 +68,18 @@ base.exportTo('cc', function() {
       this.dimensionsHaveChanged_ = dimensionsHaveChanged;
     },
 
+    get numOps() {
+      return this.opCosts_.length;
+    },
+
     get selectedOpIndex() {
       return this.selectedOpIndex_;
     },
 
     set selectedOpIndex(selectedOpIndex) {
+      if (selectedOpIndex < 0) throw new Error('Invalid index');
+      if (selectedOpIndex >= this.numOps) throw new Error('Invalid index');
+
       this.selectedOpIndex_ = selectedOpIndex;
     },
 

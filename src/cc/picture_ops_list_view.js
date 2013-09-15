@@ -135,6 +135,10 @@ base.exportTo('cc', function() {
       base.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
+    get numOps() {
+      return this.opsList_.children.length;
+    },
+
     get selectedOpIndex() {
       return this.selectedOpIndex_;
     },
@@ -146,7 +150,10 @@ base.exportTo('cc', function() {
         this.opsList_.selectedElement = this.selectedOp_;
         this.onSelectionChanged_();
       } else {
+        if (s < 0) throw new Error('Invalid index');
+        if (s >= this.numOps) throw new Error('Invalid index');
         this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
+        base.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
       }
     },
 

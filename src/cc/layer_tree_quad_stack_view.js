@@ -369,10 +369,12 @@ base.exportTo('cc', function() {
         var iq = layerQuad.projectUnitRect(unitRect);
 
         var pictureData = this.pictureAsImageData_[picture.guid];
-        if (this.showContents && pictureData && pictureData.imageData)
+        if (this.showContents && pictureData && pictureData.imageData) {
           iq.imageData = pictureData.imageData;
-        else
+          iq.borderColor = 'rgba(0,0,0,0)';
+        } else {
           iq.imageData = undefined;
+        }
 
         iq.stackingGroupId = layerQuad.stackingGroupId;
         quads.push(iq);

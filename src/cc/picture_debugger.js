@@ -7,6 +7,8 @@
 base.requireTemplate('cc.picture_debugger');
 base.requireStylesheet('cc.picture_debugger');
 
+base.require('base.key_event_manager');
+base.require('base.utils');
 base.require('cc.picture');
 base.require('cc.picture_ops_list_view');
 base.require('cc.picture_ops_chart_summary_view');
@@ -86,11 +88,26 @@ base.exportTo('cc', function() {
 
       this.picture_ = undefined;
 
+      base.KeyEventManager.instance.addListener(
+          'keypress', this.onKeyPress_, this);
+
       // Add a mutation observer so that when the view is resized we can
       // update the chart summary view.
       this.mutationObserver_ = new MutationObserver(
           this.onMutation_.bind(this));
       this.mutationObserver_.observe(leftPanel, { attributes: true });
+    },
+
+    onKeyPress_: function(e) {
+      if (e.keyCode == 'h'.charCodeAt(0)) {
+        this.moveSelectedOpBy(-1);
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (e.keyCode == 'l'.charCodeAt(0)) {
+        this.moveSelectedOpBy(1);
+        e.preventDefault();
+        e.stopPropagation();
+      }
     },
 
     onMutation_: function(mutations) {
@@ -213,6 +230,29 @@ base.exportTo('cc', function() {
     onRasterComplete_: function(pictureAsImageData) {
       this.pictureAsImageData_ = pictureAsImageData;
       this.scheduleUpdateContents_();
+    },
+
+    moveSelectedOpBy: function(increment) {
+      if (this.selectedOpIndex === undefined) {
+        this.selectedOpIndex = 0;
+        return;
+      }
+      this.selectedOpIndex = base.clamp(
+          this.selectedOpIndex + increment,
+          0, this.numOps);
+    },
+
+    get numOps() {
+      return this.drawOpsView_.numOps;
+    },
+
+    get selectedOpIndex() {
+      return this.drawOpsView_.selectedOpIndex;
+    },
+
+    set selectedOpIndex(index) {
+      this.drawOpsView_.selectedOpIndex = index;
+      this.drawOpsChartView_.selectedOpIndex = index;
     },
 
     onChartBarClicked_: function(e) {

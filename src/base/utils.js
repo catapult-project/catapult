@@ -81,6 +81,16 @@ base.exportTo('base', function() {
     return (Math.PI * deg) / 180.0;
   }
 
+  function scrollIntoViewIfNeeded(el) {
+    var pr = el.parentElement.getBoundingClientRect();
+    var cr = el.getBoundingClientRect();
+    if (cr.top < pr.top) {
+      el.scrollIntoView(true);
+    } else if (cr.bottom > pr.bottom) {
+      el.scrollIntoView(false);
+    }
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
@@ -90,6 +100,8 @@ base.exportTo('base', function() {
     stackTrace: stackTrace,
 
     windowRectForElement: windowRectForElement,
+
+    scrollIntoViewIfNeeded: scrollIntoViewIfNeeded,
 
     clamp: clamp,
     lerp: lerp,
