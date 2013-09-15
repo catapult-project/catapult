@@ -4,11 +4,15 @@
  */
 
 picture-ops-chart-view {
-  font-size: 0;
+  display: block;
   height: 180px;
   margin: 0;
-  overflow-x: scroll;
-  overflow-y: hidden;
   padding: 0;
   position: relative;
+}
+
+picture-ops-chart-view > .use-percentile-scale {
+  position: absolute;
+  top: 0;
+  left: 0;
 }

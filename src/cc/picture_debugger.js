@@ -79,7 +79,9 @@ base.exportTo('cc', function() {
       middleDragHandle.target = leftPanel;
 
       var rightPanel = this.querySelector('right-panel');
-      rightPanel.insertBefore(this.drawOpsChartView_, this.rasterArea_);
+      rightPanel.replaceChild(
+        this.drawOpsChartView_,
+        rightPanel.querySelector('picture-ops-chart-view'));
 
       this.infoBar_ = new ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);

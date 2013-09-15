@@ -5,6 +5,7 @@
 'use strict';
 
 base.requireStylesheet('cc.picture_ops_chart_view');
+base.require('ui.dom_helpers');
 
 base.exportTo('cc', function() {
 
@@ -58,6 +59,13 @@ base.exportTo('cc', function() {
       this.chart_.addEventListener('click', this.onClick_.bind(this));
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
 
+      this.usePercentileScale_ = false;
+      this.usePercentileScaleCheckbox_ = ui.createCheckBox(
+        this, 'usePercentileScale',
+        'PictureOpsChartView.usePercentileScale', false,
+        'Limit to 95%-ile');
+      this.usePercentileScaleCheckbox_.classList.add('use-percentile-scale');
+      this.appendChild(this.usePercentileScaleCheckbox_);
     },
 
     get dimensionsHaveChanged() {
@@ -66,6 +74,15 @@ base.exportTo('cc', function() {
 
     set dimensionsHaveChanged(dimensionsHaveChanged) {
       this.dimensionsHaveChanged_ = dimensionsHaveChanged;
+    },
+
+    get usePercentileScale() {
+      return this.usePercentileScale_;
+    },
+
+    set usePercentileScale(usePercentileScale) {
+      this.usePercentileScale_ = usePercentileScale;
+      this.drawChartContents_();
     },
 
     get numOps() {
@@ -111,6 +128,7 @@ base.exportTo('cc', function() {
           this.opCosts_.length * 0.95);
       this.ninetyFifthPercentileCost_ =
           this.opCosts_[ninetyFifthPercentileCostIndex];
+      this.maxCost_ = this.opCosts_[this.opCosts_.length - 1];
 
       this.totalOpCost_ = totalOpCost;
     },
@@ -119,7 +137,8 @@ base.exportTo('cc', function() {
 
       var index = undefined;
 
-      if (this.pictureOps_.length === 0)
+      if (this.pictureOps_ === undefined ||
+          this.pictureOps_.length === 0)
         return index;
 
       var x = e.offsetX;
@@ -210,13 +229,8 @@ base.exportTo('cc', function() {
 
       // Allow the element to be its natural size as set by flexbox, then lock
       // the width in before we set the width of the canvas.
-      this.style.width = 'auto';
-      this.chart_.style.display = 'none';
-      this.style.width = this.offsetWidth + 'px';
-      this.chart_.style.display = 'block';
-
       this.chartWidth_ = width;
-      this.chartHeight_ = this.offsetHeight;
+      this.chartHeight_ = this.getBoundingClientRect().height;
 
       // Scale up the canvas according to the devicePixelRatio, then reduce it
       // down again via CSS. Finally we apply a scale to the canvas so that
@@ -415,11 +429,17 @@ base.exportTo('cc', function() {
       var maxHeight = this.chartHeight_ - CHART_PADDING_BOTTOM -
           CHART_PADDING_TOP;
 
+      var maxValue;
+      if (this.usePercentileScale)
+        maxValue = this.ninetyFifthPercentileCost_;
+      else
+        maxValue = this.maxCost_;
+
       for (var b = 0; b < this.pictureOps_.length; b++) {
 
         op = this.pictureOps_[b];
         opHeight = Math.round(
-            (op.cmd_time / this.ninetyFifthPercentileCost_) * maxHeight);
+            (op.cmd_time / maxValue) * maxHeight);
         opHeight = Math.max(opHeight, 1);
         opHover = (b === this.currentBarMouseOverTarget_);
         opColor = this.getOpColor_(op.cmd_string, opHover);

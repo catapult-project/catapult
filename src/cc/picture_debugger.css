@@ -18,6 +18,7 @@ picture-debugger > x-generic-object-view {
 picture-debugger > left-panel {
   -webkit-flex-direction: column;
   display: -webkit-flex;
+  min-width: 300px;
 }
 
 picture-debugger > left-panel > picture-info {
@@ -44,6 +45,12 @@ picture-debugger > right-panel {
   -webkit-flex: 1 1 auto;
   -webkit-flex-direction: column;
   display: -webkit-flex;
+}
+
+picture-debugger > right-panel > picture-ops-chart-view {
+  min-width : 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 picture-debugger > right-panel > raster-area {

@@ -120,6 +120,7 @@ base.exportTo('cc', function() {
           var tile = this.args.coverageTiles[i].tile;
           this.tileCoverageRects.push(new cc.TileCoverageRect(rect, tile));
         }
+        delete this.args.coverageTiles;
       }
     }
   };
