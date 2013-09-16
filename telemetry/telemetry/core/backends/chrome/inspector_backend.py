@@ -16,7 +16,7 @@ from telemetry.core.backends.chrome import inspector_page
 from telemetry.core.backends.chrome import inspector_runtime
 from telemetry.core.backends.chrome import inspector_timeline
 from telemetry.core.backends.chrome import websocket
-from telemetry.core.jsheap import model
+from telemetry.core.heap import model
 
 class InspectorException(Exception):
   pass
@@ -354,5 +354,4 @@ class InspectorBackend(object):
                       'params': {'uid': snapshot_uid[0]}}, timeout)
 
     self.UnregisterDomain('HeapProfiler')
-
-    return model.JsHeapSnapshotModel(snapshot[0])
+    return model.Model(snapshot[0])
