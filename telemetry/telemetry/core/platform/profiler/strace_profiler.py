@@ -241,8 +241,7 @@ class StraceProfiler(profiler.Profiler):
     for single_process in self._process_profilers:
       out_json.extend(single_process.CollectProfile())
 
-    self._browser_backend.StopTracing()
-    model = self._browser_backend.GetTraceResultAndReset().AsTimelineModel()
+    model = self._browser_backend.StopTracing().AsTimelineModel()
     out_json.extend(_GenerateTraceMetadata(model))
 
     with open(self._output_file, 'w') as f:

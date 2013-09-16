@@ -222,13 +222,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     """
     if self._tracing_backend is None:
       self._tracing_backend = tracing_backend.TracingBackend(self._port)
-    self._tracing_backend.BeginTracing(custom_categories, timeout)
+    return self._tracing_backend.StartTracing(custom_categories, timeout)
 
   def StopTracing(self):
-    self._tracing_backend.EndTracing()
-
-  def GetTraceResultAndReset(self):
-    return self._tracing_backend.GetTraceResultAndReset()
+    """ Stops tracing and returns the result as TraceResult object. """
+    return self._tracing_backend.StopTracing()
 
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""

@@ -24,11 +24,9 @@ class TraceProfiler(profiler.Profiler):
     return True
 
   def CollectProfile(self):
-    self._browser_backend.StopTracing()
-
     print 'Processing trace...'
 
-    trace_result = self._browser_backend.GetTraceResultAndReset()
+    trace_result = self._browser_backend.StopTracing()
 
     trace_file = '%s.json' % self._output_path
 

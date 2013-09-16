@@ -66,9 +66,6 @@ class BrowserBackend(object):
   def StopTracing(self):
     raise NotImplementedError()
 
-  def GetTraceResultAndReset(self):
-    raise NotImplementedError()
-
   def GetRemotePort(self, _):
     return util.GetAvailableLocalPort()
 

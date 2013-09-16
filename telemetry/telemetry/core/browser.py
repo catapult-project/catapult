@@ -256,10 +256,6 @@ class Browser(object):
   def StopTracing(self):
     return self._browser_backend.StopTracing()
 
-  def GetTraceResultAndReset(self):
-    """Returns the result of the trace, as TraceResult object."""
-    return self._browser_backend.GetTraceResultAndReset()
-
   def Start(self):
     browser_options = self._browser_backend.browser_options
     if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:

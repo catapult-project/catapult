@@ -11,6 +11,52 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.unittest import tab_test_case
 
+class CategoryFilterTest(unittest.TestCase):
+  def testIsSubset(self):
+    b = tracing_backend.CategoryFilter(None)
+    a = tracing_backend.CategoryFilter(None)
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter(None)
+    a = tracing_backend.CategoryFilter("test1,test2")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter(None)
+    a = tracing_backend.CategoryFilter("-test1,-test2")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter("test1,test2")
+    a = tracing_backend.CategoryFilter(None)
+    self.assertEquals(a.IsSubset(b), None)
+
+    b = tracing_backend.CategoryFilter(None)
+    a = tracing_backend.CategoryFilter("test*")
+    self.assertEquals(a.IsSubset(b), None)
+
+    b = tracing_backend.CategoryFilter("test?")
+    a = tracing_backend.CategoryFilter(None)
+    self.assertEquals(a.IsSubset(b), None)
+
+    b = tracing_backend.CategoryFilter("test1")
+    a = tracing_backend.CategoryFilter("test1,test2")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("-test1")
+    a = tracing_backend.CategoryFilter("test1")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("test1,test2")
+    a = tracing_backend.CategoryFilter("test2,test1")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter("-test1,-test2")
+    a = tracing_backend.CategoryFilter("-test2")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("disabled-by-default-test1")
+    a = tracing_backend.CategoryFilter(
+        "disabled-by-default-test1,disabled-by-default-test2")
+    self.assertEquals(a.IsSubset(b), False)
 
 class TracingBackendTest(tab_test_case.TabTestCase):
   def _StartServer(self):
