@@ -80,6 +80,22 @@ def DiscoverAndRunTests(
   return test_result
 
 
+def RestoreLoggingLevel(func):
+  def _LoggingRestoreWrapper(*args, **kwargs):
+    # Cache the current logging level, this needs to be done before calling
+    # parser.parse_args, which changes logging level based on verbosity
+    # setting.
+    logging_level = logging.getLogger().getEffectiveLevel()
+    try:
+      return func(*args, **kwargs)
+    finally:
+      # Restore logging level, which may be changed in parser.parse_args.
+      logging.getLogger().setLevel(logging_level)
+
+  return _LoggingRestoreWrapper
+
+
+@RestoreLoggingLevel
 def Main(args, start_dir, top_level_dir, runner=None):
   """Unit test suite that collects all test cases for telemetry."""
   # Add unittest_data to the path so we can import packages from it.
@@ -99,7 +115,6 @@ def Main(args, start_dir, top_level_dir, runner=None):
 
   _, args = parser.parse_args(args)
 
-  logging_level = logging.getLogger().getEffectiveLevel()
   if default_options.verbosity == 0:
     logging.getLogger().setLevel(logging.WARN)
 
@@ -129,8 +144,5 @@ def Main(args, start_dir, top_level_dir, runner=None):
       return 0
   finally:
     options_for_unittests.Set(None, None)
-    if default_options.verbosity == 0:
-      # Restore logging level.
-      logging.getLogger().setLevel(logging_level)
 
   return 1
