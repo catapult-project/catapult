@@ -155,11 +155,18 @@ base.exportTo('system_stats', function() {
         if (stats[statName] instanceof Object) {
           if (!(statName in maxStats))
             maxStats[statName] = new Object();
+
+          var excludedNested;
+          if (excludedStats && statName in excludedStats)
+            excludedNested = excludedStats[statName];
+          else
+            excludedNested = null;
+
           this.computeMaxStatsRecursive_(stats[statName],
                                          maxStats[statName],
-                                         excludedStats[statName]);
+                                         excludedNested);
         } else {
-          if (statName in excludedStats)
+          if (excludedStats && statName in excludedStats)
             continue;
           if (!(statName in maxStats)) {
             maxStats[statName] = 0;
@@ -256,6 +263,9 @@ base.exportTo('system_stats', function() {
                                     trace,
                                     maxStats,
                                     currentY);
+
+        if (i == lowIndex)
+          this.drawStatNames_(leftView, height, currentY, maxStats);
       }
       ctx.lineWidth = 1;
     },
@@ -306,6 +316,25 @@ base.exportTo('system_stats', function() {
       }
 
       // Return the updated y-position.
+      return currentY;
+    },
+
+    drawStatNames_: function(leftView, height, currentY, maxStats) {
+      var ctx = this.context();
+
+      ctx.textAlign = 'end';
+      ctx.font = '12px Arial';
+      ctx.fillStyle = '#000000';
+      for (var statName in maxStats) {
+        if (maxStats[statName] instanceof Object) {
+          currentY = this.drawStatNames_(leftView, height, currentY,
+                                         maxStats[statName]);
+        } else {
+          ctx.fillText(statName, leftView - 10, currentY - height / 4);
+          currentY += height;
+        }
+      }
+
       return currentY;
     },
 
