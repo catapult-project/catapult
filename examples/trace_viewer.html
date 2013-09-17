@@ -84,13 +84,20 @@ found in the LICENSE file.
 
   function createViewFromTraces(filenames, traces) {
     var m = new tracing.TraceModel();
-    m.importTraces(traces, true);
-
-    timelineViewEl.model = m;
-    timelineViewEl.tabIndex = 1;
-    if (timelineViewEl.timeline)
-      timelineViewEl.timeline.focusElement = timelineViewEl;
-    timelineViewEl.viewTitle = filenames;
+    var p = m.importTracesWithProgressDialog(traces, true);
+    p.then(
+      function() {
+        timelineViewEl.model = m;
+        timelineViewEl.tabIndex = 1;
+        if (timelineViewEl.timeline)
+          timelineViewEl.timeline.focusElement = timelineViewEl;
+        timelineViewEl.viewTitle = filenames;
+      },
+      function(err) {
+        var overlay = new ui.Overlay();
+        overlay.textContent = normalizeException(err).message;
+        overlay.visible = true;
+      });
   }
 
   function onSelectionChange() {

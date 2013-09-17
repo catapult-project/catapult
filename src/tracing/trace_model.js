@@ -24,9 +24,11 @@ base.require('base.range');
 base.require('base.events');
 base.require('base.interval_tree');
 base.require('tracing.importer.importer');
+base.require('tracing.importer.task');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
 base.require('tracing.filter');
+base.require('ui.overlay');
 
 base.exportTo('tracing', function() {
 
@@ -236,91 +238,204 @@ base.exportTo('tracing', function() {
     importTraces: function(traces,
                            opt_shiftWorldToZero,
                            opt_pruneEmptyContainers) {
+      var progressMeter = {
+        update: function(msg) {}
+      };
+      var task = this.createImportTracesTask(
+          progressMeter,
+          traces,
+          opt_shiftWorldToZero,
+          opt_pruneEmptyContainers);
+      tracing.importer.Task.RunSynchronously(task);
+    },
+
+    /**
+     * Imports a trace with the usual options from importTraces, but
+     * does so using idle callbacks, putting up an import dialog
+     * during the import process.
+     */
+    importTracesWithProgressDialog: function(traces,
+                                             opt_shiftWorldToZero,
+                                             opt_pruneEmptyContainers) {
+      var overlay = ui.Overlay();
+      overlay.title = 'Importing...';
+      overlay.userCanClose = false;
+      overlay.msgEl = document.createElement('div');
+      overlay.appendChild(overlay.msgEl);
+      overlay.msgEl.style.margin = '20px';
+      overlay.update = function(msg) {
+        this.msgEl.textContent = msg;
+      }
+      overlay.visible = true;
+
+      var task = this.createImportTracesTask(
+          overlay,
+          traces,
+          opt_shiftWorldToZero,
+          opt_pruneEmptyContainers);
+      var promise = tracing.importer.Task.RunWhenIdle(task);
+      promise.then(
+          function() {
+            overlay.visible = false;
+          }, function(err) {
+            overlay.visible = false;
+          });
+      return promise;
+    },
+
+    /**
+     * Creates a task that will import the provided traces into the model,
+     * updating the progressMeter as it goes. Paramters are as defined in
+     * importTraces.
+     */
+    createImportTracesTask: function(progressMeter,
+                                     traces,
+                                     opt_shiftWorldToZero,
+                                     opt_pruneEmptyContainers) {
+      if (this.importing_)
+        throw new Error('Cannot import.');
       if (opt_shiftWorldToZero === undefined)
         opt_shiftWorldToZero = true;
       if (opt_pruneEmptyContainers === undefined)
         opt_pruneEmptyContainers = true;
+      this.importing_ = true;
 
-      // Copy the traces array, we may mutate it.
-      traces = traces.slice(0);
+      // Just some simple setup. It is useful to have a nop first
+      // task so that we can set up the lastTask = lastTask.after()
+      // pattern that follows.
+      var importTask = new tracing.importer.Task(function() {
+        progressMeter.update('I will now import your traces for you...');
+      }, this);
+      var lastTask = importTask;
 
-      // Figure out which importers to use.
       var importers = [];
-      for (var i = 0; i < traces.length; ++i)
-        importers.push(this.createImporter_(traces[i]));
 
-      // Some traces have other traces inside them. Before doing the full
-      // import, ask the importer if it has any subtraces, and if so, create
-      // importers for them, also.
-      for (var i = 0; i < importers.length; i++) {
-        var subtraces = importers[i].extractSubtraces();
-        for (var j = 0; j < subtraces.length; j++) {
-          traces.push(subtraces[j]);
-          importers.push(this.createImporter_(subtraces[j]));
+      lastTask = lastTask.after(function() {
+        // Copy the traces array, we may mutate it.
+        traces = traces.slice(0);
+        progressMeter.update('Creating importers...');
+        // Figure out which importers to use.
+        for (var i = 0; i < traces.length; ++i)
+          importers.push(this.createImporter_(traces[i]));
+
+        // Some traces have other traces inside them. Before doing the full
+        // import, ask the importer if it has any subtraces, and if so, create
+        // importers for them, also.
+        for (var i = 0; i < importers.length; i++) {
+          var subtraces = importers[i].extractSubtraces();
+          for (var j = 0; j < subtraces.length; j++) {
+            traces.push(subtraces[j]);
+            importers.push(this.createImporter_(subtraces[j]));
+          }
         }
-      }
 
-      // Sort them on priority. This ensures importing happens in a predictable
-      // order, e.g. linux_perf_importer before trace_event_importer.
-      importers.sort(function(x, y) {
-        return x.importPriority - y.importPriority;
-      });
+        // Sort them on priority. This ensures importing happens in a
+        // predictable order, e.g. linux_perf_importer before
+        // trace_event_importer.
+        importers.sort(function(x, y) {
+          return x.importPriority - y.importPriority;
+        });
+      }, this);
 
       // Run the import.
-      for (var i = 0; i < importers.length; i++)
-        importers[i].importEvents(i > 0);
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          task.pushSubTask(function() {
+            progressMeter.update(
+                'Importing ' + (index + 1) + ' of ' + importers.length);
+            importer.importEvents(index > 0);
+          }, this);
+        }, this);
+      }, this);
 
       // Autoclose open slices.
-      this.updateBounds();
-      this.kernel.autoCloseOpenSlices(this.bounds.max);
-      for (var pid in this.processes)
-        this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Autoclosing open slices...');
+        this.updateBounds();
+        this.kernel.autoCloseOpenSlices(this.bounds.max);
+        for (var pid in this.processes)
+          this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+      }, this);
 
       // Finalize import.
-      for (var i = 0; i < importers.length; i++)
-        importers[i].finalizeImport();
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          progressMeter.update(
+              'Finalizing import ' + (index + 1) + '/' + importers.length);
+          importer.finalizeImport();
+        }, this);
+      }, this);
 
       // Run preinit.
-      for (var pid in this.processes)
-        this.processes[pid].preInitializeObjects();
+      lastTask = lastTask.after(function() {
+        progressMeter.update('preInitializeObjects...');
+        for (var pid in this.processes)
+          this.processes[pid].preInitializeObjects();
+      }, this);
 
       // Prune empty containers.
       if (opt_pruneEmptyContainers) {
-        this.kernel.pruneEmptyContainers();
-        for (var pid in this.processes) {
-          this.processes[pid].pruneEmptyContainers();
-        }
+        lastTask = lastTask.after(function() {
+          progressMeter.update('pruneEmptyContainers');
+          this.kernel.pruneEmptyContainers();
+          for (var pid in this.processes) {
+            this.processes[pid].pruneEmptyContainers();
+          }
+        }, this);
       }
 
       // Merge kernel and userland slices on each thread.
-      for (var pid in this.processes) {
-        this.processes[pid].mergeKernelWithUserland();
-      }
+      lastTask = lastTask.after(function() {
+        progressMeter.update('mergeKernelWithUserland...');
+        for (var pid in this.processes)
+          this.processes[pid].mergeKernelWithUserland();
+      }, this);
 
-      this.updateBounds();
-      this.updateCategories_();
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Computing final wold bounds...');
+        this.updateBounds();
+        this.updateCategories_();
 
-      if (opt_shiftWorldToZero)
-        this.shiftWorldToZero();
+        if (opt_shiftWorldToZero)
+          this.shiftWorldToZero();
+      }, this);
 
       // Build the flow event interval tree.
-      for (var i = 0; i < this.flowEvents.length; ++i) {
-        var pair = this.flowEvents[i];
-        this.flowIntervalTree.insert(pair[0], pair[1]);
-      }
-      this.flowIntervalTree.updateHighValues();
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Reticulating splines...');
+        for (var i = 0; i < this.flowEvents.length; ++i) {
+          var pair = this.flowEvents[i];
+          this.flowIntervalTree.insert(pair[0], pair[1]);
+        }
+        this.flowIntervalTree.updateHighValues();
+      }, this);
 
       // Join refs.
-      for (var i = 0; i < importers.length; i++)
-        importers[i].joinRefs();
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Joining object refs...');
+        for (var i = 0; i < importers.length; i++)
+          importers[i].joinRefs();
+      }, this);
 
       // Delete any undeleted objects.
-      for (var pid in this.processes)
-        this.processes[pid].autoDeleteObjects(this.bounds.max);
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Cleaning up undeleted objects...');
+        for (var pid in this.processes)
+          this.processes[pid].autoDeleteObjects(this.bounds.max);
+      }, this);
 
       // Run initializers.
-      for (var pid in this.processes)
-        this.processes[pid].initializeObjects();
+      lastTask = lastTask.after(function() {
+        progressMeter.update('Running initializers');
+        for (var pid in this.processes)
+          this.processes[pid].initializeObjects();
+      }, this);
+
+      // Cleanup.
+      lastTask.after(function() {
+        this.importing_ = false;
+      }, this);
+      return importTask;
     },
 
     /**

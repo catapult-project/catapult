@@ -178,10 +178,6 @@ base.exportTo('tracing', function() {
       this.titleEl_.textContent = text;
     },
 
-    set traceData(traceData) {
-      this.model = new tracing.TraceModel(traceData);
-    },
-
     get model() {
       if (this.timeline_)
         return this.timeline_.model;

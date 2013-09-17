@@ -11,7 +11,6 @@ base.require('base.key_event_manager');
 base.require('base.settings');
 base.require('base.unittest.test_error');
 base.require('base.unittest.assertions');
-base.requireRawScript('../third_party/Promises/polyfill/src/Promise.js');
 
 base.exportTo('base.unittest', function() {
   var TestStatus = {
@@ -328,7 +327,7 @@ base.exportTo('base.unittest', function() {
 
     runRemainingTests_: function(remainingTests) {
       if (!remainingTests.length)
-        return Promise.resolve();
+        return base.Promise.resolve();
       var test = remainingTests.pop();
 
       // Clear settings storage before each test.
@@ -490,7 +489,7 @@ base.exportTo('base.unittest', function() {
 
     get run() {
       var test = this;
-      return new Promise(function(r) {
+      return new base.Promise(function(r) {
         var startTime = window.performance.now();
         try {
           var maybePromise = test.test_();

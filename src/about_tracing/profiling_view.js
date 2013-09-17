@@ -40,6 +40,8 @@ base.exportTo('about_tracing', function() {
     decorate: function() {
       this.classList.add('profiling-view');
 
+      this.canImportAsynchronously_ = true;
+
       // make the <list>/add/save/record element
       this.recordBn_ = document.createElement('button');
       this.recordBn_.className = 'record';
@@ -84,7 +86,7 @@ base.exportTo('about_tracing', function() {
       this.currentRecordSelectionDialog_ = undefined;
 
       this.addEventListener('tracingControllerChange',
-          this.refresh_.bind(this), true);
+          this.beginRefresh_.bind(this), true);
     },
 
     // Detach all document event listeners. Without this the tests can get
@@ -99,14 +101,18 @@ base.exportTo('about_tracing', function() {
       document.removeEventListener('drop', this.dropHandler_);
     },
 
-    refresh_: function() {
+    beginRefresh_: function() {
       if (!this.tracingController)
         return;
+      if (this.refreshPending_)
+        throw new Error('Cant refresh while a refresh is pending.');
+      this.refreshPending_ = true;
 
       this.saveBn_.disabled = true;
 
       if (!this.tracingController.traceEventData) {
         this.infoBar_.visible = false;
+        this.refreshPending_ = false;
         return;
       }
       this.saveBn_.disabled = false;
@@ -117,18 +123,39 @@ base.exportTo('about_tracing', function() {
         traces.push(this.tracingController.systemTraceEvents);
 
       var m = new tracing.TraceModel();
+      if (this.canImportAsynchronously_) {
+        // Async import path.
+        var p = m.importTracesWithProgressDialog(traces, true);
+        p.then(
+            function() {
+              this.importDone_(m);
+            }.bind(this),
+            this.importFailed_.bind(this));
+        return;
+      }
+      // Sync import path.
       try {
         m.importTraces(traces, true);
       } catch (e) {
-        this.timelineView_.model = undefined;
-        this.infoBar_.message =
-            'There was an error while importing the traceData: ' +
-            base.normalizeException(e).message;
-        this.infoBar_.visible = true;
+        this.importFailed_(e);
         return;
       }
+      this.importDone_(m);
+    },
+
+    importDone_: function(m) {
       this.infoBar_.visible = false;
       this.timelineView_.model = m;
+      this.refreshPending_ = false;
+    },
+
+    importFailed_: function(e) {
+      this.timelineView_.model = undefined;
+      this.infoBar_.message =
+          'There was an error while importing the traceData: ' +
+          base.normalizeException(e).message;
+      this.infoBar_.visible = true;
+      this.refreshPending_ = false;
     },
 
     onKeypress_: function(event) {
@@ -152,6 +179,14 @@ base.exportTo('about_tracing', function() {
       if (this.tracingController_)
         throw new Error('Can only set tracing controller once.');
       base.setPropertyAndDispatchChange(this, 'tracingController', newValue);
+    },
+
+    get canImportAsynchronously() {
+      return this.canImportAsynchronously_;
+    },
+
+    set canImportAsynchronously(canImportAsynchronously) {
+      this.canImportAsynchronously_ = canImportAsynchronously;
     },
 
     ///////////////////////////////////////////////////////////////////////////
@@ -221,7 +256,7 @@ base.exportTo('about_tracing', function() {
     onTraceEnded_: function() {
       var tc = this.tracingController;
       this.timelineView_.viewTitle = '^_^';
-      this.refresh_();
+      this.beginRefresh_();
       setTimeout(function() {
         tc.removeEventListener('traceEnded', this.onTraceEnded_);
       }, 0);
@@ -280,7 +315,7 @@ base.exportTo('about_tracing', function() {
             that.timelineView_.viewTitle = nameParts[nameParts.length - 1];
           else
             that.timelineView_.viewTitle = '^_^';
-          that.refresh_();
+          that.beginRefresh_();
         }
 
         setTimeout(function() {
@@ -315,7 +350,7 @@ base.exportTo('about_tracing', function() {
             that.tracingController.onLoadTraceFileComplete(data.target.result,
                                                            filename);
             that.timelineView_.viewTitle = filename;
-            that.refresh_();
+            that.beginRefresh_();
           } catch (e) {
             console.log('Unable to import the provided trace file.', e.message);
           }

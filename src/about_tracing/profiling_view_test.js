@@ -163,6 +163,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
   var recordTestCommon = function() {
     var view = new about_tracing.ProfilingView();
+    view.canImportAsynchronously = false;
 
     var tracingController = new FakeTracingController();
     view.tracingController = tracingController;
