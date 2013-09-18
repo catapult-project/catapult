@@ -31,10 +31,8 @@ base.exportTo('cc', function() {
   TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 3;
 
   function createTileRectsSelectorBaseOptions() {
-    // TODO(vmpstr): reenable coverage rects when the work properly in
-    // highdpi. Namely, add this in here:
-    //   {label: 'Coverage Rects', value: 'coverage'}
-    return [{label: 'None', value: 'none'}];
+    return [{label: 'None', value: 'none'},
+            {label: 'Coverage Rects', value: 'coverage'}];
   }
 
   /**
