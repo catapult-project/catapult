@@ -74,7 +74,8 @@ class RndisForwarderWithRoot(object):
   def _FindDeviceRndisInterface(self):
     """Returns the name of the RNDIS network interface if present."""
     config = self._adb.RunShellCommand('netcfg')
-    candidates = [line.split()[0] for line in config if 'rndis' in line]
+    interfaces = [line.split()[0] for line in config]
+    candidates = [iface for iface in interfaces if re.match('rndis|usb', iface)]
     if candidates:
       assert len(candidates) == 1, 'Found more than one rndis device!'
       return candidates[0]
