@@ -248,7 +248,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       return
 
     self._all_async_events.sort(
-        cmp=lambda x, y: x['event']['ts'] - y['event']['ts'])
+        cmp=lambda x, y: int(x['event']['ts'] - y['event']['ts']))
 
     async_event_states_by_name_then_id = {}
 
