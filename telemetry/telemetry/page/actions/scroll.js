@@ -11,28 +11,6 @@
 (function() {
   var MAX_SCROLL_LENGTH_PIXELS = 5000;
 
-  var getTimeMs = (function() {
-    if (window.performance)
-      return (performance.now       ||
-              performance.mozNow    ||
-              performance.msNow     ||
-              performance.oNow      ||
-              performance.webkitNow).bind(window.performance);
-    else
-      return function() { return new Date().getTime(); };
-  })();
-
-  var requestAnimationFrame = (function() {
-    return window.requestAnimationFrame       ||
-           window.webkitRequestAnimationFrame ||
-           window.mozRequestAnimationFrame    ||
-           window.oRequestAnimationFrame      ||
-           window.msRequestAnimationFrame     ||
-           function(callback) {
-             window.setTimeout(callback, 1000 / 60);
-           };
-  })().bind(window);
-
   function ScrollGestureOptions(opt_options) {
     if (opt_options) {
       this.element_ = opt_options.element;
