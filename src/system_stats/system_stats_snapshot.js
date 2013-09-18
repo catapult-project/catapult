@@ -44,7 +44,8 @@ base.exportTo('system_stats', function() {
     }
   };
 
-  ObjectSnapshot.register('system_stats', SystemStatsSnapshot);
+  ObjectSnapshot.register('base::TraceEventSystemStatsMonitor::SystemStats',
+                          SystemStatsSnapshot);
 
   return {
     SystemStatsSnapshot: SystemStatsSnapshot

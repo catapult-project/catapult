@@ -70,8 +70,9 @@ base.exportTo('system_stats', function() {
     }
   };
 
-  tracing.analysis.ObjectSnapshotView.register('system_stats',
-                                               SystemStatsSnapshotView);
+  tracing.analysis.ObjectSnapshotView.register(
+      'base::TraceEventSystemStatsMonitor::SystemStats',
+      SystemStatsSnapshotView);
 
   return {
     SystemStatsSnapshotView: SystemStatsSnapshotView

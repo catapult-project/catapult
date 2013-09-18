@@ -416,7 +416,8 @@ base.exportTo('system_stats', function() {
   };
 
   tracing.tracks.ObjectInstanceTrack.register(
-      'system_stats', SystemStatsInstanceTrack);
+      'base::TraceEventSystemStatsMonitor::SystemStats',
+      SystemStatsInstanceTrack);
 
   return {
     SystemStatsInstanceTrack: SystemStatsInstanceTrack
