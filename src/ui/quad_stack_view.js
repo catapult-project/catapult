@@ -13,6 +13,7 @@ base.requireStylesheet('ui.quad_stack_view');
 base.requireTemplate('ui.quad_stack_view');
 
 base.require('base.raf');
+base.require('base.rect');
 base.require('ui.camera');
 base.require('ui.mouse_mode_selector');
 base.require('ui.mouse_tracker');
@@ -20,41 +21,48 @@ base.require('ui.mouse_tracker');
 base.exportTo('ui', function() {
   var constants = {};
   constants.IMAGE_LOAD_RETRY_TIME_MS = 500;
+  constants.SUBDIVISION_MINIMUM = 1;
+  constants.SUBDIVISION_RECURSION_DEPTH = 5;
+  constants.SUBDIVISION_DEPTH_THRESHOLD = 100;
+  constants.FAR_PLANE_DISTANCE = 10000;
 
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
-  function drawTexturedTriangle(
-      ctx,
-      img, x0, y0, x1, y1, x2, y2,
-      u0, v0, u1, v1, u2, v2) {
+  function drawTexturedTriangle(ctx, img, p0, p1, p2, t0, t1, t2) {
+    var tmp_p0 = [p0[0], p0[1]];
+    var tmp_p1 = [p1[0], p1[1]];
+    var tmp_p2 = [p2[0], p2[1]];
+    var tmp_t0 = [t0[0], t0[1]];
+    var tmp_t1 = [t1[0], t1[1]];
+    var tmp_t2 = [t2[0], t2[1]];
 
     ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(tmp_p0[0], tmp_p0[1]);
+    ctx.lineTo(tmp_p1[0], tmp_p1[1]);
+    ctx.lineTo(tmp_p2[0], tmp_p2[1]);
     ctx.closePath();
 
-    x1 -= x0;
-    y1 -= y0;
-    x2 -= x0;
-    y2 -= y0;
+    tmp_p1[0] -= tmp_p0[0];
+    tmp_p1[1] -= tmp_p0[1];
+    tmp_p2[0] -= tmp_p0[0];
+    tmp_p2[1] -= tmp_p0[1];
 
-    u1 -= u0;
-    v1 -= v0;
-    u2 -= u0;
-    v2 -= v0;
+    tmp_t1[0] -= tmp_t0[0];
+    tmp_t1[1] -= tmp_t0[1];
+    tmp_t2[0] -= tmp_t0[0];
+    tmp_t2[1] -= tmp_t0[1];
 
-    var det = 1 / (u1 * v2 - u2 * v1),
+    var det = 1 / (tmp_t1[0] * tmp_t2[1] - tmp_t2[0] * tmp_t1[1]),
 
         // linear transformation
-        a = (v2 * x1 - v1 * x2) * det,
-        b = (v2 * y1 - v1 * y2) * det,
-        c = (u1 * x2 - u2 * x1) * det,
-        d = (u1 * y2 - u2 * y1) * det,
+        a = (tmp_t2[1] * tmp_p1[0] - tmp_t1[1] * tmp_p2[0]) * det,
+        b = (tmp_t2[1] * tmp_p1[1] - tmp_t1[1] * tmp_p2[1]) * det,
+        c = (tmp_t1[0] * tmp_p2[0] - tmp_t2[0] * tmp_p1[0]) * det,
+        d = (tmp_t1[0] * tmp_p2[1] - tmp_t2[0] * tmp_p1[1]) * det,
 
         // translation
-        e = x0 - a * u0 - c * v0,
-        f = y0 - b * u0 - d * v0;
+        e = tmp_p0[0] - a * tmp_t0[0] - c * tmp_t0[1],
+        f = tmp_p0[1] - b * tmp_t0[0] - d * tmp_t0[1];
 
     ctx.save();
     ctx.transform(a, b, c, d, e, f);
@@ -63,14 +71,122 @@ base.exportTo('ui', function() {
     ctx.restore();
   }
 
+  function drawTriangleSub(
+      ctx, img, p0, p1, p2, t0, t1, t2, opt_recursion_depth) {
+    var depth = opt_recursion_depth || 0;
+
+    // We may subdivide if we are not at the limit of recursion.
+    var subdivisionIndex = 0;
+    if (depth < constants.SUBDIVISION_MINIMUM) {
+      subdivisionIndex = 7;
+    } else if (depth < constants.SUBDIVISION_RECURSION_DEPTH) {
+      if (Math.abs(p0[2] - p1[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+        subdivisionIndex += 1;
+      if (Math.abs(p0[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+        subdivisionIndex += 2;
+      if (Math.abs(p1[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+        subdivisionIndex += 4;
+    }
+
+    // These need to be created every time, since temporaries
+    // outside of the scope will be rewritten in recursion.
+    var p01 = vec4.create();
+    var p02 = vec4.create();
+    var p12 = vec4.create();
+    var t01 = vec2.create();
+    var t02 = vec2.create();
+    var t12 = vec2.create();
+
+    // Calculate the position before w-divide.
+    for (var i = 0; i < 2; ++i) {
+      p0[i] *= p0[2];
+      p1[i] *= p1[2];
+      p2[i] *= p2[2];
+    }
+
+    // Interpolate the 3d position.
+    for (var i = 0; i < 4; ++i) {
+      p01[i] = (p0[i] + p1[i]) / 2;
+      p02[i] = (p0[i] + p2[i]) / 2;
+      p12[i] = (p1[i] + p2[i]) / 2;
+    }
+
+    // Re-apply w-divide to the original points and the interpolated ones.
+    for (var i = 0; i < 2; ++i) {
+      p0[i] /= p0[2];
+      p1[i] /= p1[2];
+      p2[i] /= p2[2];
+
+      p01[i] /= p01[2];
+      p02[i] /= p02[2];
+      p12[i] /= p12[2];
+    }
+
+    // Interpolate the texture coordinates.
+    for (var i = 0; i < 2; ++i) {
+      t01[i] = (t0[i] + t1[i]) / 2;
+      t02[i] = (t0[i] + t2[i]) / 2;
+      t12[i] = (t1[i] + t2[i]) / 2;
+    }
+
+    // Based on the index, we subdivide the triangle differently.
+    // Assuming the triangle is p0, p1, p2 and points between i j
+    // are represented as pij (that is, a point between p2 and p0
+    // is p02, etc), then the new triangles are defined by
+    // the 3rd 4th and 5th arguments into the function.
+    switch (subdivisionIndex) {
+      case 1:
+        drawTriangleSub(ctx, img, p0, p01, p2, t0, t01, t2, depth + 1);
+        drawTriangleSub(ctx, img, p01, p1, p2, t01, t1, t2, depth + 1);
+        break;
+      case 2:
+        drawTriangleSub(ctx, img, p0, p1, p02, t0, t1, t02, depth + 1);
+        drawTriangleSub(ctx, img, p1, p02, p2, t1, t02, t2, depth + 1);
+        break;
+      case 3:
+        drawTriangleSub(ctx, img, p0, p01, p02, t0, t01, t02, depth + 1);
+        drawTriangleSub(ctx, img, p02, p01, p2, t02, t01, t2, depth + 1);
+        drawTriangleSub(ctx, img, p01, p1, p2, t01, t1, t2, depth + 1);
+        break;
+      case 4:
+        drawTriangleSub(ctx, img, p0, p12, p2, t0, t12, t2, depth + 1);
+        drawTriangleSub(ctx, img, p0, p1, p12, t0, t1, t12, depth + 1);
+        break;
+      case 5:
+        drawTriangleSub(ctx, img, p0, p01, p2, t0, t01, t2, depth + 1);
+        drawTriangleSub(ctx, img, p2, p01, p12, t2, t01, t12, depth + 1);
+        drawTriangleSub(ctx, img, p01, p1, p12, t01, t1, t12, depth + 1);
+        break;
+      case 6:
+        drawTriangleSub(ctx, img, p0, p12, p02, t0, t12, t02, depth + 1);
+        drawTriangleSub(ctx, img, p0, p1, p12, t0, t1, t12, depth + 1);
+        drawTriangleSub(ctx, img, p02, p12, p2, t02, t12, t2, depth + 1);
+        break;
+      case 7:
+        drawTriangleSub(ctx, img, p0, p01, p02, t0, t01, t02, depth + 1);
+        drawTriangleSub(ctx, img, p01, p12, p02, t01, t12, t02, depth + 1);
+        drawTriangleSub(ctx, img, p01, p1, p12, t01, t1, t12, depth + 1);
+        drawTriangleSub(ctx, img, p02, p12, p2, t02, t12, t2, depth + 1);
+        break;
+      default:
+        // In the 0 case and all other cases, we simply draw the triangle.
+        drawTexturedTriangle(ctx, img, p0, p1, p2, t0, t1, t2);
+        break;
+    }
+  }
+
   // Created to avoid creating garbage when doing bulk transforms.
   var tmp_vec4 = vec4.create();
-  function transform(transformed, point, matrix) {
+  function transform(transformed, point, matrix, viewport) {
     vec4.set(tmp_vec4, point[0], point[1], 0, 1);
     vec4.transformMat4(tmp_vec4, tmp_vec4, matrix);
 
-    transformed[0] = tmp_vec4[0] / tmp_vec4[3];
-    transformed[1] = tmp_vec4[1] / tmp_vec4[3];
+    var w = tmp_vec4[3];
+    if (w < 1e-6) w = 1e-6;
+
+    transformed[0] = ((tmp_vec4[0] / w) + 1) * viewport.width / 2;
+    transformed[1] = ((tmp_vec4[1] / w) + 1) * viewport.height / 2;
+    transformed[2] = w;
   }
 
   function drawProjectedQuadBackgroundToContext(
@@ -79,24 +195,18 @@ base.exportTo('ui', function() {
       quadCanvas.width = quad.imageData.width;
       quadCanvas.height = quad.imageData.height;
       quadCanvas.getContext('2d').putImageData(quad.imageData, 0, 0);
-      ctx.save();
       var quadBBox = new base.BBox2();
       quadBBox.addQuad(quad);
       var iw = quadCanvas.width;
       var ih = quadCanvas.height;
-      drawTexturedTriangle(
+      drawTriangleSub(
           ctx, quadCanvas,
-          p1[0], p1[1],
-          p2[0], p2[1],
-          p4[0], p4[1],
-          0, 0, iw, 0, 0, ih);
-      drawTexturedTriangle(
+          p1, p2, p4,
+          [0, 0], [iw, 0], [0, ih]);
+      drawTriangleSub(
           ctx, quadCanvas,
-          p2[0], p2[1],
-          p3[0], p3[1],
-          p4[0], p4[1],
-          iw, 0, iw, ih, 0, ih);
-      ctx.restore();
+          p2, p3, p4,
+          [iw, 0], [iw, ih], [0, ih]);
     }
 
     if (quad.backgroundColor) {
@@ -175,20 +285,20 @@ base.exportTo('ui', function() {
     }
   }
 
-  var tmp_p1 = vec2.create();
-  var tmp_p2 = vec2.create();
-  var tmp_p3 = vec2.create();
-  var tmp_p4 = vec2.create();
+  var tmp_p1 = vec3.create();
+  var tmp_p2 = vec3.create();
+  var tmp_p3 = vec3.create();
+  var tmp_p4 = vec3.create();
   function transformAndProcessQuads(
-      matrix, quads, numPasses, handleQuadFunc, opt_arg1, opt_arg2) {
+      matrix, viewport, quads, numPasses, handleQuadFunc, opt_arg1, opt_arg2) {
 
     for (var passNumber = 0; passNumber < numPasses; passNumber++) {
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        transform(tmp_p1, quad.p1, matrix);
-        transform(tmp_p2, quad.p2, matrix);
-        transform(tmp_p3, quad.p3, matrix);
-        transform(tmp_p4, quad.p4, matrix);
+        transform(tmp_p1, quad.p1, matrix, viewport);
+        transform(tmp_p2, quad.p2, matrix, viewport);
+        transform(tmp_p3, quad.p3, matrix, viewport);
+        transform(tmp_p4, quad.p4, matrix, viewport);
         handleQuadFunc(passNumber, quad,
                        tmp_p1, tmp_p2, tmp_p3, tmp_p4,
                        opt_arg1, opt_arg2);
@@ -375,6 +485,9 @@ base.exportTo('ui', function() {
       var mv = this.camera_.modelViewMatrix;
       var p = this.camera_.projectionMatrix;
 
+      var viewport = base.Rect.fromXYWH(
+          0, 0, this.canvas_.width, this.canvas_.height);
+
       // Calculate the quad stacks.
       var quadStacks = [];
       for (var i = 0; i < this.quads_.length; ++i) {
@@ -388,12 +501,12 @@ base.exportTo('ui', function() {
 
       var mvp = mat4.create();
       this.maxStackingGroupId_ = quadStacks.length;
-      var stackingDistance = this.stackingDistance_ * this.camera_.scale;
+      var stackingDistance = this.stackingDistance_;
 
       // Draw the quad stacks, raising each subsequent level.
       mat4.multiply(mvp, p, mv);
       for (var i = 0; i < quadStacks.length; ++i) {
-        transformAndProcessQuads(mvp, quadStacks[i],
+        transformAndProcessQuads(mvp, viewport, quadStacks[i],
                                  numPasses, handleQuadFunc,
                                  opt_arg1, opt_arg2);
 
@@ -402,7 +515,7 @@ base.exportTo('ui', function() {
       }
 
       if (includeChromeQuad) {
-        transformAndProcessQuads(mvp, [this.chromeQuad],
+        transformAndProcessQuads(mvp, viewport, [this.chromeQuad],
                                  numPasses, drawProjectedQuadToContext,
                                  opt_arg1, opt_arg2);
       }
@@ -429,12 +542,6 @@ base.exportTo('ui', function() {
           3, drawProjectedQuadToContext, true,
           canvasCtx, quadCanvas);
       quadCanvas.width = 0; // Hack: Frees the quadCanvas' resources.
-
-      var fontSize = parseInt(15 * this.pixelRatio_);
-      canvasCtx.font = fontSize + 'px Arial';
-      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-      canvasCtx.fillText(
-          'Scale: ' + parseInt(this.camera_.scale * 100) + '%', 10, fontSize);
     },
 
     trackMouse_: function() {
