@@ -7,12 +7,14 @@
 base.requireStylesheet('system_stats.system_stats_instance_track');
 
 base.require('base.sorted_array_utils');
-base.require('tracing.tracks.heading_track');
+base.require('tracing.tracks.stacked_bars_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.color_scheme');
 base.require('ui');
 
 base.exportTo('system_stats', function() {
+
+  var EventPresenter = tracing.EventPresenter;
 
   var palette = tracing.getColorPalette();
   var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
@@ -42,18 +44,18 @@ base.exportTo('system_stats', function() {
    * Tracks that display system stats data.
    *
    * @constructor
-   * @extends {HeadingTrack}
+   * @extends {StackedBarsTrack}
    */
 
   var SystemStatsInstanceTrack = ui.define(
-      'system-stats-instance-track', tracing.tracks.HeadingTrack);
+      'system-stats-instance-track', tracing.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
 
-    __proto__: tracing.tracks.HeadingTrack.prototype,
+    __proto__: tracing.tracks.StackedBarsTrack.prototype,
 
     decorate: function(viewport) {
-      tracing.tracks.HeadingTrack.prototype.decorate.call(this, viewport);
+      tracing.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       this.classList.add('system-stats-instance-track');
       this.objectInstance_ = null;
     },
@@ -294,12 +296,9 @@ base.exportTo('system_stats', function() {
 
           // Draw a bar for the stat. The height of the bar is scaled
           // against the largest value of the stat across all snapshots.
+          ctx.fillStyle = EventPresenter.getBarSnapshotColor(
+              snapshot, Math.round(currentY / height));
 
-          // Selected snapshots get a lighter color.
-          var colorId = snapshot.selected ?
-              snapshot.objectInstance.colorId + highlightIdBoost :
-              snapshot.objectInstance.colorId;
-          ctx.fillStyle = palette[colorId + Math.round(currentY / height)];
           var barHeight;
 
           if (maxStat > 0) {
@@ -336,82 +335,6 @@ base.exportTo('system_stats', function() {
       }
 
       return currentY;
-    },
-
-    addEventsToTrackMap: function(eventToTrackMap) {
-      var objectSnapshots = this.objectInstance_.snapshots;
-      objectSnapshots.forEach(function(obj) {
-        eventToTrackMap.addEvent(obj, this);
-      }, this);
-    },
-
-    /**
-     * Used to hit-test clicks in the graph.
-     */
-    addIntersectingItemsInRangeToSelectionInWorldSpace: function(
-        loWX, hiWX, viewPixWidthWorld, selection) {
-      function onSnapshot(snapshot) {
-        selection.push(snapshot);
-      }
-
-      var snapshots = this.objectInstance_.snapshots;
-      var maxBounds = this.objectInstance_.parent.model.bounds.max;
-
-      base.iterateOverIntersectingIntervals(
-          snapshots,
-          function(x) { return x.ts; },
-          function(x, i) {
-            if (i == snapshots.length - 1) {
-              if (snapshots.length == 1)
-                return maxBounds;
-
-              return snapshots[i].ts - snapshots[i - 1].ts;
-            }
-
-            return snapshots[i + 1].ts - snapshots[i].ts;
-          },
-          loWX, hiWX,
-          onSnapshot);
-    },
-
-    /**
-     * Add the item to the left or right of the provided item, if any, to the
-     * selection.
-     *
-     * @param {slice} The current slice.
-     * @param {Number} offset Number of slices away from the object to look.
-     * @param {Selection} selection The selection to add an event to, if found.
-     * @return {boolean} Whether an event was found.
-     * @private
-     */
-    addItemNearToProvidedEventToSelection: function(event, offset, selection) {
-      if (!(event instanceof tracing.trace_model.ObjectSnapshot))
-        throw new Error('Unrecognized event');
-      var objectSnapshots = this.objectInstance_.snapshots;
-      var index = objectSnapshots.indexOf(event);
-      var newIndex = index + offset;
-      if (newIndex >= 0 && newIndex < objectSnapshots.length) {
-        selection.push(objectSnapshots[newIndex]);
-        return true;
-      }
-      return false;
-    },
-
-    addAllObjectsMatchingFilterToSelection: function(filter, selection) {
-    },
-
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
-                                         selection) {
-      var snapshot = base.findClosestElementInSortedArray(
-          this.objectInstance_.snapshots,
-          function(x) { return x.ts; },
-          worldX,
-          worldMaxDist);
-
-      if (!snapshot)
-        return;
-
-      selection.push(snapshot);
     }
   };
 

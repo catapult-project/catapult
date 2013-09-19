@@ -211,7 +211,7 @@ base.exportTo('tracing', function() {
           this.getAlpha_({selectionState: selectionState}));
     },
 
-    getHeapSnapshotColor: function(snapshot, offset) {
+    getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
           (snapshot.objectInstance.colorId + offset) % numRegularColorIds;
       colorId += this.getColorIdOffset_(snapshot);
