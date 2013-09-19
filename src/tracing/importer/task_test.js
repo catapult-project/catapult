@@ -14,10 +14,10 @@ base.unittest.testSuite('tracing.importer.task', function() {
 
     var startingTask = new Task(function(task) {
       results.push('a');
-      task.pushSubTask(function() {
+      task.subTask(function() {
         results.push('a/1');
       }, this);
-      task.pushSubTask(function() {
+      task.subTask(function() {
         results.push('a/2');
       }, this);
     }, this);
@@ -37,10 +37,10 @@ base.unittest.testSuite('tracing.importer.task', function() {
 
     var startingTask = new Task(function(task) {
       results.push('a');
-      task.pushSubTask(function() {
+      task.subTask(function() {
         results.push('a/1');
       }, this);
-      task.pushSubTask(function() {
+      task.subTask(function() {
         results.push('a/2');
       }, this);
     }, this);

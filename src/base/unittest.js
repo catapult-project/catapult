@@ -8,6 +8,7 @@ base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('base.unittest');
 
 base.require('base.key_event_manager');
+base.require('base.promise');
 base.require('base.settings');
 base.require('base.unittest.test_error');
 base.require('base.unittest.assertions');

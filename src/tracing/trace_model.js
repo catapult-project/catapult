@@ -285,7 +285,7 @@ base.exportTo('tracing', function() {
 
     /**
      * Creates a task that will import the provided traces into the model,
-     * updating the progressMeter as it goes. Paramters are as defined in
+     * updating the progressMeter as it goes. Parameters are as defined in
      * importTraces.
      */
     createImportTracesTask: function(progressMeter,
@@ -293,7 +293,7 @@ base.exportTo('tracing', function() {
                                      opt_shiftWorldToZero,
                                      opt_pruneEmptyContainers) {
       if (this.importing_)
-        throw new Error('Cannot import.');
+        throw new Error('Already importing.');
       if (opt_shiftWorldToZero === undefined)
         opt_shiftWorldToZero = true;
       if (opt_pruneEmptyContainers === undefined)
@@ -340,7 +340,7 @@ base.exportTo('tracing', function() {
       // Run the import.
       lastTask = lastTask.after(function(task) {
         importers.forEach(function(importer, index) {
-          task.pushSubTask(function() {
+          task.subTask(function() {
             progressMeter.update(
                 'Importing ' + (index + 1) + ' of ' + importers.length);
             importer.importEvents(index > 0);
@@ -368,7 +368,7 @@ base.exportTo('tracing', function() {
 
       // Run preinit.
       lastTask = lastTask.after(function() {
-        progressMeter.update('preInitializeObjects...');
+        progressMeter.update('Initializing objects (step 1/2)...');
         for (var pid in this.processes)
           this.processes[pid].preInitializeObjects();
       }, this);
@@ -376,7 +376,7 @@ base.exportTo('tracing', function() {
       // Prune empty containers.
       if (opt_pruneEmptyContainers) {
         lastTask = lastTask.after(function() {
-          progressMeter.update('pruneEmptyContainers');
+          progressMeter.update('Pruning empty containers...');
           this.kernel.pruneEmptyContainers();
           for (var pid in this.processes) {
             this.processes[pid].pruneEmptyContainers();
@@ -386,13 +386,13 @@ base.exportTo('tracing', function() {
 
       // Merge kernel and userland slices on each thread.
       lastTask = lastTask.after(function() {
-        progressMeter.update('mergeKernelWithUserland...');
+        progressMeter.update('Merging kernel with userland...');
         for (var pid in this.processes)
           this.processes[pid].mergeKernelWithUserland();
       }, this);
 
       lastTask = lastTask.after(function() {
-        progressMeter.update('Computing final wold bounds...');
+        progressMeter.update('Computing final world bounds...');
         this.updateBounds();
         this.updateCategories_();
 
@@ -402,7 +402,7 @@ base.exportTo('tracing', function() {
 
       // Build the flow event interval tree.
       lastTask = lastTask.after(function() {
-        progressMeter.update('Reticulating splines...');
+        progressMeter.update('Building flow event map...');
         for (var i = 0; i < this.flowEvents.length; ++i) {
           var pair = this.flowEvents[i];
           this.flowIntervalTree.insert(pair[0], pair[1]);
@@ -426,7 +426,7 @@ base.exportTo('tracing', function() {
 
       // Run initializers.
       lastTask = lastTask.after(function() {
-        progressMeter.update('Running initializers');
+        progressMeter.update('Initializing objects (step 2/2)...');
         for (var pid in this.processes)
           this.processes[pid].initializeObjects();
       }, this);

@@ -96,6 +96,7 @@ found in the LICENSE file.
       function(err) {
         var overlay = new ui.Overlay();
         overlay.textContent = normalizeException(err).message;
+        overlay.title = 'Import error';
         overlay.visible = true;
       });
   }
