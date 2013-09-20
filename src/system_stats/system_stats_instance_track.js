@@ -267,7 +267,7 @@ base.exportTo('system_stats', function() {
                                     currentY);
 
         if (i == lowIndex)
-          this.drawStatNames_(leftView, height, currentY, maxStats);
+          this.drawStatNames_(leftView, height, currentY, '', maxStats);
       }
       ctx.lineWidth = 1;
     },
@@ -318,7 +318,7 @@ base.exportTo('system_stats', function() {
       return currentY;
     },
 
-    drawStatNames_: function(leftView, height, currentY, maxStats) {
+    drawStatNames_: function(leftView, height, currentY, prefix, maxStats) {
       var ctx = this.context();
 
       ctx.textAlign = 'end';
@@ -327,9 +327,14 @@ base.exportTo('system_stats', function() {
       for (var statName in maxStats) {
         if (maxStats[statName] instanceof Object) {
           currentY = this.drawStatNames_(leftView, height, currentY,
-                                         maxStats[statName]);
+                                         statName, maxStats[statName]);
         } else {
-          ctx.fillText(statName, leftView - 10, currentY - height / 4);
+          var fullname = statName;
+
+          if (prefix != '')
+            fullname = prefix + ' :: ' + statName;
+
+          ctx.fillText(fullname, leftView - 10, currentY - height / 4);
           currentY += height;
         }
       }
