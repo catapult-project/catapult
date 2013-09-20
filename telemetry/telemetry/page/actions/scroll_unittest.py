@@ -9,6 +9,10 @@ from telemetry.page.actions import scroll
 from telemetry.unittest import tab_test_case
 
 class ScrollActionTest(tab_test_case.TabTestCase):
+  def setUp(self):
+    self._extra_browser_args.append('--enable-gpu-benchmarking')
+    super(ScrollActionTest, self).setUp()
+
   def CreateAndNavigateToPageFromUnittestDataDir(
     self, filename, page_attributes):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
