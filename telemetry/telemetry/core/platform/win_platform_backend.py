@@ -7,6 +7,7 @@ import ctypes
 import os
 import re
 import subprocess
+import time
 try:
   import pywintypes  # pylint: disable=F0401
   import win32api  # pylint: disable=F0401
@@ -71,6 +72,24 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     ctypes.windll.psapi.GetPerformanceInfo(
         ctypes.byref(performance_info), performance_info.size)
     return performance_info.CommitTotal * performance_info.PageSize / 1024
+
+  def GetCpuStats(self, pid):
+    try:
+      cpu_info = win32process.GetProcessTimes(
+          self._GetProcessHandle(pid))
+    except pywintypes.error, e:
+      errcode = e[0]
+      if errcode == 87:  # The process may have been closed.
+        return {}
+      raise
+    # Convert 100 nanosecond units to seconds
+    cpu_time = (cpu_info['UserTime'] / 1e7 +
+                cpu_info['KernelTime'] / 1e7)
+    return {'CpuProcessTime': cpu_time}
+
+  def GetCpuTimestamp(self):
+    """Return current timestamp in seconds."""
+    return {'TotalTime': time.time()}
 
   def GetMemoryStats(self, pid):
     try:
