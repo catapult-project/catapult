@@ -158,4 +158,3 @@ class TestPageSetArchiveInfo(unittest.TestCase):
         os.path.join(tempfile.gettempdir(), 'pageset.json'))
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForPage(page1))
-    self.assertCorrectHashFile(self.page_set_archive_info_file)

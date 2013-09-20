@@ -23,13 +23,48 @@ class PageSet(object):
       for k, v in attributes.iteritems():
         setattr(self, k, v)
 
-    self.pages = []
-
+    # Create a PageSetArchiveInfo object.
     if self.archive_data_file:
       self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
           os.path.join(self._base_dir, self.archive_data_file), file_path)
     else:
       self.wpr_archive_info = None
+
+    # Create a Page object for every page.
+    self.pages = []
+    if attributes and 'pages' in attributes:
+      for page_attributes in attributes['pages']:
+        url = page_attributes.pop('url')
+
+        page = page_module.Page(
+            url, self, attributes=page_attributes, base_dir=self._base_dir)
+        self.pages.append(page)
+
+    # Attempt to download the credentials file.
+    if self.credentials_path:
+      cloud_storage.GetIfChanged(
+          cloud_storage.INTERNAL_BUCKET,
+          os.path.join(self._base_dir, self.credentials_path))
+
+    # For every file:// URL, scan that directory for .sha1 files,
+    # and download them from Cloud Storage. Assume all data is public.
+    all_serving_dirs = set()
+    for page in self:
+      if page.is_file:
+        serving_dirs, _ = page.serving_dirs_and_file
+        if isinstance(serving_dirs, list):
+          all_serving_dirs |= set(serving_dirs)
+        else:
+          all_serving_dirs.add(serving_dirs)
+
+    for serving_dir in all_serving_dirs:
+      for dirpath, _, filenames in os.walk(serving_dir):
+        for filename in filenames:
+          path, extension = os.path.splitext(
+              os.path.join(dirpath, filename))
+          if extension != '.sha1':
+            continue
+          cloud_storage.GetIfChanged(cloud_storage.PUBLIC_BUCKET, path)
 
   @classmethod
   def FromFile(cls, file_path):
@@ -40,33 +75,7 @@ class PageSet(object):
 
   @classmethod
   def FromDict(cls, data, file_path):
-    page_set = cls(file_path, data)
-
-    for page_attributes in data['pages']:
-      url = page_attributes.pop('url')
-
-      page = page_module.Page(url, page_set, attributes=page_attributes,
-          base_dir=page_set._base_dir)  # pylint: disable=W0212
-      page_set.pages.append(page)
-
-    all_serving_dirs = set()
-    for page in page_set:
-      if page.is_file:
-        serving_dirs, _ = page.serving_dirs_and_file
-        if isinstance(serving_dirs, list):
-          all_serving_dirs |= set(serving_dirs)
-        else:
-          all_serving_dirs.add(serving_dirs)
-    for serving_dir in all_serving_dirs:
-      for dirpath, _, filenames in os.walk(serving_dir):
-        for filename in filenames:
-          file_path, extension = os.path.splitext(
-              os.path.join(dirpath, filename))
-          if extension != '.sha1':
-            continue
-          cloud_storage.GetIfChanged(cloud_storage.DEFAULT_BUCKET, file_path)
-
-    return page_set
+    return cls(file_path, data)
 
   @property
   def _base_dir(self):

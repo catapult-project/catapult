@@ -1,6 +1,7 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import logging
 import os
@@ -10,12 +11,6 @@ import shutil
 from telemetry.page import cloud_storage
 
 
-def _UpdateHashFile(file_path):
-  with open(file_path + '.sha1', 'wb') as f:
-    f.write(cloud_storage.GetHash(file_path))
-    f.flush()
-
-
 class PageSetArchiveInfo(object):
   def __init__(self, archive_data_file_path, page_set_file_path, data):
     self._archive_data_file_path = archive_data_file_path
@@ -23,8 +18,14 @@ class PageSetArchiveInfo(object):
     # Back pointer to the page set file.
     self._page_set_file_path = page_set_file_path
 
-    for archive_path in data['archives']:
-      cloud_storage.GetIfChanged(cloud_storage.DEFAULT_BUCKET, archive_path)
+    # Download all .wpr files.
+    try:
+      for archive_path in data['archives']:
+        cloud_storage.GetIfChanged(cloud_storage.INTERNAL_BUCKET,
+                                   self._WprFileNameToPath(archive_path))
+    except cloud_storage.PermissionError, e:
+      logging.warning('Could not download WPR archives.')
+      logging.warning(e)
 
     # Map from the relative path (as it appears in the metadata file) of the
     # .wpr file to a list of urls it supports.
@@ -42,8 +43,6 @@ class PageSetArchiveInfo(object):
 
   @classmethod
   def FromFile(cls, file_path, page_set_file_path):
-    cloud_storage.GetIfChanged(cloud_storage.DEFAULT_BUCKET, file_path)
-
     if os.path.exists(file_path):
       with open(file_path, 'r') as f:
         data = json.load(f)
@@ -66,7 +65,12 @@ class PageSetArchiveInfo(object):
     for url in urls:
       self._SetWprFileForPage(url, target_wpr_file)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
-    _UpdateHashFile(target_wpr_file_path)
+
+    # Update the hash file.
+    with open(target_wpr_file_path + '.sha1', 'wb') as f:
+      f.write(cloud_storage.GetHash(target_wpr_file_path))
+      f.flush()
+
     self._WriteToFile()
     self._DeleteAbandonedWprFiles()
 
@@ -108,7 +112,6 @@ class PageSetArchiveInfo(object):
     with open(self._archive_data_file_path, 'w') as f:
       json.dump(metadata, f, indent=4)
       f.flush()
-    _UpdateHashFile(self._archive_data_file_path)
 
   def _WprFileNameToPath(self, wpr_file):
     return os.path.abspath(os.path.join(self._archive_data_file_dir, wpr_file))

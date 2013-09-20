@@ -16,8 +16,8 @@ import urllib2
 from telemetry.core import util
 
 
-DEFAULT_BUCKET = 'chromium-wpr'
-CHROMIUM_TELEMETRY_BUCKET = 'chromium-telemetry'
+PUBLIC_BUCKET = 'chromium-telemetry'
+INTERNAL_BUCKET = 'chrome-telemetry'
 
 
 _GSUTIL_URL = 'http://storage.googleapis.com/pub/gsutil.tar.gz'
