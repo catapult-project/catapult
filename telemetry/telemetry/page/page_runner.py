@@ -51,6 +51,18 @@ class _RunState(object):
       if self._first_browser:
         self._first_browser = False
         self.browser.credentials.WarnIfMissingCredentials(page_set)
+        if self.browser.supports_system_info:
+          system_info = self.browser.GetSystemInfo()
+          if system_info.model_name:
+            logging.info('Model: %s' % system_info.model_name)
+          if system_info.gpu:
+            for i, device in enumerate(system_info.gpu.devices):
+              logging.info('GPU device %d: %s' % (i, device))
+            logging.info('GPU Attributes:')
+            for k, v in system_info.gpu.aux_attributes.iteritems():
+              logging.info('\t%s: %s' % (k, v))
+          else:
+            logging.info('No GPU devices')
 
       # Set up WPR path on the new browser.
       self.browser.SetReplayArchivePath(archive_path,

@@ -16,6 +16,10 @@ class GPUDevice(object):
     self._vendor_string = vendor_string
     self._device_string = device_string
 
+  def __str__(self):
+    return '%s %s %s %s' % (self._vendor_id, self._device_id,
+                            self._vendor_string, self._device_string)
+
   @classmethod
   def FromDict(cls, attrs):
     """Constructs a GPUDevice from a dictionary. Requires the
