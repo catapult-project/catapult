@@ -23,6 +23,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         is_content_shell=False, supports_extensions=not is_guest,
         browser_options=browser_options,
         output_profile_path=None, extensions_to_load=extensions_to_load)
+
+    from telemetry.core.backends.chrome import chrome_browser_options
+    assert isinstance(browser_options,
+                      chrome_browser_options.CrosBrowserOptions)
+
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._browser_type = browser_type
     self._cri = cri

@@ -16,6 +16,7 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 
+
 class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering a browser."""
 
@@ -190,7 +191,7 @@ class BrowserFinderOptions(optparse.Values):
     for k, v in defaults.__dict__.items():
       self.ensure_value(k, v)
 
-class BrowserOptions():
+class BrowserOptions(object):
   """Options to be used for launching a browser."""
   def __init__(self):
     self.browser_type = None
@@ -281,6 +282,12 @@ class BrowserOptions():
 
     if not self.profile_dir:
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
+
+    # This deferred import is necessary because browser_options is imported in
+    # telemetry/telemetry/__init__.py.
+    from telemetry.core.backends.chrome import chrome_browser_options
+    finder_options.browser_options = (
+        chrome_browser_options.CreateChromeBrowserOptions(self))
 
   @property
   def extra_browser_args(self):
