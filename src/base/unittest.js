@@ -352,7 +352,8 @@ base.exportTo('base.unittest', function() {
         suite.testTearDown_(test);
         return suite.runRemainingTests_(remainingTests);
       }, function(error) {
-        console.error(error, error.stack);
+        var stack = error && error.stack ? error.stack : '';
+        console.error("Rejected, cause: \'" + error + "\'", stack);
         test.status = TestStatus.FAILED;
         test.failure = error;
         suite.failures_.push({
@@ -451,13 +452,16 @@ base.exportTo('base.unittest', function() {
           resultEl.classList.add('passed');
           resultEl.innerText =
               'passed (' + test.output() + ')';
+        } else if (test.status === TestStatus.PENDING) {
+          resultEl.classList.add('failed');
+          resultEl.innerText = 'PENDING...TIMEOUT';
         } else {
           resultEl.classList.add('failed');
           resultEl.innerText = 'FAILED';
 
           var preEl = document.createElement('pre');
           preEl.className = 'failure';
-          preEl.innerText = test.failure.stack;
+          preEl.innerText = test.failure.stack || test.failure;
           testEl.appendChild(preEl);
         }
 

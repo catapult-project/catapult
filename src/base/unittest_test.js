@@ -22,7 +22,7 @@ base.unittest.testSuite('base.unittest', function() {
       }, {dpiAware: true});
     };
 
-    var ts = new base.unittest.TestSuite_('test', suite);
+    var ts = new base.unittest.TestSuite_('dpiTest Suite', suite);
     ts.displayInfo();
     ts.runTests([]).then(function(ignored) {
       assertEquals(2, ts.testCount);
@@ -52,5 +52,18 @@ base.unittest.testSuite('base.unittest', function() {
   test('fail', function() {
     assertEquals(true, false);
   });
+
+  test('rejected-promise', function() {
+    return new Promise(function(resolver){
+      resolver.reject("Failure by rejection");
+    });
+  });
+
+   test('promise-that-throws-after-resolver', function() {
+    return new Promise(function(resolver){
+      throw new Error('blah');
+    });
+  });
+
   */
 });
