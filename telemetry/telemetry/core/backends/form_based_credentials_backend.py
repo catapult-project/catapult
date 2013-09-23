@@ -8,24 +8,23 @@ from telemetry.core import util
 
 def _WaitForLoginFormToLoad(backend, login_form_id, tab):
   def IsFormLoadedOrAlreadyLoggedIn():
-    return tab.EvaluateJavaScript(
-        'document.querySelector("#%s")!== null' % login_form_id) or \
-            backend.IsAlreadyLoggedIn(tab)
+    return (tab.EvaluateJavaScript(
+        'document.querySelector("#%s")!== null' % login_form_id) or
+            backend.IsAlreadyLoggedIn(tab))
 
   # Wait until the form is submitted and the page completes loading.
-  util.WaitFor(lambda: IsFormLoadedOrAlreadyLoggedIn(), # pylint: disable=W0108
-               60)
+  util.WaitFor(IsFormLoadedOrAlreadyLoggedIn, 60)
 
 def _SubmitFormAndWait(form_id, tab):
-  js = 'document.getElementById("%s").submit();' % form_id
-  tab.ExecuteJavaScript(js)
+  tab.ExecuteJavaScript(
+      'document.getElementById("%s").submit();' % form_id)
 
-  def IsLoginStillHappening():
-    return tab.EvaluateJavaScript(
-        'document.querySelector("#%s")!== null' % form_id)
+  def FinishedLoading():
+    return not tab.EvaluateJavaScript(
+        'document.querySelector("#%s") !== null' % form_id)
 
   # Wait until the form is submitted and the page completes loading.
-  util.WaitFor(lambda: not IsLoginStillHappening(), 60)
+  util.WaitFor(FinishedLoading, 60)
 
 class FormBasedCredentialsBackend(object):
   def __init__(self):
