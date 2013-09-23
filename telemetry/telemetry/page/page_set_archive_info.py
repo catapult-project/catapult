@@ -15,6 +15,11 @@ class PageSetArchiveInfo(object):
   def __init__(self, archive_data_file_path, page_set_file_path, data):
     self._archive_data_file_path = archive_data_file_path
     self._archive_data_file_dir = os.path.dirname(archive_data_file_path)
+
+    # Ensure directory exists.
+    if not os.path.exists(self._archive_data_file_dir):
+      os.makedirs(self._archive_data_file_dir)
+
     # Back pointer to the page set file.
     self._page_set_file_path = page_set_file_path
 
