@@ -111,6 +111,11 @@ base.exportTo('cc', function() {
       }
       if (this.args.pictures) {
         this.pictures = this.args.pictures;
+
+        // The picture list comes in with an unknown ordering. We resort based
+        // on timestamp order so we will draw the base picture first and the
+        // various fixes on top of that.
+        this.pictures.sort(function(a, b) { return a.ts - b.ts; });
       }
 
       this.tileCoverageRects = [];

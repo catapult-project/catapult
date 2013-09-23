@@ -23,10 +23,15 @@ base.exportTo('cc', function() {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
     this.opaqueRect_ = opaqueRect;
+
     this.guid_ = base.GUID.allocate();
   }
 
   Picture.prototype = {
+    get canSave() {
+      return true;
+    },
+
     get layerRect() {
       return this.layerRect_;
     },
@@ -157,6 +162,121 @@ base.exportTo('cc', function() {
     }
   };
 
+  function LayeredPicture(pictures) {
+    this.guid_ = base.GUID.allocate();
+    this.pictures_ = pictures;
+    this.layerRect_ = undefined;
+  }
+
+  LayeredPicture.prototype = {
+    __proto__: Picture.prototype,
+
+    get canSave() {
+      return false;
+    },
+
+    get typeName() {
+      return 'cc::LayeredPicture';
+    },
+
+    get layerRect() {
+      if (this.layerRect_ !== undefined)
+        return this.layerRect_;
+
+      this.layerRect_ = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      };
+
+      for (var i = 0; i < this.pictures_.length; ++i) {
+        var rect = this.pictures_[i].layerRect;
+        this.layerRect_.x = Math.min(this.layerRect_.x, rect.x);
+        this.layerRect_.y = Math.min(this.layerRect_.y, rect.y);
+        this.layerRect_.width =
+            Math.max(this.layerRect_.width, rect.x + rect.width);
+        this.layerRect_.height =
+            Math.max(this.layerRect_.height, rect.y + rect.height);
+      }
+      return this.layerRect_;
+    },
+
+    get guid() {
+      return this.guid_;
+    },
+
+    getBase64SkpData: function() {
+      throw new Error('Not available with a LayeredPicture.');
+    },
+
+    getOps: function() {
+      var ops = [];
+      for (var i = 0; i < this.pictures_.length; ++i)
+        ops = ops.concat(this.pictures_[i].getOps());
+      return ops;
+    },
+
+    getOpTimings: function() {
+      var opTimings = this.pictures_[0].getOpTimings();
+      for (var i = 1; i < this.pictures_.length; ++i) {
+        var timings = this.pictures_[i].getOpTimings();
+        opTimings.cmd_times = opTimings.cmd_times.concat(timings.cmd_times);
+        opTimings.total_time += timings.total_time;
+      }
+      return opTimings;
+    },
+
+    tagOpsWithTimings: function(ops) {
+      var opTimings = new Array();
+      for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
+        opTimings[iteration] = this.getOpTimings();
+        if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
+          return ops;
+      }
+
+      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
+        var min = Number.MAX_VALUE;
+        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
+          min = Math.min(min, opTimings[i].cmd_times[opIndex]);
+        ops[opIndex].cmd_time = min;
+      }
+      return ops;
+    },
+
+    rasterize: function(params, rasterCompleteCallback) {
+      this.picturesAsImageData_ = [];
+      var rasterCallback = function(pictureAsImageData) {
+        this.picturesAsImageData_.push(pictureAsImageData);
+        if (this.picturesAsImageData_.length !== this.pictures_.length)
+          return;
+
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        canvas.width = this.layerRect.width;
+        canvas.height = this.layerRect.height;
+
+        // TODO(dsinclair): Verify these finish in the order started.
+        //   Do the rasterize calls run sync or asyn? As the imageData
+        //   going to be in the same order as the pictures_ list?
+        for (var i = 0; i < this.picturesAsImageData_.length; ++i) {
+          ctx.putImageData(this.picturesAsImageData_[i].imageData,
+                           this.pictures_[i].layerRect.x,
+                           this.pictures_[i].layerRect.y);
+        }
+        this.picturesAsImageData_ = [];
+
+        rasterCompleteCallback(new cc.PictureAsImageData(this,
+            ctx.getImageData(this.layerRect.x, this.layerRect.y,
+                             this.layerRect.width, this.layerRect.height)));
+      }.bind(this);
+
+      for (var i = 0; i < this.pictures_.length; ++i)
+        this.pictures_[i].rasterize(params, rasterCallback);
+    }
+  };
+
+
   /**
    * @constructor
    */
@@ -248,8 +368,16 @@ base.exportTo('cc', function() {
           this.args.params.layerRect, this.args.params.opaqueRect);
     },
 
+    set picture(picture) {
+      this.picture_ = picture;
+    },
+
+    get canSave() {
+      return this.picture_.canSave;
+    },
+
     get layerRect() {
-      return this.layerRect_;
+      return this.layerRect_ ? this.layerRect_ : this.picture_.layerRect;
     },
 
     get guid() {
@@ -281,6 +409,7 @@ base.exportTo('cc', function() {
 
   return {
     PictureSnapshot: PictureSnapshot,
-    Picture: Picture
+    Picture: Picture,
+    LayeredPicture: LayeredPicture
   };
 });

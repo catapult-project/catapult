@@ -106,6 +106,10 @@ base.exportTo('cc', function() {
       return undefined;
     },
 
+    get layer() {
+      return this.layer_;
+    },
+
     createAnalysis: function() {
       var dataView = new GenericObjectViewWithLabel();
       dataView.label = 'Layer ' + this.layer_.layerId;

@@ -651,7 +651,8 @@ base.exportTo('tracing', function() {
 
       if (this.selectionOfInterest.length) {
         var track = this.viewport.trackForEvent(this.selectionOfInterest[0]);
-        track.scrollIntoViewIfNeeded();
+        if (track)
+          track.scrollIntoViewIfNeeded();
       }
 
       this.viewport.dispatchChangeEvent(); // Triggers a redraw.

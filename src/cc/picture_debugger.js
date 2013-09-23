@@ -48,8 +48,8 @@ base.exportTo('cc', function() {
       this.drawOpsChartView_.addEventListener(
           'selection-changed', this.onChartBarClicked_.bind(this));
 
-      var exportButton = this.querySelector('.export');
-      exportButton.addEventListener(
+      this.exportButton_ = this.querySelector('.export');
+      this.exportButton_.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
 
       var overdrawCheckbox = ui.createCheckBox(
@@ -163,6 +163,9 @@ base.exportTo('cc', function() {
       this.drawOpsChartView_.picture = picture;
       this.drawOpsChartSummaryView_.picture = picture;
       this.picture_ = picture;
+
+      this.exportButton_.disabled = !this.picture_.canSave;
+
       this.rasterize_();
 
       this.scheduleUpdateContents_();

@@ -39,6 +39,8 @@ base.exportTo('cc', function() {
 
   tracing.analysis.ObjectSnapshotView.register(
       'cc::Picture', PictureSnapshotView);
+  tracing.analysis.ObjectSnapshotView.register(
+      'cc::LayeredPicture', PictureSnapshotView);
 
   return {
     PictureSnapshotView: PictureSnapshotView
