@@ -83,6 +83,15 @@ base.exportTo('ui', function() {
       this.deviceRect_ = rect;
     },
 
+    get stackingDistanceDampening() {
+      var gazeVector = [
+        this.gazeTarget_[0] - this.eye_[0],
+        this.gazeTarget_[1] - this.eye_[1],
+        this.gazeTarget_[2] - this.eye_[2]];
+      vec3.normalize(gazeVector, gazeVector);
+      return 1 + gazeVector[2];
+    },
+
     resetCamera: function() {
       this.eye_ = [0, 0, constants.DEFAULT_EYE_DISTANCE];
       this.gazeTarget_ = [0, 0, 0];

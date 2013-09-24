@@ -501,7 +501,8 @@ base.exportTo('ui', function() {
 
       var mvp = mat4.create();
       this.maxStackingGroupId_ = quadStacks.length;
-      var stackingDistance = this.stackingDistance_;
+      var stackingDistance =
+          this.stackingDistance_ * this.camera_.stackingDistanceDampening;
 
       // Draw the quad stacks, raising each subsequent level.
       mat4.multiply(mvp, p, mv);
