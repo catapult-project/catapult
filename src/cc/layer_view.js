@@ -71,7 +71,7 @@ base.exportTo('cc', function() {
         this.analysisEl_.textContent = '';
 
         var layer = selection.layer;
-        if (layer.args && layer.args.pictures) {
+        if (layer && layer.args && layer.args.pictures) {
           this.analysisEl_.appendChild(
               this.createPictureBtn_(layer.args.pictures));
         }
