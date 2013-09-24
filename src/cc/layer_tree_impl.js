@@ -43,9 +43,9 @@ base.exportTo('cc', function() {
         for (var i = 0; i < layer.children.length; i++)
           visitLayer(layer.children[i], depth + 1);
         if (layer.maskLayer)
-          visitLayer(layer, depth + 1, true, false);
+          visitLayer(layer.maskLayer, depth + 1, true, false);
         if (layer.replicaLayer)
-          visitLayer(layer, depth + 1, false, true);
+          visitLayer(layer.replicaLayer, depth + 1, false, true);
       }
       visitLayer(this.rootLayer, 0, false, false);
     },
