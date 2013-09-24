@@ -294,7 +294,7 @@ base.exportTo('cc', function() {
         var hasUnresolvedPictureRef = false;
         for (var i = 0; i < layers.length; i++) {
           var layer = layers[i];
-          for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+          for (var ir = 0; ir < layer.pictures.length; ++ir) {
             var picture = layer.pictures[ir];
 
             if (picture.idRef) {
@@ -375,7 +375,7 @@ base.exportTo('cc', function() {
 
     appendImageQuads_: function(quads, layer, layerQuad) {
       // Generate image quads for the layer
-      for (var ir = layer.pictures.length - 1; ir >= 0; ir--) {
+      for (var ir = 0; ir < layer.pictures.length; ++ir) {
         var picture = layer.pictures[ir];
         if (!picture.layerRect)
           continue;
