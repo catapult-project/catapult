@@ -22,7 +22,7 @@ base.exportTo('ui', function() {
   var constants = {};
   constants.IMAGE_LOAD_RETRY_TIME_MS = 500;
   constants.SUBDIVISION_MINIMUM = 1;
-  constants.SUBDIVISION_RECURSION_DEPTH = 5;
+  constants.SUBDIVISION_RECURSION_DEPTH = 3;
   constants.SUBDIVISION_DEPTH_THRESHOLD = 100;
   constants.FAR_PLANE_DISTANCE = 10000;
 
