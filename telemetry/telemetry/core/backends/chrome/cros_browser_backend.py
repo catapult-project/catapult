@@ -237,15 +237,18 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Hardware id not set on device/VM. --skip-hwid-check not supported '
           'with chrome branches 1500 or earlier.')
 
-    if self._is_guest:
-      pid = self.pid
-      self._NavigateGuestLogin()
-      # Guest browsing shuts down the current browser and launches an incognito
-      # browser in a separate process, which we need to wait for.
-      util.WaitFor(lambda: pid != self.pid, 10)
-      self._WaitForBrowserToComeUp()
-    else:
-      self._NavigateLogin()
+    util.WaitFor(lambda: self.oobe, 10)
+
+    if self.browser_options.auto_login:
+      if self._is_guest:
+        pid = self.pid
+        self._NavigateGuestLogin()
+        # Guest browsing shuts down the current browser and launches an
+        # incognito browser in a separate process, which we need to wait for.
+        util.WaitFor(lambda: pid != self.pid, 10)
+        self._WaitForBrowserToComeUp()
+      else:
+        self._NavigateLogin()
 
     logging.info('Browser is up!')
 
@@ -386,7 +389,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Navigates through oobe login screen"""
     if self._use_oobe_login_for_testing:
       logging.info('Invoking Oobe.loginForTesting')
-      util.WaitFor(lambda: self.oobe, 10)
+      assert self.oobe
       util.WaitFor(lambda: self.oobe.EvaluateJavaScript(
           'typeof Oobe !== \'undefined\''), 10)
 

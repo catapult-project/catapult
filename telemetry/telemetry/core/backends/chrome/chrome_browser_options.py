@@ -37,6 +37,7 @@ class CrosBrowserOptions(ChromeBrowserOptions):
 
   def __init__(self, br_options):
     super(CrosBrowserOptions, self).__init__(br_options)
+    self.auto_login = True
 
 
 class AndroidBrowserOptions(ChromeBrowserOptions):
