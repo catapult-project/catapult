@@ -94,6 +94,7 @@ base.exportTo('tracing', function() {
       var helpTextEl = node.querySelector('.view-help-text');
 
       var dlg = new ui.Overlay();
+      dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
 
@@ -121,6 +122,7 @@ base.exportTo('tracing', function() {
       var textEl = node.querySelector('.info-button-text');
 
       var dlg = new ui.Overlay();
+      dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
 
