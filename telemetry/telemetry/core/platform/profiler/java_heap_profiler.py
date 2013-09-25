@@ -56,10 +56,17 @@ class JavaHeapProfiler(profiler.Profiler):
     self._DumpJavaHeap(False)
 
   def _DumpJavaHeap(self, wait_for_completion):
+    if not self._browser_backend.adb.Adb().FileExistsOnDevice(
+        self._DEFAULT_DEVICE_DIR):
+      self._browser_backend.adb.RunShellCommand(
+          'mkdir -p ' + self._DEFAULT_DEVICE_DIR)
+      self._browser_backend.adb.RunShellCommand(
+          'chmod 777 ' + self._DEFAULT_DEVICE_DIR)
+
     device_dump_file = None
     for pid in self._GetProcessOutputFileMap().iterkeys():
-      device_dump_file = '%s%s.%s.aprof' % (self._DEFAULT_DEVICE_DIR, pid,
-                                            self._run_count)
+      device_dump_file = '%s/%s.%s.aprof' % (self._DEFAULT_DEVICE_DIR, pid,
+                                             self._run_count)
       self._browser_backend.adb.RunShellCommand('am dumpheap %s %s' %
                                                 (pid, device_dump_file))
     if device_dump_file and wait_for_completion:
