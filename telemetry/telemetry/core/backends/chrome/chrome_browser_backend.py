@@ -165,9 +165,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
       if branch_number_match:
         self._chrome_branch_number = int(branch_number_match.group(1))
-      else:
-        # Content Shell returns '' for Browser, for now we have to
-        # fall-back and assume branch 1025.
+
+      if not self._chrome_branch_number:
+        # Content Shell returns '' for Browser, WebViewShell returns '0'.
+        # For now we have to fall-back and assume branch 1025.
         self._chrome_branch_number = 1025
       return
 
