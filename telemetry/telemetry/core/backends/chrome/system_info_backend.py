@@ -11,14 +11,17 @@ class SystemInfoBackend(object):
   def __init__(self, devtools_port):
     self._conn = websocket_browser_connection.WebSocketBrowserConnection(
         devtools_port)
-
-  def Close(self):
-    self._conn.Close()
+    self._system_info = None
 
   def GetSystemInfo(self, timeout=10):
-    req = {'method': 'SystemInfo.getInfo'}
-    res = self._conn.SyncRequest(req, timeout)
-    if 'error' in res:
-      return None
-    return system_info.SystemInfo.FromDict(
-        camel_case.ToUnderscore(res['result']))
+    if not self._system_info:
+      req = {'method': 'SystemInfo.getInfo'}
+      try:
+        res = self._conn.SyncRequest(req, timeout)
+        if 'error' in res:
+          return None
+        self._system_info = system_info.SystemInfo.FromDict(
+            camel_case.ToUnderscore(res['result']))
+      finally:
+        self._conn.Close()
+    return self._system_info

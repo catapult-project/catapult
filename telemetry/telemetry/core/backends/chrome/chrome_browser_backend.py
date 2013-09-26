@@ -243,9 +243,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self._tracing_backend:
       self._tracing_backend.Close()
       self._tracing_backend = None
-    if self._system_info_backend:
-      self._system_info_backend.Close()
-      self._system_info_backend = None
 
   @property
   def supports_system_info(self):
