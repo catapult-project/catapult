@@ -283,7 +283,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def pid(self):
-    return int(self._adb.ExtractPid(self._backend_settings.package)[0])
+    pids = self._adb.ExtractPid(self._backend_settings.package)
+    if not pids:
+      raise exceptions.BrowserGoneException(self.GetStackTrace())
+    return int(pids[0])
 
   @property
   def browser_directory(self):
