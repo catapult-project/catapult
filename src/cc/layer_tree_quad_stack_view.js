@@ -29,6 +29,7 @@ base.exportTo('cc', function() {
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 1;
   TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE = 2;
   TILE_HEATMAP_TYPE.TIME_TO_VISIBLE = 3;
+  TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 4;
 
   function createTileRectsSelectorBaseOptions() {
     return [{label: 'None', value: 'none'},
@@ -85,7 +86,9 @@ base.exportTo('cc', function() {
            {label: 'Distance to Visible',
             value: TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE},
            {label: 'Time to Visible',
-            value: TILE_HEATMAP_TYPE.TIME_TO_VISIBLE}
+            value: TILE_HEATMAP_TYPE.TIME_TO_VISIBLE},
+           {label: 'Is using GPU memory',
+            value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
           ]);
       this.controls_.appendChild(tileHeatmapSelector);
 
@@ -492,6 +495,8 @@ base.exportTo('cc', function() {
         return tile.distanceToVisible;
       else if (heatmapType == TILE_HEATMAP_TYPE.TIME_TO_VISIBLE)
         return tile.timeToVisible;
+      else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY)
+        return tile.hasResource ? 0 : 1;
     },
 
     computeHeatmapColors_: function(tiles, heatmapType) {
