@@ -66,7 +66,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Ensure the UI is running and logged out.
     self._RestartUI()
-    util.WaitFor(lambda: self.IsBrowserRunning(), 20)  # pylint: disable=W0108
+    util.WaitFor(self.IsBrowserRunning, 20)
 
     # Delete test@test.test's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
@@ -152,9 +152,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   def _GetChromeVersion(self):
-    util.WaitFor(lambda: self._GetChromeProcess(), # pylint: disable=W0108
-                 timeout=30)
-    result = self._GetChromeProcess()
+    result = util.WaitFor(self._GetChromeProcess, timeout=30)
     assert result and result['path']
     (version, _) = self._cri.RunCmdOnDevice([result['path'], '--version'])
     assert version
@@ -403,7 +401,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Oobe.loginForTesting(\'%s\', \'%s\');' % (username, password))
 
     try:
-      util.WaitFor(lambda: self._IsLoggedIn(), 60) # pylint: disable=W0108
+      util.WaitFor(self._IsLoggedIn, 60)
     except util.TimeoutException:
       self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException('Timed out going through login screen')
@@ -414,8 +412,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self.chrome_branch_number < 1500:
       # Wait for the startup window, then close it. Startup window doesn't exist
       # post-M27. crrev.com/197900
-      util.WaitFor(lambda: self._StartupWindow() is not None, 20)
-      self._StartupWindow().Close()
+      util.WaitFor(self._StartupWindow, 20).Close()
     else:
       # Open a new window/tab.
       self.tab_list_backend.New(15)
