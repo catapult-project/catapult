@@ -80,6 +80,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args = []
     args.extend(self.browser_options.extra_browser_args)
     args.append('--disable-background-networking')
+    args.append('--disable-component-extensions-with-background-pages')
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
     args.append('--no-proxy-server')
