@@ -48,6 +48,41 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(0, slice.subSlices.length);
   });
 
+  test('basicSingleThreadNonnestedParsingWithThreadTime', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B', tts: 221}, // @suppress longLineCheck
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E', tts: 259}, // @suppress longLineCheck
+      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'B', tts: 329}, // @suppress longLineCheck
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'bar', tid: 53, ph: 'E', tts: 331}  // @suppress longLineCheck
+    ];
+
+    var m = new tracing.TraceModel(events);
+    assertEquals(1, m.numProcesses);
+    var p = m.processes[52];
+    assertNotUndefined(p);
+
+    assertEquals(1, p.numThreads);
+    var t = p.threads[53];
+    assertNotUndefined(t);
+    assertEquals(2, t.sliceGroup.length);
+    assertEquals(53, t.tid);
+    var slice = t.sliceGroup.slices[0];
+    assertEquals('a', slice.title);
+    assertEquals('foo', slice.category);
+    assertEquals(0, slice.start);
+    assertAlmostEquals((560 - 520) / 1000, slice.duration);
+    assertAlmostEquals((259 - 221) / 1000, slice.threadTime);
+    assertEquals(0, slice.subSlices.length);
+
+    slice = t.sliceGroup.slices[1];
+    assertEquals('b', slice.title);
+    assertEquals('bar', slice.category);
+    assertAlmostEquals((629 - 520) / 1000, slice.start);
+    assertAlmostEquals((631 - 629) / 1000, slice.duration);
+    assertAlmostEquals((331 - 329) / 1000, slice.threadTime);
+    assertEquals(0, slice.subSlices.length);
+  });
+
   test('argumentDupeCreatesNonFailingImportError', function() {
     var events = [
       {name: 'a',

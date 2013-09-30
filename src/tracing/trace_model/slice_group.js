@@ -84,7 +84,7 @@ base.exportTo('tracing.trace_model', function() {
      * @param {Object.<string, Object>=} opt_args Arguments associated with
      * the slice.
      */
-    beginSlice: function(category, title, ts, opt_args) {
+    beginSlice: function(category, title, ts, opt_args, opt_tts) {
       if (this.openPartialSlices_.length) {
         var prevSlice = this.openPartialSlices_[
             this.openPartialSlices_.length - 1];
@@ -94,7 +94,8 @@ base.exportTo('tracing.trace_model', function() {
 
       var colorId = tracing.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
-                                            opt_args ? opt_args : {});
+                                            opt_args ? opt_args : {}, null,
+                                            opt_tts);
       this.openPartialSlices_.push(slice);
 
       return slice;
@@ -128,7 +129,7 @@ base.exportTo('tracing.trace_model', function() {
      * @param {Number} ts Timestamp when the slice ended.
      * @return {Slice} slice.
      */
-    endSlice: function(ts) {
+    endSlice: function(ts, opt_tts) {
       if (!this.openSliceCount)
         throw new Error('endSlice called without an open slice');
 
@@ -139,6 +140,10 @@ base.exportTo('tracing.trace_model', function() {
                         ' end time is before its start.');
 
       slice.duration = ts - slice.start;
+
+      if (opt_tts && slice.threadStart)
+        slice.threadTime = opt_tts - slice.threadStart;
+
       this.pushSlice(slice);
 
       return slice;

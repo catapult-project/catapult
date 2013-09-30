@@ -229,7 +229,8 @@ base.exportTo('tracing.importer', function() {
 
       if (event.ph == 'B') {
         thread.sliceGroup.beginSlice(event.cat, event.name, event.ts / 1000,
-                                     this.deepCopyIfNeeded_(event.args));
+                                     this.deepCopyIfNeeded_(event.args),
+                                     event.tts / 1000);
       } else {
         if (!thread.sliceGroup.openSliceCount) {
           this.model_.importWarning({
@@ -239,7 +240,8 @@ base.exportTo('tracing.importer', function() {
           return;
         }
 
-        var slice = thread.sliceGroup.endSlice(event.ts / 1000);
+        var slice = thread.sliceGroup.endSlice(event.ts / 1000,
+                                               event.tts / 1000);
         for (var arg in event.args) {
           if (slice.args[arg] !== undefined) {
             this.model_.importWarning({

@@ -35,8 +35,10 @@ base.exportTo('tracing.trace_model', function() {
    *
    * @constructor
    */
-  function ThreadSlice(cat, title, colorId, start, args, opt_duration) {
-    Slice.call(this, cat, title, colorId, start, args, opt_duration);
+  function ThreadSlice(cat, title, colorId, start, args, opt_duration,
+                       opt_threadStart) {
+    Slice.call(this, cat, title, colorId, start, args, opt_duration,
+               opt_threadStart);
     // Do not modify this directly.
     // subSlices is configured by SliceGroup.rebuildSubRows_.
     this.subSlices = [];
