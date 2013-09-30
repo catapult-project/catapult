@@ -8,31 +8,39 @@ import subprocess
 import sys
 import tempfile
 
-from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
+from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
 
 _TCP_DUMP_BASE_OPTS = ['-i', 'any', '-p', '-s', '0', '-w']
 
-class _TCPDumpProfilerAndroid(object):
-  """An internal class to collect TCP dumps on android."""
 
-  _TCP_DUMP = '/data/local/tmp/tcpdump'
-  _DEVICE_DUMP_FILE = '/sdcard/capture.pcap'
+class _TCPDumpProfilerAndroid(object):
+  """An internal class to collect TCP dumps on android.
+
+  This profiler uses pre-built binaries from AOSP.
+  See more details in prebuilt/android/README.txt.
+  """
+
+  _DEVICE_DUMP_FILE = '/sdcard/tcpdump_profiles/capture.pcap'
 
   def __init__(self, adb, output_path):
     self._adb = adb
     self._output_path = output_path
+    self._adb.RunShellCommand('mkdir -p ' +
+                              os.path.dirname(self._DEVICE_DUMP_FILE))
     self._proc = subprocess.Popen(
         ['adb', '-s', self._adb.device(),
-         'shell', self._TCP_DUMP] + _TCP_DUMP_BASE_OPTS +
+         'shell', android_prebuilt_profiler_helper.GetDevicePath('tcpdump')] +
+         _TCP_DUMP_BASE_OPTS +
          [self._DEVICE_DUMP_FILE])
 
   def CollectProfile(self):
     tcpdump_pid = self._adb.ExtractPid('tcpdump')
     if not tcpdump_pid or not tcpdump_pid[0]:
       raise Exception('Unable to find TCPDump. Check your device is rooted '
-          'and tcpdump is installed at ' + self._TCP_DUMP)
+          'and tcpdump is installed at ' +
+          android_prebuilt_profiler_helper.GetDevicePath('tcpdump'))
     self._adb.RunShellCommand('kill -term ' + tcpdump_pid[0])
     self._proc.terminate()
     host_dump = os.path.join(self._output_path,
@@ -40,6 +48,7 @@ class _TCPDumpProfilerAndroid(object):
     self._adb.Adb().Adb().Pull(self._DEVICE_DUMP_FILE, host_dump)
     print 'TCP dump available at: %s ' % host_dump
     print 'Use Wireshark to open it.'
+    return host_dump
 
 
 class _TCPDumpProfilerLinux(object):
@@ -72,6 +81,7 @@ class _TCPDumpProfilerLinux(object):
       self._tmp_output_file.close()
     print 'TCP dump available at: ', self._dump_file
     print 'Use Wireshark to open it.'
+    return self._dump_file
 
   def _GetStdOut(self):
     self._tmp_output_file.flush()
@@ -88,6 +98,8 @@ class TCPDumpProfiler(profiler.Profiler):
     super(TCPDumpProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     if platform_backend.GetOSName() == 'android':
+      android_prebuilt_profiler_helper.InstallOnDevice(
+          browser_backend.adb, 'tcpdump')
       self._platform_profiler = _TCPDumpProfilerAndroid(
           browser_backend.adb, output_path)
     else:
@@ -103,9 +115,7 @@ class TCPDumpProfiler(profiler.Profiler):
       return False
     if sys.platform.startswith('linux'):
       return True
-    if browser_type == 'any':
-      return android_browser_finder.CanFindAvailableBrowsers()
     return browser_type.startswith('android')
 
   def CollectProfile(self):
-    self._platform_profiler.CollectProfile()
+    return self._platform_profiler.CollectProfile()
