@@ -12,9 +12,9 @@ from telemetry.core.platform import profiler
 class AndroidMemReportProfiler(profiler.Profiler):
   """Android-specific, collects 'memreport' graphs."""
 
-  def __init__(self, browser_backend, platform_backend, output_path):
+  def __init__(self, browser_backend, platform_backend, output_path, state):
     super(AndroidMemReportProfiler, self).__init__(
-        browser_backend, platform_backend, output_path)
+        browser_backend, platform_backend, output_path, state)
     self._html_file = output_path + '.html'
     self._memreport = subprocess.Popen(
         [os.path.join(util.GetChromiumSrcDir(),

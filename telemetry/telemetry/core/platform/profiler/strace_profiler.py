@@ -198,9 +198,9 @@ class _SingleProcessStraceProfiler(object):
 
 class StraceProfiler(profiler.Profiler):
 
-  def __init__(self, browser_backend, platform_backend, output_path):
+  def __init__(self, browser_backend, platform_backend, output_path, state):
     super(StraceProfiler, self).__init__(
-        browser_backend, platform_backend, output_path)
+        browser_backend, platform_backend, output_path, state)
     assert self._browser_backend.supports_tracing
     self._browser_backend.StartTracing(None, 10)
     process_output_file_map = self._GetProcessOutputFileMap()

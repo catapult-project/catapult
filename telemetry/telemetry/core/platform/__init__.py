@@ -111,6 +111,19 @@ class Platform(object):
     return self._platform_backend.FlushSystemCacheForDirectory(
         directory, ignoring=ignoring)
 
+  def LaunchApplication(self, application, parameters=None):
+    """"Launchs a given application on the OS."""
+    return self._platform_backend.LaunchApplication(application,
+                                                    parameters)
+
+  def IsApplicationRunning(self, application):
+    """Returns whether an application is currently running."""
+    return self._platform_backend.IsApplicationLaunchning(application)
+
+  def CanLaunchApplication(self, application):
+    """Returns whether the platform can launch the given application."""
+    return self._platform_backend.CanLaunchApplication(application)
+
 
 def CreatePlatformBackendForCurrentOS():
   if sys.platform.startswith('linux'):

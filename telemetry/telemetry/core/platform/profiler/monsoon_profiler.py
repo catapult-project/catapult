@@ -61,9 +61,9 @@ class MonsoonProfiler(profiler.Profiler):
   http://www.msoon.com/LabEquipment/PowerMonitor/
   The Monsoon device measures current in amps at 5000 samples/second.
   """
-  def __init__(self, browser_backend, platform_backend, output_path):
+  def __init__(self, browser_backend, platform_backend, output_path, state):
     super(MonsoonProfiler, self).__init__(
-        browser_backend, platform_backend, output_path)
+        browser_backend, platform_backend, output_path, state)
     # We collect the data in a separate process, so we can continuously
     # read the samples from the USB port while running the test.
     self._is_collecting = multiprocessing.Event()

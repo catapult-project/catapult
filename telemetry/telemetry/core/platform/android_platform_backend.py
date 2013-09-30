@@ -145,3 +145,14 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
 
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
+
+  def LaunchApplication(self, application, parameters=None):
+    if not parameters:
+      parameters = ''
+    self._adb.RunShellCommand('am start ' + parameters + ' ' + application)
+
+  def IsApplicationRunning(self, application):
+    return len(self._adb.ExtractPid(application)) > 0
+
+  def CanLaunchApplication(self, application):
+    return True

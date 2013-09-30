@@ -84,9 +84,9 @@ class _TCPDumpProfilerLinux(object):
 
 class TCPDumpProfiler(profiler.Profiler):
   """A Factory to instantiate the platform-specific profiler."""
-  def __init__(self, browser_backend, platform_backend, output_path):
+  def __init__(self, browser_backend, platform_backend, output_path, state):
     super(TCPDumpProfiler, self).__init__(
-        browser_backend, platform_backend, output_path)
+        browser_backend, platform_backend, output_path, state)
     if platform_backend.GetOSName() == 'android':
       self._platform_profiler = _TCPDumpProfilerAndroid(
           browser_backend.adb, output_path)

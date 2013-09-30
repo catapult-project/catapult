@@ -143,6 +143,9 @@ class AdbCommands(object):
   def IsRootEnabled(self):
     return self._adb.IsRootEnabled()
 
+  def GoHome(self):
+    return self._adb.GoHome()
+
 def HasForwarder(buildtype=None):
   if not buildtype:
     return (HasForwarder(buildtype='Release') or

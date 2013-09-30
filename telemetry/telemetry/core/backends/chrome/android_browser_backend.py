@@ -300,6 +300,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def package(self):
     return self._backend_settings.package
 
+  @property
+  def activity(self):
+    return self._backend_settings.activity
+
   def __del__(self):
     self.Close()
 

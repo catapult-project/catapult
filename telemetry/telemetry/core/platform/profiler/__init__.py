@@ -7,10 +7,11 @@ import collections
 class Profiler(object):
   """A sampling profiler provided by the platform."""
 
-  def __init__(self, browser_backend, platform_backend, output_path):
+  def __init__(self, browser_backend, platform_backend, output_path, state):
     self._browser_backend = browser_backend
     self._platform_backend = platform_backend
     self._output_path = output_path
+    self._state = state
 
   @classmethod
   def name(cls):
