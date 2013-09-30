@@ -213,8 +213,13 @@ class TracingBackend(object):
             logging.warning('Unexpected type in tracing data')
         elif 'Tracing.tracingComplete' == res.get('method'):
           break
-      except (socket.error, websocket.WebSocketException):
-        logging.warning('Timeout waiting for tracing response, unusual.')
+      except websocket.WebSocketTimeoutException as e:
+        logging.warning('Unusual timeout waiting for tracing response (%s).',
+                        e)
+      except (socket.error, websocket.WebSocketException) as e:
+        logging.warning('Unrecoverable exception when reading tracing response '
+                        '(%s, %s).', type(e), e)
+        raise
 
   def Close(self):
     self._conn.Close()

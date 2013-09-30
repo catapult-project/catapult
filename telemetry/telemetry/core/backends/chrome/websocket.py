@@ -9,3 +9,4 @@ util.AddDirToPythonPath(
     util.GetTelemetryDir(), 'third_party', 'websocket-client')
 from websocket import create_connection  # pylint: disable=W0611
 from websocket import WebSocketException  # pylint: disable=W0611
+from websocket import WebSocketTimeoutException  # pylint: disable=W0611
