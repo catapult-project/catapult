@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -124,6 +125,8 @@ class PerfProfiler(profiler.Profiler):
     self._process_profilers = []
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.GetIfChanged('perfhost')
+      os.chmod(android_prebuilt_profiler_helper.GetHostPath('perfhost'),
+               stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
       android_prebuilt_profiler_helper.InstallOnDevice(
           browser_backend.adb, 'perf')
     for pid, output_file in process_output_file_map.iteritems():
