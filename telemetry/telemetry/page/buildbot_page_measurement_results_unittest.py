@@ -46,7 +46,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     expected = ['RESULT a_by_url: http___www.foo.com_= 3 seconds',
                 'RESULT a_by_url: http___www.bar.com_= 7 seconds',
                 '*RESULT a: a= [3,7] seconds\nAvg a: 5.000000seconds\n' +
-                'Sd  a: 2.828427seconds']
+                'Sd  a: 2.828427seconds',
+                'RESULT telemetry_num_failed_pages: 0 count',
+                'RESULT telemetry_num_errored_pages: 0 count']
     self.assertEquals(measurement_results.results, expected)
 
   def test_basic_summary_nonuniform_results(self):
@@ -76,7 +78,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
                     'Sd  a: 2.309401seconds',
                 'RESULT b_by_url: http___www.foo.com_= 10 seconds',
                 'RESULT b_by_url: http___www.bar.com_= 10 seconds',
-                '*RESULT b: b= [10,10] seconds\nAvg b: 10.000000seconds']
+                '*RESULT b: b= [10,10] seconds\nAvg b: 10.000000seconds',
+                'RESULT telemetry_num_failed_pages: 0 count',
+                'RESULT telemetry_num_errored_pages: 0 count']
     self.assertEquals(measurement_results.results, expected)
 
   def test_basic_summary_pass_and_fail_page(self):
@@ -94,7 +98,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.DidMeasurePage()
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= 7 seconds']
+    expected = ['RESULT a_by_url: http___www.bar.com_= 7 seconds',
+                'RESULT telemetry_num_failed_pages: 1 count',
+                'RESULT telemetry_num_errored_pages: 0 count']
     self.assertEquals(measurement_results.results, expected)
 
   def test_repeated_pageset_one_iteration_one_page_fails(self):
@@ -122,7 +128,39 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.PrintSummary()
     expected = ['RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
                 'Avg a_by_url: 3.500000seconds\n' +
-                'Sd  a_by_url: 0.707107seconds']
+                'Sd  a_by_url: 0.707107seconds',
+                'RESULT telemetry_num_failed_pages: 1 count',
+                'RESULT telemetry_num_errored_pages: 0 count']
+    self.assertEquals(measurement_results.results, expected)
+
+  def test_repeated_pageset_one_iteration_one_page_error(self):
+    """Page error on one iteration, no results for that page should print."""
+    test_page_set = _MakePageSet()
+
+    measurement_results = SummarySavingPageMeasurementResults()
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[1])
+    measurement_results.Add('a', 'seconds', 7)
+    measurement_results.DidMeasurePage()
+    measurement_results.AddErrorMessage(test_page_set.pages[1], 'message')
+
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 4)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.WillMeasurePage(test_page_set.pages[1])
+    measurement_results.Add('a', 'seconds', 8)
+    measurement_results.DidMeasurePage()
+
+    measurement_results.PrintSummary()
+    expected = ['RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
+                'Avg a_by_url: 3.500000seconds\n' +
+                'Sd  a_by_url: 0.707107seconds',
+                'RESULT telemetry_num_failed_pages: 0 count',
+                'RESULT telemetry_num_errored_pages: 1 count']
     self.assertEquals(measurement_results.results, expected)
 
   def test_repeated_pageset(self):
@@ -154,7 +192,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
                 'Sd  a_by_url: 0.707107seconds',
                 '*RESULT a: a= [3,7,4,8] seconds\n' +
                 'Avg a: 5.500000seconds\n'
-                'Sd  a: 2.380476seconds'
+                'Sd  a: 2.380476seconds',
+                'RESULT telemetry_num_failed_pages: 0 count',
+                'RESULT telemetry_num_errored_pages: 0 count'
                 ]
     self.assertEquals(
       measurement_results.results,
@@ -189,7 +229,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
                 'Sd  a_by_url: 0.707107seconds',
                 '*RESULT a: a= [3,4,7,8] seconds\n' +
                 'Avg a: 5.500000seconds\n' +
-                'Sd  a: 2.380476seconds'
+                'Sd  a: 2.380476seconds',
+                'RESULT telemetry_num_failed_pages: 0 count',
+                'RESULT telemetry_num_errored_pages: 0 count'
                 ]
     self.assertEquals(
       measurement_results.results,
@@ -221,7 +263,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
          '*RESULT b: b= [2,3] seconds\n' +
          'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
          '*RESULT a: a= 1 seconds',
-         '*RESULT c: c= 4 seconds'])
+         '*RESULT c: c= 4 seconds',
+         'RESULT telemetry_num_failed_pages: 0 count',
+         'RESULT telemetry_num_errored_pages: 0 count'])
 
   def test_overall_results_trace_tag(self):
     test_page_set = _MakePageSet()
@@ -247,7 +291,9 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
         ['*RESULT b: b_ref= [2,3] seconds\n' +
          'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
          '*RESULT a: a_ref= 1 seconds',
-         '*RESULT c: c_ref= 4 seconds'])
+         '*RESULT c: c_ref= 4 seconds',
+         'RESULT telemetry_num_failed_pages: 0 count',
+         'RESULT telemetry_num_errored_pages: 0 count'])
 
   def test_histogram(self):
     test_page_set = _MakePageSet()
@@ -273,5 +319,7 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
         'Avg a_by_url: 1.500000units',
         'HISTOGRAM a_by_url: http___www.bar.com_= ' +
         '{"buckets": [{"low": 2, "high": 3, "count": 1}]} units\n' +
-        'Avg a_by_url: 2.500000units']
+        'Avg a_by_url: 2.500000units',
+        'RESULT telemetry_num_failed_pages: 0 count',
+        'RESULT telemetry_num_errored_pages: 0 count']
     self.assertEquals(measurement_results.results, expected)
