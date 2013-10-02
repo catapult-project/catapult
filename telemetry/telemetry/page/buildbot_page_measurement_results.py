@@ -120,9 +120,9 @@ class BuildbotPageMeasurementResults(
                               values, value.units, value.data_type)
 
     # Print the number of failed and errored pages.
-    self._PrintPerfResult('telemetry_num_failed_pages', '',
+    self._PrintPerfResult('telemetry_page_measurement_results', 'num_failed',
                           [len(self.failures)], 'count', 'unimportant')
-    self._PrintPerfResult('telemetry_num_errored_pages', '',
+    self._PrintPerfResult('telemetry_page_measurement_results', 'num_errored',
                           [len(self.errors)], 'count', 'unimportant')
 
     super(BuildbotPageMeasurementResults, self).PrintSummary()
