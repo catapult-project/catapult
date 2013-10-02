@@ -1021,6 +1021,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', subSlice.category);
     assertAlmostEquals((548 - 524) / 1000, subSlice.start);
     assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
+    assertEquals(1, subSlice.args['x']);
     assertEquals(2, subSlice.args['y']);
     assertEquals(3, subSlice.args['z']);
   });
@@ -1051,6 +1052,64 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var m = new tracing.TraceModel(events);
     var t = m.processes[52].threads[53];
     assertUndefined(t);
+  });
+
+  test('asyncStepEndEvent', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
+        tid: 53, ph: 'p', id: 72},
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertNotUndefined(t);
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+    assertEquals(0, parentSlice.start);
+
+    assertNotUndefined(parentSlice.subSlices);
+    assertEquals(2, parentSlice.subSlices.length);
+    var subSlice = parentSlice.subSlices[0];
+    assertEquals('a:s1', subSlice.title);
+    assertEquals('foo', subSlice.category);
+    assertEquals(0, subSlice.start);
+    assertAlmostEquals((548 - 524) / 1000, subSlice.duration);
+    assertEquals(1, subSlice.args['x']);
+    assertEquals(2, subSlice.args['y']);
+
+    var subSlice = parentSlice.subSlices[1];
+    assertEquals('a', subSlice.title);
+    assertEquals('foo', subSlice.category);
+    assertAlmostEquals((548 - 524) / 1000, subSlice.start);
+    assertAlmostEquals((560 - 548) / 1000, subSlice.duration);
+    assertEquals(1, subSlice.args['x']);
+    assertEquals(3, subSlice.args['z']);
+  });
+
+  test('asyncStepMismatch', function() {
+    var events = [
+      // Time is intentionally out of order.
+      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
+        ph: 'F', id: 72},
+      {name: 'a', args: {step: 's2'}, pid: 52, ts: 548, cat: 'foo', tid: 53,
+        ph: 'T', id: 72},
+      {name: 'a', args: {step: 's1'}, pid: 52, ts: 548, cat: 'foo', tid: 53,
+        ph: 'p', id: 72},
+      {name: 'a', args: {x: 1}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'S', id: 72}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+    assertUndefined(t);
+    assertTrue(m.hasImportWarnings);
   });
 
   test('importSamples', function() {

@@ -355,7 +355,8 @@ base.exportTo('tracing.importer', function() {
         } else if (event.ph === 'X') {
           this.processCompleteEvent(event);
 
-        } else if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T') {
+        } else if (event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
+                   event.ph === 'p') {
           this.processAsyncEvent(event);
 
         // Note, I is historic. The instant event marker got changed, but we
@@ -435,7 +436,8 @@ base.exportTo('tracing.importer', function() {
         if (name === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
-            message: 'Async events (ph: S, T or F) require a name parameter.'
+            message: 'Async events (ph: S, T, p, or F) require a name ' +
+                ' parameter.'
           });
           continue;
         }
@@ -444,7 +446,7 @@ base.exportTo('tracing.importer', function() {
         if (id === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
-            message: 'Async events (ph: S, T or F) require an id parameter.'
+            message: 'Async events (ph: S, T, p, or F) require an id parameter.'
           });
           continue;
         }
@@ -500,15 +502,33 @@ base.exportTo('tracing.importer', function() {
             slice.args = this.deepCopyIfNeeded_(events[0].event.args);
             slice.subSlices = [];
 
+            var stepType = events[1].event.ph;
+            var isValid = true;
+
             // Create subSlices for each step.
             for (var j = 1; j < events.length; ++j) {
               var subName = name;
-              if (events[j - 1].event.ph === 'T')
-                subName = name + ':' + events[j - 1].event.args.step;
+              if (events[j].event.ph == 'T' || events[j].event.ph == 'p') {
+                isValid = this.assertStepTypeMatches_(stepType, events[j]);
+                if (!isValid)
+                  break;
+              }
+
+              var targetEvent;
+              if (stepType == 'T') {
+                targetEvent = events[j - 1];
+              } else {
+                targetEvent = events[j];
+              }
+
+              var subName = events[0].event.name;
+              if (targetEvent.event.ph == 'T' || targetEvent.event.ph == 'p')
+                subName = subName + ':' + targetEvent.event.args.step;
+
               var subSlice = new tracing.trace_model.AsyncSlice(
                   events[0].event.cat,
                   subName,
-                  tracing.getStringColorId(name + j),
+                  tracing.getStringColorId(subName + j),
                   events[j - 1].event.ts / 1000);
 
               subSlice.duration =
@@ -517,22 +537,41 @@ base.exportTo('tracing.importer', function() {
               subSlice.startThread = events[j - 1].thread;
               subSlice.endThread = events[j].thread;
               subSlice.id = id;
-              subSlice.args = this.deepCopyIfNeeded_(events[j - 1].event.args);
+              subSlice.args = base.concatenateObjects(events[0].event.args,
+                                                      targetEvent.event.args);
 
               slice.subSlices.push(subSlice);
+
+              if (events[j].event.ph == 'F' && stepType == 'T') {
+                // The args for the finish event go in the last subSlice.
+                var lastSlice = slice.subSlices[slice.subSlices.length - 1];
+                lastSlice.args = base.concatenateObjects(lastSlice.args,
+                                                         event.args);
+              }
             }
 
-            // The args for the finish event go in the last subSlice.
-            var lastSlice = slice.subSlices[slice.subSlices.length - 1];
-            for (var arg in event.args)
-              lastSlice.args[arg] = this.deepCopyIfNeeded_(event.args[arg]);
+            if (isValid) {
+              // Add |slice| to the start-thread's asyncSlices.
+              slice.startThread.asyncSliceGroup.push(slice);
+            }
 
-            // Add |slice| to the start-thread's asyncSlices.
-            slice.startThread.asyncSliceGroup.push(slice);
             delete asyncEventStatesByNameThenID[name][id];
           }
         }
       }
+    },
+
+    assertStepTypeMatches_: function(stepType, event) {
+      if (stepType != event.event.ph) {
+        this.model_.importWarning({
+          type: 'async_slice_parse_error',
+          message: 'At ' + event.event.ts + ', a slice named ' +
+              event.event.name + ' with id=' + event.event.id +
+              ' had both begin and end steps, which is not allowed.'
+        });
+        return false;
+      }
+      return true;
     },
 
     createFlowSlices_: function() {

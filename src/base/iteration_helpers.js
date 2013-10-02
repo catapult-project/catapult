@@ -52,6 +52,17 @@ base.exportTo('base', function() {
     return values;
   }
 
+  function concatenateObjects(/*arguments*/) {
+    var result = {};
+    for (var i = 0; i < arguments.length; i++) {
+      var object = arguments[i];
+      for (var j in object) {
+        result[j] = object[j];
+      }
+    }
+    return result;
+  }
+
   function dictionaryKeys(dict) {
     var keys = [];
     for (var key in dict)
@@ -94,6 +105,7 @@ base.exportTo('base', function() {
   return {
     asArray: asArray,
     concatenateArrays: concatenateArrays,
+    concatenateObjects: concatenateObjects,
     compareArrays: compareArrays,
     comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
     dictionaryKeys: dictionaryKeys,
