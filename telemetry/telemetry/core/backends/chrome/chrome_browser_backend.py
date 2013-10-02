@@ -138,8 +138,22 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         if not e.extension_id in self._extension_dict_backend:
           return False
         extension_object = self._extension_dict_backend[e.extension_id]
-        res = extension_object.EvaluateJavaScript(
-            extension_ready_js % e.extension_id)
+        try:
+          res = extension_object.EvaluateJavaScript(
+              extension_ready_js % e.extension_id)
+        except exceptions.EvaluateException:
+          # If the inspected page is not ready, we will get an error
+          # when we evaluate a JS expression, but we can just keep polling
+          # until the page is ready (crbug.com/251913).
+          res = None
+
+        # TODO(tengs): We don't have full support for getting the Chrome
+        # version before launch, so for now we use a generic workaround to
+        # check for an extension binding bug in old versions of Chrome.
+        # See crbug.com/263162 for details.
+        if res and extension_object.EvaluateJavaScript(
+            'chrome.runtime == null'):
+          extension_object.Reload()
         if not res:
           return False
       return True

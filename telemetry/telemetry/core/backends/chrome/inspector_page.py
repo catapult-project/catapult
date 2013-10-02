@@ -14,13 +14,15 @@ class InspectorPage(object):
         self._OnNotification,
         self._OnClose)
     self._navigation_pending = False
+    self._navigation_url = ""
 
   def _OnNotification(self, msg):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))
     if msg['method'] == 'Page.frameNavigated' and self._navigation_pending:
       url = msg['params']['frame']['url']
-      if (not url == 'chrome://newtab/' and not url == 'about:blank'
-          and not 'parentId' in msg['params']['frame']):
+      if (self._navigation_url == url or
+          (not url == 'chrome://newtab/' and not url == 'about:blank'
+          and not 'parentId' in msg['params']['frame'])):
         # Marks the navigation as complete and unblocks the
         # PerformActionAndWaitForNavigate call.
         self._navigation_pending = False
@@ -93,6 +95,7 @@ class InspectorPage(object):
               }
           }
       self._inspector_backend.SendAndIgnoreResponse(request)
+    self._navigation_url = url
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
 
   def GetCookieByName(self, name, timeout=60):

@@ -44,6 +44,7 @@ class TabTest(tab_test_case.TabTestCase):
 
     self.assertTrue(_IsDocumentVisible(self._tab))
     new_tab = self._browser.tabs.New()
+    new_tab.Navigate('about:blank')
     util.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
     self.assertFalse(_IsDocumentVisible(self._tab))
     self._tab.Activate()
