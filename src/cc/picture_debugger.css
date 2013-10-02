@@ -48,24 +48,19 @@ picture-debugger > right-panel {
 }
 
 picture-debugger > right-panel > picture-ops-chart-view {
+  min-height: 150px;
   min-width : 0;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-picture-debugger > right-panel > raster-area {
-  -webkit-flex: 1 1 auto;
-}
-
 /******************************************************************************/
 
 raster-area {
-  -webkit-flex-direction: column;
   background-color: #ddd;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  display: -webkit-flex;
   min-height: 200px;
   min-width: 200px;
+  overflow-y: auto;
+  padding-left: 5px;
 }
+

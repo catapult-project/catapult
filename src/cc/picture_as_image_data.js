@@ -47,10 +47,11 @@ base.exportTo('cc', function() {
     },
 
     asCanvas: function() {
-      var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
       if (!this.imageData_)
         return;
+
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
 
       canvas.width = this.imageData_.width;
       canvas.height = this.imageData_.height;

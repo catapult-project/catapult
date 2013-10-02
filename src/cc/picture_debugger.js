@@ -18,6 +18,7 @@ base.require('ui.drag_handle');
 base.require('ui.info_bar');
 base.require('ui.list_view');
 base.require('ui.overlay');
+base.require('ui.mouse_mode_selector');
 
 base.exportTo('cc', function() {
 
@@ -38,9 +39,13 @@ base.exportTo('cc', function() {
 
       this.pictureAsImageData_ = undefined;
       this.showOverdraw_ = false;
+      this.zoomScaleValue_ = 1;
 
       this.sizeInfo_ = this.querySelector('.size');
       this.rasterArea_ = this.querySelector('raster-area');
+      this.rasterCanvas_ = this.rasterArea_.querySelector('canvas');
+      this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
+
       this.filename_ = this.querySelector('.filename');
 
       this.drawOpsChartSummaryView_ = new cc.PictureOpsChartSummaryView();
@@ -51,6 +56,8 @@ base.exportTo('cc', function() {
       this.exportButton_ = this.querySelector('.export');
       this.exportButton_.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
+
+      this.trackMouse_();
 
       var overdrawCheckbox = ui.createCheckBox(
           this, 'showOverdraw',
@@ -166,9 +173,35 @@ base.exportTo('cc', function() {
 
       this.exportButton_.disabled = !this.picture_.canSave;
 
+      if (picture) {
+        var size = this.getRasterCanvasSize_();
+        this.rasterCanvas_.width = size.width;
+        this.rasterCanvas_.height = size.height;
+      }
+
+      var bounds = this.rasterArea_.getBoundingClientRect();
+      var selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
+      this.mouseModeSelector_.pos = {
+        x: (bounds.right - selectorBounds.width - 10),
+        y: bounds.top
+      };
+
       this.rasterize_();
 
       this.scheduleUpdateContents_();
+    },
+
+    getRasterCanvasSize_: function() {
+      var style = window.getComputedStyle(this.rasterArea_);
+      var width =
+          Math.max(parseInt(style.width), this.picture_.layerRect.width);
+      var height =
+          Math.max(parseInt(style.height), this.picture_.layerRect.height);
+
+      return {
+        width: width,
+        height: height
+      };
     },
 
     scheduleUpdateContents_: function() {
@@ -210,15 +243,27 @@ base.exportTo('cc', function() {
         this.infoBar_.visible = true;
       }
 
-      // FIXME(pdr): Append the canvas instead of using a background image.
-      if (this.pictureAsImageData_.imageData) {
-        var canvas = this.pictureAsImageData_.asCanvas();
-        var imageUrl = canvas.toDataURL();
-        canvas.width = 0; // Free the GPU texture.
-        this.rasterArea_.style.backgroundImage = 'url("' + imageUrl + '")';
-      } else {
-        this.rasterArea_.style.backgroundImage = '';
-      }
+      this.drawPicture_();
+    },
+
+    drawPicture_: function() {
+      var size = this.getRasterCanvasSize_();
+      if (size.width !== this.rasterCanvas_.width)
+        this.rasterCanvas_.width = size.width;
+      if (size.height !== this.rasterCanvas_.height)
+        this.rasterCanvas_.heigth = size.height;
+
+      this.rasterCtx_.clearRect(0, 0, size.width, size.height);
+
+      if (!this.pictureAsImageData_.imageData)
+        return;
+
+      var imgCanvas = this.pictureAsImageData_.asCanvas();
+      var w = imgCanvas.width;
+      var h = imgCanvas.height;
+      this.rasterCtx_.drawImage(imgCanvas, 0, 0, w, h,
+                                0, 0, w * this.zoomScaleValue_,
+                                h * this.zoomScaleValue_);
     },
 
     rasterize_: function() {
@@ -283,6 +328,63 @@ base.exportTo('cc', function() {
         this.drawOpsChartSummaryView_.show();
       else
         this.drawOpsChartSummaryView_.hide();
+    },
+
+    trackMouse_: function() {
+      this.mouseModeSelector_ = new ui.MouseModeSelector(this.rasterArea_);
+      this.rasterArea_.appendChild(this.mouseModeSelector_);
+
+      this.mouseModeSelector_.supportedModeMask = ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
+
+      this.mouseModeSelector_.addEventListener('beginzoom',
+          this.onBeginZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('updatezoom',
+          this.onUpdateZoom_.bind(this));
+      this.mouseModeSelector_.addEventListener('endzoom',
+          this.onEndZoom_.bind(this));
+    },
+
+    onBeginZoom_: function(e) {
+      var mouseEvent = e.data;
+      this.isZooming_ = true;
+
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition_(mouseEvent);
+
+      mouseEvent.preventDefault();
+    },
+
+    onUpdateZoom_: function(e) {
+      if (!this.isZooming_)
+        return;
+
+      var currentMouseViewPos = this.extractRelativeMousePosition_(e.data);
+
+      // Take the distance the mouse has moved and we want to zoom at about
+      // 1/1000th of that speed. 0.01 feels jumpy. This could possibly be tuned
+      // more if people feel it's too slow.
+      this.zoomScaleValue_ +=
+          ((this.lastMouseViewPos_.y - currentMouseViewPos.y) * 0.001);
+      this.zoomScaleValue_ = Math.max(this.zoomScaleValue_, 0.1);
+
+      this.drawPicture_();
+
+      this.lastMouseViewPos_ = currentMouseViewPos;
+    },
+
+    onEndZoom_: function(e) {
+      this.lastMouseViewPos_ = undefined;
+      this.isZooming_ = false;
+      e.consumed = true;
+    },
+
+    extractRelativeMousePosition_: function(e) {
+      return {
+        x: e.clientX - this.rasterArea_.offsetLeft,
+        y: e.clientY - this.rasterArea_.offsetTop
+      };
     }
   };
 

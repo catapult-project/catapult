@@ -20,8 +20,8 @@ base.unittest.testSuite('cc.picture_debugger', function() {
     picture.initialize();
 
     var dbg = new cc.PictureDebugger();
+    this.addHTMLOutput(dbg);
     dbg.picture = picture;
     dbg.style.border = '1px solid black';
-    this.addHTMLOutput(dbg);
   });
 });
