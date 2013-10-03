@@ -14,6 +14,8 @@ import sys as real_sys
 class Override(object):
   def __init__(self, base_module, module_list):
     stubs = {'adb_commands': AdbCommandsModuleStub,
+             'perf_control': PerfControlModuleStub,
+             'thermal_throttle': ThermalThrottleModuleStub,
              'os': OsModuleStub,
              'subprocess': SubprocessModuleStub,
              'sys': SysModuleStub,
@@ -78,6 +80,24 @@ class AdbCommandsModuleStub(object):
   @staticmethod
   def HasForwarder(_=None):
     return True
+
+class PerfControlModuleStub(object):
+  class PerfControlStub(object):
+    def __init__(self, adb):
+      pass
+
+  def __init__(self):
+    self.PerfControl = PerfControlModuleStub.PerfControlStub
+
+
+class ThermalThrottleModuleStub(object):
+  class ThermalThrottleStub(object):
+    def __init__(self, adb):
+      pass
+
+  def __init__(self):
+    self.ThermalThrottle = ThermalThrottleModuleStub.ThermalThrottleStub
+
 
 class OsModuleStub(object):
   class OsPathModuleStub(object):

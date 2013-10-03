@@ -86,8 +86,11 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
       logging.warning('CPU stats cannot be retrieved on non-rooted device.')
       return {}
     stats = self._adb.GetProtectedFileContents('/proc/%s/stat' % pid,
-                                               log_result=False)[0].split()
-    return proc_util.GetCpuStats(stats)
+                                               log_result=False)
+    if not stats:
+      logging.warning('Unable to get /proc/%s/stat, process gone?', pid)
+      return {}
+    return proc_util.GetCpuStats(stats[0].split())
 
   def GetCpuTimestamp(self):
     if not self._adb.CanAccessProtectedFileContents():
