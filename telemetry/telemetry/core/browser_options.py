@@ -213,6 +213,10 @@ class BrowserOptions(object):
 
     self.keep_test_server_ports = False
 
+    # Background pages of built-in component extensions can interfere with
+    # performance measurements.
+    self.disable_component_extensions_with_background_pages = True
+
   def AddCommandLineOptions(self, parser):
     group = optparse.OptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
