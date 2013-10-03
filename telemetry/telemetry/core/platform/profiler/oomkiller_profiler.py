@@ -8,7 +8,13 @@ from telemetry.core.platform import profiler
 
 class UnableToFindApplicationException(Exception):
   """Exception when unable to find a launched application"""
-  pass
+
+  def __init__(self, application):
+    super(UnableToFindApplicationException, self).__init__()
+    self.application = application
+
+  def __str__(self):
+    return repr(self.application)
 
 
 class OOMKillerProfiler(profiler.Profiler):
@@ -40,14 +46,15 @@ class OOMKillerProfiler(profiler.Profiler):
     return browser_type.startswith('android')
 
   def CollectProfile(self):
-    if not self._AreProcessRunnings():
-      raise UnableToFindApplicationException()
-    return []
+    missing_applications = self._MissingApplications()
+    if not len(missing_applications):
+      return []
+    raise UnableToFindApplicationException(', '.join(missing_applications))
 
-  def _AreProcessRunnings(self):
+  def _MissingApplications(self):
     must_have_apps = [
         'org.chromium.memconsumer',
         'com.android.launcher',
     ]
-    return all([self._platform_backend.IsApplicationRunning(app)
-                for app in must_have_apps])
+    return [app for app in must_have_apps if
+            not self._platform_backend.IsApplicationRunning(app)]
