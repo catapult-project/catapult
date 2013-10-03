@@ -7,7 +7,6 @@ import logging
 
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core.backends.chrome import cros_browser_with_oobe
 from telemetry.core.backends.chrome import cros_browser_backend
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.platform import cros_platform_backend
@@ -33,15 +32,13 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       raise Exception("Profile generation is not currently supported on Chrome"
           " OS")
 
-    browser_options = self.finder_options.browser_options
     backend = cros_browser_backend.CrOSBrowserBackend(
-        self.browser_type, browser_options, self._cri, self._is_guest,
+        self.browser_type, self.finder_options.browser_options,
+        self._cri, self._is_guest,
         extensions_to_load=self.finder_options.extensions_to_load)
-    platform = cros_platform_backend.CrosPlatformBackend(self._cri)
-    if browser_options.create_browser_with_oobe:
-      return cros_browser_with_oobe.CrOSBrowserWithOOBE(backend, platform)
-    else:
-      return browser.Browser(backend, platform)
+    b = browser.Browser(backend,
+                        cros_platform_backend.CrosPlatformBackend(self._cri))
+    return b
 
   def SupportsOptions(self, finder_options):
     if (len(finder_options.extensions_to_load) != 0) and self._is_guest:

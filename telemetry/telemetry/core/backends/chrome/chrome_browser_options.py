@@ -37,8 +37,6 @@ class CrosBrowserOptions(ChromeBrowserOptions):
 
   def __init__(self, br_options):
     super(CrosBrowserOptions, self).__init__(br_options)
-    # Create a browser with oobe property.
-    self.enable_oobe_property = False
     self.auto_login = True
 
 
