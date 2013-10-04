@@ -4,6 +4,7 @@
  */
 
 .analysis-view {
+  -webkit-flex-direction: column;
   background-color: white;
   display: -webkit-flex;
   overflow: auto;

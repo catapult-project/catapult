@@ -4,6 +4,6 @@
  */
 
 .picture-snapshot-view {
-  -webkit-flex: 0 1 auto;
+  -webkit-flex: 0 1 auto !important;
   display: -webkit-flex;
 }
