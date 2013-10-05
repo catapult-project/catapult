@@ -26,22 +26,22 @@ class PageTestResults(unittest.TestResult):
     self.skipped.append((test, reason))
 
   def StartTest(self, page):
-    self.startTest(page.url)
+    self.startTest(page.display_name)
 
   def StopTest(self, page):
-    self.stopTest(page.url)
+    self.stopTest(page.display_name)
 
   def AddError(self, page, err):
-    self.addError(page.url, err)
+    self.addError(page.display_name, err)
 
   def AddFailure(self, page, err):
-    self.addFailure(page.url, err)
+    self.addFailure(page.display_name, err)
 
   def AddSuccess(self, page):
-    self.addSuccess(page.url)
+    self.addSuccess(page.display_name)
 
   def AddSkip(self, page, reason):
-    self.addSkip(page.url, reason)
+    self.addSkip(page.display_name, reason)
 
   def AddFailureMessage(self, page, message):
     try:
