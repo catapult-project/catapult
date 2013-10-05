@@ -77,7 +77,8 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       A ByteRange namedtuple object with the requested byte-range values.
       If no Range is explicitly requested or there is a failure parsing,
       return None.
-      Special case: If range specified is in the format "N-", return N-N.
+      If range specified is in the format "N-", return N-END. Refer to
+      http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for details.
       If upper range limit is greater than total # of bytes, return upper index.
     """
 
@@ -96,9 +97,12 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     to_byte = 0
 
     if len(byte_range_values) == 2:
-      from_byte = int(byte_range_values[0])
-      if byte_range_values[1]:
-        to_byte = int(byte_range_values[1])
+      # If to_range is not defined return all bytes starting from from_byte.
+      to_byte = (int(byte_range_values[1]) if  byte_range_values[1]
+          else total_num_of_bytes - 1)
+      # If from_range is not defined return last 'to_byte' bytes.
+      from_byte = (int(byte_range_values[0]) if byte_range_values[0]
+          else total_num_of_bytes - to_byte)
     else:
       return None
 
@@ -106,12 +110,8 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     if from_byte < 0:
       return None
 
-    if to_byte < from_byte:
-      to_byte = from_byte
-
-    if to_byte >= total_num_of_bytes:
-      # End of range requested is greater than length of requested resource.
-      # Only return # of available bytes.
+    # Make to_byte the end byte by default in edge cases.
+    if to_byte < from_byte or to_byte >= total_num_of_bytes:
       to_byte = total_num_of_bytes - 1
 
     return ByteRange(from_byte, to_byte)
