@@ -18,15 +18,36 @@ section {
     content: '\25BE\00A0';
 }
 
-.time-plots {
+.line-plots {
     padding-left: 25px;
 }
 
-.time-plots > div {
+.line-plots > div {
     display: inline-block;
     width: 90px;
     height: 40px;
     margin-right: 10px;
+}
+
+.lage-line-plots {
+    padding-left: 25px;
+}
+
+.large-line-plots > div {
+    display: inline-block;
+    width: 400px;
+    height: 200px;
+    margin-right: 10px;
+}
+
+.large-line-plot-labels > div {
+    display: inline-block;
+    width: 400px;
+    height: 11px;
+    margin-right: 10px;
+    color: #545454;
+    text-align: center;
+    font-size: 11px;
 }
 
 .closeButton {
@@ -165,6 +186,7 @@ td.missing {
 <div style="padding: 0 10px; white-space: nowrap;">
 Result <span id="time-memory" class="checkbox"><span class="checked">Time</span><span>Memory</span></span>
 Reference <span id="reference" class="checkbox"></span>
+Style <span id="scatter-line" class="checkbox"><span class="checked">Scatter</span><span>Line</span></span>
 <span class="checkbox"><span class="checked" id="undelete">Undelete</span></span>
 </div>
 <table id="container"></table>
@@ -335,7 +357,7 @@ var mainPlotOptions = {
     }
 };
 
-var timePlotOptions = {
+var linePlotOptions = {
     yaxis: { show: false },
     xaxis: { show: false },
     lines: { show: true },
@@ -343,44 +365,75 @@ var timePlotOptions = {
     colors: [ plotColor ]
 };
 
-function createPlot(container, test) {
-    var section = $('<section><div class="plot"></div><div class="time-plots"></div>'
-        + '<span class="tooltip"></span></section>');
-    section.children('.plot').css({'width': (100 * test.results().length + 25) + 'px', 'height': '300px'});
-    $(container).append(section);
+var largeLinePlotOptions = {
+    xaxis: {
+        show: true,
+        tickDecimals: 0,
+    },
+    lines: { show: true },
+    grid: { borderWidth: 1, borderColor: '#ccc' },
+    colors: [ plotColor ]
+};
 
-    var plotContainer = section.children('.plot');
-    var minIsZero = true;
-    attachPlot(test, plotContainer, minIsZero);
+function createPlot(container, test, useLargeLinePlots) {
+    if (useLargeLinePlots) {
+        var section = $('<section><div class="large-line-plots"></div>'
+            + '<div class="large-line-plot-labels"></div>'
+            + '<span class="tooltip"></span></section>');
+        $(container).append(section);
+        attachLinePlots(test, section.children('.large-line-plots'), useLargeLinePlots);
+        attachLinePlotLabels(test, section.children('.large-line-plot-labels'));
+    } else {
+        var section = $('<section><div class="plot"></div><div class="line-plots"></div>'
+            + '<span class="tooltip"></span></section>');
+        section.children('.plot').css({'width': (100 * test.results().length + 25) + 'px', 'height': '300px'});
+        $(container).append(section);
 
-    attachTimePlots(test, section.children('.time-plots'));
-
-    var tooltip = section.children('.tooltip');
-    plotContainer.bind('plothover', function (event, position, item) {
-        if (item) {
-            var postfix = item.series.id ? ' (' + item.series.id + ')' : '';
-            tooltip.html(item.datapoint[1].toPrecision(4) + postfix);
-            var sectionOffset = $(section).offset();
-            tooltip.css({left: item.pageX - sectionOffset.left - tooltip.outerWidth() / 2, top: item.pageY - sectionOffset.top + 10});
-            tooltip.fadeIn(200);
-        } else
-            tooltip.hide();
-    });
-    plotContainer.mouseout(function () {
-        tooltip.hide();
-    });
-    plotContainer.click(function (event) {
-        event.preventDefault();
-        minIsZero = !minIsZero;
+        var plotContainer = section.children('.plot');
+        var minIsZero = true;
         attachPlot(test, plotContainer, minIsZero);
-    });
 
+        attachLinePlots(test, section.children('.line-plots'), useLargeLinePlots);
+
+        var tooltip = section.children('.tooltip');
+        plotContainer.bind('plothover', function (event, position, item) {
+            if (item) {
+                var postfix = item.series.id ? ' (' + item.series.id + ')' : '';
+                tooltip.html(item.datapoint[1].toPrecision(4) + postfix);
+                var sectionOffset = $(section).offset();
+                tooltip.css({left: item.pageX - sectionOffset.left - tooltip.outerWidth() / 2, top: item.pageY - sectionOffset.top + 10});
+                tooltip.fadeIn(200);
+            } else
+                tooltip.hide();
+        });
+        plotContainer.mouseout(function () {
+            tooltip.hide();
+        });
+        plotContainer.click(function (event) {
+            event.preventDefault();
+            minIsZero = !minIsZero;
+            attachPlot(test, plotContainer, minIsZero);
+        });
+    }
     return section;
 }
 
-function attachTimePlots(test, container) {
+function attachLinePlots(test, container, useLargeLinePlots) {
     var results = test.results();
     var attachedPlot = false;
+
+    if (useLargeLinePlots) {
+        var maximum = 0;
+        for (var i = 0; i < results.length; i++) {
+            var values = results[i].values();
+            if (!values)
+                continue;
+            var local_max = Math.max.apply(Math, values);
+            if (local_max > maximum)
+                maximum = local_max;
+        }
+    }
+
     for (var i = 0; i < results.length; i++) {
         container.append('<div></div>');
         var values = results[i].values();
@@ -388,12 +441,29 @@ function attachTimePlots(test, container) {
             continue;
         attachedPlot = true;
 
-        $.plot(container.children().last(), [values.map(function (value, index) { return [index, value]; })],
-            $.extend(true, {}, timePlotOptions, {yaxis: {min: Math.min.apply(Math, values) * 0.9, max: Math.max.apply(Math, values) * 1.1},
-                xaxis: {min: -0.5, max: values.length - 0.5}}));
+        if (useLargeLinePlots) {
+            var options = $.extend(true, {}, largeLinePlotOptions,
+                               {yaxis: {min: 0.0, max: maximum},
+                                xaxis: {min: 0.0, max: values.length - 1},
+                                points: {show: (values.length < 2) ? true : false}});
+        } else {
+            var options = $.extend(true, {}, linePlotOptions,
+                               {yaxis: {min: Math.min.apply(Math, values) * 0.9, max: Math.max.apply(Math, values) * 1.1},
+                                xaxis: {min: -0.5, max: values.length - 0.5},
+                                points: {show: (values.length < 2) ? true : false}});
+        }
+        $.plot(container.children().last(), [values.map(function (value, index) { return [index, value]; })], options);
     }
     if (!attachedPlot)
         container.children().remove();
+}
+
+function attachLinePlotLabels(test, container) {
+    var results = test.results();
+    var attachedPlot = false;
+    for (var i = 0; i < results.length; i++) {
+        container.append('<div>' + results[i].run().label() + '</div>');
+    }
 }
 
 function attachPlot(test, plotContainer, minIsZero) {
@@ -430,7 +500,7 @@ function formatPercentage(fraction) {
     return (fraction * 100).toFixed(2) + '%';
 }
 
-function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
+function createTable(tests, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots) {
     $('#container').html('<thead><tr><th class="headerSortDown">Test</th><th>Unit</th>' + runs.map(function (run, index) {
          return '<th colspan="' + (index == referenceIndex ? 2 : 3) + '" class="{sorter: \'comparison\'}" id="' + run.id() + '" title="' + run.description() + '"><span class="label" title="Edit run label">' + run.label() + '</span><div class="closeButton" title="Delete run">x</div></th>';
     }).reduce(function (markup, cell) { return markup + cell; }, '') + '</tr></head><tbody></tbody>');
@@ -444,7 +514,7 @@ function createTable(tests, runs, shouldIgnoreMemory, referenceIndex) {
     testNames.sort().map(function (testName) {
         var test = tests[testName];
         if (test.isMemoryTest() != shouldIgnoreMemory)
-            createTableRow(runs, test, referenceIndex);
+            createTableRow(runs, test, referenceIndex, useLargeLinePlots);
     });
 
     $('.closeButton').click(function(event) {
@@ -527,7 +597,7 @@ var warningSign = '<svg viewBox="0 0 100 100" style="width: 18px; height: 18px; 
     + '<circle cx="50" cy="73" r="6" fill="white" />'
     + '</svg>';
 
-function createTableRow(runs, test, referenceIndex) {
+function createTableRow(runs, test, referenceIndex, useLargeLinePlots) {
     var tableRow = $('<tr><td class="test collapsed"' + (test.isImportant ? ' style="font-weight:bold"' : '') + '>' + test.name() + '</td><td class="unit">' + test.unit() + '</td></tr>');
 
     function markupForRun(result, referenceResult) {
@@ -602,7 +672,7 @@ function createTableRow(runs, test, referenceIndex) {
             tableRow.children('td').first().addClass('collapsed');
             tableRow.children('td').first().removeClass('expanded');
         } else {
-            var plot = createPlot(firstCell, test);
+            var plot = createPlot(firstCell, test, useLargeLinePlots);
             plot.css({'position': 'absolute', 'z-index': 2});
             var offset = tableRow.offset();
             offset.left += 1;
@@ -675,14 +745,20 @@ function init() {
         addTests(entry.tests);
     });
 
+    var useLargeLinePlots = false;
     var shouldIgnoreMemory= true;
     var referenceIndex = 0;
 
-    createTable(metrics, runs, shouldIgnoreMemory, referenceIndex);
+    createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
 
     $('#time-memory').bind('change', function (event, checkedElement) {
         shouldIgnoreMemory = checkedElement.textContent == 'Time';
-        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex);
+        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
+    });
+
+    $('#scatter-line').bind('change', function (event, checkedElement) {
+        useLargeLinePlots = checkedElement.textContent == 'Line';
+        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
     });
 
     runs.map(function (run, index) {
@@ -691,7 +767,7 @@ function init() {
 
     $('#reference').bind('change', function (event, checkedElement) {
         referenceIndex = parseInt(checkedElement.getAttribute('value'));
-        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex);
+        createTable(metrics, runs, shouldIgnoreMemory, referenceIndex, useLargeLinePlots);
     });
 
     $('.checkbox').each(function (index, checkbox) {
