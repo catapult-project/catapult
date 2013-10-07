@@ -89,10 +89,11 @@ class BuildbotPageMeasurementResults(
             continue
           name_value_map[name].append(value)
         for name in unique_pages:
-          if not len(name_value_map[name]):
+          values = perf_tests_helper.FlattenList(name_value_map[name])
+          if not len(values):
             continue
           self._PrintPerfResult(measurement + '_by_url', name,
-                                name_value_map[name], units, by_name_data_type)
+                                values, units, by_name_data_type)
 
       # If there were no page failures, print the average data.
       # For histograms, we don't print the average data, only the _by_name,

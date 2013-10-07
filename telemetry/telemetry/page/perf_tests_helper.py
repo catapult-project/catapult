@@ -10,6 +10,8 @@ util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util', 'lib',
 import perf_tests_results_helper  # pylint: disable=F0401
 
 
+FlattenList = \
+    perf_tests_results_helper.FlattenList
 GeomMeanAndStdDevFromHistogram = \
     perf_tests_results_helper.GeomMeanAndStdDevFromHistogram
 PrintPerfResult = \
