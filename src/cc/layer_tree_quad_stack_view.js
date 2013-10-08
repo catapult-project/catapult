@@ -14,6 +14,7 @@ base.requireStylesheet('cc.layer_tree_quad_stack_view');
 base.require('base.color');
 base.require('base.properties');
 base.require('base.raf');
+base.require('base.range');
 base.require('cc.constants');
 base.require('cc.picture');
 base.require('cc.tile');
@@ -453,7 +454,11 @@ base.exportTo('cc', function() {
           tiles.push(tile);
       }
 
-      var heatmapColors = this.computeHeatmapColors_(tiles, heatmapType);
+      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      var minMax =
+          this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
+      var heatmapColors =
+          this.computeHeatmapColors_(tiles, minMax, heatmapType);
       var heatIndex = 0;
 
       for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
@@ -489,30 +494,46 @@ base.exportTo('cc', function() {
     },
 
     getValueForHeatmap_: function(tile, heatmapType) {
-      if (heatmapType == TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY)
-        return tile.scheduledPriority;
-      else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE)
+      if (heatmapType == TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY) {
+        return tile.scheduledPriority == 0 ?
+            undefined :
+            tile.scheduledPriority;
+      } else if (heatmapType == TILE_HEATMAP_TYPE.DISTANCE_TO_VISIBLE) {
         return tile.distanceToVisible;
-      else if (heatmapType == TILE_HEATMAP_TYPE.TIME_TO_VISIBLE)
-        return tile.timeToVisible;
-      else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY)
-        return tile.hasResource ? 0 : 1;
+      } else if (heatmapType == TILE_HEATMAP_TYPE.TIME_TO_VISIBLE) {
+        return Math.min(5, tile.timeToVisible);
+      } else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
+        if (tile.isSolidColor)
+          return 0.5;
+        return tile.isUsingGpuMemory ? 0 : 1;
+      }
     },
 
-    computeHeatmapColors_: function(tiles, heatmapType) {
-      var maxValue = 0;
-      for (var i = 0; i < tiles.length; ++i) {
-        var tile = tiles[i];
-        var value = this.getValueForHeatmap_(tile, heatmapType);
-        if (value !== undefined)
-          maxValue = Math.max(value, maxValue);
+    getMinMaxForHeatmap_: function(tiles, heatmapType) {
+      var range = new base.Range();
+      if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
+        range.addValue(0);
+        range.addValue(1);
+        return range;
       }
 
-      if (maxValue == 0)
-        maxValue = 1;
+      for (var i = 0; i < tiles.length; ++i) {
+        var value = this.getValueForHeatmap_(tiles[i], heatmapType);
+        if (value == undefined)
+          continue;
+        range.addValue(value);
+      }
+      if (range.range == 0)
+        range.addValue(1);
+      return range;
+    },
+
+    computeHeatmapColors_: function(tiles, minMax, heatmapType) {
+      var min = minMax.min;
+      var max = minMax.max;
 
       var color = function(value) {
-        var hue = 120 * (1 - value / maxValue);
+        var hue = 120 * (1 - (value - min) / (max - min));
         if (hue < 0)
           hue = 0;
         return 'hsla(' + hue + ', 100%, 50%, 0.5)';
@@ -550,8 +571,10 @@ base.exportTo('cc', function() {
         tiles.push(tile);
       }
 
+      var minMax =
+          this.getMinMaxForHeatmap_(lthi.tiles, heatmapType);
       var heatmapColors =
-          this.computeHeatmapColors_(tiles, heatmapType);
+          this.computeHeatmapColors_(tiles, minMax, heatmapType);
 
       for (var i = 0; i < tiles.length; ++i) {
         var tile = tiles[i];

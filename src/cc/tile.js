@@ -33,6 +33,7 @@ base.exportTo('cc', function() {
       if (this.args.managedState) {
         this.resolution = this.args.managedState.resolution;
         this.isSolidColor = this.args.managedState.isSolidColor;
+        this.isUsingGpuMemory = this.args.managedState.isUsingGpuMemory;
         this.hasResource = this.args.managedState.hasResource;
         this.scheduledPriority = this.args.managedState.scheduledPriority;
         this.distanceToVisible =
@@ -41,6 +42,7 @@ base.exportTo('cc', function() {
       } else {
         this.resolution = 'HIGH_RESOLUTION';
         this.isSolidColor = false;
+        this.isUsingGpuMemory = false;
         this.hasResource = false;
         this.scheduledPriority = undefined;
         this.distanceToVisible = undefined;
