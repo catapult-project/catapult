@@ -17,6 +17,7 @@ try:
   from pylib import constants  # pylint: disable=F0401
   from pylib import forwarder  # pylint: disable=F0401
   from pylib import ports  # pylint: disable=F0401
+  from pylib.utils import apk_helper # #pylint: disable=F0401
 except Exception:
   android_commands = None
 
@@ -106,6 +107,23 @@ class AdbCommands(object):
       that process will be inserted to the front of the pid list.
     """
     return self._adb.ExtractPid(process_name)
+
+  def Install(self, apk_path):
+    """Installs specified package if necessary.
+
+    Args:
+      apk_path: Path to .apk file to install.
+    """
+
+    if (os.path.exists(os.path.join(
+        constants.GetOutDirectory('Release'), 'md5sum_bin_host'))):
+      constants.SetBuildType('Release')
+    elif (os.path.exists(os.path.join(
+        constants.GetOutDirectory('Debug'), 'md5sum_bin_host'))):
+      constants.SetBuildType('Debug')
+
+    apk_package_name = apk_helper.GetPackageName(apk_path)
+    return self._adb.ManagedInstall(apk_path, package_name=apk_package_name)
 
   def StartActivity(self, package, activity, wait_for_completion=False,
                     action='android.intent.action.VIEW',

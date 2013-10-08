@@ -158,10 +158,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise browser_backend.ExtensionsNotSupportedException(
           'Android browser does not support extensions.')
 
-    from telemetry.core.backends.chrome import chrome_browser_options
-    assert isinstance(browser_options,
-                      chrome_browser_options.AndroidBrowserOptions)
-
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
