@@ -103,6 +103,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
   def GetMemoryStats(self, pid):
     memory_usage = self._adb.GetMemoryUsageForPid(pid)[0]
     return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
+            'SharedDirty': memory_usage['Shared_Dirty'] * 1024,
             'PrivateDirty': memory_usage['Private_Dirty'] * 1024}
 
   def GetIOStats(self, pid):
