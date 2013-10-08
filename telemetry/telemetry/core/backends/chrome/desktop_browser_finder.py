@@ -58,6 +58,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
+  def UpdateExecutableIfNeeded(self):
+    pass
+
   @property
   def last_modification_time(self):
     if os.path.exists(self._local_executable):

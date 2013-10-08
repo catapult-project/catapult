@@ -53,6 +53,9 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
+  def UpdateExecutableIfNeeded(self):
+    pass
+
   @property
   def last_modification_time(self):
     return -1

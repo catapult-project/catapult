@@ -102,7 +102,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def HaveLocalAPK(self):
     return self._local_apk and os.path.exists(self._local_apk)
 
-  def UpdateDeviceAPK(self):
+  def UpdateExecutableIfNeeded(self):
     if self.HaveLocalAPK():
       real_logging.warn(
           'Refreshing %s on device if needed.' % self._local_apk)
@@ -119,7 +119,6 @@ def SelectDefaultBrowser(possible_browsers):
 
   if local_builds_by_date:
     newest_browser = local_builds_by_date[-1]
-    newest_browser.UpdateDeviceAPK()
     return newest_browser
   return None
 

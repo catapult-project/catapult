@@ -48,6 +48,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
+  def UpdateExecutableIfNeeded(self):
+    pass
+
 def SelectDefaultBrowser(possible_browsers):
   if cros_interface.IsRunningOnCrosDevice():
     for b in possible_browsers:
