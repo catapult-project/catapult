@@ -12,8 +12,10 @@ base.requireStylesheet('ui.quad_stack_view');
 
 base.requireTemplate('ui.quad_stack_view');
 
+base.require('base.gl_matrix');
 base.require('base.raf');
 base.require('base.rect');
+base.require('base.settings');
 base.require('ui.camera');
 base.require('ui.mouse_mode_selector');
 base.require('ui.mouse_tracker');
