@@ -182,7 +182,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return 'win'
 
   def GetOSVersionName(self):
-    os_version = platform.uname()[2]
+    os_version = platform.uname()[3]
 
     if os_version.startswith('5.1.'):
       return 'xp'
