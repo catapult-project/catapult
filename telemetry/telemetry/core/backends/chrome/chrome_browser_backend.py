@@ -194,7 +194,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._chrome_branch_number = 1025
 
   def Request(self, path, timeout=None, throw_network_exception=False):
-    url = 'http://localhost:%i/json' % self._port
+    url = 'http://127.0.0.1:%i/json' % self._port
     if path:
       url += '/' + path
     try:
