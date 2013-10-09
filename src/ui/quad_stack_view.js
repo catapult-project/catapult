@@ -12,7 +12,9 @@ base.requireStylesheet('ui.quad_stack_view');
 
 base.requireTemplate('ui.quad_stack_view');
 
+base.require('base.bbox2');
 base.require('base.gl_matrix');
+base.require('base.quad');
 base.require('base.raf');
 base.require('base.rect');
 base.require('base.settings');
@@ -461,7 +463,7 @@ base.exportTo('ui', function() {
           this.deviceRect_.width,
           this.deviceRect_.height + offsetY);
       var chromeQuad = base.Quad.fromRect(chromeRect);
-      chromeQuad.stackingGroupId = this.maxStachingGroupId_ + 1;
+      chromeQuad.stackingGroupId = this.maxStackingGroupId_ + 1;
       chromeQuad.imageData = chromeCtx.getImageData(
           0, 0, chromeCanvas.width, chromeCanvas.height);
       chromeQuad.shadowOffset = [0, 0];
@@ -494,7 +496,7 @@ base.exportTo('ui', function() {
       var quadStacks = [];
       for (var i = 0; i < this.quads_.length; ++i) {
         var quad = this.quads_[i];
-        var stackingId = quad.stackingGroupId;
+        var stackingId = quad.stackingGroupId || 0;
         while (stackingId >= quadStacks.length)
           quadStacks.push([]);
 
@@ -517,7 +519,7 @@ base.exportTo('ui', function() {
         mat4.multiply(mvp, p, mv);
       }
 
-      if (includeChromeQuad) {
+      if (includeChromeQuad && this.deviceRect_) {
         transformAndProcessQuads(mvp, viewport, [this.chromeQuad],
                                  numPasses, drawProjectedQuadToContext,
                                  opt_arg1, opt_arg2);
