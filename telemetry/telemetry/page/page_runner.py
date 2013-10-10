@@ -87,6 +87,14 @@ class _RunState(object):
       while len(self.browser.tabs) > 1:
         self.browser.tabs[-1].Close()
 
+      # Must wait for tab to commit otherwise it can commit after the next
+      # navigation has begun and RenderViewHostManager::DidNavigateMainFrame()
+      # will cancel the next navigation because it's pending. This manifests as
+      # the first navigation in a PageSet freezing indefinitly because the
+      # navigation was silently cancelled when |self.browser.tabs[0]| was
+      # committed.
+      self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+
     if not self.tab:
       self.tab = self.browser.tabs[0]
 

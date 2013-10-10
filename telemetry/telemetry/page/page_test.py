@@ -142,7 +142,11 @@ class PageTest(object):
     pass
 
   def WillNavigateToPage(self, page, tab):
-    """Override to do operations before the page is navigated."""
+    """Override to do operations before the page is navigated, notably Telemetry
+    will already have performed the following operations on the browser before
+    calling this function:
+    * Ensure only one tab is open.
+    * Call WaitForDocumentReadyStateToComplete on the tab."""
     pass
 
   def DidNavigateToPage(self, page, tab):
