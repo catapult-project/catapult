@@ -9,8 +9,8 @@ import sys
 import time
 import traceback
 import base64
-from build import generate_deps_js_contents as deps_generator
-from build import generate_template_contents as template_generator
+from build import parse_deps
+from build import generate
 
 import SocketServer
 import SimpleHTTPServer
@@ -23,6 +23,26 @@ toplevel_dir = os.path.abspath(os.path.dirname(__file__))
 src_dir = os.path.join(toplevel_dir, 'src')
 test_data_dir = os.path.join(toplevel_dir, 'test_data')
 skp_data_dir = os.path.join(toplevel_dir, 'skp_data')
+
+def find_all_js_module_filenames(search_paths):
+  all_filenames = []
+
+  def ignored(x):
+    if os.path.basename(x).startswith('.'):
+      return True
+    if os.path.splitext(x)[1] != ".js":
+      return True
+    return False
+
+  for search_path in search_paths:
+    for dirpath, dirnames, filenames in os.walk(search_path):
+      for f in filenames:
+        x = os.path.join(dirpath, f)
+        if ignored(x):
+          continue
+        all_filenames.append(os.path.relpath(x, search_path))
+
+  return all_filenames
 
 class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def __init__(self, *args, **kwargs):
@@ -104,25 +124,19 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.wfile.write(b64_file)
 
   def do_GET_deps(self):
-    current_time = time.time()
-    if self.server.next_deps_check < current_time:
-      self.log_message('Regenerating ' + self.path)
-      try:
-        self.server.deps = deps_generator.generate_deps_js()
-      except Exception, ex:
-        msg = json.dumps({"details": traceback.format_exc(),
-                          "message": ex.message});
-        self.log_error('While parsing deps: %s', ex.message)
-        self.send_response(500)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Cache-Control', 'no-cache')
-        self.send_header('Content-Length', len(msg))
-        self.end_headers()
-        self.wfile.write(msg)
-        return
-
-      self.server.next_deps_check = current_time + DEPS_CHECK_DELAY
-
+    try:
+      self.server.update_deps_and_templates()
+    except Exception, ex:
+      msg = json.dumps({"details": traceback.format_exc(),
+                        "message": ex.message});
+      self.log_error('While parsing deps: %s', ex.message)
+      self.send_response(500)
+      self.send_header('Content-Type', 'application/json')
+      self.send_header('Cache-Control', 'no-cache')
+      self.send_header('Content-Length', len(msg))
+      self.end_headers()
+      self.wfile.write(msg)
+      return
     self.send_response(200)
     self.send_header('Content-Type', 'application/javascript')
     self.send_header('Content-Length', len(self.server.deps))
@@ -130,13 +144,12 @@ class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.wfile.write(self.server.deps)
 
   def do_GET_templates(self):
-    templates = template_generator.generate_templates()
-
+    self.server.update_deps_and_templates()
     self.send_response(200)
     self.send_header('Content-Type', 'text/html')
-    self.send_header('Content-Length', len(templates))
+    self.send_header('Content-Length', len(self.server.templates))
     self.end_headers()
-    self.wfile.write(templates)
+    self.wfile.write(self.server.templates)
 
   def do_GET(self):
     if self.path == '/json/examples':
@@ -181,6 +194,19 @@ class Server(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     BaseHTTPServer.HTTPServer.__init__(self, *args, **kwargs)
     self.next_deps_check = -1
     self.deps = None
+
+  def update_deps_and_templates(self):
+    current_time = time.time()
+    if self.next_deps_check >= current_time:
+      return
+    print 'Regenerating deps and templates'
+    all_js_module_filenames = find_all_js_module_filenames([src_dir])
+    load_sequence = parse_deps.calc_load_sequence(
+        all_js_module_filenames, [src_dir])
+    self.deps = generate.generate_deps_js(load_sequence)
+    self.templates = generate.generate_html_for_combined_templates(
+        load_sequence)
+    self.next_deps_check = current_time + DEPS_CHECK_DELAY
 
 def Main(args):
   parser = optparse.OptionParser()

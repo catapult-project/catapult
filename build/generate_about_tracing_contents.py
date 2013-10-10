@@ -5,14 +5,13 @@
 
 import errno
 import optparse
-import parse_deps
 import sys
 import os
 
-import generate_template_contents as template_generator
-from generate_template_contents import generate_templates
+import parse_deps
+import generate
 
-srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
 html_warning_message = """
 
@@ -39,51 +38,14 @@ js_warning_message = """/**
 */
 """
 
-def generate_html(outdir):
-  f = open(os.path.join(srcdir, "about_tracing.html.template"), 'r')
-  template = f.read()
-  f.close()
+def generate_html(outdir, load_sequence):
+  return generate.generate_standalone_html_file(
+    load_sequence,
+    title='chrome://tracing',
+    flattened_js_url='chrome://tracing/tracing.js')
 
-  assert template.find("<WARNING_MESSAGE></WARNING_MESSAGE>") != -1
-  assert template.find("<STYLE_SHEET_CONTENTS></STYLE_SHEET_CONTENTS>") != -1
-  assert template.find("<TEMPLATE_CONTENTS></TEMPLATE_CONTENTS>") != -1
-
-  filenames = [os.path.join(srcdir, x) for x in ["base.js", "about_tracing/profiling_view.js"]]
-
-  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
-
-  style_sheet_contents = ""
-  for module in load_sequence:
-    for style_sheet in module.style_sheets:
-      rel_filename = os.path.relpath(style_sheet.filename, outdir)
-      link_tag = """<link rel="stylesheet" href="%s">\n""" % rel_filename
-      style_sheet_contents += link_tag
-
-  template_contents = generate_templates()
-
-  result = template
-  result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>",
-      html_warning_message)
-  result = result.replace("<STYLE_SHEET_CONTENTS></STYLE_SHEET_CONTENTS>",
-      style_sheet_contents)
-  result = result.replace("<TEMPLATE_CONTENTS></TEMPLATE_CONTENTS>",
-      template_contents)
-
-  return result
-
-def generate_js(outdir):
-  f = open(os.path.join(srcdir, "about_tracing.js.template"), 'r')
-  template = f.read()
-  f.close()
-
-  assert template.find("<WARNING_MESSAGE></WARNING_MESSAGE>") != -1
-  assert template.find("<SCRIPT_CONTENTS></SCRIPT_CONTENTS>") != -1
-
-  filenames = [os.path.join(srcdir, x) for x in ["base.js", "about_tracing/profiling_view.js"]]
-
-  import parse_deps
-  load_sequence = parse_deps.calc_load_sequence(filenames, srcdir)
-  script_contents = ""
+def generate_js(outdir, load_sequence):
+  script_contents = js_warning_message
   script_contents += "window.FLATTENED = {};\n"
   script_contents += "window.FLATTENED_RAW_SCRIPTS = {};\n"
   for module in load_sequence:
@@ -101,13 +63,7 @@ def generate_js(outdir):
     rel_filename = os.path.relpath(module.filename, outdir)
     script_contents += """<include src="%s">\n""" % rel_filename
 
-
-  result = template
-  result = result.replace("<WARNING_MESSAGE></WARNING_MESSAGE>",
-                          js_warning_message)
-  result = result.replace("<SCRIPT_CONTENTS></SCRIPT_CONTENTS>", script_contents)
-
-  return result
+  return script_contents
 
 def main(args):
   parser = optparse.OptionParser(usage="%prog --outdir=<directory>")
@@ -120,10 +76,13 @@ def main(args):
     parser.print_help()
     return 1
 
+  filenames = ["base.js", "about_tracing.js"]
+  load_sequence = parse_deps.calc_load_sequence(filenames, [src_dir])
+
   olddir = os.getcwd()
   try:
     try:
-      result_html = generate_html(options.out_dir)
+      result_html = generate_html(options.out_dir, load_sequence)
     except parse_deps.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
@@ -132,7 +91,7 @@ def main(args):
     o.write(result_html)
     o.close()
 
-    result_js = generate_js(options.out_dir)
+    result_js = generate_js(options.out_dir, load_sequence)
     o = open(os.path.join(options.out_dir, "about_tracing.js"), 'w')
     o.write(result_js)
     o.close()

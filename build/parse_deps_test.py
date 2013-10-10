@@ -7,7 +7,7 @@ import unittest
 import parse_deps
 import os
 
-srcdir = os.path.join(os.path.dirname(__file__), '../src')
+src_dir = os.path.join(os.path.dirname(__file__), '../src')
 
 class JSStripTests(unittest.TestCase):
   def test_tokenize_0(self):
@@ -74,11 +74,13 @@ class ParseTests(unittest.TestCase):
 base.require('dependency1');
 base.require('dependency2');
 base.requireStylesheet('myStylesheet');
+base.requireTemplate('myTemplate');
 """
     module = parse_deps.Module('myModule')
     stripped_text = parse_deps._strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals(['myStylesheet'], module.style_sheet_names);
+    self.assertEquals(['myTemplate'], module.html_template_names);
     self.assertEquals(['dependency1', 'dependency2'],
                       module.dependent_module_names);
 
@@ -263,44 +265,41 @@ class FlattenTests(unittest.TestCase):
 class ResourceFinderTest(unittest.TestCase):
   def test_basic(self):
 
-    resource_finder = parse_deps.ResourceFinder(srcdir)
+    resource_finder = parse_deps.ResourceFinder([src_dir])
     module = parse_deps.Module('guid')
-    module.load_and_parse(os.path.join(srcdir, 'base', 'guid.js'))
+    module.load_and_parse(os.path.join(src_dir, 'base', 'guid.js'))
     filename, contents = resource_finder.find_and_load_module(module, 'base')
 
-    self.assertTrue(os.path.samefile(filename, os.path.join(srcdir, 'base.js')))
+    self.assertTrue(os.path.samefile(filename,
+                                     os.path.join(src_dir, 'base.js')))
     expected_contents = ''
-    with open(os.path.join(srcdir, 'base.js')) as f:
+    with open(os.path.join(src_dir, 'base.js')) as f:
       expected_contents = f.read()
     self.assertEquals(contents, expected_contents)
 
   def test_dependency_in_subdir(self):
-    resource_finder = parse_deps.ResourceFinder(srcdir)
+    resource_finder = parse_deps.ResourceFinder([src_dir])
     module = parse_deps.Module('base.guid')
-    module.load_and_parse(os.path.join(srcdir, 'base', 'guid.js'))
+    module.load_and_parse(os.path.join(src_dir, 'base', 'guid.js'))
     filename, contents = resource_finder.find_and_load_module(
         module, 'tracing.tracks.track')
 
     assert filename
 
     self.assertTrue(os.path.samefile(filename, os.path.join(
-      srcdir, 'tracing', 'tracks', 'track.js')))
+      src_dir, 'tracing', 'tracks', 'track.js')))
     expected_contents = ''
-    with open(os.path.join(srcdir, 'tracing', 'tracks', 'track.js')) as f:
+    with open(os.path.join(src_dir, 'tracing', 'tracks', 'track.js')) as f:
       expected_contents = f.read()
     self.assertEquals(contents, expected_contents)
 
 
 class CalcLoadSequenceTest(unittest.TestCase):
   def test_one_toplevel_nodeps(self):
-    load_sequence = parse_deps.calc_load_sequence(
-      [os.path.join(srcdir, 'base', 'guid.js')], srcdir)
+    load_sequence = parse_deps.calc_load_sequence_internal(
+      [os.path.join('base', 'guid.js')], [src_dir])
     name_sequence = [x.name for x in load_sequence]
     self.assertEquals(['base.guid'], name_sequence)
-
-  # Tests that we resolve deps between toplevels.
-  def test_calc_load_sequence_two_toplevels(self):
-    pass
 
 if __name__ == '__main__':
   unittest.main()

@@ -8,7 +8,6 @@ GYP_FILE = "trace_viewer.gyp"
 FILE_GROUPS = ["tracing_html_files",
     "tracing_css_files",
     "tracing_js_files",
-    "tracing_template_files",
     "tracing_img_files"]
 
 def GypCheck():

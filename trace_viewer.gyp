@@ -4,10 +4,6 @@
 
 {
   'variables': {
-    'tracing_template_files': [
-      'src/about_tracing.html.template',
-      'src/about_tracing.js.template',
-    ],
     'tracing_html_files': [
       'src/tracing/record_selection_dialog.html',
       'src/tracing/timeline_view.html',
@@ -21,6 +17,7 @@
     ],
     'tracing_css_files': [
       'src/base/unittest.css',
+      'src/about_tracing.css',
       'src/about_tracing/tracing_controller.css',
       'src/about_tracing/profiling_view.css',
       'src/ui/info_bar.css',
@@ -93,6 +90,7 @@
       'src/base/event_target.js',
       'src/base/iteration_helpers.js',
       'src/base/interval_tree.js',
+      'src/about_tracing.js',
       'src/about_tracing/profiling_view.js',
       'src/about_tracing/tracing_controller.js',
       'src/ui.js',
@@ -257,7 +255,6 @@
       'src/images/ui-states.png',
     ],
     'tracing_files': [
-      '<@(tracing_template_files)',
       '<@(tracing_html_files)',
       '<@(tracing_css_files)',
       '<@(tracing_js_files)',

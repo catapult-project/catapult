@@ -8,7 +8,7 @@ base.require('base.utils');
 base.require('tracing.analysis.slice_view');
 base.require('tracing.analysis.util');
 base.require('tracing.analysis.analysis_link');
-base.requireTemplate('tracing.analysis.slice_view');
+base.requireTemplate('tracing.analysis.cpu_slice_view');
 
 base.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;

@@ -11,7 +11,7 @@ base.require('tracing.analysis.slice_view');
 base.require('tracing.analysis.util');
 base.require('tracing.analysis.analysis_link');
 base.require('tracing.color_scheme');
-base.requireTemplate('tracing.analysis.slice_view');
+base.requireTemplate('tracing.analysis.thread_time_slice_view');
 
 base.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;

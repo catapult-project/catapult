@@ -26,6 +26,15 @@ which is, based on the dependencies, the correct sequence in which to load
 those modules.
 """
 
+class ResolvedFile(object):
+  def __init__(self, toplevel_dir, absolute_path):
+    self.toplevel_dir = toplevel_dir
+    self.absolute_path = absolute_path
+
+  @property
+  def relative_path(self):
+    return os.path.relpath(self.absolute_path, self.toplevel_dir)
+
 class ResourceFinder(object):
   """Helper code for finding a module given a name and current module.
 
@@ -34,18 +43,37 @@ class ResourceFinder(object):
   code is responsible for figuring out what filename corresponds to 'bar' given
   a Module('foo').
   """
-  def __init__(self, root_dir):
-    self._root_dir = root_dir
-    pass
+  def __init__(self, search_paths):
+    assert isinstance(search_paths, list)
+    self._search_paths = [os.path.abspath(path) for path in search_paths]
 
   @property
-  def root_dir(self):
-    return self._root_dir
+  def search_paths(self):
+    return self._search_paths
 
-  def _find_and_load_filename(self, absolute_path):
+  def resolve(self, some_path):
+    if os.path.isabs(some_path):
+      return self.resolve_absolute(some_path)
+    else:
+      return self.resolve_relative(some_path)
+
+  def resolve_absolute(self, absolute_path):
+    for search_path in self._search_paths:
+      if abspath.startswith(search_path):
+        return ResolvedFile(search_path, absolute_path)
+    return None
+
+  def resolve_relative(self, filename):
+    absolute_path = None
+    for search_path in self._search_paths:
+      absolute_path = os.path.join(search_path, filename)
+      if os.path.exists(absolute_path):
+        return ResolvedFile(search_path, absolute_path)
+    return None
+
+  def _read_file(self, absolute_path):
     if not os.path.exists(absolute_path):
-      return None, None
-
+      raise Exception('%s not found' % absolute_path)
     f = open(absolute_path, 'r')
     contents = f.read()
     f.close()
@@ -56,21 +84,28 @@ class ResourceFinder(object):
     assert current_module.filename
     pathy_name = requested_name.replace(".", os.sep)
     filename = pathy_name + extension
-    absolute_path = os.path.join(self._root_dir, filename)
-    return self._find_and_load_filename(absolute_path)
+
+    resolved = self.resolve_relative(filename)
+    if not resolved:
+      return None, None
+    return self._read_file(resolved.absolute_path)
 
   def find_and_load_module(self, current_module, requested_module_name):
     return self._find_and_load(current_module, requested_module_name, ".js")
 
   def find_and_load_raw_script(self, current_module, filename):
-    absolute_path = os.path.join(self._root_dir, filename)
-    return self._find_and_load_filename(absolute_path)
+    resolved = self.resolve_relative(filename)
+    return self._read_file(resolved.absolute_path)
 
   def find_and_load_style_sheet(self,
                                 current_module, requested_style_sheet_name):
     return self._find_and_load(
       current_module, requested_style_sheet_name, ".css")
 
+  def find_and_load_html_template(self,
+                                  current_module, requested_html_template_name):
+    return self._find_and_load(
+      current_module, requested_html_template_name, ".html")
 
 class StyleSheet(object):
   """Represents a stylesheet resource referenced by a module via the
@@ -82,6 +117,17 @@ class StyleSheet(object):
 
   def __repr__(self):
     return "StyleSheet(%s)" % self.name
+
+class HTMLTemplate(object):
+  """Represents an html template resource referenced by a module via the
+  base.requireTemplate(xxx) directive."""
+  def __init__(self, name, filename, contents):
+    self.name = name
+    self.filename = filename
+    self.contents = contents
+
+  def __repr__(self):
+    return "HTMLTemplate(%s)" % self.name
 
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
@@ -179,6 +225,8 @@ class Module(object):
     self.dependent_raw_scripts = []
     self.style_sheet_names = []
     self.style_sheets = []
+    self.html_template_names = []
+    self.html_templates = []
 
   def __repr__(self):
     return "Module(%s)" % self.name
@@ -202,6 +250,8 @@ class Module(object):
       all_resources["scripts"] = {}
     if "style_sheets" not in all_resources:
       all_resources["style_sheets"] = {}
+    if "html_templates" not in all_resources:
+      all_resources["html_templates"] = {}
     if "raw_scripts" not in all_resources:
       all_resources["raw_scripts"] = {}
 
@@ -255,6 +305,22 @@ class Module(object):
       all_resources["style_sheets"][name] = style_sheet
       self.style_sheets.append(style_sheet)
 
+    for name in self.html_template_names:
+      if name in all_resources["html_templates"]:
+        assert all_resources["html_templates"][name].contents
+        self.html_templates.append(all_resources["html_templates"][name])
+        continue
+
+      filename, contents = resource_finder.find_and_load_html_template(
+          self, name)
+      if not filename:
+        raise DepsException(
+            "Could not find a file for html template named %s" % name)
+
+      html_template = HTMLTemplate(name, filename, contents)
+      all_resources["html_templates"][name] = html_template
+      self.html_templates.append(html_template)
+
   def compute_load_sequence_recursive(self, load_sequence, already_loaded_set, depth=0):
     if depth > 32:
       raise Exception('Include loop detected on %s', self.name)
@@ -286,9 +352,11 @@ class Module(object):
                       rest, re.DOTALL)
       m_s = re.search("""base\s*\.\s*requireStylesheet\((["'])(.+?)\\1\)""",
                       rest, re.DOTALL)
+      m_t = re.search("""base\s*\.\s*requireTemplate\((["'])(.+?)\\1\)""",
+                      rest, re.DOTALL)
       m_irs = re.search("""base\s*\.\s*requireRawScript\((["'])(.+?)\\1\)""",
                       rest, re.DOTALL)
-      matches = [m for m in [m_r, m_s, m_irs] if m]
+      matches = [m for m in [m_r, m_s, m_t, m_irs] if m]
 
       # Figure out which was first.
       matches.sort(key=lambda x: x.start())
@@ -317,6 +385,17 @@ class Module(object):
                               "The module system will append that for you" %
                               style_sheet_name)
         self.style_sheet_names.append(style_sheet_name)
+      elif m == m_t:
+        html_template_name = m.group(2)
+        if '/' in html_template_name:
+          raise DepsException("Slashes are not allowed in html template names. "
+                              "Use '.' instead: %s" % html_template_name)
+        if html_template_name.endswith('.html'):
+          raise DepsException(
+              "HTML templates requires should not include extension. "
+              "The module system will append that for you" %
+              html_template_name)
+        self.html_template_names.append(html_template_name)
       elif m == m_irs:
         name = m.group(2)
         self.dependent_raw_script_names.append(name)
@@ -324,31 +403,19 @@ class Module(object):
       rest = rest[m.end():]
 
 
-def calc_load_sequence(filenames, toplevel_dir):
-  """Given a list of starting javascript files, figure out all the Module
-  objects that need to be loaded to satisfiy their dependencies.
-
-  The javascript files shoud specify their dependencies in a format that is
-  textually equivalent to base.js' require syntax, namely:
-
-     base.require(module1);
-     base.require(module2);
-     base.requireStylesheet(stylesheet);
-
-  The output of this function is an array of Module objects ordered by
-  dependency.
-  """
+def calc_load_sequence_internal(filenames, search_paths):
   all_resources = {}
   all_resources["scripts"] = {}
-  resource_finder = ResourceFinder(os.path.abspath(toplevel_dir))
+  resource_finder = ResourceFinder(search_paths)
   initial_module_name_indices = {}
   for filename in filenames:
-    if not os.path.exists(filename):
-      raise Exception("Could not find %s" % filename)
+    resolved = resource_finder.resolve(filename)
+    if not resolved:
+      raise Exception("Could not find %s in %s" % (
+          filename, repr(resource_finder.search_paths)))
 
-    rel_filename = os.path.relpath(filename, toplevel_dir)
-    dirname = os.path.dirname(rel_filename)
-    modname  = os.path.splitext(os.path.basename(rel_filename))[0]
+    dirname = os.path.dirname(resolved.relative_path)
+    modname  = os.path.splitext(os.path.basename(resolved.relative_path))[0]
     if len(dirname):
       name = dirname.replace('/', '.') + '.' + modname
     else:
@@ -359,7 +426,7 @@ def calc_load_sequence(filenames, toplevel_dir):
 
     module = Module(name)
     initial_module_name_indices[module.name] = len(initial_module_name_indices)
-    module.load_and_parse(filename, decl_required = False)
+    module.load_and_parse(resolved.absolute_path, decl_required = False)
     all_resources["scripts"][module.name] = module
     module.resolve(all_resources, resource_finder)
 
@@ -396,3 +463,22 @@ def calc_load_sequence(filenames, toplevel_dir):
   for module in root_modules:
     module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
   return load_sequence
+
+def calc_load_sequence(filenames, search_paths):
+  """Given a list of starting javascript files, figure out all the Module
+  objects that need to be loaded to satisfiy their dependencies.
+
+  The javascript files shoud specify their dependencies in a format that is
+  textually equivalent to base.js' require syntax, namely:
+
+     base.require(module1);
+     base.require(module2);
+     base.requireStylesheet(stylesheet);
+
+  The output of this function is an array of Module objects ordered by
+  dependency.
+  """
+  if 'base.js' not in filenames:
+    filenames = list(filenames)
+    filenames.insert(0, 'base.js')
+  return calc_load_sequence_internal(filenames, search_paths)
