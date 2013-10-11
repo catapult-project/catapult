@@ -170,6 +170,8 @@ def _MatchTestName(input_test_name):
         return True
     return False
 
+  if input_test_name in test_aliases:
+    input_test_name = test_aliases[input_test_name]
   return dict((test_name, test_class)
       for test_name, test_class in _GetTests().iteritems()
       if _Matches(input_test_name, test_name))
@@ -184,6 +186,9 @@ def _PrintTestList(tests):
       print >> sys.stderr, format_string % (test_name, description)
     else:
       print >> sys.stderr, '  %s' % test_name
+
+
+test_aliases = {}
 
 
 def Main():
