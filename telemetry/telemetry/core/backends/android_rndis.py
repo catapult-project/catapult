@@ -36,7 +36,8 @@ class RndisForwarderWithRoot(object):
     """Args:
          adb: an instance of AdbCommands
     """
-    assert adb.IsRootEnabled(), 'Root must be enabled to use RNDIS forwarding.'
+    is_root_enabled = adb.Adb().EnableAdbRoot()
+    assert is_root_enabled, 'RNDIS forwarding could not enable root'
     self._adb = adb.Adb()
 
     self._host_port = 80
