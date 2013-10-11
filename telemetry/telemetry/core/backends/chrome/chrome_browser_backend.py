@@ -160,7 +160,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           return False
       return True
     if wait_for_extensions and self._supports_extensions:
-      util.WaitFor(AllExtensionsLoaded, timeout=30)
+      util.WaitFor(AllExtensionsLoaded, timeout=60)
 
   def _PostBrowserStartupInitialization(self):
     # Detect version information.
