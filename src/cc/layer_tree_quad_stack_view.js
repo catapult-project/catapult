@@ -626,8 +626,10 @@ base.exportTo('cc', function() {
       var quads = [];
       var nextStackingGroupId = 0;
       var alreadyVisitedLayerIds = {};
-      for (var i = 0; i < layers.length; i++) {
-        var layer = layers[i];
+
+      for (var i = 1; i <= layers.length; i++) {
+        // Generate quads back-to-front.
+        var layer = layers[layers.length - i];
         alreadyVisitedLayerIds[layer.layerId] = true;
         if (layer.objectInstance.name == 'cc::NinePatchLayerImpl')
           continue;

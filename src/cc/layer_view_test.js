@@ -17,7 +17,8 @@ base.unittest.testSuite('cc.layer_view', function() {
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     var lthi = instance.snapshots[0];
-    var layer = lthi.activeTree.renderSurfaceLayerList[0];
+    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
     var view = new cc.LayerView();
     view.style.height = '500px';
@@ -33,7 +34,8 @@ base.unittest.testSuite('cc.layer_view', function() {
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     var lthi = instance.snapshots[0];
-    var layer = lthi.activeTree.renderSurfaceLayerList[0];
+    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
     var tile = lthi.tiles[0];
 
     var view = new cc.LayerView();

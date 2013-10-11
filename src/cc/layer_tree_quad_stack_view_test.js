@@ -17,7 +17,8 @@ base.unittest.testSuite('cc.layer_tree_quad_stack_view', function() {
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     var lthi = instance.snapshots[0];
-    var layer = lthi.activeTree.renderSurfaceLayerList[0];
+    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
     var view = new cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
