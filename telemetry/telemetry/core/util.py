@@ -114,7 +114,6 @@ def GetBuildDirectories():
   """Yields all combination of Chromium build output directories."""
   build_dirs = ['build',
                 'out',
-                'sconsbuild',
                 'xcodebuild']
 
   build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64']

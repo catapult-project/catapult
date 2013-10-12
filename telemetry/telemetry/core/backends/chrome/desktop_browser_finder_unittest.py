@@ -73,10 +73,6 @@ class FindLocalBuildsTest(FindTestBase):
     self._files.append('..\\..\\..\\out\\Release\\chrome.exe')
     self.assertTrue('release' in self.DoFindAllTypes())
 
-  def testFindSconsbuild(self):
-    self._files.append('..\\..\\..\\sconsbuild\\Release\\chrome.exe')
-    self.assertTrue('release' in self.DoFindAllTypes())
-
   def testFindXcodebuild(self):
     self._files.append('..\\..\\..\\xcodebuild\\Release\\chrome.exe')
     self.assertTrue('release' in self.DoFindAllTypes())
