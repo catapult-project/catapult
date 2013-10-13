@@ -122,16 +122,19 @@ def GetBuildDirectories():
     for build_type in build_types:
       yield build_dir, build_type
 
-def FindSupportBinary(binary_name):
+def FindSupportBinary(binary_name, executable=True):
   """Returns the path to the given binary name."""
   # TODO(tonyg/dtu): This should support finding binaries in cloud storage.
   command = None
   command_mtime = 0
+  required_mode = os.R_OK
+  if executable:
+    required_mode = os.X_OK
 
   chrome_root = GetChromiumSrcDir()
   for build_dir, build_type in GetBuildDirectories():
     candidate = os.path.join(chrome_root, build_dir, build_type, binary_name)
-    if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+    if os.path.isfile(candidate) and os.access(candidate, required_mode):
       candidate_mtime = os.stat(candidate).st_mtime
       if candidate_mtime > command_mtime:
         command = candidate
