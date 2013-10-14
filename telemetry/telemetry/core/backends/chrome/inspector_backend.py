@@ -330,15 +330,13 @@ class InspectorBackend(object):
     # This is a hack to make the nested function be able to modify the
     # variables.
     snapshot_uid = [0]
-    snapshot = [[]]
+    snapshot = []
 
     def OnNotification(res):
       if res['method'] == 'HeapProfiler.addProfileHeader':
         snapshot_uid[0] = res['params']['header']['uid']
       elif res['method'] == 'HeapProfiler.addHeapSnapshotChunk':
-        snapshot[0].append(res['params']['chunk'])
-      elif res['method'] == 'HeapProfiler.finishHeapSnapshot':
-        snapshot[0] = ''.join(snapshot[0])
+        snapshot.append(res['params']['chunk'])
 
     def OnClose():
       pass
@@ -348,10 +346,10 @@ class InspectorBackend(object):
     self.SyncRequest({'method': 'Page.getResourceTree'}, timeout)
     self.SyncRequest({'method': 'Debugger.enable'}, timeout)
     self.SyncRequest({'method': 'HeapProfiler.clearProfiles'}, timeout)
-    self.SyncRequest({'method': 'HeapProfiler.takeHeapSnapshot',
-                      'params': {'detailed': True}}, timeout)
+    self.SyncRequest({'method': 'HeapProfiler.takeHeapSnapshot'}, timeout)
     self.SyncRequest({'method': 'HeapProfiler.getHeapSnapshot',
                       'params': {'uid': snapshot_uid[0]}}, timeout)
+    snapshot = ''.join(snapshot)
 
     self.UnregisterDomain('HeapProfiler')
-    return model.Model(snapshot[0])
+    return model.Model(snapshot)
