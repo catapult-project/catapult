@@ -12,6 +12,9 @@ VENDOR_NVIDIA = 0x10DE
 VENDOR_AMD = 0x1002
 VENDOR_INTEL = 0x8086
 
+VENDOR_STRING_IMAGINATION = 'Imagination Technologies'
+DEVICE_STRING_SGX = 'PowerVR SGX 554'
+
 class StubPlatform(object):
   def __init__(self, os_name, os_version_name=None):
     self.os_name = os_name
@@ -24,14 +27,14 @@ class StubPlatform(object):
     return self.os_version_name
 
 class StubBrowser(object):
-  def __init__(self, platform, gpu, device):
+  def __init__(self, platform, gpu, device, vendor_string, device_string):
     self.platform = platform
     self.system_info = system_info.SystemInfo.FromDict({
       'model_name': '',
       'gpu': {
         'devices': [
           { 'vendor_id': gpu, 'device_id': device,
-            'vendor_string': '', 'device_string': '' },
+            'vendor_string': vendor_string, 'device_string': device_string },
         ]
       }
     })
@@ -53,15 +56,17 @@ class SampleTestExpectations(test_expectations.TestExpectations):
     self.Fail('page6.html', ['nvidia', 'intel'], bug=123)
     self.Fail('page7.html', [('nvidia', 0x1001), ('nvidia', 0x1002)], bug=123)
     self.Fail('page8.html', ['win', 'intel', ('amd', 0x1001)], bug=123)
+    self.Fail('page9.html', ['imagination'])
+    self.Fail('page10.html', [('imagination', 'PowerVR SGX 554')])
 
 class TestExpectationsTest(unittest.TestCase):
   def setUp(self):
     self.expectations = SampleTestExpectations()
 
-  def assertExpectationEquals(self, expected, page, platform='', gpu='',
-      device=0):
+  def assertExpectationEquals(self, expected, page, platform='', gpu=0,
+      device=0, vendor_string='', device_string=''):
     result = self.expectations.GetExpectationForPage(StubBrowser(platform, gpu,
-        device), page)
+        device, vendor_string, device_string), page)
     self.assertEquals(expected, result)
 
   # Pages with no expectations should always return 'pass'
@@ -148,3 +153,31 @@ class TestExpectationsTest(unittest.TestCase):
         StubPlatform('mac'), VENDOR_AMD, 0x1001)
     self.assertExpectationEquals('pass', page,
         StubPlatform('win'), VENDOR_AMD, 0x1002)
+
+  # Pages with expectations based on GPU vendor string.
+  def testGpuVendorStringExpectations(self):
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page9.html', ps)
+    self.assertExpectationEquals('fail', page,
+                                 vendor_string=VENDOR_STRING_IMAGINATION,
+                                 device_string=DEVICE_STRING_SGX)
+    self.assertExpectationEquals('fail', page,
+                                 vendor_string=VENDOR_STRING_IMAGINATION,
+                                 device_string='Triangle Monster 3000')
+    self.assertExpectationEquals('pass', page,
+                                 vendor_string='Acme',
+                                 device_string=DEVICE_STRING_SGX)
+
+  # Pages with expectations based on GPU vendor and renderer string pairs.
+  def testGpuDeviceStringExpectations(self):
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page10.html', ps)
+    self.assertExpectationEquals('fail', page,
+                                 vendor_string=VENDOR_STRING_IMAGINATION,
+                                 device_string=DEVICE_STRING_SGX)
+    self.assertExpectationEquals('pass', page,
+                                 vendor_string=VENDOR_STRING_IMAGINATION,
+                                 device_string='Triangle Monster 3000')
+    self.assertExpectationEquals('pass', page,
+                                 vendor_string='Acme',
+                                 device_string=DEVICE_STRING_SGX)
