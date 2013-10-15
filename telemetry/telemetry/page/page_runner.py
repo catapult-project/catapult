@@ -240,9 +240,6 @@ def Run(test, page_set, expectations, finder_options):
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(finder_options)
-  if finder_options.profiler:
-    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
-    profiler_class.CustomizeBrowserOptions(finder_options)
   try:
     possible_browser = browser_finder.FindBrowser(finder_options)
   except browser_finder.BrowserTypeRequiredException, e:
@@ -276,6 +273,10 @@ def Run(test, page_set, expectations, finder_options):
 
   for page in pages:
     test.CustomizeBrowserOptionsForPage(page, possible_browser.finder_options)
+  if finder_options.profiler:
+    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
+    profiler_class.CustomizeBrowserOptions(possible_browser.browser_type,
+                                           possible_browser.finder_options)
 
   for page in list(pages):
     if not test.CanRunForPage(page):

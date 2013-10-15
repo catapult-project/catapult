@@ -24,7 +24,7 @@ class Profiler(object):
     raise NotImplementedError()
 
   @classmethod
-  def CustomizeBrowserOptions(cls, options):
+  def CustomizeBrowserOptions(cls, browser_type, options):
     """Override to customize the Browser's options before it is created."""
     pass
 

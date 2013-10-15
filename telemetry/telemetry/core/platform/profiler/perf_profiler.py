@@ -158,7 +158,7 @@ class PerfProfiler(profiler.Profiler):
       return False
 
   @classmethod
-  def CustomizeBrowserOptions(cls, options):
+  def CustomizeBrowserOptions(cls, browser_type, options):
     options.AppendExtraBrowserArgs([
         '--no-sandbox',
         '--allow-sandbox-debugging',

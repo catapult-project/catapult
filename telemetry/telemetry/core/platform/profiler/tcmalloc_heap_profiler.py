@@ -122,7 +122,7 @@ class TCMallocHeapProfiler(profiler.Profiler):
     return browser_type.startswith('android')
 
   @classmethod
-  def CustomizeBrowserOptions(cls, options):
+  def CustomizeBrowserOptions(cls, browser_type, options):
     options.AppendExtraBrowserArgs('--no-sandbox')
 
   def CollectProfile(self):
