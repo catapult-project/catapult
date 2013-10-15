@@ -36,6 +36,16 @@ base.exportTo('cc', function() {
     },
 
     /**
+     * If a selection is related to a specific render pass, then this returns
+     * the layerId of that layer. If the selection is not related to a layer,
+     * for example if the device viewport is selected, then this returns
+     * undefined.
+     */
+    get associatedRenderPassId() {
+      throw new Error('Not implemented');
+    },
+
+    /**
      * If the selected item(s) is visible on the pending tree in a way that
      * should be highlighted, returns the quad for the item on the pending tree.
      * Otherwise, returns undefined.
@@ -81,6 +91,47 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
+  function RenderPassSelection(renderPass, renderPassId) {
+    if (!renderPass || (renderPassId === undefined))
+      throw new Error('Render pass (with id) is required');
+    this.renderPass_ = renderPass;
+    this.renderPassId_ = renderPassId;
+  }
+
+  RenderPassSelection.prototype = {
+    __proto__: Selection.prototype,
+
+    get specicifity() {
+      return 1;
+    },
+
+    get associatedLayerId() {
+      return undefined;
+    },
+
+    get associatedRenderPassId() {
+      return this.renderPassId_;
+    },
+
+    get renderPass() {
+      return this.renderPass_;
+    },
+
+    createAnalysis: function() {
+      var dataView = new GenericObjectViewWithLabel();
+      dataView.label = 'RenderPass ' + this.renderPassId_;
+      dataView.object = this.renderPass_.args;
+      return dataView;
+    },
+
+    get title() {
+      return this.renderPass_.objectInstance.typeName;
+    }
+  };
+
+  /**
+   * @constructor
+   */
   function LayerSelection(layer) {
     if (!layer)
       throw new Error('Layer is required');
@@ -96,6 +147,10 @@ base.exportTo('cc', function() {
 
     get associatedLayerId() {
       return this.layer_.layerId;
+    },
+
+    get associatedRenderPassId() {
+      return undefined;
     },
 
     get quadIfPending() {
@@ -263,6 +318,7 @@ base.exportTo('cc', function() {
 
   return {
     Selection: Selection,
+    RenderPassSelection: RenderPassSelection,
     LayerSelection: LayerSelection,
     TileSelection: TileSelection,
     LayerRectSelection: LayerRectSelection,

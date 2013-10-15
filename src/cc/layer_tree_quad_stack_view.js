@@ -14,9 +14,10 @@ base.requireStylesheet('cc.layer_tree_quad_stack_view');
 base.require('base.color');
 base.require('base.properties');
 base.require('base.raf');
+base.require('base.quad');
 base.require('base.range');
-base.require('cc.constants');
 base.require('cc.picture');
+base.require('cc.render_pass');
 base.require('cc.tile');
 base.require('cc.debug_colors');
 base.require('ui.quad_stack_view');
@@ -46,6 +47,7 @@ base.exportTo('cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
+      this.isRenderPassQuads_ = false;
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
@@ -96,7 +98,7 @@ base.exportTo('cc', function() {
       var showOtherLayersCheckbox = ui.createCheckBox(
           this, 'showOtherLayers',
           'layerView.showOtherLayers', true,
-          'Other layers');
+          'Other layers/passes');
       showOtherLayersCheckbox.title =
           'When checked, show all layers, selected or not.';
       this.controls_.appendChild(showOtherLayersCheckbox);
@@ -130,6 +132,14 @@ base.exportTo('cc', function() {
       return this.layerTreeImpl_;
     },
 
+    set whichTree(whichTree) {
+      this.whichTree_ = whichTree;
+    },
+
+    set isRenderPassQuads(newValue) {
+      this.isRenderPassQuads_ = newValue;
+    },
+
     set layerTreeImpl(layerTreeImpl) {
       // FIXME(pdr): We may want to clear pictureAsImageData_ here to save
       //             memory at the cost of performance. Note that
@@ -138,8 +148,6 @@ base.exportTo('cc', function() {
       //             layerTreeImpls.
       this.layerTreeImpl_ = layerTreeImpl;
       this.selection = undefined;
-      this.updateTilesSelector_();
-      this.updateContents_();
     },
 
     get showOtherLayers() {
@@ -211,6 +219,11 @@ base.exportTo('cc', function() {
       this.updateContents_();
     },
 
+    regenerateContent: function() {
+      this.updateTilesSelector_();
+      this.updateContents_();
+    },
+
     onQuadStackViewSelectionChange_: function(e) {
       var selectableQuads = e.quads.filter(function(q) {
         return q.selectionToSetIfClicked !== undefined;
@@ -257,21 +270,27 @@ base.exportTo('cc', function() {
           0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
       this.quadStackView_.deviceRect = worldViewportRect;
-      this.quadStackView_.quads = this.generateQuads();
+      if (this.isRenderPassQuads_)
+        this.quadStackView_.quads = this.generateRenderPassQuads();
+      else
+        this.quadStackView_.quads = this.generateLayerQuads();
+
       this.updateInfoBar_(status.messages);
     },
 
     updateTilesSelector_: function() {
       var data = createTileRectsSelectorBaseOptions();
 
-      // First get all of the scales information from LTHI.
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-      var scaleNames = lthi.getContentsScaleNames();
-      for (var scale in scaleNames) {
-        data.push({
-          label: 'Scale ' + scale + ' (' + scaleNames[scale] + ')',
-          value: scale
-        });
+      if (this.layerTreeImpl_) {
+        // First get all of the scales information from LTHI.
+        var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+        var scaleNames = lthi.getContentsScaleNames();
+        for (var scale in scaleNames) {
+          data.push({
+            label: 'Scale ' + scale + ' (' + scaleNames[scale] + ')',
+            value: scale
+          });
+        }
       }
 
       // Then create a new selector and replace the old one.
@@ -360,11 +379,27 @@ base.exportTo('cc', function() {
       return status;
     },
 
+    get selectedRenderPass() {
+      if (this.selection)
+        return this.selection.renderPass_;
+    },
+
     get selectedLayer() {
       if (this.selection) {
         var selectedLayerId = this.selection.associatedLayerId;
         return this.layerTreeImpl_.findLayerWithId(selectedLayerId);
       }
+    },
+
+    get renderPasses() {
+      var renderPasses =
+          this.layerTreeImpl.layerTreeHostImpl.args.frame.renderPasses;
+      if (!this.showOtherLayers) {
+        var selectedRenderPass = this.selectedRenderPass;
+        if (selectedRenderPass)
+          renderPasses = [selectedRenderPass];
+      }
+      return renderPasses;
     },
 
     get layers() {
@@ -618,7 +653,27 @@ base.exportTo('cc', function() {
       quads.push(quadForDrawing);
     },
 
-    generateQuads: function() {
+    generateRenderPassQuads: function() {
+      if (!this.layerTreeImpl.layerTreeHostImpl.args.frame)
+        return [];
+      var renderPasses = this.renderPasses;
+
+      var quads = [];
+      for (var i = 0; i < renderPasses.length; ++i) {
+        var quadList = renderPasses[i].args.quadList;
+        for (var j = 0; j < quadList.length; ++j) {
+          var drawQuad = quadList[j];
+          var quad = drawQuad.rectAsTargetSpaceQuad.clone();
+          quad.borderColor = 'rgb(170, 204, 238)';
+          quad.borderWidth = 2;
+          quad.stackingGroupId = i;
+          quads.push(quad);
+        }
+      }
+      return quads;
+    },
+
+    generateLayerQuads: function() {
       this.updateContentsPending_ = false;
 
       // Generate the quads for the view.

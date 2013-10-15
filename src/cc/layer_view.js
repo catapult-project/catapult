@@ -55,12 +55,24 @@ base.exportTo('cc', function() {
       return this.layerTreeQuadStackView_.layerTreeImpl = newValue;
     },
 
+    set whichTree(newValue) {
+      return this.layerTreeQuadStackView_.whichTree = newValue;
+    },
+
+    set isRenderPassQuads(newValue) {
+      return this.layerTreeQuadStackView_.isRenderPassQuads = newValue;
+    },
+
     get selection() {
       return this.layerTreeQuadStackView_.selection;
     },
 
     set selection(newValue) {
       this.layerTreeQuadStackView_.selection = newValue;
+    },
+
+    regenerateContent: function() {
+      this.layerTreeQuadStackView_.regenerateContent();
     },
 
     layerTreeQuadStackViewSelectionChanged_: function() {

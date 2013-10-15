@@ -39,7 +39,6 @@ base.exportTo('cc', function() {
       this.layerView_.addEventListener(
           'selection-changed',
           this.onLayerViewSelectionChanged_.bind(this));
-
       this.dragHandle_ = new ui.DragHandle();
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
@@ -47,6 +46,12 @@ base.exportTo('cc', function() {
       this.appendChild(this.layerPicker_);
       this.appendChild(this.dragHandle_);
       this.appendChild(this.layerView_);
+
+      // Make sure we have the current values from layerView_ and layerPicker_,
+      // since those might have been created before we added the listener.
+      this.onLayerViewSelectionChanged_();
+      this.onLayerPickerSelectionChanged_();
+
     },
 
     get objectSnapshot() {
@@ -60,8 +65,11 @@ base.exportTo('cc', function() {
       var layerTreeImpl;
       if (lthi)
         layerTreeImpl = lthi.getTree(this.layerPicker_.whichTree);
+
       this.layerPicker_.lthiSnapshot = lthi;
+      this.layerView_.whichTree = this.layerPicker_.whichTree;
       this.layerView_.layerTreeImpl = layerTreeImpl;
+      this.layerView_.regenerateContent();
 
       if (!this.selection_)
         return;
@@ -81,6 +89,8 @@ base.exportTo('cc', function() {
     onLayerPickerSelectionChanged_: function() {
       this.selection_ = this.layerPicker_.selection;
       this.layerView_.selection = this.selection;
+      this.layerView_.isRenderPassQuads = this.layerPicker_.isRenderPassQuads;
+      this.layerView_.regenerateContent();
     },
 
     onLayerViewSelectionChanged_: function() {
