@@ -16,6 +16,10 @@ class PinchAction(page_action.PageAction):
         js = f.read()
         tab.ExecuteJavaScript(js)
 
+    # Fail if browser doesn't support synthetic pinch gestures.
+    if not tab.EvaluateJavaScript('window.__PinchAction_SupportedByBrowser()'):
+      raise page_action.PageActionNotSupported(
+          'Synthetic pinch not supported for this browser')
 
     done_callback = 'function() { window.__pinchActionDone = true; }'
     tab.ExecuteJavaScript("""

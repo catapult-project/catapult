@@ -16,6 +16,11 @@ class ScrollAction(page_action.PageAction):
         js = f.read()
         tab.ExecuteJavaScript(js)
 
+    # Fail if browser doesn't support synthetic scroll gestures.
+    if not tab.EvaluateJavaScript('window.__ScrollAction_SupportedByBrowser()'):
+      raise page_action.PageActionNotSupported(
+          'Synthetic scroll not supported for this browser')
+
     # Fail if this action requires touch and we can't send touch events.
     if (hasattr(self, 'scroll_requires_touch') and
         self.scroll_requires_touch and not

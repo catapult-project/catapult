@@ -23,6 +23,12 @@
     }
   }
 
+  function supportedByBrowser() {
+    return !!(window.chrome &&
+              chrome.gpuBenchmarking &&
+              chrome.gpuBenchmarking.smoothScrollBy);
+  }
+
   /**
    * Scrolls a given element down a certain amount to emulate user scroll.
    * Uses smooth scroll capabilities provided by the platform, if available.
@@ -59,23 +65,15 @@
 
   SmoothScrollDownGesture.prototype.start = function(distance, callback) {
     this.callback_ = callback;
-    if (window.chrome &&
-        chrome.gpuBenchmarking &&
-        chrome.gpuBenchmarking.smoothScrollBy) {
-      var rect = getBoundingVisibleRect(this.options_.element_);
-      var start_left =
-          rect.left + rect.width * this.options_.left_start_percentage_;
-      var start_top =
-          rect.top + rect.height * this.options_.top_start_percentage_;
-      chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
-        callback();
-      }, start_left, start_top);
-      return;
-    }
 
-    var SCROLL_DELTA = 100;
-    this.options_.element_.scrollTop += SCROLL_DELTA;
-    requestAnimationFrame(callback);
+    var rect = getBoundingVisibleRect(this.options_.element_);
+    var start_left =
+        rect.left + rect.width * this.options_.left_start_percentage_;
+    var start_top =
+        rect.top + rect.height * this.options_.top_start_percentage_;
+    chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
+      callback();
+    }, start_left, start_top);
   };
 
   // This class scrolls a page from the top to the bottom once.
@@ -142,4 +140,5 @@
 
   window.__ScrollAction = ScrollAction;
   window.__ScrollAction_GetBoundingVisibleRect = getBoundingVisibleRect;
+  window.__ScrollAction_SupportedByBrowser = supportedByBrowser;
 })();

@@ -10,6 +10,12 @@
 
 (function() {
 
+  function supportedByBrowser() {
+    return !!(window.chrome &&
+              chrome.gpuBenchmarking &&
+              chrome.gpuBenchmarking.pinchBy);
+  }
+
   /**
     * Performs a single vertical pinch gesture to zoom in or out, anchored
     * in the center of the window.
@@ -22,22 +28,16 @@
 
   PinchGesture.prototype.start = function(pixels_to_move, callback) {
     this.callback_ = callback;
-    if (window.chrome &&
-        chrome.gpuBenchmarking &&
-        chrome.gpuBenchmarking.pinchBy) {
 
-      // The anchor point of the gesture is the center of the window.
-      // Use 'outerWidth/Height' (in DIPs) instead of 'innerWidth/Height'
-      // (in CSS pixels) because they are independent of the zoom factor.
-      var anchor_x = window.outerWidth / 2;
-      var anchor_y = window.outerHeight / 2;
+    // The anchor point of the gesture is the center of the window.
+    // Use 'outerWidth/Height' (in DIPs) instead of 'innerWidth/Height'
+    // (in CSS pixels) because they are independent of the zoom factor.
+    var anchor_x = window.outerWidth / 2;
+    var anchor_y = window.outerHeight / 2;
 
-      chrome.gpuBenchmarking.pinchBy(this.zoom_in_, pixels_to_move,
-                                     anchor_x, anchor_y,
-                                     function() { callback(); });
-      return;
-    }
-    callback();
+    chrome.gpuBenchmarking.pinchBy(this.zoom_in_, pixels_to_move,
+                                   anchor_x, anchor_y,
+                                   function() { callback(); });
   };
 
   // This class zooms into or out of a page, given a number of pixels for
@@ -78,4 +78,5 @@
   };
 
   window.__PinchAction = PinchAction;
+  window.__PinchAction_SupportedByBrowser = supportedByBrowser;
 })();
