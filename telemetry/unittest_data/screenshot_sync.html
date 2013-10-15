@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synchronized screenshot test</title>
+<style>
+  html, body { margin: 0; }
+  #log { height: 150px; overflow: auto; width: 512px; }
+  #log.failed { background-color: #FFAAAA; }
+</style>
+</head>
+<body>
+  <canvas id="src-canvas" width="256" height="256"></canvas>
+  <canvas id="dest-canvas" width="256" height="256"></canvas><br/>
+  <div id="log"></div>
+
+  <script>
+    "use strict";
+
+    (function () {
+      window.__testComplete = false;
+      window.__testMessage = '';
+      window.__testSuccess = true;
+      var log = document.getElementById("log");
+      var canvas1 = document.getElementById("src-canvas");
+      var canvas2 = document.getElementById("dest-canvas");
+
+      if (!window.chrome || !window.chrome.gpuBenchmarking ||
+          !window.chrome.gpuBenchmarking.beginWindowSnapshotPNG) {
+        canvas1.style.display = "none";
+        canvas2.style.display = "none";
+        log.innerHTML = "chrome.gpuBenchmarking.beginWindowSnapshotPNG not available.<br/>" +
+                        "Please make sure Chrome was launched with --enable-gpu-benchmarking."
+        window.__testComplete = true;
+        window.__testMessage = 'chrome.gpuBenchmarking.beginWindowSnapshotPNG not available.';
+        window.__testSuccess = false;
+        return;
+      }
+
+      var totalTests = 100;
+      var testInterval = 75;
+      var testStartDelay = 1000;
+      var testCount = 0;
+
+      var ctx1 = canvas1.getContext("2d");
+      var ctx2 = canvas2.getContext("2d");
+
+      var clearColor = [0, 0, 0];
+      var screenshotClearColor = [0, 0, 0];
+      var validatedColor = [0, 0, 0];
+      var capturing = false;
+      function draw() {
+        if (testCount == totalTests || !window.__testSuccess)
+          return;
+
+        if (!capturing) {
+          clearColor[0] = Math.floor(Math.random() * 256.0);
+          clearColor[1] = Math.floor(Math.random() * 256.0);
+          clearColor[2] = Math.floor(Math.random() * 256.0);
+
+          ctx1.fillStyle="RGB(" +
+            clearColor[0] + "," +
+            clearColor[1] + "," +
+            clearColor[2] + ")";
+          ctx1.fillRect(0,0,canvas1.width,canvas1.height);
+        }
+
+        window.requestAnimationFrame(draw);
+      };
+      draw();
+
+      var snapshotImg = new Image();
+      var snapshotBtn = document.getElementById("snapshot");
+      var snapshotColorSpan = document.getElementById("snapshotColorSpan");
+      var validatedColorSpan = document.getElementById("validatedColorSpan");
+      
+
+      function colorsMatch(a, b) {
+        return (Math.abs(a[0] - b[0]) < 2 &&
+                Math.abs(a[1] - b[1]) < 2 &&
+                Math.abs(a[2] - b[2]) < 2);
+      }
+
+      function logString(str) {
+        var entry = document.createElement("div");
+        entry.innerHTML = str
+        log.insertBefore(entry, log.firstChild);
+      }
+
+      function colorToString(a) {
+        return "[" + a[0] +", " + a[1] +", " + a[2] +"]";
+      }
+
+      function logTest(id, a, b) {
+        var match = colorsMatch(a, b);
+        logString("Test " + id + ": " +
+          colorToString(a) + " " +
+          "~= " + 
+          colorToString(b) + " " +
+          ": " +
+          (match ? "<b style='color: green'>Pass</b>" : "<b style='color: red'>Fail</b>"));
+        return match;
+      }
+
+      // Take snapshots at an arbitrary interval and ensure that the resulting
+      // image matches the color we last cleared the webgl canvas with
+      function testSnapshot() {
+        capturing = true;
+        ++testCount;
+
+        screenshotClearColor[0] = clearColor[0];
+        screenshotClearColor[1] = clearColor[1];
+        screenshotClearColor[2] = clearColor[2];
+
+        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG(
+          function(s) {
+            snapshotImg.src = "data:image/png;base64," + s.data;
+            ctx2.drawImage(snapshotImg,0,0);
+
+            var img_data = ctx2.getImageData(0, 0, 1, 1);
+            validatedColor[0] = img_data.data[0];
+            validatedColor[1] = img_data.data[1];
+            validatedColor[2] = img_data.data[2];
+
+            window.__testSuccess = window.__testSuccess && logTest(testCount, screenshotClearColor, validatedColor);
+            if (!window.__testSuccess) {
+              log.classList.add("failed");
+              window.__testMessage = 'Color mismatch after ' + testCount + ' iterations.';
+            }
+
+            capturing = false;
+
+            if (testCount < totalTests /*&& window.__testSuccess*/) {
+              if (window.__testSuccess)
+                setTimeout(testSnapshot, testInterval);
+            } else {
+              window.__testComplete = true;
+            }
+          }
+        );
+      }
+      setTimeout(testSnapshot, testStartDelay);
+    })();
+  </script>
+ </body>
+</html>
