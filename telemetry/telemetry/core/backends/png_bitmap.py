@@ -104,7 +104,7 @@ class PngBitmap(object):
 
     diff = [[0 for x in xrange(out_width * 3)] for x in xrange(out_height)]
 
-    # Loop over each pixel and test for equality
+    # Loop over each pixel and write out the difference
     for y in range(out_height):
       for x in range(out_width):
         if x < self.width and y < self.height:
@@ -134,3 +134,35 @@ class PngBitmap(object):
 
     return diff_png
 
+  def Crop(self, left, top, width, height):
+    """Returns a new PngBitmap that represents the specified sub-rect of this
+    PngBitmap"""
+
+    if (left < 0 or top < 0 or
+        (left + width) > self.width or
+        (top + height) > self.height):
+      raise Exception('Invalid dimensions')
+
+    img_data = [[0 for x in xrange(width * 4)] for x in xrange(height)]
+
+    # Copy each pixel in the sub-rect
+    for y in range(height):
+      for x in range(width):
+        c = self.GetPixelColor(x + left, y + top)
+        offset = x * 4
+        img_data[y][offset] = c.r
+        img_data[y][offset+1] = c.g
+        img_data[y][offset+2] = c.b
+        img_data[y][offset+3] = c.a
+
+    # This particular method can only save to a file, so the result will be
+    # written into an in-memory buffer and read back into a PngBitmap
+    crop_img = png.from_array(img_data, mode='RGBA')
+    output = cStringIO.StringIO()
+    try:
+      crop_img.save(output)
+      crop_png = PngBitmap(output.getvalue())
+    finally:
+      output.close()
+
+    return crop_png

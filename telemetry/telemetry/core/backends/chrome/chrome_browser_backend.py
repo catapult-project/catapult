@@ -82,6 +82,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--disable-background-networking')
     args.append('--metrics-recording-only')
     args.append('--no-first-run')
+    args.append('--no-default-browser-check')
     args.append('--no-proxy-server')
     if self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
