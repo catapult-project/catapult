@@ -38,6 +38,7 @@ class _RunState(object):
 
   def StartBrowser(self, test, page_set, page, possible_browser,
                    credentials_path, archive_path):
+    started_browser = not self.browser
     # Create a browser.
     if not self.browser:
       assert not self.tab
@@ -97,8 +98,11 @@ class _RunState(object):
       # will cancel the next navigation because it's pending. This manifests as
       # the first navigation in a PageSet freezing indefinitly because the
       # navigation was silently cancelled when |self.browser.tabs[0]| was
-      # committed.
-      self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+      # committed. Only do this when we just started the browser, otherwise
+      # there are cases where previous pages in a PageSet never complete
+      # loading so we'll wait forever.
+      if started_browser:
+        self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
     if not self.tab:
       self.tab = self.browser.tabs[0]
