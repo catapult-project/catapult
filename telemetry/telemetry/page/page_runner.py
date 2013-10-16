@@ -129,7 +129,8 @@ class _RunState(object):
     self.browser.StartProfiling(finder_options.profiler, output_file)
 
   def StopProfiling(self):
-    self.browser.StopProfiling()
+    if self.browser:
+      self.browser.StopProfiling()
 
 
 class PageState(object):
