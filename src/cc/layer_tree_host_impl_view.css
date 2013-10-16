@@ -4,6 +4,7 @@
  */
 
 .lthi-s-view {
+  -webkit-flex: 1 1 auto !important;
   -webkit-flex-direction: row;
   display: -webkit-flex;
 }
