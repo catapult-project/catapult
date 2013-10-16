@@ -55,3 +55,6 @@ class PinchAction(page_action.PageAction):
         window.__pinchAction.beginMeasuringHook = function() { %s };
         window.__pinchAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))
+
+  def GetTimelineMarkerLabel(self):
+    return 'SyntheticGestureController::running'

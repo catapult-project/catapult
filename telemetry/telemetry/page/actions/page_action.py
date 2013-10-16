@@ -59,3 +59,6 @@ class PageAction(object):
       stop_js: JavaScript code that stops measurements.
     """
     raise Exception('This action cannot be bound.')
+
+  def GetTimelineMarkerLabel(self):
+    return None

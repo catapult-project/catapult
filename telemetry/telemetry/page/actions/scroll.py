@@ -84,3 +84,6 @@ class ScrollAction(page_action.PageAction):
         window.__scrollAction.beginMeasuringHook = function() { %s };
         window.__scrollAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))
+
+  def GetTimelineMarkerLabel(self):
+    return 'SyntheticGestureController::running'

@@ -18,6 +18,9 @@ class WaitAction(page_action.PageAction):
             getattr(self, 'condition', None) == 'href_change')
 
   def RunAction(self, page, tab, previous_action):
+    tab.ExecuteJavaScript(
+        'console.time("' + self.GetTimelineMarkerLabel() + '")')
+
     if hasattr(self, 'seconds'):
       time.sleep(self.seconds)
 
@@ -66,3 +69,9 @@ class WaitAction(page_action.PageAction):
                    self.timeout)
     else:
       raise page_action.PageActionFailed('No wait condition found')
+
+    tab.ExecuteJavaScript(
+        'console.timeEnd("' + self.GetTimelineMarkerLabel() + '")')
+
+  def GetTimelineMarkerLabel(self):
+    return 'WaitAction::RunAction'
