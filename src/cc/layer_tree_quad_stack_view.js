@@ -657,6 +657,8 @@ base.exportTo('cc', function() {
       if (!this.layerTreeImpl.layerTreeHostImpl.args.frame)
         return [];
       var renderPasses = this.renderPasses;
+      if (!renderPasses)
+        return [];
 
       var quads = [];
       for (var i = 0; i < renderPasses.length; ++i) {
