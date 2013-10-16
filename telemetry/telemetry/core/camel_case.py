@@ -27,4 +27,4 @@ def ToUnderscore(obj):
     return output
 
   else:
-    raise NotImplementedError()
+    return obj

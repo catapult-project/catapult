@@ -57,10 +57,15 @@ class _RunState(object):
             logging.info('Model: %s' % system_info.model_name)
           if system_info.gpu:
             for i, device in enumerate(system_info.gpu.devices):
-              logging.info('GPU device %d: %s' % (i, device))
-            logging.info('GPU Attributes:')
-            for k, v in system_info.gpu.aux_attributes.iteritems():
-              logging.info('\t%s: %s' % (k, v))
+              logging.info('GPU device %d: %s', i, device)
+            if system_info.gpu.aux_attributes:
+              logging.info('GPU Attributes:')
+              for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
+                logging.info('  %-20s: %s', k, v)
+            if system_info.gpu.feature_status:
+              logging.info('Feature Status:')
+              for k, v in sorted(system_info.gpu.feature_status.iteritems()):
+                logging.info('  %-20s: %s', k, v)
           else:
             logging.info('No GPU devices')
 

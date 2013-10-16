@@ -18,7 +18,7 @@ class CamelCaseTest(unittest.TestCase):
   def testList(self):
     camel_case_list = ['CamelCase', ['NestedList']]
     underscore_list = ['camel_case', ['nested_list']]
-    self.assertEquals(camel_case.ToUnderscore(camel_case_list), underscore_list)
+    self.assertEqual(camel_case.ToUnderscore(camel_case_list), underscore_list)
 
   def testDict(self):
     camel_case_dict = {
@@ -43,9 +43,7 @@ class CamelCaseTest(unittest.TestCase):
           'vendor_string': 'k', 'device_string': 'l' }
       ]
     }
-    self.assertEquals(camel_case.ToUnderscore(camel_case_dict), underscore_dict)
+    self.assertEqual(camel_case.ToUnderscore(camel_case_dict), underscore_dict)
 
   def testOther(self):
-    self.assertRaises(
-        NotImplementedError,
-        lambda: camel_case.ToUnderscore(lambda: None))
+    self.assertEqual(camel_case.ToUnderscore(self), self)

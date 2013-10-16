@@ -46,8 +46,8 @@ class GPUDevice(object):
 
        Raises an exception if any attributes are missing.
     """
-    return cls(attrs["vendor_id"], attrs["device_id"],
-               attrs["vendor_string"], attrs["device_string"])
+    return cls(attrs['vendor_id'], attrs['device_id'],
+               attrs['vendor_string'], attrs['device_string'])
 
   @property
   def vendor_id(self):
