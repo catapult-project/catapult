@@ -16,7 +16,7 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
   for a measurement."""
 
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
-    return self.CreatePageSet('file:///' + test_filename)
+    return self.CreatePageSet('file://' + test_filename)
 
   def CreatePageSet(self, test_filename):
     base_dir = util.GetUnittestDataDir()

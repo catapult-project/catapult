@@ -11,8 +11,7 @@ class NavigateAction(page_action.PageAction):
 
   def RunAction(self, page, tab, previous_action):
     if page.is_file:
-      filename = page.serving_dirs_and_file[1]
-      target_side_url = tab.browser.http_server.UrlOf(filename)
+      target_side_url = tab.browser.http_server.UrlOf(page.file_path)
     else:
       target_side_url = page.url
 

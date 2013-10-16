@@ -133,8 +133,9 @@ class PageState(object):
 
   def PreparePage(self, page, tab, test=None):
     if page.is_file:
-      serving_dirs = page.serving_dirs_and_file[0]
-      if tab.browser.SetHTTPServerDirectories(serving_dirs) and test:
+      server_started = tab.browser.SetHTTPServerDirectories(
+        page.page_set.serving_dirs | set([page.serving_dir]))
+      if server_started and test:
         test.DidStartHTTPServer(tab)
 
     if page.credentials:

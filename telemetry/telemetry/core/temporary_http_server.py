@@ -13,12 +13,18 @@ class TemporaryHTTPServer(object):
   def __init__(self, browser_backend, paths):
     self._server = None
     self._devnull = None
-    self._paths = paths
     self._forwarder = None
     self._host_port = util.GetAvailableLocalPort()
 
-    for path in self._paths:
-      assert os.path.exists(path), path
+    for path in paths:
+      assert os.path.exists(path), '%s does not exist.' % path
+    self._paths = set(map(os.path.realpath, paths))
+
+    common_prefix = os.path.commonprefix(self._paths)
+    if os.path.isdir(common_prefix):
+      self._base_dir = common_prefix
+    else:
+      self._base_dir = os.path.dirname(common_prefix)
 
     self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', 'memory_cache_http_server',
@@ -26,7 +32,7 @@ class TemporaryHTTPServer(object):
     cmd.extend(self._paths)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.path.abspath(os.path.dirname(__file__))
-    self._server = subprocess.Popen(cmd, cwd=os.path.commonprefix(self._paths),
+    self._server = subprocess.Popen(cmd, cwd=self._base_dir,
         env=env, stdout=self._devnull, stderr=self._devnull)
 
     self._forwarder = browser_backend.CreateForwarder(
@@ -66,4 +72,5 @@ class TemporaryHTTPServer(object):
     return self._forwarder.url
 
   def UrlOf(self, path):
-    return urlparse.urljoin(self.url, path)
+    relative_path = os.path.relpath(path, self._base_dir)
+    return urlparse.urljoin(self.url, relative_path.replace('\\', '/'))

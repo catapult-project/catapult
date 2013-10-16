@@ -11,7 +11,7 @@ from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
 
 def _CreatePage(test_filename):
-  url = 'file:///' + test_filename
+  url = 'file://' + test_filename
   page = page_module.Page(url, None, base_dir=util.GetUnittestDataDir())
   return page
 

@@ -1,11 +1,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 import tempfile
 import unittest
 
 from telemetry.page import page_set
+
 
 simple_archive_info = """
 {
@@ -16,6 +18,7 @@ simple_archive_info = """
 }
 """
 
+
 simple_set = """
 {"description": "hello",
  "archive_data_file": "%s",
@@ -25,6 +28,7 @@ simple_set = """
  ]
 }
 """
+
 
 class TestPageSet(unittest.TestCase):
   def testSimpleSet(self):
@@ -48,12 +52,22 @@ class TestPageSet(unittest.TestCase):
     self.assertEquals('data_01.wpr', os.path.basename(ps.pages[0].archive_path))
     self.assertEquals('data_02.wpr', os.path.basename(ps.pages[1].archive_path))
 
-  def testDirectoryFilePath(self):
+  def testServingDirs(self):
     directory_path = tempfile.mkdtemp()
     try:
-      ps = page_set.PageSet.FromDict({'pages': [{'url': 'file:///test.html'}]},
-                                     directory_path)
+      ps = page_set.PageSet.FromDict({
+        'serving_dirs': ['a/b'],
+        'pages': [
+          {'url': 'file://c/test.html'},
+          {'url': 'file://c/test.js'},
+          {'url': 'file://d/e/../test.html'},
+          ]
+        }, directory_path)
     finally:
       os.rmdir(directory_path)
 
-    self.assertEquals(ps[0].base_dir, directory_path)
+    real_directory_path = os.path.realpath(directory_path)
+    expected_serving_dirs = set([os.path.join(real_directory_path, 'a', 'b')])
+    self.assertEquals(ps.serving_dirs, expected_serving_dirs)
+    self.assertEquals(ps[0].serving_dir, os.path.join(real_directory_path, 'c'))
+    self.assertEquals(ps[2].serving_dir, os.path.join(real_directory_path, 'd'))

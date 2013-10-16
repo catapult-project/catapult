@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import BaseHTTPServer
 from collections import namedtuple
 import gzip
@@ -39,7 +40,7 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     self.SendHead()
 
   def SendHead(self):
-    path = self.translate_path(self.path)
+    path = os.path.realpath(self.translate_path(self.path))
     if path not in self.server.resource_map:
       self.send_error(404, 'File not found')
       return None
@@ -149,38 +150,58 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
 
   def AddFileToResourceMap(self, file_path):
     """Loads file_path into the in-memory resource map."""
+    file_path = os.path.realpath(file_path)
+    if file_path in self.resource_map:
+      return
+
     with open(file_path, 'rb') as fd:
       response = fd.read()
       fs = os.fstat(fd.fileno())
-      content_type = mimetypes.guess_type(file_path)[0]
-      zipped = False
-      if content_type in ['text/html', 'text/css', 'application/javascript']:
-        zipped = True
-        sio = StringIO.StringIO()
-        gzf = gzip.GzipFile(fileobj=sio, compresslevel=9, mode='wb')
-        gzf.write(response)
-        gzf.close()
-        response = sio.getvalue()
-        sio.close()
-      self.resource_map[file_path] = {
-          'content-type': content_type,
-          'content-length': len(response),
-          'last-modified': fs.st_mtime,
-          'response': response,
-          'zipped': zipped
-          }
+    content_type = mimetypes.guess_type(file_path)[0]
+    zipped = False
+    if content_type in ['text/html', 'text/css', 'application/javascript']:
+      zipped = True
+      sio = StringIO.StringIO()
+      gzf = gzip.GzipFile(fileobj=sio, compresslevel=9, mode='wb')
+      gzf.write(response)
+      gzf.close()
+      response = sio.getvalue()
+      sio.close()
+    self.resource_map[file_path] = {
+        'content-type': content_type,
+        'content-length': len(response),
+        'last-modified': fs.st_mtime,
+        'response': response,
+        'zipped': zipped
+        }
 
-      index = os.path.sep + 'index.html'
-      if file_path.endswith(index):
-        self.resource_map[
-            file_path[:-len(index)]] = self.resource_map[file_path]
+    index = 'index.html'
+    if os.path.basename(file_path) == index:
+      self.resource_map[
+          file_path[:-len(index)]] = self.resource_map[file_path]
+
+
+def _PrintUsageAndExit():
+  print >> sys.stderr, 'usage: %prog <port> [<path1>, <path2>, ...]'
+  sys.exit(1)
 
 
 def Main():
-  assert len(sys.argv) > 2, 'usage: %prog <port> [<path1>, <path2>, ...]'
+  if len(sys.argv) < 3:
+    _PrintUsageAndExit()
 
-  port = int(sys.argv[1])
+  port = sys.argv[1]
   paths = sys.argv[2:]
+
+  try:
+    port = int(port)
+  except ValueError:
+    _PrintUsageAndExit()
+  for path in paths:
+    if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
+      print >> sys.stderr, '"%s" is not under the cwd.' % path
+      sys.exit(1)
+
   server_address = ('127.0.0.1', port)
   MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
   httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,

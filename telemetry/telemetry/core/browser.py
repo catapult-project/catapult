@@ -294,14 +294,14 @@ class Browser(object):
 
   def SetHTTPServerDirectories(self, paths):
     """Returns True if the HTTP server was started, False otherwise."""
-    if not isinstance(paths, list):
-      paths = [paths]
-    paths = [os.path.abspath(p) for p in paths]
-
-    if paths and self._http_server and self._http_server.paths == paths:
-      return False
+    if isinstance(paths, basestring):
+      paths = set([paths])
+    paths = set(os.path.realpath(p) for p in paths)
 
     if self._http_server:
+      if paths and self._http_server.paths == paths:
+        return False
+
       self._http_server.Close()
       self._http_server = None
 

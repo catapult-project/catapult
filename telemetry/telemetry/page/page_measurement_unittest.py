@@ -65,7 +65,7 @@ class PageMeasurementUnitTest(
 
   def disabled_testGotQueryParams(self):
     # Disabled due to http://crbug.com/288631
-    ps = self.CreatePageSet('file:///blank.html?foo=1')
+    ps = self.CreatePageSet('file://blank.html?foo=1')
     measurement = MeasurementQueryParams()
     ps.pages[-1].query_params = '?foo=1'
     all_results = self.RunMeasurement(measurement, ps, options=self._options)

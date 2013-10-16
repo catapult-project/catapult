@@ -1,53 +1,17 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 import re
 import urlparse
 
 
-def _UrlPathJoin(*args):
-  """Joins each path in |args| for insertion into a URL path.
-
-  This is distinct from os.path.join in that:
-  1. Forward slashes are always used.
-  2. Paths beginning with '/' are not treated as absolute.
-
-  For example:
-    _UrlPathJoin('a', 'b') => 'a/b'
-    _UrlPathJoin('a/', 'b') => 'a/b'
-    _UrlPathJoin('a', '/b') => 'a/b'
-    _UrlPathJoin('a/', '/b') => 'a/b'
-  """
-  if not args:
-    return ''
-  if len(args) == 1:
-    return str(args[0])
-  else:
-    args = [str(arg).replace('\\', '/') for arg in args]
-    work = [args[0]]
-    for arg in args[1:]:
-      if not arg:
-        continue
-      if arg.startswith('/'):
-        work.append(arg[1:])
-      else:
-        work.append(arg)
-    joined = reduce(os.path.join, work)
-  return joined.replace('\\', '/')
-
 class Page(object):
   def __init__(self, url, page_set, attributes=None, base_dir=None):
-    parsed_url = urlparse.urlparse(url)
-    if not parsed_url.scheme:
-      abspath = os.path.abspath(os.path.join(base_dir, parsed_url.path))
-      if os.path.exists(abspath):
-        url = 'file://%s' % os.path.abspath(os.path.join(base_dir, url))
-      else:
-        raise Exception('URLs must be fully qualified: %s' % url)
     self.url = url
     self.page_set = page_set
-    self.base_dir = base_dir
+    self._base_dir = base_dir
 
     # These attributes can be set dynamically by the page.
     self.credentials = None
@@ -59,35 +23,55 @@ class Page(object):
       for k, v in attributes.iteritems():
         setattr(self, k, v)
 
+    if not self._scheme:
+      raise ValueError('Must prepend the URL with scheme (e.g. file://)')
+
   def __getattr__(self, name):
+    # Inherit attributes from the page set.
     if self.page_set and hasattr(self.page_set, name):
       return getattr(self.page_set, name)
+    raise AttributeError(
+        '%r object has no attribute %r' % (self.__class__, name))
 
-    raise AttributeError()
+  def __str__(self):
+    return self.url
+
+  @property
+  def _scheme(self):
+    return urlparse.urlparse(self.url).scheme
 
   @property
   def is_file(self):
-    parsed_url = urlparse.urlparse(self.url)
-    return parsed_url.scheme == 'file'
+    """Returns True iff this URL points to a file."""
+    return self._scheme == 'file'
 
   @property
   def is_local(self):
-    parsed_url = urlparse.urlparse(self.url)
-    return parsed_url.scheme == 'file' or parsed_url.scheme == 'chrome'
+    """Returns True iff this URL is local. This includes chrome:// URLs."""
+    return self._scheme == 'file' or self._scheme == 'chrome'
 
   @property
-  def serving_dirs_and_file(self):
-    parsed_url = urlparse.urlparse(self.url)
-    path = _UrlPathJoin(self.base_dir, parsed_url.netloc, parsed_url.path)
+  def file_path(self):
+    """Returns the path of the file, stripping the scheme and query string."""
+    assert self.is_file
+    # urlparse doesn't separate out the query string for file:// URLs.
+    # Remove the scheme to work around this quirk.
+    parsed_url = list(urlparse.urlparse(self.url))
+    parsed_url[0] = ''
+    schemeless_url = urlparse.urlunparse(parsed_url)
 
-    if hasattr(self.page_set, 'serving_dirs'):
-      url_base_dir = os.path.commonprefix(self.page_set.serving_dirs)
-      base_path = _UrlPathJoin(self.base_dir, url_base_dir)
-      return ([_UrlPathJoin(self.base_dir, d)
-               for d in self.page_set.serving_dirs],
-              path.replace(base_path, ''))
+    # Then do the actual work.
+    parsed_url = urlparse.urlparse(schemeless_url)
+    return os.path.normpath(os.path.join(
+        self._base_dir, parsed_url.netloc + parsed_url.path))
 
-    return os.path.split(path)
+  @property
+  def serving_dir(self):
+    file_path = os.path.realpath(self.file_path)
+    if os.path.isdir(file_path):
+      return file_path
+    else:
+      return os.path.dirname(file_path)
 
   @property
   def file_safe_name(self):
@@ -99,16 +83,12 @@ class Page(object):
   def display_name(self):
     if self.name:
       return self.name
-    if not self.is_local:
+    if not self.is_file:
       return self.url
-    url_paths = ['/'.join(p.url.strip('/').split('/')[:-1])
-                 for p in self.page_set if p.is_file]
-    common_prefix = os.path.commonprefix(url_paths)
+    all_urls = [p.url.rstrip('/') for p in self.page_set if p.is_file]
+    common_prefix = os.path.dirname(os.path.commonprefix(all_urls))
     return self.url[len(common_prefix):].strip('/')
 
   @property
   def archive_path(self):
     return self.page_set.WprFilePathForPage(self)
-
-  def __str__(self):
-    return self.url
