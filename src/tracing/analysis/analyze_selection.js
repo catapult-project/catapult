@@ -31,21 +31,25 @@ base.exportTo('tracing.analysis', function() {
     objectEvents.addSelection(eventsByType.objectInstances);
 
     if (sliceEvents.length == 1) {
-      tracing.analysis.analyzeSingleSlice(results, sliceEvents[0]);
+      tracing.analysis.analyzeSingleSlice(results, sliceEvents[0], 'Slice');
     } else if (sliceEvents.length > 1) {
-      tracing.analysis.analyzeMultipleSlices(results, sliceEvents);
+      tracing.analysis.analyzeMultipleSlices(results, sliceEvents, 'Slices');
     }
 
     if (instantEvents.length == 1) {
-      tracing.analysis.analyzeSingleSlice(results, instantEvents[0]);
+      tracing.analysis.analyzeSingleSlice(results, instantEvents[0],
+                                          'Instant Event');
     } else if (instantEvents.length > 1) {
-      tracing.analysis.analyzeMultipleSlices(results, instantEvents);
+      tracing.analysis.analyzeMultipleSlices(results, instantEvents,
+                                             'Instant Events');
     }
 
     if (sampleEvents.length == 1) {
-      tracing.analysis.analyzeSingleSlice(results, sampleEvents[0]);
+      tracing.analysis.analyzeSingleSlice(results, sampleEvents[0],
+                                          'Sample Event');
     } else if (sampleEvents.length > 1) {
-      tracing.analysis.analyzeMultipleSlices(results, sampleEvents);
+      tracing.analysis.analyzeMultipleSlices(results, sampleEvents,
+                                             'Sample Events');
     }
 
     if (counterSampleEvents.length != 0)
@@ -63,11 +67,11 @@ base.exportTo('tracing.analysis', function() {
     objectEvents = base.asArray(objectEvents).sort(
         base.Range.compareByMinTimes);
 
+    results.appendHeader('Selected Objects:');
     var table = results.appendTable('analysis-object-sample-table', 2);
-    results.appendTableHeader(table, 'Selected Objects:');
 
     objectEvents.forEach(function(event) {
-      var row = results.appendTableRow(table);
+      var row = results.appendBodyRow(table);
       var ts;
       var objectText;
       var selectionGenerator;

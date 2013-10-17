@@ -108,7 +108,8 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     tracing.analysis.analyzeSelection(results, selection);
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
-    assertEquals('Selected slice:', table.tableHeader);
+    var header = results.headers[0];
+    assertEquals('Selected Slice:', header.label);
     assertEquals(3, table.rows.length);
 
     assertEquals('b', table.rows[0].text);
@@ -123,7 +124,8 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     tracing.analysis.analyzeSelection(results, selection);
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
-    assertEquals('Selected slice:', table.tableHeader);
+    var header = results.headers[0];
+    assertEquals('Selected Slice:', header.label);
     assertEquals(4, table.rows.length);
 
     assertEquals('b', table.rows[0].text);
@@ -139,18 +141,24 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     tracing.analysis.analyzeSelection(results, selection);
     assertEquals(1, results.tables.length);
     var table = results.tables[0];
-    assertEquals('Slices:', table.tableHeader);
+    assertEquals('Slices:', results.headers[0].label);
     assertEquals(6, table.rows.length);
 
     assertEquals('a', table.rows[0].label);
     assertEquals(1, table.rows[0].occurences);
     assertAlmostEquals(0.04, table.rows[0].duration);
+    assertAlmostEquals(0.04, table.rows[0].selfTime);
+    assertEquals(null, table.rows[0].threadTime);
     assertEquals('aa', table.rows[1].label);
     assertEquals(1, table.rows[1].occurences);
     assertAlmostEquals(0.06, table.rows[1].duration);
-    assertEquals('*Totals', table.rows[2].label);
+    assertAlmostEquals(0.06, table.rows[1].selfTime);
+    assertEquals(null, table.rows[1].threadTime);
+    assertEquals('Totals', table.rows[2].label);
     assertEquals(2, table.rows[2].occurences);
     assertAlmostEquals(0.1, table.rows[2].duration);
+    assertAlmostEquals(0.1, table.rows[2].selfTime);
+    assertEquals(null, table.rows[2].threadTime);
 
     assertEquals('Selection start', table.rows[4].label);
     assertAlmostEquals(0, table.rows[4].time);
@@ -164,15 +172,17 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
 
     var results = new StubAnalysisResults();
     tracing.analysis.analyzeSelection(results, selection);
-    assertEquals(3, results.tables.length);
+    assertEquals(2, results.tables.length);
 
     var t;
+    assertEquals('Slices:', results.headers[0].label);
     // Table 1.
     t = results.tables[0];
-    assertEquals('Slices:', t.tableHeader);
     assertObjectEquals(
         {label: 'c',
           duration: 0.1,
+          threadTime: null,
+          selfTime: 0.1,
           occurences: 2,
           details: {min: 0.04, max: 0.06, avg: 0.05,
             avg_stddev: 0.014142135623730947}
@@ -181,17 +191,25 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
     assertObjectEquals({label: 'Selection extent', time: 0.18}, t.rows[2]);
 
+    assertObjectEquals({label: 'Title: ', value: 'c'}, results.info[0]);
+    assertObjectEquals({label: 'Category: ', value: ''}, results.info[1]);
+
     // Table 2.
     var t = results.tables[1];
-    assertObjectEquals({label: 'Title', text: 'c'}, t.rows[0]);
-    assertObjectEquals({label: 'Start', time: 0}, t.rows[1]);
-    assertObjectEquals({label: 'Duration', time: 0.04}, t.rows[2]);
-
-    // Table 3.
-    var t = results.tables[2];
-    assertObjectEquals({label: 'Title', text: 'c'}, t.rows[0]);
-    assertObjectEquals({label: 'Start', time: 0.12}, t.rows[1]);
-    assertObjectEquals({label: 'Duration', time: 0.06}, t.rows[2]);
+    assertObjectEquals(
+        {start: 0,
+          duration: 0.04,
+          selfTime: 0.04,
+          args: {}
+        },
+        t.rows[0]);
+    assertObjectEquals(
+        {start: 0.12,
+          duration: 0.06,
+          selfTime: 0.06,
+          args: {}
+        },
+        t.rows[1]);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {

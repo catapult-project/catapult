@@ -19,6 +19,12 @@ base.exportTo('tracing.analysis', function() {
     },
 
     appendChild: function(node) {
+      if (node.tagName == 'TFOOT' || node.tagName == 'THEAD' ||
+              node.tagName == 'TBODY') {
+        node.__proto__ = StubAnalysisTable.prototype;
+        node.nodes_ = [];
+        this.ownerDocument_ = document;
+      }
       this.nodes_.push(node);
     },
 
@@ -29,11 +35,9 @@ base.exportTo('tracing.analysis', function() {
     get nodeCount() {
       return this.nodes_.length;
     }
-
   };
 
   return {
     StubAnalysisTable: StubAnalysisTable
   };
 });
-

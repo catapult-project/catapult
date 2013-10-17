@@ -60,6 +60,9 @@ base.exportTo('tracing.analysis', function() {
       return td;
     },
 
+    /**
+     * Creates and append a table cell at the end of the given row.
+     */
     appendTableCell: function(table, row, text) {
       return this.appendTableCell_(table, row, row.children.length, text);
     },
@@ -78,41 +81,110 @@ base.exportTo('tracing.analysis', function() {
     },
 
     /**
+     * Creates and appends a section header element.
+     */
+    appendHeader: function(label) {
+      var header = this.appendElement_(this, 'span', label);
+      header.className = 'analysis-header';
+      return header;
+    },
+
+    /**
+     * Creates and appends a info element of the format "<b>label</b>value".
+     */
+    appendInfo: function(label, value) {
+      var div = this.appendElement_(this, 'div');
+      div.label = this.appendElement_(div, 'b', label);
+      div.value = this.appendElement_(div, 'span', value);
+      return div;
+    },
+
+    /**
      * Adds a table with the given className.
+     *
      * @return {HTMLTableElement} The newly created table.
      */
     appendTable: function(className, numColumns) {
       var table = this.appendElement_(this, 'table');
-      table.headerRow = this.appendElement_(table, 'tr');
       table.className = className + ' analysis-table';
       table.numColumns = numColumns;
       return table;
     },
 
     /**
-     * Creates and appends a row to |table| with a left-aligned |label]
-     * header that spans all columns.
+     * Creates and appends a |tr| in |thead|, if |thead| does not exist, create
+     * it as well.
      */
-    appendTableHeader: function(table, label) {
-      var th = this.appendElement_(table.headerRow, 'th', label);
-      th.className = 'analysis-table-header';
-    },
-
-    appendTableRow: function(table) {
-      return this.appendElement_(table, 'tr');
+    appendHeadRow: function(table) {
+      if (table.headerRow)
+        throw new Error('Only one header row allowed.');
+      if (table.tbody || table.tfoot)
+        throw new Error(
+            'Cannot add a header row after data rows have been added.');
+      table.headerRow = this.appendElement_(
+                                  this.appendElement_(table, 'thead'), 'tr');
+      table.headerRow.className = 'analysis-table-header';
+      return table.headerRow;
     },
 
     /**
-     * Creates and appends a row to |table| with a left-aligned |label]
-     * in the first column and an optional |opt_value| in the second
-     * column.
+     * Creates and appends a |tr| in |tbody|, if |tbody| does not exist, create
+     * it as well.
      */
-    appendSummaryRow: function(table, label, opt_value) {
-      var row = this.appendElement_(table, 'tr');
-      row.className = 'analysis-table-row';
+    appendBodyRow: function(table) {
+      if (table.tfoot)
+        throw new Error(
+            'Cannot add a tbody row after footer rows have been added.');
+      if (!table.tbody)
+        table.tbody = this.appendElement_(table, 'tbody');
+      var row = this.appendElement_(table.tbody, 'tr');
+      if (table.headerRow)
+        row.className = 'analysis-table-row';
+      else
+        row.className = 'analysis-table-row-inverted';
+      return row;
+    },
 
+    /**
+     * Creates and appends a |tr| in |tfoot|, if |tfoot| does not exist, create
+     * it as well.
+     */
+    appendFootRow: function(table) {
+      if (!table.tfoot) {
+        table.tfoot = this.appendElement_(table, 'tfoot');
+        table.tfoot.rowsClassName = (
+            (table.headerRow ? 1 : 0) +
+            (table.tbody ? table.tbody.rows.length : 0)) % 2 ?
+                'analysis-table-row' : 'analysis-table-row-inverted';
+      }
+
+      var row = this.appendElement_(table.tfoot, 'tr');
+      row.className = table.tfoot.rowsClassName;
+      return row;
+    },
+
+    /**
+     * Adds a spacing row to spread out results.
+     */
+    appendSpacingRow: function(table, opt_inFoot) {
+      if (table.tfoot || opt_inFoot)
+        var row = this.appendFootRow(table);
+      else
+        var row = this.appendBodyRow(table);
+      for (var i = 0; i < table.numColumns; i++)
+        this.appendTableCell_(table, row, i, ' ');
+    },
+
+    /**
+     * Creates and appends a row to |table| with a left-aligned |label] in the
+     * first column and an optional |opt_value| in the second column.
+     */
+    appendInfoRow: function(table, label, opt_value, opt_inFoot) {
+      if (table.tfoot || opt_inFoot)
+        var row = this.appendFootRow(table);
+      else
+        var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
-
       if (opt_value !== undefined) {
         var objectView = new tracing.analysis.GenericObjectView();
         objectView.object = opt_value;
@@ -127,37 +199,85 @@ base.exportTo('tracing.analysis', function() {
     },
 
     /**
-     * Adds a spacing row to spread out results.
+     * Creates and appends a row to |table| with a left-aligned |label] in the
+     * first column and a millisecond |time| value in the second column.
      */
-    appendSpacingRow: function(table) {
-      var row = this.appendElement_(table, 'tr');
-      row.className = 'analysis-table-row';
-      for (var i = 0; i < table.numColumns; i++)
-        this.appendTableCell_(table, row, i, ' ');
-    },
-
-    /**
-     * Creates and appends a row to |table| with a left-aligned |label]
-     * in the first column and a millisecvond |time| value in the second
-     * column.
-     */
-    appendSummaryRowTime: function(table, label, time) {
-      this.appendSummaryRow(table, label,
+    appendInfoRowTime: function(table, label, time, opt_inFoot) {
+      if (table.tfoot || opt_inFoot)
+        var row = this.appendFootRow(table);
+      else
+        var row = this.appendBodyRow(table);
+      this.appendTableCell_(table, row, 0, label);
+      this.appendTableCell_(table, row, 1,
                             tracing.analysis.tsRound(time) + ' ms');
     },
 
     /**
-     * Creates and appends a row to |table| that summarizes one or more slices,
-     * or one or more counters.
-     * The row has a left-aligned |label| in the first column, the |duration|
-     * of the data in the second, the number of |occurrences| in the third.
+     * Creates and appends a row to |table| that summarizes a single slice or a
+     * single counter. The row has a left-aligned |start| in the first column,
+     * the |duration| of the data in the second, the number of |occurrences| in
+     * the third.
+     *
      * @param {object=} opt_statistics May be undefined, or an object which
-     * contains calculated staistics containing min/max/avg for slices, or
-     * min/max/avg/start/end for counters.
+     *          contains calculated staistics containing min/max/avg for slices,
+     *          or min/max/avg/start/end for counters.
+     */
+    appendDetailsRow: function(table, start, duration, selfTime, args,
+        opt_selectionGenerator, opt_threadTime) {
+      var row = this.appendBodyRow(table);
+
+      if (opt_selectionGenerator) {
+        var labelEl = this.appendTableCell(table, row,
+                                           tracing.analysis.tsRound(start));
+        labelEl.textContent = '';
+        labelEl.appendChild(this.createSelectionChangingLink(
+                                    tracing.analysis.tsRound(start),
+                                    opt_selectionGenerator, ''));
+      } else {
+        this.appendTableCell(table, row, tracing.analysis.tsRound(start));
+      }
+
+      this.appendTableCell(table, row, tracing.analysis.tsRound(duration));
+
+      if (opt_threadTime)
+        this.appendTableCell(table, row,
+                             opt_threadTime != '' ?
+                                 tracing.analysis.tsRound(opt_threadTime) : '');
+
+      this.appendTableCell(table, row, tracing.analysis.tsRound(selfTime));
+
+      var argsCell = this.appendTableCell(table, row, '');
+      var n = 0;
+      for (var argName in args) {
+        n += 1;
+      }
+
+      if (n > 0) {
+        for (var argName in args) {
+          var argVal = args[argName];
+          var objectView = new tracing.analysis.GenericObjectView();
+          objectView.object = argVal;
+          var argsRow = this.appendElement_(
+              this.appendElement_(argsCell, 'table'), 'tr');
+          this.appendElement_(argsRow, 'td', argName + ':');
+          this.appendElement_(argsRow, 'td').appendChild(objectView);
+        }
+      }
+    },
+
+    /**
+     * Creates and appends a row to |table| that summarizes one or more slices,
+     * or one or more counters. The row has a left-aligned |label| in the first
+     * column, the |duration| of the data in the second, the number of
+     * |occurrences| in the third.
+     *
+     * @param {object=} opt_statistics May be undefined, or an object which
+     *          contains calculated staistics containing min/max/avg for slices,
+     *          or min/max/avg/start/end for counters.
      */
     appendDataRow: function(
-        table, label, opt_duration, opt_occurences,
-        opt_statistics, opt_selectionGenerator) {
+        table, label, opt_duration, opt_threadTime, opt_selfTime,
+        opt_occurences, opt_statistics, opt_selectionGenerator, opt_inFoot) {
 
       var tooltip = undefined;
       if (opt_statistics) {
@@ -186,8 +306,10 @@ base.exportTo('tracing.analysis', function() {
         }
       }
 
-      var row = this.appendElement_(table, 'tr');
-      row.className = 'analysis-table-row';
+      if (table.tfoot || opt_inFoot)
+        var row = this.appendFootRow(table);
+      else
+        var row = this.appendBodyRow(table);
 
       if (!opt_selectionGenerator) {
         this.appendTableCellWithTooltip_(table, row, 0, label, tooltip);
@@ -200,22 +322,37 @@ base.exportTo('tracing.analysis', function() {
             tooltip));
       }
 
-      if (opt_duration !== undefined) {
+      if (opt_duration) {
         if (opt_duration instanceof Array) {
           this.appendTableCellWithTooltip_(table, row, 1,
               '[' + opt_duration.join(', ') + ']', tooltip);
         } else {
           this.appendTableCellWithTooltip_(table, row, 1,
-              tracing.analysis.tsRound(opt_duration) + ' ms', tooltip);
+              tracing.analysis.tsRound(opt_duration), tooltip);
         }
       } else {
         this.appendTableCell_(table, row, 1, '');
       }
 
-      if (opt_occurences !== undefined) {
-        this.appendTableCellWithTooltip_(table, row, 2,
-            String(opt_occurences) + ' occurrences', tooltip);
+      if (opt_threadTime !== null) {
+        if (opt_threadTime != '') {
+          this.appendTableCellWithTooltip_(table, row, 2,
+              tracing.analysis.tsRound(opt_threadTime), tooltip);
+        } else {
+          this.appendTableCell_(table, row, 2, '');
+        }
+      }
 
+      if (opt_selfTime) {
+        this.appendTableCellWithTooltip_(table, row, 2,
+            tracing.analysis.tsRound(opt_selfTime), tooltip);
+      } else {
+        this.appendTableCell_(table, row, 2, '');
+      }
+
+      if (opt_occurences) {
+        this.appendTableCellWithTooltip_(table, row, 2,
+            String(opt_occurences), tooltip);
       } else {
         this.appendTableCell_(table, row, 2, '');
       }

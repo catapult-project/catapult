@@ -3,6 +3,10 @@
  * found in the LICENSE file.
  */
 
+.analysis-header {
+  font-weight: bold;
+}
+
 .analysis-results {
   font-family: monospace;
   white-space: pre;
@@ -12,18 +16,28 @@
   -webkit-user-select: text !important;
   cursor: text;
 }
+
 .analysis-table {
   border-collapse: collapse;
   border-width: 0;
   margin-bottom: 25px;
+  width: 100%;
 }
 
-.analysis-table > tr > td:first-child {
+.analysis-table tr > td:first-child {
   padding-left: 2px;
 }
 
-.analysis-table > tr > td {
+.analysis-table tr > td {
   padding: 2px 4px 2px 4px;
+  vertical-align: text-top;
+  width: 150px;
+}
+
+/* Shrink back nested cells (used to display Args) */
+.analysis-table td td {
+  padding: 0 0 0 0;
+  width: auto;
 }
 
 .analysis-table-header {
@@ -38,8 +52,21 @@
   background-color: #e2e2e2;
 }
 
+.analysis-table-row-inverted:nth-child(2n+1) {
+  background-color: #e2e2e2;
+}
+
 .selection-changing-link {
   color: -webkit-link;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.analysis-table thead {
+  background-color: #e2e2e2;
+  font-weight: bold;
+}
+
+.analysis-table tfoot {
+  font-weight: bold;
 }

@@ -34,21 +34,20 @@ base.exportTo('tracing.analysis', function() {
 
   function analyzeSingleCounterTimestamp(
       results, ctr, samplesWithSameTimestamp) {
+    results.appendHeader('Selected counter:');
     var table = results.appendTable('analysis-counter-table', 2);
-    results.appendTableHeader(table, 'Selected counter:');
-    results.appendSummaryRow(table, 'Title', ctr.name);
-    results.appendSummaryRowTime(
+    results.appendInfoRow(table, 'Title', ctr.name);
+    results.appendInfoRowTime(
         table, 'Timestamp', samplesWithSameTimestamp[0].timestamp);
     for (var i = 0; i < samplesWithSameTimestamp.length; i++) {
       var sample = samplesWithSameTimestamp[i];
-      results.appendSummaryRow(table, sample.series.name,
-                               sample.value);
+      results.appendInfoRow(table, sample.series.name, sample.value);
     }
   }
 
   function analyzeMultipleCounterTimestamps(results, ctr, samplesByTimestamp) {
+    results.appendHeader('Counter ' + ctr.name);
     var table = results.appendTable('analysis-counter-table', 2);
-    results.appendTableHeader(table, 'Counter ' + ctr.name);
 
     var sampleIndices = [];
     for (var i = 0; i < samplesByTimestamp.length; i++)
@@ -64,6 +63,8 @@ base.exportTo('tracing.analysis', function() {
           table,
           ctr.name + ': series(' + ctr.getSeries(i).name + ')',
           samples,
+          null,
+          null,
           samples.length,
           stats[i]);
     }

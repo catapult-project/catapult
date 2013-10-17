@@ -6,6 +6,8 @@
 
 base.exportTo('tracing.analysis', function() {
   function StubAnalysisResults() {
+    this.headers = [];
+    this.info = [];
     this.tables = [];
   }
   StubAnalysisResults.prototype = {
@@ -21,33 +23,69 @@ base.exportTo('tracing.analysis', function() {
       return table;
     },
 
-    appendTableHeader: function(table, label) {
-      if (table.tableHeader)
-        throw new Error('Only one summary header allowed.');
-      table.tableHeader = label;
+    appendHeader: function(label) {
+      var header = {
+        label: label
+      };
+      this.headers.push(header);
+      return header;
     },
 
-    appendSummaryRow: function(table, label, opt_text) {
-      table.rows.push({label: label,
-        text: opt_text});
+    appendInfo: function(label, value) {
+      this.info.push({label: label, value: value});
+    },
+
+    appendDetailsRow: function(table, start, duration, selfTime, args,
+                               selectionGenerator, threadTime) {
+      table.rows.push({
+        start: start,
+        duration: duration,
+        selfTime: selfTime,
+        args: args,
+        selectionGenerator: selectionGenerator,
+        threadTime: threadTime});
+    },
+
+    appendHeadRow: function(table) {
+      if (table.headerRow)
+        throw new Error('Only one header row allowed.');
+      table.headerRow = [];
+      return table.headerRow;
+    },
+
+    appendTableCell: function(table, row, text) {
+      row.push(text);
     },
 
     appendSpacingRow: function(table) {
-      table.rows.push({spacing: true});
+      var row = {spacing: true};
+      table.rows.push(row);
+      return row;
     },
 
-    appendSummaryRowTime: function(table, label, time) {
-      table.rows.push({label: label,
-        time: time});
+    appendInfoRow: function(table, label, opt_text) {
+      var row = {label: label, text: opt_text};
+      table.rows.push(row);
+      return row;
     },
 
-    appendDataRow: function(table, label, duration, occurences,
-                            details, selectionGenerator) {
-      table.rows.push({label: label,
-        duration: duration,
-        occurences: occurences,
-        details: details,
-        selectionGenerator: selectionGenerator});
+    appendInfoRowTime: function(table, label, time) {
+      var row = {label: label, time: time};
+      table.rows.push(row);
+      return row;
+    },
+
+    appendDataRow: function(table, label, duration, threadTime, selfTime,
+                            occurences, details, selectionGenerator) {
+      var row = {label: label,
+                  duration: duration,
+                  threadTime: threadTime,
+                  selfTime: selfTime,
+                  occurences: occurences,
+                  details: details,
+                  selectionGenerator: selectionGenerator};
+      table.rows.push(row);
+      return row;
     }
   };
 

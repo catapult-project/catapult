@@ -157,8 +157,8 @@ base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
     tracing.analysis.analyzeSelection(results, selection);
 
     assertEquals(1, results.tables.length);
+    assertEquals('Selected counter:', results.headers[0].label);
     var table = results.tables[0];
-    assertEquals('Selected counter:', table.tableHeader);
     assertEquals(3, table.rows.length);
 
     assertEquals('Title', table.rows[0].label);
