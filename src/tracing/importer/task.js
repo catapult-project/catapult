@@ -105,7 +105,12 @@ base.exportTo('tracing.importer', function() {
     return new base.Promise(function(resolver) {
       var curTask = task;
       function runAnother() {
-        curTask = curTask.run();
+        try {
+          curTask = curTask.run();
+        } catch (e) {
+          resolver.reject(e);
+          return;
+        }
 
         if (curTask) {
           base.requestIdleCallback(runAnother);

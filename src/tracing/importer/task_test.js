@@ -58,4 +58,20 @@ base.unittest.testSuite('tracing.importer.task', function() {
     return promise;
   });
 
+  test('taskThatThrowsShouldRejectItsPromise', function() {
+    var startingTask = new Task(function(task) {
+      throw new Errror('Expected error');
+    }, this);
+
+    var taskPromise = Task.RunWhenIdle(startingTask);
+
+    return new Promise(function(resolver) {
+      taskPromise.then(function() {
+        resolver.reject(new Error('Should have thrown'));
+      }, function(err) {
+        resolver.resolve();
+      });
+    });
+  });
+
 });
