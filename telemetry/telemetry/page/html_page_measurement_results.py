@@ -27,11 +27,13 @@ _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 
 class HtmlPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
-  def __init__(self, output_stream, test_name, browser_type, trace_tag=''):
+  def __init__(self, output_stream, test_name, reset_results, browser_type,
+      trace_tag=''):
     super(HtmlPageMeasurementResults, self).__init__(trace_tag)
 
     self._output_stream = output_stream
     self._test_name = test_name
+    self._reset_results = reset_results
     self._result_json = {
         'buildTime': self._GetBuildTime(),
         'revision': self._GetRevision(),
@@ -61,7 +63,7 @@ class HtmlPageMeasurementResults(
 
   def _GetResultsJson(self):
     results_html = self._output_stream.read()
-    if not results_html:
+    if self._reset_results or not results_html:
       return []
     m = re.search(
         '^<script id="results-json" type="application/json">(.*?)</script>$',

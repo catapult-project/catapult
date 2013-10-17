@@ -48,7 +48,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
 
     # Run the first time and verify the results are written to the HTML file.
     results = DeterministicHtmlPageMeasurementResults(
-        output_file, 'test_name', 'browser_type')
+        output_file, 'test_name', False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
     results.Add('a', 'seconds', 3)
     results.DidMeasurePage()
@@ -101,7 +101,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     # Run the second time and verify the results are appended to the HTML file.
     output_file.seek(0)
     results = DeterministicHtmlPageMeasurementResults(
-        output_file, 'test_name', 'browser_type')
+        output_file, 'test_name', False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
     results.Add('a', 'seconds', 4)
     results.DidMeasurePage()
@@ -186,3 +186,58 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
           '}]'
         '</script>')
     self.assertIn(expected, output_file.getvalue())
+    last_output_len = len(output_file.getvalue())
+
+    # Now reset the results and verify the old ones are gone.
+    output_file.seek(0)
+    results = DeterministicHtmlPageMeasurementResults(
+       output_file, 'test_name', True, 'browser_type')
+    results.WillMeasurePage(test_page_set.pages[0])
+    results.Add('a', 'seconds', 5)
+    results.DidMeasurePage()
+    results.WillMeasurePage(test_page_set.pages[1])
+    results.Add('a', 'seconds', 9)
+    results.DidMeasurePage()
+
+    results.PrintSummary()
+    expected = (
+        '<script id="results-json" type="application/json">'
+          '[{'
+            '"platform": "browser_type", '
+            '"buildTime": "build_time", '
+            '"tests": {'
+              '"test_name": {'
+                '"metrics": {'
+                  '"a": {'
+                    '"current": [5, 9], '
+                    '"units": "seconds", '
+                    '"important": true'
+                  '}, '
+                  '"telemetry_page_measurement_results.num_failed": {'
+                    '"current": [0], '
+                    '"units": "count", '
+                    '"important": false'
+                  '}, '
+                  '"a_by_url.http://www.bar.com/": {'
+                    '"current": [9], '
+                    '"units": "seconds", '
+                    '"important": false'
+                  '}, '
+                  '"telemetry_page_measurement_results.num_errored": {'
+                    '"current": [0], '
+                    '"units": "count", '
+                    '"important": false'
+                  '}, '
+                  '"a_by_url.http://www.foo.com/": {'
+                    '"current": [5], '
+                    '"units": "seconds", '
+                    '"important": false'
+                  '}'
+                '}'
+              '}'
+            '}, '
+            '"revision": "revision"'
+          '}]'
+        '</script>')
+    self.assertIn(expected, output_file.getvalue())
+    self.assertTrue(len(output_file.getvalue()) < last_output_len)
