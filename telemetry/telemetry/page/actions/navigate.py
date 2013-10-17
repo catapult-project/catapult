@@ -10,9 +10,7 @@ class NavigateAction(page_action.PageAction):
 
   def RunAction(self, page, tab, previous_action):
     if page.is_file:
-      query = page.url.partition('?')[2]
-      target_side_url = (tab.browser.http_server.UrlOf(page.file_path) + '?' +
-                         query)
+      target_side_url = tab.browser.http_server.UrlOf(page.file_path_url)
     else:
       target_side_url = page.url
 

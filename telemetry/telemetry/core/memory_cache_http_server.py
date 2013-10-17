@@ -177,8 +177,9 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
 
     index = 'index.html'
     if os.path.basename(file_path) == index:
-      self.resource_map[
-          file_path[:-len(index)]] = self.resource_map[file_path]
+      dir_path = os.path.dirname(file_path)
+      self.resource_map[dir_path] = self.resource_map[file_path]
+      self.resource_map[dir_path + '/'] = self.resource_map[file_path]
 
 
 def _PrintUsageAndExit():

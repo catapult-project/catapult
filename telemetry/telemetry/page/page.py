@@ -66,6 +66,16 @@ class Page(object):
         self._base_dir, parsed_url.netloc + parsed_url.path))
 
   @property
+  def file_path_url(self):
+    """Returns the file path, including the params, query, and fragment."""
+    assert self.is_file
+    # urlparse doesn't separate out the query string for file:// URLs.
+    # Take advantage of this quirk :)
+    parsed_url = urlparse.urlparse(self.url, scheme='')
+    return os.path.normpath(os.path.join(
+        self._base_dir, parsed_url.netloc + parsed_url.path))
+
+  @property
   def serving_dir(self):
     file_path = os.path.realpath(self.file_path)
     if os.path.isdir(file_path):
