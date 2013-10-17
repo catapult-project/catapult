@@ -54,6 +54,10 @@ class OOMKillerProfiler(profiler.Profiler):
       return android_browser_finder.CanFindAvailableBrowsers()
     return browser_type.startswith('android')
 
+  @classmethod
+  def WillCloseBrowser(cls, browser_backend, platform_backend):
+    browser_backend.adb.CloseApplication('org.chromium.memconsumer')
+
   def CollectProfile(self):
     missing_applications = self._MissingApplications()
     if not len(missing_applications):

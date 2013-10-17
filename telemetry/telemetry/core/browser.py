@@ -235,12 +235,12 @@ class Browser(object):
       raise Exception('The %s profiler is not '
                       'supported on this platform.' % profiler_name)
 
-    if not profiler_name in self._profilers_states:
-      self._profilers_states[profiler_name] = {}
+    if not profiler_class in self._profilers_states:
+      self._profilers_states[profiler_class] = {}
 
     self._active_profilers.append(
         profiler_class(self._browser_backend, self._platform_backend,
-            base_output_file, self._profilers_states[profiler_name]))
+            base_output_file, self._profilers_states[profiler_class]))
 
   def StopProfiling(self):
     """Stops all active profilers and saves their results.
@@ -276,7 +276,12 @@ class Browser(object):
 
   def Close(self):
     """Closes this browser."""
+    for profiler_class in self._profilers_states:
+      profiler_class.WillCloseBrowser(self._browser_backend,
+                                      self._platform_backend)
+
     self._platform.SetFullPerformanceModeEnabled(False)
+
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None
