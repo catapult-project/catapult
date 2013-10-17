@@ -97,6 +97,8 @@ base.exportTo('tracing.trace_model', function() {
                                             opt_args ? opt_args : {}, null,
                                             opt_tts);
       this.openPartialSlices_.push(slice);
+      slice.didNotFinish = true;
+      this.pushSlice(slice);
 
       return slice;
     },
@@ -140,11 +142,10 @@ base.exportTo('tracing.trace_model', function() {
                         ' end time is before its start.');
 
       slice.duration = ts - slice.start;
+      slice.didNotFinish = false;
 
       if (opt_tts && slice.threadStart)
         slice.threadTime = opt_tts - slice.threadStart;
-
-      this.pushSlice(slice);
 
       return slice;
     },
@@ -165,6 +166,8 @@ base.exportTo('tracing.trace_model', function() {
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration);
+      if (duration === undefined)
+        slice.didNotFinish = true;
       this.pushSlice(slice);
       return slice;
     },
@@ -180,10 +183,12 @@ base.exportTo('tracing.trace_model', function() {
         this.updateBounds();
         opt_maxTimestamp = this.bounds.max;
       }
-      while (this.openSliceCount > 0) {
-        var slice = this.endSlice(opt_maxTimestamp);
-        slice.didNotFinish = true;
+      for (var sI = 0; sI < this.slices.length; sI++) {
+        var slice = this.slices[sI];
+        if (slice.didNotFinish)
+          slice.duration = opt_maxTimestamp - slice.start;
       }
+      this.openPartialSlices_ = [];
     },
 
     /**
@@ -193,10 +198,6 @@ base.exportTo('tracing.trace_model', function() {
     shiftTimestampsForward: function(amount) {
       for (var sI = 0; sI < this.slices.length; sI++) {
         var slice = this.slices[sI];
-        slice.start = (slice.start + amount);
-      }
-      for (var sI = 0; sI < this.openPartialSlices_.length; sI++) {
-        var slice = this.openPartialSlices_[i];
         slice.start = (slice.start + amount);
       }
     },
@@ -210,12 +211,6 @@ base.exportTo('tracing.trace_model', function() {
         this.bounds.addValue(this.slices[i].start);
         this.bounds.addValue(this.slices[i].end);
       }
-
-      if (this.openPartialSlices_.length) {
-        this.bounds.addValue(this.openPartialSlices_[0].start);
-        this.bounds.addValue(
-            this.openPartialSlices_[this.openPartialSlices_.length - 1].start);
-      }
     },
 
     copySlice: function(slice) {
@@ -228,7 +223,6 @@ base.exportTo('tracing.trace_model', function() {
 
     iterateAllEvents: function(callback) {
       this.slices.forEach(callback);
-      this.openPartialSlices_.forEach(callback);
     },
 
     /**
@@ -241,7 +235,7 @@ base.exportTo('tracing.trace_model', function() {
         // Because we know that the start time of child is >= the start time
         // of all other slices seen so far, we can just check the last slice
         // of each row for bounding.
-        if (child.start >= root.start && child.end <= root.end) {
+        if (root.bounds(child)) {
           if (root.subSlices && root.subSlices.length > 0) {
             if (addSliceIfBounds(root.subSlices[root.subSlices.length - 1],
                                  child))
@@ -278,10 +272,10 @@ base.exportTo('tracing.trace_model', function() {
           return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
-        // slices end.  Because slices must be properly nested, we break
+        // slices start. Because slices must be properly nested, we break
         // start-time ties by assuming that the elements appearing earlier
-        // in the slices array (and thus ending earlier) start later.
-        return iy - ix;
+        // in the slices array (and thus ending earlier) start earlier.
+        return ix - iy;
       });
 
       var rootSlice = this.slices[ops[0]];
@@ -357,8 +351,8 @@ base.exportTo('tracing.trace_model', function() {
 
     var slicesA = groupA.slices;
     var slicesB = groupB.slices;
-    var idxA = slicesA.length - 1;
-    var idxB = slicesB.length - 1;
+    var idxA = 0;
+    var idxB = 0;
     var openA = [];
     var openB = [];
 
@@ -371,10 +365,11 @@ base.exportTo('tracing.trace_model', function() {
         }
 
         var newSlice = result.copySlice(oldSlice);
-        oldSlice.start = when;
-        oldSlice.duration = oldEnd - when;
-        oldSlice.title += ' (cont.)';
-        newSlice.duration = when - newSlice.start;
+        newSlice.start = when;
+        newSlice.duration = oldEnd - when;
+        if (newSlice.title.indexOf(' (cont.)') == -1)
+          newSlice.title += ' (cont.)';
+        oldSlice.duration = when - oldSlice.start;
         openB[i] = newSlice;
         result.pushSlice(newSlice);
       }
@@ -384,16 +379,16 @@ base.exportTo('tracing.trace_model', function() {
       while (openA.length > 0 || openB.length > 0) {
         var nextA = openA[openA.length - 1];
         var nextB = openB[openB.length - 1];
-        var startA = nextA && nextA.start;
-        var startB = nextB && nextB.start;
+        var endA = nextA && nextA.end;
+        var endB = nextB && nextB.end;
 
-        if ((startA === undefined || startA < upTo) &&
-            (startB === undefined || startB < upTo)) {
+        if ((endA === undefined || endA > upTo) &&
+            (endB === undefined || endB > upTo)) {
           return;
         }
 
-        if (startB === undefined || startA > startB) {
-          splitOpenSlices(startA);
+        if (endB === undefined || endA < endB) {
+          splitOpenSlices(endA);
           openA.pop();
         } else {
           openB.pop();
@@ -401,36 +396,34 @@ base.exportTo('tracing.trace_model', function() {
       }
     };
 
-    while (idxA >= 0 || idxB >= 0) {
+    while (idxA < slicesA.length || idxB < slicesB.length) {
       var sA = slicesA[idxA];
       var sB = slicesB[idxB];
       var nextSlice, isFromB;
 
-      if (sA === undefined || (sB !== undefined && sA.end < sB.end)) {
+      if (sA === undefined || (sB !== undefined && sA.start > sB.start)) {
         nextSlice = result.copySlice(sB);
         isFromB = true;
-        idxB--;
+        idxB++;
       } else {
         nextSlice = result.copySlice(sA);
         isFromB = false;
-        idxA--;
+        idxA++;
       }
 
-      closeOpenSlices(nextSlice.end);
+      closeOpenSlices(nextSlice.start);
 
       result.pushSlice(nextSlice);
 
       if (isFromB) {
         openB.push(nextSlice);
       } else {
-        splitOpenSlices(nextSlice.end);
+        splitOpenSlices(nextSlice.start);
         openA.push(nextSlice);
       }
     }
 
     closeOpenSlices();
-
-    result.slices.reverse();
 
     return result;
   };

@@ -589,11 +589,11 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     var t = p.threads[1];
 
     assertEquals(3, t.sliceGroup.length);
-    assertEquals(0.002, t.sliceGroup.slices[0].start);
-    assertEquals(0, t.sliceGroup.slices[0].duration);
-    assertEquals(0.004, t.sliceGroup.slices[1].start);
-    assertEquals(0.001, t.sliceGroup.slices[2].start);
-    assertEquals(0.003, t.sliceGroup.slices[2].duration);
+    assertEquals(0.001, t.sliceGroup.slices[0].start);
+    assertEquals(0.003, t.sliceGroup.slices[0].duration);
+    assertEquals(0.002, t.sliceGroup.slices[1].start);
+    assertEquals(0, t.sliceGroup.slices[1].duration);
+    assertEquals(0.004, t.sliceGroup.slices[2].start);
 
     var slice = findSliceNamed(t.sliceGroup, 'a');
     assertEquals('a', slice.title);
@@ -1442,8 +1442,9 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
   test('importCompleteEvent', function() {
     var events = [
-      { name: 'a', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X' },  // @suppress longLineCheck
-      { name: 'b', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X' }  // @suppress longLineCheck
+      { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X' }
     ];
 
     var m = new tracing.TraceModel(events);
@@ -1454,22 +1455,27 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(1, p.numThreads);
     var t = p.threads[53];
     assertNotUndefined(t);
-    assertEquals(2, t.sliceGroup.slices.length);
+    assertEquals(3, t.sliceGroup.slices.length);
     assertEquals(53, t.tid);
 
     var slice = t.sliceGroup.slices[0];
     assertEquals('a', slice.title);
-    assertEquals('foo', slice.category);
-    assertAlmostEquals((730 - 629) / 1000, slice.start);
-    assertAlmostEquals(20 / 1000, slice.duration);
-    assertEquals(0, slice.subSlices.length);
-
-    slice = t.sliceGroup.slices[1];
-    assertEquals('b', slice.title);
     assertEquals('baz', slice.category);
     assertAlmostEquals(0, slice.start);
     assertAlmostEquals(1 / 1000, slice.duration);
     assertEquals(0, slice.subSlices.length);
+
+    slice = t.sliceGroup.slices[1];
+    assertEquals('b', slice.title);
+    assertEquals('foo', slice.category);
+    assertAlmostEquals((730 - 629) / 1000, slice.start);
+    assertAlmostEquals(20 / 1000, slice.duration);
+    assertEquals(1, slice.subSlices.length);
+
+    slice = t.sliceGroup.slices[2];
+    assertEquals('c', slice.title);
+    assertTrue(slice.didNotFinish);
+    assertAlmostEquals(10 / 1000, slice.duration);
   });
 
   // TODO(nduca): one slice, two threads

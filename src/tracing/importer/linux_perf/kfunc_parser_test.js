@@ -37,13 +37,13 @@ base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser', function() {
     // Slice 0 is an un-split sys_write
     assertEquals('sys_write', slices[0].title);
 
-    // Slices 1 & 2 are a split sys_write
+    // Slices 1 & 3 are a split sys_write
     assertEquals('sys_write', slices[1].title);
-    assertEquals('sys_write (cont.)', slices[2].title);
+    assertEquals('dequeueBuffer', slices[2].title);
+    assertEquals('sys_write (cont.)', slices[3].title);
 
-    // Slices 3 & 5 are a split sys_write with the dequeueBuffer in between
-    assertEquals('sys_write', slices[3].title);
-    assertEquals('dequeueBuffer', slices[4].title);
+    // Slices 4 & 5 are a split sys_write with the dequeueBuffer in between
+    assertEquals('sys_write', slices[4].title);
     assertEquals('sys_write (cont.)', slices[5].title);
 
     // Slice 6 is another un-split sys_write

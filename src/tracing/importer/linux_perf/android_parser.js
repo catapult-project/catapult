@@ -150,21 +150,6 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
           break;
 
-        case 'X':
-          var ppid = parseInt(eventData[1]);
-          var title = eventData[2];
-          var args = parseArgs(eventData[3]);
-          var category = eventData[4];
-          var duration = parseInt(eventData[5]) / 1000;
-          var thread = this.model_.getOrCreateProcess(ppid)
-              .getOrCreateThread(pid);
-          thread.name = eventBase.threadName;
-          this.ppids_[pid] = ppid;
-          thread.sliceGroup.pushCompleteSlice(
-              category, title, ts, duration, args);
-
-          break;
-
         case 'C':
           var ppid = parseInt(eventData[1]);
           var name = eventData[2];

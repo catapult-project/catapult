@@ -47,8 +47,8 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
   test('subRowBuilderNestedExactly', function() {
     var group = new SliceGroup();
-    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 1, 4));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
@@ -79,8 +79,8 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
 
   test('subRowBuilderTwoInstantEvents', function() {
     var group = new SliceGroup();
-    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;
@@ -139,9 +139,9 @@ base.unittest.testSuite('tracing.tracks.slice_group_track', function() {
     // Pattern being tested:
     // [    a    ]
     // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
     var sB1 = group.pushSlice(newSliceNamed('b1', 1, 2));
     var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
 
     var track = new SliceGroupTrack(new tracing.TimelineViewport());
     track.group = group;

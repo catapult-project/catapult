@@ -262,7 +262,8 @@ base.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateThread(event.tid);
       thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
-          event.ts / 1000, event.dur / 1000,
+          event.ts / 1000,
+          event.dur === undefined ? undefined : event.dur / 1000,
           this.deepCopyIfNeeded_(event.args));
     },
 

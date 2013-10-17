@@ -161,10 +161,10 @@ base.exportTo('tracing.tracks', function() {
           return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
-        // slices end.  Because slices must be properly nested, we break
+        // slices start. Because slices must be properly nested, we break
         // start-time ties by assuming that the elements appearing earlier in
-        // the slices array (and thus ending earlier) start later.
-        return iy - ix;
+        // the slices array (and thus ending earlier) start earlier.
+        return ix - iy;
       });
 
       var subRows = [[]];
@@ -185,8 +185,7 @@ base.exportTo('tracing.tracks', function() {
             this.badSlices_.push(slice);
             inserted = true;
           }
-          if (slice.start >= insertedSlice.start &&
-              slice.end <= insertedSlice.end) {
+          if (insertedSlice.bounds(slice)) {
             // Insert it into subRow j + 1.
             while (subRows.length <= j + 1)
               subRows.push([]);

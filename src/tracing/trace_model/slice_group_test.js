@@ -57,8 +57,8 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
 
   test('subSlicesBuilderNestedExactly', function() {
     var group = new SliceGroup();
-    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
     var sB = group.pushSlice(newSliceNamed('b', 1, 4));
+    var sA = group.pushSlice(newSliceNamed('a', 1, 4));
 
     group.createSubSlices();
 
@@ -85,8 +85,8 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
 
   test('subSlicesBuilderTwoInstantEvents', function() {
     var group = new SliceGroup();
-    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
     var sA = group.pushSlice(newSliceNamed('a', 1, 0));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 0));
 
     group.createSubSlices();
 
@@ -143,9 +143,9 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     // Pattern being tested:
     // [    a    ]
     // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
     var sB1 = group.pushSlice(newSliceNamed('b1', 1, 2));
     var sB2 = group.pushSlice(newSliceNamed('b2', 4, 0));
-    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
 
     group.createSubSlices();
 
@@ -175,7 +175,7 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(2, group.topLevelSlices.length);
     assertArrayEquals([sA, sC], group.topLevelSlices);
 
-    assertArrayEquals(1, sA.subSlices.length);
+    assertEquals(1, sA.subSlices.length);
     assertArrayEquals([sB], sA.subSlices);
     assertEquals(2, sA.selfTime);
 
@@ -199,7 +199,7 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(2, group.topLevelSlices.length);
     assertArrayEquals([sA, sD], group.topLevelSlices);
 
-    assertArrayEquals(1, sA.subSlices.length);
+    assertEquals(1, sA.subSlices.length);
     assertArrayEquals([sB], sA.subSlices);
     assertEquals(2, sA.selfTime);
 
@@ -209,6 +209,25 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(0.5, sB.selfTime);
 
     assertTrue(sC.parentSlice == sB);
+  });
+
+  test('subSlicesBuilderTolerateFPInaccuracy', function() {
+    var group = new SliceGroup();
+
+    // Pattern being tested:
+    // [  a  ]
+    // [  b  ] where b.end contains a tiny FP calculation error.
+    var sA = group.pushSlice(newSliceNamed('a', 1, 3));
+    var sB = group.pushSlice(newSliceNamed('b', 1, 3.0000000001));
+
+    group.createSubSlices();
+
+    assertEquals(1, group.topLevelSlices.length);
+    assertArrayEquals([sA], group.topLevelSlices);
+
+    assertEquals(1, sA.subSlices.length);
+    assertArrayEquals([sB], sA.subSlices);
+    assertTrue(sB.parentSlice == sA);
   });
 
   test('basicMerge', function() {
@@ -242,13 +261,13 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(2, m.slices.length);
 
-    assertEquals('two', m.slices[0].title);
-    assertEquals(2, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('one', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(3, m.slices[0].duration);
 
-    assertEquals('one', m.slices[1].title);
-    assertEquals(1, m.slices[1].start);
-    assertEquals(3, m.slices[1].duration);
+    assertEquals('two', m.slices[1].title);
+    assertEquals(2, m.slices[1].start);
+    assertEquals(1, m.slices[1].duration);
   });
 
   test('startSplitMerge', function() {
@@ -266,13 +285,13 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(1, m.slices[0].start);
     assertEquals(1, m.slices[0].duration);
 
-    assertEquals('two (cont.)', m.slices[1].title);
+    assertEquals('one', m.slices[1].title);
     assertEquals(2, m.slices[1].start);
-    assertEquals(1, m.slices[1].duration);
+    assertEquals(2, m.slices[1].duration);
 
-    assertEquals('one', m.slices[2].title);
+    assertEquals('two (cont.)', m.slices[2].title);
     assertEquals(2, m.slices[2].start);
-    assertEquals(2, m.slices[2].duration);
+    assertEquals(1, m.slices[2].duration);
   });
 
   test('startSplitTwoMerge', function() {
@@ -288,25 +307,25 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(5, m.slices.length);
 
-    assertEquals('three', m.slices[0].title);
-    assertEquals(2, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('two', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(2, m.slices[0].duration);
 
-    assertEquals('two', m.slices[1].title);
-    assertEquals(1, m.slices[1].start);
-    assertEquals(2, m.slices[1].duration);
+    assertEquals('three', m.slices[1].title);
+    assertEquals(2, m.slices[1].start);
+    assertEquals(1, m.slices[1].duration);
 
-    assertEquals('three (cont.)', m.slices[2].title);
+    assertEquals('one', m.slices[2].title);
     assertEquals(3, m.slices[2].start);
-    assertEquals(1, m.slices[2].duration);
+    assertEquals(3, m.slices[2].duration);
 
     assertEquals('two (cont.)', m.slices[3].title);
     assertEquals(3, m.slices[3].start);
     assertEquals(2, m.slices[3].duration);
 
-    assertEquals('one', m.slices[4].title);
+    assertEquals('three (cont.)', m.slices[4].title);
     assertEquals(3, m.slices[4].start);
-    assertEquals(3, m.slices[4].duration);
+    assertEquals(1, m.slices[4].duration);
   });
 
   test('startSplitTwiceMerge', function() {
@@ -326,21 +345,21 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(1, m.slices[0].start);
     assertEquals(1, m.slices[0].duration);
 
-    assertEquals('three (cont.)', m.slices[1].title);
+    assertEquals('one', m.slices[1].title);
     assertEquals(2, m.slices[1].start);
-    assertEquals(1, m.slices[1].duration);
+    assertEquals(4, m.slices[1].duration);
 
     assertEquals('three (cont.)', m.slices[2].title);
-    assertEquals(3, m.slices[2].start);
+    assertEquals(2, m.slices[2].start);
     assertEquals(1, m.slices[2].duration);
 
     assertEquals('two', m.slices[3].title);
     assertEquals(3, m.slices[3].start);
     assertEquals(2, m.slices[3].duration);
 
-    assertEquals('one', m.slices[4].title);
-    assertEquals(2, m.slices[4].start);
-    assertEquals(4, m.slices[4].duration);
+    assertEquals('three (cont.)', m.slices[4].title);
+    assertEquals(3, m.slices[4].start);
+    assertEquals(1, m.slices[4].duration);
   });
 
   test('endSplitMerge', function() {
@@ -354,13 +373,13 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(3, m.slices.length);
 
-    assertEquals('two', m.slices[0].title);
-    assertEquals(2, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('one', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(2, m.slices[0].duration);
 
-    assertEquals('one', m.slices[1].title);
-    assertEquals(1, m.slices[1].start);
-    assertEquals(2, m.slices[1].duration);
+    assertEquals('two', m.slices[1].title);
+    assertEquals(2, m.slices[1].start);
+    assertEquals(1, m.slices[1].duration);
 
     assertEquals('two (cont.)', m.slices[2].title);
     assertEquals(3, m.slices[2].start);
@@ -380,25 +399,25 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(5, m.slices.length);
 
-    assertEquals('three', m.slices[0].title);
-    assertEquals(3, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('one', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(3, m.slices[0].duration);
 
     assertEquals('two', m.slices[1].title);
     assertEquals(2, m.slices[1].start);
     assertEquals(2, m.slices[1].duration);
 
-    assertEquals('one', m.slices[2].title);
-    assertEquals(1, m.slices[2].start);
-    assertEquals(3, m.slices[2].duration);
+    assertEquals('three', m.slices[2].title);
+    assertEquals(3, m.slices[2].start);
+    assertEquals(1, m.slices[2].duration);
 
-    assertEquals('three (cont.)', m.slices[3].title);
+    assertEquals('two (cont.)', m.slices[3].title);
     assertEquals(4, m.slices[3].start);
-    assertEquals(1, m.slices[3].duration);
+    assertEquals(2, m.slices[3].duration);
 
-    assertEquals('two (cont.)', m.slices[4].title);
+    assertEquals('three (cont.)', m.slices[4].title);
     assertEquals(4, m.slices[4].start);
-    assertEquals(2, m.slices[4].duration);
+    assertEquals(1, m.slices[4].duration);
   });
 
   test('endSplitTwiceMerge', function() {
@@ -414,21 +433,21 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(5, m.slices.length);
 
-    assertEquals('three', m.slices[0].title);
-    assertEquals(3, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('one', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(4, m.slices[0].duration);
 
     assertEquals('two', m.slices[1].title);
     assertEquals(2, m.slices[1].start);
     assertEquals(2, m.slices[1].duration);
 
-    assertEquals('three (cont.)', m.slices[2].title);
-    assertEquals(4, m.slices[2].start);
+    assertEquals('three', m.slices[2].title);
+    assertEquals(3, m.slices[2].start);
     assertEquals(1, m.slices[2].duration);
 
-    assertEquals('one', m.slices[3].title);
-    assertEquals(1, m.slices[3].start);
-    assertEquals(4, m.slices[3].duration);
+    assertEquals('three (cont.)', m.slices[3].title);
+    assertEquals(4, m.slices[3].start);
+    assertEquals(1, m.slices[3].duration);
 
     assertEquals('three (cont.)', m.slices[4].title);
     assertEquals(5, m.slices[4].start);
@@ -456,25 +475,25 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     var m = SliceGroup.merge(a, b);
     assertEquals(5, m.slices.length);
 
-    assertEquals('three', m.slices[0].title);
-    assertEquals(2, m.slices[0].start);
-    assertEquals(1, m.slices[0].duration);
+    assertEquals('one', m.slices[0].title);
+    assertEquals(1, m.slices[0].start);
+    assertEquals(2, m.slices[0].duration);
 
-    assertEquals('one', m.slices[1].title);
-    assertEquals(1, m.slices[1].start);
-    assertEquals(2, m.slices[1].duration);
+    assertEquals('three', m.slices[1].title);
+    assertEquals(2, m.slices[1].start);
+    assertEquals(1, m.slices[1].duration);
 
     assertEquals('three (cont.)', m.slices[2].title);
     assertEquals(3, m.slices[2].start);
     assertEquals(1, m.slices[2].duration);
 
-    assertEquals('three (cont.)', m.slices[3].title);
+    assertEquals('two', m.slices[3].title);
     assertEquals(4, m.slices[3].start);
-    assertEquals(1, m.slices[3].duration);
+    assertEquals(2, m.slices[3].duration);
 
-    assertEquals('two', m.slices[4].title);
+    assertEquals('three (cont.)', m.slices[4].title);
     assertEquals(4, m.slices[4].start);
-    assertEquals(2, m.slices[4].duration);
+    assertEquals(1, m.slices[4].duration);
   });
 
   test('bounds', function() {
@@ -536,11 +555,16 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
     assertEquals(1, group.bounds.min);
     assertEquals(3, group.bounds.max);
     assertEquals(3, group.slices.length);
+
     assertEquals('a', group.slices[0].title);
-    assertEquals('c', group.slices[1].title);
-    assertEquals('b', group.slices[2].title);
-    assertTrue(group.slices[2].didNotFinish);
-    assertEquals(1, group.slices[2].duration);
+    assertFalse(group.slices[0].didNotFinish);
+
+    assertEquals('b', group.slices[1].title);
+    assertTrue(group.slices[1].didNotFinish);
+    assertEquals(1, group.slices[1].duration);
+
+    assertEquals('c', group.slices[2].title);
+    assertFalse(group.slices[2].didNotFinish);
   });
 
   test('autocloserWithSubTasks', function() {
@@ -554,14 +578,36 @@ base.unittest.testSuite('tracing.trace_model.slice_group', function() {
 
     group.autoCloseOpenSlices();
     assertEquals(3, group.slices.length);
-    assertEquals('b1', group.slices[0].title);
 
-    assertEquals('b2', group.slices[1].title);
-    assertTrue(group.slices[1].didNotFinish);
-    assertEquals(0, group.slices[1].duration);
+    assertEquals('a', group.slices[0].title);
+    assertTrue(group.slices[0].didNotFinish);
+    assertEquals(2, group.slices[0].duration);
 
-    assertEquals('a', group.slices[2].title);
+    assertEquals('b1', group.slices[1].title);
+    assertFalse(group.slices[1].didNotFinish);
+    assertEquals(1, group.slices[1].duration);
+
+    assertEquals('b2', group.slices[2].title);
     assertTrue(group.slices[2].didNotFinish);
-    assertEquals(2, group.slices[2].duration);
+    assertEquals(0, group.slices[2].duration);
   });
+
+  test('autocloseCompleteSlice', function() {
+    var group = new SliceGroup();
+
+    group.pushCompleteSlice('', 'a', 1, undefined);
+    group.pushCompleteSlice('', 'b', 2, 3);
+
+    group.autoCloseOpenSlices();
+    assertEquals(2, group.slices.length);
+
+    assertEquals('a', group.slices[0].title);
+    assertTrue(group.slices[0].didNotFinish);
+    assertEquals(4, group.slices[0].duration);
+
+    assertEquals('b', group.slices[1].title);
+    assertFalse(group.slices[1].didNotFinish);
+    assertEquals(3, group.slices[1].duration);
+  });
+
 });

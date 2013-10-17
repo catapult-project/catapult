@@ -12,7 +12,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
       test('gestureImport', function() {
         var lines = [
           '<...>-1837  [000] ...1 875292.741648: tracing_mark_write: ' +
-              'log: start: TimerLogOutputs',
+              'log: start: TimerLogOutputs',  // 0
           '<...>-1837  [000] ...1 875292.741651: tracing_mark_write: ' +
               'log: end: TimerLogOutputs',
           '<...>-1837  [000] ...1 875292.742796: tracing_mark_write: ' +
@@ -20,7 +20,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
           '<...>-1837  [000] ...1 875292.742802: tracing_mark_write: ' +
               'log: end: LogTimerCallback',
           '<...>-1837  [000] ...1 875292.742805: tracing_mark_write: ' +
-              'HandleTimer: start: LoggingFilterInterpreter',
+              'HandleTimer: start: LoggingFilterInterpreter',  // 2
           '<...>-1837  [000] ...1 875292.742809: tracing_mark_write: ' +
               'HandleTimer: start: AppleTrackpadFilterInterpreter',
           '<...>-1837  [000] ...1 875292.742814: tracing_mark_write: ' +
@@ -44,7 +44,7 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
           '<...>-1837  [000] ...1 875292.742846: tracing_mark_write: ' +
               'HandleTimer: start: LookaheadFilterInterpreter',
           '<...>-1837  [000] ...1 875292.742853: tracing_mark_write: ' +
-              'SyncInterpret: start: IirFilterInterpreter',
+              'SyncInterpret: start: IirFilterInterpreter',  // 14
           '<...>-1837  [000] ...1 875292.742861: tracing_mark_write: ' +
               'SyncInterpret: start: PalmClassifyingFilterInterpreter',
           '<...>-1837  [000] ...1 875292.742872: tracing_mark_write: ' +
@@ -110,12 +110,12 @@ base.unittest.testSuite('tracing.importer.linux_perf.gesture_parser',
                      gestureThread.sliceGroup.slices[0].title);
         assertEquals('touchpad_gesture',
                      gestureThread.sliceGroup.slices[2].category);
-        assertEquals('SyncInterpret',
+        assertEquals('HandleTimer',
                      gestureThread.sliceGroup.slices[2].title);
         assertEquals('touchpad_gesture',
-                     gestureThread.sliceGroup.slices[7].category);
-        assertEquals('HandleTimer',
-                     gestureThread.sliceGroup.slices[7].title);
+                     gestureThread.sliceGroup.slices[14].category);
+        assertEquals('SyncInterpret',
+                     gestureThread.sliceGroup.slices[14].title);
       });
 
       test('unusualStart', function() {

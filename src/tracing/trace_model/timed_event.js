@@ -33,6 +33,14 @@ base.exportTo('tracing.trace_model', function() {
     addBoundsToRange: function(range) {
       range.addValue(this.start);
       range.addValue(this.end);
+    },
+
+    bounds: function(that) {
+      // Due to inaccuracy of floating-point calculation, the end times of
+      // slices from a B/E pair (whose end = start + original_end - start)
+      // and an X event (whose end = start + duration) at the same time may
+      // become not equal. Tolerate 1ps error.
+      return this.start <= that.start && this.end - that.end > -1e-9;
     }
   };
 
