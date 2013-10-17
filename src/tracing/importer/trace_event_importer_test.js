@@ -110,6 +110,17 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(m.importWarnings.length, 1);
   });
 
+  test('importMissingArgs', function() {
+    var events = [
+      {name: 'a', pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', pid: 52, ts: 629, cat: 'bar', tid: 53, ph: 'I'}
+    ];
+
+    // This should not throw an exception.
+    new tracing.TraceModel(events);
+  });
+
   test('categoryBeginEndMismatchPrefersBegin', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},

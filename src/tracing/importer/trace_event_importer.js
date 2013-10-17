@@ -139,6 +139,8 @@ base.exportTo('tracing.importer', function() {
      * Deep copying is only needed if the trace was given to us as events.
      */
     deepCopyIfNeeded_: function(obj) {
+      if (obj === undefined)
+        obj = {};
       if (this.eventsWereFromString_)
         return obj;
       return deepCopy(obj);
@@ -889,7 +891,7 @@ base.exportTo('tracing.importer', function() {
     searchItemForIDRefs_: function(patchupsToApply, objectCollection,
                                    itemTimestampField, item) {
       if (!item.args)
-        throw new Error('');
+        throw new Error('item is missing its args');
 
       function handleField(object, fieldName, fieldValue) {
         if (fieldValue === undefined ||
