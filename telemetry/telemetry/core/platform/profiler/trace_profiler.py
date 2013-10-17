@@ -13,7 +13,7 @@ class TraceProfiler(profiler.Profiler):
     super(TraceProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
     assert self._browser_backend.supports_tracing
-    self._browser_backend.StartTracing(None, 10)
+    self._browser_backend.StartTracing(None, timeout=10)
 
   @classmethod
   def name(cls):
