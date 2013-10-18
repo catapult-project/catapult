@@ -60,7 +60,20 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   if os.path.exists(out_path):
     shutil.rmtree(out_path)
 
-  shutil.move(temp_output_directory, out_path)
+  # A profile may contain pseudo files like sockets which can't be copied
+  # around by bots.
+  def IsPseudoFile(directory, paths):
+    ignore_list = []
+    for path in paths:
+      full_path = os.path.join(directory, path)
+      if (not os.path.isfile(full_path) and
+          not os.path.isdir(full_path) and
+          not os.path.islink(full_path)):
+        logging.warning('Ignoring pseudo file: %s' % full_path)
+        ignore_list.append(path)
+    return ignore_list
+  shutil.copytree(temp_output_directory, out_path, ignore=IsPseudoFile)
+  shutil.rmtree(temp_output_directory)
   sys.stderr.write("SUCCESS: Generated profile copied to: '%s'.\n" % out_path)
 
   return 0
