@@ -252,6 +252,12 @@ class BrowserOptions(object):
              'not be reset.')
     parser.add_option_group(group)
 
+    group = optparse.OptionGroup(parser, 'Compatibility options')
+    group.add_option('--gtest_output',
+        help='Ignored argument for compatibility with runtest.py harness')
+    parser.add_option_group(group)
+
+
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
     browser_options_list = [
