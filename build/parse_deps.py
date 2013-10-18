@@ -95,6 +95,8 @@ class ResourceFinder(object):
 
   def find_and_load_raw_script(self, current_module, filename):
     resolved = self.resolve_relative(filename)
+    if not resolved:
+      return None, None
     return self._read_file(resolved.absolute_path)
 
   def find_and_load_style_sheet(self,
