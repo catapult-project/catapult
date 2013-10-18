@@ -4,6 +4,8 @@
 
 import httplib
 import json
+import logging
+import pprint
 import re
 import socket
 import sys
@@ -161,7 +163,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           return False
       return True
     if wait_for_extensions and self._supports_extensions:
-      util.WaitFor(AllExtensionsLoaded, timeout=60)
+      try:
+        util.WaitFor(AllExtensionsLoaded, timeout=60)
+      except util.TimeoutException:
+        logging.error('ExtensionsToLoad: ' +
+            repr([e.extension_id for e in self._extensions_to_load]))
+        logging.error('Extension list: ' +
+            pprint.pformat(self._extension_dict_backend.GetExtensionInfoList(),
+                           indent=4))
+        raise
+
 
   def _PostBrowserStartupInitialization(self):
     # Detect version information.

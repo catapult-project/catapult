@@ -56,12 +56,12 @@ class ExtensionDictBackend(object):
                                               debugger_url)
 
   def _FindExtensionInfo(self, extension_id):
-    for extension_info in self._GetExtensionInfoList():
+    for extension_info in self.GetExtensionInfoList():
       if self._GetExtensionId(extension_info) == extension_id:
         return extension_info
     return None
 
-  def _GetExtensionInfoList(self, timeout=None):
+  def GetExtensionInfoList(self, timeout=None):
     data = self._browser_backend.Request('', timeout=timeout)
     return self._FilterExtensions(json.loads(data))
 
@@ -70,4 +70,4 @@ class ExtensionDictBackend(object):
             if page_info['url'].startswith('chrome-extension://')]
 
   def _GetExtensionIds(self):
-    return map(self._GetExtensionId, self._GetExtensionInfoList())
+    return map(self._GetExtensionId, self.GetExtensionInfoList())
