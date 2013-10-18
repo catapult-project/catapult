@@ -8,8 +8,7 @@ base.requireStylesheet('tracing.analysis.analyze_slices');
 
 base.require('tracing.analysis.util');
 base.require('ui');
-base.requireRawScript('../third_party/jquery/jquery-latest.js');
-base.requireRawScript('../third_party/jquery/jquery.tablesorter.min.js');
+
 base.exportTo('tracing.analysis', function() {
 
   function analyzeSingleSlice(results, slice, type) {
