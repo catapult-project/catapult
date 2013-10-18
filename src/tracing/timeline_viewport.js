@@ -305,6 +305,19 @@ base.exportTo('tracing', function() {
       return marker;
     },
 
+    removeAllMarkers: function() {
+      this.markers = [];
+      this.dispatchChangeEvent();
+      this.dispatchMarkersChangeEvent_();
+    },
+
+    getMarkerBounds: function() {
+      var bounds = new base.Range();
+      for (var i = 0; i < this.markers.length; ++i)
+        bounds.addValue(this.markers[i].positionWorld);
+      return bounds;
+    },
+
     removeMarker: function(marker) {
       for (var i = 0; i < this.markers.length; ++i) {
         if (this.markers[i] === marker) {

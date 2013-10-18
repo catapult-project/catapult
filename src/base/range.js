@@ -66,6 +66,15 @@ base.exportTo('base', function() {
 
     get center() {
       return (this.min_ + this.max_) * 0.5;
+    },
+
+    equals: function(that) {
+      if (this.isEmpty && that.isEmpty)
+        return true;
+      if (this.isEmpty != that.isEmpty)
+        return false;
+      return this.min === that.min &&
+          this.max === that.max;
     }
   };
 

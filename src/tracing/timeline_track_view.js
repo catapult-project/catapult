@@ -366,6 +366,9 @@ base.exportTo('tracing', function() {
         case 102:  // f
           this.zoomToSelection();
           break;
+        case 'm'.charCodeAt(0):
+          this.putMarkAroundCurrentSelection_();
+          break;
       }
     },
 
@@ -543,6 +546,21 @@ base.exportTo('tracing', function() {
       var animation = new tracing.TimelineDisplayTransformPanAnimation(
           deltaX, 0);
       this.viewport.queueDisplayTransformAnimation(animation);
+    },
+
+    putMarkAroundCurrentSelection_: function() {
+      var selectionBounds = this.selection.bounds;
+      if (selectionBounds.empty)
+        return this.viewport.removeAllMarkers();
+      var markerBounds = this.viewport.getMarkerBounds();
+
+
+      if (selectionBounds.equals(markerBounds)) {
+        return this.viewport.removeAllMarkers();
+      }
+      this.viewport.removeAllMarkers();
+      this.viewport.addMarker(this.viewport.createMarker(selectionBounds.min));
+      this.viewport.addMarker(this.viewport.createMarker(selectionBounds.max));
     },
 
     /**
