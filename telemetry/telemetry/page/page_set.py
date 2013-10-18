@@ -92,10 +92,10 @@ class PageSet(object):
 
   @property
   def _base_dir(self):
-    if os.path.isdir(self.file_path):
-      return self.file_path
-    else:
+    if os.path.isfile(self.file_path):
       return os.path.dirname(self.file_path)
+    else:
+      return self.file_path
 
   def ContainsOnlyFileURLs(self):
     for page in self.pages:

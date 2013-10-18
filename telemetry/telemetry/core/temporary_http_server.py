@@ -73,4 +73,8 @@ class TemporaryHTTPServer(object):
 
   def UrlOf(self, path):
     relative_path = os.path.relpath(path, self._base_dir)
-    return urlparse.urljoin(self.url, relative_path.replace('\\', '/'))
+    # Preserve trailing slash or backslash.
+    # It doesn't matter in a file path, but it does matter in a URL.
+    if path.endswith(os.sep) or (os.altsep and path.endswith(os.altsep)):
+      relative_path += '/'
+    return urlparse.urljoin(self.url, relative_path.replace(os.sep, '/'))

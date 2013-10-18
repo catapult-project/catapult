@@ -10,23 +10,36 @@ from telemetry.page import page_set
 
 
 class TestPage(unittest.TestCase):
+  def assertPathEqual(self, path1, path2):
+    self.assertEqual(os.path.normpath(path1), os.path.normpath(path2))
+
   def testFilePathRelative(self):
     apage = page.Page('file://somedir/otherdir/file.html',
                       None, base_dir='basedir')
-    self.assertEqual(apage.file_path,
-                     os.path.normpath('basedir/somedir/otherdir/file.html'))
+    self.assertPathEqual(apage.file_path, 'basedir/somedir/otherdir/file.html')
 
   def testFilePathAbsolute(self):
     apage = page.Page('file:///somedir/otherdir/file.html',
                       None, base_dir='basedir')
-    self.assertEqual(apage.file_path,
-                     os.path.normpath('/somedir/otherdir/file.html'))
+    self.assertPathEqual(apage.file_path, '/somedir/otherdir/file.html')
 
   def testFilePathQueryString(self):
-    apage = page.Page('file:///somedir/otherdir/file.html?key=val',
+    apage = page.Page('file://somedir/otherdir/file.html?key=val',
                       None, base_dir='basedir')
-    self.assertEqual(apage.file_path,
-                     os.path.normpath('/somedir/otherdir/file.html'))
+    self.assertPathEqual(apage.file_path, 'basedir/somedir/otherdir/file.html')
+
+  def testFilePathUrlQueryString(self):
+    apage = page.Page('file://somedir/file.html?key=val',
+                      None, base_dir='basedir')
+    self.assertPathEqual(apage.file_path_url,
+                         'basedir/somedir/file.html?key=val')
+
+  def testFilePathUrlTrailingSeparator(self):
+    apage = page.Page('file://somedir/otherdir/',
+                      None, base_dir='basedir')
+    self.assertPathEqual(apage.file_path_url, 'basedir/somedir/otherdir/')
+    self.assertTrue(apage.file_path_url.endswith(os.sep) or
+                    (os.altsep and apage.file_path_url.endswith(os.altsep)))
 
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     ps = page_set.PageSet.FromDict({
@@ -36,7 +49,7 @@ class TestPage(unittest.TestCase):
         'pages': [
           {'url': 'file://../otherdir/file.html'}
         ]}, 'basedir/')
-    self.assertEqual(ps[0].file_path, os.path.normpath('otherdir/file.html'))
+    self.assertPathEqual(ps[0].file_path, 'otherdir/file.html')
 
   def testDisplayUrlForHttp(self):
     ps = page_set.PageSet.FromDict({

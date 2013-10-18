@@ -54,14 +54,9 @@ class Page(object):
   def file_path(self):
     """Returns the path of the file, stripping the scheme and query string."""
     assert self.is_file
-    # urlparse doesn't separate out the query string for file:// URLs.
-    # Remove the scheme to work around this quirk.
-    parsed_url = list(urlparse.urlparse(self.url))
-    parsed_url[0] = ''
-    schemeless_url = urlparse.urlunparse(parsed_url)
-
-    # Then do the actual work.
-    parsed_url = urlparse.urlparse(schemeless_url)
+    # Because ? is a valid character in a filename,
+    # we have to treat the url as a non-file by removing the scheme.
+    parsed_url = urlparse.urlparse(self.url[7:])
     return os.path.normpath(os.path.join(
         self._base_dir, parsed_url.netloc + parsed_url.path))
 
@@ -69,11 +64,12 @@ class Page(object):
   def file_path_url(self):
     """Returns the file path, including the params, query, and fragment."""
     assert self.is_file
-    # urlparse doesn't separate out the query string for file:// URLs.
-    # Take advantage of this quirk :)
-    parsed_url = urlparse.urlparse(self.url, scheme='')
-    return os.path.normpath(os.path.join(
-        self._base_dir, parsed_url.netloc + parsed_url.path))
+    file_path_url = os.path.normpath(os.path.join(self._base_dir, self.url[7:]))
+    # Preserve trailing slash or backslash.
+    # It doesn't matter in a file path, but it does matter in a URL.
+    if self.url.endswith('/'):
+      file_path_url += os.sep
+    return file_path_url
 
   @property
   def serving_dir(self):
