@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-DEFAULT_WEB_CONTENTS_TIMEOUT = 60
+DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 
 # TODO(achuith, dtu, nduca): Add unit tests specifically for WebContents,
 # independent of Tab.
