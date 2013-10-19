@@ -47,7 +47,7 @@ def FindBrowser(options):
       options.browser_type != 'cros-chrome-guest' and
       options.cros_remote != None):
     raise BrowserFinderException(
-        'cros_remote requires browser_type=cros-chrome or cros-chrome-guest.')
+        '--remote requires --browser=cros-chrome or cros-chrome-guest.')
 
   browsers = []
   default_browser = None

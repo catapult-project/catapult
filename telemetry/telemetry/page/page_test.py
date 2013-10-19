@@ -65,6 +65,13 @@ class PageTest(object):
         needs_browser_restart_after_each_run)
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
+    # If the test overrides the TabForPage method, it is considered a multi-tab
+    # test.  The main difference between this and a single-tab test is that we
+    # do not attempt recovery for the former if a tab or the browser crashes,
+    # because we don't know the current state of tabs (how many are open, etc.)
+    self.is_multi_tab_test = (self.__class__ is not PageTest and
+                              self.TabForPage.__func__ is not
+                              self.__class__.__bases__[0].TabForPage.__func__)
 
   @property
   def discard_first_result(self):
@@ -171,6 +178,11 @@ class PageTest(object):
     """Override to make this test generate its own expectations instead of
     any that may have been defined in the page set."""
     return test_expectations.TestExpectations()
+
+  def TabForPage(self, page, tab):  # pylint: disable=W0613
+    """Override to select a different tab for the page.  For instance, to
+    create a new tab for every page, return tab.browser.tabs.New()."""
+    return tab
 
   def Run(self, options, page, tab, results):
     self.options = options
