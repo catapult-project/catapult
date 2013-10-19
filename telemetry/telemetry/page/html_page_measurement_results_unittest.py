@@ -48,7 +48,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
 
     # Run the first time and verify the results are written to the HTML file.
     results = DeterministicHtmlPageMeasurementResults(
-        output_file, 'test_name', False, 'browser_type')
+        output_file, 'test_name', False, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
     results.Add('a', 'seconds', 3)
     results.DidMeasurePage()
@@ -101,7 +101,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     # Run the second time and verify the results are appended to the HTML file.
     output_file.seek(0)
     results = DeterministicHtmlPageMeasurementResults(
-        output_file, 'test_name', False, 'browser_type')
+        output_file, 'test_name', False, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
     results.Add('a', 'seconds', 4)
     results.DidMeasurePage()
@@ -191,7 +191,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
     # Now reset the results and verify the old ones are gone.
     output_file.seek(0)
     results = DeterministicHtmlPageMeasurementResults(
-       output_file, 'test_name', True, 'browser_type')
+       output_file, 'test_name', True, False, 'browser_type')
     results.WillMeasurePage(test_page_set.pages[0])
     results.Add('a', 'seconds', 5)
     results.DidMeasurePage()

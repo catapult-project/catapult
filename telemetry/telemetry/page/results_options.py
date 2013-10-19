@@ -35,6 +35,8 @@ def AddResultsOptions(parser):
                     help='Append a tag to the key of each result trace.')
   group.add_option('--reset-results', action='store_true',
                     help='Delete all stored results.')
+  group.add_option('--upload-results', action='store_true',
+                    help='Upload the results to cloud storage.')
   parser.add_option_group(group)
 
 
@@ -76,7 +78,8 @@ def PrepareResults(test, options):
   elif options.output_format == 'html':
     return html_page_measurement_results.HtmlPageMeasurementResults(
         output_stream, test.__class__.__name__, options.reset_results,
-        options.browser_type, trace_tag=options.output_trace_tag)
+        options.upload_results, options.browser_type,
+        trace_tag=options.output_trace_tag)
   else:
     # Should never be reached. The parser enforces the choices.
     raise Exception('Invalid --output-format "%s". Valid choices are: %s'
