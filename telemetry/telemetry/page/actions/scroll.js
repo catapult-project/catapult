@@ -126,10 +126,6 @@
                         this.onGestureComplete_.bind(this));
   };
 
-  ScrollAction.prototype.getResults = function() {
-    return this.renderingStats_;
-  }
-
   ScrollAction.prototype.onGestureComplete_ = function() {
     this.endMeasuringHook();
 

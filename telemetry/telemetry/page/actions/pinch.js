@@ -66,10 +66,6 @@
                         this.onGestureComplete_.bind(this));
   };
 
-  PinchAction.prototype.getResults = function() {
-    return this.renderingStats_;
-  };
-
   PinchAction.prototype.onGestureComplete_ = function() {
     this.endMeasuringHook();
 

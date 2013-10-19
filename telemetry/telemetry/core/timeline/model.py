@@ -7,6 +7,8 @@ trace_viewer project:
 https://code.google.com/p/trace-viewer/
 '''
 
+from operator import attrgetter
+
 import telemetry.core.timeline.process as tracing_process
 
 # Register importers for data
@@ -18,6 +20,19 @@ _IMPORTERS = [
     inspector_importer.InspectorTimelineImporter,
     trace_event_importer.TraceEventTimelineImporter
 ]
+
+
+class MarkerMismatchError(Exception):
+  def __init__(self):
+    super(MarkerMismatchError, self).__init__(
+        'Number or order of timeline markers does not match provided labels')
+
+
+class MarkerOverlapError(Exception):
+  def __init__(self):
+    super(MarkerOverlapError, self).__init__(
+        'Overlapping timeline markers found')
+
 
 class TimelineModel(object):
   def __init__(self, event_data=None, shift_world_to_zero=True):
@@ -120,6 +135,38 @@ class TimelineModel(object):
       assert not self._frozen
       self._processes[pid] = tracing_process.Process(self, pid)
     return self._processes[pid]
+
+  def FindTimelineMarkers(self, timeline_marker_labels):
+    """Find the timeline events with the given names.
+
+    If the number and order of events found does not match the labels,
+    raise an error.
+    """
+    # Make sure labels are in a list and remove all None labels
+    if not isinstance(timeline_marker_labels, list):
+      timeline_marker_labels = [timeline_marker_labels]
+    labels = [x for x in timeline_marker_labels if x is not None]
+
+    # Gather all events that match the labels and sort them.
+    events = []
+    for label in labels:
+      events.extend([s for s in self.GetAllEventsOfName(label)
+                     if s.parent_slice == None])
+    events.sort(key=attrgetter('start'))
+
+    # Check if the number and order of events matches the provided labels,
+    # and that the events don't overlap.
+    if len(events) != len(labels):
+      raise MarkerMismatchError()
+    for (i, event) in enumerate(events):
+      if event.name != labels[i]:
+        raise MarkerMismatchError()
+    for i in xrange(0, len(events)):
+      for j in xrange(i+1, len(events)):
+        if (events[j].start < events[i].start + events[i].duration):
+          raise MarkerOverlapError()
+
+    return events
 
   def _CreateImporter(self, event_data):
     for importer_class in _IMPORTERS:
