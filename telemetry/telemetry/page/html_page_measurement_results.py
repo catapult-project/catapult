@@ -29,7 +29,7 @@ _UNIT_JSON = ('tools', 'perf', 'unit-info.json')
 class HtmlPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
   def __init__(self, output_stream, test_name, reset_results, upload_results,
-      browser_type, trace_tag=''):
+      browser_type, results_label=None, trace_tag=''):
     super(HtmlPageMeasurementResults, self).__init__(trace_tag)
 
     self._output_stream = output_stream
@@ -39,6 +39,7 @@ class HtmlPageMeasurementResults(
     self._result_json = {
         'buildTime': self._GetBuildTime(),
         'revision': self._GetRevision(),
+        'label': results_label,
         'platform': browser_type,
         'tests': {}
         }
