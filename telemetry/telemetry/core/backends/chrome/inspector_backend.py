@@ -109,7 +109,8 @@ class InspectorBackend(object):
         'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
       return False
 
-    return self._browser_backend.chrome_branch_number >= 1391
+    return (self._browser_backend.chrome_branch_number >= 1391 or
+            self._browser_backend.is_content_shell)
 
   def Screenshot(self, timeout):
     if self._runtime.Evaluate(
