@@ -78,9 +78,14 @@ class FormBasedCredentialsBackend(object):
 
     logging.debug('Logging into %s account...' % self.credentials_type)
 
+    if 'url' in config:
+      url = config['url']
+    else:
+      url = self.url
+
     try:
-      logging.info('Loading %s...', self.url)
-      tab.Navigate(self.url)
+      logging.info('Loading %s...', url)
+      tab.Navigate(url)
       _WaitForLoginFormToLoad(self, self.login_form_id, tab)
 
       if self.IsAlreadyLoggedIn(tab):
@@ -88,7 +93,7 @@ class FormBasedCredentialsBackend(object):
         return True
 
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      logging.info('Loaded page: %s', self.url)
+      logging.info('Loaded page: %s', url)
 
       email_id = 'document.querySelector("#%s").%s.value = "%s"; ' % (
           self.login_form_id, self.login_input_id, config['username'])
@@ -102,7 +107,7 @@ class FormBasedCredentialsBackend(object):
       self._logged_in = True
       return True
     except util.TimeoutException:
-      logging.warning('Timed out while loading: %s', self.url)
+      logging.warning('Timed out while loading: %s', url)
       return False
 
   def LoginNoLongerNeeded(self, tab): # pylint: disable=W0613
