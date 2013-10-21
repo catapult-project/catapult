@@ -154,20 +154,6 @@ def CanFindAvailableBrowsers(logging=real_logging):
         adb_works = True
       else:
         adb_works = False
-  if adb_works and sys.platform.startswith('linux'):
-    # Workaround for crbug.com/268450
-    import psutil  # pylint: disable=F0401
-    adb_commands.GetAttachedDevices()
-    pids  = [p.pid for p in psutil.process_iter() if 'adb' in p.name]
-    with open(os.devnull, 'w') as devnull:
-      for pid in pids:
-        ret = subprocess.call(['taskset', '-p', '-c', '0', str(pid)],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              stdin=devnull)
-        if ret:
-          logging.warn('Failed to taskset %d (%s)', pid, ret)
-
   return adb_works
 
 def FindAllAvailableBrowsers(finder_options, logging=real_logging):
@@ -195,6 +181,33 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
   device = devices[0]
 
   adb = adb_commands.AdbCommands(device=device)
+
+  if sys.platform.startswith('linux'):
+    # Host side workaround for crbug.com/268450 (adb instability)
+    # The adb server has a race which is mitigated by binding to a single core.
+    import psutil  # pylint: disable=F0401
+    pids  = [p.pid for p in psutil.process_iter() if 'adb' in p.name]
+    with open(os.devnull, 'w') as devnull:
+      for pid in pids:
+        ret = subprocess.call(['taskset', '-p', '-c', '0', str(pid)],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              stdin=devnull)
+        if ret:
+          logging.warn('Failed to taskset %d (%s)', pid, ret)
+
+    # Experimental device side workaround for crbug.com/268450 (adb instability)
+    # The /sbin/adbd process on the device appears to hang which causes adb to
+    # report that the device is offline. Our working theory is that killing
+    # the process and allowing it to be automatically relaunched will allow us
+    # to run for longer before it hangs.
+    if not finder_options.keep_test_server_ports:
+      # This would break forwarder connections, so we cannot do this if
+      # instructed to keep server ports open.
+      logging.info('Killing adbd on device')
+      adb.KillAll('adbd')
+      logging.info('Waiting for adbd to restart')
+      adb.Adb().Adb().SendCommand('wait-for-device')
 
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
