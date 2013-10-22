@@ -150,7 +150,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
           'SandboxedProces-2894  [001] ...1   253.780750: tracing_mark_write: C|2867|counter1|10|cat1', // @suppress longLineCheck
           'SandboxedProces-2894  [001] ...1   253.780859: tracing_mark_write: E|2867|DoWorkLoop|arg2=2|cat2', // @suppress longLineCheck
           'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: S|2867|async|1113053968|arg1=1;arg2=2|cat1', // @suppress longLineCheck
-          'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: F|2867|async|1113053968|arg3=3|cat1' // @suppress longLineCheck
+          'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: F|2867|async|1113053968|arg3=3|cat1', // @suppress longLineCheck
+          'SandboxedProces-2894  [000] ...1   255.663276: tracing_mark_write: trace_event_clock_sync: parent_ts=128' // @suppress longLineCheck
         ];
         var m = new tracing.TraceModel(lines.join('\n'), false);
         assertFalse(m.hasImportWarnings);
@@ -188,5 +189,8 @@ base.unittest.testSuite('tracing.importer.linux_perf.android_parser',
 
         assertEquals(1, counters[0].numSamples);
         assertEquals(10, counters[0].getSeries(0).getSample(0).value);
+
+        assertEquals(Math.round((253.780659 - (255.663276 - 128)) * 1000),
+                     Math.round(thread.sliceGroup.slices[0].start));
       });
     });

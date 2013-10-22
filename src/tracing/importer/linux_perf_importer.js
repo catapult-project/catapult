@@ -103,8 +103,7 @@ base.exportTo('tracing.importer', function() {
     this.wakeups_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToThreads();
-    this.lineNumberBase = 0;
-    this.lineNumber = -1;
+    this.lines_ = [];
     this.pseudoThreadCounter = 1;
     this.parsers_ = [];
     this.eventHandlers_ = {};
@@ -385,9 +384,17 @@ base.exportTo('tracing.importer', function() {
      */
     importEvents: function(isSecondaryImport) {
       this.createParsers();
-      this.importCpuData();
-      if (!this.alignClocks(isSecondaryImport))
+      this.parseLines();
+      this.importClockSyncRecords();
+      var timeShift = this.computeTimeTransform(isSecondaryImport);
+      if (timeShift === undefined) {
+        this.model_.importWarning({
+          type: 'clock_sync',
+          message: 'Cannot import kernel trace without a clock sync.'
+        });
         return;
+      }
+      this.importCpuData(timeShift);
       this.buildMapFromLinuxPidsToThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
     },
@@ -566,73 +573,26 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * Walks the slices stored on this.cpuStates_ and adjusts their timestamps
-     * based on any alignment metadata we discovered.
+     * Computes a time transform from perf time to parent time based on the
+     * imported clock sync records.
+     * @return {number} offset from perf time to parent time or undefined if
+     * the necessary sync records were not found.
      */
-    alignClocks: function(isSecondaryImport) {
-      if (this.clockSyncRecords_.length == 0) {
-        // If this is a secondary import, and no clock syncing records were
-        // found, then abort the import. Otherwise, just skip clock alignment.
-        if (!isSecondaryImport)
-          return true;
-
-        // Remove the newly imported CPU slices from the model.
-        this.abortImport();
-        return false;
-      }
+    computeTimeTransform: function(isSecondaryImport) {
+      // If this is a secondary import, and no clock syncing records were
+      // found, then abort the import. Otherwise, just skip clock alignment.
+      if (this.clockSyncRecords_.length == 0)
+        return isSecondaryImport ? undefined : 0;
 
       // Shift all the slice times based on the sync record.
+      // TODO(skyostil): Compute a scaling factor if we have multiple clock sync
+      // records.
       var sync = this.clockSyncRecords_[0];
       // NB: parentTS of zero denotes no times-shift; this is
       // used when user and kernel event clocks are identical.
       if (sync.parentTS == 0 || sync.parentTS == sync.perfTS)
-        return true;
-      var timeShift = sync.parentTS - sync.perfTS;
-      for (var cpuNumber in this.cpuStates_) {
-        var cpuState = this.cpuStates_[cpuNumber];
-        var cpu = cpuState.cpu;
-
-        for (var i = 0; i < cpu.slices.length; i++) {
-          var slice = cpu.slices[i];
-          slice.start = slice.start + timeShift;
-          slice.duration = slice.duration;
-        }
-
-        for (var counterName in cpu.counters) {
-          var counter = cpu.counters[counterName];
-          for (var sI = 0; sI < counter.timestamps.length; sI++)
-            counter.timestamps[sI] = (counter.timestamps[sI] + timeShift);
-        }
-      }
-      for (var kernelThreadName in this.kernelThreadStates_) {
-        var kthread = this.kernelThreadStates_[kernelThreadName];
-        var thread = kthread.thread;
-        thread.shiftTimestampsForward(timeShift);
-      }
-      return true;
-    },
-
-    /**
-     * Removes any data that has been added to the model because of an error
-     * detected during the import.
-     */
-    abortImport: function() {
-      if (this.pushedEventsToThreads)
-        throw new Error('Cannot abort, have alrady pushedCpuDataToThreads.');
-
-      for (var cpuNumber in this.cpuStates_)
-        delete this.model_.kernel.cpus[cpuNumber];
-      for (var kernelThreadName in this.kernelThreadStates_) {
-        var kthread = this.kernelThreadStates_[kernelThreadName];
-        var thread = kthread.thread;
-        var process = thread.parent;
-        delete process.threads[thread.tid];
-        delete this.model_.processes[process.pid];
-      }
-      this.model_.importWarning({
-        type: 'clock_sync',
-        message: 'Cannot import kernel trace without a clock sync.'
-      });
+        return 0;
+      return sync.parentTS - sync.perfTS;
     },
 
     /**
@@ -650,15 +610,16 @@ base.exportTo('tracing.importer', function() {
         this.parsers_.push(new parserConstructor(this));
       }
 
-      this.registerEventHandler('tracing_mark_write:trace_event_clock_sync',
-          LinuxPerfImporter.prototype.traceClockSyncEvent.bind(this));
       this.registerEventHandler('tracing_mark_write',
           LinuxPerfImporter.prototype.traceMarkingWriteEvent.bind(this));
       // NB: old-style trace markers; deprecated
-      this.registerEventHandler('0:trace_event_clock_sync',
-          LinuxPerfImporter.prototype.traceClockSyncEvent.bind(this));
       this.registerEventHandler('0',
           LinuxPerfImporter.prototype.traceMarkingWriteEvent.bind(this));
+      // Register dummy clock sync handlers to avoid warnings in the log.
+      this.registerEventHandler('tracing_mark_write:trace_event_clock_sync',
+          function() { return true; });
+      this.registerEventHandler('0:trace_event_clock_sync',
+          function() { return true; });
     },
 
     /**
@@ -729,24 +690,61 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
+     * Populates this.clockSyncRecords_ with found clock sync markers.
+     */
+    importClockSyncRecords: function() {
+      this.forEachLine(function(text, eventBase, cpuNumber, pid, ts) {
+        var eventName = eventBase.eventName;
+        if ((eventName !== 'tracing_mark_write' && eventName !== '0') ||
+            !traceEventClockSyncRE.exec(eventBase.details))
+          return;
+        this.traceClockSyncEvent(eventName, cpuNumber, pid, ts, eventBase);
+      }.bind(this));
+    },
+
+    /**
      * Walks the this.events_ structure and creates Cpu objects.
      */
-    importCpuData: function() {
+    importCpuData: function(timeShift) {
+      this.forEachLine(function(text, eventBase, cpuNumber, pid, ts) {
+        var eventName = eventBase.eventName;
+        var handler = this.eventHandlers_[eventName];
+        if (!handler) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Unknown event ' + eventName + ' (' + text + ')'
+          });
+          return;
+        }
+        ts += timeShift;
+        if (!handler(eventName, cpuNumber, pid, ts, eventBase)) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Malformed ' + eventName + ' event (' + text + ')'
+          });
+        }
+      }.bind(this));
+    },
+
+    /**
+     * Walks the this.events_ structure and populates this.lines_.
+     */
+    parseLines: function() {
       var extractResult = LinuxPerfImporter._extractEventsFromSystraceHTML(
           this.events_, true);
+      var lineNumberBase = 0;
+      var lines;
       if (extractResult.ok) {
-        this.lineNumberBase = extractResult.events_begin_at_line;
-        this.lines_ = extractResult.lines;
-      } else {
-        this.lineNumberBase = 0;
-        this.lines_ = this.events_.split('\n');
-      }
+        lineNumberBase = extractResult.events_begin_at_line;
+        lines = extractResult.lines;
+      } else
+        lines = this.events_.split('\n');
 
       var lineParser = null;
-      for (this.lineNumber = 0;
-           this.lineNumber < this.lines_.length;
-          ++this.lineNumber) {
-        var line = this.lines_[this.lineNumber];
+      for (var lineNumber = lineNumberBase;
+           lineNumber < lines.length;
+          ++lineNumber) {
+        var line = lines[lineNumber];
         if (line.length == 0 || /^#/.test(line))
           continue;
         if (lineParser == null) {
@@ -768,25 +766,23 @@ base.exportTo('tracing.importer', function() {
           continue;
         }
 
-        var pid = parseInt(eventBase.pid);
-        var cpuNumber = parseInt(eventBase.cpuNumber);
-        var ts = parseFloat(eventBase.timestamp) * 1000;
-        var eventName = eventBase.eventName;
+        this.lines_.push([
+          line,
+          eventBase,
+          parseInt(eventBase.cpuNumber),
+          parseInt(eventBase.pid),
+          parseFloat(eventBase.timestamp) * 1000
+        ]);
+      }
+    },
 
-        var handler = this.eventHandlers_[eventName];
-        if (!handler) {
-          this.model_.importWarning({
-            type: 'parse_error',
-            message: 'Unknown event ' + eventName + ' (' + line + ')'
-          });
-          continue;
-        }
-        if (!handler(eventName, cpuNumber, pid, ts, eventBase)) {
-          this.model_.importWarning({
-            type: 'parse_error',
-            message: 'Malformed ' + eventName + ' event (' + line + ')'
-          });
-        }
+    /**
+     * Calls |handler| for every parsed line.
+     */
+    forEachLine: function(handler) {
+      for (var i = 0; i < this.lines_.length; ++i) {
+        var line = this.lines_[i];
+        handler.apply(this, line);
       }
     }
   };

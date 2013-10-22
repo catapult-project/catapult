@@ -125,7 +125,9 @@ base.unittest.testSuite('tracing.trace_model', function() {
   test('traceModelCanImportSubtraces', function() {
     var systraceLines = [
       'SurfaceFlinger-2  [001] ...1 1000.0: 0: B|1|taskA',
-      'SurfaceFlinger-2  [001] ...1 2000.0: 0: E'
+      'SurfaceFlinger-2  [001] ...1 2000.0: 0: E',
+      '        chrome-3  [001] ...1 2000.0: 0: trace_event_clock_sync: ' +
+          'parent_ts=0'
     ];
     var traceEvents = [
       {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
@@ -161,7 +163,9 @@ base.unittest.testSuite('tracing.trace_model', function() {
   test('traceModelCanImportSubtracesRecursively', function() {
     var systraceLines = [
       'SurfaceFlinger-2  [001] ...1 1000.0: 0: B|1|taskA',
-      'SurfaceFlinger-2  [001] ...1 2000.0: 0: E'
+      'SurfaceFlinger-2  [001] ...1 2000.0: 0: E',
+      '        chrome-3  [001] ...1 2000.0: 0: trace_event_clock_sync: ' +
+          'parent_ts=0'
     ];
     var outerTraceEvents = [
       {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
