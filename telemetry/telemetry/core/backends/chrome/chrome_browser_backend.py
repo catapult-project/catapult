@@ -218,8 +218,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       if throw_network_exception:
         raise e
       if not self.IsBrowserRunning():
-        raise exceptions.BrowserGoneException()
-      raise exceptions.BrowserConnectionGoneException()
+        raise exceptions.BrowserGoneException(e)
+      raise exceptions.BrowserConnectionGoneException(e)
 
   @property
   def browser_directory(self):
