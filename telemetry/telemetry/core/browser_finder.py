@@ -50,15 +50,19 @@ def FindBrowser(options):
         '--remote requires --browser=cros-chrome or cros-chrome-guest.')
 
   browsers = []
-  default_browser = None
+  default_browsers = []
   for finder in BROWSER_FINDERS:
     curr_browsers = finder.FindAllAvailableBrowsers(options)
-    if not default_browser:
-      default_browser = finder.SelectDefaultBrowser(curr_browsers)
+    new_default_browser = finder.SelectDefaultBrowser(curr_browsers)
+    if new_default_browser:
+      default_browsers.append(new_default_browser)
     browsers.extend(curr_browsers)
 
   if options.browser_type == None:
-    if default_browser:
+    if default_browsers:
+      default_browser = sorted(default_browsers,
+                               key=lambda b: b.last_modification_time())[-1]
+
       logging.warning('--browser omitted. Using most recent local build: %s' %
                       default_browser.browser_type)
       options.browser_type = default_browser.browser_type

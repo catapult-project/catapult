@@ -28,3 +28,6 @@ class PossibleBrowser(object):
   def SupportsOptions(self, finder_options):
     """Tests for extension support."""
     raise NotImplementedError()
+
+  def last_modification_time(self):
+    return -1

@@ -4,7 +4,6 @@
 """Finds desktop browsers that can be controlled by telemetry."""
 
 import logging
-from operator import attrgetter
 import os
 import platform
 import subprocess
@@ -61,7 +60,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def UpdateExecutableIfNeeded(self):
     pass
 
-  @property
   def last_modification_time(self):
     if os.path.exists(self._local_executable):
       return os.path.getmtime(self._local_executable)
@@ -70,7 +68,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 def SelectDefaultBrowser(possible_browsers):
   local_builds_by_date = [
       b for b in sorted(possible_browsers,
-                        key=attrgetter('last_modification_time'))
+                        key=lambda b: b.last_modification_time())
       if b.is_local_build]
   if local_builds_by_date:
     return local_builds_by_date[-1]
