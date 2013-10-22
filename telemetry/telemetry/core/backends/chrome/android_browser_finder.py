@@ -229,9 +229,10 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
       not adb_commands.HasForwarder()):
     logging.warn('telemetry detected an android device. However,')
     logging.warn('Chrome\'s port-forwarder app is not available.')
-    logging.warn('To build:')
+    logging.warn('Falling back to prebuilt binaries, but to build locally: ')
     logging.warn('  ninja -C out/Release forwarder2 md5sum')
     logging.warn('')
     logging.warn('')
-    return []
+    if not adb_commands.SetupPrebuiltTools(device):
+      return []
   return possible_browsers
