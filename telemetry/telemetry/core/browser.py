@@ -303,6 +303,16 @@ class Browser(object):
       paths = set([paths])
     paths = set(os.path.realpath(p) for p in paths)
 
+    # If any path is in a subdirectory of another, remove the subdirectory.
+    duplicates = set()
+    for parent_path in paths:
+      for sub_path in paths:
+        if parent_path == sub_path:
+          continue
+        if os.path.commonprefix((parent_path, sub_path)) == parent_path:
+          duplicates.add(sub_path)
+    paths -= duplicates
+
     if self._http_server:
       if paths and self._http_server.paths == paths:
         return False
