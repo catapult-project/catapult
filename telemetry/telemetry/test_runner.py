@@ -170,8 +170,15 @@ def _MatchTestName(input_test_name):
         return True
     return False
 
+  # Exact matching.
   if input_test_name in test_aliases:
-    input_test_name = test_aliases[input_test_name]
+    exact_match = test_aliases[input_test_name]
+  else:
+    exact_match = input_test_name
+  if exact_match in _GetTests():
+    return {exact_match: _GetTests()[exact_match]}
+
+  # Fuzzy matching.
   return dict((test_name, test_class)
       for test_name, test_class in _GetTests().iteritems()
       if _Matches(input_test_name, test_name))
