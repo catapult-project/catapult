@@ -113,7 +113,7 @@ def CloseConnections(tab):
 def GetBuildDirectories():
   """Yields all combination of Chromium build output directories."""
   build_dirs = ['build',
-                'out',
+                os.path.basename(os.environ.get('CHROMIUM_OUT_DIR', 'out')),
                 'xcodebuild']
 
   build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64']
