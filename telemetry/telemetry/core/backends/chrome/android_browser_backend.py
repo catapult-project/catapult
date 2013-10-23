@@ -17,12 +17,14 @@ from telemetry.core.backends.chrome import chrome_browser_backend
 
 
 class AndroidBrowserBackendSettings(object):
-  def __init__(self, adb, activity, cmdline_file, package, pseudo_exec_name):
+  def __init__(self, adb, activity, cmdline_file, package, pseudo_exec_name,
+               supports_tab_control):
     self.adb = adb
     self.activity = activity
     self.cmdline_file = cmdline_file
     self.package = package
     self.pseudo_exec_name = pseudo_exec_name
+    self.supports_tab_control = supports_tab_control
 
   def GetDevtoolsRemotePort(self):
     raise NotImplementedError()
@@ -54,7 +56,8 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
         activity='com.google.android.apps.chrome.Main',
         cmdline_file='/data/local/chrome-command-line',
         package=package,
-        pseudo_exec_name='chrome')
+        pseudo_exec_name='chrome',
+        supports_tab_control=True)
 
   def GetDevtoolsRemotePort(self):
     return 'localabstract:chrome_devtools_remote'
@@ -74,7 +77,8 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
         activity='org.chromium.content_shell_apk.ContentShellActivity',
         cmdline_file='/data/local/tmp/content-shell-command-line',
         package=package,
-        pseudo_exec_name='content_shell')
+        pseudo_exec_name='content_shell',
+        supports_tab_control=False)
 
   def GetDevtoolsRemotePort(self):
     return 'localabstract:content_shell_devtools_remote'
@@ -95,7 +99,8 @@ class ChromiumTestShellBackendSettings(AndroidBrowserBackendSettings):
           activity='org.chromium.chrome.testshell.ChromiumTestShellActivity',
           cmdline_file='/data/local/tmp/chromium-testshell-command-line',
           package=package,
-          pseudo_exec_name='chromium_testshell')
+          pseudo_exec_name='chromium_testshell',
+          supports_tab_control=False)
 
   def GetDevtoolsRemotePort(self):
     return 'localabstract:chromium_testshell_devtools_remote'
@@ -116,7 +121,8 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
         activity='com.android.webview.chromium.shell.TelemetryActivity',
         cmdline_file='/data/local/tmp/webview-command-line',
         package=package,
-        pseudo_exec_name='webview')
+        pseudo_exec_name='webview',
+        supports_tab_control=False)
 
   def GetDevtoolsRemotePort(self):
     # The DevTools socket name for WebView depends on the activity PID's.
@@ -299,6 +305,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def activity(self):
     return self._backend_settings.activity
+
+  @property
+  def supports_tab_control(self):
+    return self._backend_settings.supports_tab_control
 
   def __del__(self):
     self.Close()
