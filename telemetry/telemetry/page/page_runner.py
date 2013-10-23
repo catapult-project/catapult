@@ -84,7 +84,7 @@ class _RunState(object):
             page_set.make_javascript_deterministic)
         self._last_archive_path = page.archive_path
 
-    if self.browser.supports_tab_control:
+    if self.browser.supports_tab_control and test.close_tabs_before_run:
       # Create a tab if there's none.
       if len(self.browser.tabs) == 0:
         self.browser.tabs.New()
@@ -258,6 +258,8 @@ def Run(test, page_set, expectations, finder_options):
   """Runs a given test against a given page_set with the given options."""
   results = results_options.PrepareResults(test, finder_options)
   browser_options = finder_options.browser_options
+
+  test.ValidatePageSet(page_set)
 
   # Create a possible_browser with the given options.
   test.CustomizeBrowserOptions(finder_options)

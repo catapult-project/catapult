@@ -65,6 +65,7 @@ class PageTest(object):
         needs_browser_restart_after_each_run)
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
+    self._close_tabs_before_run = True
     # If the test overrides the TabForPage method, it is considered a multi-tab
     # test.  The main difference between this and a single-tab test is that we
     # do not attempt recovery for the former if a tab or the browser crashes,
@@ -89,6 +90,16 @@ class PageTest(object):
     """When set to True, the browser's disk and memory cache will be cleared
     before each run."""
     return self._clear_cache_before_each_run
+
+  @property
+  def close_tabs_before_run(self):
+    """When set to True, all tabs are closed before running the test for the
+    first time."""
+    return self._close_tabs_before_run
+
+  @close_tabs_before_run.setter
+  def close_tabs_before_run(self, close_tabs):
+    self._close_tabs_before_run = close_tabs
 
   def NeedsBrowserRestartAfterEachRun(self, tab): # pylint: disable=W0613
     """Override to specify browser restart after each run."""
@@ -183,6 +194,11 @@ class PageTest(object):
     """Override to select a different tab for the page.  For instance, to
     create a new tab for every page, return tab.browser.tabs.New()."""
     return tab
+
+  def ValidatePageSet(self, page_set):
+    """Override to examine the page set before the test run.  Useful for
+    example to validate that the pageset can be used with the test."""
+    pass
 
   def Run(self, options, page, tab, results):
     self.options = options
