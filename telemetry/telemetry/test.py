@@ -39,6 +39,7 @@ class Test(object):
       setattr(options, key, value)
 
     options.repeat_options = self._CreateRepeatOptions(options)
+    self.CustomizeBrowserOptions(options)
 
     test = self.test()
     ps = self.CreatePageSet(options)
@@ -89,4 +90,8 @@ class Test(object):
   @staticmethod
   def AddTestCommandLineOptions(parser):
     """Override to accept custom command line options."""
+    pass
+
+  def CustomizeBrowserOptions(self, options):
+    """Add browser options that are required by this benchmark."""
     pass
