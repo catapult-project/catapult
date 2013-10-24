@@ -24,15 +24,24 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     assert flush_command, \
         'You must build %s first' % self.GetFlushUtilityName()
 
-    args = [flush_command, '--recurse']
+    args = []
     directory_contents = os.listdir(directory)
     for item in directory_contents:
       if not ignoring or item not in ignoring:
         args.append(os.path.join(directory, item))
 
-    if len(args) < 3:
+    if not args:
       return
 
-    p = subprocess.Popen(args)
-    p.wait()
-    assert p.returncode == 0, 'Failed to flush system cache'
+    # According to msdn:
+    # http://msdn.microsoft.com/en-us/library/ms682425%28VS.85%29.aspx
+    # there's a maximum allowable command line of 32,768 characters on windows.
+    while args:
+      # Small note about [:256] and [256:]
+      # [:N] will return a list with the first N elements, ie.
+      # with [1,2,3,4,5], [:2] -> [1,2], and [2:] -> [3,4,5]
+      # with [1,2,3,4,5], [:5] -> [1,2,3,4,5] and [5:] -> []
+      p = subprocess.Popen([flush_command, '--recurse'] + args[:256])
+      p.wait()
+      assert p.returncode == 0, 'Failed to flush system cache'
+      args = args[256:]
