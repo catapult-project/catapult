@@ -93,7 +93,10 @@ def FindBrowser(options):
   elif len(matching_browsers) > 1:
     logging.warning('Multiple browsers of the same type found: %s' % (
                     repr(matching_browsers)))
-    return matching_browsers[0]
+    chosen_browser = sorted(matching_browsers,
+                            key=lambda b: b.last_modification_time())[-1]
+    logging.warning('Choosing newest browser: %s' % (repr(chosen_browser)))
+    return chosen_browser
   else:
     return None
 

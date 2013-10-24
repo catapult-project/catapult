@@ -40,7 +40,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self.is_local_build = is_local_build
 
   def __repr__(self):
-    return 'PossibleDesktopBrowser(browser_type=%s)' % self.browser_type
+    return 'PossibleDesktopBrowser(browser_type=%s, executable=%s)' % (
+        self.browser_type, self._local_executable)
 
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(
