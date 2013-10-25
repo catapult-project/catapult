@@ -170,6 +170,15 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
               'The value of the E phase event will be used.')
         new_slice.args[arg_name] = arg_value
 
+  def _ProcessCompleteEvent(self, event):
+    thread = (self._GetOrCreateProcess(event['pid'])
+        .GetOrCreateThread(event['tid']))
+    thread.PushCompleteSlice(event['cat'],
+                             event['name'],
+                             event['ts'] / 1000.0,
+                             event['dur'] / 1000.0 if 'dur' in event else None,
+                             event['args'])
+
   def _ProcessMetadataEvent(self, event):
     if event['name'] == 'thread_name':
       thread = (self._GetOrCreateProcess(event['pid'])
@@ -209,6 +218,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       phase = event.get('ph', None)
       if phase == 'B' or phase == 'E':
         self._ProcessDurationEvent(event)
+      elif phase == 'X':
+        self._ProcessCompleteEvent(event)
       elif phase == 'S' or phase == 'F' or phase == 'T':
         self._ProcessAsyncEvent(event)
       # Note, I is historic. The instant event marker got changed, but we

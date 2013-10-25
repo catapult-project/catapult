@@ -66,7 +66,6 @@ class Thread(event_container.TimelineEventContainer):
 
   def IterEventsInThisContainer(self):
     return itertools.chain(
-      iter(self._open_slices),
       iter(self._newly_added_slices),
       self.IterAllAsyncSlices(),
       self.IterAllSlices(),
@@ -99,8 +98,11 @@ class Thread(event_container.TimelineEventContainer):
     if len(self._open_slices) > 0 and timestamp < self._open_slices[-1].start:
       raise ValueError(
           'Slices must be added in increasing timestamp order')
-    self._open_slices.append(
-        tracing_slice.Slice(self, category, name, timestamp, args=args))
+    new_slice = tracing_slice.Slice(self, category, name, timestamp, args=args)
+    self._open_slices.append(new_slice)
+    new_slice.did_not_finish = True
+    self.PushSlice(new_slice)
+    return new_slice
 
   def EndSlice(self, end_timestamp):
     """ Ends the last begun slice in this group and pushes it onto the slice
@@ -118,16 +120,28 @@ class Thread(event_container.TimelineEventContainer):
       raise ValueError(
           'Slice %s end time is before its start.' % curr_slice.name)
     curr_slice.duration = end_timestamp - curr_slice.start
-    return self.PushSlice(curr_slice)
+    curr_slice.did_not_finish = False
+    return curr_slice
+
+  def PushCompleteSlice(self, category, name, timestamp, duration, args=None):
+    new_slice = tracing_slice.Slice(self, category, name, timestamp, args=args)
+    if duration == None:
+      new_slice.did_not_finish = True
+    else:
+      new_slice.duration = duration
+    self.PushSlice(new_slice)
+    return new_slice
 
   def PushSlice(self, new_slice):
     self._newly_added_slices.append(new_slice)
     return new_slice
 
   def AutoCloseOpenSlices(self, max_timestamp):
-    while len(self._open_slices) > 0:
-      curr_slice = self.EndSlice(max_timestamp)
-      curr_slice.did_not_finish = True
+    for s in self._newly_added_slices:
+      if s.did_not_finish:
+        s.duration = max_timestamp - s.start
+        assert s.duration >= 0
+    self._open_slices = []
 
   def IsTimestampValidForBeginOrEnd(self, timestamp):
     if not len(self._open_slices):
@@ -197,7 +211,11 @@ class Thread(event_container.TimelineEventContainer):
     of all other slices seen so far, we can just check the last slice
     of each row for bounding.
     '''
-    if child.start >= root.start and child.end <= root.end:
+    # Due to inaccuracy of floating-point calculation, the end times of slices
+    # from B/E pair (whose end = start + original_end - start) and an X Event
+    # (whose end = start + duration) at the same time may become not equal.
+    # Tolerate 1ps error for slice.end.
+    if child.start >= root.start and child.end - root.end < 1e-9:
       if len(root.sub_slices) > 0:
         if self._AddSliceIfBounds(root.sub_slices[-1], child):
           return True

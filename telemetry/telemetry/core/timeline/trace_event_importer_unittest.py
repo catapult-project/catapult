@@ -919,3 +919,39 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     t = p.threads[53]
     self.assertEqual(3, len(t.samples))
     self.assertEqual(0, len(m.import_errors))
+
+  def testImportCompleteEvent(self):
+    events = [
+      {'name': 'a', 'args': {}, 'pid': 52, 'ts': 629, 'dur': 1, 'cat': 'baz',
+       'tid': 53, 'ph': 'X'},
+      {'name': 'b', 'args': {}, 'pid': 52, 'ts': 730, 'dur': 20, 'cat': 'foo',
+       'tid': 53, 'ph': 'X'},
+      {'name': 'c', 'args': {}, 'pid': 52, 'ts': 740, 'cat': 'baz',
+       'tid': 53, 'ph': 'X'},
+    ]
+    m = timeline_model.TimelineModel(event_data=events)
+    p = m.GetAllProcesses()[0]
+    t = p.threads[53]
+    self.assertEqual(3, len(t.all_slices))
+
+    slice_event = t.all_slices[0]
+    self.assertEqual('a', slice_event.name)
+    self.assertAlmostEqual(0.0, slice_event.start)
+    self.assertAlmostEqual(1 / 1000.0, slice_event.duration)
+    self.assertFalse(slice_event.did_not_finish)
+    self.assertEqual(0, len(slice_event.sub_slices))
+
+    slice_event = t.all_slices[1]
+    self.assertEqual('b', slice_event.name)
+    self.assertAlmostEqual((730 - 629) / 1000.0, slice_event.start)
+    self.assertAlmostEqual(20 / 1000.0, slice_event.duration)
+    self.assertFalse(slice_event.did_not_finish)
+    self.assertEqual(1, len(slice_event.sub_slices))
+    self.assertEqual(t.all_slices[2], slice_event.sub_slices[0])
+
+    slice_event = t.all_slices[2]
+    self.assertEqual('c', slice_event.name)
+    self.assertAlmostEqual((740 - 629) / 1000.0, slice_event.start)
+    self.assertAlmostEqual(10 / 1000.0, slice_event.duration)
+    self.assertTrue(slice_event.did_not_finish)
+    self.assertEqual(0, len(slice_event.sub_slices))
