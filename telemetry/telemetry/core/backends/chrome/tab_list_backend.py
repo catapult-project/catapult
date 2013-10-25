@@ -129,7 +129,8 @@ class TabListBackend(object):
                        if t is not None and t not in self._tab_list]
 
   def _FindTabInfo(self, debugger_url):
+    tab_id = debugger_url.split('/')[-1]
     for tab_info in self._ListTabs():
-      if tab_info.get('webSocketDebuggerUrl') == debugger_url:
+      if tab_info.get('id') == tab_id:
         return tab_info
     return None

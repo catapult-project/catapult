@@ -87,17 +87,22 @@ class InspectorBackend(object):
 
   # Public methods implemented in JavaScript.
 
-  def WaitForDocumentReadyStateToBeComplete(self, timeout):
-    util.WaitFor(
-        lambda: self._runtime.Evaluate('document.readyState') == 'complete',
-        timeout)
+  def _WaitForReadyStates(self, ready_states, timeout):
+    def ReadyStateMatches():
+      try:
+        return self._runtime.Evaluate('document.readyState') in ready_states
+      except util.TimeoutException:
+        # If the main thread is busy for longer than Evaluate's timeout, we
+        # may time out here early. Instead, we want to wait for the full
+        # timeout of this method.
+        return False
+    util.WaitFor(ReadyStateMatches, timeout)
 
-  def WaitForDocumentReadyStateToBeInteractiveOrBetter(
-      self, timeout):
-    def IsReadyStateInteractiveOrBetter():
-      rs = self._runtime.Evaluate('document.readyState')
-      return rs == 'complete' or rs == 'interactive'
-    util.WaitFor(IsReadyStateInteractiveOrBetter, timeout)
+  def WaitForDocumentReadyStateToBeComplete(self, timeout):
+    self._WaitForReadyStates(['complete'], timeout)
+
+  def WaitForDocumentReadyStateToBeInteractiveOrBetter(self, timeout):
+    self._WaitForReadyStates(['interactive', 'complete'], timeout)
 
   @property
   def screenshot_supported(self):
