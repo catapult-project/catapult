@@ -320,7 +320,7 @@ def Run(test, page_set, expectations, finder_options):
                              finder_options.repeat_options)
 
     state.repeat_state.WillRunPageSet()
-    while state.repeat_state.ShouldRepeatPageSet():
+    while state.repeat_state.ShouldRepeatPageSet() and not test.IsExiting():
       for page in pages:
         state.repeat_state.WillRunPage()
         test.WillRunPageRepeats(page, state.tab)
@@ -331,6 +331,8 @@ def Run(test, page_set, expectations, finder_options):
                              possible_browser, results, state)
           state.repeat_state.DidRunPage()
         test.DidRunPageRepeats(page, state.tab)
+        if test.IsExiting():
+          break
       state.repeat_state.DidRunPageSet()
 
     test.DidRunTest(state.tab, results)

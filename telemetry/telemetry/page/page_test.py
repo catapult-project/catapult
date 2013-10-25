@@ -59,7 +59,7 @@ class PageTest(object):
       self._test_method = getattr(self, test_method_name)
     except AttributeError:
       raise ValueError, 'No such method %s.%s' % (
-        self.__class_, test_method_name) # pylint: disable=E1101
+        self.__class_, test_method_name)  # pylint: disable=E1101
     self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_run = (
         needs_browser_restart_after_each_run)
@@ -73,6 +73,8 @@ class PageTest(object):
     self.is_multi_tab_test = (self.__class__ is not PageTest and
                               self.TabForPage.__func__ is not
                               self.__class__.__bases__[0].TabForPage.__func__)
+    # _exit_requested is set to true when the test requests an early exit.
+    self._exit_requested = False
 
   @property
   def discard_first_result(self):
@@ -101,7 +103,7 @@ class PageTest(object):
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
 
-  def NeedsBrowserRestartAfterEachRun(self, tab): # pylint: disable=W0613
+  def NeedsBrowserRestartAfterEachRun(self, tab):  # pylint: disable=W0613
     """Override to specify browser restart after each run."""
     return self._needs_browser_restart_after_each_run
 
@@ -132,7 +134,7 @@ class PageTest(object):
     """Override to customize the browser right after it has launched."""
     pass
 
-  def CanRunForPage(self, page): #pylint: disable=W0613
+  def CanRunForPage(self, page):  # pylint: disable=W0613
     """Override to customize if the test can be ran for the given page."""
     return True
 
@@ -180,17 +182,17 @@ class PageTest(object):
     """Override to do operations after running the action on the page."""
     pass
 
-  def CreatePageSet(self, args, options):  # pylint: disable=W0613
+  def CreatePageSet(self, args, options):   # pylint: disable=W0613
     """Override to make this test generate its own page set instead of
     allowing arbitrary page sets entered from the command-line."""
     return None
 
-  def CreateExpectations(self, page_set):  # pylint: disable=W0613
+  def CreateExpectations(self, page_set):   # pylint: disable=W0613
     """Override to make this test generate its own expectations instead of
     any that may have been defined in the page set."""
     return test_expectations.TestExpectations()
 
-  def TabForPage(self, page, tab):  # pylint: disable=W0613
+  def TabForPage(self, page, tab):   # pylint: disable=W0613
     """Override to select a different tab for the page.  For instance, to
     create a new tab for every page, return tab.browser.tabs.New()."""
     return tab
@@ -246,6 +248,12 @@ class PageTest(object):
           'No NavigateAction in navigate_steps')
 
     self._RunCompoundAction(page, tab, navigate_actions, False)
+
+  def IsExiting(self):
+    return self._exit_requested
+
+  def RequestExit(self):
+    self._exit_requested = True
 
   @property
   def action_name_to_run(self):
