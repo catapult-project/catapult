@@ -7,6 +7,7 @@ import base64
 import optparse
 import sys
 import os
+import parse_deps
 import re
 
 import generate
