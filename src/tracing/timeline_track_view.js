@@ -812,24 +812,22 @@ base.exportTo('tracing', function() {
         this.focusElement.focus();
     },
 
-    storeInitialInteractionPositionsAndFocus_: function(mouseEvent) {
+    storeInitialInteractionPositionsAndFocus_: function(e) {
 
-      this.storeInitialMouseDownPos_(mouseEvent);
-      this.storeLastMousePos_(mouseEvent);
+      this.storeInitialMouseDownPos_(e);
+      this.storeLastMousePos_(e);
 
       this.focusElements_();
     },
 
     onBeginPanScan_: function(e) {
       var vp = this.viewport;
-      var mouseEvent = e.data;
-
       this.viewportDisplayTransformAtMouseDown_ =
           vp.currentDisplayTransform.clone();
       this.isPanningAndScanning_ = true;
 
-      this.storeInitialInteractionPositionsAndFocus_(mouseEvent);
-      mouseEvent.preventDefault();
+      this.storeInitialInteractionPositionsAndFocus_(e);
+      e.preventDefault();
     },
 
     onUpdatePanScan_: function(e) {
@@ -837,7 +835,6 @@ base.exportTo('tracing', function() {
         return;
 
       var viewWidth = this.modelTrackContainer_.canvas.clientWidth;
-      var mouseEvent = e.data;
 
       var pixelRatio = window.devicePixelRatio || 1;
       var xDeltaView = pixelRatio * (this.lastMouseViewPos_.x -
@@ -851,81 +848,73 @@ base.exportTo('tracing', function() {
       tempDisplayTransform.panY -= yDelta;
       this.viewport.setDisplayTransformImmediately(tempDisplayTransform);
 
-      mouseEvent.preventDefault();
-      mouseEvent.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-      this.storeLastMousePos_(mouseEvent);
+      this.storeLastMousePos_(e);
     },
 
     onEndPanScan_: function(e) {
-      var mouseEvent = e.data;
       this.isPanningAndScanning_ = false;
 
-      this.storeLastMousePos_(mouseEvent);
+      this.storeLastMousePos_(e);
 
       if (!e.isClick)
-        e.consumed = true;
+        e.preventDefault();
     },
 
     onBeginSelection_: function(e) {
-      var mouseEvent = e.data;
-
       var canv = this.modelTrackContainer_.canvas;
       var rect = this.modelTrack_.getBoundingClientRect();
       var canvRect = canv.getBoundingClientRect();
 
       var inside = rect &&
-          mouseEvent.clientX >= rect.left &&
-          mouseEvent.clientX < rect.right &&
-          mouseEvent.clientY >= rect.top &&
-          mouseEvent.clientY < rect.bottom &&
-          mouseEvent.clientX >= canvRect.left &&
-          mouseEvent.clientX < canvRect.right;
+          e.clientX >= rect.left &&
+          e.clientX < rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY < rect.bottom &&
+          e.clientX >= canvRect.left &&
+          e.clientX < canvRect.right;
 
       if (!inside)
         return;
 
-      this.dragBeginEvent_ = mouseEvent;
+      this.dragBeginEvent_ = e;
 
-      this.storeInitialInteractionPositionsAndFocus_(mouseEvent);
-      mouseEvent.preventDefault();
-
+      this.storeInitialInteractionPositionsAndFocus_(e);
+      e.preventDefault();
     },
 
     onUpdateSelection_: function(e) {
-      var mouseEvent = e.data;
-
       if (!this.dragBeginEvent_)
         return;
 
       // Update the drag box
       this.dragBoxXStart_ = this.dragBeginEvent_.clientX;
-      this.dragBoxXEnd_ = mouseEvent.clientX;
+      this.dragBoxXEnd_ = e.clientX;
       this.dragBoxYStart_ = this.dragBeginEvent_.clientY;
-      this.dragBoxYEnd_ = mouseEvent.clientY;
+      this.dragBoxYEnd_ = e.clientY;
       this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
           this.dragBoxXEnd_, this.dragBoxYEnd_);
 
     },
 
     onEndSelection_: function(e) {
-      e.consumed = true;
+      e.preventDefault();
 
       if (!this.dragBeginEvent_)
         return;
 
-      var mouseEvent = e.data;
-
       // Stop the dragging.
       this.hideDragBox_();
-      var eDown = this.dragBeginEvent_ || mouseEvent;
+      var eDown = this.dragBeginEvent_;
       this.dragBeginEvent_ = null;
 
       // Figure out extents of the drag.
-      var loY = Math.min(eDown.clientY, mouseEvent.clientY);
-      var hiY = Math.max(eDown.clientY, mouseEvent.clientY);
-      var loX = Math.min(eDown.clientX, mouseEvent.clientX);
-      var hiX = Math.max(eDown.clientX, mouseEvent.clientX);
+      var loY = Math.min(eDown.clientY, e.clientY);
+      var hiY = Math.max(eDown.clientY, e.clientY);
+      var loX = Math.min(eDown.clientX, e.clientX);
+      var hiX = Math.max(eDown.clientX, e.clientX);
       var tracksContainerBoundingRect =
           this.modelTrackContainer_.getBoundingClientRect();
       var topBoundary = tracksContainerBoundingRect.height;
@@ -945,32 +934,29 @@ base.exportTo('tracing', function() {
     },
 
     onBeginZoom_: function(e) {
-      var mouseEvent = e.data;
       this.isZooming_ = true;
 
-      this.storeInitialInteractionPositionsAndFocus_(mouseEvent);
-      mouseEvent.preventDefault();
+      this.storeInitialInteractionPositionsAndFocus_(e);
+      e.preventDefault();
     },
 
     onUpdateZoom_: function(e) {
-
       if (!this.isZooming_)
         return;
-      var mouseEvent = e.data;
-      var newPosition = this.extractRelativeMousePosition_(mouseEvent);
+      var newPosition = this.extractRelativeMousePosition_(e);
 
       var zoomScaleValue = 1 + (this.lastMouseViewPos_.y -
           newPosition.y) * 0.01;
 
       this.zoomBy_(zoomScaleValue, false);
-      this.storeLastMousePos_(mouseEvent);
+      this.storeLastMousePos_(e);
     },
 
     onEndZoom_: function(e) {
       this.isZooming_ = false;
 
       if (!e.isClick)
-        e.consumed = true;
+        e.preventDefault();
     }
   };
 

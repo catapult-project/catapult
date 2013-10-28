@@ -227,15 +227,15 @@ base.exportTo('ui', function() {
     // Event callbacks.
     onPanBegin_: function(e) {
       this.panning_ = true;
-      this.lastMousePosition_ = this.getMousePosition_(e.data);
+      this.lastMousePosition_ = this.getMousePosition_(e);
     },
 
     onPanUpdate_: function(e) {
       if (!this.panning_)
         return;
 
-      var delta = this.getMouseDelta_(e.data, this.lastMousePosition_);
-      this.lastMousePosition_ = this.getMousePosition_(e.data);
+      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      this.lastMousePosition_ = this.getMousePosition_(e);
       this.updatePanByDelta(delta);
     },
 
@@ -246,7 +246,7 @@ base.exportTo('ui', function() {
     onZoomBegin_: function(e) {
       this.zooming_ = true;
 
-      var p = this.getMousePosition_(e.data);
+      var p = this.getMousePosition_(e);
 
       this.lastMousePosition_ = p;
       this.zoomPoint_ = p;
@@ -256,8 +256,8 @@ base.exportTo('ui', function() {
       if (!this.zooming_)
         return;
 
-      var delta = this.getMouseDelta_(e.data, this.lastMousePosition_);
-      this.lastMousePosition_ = this.getMousePosition_(e.data);
+      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      this.lastMousePosition_ = this.getMousePosition_(e);
       this.updateZoomByDelta(delta);
     },
 
@@ -268,15 +268,15 @@ base.exportTo('ui', function() {
 
     onRotateBegin_: function(e) {
       this.rotating_ = true;
-      this.lastMousePosition_ = this.getMousePosition_(e.data);
+      this.lastMousePosition_ = this.getMousePosition_(e);
     },
 
     onRotateUpdate_: function(e) {
       if (!this.rotating_)
         return;
 
-      var delta = this.getMouseDelta_(e.data, this.lastMousePosition_);
-      this.lastMousePosition_ = this.getMousePosition_(e.data);
+      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      this.lastMousePosition_ = this.getMousePosition_(e);
       this.updateRotateByDelta(delta);
     },
 

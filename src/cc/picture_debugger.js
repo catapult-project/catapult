@@ -377,7 +377,7 @@ base.exportTo('cc', function() {
     onEndZoom_: function(e) {
       this.lastMouseViewPos_ = undefined;
       this.isZooming_ = false;
-      e.consumed = true;
+      e.preventDefault();
     },
 
     extractRelativeMousePosition_: function(e) {

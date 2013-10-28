@@ -144,11 +144,15 @@ base.exportTo('ui', function() {
       this.modifierToModeMap_ = {};
 
       this.targetElement = opt_targetElement;
+      this.spacePressed_ = false;
       this.modeBeforeAlternativeModeActivated_ = null;
-      this.exitAlternativeModeModifier_ = null;
 
       this.isInteracting_ = false;
       this.isClick_ = false;
+    },
+
+    get targetElement() {
+      return this.targetElement_;
     },
 
     set targetElement(target) {
@@ -253,8 +257,17 @@ base.exportTo('ui', function() {
         var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
         if (buttonEl)
           buttonEl.classList.remove('active');
-        if (!this.isInAlternativeMode_)
-          base.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
+
+        // End event.
+        if (this.isInteracting_) {
+
+          var mouseEvent = this.createEvent_(
+              allModeInfo[this.mode].eventNames.end);
+          this.dispatchEvent(mouseEvent);
+        }
+
+        // Exit event.
+        base.dispatchSimpleEvent(this, modeInfo.eventNames.exit, true);
       }
 
       this.currentMode_ = newMode;
@@ -264,8 +277,23 @@ base.exportTo('ui', function() {
         var buttonEl = this.buttonsEl_.querySelector('.' + modeInfo.className);
         if (buttonEl)
           buttonEl.classList.add('active');
+
+        // Entering a new mode resets mouse down pos.
+        this.mouseDownPos_.x = this.mousePos_.x;
+        this.mouseDownPos_.y = this.mousePos_.y;
+
+        // Enter event.
         if (!this.isInAlternativeMode_)
           base.dispatchSimpleEvent(this, modeInfo.eventNames.enter, true);
+
+        // Begin event.
+        if (this.isInteracting_) {
+          var mouseEvent = this.createEvent_(
+              allModeInfo[this.mode].eventNames.begin);
+          this.dispatchEvent(mouseEvent);
+        }
+
+
       }
 
       if (this.settingsKey_ && !this.isInAlternativeMode_)
@@ -288,19 +316,40 @@ base.exportTo('ui', function() {
       }
     },
 
-    setPositionFromEvent_: function(pos, e) {
-      pos.x = e.clientX;
-      pos.y = e.clientY;
+    setCurrentMousePosFromEvent_: function(e) {
+      this.mousePos_.x = e.clientX;
+      this.mousePos_.y = e.clientY;
+    },
+
+    createEvent_: function(eventName, sourceEvent) {
+      var event = new base.Event(eventName, true);
+      event.clientX = this.mousePos_.x;
+      event.clientY = this.mousePos_.y;
+      event.deltaX = this.mousePos_.x - this.mouseDownPos_.x;
+      event.deltaY = this.mousePos_.y - this.mouseDownPos_.y;
+      event.mouseDownX = this.mouseDownPos_.x;
+      event.mouseDownY = this.mouseDownPos_.y;
+      event.didPreventDefault = false;
+      event.preventDefault = function() {
+        event.didPreventDefault = true;
+        if (sourceEvent)
+          sourceEvent.preventDefault();
+      };
+      event.stopPropagation = function() {
+        sourceEvent.stopPropagation();
+      };
+      event.stopImmediatePropagation = function() {
+        throw new Error('Not implemented');
+      };
+      return event;
     },
 
     onMouseDown_: function(e) {
       if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
         return;
-
-      this.setPositionFromEvent_(this.mouseDownPos_, e);
-      var mouseEvent = new base.Event(
-          allModeInfo[this.mode].eventNames.begin, true);
-      mouseEvent.data = e;
+      this.setCurrentMousePosFromEvent_(e);
+      var mouseEvent = this.createEvent_(
+          allModeInfo[this.mode].eventNames.begin, e);
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
@@ -308,13 +357,10 @@ base.exportTo('ui', function() {
     },
 
     onMouseMove_: function(e) {
-      this.setPositionFromEvent_(this.mousePos_, e);
-      var mouseEvent = new base.Event(
-          allModeInfo[this.mode].eventNames.update, true);
-      mouseEvent.data = e;
-      mouseEvent.deltaX = e.x - this.mouseDownPos_.x;
-      mouseEvent.deltaY = e.y - this.mouseDownPos_.y;
-      mouseEvent.mouseDownPosition = this.mouseDownPos_;
+      this.setCurrentMousePosFromEvent_(e);
+
+      var mouseEvent = this.createEvent_(
+          allModeInfo[this.mode].eventNames.update, e);
       this.dispatchEvent(mouseEvent);
 
       if (this.isInteracting_)
@@ -325,19 +371,16 @@ base.exportTo('ui', function() {
       if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
         return;
 
-      var mouseEvent = new base.Event(
-          allModeInfo[this.mode].eventNames.end, true);
-
-      mouseEvent.data = e;
-      mouseEvent.consumed = false;
+      var mouseEvent = this.createEvent_(
+          allModeInfo[this.mode].eventNames.end, e);
       mouseEvent.isClick = this.isClick_;
-
       this.dispatchEvent(mouseEvent);
 
-      if (this.isClick_ && !mouseEvent.consumed)
+      if (this.isClick_ && !mouseEvent.didPreventDefault)
         this.dispatchClickEvents_(e);
 
       this.isInteracting_ = false;
+      this.updateAlternativeModeState_(e);
     },
 
     onButtonMouseDown_: function(e) {
@@ -351,52 +394,25 @@ base.exportTo('ui', function() {
     },
 
     onButtonPress_: function(e) {
-      this.setAlternateMode_(null);
+      this.modeBeforeAlternativeModeActivated_ = undefined;
       this.mode = e.target.mode;
       e.preventDefault();
     },
 
     onKeyDown_: function(e) {
-
-      // Prevent the user from changing modes during an interaction.
-      if (this.isInteracting_)
-        return;
-
-      if (this.isInAlternativeMode_)
-        return;
-
-      var modifierToModeMap = this.modifierToModeMap_;
-      var mode = this.mode;
-      var m = MODIFIER;
-      var modifier;
-
-      var shiftPressed = e.shiftKey;
-      var spacePressed = e.keyCode === ' '.charCodeAt(0);
-      var cmdOrCtrlPressed =
-          (base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey);
-
-      if (shiftPressed && modifierToModeMap[m.SHIFT] !== mode)
-        modifier = m.SHIFT;
-      else if (spacePressed && modifierToModeMap[m.SPACE] !== mode)
-        modifier = m.SPACE;
-      else if (cmdOrCtrlPressed && modifierToModeMap[m.CMD_OR_CTRL] !== mode)
-        modifier = m.CMD_OR_CTRL;
-      else
-        return;
-
-      this.setAlternateMode_(modifier);
+      if (e.keyCode === ' '.charCodeAt(0))
+        this.spacePressed_ = true;
+      this.updateAlternativeModeState_(e);
     },
 
     onKeyUp_: function(e) {
-
-      // Prevent the user from changing modes during an interaction.
-      if (this.isInteracting_)
-        return;
+      if (e.keyCode === ' '.charCodeAt(0))
+        this.spacePressed_ = false;
 
       var didHandleKey = false;
       base.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
         if (e.keyCode === keyCode) {
-          this.setAlternateMode_(null);
+          this.modeBeforeAlternativeModeActivated_ = undefined;
           var mode = parseInt(modeStr);
           this.mode = mode;
           didHandleKey = true;
@@ -408,43 +424,53 @@ base.exportTo('ui', function() {
         e.stopPropagation();
         return;
       }
+      this.updateAlternativeModeState_(e);
+    },
 
-      if (!this.isInAlternativeMode_)
+    updateAlternativeModeState_: function(e) {
+      var shiftPressed = e.shiftKey;
+      var spacePressed = this.spacePressed_;
+      var cmdOrCtrlPressed =
+          (base.isMac && e.metaKey) || (!base.isMac && e.ctrlKey);
+
+      // Figure out the new mode
+      var smm = this.supportedModeMask_;
+      var newMode;
+      var isNewModeAnAlternativeMode = false;
+      if (shiftPressed &&
+          (this.modifierToModeMap_[MODIFIER.SHIFT] & smm) !== 0) {
+        newMode = this.modifierToModeMap_[MODIFIER.SHIFT];
+        isNewModeAnAlternativeMode = true;
+      } else if (spacePressed &&
+                 (this.modifierToModeMap_[MODIFIER.SPACE] & smm) !== 0) {
+        newMode = this.modifierToModeMap_[MODIFIER.SPACE];
+        isNewModeAnAlternativeMode = true;
+      } else if (cmdOrCtrlPressed &&
+                 (this.modifierToModeMap_[MODIFIER.CMD_OR_CTRL] & smm) !== 0) {
+        newMode = this.modifierToModeMap_[MODIFIER.CMD_OR_CTRL];
+        isNewModeAnAlternativeMode = true;
+      } else {
+        // Go to the old mode, if there is one.
+        if (this.isInAlternativeMode_) {
+          newMode = this.modeBeforeAlternativeModeActivated_;
+          isNewModeAnAlternativeMode = false;
+        } else {
+          newMode = undefined;
+        }
+      }
+
+      // Maybe a mode change isn't needed.
+      if (this.mode === newMode || newMode === undefined)
         return;
 
-      var shiftReleased = !e.shiftKey;
-      var spaceReleased = e.keyCode === ' '.charCodeAt(0);
-      var cmdOrCtrlReleased =
-          (base.isMac && !e.metaKey) || (!base.isMac && !e.ctrlKey);
-
-      var exitModifier = this.exitAlternativeModeModifier_;
-      if ((shiftReleased && exitModifier === MODIFIER.SHIFT) ||
-          (spaceReleased && exitModifier === MODIFIER.SPACE) ||
-          (cmdOrCtrlReleased && exitModifier === MODIFIER.CMD_OR_CTRL)) {
-        this.setAlternateMode_(null);
-      }
+      // Okay, we're changing.
+      if (isNewModeAnAlternativeMode)
+        this.modeBeforeAlternativeModeActivated_ = this.mode;
+      this.mode = newMode;
     },
 
     get isInAlternativeMode_() {
       return !!this.modeBeforeAlternativeModeActivated_;
-    },
-
-    setAlternateMode_: function(modifier) {
-      if (!modifier) {
-        if (this.isInAlternativeMode_) {
-          this.mode = this.modeBeforeAlternativeModeActivated_;
-          this.modeBeforeAlternativeModeActivated_ = null;
-        }
-        return;
-      }
-
-      var alternateMode = this.modifierToModeMap_[modifier];
-      if ((alternateMode & this.supportedModeMask_) === 0)
-        return;
-
-      this.modeBeforeAlternativeModeActivated_ = this.mode;
-      this.exitAlternativeModeModifier_ = modifier;
-      this.mode = alternateMode;
     },
 
     setModifierForAlternateMode: function(mode, modifier) {
@@ -490,16 +516,16 @@ base.exportTo('ui', function() {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      this.initialRelativeMouseDownPos_.x = e.clientX - this.offsetLeft;
-      this.initialRelativeMouseDownPos_.y = e.clientY - this.offsetTop;
-      ui.trackMouseMovesUntilMouseUp(this.onDragHandleMouseMove_.bind(this));
-    },
-
-    onDragHandleMouseMove_: function(e) {
-      var pos = {};
-      pos.x = (e.clientX - this.initialRelativeMouseDownPos_.x);
-      pos.y = (e.clientY - this.initialRelativeMouseDownPos_.y);
-      this.pos = pos;
+      var mouseDownPos = {
+        x: e.clientX - this.offsetLeft,
+        y: e.clientY - this.offsetTop
+      };
+      ui.trackMouseMovesUntilMouseUp(function(e) {
+        var pos = {};
+        pos.x = e.clientX - mouseDownPos.x;
+        pos.y = e.clientY - mouseDownPos.y;
+        this.pos = pos;
+      }.bind(this));
     },
 
     checkIsClick_: function(e) {
@@ -520,12 +546,10 @@ base.exportTo('ui', function() {
 
       var eventNames = allModeInfo[MOUSE_SELECTOR_MODE.SELECTION].eventNames;
 
-      var mouseEvent = new base.Event(eventNames.begin, true);
-      mouseEvent.data = e;
+      var mouseEvent = this.createEvent_(eventNames.begin);
       this.dispatchEvent(mouseEvent);
 
-      mouseEvent = new base.Event(eventNames.end, true);
-      mouseEvent.data = e;
+      mouseEvent = this.createEvent_(eventNames.end);
       this.dispatchEvent(mouseEvent);
     }
   };

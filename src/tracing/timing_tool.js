@@ -57,8 +57,7 @@ base.exportTo('tracing', function() {
     },
 
     onBeginTiming: function(e) {
-      var mouseEvent = e.data;
-      var worldX = this.getWorldXFromEvent_(mouseEvent);
+      var worldX = this.getWorldXFromEvent_(e);
 
       // Check if click was on a range marker that can be moved.
       if (!this.activeMarker_) {
@@ -79,7 +78,7 @@ base.exportTo('tracing', function() {
       }
 
       // Set the range markers to the mouse or snapped position and select them.
-      var snapPos = this.getSnappedToEventPosition_(mouseEvent);
+      var snapPos = this.getSnappedToEventPosition_(e);
       this.updateMarkerToSnapPosition_(this.rangeStartMarker_, snapPos);
       this.updateMarkerToSnapPosition_(this.rangeEndMarker_, snapPos);
 
@@ -94,12 +93,10 @@ base.exportTo('tracing', function() {
       if (!this.activeMarker_ || this.activeMarker_ === this.cursorMarker_)
         return;
 
-      var mouseEvent = e.data;
-
       // Update the position of the active marker to the cursor position.
       // This is either the end marker when creating a range, or one of the
       // range markers when they are moved.
-      var snapPos = this.getSnappedToEventPosition_(mouseEvent);
+      var snapPos = this.getSnappedToEventPosition_(e);
       this.updateMarkerToSnapPosition_(this.activeMarker_, snapPos);
 
       // When creating a range, only show the start marker after the range
@@ -114,12 +111,10 @@ base.exportTo('tracing', function() {
     },
 
     onEndTiming: function(e) {
-      var mouseEvent = e.data;
-
       if (!this.activeMarker_ || !this.activeMarker_.selected)
         return;
 
-      e.consumed = true;
+      e.preventDefault();
 
       // Check if a range selection is finished now.
       if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
@@ -139,9 +134,9 @@ base.exportTo('tracing', function() {
 
           this.viewport.addMarker(this.cursorMarker_);
           this.cursorMarker_.positionWorld =
-              this.getWorldXFromEvent_(mouseEvent);
+              this.getWorldXFromEvent_(e);
           this.activeMarker_ = this.cursorMarker_;
-          e.consumed = false;
+          e.preventDefault();
         }
         return;
       }
