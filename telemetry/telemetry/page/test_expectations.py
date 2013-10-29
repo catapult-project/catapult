@@ -12,9 +12,10 @@ GPU_MODIFIERS = ['amd', 'arm', 'broadcom', 'hisilicon', 'intel', 'imagination',
 CONFIG_MODIFIERS = ['debug', 'release']
 
 class Expectation(object):
-  def __init__(self, expectation, url_pattern, conditions=None, bug=None):
+  def __init__(self, expectation, pattern, conditions=None, bug=None):
     self.expectation = expectation.lower()
-    self.url_pattern = url_pattern
+    self.name_pattern = pattern
+    self.url_pattern = pattern
     self.bug = bug
 
     self.os_conditions = []
@@ -71,7 +72,9 @@ class TestExpectations(object):
     gpu_info = None
 
     for e in self.expectations:
-      if fnmatch.fnmatch(page.url, e.url_pattern):
+      matches_url = fnmatch.fnmatch(page.url, e.url_pattern)
+      matches_name = page.name and fnmatch.fnmatch(page.name, e.name_pattern)
+      if matches_url or matches_name:
         if gpu_info == None and browser.supports_system_info:
           gpu_info = browser.GetSystemInfo().gpu
         if self._ModifiersApply(platform, gpu_info, e):

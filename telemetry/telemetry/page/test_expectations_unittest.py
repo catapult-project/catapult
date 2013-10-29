@@ -58,6 +58,7 @@ class SampleTestExpectations(test_expectations.TestExpectations):
     self.Fail('page8.html', ['win', 'intel', ('amd', 0x1001)], bug=123)
     self.Fail('page9.html', ['imagination'])
     self.Fail('page10.html', [('imagination', 'PowerVR SGX 554')])
+    self.Fail('Pages.page_11')
 
 class TestExpectationsTest(unittest.TestCase):
   def setUp(self):
@@ -181,3 +182,10 @@ class TestExpectationsTest(unittest.TestCase):
     self.assertExpectationEquals('pass', page,
                                  vendor_string='Acme',
                                  device_string=DEVICE_STRING_SGX)
+
+  # Expectations can be set against page names as well as urls
+  def testPageNameExpectations(self):
+    ps = page_set.PageSet()
+    page = page_module.Page('http://test.com/page11.html', ps)
+    page.name = "Pages.page_11"
+    self.assertExpectationEquals('fail', page)
