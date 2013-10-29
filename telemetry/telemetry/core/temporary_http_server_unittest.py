@@ -67,8 +67,7 @@ class TemporaryHTTPServerTest(unittest.TestCase):
         xmlhttp.send();
     """ % (browser.http_server.UrlOf('/%s' % self.test_file),
            content_range_request))
-    util.WaitFor(lambda: tab.EvaluateJavaScript('loaded == true'),
-                 timeout=5, poll_interval=1)
+    tab.WaitForJavaScriptExpression('loaded', 5)
     content_range = tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Range");')
     content_range_response = 'bytes %s/%d' % (

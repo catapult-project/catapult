@@ -6,8 +6,8 @@ import logging
 import socket
 import sys
 
-from telemetry.core import util
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.core.backends import png_bitmap
 from telemetry.core.backends.chrome import inspector_console
 from telemetry.core.backends.chrome import inspector_memory
@@ -86,23 +86,6 @@ class InspectorBackend(object):
     self._browser_backend.tab_list_backend.CloseTab(self._debugger_url)
 
   # Public methods implemented in JavaScript.
-
-  def _WaitForReadyStates(self, ready_states, timeout):
-    def ReadyStateMatches():
-      try:
-        return self._runtime.Evaluate('document.readyState') in ready_states
-      except util.TimeoutException:
-        # If the main thread is busy for longer than Evaluate's timeout, we
-        # may time out here early. Instead, we want to wait for the full
-        # timeout of this method.
-        return False
-    util.WaitFor(ReadyStateMatches, timeout)
-
-  def WaitForDocumentReadyStateToBeComplete(self, timeout):
-    self._WaitForReadyStates(['complete'], timeout)
-
-  def WaitForDocumentReadyStateToBeInteractiveOrBetter(self, timeout):
-    self._WaitForReadyStates(['interactive', 'complete'], timeout)
 
   @property
   def screenshot_supported(self):

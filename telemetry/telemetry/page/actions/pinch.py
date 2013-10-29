@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.core import util
 from telemetry.page.actions import page_action
 
 class PinchAction(page_action.PageAction):
@@ -39,9 +38,7 @@ class PinchAction(page_action.PageAction):
     tab.ExecuteJavaScript('window.__pinchAction.start(%s, %f)'
                           % ("true" if zoom_in else "false", pixels_to_move))
 
-    # Poll for pinch action completion.
-    util.WaitFor(lambda: tab.EvaluateJavaScript(
-        'window.__pinchActionDone'), 60)
+    tab.WaitForJavaScriptExpression('window.__pinchActionDone', 60)
 
   def CanBeBound(self):
     return True

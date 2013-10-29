@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.core import util
 from telemetry.page.actions import page_action
 
 class ScrollAction(page_action.PageAction):
@@ -68,9 +67,7 @@ class ScrollAction(page_action.PageAction):
             top_start_percentage: %s });"""
         % (left_start_percentage, top_start_percentage))
 
-    # Poll for scroll action completion.
-    util.WaitFor(lambda: tab.EvaluateJavaScript(
-        'window.__scrollActionDone'), 60)
+    tab.WaitForJavaScriptExpression('window.__scrollActionDone', 60)
 
   def CanBeBound(self):
     return True

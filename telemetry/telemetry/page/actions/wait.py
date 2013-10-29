@@ -39,8 +39,8 @@ class WaitAction(page_action.PageAction):
       previous_action.WillRunAction(page, tab)
       old_url = tab.EvaluateJavaScript('document.location.href')
       previous_action.RunAction(page, tab, None)
-      util.WaitFor(lambda: tab.EvaluateJavaScript(
-          'document.location.href') != old_url, self.timeout)
+      tab.WaitForJavaScriptExpression(
+          'document.location.href != "%s"' % old_url, self.timeout)
 
     elif getattr(self, 'condition', None) == 'element':
       if hasattr(self, 'text'):
@@ -49,8 +49,8 @@ class WaitAction(page_action.PageAction):
             lambda: util.FindElementAndPerformAction(
                 tab, self.text, callback_code), self.timeout)
       elif hasattr(self, 'selector'):
-        util.WaitFor(lambda: tab.EvaluateJavaScript(
-             'document.querySelector("%s") != null' % re.escape(self.selector)),
+        tab.WaitForJavaScriptExpression(
+             'document.querySelector("%s") != null' % re.escape(self.selector),
              self.timeout)
       elif hasattr(self, 'xpath'):
         code = ('document.evaluate("%s",'
@@ -59,14 +59,12 @@ class WaitAction(page_action.PageAction):
                                    'XPathResult.FIRST_ORDERED_NODE_TYPE,'
                                    'null)'
                   '.singleNodeValue' % re.escape(self.xpath))
-        util.WaitFor(lambda: tab.EvaluateJavaScript('%s != null' % code),
-             self.timeout)
+        tab.WaitForJavaScriptExpression('%s != null' % code, self.timeout)
       else:
         raise page_action.PageActionFailed(
             'No element condition given to wait')
     elif hasattr(self, 'javascript'):
-      util.WaitFor(lambda: tab.EvaluateJavaScript(self.javascript),
-                   self.timeout)
+      tab.WaitForJavaScriptExpression(self.javascript, self.timeout)
     else:
       raise page_action.PageActionFailed('No wait condition found')
 

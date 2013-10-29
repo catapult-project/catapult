@@ -70,8 +70,7 @@ class JavaHeapProfiler(profiler.Profiler):
       self._browser_backend.adb.RunShellCommand('am dumpheap %s %s' %
                                                 (pid, device_dump_file))
     if device_dump_file and wait_for_completion:
-      util.WaitFor(lambda: self._FileSize(device_dump_file) > 0,
-                   timeout=2, poll_interval=0.5)
+      util.WaitFor(lambda: self._FileSize(device_dump_file) > 0, timeout=2)
     self._run_count += 1
 
   def _FileSize(self, file_name):

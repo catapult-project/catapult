@@ -24,8 +24,7 @@ class MediaAction(page_action.PageAction):
       js = f.read()
       tab.ExecuteJavaScript(js)
 
-  def WaitForEvent(self, tab, selector, event_name, timeout,
-                   poll_interval=0.5):
+  def WaitForEvent(self, tab, selector, event_name, timeout):
     """Halts media action until the selector's event is fired.
 
     Args:
@@ -33,10 +32,9 @@ class MediaAction(page_action.PageAction):
       selector: Media element selector.
       event_name: Name of the event to check if fired or not.
       timeout: Timeout to check for event, throws an exception if not fired.
-      poll_interval: Interval to poll for event firing status.
     """
     util.WaitFor(lambda: self.HasEventCompleted(tab, selector, event_name),
-                 timeout=timeout, poll_interval=poll_interval)
+                 timeout=timeout)
 
   def HasEventCompleted(self, tab, selector, event_name):
     return tab.EvaluateJavaScript(
