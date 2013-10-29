@@ -138,6 +138,9 @@ class Run(Command):
     self._test = matching_tests.popitem()[1]
 
   def Run(self, options, args):
+    if not self._test.enabled:
+      print >> sys.stderr, 'TEST IS DISABLIED. SKIPPING.'
+      return 0
     return min(255, self._test().Run(copy.copy(options)))
 
 
