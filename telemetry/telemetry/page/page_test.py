@@ -103,7 +103,7 @@ class PageTest(object):
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
 
-  def NeedsBrowserRestartAfterEachRun(self, tab):  # pylint: disable=W0613
+  def NeedsBrowserRestartAfterEachRun(self, browser):  # pylint: disable=W0613
     """Override to specify browser restart after each run."""
     return self._needs_browser_restart_after_each_run
 
@@ -138,22 +138,22 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
-  def WillRunTest(self, tab):
+  def WillRunTest(self):
     """Override to do operations before the page set(s) are navigated."""
     pass
 
-  def DidRunTest(self, tab, results):
+  def DidRunTest(self, browser, results):
     """Override to do operations after all page set(s) are completed.
 
     This will occur before the browser is torn down.
     """
     pass
 
-  def WillRunPageRepeats(self, page, tab):
+  def WillRunPageRepeats(self, page):
     """Override to do operations before each page is iterated over."""
     pass
 
-  def DidRunPageRepeats(self, page, tab):
+  def DidRunPageRepeats(self, page):
     """Override to do operations after each page is iterated over."""
     pass
 
@@ -192,10 +192,10 @@ class PageTest(object):
     any that may have been defined in the page set."""
     return test_expectations.TestExpectations()
 
-  def TabForPage(self, page, tab):   # pylint: disable=W0613
+  def TabForPage(self, page, browser):   # pylint: disable=W0613
     """Override to select a different tab for the page.  For instance, to
-    create a new tab for every page, return tab.browser.tabs.New()."""
-    return tab
+    create a new tab for every page, return browser.tabs.New()."""
+    return browser.tabs[0]
 
   def ValidatePageSet(self, page_set):
     """Override to examine the page set before the test run.  Useful for

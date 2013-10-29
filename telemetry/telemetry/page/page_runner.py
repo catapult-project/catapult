@@ -27,7 +27,6 @@ from telemetry.page.actions import navigate
 class _RunState(object):
   def __init__(self):
     self.browser = None
-    self.tab = None
 
     self._append_to_existing_wpr = False
     self._last_archive_path = None
@@ -41,7 +40,6 @@ class _RunState(object):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
-      assert not self.tab
       self.browser = possible_browser.Create()
       self.browser.credentials.credentials_path = credentials_path
 
@@ -105,17 +103,10 @@ class _RunState(object):
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
-    if not self.tab:
-      self.tab = self.browser.tabs[0]
-
     if self.first_page[page]:
       self.first_page[page] = False
 
   def StopBrowser(self):
-    if self.tab:
-      self.tab.Disconnect()
-      self.tab = None
-
     if self.browser:
       self.browser.Close()
       self.browser = None
@@ -139,41 +130,50 @@ class _RunState(object):
 
 
 class PageState(object):
-  def __init__(self):
+  def __init__(self, page, tab):
+    self.page = page
+    self.tab = tab
+
     self._did_login = False
 
-  def PreparePage(self, page, tab, test=None):
-    if page.is_file:
-      server_started = tab.browser.SetHTTPServerDirectories(
-        page.page_set.serving_dirs | set([page.serving_dir]))
+  def PreparePage(self, test=None):
+    if self.page.is_file:
+      server_started = self.tab.browser.SetHTTPServerDirectories(
+        self.page.page_set.serving_dirs | set([self.page.serving_dir]))
       if server_started and test:
-        test.DidStartHTTPServer(tab)
+        test.DidStartHTTPServer(self.tab)
 
-    if page.credentials:
-      if not tab.browser.credentials.LoginNeeded(tab, page.credentials):
-        raise page_test.Failure('Login as ' + page.credentials + ' failed')
+    if self.page.credentials:
+      if not self.tab.browser.credentials.LoginNeeded(
+          self.tab, self.page.credentials):
+        raise page_test.Failure('Login as ' + self.page.credentials + ' failed')
       self._did_login = True
 
     if test:
       if test.clear_cache_before_each_run:
-        tab.ClearCache()
+        self.tab.ClearCache()
 
-  def ImplicitPageNavigation(self, page, tab, test=None):
+  def ImplicitPageNavigation(self, test=None):
     """Executes the implicit navigation that occurs for every page iteration.
 
     This function will be called once per page before any actions are executed.
     """
     if test:
-      test.WillNavigateToPage(page, tab)
-      test.RunNavigateSteps(page, tab)
-      test.DidNavigateToPage(page, tab)
+      test.WillNavigateToPage(self.page, self.tab)
+      test.RunNavigateSteps(self.page, self.tab)
+      test.DidNavigateToPage(self.page, self.tab)
     else:
       i = navigate.NavigateAction()
-      i.RunAction(page, tab, None)
+      i.RunAction(self.page, self.tab, None)
 
-  def CleanUpPage(self, page, tab):
-    if page.credentials and self._did_login:
-      tab.browser.credentials.LoginNoLongerNeeded(tab, page.credentials)
+  def CleanUpPage(self):
+    if self.page.credentials and self._did_login:
+      self.tab.browser.credentials.LoginNoLongerNeeded(
+          self.tab, self.page.credentials)
+
+    if self.tab:
+      self.tab.Disconnect()
+      self.tab = None
 
 
 def AddCommandLineOptions(parser):
@@ -235,7 +235,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if finder_options.profiler:
         state.StopProfiling()
 
-      if test.NeedsBrowserRestartAfterEachRun(state.tab):
+      if test.NeedsBrowserRestartAfterEachRun(state.browser):
         state.StopBrowser()
 
       break
@@ -314,8 +314,7 @@ def Run(test, page_set, expectations, finder_options):
   # TODO(dtu): Move results creation and results_for_current_run into RunState.
 
   try:
-    # TODO(dtu): state.tab is always None here, maybe we should not pass it?
-    test.WillRunTest(state.tab)
+    test.WillRunTest()
     state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
                              finder_options.repeat_options)
 
@@ -323,19 +322,19 @@ def Run(test, page_set, expectations, finder_options):
     while state.repeat_state.ShouldRepeatPageSet() and not test.IsExiting():
       for page in pages:
         state.repeat_state.WillRunPage()
-        test.WillRunPageRepeats(page, state.tab)
+        test.WillRunPageRepeats(page)
         while state.repeat_state.ShouldRepeatPage():
           # execute test on page
           _PrepareAndRunPage(test, page_set, expectations, finder_options,
                              browser_options, page, credentials_path,
                              possible_browser, results, state)
           state.repeat_state.DidRunPage()
-        test.DidRunPageRepeats(page, state.tab)
+        test.DidRunPageRepeats(page)
         if test.IsExiting():
           break
       state.repeat_state.DidRunPageSet()
 
-    test.DidRunTest(state.tab, results)
+    test.DidRunTest(state.browser, results)
   finally:
     state.StopBrowser()
 
@@ -423,9 +422,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
 
   logging.info('Running %s' % page.url)
 
-  page_state = PageState()
-  tab = test.TabForPage(page, state.tab)
-  state.tab = tab
+  page_state = PageState(page, test.TabForPage(page, state.browser))
 
   def ProcessError():
     logging.error('%s:\n%s', page.url, traceback.format_exc())
@@ -436,12 +433,12 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       results.AddError(page, sys.exc_info())
 
   try:
-    page_state.PreparePage(page, tab, test)
+    page_state.PreparePage(test)
     if state.repeat_state.ShouldNavigate(
         finder_options.skip_navigate_on_repeat):
-      page_state.ImplicitPageNavigation(page, tab, test)
-    test.Run(finder_options, page, tab, results)
-    util.CloseConnections(tab)
+      page_state.ImplicitPageNavigation(test)
+    test.Run(finder_options, page, page_state.tab, results)
+    util.CloseConnections(page_state.tab)
   except page_test.Failure:
     logging.warning('%s:\n%s', page.url, traceback.format_exc())
     if expectation == 'fail':
@@ -463,7 +460,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       logging.warning('%s was expected to fail, but passed.\n', page.url)
     results.AddSuccess(page)
   finally:
-    page_state.CleanUpPage(page, tab)
+    page_state.CleanUpPage()
 
 
 def _GetSequentialFileName(base_name):
