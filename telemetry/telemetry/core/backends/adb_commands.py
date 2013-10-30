@@ -232,7 +232,7 @@ class Forwarder(object):
 
   @property
   def url(self):
-    return 'http://localhost:%i' % self._host_port
+    return 'http://127.0.0.1:%i' % self._host_port
 
   def Close(self):
     for (device_port, _) in self._port_pairs:
