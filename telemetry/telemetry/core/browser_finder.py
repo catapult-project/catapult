@@ -88,17 +88,19 @@ def FindBrowser(options):
   matching_browsers = [b for b in browsers
       if b.browser_type == options.browser_type and b.SupportsOptions(options)]
 
+  chosen_browser = None
   if len(matching_browsers) == 1:
-    return matching_browsers[0]
+    chosen_browser = matching_browsers[0]
   elif len(matching_browsers) > 1:
     logging.warning('Multiple browsers of the same type found: %s' % (
                     repr(matching_browsers)))
     chosen_browser = sorted(matching_browsers,
                             key=lambda b: b.last_modification_time())[-1]
-    logging.warning('Choosing newest browser: %s' % (repr(chosen_browser)))
-    return chosen_browser
-  else:
-    return None
+
+  if chosen_browser:
+    logging.info('Chose browser: %s' % (repr(chosen_browser)))
+
+  return chosen_browser
 
 def GetAllAvailableBrowserTypes(options):
   """Returns an array of browser types supported on this system.
