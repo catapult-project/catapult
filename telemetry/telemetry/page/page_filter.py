@@ -27,12 +27,12 @@ class PageFilter(object):
   def IsSelected(self, page):
     if self._page_exclude_regex and (
         self._page_exclude_regex.search(page.url) or
-        self._page_exclude_regex.search(page.name)):
+        (page.name and self._page_exclude_regex.search(page.name))):
       return False
     if self._page_regex:
       return (
           self._page_regex.search(page.url) or
-          self._page_regex.search(page.name))
+          (page.name and self._page_regex.search(page.name)))
     return True
 
   @staticmethod

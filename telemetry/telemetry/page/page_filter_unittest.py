@@ -23,6 +23,10 @@ class PageFilterTest(unittest.TestCase):
         'file://othersuite/textures/tex-sub-image-3d.html',
         ps,
         { 'name': 'OtherSuite.textures_tex_sub_image_3d' })
+    self.p3 = page_module.Page(
+        'file://othersuite/textures/tex-sub-image-3d.html',
+        ps,
+        { 'name': None })
 
   def testURLPattern(self):
     options = MockOptions('conformance/textures', '')
@@ -55,3 +59,11 @@ class PageFilterTest(unittest.TestCase):
     page_filter = page_filter_module.PageFilter(options)
     self.assertFalse(page_filter.IsSelected(self.p1))
     self.assertTrue(page_filter.IsSelected(self.p2))
+
+  def testNameNone(self):
+    options = MockOptions('othersuite/textures', '')
+    page_filter = page_filter_module.PageFilter(options)
+    self.assertTrue(page_filter.IsSelected(self.p3))
+    options = MockOptions('conformance/textures', '')
+    page_filter = page_filter_module.PageFilter(options)
+    self.assertFalse(page_filter.IsSelected(self.p3))
