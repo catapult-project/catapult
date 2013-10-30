@@ -182,7 +182,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return self.GetStandardOutput()
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-    for symbol in symbols:
+    for symbol in sorted(symbols, key=os.path.getmtime, reverse=True):
+      if not os.path.isfile(symbol):
+        continue
       with open(symbol, 'r') as f:
         fields = f.readline().split()
         if not fields:
@@ -190,6 +192,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         sha = fields[3]
         binary = ' '.join(fields[4:])
       symbol_path = os.path.join(symbols_path, binary, sha)
+      if os.path.exists(symbol_path):
+        continue
       os.makedirs(symbol_path)
       shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
 
