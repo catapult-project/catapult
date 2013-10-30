@@ -77,6 +77,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _LaunchBrowser(self):
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
+    if self.browser_options.startup_url:
+      args.append(self.browser_options.startup_url)
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir

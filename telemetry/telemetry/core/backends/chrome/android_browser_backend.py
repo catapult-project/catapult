@@ -241,12 +241,16 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self):
     self._adb.RunShellCommand('logcat -c')
+    if self.browser_options.startup_url:
+      url = self.browser_options.startup_url
+    else:
+      url = 'about:blank'
     self._adb.StartActivity(self._backend_settings.package,
                             self._backend_settings.activity,
                             True,
                             None,
                             None,
-                            'about:blank')
+                            url)
 
     self._adb.Forward('tcp:%d' % self._port,
                       self._backend_settings.GetDevtoolsRemotePort())

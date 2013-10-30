@@ -210,6 +210,7 @@ class BrowserOptions(object):
     self.browser_user_agent_type = None
 
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
+    self.startup_url = None
 
     self.keep_test_server_ports = False
 
