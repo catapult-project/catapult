@@ -8,6 +8,7 @@ base.requireStylesheet('tracing.analysis.analyze_slices');
 
 base.require('tracing.analysis.util');
 base.require('ui');
+base.require('ui.sortable_table');
 
 base.exportTo('tracing.analysis', function() {
 
@@ -61,13 +62,17 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableCell(table, row, 'SelfTime (ms)');
     results.appendTableCell(table, row, 'Args');
 
+    var numSlices = 0;
     base.iterItems(sliceGroup, function(title, slice) {
+      numSlices++;
       results.appendDetailsRow(table, slice.start, slice.duration,
           slice.selfTime ? slice.selfTime : slice.duration, slice.args,
           function() {
             return new tracing.Selection([slice]);
           }, slice.threadTime);
     });
+    if (numSlices > 1)
+      ui.SortableTable.decorate(table);
   }
 
   function analyzeMultipleSlices(results, slices, type) {
@@ -191,6 +196,7 @@ base.exportTo('tracing.analysis', function() {
                             hasThreadTime ? totalThreadTime : null,
                             totalSelfTime, slices.length, null, null, true);
       results.appendSpacingRow(table, true);
+      ui.SortableTable.decorate(table);
     }
 
     results.appendInfoRowTime(table, 'Selection start', tsLo, true);

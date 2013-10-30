@@ -19,6 +19,11 @@ base.exportTo('tracing.analysis', function() {
         rows: []
       };
       table.className = className;
+      table.classList = [];
+      table.classList.push(className);
+      table.classList.add = function(className) {
+        table.classList.push(className);
+      };
       this.tables.push(table);
       return table;
     },
