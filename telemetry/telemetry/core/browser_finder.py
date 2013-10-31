@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Finds browsers that can be controlled by telemetry."""
 
 import logging
@@ -23,15 +24,22 @@ ALL_BROWSER_TYPES = ','.join([bf.ALL_BROWSER_TYPES for bf in BROWSER_FINDERS])
 class BrowserTypeRequiredException(Exception):
   pass
 
+
 class BrowserFinderException(Exception):
   pass
 
+
 def FindBrowser(options):
-  """Finds the best PossibleBrowser object to run given the provided
-  BrowserOptions object. The returned possiblity object can then be used to
-  connect to and control the located browser. A BrowserFinderException will
-  be raised if the BrowserOptions argument is improperly set or if an error
-  occurs when finding a browser.
+  """Finds the best PossibleBrowser object given a BrowserOptions object.
+
+  Args:
+    A BrowserOptions object.
+
+  Returns:
+    A PossibleBrowser object.
+
+  Raises:
+    BrowserFinderException: Options improperly set, or an error occurred.
   """
   if options.browser_type == 'exact' and options.browser_executable == None:
     raise BrowserFinderException(
@@ -69,17 +77,23 @@ def FindBrowser(options):
       # TODO: We should do this even when --browser is specified.
       default_browser.UpdateExecutableIfNeeded()
       return default_browser
+
+    if len(browsers) == 1:
+      logging.warning('--browser omitted. Using only available browser: %s' %
+                      browsers[0].browser_type)
+      return browsers[0]
+
     raise BrowserTypeRequiredException(
         '--browser must be specified. Available browsers:\n%s' %
         '\n'.join(sorted(set([b.browser_type for b in browsers]))))
 
   if options.browser_type == 'any':
     types = ALL_BROWSER_TYPES.split(',')
-    def compare_browsers_on_type_priority(x, y):
+    def CompareBrowsersOnTypePriority(x, y):
       x_idx = types.index(x.browser_type)
       y_idx = types.index(y.browser_type)
       return x_idx - y_idx
-    browsers.sort(compare_browsers_on_type_priority)
+    browsers.sort(CompareBrowsersOnTypePriority)
     if len(browsers) >= 1:
       return browsers[0]
     else:
@@ -102,10 +116,18 @@ def FindBrowser(options):
 
   return chosen_browser
 
+
 def GetAllAvailableBrowserTypes(options):
-  """Returns an array of browser types supported on this system.
-  A BrowserFinderException will be raised if the BrowserOptions argument is
-  improperly set or if an error occurs when finding a browser.
+  """Returns a list of available browser types.
+
+  Args:
+    options: A BrowserOptions object.
+
+  Returns:
+    A list of browser type strings.
+
+  Raises:
+    BrowserFinderException: Options are improperly set, or an error occurred.
   """
   browsers = []
   for finder in BROWSER_FINDERS:
@@ -115,3 +137,4 @@ def GetAllAvailableBrowserTypes(options):
   type_list = list(type_list)
   type_list.sort()
   return type_list
+
