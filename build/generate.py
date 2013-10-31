@@ -125,9 +125,20 @@ def generate_html_for_combined_templates(load_sequence):
       chunks.append(html_template.contents)
   return "\n".join(chunks)
 
+class ExtraScript(object):
+  def __init__(self, script_id, text_content, content_type=None):
+    assert script_id[0] != '#'
+    assert isinstance(text_content, basestring)
+    self.script_id = script_id
+    self.text_content = text_content
+    self.content_type = content_type
+
 def generate_standalone_html_file(load_sequence,
                                   title,
-                                  flattened_js_url=None):
+                                  flattened_js_url=None,
+                                  extra_scripts=None):
+  extra_scripts = extra_scripts or []
+
   head_html_chunks = []
   head_html_chunks.append("<style>")
   head_html_chunks.append(generate_css(load_sequence))
@@ -140,6 +151,15 @@ def generate_standalone_html_file(load_sequence,
     head_html_chunks.append(generate_js(load_sequence,
                                         include_html_templates=False))
     head_html_chunks.append('</script>')
+
+  for extra_script in extra_scripts:
+    attrs = ['id="%s"' % extra_script.script_id]
+    if extra_script.content_type:
+      attrs.append('content-type="%s"' % extra_script.content_type)
+    head_html_chunks.append('<script %s>' % ' '.join(attrs))
+    head_html_chunks.append(extra_script.text_content)
+    head_html_chunks.append('</script>')
+
   return """
 <!DOCTYPE HTML>
 <html>
