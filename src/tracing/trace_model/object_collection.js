@@ -65,8 +65,9 @@ base.exportTo('tracing.trace_model', function() {
       var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
       var snapshot = instanceMap.addSnapshot(category, name, ts, args);
       if (snapshot.objectInstance.category != category) {
-        throw new Error('Added snapshot with different category ' +
-                        'than when it was created');
+        throw new Error('Added snapshot with cat=' + category + ' impossible.' +
+                        'It instance was created/snapshotted with cat=' +
+                        snapshot.objectInstance.category);
       }
       if (snapshot.objectInstance.name != name) {
         throw new Error('Added snapshot with different name than ' +
@@ -81,8 +82,11 @@ base.exportTo('tracing.trace_model', function() {
       if (!deletedInstance)
         return;
       if (deletedInstance.category != category) {
-        throw new Error('Deleting an object with a different category ' +
-                        'than when it was created');
+        throw new Error('Deleting object ' + deletedInstance.name +
+                        ' with a different category ' +
+                        'than when it was created. It previous had cat=' +
+                        deletedInstance.category + ' but the delete command ' +
+                       'had cat=' + category);
       }
       if (deletedInstance.name != name) {
         throw new Error('Deleting an object with a different name than ' +
