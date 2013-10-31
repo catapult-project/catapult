@@ -27,6 +27,8 @@ base.exportTo('cc', function() {
     },
 
     initialize: function() {
+      cc.moveRequiredFieldsFromArgsToToplevel(
+        this, ['quadList']);
     }
   };
 

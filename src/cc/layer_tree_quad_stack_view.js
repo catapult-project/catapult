@@ -662,7 +662,7 @@ base.exportTo('cc', function() {
 
       var quads = [];
       for (var i = 0; i < renderPasses.length; ++i) {
-        var quadList = renderPasses[i].args.quadList;
+        var quadList = renderPasses[i].quadList;
         for (var j = 0; j < quadList.length; ++j) {
           var drawQuad = quadList[j];
           var quad = drawQuad.rectAsTargetSpaceQuad.clone();
