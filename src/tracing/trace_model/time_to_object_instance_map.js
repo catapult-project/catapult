@@ -144,6 +144,7 @@ base.exportTo('tracing.trace_model', function() {
       lastInstance = this.createObjectInstanceFunction_(
           this.parent, this.id, category, name, ts);
       this.instances.push(lastInstance);
+      lastInstance.wasDeleted(ts);
       return lastInstance;
     },
 

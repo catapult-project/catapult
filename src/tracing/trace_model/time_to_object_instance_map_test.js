@@ -118,6 +118,29 @@ base.unittest.testSuite('tracing.trace_model.time_to_object_instance_map',
         assertEquals(i10, m.getInstanceAt(5));
       });
 
+      test('successiveDeletions', function() {
+        var m = new tracing.trace_model.TimeToObjectInstanceMap(
+            createObjectInstance, {}, 7);
+        var i20 = m.idWasDeleted('cat', 'name', 20);
+        var i30 = m.idWasDeleted('cat', 'name', 30);
+        var i40 = m.idWasDeleted('cat', 'name', 40);
+        assertEquals(20, i20.creationTs);
+        assertEquals(false, i20.creationTsWasExplicit);
+        assertEquals(20, i20.deletionTs);
+        assertEquals(true, i20.deletionTsWasExplicit);
+
+        assertEquals(30, i30.creationTs);
+        assertEquals(false, i30.creationTsWasExplicit);
+        assertEquals(30, i30.deletionTs);
+        assertEquals(true, i30.deletionTsWasExplicit);
+
+
+        assertEquals(40, i40.creationTs);
+        assertEquals(false, i40.creationTsWasExplicit);
+        assertEquals(40, i40.deletionTs);
+        assertEquals(true, i40.deletionTsWasExplicit);
+      });
+
       test('snapshotAfterDeletion', function() {
         var m = new tracing.trace_model.TimeToObjectInstanceMap(
             createObjectInstance, {}, 7);
