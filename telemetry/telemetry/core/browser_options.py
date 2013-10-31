@@ -291,6 +291,10 @@ class BrowserOptions(object):
       raise Exception("It's illegal to specify both --profile-type and"
           " --profile-dir.")
 
+    if self.profile_dir and not os.path.isdir(self.profile_dir):
+      raise Exception("Directory specified by --profile-dir (%s) doesn't"
+          " exist or isn't a directory." % (self.profile_dir))
+
     if not self.profile_dir:
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
 

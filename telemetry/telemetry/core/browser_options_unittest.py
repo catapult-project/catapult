@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import optparse
+import os
 import unittest
 
 from telemetry.core import browser_options
@@ -69,8 +70,10 @@ class BrowserOptionsTest(unittest.TestCase):
   def testProfileDir(self):
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser()
-    parser.parse_args(['--browser', 'any', '--profile-dir', 'foo'])
-    self.assertEquals(options.browser_options.profile_dir, 'foo')
+    # Need to use a directory that exists.
+    current_dir = os.path.dirname(__file__)
+    parser.parse_args(['--browser', 'any', '--profile-dir', current_dir])
+    self.assertEquals(options.browser_options.profile_dir, current_dir)
 
   def testExtraBrowserArgs(self):
     options = browser_options.BrowserFinderOptions()
