@@ -297,11 +297,19 @@ class Browser(object):
   def http_server(self):
     return self._http_server
 
-  def SetHTTPServerDirectories(self, paths):
+  def _ConvertToAbsolutePath(self, paths):
+    if paths:
+      if not isinstance(paths, list):
+        paths = [paths]
+      paths = [os.path.abspath(s) for s in paths]
+    return paths
+
+  def SetHTTPServerDirectories(self, paths, inject_scripts=None):
     """Returns True if the HTTP server was started, False otherwise."""
     if isinstance(paths, basestring):
       paths = set([paths])
     paths = set(os.path.realpath(p) for p in paths)
+    inject_scripts = self._ConvertToAbsolutePath(inject_scripts)
 
     # If any path is in a subdirectory of another, remove the subdirectory.
     duplicates = set()
@@ -314,7 +322,8 @@ class Browser(object):
     paths -= duplicates
 
     if self._http_server:
-      if paths and self._http_server.paths == paths:
+      if (paths and self._http_server.paths == paths and inject_scripts and
+          self._http_server.inject_scripts == inject_scripts):
         return False
 
       self._http_server.Close()
@@ -324,20 +333,28 @@ class Browser(object):
       return False
 
     self._http_server = temporary_http_server.TemporaryHTTPServer(
-      self._browser_backend, paths)
+      self._browser_backend, paths, inject_scripts)
 
     return True
 
   def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False,
-                           make_javascript_deterministic=True):
+                           make_javascript_deterministic=True,
+                           inject_scripts=None):
+    if archive_path:
+      archive_path = os.path.abspath(archive_path)
+    inject_scripts = self._ConvertToAbsolutePath(inject_scripts)
+    if (archive_path and self._wpr_server and
+        self._wpr_server.archive_path == archive_path and
+        self._wpr_server.inject_scripts == inject_scripts and
+        self._wpr_server.make_javascript_deterministic ==
+            make_javascript_deterministic):
+      return  # The running wpr server is good to reuse.
+
     if self._wpr_server:
       self._wpr_server.Close()
       self._wpr_server = None
 
-    if not archive_path:
-      return None
-
-    if self._browser_backend.wpr_mode == wpr_modes.WPR_OFF:
+    if not archive_path or self._browser_backend.wpr_mode == wpr_modes.WPR_OFF:
       return
 
     use_record_mode = self._browser_backend.wpr_mode == wpr_modes.WPR_RECORD
@@ -349,7 +366,8 @@ class Browser(object):
         archive_path,
         use_record_mode,
         append_to_existing_wpr,
-        make_javascript_deterministic)
+        make_javascript_deterministic,
+        inject_scripts)
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()

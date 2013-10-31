@@ -138,6 +138,20 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
+  def InjectJavascript(self):
+    """Return a list of Javascript files to be injected into webpage.
+
+    The scripts will be injected in the same order as in the returned list.
+    If a script is not to be executed in an iframe, it can follow below:
+
+    (function() {
+    if (window.parent != window)  // Ignore subframes.
+      return;
+    // Do something.
+    })();
+    """
+    return []
+
   def WillRunTest(self):
     """Override to do operations before the page set(s) are navigated."""
     pass

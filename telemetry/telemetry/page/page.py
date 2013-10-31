@@ -17,7 +17,7 @@ class Page(object):
     self.credentials = None
     self.disabled = False
     self.name = None
-    self.script_to_evaluate_on_commit = None
+    self.inject_scripts = None
 
     if attributes:
       for k, v in attributes.iteritems():

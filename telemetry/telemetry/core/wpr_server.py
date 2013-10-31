@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+
 from telemetry.core import util
 
 # TODO(tonyg): Move webpagereplay.py to a common location.
@@ -13,13 +15,16 @@ def GetChromeFlags(replay_host, http_port, https_port):
   return webpagereplay.GetChromeFlags(replay_host, http_port, https_port)
 
 class ReplayServer(object):
-  def __init__(self, browser_backend, path, is_record_mode, is_append_mode,
-               make_javascript_deterministic):
+  def __init__(self, browser_backend, archive_path, is_record_mode,
+               is_append_mode, make_javascript_deterministic, inject_scripts):
     self._browser_backend = browser_backend
-    self._forwarder = None
-    self._web_page_replay = None
+    self._archive_path = archive_path
     self._is_record_mode = is_record_mode
     self._is_append_mode = is_append_mode
+    self._make_javascript_deterministic = make_javascript_deterministic
+    self._inject_scripts = inject_scripts
+    self._forwarder = None
+    self._web_page_replay = None
 
     self._forwarder = browser_backend.CreateForwarder(
         util.PortPair(browser_backend.webpagereplay_local_http_port,
@@ -33,11 +38,18 @@ class ReplayServer(object):
         wpr_args.append('--append')
       else:
         wpr_args.append('--record')
-    if not make_javascript_deterministic:
-      wpr_args.append('--inject_scripts=')
+    if make_javascript_deterministic:
+      scripts = [os.path.join(util.GetChromiumSrcDir(), 'third_party',
+                              'webpagereplay', 'deterministic.js')]
+    else:
+      scripts = []
+    if self._inject_scripts:
+      scripts.extend(self._inject_scripts)
+    scripts = [os.path.abspath(p) for p in scripts]
+    wpr_args.append('--inject_scripts=%s' % (','.join(scripts)))
     browser_backend.AddReplayServerOptions(wpr_args)
     self._web_page_replay = webpagereplay.ReplayServer(
-        path,
+        self._archive_path,
         browser_backend.WEBPAGEREPLAY_HOST,
         browser_backend.webpagereplay_local_http_port,
         browser_backend.webpagereplay_local_https_port,
@@ -46,6 +58,18 @@ class ReplayServer(object):
     if '--no-dns_forwarding' not in wpr_args:
       self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     self._web_page_replay.StartServer()
+
+  @property
+  def archive_path(self):
+    return self._archive_path
+
+  @property
+  def make_javascript_deterministic(self):
+    return self._make_javascript_deterministic
+
+  @property
+  def inject_scripts(self):
+    return self._inject_scripts
 
   def __enter__(self):
     return self
