@@ -699,9 +699,17 @@ base.exportTo('tracing.importer', function() {
           }
           var snapshot;
           try {
+            var args = this.deepCopyIfNeeded_(event.args.snapshot);
+            var cat;
+            if (args.cat) {
+              cat = args.cat;
+              delete args.cat;
+            } else {
+              cat = event.cat;
+            }
             snapshot = process.objects.addSnapshot(
-                event.id, event.cat, event.name, ts,
-                this.deepCopyIfNeeded_(event.args.snapshot));
+                event.id, cat, event.name, ts,
+                args);
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',
@@ -781,11 +789,13 @@ base.exportTo('tracing.importer', function() {
         var name = m[1];
         var id = m[2];
         var res;
+
         var cat;
         if (implicitSnapshot.cat !== undefined)
           cat = implicitSnapshot.cat;
         else
           cat = containingSnapshot.objectInstance.category;
+
         try {
           res = process.objects.addSnapshot(
               id, cat,
