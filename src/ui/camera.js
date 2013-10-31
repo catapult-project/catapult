@@ -286,14 +286,14 @@ base.exportTo('ui', function() {
 
 
     // Misc helper functions.
-    getMousePosition_: function(data) {
+    getMousePosition_: function(e) {
       var rect = base.windowRectForElement(this.canvas_);
-      return [(data.clientX - rect.x) * this.pixelRatio_,
-              (data.clientY - rect.y) * this.pixelRatio_];
+      return [(e.clientX - rect.x) * this.pixelRatio_,
+              (e.clientY - rect.y) * this.pixelRatio_];
     },
 
-    getMouseDelta_: function(data, p) {
-      var newP = this.getMousePosition_(data);
+    getMouseDelta_: function(e, p) {
+      var newP = this.getMousePosition_(e);
       return [newP[0] - p[0], newP[1] - p[1]];
     },
 

@@ -348,19 +348,18 @@ base.exportTo('cc', function() {
     },
 
     onBeginZoom_: function(e) {
-      var mouseEvent = e.data;
       this.isZooming_ = true;
 
-      this.lastMouseViewPos_ = this.extractRelativeMousePosition_(mouseEvent);
+      this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
 
-      mouseEvent.preventDefault();
+      e.preventDefault();
     },
 
     onUpdateZoom_: function(e) {
       if (!this.isZooming_)
         return;
 
-      var currentMouseViewPos = this.extractRelativeMousePosition_(e.data);
+      var currentMouseViewPos = this.extractRelativeMousePosition_(e);
 
       // Take the distance the mouse has moved and we want to zoom at about
       // 1/1000th of that speed. 0.01 feels jumpy. This could possibly be tuned

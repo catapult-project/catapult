@@ -578,8 +578,8 @@ base.exportTo('ui', function() {
     extractRelativeMousePosition_: function(e) {
       var br = this.canvas_.getBoundingClientRect();
       return [
-        this.pixelRatio_ * (e.data.clientX - this.canvas_.offsetLeft - br.left),
-        this.pixelRatio_ * (e.data.clientY - this.canvas_.offsetTop - br.top)
+        this.pixelRatio_ * (e.clientX - this.canvas_.offsetLeft - br.left),
+        this.pixelRatio_ * (e.clientY - this.canvas_.offsetTop - br.top)
       ];
     },
 
