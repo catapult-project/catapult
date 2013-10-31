@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Another dummy exception subclasses used by core/discover.py's unit tests."""
+"""More dummy exception subclasses used by core/discover.py's unit tests."""
 
 # Import class instead of module explicitly so that inspect.getmembers() returns
 # two Exception subclasses in this current file.
@@ -12,5 +12,13 @@
 from discoverable_classes.discover_dummyclass import DummyException
 
 
-class AnotherDummyException(DummyException):
+class _PrivateDummyException(DummyException):
+  pass
+
+
+class DummyExceptionImpl1(_PrivateDummyException):
+  pass
+
+
+class DummyExceptionImpl2(_PrivateDummyException):
   pass

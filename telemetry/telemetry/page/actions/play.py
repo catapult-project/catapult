@@ -12,12 +12,12 @@ Other attributes to use are: wait_for_playing and wait_for_ended, which forces
 the action to wait until playing and ended events get fired respectively.
 """
 
-from telemetry.page.actions.media_action import MediaAction
 from telemetry.core import exceptions
+from telemetry.page.actions import media_action
 from telemetry.page.actions import page_action
 
 
-class PlayAction(MediaAction):
+class PlayAction(media_action.MediaAction):
   def __init__(self, attributes=None):
     super(PlayAction, self).__init__(attributes)
 

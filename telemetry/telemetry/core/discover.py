@@ -67,13 +67,27 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
   classes = {}
   for module in modules:
     for _, obj in inspect.getmembers(module):
-      if (inspect.isclass(obj) and obj is not base_class and
-          issubclass(obj, base_class) and obj.__module__ == module.__name__
-          and len(obj.__subclasses__()) == 0):
-        if index_by_class_name:
-          key_name = camel_case.ToUnderscore(obj.__name__)
-        else:
-          key_name = module.__name__.split('.')[-1]
-        classes[key_name] = obj
+      # Ensure object is a class.
+      if not inspect.isclass(obj):
+        continue
+      # Include only subclasses of base_class.
+      if not issubclass(obj, base_class):
+        continue
+      # Exclude the base_class itself.
+      if obj is base_class:
+        continue
+      # Exclude protected or private classes.
+      if obj.__name__.startswith('_'):
+        continue
+      # Include only the module in which the class is defined.
+      # If a class is imported by another module, exclude those duplicates.
+      if obj.__module__ != module.__name__:
+        continue
+
+      if index_by_class_name:
+        key_name = camel_case.ToUnderscore(obj.__name__)
+      else:
+        key_name = module.__name__.split('.')[-1]
+      classes[key_name] = obj
 
   return classes
