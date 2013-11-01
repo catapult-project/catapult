@@ -24,32 +24,19 @@ from telemetry.page import results_options
 from telemetry.page.actions import navigate
 
 
-def _GetScripts(test, page):
-  scripts = []
-  def _AddScripts(script):
-    if script:
-      if isinstance(script, list):
-        scripts.extend(script)
-      else:
-        scripts.append(script)
-  _AddScripts(page.inject_scripts)
-  if test:
-    _AddScripts(test.InjectJavascript())
-  return scripts
-
-
 class _RunState(object):
   def __init__(self):
     self.browser = None
 
     self._append_to_existing_wpr = False
+    self._last_archive_path = None
     self._first_browser = True
     self.first_page = collections.defaultdict(lambda: True)
     self.profiler_dir = None
     self.repeat_state = None
 
   def StartBrowser(self, test, page_set, page, possible_browser,
-                   credentials_path):
+                   credentials_path, archive_path):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
@@ -81,11 +68,19 @@ class _RunState(object):
           else:
             logging.info('No GPU devices')
 
-    self.browser.SetReplayArchivePath(
-         page.archive_path,
-         self._append_to_existing_wpr,
-         page_set.make_javascript_deterministic,
-         _GetScripts(test, page))
+      # Set up WPR path on the new browser.
+      self.browser.SetReplayArchivePath(archive_path,
+                                        self._append_to_existing_wpr,
+                                        page_set.make_javascript_deterministic)
+      self._last_archive_path = page.archive_path
+    else:
+      # Set up WPR path if it changed.
+      if page.archive_path and self._last_archive_path != page.archive_path:
+        self.browser.SetReplayArchivePath(
+            page.archive_path,
+            self._append_to_existing_wpr,
+            page_set.make_javascript_deterministic)
+        self._last_archive_path = page.archive_path
 
     if self.browser.supports_tab_control and test.close_tabs_before_run:
       # Create a tab if there's none.
@@ -144,8 +139,7 @@ class PageState(object):
   def PreparePage(self, test=None):
     if self.page.is_file:
       server_started = self.tab.browser.SetHTTPServerDirectories(
-        self.page.page_set.serving_dirs | set([self.page.serving_dir]),
-        _GetScripts(test, self.page))
+        self.page.page_set.serving_dirs | set([self.page.serving_dir]))
       if server_started and test:
         test.DidStartHTTPServer(self.tab)
 
@@ -216,7 +210,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
   while tries:
     try:
       state.StartBrowser(test, page_set, page, possible_browser,
-                         credentials_path)
+                         credentials_path, page.archive_path)
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
 

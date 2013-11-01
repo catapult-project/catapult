@@ -6,18 +6,11 @@ import BaseHTTPServer
 from collections import namedtuple
 import gzip
 import mimetypes
-import optparse
 import os
 import SimpleHTTPServer
 import SocketServer
 import StringIO
 import sys
-
-sys.path.append(
-    os.path.normpath(
-        os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir,
-                     os.pardir, 'third_party', 'webpagereplay')))
-import script_injector  # pylint: disable=F0401
 
 
 ByteRange = namedtuple('ByteRange', ['from_byte', 'to_byte'])
@@ -133,9 +126,8 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
   # it is quite possible to get more than 5 concurrent requests.
   request_queue_size = 128
 
-  def __init__(self, host_port, handler, paths, inject_scripts=None):
+  def __init__(self, host_port, handler, paths):
     BaseHTTPServer.HTTPServer.__init__(self, host_port, handler)
-    self.inject_scripts = inject_scripts
     self.resource_map = {}
     for path in paths:
       if os.path.isdir(path):
@@ -171,8 +163,6 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
       zipped = True
       sio = StringIO.StringIO()
       gzf = gzip.GzipFile(fileobj=sio, compresslevel=9, mode='wb')
-      response, _ = script_injector.InjectScript(response, content_type,
-                                                 self.inject_scripts)
       gzf.write(response)
       gzf.close()
       response = sio.getvalue()
@@ -191,29 +181,31 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
       self.resource_map[dir_path] = self.resource_map[file_path]
 
 
-def Main():
-  usage = ('usage: %prog --port=port_number [--inject-scripts=js_path1, ...] '
-           '<path1> [, <path2>, ...]')
-  parser = optparse.OptionParser(usage=usage)
-  parser.add_option('--inject_scripts', default=None,
-      help='A list of javascript files to inject into html pages in order.')
-  parser.add_option('--port', default=None, type='int',
-      help='The port number for the server.')
-  options, paths = parser.parse_args()
-  if not options.port or not paths:
-    parser.error('Port number and serving paths are required!')
+def _PrintUsageAndExit():
+  print >> sys.stderr, 'usage: %prog <port> [<path1>, <path2>, ...]'
+  sys.exit(1)
 
+
+def Main():
+  if len(sys.argv) < 3:
+    _PrintUsageAndExit()
+
+  port = sys.argv[1]
+  paths = sys.argv[2:]
+
+  try:
+    port = int(port)
+  except ValueError:
+    _PrintUsageAndExit()
   for path in paths:
     if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
       print >> sys.stderr, '"%s" is not under the cwd.' % path
       sys.exit(1)
 
-  server_address = ('127.0.0.1', options.port)
+  server_address = ('127.0.0.1', port)
   MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
   httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,
-                                paths,
-                                script_injector.GetInjectScript(
-                                    options.inject_scripts))
+                                paths)
   httpd.serve_forever()
 
 

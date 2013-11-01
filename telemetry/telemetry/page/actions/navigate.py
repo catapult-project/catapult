@@ -14,5 +14,5 @@ class NavigateAction(page_action.PageAction):
     else:
       target_side_url = page.url
 
-    tab.Navigate(target_side_url)
+    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

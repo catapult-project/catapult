@@ -10,10 +10,9 @@ import urlparse
 from telemetry.core import util
 
 class TemporaryHTTPServer(object):
-  def __init__(self, browser_backend, paths, inject_scripts=None):
+  def __init__(self, browser_backend, paths):
     self._server = None
     self._devnull = None
-    self._inject_scripts = inject_scripts
     self._forwarder = None
     self._host_port = util.GetAvailableLocalPort()
 
@@ -29,9 +28,7 @@ class TemporaryHTTPServer(object):
 
     self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', 'memory_cache_http_server',
-           '--port=%s' % self._host_port]
-    if self._inject_scripts:
-      cmd.append('--inject_scripts=%s' % ','.join(self._inject_scripts))
+           str(self._host_port)]
     cmd.extend(self._paths)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.path.abspath(os.path.dirname(__file__))
@@ -49,10 +46,6 @@ class TemporaryHTTPServer(object):
   @property
   def paths(self):
     return self._paths
-
-  @property
-  def inject_scripts(self):
-    return self._inject_scripts
 
   def __enter__(self):
     return self

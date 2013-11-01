@@ -19,4 +19,4 @@ class ExtensionPage(web_contents.WebContents):
     binding bug for old versions of Chrome (crbug.com/263162). After Navigate
     returns, we are guaranteed that the inspected page is in the correct state.
     """
-    self._inspector_backend.Navigate(self.url, 10)
+    self._inspector_backend.Navigate(self.url, None, 10)

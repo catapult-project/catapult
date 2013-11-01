@@ -73,7 +73,9 @@ class WebDriverTabBackend(object):
     # TODO(chrisgao): Double check of navigation.
     action_function()
 
-  def Navigate(self, url, timeout=None):
+  def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=None):
+    if script_to_evaluate_on_commit:
+      raise NotImplementedError('script_to_evaluate_on_commit is NOT supported')
     self._browser_backend.driver.switch_to_window(self._window_handle)
     if timeout:
       self._browser_backend.driver.set_page_load_timeout(timeout * 1000)
