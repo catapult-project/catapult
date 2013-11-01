@@ -272,6 +272,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       traceback.print_exc()
       self.Close()
       raise
+    finally:
+      self._SetCommandLineFile(self._saved_cmdline or '')
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
@@ -319,7 +321,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-    self._SetCommandLineFile(self._saved_cmdline or '')
     self._adb.CloseApplication(self._backend_settings.package)
 
     if self._output_profile_path:
