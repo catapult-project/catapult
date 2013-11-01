@@ -25,7 +25,11 @@ _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 
 
 class CloudStorageError(Exception):
-  pass
+  @staticmethod
+  def _GetConfigInstructions(gsutil_path):
+    return ('Run "%s config" to configure your credentials. '
+        'If you have a @google.com account, use that one. '
+        'The project-id field can be left blank.' % gsutil_path)
 
 
 class PermissionError(CloudStorageError):
@@ -34,14 +38,8 @@ class PermissionError(CloudStorageError):
         'Attempted to access a file from Cloud Storage but you don\'t '
         'have permission. ' + self._GetConfigInstructions(gsutil_path))
 
-  @staticmethod
-  def _GetConfigInstructions(gsutil_path):
-    return ('Run "%s config" to configure your credentials. '
-        'If you have a @google.com account, use that one. '
-        'The project-id field can be left blank.' % gsutil_path)
 
-
-class CredentialsError(PermissionError):
+class CredentialsError(CloudStorageError):
   def __init__(self, gsutil_path):
     super(CredentialsError, self).__init__(
         'Attempted to access a file from Cloud Storage but you have no '
