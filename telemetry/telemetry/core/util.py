@@ -39,7 +39,7 @@ def AddDirToPythonPath(*path_parts):
     sys.path.append(path)
 
 
-def WaitFor(condition, timeout):
+def WaitFor(condition, timeout, pass_time_left_to_func=False):
   """Waits for up to |timeout| secs for the function |condition| to return True.
 
   Polling frequency is (elapsed_time / 10), with a min of .1s and max of 5s.
@@ -50,7 +50,11 @@ def WaitFor(condition, timeout):
   start_time = time.time()
   while True:
     elapsed_time = time.time() - start_time
-    res = condition()
+    if pass_time_left_to_func:
+      remaining_time = timeout - elapsed_time
+      res = condition(max(remaining_time, 0.0))
+    else:
+      res = condition()
     if res:
       return res
     if elapsed_time > timeout:

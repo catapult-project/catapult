@@ -256,7 +256,7 @@ class InspectorBackend(object):
     def IsBack():
       return self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
         self._debugger_url)
-    util.WaitFor(IsBack, 512)
+    util.WaitFor(IsBack, 512, 0.5)
     sys.stderr.write('\n')
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
     self._Connect()

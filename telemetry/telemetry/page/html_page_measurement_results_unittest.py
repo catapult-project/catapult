@@ -38,7 +38,7 @@ class StringIOFile(StringIO.StringIO):
 class HtmlPageMeasurementResultsTest(unittest.TestCase):
 
   # TODO(tonyg): Remove this backfill when we can assume python 2.7 everywhere.
-  def assertIn(self, first, second, _=None):
+  def assertIn(self, first, second, msg=None):
     self.assertTrue(first in second,
                     msg="'%s' not found in '%s'" % (first, second))
 
