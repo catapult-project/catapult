@@ -417,7 +417,7 @@ def _CheckArchives(page_set, pages, results):
 
 def _RunPage(test, page, state, expectation, results, finder_options):
   if expectation == 'skip':
-    logging.warning('Skipped %s' % page.url)
+    logging.info('Skipped %s' % page.url)
     return
 
   logging.info('Running %s' % page.url)
@@ -440,11 +440,12 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     test.Run(finder_options, page, page_state.tab, results)
     util.CloseConnections(page_state.tab)
   except page_test.Failure:
-    logging.warning('%s:\n%s', page.url, traceback.format_exc())
     if expectation == 'fail':
+      logging.info('%s:\n%s', page.url, traceback.format_exc())
       logging.info('Failure was expected\n')
       results.AddSuccess(page)
     else:
+      logging.warning('%s:\n%s', page.url, traceback.format_exc())
       results.AddFailure(page, sys.exc_info())
   except (util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
