@@ -29,6 +29,8 @@ def GritCheck():
   for (dirpath, dirnames, filenames) in os.walk('src/images'):
     for name in filenames:
       known_images.append(os.path.join(dirpath, name))
+    if '.svn' in dirnames:
+      dirnames.remove('.svn')
 
   u = set(grit_files).union(set(known_images))
   i = set(grit_files).intersection(set(known_images))
