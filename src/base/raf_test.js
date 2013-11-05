@@ -18,8 +18,31 @@ base.unittest.testSuite('base.raf', function() {
     }
   }
 
+  test('runIdleTaskWhileIdle', function() {
+    withFakeWindowPerformanceNow(function() {
+      base.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
+      var rafRan = false;
+      base.requestAnimationFrame(function() {
+        rafRan = true;
+      });
+      var idleRan = false;
+      base.requestIdleCallback(function() {
+        idleRan = true;
+      });
+      fakeNow = 0;
+      base.forcePendingRAFTasksToRun(fakeNow);
+      assertFalse(idleRan);
+      assertTrue(rafRan);
+      base.forcePendingRAFTasksToRun(fakeNow);
+      assertTrue(idleRan);
+    });
+  });
+
   test('twoShortIdleCallbacks', function() {
     withFakeWindowPerformanceNow(function() {
+      base.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
       var idle1Ran = false;
       var idle2Ran = false;
       base.requestIdleCallback(function() {
@@ -40,6 +63,8 @@ base.unittest.testSuite('base.raf', function() {
 
   test('oneLongOneShortIdleCallback', function() {
     withFakeWindowPerformanceNow(function() {
+      base.forcePendingRAFTasksToRun(100000);  // Clear current RAF task queue.
+
       var idle1Ran = false;
       var idle2Ran = false;
       base.requestIdleCallback(function() {
@@ -60,6 +85,35 @@ base.unittest.testSuite('base.raf', function() {
 
       // Now run. idle2 should now run.
       base.forcePendingRAFTasksToRun(fakeNow);
+      assertFalse(idle1Ran);
+      assertTrue(idle2Ran);
+    });
+  });
+
+  test('buggyPerformanceNowDoesNotBlockIdleTasks', function() {
+    withFakeWindowPerformanceNow(function() {
+      base.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
+
+      var idle1Ran = false;
+      var idle2Ran = false;
+      base.requestIdleCallback(function() {
+        fakeNow += 100;
+        idle1Ran = true;
+      });
+      base.requestIdleCallback(function() {
+        fakeNow += 1;
+        idle2Ran = true;
+      });
+      fakeNow = 10000;
+      base.forcePendingRAFTasksToRun(0);
+      assertTrue(idle1Ran);
+      assertFalse(idle2Ran);
+
+      // Reset idle1Ran to verify that it dosn't run again.
+      idle1Ran = false;
+
+      // Now run. idle2 should now run.
+      base.forcePendingRAFTasksToRun(0);
       assertFalse(idle1Ran);
       assertTrue(idle2Ran);
     });

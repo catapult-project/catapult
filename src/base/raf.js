@@ -63,6 +63,7 @@ base.exportTo('base', function() {
     currentRAFDispatchList = pendingRAFs;
     pendingPreAFs = [];
     pendingRAFs = [];
+    var hasRAFTasks = currentPreAFs.length || currentRAFDispatchList.length;
 
     for (var i = 0; i < currentPreAFs.length; i++)
       runTask(currentPreAFs[i], frameBeginTime);
@@ -71,9 +72,16 @@ base.exportTo('base', function() {
       runTask(currentRAFDispatchList.shift(), frameBeginTime);
     currentRAFDispatchList = undefined;
 
-    while (pendingIdleCallbacks.length > 0 &&
-           window.performance.now() < rafCompletionDeadline)
-      runTask(pendingIdleCallbacks.shift());
+    if (!hasRAFTasks) {
+      while (pendingIdleCallbacks.length > 0) {
+        runTask(pendingIdleCallbacks.shift());
+        // Check timer after running at least one idle task to avoid buggy
+        // window.performance.now() on some platforms from blocking the idle
+        // task queue.
+        if (window.performance.now() >= rafCompletionDeadline)
+          break;
+      }
+    }
 
     if (pendingIdleCallbacks.length > 0)
       scheduleRAF();
