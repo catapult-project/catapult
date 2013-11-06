@@ -39,13 +39,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._SetBranchNumber(self._GetChromeVersion())
 
+    self._username = 'test@test.test'
+    self._password = ''
+
     self._login_ext_dir = None
     if not self._use_oobe_login_for_testing:
       self._login_ext_dir = os.path.join(os.path.dirname(__file__),
                                          'chromeos_login_ext')
 
       # Push a dummy login extension to the device.
-      # This extension automatically logs in as test@test.test
+      # This extension automatically logs in test user self._username.
       # Note that we also perform this copy locally to ensure that
       # the owner of the extensions is set to chronos.
       logging.info('Copying dummy login extension to the device')
@@ -67,11 +70,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._RestartUI()
     util.WaitFor(self.IsBrowserRunning, 20)
 
-    # Delete test@test.test's cryptohome vault (user data directory).
+    # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
-      logging.info('Deleting user\'s cryptohome vault (the user data dir)')
-      self._cri.RunCmdOnDevice(
-          ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
+      self._cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
+                                '--user=%s' % self._username])
     if self.browser_options.profile_dir:
       cri.RmRF(self.profile_directory)
       cri.PushFile(self.browser_options.profile_dir + '/Default',
@@ -98,6 +100,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
             '--start-maximized',
+            # Workaround for crbug.com/308224. TODO(achuith): Remove this flag.
+            '--multi-profiles',
             # Debug logging for login flake (crbug.com/263527).
             '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
                 '*/chromeos/login/*=2'])
@@ -210,13 +214,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._port = util.GetAvailableLocalPort()
 
       # Forward the remote debugging port.
-      logging.info('Forwarding remote debugging port')
+      logging.info('Forwarding remote debugging port %d to local port %d',
+                   self._remote_debugging_port, self._port)
       self._forwarder = SSHForwarder(
         self._cri, 'L',
         util.PortPair(self._port, self._remote_debugging_port))
 
-    # Wait for the browser to come up.
-    logging.info('Waiting for browser to be ready')
     try:
       self._WaitForBrowserToComeUp(wait_for_extensions=False)
       self._PostBrowserStartupInitialization()
@@ -394,10 +397,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'typeof Oobe.loginForTesting == \'undefined\''):
         raise exceptions.LoginException('Oobe.loginForTesting js api missing')
 
-      username = 'test@test.test'
-      password = ''
       self.oobe.ExecuteJavaScript(
-          'Oobe.loginForTesting(\'%s\', \'%s\');' % (username, password))
+          'Oobe.loginForTesting(\'%s\', \'%s\');' % (self._username,
+                                                     self._password))
 
     try:
       util.WaitFor(self._IsLoggedIn, 60)
