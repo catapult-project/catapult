@@ -51,8 +51,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.info('Copying dummy login extension to the device')
       cri.PushFile(self._login_ext_dir, '/tmp/')
       self._login_ext_dir = '/tmp/chromeos_login_ext'
-      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos',
-                          self._login_ext_dir])
+      cri.Chown(self._login_ext_dir)
 
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
@@ -61,7 +60,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
       extension_dir = output[0].rstrip()
       cri.PushFile(e.path, extension_dir)
-      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', extension_dir])
+      cri.Chown(extension_dir)
       e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
     # Ensure the UI is running and logged out.
@@ -74,10 +73,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RunCmdOnDevice(
           ['cryptohome', '--action=remove', '--force', '--user=test@test.test'])
     if self.browser_options.profile_dir:
-      profile_dir = '/home/chronos/Default'
-      cri.RunCmdOnDevice(['rm', '-rf', profile_dir])
-      cri.PushFile(self.browser_options.profile_dir + '/Default', profile_dir)
-      cri.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', profile_dir])
+      cri.RmRF(self.profile_directory)
+      cri.PushFile(self.browser_options.profile_dir + '/Default',
+                   self.profile_directory)
+      cri.Chown(self.profile_directory)
 
   def GetBrowserStartupArgs(self):
     self.webpagereplay_remote_http_port = self._cri.GetRemotePort()

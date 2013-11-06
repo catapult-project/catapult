@@ -263,6 +263,9 @@ class CrOSInterface(object):
     logging.debug("rm -rf %s" % filename)
     self.RunCmdOnDevice(['rm', '-rf', filename], quiet=True)
 
+  def Chown(self, filename):
+    self.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', filename])
+
   def KillAllMatching(self, predicate):
     kills = ['kill', '-KILL']
     for pid, cmd, _, _ in self.ListProcesses():
