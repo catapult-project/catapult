@@ -19,7 +19,7 @@ class WaitAction(page_action.PageAction):
 
   def RunAction(self, page, tab, previous_action):
     tab.ExecuteJavaScript(
-        'console.time("' + self.GetTimelineMarkerLabel() + '")')
+        'console.time("' + self.GetTimelineMarkerName() + '")')
 
     if hasattr(self, 'seconds'):
       time.sleep(self.seconds)
@@ -69,7 +69,7 @@ class WaitAction(page_action.PageAction):
       raise page_action.PageActionFailed('No wait condition found')
 
     tab.ExecuteJavaScript(
-        'console.timeEnd("' + self.GetTimelineMarkerLabel() + '")')
+        'console.timeEnd("' + self.GetTimelineMarkerName() + '")')
 
-  def GetTimelineMarkerLabel(self):
+  def GetTimelineMarkerName(self):
     return 'WaitAction::RunAction'
