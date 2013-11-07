@@ -139,30 +139,33 @@ class TimelineModel(object):
       self._processes[pid] = tracing_process.Process(self, pid)
     return self._processes[pid]
 
-  def FindTimelineMarkers(self, timeline_marker_labels):
+  def FindTimelineMarkers(self, timeline_marker_names):
     """Find the timeline events with the given names.
 
-    If the number and order of events found does not match the labels,
+    If the number and order of events found does not match the names,
     raise an error.
     """
-    # Make sure labels are in a list and remove all None labels
-    if not isinstance(timeline_marker_labels, list):
-      timeline_marker_labels = [timeline_marker_labels]
-    labels = [x for x in timeline_marker_labels if x is not None]
+    # Make sure names are in a list and remove all None names
+    if not isinstance(timeline_marker_names, list):
+      timeline_marker_names = [timeline_marker_names]
+    names = [x for x in timeline_marker_names if x is not None]
 
-    # Gather all events that match the labels and sort them.
+    # Gather all events that match the names and sort them.
     events = []
-    for label in labels:
-      events.extend([s for s in self.GetAllEventsOfName(label)
+    name_set = set()
+    for name in names:
+      name_set.add(name)
+    for name in name_set:
+      events.extend([s for s in self.GetAllEventsOfName(name)
                      if s.parent_slice == None])
     events.sort(key=attrgetter('start'))
 
-    # Check if the number and order of events matches the provided labels,
+    # Check if the number and order of events matches the provided names,
     # and that the events don't overlap.
-    if len(events) != len(labels):
+    if len(events) != len(names):
       raise MarkerMismatchError()
     for (i, event) in enumerate(events):
-      if event.name != labels[i]:
+      if event.name != names[i]:
         raise MarkerMismatchError()
     for i in xrange(0, len(events)):
       for j in xrange(i+1, len(events)):
