@@ -310,9 +310,15 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       }
     ''')
 
+  def _CryptohomePath(self, user):
+    (path, _) = self._cri.RunCmdOnDevice(['cryptohome-path', 'user',
+                                          "'%s'" % user])
+    return path
+
   def _IsCryptohomeMounted(self):
-    """Returns True if a cryptohome vault is mounted at /home/chronos/user."""
-    return self._cri.FilesystemMountedAt('/home/chronos/user').startswith(
+    """Returns True if a cryptohome vault at the user mount point."""
+    profile_path = self._CryptohomePath(self._username)
+    return self._cri.FilesystemMountedAt(profile_path).startswith(
         '/home/.shadow/')
 
   def _HandleUserImageSelectionScreen(self):
@@ -374,8 +380,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       pass
 
   def _WaitForGuestFsMounted(self):
-    """Waits for /home/chronos/user to be mounted as guestfs"""
-    util.WaitFor(lambda: (self._cri.FilesystemMountedAt('/home/chronos/user') ==
+    """Waits for the guest user to be mounted as guestfs"""
+    guest_path = self._CryptohomePath('$guest')
+    util.WaitFor(lambda: (self._cri.FilesystemMountedAt(guest_path) ==
                           'guestfs'), 20)
 
   def _NavigateGuestLogin(self):
