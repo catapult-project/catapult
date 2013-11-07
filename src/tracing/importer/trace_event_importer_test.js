@@ -1478,6 +1478,34 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertAlmostEquals(10 / 1000, slice.duration);
   });
 
+  test('importNestedCompleteEventWithTightBounds', function() {
+    var events = [
+      { name: 'a', args: {}, pid: 52, ts: 244654227065, dur: 36075, cat: 'baz', tid: 53, ph: 'X' },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 244654227095, dur: 36045, cat: 'foo', tid: 53, ph: 'X' }  // @suppress longLineCheck
+    ];
+
+    var m = new tracing.TraceModel(events, false);
+    var t = m.processes[52].threads[53];
+
+    var sA = findSliceNamed(t.sliceGroup, 'a');
+    var sB = findSliceNamed(t.sliceGroup, 'b');
+
+    assertEquals('a', sA.title);
+    assertEquals('baz', sA.category);
+    assertEquals(244654227.065, sA.start);
+    assertEquals(36.075, sA.duration);
+    assertAlmostEquals(0.03, sA.selfTime);
+
+    assertEquals('b', sB.title);
+    assertEquals('foo', sB.category);
+    assertEquals(244654227.095, sB.start);
+    assertEquals(36.045, sB.duration);
+
+    assertTrue(sA.subSlices.length == 1);
+    assertTrue(sA.subSlices[0] == sB);
+    assertTrue(sB.parentSlice == sA);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 });

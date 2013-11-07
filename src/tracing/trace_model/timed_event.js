@@ -39,8 +39,8 @@ base.exportTo('tracing.trace_model', function() {
       // Due to inaccuracy of floating-point calculation, the end times of
       // slices from a B/E pair (whose end = start + original_end - start)
       // and an X event (whose end = start + duration) at the same time may
-      // become not equal. Tolerate 1ps error.
-      return this.start <= that.start && this.end - that.end > -1e-9;
+      // become not equal. Tolerate 1ns error.
+      return this.start <= that.start && this.end - that.end > -1e-6;
     }
   };
 
