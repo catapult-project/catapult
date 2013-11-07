@@ -80,26 +80,26 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # is implemented (crbug.com/173327).
 
 
-class ChromeTraceResultTest(unittest.TestCase):
+class TracingResultImplTest(unittest.TestCase):
   # Override TestCase.run to run a test with all possible
-  # implementations of ChromeTraceResult.
+  # implementations of TraceResult.
   def __init__(self, method_name):
-    self._chromeTraceResultClass = None
-    super(ChromeTraceResultTest, self).__init__(method_name)
+    self._traceResultImplClass = None
+    super(TracingResultImplTest, self).__init__(method_name)
 
   def run(self, result=None):
-    def ChromeRawTraceResultWrapper(strings):
-      return tracing_backend.ChromeRawTraceResult(map(json.loads, strings))
+    def RawTraceResultImplWrapper(strings):
+      return tracing_backend.RawTraceResultImpl(map(json.loads, strings))
     classes = [
-        tracing_backend.ChromeLegacyTraceResult,
-        ChromeRawTraceResultWrapper
+        tracing_backend.TraceResultImpl,
+        RawTraceResultImplWrapper
     ]
     for cls in classes:
-      self._chromeTraceResultClass = cls
-      super(ChromeTraceResultTest, self).run(result)
+      self._traceResultImplClass = cls
+      super(TracingResultImplTest, self).run(result)
 
   def testWrite1(self):
-    ri = self._chromeTraceResultClass([])
+    ri = self._traceResultImplClass([])
     f = cStringIO.StringIO()
     ri.Serialize(f)
     v = f.getvalue()
@@ -109,7 +109,7 @@ class ChromeTraceResultTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], [])
 
   def testWrite2(self):
-    ri = self._chromeTraceResultClass([
+    ri = self._traceResultImplClass([
         '"foo"',
         '"bar"'])
     f = cStringIO.StringIO()
@@ -121,7 +121,7 @@ class ChromeTraceResultTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], ['foo', 'bar'])
 
   def testWrite3(self):
-    ri = self._chromeTraceResultClass([
+    ri = self._traceResultImplClass([
         '"foo"',
         '"bar"',
         '"baz"'])
