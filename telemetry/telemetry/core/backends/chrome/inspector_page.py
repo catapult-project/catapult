@@ -3,8 +3,7 @@
 # found in the LICENSE file.
 import json
 import logging
-
-from telemetry.core import util
+import time
 
 class InspectorPage(object):
   def __init__(self, inspector_backend):
@@ -30,40 +29,37 @@ class InspectorPage(object):
   def _OnClose(self):
     pass
 
-  def PerformActionAndWaitForNavigate(self, action_function, timeout=60):
-    """Executes action_function, and waits for the navigation to complete.
-
-    action_function is expect to result in a navigation. This function returns
-    when the navigation is complete or when the timeout has been exceeded.
-    """
-
-    # Turn on notifications. We need them to get the Page.frameNavigated event.
+  def _EnablePageNotifications(self, timeout):
     request = {
         'method': 'Page.enable'
         }
     res = self._inspector_backend.SyncRequest(request, timeout)
     assert len(res['result'].keys()) == 0
 
-    def DisablePageNotifications():
-      request = {
-          'method': 'Page.disable'
-          }
-      res = self._inspector_backend.SyncRequest(request, timeout)
-      assert len(res['result'].keys()) == 0
+  def _DisablePageNotifications(self, timeout):
+    request = {
+        'method': 'Page.disable'
+        }
+    res = self._inspector_backend.SyncRequest(request, timeout)
+    assert len(res['result'].keys()) == 0
 
-    self._navigation_pending = True
+  def PerformActionAndWaitForNavigate(self, action_function, timeout=60):
+    """Executes action_function, and waits for the navigation to complete.
+
+    action_function is expect to result in a navigation. This function returns
+    when the navigation is complete or when the timeout has been exceeded.
+    """
+    start_time = time.time()
+    remaining_time = timeout
+    self._EnablePageNotifications(remaining_time)
     try:
       action_function()
-    except:
-      DisablePageNotifications()
-      raise
-
-    def IsNavigationDone(time_left):
-      self._inspector_backend.DispatchNotifications(time_left)
-      return not self._navigation_pending
-    util.WaitFor(IsNavigationDone, timeout, pass_time_left_to_func=True)
-
-    DisablePageNotifications()
+      self._navigation_pending = True
+      while self._navigation_pending and remaining_time > 0:
+        remaining_time = max(timeout - (time.time() - start_time), 0.0)
+        self._inspector_backend.DispatchNotifications(remaining_time)
+    finally:
+      self._DisablePageNotifications(remaining_time)
 
   def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=60):
     """Navigates to |url|.
