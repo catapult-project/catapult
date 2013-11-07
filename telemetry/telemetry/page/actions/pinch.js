@@ -30,10 +30,8 @@
     this.callback_ = callback;
 
     // The anchor point of the gesture is the center of the window.
-    // Use 'outerWidth/Height' (in DIPs) instead of 'innerWidth/Height'
-    // (in CSS pixels) because they are independent of the zoom factor.
-    var anchor_x = window.outerWidth / 2;
-    var anchor_y = window.outerHeight / 2;
+    var anchor_x = window.innerWidth / 2;
+    var anchor_y = window.innerHeight / 2;
 
     chrome.gpuBenchmarking.pinchBy(this.zoom_in_, pixels_to_move,
                                    anchor_x, anchor_y,
