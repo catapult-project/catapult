@@ -318,8 +318,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _IsCryptohomeMounted(self):
     """Returns True if a cryptohome vault at the user mount point."""
     profile_path = self._CryptohomePath(self._username)
-    return self._cri.FilesystemMountedAt(profile_path).startswith(
-        '/home/.shadow/')
+    mount = self._cri.FilesystemMountedAt(profile_path)
+    return mount and mount.startswith('/home/.shadow/')
 
   def _HandleUserImageSelectionScreen(self):
     """If we're stuck on the user image selection screen, we click the ok
