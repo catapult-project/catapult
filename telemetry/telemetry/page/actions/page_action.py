@@ -60,5 +60,5 @@ class PageAction(object):
     """
     raise Exception('This action cannot be bound.')
 
-  def GetTimelineMarkerLabel(self):
+  def GetTimelineMarkerName(self):
     return None

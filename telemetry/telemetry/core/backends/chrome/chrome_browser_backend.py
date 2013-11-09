@@ -256,6 +256,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def StopTracing(self):
     """ Stops tracing and returns the result as TraceResult object. """
+    for (i, debugger_url) in enumerate(self._browser.tabs):
+      tab = self.tab_list_backend.Get(i, None)
+      if tab:
+        tab.ExecuteJavaScript('console.time("' + debugger_url + '")')
+        tab.ExecuteJavaScript('console.timeEnd("' + debugger_url + '")')
+        self._tracing_backend.AddTabToMarkerMapping(tab, debugger_url)
     return self._tracing_backend.StopTracing()
 
   def GetProcessName(self, cmd_line):

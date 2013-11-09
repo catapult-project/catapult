@@ -7,8 +7,10 @@ import json
 import logging
 import socket
 import threading
+import weakref
 
-from telemetry.core.backends.chrome import trace_result
+from telemetry.core import trace_result
+from telemetry.core.backends.chrome import chrome_trace_result
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.backends.chrome import websocket_browser_connection
 from telemetry.core.timeline import model
@@ -21,9 +23,10 @@ class TracingUnsupportedException(Exception):
 # protocol, where trace data were sent as JSON-serialized strings. DevTools
 # now send the data as raw objects within the protocol message JSON, so there's
 # no need in extra de-serialization. We might want to remove this in the future.
-class TraceResultImpl(object):
-  def __init__(self, tracing_data):
-    self._tracing_data = tracing_data
+class ChromeLegacyTraceResult(chrome_trace_result.ChromeTraceResult):
+  def __init__(self, tracing_data, tab_to_marker_mapping = None):
+    super(ChromeLegacyTraceResult, self).__init__(
+        tracing_data, tab_to_marker_mapping)
 
   def Serialize(self, f):
     f.write('{"traceEvents": [')
@@ -43,25 +46,26 @@ class TraceResultImpl(object):
         f.write(d[i])
     f.write(']}')
 
-  def AsTimelineModel(self):
+  def _CreateTimelineModel(self):
     f = cStringIO.StringIO()
     self.Serialize(f)
     return model.TimelineModel(
       event_data=f.getvalue(),
       shift_world_to_zero=False)
 
-# RawTraceResultImpl differs from TraceResultImpl above in that
+# ChromeRawTraceResult differs from ChromeLegacyTraceResult above in that
 # data are kept as a list of dicts, not strings.
-class RawTraceResultImpl(object):
-  def __init__(self, tracing_data):
-    self._tracing_data = tracing_data
+class ChromeRawTraceResult(chrome_trace_result.ChromeTraceResult):
+  def __init__(self, tracing_data, tab_to_marker_mapping = None):
+    super(ChromeRawTraceResult, self).__init__(
+        tracing_data, tab_to_marker_mapping)
 
   def Serialize(self, f):
     f.write('{"traceEvents":')
     json.dump(self._tracing_data, f)
     f.write('}')
 
-  def AsTimelineModel(self):
+  def _CreateTimelineModel(self):
     return model.TimelineModel(self._tracing_data)
 
 class CategoryFilter(object):
@@ -135,9 +139,16 @@ class TracingBackend(object):
     self._category_filter = None
     self._nesting = 0
     self._tracing_data = []
+    # Use a WeakKeyDictionary, because an ordinary dictionary could keep
+    # references to Tab objects around until it gets garbage collected.
+    # This would prevent telemetry from navigating to another page.
+    self._tab_to_marker_mapping = weakref.WeakKeyDictionary()
 
   def _IsTracing(self):
     return self._thread != None
+
+  def AddTabToMarkerMapping(self, tab, marker):
+    self._tab_to_marker_mapping[tab] = marker
 
   def StartTracing(self, custom_categories=None, timeout=10):
     """ Starts tracing on the first nested call and returns True. Returns False
@@ -188,13 +199,20 @@ class TracingBackend(object):
   def _GetTraceResult(self):
     assert not self._IsTracing()
     if self._tracing_data and type(self._tracing_data[0]) in [str, unicode]:
-      result_impl = TraceResultImpl(self._tracing_data)
+      result = trace_result.TraceResult(
+          ChromeLegacyTraceResult(self._tracing_data,
+                                  self._tab_to_marker_mapping))
     else:
-      result_impl = RawTraceResultImpl(self._tracing_data)
-    return trace_result.TraceResult(result_impl)
+      result = trace_result.TraceResult(
+          ChromeRawTraceResult(self._tracing_data,
+                               self._tab_to_marker_mapping))
+    return result
 
   def _GetTraceResultAndReset(self):
     result = self._GetTraceResult()
+    # Reset tab to marker mapping for the next tracing run. Don't use clear(),
+    # because a TraceResult may still hold a reference to the dictionary object.
+    self._tab_to_marker_mapping = weakref.WeakKeyDictionary()
     self._tracing_data = []
     return result
 

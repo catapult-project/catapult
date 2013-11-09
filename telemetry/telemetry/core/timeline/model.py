@@ -8,8 +8,11 @@ https://code.google.com/p/trace-viewer/
 '''
 
 from operator import attrgetter
+import weakref
 
 import telemetry.core.timeline.process as tracing_process
+from telemetry.core import web_contents
+from telemetry.core import browser
 
 # Register importers for data
 from telemetry.core.timeline import inspector_importer
@@ -41,6 +44,10 @@ class TimelineModel(object):
     self._frozen = False
     self.import_errors = []
     self.metadata = []
+    # Use a WeakKeyDictionary, because an ordinary dictionary could keep
+    # references to Tab objects around until it gets garbage collected.
+    # This would prevent telemetry from navigating to another page.
+    self._core_object_to_timeline_container_map = weakref.WeakKeyDictionary()
 
     if event_data is not None:
       self.ImportTraces([event_data], shift_world_to_zero=shift_world_to_zero)
@@ -170,6 +177,18 @@ class TimelineModel(object):
           raise MarkerOverlapError()
 
     return events
+
+  def GetRendererProcessFromTab(self, tab):
+    return self._core_object_to_timeline_container_map[tab]
+
+  def AddCoreObjectToContainerMapping(self, core_object, container):
+    """ Add a mapping from a core object to a timeline container.
+
+    Used for example to map a Tab to its renderer process in the timeline model.
+    """
+    assert(isinstance(core_object, web_contents.WebContents) or
+           isinstance(core_object, browser.Browser))
+    self._core_object_to_timeline_container_map[core_object] = container
 
   def _CreateImporter(self, event_data):
     for importer_class in _IMPORTERS:
