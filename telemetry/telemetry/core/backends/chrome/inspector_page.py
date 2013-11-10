@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 import json
 import logging
+import sys
 import time
+
+from telemetry.core import util
 
 class InspectorPage(object):
   def __init__(self, inspector_backend):
@@ -51,15 +54,22 @@ class InspectorPage(object):
     """
     start_time = time.time()
     remaining_time = timeout
-    self._EnablePageNotifications(remaining_time)
+
     try:
-      action_function()
-      self._navigation_pending = True
-      while self._navigation_pending and remaining_time > 0:
-        remaining_time = max(timeout - (time.time() - start_time), 0.0)
-        self._inspector_backend.DispatchNotifications(remaining_time)
-    finally:
-      self._DisablePageNotifications(remaining_time)
+      self._EnablePageNotifications(remaining_time)
+      try:
+        action_function()
+        self._navigation_pending = True
+        while self._navigation_pending and remaining_time > 0:
+          remaining_time = max(timeout - (time.time() - start_time), 0.0)
+          self._inspector_backend.DispatchNotifications(remaining_time)
+      finally:
+        self._DisablePageNotifications(remaining_time)
+    except util.TimeoutException:
+      # Since we pass remaining_time as timeout to all of the calls in this,
+      # method, we need to list the full timeout time in this message.
+      raise util.TimeoutException('Timed out while waiting %ds for navigation. '
+                                  'Error=%s' % (timeout, sys.exc_info()[1]))
 
   def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=60):
     """Navigates to |url|.

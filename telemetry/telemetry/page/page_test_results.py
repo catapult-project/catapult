@@ -57,10 +57,10 @@ class PageTestResults(unittest.TestResult):
 
   def PrintSummary(self):
     if self.failures:
-      logging.warning('Failed pages:\n%s', '\n'.join(zip(*self.failures)[0]))
+      logging.error('Failed pages:\n%s', '\n'.join(zip(*self.failures)[0]))
 
     if self.errors:
-      logging.warning('Errored pages:\n%s', '\n'.join(zip(*self.errors)[0]))
+      logging.error('Errored pages:\n%s', '\n'.join(zip(*self.errors)[0]))
 
     if self.skipped:
       logging.warning('Skipped pages:\n%s', '\n'.join(zip(*self.skipped)[0]))

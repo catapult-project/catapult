@@ -5,6 +5,7 @@ import json
 import logging
 import socket
 import sys
+import time
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -263,20 +264,25 @@ class InspectorBackend(object):
 
   def SyncRequest(self, req, timeout=10):
     self._Connect()
-    # TODO(nduca): Listen to the timeout argument
-    # pylint: disable=W0613
     self._SetTimeout(timeout)
     self.SendAndIgnoreResponse(req)
 
     while True:
       try:
+        start_time = time.time()
         data = self._socket.recv()
       except (socket.error, websocket.WebSocketException):
         if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
             self._debugger_url):
+          elapsed_time = time.time() - start_time
           raise util.TimeoutException(
-            'Timed out waiting for reply. This is unusual.')
-        raise exceptions.TabCrashException(sys.exc_info()[1])
+              'Received a socket error in the browser connection and the tab '
+              'still exists, assuming it timed out. '
+              'Timeout=%ds Elapsed=%ds Error=%s' % (
+                  timeout, elapsed_time, sys.exc_info()[1]))
+        raise exceptions.TabCrashException(
+            'Received a socket error in the browser connection and the tab no '
+            'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
 
       res = json.loads(data)
       logging.debug('got [%s]', data)
