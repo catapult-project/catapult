@@ -182,30 +182,29 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
 
 
 def _PrintUsageAndExit():
-  print >> sys.stderr, 'usage: %prog <port> [<path1>, <path2>, ...]'
+  print >> sys.stderr, 'usage: %prog [<path1>, <path2>, ...]'
   sys.exit(1)
 
 
 def Main():
-  if len(sys.argv) < 3:
+  if len(sys.argv) < 2:
     _PrintUsageAndExit()
 
-  port = sys.argv[1]
-  paths = sys.argv[2:]
-
-  try:
-    port = int(port)
-  except ValueError:
-    _PrintUsageAndExit()
+  paths = sys.argv[1:]
   for path in paths:
     if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
       print >> sys.stderr, '"%s" is not under the cwd.' % path
       sys.exit(1)
 
-  server_address = ('127.0.0.1', port)
+  server_address = ('127.0.0.1', 0)
   MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
   httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,
                                 paths)
+
+  # Note: This message may be scraped. Do not change it.
+  print 'HTTP server started on %s:%d' % (httpd.server_address[0],
+                                          httpd.server_address[1])
+  sys.stdout.flush()
   httpd.serve_forever()
 
 

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.webdriver import webdriver_tab_list_backend
 
@@ -19,10 +20,8 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
 
     self._driver_creator = driver_creator
     self._driver = None
-    self.webpagereplay_local_http_port = 80
-    self.webpagereplay_local_https_port = 443
-    self.webpagereplay_remote_http_port = self.webpagereplay_local_http_port
-    self.webpagereplay_remote_https_port = self.webpagereplay_local_https_port
+    self.wpr_http_port_pair = util.PortPair(80, 80)
+    self.wpr_https_port_pair = util.PortPair(443, 443)
 
   def Start(self):
     assert not self._driver

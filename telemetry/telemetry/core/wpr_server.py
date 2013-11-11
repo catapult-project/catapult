@@ -21,12 +21,6 @@ class ReplayServer(object):
     self._is_record_mode = is_record_mode
     self._is_append_mode = is_append_mode
 
-    self._forwarder = browser_backend.CreateForwarder(
-        util.PortPair(browser_backend.webpagereplay_local_http_port,
-                      browser_backend.webpagereplay_remote_http_port),
-        util.PortPair(browser_backend.webpagereplay_local_https_port,
-                      browser_backend.webpagereplay_remote_https_port))
-
     wpr_args = browser_backend.browser_options.extra_wpr_args
     if self._is_record_mode:
       if self._is_append_mode:
@@ -39,13 +33,21 @@ class ReplayServer(object):
     self._web_page_replay = webpagereplay.ReplayServer(
         path,
         browser_backend.WEBPAGEREPLAY_HOST,
-        browser_backend.webpagereplay_local_http_port,
-        browser_backend.webpagereplay_local_https_port,
+        browser_backend.wpr_http_port_pair.local_port,
+        browser_backend.wpr_https_port_pair.local_port,
         wpr_args)
     # Remove --no-dns_forwarding if it wasn't explicitly requested by backend.
     if '--no-dns_forwarding' not in wpr_args:
       self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     self._web_page_replay.StartServer()
+
+    browser_backend.wpr_http_port_pair = util.PortPair(
+      self._web_page_replay.http_port, self._web_page_replay.http_port)
+    browser_backend.wpr_https_port_pair = util.PortPair(
+      self._web_page_replay.https_port, self._web_page_replay.https_port)
+
+    self._forwarder = browser_backend.CreateForwarder(
+        browser_backend.wpr_http_port_pair, browser_backend.wpr_https_port_pair)
 
   def __enter__(self):
     return self

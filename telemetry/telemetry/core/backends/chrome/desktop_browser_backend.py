@@ -49,7 +49,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Content shell does not support extensions.')
 
     self._browser_directory = browser_directory
-    self._port = util.GetAvailableLocalPort()
+    self._port = None
     self._profile_dir = None
     self._supports_net_benchmarking = True
     self._tmp_minidump_dir = tempfile.mkdtemp()
@@ -82,6 +82,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
+    logging.debug('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
       self._proc = subprocess.Popen(
@@ -98,6 +99,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
+    self._port = util.GetUnreservedAvailableLocalPort()
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
     if not self.is_content_shell:

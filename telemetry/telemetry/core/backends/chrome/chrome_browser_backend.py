@@ -47,10 +47,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._output_profile_path = output_profile_path
     self._extensions_to_load = extensions_to_load
 
-    self.webpagereplay_local_http_port = util.GetAvailableLocalPort()
-    self.webpagereplay_local_https_port = util.GetAvailableLocalPort()
-    self.webpagereplay_remote_http_port = self.webpagereplay_local_http_port
-    self.webpagereplay_remote_https_port = self.webpagereplay_local_https_port
+    self.wpr_http_port_pair = util.PortPair(0, 0)
+    self.wpr_https_port_pair = util.PortPair(0, 0)
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -89,8 +87,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
           self.WEBPAGEREPLAY_HOST,
-          self.webpagereplay_remote_http_port,
-          self.webpagereplay_remote_https_port))
+          self.wpr_http_port_pair.remote_port,
+          self.wpr_https_port_pair.remote_port))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.browser_options.browser_user_agent_type))
 

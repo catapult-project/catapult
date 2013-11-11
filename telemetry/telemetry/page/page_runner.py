@@ -43,6 +43,12 @@ class _RunState(object):
       self.browser = possible_browser.Create()
       self.browser.credentials.credentials_path = credentials_path
 
+      # Set up WPR path on the new browser.
+      self.browser.SetReplayArchivePath(archive_path,
+                                        self._append_to_existing_wpr,
+                                        page_set.make_javascript_deterministic)
+      self._last_archive_path = page.archive_path
+
       test.WillStartBrowser(self.browser)
       self.browser.Start()
       test.DidStartBrowser(self.browser)
@@ -67,12 +73,6 @@ class _RunState(object):
                 logging.info('  %-20s: %s', k, v)
           else:
             logging.info('No GPU devices')
-
-      # Set up WPR path on the new browser.
-      self.browser.SetReplayArchivePath(archive_path,
-                                        self._append_to_existing_wpr,
-                                        page_set.make_javascript_deterministic)
-      self._last_archive_path = page.archive_path
     else:
       # Set up WPR path if it changed.
       if page.archive_path and self._last_archive_path != page.archive_path:

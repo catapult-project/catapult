@@ -67,7 +67,7 @@ class BrowserBackend(object):
     raise NotImplementedError()
 
   def GetRemotePort(self, _):
-    return util.GetAvailableLocalPort()
+    return util.GetUnreservedAvailableLocalPort()
 
   def Start(self):
     raise NotImplementedError()

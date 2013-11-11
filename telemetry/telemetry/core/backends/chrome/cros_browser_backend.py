@@ -81,8 +81,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.Chown(self.profile_directory)
 
   def GetBrowserStartupArgs(self):
-    self.webpagereplay_remote_http_port = self._cri.GetRemotePort()
-    self.webpagereplay_remote_https_port = self._cri.GetRemotePort()
+    self.wpr_http_port_pair.remote_port = self._cri.GetRemotePort()
+    self.wpr_https_port_pair.remote_port = self._cri.GetRemotePort()
 
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
 
@@ -211,7 +211,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if not self._cri.local:
       # Find a free local port.
-      self._port = util.GetAvailableLocalPort()
+      self._port = util.GetUnreservedAvailableLocalPort()
 
       # Forward the remote debugging port.
       logging.info('Forwarding remote debugging port %d to local port %d',

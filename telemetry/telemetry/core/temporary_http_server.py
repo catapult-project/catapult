@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -14,7 +15,6 @@ class TemporaryHTTPServer(object):
     self._server = None
     self._devnull = None
     self._forwarder = None
-    self._host_port = util.GetAvailableLocalPort()
 
     for path in paths:
       assert os.path.exists(path), '%s does not exist.' % path
@@ -27,20 +27,26 @@ class TemporaryHTTPServer(object):
       self._base_dir = os.path.dirname(common_prefix)
 
     self._devnull = open(os.devnull, 'w')
-    cmd = [sys.executable, '-m', 'memory_cache_http_server',
-           str(self._host_port)]
+    cmd = [sys.executable, '-m', 'memory_cache_http_server']
     cmd.extend(self._paths)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.path.abspath(os.path.dirname(__file__))
     self._server = subprocess.Popen(cmd, cwd=self._base_dir,
-        env=env, stdout=self._devnull, stderr=self._devnull)
+        env=env, stdout=subprocess.PIPE, stderr=self._devnull)
+
+    port_re = re.compile(
+        '.*(?P<protocol>HTTPS?) server started on (?P<host>.*):(?P<port>\d+)')
+    while self._server.poll() == None:
+      m = port_re.match(self._server.stdout.readline())
+      if m:
+        port = int(m.group('port'))
+        break
 
     self._forwarder = browser_backend.CreateForwarder(
-        util.PortPair(self._host_port,
-                      browser_backend.GetRemotePort(self._host_port)))
+        util.PortPair(port, browser_backend.GetRemotePort(port)))
 
     def IsServerUp():
-      return not socket.socket().connect_ex(('localhost', self._host_port))
+      return not socket.socket().connect_ex(('localhost', port))
     util.WaitFor(IsServerUp, 10)
 
   @property
@@ -61,6 +67,7 @@ class TemporaryHTTPServer(object):
       self._forwarder.Close()
       self._forwarder = None
     if self._server:
+      # TODO(tonyg): Should this block until it goes away?
       self._server.kill()
       self._server = None
     if self._devnull:
