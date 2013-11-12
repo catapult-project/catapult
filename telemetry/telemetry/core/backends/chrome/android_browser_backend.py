@@ -189,8 +189,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
     self._override_dns = False
 
-    self._SetUpCommandLine()
-
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
       # Escape 'key=valueA valueB' to 'key="valueA valueB"'
@@ -240,6 +238,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                       file_contents)
 
   def Start(self):
+    self._SetUpCommandLine()
     self._adb.RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
