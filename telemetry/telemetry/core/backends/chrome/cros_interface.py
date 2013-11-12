@@ -247,7 +247,7 @@ class CrOSInterface(object):
     stdout, stderr = self.RunCmdOnDevice([
         '/bin/ps', '--no-headers',
         '-A',
-        '-o', 'pid,ppid,args,state'], quiet=True)
+        '-o', 'pid,ppid,args:4096,state'], quiet=True)
     assert stderr == '', stderr
     procs = []
     for l in stdout.split('\n'): # pylint: disable=E1103

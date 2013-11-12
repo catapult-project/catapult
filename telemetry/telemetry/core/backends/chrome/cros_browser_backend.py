@@ -104,7 +104,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--multi-profiles',
             # Debug logging for login flake (crbug.com/263527).
             '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
-                '*/chromeos/login/*=2'])
+                '*/chromeos/login/*=2,*/extensions/*=2'])
 
     if self._is_guest:
       args.extend([
@@ -151,7 +151,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         continue
       for path in self.CHROME_PATHS:
         if process.startswith(path):
-          return {'pid': pid, 'path': path}
+          return {'pid': pid, 'path': path, 'args': process}
     return None
 
   def _GetChromeVersion(self):
@@ -414,9 +414,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException('Timed out going through login screen')
 
-    # Wait for extensions to load.
-    self._WaitForBrowserToComeUp()
-
     if self.chrome_branch_number < 1500:
       # Wait for the startup window, then close it. Startup window doesn't exist
       # post-M27. crrev.com/197900
@@ -424,6 +421,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     else:
       # Open a new window/tab.
       self.tab_list_backend.New(15)
+
+    # Wait for extensions to load.
+    try:
+      self._WaitForBrowserToComeUp()
+    except util.TimeoutException:
+      logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
+      self._cri.TakeScreenShot('extension-timeout')
+      raise
 
 
 class SSHForwarder(object):
