@@ -63,7 +63,8 @@ class RecordPage(page_test.PageTest):
     for action_name in self._action_names:
       if not hasattr(page, action_name):
         continue
-      actions.append(page_test.GetCompoundActionFromPage(page, action_name))
+      actions.append(page_test.GetCompoundActionFromPage(
+          page, action_name, self.options.interactive))
     return actions
 
 

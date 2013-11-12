@@ -119,6 +119,10 @@ class BrowserFinderOptions(optparse.Values):
       help=('Record profiling data using this tool. Supported values: ' +
             ', '.join(profiler_choices)))
     group.add_option(
+      '--interactive', dest='interactive', action='store_true',
+      help=('Let the user interact with the page; the actions specified for '
+            'the page are not run.'))
+    group.add_option(
       '-v', '--verbose', action='count', dest='verbosity',
       help='Increase verbosity level (repeat as needed)')
     group.add_option('--print-bootstrap-deps',
