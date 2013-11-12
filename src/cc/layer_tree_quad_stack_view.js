@@ -111,6 +111,14 @@ base.exportTo('cc', function() {
           'When checked, compositing invalidations are highlighted in red';
       this.controls_.appendChild(showInvalidationsCheckbox);
 
+      var showUnrecordedRegionCheckbox = ui.createCheckBox(
+          this, 'showUnrecordedRegion',
+          'layerView.showUnrecordedRegion', true,
+          'Unrecorded area');
+      showUnrecordedRegionCheckbox.title =
+          'When checked, unrecorded areas are highlighted in yellow';
+      this.controls_.appendChild(showUnrecordedRegionCheckbox);
+
       var showBottlenecksCheckbox = ui.createCheckBox(
           this, 'showBottlenecks',
           'layerView.showBottlenecks', true,
@@ -174,6 +182,15 @@ base.exportTo('cc', function() {
 
     set showInvalidations(show) {
       this.showInvalidations_ = show;
+      this.updateContents_();
+    },
+
+    get showUnrecordedRegion() {
+      return this.showUnrecordedRegion_;
+    },
+
+    set showUnrecordedRegion(show) {
+      this.showUnrecordedRegion_ = show;
       this.updateContents_();
     },
 
@@ -450,6 +467,21 @@ base.exportTo('cc', function() {
       }
     },
 
+    appendUnrecordedRegionQuads_: function(quads, layer, layerQuad) {
+      // Generate the unrecorded region quads.
+      for (var ir = 0; ir < layer.unrecordedRegion.rects.length; ir++) {
+        var rect = layer.unrecordedRegion.rects[ir];
+        var unitRect = rect.asUVRectInside(layer.bounds);
+        var iq = layerQuad.projectUnitRect(unitRect);
+        iq.backgroundColor = 'rgba(240, 230, 140, 0.3)';
+        iq.borderColor = 'rgba(240, 230, 140, 1)';
+        iq.stackingGroupId = layerQuad.stackingGroupId;
+        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+            layer, 'Unrecorded area', rect, rect);
+        quads.push(iq);
+      }
+    },
+
     appendBottleneckQuads_: function(quads, layer, layerQuad, stackingGroupId) {
       function processRegion(region, label, borderColor) {
         var backgroundColor = borderColor.clone();
@@ -705,6 +737,8 @@ base.exportTo('cc', function() {
 
         if (this.showInvalidations)
           this.appendInvalidationQuads_(quads, layer, layerQuad);
+        if (this.showUnrecordedRegion)
+          this.appendUnrecordedRegionQuads_(quads, layer, layerQuad);
         if (this.showBottlenecks)
           this.appendBottleneckQuads_(quads, layer, layerQuad,
                                       layerQuad.stackingGroupId);

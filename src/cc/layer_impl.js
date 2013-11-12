@@ -34,6 +34,7 @@ base.exportTo('cc', function() {
     initialize: function() {
       // Defaults.
       this.invalidation = new cc.Region();
+      this.unrecordedRegion = new cc.Region();
       this.pictures = [];
 
       // Import & validate this.args
@@ -108,6 +109,11 @@ base.exportTo('cc', function() {
       if (this.args.invalidation) {
         this.invalidation = cc.Region.fromArray(this.args.invalidation);
         delete this.args.invalidation;
+      }
+      if (this.args.unrecordedRegion) {
+        this.unrecordedRegion = cc.Region.fromArray(
+            this.args.unrecordedRegion);
+        delete this.args.unrecordedRegion;
       }
       if (this.args.pictures) {
         this.pictures = this.args.pictures;
