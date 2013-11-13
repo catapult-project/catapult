@@ -27,7 +27,6 @@ base.unittest.testSuite('tracing.importer.gzip_importer', function() {
   test('inflateString', function() {
     // Test inflating the data from a string.
     var gzip_data = atob(gzip_data_base64);
-    gzip_data = tracing.importer.GzipImporter.escapeData_(gzip_data);
     var importer = new tracing.importer.GzipImporter(null, gzip_data);
     self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
     self.assertEquals(original_data, importer.extractSubtraces()[0]);
@@ -46,9 +45,7 @@ base.unittest.testSuite('tracing.importer.gzip_importer', function() {
   });
 
   test('import', function() {
-    // Load the escaped version of the data into a Model.
     var gzip_data = atob(gzip_data_base64);
-    gzip_data = tracing.importer.GzipImporter.escapeData_(gzip_data);
     self.assertTrue(tracing.importer.GzipImporter.canImport(gzip_data));
 
     var model = new tracing.TraceModel(gzip_data);

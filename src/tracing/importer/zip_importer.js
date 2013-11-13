@@ -22,8 +22,6 @@ base.exportTo('tracing.importer', function() {
   function ZipImporter(model, eventData) {
     if (eventData instanceof ArrayBuffer)
       eventData = new Uint8Array(eventData);
-    else if (typeof(eventData) === 'string' || eventData instanceof String)
-      eventData = tracing.importer.GzipImporter.unescapeData_(eventData);
     this.model_ = model;
     this.eventData_ = eventData;
   }

@@ -24,7 +24,6 @@ base.exportTo('tracing.importer', function() {
   function GzipImporter(model, eventData) {
     // Normalize the data into an Uint8Array.
     if (typeof(eventData) === 'string' || eventData instanceof String) {
-      eventData = GzipImporter.unescapeData_(eventData);
       eventData = JSZip.utils.transformTo('uint8array', eventData);
     } else if (eventData instanceof ArrayBuffer) {
       eventData = new Uint8Array(eventData);
@@ -36,8 +35,7 @@ base.exportTo('tracing.importer', function() {
 
   /**
    * @param {eventData} Possibly gzip compressed data as a string or an
-   *                    ArrayBuffer. If this is a string, it is assumed to be
-   *                    escaped as described in {unescapeData_} below.
+   *                    ArrayBuffer.
    * @return {boolean} Whether obj looks like gzip compressed data.
    */
   GzipImporter.canImport = function(eventData) {
@@ -45,7 +43,7 @@ base.exportTo('tracing.importer', function() {
     if (eventData instanceof ArrayBuffer)
       header = new Uint8Array(eventData.slice(0, 3));
     else if (typeof(eventData) === 'string' || eventData instanceof String) {
-      header = this.unescapeData_(eventData.substring(0, 7));
+      header = eventData.substring(0, 7);
       header =
           [header.charCodeAt(0), header.charCodeAt(1), header.charCodeAt(2)];
     } else
@@ -53,42 +51,6 @@ base.exportTo('tracing.importer', function() {
     return header[0] == GZIP_HEADER_ID1 &&
         header[1] == GZIP_HEADER_ID2 &&
         header[2] == GZIP_DEFLATE_COMPRESSION;
-  };
-
-  /**
-   * @param {data} A string that has been escaped so that negative bytes
-   *               (> 0x7f) are represented as a charcode of 0xffff followed
-   *               by the byte value encoded as four hexadecimal characters.
-   * @return {string} Unescaped string.
-   */
-  GzipImporter.unescapeData_ = function(data) {
-    var result = [];
-    for (var i = 0; i < data.length; i++) {
-      var charCode = data.charCodeAt(i);
-      if (charCode == 0xffff) {
-        if (i + 4 >= data.length)
-          throw new Error('Unexpected end of gzip data');
-        charCode = parseInt(data.substr(i + 1, 4), 16) & 0xff;
-        i += 4;
-      }
-      result.push(String.fromCharCode(charCode));
-    }
-    return result.join('');
-  };
-
-  /**
-   * @return {string} The input string escaped as described in unescapeData_.
-   */
-  GzipImporter.escapeData_ = function(data) {
-    var result = [];
-    for (var i = 0; i < data.length; i++) {
-      var charCode = data.charCodeAt(i);
-      if (charCode > 0x7f)
-        result.push(String.fromCharCode(-1) + 'ff' + charCode.toString(16));
-      else
-        result.push(String.fromCharCode(charCode));
-    }
-    return result.join('');
   };
 
   /**
