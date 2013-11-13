@@ -282,6 +282,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.append('--enable-remote-debugging')
     args.append('--no-restore-state')
     args.append('--disable-fre')
+    args.append('--disable-external-intent-requests')
     return args
 
   @property
