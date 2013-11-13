@@ -16,7 +16,7 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
 
-ALL_BROWSER_TYPES = ','.join([
+ALL_BROWSER_TYPES = [
     'exact',
     'release',
     'release_x64',
@@ -24,8 +24,10 @@ ALL_BROWSER_TYPES = ','.join([
     'debug_x64',
     'canary',
     'content-shell-debug',
+    'content-shell-debug_x64',
     'content-shell-release',
-    'system'])
+    'content-shell-release_x64',
+    'system']
 
 class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   """A desktop browser that can be controlled."""
@@ -33,6 +35,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def __init__(self, browser_type, finder_options, executable, flash_path,
                is_content_shell, browser_directory, is_local_build=False):
     super(PossibleDesktopBrowser, self).__init__(browser_type, finder_options)
+    assert browser_type in ALL_BROWSER_TYPES, \
+        'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell

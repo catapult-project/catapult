@@ -22,11 +22,11 @@ try:
 except ImportError:
   webdriver = None
 
-ALL_BROWSER_TYPES = ''
+ALL_BROWSER_TYPES = []
 if webdriver:
-  ALL_BROWSER_TYPES = ','.join([
+  ALL_BROWSER_TYPES = [
       'internet-explorer',
-      'internet-explorer-x64'])
+      'internet-explorer-x64']
 else:
   logging.warning('Webdriver backend is unsupported without selenium pylib. '
                   'For installation of selenium pylib, please refer to '
@@ -38,6 +38,8 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options):
     super(PossibleWebDriverBrowser, self).__init__(browser_type, finder_options)
+    assert browser_type in ALL_BROWSER_TYPES, \
+        'Please add %s to ALL_BROWSER_TYPES' % browser_type
 
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()
