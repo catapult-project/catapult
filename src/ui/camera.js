@@ -5,6 +5,7 @@
 'use strict';
 
 base.require('ui');
+base.require('base.settings');
 
 base.exportTo('ui', function() {
 
@@ -15,7 +16,8 @@ base.exportTo('ui', function() {
     MAXIMUM_DISTANCE: 100000,
     FOV: 15,
     RESCALE_TIMEOUT_MS: 200,
-    MAXIMUM_TILT: 80
+    MAXIMUM_TILT: 80,
+    SETTINGS_NAMESPACE: 'ui_camera'
   };
 
 
@@ -92,10 +94,37 @@ base.exportTo('ui', function() {
       return 1 + gazeVector[2];
     },
 
+    loadCameraFromSettings: function(settings) {
+      this.eye_ = settings.get(
+          'eye', this.eye_, constants.SETTINGS_NAMESPACE);
+      this.gazeTarget_ = settings.get(
+          'gaze_target', this.gazeTarget_, constants.SETTINGS_NAMESPACE);
+      this.rotation_ = settings.get(
+          'rotation', this.rotation_, constants.SETTINGS_NAMESPACE);
+
+      this.dispatchRenderEvent_();
+    },
+
+    saveCameraToSettings: function(settings) {
+      settings.set(
+          'eye', this.eye_, constants.SETTINGS_NAMESPACE);
+      settings.set(
+          'gaze_target', this.gazeTarget_, constants.SETTINGS_NAMESPACE);
+      settings.set(
+          'rotation', this.rotation_, constants.SETTINGS_NAMESPACE);
+    },
+
     resetCamera: function() {
       this.eye_ = [0, 0, constants.DEFAULT_EYE_DISTANCE];
       this.gazeTarget_ = [0, 0, 0];
       this.rotation_ = [0, 0];
+
+      var settings = base.SessionSettings();
+      var keys = settings.keys(constants.SETTINGS_NAMESPACE);
+      if (keys.length !== 0) {
+        this.loadCameraFromSettings(settings);
+        return;
+      }
 
       if (this.deviceRect_) {
         var rect =
@@ -108,6 +137,7 @@ base.exportTo('ui', function() {
         this.gazeTarget_[1] = this.deviceRect_.height / 2;
       }
 
+      this.saveCameraToSettings(settings);
       this.dispatchRenderEvent_();
     },
 
@@ -161,6 +191,7 @@ base.exportTo('ui', function() {
           this.gazeTarget_[i] = this.eye_[i] + newLength * gazeVector[i];
       }
 
+      this.saveCameraToSettings(base.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
@@ -183,6 +214,7 @@ base.exportTo('ui', function() {
       vec3.scale(eyeVector, eyeVector, scale);
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);
 
+      this.saveCameraToSettings(base.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
@@ -220,6 +252,7 @@ base.exportTo('ui', function() {
 
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);
 
+      this.saveCameraToSettings(base.SessionSettings());
       this.dispatchRenderEvent_();
     },
 
