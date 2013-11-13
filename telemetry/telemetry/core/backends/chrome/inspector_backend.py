@@ -202,19 +202,29 @@ class InspectorBackend(object):
   def DispatchNotifications(self, timeout=10):
     self._Connect()
     self._SetTimeout(timeout)
+    res = self._ReceiveJsonData(timeout)
+    if 'method' in res:
+      self._HandleNotification(res)
 
+  def _ReceiveJsonData(self, timeout):
     try:
+      start_time = time.time()
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
       if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
           self._debugger_url):
-        return
-      raise exceptions.TabCrashException(sys.exc_info()[1])
-
+        elapsed_time = time.time() - start_time
+        raise util.TimeoutException(
+            'Received a socket error in the browser connection and the tab '
+            'still exists, assuming it timed out. '
+            'Timeout=%ds Elapsed=%ds Error=%s' % (
+                timeout, elapsed_time, sys.exc_info()[1]))
+      raise exceptions.TabCrashException(
+          'Received a socket error in the browser connection and the tab no '
+          'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
     res = json.loads(data)
     logging.debug('got [%s]', data)
-    if 'method' in res:
-      self._HandleNotification(res)
+    return res
 
   def _HandleNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
@@ -268,28 +278,10 @@ class InspectorBackend(object):
     self.SendAndIgnoreResponse(req)
 
     while True:
-      try:
-        start_time = time.time()
-        data = self._socket.recv()
-      except (socket.error, websocket.WebSocketException):
-        if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
-            self._debugger_url):
-          elapsed_time = time.time() - start_time
-          raise util.TimeoutException(
-              'Received a socket error in the browser connection and the tab '
-              'still exists, assuming it timed out. '
-              'Timeout=%ds Elapsed=%ds Error=%s' % (
-                  timeout, elapsed_time, sys.exc_info()[1]))
-        raise exceptions.TabCrashException(
-            'Received a socket error in the browser connection and the tab no '
-            'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
-
-      res = json.loads(data)
-      logging.debug('got [%s]', data)
+      res = self._ReceiveJsonData(timeout)
       if 'method' in res:
         self._HandleNotification(res)
         continue
-
       if 'id' not in res or res['id'] != req['id']:
         logging.debug('Dropped reply: %s', json.dumps(res))
         continue
