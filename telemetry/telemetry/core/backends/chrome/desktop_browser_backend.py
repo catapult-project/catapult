@@ -220,12 +220,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return self._proc.poll() != None
 
       # Try to politely shutdown, first.
-      self._proc.terminate()
-      try:
-        util.WaitFor(IsClosed, timeout=1)
-        self._proc = None
-      except util.TimeoutException:
-        pass
+      if not IsClosed():
+        self._proc.terminate()
+        try:
+          util.WaitFor(IsClosed, timeout=1)
+          self._proc = None
+        except util.TimeoutException:
+          pass
 
       # Kill it.
       if not IsClosed():
