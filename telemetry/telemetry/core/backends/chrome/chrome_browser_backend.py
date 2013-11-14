@@ -257,8 +257,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     for (i, debugger_url) in enumerate(self._browser.tabs):
       tab = self.tab_list_backend.Get(i, None)
       if tab:
-        tab.ExecuteJavaScript('console.time("' + debugger_url + '")')
-        tab.ExecuteJavaScript('console.timeEnd("' + debugger_url + '")')
+        success = tab.EvaluateJavaScript(
+            "console.time('" + debugger_url + "');" +
+            "console.timeEnd('" + debugger_url + "');" +
+            "console.time.toString().indexOf('[native code]') != -1;")
+        if not success:
+          raise Exception('Page stomped on console.time')
         self._tracing_backend.AddTabToMarkerMapping(tab, debugger_url)
     return self._tracing_backend.StopTracing()
 
