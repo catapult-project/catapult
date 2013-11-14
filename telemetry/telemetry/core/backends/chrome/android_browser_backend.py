@@ -195,7 +195,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # Already quoted values, or values without space are left untouched.
       # This is required so CommandLine.java can parse valueB correctly rather
       # than as a separate switch.
-      params = arg.split('=')
+      params = arg.split('=', 1)
       if len(params) != 2:
         return arg
       key, values = params
@@ -204,7 +204,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if values[0] in '"\'' and values[-1] == values[0]:
         return arg
       return '%s="%s"' % (key, values)
-
     args = [self._backend_settings.pseudo_exec_name]
     args.extend(self.GetBrowserStartupArgs())
     args = ' '.join(map(QuoteIfNeeded, args))
