@@ -101,6 +101,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     return proc_util.GetTimestampJiffies(timer_list)
 
   def GetMemoryStats(self, pid):
+    self._adb.PurgeUnpinnedAshmem()
     memory_usage = self._adb.GetMemoryUsageForPid(pid)[0]
     return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
             'SharedDirty': memory_usage['Shared_Dirty'] * 1024,

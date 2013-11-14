@@ -188,6 +188,7 @@ def SetupPrebuiltTools(device):
       'host_forwarder',
       'md5sum_dist/md5sum_bin',
       'md5sum_bin_host',
+      'purge_ashmem',
   ]
   for t in prebuilt_tools:
     src = os.path.basename(t)
