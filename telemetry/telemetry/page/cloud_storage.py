@@ -27,9 +27,10 @@ _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions(gsutil_path):
-    return ('Run "%s config" to configure your credentials. '
-        'If you have a @google.com account, use that one. '
-        'The project-id field can be left blank.' % gsutil_path)
+    return ('To configure your credentials:\n'
+            '  1. Run "%s config" and follow its instructions.\n'
+            '  2. If you have a @google.com account, use that one.\n'
+            '  3. Leave the project-id field blank.' % gsutil_path)
 
 
 class PermissionError(CloudStorageError):
