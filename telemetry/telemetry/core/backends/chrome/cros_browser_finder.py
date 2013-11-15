@@ -15,6 +15,7 @@ from telemetry.core.platform import cros_platform_backend
 ALL_BROWSER_TYPES = [
     'cros-chrome',
     'cros-chrome-guest',
+    'system',
     'system-guest',
     ]
 
