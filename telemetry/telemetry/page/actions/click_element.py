@@ -45,4 +45,3 @@ class ClickElementAction(page_action.PageAction):
             'No condition given to click_element')
 
     DoClick()
-    tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()

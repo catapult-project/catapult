@@ -31,6 +31,7 @@ class WaitAction(page_action.PageAction):
       previous_action.WillRunAction(page, tab)
       action_to_perform = lambda: previous_action.RunAction(page, tab, None)
       tab.PerformActionAndWaitForNavigate(action_to_perform, self.timeout)
+      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
     elif getattr(self, 'condition', None) == 'href_change':
       if not previous_action:
