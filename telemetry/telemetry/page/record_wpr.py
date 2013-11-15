@@ -16,6 +16,7 @@ from telemetry.core import discover
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_measurement
+from telemetry.page import page_measurement_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -31,6 +32,7 @@ class RecordPage(page_test.PageTest):
         [measurement().action_name_to_run
          for measurement in measurements.values()
          if measurement().action_name_to_run])
+    self.test = None
 
   def CanRunForPage(self, page):
     return page.url.startswith('http')
@@ -47,7 +49,18 @@ class RecordPage(page_test.PageTest):
   def Run(self, options, page, tab, results):
     # When recording, sleep to catch any resources that load post-onload.
     tab.WaitForDocumentReadyStateToBeComplete()
-    time.sleep(3)
+
+    if self.test:
+      dummy_results = page_measurement_results.PageMeasurementResults()
+      dummy_results.WillMeasurePage(page)
+      self.test.MeasurePage(page, tab, dummy_results)
+      dummy_results.DidMeasurePage()
+    else:
+      # TODO(tonyg): This should probably monitor resource timing for activity
+      # and sleep until 2s since the last network event with some timeout like
+      # 20s. We could wrap this up as WaitForNetworkIdle() and share with the
+      # speed index metric.
+      time.sleep(3)
 
     # Run the actions for all measurements. Reload the page between
     # actions.
@@ -103,9 +116,11 @@ def Main(base_dir):
   if args[0].endswith('.json'):
     ps = page_set.PageSet.FromFile(args[0])
   elif args[0] in tests:
+    recorder.test = tests[args[0]]().test()
     ps = tests[args[0]]().CreatePageSet(options)
   elif args[0] in measurements:
-    ps = measurements[args[0]]().CreatePageSet(args, options)
+    recorder.test = measurements[args[0]]()
+    ps = recorder.test.CreatePageSet(args, options)
   elif args[0].startswith('http'):
     ps = _CreatePageSetForUrl(args[0])
   else:
