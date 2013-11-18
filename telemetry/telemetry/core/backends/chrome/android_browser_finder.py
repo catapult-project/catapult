@@ -203,13 +203,8 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
     # report that the device is offline. Our working theory is that killing
     # the process and allowing it to be automatically relaunched will allow us
     # to run for longer before it hangs.
-    if not finder_options.keep_test_server_ports:
-      # This would break forwarder connections, so we cannot do this if
-      # instructed to keep server ports open.
-      logging.info('Killing adbd on device')
-      adb.KillAll('adbd')
-      logging.info('Waiting for adbd to restart')
-      adb.Adb().Adb().SendCommand('wait-for-device')
+    if not os.environ.get('BUILDBOT_BUILDERNAME'):
+      adb.RestartAdbdOnDevice()
 
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
@@ -225,16 +220,13 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
     if 'package:' + package in packages or b.HaveLocalAPK():
       possible_browsers.append(b)
 
-  # See if the "forwarder" is installed -- we need this to host content locally
-  # but make it accessible to the device.
-  if (len(possible_browsers) and not finder_options.android_rndis and
-      not adb_commands.HasForwarder()):
-    logging.warn('telemetry detected an android device. However,')
-    logging.warn('Chrome\'s port-forwarder app is not available.')
-    logging.warn('Falling back to prebuilt binaries, but to build locally: ')
-    logging.warn('  ninja -C out/Release android_tools')
-    logging.warn('')
-    logging.warn('')
-    if not adb_commands.SetupPrebuiltTools(device):
+  if possible_browsers:
+    installed_prebuilt_tools = adb_commands.SetupPrebuiltTools(adb)
+    if not installed_prebuilt_tools:
+      logging.error(
+          'Android device detected, however prebuilt android tools could not '
+          'be used. To run on Android you must build them first:\n'
+          '  $ ninja -C out/Release android_tools')
       return []
+
   return possible_browsers

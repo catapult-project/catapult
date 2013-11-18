@@ -170,17 +170,29 @@ class AdbCommands(object):
   def GoHome(self):
     return self._adb.GoHome()
 
+  def RestartAdbdOnDevice(self):
+    return self._adb.RestartAdbdOnDevice()
 
-def SetupPrebuiltTools(device):
+
+def GetBuildTypeOfPath(path):
+  if not path:
+    return None
+  for build_dir, build_type in util.GetBuildDirectories():
+    if os.path.join(build_dir, build_type) in path:
+      return build_type
+  return None
+
+
+def SetupPrebuiltTools(adb):
   # TODO(bulach): build the host tools for mac, and the targets for x86/mips.
   # Prebuilt tools from r226197.
   has_prebuilt = sys.platform.startswith('linux')
   if has_prebuilt:
-    adb = AdbCommands(device)
     abi = adb.RunShellCommand('getprop ro.product.cpu.abi')
     has_prebuilt = abi and abi[0].startswith('armeabi')
   if not has_prebuilt:
-    logging.error('Prebuilt tools only available for ARM.')
+    logging.error(
+        'Prebuilt android tools only available for Linux host and ARM device.')
     return False
 
   prebuilt_tools = [
@@ -190,28 +202,29 @@ def SetupPrebuiltTools(device):
       'md5sum_bin_host',
       'purge_ashmem',
   ]
+  build_type = None
   for t in prebuilt_tools:
     src = os.path.basename(t)
     android_prebuilt_profiler_helper.GetIfChanged(src)
+    bin_path = util.FindSupportBinary(t)
+    if not build_type:
+      build_type = GetBuildTypeOfPath(bin_path) or 'Release'
+      constants.SetBuildType(build_type)
     dest = os.path.join(constants.GetOutDirectory(), t)
-    if not os.path.exists(dest):
+    if not bin_path:
       logging.warning('Setting up prebuilt %s', dest)
       if not os.path.exists(os.path.dirname(dest)):
         os.makedirs(os.path.dirname(dest))
-      shutil.copyfile(android_prebuilt_profiler_helper.GetHostPath(src), dest)
+      prebuilt_path = android_prebuilt_profiler_helper.GetHostPath(src)
+      if not os.path.exists(prebuilt_path):
+        raise NotImplementedError("""
+%s must be checked into cloud storage.
+Instructions:
+http://www.chromium.org/developers/telemetry/upload_to_cloud_storage
+""" % t)
+      shutil.copyfile(prebuilt_path, dest)
       os.chmod(dest, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
   return True
-
-def HasForwarder(buildtype=None):
-  if not buildtype:
-    return (HasForwarder(buildtype='Release') or
-            HasForwarder(buildtype='Debug'))
-  device_forwarder = os.path.join(
-      constants.GetOutDirectory(build_type=buildtype),
-      'forwarder_dist', 'device_forwarder')
-  host_forwarder = os.path.join(
-      constants.GetOutDirectory(build_type=buildtype), 'host_forwarder')
-  return os.path.exists(device_forwarder) and os.path.exists(host_forwarder)
 
 
 class Forwarder(object):
@@ -223,12 +236,6 @@ class Forwarder(object):
                       for port_pair in port_pairs]
 
     self._port_pairs = new_port_pairs
-    if HasForwarder('Release'):
-      constants.SetBuildType('Release')
-    elif HasForwarder('Debug'):
-      constants.SetBuildType('Debug')
-    else:
-      raise Exception('Build forwarder2')
     forwarder.Forwarder.Map(new_port_pairs, self._adb)
 
   @property

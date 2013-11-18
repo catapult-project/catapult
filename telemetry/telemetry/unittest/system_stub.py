@@ -67,6 +67,9 @@ class AdbCommandsModuleStub(object):
     def IsRootEnabled(self):
       return self.is_root_enabled
 
+    def RestartAdbdOnDevice(self):
+      pass
+
   def __init__(self):
     self.attached_devices = []
     self.shell_command_handlers = {}
@@ -84,6 +87,9 @@ class AdbCommandsModuleStub(object):
 
   @staticmethod
   def HasForwarder(_=None):
+    return True
+
+  def SetupPrebuiltTools(self, _):
     return True
 
 
@@ -227,7 +233,7 @@ class SubprocessModuleStub(object):
     self.PIPE = None
 
   def call(self, *args, **kwargs):
-    raise NotImplementedError()
+    pass
 
 
 class SysModuleStub(object):
