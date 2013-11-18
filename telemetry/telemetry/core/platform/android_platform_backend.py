@@ -21,6 +21,11 @@ except Exception:
   surface_stats_collector = None
 
 
+_HOST_APPLICATIONS = [
+    'ipfw',
+    ]
+
+
 class AndroidPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, adb, no_performance_mode):
     super(AndroidPlatformBackend, self).__init__()
@@ -30,6 +35,7 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
+    self._host_platform_backend = platform.CreatePlatformBackendForCurrentOS()
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
@@ -153,12 +159,26 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     raise NotImplementedError()
 
   def LaunchApplication(self, application, parameters=None):
+    if application in _HOST_APPLICATIONS:
+      self._host_platform_backend.LaunchApplication(application, parameters)
+      return
     if not parameters:
       parameters = ''
     self._adb.RunShellCommand('am start ' + parameters + ' ' + application)
 
   def IsApplicationRunning(self, application):
+    if application in _HOST_APPLICATIONS:
+      return self._host_platform_backend.IsApplicationRunning(application)
     return len(self._adb.ExtractPid(application)) > 0
 
   def CanLaunchApplication(self, application):
+    if application in _HOST_APPLICATIONS:
+      return self._host_platform_backend.CanLaunchApplication(application)
     return True
+
+  def InstallApplication(self, application):
+    if application in _HOST_APPLICATIONS:
+      self._host_platform_backend.InstallApplication(application)
+      return
+    raise NotImplementedError(
+        'Please teach Telemetry how to install ' + application)

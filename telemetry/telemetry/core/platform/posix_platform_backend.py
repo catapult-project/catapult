@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import distutils.spawn
 import subprocess
 
 from telemetry.core.platform import desktop_platform_backend
@@ -49,3 +50,6 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   def GetFlushUtilityName(self):
     return 'clear_system_cache'
+
+  def CanRunApplication(self, application):
+    return bool(distutils.spawn.find_executable(application))

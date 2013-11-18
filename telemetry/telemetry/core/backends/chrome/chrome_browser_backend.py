@@ -47,8 +47,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._output_profile_path = output_profile_path
     self._extensions_to_load = extensions_to_load
 
-    self.wpr_http_port_pair = util.PortPair(0, 0)
-    self.wpr_https_port_pair = util.PortPair(0, 0)
+    if browser_options.netsim:
+      self.wpr_http_port_pair = util.PortPair(80, 80)
+      self.wpr_https_port_pair = util.PortPair(443, 443)
+    else:
+      self.wpr_http_port_pair = util.PortPair(0, 0)
+      self.wpr_https_port_pair = util.PortPair(0, 0)
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -64,7 +68,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           extension_dict_backend.ExtensionDictBackend(self))
 
   def AddReplayServerOptions(self, extra_wpr_args):
-    extra_wpr_args.append('--no-dns_forwarding')
+    if self.browser_options.netsim:
+      extra_wpr_args.append('--net=%s' % self.browser_options.netsim)
+    else:
+      extra_wpr_args.append('--no-dns_forwarding')
 
   @property
   def misc_web_contents_backend(self):
@@ -84,7 +91,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--no-first-run')
     args.append('--no-default-browser-check')
     args.append('--no-proxy-server')
-    if self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
+    if self.browser_options.netsim:
+      args.append('--ignore-certificate-errors')
+    elif self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
       args.extend(wpr_server.GetChromeFlags(
           self.WEBPAGEREPLAY_HOST,
           self.wpr_http_port_pair.remote_port,

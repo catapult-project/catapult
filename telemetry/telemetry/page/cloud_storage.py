@@ -128,20 +128,24 @@ def GetIfChanged(bucket, file_path):
 
   If the file is not in Cloud Storage, log a warning instead of raising an
   exception. We assume that the user just hasn't uploaded the file yet.
+
+  Returns:
+    True if the binary was changed.
   """
   hash_path = file_path + '.sha1'
   if not os.path.exists(hash_path):
-    return
+    return False
 
   with open(hash_path, 'rb') as f:
     expected_hash = f.read(1024).rstrip()
   if os.path.exists(file_path) and GetHash(file_path) == expected_hash:
-    return
+    return False
 
   try:
     Get(bucket, expected_hash, file_path)
   except NotFoundError:
     logging.warning('Unable to update file %s from Cloud Storage.' % file_path)
+  return True
 
 
 def GetHash(file_path):

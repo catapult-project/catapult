@@ -1,2 +1,5 @@
 IEDriverServer binary:
   Both 32-bit and 64-bit are of version 2.35.2.
+
+ipfw and ipfw_mod.ko:
+  Version 20120812

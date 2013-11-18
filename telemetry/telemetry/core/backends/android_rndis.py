@@ -9,6 +9,7 @@ import struct
 import subprocess
 import sys
 
+from telemetry.core import util
 from telemetry.core.backends import adb_commands
 
 
@@ -31,13 +32,15 @@ class RndisForwarderWithRoot(object):
   """Forwards traffic using RNDIS. Assuming the device has root access.
   """
   _RNDIS_DEVICE = '/sys/class/android_usb/android0'
+  _NETWORK_INTERFACES = '/etc/network/interfaces'
+  _TELEMETRY_MARKER = '# Added by Telemetry #'
 
   def __init__(self, adb):
     """Args:
          adb: an instance of AdbCommands
     """
     is_root_enabled = adb.Adb().EnableAdbRoot()
-    assert is_root_enabled, 'RNDIS forwarding could not enable root'
+    assert is_root_enabled, 'RNDIS forwarding requires a rooted device'
     self._adb = adb.Adb()
 
     self._host_port = 80
@@ -62,6 +65,11 @@ class RndisForwarderWithRoot(object):
   def OverrideDns(self):
     """Overrides DNS on device to point at the host."""
     self._original_dns = self._GetCurrentDns()
+    if not self._original_dns[0]:
+      # No default route. Install one via the host. This is needed because
+      # getaddrinfo in bionic uses routes to determine AI_ADDRCONFIG.
+      self._adb.RunShellCommand('route add default gw %s dev %s' %
+                                (self._host_ip, self._device_iface))
     self._OverrideDns(self._device_iface, self._host_ip, self._host_ip)
 
   def _IsRndisSupported(self):
@@ -99,6 +107,10 @@ class RndisForwarderWithRoot(object):
         interface_name = line.split()[1].strip(':')
       elif ether_address in line:
         return interface_name
+
+  def _WriteProtectedFile(self, path, contents):
+    subprocess.check_call(
+        ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, path)])
 
   def _DisableRndis(self):
     self._adb.RunShellCommand('setprop sys.usb.config adb')
@@ -230,14 +242,27 @@ doit &
         if candidate not in used_addresses:
           return candidate
 
-    addresses, host_address = self._GetHostAddresses(host_iface)
+    interfaces = open(self._NETWORK_INTERFACES, 'r').read()
+    if 'auto ' + host_iface not in interfaces:
+      config = ('%(orig)s\n\n'
+                '%(marker)s\n'
+                'auto %(iface)s\n'
+                'iface %(iface)s inet static\n'
+                '  address 192.168.123.1\n'  # Arbitrary IP.
+                '  netmask 255.255.255.0' % {'orig': interfaces,
+                                             'marker': self._TELEMETRY_MARKER,
+                                             'iface': host_iface})
+      self._WriteProtectedFile(self._NETWORK_INTERFACES, config)
+      subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
 
-    assert host_address, ('Interface %(iface)s was not configured.\n'
-      'To configure it automatically, add to /etc/network/interfaces:\n'
-      'auto %(iface)s\n'
-      'iface %(iface)s inet static\n'
-      '  address 192.168.<unique>.1\n'
-      '  netmask 255.255.255.0' % {'iface': host_iface})
+    def HasHostAddress():
+      _, host_address = self._GetHostAddresses(host_iface)
+      return bool(host_address)
+    logging.info('Waiting for RNDIS connectivity...')
+    util.WaitFor(HasHostAddress, 10)
+
+    addresses, host_address = self._GetHostAddresses(host_iface)
+    assert host_address, 'Interface %s could not be configured.' % host_iface
 
     addresses = [_IpPrefix2AddressMask(addr) for addr in addresses]
     host_ip, netmask = _IpPrefix2AddressMask(host_address)
@@ -341,3 +366,4 @@ doit &
 
   def Close(self):
     self._OverrideDns(*self._original_dns)
+    self._DisableRndis()

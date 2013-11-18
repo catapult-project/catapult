@@ -30,6 +30,9 @@ class BrowserBackend(object):
   def SetBrowser(self, browser):
     self._browser = browser
     self._tab_list_backend.Init()
+    if (self.browser_options.netsim and
+        not browser.platform.CanLaunchApplication('ipfw')):
+      browser.platform.InstallApplication('ipfw')
 
   @property
   def browser(self):
@@ -87,6 +90,7 @@ class BrowserBackend(object):
 
   def GetSystemInfo(self):
     raise NotImplementedError()
+
 
 class DoNothingForwarder(object):
   def __init__(self, *port_pairs):

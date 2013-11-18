@@ -16,6 +16,10 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'third_party', 'webpagereplay')
+import net_configs  # pylint: disable=F0401
+
 
 class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering a browser."""
@@ -209,6 +213,7 @@ class BrowserOptions(object):
     self._extra_browser_args = set()
     self.extra_wpr_args = []
     self.wpr_mode = wpr_modes.WPR_OFF
+    self.netsim = None
 
     self.no_proxy_server = False
     self.browser_user_agent_type = None
@@ -243,6 +248,11 @@ class BrowserOptions(object):
         dest='extra_wpr_args_as_string',
         help=('Additional arguments to pass to Web Page Replay. '
               'See third_party/webpagereplay/replay.py for usage.'))
+    group.add_option('--netsim', default=None, type='choice',
+        choices=net_configs.NET_CONFIG_NAMES,
+        help=('Run benchmark under simulated network conditions. '
+              'Will prompt for sudo. Supported values: ' +
+              ', '.join(net_configs.NET_CONFIG_NAMES)))
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
@@ -266,9 +276,12 @@ class BrowserOptions(object):
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
     browser_options_list = [
-        'profile_type', 'profile_dir',
-        'extra_browser_args_as_string', 'extra_wpr_args_as_string',
-        'show_stdout'
+        'extra_browser_args_as_string',
+        'extra_wpr_args_as_string',
+        'netsim',
+        'profile_dir',
+        'profile_type',
+        'show_stdout',
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)

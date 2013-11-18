@@ -199,11 +199,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Pre-configure RNDIS forwarding.
     self._rndis_forwarder = None
-    if rndis:
+    if rndis or self.browser_options.netsim:
       self._rndis_forwarder = android_rndis.RndisForwarderWithRoot(self._adb)
       self.WEBPAGEREPLAY_HOST = self._rndis_forwarder.host_ip
     # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
-    self._override_dns = False
+    self._override_dns = self.browser_options.netsim
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
@@ -227,6 +227,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._SetCommandLineFile(args)
 
   def _SetCommandLineFile(self, file_contents):
+    logging.debug('Using command line: ' + file_contents)
     def IsProtectedFile(name):
       if self._adb.Adb().FileExistsOnDevice(name):
         return not self._adb.Adb().IsFileWritableOnDevice(name)
@@ -400,6 +401,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Override. Only add --no-dns_forwarding if not using RNDIS."""
     if not self._override_dns:
       extra_wpr_args.append('--no-dns_forwarding')
+    if self.browser_options.netsim:
+      extra_wpr_args.append('--net=%s' % self.browser_options.netsim)
 
   def CreateForwarder(self, *port_pairs):
     if self._rndis_forwarder:

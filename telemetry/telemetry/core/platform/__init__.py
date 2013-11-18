@@ -124,6 +124,10 @@ class Platform(object):
     """Returns whether the platform can launch the given application."""
     return self._platform_backend.CanLaunchApplication(application)
 
+  def InstallApplication(self, application):
+    """Installs the given application."""
+    return self._platform_backend.InstallApplication(application)
+
 
 def CreatePlatformBackendForCurrentOS():
   if sys.platform.startswith('linux'):

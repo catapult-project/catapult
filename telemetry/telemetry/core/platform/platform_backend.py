@@ -72,3 +72,6 @@ class PlatformBackend(object):
 
   def CanLaunchApplication(self, application):
     return False
+
+  def InstallApplication(self, application):
+    raise NotImplementedError()
