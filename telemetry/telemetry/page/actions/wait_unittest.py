@@ -22,7 +22,7 @@ class WaitActionTest(tab_test_case.TabTestCase):
 
     start_time = time.time()
     i.RunAction(None, self._tab, None)
-    self.assertAlmostEqual(time.time() - start_time, 1, places=1)
+    self.assertTrue(time.time() - start_time >= 1.0)
 
   def testWaitActionTimeout(self):
     wait_action = wait.WaitAction({
