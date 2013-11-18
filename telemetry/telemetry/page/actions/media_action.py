@@ -4,6 +4,7 @@
 
 """Common media action functions."""
 
+import logging
 import os
 
 from telemetry.core import util
@@ -33,9 +34,17 @@ class MediaAction(page_action.PageAction):
       event_name: Name of the event to check if fired or not.
       timeout: Timeout to check for event, throws an exception if not fired.
     """
-    util.WaitFor(lambda: self.HasEventCompleted(tab, selector, event_name),
+    util.WaitFor(lambda:
+                     self.HasEventCompletedOrError(tab, selector, event_name),
                  timeout=timeout)
 
-  def HasEventCompleted(self, tab, selector, event_name):
-    return tab.EvaluateJavaScript(
-        'window.__hasEventCompleted("%s", "%s");' % (selector, event_name))
+  def HasEventCompletedOrError(self, tab, selector, event_name):
+    if tab.EvaluateJavaScript(
+        'window.__hasEventCompleted("%s", "%s");' % (selector, event_name)):
+      return True
+    error = tab.EvaluateJavaScript('window.__error')
+    if error:
+      logging.error('Detected media error while waiting for %s: %s', event_name,
+                    error)
+      return True
+    return False

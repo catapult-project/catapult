@@ -21,16 +21,9 @@
   }
 
   function playHTML5Element(element) {
-    function logEventHappened(e) {
-      element[e.type + '_completed'] = true;
-    }
-    function onError(e) {
-      throw new Error('Error playing media :' + e.type);
-    }
-    element.addEventListener('playing', logEventHappened);
-    element.addEventListener('ended', logEventHappened);
-    element.addEventListener('error', onError);
-    element.addEventListener('abort', onError);
+    window.__registerHTML5ErrorEvents(element);
+    window.__registerHTML5EventCompleted(element, 'playing');
+    window.__registerHTML5EventCompleted(element, 'ended');
 
     var willPlayEvent = document.createEvent('Event');
     willPlayEvent.initEvent('willPlay', false, false);

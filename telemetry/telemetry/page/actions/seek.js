@@ -32,18 +32,10 @@
   }
 
   function seekHTML5ElementPostLoad(element, seekTime, logSeekTime, seekLabel) {
-    var onSeeked = function(e) {
-      element[e.type + '_completed'] = true;
-      element.removeEventListener('seeked', onSeeked);
-    };
-    function onError(e) {
-      throw new Error('Error playing media :' + e.type);
-    }
-
+    // Reset seek completion since multiple seeks can run on same media element.
     element['seeked_completed'] = false;
-    element.addEventListener('error', onError);
-    element.addEventListener('abort', onError);
-    element.addEventListener('seeked', onSeeked);
+    window.__registerHTML5ErrorEvents(element);
+    window.__registerHTML5EventCompleted(element, 'seeked');
 
     if (logSeekTime) {
       var willSeekEvent = document.createEvent('Event');

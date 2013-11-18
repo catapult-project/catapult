@@ -36,3 +36,24 @@ window.__hasEventCompleted = function(selector, event_name) {
   }
   return true;
 };
+
+window.__registerHTML5ErrorEvents = function(element) {
+  // Listens to HTML5 media errors.
+  function onError(e) {
+    window.__error = 'Media error: ' + e.type + ', code:' + e.target.error.code;
+    throw new Error(window.__error);
+  }
+  element.addEventListener('error', onError);
+  element.addEventListener('abort', onError);
+};
+
+window.__registerHTML5EventCompleted = function(element, event_name) {
+  // Logs |even_name| on element when completed.
+  var logEventHappened = function(e) {
+    element[e.type + '_completed'] = true;
+    element.removeEventListener(event_name, logEventHappened);
+  }
+  element.addEventListener(event_name, logEventHappened);
+};
+
+window.__error = null;

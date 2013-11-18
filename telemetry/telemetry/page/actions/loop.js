@@ -20,6 +20,7 @@
   }
 
   function loopHTML5Element(element, loopCount) {
+    window.__registerHTML5ErrorEvents(element);
     element['loop_completed'] = false;
     var currentLoop = 0;
     var onLoop = function(e) {
@@ -35,11 +36,6 @@
       }
     };
 
-    function onError(e) {
-      throw new Error('Error playing media :' + e.type);
-    }
-    element.addEventListener('error', onError);
-    element.addEventListener('abort', onError);
     element.addEventListener('seeked', onLoop);
     element.loop = true;
 
