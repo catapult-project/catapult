@@ -275,6 +275,8 @@ def Run(test, page_set, expectations, finder_options):
         '\n')
     sys.exit(1)
 
+  browser_options.browser_type = possible_browser.browser_type
+
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 

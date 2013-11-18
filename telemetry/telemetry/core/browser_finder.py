@@ -78,7 +78,6 @@ def FindBrowser(options):
 
       logging.warning('--browser omitted. Using most recent local build: %s' %
                       default_browser.browser_type)
-      options.browser_type = default_browser.browser_type
       # TODO: We should do this even when --browser is specified.
       default_browser.UpdateExecutableIfNeeded()
       return default_browser

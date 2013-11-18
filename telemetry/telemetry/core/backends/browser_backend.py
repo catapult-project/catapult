@@ -16,6 +16,7 @@ class BrowserBackend(object):
 
   def __init__(self, is_content_shell, supports_extensions, browser_options,
                tab_list_backend):
+    assert browser_options.browser_type
     self.browser_type = browser_options.browser_type
     self.is_content_shell = is_content_shell
     self._supports_extensions = supports_extensions
