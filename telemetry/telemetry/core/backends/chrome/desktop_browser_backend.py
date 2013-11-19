@@ -173,17 +173,17 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return self.GetStandardOutput()
     most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
     if os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60)):
-      logging.warn('Crash dump is older than 5 minutes. May not be correct.')
+      logging.warning('Crash dump is older than 5 minutes. May not be correct.')
+
+    symbols = glob.glob(os.path.join(self._browser_directory, '*.breakpad*'))
+    if not symbols:
+      logging.warning('No breakpad symbols found. Returning browser stdout.')
+      return self.GetStandardOutput()
 
     minidump = most_recent_dump + '.stripped'
     with open(most_recent_dump, 'rb') as infile:
       with open(minidump, 'wb') as outfile:
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
-
-    symbols = glob.glob(os.path.join(os.path.dirname(stackwalk), '*.breakpad*'))
-    if not symbols:
-      logging.warning('No breakpad symbols found. Returning browser stdout.')
-      return self.GetStandardOutput()
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
     for symbol in sorted(symbols, key=os.path.getmtime, reverse=True):
