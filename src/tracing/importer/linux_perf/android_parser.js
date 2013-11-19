@@ -187,7 +187,7 @@ base.exportTo('tracing.importer.linux_perf', function() {
           break;
 
         case 'F':
-          var ppid = this.ppids_[pid];
+          var ppid = parseInt(eventData[1]);
           if (ppid === undefined) {
             // Silently ignore unmatched F events.
             break;
