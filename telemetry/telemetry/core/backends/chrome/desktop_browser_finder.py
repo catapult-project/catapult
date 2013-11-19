@@ -5,7 +5,6 @@
 
 import logging
 import os
-import platform
 import subprocess
 import sys
 
@@ -100,35 +99,29 @@ def FindAllAvailableBrowsers(finder_options):
   else:
     chrome_root = util.GetChromiumSrcDir()
 
+  flash_bin_dir = os.path.join(
+      chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi')
+
   chromium_app_names = []
   if sys.platform == 'darwin':
     chromium_app_names.append('Chromium.app/Contents/MacOS/Chromium')
     chromium_app_names.append('Google Chrome.app/Contents/MacOS/Google Chrome')
     content_shell_app_name = 'Content Shell.app/Contents/MacOS/Content Shell'
-    mac_dir = 'mac'
-    if platform.architecture()[0] == '64bit':
-      mac_dir = 'mac_64'
-    flash_path = os.path.join(
-        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
-        mac_dir, 'PepperFlashPlayer.plugin')
+    flash_bin = 'PepperFlashPlayer.plugin'
+    flash_path = os.path.join(flash_bin_dir, 'mac', flash_bin)
+    flash_path_64 = os.path.join(flash_bin_dir, 'mac_64', flash_bin)
   elif sys.platform.startswith('linux'):
     chromium_app_names.append('chrome')
     content_shell_app_name = 'content_shell'
-    linux_dir = 'linux'
-    if platform.architecture()[0] == '64bit':
-      linux_dir = 'linux_x64'
-    flash_path = os.path.join(
-        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
-        linux_dir, 'libpepflashplayer.so')
+    flash_bin = 'libpepflashplayer.so'
+    flash_path = os.path.join(flash_bin_dir, 'linux', flash_bin)
+    flash_path_64 = os.path.join(flash_bin_dir, 'linux_x64', flash_bin)
   elif sys.platform.startswith('win'):
     chromium_app_names.append('chrome.exe')
     content_shell_app_name = 'content_shell.exe'
-    win_dir = 'win'
-    if platform.architecture()[0] == '64bit':
-      win_dir = 'win_x64'
-    flash_path = os.path.join(
-        chrome_root, 'third_party', 'adobe', 'flash', 'binaries', 'ppapi',
-        win_dir, 'pepflashplayer.dll')
+    flash_bin = 'pepflashplayer.dll'
+    flash_path = os.path.join(flash_bin_dir, 'win', flash_bin)
+    flash_path_64 = os.path.join(flash_bin_dir, 'win_x64', flash_bin)
   else:
     raise Exception('Platform not recognized')
 
@@ -152,10 +145,11 @@ def FindAllAvailableBrowsers(finder_options):
     browser_directory = os.path.join(chrome_root, build_dir, type_dir)
     app = os.path.join(browser_directory, app_name)
     if IsExecutable(app):
-      browsers.append(PossibleDesktopBrowser(browser_type, finder_options,
-                                             app, flash_path, content_shell,
-                                             browser_directory,
-                                             is_local_build=True))
+      is_64 = browser_type.endswith('_x64')
+      browsers.append(PossibleDesktopBrowser(
+          browser_type, finder_options, app,
+          flash_path_64 if is_64 else flash_path,
+          content_shell, browser_directory, is_local_build=True))
       return True
     return False
 
@@ -213,7 +207,7 @@ def FindAllAvailableBrowsers(finder_options):
         app = os.path.join(browser_directory, chromium_app_name)
         if IsExecutable(app):
           browsers.append(PossibleDesktopBrowser(browser_name, finder_options,
-                                                 app, flash_path, False,
+                                                 app, None, False,
                                                  browser_directory))
         return True
       return False
