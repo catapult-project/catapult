@@ -16,12 +16,10 @@
       this.element_ = opt_options.element;
       this.left_start_percentage_ = opt_options.left_start_percentage;
       this.top_start_percentage_ = opt_options.top_start_percentage;
-      this.gesture_source_type = opt_options.gesture_source_type;
     } else {
       this.element_ = document.body;
       this.left_start_percentage_ = 0.5;
       this.top_start_percentage_ = 0.5;
-      this.gesture_source_type = chrome.gpuBenchmarking.DEFAULT_INPUT;
     }
   }
 
@@ -75,7 +73,7 @@
         rect.top + rect.height * this.options_.top_start_percentage_;
     chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
       callback();
-    }, start_left, start_top, this.options_.gesture_source_type);
+    }, start_left, start_top);
   };
 
   // This class scrolls a page from the top to the bottom once.
