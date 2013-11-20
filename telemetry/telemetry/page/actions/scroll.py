@@ -21,6 +21,8 @@ class ScrollAction(page_action.PageAction):
           'Synthetic scroll not supported for this browser')
 
     # Fail if this action requires touch and we can't send touch events.
+    # TODO(dominikg): Query synthetic gesture target to check if touch is
+    #                 supported.
     if (hasattr(self, 'scroll_requires_touch') and
         self.scroll_requires_touch and not
         tab.EvaluateJavaScript(
@@ -46,26 +48,32 @@ class ScrollAction(page_action.PageAction):
     #   }
     left_start_percentage = 0.5
     top_start_percentage = 0.5
+    gesture_source_type = 'chrome.gpuBenchmarking.DEFAULT_INPUT'
     if hasattr(self, 'left_start_percentage'):
       left_start_percentage = self.left_start_percentage
     if hasattr(self, 'top_start_percentage'):
       top_start_percentage = self.top_start_percentage
+    if hasattr(self, 'scroll_requires_touch') and self.scroll_requires_touch:
+      gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
     if hasattr(self, 'scrollable_element_function'):
       tab.ExecuteJavaScript("""
           (%s)(function(element) { window.__scrollAction.start(
              { element: element,
                left_start_percentage: %s,
-               top_start_percentage: %s })
+               top_start_percentage: %s,
+               gesture_source_type: %s })
              });""" % (self.scrollable_element_function,
                        left_start_percentage,
-                       top_start_percentage))
+                       top_start_percentage,
+                       gesture_source_type))
     else:
       tab.ExecuteJavaScript("""
           window.__scrollAction.start(
           { element: document.body,
             left_start_percentage: %s,
-            top_start_percentage: %s });"""
-        % (left_start_percentage, top_start_percentage))
+            top_start_percentage: %s,
+            gesture_source_type: %s });"""
+        % (left_start_percentage, top_start_percentage, gesture_source_type))
 
     tab.WaitForJavaScriptExpression('window.__scrollActionDone', 60)
 
