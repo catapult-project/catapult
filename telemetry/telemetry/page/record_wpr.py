@@ -20,6 +20,7 @@ from telemetry.page import page_measurement_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
+from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 
 
@@ -99,6 +100,11 @@ def _CreatePageSetForUrl(url):
 def Main(base_dir):
   measurements = discover.DiscoverClasses(base_dir, base_dir,
                                           page_measurement.PageMeasurement)
+  # Filter out ProfileCreators since we don't need them here.
+  # crbug.com/319573 .
+  measurements = {n: cls for n, cls in measurements.iteritems()
+      if not issubclass(cls, profile_creator.ProfileCreator)}
+
   tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                    index_by_class_name=True)
   options = browser_options.BrowserFinderOptions()
