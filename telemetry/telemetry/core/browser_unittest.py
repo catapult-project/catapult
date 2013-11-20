@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging
 import unittest
+import sys
 
 from telemetry.core import browser_finder
 from telemetry.core import gpu_device
@@ -106,6 +107,9 @@ class BrowserTest(unittest.TestCase):
     b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def testCloseReferencedTab(self):
+    if sys.platform in ('win32', 'cygwin'):
+      raise unittest.SkipTest('Test flaky on windows. http://crbug.com/321527')
+
     b = self.CreateBrowser()
     if not b.supports_tab_control:
       logging.warning('Browser does not support tab control, skipping test.')
