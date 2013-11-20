@@ -38,7 +38,7 @@ class RecordPage(page_test.PageTest):
     return page.url.startswith('http')
 
   def CustomizeBrowserOptionsForPage(self, page, options):
-    for compound_action in self._CompoundActionsForPage(page):
+    for compound_action in self._CompoundActionsForPage(page, options):
       for action in compound_action:
         action.CustomizeBrowserOptions(options)
 
@@ -65,19 +65,20 @@ class RecordPage(page_test.PageTest):
     # Run the actions for all measurements. Reload the page between
     # actions.
     should_reload = False
-    for compound_action in self._CompoundActionsForPage(page):
+    for compound_action in self._CompoundActionsForPage(page, options):
       if should_reload:
         self.RunNavigateSteps(page, tab)
       self._RunCompoundAction(page, tab, compound_action)
       should_reload = True
 
-  def _CompoundActionsForPage(self, page):
+  def _CompoundActionsForPage(self, page, options):
     actions = []
     for action_name in self._action_names:
       if not hasattr(page, action_name):
         continue
+      interactive = options and options.interactive
       actions.append(page_test.GetCompoundActionFromPage(
-          page, action_name, self.options.interactive))
+          page, action_name, interactive))
     return actions
 
 
