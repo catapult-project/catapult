@@ -10,10 +10,10 @@ from telemetry.unittest import tab_test_case
 
 
 def _IsDocumentVisible(tab):
-  state = tab.EvaluateJavaScript('document.webkitVisibilityState')
+  hidden = tab.EvaluateJavaScript('document.hidden || document.webkitHidden')
   # TODO(dtu): Remove when crbug.com/166243 is fixed.
   tab.Disconnect()
-  return state == 'visible'
+  return not hidden
 
 
 class TabTest(tab_test_case.TabTestCase):
