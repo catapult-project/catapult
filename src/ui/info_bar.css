@@ -2,7 +2,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
-info-bar {
+x-info-bar {
   -webkit-align-items: center;
   -webkit-flex: 0 0 auto;
   background-color: rgb(252, 235, 162);
@@ -19,9 +19,15 @@ info-bar {
   display: none;
 }
 
-info-bar > .message {
+x-info-bar > .message {
   -webkit-flex: 1 1 auto;
 }
 
-info-bar > .buttons {
+x-info-bar > .buttons {
+}
+
+x-info-bar-group {
+  -webkit-flex: 0 0 auto;
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
 }

@@ -5,6 +5,7 @@
 {
   'variables': {
     'tracing_html_files': [
+      'src/about_tracing/profiling_view.html',
       'src/tracing/record_selection_dialog.html',
       'src/tracing/timeline_view.html',
       'src/tracing/analysis/cpu_slice_view.html',
@@ -18,8 +19,6 @@
     'tracing_css_files': [
       'src/base/unittest.css',
       'src/about_tracing.css',
-      'src/about_tracing/tracing_controller.css',
-      'src/about_tracing/profiling_view.css',
       'src/ui/info_bar.css',
       'src/ui/list_view.css',
       'src/ui/tool_button.css',
@@ -92,8 +91,9 @@
       'src/base/iteration_helpers.js',
       'src/base/interval_tree.js',
       'src/about_tracing.js',
+      'src/about_tracing/begin_recording.js',
+      'src/about_tracing/mock_request_handler.js',
       'src/about_tracing/profiling_view.js',
-      'src/about_tracing/tracing_controller.js',
       'src/ui.js',
       'src/ui/container_that_decorates_its_children.js',
       'src/ui/info_bar.js',

@@ -26,4 +26,42 @@ base.unittest.testSuite('ui.info_bar', function() {
     assertTrue(didClick);
     this.addHTMLOutput(infoBar);
   });
+
+  test('group-instantiate', function() {
+    var infoBarGroup = new ui.InfoBarGroup();
+    infoBarGroup.addMessage(
+        'Message 1',
+        [{buttonText: 'ok', onClick: function() {}}]);
+    infoBarGroup.addMessage(
+        'Message 2',
+        [{buttonText: 'button 2', onClick: function() {}}]);
+    this.addHTMLOutput(infoBarGroup);
+  });
+
+  test('group-populate-then-clear', function() {
+    var infoBarGroup = new ui.InfoBarGroup();
+    infoBarGroup.addMessage(
+        'Message 1',
+        [{buttonText: 'ok', onClick: function() {}}]);
+    infoBarGroup.addMessage(
+        'Message 2',
+        [{buttonText: 'button 2', onClick: function() {}}]);
+    infoBarGroup.clearMessages();
+    assertEquals(0, infoBarGroup.children.length);
+  });
+
+  test('group-populate-clear-repopulate', function() {
+    var infoBarGroup = new ui.InfoBarGroup();
+    infoBarGroup.addMessage(
+        'Message 1',
+        [{buttonText: 'ok', onClick: function() {}}]);
+    infoBarGroup.addMessage(
+        'Message 2',
+        [{buttonText: 'button 2', onClick: function() {}}]);
+    infoBarGroup.clearMessages();
+    infoBarGroup.addMessage(
+        'Message 1',
+        [{buttonText: 'ok', onClick: function() {}}]);
+    this.addHTMLOutput(infoBarGroup);
+  });
 });

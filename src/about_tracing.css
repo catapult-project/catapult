@@ -4,13 +4,16 @@
  */
 html,
 body {
-  blah: blah;
   height: 100%;
 }
 
 body {
-  -webkit-box-orient: vertical;
-  display: -webkit-box;
+  -webkit-flex-direction: column;
+  display: -webkit-flex;
   margin: 0;
   padding: 0;
+}
+
+body > x-profiling-view {
+  -webkit-flex: 1 1 auto;
 }

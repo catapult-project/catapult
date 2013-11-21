@@ -12,7 +12,7 @@ base.exportTo('ui', function() {
   /**
    * @constructor
    */
-  var InfoBar = ui.define('info-bar');
+  var InfoBar = ui.define('x-info-bar');
 
   InfoBar.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -59,7 +59,56 @@ base.exportTo('ui', function() {
     }
   };
 
+  /**
+   * @constructor
+   */
+  var InfoBarGroup = ui.define('x-info-bar-group');
+
+  InfoBarGroup.prototype = {
+    __proto__: HTMLUnknownElement.prototype,
+
+    decorate: function() {
+      this.messages_ = [];
+    },
+
+    clearMessages: function() {
+      this.messages_ = [];
+      this.updateContents_();
+    },
+
+    addMessage: function(text, opt_buttons) {
+      opt_buttons = opt_buttons || [];
+      for (var i = 0; i < opt_buttons.length; i++) {
+        if (opt_buttons[i].buttonText === undefined)
+          throw new Error('buttonText must be provided');
+        if (opt_buttons[i].onClick === undefined)
+          throw new Error('onClick must be provided');
+      }
+
+      this.messages_.push({
+        text: text,
+        buttons: opt_buttons || []
+      });
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+      this.messages_.forEach(function(message) {
+        var bar = new InfoBar();
+        bar.message = message.text;
+        bar.visible = true;
+        message.buttons.forEach(function(button) {
+          bar.addButton(button.buttonText, button.onClick);
+        }, this);
+        this.appendChild(bar);
+      }, this);
+    }
+  };
+
+
   return {
-    InfoBar: InfoBar
+    InfoBar: InfoBar,
+    InfoBarGroup: InfoBarGroup
   };
 });

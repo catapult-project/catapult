@@ -1,9 +1,9 @@
-/* Copyright (c) 2012 The Chromium Authors. All rights reserved.
+/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
 
-.timeline-view {
+x-timeline-view {
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;
   cursor: default;
@@ -12,7 +12,7 @@
   padding: 0;
 }
 
-.timeline-view > .control > .title {
+x-timeline-view > .control > .title {
   font-size: 14px;
   height: 19px;
   padding-left: 2px;
@@ -20,7 +20,7 @@
   padding-top: 2px;
 }
 
-.timeline-view > .control {
+x-timeline-view > .control {
   background-color: #e6e6e6;
   background-image: -webkit-gradient(linear,
                                      0 0,
@@ -32,57 +32,57 @@
   padding-top: 1px;
 }
 
-.timeline-view > .control > #right-controls {
+x-timeline-view > .control > #right-controls {
   margin-left: auto;
 }
 
-.timeline-view > .control > .controls {
+x-timeline-view > .control > .controls {
   display: -webkit-flex;
 }
 
-.timeline-view > .control > span {
+x-timeline-view > .control > span {
   padding-left: 5px;
   padding-right: 10px;
 }
 
-.timeline-view > .control > .controls > button,
-.timeline-view > .control > .controls label {
+x-timeline-view > .control > .controls button,
+x-timeline-view > .control > .controls label {
   font-size: 11px;
   height: 19px;
   margin: 1px 2px 1px 2px;
 }
 
-.timeline-view > .control > .spacer {
+x-timeline-view > .control > .spacer {
   -webkit-box-flex: 1;
 }
 
-.timeline-view > .container {
+x-timeline-view > .container {
   -webkit-box-flex: 1;
   border-bottom: 1px solid #8e8e8e;
   display: -webkit-box;
 }
 
-.timeline-view > .container > * {
+x-timeline-view > .container > * {
   -webkit-box-flex: 1;
 }
 
-.timeline-view > .analysis-view {
+x-timeline-view > .analysis-view {
   display: -webkit-flex;
   padding-left: 2px;
   padding-right: 2px;
 }
-.timeline-view > .analysis-view:not(.tall-mode) {
+x-timeline-view > .analysis-view:not(.tall-mode) {
   height: 250px;
 }
-.timeline-view > .analysis-view.tall-mode {
+x-timeline-view > .analysis-view.tall-mode {
   height: 500px;
 }
 
-.timeline-view .selection {
+x-timeline-view .selection {
   margin: 2px;
 }
 
-.timeline-view .selection ul {
+x-timeline-view .selection ul {
   margin: 0;
 }
 
@@ -116,8 +116,8 @@
 
 .metadata-dialog-text {
   font-family: monospace;
-  white-space: pre;
   overflow: auto;
+  white-space: pre;
 }
 
 .view-help-text {

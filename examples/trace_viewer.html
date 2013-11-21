@@ -9,7 +9,16 @@ found in the LICENSE file.
 <title>Simple Embedded Viewer</title>
 <script src="/src/base.js"></script>
 <style>
-  .view {
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+  }
+  x-timeline-view {
+    -webkit-flex: 1 1 auto;
     overflow: hidden;
     position: absolute;
     top: 40px;
@@ -25,11 +34,8 @@ found in the LICENSE file.
   <select id="trace_file">
   </select>
   </div>
-
-  <div class="main">
-    <div class="view">
-    </div>
-  </div>
+  <x-timeline-view>
+  </x-timeline-view>
 
   <script>
   base.require('tracing.timeline_view');
@@ -140,7 +146,7 @@ found in the LICENSE file.
   window.addEventListener('hashchange', onHashChange);
 
   function onLoad() {
-    timelineViewEl = document.querySelector('.view');
+    timelineViewEl = document.querySelector('x-timeline-view');
     ui.decorate(timelineViewEl, tracing.TimelineView);
 
     getAsync('/json/examples', function(data) {

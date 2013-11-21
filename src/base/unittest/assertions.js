@@ -129,6 +129,22 @@ base.exportTo('base.unittest', function() {
       throw new base.unittest.TestError(message);
     },
 
+    assertArrayBufferEquals: function(a, b, opt_message) {
+      if (a.byteLength === b.byteLength) {
+        var ok = true;
+        a = new Uint8Array(a);
+        b = new Uint8Array(b);
+        for (var i = 0; i < a.length; i++) {
+          ok &= (a[i] === b[i]);
+        }
+        if (ok)
+          return;
+      }
+
+      var message = opt_message || 'Array buffers mismatch';
+      throw new base.unittest.TestError(message);
+    },
+
     assertAlmostEquals: function(a, b, opt_message) {
       if (Math.abs(a - b) < 0.00001)
         return;
@@ -241,4 +257,3 @@ base.exportTo('base.unittest', function() {
     Assertions: Assertions
   };
 });
-

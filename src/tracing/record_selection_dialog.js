@@ -141,7 +141,7 @@ base.exportTo('tracing', function() {
 
     onRecordButtonClicked_: function() {
       this.visible = false;
-      base.dispatchSimpleEvent(this, 'recordclicked');
+      base.dispatchSimpleEvent(this, 'recordclick');
       return false;
     },
 

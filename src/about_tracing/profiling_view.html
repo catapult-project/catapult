@@ -1,0 +1,31 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="profiling-view-template">
+  <style>
+    x-profiling-view {
+      -webkit-flex-direction: column;
+      display: -webkit-flex;
+      padding: 0;
+    }
+
+    x-profiling-view .controls #save-button {
+      margin-left: 64px !important;
+    }
+
+    x-profiling-view > x-timeline-view {
+      -webkit-flex: 1 1 auto;
+    }
+  </style>
+  <x-info-bar-group></x-info-bar-group>
+  <x-timeline-view>
+    <x-timeline-view-buttons>
+      <button id="record-button">Record</button>
+      <button id="save-button">Save</button>
+      <button id="load-button">Load</button>
+    </x-timeline-view-buttons>
+  </x-timeline-view>
+</template>
