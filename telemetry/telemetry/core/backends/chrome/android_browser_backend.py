@@ -184,8 +184,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
     self._saved_cmdline = None
-    if not self.browser_options.keep_test_server_ports:
-      adb_commands.ResetTestServerPortAllocation()
     self._port = adb_commands.AllocateTestServerPort()
 
     # Kill old browser.

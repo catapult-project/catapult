@@ -221,8 +221,6 @@ class BrowserOptions(object):
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
     self.startup_url = None
 
-    self.keep_test_server_ports = False
-
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
@@ -256,15 +254,6 @@ class BrowserOptions(object):
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
-    parser.add_option_group(group)
-
-    # Android options. TODO(achuith): Move to AndroidBrowserOptions.
-    group = optparse.OptionGroup(parser, 'Android options')
-    group.add_option('--keep_test_server_ports',
-        action='store_true',
-        help='Indicates the test server ports must be kept. When this is run '
-             'via a sharder the test server ports should be kept and should '
-             'not be reset.')
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')

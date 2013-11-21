@@ -198,12 +198,11 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
         if ret:
           logging.warn('Failed to taskset %d (%s)', pid, ret)
 
-    # Experimental device side workaround for crbug.com/268450 (adb instability)
-    # The /sbin/adbd process on the device appears to hang which causes adb to
-    # report that the device is offline. Our working theory is that killing
-    # the process and allowing it to be automatically relaunched will allow us
-    # to run for longer before it hangs.
     if not os.environ.get('BUILDBOT_BUILDERNAME'):
+      # Killing adbd before running tests has proven to make them less likely to
+      # flake out during the test. We skip this if Telemetry is running under a
+      # buildbot because build/android/test_runner.py wrapper already took care
+      # of it before starting the shards.
       adb.RestartAdbdOnDevice()
 
   packages = adb.RunShellCommand('pm list packages')
