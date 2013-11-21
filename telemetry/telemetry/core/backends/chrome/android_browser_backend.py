@@ -92,10 +92,10 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     files = self.adb.RunShellCommand('su -c ls "%s"' % self.profile_dir)
     files.remove('lib')
     paths = ['%s/%s' % (self.profile_dir, f) for f in files]
-    extended_paths = ['"%s" "%s/*" "%s/*/*" "%s/*/*/*"' %
-                      (p, p, p, p) for p in paths]
-    self.adb.RunShellCommand('chown %s.%s %s' %
-                             (uid, uid, ' '.join(extended_paths)))
+    for path in paths:
+      extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
+      self.adb.RunShellCommand('chown %s.%s %s' %
+                             (uid, uid, extended_path))
 
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
