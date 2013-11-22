@@ -43,11 +43,12 @@ class InspectorBackend(object):
   def __del__(self):
     self.Disconnect()
 
-  def _Connect(self):
+  def _Connect(self, timeout=10):
     if self._socket:
       return
     try:
-      self._socket = websocket.create_connection(self._debugger_url)
+      self._socket = websocket.create_connection(self._debugger_url,
+          timeout=timeout)
     except (websocket.WebSocketException):
       if self._browser_backend.IsBrowserRunning():
         raise exceptions.TabCrashException(sys.exc_info()[1])
@@ -200,7 +201,7 @@ class InspectorBackend(object):
   # Methods used internally by other backends.
 
   def DispatchNotifications(self, timeout=10):
-    self._Connect()
+    self._Connect(timeout)
     self._SetTimeout(timeout)
     res = self._ReceiveJsonData(timeout)
     if 'method' in res:
@@ -273,7 +274,7 @@ class InspectorBackend(object):
     self._Connect()
 
   def SyncRequest(self, req, timeout=10):
-    self._Connect()
+    self._Connect(timeout)
     self._SetTimeout(timeout)
     self.SendAndIgnoreResponse(req)
 
