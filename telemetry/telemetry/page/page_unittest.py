@@ -41,6 +41,20 @@ class TestPage(unittest.TestCase):
     self.assertTrue(apage.file_path_url.endswith(os.sep) or
                     (os.altsep and apage.file_path_url.endswith(os.altsep)))
 
+  def testSort(self):
+    ps = page_set.PageSet.FromDict({
+      'description': 'hello',
+      'archive_path': 'foo.wpr',
+      'pages': [
+        {'url': 'http://www.foo.com/'},
+        {'url': 'http://www.bar.com/'}
+        ]
+      }, os.path.dirname(__file__))
+    pages = [ps.pages[0], ps.pages[1]]
+    pages.sort()
+    self.assertEquals([ps.pages[1], ps.pages[0]],
+                      pages)
+
   def testGetUrlBaseDirAndFileForUrlBaseDir(self):
     ps = page_set.PageSet.FromDict({
         'description': 'hello',

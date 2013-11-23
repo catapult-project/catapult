@@ -81,9 +81,9 @@ class PageMeasurementUnitTest(
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
     measurement = MeasurementThatHasDefaults()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertEquals(len(all_results.page_results), 1)
+    self.assertEquals(len(all_results.all_page_specific_values), 1)
     self.assertEquals(
-      all_results.page_results[0].FindValueByTraceName('x').value, 7)
+      all_results.all_page_specific_values[0].value, 7)
 
   def disabled_testRecordAndReplay(self):
     # This test is disabled because it runs against live sites, and needs to be

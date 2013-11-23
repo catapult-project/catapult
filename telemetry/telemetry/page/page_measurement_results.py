@@ -1,115 +1,106 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import value as value_module
 from telemetry.page import page_test_results
-from telemetry.page import page_measurement_value
-
-class ValuesForSinglePage(object):
-  def __init__(self, page):
-    self.page = page
-    self.values = []
-
-  def AddValue(self, value):
-    self.values.append(value)
-
-  @property
-  def measurement_names(self):
-    return [value.measurement_name for value in self.values]
-
-  def FindValueByMeasurementName(self, measurement_name):
-    values = [value for value in self.values
-              if value.measurement_name == measurement_name]
-    assert len(values) <= 1
-    if len(values):
-      return values[0]
-    return None
-
-  def __getitem__(self, trace_name):
-    return self.FindValueByTraceName(trace_name)
-
-  def __contains__(self, trace_name):
-    return self.FindValueByTraceName(trace_name) != None
-
-  def FindValueByTraceName(self, trace_name):
-    values = [value for value in self.values
-              if value.trace_name == trace_name]
-    assert len(values) <= 1
-    if len(values):
-      return values[0]
-    return None
+from telemetry.value import value_backcompat
 
 class PageMeasurementResults(page_test_results.PageTestResults):
   def __init__(self, trace_tag=''):
     super(PageMeasurementResults, self).__init__()
+    self._done = False
     self._trace_tag = trace_tag
-    self._page_results = []
-    self._overall_results = []
 
-    self._all_measurements_that_have_been_seen = {}
+    self._current_page = None
+    self._page_specific_values_for_current_page = None
 
-    self._values_for_current_page = {}
+    self._representative_values_for_each_value_name = {}
 
-  def __getitem__(self, i):
-    """Shorthand for self.page_results[i]"""
-    return self._page_results[i]
-
-  def __len__(self):
-    return len(self._page_results)
+    self._all_summary_values = []
+    self._all_page_specific_values = []
 
   @property
-  def values_for_current_page(self):
-    return self._values_for_current_page
+  def pages_that_succeeded(self):
+    pages = set([value.page for value in self._all_page_specific_values])
+    pages.difference_update(self.pages_that_had_errors_or_failures)
+    return pages
 
   @property
-  def page_results(self):
-    return self._page_results
+  def current_page(self):
+    return self._current_page
+
+  @property
+  def all_value_names_that_have_been_seen(self):
+    return list(self._representative_values_for_each_value_name.keys())
+
+  def GetUnitsForValueName(self, value_name):
+    return self._representative_values_for_each_value_name[value_name].units
+
+  @property
+  def all_page_specific_values(self):
+    return self._all_page_specific_values
+
+  @property
+  def page_specific_values_for_current_page(self):
+    assert self._current_page
+    return self._page_specific_values_for_current_page
+
+  def GetAllPageSpecificValuesForSuccessfulPages(self):
+    pages_that_had_errors_or_failures = self.pages_that_had_errors_or_failures
+    return [
+      value for value in self._all_page_specific_values
+      if value.page not in pages_that_had_errors_or_failures]
 
   def WillMeasurePage(self, page):
-    self._values_for_current_page = ValuesForSinglePage(page)
-
-  @property
-  def all_measurements_that_have_been_seen(self):
-    return self._all_measurements_that_have_been_seen
+    assert not self._current_page
+    self._current_page = page
+    self._page_specific_values_for_current_page = []
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
-    value = self._GetPageMeasurementValue(trace_name, units, value, chart_name,
-                                        data_type)
-    self._values_for_current_page.AddValue(value)
+    value = value_backcompat.ConvertOldCallingConventionToValue(
+      self._current_page,
+      trace_name, units, value, chart_name, data_type)
+    self._ValidateValue(value)
+    self._page_specific_values_for_current_page.append(value)
+    self._all_page_specific_values.append(value)
 
   def AddSummary(self, trace_name, units, value, chart_name=None,
                  data_type='default'):
-    value = self._GetPageMeasurementValue(trace_name, units, value, chart_name,
-                                        data_type)
-    self._overall_results.append(value)
+    value = value_backcompat.ConvertOldCallingConventionToValue(
+      None,
+      trace_name, units, value, chart_name, data_type)
+    self._ValidateValue(value)
+    self._all_summary_values.append(value)
 
-  def _GetPageMeasurementValue(self, trace_name, units, value, chart_name,
-                             data_type):
-    value = page_measurement_value.PageMeasurementValue(
-        trace_name, units, value, chart_name, data_type)
-    measurement_name = value.measurement_name
+  def _ValidateValue(self, value):
+    assert isinstance(value, value_module.Value)
 
-    # Sanity checks.
-    assert measurement_name != 'url', 'The name url cannot be used'
-    if measurement_name in self._all_measurements_that_have_been_seen:
-      measurement_data = \
-          self._all_measurements_that_have_been_seen[measurement_name]
-      last_seen_units = measurement_data['units']
-      last_seen_data_type = measurement_data['type']
-      assert last_seen_units == units, \
-          'Unit cannot change for a name once it has been provided'
-      assert last_seen_data_type == data_type, \
-          'Unit cannot change for a name once it has been provided'
-    else:
-      self._all_measurements_that_have_been_seen[measurement_name] = {
-        'units': units,
-        'type': data_type}
-    return value
+    if value.name not in self._representative_values_for_each_value_name:
+      self._representative_values_for_each_value_name[value.name] = value
+
+    representative_value = self._representative_values_for_each_value_name[
+        value.name]
+
+    assert value.IsMergableWith(representative_value)
 
   def DidMeasurePage(self):
-    assert self._values_for_current_page, 'Failed to call WillMeasurePage'
-    if not self.values_for_current_page.values:
-      # Do not store to page_results list if no results were added on this page.
-      return
-    self._page_results.append(self._values_for_current_page)
-    self._values_for_current_page = None
+    assert self._current_page, 'Failed to call WillMeasurePage'
+    self._current_page = None
+    self._page_specific_values_for_current_page = None
+
+
+  def FindPageSpecificValuesForPage(self, page, value_name):
+    values = []
+    for value in self._all_page_specific_values:
+      if value.page == page and value.name == value_name:
+        values.append(value)
+    return values
+
+
+  def FindAllPageSpecificValuesNamed(self, value_name):
+    values = []
+    for value in self._all_page_specific_values:
+      if value.name == value_name:
+        values.append(value)
+    return values

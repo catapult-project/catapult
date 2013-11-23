@@ -33,6 +33,15 @@ class Page(object):
     raise AttributeError(
         '%r object has no attribute %r' % (self.__class__, name))
 
+  def __lt__(self, other):
+    return self.url < other.url
+
+  def __cmp__(self, other):
+    x = cmp(self.name, other.name)
+    if x != 0:
+      return x
+    return cmp(self.url, other.url)
+
   def __str__(self):
     return self.url
 

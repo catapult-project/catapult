@@ -36,7 +36,8 @@ class HtmlPageMeasurementResults(
     self._test_name = test_name
     self._reset_results = reset_results
     self._upload_results = upload_results
-    self._result_json = {
+    self._existing_results = self._ReadExistingResults(output_stream)
+    self._result = {
         'buildTime': self._GetBuildTime(),
         'revision': self._GetRevision(),
         'label': results_label,
@@ -64,8 +65,8 @@ class HtmlPageMeasurementResults(
   def _GetUnitJson(self):
     return open(os.path.join(util.GetChromiumSrcDir(), *_UNIT_JSON), 'r').read()
 
-  def _GetResultsJson(self):
-    results_html = self._output_stream.read()
+  def _ReadExistingResults(self, output_stream):
+    results_html = output_stream.read()
     if self._reset_results or not results_html:
       return []
     m = re.search(
@@ -89,21 +90,26 @@ class HtmlPageMeasurementResults(
     metric_name = measurement
     if trace != measurement:
       metric_name += '.' + trace
-    self._result_json['tests'].setdefault(self._test_name, {})
-    self._result_json['tests'][self._test_name].setdefault('metrics', {})
-    self._result_json['tests'][self._test_name]['metrics'][metric_name] = {
+    self._result['tests'].setdefault(self._test_name, {})
+    self._result['tests'][self._test_name].setdefault('metrics', {})
+    self._result['tests'][self._test_name]['metrics'][metric_name] = {
         'current': values,
         'units': units,
         'important': result_type == 'default'
         }
 
+  def GetResults(self):
+    return self._result
+
+  def GetCombinedResults(self):
+    all_results = list(self._existing_results)
+    all_results.append(self.GetResults())
+    return all_results
+
   def PrintSummary(self):
     super(HtmlPageMeasurementResults, self).PrintSummary()
-
-    json_results = self._GetResultsJson()
-    json_results.append(self._result_json)
     html = self._GetHtmlTemplate()
-    html = html.replace('%json_results%', json.dumps(json_results))
+    html = html.replace('%json_results%', json.dumps(self.GetCombinedResults()))
     html = html.replace('%json_units%', self._GetUnitJson())
     html = html.replace('%plugins%', self._GetPlugins())
     self._SaveResults(html)
