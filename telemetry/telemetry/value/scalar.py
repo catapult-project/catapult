@@ -1,6 +1,9 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import numbers
+
 from telemetry.value import Value
 from telemetry.value.list_of_scalar_values import ListOfScalarValues
 
@@ -13,7 +16,7 @@ class ScalarValue(Value):
        ScalarValue(page, 'num_dom_elements', 'count', num_elements)
     """
     super(ScalarValue, self).__init__(page, name, units, important)
-    assert isinstance(value, int) or isinstance(value, float)
+    assert isinstance(value, numbers.Number)
     self.value = value
 
   def __repr__(self):

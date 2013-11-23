@@ -1,6 +1,9 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import numbers
+
 from telemetry import value as value_module
 
 def _Mean(values):
@@ -13,7 +16,7 @@ class ListOfScalarValues(value_module.Value):
     assert len(values) > 0
     assert isinstance(values, list)
     for v in values:
-      assert isinstance(v, int) or isinstance(v, float)
+      assert isinstance(v, numbers.Number)
     self.values = values
     self.same_page_merge_policy = same_page_merge_policy
 
