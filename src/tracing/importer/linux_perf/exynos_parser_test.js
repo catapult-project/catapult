@@ -9,21 +9,6 @@ base.require('tracing.importer.linux_perf_importer');
 
 base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
                         function() {
-      test('exynosImport', function() {
-        var lines = [
-          ' X-945   [001] ....   113.995549: exynos_flip_request: pipe=0',
-          ' X-945   [001] ....   113.995561: exynos_flip_complete: pipe=0'
-        ];
-        var m = new tracing.TraceModel(lines.join('\n'), false);
-        assertFalse(m.hasImportWarnings);
-
-        var threads = m.getAllThreads();
-        assertEquals(1, threads.length);
-
-        var gfxFlipThread = threads[0];
-        assertEquals('exynos_flip', gfxFlipThread.name);
-        assertEquals(1, gfxFlipThread.sliceGroup.length);
-      });
 
       test('exynosBusfreqImport', function() {
         var lines = [

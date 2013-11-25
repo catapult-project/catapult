@@ -19,11 +19,6 @@ base.exportTo('tracing.importer.linux_perf', function() {
   function ExynosParser(importer) {
     Parser.call(this, importer);
 
-    importer.registerEventHandler('exynos_flip_request',
-        ExynosParser.prototype.flipEvent.bind(this));
-    importer.registerEventHandler('exynos_flip_complete',
-        ExynosParser.prototype.flipEvent.bind(this));
-
     importer.registerEventHandler('exynos_busfreq_target_int',
         ExynosParser.prototype.busfreqTargetIntEvent.bind(this));
     importer.registerEventHandler('exynos_busfreq_target_mif',
@@ -35,46 +30,6 @@ base.exportTo('tracing.importer.linux_perf', function() {
 
   ExynosParser.prototype = {
     __proto__: Parser.prototype,
-
-    exynosFlipOpenSlice: function(ts, pipe) {
-      // use pipe?
-      var kthread = this.importer.getOrCreatePseudoThread('exynos_flip');
-      kthread.openSliceTS = ts;
-      kthread.openSlice = 'flip:' + pipe;
-    },
-
-    exynosFlipCloseSlice: function(ts, args) {
-      var kthread = this.importer.getOrCreatePseudoThread('exynos_flip');
-      if (kthread.openSlice) {
-        var slice = new tracing.trace_model.Slice('', kthread.openSlice,
-            tracing.getStringColorId(kthread.openSlice),
-            kthread.openSliceTS,
-            args,
-            ts - kthread.openSliceTS);
-
-        kthread.thread.sliceGroup.pushSlice(slice);
-      }
-      kthread.openSlice = undefined;
-    },
-
-    /**
-     * Parses exynos events and sets up state in the importer.
-     */
-    flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /pipe=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
-
-      var pipe = parseInt(event[1]);
-      if (eventName == 'exynos_flip_request')
-        this.exynosFlipOpenSlice(ts, pipe);
-      else
-        this.exynosFlipCloseSlice(ts,
-            {
-              pipe: pipe
-            });
-      return true;
-    },
 
     exynosBusfreqSample: function(name, ts, frequency) {
       var targetCpu = this.importer.getOrCreateCpuState(0);
