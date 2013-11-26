@@ -127,6 +127,14 @@ base.exportTo('cc', function() {
           'When checked, scroll bottlenecks are highlighted';
       this.controls_.appendChild(showBottlenecksCheckbox);
 
+      var showLayoutRectsCheckbox = ui.createCheckBox(
+          this, 'showLayoutRects',
+          'layerView.showLayoutRects', false,
+          'Layout rects');
+      showLayoutRectsCheckbox.title =
+          'When checked, shows rects for regions where layout happened';
+      this.controls_.appendChild(showLayoutRectsCheckbox);
+
       var showContentsCheckbox = ui.createCheckBox(
           this, 'showContents',
           'layerView.showContents', true,
@@ -200,6 +208,15 @@ base.exportTo('cc', function() {
 
     set showBottlenecks(show) {
       this.showBottlenecks_ = show;
+      this.updateContents_();
+    },
+
+    get showLayoutRects() {
+      return this.showLayoutRects_;
+    },
+
+    set showLayoutRects(show) {
+      this.showLayoutRects_ = show;
       this.updateContents_();
     },
 
@@ -560,6 +577,32 @@ base.exportTo('cc', function() {
       }
     },
 
+    appendLayoutRectQuads_: function(quads, layer, layerQuad) {
+      if (!layer.layoutRects) {
+        return;
+      }
+
+      for (var ct = 0; ct < layer.layoutRects.length; ++ct) {
+        var rect = layer.layoutRects[ct].geometryRect;
+        rect = rect.scale(1.0 / layer.geometryContentsScale);
+
+        var unitRect = rect.asUVRectInside(layer.bounds);
+        var quad = layerQuad.projectUnitRect(unitRect);
+
+        quad.backgroundColor = 'rgba(0, 0, 0, 0)';
+        quad.stackingGroupId = layerQuad.stackingGroupId;
+
+        quad.borderColor = 'rgba(0, 0, 200, 0.7)';
+        quad.borderWidth = 2;
+        var label;
+        label = 'Layout rect';
+        quad.selectionToSetIfClicked = new cc.LayerRectSelection(
+            layer, label, rect);
+
+        quads.push(quad);
+      }
+    },
+
     getValueForHeatmap_: function(tile, heatmapType) {
       if (heatmapType == TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY) {
         return tile.scheduledPriority == 0 ?
@@ -742,6 +785,8 @@ base.exportTo('cc', function() {
         if (this.showBottlenecks)
           this.appendBottleneckQuads_(quads, layer, layerQuad,
                                       layerQuad.stackingGroupId);
+        if (this.showLayoutRects)
+          this.appendLayoutRectQuads_(quads, layer, layerQuad);
 
         if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(

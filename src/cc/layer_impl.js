@@ -40,10 +40,11 @@ base.exportTo('cc', function() {
       // Import & validate this.args
       cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['layerId', 'children',
-            'layerQuad']);
+                 'layerQuad']);
       cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['maskLayer', 'replicaLayer',
-            'idealContentsScale', 'geometryContentsScale']);
+                 'idealContentsScale', 'geometryContentsScale',
+                 'layoutRects']);
 
       // Leave bounds in both places.
       this.bounds = base.Rect.fromXYWH(
