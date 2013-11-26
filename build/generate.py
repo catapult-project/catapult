@@ -127,7 +127,8 @@ def generate_html_for_combined_templates(load_sequence):
 
 class ExtraScript(object):
   def __init__(self, script_id, text_content, content_type=None):
-    assert script_id[0] != '#'
+    if script_id != None:
+      assert script_id[0] != '#'
     assert isinstance(text_content, basestring)
     self.script_id = script_id
     self.text_content = text_content
@@ -153,10 +154,15 @@ def generate_standalone_html_file(load_sequence,
     head_html_chunks.append('</script>')
 
   for extra_script in extra_scripts:
-    attrs = ['id="%s"' % extra_script.script_id]
+    attrs = []
+    if extra_script.script_id:
+      attrs.append('id="%s"' % extra_script.script_id)
     if extra_script.content_type:
       attrs.append('content-type="%s"' % extra_script.content_type)
-    head_html_chunks.append('<script %s>' % ' '.join(attrs))
+    if len(attrs) > 0:
+      head_html_chunks.append('<script %s>' % ' '.join(attrs))
+    else:
+      head_html_chunks.append('<script>')
     head_html_chunks.append(extra_script.text_content)
     head_html_chunks.append('</script>')
 
