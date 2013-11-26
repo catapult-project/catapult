@@ -88,6 +88,23 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
                     'num_errored= 0 count']
     self.assertEquals(expected, measurement_results.results)
 
+  def test_basic_summary_with_only_one_page(self):
+    test_page_set = _MakePageSet()
+
+    measurement_results = SummarySavingPageMeasurementResults()
+    measurement_results.WillMeasurePage(test_page_set.pages[0])
+    measurement_results.Add('a', 'seconds', 3)
+    measurement_results.DidMeasurePage()
+    measurement_results.AddSuccess(test_page_set.pages[0])
+
+    measurement_results.PrintSummary()
+    expected = ['*RESULT a: a= 3 seconds',
+                'RESULT telemetry_page_measurement_results: ' +
+                    'num_failed= 0 count',
+                'RESULT telemetry_page_measurement_results: ' +
+                    'num_errored= 0 count']
+    self.assertEquals(expected, measurement_results.results)
+
   def test_basic_summary_nonuniform_results(self):
     test_page_set = _MakePageSet()
 

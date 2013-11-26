@@ -41,8 +41,12 @@ class BuildbotPageMeasurementResults(
     all_successful_page_values = (
         self.GetAllPageSpecificValuesForSuccessfulPages())
 
-    had_exactly_one_successful_page = len(
-        set([v.page for v in all_successful_page_values])) == 1
+    # We will later need to determine how many values were originally created
+    # for each value name, to apply a workaround meant to clean up the printf
+    # output.
+    num_successful_pages_for_value_name = defaultdict(int)
+    for v in all_successful_page_values:
+      num_successful_pages_for_value_name[v.name] += 1
 
     # By here, due to page repeat options, all_values_from_successful_pages
     # contains values of the same name not only from mulitple pages, but also
@@ -97,8 +101,11 @@ class BuildbotPageMeasurementResults(
           key=lambda per_page_values: per_page_values.page.display_name)
 
       # Output the _by_url results.
+      num_successful_pages_for_this_value_name = (
+          num_successful_pages_for_value_name[value_name])
       for per_page_value in sorted_per_page_values:
-        self._PrintPerPageValue(per_page_value, had_exactly_one_successful_page)
+        self._PrintPerPageValue(per_page_value,
+                                num_successful_pages_for_this_value_name)
 
       # Output the combined values.
       merged_pages_value = merged_pages_value_by_value_name.get(value_name,
@@ -106,7 +113,7 @@ class BuildbotPageMeasurementResults(
       if merged_pages_value:
         self._PrintMergedPagesValue(merged_pages_value)
 
-  def _PrintPerPageValue(self, value, had_exactly_one_successful_page):
+  def _PrintPerPageValue(self, value, num_successful_pages_for_this_value_name):
     # We dont print per-page-values when there is a trace tag.
     if self._trace_tag:
       return
@@ -114,11 +121,16 @@ class BuildbotPageMeasurementResults(
     # If there were any page errors, we typically will print nothing.
     #
     # Note: this branch is structured less-densely to improve legibility.
-    if self.had_errors_or_failures:
-      if had_exactly_one_successful_page:
-        pass
-      else:
-        return
+    if num_successful_pages_for_this_value_name > 1:
+      should_print = True
+    elif (self.had_errors_or_failures and
+         num_successful_pages_for_this_value_name == 1):
+      should_print = True
+    else:
+      should_print = False
+
+    if not should_print:
+      return
 
     # Actually print the result.
     buildbot_value = value.GetBuildbotValue()
