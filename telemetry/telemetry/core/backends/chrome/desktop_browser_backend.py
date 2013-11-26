@@ -223,20 +223,20 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not IsClosed():
         self._proc.terminate()
         try:
-          util.WaitFor(IsClosed, timeout=1)
+          util.WaitFor(IsClosed, timeout=5)
           self._proc = None
         except util.TimeoutException:
-          pass
+          logging.warning('Failed to gracefully shutdown. Proceeding to kill.')
 
       # Kill it.
       if not IsClosed():
         self._proc.kill()
         try:
-          util.WaitFor(IsClosed, timeout=5)
-          self._proc = None
+          util.WaitFor(IsClosed, timeout=10)
         except util.TimeoutException:
-          self._proc = None
           raise Exception('Could not shutdown the browser.')
+        finally:
+          self._proc = None
 
     if self._output_profile_path:
       # If we need the output then double check that it exists.
