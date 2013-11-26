@@ -59,7 +59,7 @@ class ResourceFinder(object):
 
   def resolve_absolute(self, absolute_path):
     for search_path in self._search_paths:
-      if abspath.startswith(search_path):
+      if absolute_path.startswith(search_path):
         return ResolvedFile(search_path, absolute_path)
     return None
 
