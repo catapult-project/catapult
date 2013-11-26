@@ -32,3 +32,8 @@ class PosixPlatformBackendTest(unittest.TestCase):
     lines = ['1 0 S', '2 1 R', '3 2 S', '4 1 R', '5 4 Z']
     result = self._GetChildPids(lines, 1)
     self.assertEquals(set(result), set([2, 3, 4]))
+
+  def testGetChildPidsWithMissingState(self):
+    lines = ['  1 0 S  ', '  2 1', '3 2 ']
+    result = self._GetChildPids(lines, 1)
+    self.assertEquals(set(result), set([2, 3]))
