@@ -17,7 +17,7 @@ class CsvPageMeasurementResults(
     self._output_after_every_page = output_after_every_page
 
   def DidMeasurePage(self):
-    assert self.page_specific_values_for_current_page
+    assert self.page_specific_values_for_current_page != None
 
     values = self.page_specific_values_for_current_page
     if (not values or

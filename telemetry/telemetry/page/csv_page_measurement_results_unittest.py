@@ -68,6 +68,15 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
         self.output_data_rows[1],
         [self._page_set[1].url, '4'])
 
+  def test_with_no_results_on_second_run(self):
+    results = NonPrintingCsvPageMeasurementResults(self._output, True)
+    results.WillMeasurePage(self._page_set[0])
+    results.Add('foo', 'seconds', 3)
+    results.DidMeasurePage()
+
+    results.WillMeasurePage(self._page_set[1])
+    results.DidMeasurePage()
+
   def test_with_output_after_every_page_and_inconsistency(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
