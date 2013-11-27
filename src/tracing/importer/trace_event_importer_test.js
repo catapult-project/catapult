@@ -48,7 +48,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(0, slice.subSlices.length);
   });
 
-  test('basicSingleThreadNonnestedParsingWithThreadTime', function() {
+  test('basicSingleThreadNonnestedParsingWiththreadDuration', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B', tts: 221}, // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E', tts: 259}, // @suppress longLineCheck
@@ -71,7 +71,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
     assertAlmostEquals((560 - 520) / 1000, slice.duration);
-    assertAlmostEquals((259 - 221) / 1000, slice.threadTime);
+    assertAlmostEquals((259 - 221) / 1000, slice.threadDuration);
     assertEquals(0, slice.subSlices.length);
 
     slice = t.sliceGroup.slices[1];
@@ -79,7 +79,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('bar', slice.category);
     assertAlmostEquals((629 - 520) / 1000, slice.start);
     assertAlmostEquals((631 - 629) / 1000, slice.duration);
-    assertAlmostEquals((331 - 329) / 1000, slice.threadTime);
+    assertAlmostEquals((331 - 329) / 1000, slice.threadDuration);
     assertEquals(0, slice.subSlices.length);
   });
 
@@ -1470,6 +1470,48 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', slice.category);
     assertAlmostEquals((730 - 629) / 1000, slice.start);
     assertAlmostEquals(20 / 1000, slice.duration);
+    assertEquals(1, slice.subSlices.length);
+
+    slice = t.sliceGroup.slices[2];
+    assertEquals('c', slice.title);
+    assertTrue(slice.didNotFinish);
+    assertAlmostEquals(10 / 1000, slice.duration);
+  });
+
+  test('importCompleteEventWithThreadDuration', function() {
+    var events = [
+      { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X', tts: 12, tdur: 1 },  // @suppress longLineCheck
+      { name: 'b', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X', tts: 110, tdur: 16 },  // @suppress longLineCheck
+      { name: 'c', args: {}, pid: 52, ts: 740, cat: 'baz', tid: 53, ph: 'X', tts: 115 }  // @suppress longLineCheck
+    ];
+
+    var m = new tracing.TraceModel(events);
+    assertEquals(1, m.numProcesses);
+    var p = m.processes[52];
+    assertNotUndefined(p);
+
+    assertEquals(1, p.numThreads);
+    var t = p.threads[53];
+    assertNotUndefined(t);
+    assertEquals(3, t.sliceGroup.slices.length);
+    assertEquals(53, t.tid);
+
+    var slice = t.sliceGroup.slices[0];
+    assertEquals('a', slice.title);
+    assertEquals('baz', slice.category);
+    assertAlmostEquals(0, slice.start);
+    assertAlmostEquals(1 / 1000, slice.duration);
+    assertAlmostEquals(12 / 1000, slice.threadStart);
+    assertAlmostEquals(1 / 1000, slice.threadDuration);
+    assertEquals(0, slice.subSlices.length);
+
+    slice = t.sliceGroup.slices[1];
+    assertEquals('b', slice.title);
+    assertEquals('foo', slice.category);
+    assertAlmostEquals((730 - 629) / 1000, slice.start);
+    assertAlmostEquals(20 / 1000, slice.duration);
+    assertAlmostEquals(110 / 1000, slice.threadStart);
+    assertAlmostEquals(16 / 1000, slice.threadDuration);
     assertEquals(1, slice.subSlices.length);
 
     slice = t.sliceGroup.slices[2];

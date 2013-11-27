@@ -148,17 +148,17 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     assertEquals(1, table.rows[0].occurences);
     assertAlmostEquals(0.04, table.rows[0].duration);
     assertAlmostEquals(0.04, table.rows[0].selfTime);
-    assertEquals(null, table.rows[0].threadTime);
+    assertEquals(null, table.rows[0].threadDuration);
     assertEquals('aa', table.rows[1].label);
     assertEquals(1, table.rows[1].occurences);
     assertAlmostEquals(0.06, table.rows[1].duration);
     assertAlmostEquals(0.06, table.rows[1].selfTime);
-    assertEquals(null, table.rows[1].threadTime);
+    assertEquals(null, table.rows[1].threadDuration);
     assertEquals('Totals', table.rows[2].label);
     assertEquals(2, table.rows[2].occurences);
     assertAlmostEquals(0.1, table.rows[2].duration);
     assertAlmostEquals(0.1, table.rows[2].selfTime);
-    assertEquals(null, table.rows[2].threadTime);
+    assertEquals(null, table.rows[2].threadDuration);
 
     assertEquals('Selection start', table.rows[4].label);
     assertAlmostEquals(0, table.rows[4].time);
@@ -181,7 +181,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     assertObjectEquals(
         {label: 'c',
           duration: 0.1,
-          threadTime: null,
+          threadDuration: null,
           selfTime: 0.1,
           occurences: 2,
           details: {min: 0.04, max: 0.06, avg: 0.05,

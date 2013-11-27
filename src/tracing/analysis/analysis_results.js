@@ -223,7 +223,7 @@ base.exportTo('tracing.analysis', function() {
      *          or min/max/avg/start/end for counters.
      */
     appendDetailsRow: function(table, start, duration, selfTime, args,
-        opt_selectionGenerator, opt_threadTime) {
+        opt_selectionGenerator, opt_threadDuration) {
       var row = this.appendBodyRow(table);
 
       if (opt_selectionGenerator) {
@@ -239,10 +239,11 @@ base.exportTo('tracing.analysis', function() {
 
       this.appendTableCell(table, row, tracing.analysis.tsRound(duration));
 
-      if (opt_threadTime)
+      if (opt_threadDuration)
         this.appendTableCell(table, row,
-                             opt_threadTime != '' ?
-                                 tracing.analysis.tsRound(opt_threadTime) : '');
+                             opt_threadDuration != '' ?
+                                 tracing.analysis.tsRound(opt_threadDuration) :
+                                 '');
 
       this.appendTableCell(table, row, tracing.analysis.tsRound(selfTime));
 
@@ -276,7 +277,7 @@ base.exportTo('tracing.analysis', function() {
      *          or min/max/avg/start/end for counters.
      */
     appendDataRow: function(
-        table, label, opt_duration, opt_threadTime, opt_selfTime,
+        table, label, opt_duration, opt_threadDuration, opt_selfTime,
         opt_occurences, opt_statistics, opt_selectionGenerator, opt_inFoot) {
 
       var tooltip = undefined;
@@ -334,10 +335,10 @@ base.exportTo('tracing.analysis', function() {
         this.appendTableCell_(table, row, 1, '');
       }
 
-      if (opt_threadTime !== null) {
-        if (opt_threadTime != '') {
+      if (opt_threadDuration !== null) {
+        if (opt_threadDuration != '') {
           this.appendTableCellWithTooltip_(table, row, 2,
-              tracing.analysis.tsRound(opt_threadTime), tooltip);
+              tracing.analysis.tsRound(opt_threadDuration), tooltip);
         } else {
           this.appendTableCell_(table, row, 2, '');
         }

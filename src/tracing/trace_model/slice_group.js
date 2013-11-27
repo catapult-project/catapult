@@ -145,7 +145,7 @@ base.exportTo('tracing.trace_model', function() {
       slice.didNotFinish = false;
 
       if (opt_tts && slice.threadStart)
-        slice.threadTime = opt_tts - slice.threadStart;
+        slice.threadDuration = opt_tts - slice.threadStart;
 
       return slice;
     },
@@ -161,11 +161,12 @@ base.exportTo('tracing.trace_model', function() {
      * @param {Object.<string, Object>=} opt_args Arguments associated with
      * the slice.
      */
-    pushCompleteSlice: function(category, title, ts, duration, opt_args) {
+    pushCompleteSlice: function(category, title, ts, duration, tts,
+                                threadDuration, opt_args) {
       var colorId = tracing.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
-                                            duration);
+                                            duration, tts, threadDuration);
       if (duration === undefined)
         slice.didNotFinish = true;
       this.pushSlice(slice);
@@ -216,7 +217,7 @@ base.exportTo('tracing.trace_model', function() {
     copySlice: function(slice) {
       var newSlice = new this.sliceConstructor(slice.category, slice.title,
           slice.colorId, slice.start,
-          slice.args, slice.duration);
+          slice.args, slice.duration, slice.threadStart, slice.threadDuration);
       newSlice.didNotFinish = slice.didNotFinish;
       return newSlice;
     },

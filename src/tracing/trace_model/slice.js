@@ -17,7 +17,7 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Slice(category, title, colorId, start, args, opt_duration,
-                 opt_threadStart) {
+                 opt_threadStart, opt_threadDuration) {
     tracing.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -31,6 +31,9 @@ base.exportTo('tracing.trace_model', function() {
 
     if (opt_threadStart !== undefined)
       this.threadStart = opt_threadStart;
+
+    if (opt_threadDuration !== undefined)
+      this.threadDuration = opt_threadDuration;
   }
 
   Slice.prototype = {

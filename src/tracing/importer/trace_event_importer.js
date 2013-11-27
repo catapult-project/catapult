@@ -265,6 +265,8 @@ base.exportTo('tracing.importer', function() {
       thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
           event.ts / 1000,
           event.dur === undefined ? undefined : event.dur / 1000,
+          event.tts === undefined ? undefined : event.tts / 1000,
+          event.tdur === undefined ? undefined : event.tdur / 1000,
           this.deepCopyIfNeeded_(event.args));
     },
 
