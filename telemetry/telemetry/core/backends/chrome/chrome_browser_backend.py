@@ -277,6 +277,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""
+    if not cmd_line:
+      # TODO(tonyg): Eventually we should make all of these known and add an
+      # assertion.
+      return 'unknown'
     if 'nacl_helper_bootstrap' in cmd_line:
       return 'nacl_helper_bootstrap'
     if ':sandboxed_process' in cmd_line:
