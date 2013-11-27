@@ -9,11 +9,13 @@ import sys
 
 from telemetry.core import util
 from telemetry.core.platform import posix_platform_backend
-from telemetry.core.platform import proc_util
+from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.page import cloud_storage
 
 
-class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
+class LinuxPlatformBackend(
+    posix_platform_backend.PosixPlatformBackend,
+    proc_supporting_platform_backend.ProcSupportingPlatformBackend):
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -29,27 +31,6 @@ class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
-
-  def GetSystemCommitCharge(self):
-    meminfo_contents = self._GetFileContents('/proc/meminfo')
-    return proc_util.GetSystemCommitCharge(meminfo_contents)
-
-  def GetCpuStats(self, pid):
-    stats = self._GetFileContents('/proc/%s/stat' % pid).split()
-    return proc_util.GetCpuStats(stats)
-
-  def GetCpuTimestamp(self):
-    timer_list = self._GetFileContents('/proc/timer_list')
-    return proc_util.GetTimestampJiffies(timer_list)
-
-  def GetMemoryStats(self, pid):
-    status = self._GetFileContents('/proc/%s/status' % pid)
-    stats = self._GetFileContents('/proc/%s/stat' % pid).split()
-    return proc_util.GetMemoryStats(status, stats)
-
-  def GetIOStats(self, pid):
-    io_contents = self._GetFileContents('/proc/%s/io' % pid)
-    return proc_util.GetIOStats(io_contents)
 
   def GetOSName(self):
     return 'linux'
@@ -74,8 +55,8 @@ class LinuxPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     self._InstallIpfw()
 
   def _IsIpfwKernelModuleInstalled(self):
-    return 'ipfw_mod' in subprocess.Popen(['lsmod'],
-                                        stdout=subprocess.PIPE).communicate()[0]
+    return 'ipfw_mod' in subprocess.Popen(
+        ['lsmod'], stdout=subprocess.PIPE).communicate()[0]
 
   def _InstallIpfw(self):
     ipfw_bin = os.path.join(util.GetTelemetryDir(), 'bin', 'ipfw')

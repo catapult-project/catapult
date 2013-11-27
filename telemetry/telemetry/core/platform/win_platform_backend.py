@@ -19,6 +19,7 @@ except ImportError:
   win32con = None
   win32process = None
 
+from telemetry.core import exceptions
 from telemetry.core.platform import desktop_platform_backend
 
 
@@ -74,14 +75,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return performance_info.CommitTotal * performance_info.PageSize / 1024
 
   def GetCpuStats(self, pid):
-    try:
-      cpu_info = win32process.GetProcessTimes(
-          self._GetProcessHandle(pid))
-    except pywintypes.error, e:
-      errcode = e[0]
-      if errcode == 87:  # The process may have been closed.
-        return {}
-      raise
+    cpu_info = self._GetWin32ProcessInfo(win32process.GetProcessTimes, pid)
     # Convert 100 nanosecond units to seconds
     cpu_time = (cpu_info['UserTime'] / 1e7 +
                 cpu_info['KernelTime'] / 1e7)
@@ -92,28 +86,15 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return {'TotalTime': time.time()}
 
   def GetMemoryStats(self, pid):
-    try:
-      memory_info = win32process.GetProcessMemoryInfo(
-          self._GetProcessHandle(pid))
-    except pywintypes.error, e:
-      errcode = e[0]
-      if errcode == 87:  # The process may have been closed.
-        return {}
-      raise
+    memory_info = self._GetWin32ProcessInfo(
+        win32process.GetProcessMemoryInfo, pid)
     return {'VM': memory_info['PagefileUsage'],
             'VMPeak': memory_info['PeakPagefileUsage'],
             'WorkingSetSize': memory_info['WorkingSetSize'],
             'WorkingSetSizePeak': memory_info['PeakWorkingSetSize']}
 
   def GetIOStats(self, pid):
-    try:
-      io_stats = win32process.GetProcessIoCounters(
-          self._GetProcessHandle(pid))
-    except pywintypes.error, e:
-      errcode = e[0]
-      if errcode == 87:  # The process may have been closed.
-        return {}
-      raise
+    io_stats = self._GetWin32ProcessInfo(win32process.GetProcessIoCounters, pid)
     return {'ReadOperationCount': io_stats['ReadOperationCount'],
             'WriteOperationCount': io_stats['WriteOperationCount'],
             'ReadTransferCount': io_stats['ReadTransferCount'],
@@ -176,7 +157,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     for pi in self.GetSystemProcessInfo():
       if pid == pi['ProcessId']:
         return pi['CommandLine']
-    raise Exception('Could not get command line for %d' % pid)
+    raise exceptions.ProcessGoneException()
 
   def GetOSName(self):
     return 'win'
@@ -198,3 +179,12 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   def GetFlushUtilityName(self):
     return 'clear_system_cache.exe'
+
+  def _GetWin32ProcessInfo(self, func, pid):
+    try:
+      return func(self._GetProcessHandle(pid))
+    except pywintypes.error, e:
+      errcode = e[0]
+      if errcode == 87:
+        raise exceptions.ProcessGoneException()
+      raise

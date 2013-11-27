@@ -4,10 +4,10 @@
 
 import logging
 
+from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.core.platform import platform_backend
-from telemetry.core.platform import proc_util
+from telemetry.core.platform import proc_supporting_platform_backend
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
@@ -26,7 +26,8 @@ _HOST_APPLICATIONS = [
     ]
 
 
-class AndroidPlatformBackend(platform_backend.PlatformBackend):
+class AndroidPlatformBackend(
+    proc_supporting_platform_backend.ProcSupportingPlatformBackend):
   def __init__(self, adb, no_performance_mode):
     super(AndroidPlatformBackend, self).__init__()
     self._adb = adb
@@ -36,6 +37,8 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
     self._host_platform_backend = platform.CreatePlatformBackendForCurrentOS()
+    self._can_access_protected_file_contents = \
+        self._adb.CanAccessProtectedFileContents()
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
@@ -88,23 +91,16 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
     return 0
 
   def GetCpuStats(self, pid):
-    if not self._adb.CanAccessProtectedFileContents():
+    if not self._can_access_protected_file_contents:
       logging.warning('CPU stats cannot be retrieved on non-rooted device.')
       return {}
-    stats = self._adb.GetProtectedFileContents('/proc/%s/stat' % pid,
-                                               log_result=False)
-    if not stats:
-      logging.warning('Unable to get /proc/%s/stat, process gone?', pid)
-      return {}
-    return proc_util.GetCpuStats(stats[0].split())
+    return super(AndroidPlatformBackend, self).GetCpuStats(pid)
 
   def GetCpuTimestamp(self):
-    if not self._adb.CanAccessProtectedFileContents():
-      logging.warning('CPU stats cannot be retrieved on non-rooted device.')
+    if not self._can_access_protected_file_contents:
+      logging.warning('CPU timestamp cannot be retrieved on non-rooted device.')
       return {}
-    timer_list = self._adb.GetProtectedFileContents('/proc/timer_list',
-                                                    log_result=False)
-    return proc_util.GetTimestampJiffies(timer_list)
+    return super(AndroidPlatformBackend, self).GetCpuTimestamp()
 
   def GetMemoryStats(self, pid):
     self._adb.PurgeUnpinnedAshmem()
@@ -119,31 +115,22 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
 
   def GetChildPids(self, pid):
     child_pids = []
-    ps = self._adb.RunShellCommand('ps', log_result=False)[1:]
-    for line in ps:
-      data = line.split()
-      curr_pid = data[1]
-      curr_name = data[-1]
+    ps = self._GetPsOutput(['pid', 'name'])
+    for curr_pid, curr_name in ps:
       if int(curr_pid) == pid:
         name = curr_name
-        for line in ps:
-          data = line.split()
-          curr_pid = data[1]
-          curr_name = data[-1]
+        for curr_pid, curr_name in ps:
           if curr_name.startswith(name) and curr_name != name:
             child_pids.append(int(curr_pid))
         break
     return child_pids
 
   def GetCommandLine(self, pid):
-    ps = self._adb.RunShellCommand('ps', log_result=False)[1:]
-    for line in ps:
-      data = line.split()
-      curr_pid = data[1]
-      curr_name = data[-1]
+    ps = self._GetPsOutput(['pid', 'name'])
+    for curr_pid, curr_name in ps:
       if int(curr_pid) == pid:
         return curr_name
-    raise Exception("Could not get command line for %d" % pid)
+    raise exceptions.ProcessGoneException()
 
   def GetOSName(self):
     return 'android'
@@ -182,3 +169,27 @@ class AndroidPlatformBackend(platform_backend.PlatformBackend):
       return
     raise NotImplementedError(
         'Please teach Telemetry how to install ' + application)
+
+  def _GetFileContents(self, fname):
+    if not self._can_access_protected_file_contents:
+      logging.warning('%s cannot be retrieved on non-rooted device.' % fname)
+      return ''
+    return ''.join(self._adb.GetProtectedFileContents(fname, log_result=False))
+
+  def _GetPsOutput(self, columns, pid=None):
+    assert columns == ['pid', 'name'] or columns == ['pid'], \
+        'Only know how to return pid and name. Requested: ' + columns
+    command = 'ps'
+    if pid:
+      command += ' -p %d' % pid
+    ps = self._adb.RunShellCommand(command, log_result=False)[1:]
+    output = []
+    for line in ps:
+      data = line.split()
+      curr_pid = data[1]
+      curr_name = data[-1]
+      if columns == ['pid', 'name']:
+        output.append([curr_pid, curr_name])
+      else:
+        output.append([curr_pid])
+    return output

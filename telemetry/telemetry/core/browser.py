@@ -5,6 +5,7 @@
 import os
 
 from telemetry.core import browser_credentials
+from telemetry.core import exceptions
 from telemetry.core import extension_dict
 from telemetry.core import platform
 from telemetry.core import tab_list
@@ -95,19 +96,16 @@ class Browser(object):
         'Renderer': {'ProcessCount': 0},
         'Gpu': {'ProcessCount': 0}
     }
-    child_process_count = 0
+    process_count = 1
     for child_pid in self._platform_backend.GetChildPids(browser_pid):
-      child_process_count += 1
-      # Process type detection is causing exceptions.
-      # http://crbug.com/240951
       try:
         child_cmd_line = self._platform_backend.GetCommandLine(child_pid)
-        child_process_name = self._browser_backend.GetProcessName(
-            child_cmd_line)
-      except Exception:
-        # The cmd line was unavailable, assume it'll be impossible to track
-        # any further stats about this process.
+        child_stats = pid_stats_function(child_pid)
+      except exceptions.ProcessGoneException:
+        # It is perfectly fine for a process to have gone away between calling
+        # GetChildPids() and then further examining it.
         continue
+      child_process_name = self._browser_backend.GetProcessName(child_cmd_line)
       process_name_type_key_map = {'gpu-process': 'Gpu', 'renderer': 'Renderer'}
       if child_process_name in process_name_type_key_map:
         child_process_type_key = process_name_type_key_map[child_process_name]
@@ -115,20 +113,20 @@ class Browser(object):
         # TODO: identify other process types (zygote, plugin, etc), instead of
         # lumping them in with renderer processes.
         child_process_type_key = 'Renderer'
-      child_stats = pid_stats_function(child_pid)
       result[child_process_type_key]['ProcessCount'] += 1
       for k, v in child_stats.iteritems():
         if k in result[child_process_type_key]:
           result[child_process_type_key][k] += v
         else:
           result[child_process_type_key][k] = v
+      process_count += 1
     for v in result.itervalues():
       if v['ProcessCount'] > 1:
         for k in v.keys():
           if k.endswith('Peak'):
             del v[k]
       del v['ProcessCount']
-    result['ProcessCount'] = child_process_count
+    result['ProcessCount'] = process_count
     return result
 
   @property

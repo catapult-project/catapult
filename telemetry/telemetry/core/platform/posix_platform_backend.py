@@ -7,7 +7,7 @@ import re
 import subprocess
 
 from telemetry.core.platform import desktop_platform_backend
-from telemetry.core.platform import proc_util
+from telemetry.core.platform import ps_util
 
 
 class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
@@ -47,7 +47,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       m = ps_line_re.match(pid_ppid_state)
       assert m, 'Did not understand ps output: %s' % pid_ppid_state
       processes.append((m.group('pid'), m.group('ppid'), m.group('state')))
-    return proc_util.GetChildPids(processes, pid)
+    return ps_util.GetChildPids(processes, pid)
 
   def GetCommandLine(self, pid):
     command = self._GetPsOutput(['command'], pid)

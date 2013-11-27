@@ -1,6 +1,7 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 class BrowserGoneException(Exception):
   """Represents a crash of the entire browser.
 
@@ -8,6 +9,10 @@ class BrowserGoneException(Exception):
   pass
 
 class BrowserConnectionGoneException(BrowserGoneException):
+  pass
+
+class ProcessGoneException(Exception):
+  """Represents a process that no longer exists."""
   pass
 
 class TabCrashException(Exception):
