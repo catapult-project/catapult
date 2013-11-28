@@ -17,6 +17,9 @@ from telemetry.core.backends import adb_commands
 from telemetry.core.backends.chrome import android_browser_backend
 from telemetry.core.platform import android_platform_backend
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib.utils import test_environment  # pylint: disable=F0401
+
 CHROME_PACKAGE_NAMES = {
   'android-content-shell':
       ['org.chromium.content_shell_apk',
@@ -203,7 +206,7 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
       # flake out during the test. We skip this if Telemetry is running under a
       # buildbot because build/android/test_runner.py wrapper already took care
       # of it before starting the shards.
-      adb.RestartAdbdOnDevice()
+      test_environment.CleanupLeftoverProcesses()
 
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
