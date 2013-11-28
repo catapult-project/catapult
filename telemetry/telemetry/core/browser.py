@@ -94,7 +94,8 @@ class Browser(object):
     result = {
         'Browser': dict(pid_stats_function(browser_pid), **{'ProcessCount': 1}),
         'Renderer': {'ProcessCount': 0},
-        'Gpu': {'ProcessCount': 0}
+        'Gpu': {'ProcessCount': 0},
+        'Other': {'ProcessCount': 0}
     }
     process_count = 1
     for child_pid in self._platform_backend.GetChildPids(browser_pid):
@@ -111,8 +112,8 @@ class Browser(object):
         child_process_type_key = process_name_type_key_map[child_process_name]
       else:
         # TODO: identify other process types (zygote, plugin, etc), instead of
-        # lumping them in with renderer processes.
-        child_process_type_key = 'Renderer'
+        # lumping them in a single category.
+        child_process_type_key = 'Other'
       result[child_process_type_key]['ProcessCount'] += 1
       for k, v in child_stats.iteritems():
         if k in result[child_process_type_key]:
