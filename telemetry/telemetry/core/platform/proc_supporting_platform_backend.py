@@ -46,10 +46,16 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
     status = self._GetProcFileDict(status_contents)
     if not status or not stats or 'Z' in status['State']:
       return {}
-    return {'VM': int(stats[22]),
-            'VMPeak': self._ConvertKbToByte(status['VmPeak']),
-            'WorkingSetSize': int(stats[23]) * resource.getpagesize(),
-            'WorkingSetSizePeak': self._ConvertKbToByte(status['VmHWM'])}
+    vm = int(stats[22])
+    vm_peak = (self._ConvertKbToByte(status['VmPeak'])
+               if 'VmPeak' in status else vm)
+    wss = int(stats[23]) * resource.getpagesize()
+    wss_peak = (self._ConvertKbToByte(status['VmHWM'])
+                if 'VmHWM' in status else wss)
+    return {'VM': vm,
+            'VMPeak': vm_peak,
+            'WorkingSetSize': wss,
+            'WorkingSetSizePeak': wss_peak}
 
   def GetIOStats(self, pid):
     io_contents = self._GetProcFileForPid(pid, 'io')
