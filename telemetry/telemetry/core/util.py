@@ -97,7 +97,7 @@ class PortPair(object):
 
 
 def GetUnreservedAvailableLocalPort():
-  """Returns an availbale port on the system.
+  """Returns an available port on the system.
 
   WARNING: This method does not reserve the port it returns, so it may be used
   by something else before you get to use it. This can lead to flake.

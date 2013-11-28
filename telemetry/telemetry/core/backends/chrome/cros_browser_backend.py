@@ -33,6 +33,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri = cri
     self._is_guest = is_guest
 
+    self.wpr_http_port_pair.remote_port = self._cri.GetRemotePort()
+    self.wpr_https_port_pair.remote_port = self._cri.GetRemotePort()
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
     self._forwarder = None
@@ -81,11 +83,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.Chown(self.profile_directory)
 
   def GetBrowserStartupArgs(self):
-    self.wpr_http_port_pair.remote_port = self._cri.GetRemotePort()
-    self.wpr_https_port_pair.remote_port = self._cri.GetRemotePort()
-
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
-
     args.extend([
             '--enable-smooth-scrolling',
             '--enable-threaded-compositing',

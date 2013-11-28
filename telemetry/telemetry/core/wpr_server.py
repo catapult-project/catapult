@@ -41,10 +41,16 @@ class ReplayServer(object):
       self._web_page_replay.replay_options.remove('--no-dns_forwarding')
     self._web_page_replay.StartServer()
 
-    browser_backend.wpr_http_port_pair = util.PortPair(
-      self._web_page_replay.http_port, self._web_page_replay.http_port)
-    browser_backend.wpr_https_port_pair = util.PortPair(
-      self._web_page_replay.https_port, self._web_page_replay.https_port)
+    browser_backend.wpr_http_port_pair.local_port = (
+        self._web_page_replay.http_port)
+    browser_backend.wpr_http_port_pair.remote_port = (
+        browser_backend.wpr_http_port_pair.remote_port or
+        self._web_page_replay.http_port)
+    browser_backend.wpr_https_port_pair.local_port = (
+        self._web_page_replay.https_port)
+    browser_backend.wpr_https_port_pair.remote_port = (
+        browser_backend.wpr_https_port_pair.remote_port or
+        self._web_page_replay.https_port)
 
     self._forwarder = browser_backend.CreateForwarder(
         browser_backend.wpr_http_port_pair, browser_backend.wpr_https_port_pair)
