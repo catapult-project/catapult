@@ -23,7 +23,8 @@ try:
   from pylib import constants  # pylint: disable=F0401
   from pylib import forwarder  # pylint: disable=F0401
   from pylib import ports  # pylint: disable=F0401
-  from pylib.utils import apk_helper # #pylint: disable=F0401
+  from pylib.utils import apk_helper  # pylint: disable=F0401
+  from pylib.utils import test_environment  # pylint: disable=F0401
 except Exception:
   android_commands = None
 
@@ -38,6 +39,10 @@ def GetAttachedDevices():
   If a preferred device has been set with ANDROID_SERIAL, it will be first in
   the returned list."""
   return android_commands.GetAttachedDevices()
+
+
+def CleanupLeftoverProcesses():
+  test_environment.CleanupLeftoverProcesses()
 
 
 def AllocateTestServerPort():
