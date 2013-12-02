@@ -201,7 +201,7 @@ base.exportTo('ui', function() {
       this.visible = false;
       e.preventDefault();
       e.stopPropagation();
-      base.dispatchSimpleEvent(this, 'closeClick');
+      base.dispatchSimpleEvent(this, 'closeclick');
     }
   };
 

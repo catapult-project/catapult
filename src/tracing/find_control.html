@@ -6,12 +6,10 @@ found in the LICENSE file.
 
 <template id="find-control-template">
   <style>
-    @host {
-      :scope {
-        -webkit-user-select: none;
-        display: -webkit-box;
-        position: relative;
-      }
+    find-control-root {
+      -webkit-user-select: none;
+      display: -webkit-box;
+      position: relative;
     }
     input {
       -webkit-user-select: auto;
@@ -49,9 +47,10 @@ found in the LICENSE file.
       z-index: 1;
     }
   </style>
-
-  <input type='text' id='find-control-filter' />
-  <div class="button find-previous">&larr;</div>
-  <div class="button find-next">&rarr;</div>
-  <div class="hit-count-label">1 of 7</div>
+  <find-control-root>
+    <input type='text' id='find-control-filter' />
+    <div class="button find-previous">&larr;</div>
+    <div class="button find-next">&rarr;</div>
+    <div class="hit-count-label">1 of 7</div>
+  </find-control-root>
 </template>
