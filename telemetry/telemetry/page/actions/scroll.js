@@ -112,9 +112,8 @@
     this.element_ = this.options_.element_;
     // Some pages load more content when you scroll to the bottom. Record
     // the original element height here and only scroll to that point.
-    // -1 to allow for rounding errors on scaled viewports (like mobile).
     this.scrollHeight_ = Math.min(MAX_SCROLL_LENGTH_PIXELS,
-                                  this.element_.scrollHeight - 1);
+                                  this.element_.scrollHeight);
     requestAnimationFrame(this.startPass_.bind(this));
   };
 
