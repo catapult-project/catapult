@@ -8,6 +8,9 @@ from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.page.actions import page_action
 
+def _EscapeSelector(selector):
+  return selector.replace('\'', '\\\'')
+
 class ClickElementAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(ClickElementAction, self).__init__(attributes)
@@ -15,7 +18,8 @@ class ClickElementAction(page_action.PageAction):
   def RunAction(self, page, tab, previous_action):
     def DoClick():
       if hasattr(self, 'selector'):
-        code = 'document.querySelector(\'' + self.selector + '\').click();'
+        code = ('document.querySelector(\'' + _EscapeSelector(self.selector) +
+            '\').click();')
         try:
           tab.ExecuteJavaScript(code)
         except exceptions.EvaluateException:
