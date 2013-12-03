@@ -154,7 +154,7 @@ class Platform(object):
       (time_ms, bitmap) tuples representing each video keyframe. Only the first
       frame in a run of sequential duplicate bitmaps is included.
         time_ms is milliseconds relative to the first frame.
-        bitmap is a telemetry.core.backends.png_bitmap.
+        bitmap is a telemetry.core.Bitmap.
     """
     for t in self._platform_backend.StopVideoCapture():
       yield t

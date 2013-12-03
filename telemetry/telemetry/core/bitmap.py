@@ -10,8 +10,8 @@ util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
 
 
-class PngColor(object):
-  """Encapsulates an RGB color retreived from a PngBitmap"""
+class RgbaColor(object):
+  """Encapsulates an RGBA color retreived from a Bitmap"""
 
   def __init__(self, r, g, b, a=255):
     self.r = r
@@ -30,14 +30,14 @@ class PngColor(object):
         and b_diff <= tolerance and a_diff <= tolerance)
 
   def AssertIsRGB(self, r, g, b, tolerance=0):
-    assert self.IsEqual(PngColor(r, g, b), tolerance)
+    assert self.IsEqual(RgbaColor(r, g, b), tolerance)
 
   def AssertIsRGBA(self, r, g, b, a, tolerance=0):
-    assert self.IsEqual(PngColor(r, g, b, a), tolerance)
+    assert self.IsEqual(RgbaColor(r, g, b, a), tolerance)
 
 
-class PngBitmap(object):
-  """Utilities for parsing and inspecting a PNG"""
+class Bitmap(object):
+  """Utilities for parsing and inspecting a bitmap."""
 
   def __init__(self, png_data):
     self._png_data = png_data
@@ -59,48 +59,48 @@ class PngBitmap(object):
     return self._height
 
   def GetPixelColor(self, x, y):
-    """Returns a PngColor for the pixel at (x, y)"""
+    """Returns a RgbaColor for the pixel at (x, y)"""
     row = self._pixels[y]
     offset = x * 4
-    return PngColor(row[offset], row[offset+1], row[offset+2], row[offset+3])
+    return RgbaColor(row[offset], row[offset+1], row[offset+2], row[offset+3])
 
-  def WriteFile(self, path):
+  def WritePngFile(self, path):
     with open(path, "wb") as f:
       f.write(self._png_data)
 
   @staticmethod
-  def FromFile(path):
+  def FromPngFile(path):
     with open(path, "rb") as f:
-      return PngBitmap(f.read())
+      return Bitmap(f.read())
 
   @staticmethod
-  def FromBase64(base64_png):
-    return PngBitmap(base64.b64decode(base64_png))
+  def FromBase64Png(base64_png):
+    return Bitmap(base64.b64decode(base64_png))
 
-  def IsEqual(self, expected_png, tolerance=0):
-    """Verifies that two PngBitmaps are identical within a given tolerance"""
+  def IsEqual(self, expected, tolerance=0):
+    """Determines whether two Bitmaps are identical within a given tolerance"""
 
     # Dimensions must be equal
-    if self.width != expected_png.width or self.height != expected_png.height:
+    if self.width != expected.width or self.height != expected.height:
       return False
 
     # Loop over each pixel and test for equality
     for y in range(self.height):
       for x in range(self.width):
         c0 = self.GetPixelColor(x, y)
-        c1 = expected_png.GetPixelColor(x, y)
+        c1 = expected.GetPixelColor(x, y)
         if not c0.IsEqual(c1, tolerance):
           return False
 
     return True
 
-  def Diff(self, other_png):
-    """Returns a new PngBitmap that represents the difference between this image
-    and another PngBitmap"""
+  def Diff(self, other):
+    """Returns a new Bitmap that represents the difference between this image
+    and another Bitmap."""
 
     # Output dimensions will be the maximum of the two input dimensions
-    out_width = max(self.width, other_png.width)
-    out_height = max(self.height, other_png.height)
+    out_width = max(self.width, other.width)
+    out_height = max(self.height, other.height)
 
     diff = [[0 for x in xrange(out_width * 3)] for x in xrange(out_height)]
 
@@ -110,12 +110,12 @@ class PngBitmap(object):
         if x < self.width and y < self.height:
           c0 = self.GetPixelColor(x, y)
         else:
-          c0 = PngColor(0, 0, 0, 0)
+          c0 = RgbaColor(0, 0, 0, 0)
 
-        if x < other_png.width and y < other_png.height:
-          c1 = other_png.GetPixelColor(x, y)
+        if x < other.width and y < other.height:
+          c1 = other.GetPixelColor(x, y)
         else:
-          c1 = PngColor(0, 0, 0, 0)
+          c1 = RgbaColor(0, 0, 0, 0)
 
         offset = x * 3
         diff[y][offset] = abs(c0.r - c1.r)
@@ -123,29 +123,30 @@ class PngBitmap(object):
         diff[y][offset+2] = abs(c0.b - c1.b)
 
     # This particular method can only save to a file, so the result will be
-    # written into an in-memory buffer and read back into a PngBitmap
+    # written into an in-memory buffer and read back into a Bitmap
     diff_img = png.from_array(diff, mode='RGB')
     output = cStringIO.StringIO()
     try:
       diff_img.save(output)
-      diff_png = PngBitmap(output.getvalue())
+      diff = Bitmap(output.getvalue())
     finally:
       output.close()
 
-    return diff_png
+    return diff
 
   def Crop(self, left, top, width, height):
-    """Returns a new PngBitmap that represents the specified sub-rect of this
-    PngBitmap"""
+    """Returns a new Bitmap that represents the specified sub-rect of this."""
 
     if (left < 0 or top < 0 or
         (left + width) > self.width or
         (top + height) > self.height):
-      raise Exception('Invalid dimensions')
+      raise ValueError('Invalid dimensions')
 
     img_data = [[0 for x in xrange(width * 4)] for x in xrange(height)]
 
-    # Copy each pixel in the sub-rect
+    # Copy each pixel in the sub-rect.
+    # TODO(tonyg): Make this faster by avoiding the copy and artificially
+    # restricting the dimensions.
     for y in range(height):
       for x in range(width):
         c = self.GetPixelColor(x + left, y + top)
@@ -156,13 +157,13 @@ class PngBitmap(object):
         img_data[y][offset+3] = c.a
 
     # This particular method can only save to a file, so the result will be
-    # written into an in-memory buffer and read back into a PngBitmap
+    # written into an in-memory buffer and read back into a Bitmap
     crop_img = png.from_array(img_data, mode='RGBA')
     output = cStringIO.StringIO()
     try:
       crop_img.save(output)
-      crop_png = PngBitmap(output.getvalue())
+      crop = Bitmap(output.getvalue())
     finally:
       output.close()
 
-    return crop_png
+    return crop

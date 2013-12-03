@@ -71,7 +71,7 @@ class Tab(web_contents.WebContents):
     """Capture a screenshot of the tab's contents.
 
     Returns:
-      A telemetry.core.backends.png_bitmap.
+      A telemetry.core.Bitmap.
     """
     return self._inspector_backend.Screenshot(timeout)
 
@@ -97,7 +97,7 @@ class Tab(web_contents.WebContents):
       (time_ms, bitmap) tuples representing each video keyframe. Only the first
       frame in a run of sequential duplicate bitmaps is included.
         time_ms is milliseconds since navigationStart.
-        bitmap is a telemetry.core.backends.png_bitmap.
+        bitmap is a telemetry.core.Bitmap.
     """
     # TODO(tonyg/szym): platform's video capture may include offscreen content
     # from a webcam, OS framing and browser framing. However, this API must

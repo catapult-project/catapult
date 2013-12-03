@@ -4,7 +4,7 @@
 
 import logging
 
-from telemetry.core.backends import png_bitmap
+from telemetry.core import bitmap
 
 class WebDriverTabBackend(object):
   def __init__(self, browser_backend, window_handle):
@@ -53,7 +53,7 @@ class WebDriverTabBackend(object):
     self._browser_backend.driver.switch_to_window(self._window_handle)
     snap = self._browser_backend.driver.get_screenshot_as_base64()
     if snap:
-      return png_bitmap.PngBitmap(snap)
+      return bitmap.Bitmap(snap)
     return None
 
   @property

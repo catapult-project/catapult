@@ -7,9 +7,9 @@ import socket
 import sys
 import time
 
+from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry.core.backends import png_bitmap
 from telemetry.core.backends.chrome import inspector_console
 from telemetry.core.backends.chrome import inspector_memory
 from telemetry.core.backends.chrome import inspector_network
@@ -139,7 +139,7 @@ class InspectorBackend(object):
       })()
     """)
     if snap:
-      return png_bitmap.PngBitmap.FromBase64(snap['data'])
+      return bitmap.Bitmap.FromBase64Png(snap['data'])
     return None
 
   # Console public methods.
