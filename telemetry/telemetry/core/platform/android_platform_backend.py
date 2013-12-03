@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 import logging
+import os
+import subprocess
+import tempfile
 
 from telemetry.core import exceptions
 from telemetry.core import platform
@@ -39,6 +42,8 @@ class AndroidPlatformBackend(
     self._host_platform_backend = platform.CreatePlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
         self._adb.CanAccessProtectedFileContents()
+    self._video_recorder = None
+    self._video_output = None
     if self._no_performance_mode:
       logging.warning('CPU governor will not be set!')
 
@@ -135,6 +140,9 @@ class AndroidPlatformBackend(
   def GetOSName(self):
     return 'android'
 
+  def GetOSVersionName(self):
+    return self._adb.GetBuildId()[0]
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
 
@@ -169,6 +177,32 @@ class AndroidPlatformBackend(
       return
     raise NotImplementedError(
         'Please teach Telemetry how to install ' + application)
+
+  def CanCaptureVideo(self):
+    return self.GetOSVersionName() >= 'K'
+
+  def StartVideoCapture(self, min_bitrate_mbps):
+    assert not self._video_recorder, 'Already started video capture'
+    min_bitrate_mbps = max(min_bitrate_mbps, 0.1)
+    if min_bitrate_mbps > 100:
+      raise ValueError('Android video capture cannot capture at %dmbps. '
+                       'Max capture rate is 100mbps.' % min_bitrate_mbps)
+    self._video_output = tempfile.mkstemp()[1]
+    self._video_recorder = subprocess.Popen(
+        [os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
+                      'screenshot.py'),
+         '--video', '--bitrate', str(min_bitrate_mbps), '--file',
+         self._video_output], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+  def StopVideoCapture(self):
+    assert self._video_recorder, 'Must start video capture first'
+    self._video_recorder.communicate(input='\n')
+    self._video_recorder.wait()
+    self._video_recorder = None
+
+    # TODO(tonyg/szym): Decode the mp4 and yield the (time, bitmap) tuples.
+    raise NotImplementedError("mp4 video saved to %s, but Telemetry doesn't "
+                              "know how to decode it." % self._video_output)
 
   def _GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:

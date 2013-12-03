@@ -64,12 +64,49 @@ class Tab(web_contents.WebContents):
 
   @property
   def screenshot_supported(self):
-    """True if the browser instance is capable of capturing screenshots"""
+    """True if the browser instance is capable of capturing screenshots."""
     return self._inspector_backend.screenshot_supported
 
   def Screenshot(self, timeout=DEFAULT_TAB_TIMEOUT):
-    """Capture a screenshot of the window for rendering validation"""
+    """Capture a screenshot of the tab's contents.
+
+    Returns:
+      A telemetry.core.backends.png_bitmap.
+    """
     return self._inspector_backend.Screenshot(timeout)
+
+  @property
+  def video_capture_supported(self):
+    """True if the browser instance is capable of capturing video."""
+    return self.browser.platform.CanCaptureVideo()
+
+  def StartVideoCapture(self, min_bitrate_mbps):
+    """Starts capturing video of the tab's contents.
+
+    Args:
+      min_bitrate_mbps: The minimum caputre bitrate in MegaBits Per Second.
+          The platform is free to deliver a higher bitrate if it can do so
+          without increasing overhead.
+    """
+    self.browser.platform.StartVideoCapture(min_bitrate_mbps)
+
+  def StopVideoCapture(self):
+    """Stops recording video of the tab's contents.
+
+    Yields:
+      (time_ms, bitmap) tuples representing each video keyframe. Only the first
+      frame in a run of sequential duplicate bitmaps is included.
+        time_ms is milliseconds since navigationStart.
+        bitmap is a telemetry.core.backends.png_bitmap.
+    """
+    # TODO(tonyg/szym): platform's video capture may include offscreen content
+    # from a webcam, OS framing and browser framing. However, this API must
+    # return only the tab contents. So we need to display a color flash in the
+    # tab and then crop out all the other pixels. We also need to translate that
+    # initial flash time into navigationStart timespace.
+
+    for t in self.browser.platform.StopVideoCapture():
+      return t
 
   def PerformActionAndWaitForNavigate(
       self, action_function, timeout=DEFAULT_TAB_TIMEOUT):

@@ -75,3 +75,12 @@ class PlatformBackend(object):
 
   def InstallApplication(self, application):
     raise NotImplementedError()
+
+  def CanCaptureVideo(self):
+    return False
+
+  def StartVideoCapture(self, min_bitrate_mbps):
+    raise NotImplementedError()
+
+  def StopVideoCapture(self):
+    raise NotImplementedError()
