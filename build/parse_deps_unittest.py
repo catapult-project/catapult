@@ -300,6 +300,3 @@ class CalcLoadSequenceTest(unittest.TestCase):
       [os.path.join('base', 'guid.js')], [src_dir])
     name_sequence = [x.name for x in load_sequence]
     self.assertEquals(['base.guid'], name_sequence)
-
-if __name__ == '__main__':
-  unittest.main()

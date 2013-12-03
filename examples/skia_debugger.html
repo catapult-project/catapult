@@ -8,6 +8,7 @@ found in the LICENSE file.
 <head>
 <title>Skia Debugger</title>
 <script src="/src/base.js"></script>
+<script src="string_convert.js"></script>
 <style>
   picture-ops-list-view {
     height: 500px;
@@ -57,20 +58,37 @@ found in the LICENSE file.
         base.Rect.fromXYWH(0, 0, size.width, size.height));
   };
 
+  function utf8_to_b64( str ) {
+    return window.btoa(unescape(encodeURIComponent( str )));
+  }
+
   function loadSkp(filename, onSkpLoaded) {
-    getAsync(filename, function(trace) {
-      onSkpLoaded(filename, trace);
+    getAsync(filename, function(arr) {
+      var view = new Uint8Array(arr);
+      var data = base64EncArr(view, 1);
+      onSkpLoaded(filename, data);
+    },'arraybuffer');
+  }
+  function YloadSkp(filename, onSkpLoaded) {
+    getAsync(filename, function(data) {
+      var data64 = utf8_to_b64(data);
+      onSkpLoaded(filename, data64);
     });
   }
 
-  function getAsync(url, callback) {
+  function getAsync(url, callback, opt_responseType) {
     var req = new XMLHttpRequest();
+    if (opt_responseType)
+      req.responseType = opt_responseType;
     req.open('GET', url, true);
     req.onreadystatechange = function(aEvt) {
       if (req.readyState === 4) {
         window.setTimeout(function() {
           if (req.status === 200) {
-            callback(req.responseText);
+            if (opt_responseType === undefined)
+              callback(req.responseText);
+            else
+              callback(req.response);
           } else {
             console.log('Failed to load ' + url);
           }

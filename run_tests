@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+import unittest
+import sys
+import os
+
+import build
+
+__all__ = []
+
+def Main():
+  class AllTestLoader(unittest.TestLoader):
+    def loadTestsFromModule(self, module, use_load_tests=True):
+      if module.__file__ == __file__:
+        start_dir = os.path.join(os.path.dirname(__file__), "build")
+        top_dir = os.path.dirname(__file__)
+        return self.discover(start_dir,
+                             "*unittest.py",
+                             top_dir)
+      return super(AllTestLoader, self).loadTestsFromModule(module, use_load_tests)
+  return unittest.main(testLoader=AllTestLoader())
+
+if __name__ == '__main__':
+  sys.exit(Main())
