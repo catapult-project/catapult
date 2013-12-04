@@ -5,46 +5,10 @@
 import unittest
 
 import parse_deps
+import strip_js_comments
 import os
 
 src_dir = os.path.join(os.path.dirname(__file__), '../src')
-
-class JSStripTests(unittest.TestCase):
-  def test_tokenize_0(self):
-    tokens = list(parse_deps._tokenize_js(''))
-    self.assertEquals([], tokens)
-
-  def test_tokenize_nl(self):
-    tokens = list(parse_deps._tokenize_js('\n'))
-    self.assertEquals(['\n'], tokens)
-
-  def test_tokenize_slashslash_comment(self):
-    tokens = list(parse_deps._tokenize_js('A // foo'))
-    self.assertEquals(['A ', '//', ' foo'], tokens)
-
-  def test_tokenize_slashslash_comment_then_newline2(self):
-    tokens = list(parse_deps._tokenize_js("""A // foo
-bar"""
-))
-    self.assertEquals(['A ', '//', ' foo', '\n', 'bar'], tokens)
-
-  def test_tokenize_cstyle_comment(self):
-    tokens = list(parse_deps._tokenize_js("""A /* foo */"""))
-    self.assertEquals(['A ', '/*', ' foo ', '*/'], tokens)
-
-  def test_tokenize_cstyle_comment(self):
-    tokens = list(parse_deps._tokenize_js("""A /* foo
-*bar
-*/"""))
-    self.assertEquals(['A ', '/*', ' foo', '\n', '*bar', '\n', '*/'], tokens)
-
-  def test_strip_comments(self):
-    self.assertEquals('A ', parse_deps._strip_js_comments('A // foo'))
-
-    self.assertEquals('A  b', parse_deps._strip_js_comments('A /* foo */ b'))
-    self.assertEquals('A  b', parse_deps._strip_js_comments("""A /* foo
- */ b"""))
-
 
 class ValidateTests(unittest.TestCase):
   def test_validate_1(self):
@@ -55,7 +19,7 @@ class ValidateTests(unittest.TestCase):
 base.require('dependency1');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.validate_uses_strict_mode_(stripped_text)
 
   def test_validate_2(self):
@@ -64,7 +28,7 @@ base.require('dependency1');
 base.require('dependency1');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     self.assertRaises(lambda: module.validate_uses_strict_mode_(stripped_text))
 
 class ParseTests(unittest.TestCase):
@@ -77,7 +41,7 @@ base.requireStylesheet('myStylesheet');
 base.requireTemplate('myTemplate');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals(['myStylesheet'], module.style_sheet_names);
     self.assertEquals(['myTemplate'], module.html_template_names);
@@ -92,7 +56,7 @@ base.require('dependency2');
 base.requireStylesheet('myStylesheet')
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals(['myStylesheet'], module.style_sheet_names);
     self.assertEquals(['dependency1', 'dependency2'],
@@ -106,7 +70,7 @@ base.requireStylesheet('myStylesheet');
 base.require('dependency2');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals(['myStylesheet'], module.style_sheet_names);
     self.assertEquals(['dependency1', 'dependency2'],
@@ -117,7 +81,7 @@ base.require('dependency2');
 'use strict';
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text, decl_required=False)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals([], module.dependent_module_names);
@@ -129,7 +93,7 @@ base.require('dependency1');
 //base.require('dependency2');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals(['dependency1'], module.dependent_module_names);
@@ -155,7 +119,7 @@ base.require('linux_perf_importer');
 base.exportsTo('tracing', function() {"""
 
     module = parse_deps.Module('timeline_view')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals(['timeline_view'], module.style_sheet_names);
     self.assertEquals(['timeline_track_view',
@@ -178,7 +142,7 @@ base.require('dependency1');
 base.require('dependency2');
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals(['dependency1', 'dependency2'],
@@ -195,7 +159,7 @@ base.require('dependency2');
     text = """base.require('foo.dependency1')
 """
     module = parse_deps.Module('myModule')
-    stripped_text = parse_deps._strip_js_comments(text)
+    stripped_text = strip_js_comments.strip_js_comments(text)
     module.parse_definition_(stripped_text)
     self.assertEquals([], module.style_sheet_names);
     self.assertEquals(['foo.dependency1'],

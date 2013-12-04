@@ -81,13 +81,15 @@ class TemporaryDevServer(object):
                                     env=env, stdout=subprocess.PIPE, stderr=stderr)
 
     port_re = re.compile(
-        'TemporaryHTTPServer started on port (?P<port>\d+)')
+        'TemporaryDevServer started on port (?P<port>\d+)')
     while self._server.poll() == None:
       line = self._server.stdout.readline()
       m = port_re.match(line)
       if m:
         self._port = int(m.group('port'))
         break
+    if not self._port:
+      raise Exception('Couldn\'t start')
 
     def IsServerUp():
       return not socket.socket().connect_ex(('localhost', self._port))
@@ -166,7 +168,7 @@ def SubprocessMain(args):
   server.AddPathHandler('/test/customize', _do_POST_customize,
                         supports_get=False,
                         supports_post=True)
-  sys.stdout.write('TemporaryHTTPServer started on port %i\n' % port)
+  sys.stdout.write('TemporaryDevServer started on port %i\n' % port)
   sys.stdout.flush() # This is key! It kicks the port detector above.
   server.serve_forever()
 
