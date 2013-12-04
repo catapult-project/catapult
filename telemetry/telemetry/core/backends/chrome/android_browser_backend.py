@@ -31,11 +31,11 @@ class AndroidBrowserBackendSettings(object):
     raise NotImplementedError()
 
   def RemoveProfile(self):
-    files = self.adb.RunShellCommand('su -c ls "%s"' % self.profile_dir)
+    files = self.adb.RunShellCommandWithSU('ls "%s"' % self.profile_dir)
     # Don't delete lib, since it is created by the installer.
     files.remove('lib')
     paths = ['"%s/%s"' % (self.profile_dir, f) for f in files]
-    self.adb.RunShellCommand('su -c rm -r %s' % ' '.join(paths))
+    self.adb.RunShellCommandWithSU('rm -r %s' % ' '.join(paths))
 
   def PushProfile(self, _):
     logging.critical('Profiles cannot be overriden with current configuration')
@@ -89,7 +89,7 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     dumpsys = self.adb.RunShellCommand('dumpsys package %s' % self.package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
-    files = self.adb.RunShellCommand('su -c ls "%s"' % self.profile_dir)
+    files = self.adb.RunShellCommandWithSU('ls "%s"' % self.profile_dir)
     files.remove('lib')
     paths = ['%s/%s' % (self.profile_dir, f) for f in files]
     for path in paths:
@@ -348,8 +348,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # pulled down is really needed e.g. .pak files.
       if not os.path.exists(self._output_profile_path):
         os.makedirs(self._output_profile_pathame)
-      files = self.adb.RunShellCommand(
-          'su -c ls "%s"' % self._backend_settings.profile_dir)
+      files = self.adb.RunShellCommandWithSU(
+          'ls "%s"' % self._backend_settings.profile_dir)
       for f in files:
         # Don't pull lib, since it is created by the installer.
         if f != 'lib':

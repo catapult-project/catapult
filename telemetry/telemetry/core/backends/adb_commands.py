@@ -57,11 +57,15 @@ class AdbCommands(object):
   """A thin wrapper around ADB"""
 
   def __init__(self, device):
-    self._adb = android_commands.AndroidCommands(device)
+    self._adb = android_commands.AndroidCommands(device, api_strict_mode=True)
     self._device = device
 
   def device(self):
     return self._device
+
+  @property
+  def system_properties(self):
+    return self._adb.system_properties
 
   def Adb(self):
     return self._adb
@@ -85,6 +89,9 @@ class AdbCommands(object):
       list containing the lines of output received from running the command
     """
     return self._adb.RunShellCommand(command, timeout_time, log_result)
+
+  def RunShellCommandWithSU(self, command, timeout_time=20, log_result=False):
+    return self._adb.RunShellCommandWithSU(command, timeout_time, log_result)
 
   def CloseApplication(self, package):
     """Attempt to close down the application, using increasing violence.
@@ -193,8 +200,8 @@ def SetupPrebuiltTools(adb):
   # Prebuilt tools from r226197.
   has_prebuilt = sys.platform.startswith('linux')
   if has_prebuilt:
-    abi = adb.RunShellCommand('getprop ro.product.cpu.abi')
-    has_prebuilt = abi and abi[0].startswith('armeabi')
+    abi = adb.system_properties['ro.product.cpu.abi']
+    has_prebuilt = abi.startswith('armeabi')
   if not has_prebuilt:
     logging.error(
         'Prebuilt android tools only available for Linux host and ARM device.')
