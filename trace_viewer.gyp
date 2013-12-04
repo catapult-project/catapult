@@ -90,6 +90,7 @@
       'src/base/event_target.js',
       'src/base/iteration_helpers.js',
       'src/base/interval_tree.js',
+      'src/base/polymer.js',
       'src/about_tracing.js',
       'src/about_tracing/begin_recording.js',
       'src/about_tracing/mock_request_handler.js',
