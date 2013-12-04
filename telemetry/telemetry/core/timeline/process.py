@@ -61,9 +61,9 @@ class Process(event_container.TimelineEventContainer):
       self._counters[ctr.full_name] = ctr
       return ctr
 
-  def AutoCloseOpenSlices(self, max_timestamp):
+  def AutoCloseOpenSlices(self, max_timestamp, max_thread_timestamp):
     for thread in self._threads.itervalues():
-      thread.AutoCloseOpenSlices(max_timestamp)
+      thread.AutoCloseOpenSlices(max_timestamp, max_thread_timestamp)
 
   def FinalizeImport(self):
     for thread in self._threads.itervalues():

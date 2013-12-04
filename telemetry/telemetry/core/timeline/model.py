@@ -40,6 +40,7 @@ class MarkerOverlapError(Exception):
 class TimelineModel(object):
   def __init__(self, event_data=None, shift_world_to_zero=True):
     self._bounds = bounds.Bounds()
+    self._thread_time_bounds = bounds.Bounds()
     self._processes = {}
     self._frozen = False
     self.import_errors = []
@@ -55,6 +56,10 @@ class TimelineModel(object):
   @property
   def bounds(self):
     return self._bounds
+
+  @property
+  def thread_time_bounds(self):
+    return self._thread_time_bounds
 
   @property
   def processes(self):
@@ -77,7 +82,8 @@ class TimelineModel(object):
     self.UpdateBounds()
     if not self.bounds.is_empty:
       for process in self._processes.itervalues():
-        process.AutoCloseOpenSlices(self.bounds.max)
+        process.AutoCloseOpenSlices(self.bounds.max,
+                                    self.thread_time_bounds.max)
 
     for importer in importers:
       importer.FinalizeImport()
@@ -97,15 +103,23 @@ class TimelineModel(object):
     self.UpdateBounds()
     if self._bounds.is_empty:
       return
-    shift_amount = -self._bounds.min
+    shift_amount = self._bounds.min
+    thread_shift_amount = self._thread_time_bounds.min
     for event in self.IterAllEvents():
-      event.start += shift_amount
+      event.start -= shift_amount
+      if event.thread_start != None:
+        event.thread_start -= thread_shift_amount
 
   def UpdateBounds(self):
     self._bounds.Reset()
+    self._thread_time_bounds.Reset()
     for event in self.IterAllEvents():
       self._bounds.AddValue(event.start)
       self._bounds.AddValue(event.end)
+      if event.thread_start != None:
+        self._thread_time_bounds.AddValue(event.thread_start)
+      if event.thread_end != None:
+        self._thread_time_bounds.AddValue(event.thread_end)
 
   def GetAllContainers(self):
     containers = []

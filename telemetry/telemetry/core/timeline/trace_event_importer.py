@@ -148,6 +148,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       thread.BeginSlice(event['cat'],
                         event['name'],
                         event['ts'] / 1000.0,
+                        event['tts'] / 1000.0 if 'tts' in event else None,
                         event['args'])
     elif event['ph'] == 'E':
       thread = (self._GetOrCreateProcess(event['pid'])
@@ -161,7 +162,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
             'E phase event without a matching B phase event.')
         return
 
-      new_slice = thread.EndSlice(event['ts'] / 1000.0)
+      new_slice = thread.EndSlice(
+          event['ts'] / 1000.0,
+          event['tts'] / 1000.0 if 'tts' in event else None)
       for arg_name, arg_value in event.get('args', {}).iteritems():
         if arg_name in new_slice.args:
           self._model.import_errors.append(
@@ -173,11 +176,14 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
   def _ProcessCompleteEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
         .GetOrCreateThread(event['tid']))
-    thread.PushCompleteSlice(event['cat'],
-                             event['name'],
-                             event['ts'] / 1000.0,
-                             event['dur'] / 1000.0 if 'dur' in event else None,
-                             event['args'])
+    thread.PushCompleteSlice(
+        event['cat'],
+        event['name'],
+        event['ts'] / 1000.0,
+        event['dur'] / 1000.0 if 'dur' in event else None,
+        event['tts'] / 1000.0 if 'tts' in event else None,
+        event['tdur'] / 1000.0 if 'tdur' in event else None,
+        event['args'])
 
   def _ProcessMetadataEvent(self, event):
     if event['name'] == 'thread_name':
@@ -199,7 +205,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     thread.BeginSlice(event['cat'],
                       event['name'],
                       event['ts'] / 1000.0,
-                      event.get('args'))
+                      args=event.get('args'))
     thread.EndSlice(event['ts'] / 1000.0)
 
   def _ProcessSampleEvent(self, event):
@@ -208,7 +214,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     thread.AddSample(event['cat'],
                      event['name'],
                      event['ts'] / 1000.0,
-                     args=event.get('args'))
+                     event.get('args'))
 
   def ImportEvents(self):
     ''' Walks through the events_ list and outputs the structures discovered to

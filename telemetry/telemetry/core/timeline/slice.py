@@ -13,10 +13,11 @@ class Slice(timeline_event.TimelineEvent):
 
   All time units are stored in milliseconds.
   """
-  def __init__(self, parent_thread, category, name, timestamp,
-               args=None, duration=0):
+  def __init__(self, parent_thread, category, name, timestamp, duration=0,
+               thread_timestamp=None, thread_duration=None, args=None):
     super(Slice, self).__init__(
-        category, name, timestamp, duration, args=args)
+        category, name, timestamp, duration, thread_timestamp, thread_duration,
+        args)
     self.parent_thread = parent_thread
     self.parent_slice = None
     self.sub_slices = []
@@ -38,6 +39,23 @@ class Slice(timeline_event.TimelineEvent):
     child_total = sum(
       [e.duration for e in self.sub_slices])
     return self.duration - child_total
+
+  @property
+  def self_thread_time(self):
+    """Thread (scheduled) time spent in this function less any thread time spent
+    in child events. Returns None if the slice or any of its children does not
+    have a thread_duration value.
+    """
+    if not self.thread_duration:
+      return None
+
+    child_total = 0
+    for e in self.sub_slices:
+      if e.thread_duration == None:
+        return None
+      child_total += e.thread_duration
+
+    return self.thread_duration - child_total
 
   def _GetSubSlicesRecursive(self):
     for sub_slice in self.sub_slices:

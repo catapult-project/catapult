@@ -83,7 +83,8 @@ class Thread(event_container.TimelineEventContainer):
   def AddAsyncSlice(self, async_slice):
     self._async_slices.append(async_slice)
 
-  def BeginSlice(self, category, name, timestamp, args=None):
+  def BeginSlice(self, category, name, timestamp, thread_timestamp=None,
+                 args=None):
     """Opens a new slice for the thread.
     Calls to beginSlice and endSlice must be made with
     non-monotonically-decreasing timestamps.
@@ -91,6 +92,8 @@ class Thread(event_container.TimelineEventContainer):
     * category: Category to which the slice belongs.
     * name: Name of the slice to add.
     * timestamp: The timetsamp of the slice, in milliseconds.
+    * thread_timestamp: Thread specific clock (scheduled) timestamp of the
+                        slice, in milliseconds.
     * args: Arguments associated with
 
     Returns newly opened slice
@@ -98,17 +101,21 @@ class Thread(event_container.TimelineEventContainer):
     if len(self._open_slices) > 0 and timestamp < self._open_slices[-1].start:
       raise ValueError(
           'Slices must be added in increasing timestamp order')
-    new_slice = tracing_slice.Slice(self, category, name, timestamp, args=args)
+    new_slice = tracing_slice.Slice(self, category, name, timestamp,
+                                    thread_timestamp=thread_timestamp,
+                                    args=args)
     self._open_slices.append(new_slice)
     new_slice.did_not_finish = True
     self.PushSlice(new_slice)
     return new_slice
 
-  def EndSlice(self, end_timestamp):
+  def EndSlice(self, end_timestamp, end_thread_timestamp=None):
     """ Ends the last begun slice in this group and pushes it onto the slice
     array.
 
     * end_timestamp: Timestamp when the slice ended in milliseconds
+    * end_thread_timestamp: Timestamp when the scheduled time of the slice ended
+                            in milliseconds
 
     returns completed slice.
     """
@@ -120,15 +127,26 @@ class Thread(event_container.TimelineEventContainer):
       raise ValueError(
           'Slice %s end time is before its start.' % curr_slice.name)
     curr_slice.duration = end_timestamp - curr_slice.start
+    if end_thread_timestamp != None:
+      if curr_slice.thread_start == None:
+        raise ValueError(
+            'EndSlice with thread_timestamp called on open slice without ' +
+            'thread_timestamp')
+      curr_slice.thread_duration = (end_thread_timestamp -
+                                    curr_slice.thread_start)
     curr_slice.did_not_finish = False
     return curr_slice
 
-  def PushCompleteSlice(self, category, name, timestamp, duration, args=None):
-    new_slice = tracing_slice.Slice(self, category, name, timestamp, args=args)
+  def PushCompleteSlice(self, category, name, timestamp, duration,
+                        thread_timestamp, thread_duration, args=None):
+    new_slice = tracing_slice.Slice(self, category, name, timestamp,
+                                    thread_timestamp=thread_timestamp,
+                                    args=args)
     if duration == None:
       new_slice.did_not_finish = True
     else:
       new_slice.duration = duration
+      new_slice.thread_duration = thread_duration
     self.PushSlice(new_slice)
     return new_slice
 
@@ -136,11 +154,14 @@ class Thread(event_container.TimelineEventContainer):
     self._newly_added_slices.append(new_slice)
     return new_slice
 
-  def AutoCloseOpenSlices(self, max_timestamp):
+  def AutoCloseOpenSlices(self, max_timestamp, max_thread_timestamp):
     for s in self._newly_added_slices:
       if s.did_not_finish:
         s.duration = max_timestamp - s.start
         assert s.duration >= 0
+        if s.thread_start != None:
+          s.thread_duration = max_thread_timestamp - s.thread_start
+          assert s.thread_duration >= 0
     self._open_slices = []
 
   def IsTimestampValidForBeginOrEnd(self, timestamp):

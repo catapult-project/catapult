@@ -32,6 +32,18 @@ class CounterSample(object):
   def end(self):
     return self.start
 
+  @property
+  def thread_start(self):
+    return None
+
+  @property
+  def thread_duration(self):
+    return None
+
+  @property
+  def thread_end(self):
+    return None
+
 
 class Counter(event_container.TimelineEventContainer):
   """ Stores all the samples for a given counter.

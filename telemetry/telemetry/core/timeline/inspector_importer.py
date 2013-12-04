@@ -46,7 +46,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
       thread.BeginSlice('inspector',
                         raw_inspector_event['type'],
                         raw_inspector_event['startTime'],
-                        args)
+                        args=args)
       did_begin_slice = True
 
     for child in raw_inspector_event.get('children', []):
