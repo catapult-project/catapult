@@ -8,11 +8,7 @@ import optparse
 import sys
 import os
 
-tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         '..', 'third_party', 'tvcm'))
-if tvcm_path not in sys.path:
-  sys.path.append(tvcm_path)
-
+import tvcm_stub
 import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
