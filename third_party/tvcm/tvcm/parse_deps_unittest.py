@@ -8,7 +8,7 @@ import parse_deps
 import strip_js_comments
 import os
 
-src_dir = os.path.join(os.path.dirname(__file__), '../src')
+src_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src')
 
 class ValidateTests(unittest.TestCase):
   def test_validate_1(self):

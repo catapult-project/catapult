@@ -5,7 +5,7 @@ import sys
 import os
 import re
 
-from build import strip_js_comments
+from tvcm import strip_js_comments
 
 class DepsException(Exception):
   pass

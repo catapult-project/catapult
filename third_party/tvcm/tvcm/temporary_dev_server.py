@@ -11,7 +11,7 @@ import sys
 import urlparse
 import time
 
-from build import dev_server
+from tvcm import dev_server
 
 def GetUnreservedAvailableLocalPort():
   """Returns an available port on the system.
@@ -76,9 +76,11 @@ class TemporaryDevServer(object):
     cmd = [sys.executable, '-m', __name__]
     env = os.environ.copy()
     stderr = self._devnull
+    env['PYTHONPATH'] = os.path.abspath(
+      os.path.join(os.path.dirname(__file__), '..'))
 
     self._server = subprocess.Popen(cmd, cwd=os.getcwd(),
-                                    env=env, stdout=subprocess.PIPE, stderr=stderr)
+                                    env=env, stdout=subprocess.PIPE, stderr=self._devnull)
 
     port_re = re.compile(
         'TemporaryDevServer started on port (?P<port>\d+)')
@@ -105,7 +107,8 @@ class TemporaryDevServer(object):
   def Close(self):
     if self._server:
       # TODO(tonyg): Should this block until it goes away?
-      self._server.kill()
+      if self._server.poll() == None:
+        self._server.kill()
       self._server = None
     if self._devnull:
       self._devnull.close()
@@ -122,7 +125,10 @@ class TemporaryDevServer(object):
     resp = conn.getresponse()
     resp_str = resp.read(resp.getheader('Content-Length'))
     if resp.status != expected_response_code:
-      resp_data = json.loads(resp_str)
+      try:
+        resp_data = json.loads(resp_str)
+      except ValueError:
+        resp_data = {}
       if 'details' in resp_data:
         sys.stderr.write(resp_data['details'])
         sys.stderr.write('\n')

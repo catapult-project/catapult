@@ -6,7 +6,8 @@ import os
 import sys
 import json
 
-from build import dev_server
+import build # Brings in tvcm bindings.
+import tvcm
 
 toplevel_path = os.path.abspath(os.path.dirname(__file__))
 src_path = os.path.join(toplevel_path, 'src')
@@ -44,7 +45,7 @@ def do_GET_json_examples_skp(request):
   request.wfile.write(files_as_json)
 
 def Main(port, args):
-  server = dev_server.DevServer(port=port)
+  server = tvcm.DevServer(port=port)
   server.AddPathHandler('/json/examples', do_GET_json_examples)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 

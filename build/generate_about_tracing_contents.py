@@ -8,8 +8,7 @@ import optparse
 import sys
 import os
 
-import parse_deps
-import generate
+import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -77,12 +76,12 @@ def main(args):
     return 1
 
   filenames = ["base.js", "about_tracing.js"]
-  load_sequence = parse_deps.calc_load_sequence(filenames, [src_dir])
+  load_sequence = tvcm.calc_load_sequence(filenames, [src_dir])
 
   olddir = os.getcwd()
   try:
     try:
-      result_html = generate_html(options.out_dir, load_sequence)
+      result_html = tvcm.generate_html(options.out_dir, load_sequence)
     except parse_deps.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
@@ -91,7 +90,7 @@ def main(args):
     o.write(result_html)
     o.close()
 
-    result_js = generate_js(options.out_dir, load_sequence)
+    result_js = tvcm.generate_js(options.out_dir, load_sequence)
     o = open(os.path.join(options.out_dir, "about_tracing.js"), 'w')
     o.write(result_js)
     o.close()

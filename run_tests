@@ -3,19 +3,30 @@ import unittest
 import sys
 import os
 
-import build
+import build # Brings in tvcm bindings.
+import tvcm
 
 __all__ = []
 
 def Main():
   class AllTestLoader(unittest.TestLoader):
+    def addTestsInDirToSuite(self, suite, start_dir, top_dir):
+      subsuite = self.discover(start_dir,
+                            "*unittest.py",
+                            top_dir)
+      suite.addTest(subsuite)
+
     def loadTestsFromModule(self, module, use_load_tests=True):
       if module.__file__ == __file__:
-        start_dir = os.path.join(os.path.dirname(__file__), "build")
-        top_dir = os.path.dirname(__file__)
-        return self.discover(start_dir,
-                             "*unittest.py",
-                             top_dir)
+        suite = unittest.TestSuite()
+        self.addTestsInDirToSuite(suite,
+                                  os.path.join(os.path.dirname(__file__), "build"),
+                                  os.path.dirname(__file__))
+        tvcm_top_dir = os.path.join(os.path.dirname(__file__), "third_party", "tvcm")
+        self.addTestsInDirToSuite(suite,
+                                  os.path.join(tvcm_top_dir, "tvcm"),
+                                  tvcm_top_dir)
+        return suite
       return super(AllTestLoader, self).loadTestsFromModule(module, use_load_tests)
   return unittest.main(testLoader=AllTestLoader())
 

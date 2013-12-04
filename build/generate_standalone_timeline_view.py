@@ -10,7 +10,7 @@ import os
 import parse_deps
 import re
 
-import generate
+import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -44,11 +44,11 @@ various ordering restrictions between them.
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:
-      f.write(generate.generate_js(load_sequence))
+      f.write(tvcm.generate_js(load_sequence))
 
   if options.css_file:
     with _sopen(options.css_file, 'w') as f:
-      f.write(generate.generate_css(load_sequence))
+      f.write(tvcm.generate_css(load_sequence))
 
   return 0
 

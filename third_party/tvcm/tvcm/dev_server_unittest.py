@@ -7,7 +7,10 @@ import httplib
 import os
 import json
 
-from build import temporary_dev_server
+from tvcm import temporary_dev_server
+
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                       '..', '..', '..', 'src'))
 
 class DevServerTests(unittest.TestCase):
   def setUp(self):
@@ -17,8 +20,6 @@ class DevServerTests(unittest.TestCase):
     self.server.Close()
 
   def testBasic(self):
-    src_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', 'src'))
     self.server.CallOnServer('AddSourcePathMapping', '/src/', src_path)
     resp_str = self.server.Get('/src/base.js')
     with open(os.path.join(src_path, 'base.js'), 'r') as f:
@@ -26,16 +27,12 @@ class DevServerTests(unittest.TestCase):
     self.assertEquals(resp_str, base_str)
 
   def testDeps(self):
-    src_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', 'src'))
     self.server.CallOnServer('AddSourcePathMapping', '/src/', src_path)
 
     # Just smoke test that it works.
     resp_str = self.server.Get('/deps.js')
 
   def testTests(self):
-    src_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', 'src'))
     self.server.CallOnServer('AddSourcePathMapping', '/src/', src_path)
 
     # Just smoke test for a known test to see if things worked.

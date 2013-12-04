@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 import os
-import parse_deps
 import re
+
+import tvcm
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 
@@ -12,7 +13,7 @@ def GritCheck():
   filenames = ["base.js",
                "about_tracing/profiling_view.js"]
   grit_files = []
-  load_sequence = parse_deps.calc_load_sequence(filenames, [srcdir])
+  load_sequence = tvcm.calc_load_sequence(filenames, [srcdir])
   for module in load_sequence:
     for style_sheet in module.style_sheets:
       # I'm assuming we only have url()'s associated with images

@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from build import strip_js_comments
+from tvcm import strip_js_comments
 
 src_dir = os.path.join(os.path.dirname(__file__), '../src')
 

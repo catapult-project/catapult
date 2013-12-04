@@ -9,8 +9,8 @@ import sys
 import time
 import traceback
 import base64
-from build import parse_deps
-from build import generate
+from tvcm import parse_deps
+from tvcm import generate
 
 import SocketServer
 import SimpleHTTPServer
