@@ -6,7 +6,7 @@ import unittest
 
 from telemetry import value
 from telemetry.page import page_set
-from telemetry.value.histogram import HistogramValue
+from telemetry.value import histogram as histogram_module
 
 class TestBase(unittest.TestCase):
   def setUp(self):
@@ -27,7 +27,7 @@ class TestBase(unittest.TestCase):
 class ValueTest(TestBase):
   def testHistogramBasic(self):
     page0 = self.pages[0]
-    histogram = HistogramValue(
+    histogram = histogram_module.HistogramValue(
         page0, 'x', 'counts',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
         important=False)

@@ -5,9 +5,9 @@ import os
 import unittest
 
 from telemetry.page import page_set
+from telemetry.value import list_of_scalar_values
 from telemetry.value import merge_values
-from telemetry.value.list_of_scalar_values import ListOfScalarValues
-from telemetry.value.scalar import ScalarValue
+from telemetry.value import scalar
 
 class TestBase(unittest.TestCase):
   def setUp(self):
@@ -30,10 +30,10 @@ class MergeValueTest(TestBase):
     page0 = self.pages[0]
     page1 = self.pages[1]
 
-    all_values = [ScalarValue(page0, 'x', 'units', 1),
-                  ScalarValue(page1, 'x', 'units', 4),
-                  ScalarValue(page0, 'x', 'units', 2),
-                  ScalarValue(page1, 'x', 'units', 5)]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1),
+                  scalar.ScalarValue(page1, 'x', 'units', 4),
+                  scalar.ScalarValue(page0, 'x', 'units', 2),
+                  scalar.ScalarValue(page1, 'x', 'units', 5)]
 
     merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
     # Sort the results so that their order is predictable for the subsequent
@@ -53,7 +53,7 @@ class MergeValueTest(TestBase):
   def testSamePageMergeOneValue(self):
     page0 = self.pages[0]
 
-    all_values = [ScalarValue(page0, 'x', 'units', 1)]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
@@ -66,10 +66,10 @@ class MergeValueTest(TestBase):
     page0 = self.pages[0]
     page1 = self.pages[1]
 
-    all_values = [ScalarValue(page0, 'x', 'units', 1),
-                  ScalarValue(page1, 'x', 'units', 2),
-                  ScalarValue(page0, 'y', 'units', 10),
-                  ScalarValue(page1, 'y', 'units', 20)]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1),
+                  scalar.ScalarValue(page1, 'x', 'units', 2),
+                  scalar.ScalarValue(page0, 'y', 'units', 10),
+                  scalar.ScalarValue(page1, 'y', 'units', 20)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
@@ -88,7 +88,7 @@ class MergeValueTest(TestBase):
   def testDifferentPageMergeSingleValueStillMerges(self):
     page0 = self.pages[0]
 
-    all_values = [ScalarValue(page0, 'x', 'units', 1)]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1)]
 
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
@@ -97,15 +97,16 @@ class MergeValueTest(TestBase):
 
     self.assertEquals((None, 'x'),
                       (merged_values[0].page, merged_values[0].name))
-    self.assertTrue(isinstance(merged_values[0], ListOfScalarValues))
+    self.assertTrue(
+        isinstance(merged_values[0], list_of_scalar_values.ListOfScalarValues))
     self.assertEquals([1], merged_values[0].values)
 
   def testDifferentPageMergeBasicIgnoreTraceName(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
 
-    all_values = [ScalarValue(page0, 'x.score', 'units', 1),
-                  ScalarValue(page1, 'y.score', 'units', 2)]
+    all_values = [scalar.ScalarValue(page0, 'x.score', 'units', 1),
+                  scalar.ScalarValue(page1, 'y.score', 'units', 2)]
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
     merged_values = merge_values.MergeLikeValuesFromDifferentPages(

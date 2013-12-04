@@ -6,7 +6,7 @@ import unittest
 
 from telemetry import value
 from telemetry.page import page_set
-from telemetry.value.list_of_scalar_values import ListOfScalarValues
+from telemetry.value import list_of_scalar_values
 
 class TestBase(unittest.TestCase):
   def setUp(self):
@@ -27,15 +27,16 @@ class TestBase(unittest.TestCase):
 class ValueTest(TestBase):
   def testListSamePageMergingWithSamePageConcatenatePolicy(self):
     page0 = self.pages[0]
-    v0 = ListOfScalarValues(
+    v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [1,2], same_page_merge_policy=value.CONCATENATE)
-    v1 = ListOfScalarValues(
+    v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [3,4], same_page_merge_policy=value.CONCATENATE)
     self.assertTrue(v1.IsMergableWith(v0))
 
-    vM = ListOfScalarValues.MergeLikeValuesFromSamePage([v0, v1])
+    vM = (list_of_scalar_values.ListOfScalarValues.
+          MergeLikeValuesFromSamePage([v0, v1]))
     self.assertEquals(page0, vM.page)
     self.assertEquals('x', vM.name)
     self.assertEquals('unit', vM.units)
@@ -45,15 +46,16 @@ class ValueTest(TestBase):
 
   def testListSamePageMergingWithPickFirstPolicy(self):
     page0 = self.pages[0]
-    v0 = ListOfScalarValues(
+    v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [1,2], same_page_merge_policy=value.PICK_FIRST)
-    v1 = ListOfScalarValues(
+    v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [3,4], same_page_merge_policy=value.PICK_FIRST)
     self.assertTrue(v1.IsMergableWith(v0))
 
-    vM = ListOfScalarValues.MergeLikeValuesFromSamePage([v0, v1])
+    vM = (list_of_scalar_values.ListOfScalarValues.
+          MergeLikeValuesFromSamePage([v0, v1]))
     self.assertEquals(page0, vM.page)
     self.assertEquals('x', vM.name)
     self.assertEquals('unit', vM.units)
@@ -63,15 +65,16 @@ class ValueTest(TestBase):
 
   def testListDifferentPageMerging(self):
     page0 = self.pages[0]
-    v0 = ListOfScalarValues(
+    v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [1, 2], same_page_merge_policy=value.PICK_FIRST)
-    v1 = ListOfScalarValues(
+    v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [3, 4], same_page_merge_policy=value.PICK_FIRST)
     self.assertTrue(v1.IsMergableWith(v0))
 
-    vM = ListOfScalarValues.MergeLikeValuesFromDifferentPages([v0, v1])
+    vM = (list_of_scalar_values.ListOfScalarValues.
+          MergeLikeValuesFromDifferentPages([v0, v1]))
     self.assertEquals(None, vM.page)
     self.assertEquals('x', vM.name)
     self.assertEquals('unit', vM.units)

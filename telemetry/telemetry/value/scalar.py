@@ -4,10 +4,10 @@
 
 import numbers
 
-from telemetry.value import Value
-from telemetry.value.list_of_scalar_values import ListOfScalarValues
+from telemetry import value as value_module
+from telemetry.value import list_of_scalar_values
 
-class ScalarValue(Value):
+class ScalarValue(value_module.Value):
   def __init__(self, page, name, units, value, important=True):
     """A single value (float or integer) result from a test.
 
@@ -50,7 +50,7 @@ class ScalarValue(Value):
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return ListOfScalarValues(
+    return list_of_scalar_values.ListOfScalarValues(
         v0.page, v0.name, v0.units,
         [v.value for v in values],
         important=v0.important)
@@ -64,7 +64,7 @@ class ScalarValue(Value):
       name = v0.name
     else:
       name = v0.name_suffix
-    return ListOfScalarValues(
+    return list_of_scalar_values.ListOfScalarValues(
         None, name, v0.units,
         [v.value for v in values],
         important=v0.important)

@@ -9,9 +9,9 @@ implementation and update the PageMeasurementResults API once we know the
 underlying implementation is solid.
 """
 from telemetry import value as value_module
-from telemetry.value.histogram import HistogramValue
-from telemetry.value.list_of_scalar_values import ListOfScalarValues
-from telemetry.value.scalar import ScalarValue
+from telemetry.value import histogram
+from telemetry.value import list_of_scalar_values
+from telemetry.value import scalar
 
 
 def ConvertOldCallingConventionToValue(page, trace_name, units,
@@ -20,26 +20,26 @@ def ConvertOldCallingConventionToValue(page, trace_name, units,
       trace_name, chart_name)
   if data_type == 'default':
     if isinstance(value, list):
-      return ListOfScalarValues(page, value_name, units,
-                                value, important=True)
+      return list_of_scalar_values.ListOfScalarValues(
+          page, value_name, units, value, important=True)
     else:
-      return ScalarValue(page, value_name, units,
-                         value, important=True)
+      return scalar.ScalarValue(page, value_name, units,
+                                value, important=True)
   elif data_type == 'unimportant':
     if isinstance(value, list):
-      return ListOfScalarValues(page, value_name, units,
-                                value, important=False)
+      return list_of_scalar_values.ListOfScalarValues(
+          page, value_name, units, value, important=False)
     else:
-      return ScalarValue(page, value_name, units,
-                         value, important=False)
+      return scalar.ScalarValue(page, value_name, units,
+                                value, important=False)
   elif data_type == 'histogram':
     assert isinstance(value, basestring)
-    return HistogramValue(page, value_name, units,
-                          raw_value_json=value, important=True)
+    return histogram.HistogramValue(
+        page, value_name, units, raw_value_json=value, important=True)
   elif data_type == 'unimportant-histogram':
     assert isinstance(value, basestring)
-    return HistogramValue(page, value_name, units,
-                          raw_value_json=value, important=False)
+    return histogram.HistogramValue(
+        page, value_name, units, raw_value_json=value, important=False)
   elif data_type == 'informational':
     raise NotImplementedError()
   else:
