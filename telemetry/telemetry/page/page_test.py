@@ -180,6 +180,14 @@ class PageTest(object):
     all waiting for completion has occurred."""
     pass
 
+  def WillRunActions(self, page, tab):
+    """Override to do operations before running the actions on the page."""
+    pass
+
+  def DidRunActions(self, page, tab):
+    """Override to do operations after running the actions on the page."""
+    pass
+
   def WillRunAction(self, page, tab, action):
     """Override to do operations before running the action on the page."""
     pass
@@ -213,7 +221,9 @@ class PageTest(object):
     interactive = options and options.interactive
     compound_action = GetCompoundActionFromPage(
         page, self._action_name_to_run, interactive)
+    self.WillRunActions(page, tab)
     self._RunCompoundAction(page, tab, compound_action)
+    self.DidRunActions(page, tab)
     try:
       self._test_method(page, tab, results)
     finally:
