@@ -118,8 +118,6 @@
   };
 
   ScrollAction.prototype.startPass_ = function() {
-    this.element_.scrollTop = 0;
-
     this.beginMeasuringHook();
 
     this.gesture_ = new SmoothScrollDownGesture(this.options_);
