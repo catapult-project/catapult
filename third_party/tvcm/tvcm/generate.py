@@ -10,7 +10,8 @@ import sys
 import os
 import re
 
-srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                      "..", "..", "..", "src"))
 
 html_warning_message = """
 

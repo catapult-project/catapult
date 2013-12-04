@@ -8,6 +8,11 @@ import optparse
 import sys
 import os
 
+tvcm_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         '..', 'third_party', 'tvcm'))
+if tvcm_path not in sys.path:
+  sys.path.append(tvcm_path)
+
 import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
@@ -38,7 +43,7 @@ js_warning_message = """/**
 """
 
 def generate_html(outdir, load_sequence):
-  return generate.generate_standalone_html_file(
+  return tvcm.generate_standalone_html_file(
     load_sequence,
     title='chrome://tracing',
     flattened_js_url='chrome://tracing/tracing.js')
@@ -81,8 +86,8 @@ def main(args):
   olddir = os.getcwd()
   try:
     try:
-      result_html = tvcm.generate_html(options.out_dir, load_sequence)
-    except parse_deps.DepsException, ex:
+      result_html = generate_html(options.out_dir, load_sequence)
+    except tvcm.parse_deps.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
 
@@ -90,7 +95,7 @@ def main(args):
     o.write(result_html)
     o.close()
 
-    result_js = tvcm.generate_js(options.out_dir, load_sequence)
+    result_js = generate_js(options.out_dir, load_sequence)
     o = open(os.path.join(options.out_dir, "about_tracing.js"), 'w')
     o.write(result_js)
     o.close()
