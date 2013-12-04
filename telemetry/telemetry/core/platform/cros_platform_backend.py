@@ -52,6 +52,10 @@ class CrosPlatformBackend(
                  for curr_pid, _, curr_ppid, curr_state in all_process_info]
     return ps_util.GetChildPids(processes, pid)
 
+  def GetCommandLine(self, pid):
+    procs = self._cri.ListProcesses()
+    return next((proc[1] for proc in procs if proc[0] == pid), None)
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 

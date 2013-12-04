@@ -255,7 +255,8 @@ class CrOSInterface(object):
         continue
       m = re.match('^\s*(\d+)\s+(\d+)\s+(.+)\s+(.+)', l, re.DOTALL)
       assert m
-      procs.append((int(m.group(1)), m.group(3), int(m.group(2)), m.group(4)))
+      procs.append((int(m.group(1)), m.group(3).rstrip(),
+                    int(m.group(2)), m.group(4)))
     logging.debug("ListProcesses(<predicate>)->[%i processes]" % len(procs))
     return procs
 
