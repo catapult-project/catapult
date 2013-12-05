@@ -28,6 +28,19 @@ base.unittest.testSuite('tracing.analysis.generic_object_view', function() {
     assertEquals('"string value"', view.children[0].textContent);
   });
 
+  test('jsonObjectStringValue', function() {
+    var view = new GenericObjectView();
+    view.object = '{"x": 1}';
+    assertEquals(1, view.children.length);
+    assertEquals(4, view.children[0].children.length);
+  });
+
+  test('jsonArraStringValue', function() {
+    var view = new GenericObjectView();
+    view.object = '[1,2,3]';
+    assertEquals(3, view.children.length);
+  });
+
   test('booleanValue', function() {
     var view = new GenericObjectView();
     view.object = false;

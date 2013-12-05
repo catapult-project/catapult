@@ -60,11 +60,24 @@ base.exportTo('tracing.analysis', function() {
       if (!(object instanceof Object)) {
         var type = typeof object;
         if (type == 'string') {
-          this.appendSimpleText_(label, indent, '"' + object + '"', suffix);
+          var objectReplaced = false;
+          if ((object[0] == '{' && object[object.length - 1] == '}') ||
+              (object[0] == '[' && object[object.length - 1] == ']')) {
+            try {
+              object = JSON.parse(object);
+              objectReplaced = true;
+            } catch (e) {
+            }
+          }
+          if (!objectReplaced)
+            return this.appendSimpleText_(
+                label, indent, '"' + object + '"', suffix);
+          else {
+            /* Fall through to the flow below */
+          }
         } else {
-          this.appendSimpleText_(label, indent, object, suffix);
+          return this.appendSimpleText_(label, indent, object, suffix);
         }
-        return;
       }
 
       if (object instanceof tracing.trace_model.ObjectSnapshot) {
