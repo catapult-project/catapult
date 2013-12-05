@@ -102,7 +102,7 @@
     else
       clientHeight = this.element_.clientHeight;
 
-    return this.scrollHeight_ - this.element_.scrollTop - clientHeight;
+    return this.element_.scrollHeight - this.element_.scrollTop - clientHeight;
   }
 
   ScrollAction.prototype.start = function(opt_options) {
@@ -110,19 +110,17 @@
     // Assign this.element_ here instead of constructor, because the constructor
     // ensures this method will be called after the document is loaded.
     this.element_ = this.options_.element_;
-    // Some pages load more content when you scroll to the bottom. Record
-    // the original element height here and only scroll to that point.
-    this.scrollHeight_ = Math.min(MAX_SCROLL_LENGTH_PIXELS,
-                                  this.element_.scrollHeight);
     requestAnimationFrame(this.startPass_.bind(this));
   };
 
   ScrollAction.prototype.startPass_ = function() {
     this.beginMeasuringHook();
 
+    var distance = Math.min(MAX_SCROLL_LENGTH_PIXELS,
+                            this.getRemainingScrollDistance_());
+
     this.gesture_ = new SmoothScrollDownGesture(this.options_);
-    this.gesture_.start(this.getRemainingScrollDistance_(),
-                        this.onGestureComplete_.bind(this));
+    this.gesture_.start(distance, this.onGestureComplete_.bind(this));
   };
 
   ScrollAction.prototype.onGestureComplete_ = function() {
