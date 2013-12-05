@@ -53,7 +53,7 @@ class WebDriverTabBackend(object):
     self._browser_backend.driver.switch_to_window(self._window_handle)
     snap = self._browser_backend.driver.get_screenshot_as_base64()
     if snap:
-      return bitmap.Bitmap(snap)
+      return bitmap.Bitmap.FromPng(snap)
     return None
 
   @property

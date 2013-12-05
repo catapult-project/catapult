@@ -2,8 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import unittest
+import tempfile
 import os
+import unittest
 
 from telemetry.core import bitmap
 from telemetry.core import util
@@ -35,7 +36,7 @@ class BitmapTest(unittest.TestCase):
     bmp.GetPixelColor(0, 1).AssertIsRGB(0, 0, 255)
     bmp.GetPixelColor(1, 0).AssertIsRGB(255, 255, 0)
 
-  def testReadFromPnfFile(self):
+  def testReadFromPngFile(self):
     file_bmp = bitmap.Bitmap.FromPngFile(test_png_path)
 
     self.assertEquals(2, file_bmp.width)
@@ -45,6 +46,13 @@ class BitmapTest(unittest.TestCase):
     file_bmp.GetPixelColor(1, 1).AssertIsRGB(0, 255, 0)
     file_bmp.GetPixelColor(0, 1).AssertIsRGB(0, 0, 255)
     file_bmp.GetPixelColor(1, 0).AssertIsRGB(255, 255, 0)
+
+  def testWritePngFile(self):
+    orig = bitmap.Bitmap.FromPngFile(test_png_path)
+    temp_file = tempfile.NamedTemporaryFile().name
+    orig.WritePngFile(temp_file)
+    new_file = bitmap.Bitmap.FromPngFile(temp_file)
+    self.assertTrue(orig.IsEqual(new_file))
 
   def testIsEqual(self):
     bmp = bitmap.Bitmap.FromBase64Png(test_png)

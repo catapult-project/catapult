@@ -39,14 +39,20 @@ class RgbaColor(object):
 class Bitmap(object):
   """Utilities for parsing and inspecting a bitmap."""
 
-  def __init__(self, png_data):
-    self._png_data = png_data
-    self._png = png.Reader(bytes=self._png_data)
-    rgba8_data = self._png.asRGBA8()
-    self._width = rgba8_data[0]
-    self._height = rgba8_data[1]
-    self._pixels = list(rgba8_data[2])
-    self._metadata = rgba8_data[3]
+  def __init__(self, bpp, width, height, pixels, metadata=None):
+    assert bpp in [3, 4], 'Invalid bytes per pixel'
+    assert width > 0, 'Invalid width'
+    assert height > 0, 'Invalid height'
+    assert pixels, 'Must specify pixels'
+    assert bpp * width * height == len(pixels), 'Dimensions and pixels mismatch'
+
+    self._bpp = bpp
+    self._width = width
+    self._height = height
+    self._pixels = pixels
+    self._metadata = metadata
+    if not self._metadata:
+      self._metadata = {'size': (width, height)}
 
   @property
   def width(self):
@@ -60,37 +66,53 @@ class Bitmap(object):
 
   def GetPixelColor(self, x, y):
     """Returns a RgbaColor for the pixel at (x, y)"""
-    row = self._pixels[y]
-    offset = x * 4
-    return RgbaColor(row[offset], row[offset+1], row[offset+2], row[offset+3])
+    base = self._bpp * (y * self._width + x)
+    if self._bpp == 4:
+      return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
+                       self._pixels[base + 2], self._pixels[base + 3])
+    return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
+                     self._pixels[base + 2])
 
   def WritePngFile(self, path):
     with open(path, "wb") as f:
-      f.write(self._png_data)
+      png.Writer(**self._metadata).write_array(f, self._pixels)
+
+  @staticmethod
+  def FromPng(png_data):
+    width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
+    return Bitmap(4 if meta['alpha'] else 3, width, height, pixels, meta)
 
   @staticmethod
   def FromPngFile(path):
     with open(path, "rb") as f:
-      return Bitmap(f.read())
+      return Bitmap.FromPng(f.read())
 
   @staticmethod
   def FromBase64Png(base64_png):
-    return Bitmap(base64.b64decode(base64_png))
+    return Bitmap.FromPng(base64.b64decode(base64_png))
 
-  def IsEqual(self, expected, tolerance=0):
+  # pylint: disable=W0212
+  def IsEqual(self, other, tolerance=0):
     """Determines whether two Bitmaps are identical within a given tolerance"""
 
     # Dimensions must be equal
-    if self.width != expected.width or self.height != expected.height:
+    if self.width != other.width or self.height != other.height:
       return False
 
     # Loop over each pixel and test for equality
-    for y in range(self.height):
-      for x in range(self.width):
-        c0 = self.GetPixelColor(x, y)
-        c1 = expected.GetPixelColor(x, y)
-        if not c0.IsEqual(c1, tolerance):
-          return False
+    if tolerance or self._bpp != other._bpp:
+      for y in range(self.height):
+        for x in range(self.width):
+          c0 = self.GetPixelColor(x, y)
+          c1 = other.GetPixelColor(x, y)
+          if not c0.IsEqual(c1, tolerance):
+            return False
+    else:
+      if type(self._pixels) is not bytearray:
+        self._pixels = bytearray(self._pixels)
+      if type(other._pixels) is not bytearray:
+        other._pixels = bytearray(other._pixels)
+      return self._pixels == other._pixels
 
     return True
 
@@ -128,7 +150,7 @@ class Bitmap(object):
     output = cStringIO.StringIO()
     try:
       diff_img.save(output)
-      diff = Bitmap(output.getvalue())
+      diff = Bitmap.FromPng(output.getvalue())
     finally:
       output.close()
 
@@ -162,7 +184,7 @@ class Bitmap(object):
     output = cStringIO.StringIO()
     try:
       crop_img.save(output)
-      crop = Bitmap(output.getvalue())
+      crop = Bitmap.FromPng(output.getvalue())
     finally:
       output.close()
 

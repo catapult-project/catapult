@@ -7,6 +7,7 @@ import os
 import subprocess
 import tempfile
 
+from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
@@ -25,6 +26,7 @@ except Exception:
 
 
 _HOST_APPLICATIONS = [
+    'avconv',
     'ipfw',
     ]
 
@@ -200,9 +202,58 @@ class AndroidPlatformBackend(
     self._video_recorder.wait()
     self._video_recorder = None
 
-    # TODO(tonyg/szym): Decode the mp4 and yield the (time, bitmap) tuples.
-    raise NotImplementedError("mp4 video saved to %s, but Telemetry doesn't "
-                              "know how to decode it." % self._video_output)
+    for frame in self._FramesFromMp4(self._video_output):
+      yield frame
+
+  def _FramesFromMp4(self, mp4_file):
+    if not self.CanLaunchApplication('avconv'):
+      self.InstallApplication('avconv')
+
+    def GetDimensions(video):
+      proc = subprocess.Popen(['avconv', '-i', video], stderr=subprocess.PIPE)
+      for line in proc.stderr.readlines():
+        if 'Video:' in line:
+          dimensions = line.split(',')[2]
+          dimensions = map(int, dimensions.split()[0].split('x'))
+          break
+      proc.wait()
+      assert dimensions, 'Failed to determine video dimensions'
+      return dimensions
+
+    def GetFrameTimestampMs(stderr):
+      """Returns the frame timestamp in integer milliseconds from the dump log.
+
+      The expected line format is:
+      '  dts=1.715  pts=1.715\n'
+
+      We have to be careful to only read a single timestamp per call to avoid
+      deadlock because avconv interleaves its writes to stdout and stderr.
+      """
+      while True:
+        line = ''
+        next_char = ''
+        while next_char != '\n':
+          next_char = stderr.read(1)
+          line += next_char
+        if 'pts=' in line:
+          return int(1000 * float(line.split('=')[-1]))
+
+    dimensions = GetDimensions(mp4_file)
+    frame_length = dimensions[0] * dimensions[1] * 3
+    frame_data = bytearray(frame_length)
+
+    # Use rawvideo so that we don't need any external library to parse frames.
+    proc = subprocess.Popen(['avconv', '-i', mp4_file, '-vcodec',
+                             'rawvideo', '-pix_fmt', 'rgb24', '-dump',
+                             '-loglevel', 'debug', '-f', 'rawvideo', '-'],
+                            stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    while True:
+      num_read = proc.stdout.readinto(frame_data)
+      if not num_read:
+        raise StopIteration
+      assert num_read == len(frame_data), 'Unexpected frame size: %d' % num_read
+      yield (GetFrameTimestampMs(proc.stderr),
+             bitmap.Bitmap(3, dimensions[0], dimensions[1], frame_data))
 
   def _GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:

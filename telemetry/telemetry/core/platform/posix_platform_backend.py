@@ -56,5 +56,5 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def GetFlushUtilityName(self):
     return 'clear_system_cache'
 
-  def CanRunApplication(self, application):
+  def CanLaunchApplication(self, application):
     return bool(distutils.spawn.find_executable(application))

@@ -1,8 +1,13 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import logging
+import os
 import unittest
 
+from telemetry.core import bitmap
+from telemetry.core import util
 from telemetry.core.platform import android_platform_backend
 from telemetry.unittest import system_stub
 
@@ -47,3 +52,34 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         adb_empty_proc_stat, False)
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {})
+
+  def testFramesFromMp4(self):
+    mock_adb = MockAdbCommands([])
+    backend = android_platform_backend.AndroidPlatformBackend(mock_adb, False)
+
+    try:
+      backend.InstallApplication('avconv')
+    finally:
+      if not backend.CanLaunchApplication('avconv'):
+        logging.warning('Test not supported on this platform')
+        return  # pylint: disable=W0150
+
+    vid = os.path.join(util.GetUnittestDataDir(), 'vid.mp4')
+    expected_timestamps = [
+      0,
+      763,
+      783,
+      940,
+      1715,
+      1732,
+      1842,
+      1926,
+      ]
+
+    # pylint: disable=W0212
+    for i, timestamp_bitmap in enumerate(backend._FramesFromMp4(vid)):
+      timestamp, bmp = timestamp_bitmap
+      self.assertEquals(timestamp, expected_timestamps[i])
+      expected_bitmap = bitmap.Bitmap.FromPngFile(os.path.join(
+          util.GetUnittestDataDir(), 'frame%d.png' % i))
+      self.assertTrue(expected_bitmap.IsEqual(bmp))

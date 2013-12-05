@@ -43,16 +43,19 @@ class LinuxPlatformBackend(
     p.wait()
     assert p.returncode == 0, 'Failed to flush system cache'
 
-  def CanRunApplication(self, application):
+  def CanLaunchApplication(self, application):
     if application == 'ipfw' and not self._IsIpfwKernelModuleInstalled():
       return False
-    return super(LinuxPlatformBackend, self).CanRunApplication(application)
+    return super(LinuxPlatformBackend, self).CanLaunchApplication(application)
 
   def InstallApplication(self, application):
-    if application != 'ipfw':
+    if application == 'ipfw':
+      self._InstallIpfw()
+    elif application == 'avconv':
+      self._InstallAvconv()
+    else:
       raise NotImplementedError(
           'Please teach Telemetry how to install ' + application)
-    self._InstallIpfw()
 
   def _IsIpfwKernelModuleInstalled(self):
     return 'ipfw_mod' in subprocess.Popen(
@@ -73,10 +76,25 @@ class LinuxPlatformBackend(
                     'http://info.iet.unipi.it/~luigi/dummynet/')
       sys.exit(1)
 
-    if changed or not self.CanRunApplication('ipfw'):
+    if changed or not self.CanLaunchApplication('ipfw'):
       if not self._IsIpfwKernelModuleInstalled():
         subprocess.check_call(['sudo', 'insmod', ipfw_mod])
       os.chmod(ipfw_bin, 0755)
       subprocess.check_call(['sudo', 'cp', ipfw_bin, '/usr/local/sbin'])
 
-    assert self.CanRunApplication('ipfw'), 'Failed to install ipfw'
+    assert self.CanLaunchApplication('ipfw'), 'Failed to install ipfw'
+
+  def _InstallAvconv(self):
+    telemetry_bin_dir = os.path.join(util.GetTelemetryDir(), 'bin')
+    avconv_bin = os.path.join(telemetry_bin_dir, 'avconv')
+    os.environ['PATH'] += os.pathsep + telemetry_bin_dir
+
+    try:
+      cloud_storage.GetIfChanged(cloud_storage.INTERNAL_BUCKET, avconv_bin)
+    except cloud_storage.CloudStorageError, e:
+      logging.error(e)
+      logging.error('You may proceed by manually installing avconv via:\n'
+                    'sudo apt-get install libav-tools')
+      sys.exit(1)
+
+    assert self.CanLaunchApplication('avconv'), 'Failed to install avconv'
