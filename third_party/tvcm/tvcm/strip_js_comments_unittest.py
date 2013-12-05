@@ -2,15 +2,28 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
+"""Tests for strip_js_comments module."""
+
 import unittest
 
 from tvcm import strip_js_comments
 
-src_dir = os.path.join(os.path.dirname(__file__), '../src')
+# This test case tests a protected method.
+# pylint: disable=W0212
+class JavaScriptStripCommentTests(unittest.TestCase):
+  """Test case for _strip_js_comments and _tokenize_js."""
 
-class JSStripTests(unittest.TestCase):
-  def test_tokenize_0(self):
+  def test_strip_comments(self):
+    self.assertEquals(
+        'A ', strip_js_comments.strip_js_comments('A // foo'))
+    self.assertEquals(
+        'A bar', strip_js_comments.strip_js_comments('A // foo\nbar'))
+    self.assertEquals(
+        'A  b', strip_js_comments.strip_js_comments('A /* foo */ b'))
+    self.assertEquals(
+        'A  b', strip_js_comments.strip_js_comments('A /* foo\n */ b'))
+
+  def test_tokenize_empty(self):
     tokens = list(strip_js_comments._tokenize_js(''))
     self.assertEquals([], tokens)
 
@@ -22,26 +35,18 @@ class JSStripTests(unittest.TestCase):
     tokens = list(strip_js_comments._tokenize_js('A // foo'))
     self.assertEquals(['A ', '//', ' foo'], tokens)
 
-  def test_tokenize_slashslash_comment_then_newline2(self):
-    tokens = list(strip_js_comments._tokenize_js("""A // foo
-bar"""
-))
+  def test_tokenize_slashslash_comment_then_newline(self):
+    tokens = list(strip_js_comments._tokenize_js('A // foo\nbar'))
     self.assertEquals(['A ', '//', ' foo', '\n', 'bar'], tokens)
 
-  def test_tokenize_cstyle_comment(self):
-    tokens = list(strip_js_comments._tokenize_js("""A /* foo */"""))
+  def test_tokenize_cstyle_comment_one_line(self):
+    tokens = list(strip_js_comments._tokenize_js('A /* foo */'))
     self.assertEquals(['A ', '/*', ' foo ', '*/'], tokens)
 
-  def test_tokenize_cstyle_comment(self):
-    tokens = list(strip_js_comments._tokenize_js("""A /* foo
-*bar
-*/"""))
+  def test_tokenize_cstyle_comment_multi_line(self):
+    tokens = list(strip_js_comments._tokenize_js('A /* foo\n*bar\n*/'))
     self.assertEquals(['A ', '/*', ' foo', '\n', '*bar', '\n', '*/'], tokens)
 
-  def test_strip_comments(self):
-    self.assertEquals('A ', strip_js_comments.strip_js_comments('A // foo'))
 
-    self.assertEquals('A  b', strip_js_comments.strip_js_comments(
-        'A /* foo */ b'))
-    self.assertEquals('A  b', strip_js_comments.strip_js_comments("""A /* foo
- */ b"""))
+if __name__ == '__main__':
+  unittest.main()

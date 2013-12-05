@@ -39,3 +39,7 @@ class DevServerTests(unittest.TestCase):
     resp_str = self.server.Get('/json/tests')
     resp = json.loads(resp_str)
     self.assertTrue('/src/base/raf_test.js' in resp)
+
+
+if __name__ == '__main__':
+  unittest.main()

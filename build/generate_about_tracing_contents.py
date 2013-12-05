@@ -3,10 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import errno
 import optparse
-import sys
 import os
+import sys
 
 import tvcm_stub
 import tvcm
@@ -83,7 +82,7 @@ def main(args):
   try:
     try:
       result_html = generate_html(options.out_dir, load_sequence)
-    except tvcm.parse_deps.DepsException, ex:
+    except tvcm.module.DepsException, ex:
       sys.stderr.write("Error: %s\n\n" % str(ex))
       return 255
 

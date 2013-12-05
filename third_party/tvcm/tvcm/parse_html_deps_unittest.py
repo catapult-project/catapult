@@ -7,6 +7,7 @@ import unittest
 import parse_html_deps
 import re
 
+
 class ParseTests(unittest.TestCase):
   def test_parse_empty(self):
     module = parse_html_deps.Module()
@@ -106,3 +107,7 @@ class ParseTests(unittest.TestCase):
     self.assertEquals([], module.scripts_inline)
     self.assertEquals(['awesome.css'], module.stylesheets)
     self.assertEquals([], module.imports)
+
+
+if __name__ == '__main__':
+  unittest.main()
