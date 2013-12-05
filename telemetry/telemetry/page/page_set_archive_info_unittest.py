@@ -48,8 +48,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file,
-        os.path.join(tempfile.gettempdir(), 'pageset.json'))
+        self.page_set_archive_info_file)
 
   def tearDown(self):
     shutil.rmtree(self.tmp_dir)
@@ -113,7 +112,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     # Write only the page set without the corresponding metadata file.
     page_set_contents = ("""
     {
-        archive_data_file": "new-metadata.json",
+        archive_data_file": "new_archive_info.json",
         "pages": [
             {
                 "url": "%s",
@@ -121,16 +120,16 @@ class TestPageSetArchiveInfo(unittest.TestCase):
         ]
     }""" % url1)
 
-    page_set_file = os.path.join(self.tmp_dir, 'new.json')
+    page_set_file = os.path.join(self.tmp_dir, 'new_page_set.json')
     with open(page_set_file, 'w') as f:
       f.write(page_set_contents)
 
     self.page_set_archive_info_file = os.path.join(self.tmp_dir,
-                                                   'new-metadata.json')
+                                                   'new_archive_info.json')
 
     # Create the PageSetArchiveInfo object to be tested.
     self.archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file, page_set_file)
+        self.page_set_archive_info_file)
 
     # Add a recording for all the pages.
     new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
@@ -145,7 +144,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.archive_info.AddRecordedPages([page1.url])
 
     # Expected name for the recording (decided by PageSetArchiveInfo).
-    new_recording = os.path.join(self.tmp_dir, 'new_000.wpr')
+    new_recording = os.path.join(self.tmp_dir, 'new_archive_info_000.wpr')
 
     self.assertTrue(os.path.exists(new_recording))
     self.assertFalse(os.path.exists(new_temp_recording))
@@ -154,7 +153,6 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     # Check that the archive info was written correctly.
     self.assertTrue(os.path.exists(self.page_set_archive_info_file))
     read_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        self.page_set_archive_info_file,
-        os.path.join(tempfile.gettempdir(), 'pageset.json'))
+        self.page_set_archive_info_file)
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForPage(page1))

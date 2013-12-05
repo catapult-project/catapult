@@ -30,7 +30,7 @@ class PageSet(object):
     # Create a PageSetArchiveInfo object.
     if self.archive_data_file:
       self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-          os.path.join(self._base_dir, self.archive_data_file), file_path)
+          os.path.join(self._base_dir, self.archive_data_file))
     else:
       self.wpr_archive_info = None
 
