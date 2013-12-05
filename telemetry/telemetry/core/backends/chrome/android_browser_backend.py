@@ -33,8 +33,7 @@ class AndroidBrowserBackendSettings(object):
   def RemoveProfile(self):
     files = self.adb.RunShellCommandWithSU('ls "%s"' % self.profile_dir)
     # Don't delete lib, since it is created by the installer.
-    files.remove('lib')
-    paths = ['"%s/%s"' % (self.profile_dir, f) for f in files]
+    paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
     self.adb.RunShellCommandWithSU('rm -r %s' % ' '.join(paths))
 
   def PushProfile(self, _):
