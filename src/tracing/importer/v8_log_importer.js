@@ -29,10 +29,16 @@ base.exportTo('tracing.importer', function() {
     this.v8_timer_thread_ = undefined;
     this.v8_stack_thread_ = undefined;
     this.v8_samples_thread_ = undefined;
+
+    // we maintain the timestamp of the last tick to verify if a stack is
+    // a continuation from the last sample, or it is a new stack.
+    this.last_tick_timestamp_ = undefined;
+    // We reconstruct the stack timeline from ticks.
+    this.v8_stack_timeline_ = new Array();
   }
 
   var kV8BinarySuffixes = ['/d8', '/libv8.so'];
-  var kStackFrames = 8;
+
 
   var TimerEventDefaultArgs = {
     'V8.Execute': { pause: false, no_execution: false},
@@ -59,7 +65,8 @@ base.exportTo('tracing.importer', function() {
     return eventData.substring(0, 12) == 'timer-event,' ||
            eventData.substring(0, 5) == 'tick,' ||
            eventData.substring(0, 15) == 'shared-library,' ||
-           eventData.substring(0, 9) == 'profiler,';
+           eventData.substring(0, 9) == 'profiler,' ||
+           eventData.substring(0, 14) == 'code-creation,';
   };
 
   V8LogImporter.prototype = {
@@ -131,22 +138,54 @@ base.exportTo('tracing.importer', function() {
       return 'UnknownCode';
     },
 
-    processTickEvent_: function(pc, sp, start, unused_x, unused_y, vmstate,
-                                stack) {
+    processTickEvent_: function(pc, start, unused_x, unused_y, vmstate, stack) {
+      // Transform ticks into events by aggregating stack frames across ticks
+      // For example:
+      //
+      // Tick Time: 0 1 2 3 4 5 6 7 8 9
+      // Stack:     A A A A B B   C C C
+      //            D D   E F       G G
+      //            H     I           J
+      //
+      // would become
+      //
+      // Time:      0 1   3 4 5   7   9
+      // Slices:    [  A  ] [B]   [ C ]
+      //            [D]   E F       [G]
+      //            H     I           J
+
       var entry = this.code_map_.findEntry(pc);
       var name = this.nameForCodeEntry_(entry);
       start /= 1000;
       this.v8_samples_thread_.addSample('v8', name, start);
+
       if (stack && stack.length) {
-        for (var i = 0; i < 8; i++) {
+        var stack_frame = this.v8_stack_timeline_;
+        for (var i = stack.length - 1; i >= 0; i--) {
           if (!stack[i]) break;
           entry = this.code_map_.findEntry(stack[i]);
           name = this.nameForCodeEntry_(entry);
-          var colorId = tracing.getStringColorId(name);
-          var slice = new tracing.trace_model.Slice(
-              'v8', name, colorId, start, {}, 0);
-          this.v8_stack_thread_.sliceGroup.pushSlice(slice);
+          if (stack_frame.length > 0 &&
+                  stack_frame[stack_frame.length - 1].name == name &&
+                  stack_frame[stack_frame.length - 1].end ==
+                      this.last_tick_timestamp_) {
+            // If the entry from the previous stack at the same level had the
+            // same name we extend it to include the current tick as well.
+            stack_frame[stack_frame.length - 1].end = start;
+          } else {
+            // otherwise we create a new entry.
+            var record = {
+              name: name,
+              start: start,
+              end: start,
+              children: new Array()
+            };
+            stack_frame.push(record);
+          }
+          stack_frame = stack_frame[stack_frame.length - 1].children;
         }
+        // The last tick time stamp gets updated only when we have a stack
+        this.last_tick_timestamp_ = start;
       }
     },
 
@@ -194,8 +233,7 @@ base.exportTo('tracing.importer', function() {
             processor: this.processCodeDeleteEvent_.bind(this)
           },
           'tick': {
-            parsers: [parseInt, parseInt, parseInt, null, null, parseInt,
-                      'var-args'],
+            parsers: [parseInt, parseInt, null, null, parseInt, 'var-args'],
             processor: this.processTickEvent_.bind(this)
           },
           'distortion': {
@@ -222,6 +260,20 @@ base.exportTo('tracing.importer', function() {
       for (var i = 0; i < lines.length; i++) {
         logreader.processLogLine(lines[i]);
       }
+
+      function addSlices(slices, thread) {
+        for (var i = 0; i < slices.length; i++) {
+          var duration = slices[i].end - slices[i].start;
+          var slice = new tracing.trace_model.Slice('v8', slices[i].name,
+              tracing.getStringColorId(slices[i].name),
+              slices[i].start, {}, duration);
+          thread.sliceGroup.pushSlice(slice);
+          addSlices(slices[i].children, thread);
+        }
+      }
+      addSlices(this.v8_stack_timeline_, this.v8_stack_thread_);
+      this.v8_stack_thread_.createSubSlices();
+      this.v8_timer_thread_.createSubSlices();
     }
   };
 
