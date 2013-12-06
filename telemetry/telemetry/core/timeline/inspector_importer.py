@@ -18,15 +18,14 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     '''
     if isinstance(event_data, list) and len(event_data):
       event_datum = event_data[0]
-      return 'startTime' in event_datum and 'endTime' in event_datum
+      return 'startTime' in event_datum and 'type' in event_datum
     return False
 
   def ImportEvents(self):
     render_process = self._model.GetOrCreateProcess(0)
-    render_thread = render_process.GetOrCreateThread(0)
     for raw_event in self._event_data:
-      InspectorTimelineImporter.AddRawEventToThreadRecursive(
-          render_thread, raw_event)
+      thread = render_process.GetOrCreateThread(raw_event.get('thread', 0))
+      InspectorTimelineImporter.AddRawEventToThreadRecursive(thread, raw_event)
 
   def FinalizeImport(self):
     pass
@@ -35,7 +34,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
   def AddRawEventToThreadRecursive(thread, raw_inspector_event):
     did_begin_slice = False
     if ('startTime' in raw_inspector_event and
-        'endTime' in raw_inspector_event):
+        'type' in raw_inspector_event):
       args = {}
       for x in raw_inspector_event:
         if x in ('startTime', 'endTime', 'children'):
@@ -43,9 +42,11 @@ class InspectorTimelineImporter(importer.TimelineImporter):
         args[x] = raw_inspector_event[x]
       if len(args) == 0:
         args = None
+      start_time = raw_inspector_event['startTime']
+      end_time = raw_inspector_event.get('endTime', start_time)
       thread.BeginSlice('inspector',
                         raw_inspector_event['type'],
-                        raw_inspector_event['startTime'],
+                        start_time,
                         args=args)
       did_begin_slice = True
 
@@ -54,7 +55,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
           thread, child)
 
     if did_begin_slice:
-      thread.EndSlice(raw_inspector_event['endTime'])
+      thread.EndSlice(end_time)
 
   @staticmethod
   def RawEventToTimelineEvent(raw_inspector_event):

@@ -6,6 +6,12 @@ import unittest
 from telemetry.core.timeline import inspector_importer
 from telemetry.core.timeline import model
 
+_BACKGROUND_MESSAGE = {
+  'data': {},
+  'type': 'BeginFrame',
+  'thread': '2',
+  'startTime': 1352783525921.824}
+
 _SAMPLE_MESSAGE = {
   'children': [
     {'data': {},
@@ -93,20 +99,28 @@ class InspectorEventParsingTest(unittest.TestCase):
         RawEventToTimelineEvent(raw_event))
     self.assertEquals(None, event)
 
-  def testEventsWithNoEndTimeAreDropped(self):
+  def testEventsWithNoEndTimeAreOk(self):
     raw_event = {'type': 'Foo',
-                 'endTime': 1,
+                 'startTime': 1,
                  'children': []}
     event = (inspector_importer.InspectorTimelineImporter.
         RawEventToTimelineEvent(raw_event))
-    self.assertEquals(None, event)
+    self.assertEquals(1, event.start)
+    self.assertEquals(1, event.end)
 
 class InspectorImporterTest(unittest.TestCase):
   def testImport(self):
-    m = model.TimelineModel([_SAMPLE_MESSAGE], shift_world_to_zero=False)
+    messages = [_BACKGROUND_MESSAGE, _SAMPLE_MESSAGE]
+    m = model.TimelineModel(messages, shift_world_to_zero=False)
     self.assertEquals(1, len(m.processes))
-    self.assertEquals(1, len(m.processes.values()[0].threads))
-    renderer_thread = m.GetAllThreads()[0]
+    process = m.processes.values()[0]
+    threads = process.threads
+    self.assertEquals(2, len(threads))
+    renderer_thread = threads[0]
     self.assertEquals(1, len(renderer_thread.toplevel_slices))
     self.assertEquals('Program',
                       renderer_thread.toplevel_slices[0].name)
+    second_thread = threads['2']
+    self.assertEquals(1, len(second_thread.toplevel_slices))
+    self.assertEquals('BeginFrame',
+                      second_thread.toplevel_slices[0].name)
