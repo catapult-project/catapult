@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import sys
 import time
 import unittest
@@ -54,6 +55,14 @@ class GTestTestResults(page_test_results.PageTestResults):
   def addSuccess(self, test):
     super(GTestTestResults, self).addSuccess(test)
     test_name = GTestTestResults._formatTestname(test)
+    print >> self._output_stream, '[       OK ]', test_name, (
+        '(%0.f ms)' % self._GetMs())
+    sys.stdout.flush()
+
+  def addSkip(self, test, reason):
+    super(GTestTestResults, self).addSkip(test, reason)
+    test_name = GTestTestResults._formatTestname(test)
+    logging.warning('===== SKIPPING TEST %s: %s =====', test_name, reason)
     print >> self._output_stream, '[       OK ]', test_name, (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()
