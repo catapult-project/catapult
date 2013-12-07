@@ -37,7 +37,6 @@ class _RunState(object):
 
   def StartBrowser(self, test, page_set, page, possible_browser,
                    credentials_path, archive_path):
-    started_browser = not self.browser
     # Create a browser.
     if not self.browser:
       self.browser = possible_browser.Create()
@@ -91,17 +90,6 @@ class _RunState(object):
       if not test.is_multi_tab_test:
         while len(self.browser.tabs) > 1:
           self.browser.tabs[-1].Close()
-
-      # Must wait for tab to commit otherwise it can commit after the next
-      # navigation has begun and RenderFrameHostManager::DidNavigateMainFrame()
-      # will cancel the next navigation because it's pending. This manifests as
-      # the first navigation in a PageSet freezing indefinitly because the
-      # navigation was silently cancelled when |self.browser.tabs[0]| was
-      # committed. Only do this when we just started the browser, otherwise
-      # there are cases where previous pages in a PageSet never complete
-      # loading so we'll wait forever.
-      if started_browser:
-        self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
     if self.first_page[page]:
       self.first_page[page] = False

@@ -244,9 +244,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # Guest browsing shuts down the current browser and launches an
         # incognito browser in a separate process, which we need to wait for.
         util.WaitFor(lambda: pid != self.pid, 10)
-        self._WaitForBrowserToComeUp()
       else:
         self._NavigateLogin()
+
+    try:
+      self._WaitForBrowserToComeUp()
+      self._WaitForInitialTabNavigation()
+    except util.TimeoutException:
+      logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
+      self._cri.TakeScreenShot('extension-timeout')
+      raise
 
     logging.info('Browser is up!')
 
@@ -420,13 +427,21 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # Open a new window/tab.
       self.tab_list_backend.New(15)
 
-    # Wait for extensions to load.
-    try:
-      self._WaitForBrowserToComeUp()
-    except util.TimeoutException:
-      logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
-      self._cri.TakeScreenShot('extension-timeout')
-      raise
+  def _WaitForInitialTabNavigation(self):
+    """A new tab starts with about:blank and then navigates to the NTP.
+    The debugger_url changes during this navigation, so if we attempt to access
+    the page during this time, we get a WebSocketException/TabCrashException
+    (that the tab doesn't actually crash).
+    """
+    def InitialTabNavigationComplete():
+      try:
+        ret =  self._tab_list_backend[0].url != 'about:blank'
+        if ret:
+          self.tab_list_backend[0].WaitForDocumentReadyStateToBeComplete()
+        return ret
+      except exceptions.TabCrashException:
+        return False
+    util.WaitFor(InitialTabNavigationComplete, timeout=10)
 
 
 class SSHForwarder(object):
