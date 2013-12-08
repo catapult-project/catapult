@@ -101,8 +101,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             # Workaround for crbug.com/308224. TODO(achuith): Remove this flag.
             '--multi-profiles',
             # Debug logging for login flake (crbug.com/263527).
-            '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,' +
-                '*/chromeos/login/*=2,*/extensions/*=2'])
+            '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,'
+                '*/chromeos/login/*=2,*/extensions/*=2,'
+                '*/device_policy_decoder_chromeos.cc=2'])
 
     if self._is_guest:
       args.extend([
