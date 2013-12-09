@@ -33,7 +33,7 @@ class TestPerfProfiler(unittest.TestCase):
     perf_profiler.subprocess = mock_subprocess
     try:
       self.assertEqual(
-          perf_profiler.PerfProfiler.GetTopSamples('linux', profile_file, 10),
+          perf_profiler.PerfProfiler.GetTopSamples(profile_file, 10),
           { 'v8::internal::StaticMarkingVisitor::MarkMapContents': 63615201,
             'v8::internal::RelocIterator::next': 38271931,
             'v8::internal::LAllocator::MeetConstraintsBetween': 42913933,

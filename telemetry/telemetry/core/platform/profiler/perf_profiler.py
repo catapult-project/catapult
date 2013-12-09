@@ -6,7 +6,6 @@ import logging
 import os
 import re
 import signal
-import stat
 import subprocess
 import sys
 import tempfile
@@ -76,7 +75,7 @@ Try rerunning this script under sudo or setting
                                                             self._GetStdOut()))
     finally:
       self._tmp_output_file.close()
-    cmd = 'perf report'
+    cmd = 'perf report -n -i %s' % self._output_file
     if self._is_android:
       self._browser_backend.adb.Adb().Adb().Pull(
           self._device_output_file,
@@ -99,12 +98,36 @@ Try rerunning this script under sudo or setting
                                    os.environ.get('CHROMIUM_OUT_DIR', 'out'),
                                    'Release', 'lib')),
                    os.path.join(host_symfs, device_dir[0]))
+
+      # Also pull copies of common system libraries from the device so perf can
+      # resolve their symbols. Only copy a subset of libraries to make this
+      # faster.
+      host_system_symfs = os.path.join(os.path.dirname(self._output_file),
+                                       'system', 'lib')
+      if not os.path.exists(host_system_symfs):
+        os.makedirs(host_system_symfs)
+        common_system_libs = [
+          'libandroid*.so',
+          'libart.so',
+          'libc.so',
+          'libdvm.so',
+          'libEGL*.so',
+          'libGL*.so',
+          'libm.so',
+          'libRS.so',
+          'libskia.so',
+          'libstdc++.so',
+          'libstlport.so',
+          'libz.so',
+        ]
+        for lib in common_system_libs:
+          self._browser_backend.adb.Adb().Adb().Pull('/system/lib/%s' % lib,
+                                                     host_system_symfs)
       print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
       print 'symbolized library matching the one on device.'
-      cmd = (android_prebuilt_profiler_helper.GetHostPath('perfhost') +
-             ' report --symfs %s' % os.path.dirname(self._output_file))
+      cmd += ' --symfs %s' % os.path.dirname(self._output_file)
     print 'To view the profile, run:'
-    print '  %s -n -i %s' % (cmd, self._output_file)
+    print ' ', cmd
     return self._output_file
 
   def _GetStdOut(self):
@@ -124,9 +147,6 @@ class PerfProfiler(profiler.Profiler):
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
     if platform_backend.GetOSName() == 'android':
-      android_prebuilt_profiler_helper.GetIfChanged('perfhost')
-      os.chmod(android_prebuilt_profiler_helper.GetHostPath('perfhost'),
-               stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
       android_prebuilt_profiler_helper.InstallOnDevice(
           browser_backend.adb, 'perf')
     for pid, output_file in process_output_file_map.iteritems():
@@ -171,14 +191,12 @@ class PerfProfiler(profiler.Profiler):
     return output_files
 
   @classmethod
-  def GetTopSamples(cls, os_name, file_name, number):
+  def GetTopSamples(cls, file_name, number):
     """Parses the perf generated profile in |file_name| and returns a
     {function: period} dict of the |number| hottests functions.
     """
     assert os.path.exists(file_name)
     cmd = 'perf'
-    if os_name == 'android':
-      cmd = 'perfhost'
     report = subprocess.Popen(
         [cmd, 'report', '--show-total-period', '-U', '-t', '^', '-i',
          file_name],
