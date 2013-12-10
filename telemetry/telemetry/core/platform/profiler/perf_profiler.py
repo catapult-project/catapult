@@ -148,7 +148,7 @@ class PerfProfiler(profiler.Profiler):
     self._process_profilers = []
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb, 'perf')
+          browser_backend.adb.Adb(), 'perf')
     for pid, output_file in process_output_file_map.iteritems():
       if 'zygote' in output_file:
         continue

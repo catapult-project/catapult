@@ -85,6 +85,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         return pages_active * resource.getpagesize() / 1024
     return 0
 
+  def PurgeUnpinnedMemory(self):
+    # TODO(pliard): Implement this.
+    pass
+
   def GetMemoryStats(self, pid):
     rss_vsz = self._GetPsOutput(['rss', 'vsz'], pid)
     if rss_vsz:
