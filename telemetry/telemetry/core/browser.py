@@ -162,7 +162,6 @@ class Browser(object):
     }
     Any of the above keys may be missing on a per-platform basis.
     """
-    self._platform_backend.PurgeUnpinnedMemory()
     result = self._GetStatsCommon(self._platform_backend.GetMemoryStats)
     result['SystemCommitCharge'] = \
         self._platform_backend.GetSystemCommitCharge()

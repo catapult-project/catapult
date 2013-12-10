@@ -11,7 +11,6 @@ from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.platform import proc_supporting_platform_backend
-from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
@@ -110,19 +109,8 @@ class AndroidPlatformBackend(
       return {}
     return super(AndroidPlatformBackend, self).GetCpuTimestamp()
 
-  def PurgeUnpinnedMemory(self):
-    """Purges the unpinned ashmem memory for the whole system.
-
-    This can be used to make memory measurements more stable in particular.
-    """
-    android_prebuilt_profiler_helper.InstallOnDevice(self._adb, 'purge_ashmem')
-    if self._adb.RunShellCommand(
-        android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
-        log_result=True):
-      return
-    raise Exception('Error while purging ashmem.')
-
   def GetMemoryStats(self, pid):
+    self._adb.PurgeUnpinnedAshmem()
     memory_usage = self._adb.GetMemoryUsageForPid(pid)[0]
     return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
             'SharedDirty': memory_usage['Shared_Dirty'] * 1024,

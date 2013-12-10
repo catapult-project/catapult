@@ -37,9 +37,6 @@ class PlatformBackend(object):
   def GetCpuTimestamp(self):  # pylint: disable=W0613
     return {}
 
-  def PurgeUnpinnedMemory(self):  # pylint: disable=W0613
-    pass
-
   def GetMemoryStats(self, pid):  # pylint: disable=W0613
     return {}
 
