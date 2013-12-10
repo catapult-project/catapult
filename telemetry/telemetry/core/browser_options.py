@@ -45,6 +45,8 @@ class BrowserFinderOptions(optparse.Values):
 
     self.page_filter = None
     self.page_filter_exclude = None
+    self.page_label_filter = None
+    self.page_label_filter_exclude = None
 
     self.repeat_options = repeat_options.RepeatOptions()
     self.browser_options = BrowserOptions()

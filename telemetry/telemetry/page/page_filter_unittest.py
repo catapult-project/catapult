@@ -7,10 +7,19 @@ from telemetry.page import page as page_module
 from telemetry.page import page_filter as page_filter_module
 from telemetry.page import page_set
 
-class MockOptions(object):
+class MockUrlFilterOptions(object):
   def __init__(self, page_filter, page_filter_exclude):
     self.page_filter = page_filter
     self.page_filter_exclude = page_filter_exclude
+    self.page_label_filter = None
+    self.page_label_filter_exclude = None
+
+class MockLabelFilterOptions(object):
+  def __init__(self, page_label_filter, page_label_filter_exclude):
+    self.page_filter = None
+    self.page_filter_exclude = None
+    self.page_label_filter = page_label_filter
+    self.page_label_filter_exclude = page_label_filter_exclude
 
 class PageFilterTest(unittest.TestCase):
   def setUp(self):
@@ -29,41 +38,62 @@ class PageFilterTest(unittest.TestCase):
         { 'name': None })
 
   def testURLPattern(self):
-    options = MockOptions('conformance/textures', '')
+    options = MockUrlFilterOptions('conformance/textures', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertTrue(page_filter.IsSelected(self.p1))
     self.assertFalse(page_filter.IsSelected(self.p2))
-    options = MockOptions('textures', '')
+    options = MockUrlFilterOptions('textures', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertTrue(page_filter.IsSelected(self.p1))
     self.assertTrue(page_filter.IsSelected(self.p2))
-    options = MockOptions('somethingelse', '')
+    options = MockUrlFilterOptions('somethingelse', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertFalse(page_filter.IsSelected(self.p1))
     self.assertFalse(page_filter.IsSelected(self.p2))
 
   def testName(self):
-    options = MockOptions('somethingelse', '')
+    options = MockUrlFilterOptions('somethingelse', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertFalse(page_filter.IsSelected(self.p1))
     self.assertFalse(page_filter.IsSelected(self.p2))
-    options = MockOptions('textures_tex_sub_image', '')
+    options = MockUrlFilterOptions('textures_tex_sub_image', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertTrue(page_filter.IsSelected(self.p1))
     self.assertTrue(page_filter.IsSelected(self.p2))
-    options = MockOptions('WebglConformance', '')
+    options = MockUrlFilterOptions('WebglConformance', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertTrue(page_filter.IsSelected(self.p1))
     self.assertFalse(page_filter.IsSelected(self.p2))
-    options = MockOptions('OtherSuite', '')
+    options = MockUrlFilterOptions('OtherSuite', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertFalse(page_filter.IsSelected(self.p1))
     self.assertTrue(page_filter.IsSelected(self.p2))
 
   def testNameNone(self):
-    options = MockOptions('othersuite/textures', '')
+    options = MockUrlFilterOptions('othersuite/textures', '')
     page_filter = page_filter_module.PageFilter(options)
     self.assertTrue(page_filter.IsSelected(self.p3))
-    options = MockOptions('conformance/textures', '')
+    options = MockUrlFilterOptions('conformance/textures', '')
     page_filter = page_filter_module.PageFilter(options)
+    self.assertFalse(page_filter.IsSelected(self.p3))
+
+  def testLabelFilters(self):
+    self.p1.label1 = True
+    self.p2.label1 = True
+    self.p3.label1 = False
+    self.p1.label2 = True
+    self.p2.label2 = False
+    self.p3.label2 = True
+
+    # Include both labels
+    options = MockLabelFilterOptions('label1,label2', '')
+    page_filter = page_filter_module.PageFilter(options)
+    self.assertTrue(page_filter.IsSelected(self.p1))
+    self.assertTrue(page_filter.IsSelected(self.p2))
+    self.assertTrue(page_filter.IsSelected(self.p3))
+    # Exclude takes priority
+    options = MockLabelFilterOptions('label1', 'label2')
+    page_filter = page_filter_module.PageFilter(options)
+    self.assertFalse(page_filter.IsSelected(self.p1))
+    self.assertTrue(page_filter.IsSelected(self.p2))
     self.assertFalse(page_filter.IsSelected(self.p3))
