@@ -70,6 +70,9 @@ class AdbCommandsModuleStub(object):
     def RestartAdbdOnDevice(self):
       pass
 
+    def IsUserBuild(self):
+      return False
+
   def __init__(self):
     self.attached_devices = []
     self.shell_command_handlers = {}
@@ -85,12 +88,11 @@ class AdbCommandsModuleStub(object):
   def GetAttachedDevices(self):
     return self.attached_devices
 
-  @staticmethod
-  def HasForwarder(_=None):
-    return True
-
   def SetupPrebuiltTools(self, _):
     return True
+
+  def CleanupLeftoverProcesses(self):
+    pass
 
 
 class CloudStorageModuleStub(object):

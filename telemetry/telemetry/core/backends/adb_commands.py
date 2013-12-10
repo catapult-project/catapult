@@ -185,6 +185,9 @@ class AdbCommands(object):
   def RestartAdbdOnDevice(self):
     return self._adb.RestartAdbdOnDevice()
 
+  def IsUserBuild(self):
+    return self._adb.GetBuildType() == 'user'
+
 
 def GetBuildTypeOfPath(path):
   if not path:

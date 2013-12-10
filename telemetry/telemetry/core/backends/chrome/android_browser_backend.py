@@ -53,11 +53,18 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
   # Stores a default Preferences file, re-used to speed up "--page-repeat".
   _default_preferences_file = None
 
+  @staticmethod
+  def _GetCommandLineFile(adb):
+    if adb.IsUserBuild():
+      return '/data/local/tmp/chrome-command-line'
+    else:
+      return '/data/local/chrome-command-line'
+
   def __init__(self, adb, package):
     super(ChromeBackendSettings, self).__init__(
         adb=adb,
         activity='com.google.android.apps.chrome.Main',
-        cmdline_file='/data/local/chrome-command-line',
+        cmdline_file=ChromeBackendSettings._GetCommandLineFile(adb),
         package=package,
         pseudo_exec_name='chrome',
         supports_tab_control=True)
