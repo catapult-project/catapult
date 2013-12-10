@@ -11,6 +11,7 @@ import time
 import traceback
 import random
 
+from telemetry import exception_formatter
 from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -445,7 +446,9 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
     raise
   except Exception:
-    raise
+    logging.warning('While running %s', page.url)
+    exception_formatter.PrintFormattedException(*sys.exc_info())
+    results.AddFailure(page, sys.exc_info())
   else:
     if expectation == 'fail':
       logging.warning('%s was expected to fail, but passed.\n', page.url)

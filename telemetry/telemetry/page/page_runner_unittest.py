@@ -62,6 +62,35 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
     self.assertEquals(1, len(results.errors))
 
+  def testHandlingOfTestThatRaisesWithNonFatalUnknownExceptions(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class ExpectedException(Exception):
+      pass
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+        self.run_count = 0
+      def RunTest(self, *_):
+        old_run_count = self.run_count
+        self.run_count += 1
+        if old_run_count == 0:
+          raise ExpectedException()
+
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    test = Test('RunTest')
+    results = page_runner.Run(test, ps, expectations, options)
+    self.assertEquals(2, test.run_count)
+    self.assertEquals(1, len(results.successes))
+    self.assertEquals(1, len(results.failures))
+
   def testHandlingOfCrashedTabWithExpectedFailure(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
@@ -70,12 +99,13 @@ class PageRunnerTests(unittest.TestCase):
     ps.pages.append(page1)
 
     class Test(page_test.PageTest):
-      def RunTest(self, *args):
+      def RunTest(self, *_):
         pass
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
-    results = page_runner.Run(Test('RunTest'), ps, expectations, options)
+    results = page_runner.Run(
+        Test('RunTest'), ps, expectations, options)
     self.assertEquals(1, len(results.successes))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.errors))
