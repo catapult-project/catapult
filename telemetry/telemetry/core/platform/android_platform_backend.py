@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import os
 import subprocess
 import tempfile
 
@@ -15,6 +14,7 @@ from telemetry.core.platform import proc_supporting_platform_backend
 
 # Get build/android scripts into our path.
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+from pylib import screenshot  # pylint: disable=F0401
 from pylib.perf import cache_control  # pylint: disable=F0401
 from pylib.perf import perf_control  # pylint: disable=F0401
 from pylib.perf import thermal_throttle  # pylint: disable=F0401
@@ -190,18 +190,16 @@ class AndroidPlatformBackend(
       raise ValueError('Android video capture cannot capture at %dmbps. '
                        'Max capture rate is 100mbps.' % min_bitrate_mbps)
     self._video_output = tempfile.mkstemp()[1]
-    self._video_recorder = subprocess.Popen(
-        [os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
-                      'screenshot.py'),
-         '--video', '--bitrate', str(min_bitrate_mbps), '--file',
-         self._video_output], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    self._video_recorder = screenshot.VideoRecorder(
+        self._adb, self._video_output, megabits_per_second=min_bitrate_mbps)
+    self._video_recorder.Start()
+    util.WaitFor(self._video_recorder.IsStarted, 5)
 
   def StopVideoCapture(self):
     assert self._video_recorder, 'Must start video capture first'
-    self._video_recorder.communicate(input='\n')
-    self._video_recorder.wait()
+    self._video_recorder.Stop()
+    self._video_output = self._video_recorder.Pull()
     self._video_recorder = None
-
     for frame in self._FramesFromMp4(self._video_output):
       yield frame
 
