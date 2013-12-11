@@ -281,7 +281,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       self._WaitForBrowserToComeUp()
       self._PostBrowserStartupInitialization()
-      self._WaitForInitialTabNavigation()
     except exceptions.BrowserGoneException:
       logging.critical('Failed to connect to browser.')
       if not self._adb.Adb().CanAccessProtectedFileContents():

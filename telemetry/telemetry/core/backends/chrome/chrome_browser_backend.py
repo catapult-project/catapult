@@ -212,10 +212,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._inspector_protocol_version = 1.0
     self._chrome_branch_number = 1025
 
-  def _WaitForInitialTabNavigation(self):
-    """Wait for the first tab to finish navigating."""
-    self.tab_list_backend[0].WaitForDocumentReadyStateToBeComplete()
-
   def Request(self, path, timeout=None, throw_network_exception=False):
     url = 'http://127.0.0.1:%i/json' % self._port
     if path:
