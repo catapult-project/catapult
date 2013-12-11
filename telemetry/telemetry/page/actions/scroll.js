@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 // This file provides the ScrollAction object, which scrolls a page
-// from top to bottom:
-//   1. var action = new __ScrollAction(callback)
+// to the bottom or for a specified distance:
+//   1. var action = new __ScrollAction(callback, opt_distance_func)
 //   2. action.start(scroll_options)
 'use strict';
 
@@ -16,12 +16,12 @@
       this.element_ = opt_options.element;
       this.left_start_percentage_ = opt_options.left_start_percentage;
       this.top_start_percentage_ = opt_options.top_start_percentage;
-      this.gesture_source_type = opt_options.gesture_source_type;
+      this.gesture_source_type_ = opt_options.gesture_source_type;
     } else {
       this.element_ = document.body;
       this.left_start_percentage_ = 0.5;
       this.top_start_percentage_ = 0.5;
-      this.gesture_source_type = chrome.gpuBenchmarking.DEFAULT_INPUT;
+      this.gesture_source_type_ = chrome.gpuBenchmarking.DEFAULT_INPUT;
     }
   }
 
@@ -30,22 +30,6 @@
               chrome.gpuBenchmarking &&
               chrome.gpuBenchmarking.smoothScrollBy);
   }
-
-  /**
-   * Scrolls a given element down a certain amount to emulate user scroll.
-   * Uses smooth scroll capabilities provided by the platform, if available.
-   * @constructor
-   */
-  function SmoothScrollDownGesture(options) {
-    this.options_ = options;
-  };
-
-  function min(a, b) {
-    if (a > b) {
-      return b;
-    }
-    return a;
-  };
 
   function getBoundingVisibleRect(el) {
     var bound = el.getBoundingClientRect();
@@ -65,35 +49,22 @@
     return rect;
   };
 
-  SmoothScrollDownGesture.prototype.start = function(distance, callback) {
-    this.callback_ = callback;
-
-    var rect = getBoundingVisibleRect(this.options_.element_);
-    var start_left =
-        rect.left + rect.width * this.options_.left_start_percentage_;
-    var start_top =
-        rect.top + rect.height * this.options_.top_start_percentage_;
-    chrome.gpuBenchmarking.smoothScrollBy(distance, function() {
-      callback();
-    }, start_left, start_top, this.options_.gesture_source_type);
-  };
-
   // This class scrolls a page from the top to the bottom once.
   //
   // The page is scrolled down by a single scroll gesture.
-  function ScrollAction(opt_callback, opt_remaining_distance_func) {
+  function ScrollAction(opt_callback, opt_distance_func) {
     var self = this;
 
     this.beginMeasuringHook = function() {}
     this.endMeasuringHook = function() {}
 
     this.callback_ = opt_callback;
-    this.remaining_distance_func_ = opt_remaining_distance_func;
+    this.distance_func_ = opt_distance_func;
   }
 
-  ScrollAction.prototype.getRemainingScrollDistance_ = function() {
-    if (this.remaining_distance_func_)
-      return this.remaining_distance_func_();
+  ScrollAction.prototype.getScrollDistance_ = function() {
+    if (this.distance_func_)
+      return this.distance_func_();
 
     var clientHeight;
     // clientHeight is "special" for the body element.
@@ -110,17 +81,23 @@
     // Assign this.element_ here instead of constructor, because the constructor
     // ensures this method will be called after the document is loaded.
     this.element_ = this.options_.element_;
-    requestAnimationFrame(this.startPass_.bind(this));
+    requestAnimationFrame(this.startGesture_.bind(this));
   };
 
-  ScrollAction.prototype.startPass_ = function() {
+  ScrollAction.prototype.startGesture_ = function() {
     this.beginMeasuringHook();
 
     var distance = Math.min(MAX_SCROLL_LENGTH_PIXELS,
-                            this.getRemainingScrollDistance_());
+                            this.getScrollDistance_());
 
-    this.gesture_ = new SmoothScrollDownGesture(this.options_);
-    this.gesture_.start(distance, this.onGestureComplete_.bind(this));
+    var rect = getBoundingVisibleRect(this.options_.element_);
+    var start_left =
+        rect.left + rect.width * this.options_.left_start_percentage_;
+    var start_top =
+        rect.top + rect.height * this.options_.top_start_percentage_;
+    chrome.gpuBenchmarking.smoothScrollBy(
+        distance, this.onGestureComplete_.bind(this),
+        start_left, start_top, this.options_.gesture_source_type_);
   };
 
   ScrollAction.prototype.onGestureComplete_ = function() {

@@ -31,8 +31,8 @@ class ScrollAction(page_action.PageAction):
           'Touch scroll not supported for this browser')
 
     distance_func = 'null'
-    if hasattr(self, 'remaining_scroll_distance_function'):
-      distance_func = self.remaining_scroll_distance_function
+    if hasattr(self, 'scroll_distance_function'):
+      distance_func = self.scroll_distance_function
 
     done_callback = 'function() { window.__scrollActionDone = true; }'
     tab.ExecuteJavaScript("""
