@@ -1,9 +1,14 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+from telemetry.core import bitmap
 from telemetry.core import web_contents
 
 DEFAULT_TAB_TIMEOUT = 60
+
+# Arbitrary bright pink color that is unlikely to be used in any real UIs.
+_CONTENT_FLASH_COLOR = (255, 51, 204)
 
 class Tab(web_contents.WebContents):
   """Represents a tab in the browser
@@ -18,6 +23,7 @@ class Tab(web_contents.WebContents):
   """
   def __init__(self, inspector_backend):
     super(Tab, self).__init__(inspector_backend)
+    self._previous_tab_contents_bounding_box = None
 
   def __del__(self):
     super(Tab, self).__del__()
@@ -83,15 +89,44 @@ class Tab(web_contents.WebContents):
   def StartVideoCapture(self, min_bitrate_mbps):
     """Starts capturing video of the tab's contents.
 
+    This works by flashing the entire tab contents to a arbitrary color and then
+    starting video recording. When the frames are processed, we can look for
+    that flash as the content bounds.
+
     Args:
       min_bitrate_mbps: The minimum caputre bitrate in MegaBits Per Second.
           The platform is free to deliver a higher bitrate if it can do so
           without increasing overhead.
     """
+    self.ExecuteJavaScript("""
+      (function() {
+        var screen = document.createElement('div');
+        screen.id = '__telemetry_screen';
+        screen.style.background = 'rgb(%d, %d, %d)';
+        screen.style.position = 'fixed';
+        screen.style.top = '0';
+        screen.style.left = '0';
+        screen.style.width = '100%%';
+        screen.style.height = '100%%';
+        screen.style.zindex = '2147483638';
+        document.body.appendChild(screen);
+        requestAnimationFrame(function() {
+          screen.has_painted = true;
+        });
+      })();
+    """ % _CONTENT_FLASH_COLOR)
+    self.WaitForJavaScriptExpression(
+      'document.getElementById("__telemetry_screen").has_painted', 5)
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
+    self.ExecuteJavaScript("""
+      document.body.removeChild(document.getElementById('__telemetry_screen'));
+    """)
 
   def StopVideoCapture(self):
     """Stops recording video of the tab's contents.
+
+    This looks for the color flash in the first frame to establish the
+    tab contents boundaries and then omits that frame.
 
     Yields:
       (time_ms, bitmap) tuples representing each video keyframe. Only the first
@@ -99,14 +134,34 @@ class Tab(web_contents.WebContents):
         time_ms is milliseconds since navigationStart.
         bitmap is a telemetry.core.Bitmap.
     """
-    # TODO(tonyg/szym): platform's video capture may include offscreen content
-    # from a webcam, OS framing and browser framing. However, this API must
-    # return only the tab contents. So we need to display a color flash in the
-    # tab and then crop out all the other pixels. We also need to translate that
-    # initial flash time into navigationStart timespace.
+    content_box = None
+    for timestamp, bmp in self.browser.platform.StopVideoCapture():
+      if not content_box:
+        content_box = bmp.GetBoundingBox(
+            bitmap.RgbaColor(*_CONTENT_FLASH_COLOR), tolerance=4)
 
-    for t in self.browser.platform.StopVideoCapture():
-      return t
+        assert content_box, 'Failed to find tab contents in first video frame.'
+
+        # We assume arbitrarily that tabs are all larger than 200x200. If this
+        # fails it either means that assumption has changed or something is
+        # awry with our bounding box calculation.
+        assert content_box.width > 200 and content_box.height > 200, \
+            'Unexpectedly small tab contents'
+
+        # Since Telemetry doesn't know how to resize the window, we assume
+        # that we should always get the same content box for a tab. If this
+        # fails, it meas either that assumption has changed or something is
+        # awry with our bounding box calculation.
+        if self._previous_tab_contents_bounding_box:
+          assert self._previous_tab_contents_bounding_box == content_box, \
+              'Unexpected change in tab contents box.'
+        self._previous_tab_contents_bounding_box = content_box
+
+        continue
+
+      bmp.Crop(content_box)
+      # TODO(tonyg): Translate timestamp into navigation timing space.
+      yield timestamp, bmp
 
   def PerformActionAndWaitForNavigate(
       self, action_function, timeout=DEFAULT_TAB_TIMEOUT):

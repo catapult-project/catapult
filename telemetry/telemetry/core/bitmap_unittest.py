@@ -25,6 +25,9 @@ test_png_2_path = os.path.join(util.GetUnittestDataDir(), 'test_png_2.png')
 
 
 class BitmapTest(unittest.TestCase):
+
+  # pylint: disable=C0324
+
   def testReadFromBase64Png(self):
     bmp = bitmap.Bitmap.FromBase64Png(test_png)
 
@@ -47,8 +50,18 @@ class BitmapTest(unittest.TestCase):
     file_bmp.GetPixelColor(0, 1).AssertIsRGB(0, 0, 255)
     file_bmp.GetPixelColor(1, 0).AssertIsRGB(255, 255, 0)
 
-  def testWritePngFile(self):
+  def testWritePngToPngFile(self):
     orig = bitmap.Bitmap.FromPngFile(test_png_path)
+    temp_file = tempfile.NamedTemporaryFile().name
+    orig.WritePngFile(temp_file)
+    new_file = bitmap.Bitmap.FromPngFile(temp_file)
+    self.assertTrue(orig.IsEqual(new_file))
+
+  def testWriteCroppedBmpToPngFile(self):
+    pixels = [255,0,0, 255,255,0, 0,0,0,
+              255,255,0, 0,255,0, 0,0,0]
+    orig = bitmap.Bitmap(3, 3, 2, pixels)
+    orig.Crop(0, 0, 2, 2)
     temp_file = tempfile.NamedTemporaryFile().name
     orig.WritePngFile(temp_file)
     new_file = bitmap.Bitmap.FromPngFile(temp_file)
@@ -88,3 +101,16 @@ class BitmapTest(unittest.TestCase):
     diff_bmp.GetPixelColor(2, 0).AssertIsRGB(255, 255, 255)
     diff_bmp.GetPixelColor(2, 1).AssertIsRGB(255, 255, 255)
     diff_bmp.GetPixelColor(2, 2).AssertIsRGB(255, 255, 255)
+
+  def testCrop(self):
+    pixels = [0,0,0, 0,0,0, 0,0,0, 0,0,0,
+              0,0,0, 1,0,0, 1,0,0, 0,0,0,
+              0,0,0, 0,0,0, 0,0,0, 0,0,0]
+    bmp = bitmap.Bitmap(3, 4, 3, pixels)
+    bmp.Crop(1, 1, 2, 1)
+
+    self.assertEquals(bmp.width, 2)
+    self.assertEquals(bmp.height, 1)
+    bmp.GetPixelColor(0, 0).AssertIsRGB(1, 0, 0)
+    bmp.GetPixelColor(1, 0).AssertIsRGB(1, 0, 0)
+    self.assertEquals(bmp.pixels, bytearray([1,0,0, 1,0,0]))
