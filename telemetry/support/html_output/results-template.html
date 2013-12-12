@@ -33,14 +33,14 @@ section {
     padding-left: 25px;
 }
 
-.large-line-plots > div {
+.large-line-plots > div, .histogram-plots > div {
     display: inline-block;
     width: 400px;
     height: 200px;
     margin-right: 10px;
 }
 
-.large-line-plot-labels > div {
+.large-line-plot-labels > div, .histogram-plot-labels > div {
     display: inline-block;
     width: 400px;
     height: 11px;
@@ -202,6 +202,27 @@ function TestResult(metric, values, associatedRun) {
         for (var i = 0; i < values.length; i++)
             flattenedValues = flattenedValues.concat(values[i]);
         values = flattenedValues;
+    }
+
+    if (jQuery.type(values[0]) === 'string') {
+        try {
+            var current = JSON.parse(values[0]);
+            if (current.params.type === 'HISTOGRAM') {
+                this.histogramValues = current;
+                // Histogram results have no values (per se). Instead we calculate
+                // the values from the histogram bins.
+                var values = [];
+                var buckets = current.buckets
+                for (var i = 0; i < buckets.length; i++) {
+                    var bucket = buckets[i];
+                    var bucket_mean = (bucket.high + bucket.low) / 2;
+                    for (var b = 0; b < bucket.count; b++) {
+                        values.push(bucket_mean);
+                    }
+                }
+            }
+        }
+        catch (e) { /* ignore, assume not a JSON string */ }
     }
 
     this.test = function () { return metric; }
@@ -385,8 +406,19 @@ var largeLinePlotOptions = {
     colors: [ plotColor ]
 };
 
+var histogramPlotOptions = {
+    bars: {show: true, fill: 1}
+};
+
 function createPlot(container, test, useLargeLinePlots) {
-    if (useLargeLinePlots) {
+    if (test.results()[0].histogramValues) {
+        var section = $('<section><div class="histogram-plots"></div>'
+            + '<div class="histogram-plot-labels"></div>'
+            + '<span class="tooltip"></span></section>');
+        $(container).append(section);
+        attachHistogramPlots(test, section.children('.histogram-plots'));
+    }
+    else if (useLargeLinePlots) {
         var section = $('<section><div class="large-line-plots"></div>'
             + '<div class="large-line-plot-labels"></div>'
             + '<span class="tooltip"></span></section>');
@@ -463,6 +495,49 @@ function attachLinePlots(test, container, useLargeLinePlots) {
                                 points: {show: (values.length < 2) ? true : false}});
         }
         $.plot(container.children().last(), [values.map(function (value, index) { return [index, value]; })], options);
+    }
+    if (!attachedPlot)
+        container.children().remove();
+}
+
+function attachHistogramPlots(test, container) {
+    var results = test.results();
+    var attachedPlot = false;
+
+    for (var i = 0; i < results.length; i++) {
+        container.append('<div></div>');
+        var histogram = results[i].histogramValues
+        if (!histogram)
+            continue;
+        attachedPlot = true;
+
+        var buckets = histogram.buckets
+        var bucket;
+        var max_count = 0;
+        for (var j = 0; j < buckets.length; j++) {
+            bucket = buckets[j];
+            max_count = Math.max(max_count, bucket.count);
+        }
+        var xmax = bucket.high * 1.1;
+        var ymax = max_count * 1.1;
+
+        var options = $.extend(true, {}, histogramPlotOptions,
+                           {yaxis: {min: 0.0, max: ymax},
+                            xaxis: {min: histogram.params.min, max: xmax}});
+        var plot = $.plot(container.children().last(), [[]], options);
+        // Flot only supports fixed with bars and our histogram's buckets are
+        // variable width, so we need to do our own bar drawing.
+        var ctx = plot.getCanvas().getContext("2d");
+        ctx.lineWidth="1";
+        ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+        ctx.strokeStyle="red";
+        for (var j = 0; j < buckets.length; j++) {
+            bucket = buckets[j];
+            var bl = plot.pointOffset({ x: bucket.low, y: 0});
+            var tr = plot.pointOffset({ x: bucket.high, y: bucket.count});
+            ctx.fillRect(bl.left, bl.top, tr.left - bl.left, tr.top - bl.top);
+            ctx.strokeRect(bl.left, bl.top, tr.left - bl.left, tr.top - bl.top);
+        }
     }
     if (!attachedPlot)
         container.children().remove();
@@ -631,7 +706,10 @@ function createTableRow(runs, test, referenceIndex, useLargeLinePlots) {
         var values = result.values();
         var warning = '';
         var regressionAnalysis = '';
-        if (values && values.length > 3) {
+        if (result.histogramValues) {
+            // Don't calculate regression result for histograms.
+        }
+        else if (values && values.length > 3) {
             regressionResult = linearRegression(values);
             regressionAnalysis = 'slope=' + toFixedWidthPrecision(regressionResult.slope)
                 + ', R^2=' + toFixedWidthPrecision(regressionResult.rSquared);
