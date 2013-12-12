@@ -10,10 +10,14 @@ class PageActionFailed(Exception):
 
 class PageAction(object):
   """Represents an action that a user might try to perform to a page."""
+  _next_timeline_marker_id = 0
+
   def __init__(self, attributes=None):
     if attributes:
       for k, v in attributes.iteritems():
         setattr(self, k, v)
+    self._timeline_marker_base_name = None
+    self._timeline_marker_id = None
 
   def CustomizeBrowserOptions(self, options):
     """Override to add action-specific options to the BrowserOptions
@@ -60,5 +64,18 @@ class PageAction(object):
     """
     raise Exception('This action cannot be bound.')
 
+  @staticmethod
+  def ResetNextTimelineMarkerId():
+    PageAction._next_timeline_marker_id = 0
+
+  def _SetTimelineMarkerBaseName(self, name):
+    self._timeline_marker_base_name = name
+    self._timeline_marker_id = PageAction._next_timeline_marker_id
+    PageAction._next_timeline_marker_id += 1
+
   def GetTimelineMarkerName(self):
-    return None
+    if self._timeline_marker_base_name:
+      return \
+        '%s_%d' % (self._timeline_marker_base_name, self._timeline_marker_id)
+    else:
+      return None

@@ -3,11 +3,13 @@
 # found in the LICENSE file.
 import os
 
+from telemetry.page.actions import gesture_action
 from telemetry.page.actions import page_action
 
-class ScrollAction(page_action.PageAction):
+class ScrollAction(gesture_action.GestureAction):
   def __init__(self, attributes=None):
     super(ScrollAction, self).__init__(attributes)
+    self._SetTimelineMarkerBaseName('ScrollAction::RunAction')
 
   def WillRunAction(self, page, tab):
     for js_file in ['gesture_common.js', 'scroll.js']:
@@ -40,7 +42,7 @@ class ScrollAction(page_action.PageAction):
         window.__scrollAction = new __ScrollAction(%s, %s);"""
         % (done_callback, distance_func))
 
-  def RunAction(self, page, tab, previous_action):
+  def RunGesture(self, page, tab, previous_action):
     # scrollable_element_function is a function that passes the scrollable
     # element on the page to a callback. For example:
     #   function (callback) {
@@ -80,15 +82,9 @@ class ScrollAction(page_action.PageAction):
   def CanBeBound(self):
     return True
 
-  def CustomizeBrowserOptions(self, options):
-    options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
-
   def BindMeasurementJavaScript(self, tab, start_js, stop_js):
     # Make the scroll action start and stop measurement automatically.
     tab.ExecuteJavaScript("""
         window.__scrollAction.beginMeasuringHook = function() { %s };
         window.__scrollAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))
-
-  def GetTimelineMarkerName(self):
-    return 'SyntheticGestureController::running'

@@ -23,6 +23,7 @@ from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
 from telemetry.page import results_options
 from telemetry.page.actions import navigate
+from telemetry.page.actions import page_action
 
 
 class _RunState(object):
@@ -426,6 +427,8 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   logging.info('Running %s' % page.url)
 
   page_state = PageState(page, test.TabForPage(page, state.browser))
+
+  page_action.PageAction.ResetNextTimelineMarkerId()
 
   def ProcessError():
     logging.error('%s:\n%s', page.url, traceback.format_exc())

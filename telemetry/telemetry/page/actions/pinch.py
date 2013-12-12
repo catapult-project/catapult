@@ -3,11 +3,13 @@
 # found in the LICENSE file.
 import os
 
+from telemetry.page.actions import gesture_action
 from telemetry.page.actions import page_action
 
-class PinchAction(page_action.PageAction):
+class PinchAction(gesture_action.GestureAction):
   def __init__(self, attributes=None):
     super(PinchAction, self).__init__(attributes)
+    self._SetTimelineMarkerBaseName('PinchAction::RunAction')
 
   def WillRunAction(self, page, tab):
     for js_file in ['gesture_common.js', 'pinch.js']:
@@ -26,7 +28,7 @@ class PinchAction(page_action.PageAction):
         window.__pinchAction = new __PinchAction(%s);"""
         % done_callback)
 
-  def RunAction(self, page, tab, previous_action):
+  def RunGesture(self, page, tab, previous_action):
     zoom_in = True
     if hasattr(self, 'zoom_in'):
       zoom_in = self.zoom_in
@@ -43,15 +45,9 @@ class PinchAction(page_action.PageAction):
   def CanBeBound(self):
     return True
 
-  def CustomizeBrowserOptions(self, options):
-    options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
-
   def BindMeasurementJavaScript(self, tab, start_js, stop_js):
     # Make the pinch action start and stop measurement automatically.
     tab.ExecuteJavaScript("""
         window.__pinchAction.beginMeasuringHook = function() { %s };
         window.__pinchAction.endMeasuringHook = function() { %s };
     """ % (start_js, stop_js))
-
-  def GetTimelineMarkerName(self):
-    return 'SyntheticGestureController::running'
