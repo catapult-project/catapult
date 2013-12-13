@@ -2,17 +2,18 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 import sys
 
 from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import run_tests
 
+
 if __name__ == '__main__':
   top_level_dir = os.path.abspath(os.path.dirname(__file__))
   runner = gtest_testrunner.GTestTestRunner(print_result_after_run=False)
-  start_dir = os.path.join(top_level_dir, 'telemetry')
-  ret = run_tests.Main(sys.argv[1:], start_dir, top_level_dir, runner)
+  ret = run_tests.Main(sys.argv[1:], top_level_dir, top_level_dir, runner)
 
   if runner.result:
     runner.result.PrintSummary()
