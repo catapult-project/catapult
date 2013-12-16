@@ -184,12 +184,13 @@ class AndroidPlatformBackend(
     return self.GetOSVersionName() >= 'K'
 
   def StartVideoCapture(self, min_bitrate_mbps):
-    assert not self._video_recorder, 'Already started video capture'
     min_bitrate_mbps = max(min_bitrate_mbps, 0.1)
     if min_bitrate_mbps > 100:
       raise ValueError('Android video capture cannot capture at %dmbps. '
                        'Max capture rate is 100mbps.' % min_bitrate_mbps)
     self._video_output = tempfile.mkstemp()[1]
+    if self._video_recorder:
+      self._video_recorder.Stop()
     self._video_recorder = screenshot.VideoRecorder(
         self._adb, self._video_output, megabits_per_second=min_bitrate_mbps)
     self._video_recorder.Start()
