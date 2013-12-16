@@ -7,26 +7,23 @@
 
 (function() {
 
-  var getTimeMs = (function() {
-    if (window.performance)
-      return (performance.now       ||
-              performance.mozNow    ||
-              performance.msNow     ||
-              performance.oNow      ||
-              performance.webkitNow).bind(window.performance);
-    else
-      return function() { return new Date().getTime(); };
-  })();
+  function getBoundingVisibleRect(el) {
+    var bound = el.getBoundingClientRect();
+    var rect = { top: bound.top,
+                 left: bound.left,
+                 width: bound.width,
+                 height: bound.height };
+    var outsideHeight = (rect.top + rect.height) - window.innerHeight;
+    var outsideWidth = (rect.left + rect.width) - window.innerWidth;
 
-  var requestAnimationFrame = (function() {
-    return window.requestAnimationFrame       ||
-           window.webkitRequestAnimationFrame ||
-           window.mozRequestAnimationFrame    ||
-           window.oRequestAnimationFrame      ||
-           window.msRequestAnimationFrame     ||
-           function(callback) {
-             window.setTimeout(callback, 1000 / 60);
-           };
-  })().bind(window);
+    if (outsideHeight > 0) {
+      rect.height -= outsideHeight;
+    }
+    if (outsideWidth > 0) {
+      rect.width -= outsideWidth;
+    }
+    return rect;
+  };
 
+  window.__GestureCommon_GetBoundingVisibleRect = getBoundingVisibleRect;
 })();

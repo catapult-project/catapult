@@ -67,7 +67,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
   def testBoundingClientRect(self):
     self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})
-    with open(os.path.join(os.path.dirname(__file__), 'scroll.js')) as f:
+    with open(os.path.join(os.path.dirname(__file__),
+                           'gesture_common.js')) as f:
       js = f.read()
       self._tab.ExecuteJavaScript(js)
 
@@ -83,15 +84,15 @@ class ScrollActionTest(tab_test_case.TabTestCase):
                            (2 * window.innerHeight + 1) + 'px';""")
 
     rect_top = int(self._tab.EvaluateJavaScript(
-        '__ScrollAction_GetBoundingVisibleRect(document.body).top'))
+        '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
     rect_height = int(self._tab.EvaluateJavaScript(
-        '__ScrollAction_GetBoundingVisibleRect(document.body).height'))
+        '__GestureCommon_GetBoundingVisibleRect(document.body).height'))
     rect_bottom = rect_top + rect_height
 
     rect_left = int(self._tab.EvaluateJavaScript(
-        '__ScrollAction_GetBoundingVisibleRect(document.body).left'))
+        '__GestureCommon_GetBoundingVisibleRect(document.body).left'))
     rect_width = int(self._tab.EvaluateJavaScript(
-        '__ScrollAction_GetBoundingVisibleRect(document.body).width'))
+        '__GestureCommon_GetBoundingVisibleRect(document.body).width'))
     rect_right = rect_left + rect_width
 
     viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
