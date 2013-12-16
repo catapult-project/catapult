@@ -26,7 +26,7 @@ class ExtensionDictBackend(object):
     return extension_object
 
   def __contains__(self, extension_id):
-    return extension_id in self._GetExtensionIds()
+    return extension_id in self.GetExtensionIds()
 
   @staticmethod
   def _ExtractExtensionId(url):
@@ -69,5 +69,5 @@ class ExtensionDictBackend(object):
     return [page_info for page_info in all_pages
             if page_info['url'].startswith('chrome-extension://')]
 
-  def _GetExtensionIds(self):
+  def GetExtensionIds(self):
     return map(self._GetExtensionId, self.GetExtensionInfoList())

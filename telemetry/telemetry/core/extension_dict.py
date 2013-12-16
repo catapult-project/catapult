@@ -23,3 +23,6 @@ class ExtensionDict(object):
       raise Exception("Input param must be of type ExtensionToLoad")
     return self._extension_dict_backend.__contains__(
         load_extension.extension_id)
+
+  def keys(self):
+    return self._extension_dict_backend.GetExtensionIds()
