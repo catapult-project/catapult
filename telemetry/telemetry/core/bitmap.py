@@ -4,6 +4,7 @@
 import base64
 import cStringIO
 
+from telemetry.core import bitmaptools
 from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
@@ -51,6 +52,7 @@ class Bitmap(object):
     self._height = height
     self._pixels = pixels
     self._metadata = metadata or {}
+    self._crop_box = None
 
   @property
   def bpp(self):
@@ -60,16 +62,35 @@ class Bitmap(object):
   @property
   def width(self):
     """Width of the bitmap."""
+    if self._crop_box:
+      return self._crop_box[2]
     return self._width
 
   @property
   def height(self):
     """Height of the bitmap."""
+    if self._crop_box:
+      return self._crop_box[3]
     return self._height
+
+  @property
+  def _as_tuple(self):
+    # If we got a list of ints, we need to convert it into a byte buffer.
+    pixels = self._pixels
+    if type(pixels) is not bytearray:
+      pixels = bytearray(pixels)
+    if type(pixels) is not bytes:
+      pixels = bytes(pixels)
+    crop_box = self._crop_box or (0, 0, self._width, self._height)
+    return pixels, self._width, self._bpp, crop_box
 
   @property
   def pixels(self):
     """Flat pixel array of the bitmap."""
+    if self._crop_box:
+      self._pixels = bitmaptools.Crop(self._as_tuple)
+      _, _, self._width, self._height = self._crop_box
+      self._crop_box = None
     if type(self._pixels) is not bytearray:
       self._pixels = bytearray(self._pixels)
     return self._pixels
@@ -83,12 +104,13 @@ class Bitmap(object):
 
   def GetPixelColor(self, x, y):
     """Returns a RgbaColor for the pixel at (x, y)."""
+    pixels = self.pixels
     base = self._bpp * (y * self._width + x)
     if self._bpp == 4:
-      return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
-                       self._pixels[base + 2], self._pixels[base + 3])
-    return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
-                     self._pixels[base + 2])
+      return RgbaColor(pixels[base + 0], pixels[base + 1],
+                       pixels[base + 2], pixels[base + 3])
+    return RgbaColor(pixels[base + 0], pixels[base + 1],
+                     pixels[base + 2])
 
   def WritePngFile(self, path):
     with open(path, "wb") as f:
@@ -109,24 +131,10 @@ class Bitmap(object):
     return Bitmap.FromPng(base64.b64decode(base64_png))
 
   def IsEqual(self, other, tolerance=0):
-    """Determines whether two Bitmaps are identical within a given tolerance."""
-
-    # Dimensions must be equal
-    if self.width != other.width or self.height != other.height:
-      return False
-
-    # Loop over each pixel and test for equality
-    if tolerance or self.bpp != other.bpp:
-      for y in range(self.height):
-        for x in range(self.width):
-          c0 = self.GetPixelColor(x, y)
-          c1 = other.GetPixelColor(x, y)
-          if not c0.IsEqual(c1, tolerance):
-            return False
-    else:
-      return self.pixels == other.pixels
-
-    return True
+    """Determines whether two Bitmaps are identical within a given tolerance.
+    Ignores alpha channel."""
+    # pylint: disable=W0212
+    return bitmaptools.Equal(self._as_tuple, other._as_tuple, tolerance)
 
   def Diff(self, other):
     """Returns a new Bitmap that represents the difference between this image
@@ -169,55 +177,26 @@ class Bitmap(object):
     return diff
 
   def GetBoundingBox(self, color, tolerance=0):
-    """Returns a (top, left, width, height) tuple of the minimum box
-       surrounding all occurences of |color|."""
-    # TODO(szym): Implement this.
-    raise NotImplementedError("GetBoundingBox not yet implemented.")
+    """Finds the minimum box surrounding all occurences of |color|.
+    Returns: (top, left, width, height), match_count
+    Ignores the alpha channel."""
+    int_color = (color.r << 16) | (color.g << 8) | color.b
+    return bitmaptools.BoundingBox(self._as_tuple, int_color, tolerance)
 
   def Crop(self, top, left, width, height):
-    """Crops the current bitmap down to the specified box.
+    """Crops the current bitmap down to the specified box."""
+    cur_box = self._crop_box or (0, 0, self._width, self._height)
+    cur_left, cur_top, cur_width, cur_height = cur_box
 
-    TODO(szym): Make this O(1).
-    """
     if (left < 0 or top < 0 or
-        (left + width) > self.width or
-        (top + height) > self.height):
+        (left + width) > cur_width or
+        (top + height) > cur_height):
       raise ValueError('Invalid dimensions')
 
-    img_data = [[0 for x in xrange(width * self.bpp)]
-                for y in xrange(height)]
-
-    # Copy each pixel in the sub-rect.
-    # TODO(tonyg): Make this faster by avoiding the copy and artificially
-    # restricting the dimensions.
-    for y in range(height):
-      for x in range(width):
-        c = self.GetPixelColor(x + left, y + top)
-        offset = x * self.bpp
-        img_data[y][offset] = c.r
-        img_data[y][offset + 1] = c.g
-        img_data[y][offset + 2] = c.b
-        if self.bpp == 4:
-          img_data[y][offset + 3] = c.a
-
-    # This particular method can only save to a file, so the result will be
-    # written into an in-memory buffer and read back into a Bitmap
-    crop_img = png.from_array(img_data, mode='RGBA' if self.bpp == 4 else 'RGB')
-    output = cStringIO.StringIO()
-    try:
-      crop_img.save(output)
-      width, height, pixels, meta = png.Reader(
-          bytes=output.getvalue()).read_flat()
-      self._width = width
-      self._height = height
-      self._pixels = pixels
-      self._metadata = meta
-    finally:
-      output.close()
-
+    self._crop_box = cur_left + left, cur_top + top, width, height
     return self
 
   def ColorHistogram(self):
-    """Returns a histogram of the pixel colors in this Bitmap."""
-    # TODO(szym): Implement this.
-    raise NotImplementedError("ColorHistogram not yet implemented.")
+    """Computes a histogram of the pixel colors in this Bitmap.
+    Returns a list of 3x256 integers."""
+    return bitmaptools.Histogram(self._as_tuple)

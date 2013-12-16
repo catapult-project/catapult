@@ -135,9 +135,10 @@ class Tab(web_contents.WebContents):
         bitmap is a telemetry.core.Bitmap.
     """
     content_box = None
+    start_time = None
     for timestamp, bmp in self.browser.platform.StopVideoCapture():
       if not content_box:
-        content_box = bmp.GetBoundingBox(
+        content_box, pixel_count = bmp.GetBoundingBox(
             bitmap.RgbaColor(*_CONTENT_FLASH_COLOR), tolerance=4)
 
         assert content_box, 'Failed to find tab contents in first video frame.'
@@ -145,23 +146,25 @@ class Tab(web_contents.WebContents):
         # We assume arbitrarily that tabs are all larger than 200x200. If this
         # fails it either means that assumption has changed or something is
         # awry with our bounding box calculation.
-        assert content_box.width > 200 and content_box.height > 200, \
-            'Unexpectedly small tab contents'
+        assert content_box[2] > 200 and content_box[3] > 200, \
+            'Unexpectedly small tab contents.'
+        assert pixel_count > 0.75 * bmp.width * bmp.height, \
+            'Low count of pixels in tab contents matching expected color.'
 
         # Since Telemetry doesn't know how to resize the window, we assume
         # that we should always get the same content box for a tab. If this
-        # fails, it meas either that assumption has changed or something is
+        # fails, it means either that assumption has changed or something is
         # awry with our bounding box calculation.
         if self._previous_tab_contents_bounding_box:
           assert self._previous_tab_contents_bounding_box == content_box, \
               'Unexpected change in tab contents box.'
         self._previous_tab_contents_bounding_box = content_box
-
         continue
 
-      bmp.Crop(content_box)
-      # TODO(tonyg): Translate timestamp into navigation timing space.
-      yield timestamp, bmp
+      elif not start_time:
+        start_time = timestamp
+
+      yield timestamp - start_time, bmp.Crop(*content_box)
 
   def PerformActionAndWaitForNavigate(
       self, action_function, timeout=DEFAULT_TAB_TIMEOUT):
