@@ -4,10 +4,18 @@
 
 import csv
 import multiprocessing
+import os
+import sys
 
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.core.platform import profiler
-from telemetry.core.platform.profiler import monsoon
+
+sys.path.append(os.path.join(util.GetTelemetryDir(), 'third_party', 'internal'))
+try:
+  import monsoon  # pylint: disable=F0401
+except ImportError:
+  monsoon = None
 
 
 def _CollectData(output_path, is_collecting):
@@ -72,9 +80,11 @@ class MonsoonProfiler(profiler.Profiler):
 
   @classmethod
   def is_supported(cls, browser_type):
+    if not monsoon:
+      return False
     try:
       monsoon.Monsoon(wait=False)
-    except EnvironmentError:
+    except IOError:
       return False
     else:
       return True
