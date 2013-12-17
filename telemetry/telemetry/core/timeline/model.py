@@ -148,8 +148,21 @@ class TimelineModel(object):
   def GetAllEvents(self):
     return list(self.IterAllEvents())
 
-  def GetAllEventsOfName(self, name):
-    return [e for e in self.IterAllEvents() if e.name == name]
+  def GetAllEventsOfName(self, name, only_root_events=False):
+    events = [e for e in self.IterAllEvents() if e.name == name]
+    if only_root_events:
+      return filter(lambda ev: ev.parent_slice == None, events)
+    else:
+      return events
+
+  def GetEventOfName(self, name, only_root_events=False,
+                     fail_if_more_than_one=False):
+    events = self.GetAllEventsOfName(name, only_root_events)
+    if len(events) == 0:
+      raise Exception('No event of name "%s" found.' % name)
+    if fail_if_more_than_one and len(events) > 1:
+      raise Exception('More than one event of name "%s" found.' % name)
+    return events[0]
 
   def GetOrCreateProcess(self, pid):
     if pid not in self._processes:
@@ -174,8 +187,7 @@ class TimelineModel(object):
     for name in names:
       name_set.add(name)
     for name in name_set:
-      events.extend([s for s in self.GetAllEventsOfName(name)
-                     if s.parent_slice == None])
+      events.extend(self.GetAllEventsOfName(name, True))
     events.sort(key=attrgetter('start'))
 
     # Check if the number and order of events matches the provided names,

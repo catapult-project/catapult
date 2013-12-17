@@ -2,10 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import telemetry.core.timeline.bounds as timeline_bounds
+
 class PageActionNotSupported(Exception):
   pass
 
 class PageActionFailed(Exception):
+  pass
+
+class PageActionInvalidTimelineMarker(Exception):
   pass
 
 class PageAction(object):
@@ -73,9 +78,19 @@ class PageAction(object):
     self._timeline_marker_id = PageAction._next_timeline_marker_id
     PageAction._next_timeline_marker_id += 1
 
-  def GetTimelineMarkerName(self):
+  def _GetUniqueTimelineMarkerName(self):
     if self._timeline_marker_base_name:
       return \
         '%s_%d' % (self._timeline_marker_base_name, self._timeline_marker_id)
     else:
       return None
+
+  def GetActiveRangeOnTimeline(self, timeline):
+    active_range = timeline_bounds.Bounds()
+
+    if self._GetUniqueTimelineMarkerName():
+      active_range.AddEvent(
+          timeline.GetEventOfName(self._GetUniqueTimelineMarkerName(),
+                                  True, True))
+
+    return active_range

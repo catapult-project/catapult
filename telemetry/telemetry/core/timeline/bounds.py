@@ -9,6 +9,12 @@ class Bounds(object):
     self.min_ = None
     self.max_ = None
 
+  @staticmethod
+  def CreateFromEvent(event):
+    bounds = Bounds()
+    bounds.AddEvent(event)
+    return bounds
+
   @property
   def is_empty(self):
     return self.is_empty_
@@ -56,6 +62,10 @@ class Bounds(object):
 
     self.max_ = max(self.max_, value)
     self.min_ = min(self.min_, value)
+
+  def AddEvent(self, event):
+    self.AddValue(event.start)
+    self.AddValue(event.start + event.duration)
 
   @staticmethod
   def CompareByMinTimes(a, b):
