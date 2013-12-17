@@ -29,6 +29,7 @@ class TabTestCase(unittest.TestCase):
       self._browser.Start()
       self._tab = self._browser.tabs[0]
       self._tab.Navigate('about:blank')
+      self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
     except:
       self.tearDown()
