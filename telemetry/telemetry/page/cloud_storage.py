@@ -29,8 +29,8 @@ class CloudStorageError(Exception):
   def _GetConfigInstructions(gsutil_path):
     return ('To configure your credentials:\n'
             '  1. Run "%s config" and follow its instructions.\n'
-            '  2. If you have a @google.com account, use that one.\n'
-            '  3. Leave the project-id field blank.' % gsutil_path)
+            '  2. If you have a @google.com account, use that account.\n'
+            '  3. For the project-id, just enter 0.' % gsutil_path)
 
 
 class PermissionError(CloudStorageError):
@@ -62,36 +62,41 @@ def _DownloadGsutil():
 
 
 def _FindGsutil():
-  """Return the gsutil executable path. If we can't find it, download it."""
+  """Return the gsutil executable path. If we can't find it, download it.
+
+  Also returns a list of any extra flags that gsutil needs.
+  """
   search_paths = [_DOWNLOAD_PATH] + os.environ['PATH'].split(os.pathsep)
 
   # Look for a depot_tools installation.
+  # gsutil in depot_tools has local modifications, and requires an extra arg.
   for path in search_paths:
     gsutil_path = os.path.join(path, 'third_party', 'gsutil', 'gsutil')
     if os.path.isfile(gsutil_path):
-      return gsutil_path
+      return gsutil_path, ['--bypass_prodaccess']
 
   # Look for a gsutil installation.
   for path in search_paths:
     gsutil_path = os.path.join(path, 'gsutil')
     if os.path.isfile(gsutil_path):
-      return gsutil_path
+      return gsutil_path, []
 
   # Failed to find it. Download it!
-  return _DownloadGsutil()
+  return _DownloadGsutil(), []
 
 
 def _RunCommand(args):
-  gsutil_path = _FindGsutil()
-  gsutil = subprocess.Popen([sys.executable, gsutil_path] + args,
+  gsutil_path, extra_args = _FindGsutil()
+
+  gsutil = subprocess.Popen([sys.executable, gsutil_path] + extra_args + args,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
     if stderr.startswith('You are attempting to access protected data with '
-        'no configured credentials.'):
+        'no configured'):
       raise CredentialsError(gsutil_path)
-    if 'status=403' in stderr:
+    if 'status=403' in stderr or 'status 403' in stderr:
       raise PermissionError(gsutil_path)
     if stderr.startswith('InvalidUriError') or 'No such object' in stderr:
       raise NotFoundError(stderr)
@@ -145,6 +150,8 @@ def GetIfChanged(bucket, file_path):
     Get(bucket, expected_hash, file_path)
   except NotFoundError:
     logging.warning('Unable to update file %s from Cloud Storage.' % file_path)
+    return False
+
   return True
 
 
