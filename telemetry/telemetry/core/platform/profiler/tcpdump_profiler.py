@@ -99,7 +99,7 @@ class TCPDumpProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb, 'tcpdump')
+          browser_backend.adb.Adb(), 'tcpdump')
       self._platform_profiler = _TCPDumpProfilerAndroid(
           browser_backend.adb, output_path)
     else:

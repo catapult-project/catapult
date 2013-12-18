@@ -120,6 +120,7 @@ class TCMallocHeapProfiler(profiler.Profiler):
   @classmethod
   def CustomizeBrowserOptions(cls, browser_type, options):
     options.AppendExtraBrowserArgs('--no-sandbox')
+    options.AppendExtraBrowserArgs('--enable-memory-benchmarking')
 
   def CollectProfile(self):
     return self._platform_profiler.CollectProfile()

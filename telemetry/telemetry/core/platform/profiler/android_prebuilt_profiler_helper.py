@@ -34,6 +34,5 @@ def GetIfChanged(profiler_binary):
 
 def InstallOnDevice(adb, profiler_binary):
   GetIfChanged(profiler_binary)
-  adb.Adb().PushIfNeeded(GetHostPath(profiler_binary),
-                         GetDevicePath(profiler_binary))
-  adb.Adb().RunShellCommand('chmod 777 ' + GetDevicePath(profiler_binary))
+  adb.PushIfNeeded(GetHostPath(profiler_binary), GetDevicePath(profiler_binary))
+  adb.RunShellCommand('chmod 777 ' + GetDevicePath(profiler_binary))
