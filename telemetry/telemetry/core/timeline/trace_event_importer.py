@@ -229,7 +229,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       elif phase == 'S' or phase == 'F' or phase == 'T':
         self._ProcessAsyncEvent(event)
       # Note, I is historic. The instant event marker got changed, but we
-      # want to support loading load trace files so we have both I and i.
+      # want to support loading old trace files so we have both I and i.
       elif phase == 'I' or phase == 'i':
         self._ProcessInstantEvent(event)
       elif phase == 'P':
@@ -291,7 +291,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           async_event_states_by_name_then_id[name] = {}
         if event_id in async_event_states_by_name_then_id[name]:
           self._model.import_errors.append(
-              'At %d, a slice of the same id %s was alrady open.' % (
+              'At %d, a slice of the same id %s was already open.' % (
                   event['ts'], event_id))
           continue
 
@@ -323,6 +323,10 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
           async_slice.start_thread = events[0]['thread']
           async_slice.end_thread = async_event_state['thread']
+          if async_slice.start_thread == async_slice.end_thread:
+            if 'tts' in event and 'tts' in events[0]['event']:
+              async_slice.thread_duration = ((event['tts'] / 1000.0)
+                  - (events[0]['event']['tts'] / 1000.0))
           async_slice.id = event_id
           async_slice.args = events[0]['event']['args']
 
@@ -342,6 +346,13 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
             sub_slice.start_thread = events[j - 1]['thread']
             sub_slice.end_thread = events[j]['thread']
+            if sub_slice.start_thread == sub_slice.end_thread:
+              if 'tts' in events[j]['event'] and \
+                  'tts' in events[j - 1]['event']:
+                sub_slice.thread_duration = \
+                    ((events[j]['event']['tts'] / 1000.0)
+                        - (events[j - 1]['event']['tts'] / 1000.0))
+
             sub_slice.id = event_id
             sub_slice.args = events[j - 1]['event']['args']
 

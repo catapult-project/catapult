@@ -871,11 +871,11 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     events = [
       # Time is intentionally out of order.
       {'name': 'a', 'args': {'z': 3}, 'pid': 52, 'ts': 560, 'cat': 'foo',
-       'tid': 53, 'ph': 'F', 'id': 72},
+       'tid': 53, 'ph': 'F', 'id': 72, 'tts': 25},
       {'name': 'a', 'args': {'step': 's1', 'y': 2}, 'pid': 52, 'ts': 548,
-       'cat': 'foo', 'tid': 53, 'ph': 'T', 'id': 72},
+       'cat': 'foo', 'tid': 53, 'ph': 'T', 'id': 72, 'tts': 20},
       {'name': 'a', 'args': {'x': 1}, 'pid': 52, 'ts': 524, 'cat': 'foo',
-       'tid': 53, 'ph': 'S', 'id': 72}
+       'tid': 53, 'ph': 'S', 'id': 72, 'tts': 17}
     ]
 
     m = timeline_model.TimelineModel(event_data=events)
@@ -892,6 +892,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('foo', sub_slice.category)
     self.assertAlmostEqual(0, sub_slice.start)
     self.assertAlmostEqual((548 - 524) / 1000.0, sub_slice.duration)
+    self.assertAlmostEqual((20 - 17) / 1000.0, sub_slice.thread_duration)
     self.assertEqual(1, sub_slice.args['x'])
 
     sub_slice = parent_slice.sub_slices[1]
@@ -899,6 +900,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('foo', sub_slice.category)
     self.assertAlmostEqual((548 - 524) / 1000.0, sub_slice.start)
     self.assertAlmostEqual((560 - 548) / 1000.0, sub_slice.duration)
+    self.assertAlmostEqual((25 - 20) / 1000.0, sub_slice.thread_duration)
     self.assertEqual(2, sub_slice.args['y'])
     self.assertEqual(3, sub_slice.args['z'])
 
