@@ -248,6 +248,7 @@ var Promise = function(init) {
     if (init) { init(r); }
   } catch(e) {
     r.reject(e);
+    console.log(e);
   }
 };
 
@@ -273,6 +274,7 @@ var wrap = function(callback, resolver, disposition) {
     } catch(e) {
       // Exceptions reject the resolver
       resolver.reject(e);
+      console.log(e);
     }
   };
 };
