@@ -460,6 +460,7 @@ class SSHForwarder(object):
       shell=False)
 
     util.WaitFor(lambda: cri.IsHTTPServerRunningOnPort(self._device_port), 60)
+    logging.debug('ssh forwarder created: %s', command_line)
 
   @property
   def url(self):
