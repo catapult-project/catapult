@@ -54,12 +54,10 @@ class _SingleProcessPerfProfiler(object):
                       'To collect a full profile rerun with '
                       '"--extra-browser-args=--single-process"')
     if self._is_android:
-      perf_pids = self._browser_backend.adb.Adb().ExtractPid('perf')
-      self._browser_backend.adb.Adb().RunShellCommand(
-          'kill -SIGINT ' + ' '.join(perf_pids))
-      util.WaitFor(
-          lambda: not self._browser_backend.adb.Adb().ExtractPid('perf'),
-          timeout=2)
+      adb = self._browser_backend.adb.Adb()
+      perf_pids = adb.ExtractPid('perf')
+      adb.RunShellCommand('kill -SIGINT ' + ' '.join(perf_pids))
+      util.WaitFor(lambda: not adb.ExtractPid('perf'), timeout=2)
     self._proc.send_signal(signal.SIGINT)
     exit_code = self._proc.wait()
     try:
@@ -77,58 +75,73 @@ Try rerunning this script under sudo or setting
       self._tmp_output_file.close()
     cmd = 'perf report -n -i %s' % self._output_file
     if self._is_android:
-      self._browser_backend.adb.Adb().Adb().Pull(
-          self._device_output_file,
-          self._output_file)
-      host_symfs = os.path.join(os.path.dirname(self._output_file),
-                                'data', 'app-lib')
-      if not os.path.exists(host_symfs):
-        os.makedirs(host_symfs)
-        # On Android, the --symfs parameter needs to map a directory structure
-        # similar to the device, that is:
-        # --symfs=/tmp/foobar and then inside foobar there'll be something like
-        # /tmp/foobar/data/app-lib/$PACKAGE/libname.so
-        # Assume the symbolized library under out/Release/lib is equivalent to
-        # the one in the device, and symlink it in the host to match --symfs.
-        device_dir = filter(
-            lambda app_lib: app_lib.startswith(self._browser_backend.package),
-            self._browser_backend.adb.Adb().RunShellCommand('ls /data/app-lib'))
-        os.symlink(os.path.abspath(
-                      os.path.join(util.GetChromiumSrcDir(),
-                                   os.environ.get('CHROMIUM_OUT_DIR', 'out'),
-                                   'Release', 'lib')),
-                   os.path.join(host_symfs, device_dir[0]))
-
-      # Also pull copies of common system libraries from the device so perf can
-      # resolve their symbols. Only copy a subset of libraries to make this
-      # faster.
-      host_system_symfs = os.path.join(os.path.dirname(self._output_file),
-                                       'system', 'lib')
-      if not os.path.exists(host_system_symfs):
-        os.makedirs(host_system_symfs)
-        common_system_libs = [
-          'libandroid*.so',
-          'libart.so',
-          'libc.so',
-          'libdvm.so',
-          'libEGL*.so',
-          'libGL*.so',
-          'libm.so',
-          'libRS.so',
-          'libskia.so',
-          'libstdc++.so',
-          'libstlport.so',
-          'libz.so',
-        ]
-        for lib in common_system_libs:
-          self._browser_backend.adb.Adb().Adb().Pull('/system/lib/%s' % lib,
-                                                     host_system_symfs)
       print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
       print 'symbolized library matching the one on device.'
-      cmd += ' --symfs %s' % os.path.dirname(self._output_file)
+      cmd += ' ' + ' '.join(self._PrepareAndroidSymfs())
     print 'To view the profile, run:'
     print ' ', cmd
     return self._output_file
+
+  def _PrepareAndroidSymfs(self):
+    """Create a symfs directory using an Android device.
+
+    Create a symfs directory by pulling the necessary files from an Android
+    device.
+
+    Returns:
+      List of arguments to be passed to perf to point it to the created symfs.
+    """
+    assert self._is_android
+    adb = self._browser_backend.adb.Adb()
+    adb.Adb().Pull(self._device_output_file, self._output_file)
+    symfs_dir = os.path.dirname(self._output_file)
+    host_app_symfs = os.path.join(symfs_dir, 'data', 'app-lib')
+    if not os.path.exists(host_app_symfs):
+      os.makedirs(host_app_symfs)
+      # On Android, the --symfs parameter needs to map a directory structure
+      # similar to the device, that is:
+      # --symfs=/tmp/foobar and then inside foobar there'll be something like
+      # /tmp/foobar/data/app-lib/$PACKAGE/libname.so
+      # Assume the symbolized library under out/Release/lib is equivalent to
+      # the one in the device, and symlink it in the host to match --symfs.
+      device_dir = filter(
+          lambda app_lib: app_lib.startswith(self._browser_backend.package),
+          adb.RunShellCommand('ls /data/app-lib'))
+      os.symlink(os.path.abspath(
+                    os.path.join(util.GetChromiumSrcDir(),
+                                 os.environ.get('CHROMIUM_OUT_DIR', 'out'),
+                                 'Release', 'lib')),
+                 os.path.join(host_app_symfs, device_dir[0]))
+
+    # Also pull copies of common system libraries from the device so perf can
+    # resolve their symbols. Only copy a subset of libraries to make this
+    # faster.
+    # TODO(skyostil): Find a way to pull in all system libraries without being
+    # too slow.
+    host_system_symfs = os.path.join(symfs_dir, 'system', 'lib')
+    if not os.path.exists(host_system_symfs):
+      os.makedirs(host_system_symfs)
+      common_system_libs = [
+        'libandroid*.so',
+        'libart.so',
+        'libc.so',
+        'libdvm.so',
+        'libEGL*.so',
+        'libGL*.so',
+        'libm.so',
+        'libRS.so',
+        'libskia.so',
+        'libstdc++.so',
+        'libstlport.so',
+        'libz.so',
+      ]
+      for lib in common_system_libs:
+        adb.Adb().Pull('/system/lib/%s' % lib, host_system_symfs)
+    # Pull a copy of the kernel symbols.
+    host_kallsyms = os.path.join(symfs_dir, 'kallsyms')
+    if not os.path.exists(host_kallsyms):
+      adb.Adb().Pull('/proc/kallsyms', host_kallsyms)
+    return ['--kallsyms', host_kallsyms, '--symfs', symfs_dir]
 
   def _GetStdOut(self):
     self._tmp_output_file.flush()
