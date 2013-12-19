@@ -98,8 +98,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--remote-debugging-port=%i' % self._remote_debugging_port,
             # Open a maximized window.
             '--start-maximized',
-            # Workaround for crbug.com/308224. TODO(achuith): Remove this flag.
-            '--multi-profiles',
+            # TODO(achuith): Re-enable this flag again before multi-profiles
+            # will become enabled by default to have telemetry mileage on it.
+            # '--multi-profiles',
             # Debug logging for login flake (crbug.com/263527).
             '--vmodule=*/browser/automation/*=2,*/chromeos/net/*=2,'
                 '*/chromeos/login/*=2,*/extensions/*=2,'
