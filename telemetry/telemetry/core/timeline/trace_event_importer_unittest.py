@@ -54,9 +54,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertAlmostEqual(0, slice_event.start)
     self.assertAlmostEqual((560 - 520) / 1000.0, slice_event.duration)
     self.assertAlmostEqual((560 - 520) / 1000.0, slice_event.end)
-    self.assertAlmostEqual(0, slice_event.thread_start)
+    self.assertAlmostEqual(280 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((310 - 280) / 1000.0, slice_event.thread_duration)
-    self.assertAlmostEqual((310 - 280) / 1000.0, slice_event.thread_end)
+    self.assertAlmostEqual(310 / 1000.0, slice_event.thread_end)
     self.assertEqual(0, len(slice_event.sub_slices))
 
     slice_event = t.all_slices[1]
@@ -65,9 +65,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertAlmostEqual((629 - 520) / 1000.0, slice_event.start)
     self.assertAlmostEqual((631 - 629) / 1000.0, slice_event.duration)
     self.assertAlmostEqual((631 - 520) / 1000.0, slice_event.end)
-    self.assertAlmostEqual((356 - 280) / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual(356 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((357 - 356) / 1000.0, slice_event.thread_duration)
-    self.assertAlmostEqual((357 - 280) / 1000.0, slice_event.thread_end)
+    self.assertAlmostEqual(357 / 1000.0, slice_event.thread_end)
     self.assertEqual(0, len(slice_event.sub_slices))
 
     slice_event = t.all_slices[2]
@@ -153,27 +153,44 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
 
   def testAutoclosing(self):
     events = [
-      # Slice that doesn't finish.
+      # Slices that don't finish.
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 1, 'tts': 1, 'cat': 'foo',
        'tid': 1, 'ph': 'B'},
-
-      # Slice that does finish to give an 'end time' to make autoclosing work.
-      {'name': 'b', 'args': {}, 'pid': 1, 'ts': 2, 'tts': 2, 'cat': 'bar',
+      {'name': 'b', 'args': {}, 'pid': 1, 'ts': 2, 'tts': 2, 'cat': 'foo',
        'tid': 2, 'ph': 'B'},
-      {'name': 'b', 'args': {}, 'pid': 1, 'ts': 4, 'tts': 3, 'cat': 'bar',
+
+      # Slices on thread 1 and 2 that do finish to give an 'end time' to make
+      # autoclosing work.
+      {'name': 'c', 'args': {}, 'pid': 1, 'ts': 2, 'tts': 1.5, 'cat': 'bar',
+       'tid': 1, 'ph': 'B'},
+      {'name': 'c', 'args': {}, 'pid': 1, 'ts': 4, 'tts': 3, 'cat': 'bar',
+       'tid': 1, 'ph': 'E'},
+      {'name': 'd', 'args': {}, 'pid': 1, 'ts': 3, 'tts': 2.5, 'cat': 'bar',
+       'tid': 2, 'ph': 'B'},
+      {'name': 'd', 'args': {}, 'pid': 1, 'ts': 7, 'tts': 5, 'cat': 'bar',
        'tid': 2, 'ph': 'E'}
     ]
     m = timeline_model.TimelineModel(event_data=events)
     p = m.GetAllProcesses()[0]
-    t = p.threads[1]
-    slice_event = t.all_slices[0]
+    t1 = p.threads[1]
+    slice_event = FindEventNamed(t1.all_slices, 'a')
     self.assertEqual('a', slice_event.name)
     self.assertEqual('foo', slice_event.category)
     self.assertTrue(slice_event.did_not_finish)
     self.assertAlmostEqual(0, slice_event.start)
-    self.assertAlmostEqual((4 - 1) / 1000.0, slice_event.duration)
-    self.assertAlmostEqual(0, slice_event.thread_start)
+    self.assertAlmostEqual((7 - 1) / 1000.0, slice_event.duration)
+    self.assertAlmostEqual(1 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((3 - 1) / 1000.0, slice_event.thread_duration)
+
+    t2 = p.threads[2]
+    slice_event = FindEventNamed(t2.all_slices, 'b')
+    self.assertEqual('b', slice_event.name)
+    self.assertEqual('foo', slice_event.category)
+    self.assertTrue(slice_event.did_not_finish)
+    self.assertAlmostEqual((2 - 1) / 1000.0, slice_event.start)
+    self.assertAlmostEqual((7 - 2) / 1000.0, slice_event.duration)
+    self.assertAlmostEqual(2 / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual((5 - 2) / 1000.0, slice_event.thread_duration)
 
   def testAutoclosingLoneBegin(self):
     events = [
@@ -190,7 +207,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertTrue(slice_event.did_not_finish)
     self.assertAlmostEqual(0, slice_event.start)
     self.assertAlmostEqual(0, slice_event.duration)
-    self.assertAlmostEqual(0, slice_event.thread_start)
+    self.assertAlmostEqual(1 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual(0, slice_event.thread_duration)
 
   def testAutoclosingWithSubTasks(self):
@@ -233,10 +250,12 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     m = timeline_model.TimelineModel(event_data=events,
                                      shift_world_to_zero=False)
     p = m.GetAllProcesses()[0]
-    t = p.threads[1]
-    self.assertEqual(2, len(t.all_slices))
+    t1 = p.threads[1]
+    self.assertAlmostEqual(0.000, m.thread_time_bounds[t1].min)
+    self.assertAlmostEqual(0.003, m.thread_time_bounds[t1].max)
+    self.assertEqual(2, len(t1.all_slices))
 
-    slice_event = FindEventNamed(t.all_slices, 'a')
+    slice_event = FindEventNamed(t1.all_slices, 'a')
     self.assertEqual('a', slice_event.name)
     self.assertEqual('foo', slice_event.category)
     self.assertAlmostEqual(0, slice_event.start)
@@ -245,6 +264,8 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertAlmostEqual(0.003, slice_event.thread_duration)
 
     t2 = p.threads[2]
+    self.assertAlmostEqual(0.001, m.thread_time_bounds[t2].min)
+    self.assertAlmostEqual(0.002, m.thread_time_bounds[t2].max)
     slice2 = FindEventNamed(t2.all_slices, 'c')
     self.assertEqual('c', slice2.name)
     self.assertEqual('bar', slice2.category)
@@ -255,9 +276,6 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
 
     self.assertAlmostEqual(0.000, m.bounds.min)
     self.assertAlmostEqual(0.006, m.bounds.max)
-    self.assertAlmostEqual(0.000, m.thread_time_bounds.min)
-    self.assertAlmostEqual(0.003, m.thread_time_bounds.max)
-
 
   def testNestedAutoclosing(self):
     events = [
@@ -313,7 +331,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('foo', slice_event.category)
     self.assertAlmostEqual(0, slice_event.start)
     self.assertAlmostEqual((4 - 2) / 1000.0, slice_event.duration)
-    self.assertAlmostEqual(0, slice_event.thread_start)
+    self.assertAlmostEqual(1 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((2 - 1) / 1000.0, slice_event.thread_duration)
 
     # Check thread 2.
@@ -326,7 +344,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('bar', slice_event.category)
     self.assertAlmostEqual((6 - 2) / 1000.0, slice_event.start)
     self.assertAlmostEqual((8 - 6) / 1000.0, slice_event.duration)
-    self.assertAlmostEqual((3 - 1) / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual(3 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((4 - 3) / 1000.0, slice_event.thread_duration)
 
   def testMultiplePidParsing(self):
@@ -359,7 +377,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('foo', slice_event.category)
     self.assertAlmostEqual(0, slice_event.start)
     self.assertAlmostEqual((4 - 2) / 1000.0, slice_event.duration)
-    self.assertAlmostEqual(0, slice_event.thread_start)
+    self.assertAlmostEqual(1 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((2 - 1) / 1000.0, slice_event.thread_duration)
 
     # Check process 2 thread 2.
@@ -376,7 +394,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('bar', slice_event.category)
     self.assertAlmostEqual((6 - 2) / 1000.0, slice_event.start)
     self.assertAlmostEqual((8 - 6) / 1000.0, slice_event.duration)
-    self.assertAlmostEqual((3 - 1) / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual(3 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual((4 - 3) / 1000.0, slice_event.thread_duration)
 
     # Check getAllThreads.
@@ -984,7 +1002,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('a', slice_event.name)
     self.assertAlmostEqual(0.0, slice_event.start)
     self.assertAlmostEqual(1 / 1000.0, slice_event.duration)
-    self.assertAlmostEqual(0.0, slice_event.thread_start)
+    self.assertAlmostEqual(538 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual(1 / 1000.0, slice_event.thread_duration)
     self.assertFalse(slice_event.did_not_finish)
     self.assertEqual(0, len(slice_event.sub_slices))
@@ -993,7 +1011,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('b', slice_event.name)
     self.assertAlmostEqual((730 - 629) / 1000.0, slice_event.start)
     self.assertAlmostEqual(20 / 1000.0, slice_event.duration)
-    self.assertAlmostEqual((620 - 538) / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual(620 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual(14 / 1000.0, slice_event.thread_duration)
     self.assertFalse(slice_event.did_not_finish)
     self.assertEqual(1, len(slice_event.sub_slices))
@@ -1003,7 +1021,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('c', slice_event.name)
     self.assertAlmostEqual((740 - 629) / 1000.0, slice_event.start)
     self.assertAlmostEqual(10 / 1000.0, slice_event.duration)
-    self.assertAlmostEqual((625 - 538) / 1000.0, slice_event.thread_start)
+    self.assertAlmostEqual(625 / 1000.0, slice_event.thread_start)
     self.assertAlmostEqual(9 / 1000.0, slice_event.thread_duration)
     self.assertTrue(slice_event.did_not_finish)
     self.assertEqual(0, len(slice_event.sub_slices))
