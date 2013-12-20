@@ -189,7 +189,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
-    self._saved_cmdline = None
+    self._saved_cmdline = ''
     self._port = adb_commands.AllocateTestServerPort()
 
     # Kill old browser.
@@ -296,7 +296,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.Close()
       raise
     finally:
-      self._SetCommandLineFile(self._saved_cmdline or '')
+      # Restore the saved command line if it appears to have come from a user.
+      # If it appears to be a Telemetry created command line, then don't restore
+      # it. This is to prevent a common bug where --host-resolver-rules borks
+      # people's browsers if something goes wrong with Telemetry.
+      self._SetCommandLineFile(
+          self._saved_cmdline
+          if '--host-resolver-rules' not in self._saved_cmdline else '')
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
