@@ -422,7 +422,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # Open a new window/tab.
       self.tab_list_backend.New(15)
       # Workaround for crbug.com/329271.
-      self.tab_list_backend[0].Navigate('about:blank')
+      try:
+        self.tab_list_backend[0].Navigate('about:blank')
+      except exceptions.TabCrashException:
+        pass
 
     # Wait for extensions to load.
     try:
