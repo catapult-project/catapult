@@ -41,16 +41,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._SetBranchNumber(self._GetChromeVersion())
 
-    self._username = 'test@test.test'
-    self._password = ''
-
     self._login_ext_dir = None
     if not self._use_oobe_login_for_testing:
       self._login_ext_dir = os.path.join(os.path.dirname(__file__),
                                          'chromeos_login_ext')
 
       # Push a dummy login extension to the device.
-      # This extension automatically logs in test user self._username.
+      # This extension automatically logs in test user specified by
+      # self.browser_options.username.
       # Note that we also perform this copy locally to ensure that
       # the owner of the extensions is set to chronos.
       logging.info('Copying dummy login extension to the device')
@@ -75,7 +73,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
       self._cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
-                                '--user=%s' % self._username])
+                                '--user=%s' % self.browser_options.username])
     if self.browser_options.profile_dir:
       cri.RmRF(self.profile_directory)
       cri.PushFile(self.browser_options.profile_dir + '/Default',
@@ -317,7 +315,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _IsCryptohomeMounted(self):
     """Returns True if a cryptohome vault at the user mount point."""
-    profile_path = self._CryptohomePath(self._username)
+    profile_path = self._CryptohomePath(self.browser_options.username)
     mount = self._cri.FilesystemMountedAt(profile_path)
     return mount and mount.startswith('/home/.shadow/')
 
@@ -405,8 +403,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         raise exceptions.LoginException('Oobe.loginForTesting js api missing')
 
       self.oobe.ExecuteJavaScript(
-          'Oobe.loginForTesting(\'%s\', \'%s\');' % (self._username,
-                                                     self._password))
+          'Oobe.loginForTesting(\'%s\', \'%s\');'
+              % (self.browser_options.username, self.browser_options.password))
 
     try:
       util.WaitFor(self._IsLoggedIn, 60)
