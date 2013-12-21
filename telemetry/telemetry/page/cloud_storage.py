@@ -109,6 +109,12 @@ def List(bucket):
   stdout = _RunCommand(['ls', 'gs://%s' % bucket])
   return [url.split('/')[-1] for url in stdout.splitlines()]
 
+def Exists(bucket, remote_path):
+  try:
+    _RunCommand(['ls', 'gs://%s/%s' % (bucket, remote_path)])
+    return True
+  except NotFoundError:
+    return False
 
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
@@ -122,10 +128,16 @@ def Get(bucket, remote_path, local_path):
   _RunCommand(['cp', url, local_path])
 
 
-def Insert(bucket, remote_path, local_path):
+def Insert(bucket, remote_path, local_path, publicly_readable=False):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.info('Uploading %s to %s' % (local_path, url))
-  _RunCommand(['cp', local_path, url])
+  command_and_args = ['cp']
+  extra_info = ''
+  if publicly_readable:
+    command_and_args += ['-a', 'public-read']
+    extra_info = ' (publicly readable)'
+  command_and_args += [local_path, url]
+  logging.info('Uploading %s to %s%s' % (local_path, url, extra_info))
+  _RunCommand(command_and_args)
 
 
 def GetIfChanged(bucket, file_path):
