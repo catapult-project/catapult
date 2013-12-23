@@ -26,7 +26,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     return page
 
-  def testScrollAction(self):
+  # Disabled due to flakiness: crbug.com/330544
+  def disabled_testScrollAction(self):
     page = self.CreateAndNavigateToPageFromUnittestDataDir(
         "blank.html",
         page_attributes={"smoothness": {
