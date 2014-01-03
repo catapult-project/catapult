@@ -18,10 +18,10 @@ base.exportTo('about_tracing', function() {
       req.onreadystatechange = function(e) {
         if (req.readyState == 4) {
           window.setTimeout(function() {
-            if (req.status == 200) {
+            if (req.status == 200 && req.responseText != '##ERROR##') {
               resolver.resolve(req.responseText);
             } else {
-              resolver.reject(new Error('At ' + path + ' error ' + req.status));
+              resolver.reject(new Error('Error occured at ' + path));
             }
           }, 0);
         }
@@ -105,7 +105,7 @@ base.exportTo('about_tracing', function() {
           recordFailed);
 
       stopButton.addEventListener('click', function() {
-        var recordingPromise = beginRequest('GET', '/json/end_recording');
+        var recordingPromise = endRecording(beginRequest);
         recordingPromise.then(
             recordFinished,
             recordFailed);
@@ -150,12 +150,20 @@ base.exportTo('about_tracing', function() {
     return finalPromise;
   };
 
+  function endRecording(beginRequest) {
+    return beginRequest('GET', '/json/end_recording');
+  }
+
   function UserCancelledError() {
     Error.apply(this, arguments);
   }
   UserCancelledError.prototype = {
     __proto__: Error.prototype
   };
+
+  window.onbeforeunload = function(e) {
+    endRecording(beginRequest);
+  }
 
   return {
     beginRequest: beginRequest,
