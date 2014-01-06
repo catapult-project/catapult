@@ -496,14 +496,14 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
   // Process labels.
   test('processLabels', function() {
     var events = [
-      {name: 'process_labels', args: {labels: 'foo,bar'},
+      {name: 'process_labels', args: {labels: 'foo,bar,bar,foo,baz'},
         pid: 1, ts: 0, tid: 1, ph: 'M'},
       {name: 'process_labels', args: {labels: 'baz'},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
     var m = new tracing.TraceModel();
     m.importTraces([events], false, false);
-    assertArrayEquals(['foo', 'bar'], m.processes[1].labels);
+    assertArrayEquals(['foo', 'bar', 'baz'], m.processes[1].labels);
     assertArrayEquals(['baz'], m.processes[2].labels);
   });
 

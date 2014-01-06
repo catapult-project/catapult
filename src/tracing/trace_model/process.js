@@ -62,6 +62,14 @@ base.exportTo('tracing.trace_model', function() {
       this.instantEvents.push(instantEvent);
     },
 
+    addLabelIfNeeded: function(labelName) {
+      for (var i = 0; i < this.labels.length; i++) {
+        if (this.labels[i] === labelName)
+          return;
+      }
+      this.labels.push(labelName);
+    },
+
     get userFriendlyName() {
       var res;
       if (this.name)
