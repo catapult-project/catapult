@@ -58,6 +58,8 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     self._page_specific_values_for_current_page = []
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
+    assert '.' not in trace_name, ('Trace names cannot contain "." since this '
+        'delimits chart_name.trace_name in Value objects.')
     value = value_backcompat.ConvertOldCallingConventionToValue(
       self._current_page,
       trace_name, units, value, chart_name, data_type)
