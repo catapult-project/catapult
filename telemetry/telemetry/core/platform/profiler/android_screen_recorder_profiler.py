@@ -18,8 +18,11 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
     self._output_path = output_path + '.mp4'
     self._recorder = subprocess.Popen(
         [os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
-                      'screenshot.py'), '--video', '--file',
-         self._output_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                      'screenshot.py'),
+         '--video',
+         '--file', self._output_path,
+         '--device', browser_backend.adb.device()],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
   @classmethod
   def name(cls):
