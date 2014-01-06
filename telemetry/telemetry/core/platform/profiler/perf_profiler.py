@@ -162,6 +162,9 @@ class PerfProfiler(profiler.Profiler):
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
           browser_backend.adb.Adb(), 'perf')
+      # Make sure kernel pointers are not hidden.
+      browser_backend.adb.Adb().SetProtectedFileContents(
+          '/proc/sys/kernel/kptr_restrict', '0')
     for pid, output_file in process_output_file_map.iteritems():
       if 'zygote' in output_file:
         continue
