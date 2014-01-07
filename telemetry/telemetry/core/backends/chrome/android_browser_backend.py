@@ -89,7 +89,8 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     saved_profile_location = '/sdcard/profile/%s' % profile_base
     self.adb.Adb().PushIfNeeded(new_profile_dir, saved_profile_location)
     self.adb.RunShellCommand('cp -r %s/* %s' % (saved_profile_location,
-                                                self.profile_dir))
+                                                self.profile_dir),
+                             timeout_time = 60)
 
     # We now need to give the ownership back to the browser UID
     dumpsys = self.adb.RunShellCommand('dumpsys package %s' % self.package)
