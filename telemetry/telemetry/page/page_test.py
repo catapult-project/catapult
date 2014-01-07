@@ -21,6 +21,14 @@ def _GetActionFromData(action_data):
   return action(action_data)
 
 
+def GetSubactionFromData(page, subaction_data, interactive):
+  subaction_name = subaction_data['action']
+  if hasattr(page, subaction_name):
+    return GetCompoundActionFromPage(page, subaction_name, interactive)
+  else:
+    return [_GetActionFromData(subaction_data)]
+
+
 def GetCompoundActionFromPage(page, action_name, interactive=False):
   if interactive:
     return [interact.InteractAction()]
@@ -34,12 +42,8 @@ def GetCompoundActionFromPage(page, action_name, interactive=False):
 
   action_list = []
   for subaction_data in action_data_list:
-    subaction_name = subaction_data['action']
-    if hasattr(page, subaction_name):
-      subaction = GetCompoundActionFromPage(page, subaction_name, interactive)
-    else:
-      subaction = [_GetActionFromData(subaction_data)]
-    action_list += subaction * subaction_data.get('repeat', 1)
+    for _ in xrange(subaction_data.get('repeat', 1)):
+      action_list += GetSubactionFromData(page, subaction_data, interactive)
   return action_list
 
 
