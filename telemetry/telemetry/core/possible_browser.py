@@ -7,8 +7,9 @@ class PossibleBrowser(object):
   Call Create() to launch the browser and begin manipulating it..
   """
 
-  def __init__(self, browser_type, finder_options):
+  def __init__(self, browser_type, target_os, finder_options):
     self._browser_type = browser_type
+    self._target_os = target_os
     self._finder_options = finder_options
 
   def __repr__(self):
@@ -17,6 +18,11 @@ class PossibleBrowser(object):
   @property
   def browser_type(self):
     return self._browser_type
+
+  @property
+  def target_os(self):
+    """Target OS, the browser will run on."""
+    return self._target_os
 
   @property
   def finder_options(self):

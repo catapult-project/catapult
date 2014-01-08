@@ -22,7 +22,8 @@ ALL_BROWSER_TYPES = [
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable chromeos browser instance."""
   def __init__(self, browser_type, finder_options, cri, is_guest):
-    super(PossibleCrOSBrowser, self).__init__(browser_type, finder_options)
+    super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros',
+        finder_options)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._cri = cri

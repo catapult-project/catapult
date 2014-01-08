@@ -15,6 +15,7 @@ from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
 from telemetry.core.platform.profiler import profiler_finder
 
+
 class Browser(object):
   """A running browser instance that can be controlled in a limited way.
 

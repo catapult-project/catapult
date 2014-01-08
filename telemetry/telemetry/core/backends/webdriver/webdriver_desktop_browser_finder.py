@@ -37,7 +37,9 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
   """A browser that can be controlled through webdriver API."""
 
   def __init__(self, browser_type, finder_options):
-    super(PossibleWebDriverBrowser, self).__init__(browser_type, finder_options)
+    target_os = sys.platform.lower()
+    super(PossibleWebDriverBrowser, self).__init__(browser_type, target_os,
+        finder_options)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
 
