@@ -48,7 +48,7 @@ class Bounds(object):
     self.max_ = None
 
   def AddBounds(self, bounds):
-    if bounds.isEmpty:
+    if bounds.is_empty:
       return
     self.AddValue(bounds.min_)
     self.AddValue(bounds.max_)

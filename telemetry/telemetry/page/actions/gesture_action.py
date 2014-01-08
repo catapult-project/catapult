@@ -4,10 +4,16 @@
 
 import telemetry.core.timeline.bounds as timeline_bounds
 from telemetry.page.actions import page_action
+from telemetry.page.actions import wait
 
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(GestureAction, self).__init__(attributes)
+
+    if hasattr(self, 'wait_after'):
+      self.wait_action = wait.WaitAction(self.wait_after)
+    else:
+      self.wait_action = None
 
   def RunAction(self, page, tab, previous_action):
     tab.ExecuteJavaScript(
@@ -17,6 +23,9 @@ class GestureAction(page_action.PageAction):
 
     tab.ExecuteJavaScript(
         'console.timeEnd("' + self._GetUniqueTimelineMarkerName() + '")')
+
+    if self.wait_action:
+      self.wait_action.RunAction(page, tab, previous_action)
 
   def RunGesture(self, page, tab, previous_action):
     raise NotImplementedError()
@@ -46,4 +55,10 @@ class GestureAction(page_action.PageAction):
       raise page_action.PageActionInvalidTimelineMarker(
           'More than one possible synthetic gesture marker found in timeline.')
 
-    return timeline_bounds.Bounds.CreateFromEvent(gesture_events[0])
+    active_range = timeline_bounds.Bounds.CreateFromEvent(gesture_events[0])
+
+    if self.wait_action:
+      active_range.AddBounds(
+          self.wait_action.GetActiveRangeOnTimeline(timeline))
+
+    return active_range
