@@ -73,7 +73,7 @@ class PossibleDesktopIE(PossibleWebDriverBrowser):
     def DriverCreator():
       ie_driver_exe = os.path.join(util.GetTelemetryDir(), 'bin',
                                    'IEDriverServer_%s.exe' % self._architecture)
-      cloud_storage.GetIfChanged(cloud_storage.PUBLIC_BUCKET, ie_driver_exe)
+      cloud_storage.GetIfChanged(ie_driver_exe, cloud_storage.PUBLIC_BUCKET)
       return webdriver.Ie(executable_path=ie_driver_exe)
     return webdriver_ie_backend.WebDriverIEBackend(
         platform_backend, DriverCreator, self.finder_options.browser_options)

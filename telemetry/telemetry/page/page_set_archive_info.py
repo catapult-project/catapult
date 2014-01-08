@@ -25,7 +25,7 @@ class PageSetArchiveInfo(object):
     for archive_path in data['archives']:
       archive_path = self._WprFileNameToPath(archive_path)
       try:
-        cloud_storage.GetIfChanged(cloud_storage.INTERNAL_BUCKET, archive_path)
+        cloud_storage.GetIfChanged(archive_path)
       except (cloud_storage.CredentialsError,
               cloud_storage.PermissionError) as e:
         if os.path.exists(archive_path):

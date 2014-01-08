@@ -28,8 +28,8 @@ def GetHostPath(profiler_binary):
 
 
 def GetIfChanged(profiler_binary):
-  cloud_storage.GetIfChanged(cloud_storage.PUBLIC_BUCKET,
-                             GetHostPath(profiler_binary))
+  cloud_storage.GetIfChanged(GetHostPath(profiler_binary),
+                             cloud_storage.PUBLIC_BUCKET)
 
 
 def InstallOnDevice(adb, profiler_binary):

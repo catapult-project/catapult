@@ -67,9 +67,9 @@ class LinuxPlatformBackend(
 
     try:
       changed = cloud_storage.GetIfChanged(
-          cloud_storage.INTERNAL_BUCKET, ipfw_bin)
+          ipfw_bin, cloud_storage.INTERNAL_BUCKET)
       changed |= cloud_storage.GetIfChanged(
-          cloud_storage.INTERNAL_BUCKET, ipfw_mod)
+          ipfw_mod, cloud_storage.INTERNAL_BUCKET)
     except cloud_storage.CloudStorageError, e:
       logging.error(e)
       logging.error('You may proceed by manually installing dummynet. See: '
@@ -90,7 +90,7 @@ class LinuxPlatformBackend(
     os.environ['PATH'] += os.pathsep + telemetry_bin_dir
 
     try:
-      cloud_storage.GetIfChanged(cloud_storage.INTERNAL_BUCKET, avconv_bin)
+      cloud_storage.GetIfChanged(avconv_bin, cloud_storage.INTERNAL_BUCKET)
     except cloud_storage.CloudStorageError, e:
       logging.error(e)
       logging.error('You may proceed by manually installing avconv via:\n'

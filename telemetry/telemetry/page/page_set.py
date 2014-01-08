@@ -57,7 +57,6 @@ class PageSet(object):
     # Attempt to download the credentials file.
     if self.credentials_path:
       cloud_storage.GetIfChanged(
-          cloud_storage.INTERNAL_BUCKET,
           os.path.join(self._base_dir, self.credentials_path))
 
     # Scan every serving directory for .sha1 files
@@ -77,7 +76,7 @@ class PageSet(object):
               os.path.join(dirpath, filename))
           if extension != '.sha1':
             continue
-          cloud_storage.GetIfChanged(cloud_storage.PUBLIC_BUCKET, path)
+          cloud_storage.GetIfChanged(path)
 
   @classmethod
   def FromFile(cls, file_path):

@@ -106,8 +106,9 @@ def _RunCommand(args):
 
 
 def List(bucket):
-  stdout = _RunCommand(['ls', 'gs://%s' % bucket])
-  return [url.split('/')[-1] for url in stdout.splitlines()]
+  query = 'gs://%s/' % bucket
+  stdout = _RunCommand(['ls', query])
+  return [url[len(query):] for url in stdout.splitlines()]
 
 def Exists(bucket, remote_path):
   try:
@@ -140,7 +141,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
   _RunCommand(command_and_args)
 
 
-def GetIfChanged(bucket, file_path):
+def GetIfChanged(file_path, bucket=None):
   """Gets the file at file_path if it has a hash file that doesn't match.
 
   If the file is not in Cloud Storage, log a warning instead of raising an
@@ -158,13 +159,22 @@ def GetIfChanged(bucket, file_path):
   if os.path.exists(file_path) and GetHash(file_path) == expected_hash:
     return False
 
-  try:
-    Get(bucket, expected_hash, file_path)
-  except NotFoundError:
-    logging.warning('Unable to update file %s from Cloud Storage.' % file_path)
-    return False
+  if bucket:
+    buckets = [bucket]
+  else:
+    buckets = [PUBLIC_BUCKET, INTERNAL_BUCKET]
 
-  return True
+  found = False
+  for bucket in buckets:
+    try:
+      Get(bucket, expected_hash, file_path)
+      found = True
+    except NotFoundError:
+      continue
+
+  if not found:
+    logging.warning('Unable to find file in Cloud Storage: %s', file_path)
+  return found
 
 
 def GetHash(file_path):
