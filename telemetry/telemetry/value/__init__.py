@@ -164,6 +164,8 @@ def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
   if chart_name:
     return '%s.%s' % (chart_name, trace_name)
   else:
+    assert '.' not in trace_name, ('Trace names cannot contain "." with an '
+        'empty chart_name since this is used to delimit chart_name.trace_name.')
     return trace_name
 
 def _ConvertValueNameToBuildbotChartAndTraceName(value_name):
