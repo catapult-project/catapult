@@ -7,7 +7,8 @@ import re
 
 import tvcm
 
-srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                         os.path.join("..", "src")))
 
 def GritCheck():
   filenames = ["base.js",
@@ -24,10 +25,10 @@ def GritCheck():
   for idx, filename in enumerate(grit_files):
     while filename.startswith("../"):
       filename = filename[3:]
-    grit_files[idx] = "src/" + filename
+    grit_files[idx] = os.path.normpath(os.path.join("src", filename))
 
   known_images = []
-  for (dirpath, dirnames, filenames) in os.walk('src/images'):
+  for (dirpath, dirnames, filenames) in os.walk(os.path.join('src', 'images')):
     for name in filenames:
       known_images.append(os.path.join(dirpath, name))
     if '.svn' in dirnames:

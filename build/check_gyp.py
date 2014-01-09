@@ -18,13 +18,13 @@ def GypCheck():
   data = eval(gyp)
   gyp_files = []
   for group in FILE_GROUPS:
-    gyp_files.extend(data["variables"][group])
+    gyp_files.extend(map(os.path.normpath, data["variables"][group]))
 
   known_files = []
   for (dirpath, dirnames, filenames) in os.walk('src'):
     for name in filenames:
       if not name.endswith(("_test.js", "_test_data.js", "tests.html")):
-        known_files.append(os.path.join(dirpath, name))
+        known_files.append(os.path.normpath(os.path.join(dirpath, name)))
     if '.svn' in dirnames:
       dirnames.remove('.svn')
 

@@ -75,7 +75,7 @@ def calc_load_sequence_internal(filenames, search_paths):
     dirname = os.path.dirname(resolved.relative_path)
     modname  = os.path.splitext(os.path.basename(resolved.relative_path))[0]
     if len(dirname):
-      name = dirname.replace('/', '.') + '.' + modname
+      name = dirname.replace(os.path.sep, '.') + '.' + modname
     else:
       name = modname
 
