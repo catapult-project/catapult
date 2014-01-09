@@ -77,7 +77,6 @@ class NonExistentExtensionTest(unittest.TestCase):
         extension_path, options.browser_type)
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
-      b.Start()
       if b.supports_extensions:
         self.assertRaises(extension_dict_backend.ExtensionNotFoundException,
                           lambda: b.extensions[load_extension])
@@ -149,7 +148,6 @@ class ComponentExtensionTest(unittest.TestCase):
       return
 
     with browser_to_create.Create() as b:
-      b.Start()
       extension = b.extensions[load_extension]
       self.assertTrue(
           extension.EvaluateJavaScript('chrome.runtime != null'))

@@ -44,6 +44,7 @@ class Browser(object):
     self._profilers_states = {}
 
   def __enter__(self):
+    self.Start()
     return self
 
   def __exit__(self, *args):

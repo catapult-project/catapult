@@ -20,6 +20,7 @@ class Override(object):
              'open': OpenFunctionStub,
              'os': OsModuleStub,
              'perf_control': PerfControlModuleStub,
+             'raw_input': RawInputFunctionStub,
              'subprocess': SubprocessModuleStub,
              'sys': SysModuleStub,
              'thermal_throttle': ThermalThrottleModuleStub,
@@ -217,6 +218,14 @@ class PerfControlModuleStub(object):
 
   def __init__(self):
     self.PerfControl = PerfControlModuleStub.PerfControlStub
+
+
+class RawInputFunctionStub(object):
+  def __init__(self):
+    self.input = ''
+
+  def __call__(self, name, *args, **kwargs):
+    return self.input
 
 
 class SubprocessModuleStub(object):
