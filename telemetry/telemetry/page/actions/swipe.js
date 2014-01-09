@@ -12,12 +12,14 @@
       this.top_start_percentage_ = opt_options.top_start_percentage;
       this.direction_ = opt_options.direction;
       this.distance_ = opt_options.distance;
+      this.speed_ = opt_options.speed;
     } else {
       this.element_ = document.body;
       this.left_start_percentage_ = 0.5;
       this.top_start_percentage_ = 0.5;
       this.direction_ = 'left';
       this.distance_ = 0;
+      this.speed_ = 800;
     }
   }
 
@@ -56,7 +58,8 @@
     chrome.gpuBenchmarking.swipe(this.options_.direction_,
                                  this.options_.distance_,
                                  this.onGestureComplete_.bind(this),
-                                 start_left, start_top);
+                                 start_left, start_top,
+                                 this.options_.speed_);
   };
 
   SwipeAction.prototype.onGestureComplete_ = function() {

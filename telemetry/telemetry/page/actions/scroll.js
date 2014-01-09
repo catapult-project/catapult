@@ -17,12 +17,14 @@
       this.left_start_percentage_ = opt_options.left_start_percentage;
       this.top_start_percentage_ = opt_options.top_start_percentage;
       this.direction_ = opt_options.direction;
+      this.speed_ = opt_options.speed;
       this.gesture_source_type_ = opt_options.gesture_source_type;
     } else {
       this.element_ = document.body;
       this.left_start_percentage_ = 0.5;
       this.top_start_percentage_ = 0.5;
       this.direction_ = 'down';
+      this.speed_ = 800;
       this.gesture_source_type_ = chrome.gpuBenchmarking.DEFAULT_INPUT;
     }
   }
@@ -98,7 +100,8 @@
         rect.top + rect.height * this.options_.top_start_percentage_;
     chrome.gpuBenchmarking.smoothScrollBy(
         distance, this.onGestureComplete_.bind(this), start_left, start_top,
-        this.options_.gesture_source_type, this.options_.direction_);
+        this.options_.gesture_source_type, this.options_.direction_,
+        this.options_.speed_);
   };
 
   ScrollAction.prototype.onGestureComplete_ = function() {

@@ -51,6 +51,7 @@ class ScrollAction(gesture_action.GestureAction):
     left_start_percentage = 0.5
     top_start_percentage = 0.5
     direction = 'down'
+    speed = 800
     gesture_source_type = 'chrome.gpuBenchmarking.DEFAULT_INPUT'
     if hasattr(self, 'left_start_percentage'):
       left_start_percentage = self.left_start_percentage
@@ -61,6 +62,8 @@ class ScrollAction(gesture_action.GestureAction):
       if direction not in ['down', 'up', 'left', 'right']:
         raise page_action.PageActionNotSupported(
             'Invalid scroll direction: %s' % direction)
+    if hasattr(self, 'speed'):
+      speed = self.speed
     if hasattr(self, 'scroll_requires_touch') and self.scroll_requires_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
     if hasattr(self, 'scrollable_element_function'):
@@ -70,11 +73,13 @@ class ScrollAction(gesture_action.GestureAction):
                left_start_percentage: %s,
                top_start_percentage: %s,
                direction: '%s',
+               speed: %s,
                gesture_source_type: %s })
              });""" % (self.scrollable_element_function,
                        left_start_percentage,
                        top_start_percentage,
                        direction,
+                       speed,
                        gesture_source_type))
     else:
       tab.ExecuteJavaScript("""
@@ -83,10 +88,12 @@ class ScrollAction(gesture_action.GestureAction):
             left_start_percentage: %s,
             top_start_percentage: %s,
             direction: '%s',
+            speed: %s,
             gesture_source_type: %s });"""
         % (left_start_percentage,
            top_start_percentage,
            direction,
+           speed,
            gesture_source_type))
 
     tab.WaitForJavaScriptExpression('window.__scrollActionDone', 60)

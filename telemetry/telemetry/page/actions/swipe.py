@@ -36,6 +36,7 @@ class SwipeAction(gesture_action.GestureAction):
     top_start_percentage = 0.5
     direction = 'left'
     distance = 100
+    speed = 800
     if hasattr(self, 'left_start_percentage'):
       left_start_percentage = self.left_start_percentage
     if hasattr(self, 'top_start_percentage'):
@@ -47,6 +48,8 @@ class SwipeAction(gesture_action.GestureAction):
             'Invalid swipe direction: %s' % direction)
     if hasattr(self, 'distance'):
       distance = self.distance
+    if hasattr(self, 'speed'):
+      speed = self.speed
     if hasattr(self, 'element_function'):
       tab.ExecuteJavaScript("""
           (%s)(function(element) { window.__swipeAction.start(
@@ -54,12 +57,14 @@ class SwipeAction(gesture_action.GestureAction):
                left_start_percentage: %s,
                top_start_percentage: %s,
                direction: '%s',
-               distance: %s })
+               distance: %s,
+               speed: %s })
              });""" % (self.element_function,
                        left_start_percentage,
                        top_start_percentage,
                        direction,
-                       distance))
+                       distance,
+                       speed))
     else:
       tab.ExecuteJavaScript("""
           window.__swipeAction.start(
@@ -67,11 +72,13 @@ class SwipeAction(gesture_action.GestureAction):
             left_start_percentage: %s,
             top_start_percentage: %s,
             direction: '%s',
-            distance: %s });"""
+            distance: %s,
+            speed: %s });"""
         % (left_start_percentage,
            top_start_percentage,
            direction,
-           distance))
+           distance,
+           speed))
 
     tab.WaitForJavaScriptExpression('window.__swipeActionDone', 60)
 
