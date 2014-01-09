@@ -30,7 +30,7 @@ class GestureAction(page_action.PageAction):
   def RunGesture(self, page, tab, previous_action):
     raise NotImplementedError()
 
-  def CustomizeBrowserOptions(self, options):
+  def CustomizeBrowserOptionsForPageSet(self, options):
     options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
 
   def GetActiveRangeOnTimeline(self, timeline):

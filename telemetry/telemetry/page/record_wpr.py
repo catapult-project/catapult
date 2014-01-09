@@ -38,10 +38,11 @@ class RecordPage(page_test.PageTest):
   def CanRunForPage(self, page):
     return page.url.startswith('http')
 
-  def CustomizeBrowserOptionsForPage(self, page, options):
-    for compound_action in self._CompoundActionsForPage(page, options):
-      for action in compound_action:
-        action.CustomizeBrowserOptions(options)
+  def CustomizeBrowserOptionsForPageSet(self, pset, options):
+    for page in pset:
+      for compound_action in self._CompoundActionsForPage(page, options):
+        for action in compound_action:
+          action.CustomizeBrowserOptionsForPageSet(options)
 
   def WillNavigateToPage(self, _, tab):
     """Override to ensure all resources are fetched from network."""

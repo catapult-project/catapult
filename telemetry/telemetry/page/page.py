@@ -57,7 +57,7 @@ class Page(object):
   @property
   def is_local(self):
     """Returns True iff this URL is local. This includes chrome:// URLs."""
-    return self._scheme == 'file' or self._scheme == 'chrome'
+    return self._scheme in ['file', 'chrome', 'about']
 
   @property
   def file_path(self):

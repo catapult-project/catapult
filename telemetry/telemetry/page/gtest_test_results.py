@@ -63,6 +63,8 @@ class GTestTestResults(page_test_results.PageTestResults):
     super(GTestTestResults, self).addSkip(test, reason)
     test_name = GTestTestResults._formatTestname(test)
     logging.warning('===== SKIPPING TEST %s: %s =====', test_name, reason)
+    if self._timestamp == None:
+      self._timestamp = time.time()
     print >> self._output_stream, '[       OK ]', test_name, (
         '(%0.f ms)' % self._GetMs())
     sys.stdout.flush()

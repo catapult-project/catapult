@@ -24,9 +24,25 @@ class PageAction(object):
     self._timeline_marker_base_name = None
     self._timeline_marker_id = None
 
-  def CustomizeBrowserOptions(self, options):
+  def CustomizeBrowserOptionsForPageSet(self, options):
     """Override to add action-specific options to the BrowserOptions
-    object."""
+    object. These options will be set for the whole page set.
+
+    If the browser is not being restarted for every page in the page set then
+    all browser options required for the action must be set here. This, however,
+    requires that they do not conflict with options require by other actions
+    used up by the page set.
+    """
+    pass
+
+  def CustomizeBrowserOptionsForSinglePage(self, options):
+    """Override to add action-specific options to the BrowserOptions
+    object. These options will be set for just the page calling the action
+
+    This will only take effect if the browser is restarted for the page calling
+    the action, so should only be used in tests that restart the browser for
+    each page.
+    """
     pass
 
   def WillRunAction(self, page, tab):

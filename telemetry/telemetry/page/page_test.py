@@ -111,9 +111,25 @@ class PageTest(object):
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
 
-  def NeedsBrowserRestartAfterEachRun(self, browser):  # pylint: disable=W0613
-    """Override to specify browser restart after each run."""
+  def RestartBrowserBeforeEachPage(self):
+    """ Should the browser be restarted for the page?
+
+    This returns true if the test needs to unconditionally restart the
+    browser for each page. It may be called before the browser is started.
+    """
     return self._needs_browser_restart_after_each_run
+
+  def StopBrowserAfterPage(self, browser, page):  # pylint: disable=W0613
+    """Should the browser be stopped after the page is run?
+
+    This is called after a page is run to decide whether the browser needs to
+    be stopped to clean up its state. If it is stopped, then it will be
+    restarted to run the next page.
+
+    A test that overrides this can look at both the page and the browser to
+    decide whether it needs to stop the browser.
+    """
+    return False
 
   def AddCommandLineOptions(self, parser):
     """Override to expose command-line options for this test.
@@ -127,14 +143,32 @@ class PageTest(object):
     """Override to add test-specific options to the BrowserOptions object"""
     pass
 
-  def CustomizeBrowserOptionsForPage(self, page, options):
-    """Add options specific to the test and the given page."""
-    if not self.CanRunForPage(page):
-      return
+  def CustomizeBrowserOptionsForPageSet(self, page_set, options):
+    """Set options required for this page set.
+
+    These options will be used every time the browser is started while running
+    this page set. They may, however, be further modified by
+    CustomizeBrowserOptionsForSinglePage or by the profiler.
+    """
+    for page in page_set:
+      if not self.CanRunForPage(page):
+        return
+      interactive = options and options.interactive
+      for action in GetCompoundActionFromPage(
+          page, self._action_name_to_run, interactive):
+        action.CustomizeBrowserOptionsForPageSet(options)
+
+  def CustomizeBrowserOptionsForSinglePage(self, page, options):
+    """Set options specific to the test and the given page.
+
+    This will be called with the current page when the browser is (re)started.
+    Changing options at this point only makes sense if the browser is being
+    restarted for each page.
+    """
     interactive = options and options.interactive
     for action in GetCompoundActionFromPage(
         page, self._action_name_to_run, interactive):
-      action.CustomizeBrowserOptions(options)
+      action.CustomizeBrowserOptionsForSinglePage(options)
 
   def WillStartBrowser(self, browser):
     """Override to manipulate the browser environment before it launches."""

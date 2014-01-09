@@ -37,11 +37,13 @@ class _RunState(object):
     self.profiler_dir = None
     self.repeat_state = None
 
-  def StartBrowser(self, test, page_set, page, possible_browser,
+  def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
                    credentials_path, archive_path):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
+      test.CustomizeBrowserOptionsForSinglePage(page,
+                                                possible_browser.finder_options)
       self.browser = possible_browser.Create()
       self.browser.credentials.credentials_path = credentials_path
 
@@ -211,7 +213,11 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
   tries = 3
   while tries:
     try:
-      state.StartBrowser(test, page_set, page, possible_browser,
+      if test.RestartBrowserBeforeEachPage():
+        state.StopBrowser()
+        # If we are restarting the browser for each page customize the per page
+        # options for just the current page before starting the browser.
+      state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
                          credentials_path, page.archive_path)
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
@@ -237,7 +243,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if finder_options.profiler:
         state.StopProfiling()
 
-      if test.NeedsBrowserRestartAfterEachRun(state.browser):
+      if (test.StopBrowserAfterPage(state.browser, page)):
         state.StopBrowser()
 
       break
@@ -298,8 +304,8 @@ def Run(test, page_set, expectations, finder_options):
   if page_set.user_agent_type:
     browser_options.browser_user_agent_type = page_set.user_agent_type
 
-  for page in pages:
-    test.CustomizeBrowserOptionsForPage(page, possible_browser.finder_options)
+  test.CustomizeBrowserOptionsForPageSet(page_set,
+                                         possible_browser.finder_options)
   if finder_options.profiler:
     profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
     profiler_class.CustomizeBrowserOptions(possible_browser.browser_type,
