@@ -5,9 +5,9 @@
 'use strict';
 
 base.require('about_tracing.mock_request_handler');
-base.require('about_tracing.begin_recording');
+base.require('about_tracing.tracing_ui_client');
 
-base.unittest.testSuite('about_tracing.begin_recording', function() {
+base.unittest.testSuite('about_tracing.tracing_ui_client', function() {
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
@@ -41,7 +41,7 @@ base.unittest.testSuite('about_tracing.begin_recording', function() {
       });
 
       var recordingPromise = about_tracing.beginRecording(
-          mock.beginRequest.bind(mock));
+          mock.tracingRequest.bind(mock));
 
       return recordingPromise.then(
           function(data) {
@@ -53,6 +53,54 @@ base.unittest.testSuite('about_tracing.begin_recording', function() {
           function(error) {
             r.reject('This should never be reached');
           });
+    });
+  });
+
+  test('monitoring', function() {
+    return new Promise(function(r) {
+      var mock = new about_tracing.MockRequestHandler();
+      var tracingRequest = mock.tracingRequest.bind(mock);
+
+      mock.expectRequest('GET', '/json/begin_monitoring', function(data, path) {
+        var optionsB64 = path.match(/\/json\/begin_monitoring\?(.+)/)[1];
+        var monitoringOptions = JSON.parse(atob(optionsB64));
+        assertTrue(typeof monitoringOptions.categoryFilter === 'string');
+        assertTrue(typeof monitoringOptions.useSystemTracing === 'boolean');
+        assertTrue(typeof monitoringOptions.useSampling === 'boolean');
+        assertTrue(typeof monitoringOptions.useContinuousTracing === 'boolean');
+        setTimeout(function() {
+          var capturePromise = about_tracing.captureMonitoring(tracingRequest);
+          capturePromise.then(
+          function(data) {
+            var testDataString = JSON.stringify(testData);
+            assertEquals(testDataString, data);
+          },
+          function(error) {
+            r.reject();
+          });
+        }, 10);
+        return '';
+      });
+
+      mock.expectRequest('GET', '/json/capture_monitoring', function(data) {
+        setTimeout(function() {
+          var endPromise = about_tracing.endMonitoring(tracingRequest);
+          endPromise.then(
+          function(data) {
+            mock.assertAllRequestsHandled();
+            r.resolve();
+          },
+          function(error) {
+            r.reject();
+          });
+        }, 10);
+        return JSON.stringify(testData);
+      });
+
+      mock.expectRequest('GET', '/json/end_monitoring', function(data) {
+      });
+
+      about_tracing.beginMonitoring(tracingRequest);
     });
   });
 });

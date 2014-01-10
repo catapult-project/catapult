@@ -7,7 +7,7 @@
 base.require('tracing.record_selection_dialog');
 
 base.exportTo('about_tracing', function() {
-  function beginRequest(method, path, data) {
+  function tracingRequest(method, path, data) {
     if (data === undefined)
       data = null;
     return new Promise(function(resolver) {
@@ -30,7 +30,76 @@ base.exportTo('about_tracing', function() {
     });
   }
 
-  function beginRecording(beginRequest) {
+  function beginMonitoring(tracingRequest) {
+    var finalPromiseResolver;
+    var finalPromise = new Promise(function(resolver) {
+      finalPromiseResolver = resolver;
+    });
+
+    // TODO(haraken): Implement a configure dialog to set these options.
+    var monitoringOptions = {
+      categoryFilter: "*",
+      useSystemTracing: false,
+      useContinuousTracing: false,
+      useSampling: true,
+    };
+
+    var monitoringOptionsB64 = btoa(JSON.stringify(monitoringOptions));
+    var beginMonitoringPromise = tracingRequest(
+      'GET', '/json/begin_monitoring?' + monitoringOptionsB64);
+    beginMonitoringPromise.then(
+      function () {
+        finalPromiseResolver.resolve();
+      },
+      function () {
+        finalPromiseResolver.reject(err);
+      });
+
+    return finalPromise;
+  }
+
+  function endMonitoring(tracingRequest) {
+    var finalPromiseResolver;
+    var finalPromise = new Promise(function(resolver) {
+      finalPromiseResolver = resolver;
+    });
+
+    var endMonitoringPromise = tracingRequest('GET', '/json/end_monitoring');
+    endMonitoringPromise.then(
+      function () {
+        finalPromiseResolver.resolve();
+      },
+      function () {
+        finalPromiseResolver.reject(err);
+      });
+
+    return finalPromise;
+  }
+
+  function captureMonitoring(tracingRequest) {
+    var finalPromiseResolver;
+    var finalPromise = new Promise(function(resolver) {
+      finalPromiseResolver = resolver;
+    });
+
+    var captureMonitoringPromise =
+      tracingRequest('GET', '/json/capture_monitoring');
+    captureMonitoringPromise.then(
+      captureMonitoringResolved,
+      captureMonitoringRejected);
+
+    function captureMonitoringResolved(tracedData) {
+      finalPromiseResolver.resolve(tracedData);
+    }
+
+    function captureMonitoringRejected(err) {
+      finalPromiseResolver.reject(err);
+    }
+
+    return finalPromise;
+  }
+
+  function beginRecording(tracingRequest) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
@@ -43,7 +112,7 @@ base.exportTo('about_tracing', function() {
     }
 
     // Step 1: Get categories.
-    beginRequest('GET', '/json/categories').then(
+    tracingRequest('GET', '/json/categories').then(
         showTracingDialog,
         beginRecordingError);
 
@@ -94,8 +163,8 @@ base.exportTo('about_tracing', function() {
 
 
       var recordingOptionsB64 = btoa(JSON.stringify(recordingOptions));
-      var requestPromise = beginRequest('GET', '/json/begin_recording?' +
-                                        recordingOptionsB64);
+      var requestPromise = tracingRequest('GET', '/json/begin_recording?' +
+                                          recordingOptionsB64);
       requestPromise.then(
           function() {
             progressDlg.visible = true;
@@ -105,7 +174,7 @@ base.exportTo('about_tracing', function() {
           recordFailed);
 
       stopButton.addEventListener('click', function() {
-        var recordingPromise = endRecording(beginRequest);
+        var recordingPromise = endRecording(tracingRequest);
         recordingPromise.then(
             recordFinished,
             recordFailed);
@@ -130,7 +199,7 @@ base.exportTo('about_tracing', function() {
       if (!bufferPercentFullDiv)
         return;
 
-      beginRequest('GET', '/json/get_buffer_percent_full').then(
+      tracingRequest('GET', '/json/get_buffer_percent_full').then(
           updateBufferPercentFull);
     }
 
@@ -150,8 +219,8 @@ base.exportTo('about_tracing', function() {
     return finalPromise;
   };
 
-  function endRecording(beginRequest) {
-    return beginRequest('GET', '/json/end_recording');
+  function endRecording(tracingRequest) {
+    return tracingRequest('GET', '/json/end_recording');
   }
 
   function UserCancelledError() {
@@ -162,12 +231,15 @@ base.exportTo('about_tracing', function() {
   };
 
   window.onbeforeunload = function(e) {
-    endRecording(beginRequest);
+    endRecording(tracingRequest);
   }
 
   return {
-    beginRequest: beginRequest,
+    tracingRequest: tracingRequest,
     beginRecording: beginRecording,
+    beginMonitoring: beginMonitoring,
+    endMonitoring: endMonitoring,
+    captureMonitoring: captureMonitoring,
     UserCancelledError: UserCancelledError
   };
 });

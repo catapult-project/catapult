@@ -10,7 +10,7 @@
  */
 base.requireTemplate('about_tracing.profiling_view');
 base.requireStylesheet('ui.trace_viewer');
-base.require('about_tracing.begin_recording');
+base.require('about_tracing.tracing_ui_client');
 base.require('base.promise');
 base.require('base.key_event_manager');
 base.require('tracing.timeline_view');
@@ -79,9 +79,14 @@ base.exportTo('about_tracing', function() {
 
       this.initDragAndDrop_();
 
-      this.beginRequestImpl_ = about_tracing.beginRequest;
+      this.tracingRequestImpl_ = about_tracing.tracingRequest;
       this.isRecording_ = false;
+      this.isMonitoring_ = false;
       this.activeTrace_ = undefined;
+
+      window.onMonitoringStateChanged = function (is_monitoring) {
+        this.onMonitoringStateChanged_(is_monitoring);
+      }.bind(this);
     },
 
     // Detach all document event listeners. Without this the tests can get
@@ -94,27 +99,109 @@ base.exportTo('about_tracing', function() {
       return this.isRecording_;
     },
 
-    set beginRequestImpl(beginRequestImpl) {
-      this.beginRequestImpl_ = beginRequestImpl;
+    get isMonitoring() {
+      return this.isMonitoring_;
+    },
+
+    set tracingRequestImpl(tracingRequestImpl) {
+      this.tracingRequestImpl_ = tracingRequestImpl;
     },
 
     beginRecording: function() {
       if (this.isRecording_)
         throw new Error('Already recording');
+      if (this.isMonitoring_)
+        throw new Error('Already monitoring');
       this.isRecording_ = true;
-      var resultPromise = about_tracing.beginRecording(this.beginRequestImpl_);
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      buttons.querySelector('#monitor-checkbox').disabled = true;
+      buttons.querySelector('#monitor-checkbox').checked = false;
+      var resultPromise = about_tracing.beginRecording(this.tracingRequestImpl_);
       resultPromise.then(
           function(data) {
             this.isRecording_ = false;
-            this.setActiveTrace('trace.json', data);
+            buttons.querySelector('#monitor-checkbox').disabled = false;
+            this.setActiveTrace('trace.json', data, false);
           }.bind(this),
           function(err) {
             this.isRecording_ = false;
+            buttons.querySelector('#monitor-checkbox').disabled = false;
             if (err instanceof about_tracing.UserCancelledError)
               return;
             ui.Overlay.showError('Error while recording', err);
           }.bind(this));
       return resultPromise;
+    },
+
+    checkMonitoringCheckbox_: function(enabled) {
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      buttons.querySelector('#record-button').disabled = enabled;
+      buttons.querySelector('#capture-button').disabled = !enabled;
+      buttons.querySelector('#monitor-checkbox').checked = enabled;
+    },
+
+    beginMonitoring: function() {
+      if (this.isRecording_)
+        throw new Error('Already recording');
+      if (this.isMonitoring_)
+        throw new Error('Already monitoring');
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      this.checkMonitoringCheckbox_(true);
+      var resultPromise =
+        about_tracing.beginMonitoring(this.tracingRequestImpl_);
+      resultPromise.then(
+          function(data) {
+          }.bind(this),
+          function(err) {
+            this.checkMonitoringCheckbox_(false);
+            if (err instanceof about_tracing.UserCancelledError)
+              return;
+            ui.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    endMonitoring: function() {
+      if (this.isRecording_)
+        throw new Error('Already recording');
+      if (!this.isMonitoring_)
+        throw new Error('Monitoring is disabled');
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      this.checkMonitoringCheckbox_(false);
+      var resultPromise =
+        about_tracing.endMonitoring(this.tracingRequestImpl_);
+      resultPromise.then(
+          function(data) {
+          }.bind(this),
+          function(err) {
+            if (err instanceof about_tracing.UserCancelledError)
+              return;
+            ui.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    captureMonitoring: function() {
+      if (!this.isMonitoring_)
+        throw new Error('Monitoring is disabled');
+      var resultPromise =
+        about_tracing.captureMonitoring(this.tracingRequestImpl_);
+      resultPromise.then(
+          function(data) {
+            this.setActiveTrace('trace.json', data, true);
+          }.bind(this),
+          function(err) {
+            if (err instanceof about_tracing.UserCancelledError)
+              return;
+            ui.Overlay.showError('Error while monitoring', err);
+          }.bind(this));
+      return resultPromise;
+    },
+
+    onMonitoringStateChanged_: function(is_monitoring) {
+      this.isMonitoring_ = is_monitoring;
+      var buttons = this.querySelector('x-timeline-view-buttons');
+      buttons.querySelector('#monitor-checkbox').checked = is_monitoring;
     },
 
     onKeypress_: function(event) {
@@ -169,6 +256,20 @@ base.exportTo('about_tracing', function() {
           'click', function() {
             this.beginRecording();
           }.bind(this));
+
+      buttons.querySelector('#monitor-checkbox').addEventListener(
+          'click', function() {
+            if (buttons.querySelector('#monitor-checkbox').checked)
+              this.beginMonitoring();
+            else
+              this.endMonitoring();
+          }.bind(this));
+
+      buttons.querySelector('#capture-button').addEventListener(
+          'click', function() {
+            this.captureMonitoring();
+          }.bind(this));
+      buttons.querySelector('#capture-button').disabled = true;
 
       buttons.querySelector('#load-button').addEventListener(
           'click', this.onLoadClicked_.bind(this));

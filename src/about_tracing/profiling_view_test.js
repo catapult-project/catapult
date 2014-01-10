@@ -18,7 +18,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
   var ProfilingView = about_tracing.ProfilingView;
 
-  test('instantiate', function() {
+  test('recording', function() {
 
     var mock = new about_tracing.MockRequestHandler();
     mock.allowLooping = true;
@@ -33,7 +33,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     });
 
     var view = new ProfilingView();
-    view.beginRequestImpl = mock.beginRequest.bind(mock);
+    view.tracingRequestImpl = mock.tracingRequest.bind(mock);
     view.style.height = '400px';
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
@@ -54,4 +54,51 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     });
   });
 
+  test('monitoring', function() {
+
+    var mock = new about_tracing.MockRequestHandler();
+    mock.allowLooping = true;
+    mock.expectRequest('GET', '/json/begin_monitoring', function(data) {
+      return '';
+    });
+    mock.expectRequest('GET', '/json/capture_monitoring', function(data) {
+      return JSON.stringify(testData);
+    });
+    mock.expectRequest('GET', '/json/end_monitoring', function(data) {
+      return '';
+    });
+
+    var view = new ProfilingView();
+    view.tracingRequestImpl = mock.tracingRequest.bind(mock);
+    view.style.height = '400px';
+    view.style.border = '1px solid black';
+    this.addHTMLOutput(view);
+
+    return new Promise(function(resolver) {
+      var buttons = view.querySelector('x-timeline-view-buttons');
+      assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
+
+      var monitoringPromise = view.beginMonitoring();
+      // Since we don't fall back to TracingController when testing,
+      // we cannot rely on TracingController to invoke a callback to change
+      // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
+      view.isMonitoring_ = true;
+
+      function captureMonitoring() {
+        buttons.querySelector('#capture-button').click();
+        setTimeout(endMonitoring, 60);
+      }
+      function endMonitoring() {
+        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+        buttons.querySelector('#monitor-checkbox').click();
+        assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
+      }
+      assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+      setTimeout(captureMonitoring, 60);
+
+      monitoringPromise.then(
+          resolver.resolve.bind(resolver),
+          resolver.reject.bind(resolver));
+    });
+  });
 });
