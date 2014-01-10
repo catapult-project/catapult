@@ -17,6 +17,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
   var AnalysisView = tracing.analysis.AnalysisView;
   var StubAnalysisResults = tracing.analysis.StubAnalysisResults;
   var newSliceNamed = tracing.test_utils.newSliceNamed;
+  var newSampleNamed = tracing.test_utils.newSampleNamed;
   var newSliceCategory = tracing.test_utils.newSliceCategory;
 
   var createSelectionWithSingleSlice = function(withCategory) {
@@ -69,6 +70,27 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     return selection;
   };
 
+  var createSelectionWithSamples = function() {
+    var model = new Model();
+    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    t53.sliceGroup.pushSlice(newSampleNamed('BBB', 0));
+    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.02));
+    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.04));
+    t53.sliceGroup.pushSlice(newSampleNamed('Sleeping', 0.06));
+    t53.sliceGroup.pushSlice(newSampleNamed('BBB', 0.08));
+    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.10));
+    t53.sliceGroup.pushSlice(newSampleNamed('CCC', 0.12));
+    t53.sliceGroup.pushSlice(newSampleNamed('Sleeping', 0.14));
+
+    var t53track = {};
+    t53track.thread = t53;
+
+    var selection = new Selection();
+    for (var i = 0; i < 8; i++)
+      selection.push(t53.sliceGroup.slices[i]);
+    return selection;
+  };
+
   test('instantiate_withSingleSlice', function() {
     var selection = createSelectionWithSingleSlice();
 
@@ -95,6 +117,14 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
 
   test('instantiate_withMultipleSlicesSameTitle', function() {
     var selection = createSelectionWithTwoSlicesSameTitle();
+
+    var analysisEl = new AnalysisView();
+    analysisEl.selection = selection;
+    this.addHTMLOutput(analysisEl);
+  });
+
+  test('instantiate_withMultipleSamples', function() {
+    var selection = createSelectionWithSamples();
 
     var analysisEl = new AnalysisView();
     analysisEl.selection = selection;
@@ -180,12 +210,13 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     t = results.tables[0];
     assertObjectEquals(
         {label: 'c',
-          duration: 0.1,
-          threadDuration: null,
-          selfTime: 0.1,
-          occurences: 2,
-          details: {min: 0.04, max: 0.06, avg: 0.05,
-            avg_stddev: 0.014142135623730947}
+         duration: 0.1,
+         threadDuration: null,
+         selfTime: 0.1,
+         occurences: 2,
+         percentage: null,
+         details: {min: 0.04, max: 0.06, avg: 0.05,
+                   avg_stddev: 0.014142135623730947}
         },
         t.rows[0]);
     assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
@@ -210,6 +241,62 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
           args: {}
         },
         t.rows[1]);
+  });
+
+  test('analyzeSelectionWithSamples', function() {
+    var selection = createSelectionWithSamples();
+
+    var results = new StubAnalysisResults();
+    tracing.analysis.analyzeSelection(results, selection);
+    console.log(results.tables);
+    assertEquals(1, results.tables.length);
+
+    assertEquals('Sample Events:', results.headers[0].label);
+
+    var table = results.tables[0];
+    assertObjectEquals(
+      {label: 'AAA',
+       duration: null,
+       threadDuration: null,
+       selfTime: null,
+       occurences: 3,
+       percentage: "50%",
+       details: null
+      },
+      table.rows[0]);
+
+    assertObjectEquals(
+      {label: 'BBB',
+       duration: null,
+       threadDuration: null,
+       selfTime: null,
+       occurences: 2,
+       percentage: "33.333%",
+       details: null
+      },
+      table.rows[1]);
+
+    assertObjectEquals(
+      {label: 'CCC',
+       duration: null,
+       threadDuration: null,
+       selfTime: null,
+       occurences: 1,
+       percentage: "16.667%",
+       details: null
+      },
+      table.rows[2]);
+
+    assertObjectEquals(
+      {label: 'Sleeping',
+       duration: null,
+       threadDuration: null,
+       selfTime: null,
+       occurences: 2,
+       percentage: "-",
+       details: null
+      },
+      table.rows[3]);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {

@@ -54,6 +54,11 @@ base.exportTo('tracing.test_utils', function() {
     return s;
   }
 
+  function newSampleNamed(name, start) {
+    var s = new tracing.trace_model.Sample('', name, 0, start, {});
+    return s;
+  }
+
   function newSliceCategory(category, name, start, duration) {
     var s = new tracing.trace_model.Slice(
         category, name, 0, start, {}, duration);
@@ -77,6 +82,7 @@ base.exportTo('tracing.test_utils', function() {
     newCounterCategory: newCounterCategory,
     newSlice: newSlice,
     newSliceNamed: newSliceNamed,
+    newSampleNamed: newSampleNamed,
     newSliceCategory: newSliceCategory,
     findSliceNamed: findSliceNamed
   };

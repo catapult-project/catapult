@@ -66,6 +66,7 @@ base.exportTo('tracing.analysis', function() {
           null,
           null,
           samples.length,
+          null,
           stats[i]);
     }
   }

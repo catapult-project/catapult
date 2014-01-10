@@ -61,6 +61,15 @@ base.exportTo('tracing.tracks', function() {
         var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
         samplesTrack.group = this.thread_;
         samplesTrack.slices = this.thread_.samples;
+        samplesTrack.heading = this.thread_.userFriendlyName;
+        samplesTrack.tooltip = this.thread_.userFriendlyDetails;
+        samplesTrack.selectionGenerator = function () {
+          var selection = new tracing.Selection();
+          for (var i = 0; i < samplesTrack.slices.length; i++) {
+            selection.push(samplesTrack.slices[i]);
+          }
+          return selection;
+        };
         this.appendChild(samplesTrack);
       }
 

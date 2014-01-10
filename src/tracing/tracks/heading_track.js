@@ -28,19 +28,47 @@ base.exportTo('tracing.tracks', function() {
 
       this.headingDiv_ = document.createElement('heading');
       this.headingDiv_.style.width = tracing.constants.HEADING_WIDTH + 'px';
-      this.appendChild(this.headingDiv_);
+      this.heading_ = '';
+      this.selectionGenerator_ = undefined;
+      this.updateContents_();
     },
 
     get heading() {
-      return this.headingDiv_.textContent;
+      return this.heading_;
     },
 
     set heading(text) {
-      this.headingDiv_.textContent = text;
+      this.heading_ = text;
+      this.updateContents_();
     },
 
     set tooltip(text) {
       this.headingDiv_.title = text;
+    },
+
+    set selectionGenerator(generator) {
+      this.selectionGenerator_ = generator;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      /**
+       * If this is a heading track of a sampling thread, we add a link to
+       * the heading text ("Sampling Thread"). We associate a selection
+       * generator with the link so that sampling profiling results are
+       * displayed in the bottom frame when you click the link.
+       */
+      this.headingDiv_.innerHTML = '';
+      if (this.selectionGenerator_) {
+        this.headingLink_ = document.createElement('a');
+        tracing.analysis.AnalysisLink.decorate(this.headingLink_);
+        this.headingLink_.selectionGenerator = this.selectionGenerator_;
+        this.headingDiv_.appendChild(this.headingLink_);
+        this.headingLink_.appendChild(document.createTextNode(this.heading_));
+      } else {
+        this.headingDiv_.appendChild(document.createTextNode(this.heading_));
+      }
+      this.appendChild(this.headingDiv_);
     },
 
     draw: function(type, viewLWorld, viewRWorld) {

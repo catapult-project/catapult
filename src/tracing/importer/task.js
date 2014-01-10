@@ -109,6 +109,7 @@ base.exportTo('tracing.importer', function() {
           curTask = curTask.run();
         } catch (e) {
           resolver.reject(e);
+          console.log(e);
           return;
         }
 

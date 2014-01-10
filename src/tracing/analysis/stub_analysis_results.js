@@ -81,14 +81,16 @@ base.exportTo('tracing.analysis', function() {
     },
 
     appendDataRow: function(table, label, duration, threadDuration, selfTime,
-                            occurences, details, selectionGenerator) {
+                            occurences, percentage, details,
+                            selectionGenerator) {
       var row = {label: label,
-                  duration: duration,
-                  threadDuration: threadDuration,
-                  selfTime: selfTime,
-                  occurences: occurences,
-                  details: details,
-                  selectionGenerator: selectionGenerator};
+                 duration: duration,
+                 threadDuration: threadDuration,
+                 selfTime: selfTime,
+                 occurences: occurences,
+                 percentage: percentage,
+                 details: details,
+                 selectionGenerator: selectionGenerator};
       table.rows.push(row);
       return row;
     }

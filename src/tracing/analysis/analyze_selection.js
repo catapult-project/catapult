@@ -48,8 +48,8 @@ base.exportTo('tracing.analysis', function() {
       tracing.analysis.analyzeSingleSlice(results, sampleEvents[0],
                                           'Sample Event');
     } else if (sampleEvents.length > 1) {
-      tracing.analysis.analyzeMultipleSlices(results, sampleEvents,
-                                             'Sample Events');
+      tracing.analysis.analyzeMultipleSampleEvents(results, sampleEvents,
+                                                   'Sample Events');
     }
 
     if (counterSampleEvents.length != 0)

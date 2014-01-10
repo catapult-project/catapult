@@ -86,5 +86,11 @@ base.unittest.testSuite('tracing.tracks.thread_track', function() {
     assertEquals(1, t.tracks_.length);
     assertTrue(t.tracks_[0] instanceof tracing.tracks.SliceTrack);
     assertTrue(4, t.tracks_[0].slices.length);
+    var slices = t.tracks_[0].slices;
+    assertTrue(4, slices.length);
+    assertTrue(slices[0] instanceof tracing.trace_model.Sample);
+    assertTrue(slices[1] instanceof tracing.trace_model.Sample);
+    assertTrue(slices[2] instanceof tracing.trace_model.Sample);
+    assertTrue(slices[3] instanceof tracing.trace_model.Sample);
   });
 });

@@ -30,7 +30,6 @@ base.exportTo('tracing.analysis', function() {
     __proto__: HTMLAnchorElement.prototype,
     decorate: function() {
       this.classList.add('analysis-link');
-      this.selectionGenerator;
       this.addEventListener('click', this.onClicked_.bind(this));
     },
     onClicked_: function() {

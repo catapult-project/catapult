@@ -62,10 +62,9 @@ base.exportTo('tracing', function() {
       this.appendChild(this.dragEl_);
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
-      this.analysisEl_.addEventListener(
-          'requestSelectionChange',
-          this.onRequestSelectionChange_.bind(this));
       this.appendChild(this.analysisEl_);
+      this.addEventListener('requestSelectionChange',
+                            this.onRequestSelectionChange_.bind(this));
 
       // Bookkeeping.
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
