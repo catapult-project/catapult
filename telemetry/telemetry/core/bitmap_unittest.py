@@ -70,6 +70,8 @@ class BitmapTest(unittest.TestCase):
   def testIsEqual(self):
     bmp = bitmap.Bitmap.FromBase64Png(test_png)
     file_bmp = bitmap.Bitmap.FromPngFile(test_png_path)
+    self.assertTrue(bmp.IsEqual(file_bmp, tolerance=1))
+    # Zero tolerance IsEqual has a different implementation.
     self.assertTrue(bmp.IsEqual(file_bmp))
 
   def testDiff(self):
@@ -102,15 +104,43 @@ class BitmapTest(unittest.TestCase):
     diff_bmp.GetPixelColor(2, 1).AssertIsRGB(255, 255, 255)
     diff_bmp.GetPixelColor(2, 2).AssertIsRGB(255, 255, 255)
 
-  def testCrop(self):
+  def testGetBoundingBox(self):
     pixels = [0,0,0, 0,0,0, 0,0,0, 0,0,0,
               0,0,0, 1,0,0, 1,0,0, 0,0,0,
               0,0,0, 0,0,0, 0,0,0, 0,0,0]
     bmp = bitmap.Bitmap(3, 4, 3, pixels)
-    bmp.Crop(1, 1, 2, 1)
+    box, count = bmp.GetBoundingBox(bitmap.RgbaColor(1, 0, 0))
+    self.assertEquals(box, (1, 1, 2, 1))
+    self.assertEquals(count, 2)
+
+    box, count = bmp.GetBoundingBox(bitmap.RgbaColor(0, 1, 0))
+    self.assertEquals(box, None)
+    self.assertEquals(count, 0)
+
+  def testCrop(self):
+    pixels = [0,0,0, 1,0,0, 2,0,0, 3,0,0,
+              0,1,0, 1,1,0, 2,1,0, 3,1,0,
+              0,2,0, 1,2,0, 2,2,0, 3,2,0]
+    bmp = bitmap.Bitmap(3, 4, 3, pixels)
+    bmp.Crop(1, 2, 2, 1)
 
     self.assertEquals(bmp.width, 2)
     self.assertEquals(bmp.height, 1)
-    bmp.GetPixelColor(0, 0).AssertIsRGB(1, 0, 0)
-    bmp.GetPixelColor(1, 0).AssertIsRGB(1, 0, 0)
-    self.assertEquals(bmp.pixels, bytearray([1,0,0, 1,0,0]))
+    bmp.GetPixelColor(0, 0).AssertIsRGB(1, 2, 0)
+    bmp.GetPixelColor(1, 0).AssertIsRGB(2, 2, 0)
+    self.assertEquals(bmp.pixels, bytearray([1,2,0, 2,2,0]))
+
+  def testHistogram(self):
+    pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
+              1,2,3, 8,7,6, 5,4,6, 1,2,3,
+              1,2,3, 8,7,6, 5,4,6, 1,2,3]
+    bmp = bitmap.Bitmap(3, 4, 3, pixels)
+    bmp.Crop(1, 1, 2, 2)
+
+    histogram = bmp.ColorHistogram()
+    self.assertEquals(sum(histogram), bmp.width * bmp.height * 3)
+    self.assertEquals(histogram[5], 2)
+    self.assertEquals(histogram[8], 2)
+    self.assertEquals(histogram[4 + 256], 2)
+    self.assertEquals(histogram[7 + 256], 2)
+    self.assertEquals(histogram[6 + 512], 4)
