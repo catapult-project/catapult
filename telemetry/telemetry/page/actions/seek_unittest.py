@@ -4,6 +4,7 @@
 
 from telemetry.core import util
 from telemetry.page.actions import seek
+from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 AUDIO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#audio_1", "seeked");'
@@ -18,6 +19,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self._browser.http_server.UrlOf('video_test.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
+  @DisabledTestOnCrOS
   def testSeekWithNoSelector(self):
     """Tests that with no selector Seek  action seeks first media element."""
     data = {'wait_for_seeked': True, 'seek_time': 1}
@@ -28,6 +30,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
+  @DisabledTestOnCrOS
   def testSeekWithVideoSelector(self):
     """Tests that Seek action seeks video element matching selector."""
     data = {'selector': '#video_1', 'wait_for_seeked': True, 'seek_time': 1}
@@ -41,6 +44,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
+  @DisabledTestOnCrOS
   def testSeekWithAllSelector(self):
     """Tests that Seek action seeks all video elements with selector='all'."""
     data = {'selector': 'all', 'wait_for_seeked': True, 'seek_time': 1}
@@ -55,6 +59,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
   # http://crbug.com/273887
+  @DisabledTestOnCrOS
   def testSeekWaitForSeekTimeout(self):
     """Tests that wait_for_seeked timeouts if video does not seek."""
     data = {'selector': '#video_1',

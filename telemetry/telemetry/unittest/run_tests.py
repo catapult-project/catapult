@@ -7,6 +7,7 @@ import unittest
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
+from telemetry.core.backends.chrome import cros_interface
 from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import options_for_unittests
 
@@ -72,6 +73,9 @@ def DiscoverAndRunTests(
       if hasattr(method, '_disabled_test'):
         if not run_disabled_tests:
           return False
+      if (hasattr(method, '_disabled_test_on_cros') and
+          cros_interface.IsRunningOnCrosDevice()):
+        return False
 
     return True
 

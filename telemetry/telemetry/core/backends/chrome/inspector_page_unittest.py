@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import util
+from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 
@@ -18,6 +19,7 @@ class InspectorPageTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
+  @DisabledTestOnCrOS
   def testCustomActionToNavigate(self):
     self._tab.Navigate(
       self._browser.http_server.UrlOf('page_with_link.html'))

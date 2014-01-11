@@ -10,3 +10,7 @@ def RequiresBrowserOfType(*types):
 def DisabledTest(func):
   func._disabled_test = True
   return func
+
+def DisabledTestOnCrOS(func):
+  func._disabled_test_on_cros = True
+  return func

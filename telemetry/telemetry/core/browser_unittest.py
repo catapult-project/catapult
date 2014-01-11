@@ -10,6 +10,7 @@ from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
 from telemetry.core import util
+from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import options_for_unittests
 
 class BrowserTest(unittest.TestCase):
@@ -69,6 +70,7 @@ class BrowserTest(unittest.TestCase):
     self.assertEquals(t.EvaluateJavaScript('navigator.userAgent'),
                       'telemetry')
 
+  @DisabledTestOnCrOS
   def testVersionDetection(self):
     b = self.CreateBrowser()
     v = b._browser_backend._inspector_protocol_version # pylint: disable=W0212
