@@ -13,6 +13,9 @@ class MiscWebContentsBackend(object):
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend
 
+  def OobeExists(self):
+    return bool(self._FindWebContentsInfo())
+
   def GetOobe(self):
     oobe_web_contents_info = self._FindWebContentsInfo()
     if oobe_web_contents_info:

@@ -235,7 +235,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Hardware id not set on device/VM. --skip-hwid-check not supported '
           'with chrome branches 1500 or earlier.')
 
-    util.WaitFor(lambda: self.oobe, 10)
+    util.WaitFor(self._OobeExists, 10)
 
     if self.browser_options.auto_login:
       if self._is_guest:
@@ -295,6 +295,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def oobe(self):
     return self.misc_web_contents_backend.GetOobe()
 
+  def _OobeExists(self):
+    return self.misc_web_contents_backend.OobeExists()
+
   def _SigninUIState(self):
     """Returns the signin ui state of the oobe. HIDDEN: 0, GAIA_SIGNIN: 1,
     ACCOUNT_PICKER: 2, WRONG_HWID_WARNING: 3, MANAGED_USER_CREATION_FLOW: 4.
@@ -340,7 +343,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     has been dismissed."""
     if self.chrome_branch_number <= 1547:
       self._HandleUserImageSelectionScreen()
-    return self._IsCryptohomeMounted() and not self.oobe
+    return self._IsCryptohomeMounted() and not self._OobeExists()
 
   def _StartupWindow(self):
     """Closes the startup window, which is an extension on official builds,
@@ -385,7 +388,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
-    assert self.oobe
+    assert self._OobeExists()
     self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
     self._WaitForGuestFsMounted()
@@ -394,15 +397,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Navigates through oobe login screen"""
     if self._use_oobe_login_for_testing:
       logging.info('Invoking Oobe.loginForTesting')
-      assert self.oobe
-      util.WaitFor(lambda: self.oobe.EvaluateJavaScript(
+      assert self._OobeExists()
+      oobe = self.oobe
+      util.WaitFor(lambda: oobe.EvaluateJavaScript(
           'typeof Oobe !== \'undefined\''), 10)
 
-      if self.oobe.EvaluateJavaScript(
+      if oobe.EvaluateJavaScript(
           'typeof Oobe.loginForTesting == \'undefined\''):
         raise exceptions.LoginException('Oobe.loginForTesting js api missing')
 
-      self.oobe.ExecuteJavaScript(
+      oobe.ExecuteJavaScript(
           'Oobe.loginForTesting(\'%s\', \'%s\');'
               % (self.browser_options.username, self.browser_options.password))
 
