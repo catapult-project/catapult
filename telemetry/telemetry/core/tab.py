@@ -108,7 +108,7 @@ class Tab(web_contents.WebContents):
         screen.style.left = '0';
         screen.style.width = '100%%';
         screen.style.height = '100%%';
-        screen.style.zindex = '2147483638';
+        screen.style.zIndex = '2147483638';
         document.body.appendChild(screen);
         requestAnimationFrame(function() {
           screen.has_painted = true;
@@ -139,7 +139,7 @@ class Tab(web_contents.WebContents):
     for timestamp, bmp in self.browser.platform.StopVideoCapture():
       if not content_box:
         content_box, pixel_count = bmp.GetBoundingBox(
-            bitmap.RgbaColor(*_CONTENT_FLASH_COLOR), tolerance=4)
+            bitmap.RgbaColor(*_CONTENT_FLASH_COLOR), tolerance=8)
 
         assert content_box, 'Failed to find tab contents in first video frame.'
 
@@ -148,7 +148,7 @@ class Tab(web_contents.WebContents):
         # awry with our bounding box calculation.
         assert content_box[2] > 200 and content_box[3] > 200, \
             'Unexpectedly small tab contents.'
-        assert pixel_count > 0.75 * bmp.width * bmp.height, \
+        assert pixel_count > 0.9 * content_box[2] * content_box[3], \
             'Low count of pixels in tab contents matching expected color.'
 
         # Since Telemetry doesn't know how to resize the window, we assume

@@ -222,13 +222,17 @@ class AndroidPlatformBackend(
 
     def GetDimensions(video):
       proc = subprocess.Popen(['avconv', '-i', video], stderr=subprocess.PIPE)
+      dimensions = None
+      output = ''
       for line in proc.stderr.readlines():
+        output += line
         if 'Video:' in line:
           dimensions = line.split(',')[2]
           dimensions = map(int, dimensions.split()[0].split('x'))
           break
       proc.wait()
-      assert dimensions, 'Failed to determine video dimensions'
+      assert dimensions, ('Failed to determine video dimensions. output=%s' %
+                          output)
       return dimensions
 
     def GetFrameTimestampMs(stderr):
