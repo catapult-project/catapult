@@ -70,11 +70,11 @@ def DiscoverAndRunTests(
           logging.debug('Skipping test %s because it requires %s' %
                         (test.id(), types))
           return False
-      if hasattr(method, '_disabled_test'):
-        if not run_disabled_tests:
-          return False
-      if (hasattr(method, '_disabled_test_on_cros') and
-          cros_interface.IsRunningOnCrosDevice()):
+
+      if (not run_disabled_tests and
+          (hasattr(method, '_disabled_test') or
+              (hasattr(method, '_disabled_test_on_cros') and
+                  cros_interface.IsRunningOnCrosDevice()))):
         return False
 
     return True
