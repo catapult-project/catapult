@@ -5,7 +5,6 @@ import unittest
 
 from telemetry.core import browser_options
 from telemetry.core.backends.chrome import desktop_browser_finder
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import system_stub
 
 # This file verifies the logic for finding a browser instance on all platforms
@@ -35,54 +34,73 @@ class FindTestBase(unittest.TestCase):
     browsers = self.DoFindAll()
     return [b.browser_type for b in browsers]
 
+  def CanFindAvailableBrowsers(self):
+    return desktop_browser_finder.CanFindAvailableBrowsers()
+
+
 def has_type(array, browser_type):
   return len([x for x in array if x.browser_type == browser_type]) != 0
+
 
 class FindSystemTest(FindTestBase):
   def setUp(self):
     super(FindSystemTest, self).setUp()
     self._stubs.sys.platform = 'win32'
 
-  @DisabledTestOnCrOS
   def testFindProgramFiles(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append(
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
     self._stubs.os.program_files = 'C:\\Program Files'
     self.assertTrue('system' in self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindProgramFilesX86(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append(
         'C:\\Program Files(x86)\\Google\\Chrome\\Application\\chrome.exe')
     self._stubs.os.program_files_x86 = 'C:\\Program Files(x86)'
     self.assertTrue('system' in self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindLocalAppData(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append(
         'C:\\Local App Data\\Google\\Chrome\\Application\\chrome.exe')
     self._stubs.os.local_app_data = 'C:\\Local App Data'
     self.assertTrue('system' in self.DoFindAllTypes())
+
 
 class FindLocalBuildsTest(FindTestBase):
   def setUp(self):
     super(FindLocalBuildsTest, self).setUp()
     self._stubs.sys.platform = 'win32'
 
-  @DisabledTestOnCrOS
   def testFindBuild(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append('..\\..\\..\\build\\Release\\chrome.exe')
     self.assertTrue('release' in self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindOut(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append('..\\..\\..\\out\\Release\\chrome.exe')
     self.assertTrue('release' in self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindXcodebuild(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._files.append('..\\..\\..\\xcodebuild\\Release\\chrome.exe')
     self.assertTrue('release' in self.DoFindAllTypes())
+
 
 class OSXFindTest(FindTestBase):
   def setUp(self):
@@ -101,8 +119,10 @@ class OSXFindTest(FindTestBase):
     self._files.append(
       '../../../out/Debug/Content Shell.app/Contents/MacOS/Content Shell')
 
-  @DisabledTestOnCrOS
   def testFindAll(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     types = self.DoFindAllTypes()
     self.assertEquals(
       set(types),
@@ -130,21 +150,27 @@ class LinuxFindTest(FindTestBase):
       raise OSError('Not found')
     self._stubs.subprocess.call = call_hook
 
-  @DisabledTestOnCrOS
   def testFindAllWithExact(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     types = self.DoFindAllTypes()
     self.assertEquals(
         set(types),
         set(['debug', 'release',
              'content-shell-debug', 'content-shell-release']))
 
-  @DisabledTestOnCrOS
   def testFindWithProvidedExecutable(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._finder_options.browser_executable = '/foo/chrome'
     self.assertTrue('exact' in self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindUsingDefaults(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self.has_google_chrome_on_path = True
     self.assertTrue('release' in self.DoFindAllTypes())
 
@@ -157,8 +183,10 @@ class LinuxFindTest(FindTestBase):
     self.assertEquals(['content-shell-debug', 'content-shell-release'],
                       self.DoFindAllTypes())
 
-  @DisabledTestOnCrOS
   def testFindUsingRelease(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self.assertTrue('release' in self.DoFindAllTypes())
 
 
@@ -178,16 +206,20 @@ class WinFindTest(FindTestBase):
     self._files.append(self._stubs.os.local_app_data + '\\' +
                        'Google\\Chrome SxS\\Application\\chrome.exe')
 
-  @DisabledTestOnCrOS
   def testFindAllGivenDefaults(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     types = self.DoFindAllTypes()
     self.assertEquals(set(types),
                       set(['debug', 'release',
                            'content-shell-debug', 'content-shell-release',
                            'system', 'canary']))
 
-  @DisabledTestOnCrOS
   def testFindAllWithExact(self):
+    if not self.CanFindAvailableBrowsers():
+      return
+
     self._finder_options.browser_executable = 'c:\\tmp\\chrome.exe'
     types = self.DoFindAllTypes()
     self.assertEquals(
