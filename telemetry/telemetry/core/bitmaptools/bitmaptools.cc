@@ -105,36 +105,6 @@ struct Bitmap {
 };
 
 
-static
-PyObject* Histogram(PyObject* self, PyObject* bmp_object) {
-  Bitmap bmp;
-  if (!bmp.ParseArg(bmp_object))
-    return NULL;
-
-  const int kLength = 3 * 256;
-  int counts[kLength] = {};
-
-  for (const unsigned char* row = bmp.data; row < bmp.data + bmp.total_size;
-       row += bmp.row_stride) {
-    for (const unsigned char* pixel = row; pixel < row + bmp.row_size;
-       pixel += bmp.pixel_stride) {
-      ++(counts[256 * 0 + pixel[0]]);
-      ++(counts[256 * 1 + pixel[1]]);
-      ++(counts[256 * 2 + pixel[2]]);
-    }
-  }
-
-  PyObject* list = PyList_New(kLength);
-  if (!list)
-    return NULL;
-
-  for (int i = 0; i < kLength; ++i)
-    PyList_SetItem(list, i, PyInt_FromLong(counts[i]));
-
-  return list;
-}
-
-
 static inline
 bool PixelsEqual(const unsigned char* pixel1, const unsigned char* pixel2,
                  int tolerance) {
@@ -149,6 +119,44 @@ static inline
 bool PixelsEqual(const unsigned char* pixel, int color, int tolerance) {
   unsigned char pixel2[3] = { color >> 16, color >> 8, color };
   return PixelsEqual(pixel, pixel2, tolerance);
+}
+
+
+static
+PyObject* Histogram(PyObject* self, PyObject* args) {
+  PyObject* bmp_object;
+  int ignore_color;
+  int tolerance;
+  if (!PyArg_ParseTuple(args, "Oii", &bmp_object, &ignore_color, &tolerance))
+    return NULL;
+
+  Bitmap bmp;
+  if (!bmp.ParseArg(bmp_object))
+    return NULL;
+
+  const int kLength = 3 * 256;
+  int counts[kLength] = {};
+
+  for (const unsigned char* row = bmp.data; row < bmp.data + bmp.total_size;
+       row += bmp.row_stride) {
+    for (const unsigned char* pixel = row; pixel < row + bmp.row_size;
+       pixel += bmp.pixel_stride) {
+      if (ignore_color >= 0 && PixelsEqual(pixel, ignore_color, tolerance))
+        continue;
+      ++(counts[256 * 0 + pixel[0]]);
+      ++(counts[256 * 1 + pixel[1]]);
+      ++(counts[256 * 2 + pixel[2]]);
+    }
+  }
+
+  PyObject* list = PyList_New(kLength);
+  if (!list)
+    return NULL;
+
+  for (int i = 0; i < kLength; ++i)
+    PyList_SetItem(list, i, PyInt_FromLong(counts[i]));
+
+  return list;
 }
 
 
@@ -252,7 +260,7 @@ PyObject* Crop(PyObject* self, PyObject* bmp_object) {
 
 
 static PyMethodDef module_methods[] = {
-  {"Histogram", Histogram, METH_O,
+  {"Histogram", Histogram, METH_VARARGS,
     "Calculates histogram of bitmap colors. Returns a list of 3x256 ints."},
   {"Equal", Equal, METH_VARARGS,
     "Checks if the two bmps are equal."},

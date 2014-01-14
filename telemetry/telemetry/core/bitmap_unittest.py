@@ -139,8 +139,46 @@ class BitmapTest(unittest.TestCase):
 
     histogram = bmp.ColorHistogram()
     self.assertEquals(sum(histogram), bmp.width * bmp.height * 3)
+    self.assertEquals(histogram[1], 0)
     self.assertEquals(histogram[5], 2)
     self.assertEquals(histogram[8], 2)
+    self.assertEquals(histogram[2 + 256], 0)
     self.assertEquals(histogram[4 + 256], 2)
     self.assertEquals(histogram[7 + 256], 2)
+    self.assertEquals(histogram[3 + 512], 0)
     self.assertEquals(histogram[6 + 512], 4)
+
+  def testHistogramIgnoreColor(self):
+    pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
+              1,2,3, 8,7,6, 5,4,6, 1,2,3,
+              1,2,3, 8,7,6, 5,4,6, 1,2,3]
+    bmp = bitmap.Bitmap(3, 4, 3, pixels)
+
+    histogram = bmp.ColorHistogram(ignore_color=bitmap.RgbaColor(1, 2, 3))
+    self.assertEquals(histogram[1], 0)
+    self.assertEquals(histogram[5], 2)
+    self.assertEquals(histogram[8], 2)
+    self.assertEquals(histogram[2 + 256], 0)
+    self.assertEquals(histogram[4 + 256], 2)
+    self.assertEquals(histogram[7 + 256], 2)
+    self.assertEquals(histogram[3 + 512], 0)
+    self.assertEquals(histogram[6 + 512], 4)
+
+  def testHistogramIgnoreColorTolerance(self):
+    pixels = [1,2,3, 4,5,6,
+              7,8,9, 8,7,6]
+    bmp = bitmap.Bitmap(3, 2, 2, pixels)
+
+    histogram = bmp.ColorHistogram(ignore_color=bitmap.RgbaColor(0, 1, 2),
+                                   tolerance=1)
+    self.assertEquals(histogram[1], 0)
+    self.assertEquals(histogram[4], 1)
+    self.assertEquals(histogram[7], 1)
+    self.assertEquals(histogram[8], 1)
+    self.assertEquals(histogram[2 + 256], 0)
+    self.assertEquals(histogram[5 + 256], 1)
+    self.assertEquals(histogram[7 + 256], 1)
+    self.assertEquals(histogram[8 + 256], 1)
+    self.assertEquals(histogram[3 + 512], 0)
+    self.assertEquals(histogram[6 + 512], 2)
+    self.assertEquals(histogram[9 + 512], 1)

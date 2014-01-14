@@ -19,6 +19,9 @@ class RgbaColor(object):
     self.b = b
     self.a = a
 
+  def __int__(self):
+    return (self.r << 16) | (self.g << 8) | self.b
+
   def IsEqual(self, expected_color, tolerance=0):
     """Verifies that the color is within a given tolerance of
     the expected color"""
@@ -182,8 +185,7 @@ class Bitmap(object):
     Returns: (top, left, width, height), match_count
     Ignores the alpha channel."""
     from telemetry.core import bitmaptools
-    int_color = (color.r << 16) | (color.g << 8) | color.b
-    return bitmaptools.BoundingBox(self._as_tuple, int_color, tolerance)
+    return bitmaptools.BoundingBox(self._as_tuple, int(color), tolerance)
 
   def Crop(self, left, top, width, height):
     """Crops the current bitmap down to the specified box."""
@@ -198,8 +200,17 @@ class Bitmap(object):
     self._crop_box = cur_left + left, cur_top + top, width, height
     return self
 
-  def ColorHistogram(self):
+  def ColorHistogram(self, ignore_color=None, tolerance=0):
     """Computes a histogram of the pixel colors in this Bitmap.
-    Returns a list of 3x256 integers."""
+
+    Args:
+      ignore_color: An RgbaColor to exclude from the bucket counts.
+      tolerance: A tolerance for the ignore_color.
+
+    Returns:
+      A list of 3x256 integers formatted as
+      [r0, r1, ..., g0, g1, ..., b0, b1, ...].
+    """
     from telemetry.core import bitmaptools
-    return bitmaptools.Histogram(self._as_tuple)
+    return bitmaptools.Histogram(
+        self._as_tuple, int(ignore_color) if ignore_color else -1, tolerance)
