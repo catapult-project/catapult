@@ -8,7 +8,7 @@ import unittest
 
 from telemetry.core import bitmap
 from telemetry.core import util
-
+from telemetry.unittest import DisabledTestOnCrOS
 
 # This is a simple base64 encoded 2x2 PNG which contains, in order, a single
 # Red, Yellow, Blue, and Green pixel.
@@ -50,6 +50,7 @@ class BitmapTest(unittest.TestCase):
     file_bmp.GetPixelColor(0, 1).AssertIsRGB(0, 0, 255)
     file_bmp.GetPixelColor(1, 0).AssertIsRGB(255, 255, 0)
 
+  @DisabledTestOnCrOS
   def testWritePngToPngFile(self):
     orig = bitmap.Bitmap.FromPngFile(test_png_path)
     temp_file = tempfile.NamedTemporaryFile().name
@@ -57,6 +58,7 @@ class BitmapTest(unittest.TestCase):
     new_file = bitmap.Bitmap.FromPngFile(temp_file)
     self.assertTrue(orig.IsEqual(new_file))
 
+  @DisabledTestOnCrOS
   def testWriteCroppedBmpToPngFile(self):
     pixels = [255,0,0, 255,255,0, 0,0,0,
               255,255,0, 0,255,0, 0,0,0]
@@ -67,6 +69,7 @@ class BitmapTest(unittest.TestCase):
     new_file = bitmap.Bitmap.FromPngFile(temp_file)
     self.assertTrue(orig.IsEqual(new_file))
 
+  @DisabledTestOnCrOS
   def testIsEqual(self):
     bmp = bitmap.Bitmap.FromBase64Png(test_png)
     file_bmp = bitmap.Bitmap.FromPngFile(test_png_path)
@@ -104,6 +107,7 @@ class BitmapTest(unittest.TestCase):
     diff_bmp.GetPixelColor(2, 1).AssertIsRGB(255, 255, 255)
     diff_bmp.GetPixelColor(2, 2).AssertIsRGB(255, 255, 255)
 
+  @DisabledTestOnCrOS
   def testGetBoundingBox(self):
     pixels = [0,0,0, 0,0,0, 0,0,0, 0,0,0,
               0,0,0, 1,0,0, 1,0,0, 0,0,0,
@@ -117,6 +121,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(box, None)
     self.assertEquals(count, 0)
 
+  @DisabledTestOnCrOS
   def testCrop(self):
     pixels = [0,0,0, 1,0,0, 2,0,0, 3,0,0,
               0,1,0, 1,1,0, 2,1,0, 3,1,0,
@@ -130,6 +135,7 @@ class BitmapTest(unittest.TestCase):
     bmp.GetPixelColor(1, 0).AssertIsRGB(2, 2, 0)
     self.assertEquals(bmp.pixels, bytearray([1,2,0, 2,2,0]))
 
+  @DisabledTestOnCrOS
   def testHistogram(self):
     pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
               1,2,3, 8,7,6, 5,4,6, 1,2,3,
