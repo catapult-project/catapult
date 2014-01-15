@@ -168,7 +168,7 @@ class TracingBackend(object):
     self._category_filter = CategoryFilter(custom_categories)
     if custom_categories:
       req['params'] = {'categories': custom_categories}
-    self._conn.SendRequest(req, timeout)
+    self._conn.SyncRequest(req, timeout)
     # Tracing.start will send asynchronous notifications containing trace
     # data, until Tracing.end is called.
     self._thread = threading.Thread(target=self._TracingReader)
