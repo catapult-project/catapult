@@ -78,7 +78,11 @@ class TimelineModel(object):
     for importer in importers:
       # TODO: catch exceptions here and add it to error list
       importer.ImportEvents()
+    self.FinalizeImport(shift_world_to_zero, importers)
 
+  def FinalizeImport(self, shift_world_to_zero=False, importers=None):
+    if importers == None:
+      importers = []
     self.UpdateBounds()
     if not self.bounds.is_empty:
       for process in self._processes.itervalues():
