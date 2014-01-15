@@ -17,49 +17,43 @@ class CsvPageMeasurementResults(
     self._output_after_every_page = output_after_every_page
 
   def DidMeasurePage(self):
-    assert self.page_specific_values_for_current_page != None
+    try:
+      assert self.page_specific_values_for_current_page != None
 
-    values = self.page_specific_values_for_current_page
-    if (not values or
-        not self._output_after_every_page):
-      # Do not output if no results were added on this page or if output flag
-      # is not set.
+      values = self.page_specific_values_for_current_page
+      if not values or not self._output_after_every_page:
+        # Do not output if no results were added on this page or if output flag
+        # is not set.
+        return
+
+      if not self._did_output_header:
+        self._OutputHeader()
+      else:
+        self._ValidateOutputNamesForCurrentPage()
+      self._OutputValuesForPage(values[0].page, values)
+    finally:
       super(CsvPageMeasurementResults, self).DidMeasurePage()
-      return
-
-    if not self._did_output_header:
-      self._OutputHeader()
-    else:
-      self._ValidateOutputNamesForCurrentPage()
-
-    self._OutputValuesForPage(values[0].page, values)
-
-    super(CsvPageMeasurementResults, self).DidMeasurePage()
 
   def PrintSummary(self):
-    if self._output_after_every_page:
+    try:
+      if self._output_after_every_page:
+        return
+
+      self._OutputHeader()
+      values = merge_values.MergeLikeValuesFromSamePage(
+          self.all_page_specific_values)
+      value_groups_by_page = merge_values.GroupStably(
+          values, lambda value: value.page.url)
+      for values_for_page in value_groups_by_page:
+        self._OutputValuesForPage(values_for_page[0].page, values_for_page)
+    finally:
       super(CsvPageMeasurementResults, self).PrintSummary()
-      return
-
-    self._OutputHeader()
-
-    values = merge_values.MergeLikeValuesFromSamePage(
-        self.all_page_specific_values)
-    value_groups_by_page = merge_values.GroupStably(
-        values,
-        lambda value: value.page.url)
-    for values_for_page in value_groups_by_page:
-      self._OutputValuesForPage(values_for_page[0].page,
-                                values_for_page)
-
-    super(CsvPageMeasurementResults, self).PrintSummary()
 
   def _ValidateOutputNamesForCurrentPage(self):
     assert self._did_output_header
     current_page_value_names = set([
       value.name for value in self.page_specific_values_for_current_page])
-    header_names_written_to_writer = \
-        set(self._header_names_written_to_writer)
+    header_names_written_to_writer = set(self._header_names_written_to_writer)
     if header_names_written_to_writer == current_page_value_names:
       return
     assert False, """To use CsvPageMeasurementResults, you must add the same

@@ -51,8 +51,10 @@ class PageMeasurement(page_test.PageTest):
 
   def _RunTest(self, page, tab, results):
     results.WillMeasurePage(page)
-    self.MeasurePage(page, tab, results)
-    results.DidMeasurePage()
+    try:
+      self.MeasurePage(page, tab, results)
+    finally:
+      results.DidMeasurePage()
 
   @property
   def results_are_the_same_on_every_page(self):

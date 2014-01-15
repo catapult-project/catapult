@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 
+from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.page import page as page_module
@@ -109,6 +110,28 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(1, len(results.successes))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.errors))
+
+  def testRetryOnBrowserCrash(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class CrashyMeasurement(page_measurement.PageMeasurement):
+      has_crashed = False
+      def MeasurePage(self, *_):
+        if not self.has_crashed:
+          self.has_crashed = True
+          raise exceptions.BrowserGoneException()
+
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'csv'
+
+    results = page_runner.Run(CrashyMeasurement(), ps, expectations, options)
+
+    self.assertEquals(1, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(1, len(results.errors))
 
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()

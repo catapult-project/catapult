@@ -212,6 +212,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
   results_for_current_run.StartTest(page)
   tries = 3
   while tries:
+    tries -= 1
     try:
       if test.RestartBrowserBeforeEachPage():
         state.StopBrowser()
@@ -251,7 +252,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       _LogStackTrace('Browser crashed', state.browser)
       logging.warning('Lost connection to browser. Retrying.')
       state.StopBrowser()
-      tries -= 1
       if not tries:
         logging.error('Lost connection to browser 3 times. Failing.')
         raise
