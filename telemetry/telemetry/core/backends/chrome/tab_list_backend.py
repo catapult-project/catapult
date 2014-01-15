@@ -25,7 +25,7 @@ class TabListBackend(object):
     assert self._browser_backend.supports_tab_control
 
     self._browser_backend.Request('new', timeout=timeout)
-    return self[-1]
+    return self.Get(-1, None, timeout=timeout)
 
   def DoesDebuggerUrlExist(self, debugger_url):
     return self._FindTabInfo(debugger_url) is not None
@@ -81,7 +81,7 @@ class TabListBackend(object):
     self._UpdateTabList()
     return len(self._tab_list)
 
-  def Get(self, index, ret):
+  def Get(self, index, ret, timeout=60):
     """Returns self[index] if it exists, or ret if index is out of bounds.
     """
     self._UpdateTabList()
@@ -94,7 +94,8 @@ class TabListBackend(object):
       backend = inspector_backend.InspectorBackend(
           self._browser_backend.browser,
           self._browser_backend,
-          debugger_url)
+          debugger_url,
+          timeout=timeout)
       tab_object = tab.Tab(backend)
       self._tab_dict[debugger_url] = tab_object
     return tab_object

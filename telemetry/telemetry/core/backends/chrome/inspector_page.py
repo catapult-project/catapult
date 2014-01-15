@@ -9,7 +9,7 @@ import time
 from telemetry.core import util
 
 class InspectorPage(object):
-  def __init__(self, inspector_backend):
+  def __init__(self, inspector_backend, timeout=60):
     self._inspector_backend = inspector_backend
     self._inspector_backend.RegisterDomain(
         'Page',
@@ -20,7 +20,7 @@ class InspectorPage(object):
     self._navigation_url = ""
     self._script_to_evaluate_on_commit = None
     # Turn on notifications. We need them to get the Page.frameNavigated event.
-    self._EnablePageNotifications()
+    self._EnablePageNotifications(timeout=timeout)
 
   def _OnNotification(self, msg):
     logging.debug('Notification: %s', json.dumps(msg, indent=2))

@@ -416,19 +416,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException('Timed out going through login screen')
 
-    if self.chrome_branch_number < 1500:
-      # Wait for the startup window, then close it. Startup window doesn't exist
-      # post-M27. crrev.com/197900
-      util.WaitFor(self._StartupWindow, 20).Close()
-    else:
-      # Open a new window/tab.
-      self.tab_list_backend.New(15)
-      # Workaround for crbug.com/329271.
-      try:
-        self.tab_list_backend[0].Navigate('about:blank')
-      except exceptions.TabCrashException:
-        pass
-
     # Wait for extensions to load.
     try:
       self._WaitForBrowserToComeUp()
@@ -436,6 +423,19 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
       self._cri.TakeScreenShot('extension-timeout')
       raise
+
+    if self.chrome_branch_number < 1500:
+      # Wait for the startup window, then close it. Startup window doesn't exist
+      # post-M27. crrev.com/197900
+      util.WaitFor(self._StartupWindow, 20).Close()
+    else:
+      # Workaround for crbug.com/329271.
+      try:
+        # Open a new window/tab.
+        tab = self.tab_list_backend.New(timeout=10)
+        tab.Navigate('about:blank', timeout=10)
+      except exceptions.TabCrashException:
+        logging.warn('TabCrashException in new tab creation/navigation')
 
 
 class SSHForwarder(object):

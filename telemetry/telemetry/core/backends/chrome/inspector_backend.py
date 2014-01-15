@@ -23,7 +23,7 @@ class InspectorException(Exception):
   pass
 
 class InspectorBackend(object):
-  def __init__(self, browser, browser_backend, debugger_url):
+  def __init__(self, browser, browser_backend, debugger_url, timeout=60):
     assert debugger_url
     self._browser = browser
     self._browser_backend = browser_backend
@@ -35,7 +35,7 @@ class InspectorBackend(object):
 
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
-    self._page = inspector_page.InspectorPage(self)
+    self._page = inspector_page.InspectorPage(self, timeout=timeout)
     self._runtime = inspector_runtime.InspectorRuntime(self)
     self._timeline = inspector_timeline.InspectorTimeline(self)
     self._network = inspector_network.InspectorNetwork(self)
