@@ -8,6 +8,10 @@ from telemetry.core import web_contents
 DEFAULT_TAB_TIMEOUT = 60
 
 
+class BoundingBoxNotFoundException(Exception):
+  pass
+
+
 class Tab(web_contents.WebContents):
   """Represents a tab in the browser
 
@@ -134,50 +138,71 @@ class Tab(web_contents.WebContents):
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
     self.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
 
+  def _FindHighlightBoundingBox(self, bmp, color):
+    """Returns the bounding box of the content highlight of the given color.
+
+    Raises:
+      BoundingBoxNotFoundException if the hightlight could not be found.
+    """
+    content_box, pixel_count = bmp.GetBoundingBox(color, tolerance=8)
+
+    if not content_box:
+      raise BoundingBoxNotFoundException('Failed to find tab contents.')
+
+    # We assume arbitrarily that tabs are all larger than 200x200. If this
+    # fails it either means that assumption has changed or something is
+    # awry with our bounding box calculation.
+    if content_box[2] < 200 or content_box[3] < 200:
+      raise BoundingBoxNotFoundException('Unexpectedly small tab contents.')
+
+    # TODO(tonyg): Can this threshold be increased?
+    if pixel_count < 0.9 * content_box[2] * content_box[3]:
+      raise BoundingBoxNotFoundException(
+          'Low count of pixels in tab contents matching expected color.')
+
+    # Since Telemetry doesn't know how to resize the window, we assume
+    # that we should always get the same content box for a tab. If this
+    # fails, it means either that assumption has changed or something is
+    # awry with our bounding box calculation. If this assumption changes,
+    # this can be removed.
+    #
+    # TODO(tonyg): This assert doesn't seem to work.
+    if (self._previous_tab_contents_bounding_box and
+        self._previous_tab_contents_bounding_box != content_box):
+      raise BoundingBoxNotFoundException(
+          'Unexpected change in tab contents box.')
+    self._previous_tab_contents_bounding_box = content_box
+
+    return content_box
+
   def StopVideoCapture(self):
     """Stops recording video of the tab's contents.
 
-    This looks for the color flash in the first frame to establish the
-    tab contents boundaries and then omits that frame.
+    This looks for the initial color flash in the first frame to establish the
+    tab content boundaries and then omits all frames displaying the flash.
 
     Yields:
       (time_ms, bitmap) tuples representing each video keyframe. Only the first
-      frame in a run of sequential duplicate bitmaps is included.
+      frame in a run of sequential duplicate bitmaps is typically included.
         time_ms is milliseconds since navigationStart.
         bitmap is a telemetry.core.Bitmap.
     """
+    frame_generator = self.browser.platform.StopVideoCapture()
+
+    # Use initial flash to identify the content box, but skip over it.
+    timestamp = 0
     content_box = None
-    start_time = None
-    for timestamp, bmp in self.browser.platform.StopVideoCapture():
-      # TODO(tonyg): Spin this check until it fails.
-      if not content_box:
-        content_box, pixel_count = bmp.GetBoundingBox(
-            bitmap.WEB_PAGE_TEST_ORANGE, tolerance=8)
-        assert content_box, 'Failed to find tab contents in first video frame.'
+    for timestamp, bmp in frame_generator:
+      try:
+        content_box = self._FindHighlightBoundingBox(
+            bmp, bitmap.WEB_PAGE_TEST_ORANGE)
+      except BoundingBoxNotFoundException:
+        if not content_box:
+          raise  # Content box is not in first frame.
+        break
 
-        # We assume arbitrarily that tabs are all larger than 200x200. If this
-        # fails it either means that assumption has changed or something is
-        # awry with our bounding box calculation.
-        assert content_box[2] > 200 and content_box[3] > 200, \
-            'Unexpectedly small tab contents.'
-        assert pixel_count > 0.9 * content_box[2] * content_box[3], \
-            'Low count of pixels in tab contents matching expected color.'
-
-        # Since Telemetry doesn't know how to resize the window, we assume
-        # that we should always get the same content box for a tab. If this
-        # fails, it means either that assumption has changed or something is
-        # awry with our bounding box calculation.
-        #
-        # TODO(tonyg): This assert doesn't seem to work.
-        if self._previous_tab_contents_bounding_box:
-          assert self._previous_tab_contents_bounding_box == content_box, \
-              'Unexpected change in tab contents box.'
-        self._previous_tab_contents_bounding_box = content_box
-        continue
-
-      if not start_time:
-        start_time = timestamp
-
+    start_time = timestamp
+    for timestamp, bmp in frame_generator:
       yield timestamp - start_time, bmp.Crop(*content_box)
 
   def PerformActionAndWaitForNavigate(
