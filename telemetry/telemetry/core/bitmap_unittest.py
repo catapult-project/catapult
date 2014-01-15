@@ -154,6 +154,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(histogram[3 + 512], 0)
     self.assertEquals(histogram[6 + 512], 4)
 
+  @DisabledTestOnCrOS
   def testHistogramIgnoreColor(self):
     pixels = [1,2,3, 1,2,3, 1,2,3, 1,2,3,
               1,2,3, 8,7,6, 5,4,6, 1,2,3,
@@ -170,6 +171,7 @@ class BitmapTest(unittest.TestCase):
     self.assertEquals(histogram[3 + 512], 0)
     self.assertEquals(histogram[6 + 512], 4)
 
+  @DisabledTestOnCrOS
   def testHistogramIgnoreColorTolerance(self):
     pixels = [1,2,3, 4,5,6,
               7,8,9, 8,7,6]

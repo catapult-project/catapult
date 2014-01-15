@@ -39,6 +39,10 @@ class RgbaColor(object):
     assert self.IsEqual(RgbaColor(r, g, b, a), tolerance)
 
 
+WEB_PAGE_TEST_ORANGE = RgbaColor(222, 100,  13)
+WHITE =                RgbaColor(255, 255, 255)
+
+
 class Bitmap(object):
   """Utilities for parsing and inspecting a bitmap."""
 

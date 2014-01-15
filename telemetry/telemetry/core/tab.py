@@ -7,8 +7,6 @@ from telemetry.core import web_contents
 
 DEFAULT_TAB_TIMEOUT = 60
 
-# Arbitrary bright pink color that is unlikely to be used in any real UIs.
-_CONTENT_FLASH_COLOR = (255, 51, 204)
 
 class Tab(web_contents.WebContents):
   """Represents a tab in the browser
@@ -86,6 +84,40 @@ class Tab(web_contents.WebContents):
     """True if the browser instance is capable of capturing video."""
     return self.browser.platform.CanCaptureVideo()
 
+  def Highlight(self, color):
+    """Synchronously highlights entire tab contents with the given RgbaColor.
+
+    TODO(tonyg): It is possible that the z-index hack here might not work for
+    all pages. If this happens, DevTools also provides a method for this.
+    """
+    self.ExecuteJavaScript("""
+      (function() {
+        var screen = document.createElement('div');
+        screen.id = '__telemetry_screen_%d';
+        screen.style.background = 'rgba(%d, %d, %d, %d)';
+        screen.style.position = 'fixed';
+        screen.style.top = '0';
+        screen.style.left = '0';
+        screen.style.width = '100%%';
+        screen.style.height = '100%%';
+        screen.style.zIndex = '2147483638';
+        document.body.appendChild(screen);
+        requestAnimationFrame(function() {
+          screen.has_painted = true;
+        });
+      })();
+    """ % (int(color), color.r, color.g, color.b, color.a))
+    self.WaitForJavaScriptExpression(
+      'document.getElementById("__telemetry_screen_%d").has_painted' %
+      int(color), 5)
+
+  def ClearHighlight(self, color):
+    """Clears a highlight of the given bitmap.RgbaColor."""
+    self.ExecuteJavaScript("""
+      document.body.removeChild(
+        document.getElementById('__telemetry_screen_%d'));
+    """ % int(color))
+
   def StartVideoCapture(self, min_bitrate_mbps):
     """Starts capturing video of the tab's contents.
 
@@ -98,29 +130,9 @@ class Tab(web_contents.WebContents):
           The platform is free to deliver a higher bitrate if it can do so
           without increasing overhead.
     """
-    self.ExecuteJavaScript("""
-      (function() {
-        var screen = document.createElement('div');
-        screen.id = '__telemetry_screen';
-        screen.style.background = 'rgb(%d, %d, %d)';
-        screen.style.position = 'fixed';
-        screen.style.top = '0';
-        screen.style.left = '0';
-        screen.style.width = '100%%';
-        screen.style.height = '100%%';
-        screen.style.zIndex = '2147483638';
-        document.body.appendChild(screen);
-        requestAnimationFrame(function() {
-          screen.has_painted = true;
-        });
-      })();
-    """ % _CONTENT_FLASH_COLOR)
-    self.WaitForJavaScriptExpression(
-      'document.getElementById("__telemetry_screen").has_painted', 5)
+    self.Highlight(bitmap.WEB_PAGE_TEST_ORANGE)
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
-    self.ExecuteJavaScript("""
-      document.body.removeChild(document.getElementById('__telemetry_screen'));
-    """)
+    self.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
 
   def StopVideoCapture(self):
     """Stops recording video of the tab's contents.
@@ -137,10 +149,10 @@ class Tab(web_contents.WebContents):
     content_box = None
     start_time = None
     for timestamp, bmp in self.browser.platform.StopVideoCapture():
+      # TODO(tonyg): Spin this check until it fails.
       if not content_box:
         content_box, pixel_count = bmp.GetBoundingBox(
-            bitmap.RgbaColor(*_CONTENT_FLASH_COLOR), tolerance=8)
-
+            bitmap.WEB_PAGE_TEST_ORANGE, tolerance=8)
         assert content_box, 'Failed to find tab contents in first video frame.'
 
         # We assume arbitrarily that tabs are all larger than 200x200. If this
@@ -155,13 +167,15 @@ class Tab(web_contents.WebContents):
         # that we should always get the same content box for a tab. If this
         # fails, it means either that assumption has changed or something is
         # awry with our bounding box calculation.
+        #
+        # TODO(tonyg): This assert doesn't seem to work.
         if self._previous_tab_contents_bounding_box:
           assert self._previous_tab_contents_bounding_box == content_box, \
               'Unexpected change in tab contents box.'
         self._previous_tab_contents_bounding_box = content_box
         continue
 
-      elif not start_time:
+      if not start_time:
         start_time = timestamp
 
       yield timestamp - start_time, bmp.Crop(*content_box)
