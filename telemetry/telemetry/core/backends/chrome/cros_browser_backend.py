@@ -429,12 +429,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # post-M27. crrev.com/197900
       util.WaitFor(self._StartupWindow, 20).Close()
     else:
-      # Workaround for crbug.com/329271.
+      # Workaround for crbug.com/329271, crbug.com/334726.
       try:
         # Open a new window/tab.
         tab = self.tab_list_backend.New(timeout=10)
         tab.Navigate('about:blank', timeout=10)
-      except exceptions.TabCrashException:
+      except (exceptions.TabCrashException, util.TimeoutException):
         logging.warn('TabCrashException in new tab creation/navigation')
 
 
