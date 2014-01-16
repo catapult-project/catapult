@@ -1,7 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import imp
 import inspect
 import logging
 import os
@@ -146,7 +145,6 @@ def GetBuildDirectories():
     for build_type in build_types:
       yield build_dir, build_type
 
-
 def FindSupportBinary(binary_name, executable=True):
   """Returns the path to the given binary name."""
   # TODO(tonyg/dtu): This should support finding binaries in cloud storage.
@@ -166,23 +164,3 @@ def FindSupportBinary(binary_name, executable=True):
         command_mtime = candidate_mtime
 
   return command
-
-
-def FindSupportModule(module_name):
-  """Like FindSupportBinary but uses imp.find_module to find a Python module."""
-  module = None
-  module_mtime = 0
-
-  chrome_root = GetChromiumSrcDir()
-  for build_dir, build_type in GetBuildDirectories():
-    path = os.path.join(chrome_root, build_dir, build_type)
-    try:
-      candidate = imp.find_module(module_name, [path])
-    except ImportError:
-      continue
-    candidate_mtime = os.stat(candidate[1]).st_mtime
-    if candidate_mtime > module_mtime:
-      module = candidate
-      module_mtime = candidate_mtime
-
-  return module
