@@ -99,15 +99,15 @@ def _CreatePageSetForUrl(url):
 
 
 def Main(base_dir):
-  measurements = discover.DiscoverClasses(base_dir, base_dir,
-                                          page_measurement.PageMeasurement)
-  # Filter out ProfileCreators since we don't need them here.
-  # crbug.com/319573 .
-  measurements = {n: cls for n, cls in measurements.iteritems()
-      if not issubclass(cls, profile_creator.ProfileCreator)}
-
+  measurements = {
+      n: cls for n, cls in discover.DiscoverClasses(
+          base_dir, base_dir, page_measurement.PageMeasurement).items()
+      # Filter out unneeded ProfileCreators (crbug.com/319573).
+      if not issubclass(cls, profile_creator.ProfileCreator)
+      }
   tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                    index_by_class_name=True)
+
   options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser('%prog <PageSet|Measurement|Test|URL>')
   page_runner.AddCommandLineOptions(parser)
@@ -115,22 +115,27 @@ def Main(base_dir):
   recorder = RecordPage(measurements)
   recorder.AddCommandLineOptions(parser)
 
-  _, args = parser.parse_args()
-
-  if len(args) != 1:
+  quick_args = [a for a in sys.argv[1:] if not a.startswith('-')]
+  if len(quick_args) != 1:
     parser.print_usage()
     sys.exit(1)
-
-  if args[0].endswith('.json'):
-    ps = page_set.PageSet.FromFile(args[0])
-  elif args[0] in tests:
-    recorder.test = tests[args[0]]().test()
-    ps = tests[args[0]]().CreatePageSet(options)
-  elif args[0] in measurements:
-    recorder.test = measurements[args[0]]()
+  target = quick_args[0]
+  if target in tests:
+    recorder.test = tests[target]().test()
+    recorder.test.AddCommandLineOptions(parser)
+    parser.parse_args()
+    ps = tests[target]().CreatePageSet(options)
+  elif target in measurements:
+    recorder.test = measurements[target]()
+    recorder.test.AddCommandLineOptions(parser)
+    _, args = parser.parse_args()
     ps = recorder.test.CreatePageSet(args, options)
-  elif args[0].startswith('http'):
-    ps = _CreatePageSetForUrl(args[0])
+  elif target.endswith('.json'):
+    parser.parse_args()
+    ps = page_set.PageSet.FromFile(target)
+  elif target.startswith('http'):
+    parser.parse_args()
+    ps = _CreatePageSetForUrl(target)
   else:
     parser.print_usage()
     sys.exit(1)
