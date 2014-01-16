@@ -210,6 +210,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
     self._override_dns = self.browser_options.netsim
 
+    # Set the debug app if needed.
+    if self._adb.IsUserBuild():
+      logging.debug('User build device, setting debug app')
+      self._adb.RunShellCommand('am set-debug-app --persistent %s' %
+                                self._backend_settings.package)
+
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
       # Escape 'key=valueA valueB' to 'key="valueA valueB"'
