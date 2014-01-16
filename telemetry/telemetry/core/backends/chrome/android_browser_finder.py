@@ -177,8 +177,9 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
     return []
 
   if len(devices) > 1:
-    logging.warn('Multiple devices attached. ' +
-                 'Please specify a device explicitly.')
+    logging.warn(
+        'Multiple devices attached. Please specify one of the following:\n' +
+        '\n'.join(['  --device=%s' % d for d in devices]))
     return []
 
   device = devices[0]
