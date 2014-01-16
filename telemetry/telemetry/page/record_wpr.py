@@ -44,9 +44,16 @@ class RecordPage(page_test.PageTest):
         for action in compound_action:
           action.CustomizeBrowserOptionsForPageSet(options)
 
-  def WillNavigateToPage(self, _, tab):
+  def WillNavigateToPage(self, page, tab):
     """Override to ensure all resources are fetched from network."""
     tab.ClearCache()
+    if self.test:
+      self.test.WillNavigateToPage(page, tab)
+
+  def DidNavigateToPage(self, page, tab):
+    """Forward the call to the test."""
+    if self.test:
+      self.test.DidNavigateToPage(page, tab)
 
   def Run(self, options, page, tab, results):
     # When recording, sleep to catch any resources that load post-onload.
