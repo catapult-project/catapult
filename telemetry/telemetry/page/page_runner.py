@@ -313,7 +313,7 @@ def Run(test, page_set, expectations, finder_options):
 
   for page in list(pages):
     if not test.CanRunForPage(page):
-      logging.warning('Skipping test: it cannot run for %s', page.url)
+      logging.debug('Skipping test: it cannot run for %s', page.url)
       results.AddSkip(page, 'Test cannot run')
       pages.remove(page)
 
