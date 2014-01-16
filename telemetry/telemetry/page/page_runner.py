@@ -38,7 +38,7 @@ class _RunState(object):
     self.repeat_state = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
-                   credentials_path, archive_path):
+                           credentials_path, archive_path):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:

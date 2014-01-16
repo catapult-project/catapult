@@ -68,8 +68,8 @@ class PageSet(object):
         all_serving_dirs.add(page.serving_dir)
     # Scan all serving dirs.
     for serving_dir in all_serving_dirs:
-      if serving_dir == '/':
-        raise ValueError('Trying to serve "/" from HTTP server.')
+      if os.path.splitdrive(serving_dir)[1] == '/':
+        raise ValueError('Trying to serve root directory from HTTP server.')
       for dirpath, _, filenames in os.walk(serving_dir):
         for filename in filenames:
           path, extension = os.path.splitext(
