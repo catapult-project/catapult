@@ -16,12 +16,21 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     {name: 'b', args: {}, pid: 52, ts: 54000, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
+  var monitoringOptions = {isMonitoring: false,
+                           categoryFilter: "*",
+                           useSystemTracing: false,
+                           useContinuousTracing: false,
+                           useSampling: false};
+
   var ProfilingView = about_tracing.ProfilingView;
 
   test('recording', function() {
 
     var mock = new about_tracing.MockRequestHandler();
     mock.allowLooping = true;
+    mock.expectRequest('GET', '/json/get_monitoring_status', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
     mock.expectRequest('GET', '/json/categories', function() {
       return JSON.stringify(['a', 'b', 'c']);
     });
@@ -32,8 +41,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       return JSON.stringify(testData);
     });
 
-    var view = new ProfilingView();
-    view.tracingRequestImpl = mock.tracingRequest.bind(mock);
+    var view = new ProfilingView(mock.tracingRequest.bind(mock));
     view.style.height = '400px';
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
@@ -58,6 +66,9 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
 
     var mock = new about_tracing.MockRequestHandler();
     mock.allowLooping = true;
+    mock.expectRequest('GET', '/json/get_monitoring_status', function() {
+      return btoa(JSON.stringify(monitoringOptions));
+    });
     mock.expectRequest('GET', '/json/begin_monitoring', function(data) {
       return '';
     });
@@ -68,8 +79,7 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       return '';
     });
 
-    var view = new ProfilingView();
-    view.tracingRequestImpl = mock.tracingRequest.bind(mock);
+    var view = new ProfilingView(mock.tracingRequest.bind(mock));
     view.style.height = '400px';
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
@@ -78,13 +88,17 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
       var buttons = view.querySelector('x-timeline-view-buttons');
       assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
 
-      var monitoringPromise = view.beginMonitoring();
-      // Since we don't fall back to TracingController when testing,
-      // we cannot rely on TracingController to invoke a callback to change
-      // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
-      view.isMonitoring_ = true;
+      function beginMonitoring() {
+        // Since we don't fall back to TracingController when testing,
+        // we cannot rely on TracingController to invoke a callback to change
+        // view.isMonitoring_. Thus we change view.isMonitoring_ manually.
+        view.onMonitoringStateChanged_(true);
+        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
+        setTimeout(captureMonitoring, 60);
+      }
 
       function captureMonitoring() {
+        assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
         buttons.querySelector('#capture-button').click();
         setTimeout(endMonitoring, 60);
       }
@@ -93,8 +107,9 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
         buttons.querySelector('#monitor-checkbox').click();
         assertEquals(buttons.querySelector('#monitor-checkbox').checked, false);
       }
-      assertEquals(buttons.querySelector('#monitor-checkbox').checked, true);
-      setTimeout(captureMonitoring, 60);
+
+      var monitoringPromise = view.beginMonitoring();
+      setTimeout(beginMonitoring, 60);
 
       monitoringPromise.then(
           resolver.resolve.bind(resolver),

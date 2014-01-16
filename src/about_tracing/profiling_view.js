@@ -57,7 +57,7 @@ base.exportTo('about_tracing', function() {
   ProfilingView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
-    decorate: function() {
+    decorate: function(tracingRequestImpl) {
       this.appendChild(base.instantiateTemplate('#profiling-view-template'));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
@@ -79,7 +79,8 @@ base.exportTo('about_tracing', function() {
 
       this.initDragAndDrop_();
 
-      this.tracingRequestImpl_ = about_tracing.tracingRequest;
+      this.tracingRequestImpl_ =
+        tracingRequestImpl || about_tracing.tracingRequest;
       this.isRecording_ = false;
       this.isMonitoring_ = false;
       this.activeTrace_ = undefined;
@@ -87,6 +88,8 @@ base.exportTo('about_tracing', function() {
       window.onMonitoringStateChanged = function (is_monitoring) {
         this.onMonitoringStateChanged_(is_monitoring);
       }.bind(this);
+
+      this.getMonitoringStatus();
     },
 
     // Detach all document event listeners. Without this the tests can get
@@ -118,26 +121,19 @@ base.exportTo('about_tracing', function() {
       buttons.querySelector('#monitor-checkbox').checked = false;
       var resultPromise = about_tracing.beginRecording(this.tracingRequestImpl_);
       resultPromise.then(
-          function(data) {
-            this.isRecording_ = false;
-            buttons.querySelector('#monitor-checkbox').disabled = false;
-            this.setActiveTrace('trace.json', data, false);
-          }.bind(this),
-          function(err) {
-            this.isRecording_ = false;
-            buttons.querySelector('#monitor-checkbox').disabled = false;
-            if (err instanceof about_tracing.UserCancelledError)
-              return;
-            ui.Overlay.showError('Error while recording', err);
-          }.bind(this));
+        function(data) {
+          this.isRecording_ = false;
+          buttons.querySelector('#monitor-checkbox').disabled = false;
+          this.setActiveTrace('trace.json', data, false);
+        }.bind(this),
+        function(err) {
+          this.isRecording_ = false;
+          buttons.querySelector('#monitor-checkbox').disabled = false;
+          if (err instanceof about_tracing.UserCancelledError)
+            return;
+          ui.Overlay.showError('Error while recording', err);
+        }.bind(this));
       return resultPromise;
-    },
-
-    checkMonitoringCheckbox_: function(enabled) {
-      var buttons = this.querySelector('x-timeline-view-buttons');
-      buttons.querySelector('#record-button').disabled = enabled;
-      buttons.querySelector('#capture-button').disabled = !enabled;
-      buttons.querySelector('#monitor-checkbox').checked = enabled;
     },
 
     beginMonitoring: function() {
@@ -146,18 +142,16 @@ base.exportTo('about_tracing', function() {
       if (this.isMonitoring_)
         throw new Error('Already monitoring');
       var buttons = this.querySelector('x-timeline-view-buttons');
-      this.checkMonitoringCheckbox_(true);
       var resultPromise =
         about_tracing.beginMonitoring(this.tracingRequestImpl_);
       resultPromise.then(
-          function(data) {
-          }.bind(this),
-          function(err) {
-            this.checkMonitoringCheckbox_(false);
-            if (err instanceof about_tracing.UserCancelledError)
-              return;
-            ui.Overlay.showError('Error while monitoring', err);
-          }.bind(this));
+        function() {
+        }.bind(this),
+        function(err) {
+          if (err instanceof about_tracing.UserCancelledError)
+            return;
+          ui.Overlay.showError('Error while monitoring', err);
+        }.bind(this));
       return resultPromise;
     },
 
@@ -167,17 +161,16 @@ base.exportTo('about_tracing', function() {
       if (!this.isMonitoring_)
         throw new Error('Monitoring is disabled');
       var buttons = this.querySelector('x-timeline-view-buttons');
-      this.checkMonitoringCheckbox_(false);
       var resultPromise =
         about_tracing.endMonitoring(this.tracingRequestImpl_);
       resultPromise.then(
-          function(data) {
-          }.bind(this),
-          function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
-              return;
-            ui.Overlay.showError('Error while monitoring', err);
-          }.bind(this));
+        function() {
+        }.bind(this),
+        function(err) {
+          if (err instanceof about_tracing.UserCancelledError)
+            return;
+          ui.Overlay.showError('Error while monitoring', err);
+        }.bind(this));
       return resultPromise;
     },
 
@@ -187,20 +180,38 @@ base.exportTo('about_tracing', function() {
       var resultPromise =
         about_tracing.captureMonitoring(this.tracingRequestImpl_);
       resultPromise.then(
-          function(data) {
-            this.setActiveTrace('trace.json', data, true);
-          }.bind(this),
-          function(err) {
-            if (err instanceof about_tracing.UserCancelledError)
-              return;
-            ui.Overlay.showError('Error while monitoring', err);
-          }.bind(this));
+        function(data) {
+          this.setActiveTrace('trace.json', data, true);
+        }.bind(this),
+        function(err) {
+          if (err instanceof about_tracing.UserCancelledError)
+            return;
+          ui.Overlay.showError('Error while monitoring', err);
+        }.bind(this));
+      return resultPromise;
+    },
+
+    getMonitoringStatus: function() {
+      var resultPromise =
+        about_tracing.getMonitoringStatus(this.tracingRequestImpl_);
+      resultPromise.then(
+        function(isMonitoring, categoryFilter, useSystemTracing,
+                 useContinuousTracing, useSampling) {
+          this.onMonitoringStateChanged_(isMonitoring);
+        }.bind(this),
+        function(err) {
+          if (err instanceof about_tracing.UserCancelledError)
+            return;
+          ui.Overlay.showError('Error while updating tracing states', err);
+        }.bind(this));
       return resultPromise;
     },
 
     onMonitoringStateChanged_: function(is_monitoring) {
       this.isMonitoring_ = is_monitoring;
       var buttons = this.querySelector('x-timeline-view-buttons');
+      buttons.querySelector('#record-button').disabled = is_monitoring;
+      buttons.querySelector('#capture-button').disabled = !is_monitoring;
       buttons.querySelector('#monitor-checkbox').checked = is_monitoring;
     },
 
@@ -259,10 +270,10 @@ base.exportTo('about_tracing', function() {
 
       buttons.querySelector('#monitor-checkbox').addEventListener(
           'click', function() {
-            if (buttons.querySelector('#monitor-checkbox').checked)
-              this.beginMonitoring();
-            else
+            if (this.isMonitoring_)
               this.endMonitoring();
+            else
+              this.beginMonitoring();
           }.bind(this));
 
       buttons.querySelector('#capture-button').addEventListener(

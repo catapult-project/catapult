@@ -51,7 +51,7 @@ base.exportTo('about_tracing', function() {
       function () {
         finalPromiseResolver.resolve();
       },
-      function () {
+      function (err) {
         finalPromiseResolver.reject(err);
       });
 
@@ -69,7 +69,7 @@ base.exportTo('about_tracing', function() {
       function () {
         finalPromiseResolver.resolve();
       },
-      function () {
+      function (err) {
         finalPromiseResolver.reject(err);
       });
 
@@ -95,6 +95,30 @@ base.exportTo('about_tracing', function() {
     function captureMonitoringRejected(err) {
       finalPromiseResolver.reject(err);
     }
+
+    return finalPromise;
+  }
+
+  function getMonitoringStatus(tracingRequest) {
+    var finalPromiseResolver;
+    var finalPromise = new Promise(function(resolver) {
+      finalPromiseResolver = resolver;
+    });
+
+    var getMonitoringStatusPromise =
+      tracingRequest('GET', '/json/get_monitoring_status');
+    getMonitoringStatusPromise.then(
+      function (monitoringOptionsBase64) {
+        var monitoringOptions = JSON.parse(atob(monitoringOptionsBase64));
+        finalPromiseResolver.resolve(monitoringOptions.isMonitoring,
+                                     monitoringOptions.categoryFilter,
+                                     monitoringOptions.useSystemTracing,
+                                     monitoringOptions.useContinuousTracing,
+                                     monitoringOptions.useSampling);
+      },
+      function (err) {
+        finalPromiseResolver.reject(err);
+      });
 
     return finalPromise;
   }
@@ -240,6 +264,7 @@ base.exportTo('about_tracing', function() {
     beginMonitoring: beginMonitoring,
     endMonitoring: endMonitoring,
     captureMonitoring: captureMonitoring,
+    getMonitoringStatus: getMonitoringStatus,
     UserCancelledError: UserCancelledError
   };
 });
