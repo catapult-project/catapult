@@ -77,6 +77,12 @@ Try rerunning this script under sudo or setting
     if self._is_android:
       print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
       print 'symbolized library matching the one on device.'
+      objdump_path = os.path.join(os.environ.get('ANDROID_TOOLCHAIN',
+                                                 '$ANDROID_TOOLCHAIN'),
+                                  'arm-linux-androideabi-objdump')
+      print 'If you have recent version of perf (3.10+), append the following '
+      print 'to see annotated source code (by pressing the \'a\' key): '
+      print '  --objdump %s' % objdump_path
       cmd += ' ' + ' '.join(self._PrepareAndroidSymfs())
     print 'To view the profile, run:'
     print ' ', cmd
