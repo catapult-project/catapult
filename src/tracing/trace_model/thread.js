@@ -172,7 +172,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     /**
-     * Determins whether this thread is empty. If true, it usually implies
+     * Determines whether this thread is empty. If true, it usually implies
      * that it should be pruned from the model.
      */
     get isEmpty() {

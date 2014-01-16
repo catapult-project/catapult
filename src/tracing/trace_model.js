@@ -88,7 +88,7 @@ base.exportTo('tracing', function() {
     },
 
     /**
-     * @return {Process} Gets a TimlineProcess for a specified pid or
+     * @return {Process} Gets a TimelineProcess for a specified pid or
      * creates one if it does not exist.
      */
     getOrCreateProcess: function(pid) {
@@ -219,7 +219,7 @@ base.exportTo('tracing', function() {
 
     /**
      * Imports the provided traces into the model. The eventData type
-     * is undefined and will be passed to all the  importers registered
+     * is undefined and will be passed to all the importers registered
      * via TraceModel.registerImporter. The first importer that returns true
      * for canImport(events) will be used to import the events.
      *

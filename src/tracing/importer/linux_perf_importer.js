@@ -195,7 +195,7 @@ base.exportTo('tracing.importer', function() {
   var pseudoKernelPID = 0;
 
   /**
-   * Deduce the format of trace data. Linix kernels prior to 3.3 used one
+   * Deduce the format of trace data. Linux kernels prior to 3.3 used one
    * format (by default); 3.4 and later used another.  Additionally, newer
    * kernels can optionally trace the TGID.
    *
@@ -300,7 +300,7 @@ base.exportTo('tracing.importer', function() {
     }
 
     // Last event ends differently. Strip that off too,
-    // treating absence of that trailing stirng as a failure.
+    // treating absence of that trailing string as a failure.
     var oldLastEvent = events[events.length - 1];
     var newLastEvent = stripSuffix(oldLastEvent, '\\n";');
     if (newLastEvent == oldLastEvent)
@@ -345,7 +345,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * @return {TimelinThread} A thread corresponding to the kernelThreadName.
+     * @return {TimelineThread} A thread corresponding to the kernelThreadName.
      */
     getOrCreateKernelThread: function(kernelThreadName, pid, tid) {
       if (!this.kernelThreadStates_[kernelThreadName]) {
@@ -363,7 +363,7 @@ base.exportTo('tracing.importer', function() {
     },
 
     /**
-     * @return {TimelinThread} A pseudo thread corresponding to the
+     * @return {TimelineThread} A pseudo thread corresponding to the
      * threadName.  Pseudo threads are for events that we want to break
      * out to a separate timeline but would not otherwise happen.
      * These threads are assigned to pseudoKernelPID and given a

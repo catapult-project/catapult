@@ -22,7 +22,7 @@ base.exportTo('tracing.trace_model', function() {
   };
 
   /**
-   * A Event is the base type for any non-container, selectable piece
+   * An Event is the base type for any non-container, selectable piece
    * of data in the trace model.
    *
    * @constructor

@@ -16,7 +16,7 @@ base.exportTo('tracing.trace_model', function() {
   var Slice = tracing.trace_model.Slice;
 
   /**
-   * A CpuSlice represents an slice of time on a CPU.
+   * A CpuSlice represents a slice of time on a CPU.
    *
    * @constructor
    */
@@ -169,7 +169,7 @@ base.exportTo('tracing.trace_model', function() {
 
   Cpu.prototype = {
     /**
-     * @return {TimlineCounter} The counter on this process named 'name',
+     * @return {TimelineCounter} The counter on this process named 'name',
      * creating it if it doesn't exist.
      */
     getOrCreateCounter: function(cat, name) {

@@ -19,7 +19,7 @@ base.exportTo('tracing.trace_model', function() {
   var Counter = tracing.trace_model.Counter;
 
   /**
-   * The ProcessBase is an partial base class, upon which Kernel
+   * The ProcessBase is a partial base class, upon which Kernel
    * and Process are built.
    *
    * @constructor
@@ -175,7 +175,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     /**
-     * @return {TimlineThread} The thread identified by tid on this process,
+     * @return {TimelineThread} The thread identified by tid on this process,
      * creating it if it doesn't exist.
      */
     getOrCreateThread: function(tid) {
@@ -185,7 +185,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     /**
-     * @return {TimlineCounter} The counter on this process named 'name',
+     * @return {TimelineCounter} The counter on this process named 'name',
      * creating it if it doesn't exist.
      */
     getOrCreateCounter: function(cat, name) {
