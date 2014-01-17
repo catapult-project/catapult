@@ -430,13 +430,19 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       util.WaitFor(self._StartupWindow, 20).Close()
     else:
       # Workaround for crbug.com/329271, crbug.com/334726.
-      try:
-        # Open a new window/tab.
-        tab = self.tab_list_backend.New(timeout=10)
-        tab.Navigate('about:blank', timeout=10)
-      except (exceptions.TabCrashException, util.TimeoutException):
-        logging.warn('TabCrashException in new tab creation/navigation')
-
+      retries = 3
+      while not len(self.tab_list_backend):
+        try:
+          # Open a new window/tab.
+          tab = self.tab_list_backend.New(timeout=30)
+          tab.Navigate('about:blank', timeout=10)
+        except (exceptions.TabCrashException, util.TimeoutException):
+          retries -= 1
+          logging.warn('TabCrashException/TimeoutException in '
+                       'new tab creation/navigation, '
+                       'remaining retries %d' % retries)
+          if not retries:
+            raise
 
 class SSHForwarder(object):
   def __init__(self, cri, forwarding_flag, *port_pairs):
