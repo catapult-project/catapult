@@ -151,7 +151,8 @@ base.exportTo('ui', function() {
 
     onClose_: function(e) {
       this.visible = false;
-      e.stopPropagation();
+      if (e.type != 'keydown')
+        e.stopPropagation();
       e.preventDefault();
       base.dispatchSimpleEvent(this, 'closeclick');
     },
@@ -186,8 +187,7 @@ base.exportTo('ui', function() {
       if (e.keyCode !== 27)  // escape
         return;
 
-      this.visible = false;
-      e.preventDefault();
+      this.onClose_(e);
     },
 
     onClick_: function(e) {
@@ -198,10 +198,7 @@ base.exportTo('ui', function() {
       if (!this.userCanClose_)
         return;
 
-      this.visible = false;
-      e.preventDefault();
-      e.stopPropagation();
-      base.dispatchSimpleEvent(this, 'closeclick');
+      this.onClose_(e);
     }
   };
 

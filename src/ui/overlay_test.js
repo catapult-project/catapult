@@ -21,7 +21,15 @@ base.unittest.testSuite('ui.overlay', function() {
 
   function makeButton(title) {
     var btn = document.createElement('button');
-    btn.textContent = 'close';
+    btn.textContent = title;
+    return btn;
+  }
+
+  function makeCloseButton(dlg) {
+    var btn = makeButton('close');
+    btn.addEventListener('click', function(e) {
+      dlg.onClose_(e);
+    });
     return btn;
   }
 
@@ -31,6 +39,7 @@ base.unittest.testSuite('ui.overlay', function() {
     dlg.title = 'ExampleOverlay';
     dlg.innerHTML = 'hello';
     dlg.leftButtons.appendChild(makeButton('i am a button'));
+    dlg.leftButtons.appendChild(makeCloseButton(dlg));
     dlg.rightButtons.appendChild(ui.createSpan({textContent: 'i am a span'}));
     addShowButtonForDialog.call(this, dlg);
   });
@@ -49,13 +58,7 @@ base.unittest.testSuite('ui.overlay', function() {
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
     dlg.innerHTML = 'This has no close X button.';
-
-    var btn = makeButton('close');
-    btn.addEventListener('click', function(e) {
-      dlg.visible = false;
-    });
-    dlg.leftButtons.appendChild(btn);
-
+    dlg.leftButtons.appendChild(makeCloseButton(dlg));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -91,4 +94,27 @@ base.unittest.testSuite('ui.overlay', function() {
     addShowButtonForDialog.call(this, dlg);
   });
 
+  test('closeclickEvent', function() {
+    var dlg = new ui.Overlay();
+    dlg.title = 'Test closeclick event';
+    var closeBtn = makeCloseButton(dlg);
+    dlg.leftButtons.appendChild(closeBtn);
+
+    var closeClicked = false;
+    dlg.addEventListener('closeclick', function() {
+      closeClicked = true;
+    });
+
+    return new Promise(function(resolver) {
+      function pressClose() {
+        closeBtn.click();
+        if (closeClicked)
+          resolver.resolve();
+        else
+          resolver.reject(new Error('closeclick event is not dispatched'));
+      }
+      dlg.visible = true;
+      setTimeout(pressClose, 60);
+    });
+  });
 });
