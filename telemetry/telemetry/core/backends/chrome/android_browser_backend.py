@@ -275,6 +275,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # If we have no existing tabs start with a blank page since default
       # startup with the NTP can lead to race conditions with Telemetry
       url = 'about:blank'
+    self._adb.Adb().DismissCrashDialogIfNeeded()
     self._adb.StartActivity(self._backend_settings.package,
                             self._backend_settings.activity,
                             True,
