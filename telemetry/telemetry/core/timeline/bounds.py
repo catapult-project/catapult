@@ -47,6 +47,15 @@ class Bounds(object):
   def center(self):
     return (self.min_ + self.max_) * 0.5
 
+  def Contains(self, other):
+    if self.is_empty or other.is_empty:
+      return False
+    return self.min <= other.min and self.max >= other.max
+
+  def Intersects(self, other):
+    if self.is_empty or other.is_empty:
+      return False
+    return not (other.max < self.min or other.min > self.max)
 
   def Reset(self):
     self.is_empty_ = True
