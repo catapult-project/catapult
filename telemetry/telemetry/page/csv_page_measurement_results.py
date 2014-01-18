@@ -54,20 +54,12 @@ class CsvPageMeasurementResults(
     current_page_value_names = set([
       value.name for value in self.page_specific_values_for_current_page])
     header_names_written_to_writer = set(self._header_names_written_to_writer)
-    if header_names_written_to_writer == current_page_value_names:
-      return
-    assert False, """To use CsvPageMeasurementResults, you must add the same
-result names for every page. In this case, first page output:
+    assert header_names_written_to_writer >= current_page_value_names, \
+        """To use CsvPageMeasurementResults, you must add the same
+result names for every page. In this case, the following extra results were
+added:
 %s
-
-Thus, all subsequent pages must output this as well. Instead, the current page
-output:
-%s
-
-Change your test to produce the same thing each time, or modify
-PageMeasurement.results_are_the_same_on_every_page to return False.
-""" % (repr(header_names_written_to_writer),
-       repr(current_page_value_names))
+""" % (current_page_value_names - header_names_written_to_writer)
 
   def _OutputHeader(self):
     assert not self._did_output_header

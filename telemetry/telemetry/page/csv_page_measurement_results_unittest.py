@@ -77,6 +77,31 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.WillMeasurePage(self._page_set[1])
     results.DidMeasurePage()
 
+  def test_fewer_results_on_second_run(self):
+    results = NonPrintingCsvPageMeasurementResults(self._output, True)
+    results.WillMeasurePage(self._page_set[0])
+    results.Add('foo', 'seconds', 3)
+    results.Add('bar', 'seconds', 4)
+    results.DidMeasurePage()
+
+    results.WillMeasurePage(self._page_set[1])
+    results.Add('bar', 'seconds', 5)
+    results.DidMeasurePage()
+
+  def test_more_results_on_second_run(self):
+    results = NonPrintingCsvPageMeasurementResults(self._output, True)
+    results.WillMeasurePage(self._page_set[0])
+    results.Add('foo', 'seconds', 3)
+    results.DidMeasurePage()
+
+    results.WillMeasurePage(self._page_set[1])
+    results.Add('foo', 'seconds', 4)
+    results.Add('bar', 'seconds', 5)
+
+    self.assertRaises(
+        Exception,
+        lambda: results.DidMeasurePage()) # pylint: disable=W0108
+
   def test_with_output_after_every_page_and_inconsistency(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, True)
     results.WillMeasurePage(self._page_set[0])
@@ -88,8 +113,8 @@ class CsvPageMeasurementResultsTest(unittest.TestCase):
     results.Add('bar', 'seconds', 4)
 
     self.assertRaises(
-      Exception,
-      lambda: results.DidMeasurePage()) # pylint: disable=W0108
+        Exception,
+        lambda: results.DidMeasurePage()) # pylint: disable=W0108
 
   def test_with_output_at_print_summary_time(self):
     results = NonPrintingCsvPageMeasurementResults(self._output, False)
