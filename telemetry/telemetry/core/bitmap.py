@@ -1,8 +1,18 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+"""
+Bitmap is a basic wrapper for image pixels. It includes some basic processing
+tools: crop, find bounding box of a color and compute histogram of color values.
+"""
+
+import array
 import base64
 import cStringIO
+import struct
+import subprocess
+import sys
 
 from telemetry.core import util
 
@@ -43,6 +53,62 @@ WEB_PAGE_TEST_ORANGE = RgbaColor(222, 100,  13)
 WHITE =                RgbaColor(255, 255, 255)
 
 
+class _BitmapTools(object):
+  """Wraps a child process of bitmaptools and allows for one command."""
+  CROP_PIXELS = 0
+  HISTOGRAM = 1
+  BOUNDING_BOX = 2
+
+  def __init__(self, dimensions, pixels):
+    suffix = '.exe' if sys.platform == 'win32' else ''
+    binary = util.FindSupportBinary('bitmaptools' + suffix)
+    assert binary, 'You must build bitmaptools first!'
+
+    self._popen = subprocess.Popen([binary],
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+
+    # dimensions are: bpp, width, height, boxleft, boxtop, boxwidth, boxheight
+    packed_dims = struct.pack('iiiiiii', *dimensions)
+    self._popen.stdin.write(packed_dims)
+    # If we got a list of ints, we need to convert it into a byte buffer.
+    if type(pixels) is not bytearray:
+      pixels = bytearray(pixels)
+    self._popen.stdin.write(pixels)
+
+  def _RunCommand(self, *command):
+    assert not self._popen.stdin.closed, (
+      'Exactly one command allowed per instance of tools.')
+    packed_command = struct.pack('i' * len(command), *command)
+    self._popen.stdin.write(packed_command)
+    self._popen.stdin.close()
+    length_packed = self._popen.stdout.read(struct.calcsize('i'))
+    if not length_packed:
+      raise Exception(self._popen.stderr.read())
+    length = struct.unpack('i', length_packed)[0]
+    return self._popen.stdout.read(length)
+
+  def CropPixels(self):
+    return self._RunCommand(_BitmapTools.CROP_PIXELS)
+
+  def Histogram(self, ignore_color, tolerance):
+    ignore_color = -1 if ignore_color is None else int(ignore_color)
+    response = self._RunCommand(_BitmapTools.HISTOGRAM, ignore_color, tolerance)
+    out = array.array('i')
+    out.fromstring(response)
+    return out
+
+  def BoundingBox(self, color, tolerance):
+    response = self._RunCommand(_BitmapTools.BOUNDING_BOX, int(color),
+                                tolerance)
+    unpacked = struct.unpack('iiiii', response)
+    box, count = unpacked[:4], unpacked[-1]
+    if box[2] < 0 or box[3] < 0:
+      box = None
+    return box, count
+
+
 class Bitmap(object):
   """Utilities for parsing and inspecting a bitmap."""
 
@@ -58,6 +124,7 @@ class Bitmap(object):
     self._height = height
     self._pixels = pixels
     self._metadata = metadata or {}
+    self._crop_box = None
 
   @property
   def bpp(self):
@@ -67,16 +134,27 @@ class Bitmap(object):
   @property
   def width(self):
     """Width of the bitmap."""
-    return self._width
+    return self._crop_box[2] if self._crop_box else self._width
 
   @property
   def height(self):
     """Height of the bitmap."""
-    return self._height
+    return self._crop_box[3] if self._crop_box else self._height
+
+  def _PrepareTools(self):
+    """Prepares an instance of _BitmapTools which allows exactly one command.
+    """
+    crop_box = self._crop_box or (0, 0, self._width, self._height)
+    return _BitmapTools((self._bpp, self._width, self._height) + crop_box,
+                        self._pixels)
 
   @property
   def pixels(self):
     """Flat pixel array of the bitmap."""
+    if self._crop_box:
+      self._pixels = self._PrepareTools().CropPixels()
+      _, _, self._width, self._height = self._crop_box
+      self._crop_box = None
     if type(self._pixels) is not bytearray:
       self._pixels = bytearray(self._pixels)
     return self._pixels
@@ -90,12 +168,13 @@ class Bitmap(object):
 
   def GetPixelColor(self, x, y):
     """Returns a RgbaColor for the pixel at (x, y)."""
+    pixels = self.pixels
     base = self._bpp * (y * self._width + x)
     if self._bpp == 4:
-      return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
-                       self._pixels[base + 2], self._pixels[base + 3])
-    return RgbaColor(self._pixels[base + 0], self._pixels[base + 1],
-                     self._pixels[base + 2])
+      return RgbaColor(pixels[base + 0], pixels[base + 1],
+                       pixels[base + 2], pixels[base + 3])
+    return RgbaColor(pixels[base + 0], pixels[base + 1],
+                     pixels[base + 2])
 
   def WritePngFile(self, path):
     with open(path, "wb") as f:
@@ -179,49 +258,19 @@ class Bitmap(object):
     """Finds the minimum box surrounding all occurences of |color|.
     Returns: (top, left, width, height), match_count
     Ignores the alpha channel."""
-    # TODO(szym): Implement this.
-    raise NotImplementedError("GetBoundingBox not yet implemented.")
+    return self._PrepareTools().BoundingBox(color, tolerance)
 
   def Crop(self, left, top, width, height):
-    """Crops the current bitmap down to the specified box.
-    TODO(szym): Make this O(1).
-    """
+    """Crops the current bitmap down to the specified box."""
+    cur_box = self._crop_box or (0, 0, self._width, self._height)
+    cur_left, cur_top, cur_width, cur_height = cur_box
+
     if (left < 0 or top < 0 or
-        (left + width) > self.width or
-        (top + height) > self.height):
+        (left + width) > cur_width or
+        (top + height) > cur_height):
       raise ValueError('Invalid dimensions')
 
-    img_data = [[0 for x in xrange(width * self.bpp)]
-                for y in xrange(height)]
-
-    # Copy each pixel in the sub-rect.
-    # TODO(tonyg): Make this faster by avoiding the copy and artificially
-    # restricting the dimensions.
-    for y in range(height):
-      for x in range(width):
-        c = self.GetPixelColor(x + left, y + top)
-        offset = x * self.bpp
-        img_data[y][offset] = c.r
-        img_data[y][offset + 1] = c.g
-        img_data[y][offset + 2] = c.b
-        if self.bpp == 4:
-          img_data[y][offset + 3] = c.a
-
-    # This particular method can only save to a file, so the result will be
-    # written into an in-memory buffer and read back into a Bitmap
-    crop_img = png.from_array(img_data, mode='RGBA' if self.bpp == 4 else 'RGB')
-    output = cStringIO.StringIO()
-    try:
-      crop_img.save(output)
-      width, height, pixels, meta = png.Reader(
-          bytes=output.getvalue()).read_flat()
-      self._width = width
-      self._height = height
-      self._pixels = pixels
-      self._metadata = meta
-    finally:
-      output.close()
-
+    self._crop_box = cur_left + left, cur_top + top, width, height
     return self
 
   def ColorHistogram(self, ignore_color=None, tolerance=0):
@@ -234,5 +283,4 @@ class Bitmap(object):
       A list of 3x256 integers formatted as
       [r0, r1, ..., g0, g1, ..., b0, b1, ...].
     """
-    # TODO(szym): Implement this.
-    raise NotImplementedError("ColorHistogram not yet implemented.")
+    return self._PrepareTools().Histogram(ignore_color, tolerance)
