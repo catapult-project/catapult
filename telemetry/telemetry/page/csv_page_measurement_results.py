@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import copy
 import csv
 
 from telemetry.page import page_measurement_results
@@ -15,6 +16,17 @@ class CsvPageMeasurementResults(
     self._did_output_header = False
     self._header_names_written_to_writer = None
     self._output_after_every_page = output_after_every_page
+
+  def __deepcopy__(self, memo):
+    cls = self.__class__
+    result = cls.__new__(cls)
+    memo[id(self)] = result
+    for k, v in self.__dict__.items():
+      if k in ['_output_stream', '_results_writer']:
+        setattr(result, k, v)
+      else:
+        setattr(result, k, copy.deepcopy(v, memo))
+    return result
 
   def DidMeasurePage(self):
     try:
