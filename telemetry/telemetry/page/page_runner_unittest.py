@@ -131,7 +131,7 @@ class PageRunnerTests(unittest.TestCase):
 
     self.assertEquals(1, len(results.successes))
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(0, len(results.errors))
+    self.assertEquals(1, len(results.errors))
 
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
