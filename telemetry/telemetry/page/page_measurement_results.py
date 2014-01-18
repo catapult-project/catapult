@@ -7,8 +7,8 @@ from telemetry.page import page_test_results
 from telemetry.value import value_backcompat
 
 class PageMeasurementResults(page_test_results.PageTestResults):
-  def __init__(self, trace_tag=''):
-    super(PageMeasurementResults, self).__init__()
+  def __init__(self, output_stream=None, trace_tag=''):
+    super(PageMeasurementResults, self).__init__(output_stream)
     self._done = False
     self._trace_tag = trace_tag
 

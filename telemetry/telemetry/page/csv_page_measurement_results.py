@@ -9,8 +9,7 @@ from telemetry.value import merge_values
 class CsvPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
   def __init__(self, output_stream, output_after_every_page=None):
-    super(CsvPageMeasurementResults, self).__init__()
-    self._output_stream = output_stream
+    super(CsvPageMeasurementResults, self).__init__(output_stream)
     self._results_writer = csv.writer(self._output_stream)
     self._did_output_header = False
     self._header_names_written_to_writer = None

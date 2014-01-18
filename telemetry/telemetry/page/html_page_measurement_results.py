@@ -30,9 +30,7 @@ class HtmlPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
   def __init__(self, output_stream, test_name, reset_results, upload_results,
       browser_type, results_label=None, trace_tag=''):
-    super(HtmlPageMeasurementResults, self).__init__(trace_tag)
-
-    self._output_stream = output_stream
+    super(HtmlPageMeasurementResults, self).__init__(output_stream, trace_tag)
     self._test_name = test_name
     self._reset_results = reset_results
     self._upload_results = upload_results

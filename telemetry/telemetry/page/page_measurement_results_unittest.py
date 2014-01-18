@@ -126,13 +126,15 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.PrintSummary()
     self.assertEquals(results.results, [])
 
-  def test_get_succesful_page_values_merged_no_failures(self):
+  def test_get_successful_page_values_merged_no_failures(self):
     results = SummarySavingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
     results.Add('a', 'seconds', 3)
     self.assertEquals(1, len(results.page_specific_values_for_current_page))
     results.DidMeasurePage()
-    self.assertRaises(lambda: results.page_specific_values_for_current_page)
+    self.assertRaises(
+        AssertionError,
+        lambda: results.page_specific_values_for_current_page)
 
   def test_get_all_values_for_successful_pages(self):
     results = SummarySavingPageMeasurementResults()

@@ -65,17 +65,16 @@ def PrepareResults(test, options):
 
   if options.output_format == 'none':
     return page_measurement_results.PageMeasurementResults(
-        trace_tag=options.output_trace_tag)
+        output_stream, trace_tag=options.output_trace_tag)
   elif options.output_format == 'csv':
     return csv_page_measurement_results.CsvPageMeasurementResults(
-      output_stream,
-      test.results_are_the_same_on_every_page)
+      output_stream, test.results_are_the_same_on_every_page)
   elif options.output_format == 'block':
     return block_page_measurement_results.BlockPageMeasurementResults(
       output_stream)
   elif options.output_format == 'buildbot':
     return buildbot_page_measurement_results.BuildbotPageMeasurementResults(
-        trace_tag=options.output_trace_tag)
+        output_stream, trace_tag=options.output_trace_tag)
   elif options.output_format == 'gtest':
     return gtest_test_results.GTestTestResults(output_stream)
   elif options.output_format == 'html':
