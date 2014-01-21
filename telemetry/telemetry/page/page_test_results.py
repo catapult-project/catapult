@@ -2,31 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import copy
 import logging
 import sys
 import traceback
 import unittest
 
 class PageTestResults(unittest.TestResult):
-  def __init__(self, output_stream=None):
+  def __init__(self):
     super(PageTestResults, self).__init__()
-    self._output_stream = output_stream
     self.pages_that_had_errors = set()
     self.pages_that_had_failures = set()
     self.successes = []
     self.skipped = []
-
-  def __deepcopy__(self, memo):
-    cls = self.__class__
-    result = cls.__new__(cls)
-    memo[id(self)] = result
-    for k, v in self.__dict__.items():
-      if k in ['_output_stream', '_results_writer']:
-        setattr(result, k, v)
-      else:
-        setattr(result, k, copy.deepcopy(v, memo))
-    return result
 
   @property
   def pages_that_had_errors_or_failures(self):
