@@ -5,14 +5,29 @@
 import re
 from HTMLParser import HTMLParser
 
-class ModuleHTMLParser(HTMLParser):
-  def __init__(self, module):
-    HTMLParser.__init__(self)
-    self.module = module
+class HTMLModuleParserResults(object):
+  def __init__(self):
+    self.scripts_external = []
+    self.scripts_inline = []
+    self.stylesheets = []
+    self.imports = []
 
+class HTMLModuleParser(HTMLParser):
+  def __init__(self):
+    HTMLParser.__init__(self)
+    self.current_results = None
     self.current_script = ""
     self.in_script = False
     self.in_style = False
+
+  def Parse(self, html):
+    results = HTMLModuleParserResults()
+    if html is None or len(html) == 0:
+      return results
+    self.current_results = results
+    self.feed(html)
+    self.current_results = None
+    return results
 
   def handle_starttag(self, tag, attrs):
     if tag == 'link':
@@ -28,14 +43,14 @@ class ModuleHTMLParser(HTMLParser):
           href = attr[1]
 
       if is_stylesheet:
-        self.module.stylesheets.append(href)
+        self.current_results.stylesheets.append(href)
       elif is_import:
-        self.module.imports.append(href)
+        self.current_results.imports.append(href)
 
     elif tag == 'script':
       for attr in attrs:
         if attr[0] == 'src':
-          self.module.scripts_external.append(attr[1])
+          self.current_results.scripts_external.append(attr[1])
           return
       self.in_script = True
 
@@ -44,7 +59,7 @@ class ModuleHTMLParser(HTMLParser):
 
   def handle_endtag(self, tag):
     if tag == 'script' and self.in_script:
-      self.module.scripts_inline.append(self.current_script)
+      self.current_results.scripts_inline.append(self.current_script)
       self.current_script = ""
       self.in_script = False
 
@@ -58,19 +73,4 @@ class ModuleHTMLParser(HTMLParser):
       result = re.match(r"\s*@import url\(([^\)]*)\)", data,
                         flags=re.IGNORECASE)
       if result:
-        self.module.stylesheets.append(result.group(1))
-
-
-class Module(object):
-  def __init__(self):
-    self.scripts_external = []
-    self.scripts_inline = []
-    self.stylesheets = []
-    self.imports = []
-
-  def parse(self, html):
-    if html is None or len(html) == 0:
-      return
-
-    parser = ModuleHTMLParser(self)
-    parser.feed(html)
+        self.current_results.stylesheets.append(result.group(1))

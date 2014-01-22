@@ -10,16 +10,16 @@ import re
 
 class ParseTests(unittest.TestCase):
   def test_parse_empty(self):
-    module = parse_html_deps.Module()
-    module.parse("")
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse("")
     self.assertEquals([], module.scripts_external)
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
     self.assertEquals([], module.imports)
 
   def test_parse_none(self):
-    module = parse_html_deps.Module()
-    module.parse(None)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(None)
     self.assertEquals([], module.scripts_external)
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
@@ -35,8 +35,8 @@ class ParseTests(unittest.TestCase):
                 <body>
                 </body>
               </html>"""
-    module = parse_html_deps.Module()
-    module.parse(html)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
     self.assertEquals(['polymer.min.js', 'foo.js'], module.scripts_external);
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
@@ -51,8 +51,8 @@ class ParseTests(unittest.TestCase):
                 <body>
                 </body>
               </html>"""
-    module = parse_html_deps.Module()
-    module.parse(html)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
     self.assertEquals([], module.scripts_inline)
     self.assertEquals([], module.stylesheets)
@@ -68,8 +68,8 @@ class ParseTests(unittest.TestCase):
                 </script>
               </polymer-element>"""
 
-    module = parse_html_deps.Module()
-    module.parse(html)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
     self.assertEquals(1, len(module.scripts_inline))
     self.assertEquals([], module.stylesheets)
@@ -81,28 +81,28 @@ class ParseTests(unittest.TestCase):
     self.assertEquals(inner_script, val)
 
   def test_parse_link_rel_stylesheet(self):
-    html = """<polymer-element ...>
+    html = """<polymer-element name="hi">
                 <template>
                   <link rel="stylesheet" href="frameworkstyles.css">
                 </template>
               </polymer-element>"""
-    module = parse_html_deps.Module()
-    module.parse(html)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
     self.assertEquals([], module.scripts_inline)
     self.assertEquals(['frameworkstyles.css'], module.stylesheets)
     self.assertEquals([], module.imports)
 
   def test_parse_style_import(self):
-    html = """<polymer-element name="x-blink" ...>
+    html = """<polymer-element name="x-blink">
                 <template>
                   <style>
                     @import url(awesome.css);
                   </style>
                 </template>
               </polymer-element>"""
-    module = parse_html_deps.Module()
-    module.parse(html)
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
     self.assertEquals([], module.scripts_external);
     self.assertEquals([], module.scripts_inline)
     self.assertEquals(['awesome.css'], module.stylesheets)
