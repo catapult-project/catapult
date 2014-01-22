@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-import build # Brings in tvcm bindings.
 import sys
-
 import tvcm
+
 from tvcm import test_runner
 
 if __name__ == '__main__':
   runner = test_runner.TestRunner()
-  runner.AddModule(build)
   runner.AddModule(tvcm)
   sys.exit(runner.Main())
