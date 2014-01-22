@@ -6,8 +6,10 @@
 
 import unittest
 
+from tvcm import fake_fs
 from tvcm import module
 from tvcm import strip_js_comments
+from tvcm import resource_finder
 
 X_CONTENTS = """
 'use strict';
@@ -239,6 +241,32 @@ class ParseDefinitionTests(unittest.TestCase):
     self.assertEquals(['foo.dependency1'],
                       my_module.dependent_module_names)
 
+
+class FullModuleTest(unittest.TestCase):
+  def testBasic(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/src/my_module.js', """
+'use strict';
+base.require('base.foo');
+base.exportTo('foo', function() {
+});
+""")
+    fs.AddFile('/x/base/foo.js', """
+'use strict';
+base.require('base.foo');
+base.exportTo('foo', function() {
+});
+""");
+    finder = resource_finder.ResourceFinder(['/x'])
+    all_resources = {}
+    all_resources['scripts'] = {}
+    with fs:
+      my_module = module.Module('src.my_module')
+      all_resources['scripts']['src.my_module'] = my_module
+      my_module.load_and_parse('/x/src/my_module.js', decl_required=True)
+      my_module.resolve(all_resources, finder)
+      assert my_module.dependent_module_names == ['base.foo']
+      assert my_module.dependent_modules[0].name == 'base.foo'
 
 if __name__ == '__main__':
   unittest.main()

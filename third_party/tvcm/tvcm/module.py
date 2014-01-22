@@ -80,7 +80,7 @@ class Module(object):
     self.filename = module_filename
     if self.filename.endswith('html'):
       # ... parse_as_html() using parse_html_deps.py
-      pass
+      raise NotImplementedError()
     else:
       stripped_text = strip_js_comments.strip_js_comments(self.contents)
       self._validate_uses_strict_mode(stripped_text)
