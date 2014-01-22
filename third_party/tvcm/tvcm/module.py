@@ -37,9 +37,11 @@ class Module(object):
   In addition to these properties, a Module also contains lists of other
   resources that it depends on.
   """
-  def __init__(self, name=None):
+  def __init__(self, loader, name, filename):
+    assert isinstance(name, basestring), 'Got %s instead' % repr(name)
+    self.loader = loader
     self.name = name
-    self.filename = None
+    self.filename = filename
     self.contents = None
 
     self.dependent_module_names = []
@@ -56,37 +58,18 @@ class Module(object):
     return 'Module(%s)' % self.name
 
   @staticmethod
-  def relative_filename_to_module_name(relative_path):
-    dirname = os.path.dirname(relative_path)
-    modname  = os.path.splitext(os.path.basename(relative_path))[0]
-    if len(dirname):
-      name = dirname.replace(os.path.sep, '.') + '.' + modname
-    else:
-      name = modname
-    return name
-
-  @staticmethod
   def html_contents_is_polymer_module(contents):
     return '<polymer-component>' in contents
 
-  def load_and_parse(self, module_filename,
-                     module_contents=None):
-    """Load a module's contents and read the base.require statements.
-
-    Args:
-      module_filename: The path to the module file.
-      module_contents: If specified, this is used and the file isn't read.
+  def parse(self):
+    """Parse a module's contents and read the base.require statements.
 
     Raises:
       IOError: There is some error reading the module's contents.
     """
-    if not module_contents:
-      f = open(module_filename, 'r')
-      self.contents = f.read()
-      f.close()
-    else:
-      self.contents = module_contents
-    self.filename = module_filename
+    f = open(self.filename, 'r')
+    self.contents = f.read()
+    f.close()
     if self.filename.endswith('html'):
       # ... parse_as_html() using parse_html_deps.py
       raise NotImplementedError()
@@ -95,15 +78,8 @@ class Module(object):
       self._validate_uses_strict_mode(stripped_text)
       self._parse_definition(stripped_text)
 
-  def register(self, loader):
-    assert self.name not in loader.loaded_scripts
-    loader.loaded_scripts[self.name] = self
-
-  def resolve(self, loader):
-    """Populates the lists of resources that this module depends on.
-
-    Args:
-      loader: An instance of ResourceLoader.
+  def load(self):
+    """Loads the sub-resources that this module depends on.
 
     Raises:
       DepsException: There was a problem finding one of the dependencies.
@@ -111,71 +87,22 @@ class Module(object):
     """
     assert self.name, 'Module name must be set before dep resolution.'
     assert self.filename, 'Module filename must be set before dep resolution.'
-    assert self.name in loader.loaded_scripts, 'Module must be registered in resource loader before resolution'
+    assert self.name in self.loader.loaded_scripts, 'Module must be registered in resource loader before loading.'
 
-    # Load modules that this module depends on.
     for name in self.dependent_module_names:
-      # If a module with this name has already been resolved, skip it.
-      if name in loader.loaded_scripts:
-        assert loader.loaded_scripts[name].contents
-        self.dependent_modules.append(loader.loaded_scripts[name])
-        continue
-
-      filename, contents = loader.find_and_load_module(name)
-      if not filename:
-        raise DepsException('No file for module %(name)s needed by %(dep)s' %
-          {'name': name, 'dep': self.filename})
-
-      module = Module(name)
-      module.register(loader)
+      module = self.loader.load_module(module_name=name, context=self.name)
       self.dependent_modules.append(module)
-      try:
-        module.load_and_parse(filename, contents)
-      except Exception, e:
-        raise Exception('While processing ' + filename + ': ' + e.message)
-      module.resolve(loader)
 
     for relative_raw_script_path in self.dependent_raw_script_relative_paths:
-      filename, contents = loader.find_and_load_raw_script(relative_raw_script_path)
-      if not filename:
-        raise DepsException('Could not find a file for raw script %s' % relative_raw_script_path)
-
-      if filename in loader.loaded_raw_scripts:
-        assert loader.loaded_raw_scripts[filename].contents
-        self.dependent_raw_scripts.append(loader.loaded_raw_scripts[filename])
-        continue
-
-      raw_script = RawScript(filename, contents)
-      raw_script.register(loader)
+      raw_script = self.loader.load_raw_script(relative_raw_script_path)
       self.dependent_raw_scripts.append(raw_script)
 
     for name in self.style_sheet_names:
-      if name in loader.loaded_style_sheets:
-        assert loader.loaded_style_sheets[name].contents
-        self.style_sheets.append(loader.loaded_style_sheets[name])
-        continue
-
-      filename, contents = loader.find_and_load_style_sheet(name)
-      if not filename:
-        raise DepsException('Could not find a file for stylesheet %s' % name)
-
-      style_sheet = StyleSheet(name, filename, contents)
-      loader.loaded_style_sheets[name] = style_sheet
+      style_sheet = self.loader.load_style_sheet(name)
       self.style_sheets.append(style_sheet)
 
     for name in self.html_template_names:
-      if name in loader.loaded_html_templates:
-        assert loader.loaded_html_templates[name].contents
-        self.html_templates.append(loader.loaded_html_templates[name])
-        continue
-
-      filename, contents = loader.find_and_load_html_template(name)
-      if not filename:
-        raise DepsException(
-            'Could not find a file for html template named %s' % name)
-
-      html_template = HTMLTemplate(name, filename, contents)
-      loader.loaded_html_templates[name] = html_template
+      html_template = self.loader.load_html_template(name)
       self.html_templates.append(html_template)
 
   def compute_load_sequence_recursive(self, load_sequence, already_loaded_set,
@@ -316,10 +243,6 @@ class RawScript(object):
   def __init__(self, filename, contents):
     self.filename = filename
     self.contents = contents
-
-  def register(self, loader):
-    assert self.filename not in loader.loaded_raw_scripts
-    loader.loaded_raw_scripts[self.filename] = self
 
   def __repr__(self):
     return "RawScript(%s)" % self.filename

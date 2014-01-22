@@ -11,7 +11,7 @@ import traceback
 import base64
 from tvcm import parse_deps
 from tvcm import generate
-from tvcm import module
+from tvcm import resource_loader
 
 import SocketServer
 import SimpleHTTPServer
@@ -118,7 +118,7 @@ def do_GET_json_tests(self):
         y = os.path.join(mapping.mapped_path, os.path.relpath(x, mapping.file_system_path))
         if is_test(y):
           assert y[0] == '/'
-          module_name = module.Module.relative_filename_to_module_name(
+          module_name = resource_loader.Resource.name_from_relative_path(
               y[1:])
           test_module_names.append(module_name)
 

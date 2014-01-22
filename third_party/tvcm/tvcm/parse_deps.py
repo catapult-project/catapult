@@ -67,21 +67,9 @@ def calc_load_sequence_internal(filenames, search_paths, data_paths):
   loader = resource_loader.ResourceLoader(search_paths, data_paths)
   initial_module_name_indices = {}
   for filename in filenames:
-    resolved = loader.resolve(filename)
-    if not resolved:
-      raise Exception('Could not find %s in %s' % (
-          filename, repr(loader.search_paths)))
-
-    name = module.Module.relative_filename_to_module_name(
-        resolved.relative_path)
-    if name in loader.loaded_scripts:
-      continue
-
-    m = module.Module(name)
-    initial_module_name_indices[m.name] = len(initial_module_name_indices)
-    m.load_and_parse(resolved.absolute_path)
-    m.register(loader)
-    m.resolve(loader)
+    m = loader.load_module(module_filename=filename)
+    if m.name not in initial_module_name_indices:
+      initial_module_name_indices[m.name] = len(initial_module_name_indices)
 
   # Find the root modules: ones that have no dependencies. While doing that,
   # sort the dependent module list so that the computed load order is stable.
