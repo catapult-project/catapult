@@ -159,6 +159,68 @@ class Platform(object):
     for t in self._platform_backend.StopVideoCapture():
       yield t
 
+  def CanMonitorPowerSync(self):
+    """Returns True iff power can be monitored synchronously via
+    MonitorPowerSync().
+    """
+    return self._platform_backend.CanMonitorPowerSync()
+
+  def MonitorPowerSync(self, duration_ms):
+    """Synchronously monitors power for |duration_ms|.
+
+    Returns:
+      A dict of power utilization statistics containing: {
+        # The instantaneous power (voltage * current) reading in milliwatts at
+        # each sample.
+        'power_samples_mw': [mw0, mw1, ..., mwN],
+
+        # The total energy consumption during the sampling period in milliwatt
+        # hours. May be estimated by integrating power samples or may be exact
+        # on supported hardware.
+        'energy_consumption_mwh': mwh,
+
+        # A platform-specific dictionary of additional details about the
+        # utilization of individual hardware components.
+        hw_component_utilization: {
+           ...
+        }
+      }
+    """
+    return self._platform_backend.MonitorPowerSync(duration_ms)
+
+  def CanMonitorPowerAsync(self):
+    """Returns True iff power can be monitored asynchronously via
+    StartMonitoringPowerAsync() and StopMonitoringPowerAsync().
+    """
+    return self._platform_backend.CanMonitorPowerAsync()
+
+  def StartMonitoringPowerAsync(self):
+    """Starts monitoring power utilization statistics."""
+    self._platform_backend.StartMonitoringPowerAsync()
+
+  def StopMonitoringPowerAsync(self):
+    """Stops monitoring power utilization and returns collects stats
+
+    Returns:
+      A dict of power utilization statistics containing: {
+        # The instantaneous power (voltage * current) reading in milliwatts at
+        # each sample.
+        'power_samples_mw':  [mw0, mw1, ..., mwN],
+
+        # The total energy consumption during the sampling period in milliwatt
+        # hours. May be estimated by integrating power samples or may be exact
+        # on supported hardware.
+        'energy_consumption_mwh': mwh,
+
+        # A platform-specific dictionary of additional details about the
+        # utilization of individual hardware components.
+        hw_component_utilization: {
+           ...
+        }
+      }
+    """
+    return self._platform_backend.StopMonitoringPowerAsync()
+
 
 def CreatePlatformBackendForCurrentOS():
   if sys.platform.startswith('linux'):

@@ -2,11 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import time
+
+# pylint: disable=W0613
+
 class PlatformBackend(object):
   def IsRawDisplayFrameRateSupported(self):
     return False
 
-  # pylint: disable=W0613
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
 
@@ -16,7 +19,7 @@ class PlatformBackend(object):
   def GetRawDisplayFrameRateMeasurements(self):
     raise NotImplementedError()
 
-  def SetFullPerformanceModeEnabled(self, enabled):  # pylint: disable=W0613
+  def SetFullPerformanceModeEnabled(self, enabled):
     pass
 
   def CanMonitorThermalThrottling(self):
@@ -31,22 +34,22 @@ class PlatformBackend(object):
   def GetSystemCommitCharge(self):
     raise NotImplementedError()
 
-  def GetCpuStats(self, pid):  # pylint: disable=W0613
+  def GetCpuStats(self, pid):
     return {}
 
-  def GetCpuTimestamp(self):  # pylint: disable=W0613
+  def GetCpuTimestamp(self):
     return {}
 
-  def PurgeUnpinnedMemory(self):  # pylint: disable=W0613
+  def PurgeUnpinnedMemory(self):
     pass
 
-  def GetMemoryStats(self, pid):  # pylint: disable=W0613
+  def GetMemoryStats(self, pid):
     return {}
 
-  def GetIOStats(self, pid):  # pylint: disable=W0613
+  def GetIOStats(self, pid):
     return {}
 
-  def GetChildPids(self, pid):  # pylint: disable=W0613
+  def GetChildPids(self, pid):
     raise NotImplementedError()
 
   def GetCommandLine(self, pid):
@@ -86,4 +89,21 @@ class PlatformBackend(object):
     raise NotImplementedError()
 
   def StopVideoCapture(self):
+    raise NotImplementedError()
+
+  def CanMonitorPowerSync(self):
+    return self.CanMonitorPowerAsync()
+
+  def MonitorPowerSync(self, duration_ms):
+    self.StartMonitoringPowerAsync()
+    time.sleep(duration_ms / 1000.)
+    return self.StopMonitoringPowerAsync()
+
+  def CanMonitorPowerAsync(self):
+    return False
+
+  def StartMonitoringPowerAsync(self):
+    raise NotImplementedError()
+
+  def StopMonitoringPowerAsync(self):
     raise NotImplementedError()
