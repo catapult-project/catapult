@@ -12,7 +12,8 @@ from telemetry.core.platform import profiler
 def _DiscoverProfilers():
   profiler_dir = os.path.dirname(__file__)
   return discover.DiscoverClasses(profiler_dir, util.GetTelemetryDir(),
-                                  profiler.Profiler).values()
+                                  profiler.Profiler,
+                                  index_by_class_name=True).values()
 
 
 def FindProfiler(name):
