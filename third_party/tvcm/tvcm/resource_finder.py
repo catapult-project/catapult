@@ -4,7 +4,7 @@
 """ResourceFinder is a helper class for finding resources given their name."""
 
 import os
-
+from tvcm import module
 
 class ResolvedFile(object):
   """Represents a file path with a known absolute path."""
@@ -90,7 +90,15 @@ class ResourceFinder(object):
 
   def find_and_load_module(self, current_module, requested_module_name):
     """Finds a module javascript file and returns a (path, contents) pair."""
-    return self._find_and_load(current_module, requested_module_name, '.js')
+    js_candidate, js_candidate_contents = self._find_and_load(current_module, requested_module_name, '.js')
+    html_candidate, html_candidate_contents = self._find_and_load(current_module, requested_module_name, '.html')
+    if js_candidate and html_candidate:
+      if module.Module.html_contents_is_polymer_module(html_candidate_contents):
+        return html_candidate, html_candidate_contents
+      return js_candidate, js_candidate_contents
+    elif js_candidate:
+      return js_candidate, js_candidate_contents
+    return html_candidate, html_candidate_contents
 
   def find_and_load_raw_script(self, current_module, filename):
     """Finds a raw javascript file and returns a (path, contents) pair."""

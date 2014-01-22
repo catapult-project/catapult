@@ -54,6 +54,10 @@ class Module(object):
   def __repr__(self):
     return 'Module(%s)' % self.name
 
+  @staticmethod
+  def html_contents_is_polymer_module(contents):
+    return '<polymer-component>' in contents
+
   def load_and_parse(self, module_filename,
                      module_contents=None,
                      decl_required=True):
@@ -74,9 +78,13 @@ class Module(object):
     else:
       self.contents = module_contents
     self.filename = module_filename
-    stripped_text = strip_js_comments.strip_js_comments(self.contents)
-    self._validate_uses_strict_mode(stripped_text)
-    self._parse_definition(stripped_text, decl_required)
+    if self.filename.endswith('html'):
+      # ... parse_as_html() using parse_html_deps.py
+      pass
+    else:
+      stripped_text = strip_js_comments.strip_js_comments(self.contents)
+      self._validate_uses_strict_mode(stripped_text)
+      self._parse_definition(stripped_text, decl_required)
 
   def resolve(self, all_resources, resource_finder):
     """Populates the lists of resources that this module depends on.
