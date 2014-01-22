@@ -9,73 +9,89 @@ import unittest
 from tvcm import fake_fs
 from tvcm import module
 from tvcm import strip_js_comments
-from tvcm import resource_finder
-
-X_CONTENTS = """
-'use strict';
-base.require('y');
-base.require('z');
-base.exportTo('xyz', function() { });
-"""
-
-Y_CONTENTS = """
-'use strict';
-base.require('z');
-base.exportsTo('xyz', function() { });
-"""
-
-Z_CONTENTS = """
-'use strict';
-base.exportsTo('xyz', function() { });
-"""
-
-
-class ResourceFinderStub(object):
-  """A stub for the ResourceFinder class, used in the test case below."""
-
-  def __init__(self):
-    self.modules = {}
-
-  def add_module(self, name, filename, contents):
-    """Adds a canned response to be returned by find_and_load_module."""
-    my_module_info = {'filename': filename, 'contents': contents}
-    self.modules[name] = my_module_info
-
-  # The argument current_module is not used since this is just a stub class.
-  # pylint: disable=W0613
-  def find_and_load_module(self, current_module, requested_module_name):
-    """Returns a (name, contents) pair response that was put in before."""
-    if requested_module_name not in self.modules:
-      return None
-    return (self.modules[requested_module_name]['filename'],
-            self.modules[requested_module_name]['contents'])
-
+from tvcm import resource_loader
 
 class FlattenTests(unittest.TestCase):
   """Test case for Module.load_and_parse and Module.resolve."""
   def test_module(self):
-    resource_finder = ResourceFinderStub()
-    resource_finder.add_module('y', 'y.js', Y_CONTENTS)
-    resource_finder.add_module('z', 'z.js', Z_CONTENTS)
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/src/x.js', """
+'use strict';
+base.require('y');
+base.require('z');
+base.exportTo('xyz', function() { });
+""")
+    fs.AddFile('/src/y.js', """
+'use strict';
+base.require('z');
+base.exportsTo('xyz', function() { });
+""")
+    fs.AddFile('/src/z.js', """
+'use strict';
+base.exportsTo('xyz', function() { });
+""")
+    with fs:
+      loader = resource_loader.ResourceLoader(['/src/'], [])
 
-    x_module = module.Module('x')
-    x_module.load_and_parse('x.js', X_CONTENTS)
+      x_module = module.Module('x')
+      x_module.load_and_parse('/src/x.js')
+      x_module.register(loader)
+      x_module.resolve(loader)
 
-    all_resources = {}
-    x_module.resolve(all_resources, resource_finder)
+      self.assertEquals([loader.loaded_scripts['y'],
+                         loader.loaded_scripts['z']],
+                        x_module.dependent_modules)
 
-    self.assertEquals([all_resources['scripts']['y'],
-                       all_resources['scripts']['z']],
-                      x_module.dependent_modules)
+      already_loaded_set = set()
+      load_sequence = []
+      x_module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
 
-    already_loaded_set = set()
-    load_sequence = []
-    x_module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
+      self.assertEquals([loader.loaded_scripts['z'],
+                         loader.loaded_scripts['y'],
+                         x_module],
+                        load_sequence)
 
-    self.assertEquals([all_resources['scripts']['z'],
-                       all_resources['scripts']['y'],
-                       x_module],
-                      load_sequence)
+  def testBasic(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/src/my_module.js', """
+'use strict';
+base.require('base.foo');
+base.exportTo('foo', function() {
+});
+""")
+    fs.AddFile('/x/base/foo.js', """
+'use strict';
+base.require('base.foo');
+base.exportTo('foo', function() {
+});
+""");
+    loader = resource_loader.ResourceLoader(['/x'], [])
+    with fs:
+      my_module = module.Module('src.my_module')
+      my_module.load_and_parse('/x/src/my_module.js')
+      my_module.register(loader)
+      my_module.resolve(loader)
+      assert my_module.dependent_module_names == ['base.foo']
+      assert my_module.dependent_modules[0].name == 'base.foo'
+
+  def testRawScript(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/y/z/foo.js', """
+'use strict';
+base.requireRawScript('bar.js');
+""")
+    fs.AddFile('/x/raw/bar.js', 'hello');
+    loader = resource_loader.ResourceLoader(['/x/y'], ['/x/raw/'])
+    with fs:
+      my_module = module.Module('y.z.foo')
+      my_module.load_and_parse('/x/y/z/foo.js')
+      my_module.register(loader)
+      my_module.resolve(loader)
+      self.assertEquals(1, len(my_module.dependent_raw_scripts))
+
+      rs = my_module.dependent_raw_scripts[0]
+      self.assertEquals('hello', rs.contents)
+      self.assertEquals('/x/raw/bar.js', rs.filename)
 
 
 # This test case tests a protected method.
@@ -156,7 +172,7 @@ class ParseDefinitionTests(unittest.TestCase):
     text = "// blahblahblah\n'use strict';"
     my_module = module.Module('myModule')
     stripped_text = strip_js_comments.strip_js_comments(text)
-    my_module._parse_definition(stripped_text, decl_required=False)
+    my_module._parse_definition(stripped_text)
     self.assertEquals([], my_module.style_sheet_names)
     self.assertEquals([], my_module.dependent_module_names)
 
@@ -240,33 +256,6 @@ class ParseDefinitionTests(unittest.TestCase):
     self.assertEquals([], my_module.style_sheet_names)
     self.assertEquals(['foo.dependency1'],
                       my_module.dependent_module_names)
-
-
-class FullModuleTest(unittest.TestCase):
-  def testBasic(self):
-    fs = fake_fs.FakeFS()
-    fs.AddFile('/x/src/my_module.js', """
-'use strict';
-base.require('base.foo');
-base.exportTo('foo', function() {
-});
-""")
-    fs.AddFile('/x/base/foo.js', """
-'use strict';
-base.require('base.foo');
-base.exportTo('foo', function() {
-});
-""");
-    finder = resource_finder.ResourceFinder(['/x'])
-    all_resources = {}
-    all_resources['scripts'] = {}
-    with fs:
-      my_module = module.Module('src.my_module')
-      all_resources['scripts']['src.my_module'] = my_module
-      my_module.load_and_parse('/x/src/my_module.js', decl_required=True)
-      my_module.resolve(all_resources, finder)
-      assert my_module.dependent_module_names == ['base.foo']
-      assert my_module.dependent_modules[0].name == 'base.foo'
 
 if __name__ == '__main__':
   unittest.main()

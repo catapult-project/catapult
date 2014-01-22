@@ -49,8 +49,8 @@ def Main(port, args):
   server.AddPathHandler('/json/examples', do_GET_json_examples)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
-  server.AddSourcePathMapping('/src', src_path)
-  server.AddDataPathMapping('/third_party', os.path.join(toplevel_path, 'third_party'))
+  server.AddSourcePathMapping('/', src_path)
+  server.AddDataPathMapping('/', os.path.join(toplevel_path, 'third_party'))
   server.AddDataPathMapping('/examples', os.path.join(toplevel_path, 'examples'))
   server.AddDataPathMapping('/test_data', test_data_path)
   server.AddDataPathMapping('/skp_data', skp_data_path)

@@ -15,16 +15,6 @@ var global = this;
 
 /** Platform, package, object property, and Event support. */
 this.base = (function() {
-  /**
-   * Base path for modules. Used to form URLs for module 'require' requests.
-   */
-  var moduleBasePath = '.';
-  function setModuleBasePath(path) {
-    if (path[path.length - 1] == '/')
-      path = path.substring(0, path.length - 1);
-    moduleBasePath = path;
-  }
-
   function mLog(text, opt_indentLevel) {
     if (true)
       return;
@@ -82,17 +72,17 @@ this.base = (function() {
         dependentModules.push(dependentModuleName);
   }
 
-  function addModuleRawScriptDependency(moduleName, rawScriptName) {
+  function addModuleRawScriptDependency(moduleName, rawScriptFilename) {
     if (!moduleRawScripts[moduleName])
       moduleRawScripts[moduleName] = [];
 
     var dependentRawScripts = moduleRawScripts[moduleName];
     var found = false;
     for (var i = 0; i < moduleRawScripts.length; i++)
-      if (dependentRawScripts[i] == rawScriptName)
+      if (dependentRawScripts[i] == rawScriptFilename)
         found = true;
       if (!found)
-        dependentRawScripts.push(rawScriptName);
+        dependentRawScripts.push(rawScriptFilename);
   }
 
   function addModuleStylesheet(moduleName, stylesheetName) {
@@ -246,19 +236,19 @@ this.base = (function() {
     // Load the module raw scripts next
     var rawScripts = moduleRawScripts[dependentModuleName] || [];
     for (var i = 0; i < rawScripts.length; i++) {
-      var rawScriptName = rawScripts[i];
-      if (rawScriptLoadStatus[rawScriptName])
+      var rawScriptFilename = rawScripts[i];
+      if (rawScriptLoadStatus[rawScriptFilename])
         continue;
 
-      loadScript(rawScriptName);
-      mLog('load(' + rawScriptName + ')', indentLevel);
-      rawScriptLoadStatus[rawScriptName] = 'APPENDED';
+      loadScript(rawScriptFilename);
+      mLog('load(' + rawScriptFilename + ')', indentLevel);
+      rawScriptLoadStatus[rawScriptFilename] = 'APPENDED';
     }
   }
 
   function loadScript(path) {
     var scriptEl = document.createElement('script');
-    scriptEl.src = moduleBasePath + '/' + path;
+    scriptEl.src = '/' + path;
     scriptEl.type = 'text/javascript';
     scriptEl.defer = true;
     scriptEl.async = false;
@@ -268,22 +258,23 @@ this.base = (function() {
   /**
    * Adds a dependency on a raw javascript file, e.g. a third party
    * library.
-   * @param {String} rawScriptName The path to the script file, relative to
-   * moduleBasePath.
+   * @param {String} rawScriptFilename The path to the script file, relative to
+   * the calling file. rawScriptFilename must be in the data path used by the
+   * calling project, typically a third_party directory.
    */
-  function requireRawScript(rawScriptPath) {
+  function requireRawScript(relativeRawScriptPath) {
     if (window.FLATTENED_RAW_SCRIPTS) {
-      if (!window.FLATTENED_RAW_SCRIPTS[rawScriptPath]) {
-        throw new Error('Somehow, ' + rawScriptPath +
+      if (!window.FLATTENED_RAW_SCRIPTS[relativeRawScriptPath]) {
+        throw new Error('Somehow, ' + relativeRawScriptPath +
             ' didn\'t get stored in the flattened js file! ' +
             'You may need to rerun build/generate_about_tracing_contents.py');
       }
       return;
     }
 
-    if (rawScriptLoadStatus[rawScriptPath])
+    if (rawScriptLoadStatus[relativeRawScriptPath])
       return;
-    throw new Error(rawScriptPath + ' should already have been loaded.' +
+    throw new Error(relativeRawScriptPath + ' should already have been loaded.' +
         ' Did you forget to run build/generate_about_tracing_contents.py?');
   }
 
@@ -297,7 +288,7 @@ this.base = (function() {
     stylesheetLoadStatus[dependentStylesheetName] = true;
 
     var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
-    var stylesheetPath = moduleBasePath + '/' + localPath;
+    var stylesheetPath = localPath;
 
     var linkEl = document.createElement('link');
     linkEl.setAttribute('rel', 'stylesheet');
@@ -315,7 +306,7 @@ this.base = (function() {
     templateLoadStatus[template] = true;
 
     var localPath = template.replace(/\./g, '/') + '.html';
-    var importPath = moduleBasePath + '/' + localPath;
+    var importPath = localPath;
 
     var linkEl = document.createElement('link');
     linkEl.setAttribute('rel', 'import');
@@ -376,19 +367,9 @@ this.base = (function() {
     base.isLinux = /Linux/.test(navigator.userAgent);
     base.isGTK = /GTK/.test(chrome.toolkit);
     base.isViews = /views/.test(chrome.toolkit);
-
-    setModuleBasePath('/src');
   }
 
   return {
-    set moduleBasePath(path) {
-      setModuleBasePath(path);
-    },
-
-    get moduleBasePath() {
-      return moduleBasePath;
-    },
-
     initialize: initialize,
 
     require: require,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -13,6 +13,7 @@ import tvcm_stub
 import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
 
 def _sopen(filename, mode):
   if filename != '-':
@@ -40,7 +41,7 @@ various ordering restrictions between them.
     return 1
 
   load_sequence = tvcm.calc_load_sequence(
-      ['tracing/standalone_timeline_view.js'], [src_dir])
+      ['tracing/standalone_timeline_view.js'], [src_dir], [third_party_dir])
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:

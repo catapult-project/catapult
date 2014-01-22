@@ -24,10 +24,10 @@ dependencies, which is: [Module('baz'), Module('bar'), Module('foo')].
 import os
 
 from tvcm import module
-from tvcm import resource_finder
+from tvcm import resource_loader
 
 
-def calc_load_sequence(filenames, search_paths):
+def calc_load_sequence(filenames, search_paths, data_paths):
   """Given a list of starting javascript files, figure out all the Module
   objects that need to be loaded to satisfy their dependencies.
 
@@ -40,8 +40,10 @@ def calc_load_sequence(filenames, search_paths):
 
   Args:
     filenames: A list of starting file paths for trace viewer modules.
-    search_paths: A list of top-level directories that dependencies can be
-        searched for in. Module paths are relative to these directories.
+    search_paths: A list of top-level directories in which modules can be found.
+        Module paths are relative to these directories.
+    data_paths: A list of top-level directories in which raw scripts and other
+        directly-referenced resources can be found.
 
   Returns:
     A list of Module objects in the order that they should be loaded.
@@ -49,10 +51,10 @@ def calc_load_sequence(filenames, search_paths):
   if 'base.js' not in filenames:
     filenames = list(filenames)
     filenames.insert(0, 'base.js')
-  return calc_load_sequence_internal(filenames, search_paths)
+  return calc_load_sequence_internal(filenames, search_paths, data_paths)
 
 
-def calc_load_sequence_internal(filenames, search_paths):
+def calc_load_sequence_internal(filenames, search_paths, data_paths):
   """Helper function for calc_load_sequence.
 
   Args:
@@ -62,48 +64,41 @@ def calc_load_sequence_internal(filenames, search_paths):
   Returns:
     A list of Module objects in the list that they should be loaded.
   """
-  all_resources = {}
-  all_resources['scripts'] = {}
-  finder = resource_finder.ResourceFinder(search_paths)
+  loader = resource_loader.ResourceLoader(search_paths, data_paths)
   initial_module_name_indices = {}
   for filename in filenames:
-    resolved = finder.resolve(filename)
+    resolved = loader.resolve(filename)
     if not resolved:
       raise Exception('Could not find %s in %s' % (
-          filename, repr(finder.search_paths)))
+          filename, repr(loader.search_paths)))
 
-    dirname = os.path.dirname(resolved.relative_path)
-    modname  = os.path.splitext(os.path.basename(resolved.relative_path))[0]
-    if len(dirname):
-      name = dirname.replace(os.path.sep, '.') + '.' + modname
-    else:
-      name = modname
-
-    if name in all_resources['scripts']:
+    name = module.Module.relative_filename_to_module_name(
+        resolved.relative_path)
+    if name in loader.loaded_scripts:
       continue
 
     m = module.Module(name)
     initial_module_name_indices[m.name] = len(initial_module_name_indices)
-    m.load_and_parse(resolved.absolute_path, decl_required=False)
-    all_resources['scripts'][m.name] = m
-    m.resolve(all_resources, finder)
+    m.load_and_parse(resolved.absolute_path)
+    m.register(loader)
+    m.resolve(loader)
 
   # Find the root modules: ones that have no dependencies. While doing that,
   # sort the dependent module list so that the computed load order is stable.
   module_ref_counts = {}
-  for m in all_resources['scripts'].values():
+  for m in loader.loaded_scripts.values():
     m.dependent_modules.sort(lambda x, y: cmp(x.name, y.name))
     module_ref_counts[m.name] = 0
 
   # Count the number of references to each module.
   def inc_ref_count(name):
     module_ref_counts[name] = module_ref_counts[name] + 1
-  for m in all_resources['scripts'].values():
+  for m in loader.loaded_scripts.values():
     for dependent_module in m.dependent_modules:
       inc_ref_count(dependent_module.name)
 
   # Root modules are modules with nothing depending on them.
-  root_modules = [all_resources['scripts'][name]
+  root_modules = [loader.loaded_scripts[name]
                   for name, ref_count in module_ref_counts.items()
                   if ref_count == 0]
 

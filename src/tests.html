@@ -7,7 +7,7 @@ found in the LICENSE file.
 -->
 <head>
   <title>All Tracing Tests</title>
-  <script src="/src/base.js"></script>
+  <script src="/base.js"></script>
   <script>
     base.require('base.unittest');
     base.require('base.settings');
@@ -44,7 +44,7 @@ found in the LICENSE file.
       }
 
       if (suite !== undefined) {
-        base.unittest.Suites(['/src/' + suite + '_test.js'], tests);
+        base.unittest.Suites([suite + '_test'], tests);
       } else {
         getAsync('/json/tests', function(data) {
           base.unittest.Suites(JSON.parse(data), tests);
@@ -132,7 +132,7 @@ found in the LICENSE file.
 
 <body>
   <div id="test-harness">
-    <h1><a href='/src/tests.html'>Trace-Viewer Tests</a></h1>
+    <h1><a href='/tests.html'>Trace-Viewer Tests</a></h1>
 
     <div id="stats">
       <br />

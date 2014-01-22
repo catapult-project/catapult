@@ -8,9 +8,9 @@ base.require('base.unittest.assertions');
 base.require('base.quad');
 base.require('base.rect');
 
-base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/common.js');
-base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec2.js');
-base.requireRawScript('../third_party/gl-matrix/src/gl-matrix/vec3.js');
+base.requireRawScript('gl-matrix/src/gl-matrix/common.js');
+base.requireRawScript('gl-matrix/src/gl-matrix/vec2.js');
+base.requireRawScript('gl-matrix/src/gl-matrix/vec3.js');
 
 base.unittest.testSuite('base.unittest.assertions', function() {
   setup(function() {

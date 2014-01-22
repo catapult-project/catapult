@@ -7,14 +7,16 @@ import re
 
 import tvcm
 
-srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
                          os.path.join("..", "src")))
+third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                               os.path.join("..", "third_party")))
 
 def GritCheck():
   filenames = ["base.js",
                "about_tracing/profiling_view.js"]
   grit_files = []
-  load_sequence = tvcm.calc_load_sequence(filenames, [srcdir])
+  load_sequence = tvcm.calc_load_sequence(filenames, [src_dir], [third_party_dir])
   for module in load_sequence:
     for style_sheet in module.style_sheets:
       # I'm assuming we only have url()'s associated with images

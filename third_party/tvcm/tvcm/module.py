@@ -10,6 +10,7 @@ template objects, raw javascript, or other modules.
 Other resources include HTML templates, raw javascript files, and stylesheets.
 """
 
+import os
 import re
 
 from tvcm import strip_js_comments
@@ -44,7 +45,7 @@ class Module(object):
     self.dependent_module_names = []
     self.dependent_modules = []
 
-    self.dependent_raw_script_names = []
+    self.dependent_raw_script_relative_paths = []
     self.dependent_raw_scripts = []
     self.style_sheet_names = []
     self.style_sheets = []
@@ -55,18 +56,26 @@ class Module(object):
     return 'Module(%s)' % self.name
 
   @staticmethod
+  def relative_filename_to_module_name(relative_path):
+    dirname = os.path.dirname(relative_path)
+    modname  = os.path.splitext(os.path.basename(relative_path))[0]
+    if len(dirname):
+      name = dirname.replace(os.path.sep, '.') + '.' + modname
+    else:
+      name = modname
+    return name
+
+  @staticmethod
   def html_contents_is_polymer_module(contents):
     return '<polymer-component>' in contents
 
   def load_and_parse(self, module_filename,
-                     module_contents=None,
-                     decl_required=True):
+                     module_contents=None):
     """Load a module's contents and read the base.require statements.
 
     Args:
       module_filename: The path to the module file.
       module_contents: If specified, this is used and the file isn't read.
-      decl_required: If false, the name property must be set first.
 
     Raises:
       IOError: There is some error reading the module's contents.
@@ -84,95 +93,89 @@ class Module(object):
     else:
       stripped_text = strip_js_comments.strip_js_comments(self.contents)
       self._validate_uses_strict_mode(stripped_text)
-      self._parse_definition(stripped_text, decl_required)
+      self._parse_definition(stripped_text)
 
-  def resolve(self, all_resources, resource_finder):
+  def register(self, loader):
+    assert self.name not in loader.loaded_scripts
+    loader.loaded_scripts[self.name] = self
+
+  def resolve(self, loader):
     """Populates the lists of resources that this module depends on.
 
     Args:
-      all_resources: A dict mapping resource types to lists of resource names.
-      resource_finder: An instance of ResourceFinder.
+      loader: An instance of ResourceLoader.
 
     Raises:
       DepsException: There was a problem finding one of the dependencies.
       Exception: There was a problem parsing a module that this one depends on.
     """
-    # Make sure that all the right keys exist in the all_resources dict.
-    if 'scripts' not in all_resources:
-      all_resources['scripts'] = {}
-    if 'style_sheets' not in all_resources:
-      all_resources['style_sheets'] = {}
-    if 'html_templates' not in all_resources:
-      all_resources['html_templates'] = {}
-    if 'raw_scripts' not in all_resources:
-      all_resources['raw_scripts'] = {}
-
+    assert self.name, 'Module name must be set before dep resolution.'
     assert self.filename, 'Module filename must be set before dep resolution.'
+    assert self.name in loader.loaded_scripts, 'Module must be registered in resource loader before resolution'
 
     # Load modules that this module depends on.
     for name in self.dependent_module_names:
       # If a module with this name has already been resolved, skip it.
-      if name in all_resources['scripts']:
-        assert all_resources['scripts'][name].contents
-        self.dependent_modules.append(all_resources['scripts'][name])
+      if name in loader.loaded_scripts:
+        assert loader.loaded_scripts[name].contents
+        self.dependent_modules.append(loader.loaded_scripts[name])
         continue
 
-      filename, contents = resource_finder.find_and_load_module(self, name)
+      filename, contents = loader.find_and_load_module(name)
       if not filename:
         raise DepsException('No file for module %(name)s needed by %(dep)s' %
           {'name': name, 'dep': self.filename})
 
       module = Module(name)
-      all_resources['scripts'][name] = module
+      module.register(loader)
       self.dependent_modules.append(module)
       try:
         module.load_and_parse(filename, contents)
       except Exception, e:
         raise Exception('While processing ' + filename + ': ' + e.message)
-      module.resolve(all_resources, resource_finder)
+      module.resolve(loader)
 
-    for name in self.dependent_raw_script_names:
-      filename, contents = resource_finder.find_and_load_raw_script(self, name)
+    for relative_raw_script_path in self.dependent_raw_script_relative_paths:
+      filename, contents = loader.find_and_load_raw_script(relative_raw_script_path)
       if not filename:
-        raise DepsException('Could not find a file for raw script %s' % name)
+        raise DepsException('Could not find a file for raw script %s' % relative_raw_script_path)
 
-      if name in all_resources['raw_scripts']:
-        assert all_resources['raw_scripts'][name].contents
-        self.dependent_raw_scripts.append(all_resources['raw_scripts'][name])
+      if filename in loader.loaded_raw_scripts:
+        assert loader.loaded_raw_scripts[filename].contents
+        self.dependent_raw_scripts.append(loader.loaded_raw_scripts[filename])
         continue
 
-      raw_script = RawScript(name, filename, contents)
-      all_resources['raw_scripts'][name] = raw_script
+      raw_script = RawScript(filename, contents)
+      raw_script.register(loader)
       self.dependent_raw_scripts.append(raw_script)
 
     for name in self.style_sheet_names:
-      if name in all_resources['style_sheets']:
-        assert all_resources['style_sheets'][name].contents
-        self.style_sheets.append(all_resources['style_sheets'][name])
+      if name in loader.loaded_style_sheets:
+        assert loader.loaded_style_sheets[name].contents
+        self.style_sheets.append(loader.loaded_style_sheets[name])
         continue
 
-      filename, contents = resource_finder.find_and_load_style_sheet(self, name)
+      filename, contents = loader.find_and_load_style_sheet(name)
       if not filename:
         raise DepsException('Could not find a file for stylesheet %s' % name)
 
       style_sheet = StyleSheet(name, filename, contents)
-      all_resources['style_sheets'][name] = style_sheet
+      loader.loaded_style_sheets[name] = style_sheet
       self.style_sheets.append(style_sheet)
 
     for name in self.html_template_names:
-      if name in all_resources['html_templates']:
-        assert all_resources['html_templates'][name].contents
-        self.html_templates.append(all_resources['html_templates'][name])
+      if name in loader.loaded_html_templates:
+        assert loader.loaded_html_templates[name].contents
+        self.html_templates.append(loader.loaded_html_templates[name])
         continue
 
-      filename, contents = resource_finder.find_and_load_html_template(
-          self, name)
+      filename, contents = loader.find_and_load_html_template(name)
       if not filename:
         raise DepsException(
             'Could not find a file for html template named %s' % name)
 
       html_template = HTMLTemplate(name, filename, contents)
-      all_resources['html_templates'][name] = html_template
+      loader.loaded_html_templates[name] = html_template
       self.html_templates.append(html_template)
 
   def compute_load_sequence_recursive(self, load_sequence, already_loaded_set,
@@ -212,19 +215,18 @@ class Module(object):
         break
       raise DepsException('%s must use strict mode' % self.name)
 
-  def _parse_definition(self, stripped_text, decl_required=True):
+  def _parse_definition(self, stripped_text):
     """Parses the base.require* lines in the module and populates the lists
     of resource names.
 
     Args:
       stripped_text: Javascript source code with comments stripped out.
-      decl_required: If set to false, the Module name must be set first.
 
     Raises:
       DepsException: The name of a resource was not formatted properly.
     """
-    if not decl_required and not self.name:
-      raise Exception("Module.name must be set for decl_required to be false.")
+    if not self.name:
+      raise Exception("Module.name must be set.")
 
     rest = stripped_text
     while True:
@@ -279,7 +281,7 @@ class Module(object):
         self.html_template_names.append(html_template_name)
       elif m == m_irs:
         name = m.group(2)
-        self.dependent_raw_script_names.append(name)
+        self.dependent_raw_script_relative_paths.append(name)
 
       rest = rest[m.end():]
 
@@ -311,10 +313,13 @@ class HTMLTemplate(object):
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
   base.requireRawScript(xxx) directive."""
-  def __init__(self, name, filename, contents):
-    self.name = name
+  def __init__(self, filename, contents):
     self.filename = filename
     self.contents = contents
 
+  def register(self, loader):
+    assert self.filename not in loader.loaded_raw_scripts
+    loader.loaded_raw_scripts[self.filename] = self
+
   def __repr__(self):
-    return "RawScript(%s)" % self.name
+    return "RawScript(%s)" % self.filename

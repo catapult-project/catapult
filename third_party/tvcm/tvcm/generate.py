@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -24,7 +24,7 @@ WARNING: This file is auto generated.
 """
 
 js_warning_message = """
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -35,7 +35,7 @@ js_warning_message = """
 """
 
 css_warning_message = """
-/* Copyright (c) 2013 The Chromium Authors. All rights reserved.
+/* Copyright (c) 2014 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
@@ -76,9 +76,9 @@ def generate_js(load_sequence, include_html_templates=True):
   js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
 
   for module in load_sequence:
-    for dependent_raw_script_name in module.dependent_raw_script_names:
+    for dependent_raw_scripts in module.dependent_raw_scripts:
       js_chunks.append("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
-        dependent_raw_script_name)
+        dependent_raw_script.filename)
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
 
   if include_html_templates:
@@ -102,17 +102,26 @@ def generate_js(load_sequence, include_html_templates=True):
 
   return ''.join(js_chunks)
 
-def generate_deps_js(load_sequence):
+def generate_deps_js(load_sequence, mapped_paths):
   chunks = [js_warning_message, '\n']
   for module in load_sequence:
     for dependent_module_name in module.dependent_module_names:
       chunks.append("base.addModuleDependency('%s','%s');\n" % (
           module.name, dependent_module_name));
 
-    for dependent_raw_script_name in module.dependent_raw_script_names:
+    for dependent_raw_script in module.dependent_raw_scripts:
+      # Figure out mapped path for dependent_raw_script.filename.
+      relative_path = None
+      for mapped_path in mapped_paths:
+        if dependent_raw_script.filename.startswith(mapped_path.file_system_path):
+          relative_path = os.path.relpath(
+              dependent_raw_script.filename,
+              mapped_path.file_system_path)
+          break
+      assert relative_path
       chunks.append(
           "base.addModuleRawScriptDependency('%s','%s');\n" % (
-          module.name, dependent_raw_script_name));
+           module.name, relative_path));
 
     for style_sheet in module.style_sheets:
       chunks.append("base.addModuleStylesheet('%s','%s');\n" % (

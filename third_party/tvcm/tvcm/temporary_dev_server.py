@@ -70,17 +70,14 @@ class TemporaryDevServer(object):
   def __init__(self):
     self._port = None
     self._server = None
-    self._devnull = None
 
-    self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', __name__]
     env = os.environ.copy()
-    stderr = self._devnull
     env['PYTHONPATH'] = os.path.abspath(
       os.path.join(os.path.dirname(__file__), '..'))
 
     self._server = subprocess.Popen(cmd, cwd=os.getcwd(),
-                                    env=env, stdout=subprocess.PIPE, stderr=self._devnull)
+                                    env=env, stdout=subprocess.PIPE, stderr=sys.stderr)
 
     port_re = re.compile(
         'TemporaryDevServer started on port (?P<port>\d+)')
@@ -110,9 +107,6 @@ class TemporaryDevServer(object):
       if self._server.poll() == None:
         self._server.kill()
       self._server = None
-    if self._devnull:
-      self._devnull.close()
-      self._devnull = None
 
   @property
   def url(self):
@@ -169,7 +163,7 @@ def _do_POST_customize(request):
 
 def SubprocessMain(args):
   port=GetUnreservedAvailableLocalPort()
-  server = dev_server.DevServer(port=port)
+  server = dev_server.DevServer(port=port, quiet=True)
 
   server.AddPathHandler('/test/customize', _do_POST_customize,
                         supports_get=False,

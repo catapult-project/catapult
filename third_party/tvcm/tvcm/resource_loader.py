@@ -18,7 +18,7 @@ class ResolvedFile(object):
     return os.path.relpath(self.absolute_path, self.toplevel_dir)
 
 
-class ResourceFinder(object):
+class ResourceLoader(object):
   """Helper class for finding a module given a name and current module.
 
   The dependency resolution code in Module.resolve will find bits of code in the
@@ -26,9 +26,14 @@ class ResourceFinder(object):
   code is responsible for figuring out what filename corresponds to 'bar' given
   a Module('foo').
   """
-  def __init__(self, search_paths):
+  def __init__(self, search_paths, data_paths):
     assert isinstance(search_paths, list)
     self._search_paths = [os.path.abspath(path) for path in search_paths]
+    self._data_paths = [os.path.abspath(path) for path in data_paths]
+    self.loaded_scripts = {}
+    self.loaded_raw_scripts = {}
+    self.loaded_style_sheets = {}
+    self.loaded_html_templates = {}
 
   @property
   def search_paths(self):
@@ -66,20 +71,16 @@ class ResourceFinder(object):
     return None
 
 
-  # The current_module argument isn't directly used, but a field is checked.
-  # pylint: disable=W0613
-  def _find_and_load(self, current_module, requested_name, extension):
+  def _find_and_load(self, requested_name, extension):
     """Searches for a file and reads its contents.
 
     Args:
-      current_module: The Module that is requiring this resource.
       requested_name: The name of the resource that was requested.
       extension: The extension for this requested resource.
 
     Returns:
       A (path, contents) pair.
     """
-    assert current_module.filename
     pathy_name = requested_name.replace('.', os.sep)
     filename = pathy_name + extension
 
@@ -88,10 +89,10 @@ class ResourceFinder(object):
       return None, None
     return _read_file(resolved.absolute_path)
 
-  def find_and_load_module(self, current_module, requested_module_name):
+  def find_and_load_module(self, requested_module_name):
     """Finds a module javascript file and returns a (path, contents) pair."""
-    js_candidate, js_candidate_contents = self._find_and_load(current_module, requested_module_name, '.js')
-    html_candidate, html_candidate_contents = self._find_and_load(current_module, requested_module_name, '.html')
+    js_candidate, js_candidate_contents = self._find_and_load(requested_module_name, '.js')
+    html_candidate, html_candidate_contents = self._find_and_load(requested_module_name, '.html')
     if js_candidate and html_candidate:
       if module.Module.html_contents_is_polymer_module(html_candidate_contents):
         return html_candidate, html_candidate_contents
@@ -100,24 +101,25 @@ class ResourceFinder(object):
       return js_candidate, js_candidate_contents
     return html_candidate, html_candidate_contents
 
-  def find_and_load_raw_script(self, current_module, filename):
+  def find_and_load_raw_script(self, filename):
     """Finds a raw javascript file and returns a (path, contents) pair."""
-    resolved = self.resolve_relative(filename)
-    if not resolved:
-      return None, None
-    return _read_file(resolved.absolute_path)
+    absolute_path = None
+    for data_path in self._data_paths:
+      possible_absolute_path = os.path.join(data_path, filename)
+      if os.path.exists(possible_absolute_path):
+        absolute_path = possible_absolute_path
+        break
+    assert absolute_path, '%s is not in data path %s' % (absolute_path, repr(self._data_paths))
 
-  def find_and_load_style_sheet(self,
-                                current_module, requested_style_sheet_name):
+    return _read_file(absolute_path)
+
+  def find_and_load_style_sheet(self, requested_style_sheet_name):
     """Finds a stylesheet file and returns a (path, contents) pair."""
-    return self._find_and_load(
-      current_module, requested_style_sheet_name, '.css')
+    return self._find_and_load(requested_style_sheet_name, '.css')
 
-  def find_and_load_html_template(self,
-                                  current_module, requested_html_template_name):
+  def find_and_load_html_template(self, requested_html_template_name):
     """Finds a html template file and returns a (path, contents) pair."""
-    return self._find_and_load(
-      current_module, requested_html_template_name, '.html')
+    return self._find_and_load(requested_html_template_name, '.html')
 
 def _read_file(absolute_path):
   """Reads a file and returns a (path, contents) pair.

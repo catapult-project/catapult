@@ -11,6 +11,7 @@ import traceback
 import base64
 from tvcm import parse_deps
 from tvcm import generate
+from tvcm import module
 
 import SocketServer
 import SimpleHTTPServer
@@ -83,7 +84,9 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     for mapping in self.server.mapped_paths:
       if path.startswith(mapping.mapped_path):
         rel = os.path.relpath(path, mapping.mapped_path)
-        return os.path.join(mapping.file_system_path, rel)
+        candidate = os.path.join(mapping.file_system_path, rel)
+        if os.path.exists(candidate):
+          return candidate
     return ''
 
   def log_error(self, format, *args):
@@ -107,18 +110,21 @@ def do_GET_json_tests(self):
       return True
     return False
 
-  test_filenames = []
+  test_module_names = []
   for mapping in self.server.mapped_paths:
     for dirpath, dirnames, filenames in os.walk(mapping.file_system_path):
       for f in filenames:
         x = os.path.join(dirpath, f)
         y = os.path.join(mapping.mapped_path, os.path.relpath(x, mapping.file_system_path))
         if is_test(y):
-          test_filenames.append(y)
+          assert y[0] == '/'
+          module_name = module.Module.relative_filename_to_module_name(
+              y[1:])
+          test_module_names.append(module_name)
 
-  test_filenames.sort()
+  test_module_names.sort()
 
-  tests_as_json = json.dumps(test_filenames)
+  tests_as_json = json.dumps(test_module_names)
 
   self.send_response(200)
   self.send_header('Content-Type', 'application/json')
@@ -184,8 +190,9 @@ def do_GET_root(request):
   request.end_headers()
 
 class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
-  def __init__(self, port):
+  def __init__(self, port, quiet=False):
     BaseHTTPServer.HTTPServer.__init__(self, ('', port), DevServerHandler)
+    self._quiet = quiet
     self._port = port
     self._path_handlers = []
     self._mapped_paths = []
@@ -195,7 +202,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
-    self.default_path = '/src/tests.html' # TODO(nduca): This could be cleaner.
+    self.default_path = '/tests.html' # TODO(nduca): This could be cleaner.
 
     self.AddPathHandler('/json/tests', do_GET_json_tests)
     self.AddPathHandler('/templates', do_GET_templates)
@@ -225,17 +232,22 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     if self._next_deps_check >= current_time:
       return
 
-    print 'Regenerating deps and templates'
+    if not self._quiet:
+      sys.stderr.write('Regenerating deps and templates\n')
     search_paths = [mapping.file_system_path for mapping in self._mapped_paths
                     if mapping.is_source]
+    data_paths = [mapping.file_system_path for mapping in self._mapped_paths
+                  if not mapping.is_source]
     all_js_module_filenames = find_all_js_module_filenames(search_paths)
     load_sequence = parse_deps.calc_load_sequence(
-        all_js_module_filenames, search_paths)
-    self.deps = generate.generate_deps_js(load_sequence)
+        all_js_module_filenames, search_paths, data_paths)
+    self.deps = generate.generate_deps_js(
+      load_sequence, self.mapped_paths)
     self.templates = generate.generate_html_for_combined_templates(
         load_sequence)
     self._next_deps_check = current_time + DEPS_CHECK_DELAY
 
   def serve_forever(self):
-    sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
+    if not self._quiet:
+      sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
     BaseHTTPServer.HTTPServer.serve_forever(self)

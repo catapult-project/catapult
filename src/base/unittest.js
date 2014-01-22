@@ -278,8 +278,8 @@ base.exportTo('base.unittest', function() {
       if (this.showLongResults) {
         this.resultsEl_.innerText = this.name;
       } else {
-        var link = '/src/tests.html?suite=';
-        link += this.name.replace(/\./g, '/');
+        var link = '/tests.html?suite=';
+        link += this.name;
         link += '&type=' + (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');
 
         var suiteInfo = document.createElement('a');
@@ -432,9 +432,8 @@ base.exportTo('base.unittest', function() {
         var testEl = document.createElement('div');
         testEl.className = 'individual-result';
 
-        var link = '/src/tests.html?suite=';
-        link += this.name.replace(/\./g, '/');
-        link += '&test=' + test.name.replace(/\./g, '/');
+        var link = '/tests.html?suite=';
+        link += '&test=' + test.name;
         link += '&type=' +
             (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');
 
@@ -631,19 +630,13 @@ base.exportTo('base.unittest', function() {
       runSuites();
   }
 
-  function Suites(suitePaths, tests) {
+  function Suites(modules, tests) {
     // Assume one suite per file.
-    totalSuiteCount_ = suitePaths.length;
+    totalSuiteCount_ = modules.length;
 
     testRunners[TestTypes.UNITTEST] = new TestRunner(tests);
     testRunners[TestTypes.PERFTEST] = new TestRunner(tests);
 
-    var modules = [];
-    suitePaths.forEach(function(path) {
-      var moduleName = path.slice(5, path.length - 3);
-      moduleName = moduleName.replace(/\//g, '.');
-      modules.push(moduleName);
-    });
     base.require(modules);
   }
 
