@@ -232,11 +232,13 @@ class Thread(event_container.TimelineEventContainer):
     of all other slices seen so far, we can just check the last slice
     of each row for bounding.
     '''
-    # Due to inaccuracy of floating-point calculation, the end times of slices
-    # from B/E pair (whose end = start + original_end - start) and an X Event
-    # (whose end = start + duration) at the same time may become not equal.
-    # Tolerate 1ps error for slice.end.
-    if child.start >= root.start and child.end - root.end < 1e-9:
+    # The source trace data is in microseconds but we store it as milliseconds
+    # in floating-point. Since we can't represent micros as millis perfectly,
+    # two end=start+duration combos that should be the same will be slightly
+    # different. Round back to micros to ensure equality below.
+    child_end_micros = round(child.end * 1000)
+    root_end_micros =  round(root.end * 1000)
+    if child.start >= root.start and child_end_micros <= root_end_micros:
       if len(root.sub_slices) > 0:
         if self._AddSliceIfBounds(root.sub_slices[-1], child):
           return True
