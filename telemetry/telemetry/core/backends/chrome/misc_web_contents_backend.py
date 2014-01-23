@@ -13,7 +13,9 @@ class MiscWebContentsBackend(object):
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend
 
-  def OobeExists(self):
+  @property
+  def oobe_exists(self):
+    """Lightweight property to determine if the oobe webui is visible."""
     return bool(self._FindWebContentsInfo())
 
   def GetOobe(self):

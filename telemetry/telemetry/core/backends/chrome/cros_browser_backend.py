@@ -235,7 +235,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Hardware id not set on device/VM. --skip-hwid-check not supported '
           'with chrome branches 1500 or earlier.')
 
-    util.WaitFor(self._OobeExists, 10)
+    util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:
       if self._is_guest:
@@ -295,8 +295,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def oobe(self):
     return self.misc_web_contents_backend.GetOobe()
 
-  def _OobeExists(self):
-    return self.misc_web_contents_backend.OobeExists()
+  @property
+  def oobe_exists(self):
+    return self.misc_web_contents_backend.oobe_exists
 
   def _SigninUIState(self):
     """Returns the signin ui state of the oobe. HIDDEN: 0, GAIA_SIGNIN: 1,
@@ -343,7 +344,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     has been dismissed."""
     if self.chrome_branch_number <= 1547:
       self._HandleUserImageSelectionScreen()
-    return self._IsCryptohomeMounted() and not self._OobeExists()
+    return self._IsCryptohomeMounted() and not self.oobe_exists
 
   def _StartupWindow(self):
     """Closes the startup window, which is an extension on official builds,
@@ -388,7 +389,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
-    assert self._OobeExists()
+    assert self.oobe_exists
     self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
     self._WaitForGuestFsMounted()
@@ -397,7 +398,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Navigates through oobe login screen"""
     if self._use_oobe_login_for_testing:
       logging.info('Invoking Oobe.loginForTesting')
-      assert self._OobeExists()
+      assert self.oobe_exists
       oobe = self.oobe
       util.WaitFor(lambda: oobe.EvaluateJavaScript(
           'typeof Oobe !== \'undefined\''), 10)

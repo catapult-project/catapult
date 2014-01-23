@@ -17,3 +17,10 @@ class CrOSBrowserWithOOBE(browser.Browser):
     out-of-box-experience).
     """
     return self._browser_backend.oobe
+
+  @property
+  def oobe_exists(self):
+    """True if the login/oobe/screenlock webui exists. This is more lightweight
+    than accessing the oobe property.
+    """
+    return self._browser_backend.oobe_exists
