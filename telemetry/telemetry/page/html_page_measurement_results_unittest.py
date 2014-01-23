@@ -37,11 +37,6 @@ class StringIOFile(StringIO.StringIO):
 
 class HtmlPageMeasurementResultsTest(unittest.TestCase):
 
-  # TODO(tonyg): Remove this backfill when we can assume python 2.7 everywhere.
-  def assertIn(self, first, second, _=None):
-    self.assertTrue(first in second,
-                    msg="'%s' not found in '%s'" % (first, second))
-
   def test_basic_summary(self):
     test_page_set = _MakePageSet()
     output_file = StringIOFile()
