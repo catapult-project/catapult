@@ -39,8 +39,11 @@ base.exportTo('tracing.trace_model', function() {
       // Due to inaccuracy of floating-point calculation, the end times of
       // slices from a B/E pair (whose end = start + original_end - start)
       // and an X event (whose end = start + duration) at the same time may
-      // become not equal. Tolerate 1us error.
-      return this.start <= that.start && this.end - that.end > -1e-6;
+      // become not equal. Round back to micros (which is the source data
+      // precision) to ensure equality below.
+      var this_end_micros = Math.round(this.end * 1000);
+      var that_end_micros = Math.round(that.end * 1000);
+      return this.start <= that.start && this_end_micros >= that_end_micros;
     }
   };
 
