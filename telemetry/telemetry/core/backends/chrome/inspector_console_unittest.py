@@ -5,11 +5,9 @@ import re
 import StringIO
 
 from telemetry.core import util
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 class TabConsoleTest(tab_test_case.TabTestCase):
-  @DisabledTestOnCrOS
   def testConsoleOutputStream(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 

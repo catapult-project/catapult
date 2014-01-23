@@ -5,7 +5,6 @@
 from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page.actions import navigate
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 
@@ -17,7 +16,6 @@ class NavigateActionTest(tab_test_case.TabTestCase):
         None  # In this test, we don't need a page set.
     )
 
-  @DisabledTestOnCrOS
   def testNavigateAction(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 

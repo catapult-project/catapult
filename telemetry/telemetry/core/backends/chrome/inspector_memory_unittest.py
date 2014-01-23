@@ -3,11 +3,9 @@
 # found in the LICENSE file.
 
 from telemetry.core import util
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
-  @DisabledTestOnCrOS
   def testGetDOMStats(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 

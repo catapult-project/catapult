@@ -4,7 +4,6 @@
 
 from telemetry.core import util
 from telemetry.page.actions import loop
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
 
 AUDIO_1_LOOP_CHECK = 'window.__hasEventCompleted("#audio_1", "loop");'
@@ -19,7 +18,6 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self._browser.http_server.UrlOf('video_test.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
-  @DisabledTestOnCrOS
   def testLoopWithNoSelector(self):
     """Tests that with no selector Loop action loops first media element."""
     data = {'selector': '#video_1', 'loop_count': 2}
@@ -30,7 +28,6 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
-  @DisabledTestOnCrOS
   def testLoopWithAllSelector(self):
     """Tests that Loop action loops all video elements with selector='all'."""
     data = {'selector': 'all', 'loop_count': 2}
@@ -44,7 +41,6 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
-  @DisabledTestOnCrOS
   def testLoopWaitForLoopTimeout(self):
     """Tests that wait_for_loop timeouts if video does not loop."""
     data = {'selector': '#video_1',
