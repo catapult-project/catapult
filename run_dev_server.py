@@ -10,6 +10,7 @@ import build # Brings in tvcm bindings.
 import tvcm
 
 toplevel_path = os.path.abspath(os.path.dirname(__file__))
+tvcm_path = os.path.join(toplevel_path, 'third_party', 'tvcm')
 src_path = os.path.join(toplevel_path, 'src')
 test_data_path = os.path.join(toplevel_path, 'test_data')
 skp_data_path = os.path.join(toplevel_path, 'skp_data')
@@ -49,6 +50,7 @@ def Main(port, args):
   server.AddPathHandler('/json/examples', do_GET_json_examples)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
+  server.AddSourcePathMapping('/', tvcm_path)
   server.AddSourcePathMapping('/', src_path)
   server.AddDataPathMapping('/', os.path.join(toplevel_path, 'third_party'))
   server.AddDataPathMapping('/examples', os.path.join(toplevel_path, 'examples'))

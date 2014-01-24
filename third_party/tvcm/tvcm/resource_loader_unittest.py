@@ -10,33 +10,21 @@ import unittest
 import module
 import resource_loader
 
-SRC_DIR = os.path.join(os.path.dirname(__file__), '../../../src')
-THIRD_PARTY_DIR = os.path.join(os.path.dirname(__file__), '../../../third_party')
+TVCM_DIR = os.path.join(os.path.dirname(__file__), '..')
+THIRD_PARTY_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 
 
 class ResourceLoaderTest(unittest.TestCase):
 
   def test_basic(self):
-    loader = resource_loader.ResourceLoader([SRC_DIR], [THIRD_PARTY_DIR])
+    loader = resource_loader.ResourceLoader([TVCM_DIR], [THIRD_PARTY_DIR])
     guid_module = loader.load_module(module_name='base')
     self.assertTrue(os.path.samefile(guid_module.filename,
-                                     os.path.join(SRC_DIR, 'base', '__init__.js')))
+                                     os.path.join(TVCM_DIR, 'base', '__init__.js')))
     expected_contents = ''
-    with open(os.path.join(SRC_DIR, 'base', '__init__.js')) as f:
+    with open(os.path.join(TVCM_DIR, 'base', '__init__.js')) as f:
       expected_contents = f.read()
     self.assertEquals(guid_module.contents, expected_contents)
-
-  def test_dependency_in_subdir(self):
-    loader = resource_loader.ResourceLoader([SRC_DIR], [THIRD_PARTY_DIR])
-    guid_module = loader.load_module(module_name='tracing.tracks.track')
-
-    self.assertTrue(os.path.samefile(guid_module.filename, os.path.join(
-      SRC_DIR, 'tracing', 'tracks', 'track.js')))
-    expected_contents = ''
-    with open(os.path.join(SRC_DIR, 'tracing', 'tracks', 'track.js')) as f:
-      expected_contents = f.read()
-    self.assertEquals(guid_module.contents, expected_contents)
-
 
 if __name__ == '__main__':
   unittest.main()

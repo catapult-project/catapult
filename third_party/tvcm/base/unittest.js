@@ -3,8 +3,6 @@
 // found in the LICENSE file.
 
 'use strict';
-
-base.requireStylesheet('ui.trace_viewer');
 base.requireStylesheet('base.unittest');
 
 base.require('base.key_event_manager');
@@ -278,7 +276,7 @@ base.exportTo('base.unittest', function() {
       if (this.showLongResults) {
         this.resultsEl_.innerText = this.name;
       } else {
-        var link = '/tests.html?suite=';
+        var link = '/base/tests.html?suite=';
         link += this.name;
         link += '&type=' + (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');
 
@@ -432,7 +430,7 @@ base.exportTo('base.unittest', function() {
         var testEl = document.createElement('div');
         testEl.className = 'individual-result';
 
-        var link = '/tests.html?suite=';
+        var link = '/base/tests.html?suite=';
         link += '&test=' + test.name;
         link += '&type=' +
             (testType_ === TestTypes.PERFTEST ? 'perf' : 'unit');

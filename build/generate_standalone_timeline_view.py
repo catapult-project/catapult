@@ -13,6 +13,7 @@ import tvcm_stub
 import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+tvcm_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party/tvcm"))
 third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
 
 def _sopen(filename, mode):

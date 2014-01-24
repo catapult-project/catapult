@@ -6,7 +6,6 @@
 
 base.require('base.settings');
 base.require('base.unittest');
-base.require('tracing.test_utils');
 
 base.unittest.testSuite('base.settings', function() {
   function assertSettingIs(expectedValue, key) {

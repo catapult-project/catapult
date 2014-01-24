@@ -10,8 +10,6 @@ base.requireStylesheet('ui.mouse_mode_selector');
 base.requireTemplate('ui.mouse_mode_selector');
 
 base.require('base.events');
-base.require('tracing.constants');
-base.require('base.events');
 base.require('base.iteration_helpers');
 base.require('base.utils');
 base.require('base.key_event_manager');
@@ -19,6 +17,8 @@ base.require('ui');
 base.require('ui.mouse_tracker');
 
 base.exportTo('ui', function() {
+
+  var MIN_MOUSE_SELECTION_DISTANCE = 4;
 
   var MOUSE_SELECTOR_MODE = {};
   MOUSE_SELECTOR_MODE.SELECTION = 0x1;
@@ -345,7 +345,7 @@ base.exportTo('ui', function() {
     },
 
     onMouseDown_: function(e) {
-      if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
+      if (e.button !== 0)
         return;
       this.setCurrentMousePosFromEvent_(e);
       var mouseEvent = this.createEvent_(
@@ -368,7 +368,7 @@ base.exportTo('ui', function() {
     },
 
     onMouseUp_: function(e) {
-      if (e.button !== tracing.constants.LEFT_MOUSE_BUTTON)
+      if (e.button !== 0)
         return;
 
       var mouseEvent = this.createEvent_(
@@ -534,7 +534,7 @@ base.exportTo('ui', function() {
 
       var deltaX = this.mousePos_.x - this.mouseDownPos_.x;
       var deltaY = this.mousePos_.y - this.mouseDownPos_.y;
-      var minDist = tracing.constants.MIN_MOUSE_SELECTION_DISTANCE;
+      var minDist = MIN_MOUSE_SELECTION_DISTANCE;
 
       if (deltaX * deltaX + deltaY * deltaY > minDist * minDist)
         this.isClick_ = false;

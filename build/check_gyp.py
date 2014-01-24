@@ -21,12 +21,17 @@ def GypCheck():
     gyp_files.extend(map(os.path.normpath, data["variables"][group]))
 
   known_files = []
-  for (dirpath, dirnames, filenames) in os.walk('src'):
+  def handle(dirpath, dirnames, filenames):
     for name in filenames:
       if not name.endswith(("_test.js", "_test_data.js", "tests.html")):
         known_files.append(os.path.normpath(os.path.join(dirpath, name)))
     if '.svn' in dirnames:
       dirnames.remove('.svn')
+  for (dirpath, dirnames, filenames) in os.walk('src'):
+    handle(dirpath, dirnames, filenames)
+  for (dirpath, dirnames, filenames) in os.walk(
+        os.path.join('third_party', 'tvcm', 'base')):
+    handle(dirpath, dirnames, filenames)
 
   u = set(gyp_files).union(set(known_files))
   i = set(gyp_files).intersection(set(known_files))

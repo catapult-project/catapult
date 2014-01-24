@@ -5,7 +5,6 @@
 'use strict';
 
 base.require('base.properties');
-base.require('ui');
 
 base.unittest.testSuite('base.properties', function() {
   test('defineProperties', function() {

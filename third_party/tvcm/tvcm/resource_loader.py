@@ -108,7 +108,7 @@ class ResourceLoader(object):
       resource = self.find_resource(module_filename)
       if not resource:
         raise Exception('Could not find %s in %s' % (
-            filename, repr(self.search_paths)))
+            module_filename, repr(self.search_paths)))
       module_name = resource.name
       if resource.absolute_path.endswith('__init__.js'):
         old_style_filename = os.path.dirname(resource.absolute_path) + '.js'
@@ -126,8 +126,7 @@ class ResourceLoader(object):
       resource = self._find_module_resource(module_name)
       if not resource:
         if context:
-          raise module.DepsException('No resource for module %(module_name)s needed by %(context)' %
-                                     {'module_name': module_name, 'context': context})
+          raise module.DepsException('No resource for module %s needed by %s' % (module_name, context))
         else:
           raise module.DepsException('No resource for module %s' % module_name)
 
@@ -145,7 +144,7 @@ class ResourceLoader(object):
         resource = resource_module.Resource(data_path, possible_absolute_path)
         break
     if not resource:
-      raise DepsException('Could not find a file for raw script %s in %s' % (
+      raise module.DepsException('Could not find a file for raw script %s in %s' % (
         relative_raw_script_path, self._data_paths))
 
     if resource.absolute_path in self.loaded_raw_scripts:
@@ -161,7 +160,7 @@ class ResourceLoader(object):
 
     resource = self._find_resource_given_name_and_suffix(name, '.css', return_resource=True)
     if not resource:
-      raise DepsException('Could not find a file for stylesheet %s' % name)
+      raise module.DepsException('Could not find a file for stylesheet %s' % name)
 
     style_sheet = module.StyleSheet(name, resource.absolute_path, resource.contents)
     self.loaded_style_sheets[name] = style_sheet
@@ -173,7 +172,7 @@ class ResourceLoader(object):
 
     resource = self._find_resource_given_name_and_suffix(name, '.html', return_resource=True)
     if not resource:
-      raise DepsException(
+      raise module.DepsException(
           'Could not find a file for html template named %s' % name)
 
     html_template = module.HTMLTemplate(name, resource.absolute_path, resource.contents)

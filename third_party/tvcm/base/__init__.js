@@ -58,12 +58,12 @@ this.base = (function() {
   var moduleDependencies = {};
   var moduleStylesheets = {};
   var moduleRawScripts = {};
-  var moduleRelativeFileNames = {};
+  var resourceFileNames = {};
 
-  function setModuleRelativeFileName(moduleName, relativeFileName) {
-    if (moduleRelativeFileNames[moduleName] !== undefined)
+  function setResourceFileName(moduleName, relativeFileName) {
+    if (resourceFileNames[moduleName] !== undefined)
       throw new Error('Cannot set file name twice!');
-    moduleRelativeFileNames[moduleName] = relativeFileName;
+    resourceFileNames[moduleName] = relativeFileName;
   }
 
   function addModuleDependency(moduleName, dependentModuleName) {
@@ -155,7 +155,7 @@ this.base = (function() {
       throw new Error(msg);
     }
 
-    base.setModuleRelativeFileName = setModuleRelativeFileName;
+    base.setResourceFileName = setResourceFileName;
     base.addModuleDependency = addModuleDependency;
     base.addModuleRawScriptDependency = addModuleRawScriptDependency;
     base.addModuleStylesheet = addModuleStylesheet;
@@ -166,7 +166,7 @@ this.base = (function() {
       throw new Error('When loading deps, got ' +
                       e.stack ? e.stack : e.message);
     }
-    delete base.setModuleRelativeFileName;
+    delete base.setResourceFileName;
     delete base.addModuleStylesheet;
     delete base.addModuleRawScriptDependency;
     delete base.addModuleDependency;
@@ -228,9 +228,9 @@ this.base = (function() {
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
     requireDependencies(dependentModuleName, indentLevel);
 
-    if (moduleRelativeFileNames[dependentModuleName] === undefined)
+    if (resourceFileNames[dependentModuleName] === undefined)
       throw new Error('Not sure what filename is for ' + dependentModuleName);
-    loadScript(moduleRelativeFileNames[dependentModuleName]);
+    loadScript(resourceFileNames[dependentModuleName]);
     moduleLoadStatus[name] = 'APPENDED';
   }
 
@@ -300,7 +300,7 @@ this.base = (function() {
     stylesheetLoadStatus[dependentStylesheetName] = true;
 
     var localPath = dependentStylesheetName.replace(/\./g, '/') + '.css';
-    var stylesheetPath = localPath;
+    var stylesheetPath = '/' + localPath;
 
     var linkEl = document.createElement('link');
     linkEl.setAttribute('rel', 'stylesheet');

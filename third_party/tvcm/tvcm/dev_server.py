@@ -112,6 +112,8 @@ def do_GET_json_tests(self):
 
   test_module_names = []
   for mapping in self.server.mapped_paths:
+    if not mapping.is_source:
+      continue
     for dirpath, dirnames, filenames in os.walk(mapping.file_system_path):
       for f in filenames:
         x = os.path.join(dirpath, f)
@@ -202,7 +204,11 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
-    self.default_path = '/tests.html' # TODO(nduca): This could be cleaner.
+    self.default_path = '/base/tests.html'
+
+    # Redirect /tests.html to the new location until folks have gotten used to its new
+    # location.
+    self.AddPathHandler('/tests.html', do_GET_root)
 
     self.AddPathHandler('/json/tests', do_GET_json_tests)
     self.AddPathHandler('/templates', do_GET_templates)
@@ -242,7 +248,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     load_sequence = parse_deps.calc_load_sequence(
         all_js_module_filenames, search_paths, data_paths)
     self.deps = generate.generate_deps_js(
-      load_sequence, self.mapped_paths)
+        load_sequence, self.mapped_paths)
     self.templates = generate.generate_html_for_combined_templates(
         load_sequence)
     self._next_deps_check = current_time + DEPS_CHECK_DELAY
