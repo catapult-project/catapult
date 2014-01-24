@@ -9,7 +9,7 @@ import unittest
 from telemetry.core import bitmap
 from telemetry.core import util
 from telemetry.core.platform import android_platform_backend
-from telemetry.unittest import system_stub
+from telemetry.unittest import DisabledTest, system_stub
 
 
 class MockAdbCommands(object):
@@ -53,6 +53,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     cpu_stats = backend.GetCpuStats('7702')
     self.assertEquals(cpu_stats, {})
 
+  @DisabledTest
   def testFramesFromMp4(self):
     mock_adb = MockAdbCommands([])
     backend = android_platform_backend.AndroidPlatformBackend(mock_adb, False)
