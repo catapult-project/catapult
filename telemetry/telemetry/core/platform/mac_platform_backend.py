@@ -4,10 +4,7 @@
 
 import ctypes
 import os
-import plistlib
-import signal
 import subprocess
-import tempfile
 import time
 try:
   import resource  # pylint: disable=F0401
@@ -18,48 +15,9 @@ from ctypes import util
 from telemetry.core.platform import posix_platform_backend
 
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
-
-  class PowerMetricsUtility(object):
-    def __init__(self):
-      self._powermetrics_process = None
-      self._powermetrics_output_file = None
-
-    @property
-    def binary_path(self):
-      return '/usr/bin/powermetrics'
-
-    def StartMonitoringPowerAsync(self):
-      assert not self._powermetrics_process, (
-          "Must call StopMonitoringPowerAsync().")
-      SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
-      self._powermetrics_output_file = tempfile.NamedTemporaryFile().name
-      args = [self.binary_path, '-f', 'plist', '-i',
-          '%d' % SAMPLE_INTERVAL_MS, '-u', self._powermetrics_output_file]
-      # TODO(jeremy): Need to ensure command is run as root user.
-      self._powermetrics_process = subprocess.Popen(args,
-          stdout=subprocess.PIPE)
-
-    def StopMonitoringPowerAsync(self):
-      assert self._powermetrics_process, (
-          "StartMonitoringPowerAsync() not called.")
-      # Tell powermetrics to take an immediate sample.
-      try:
-        self._powermetrics_process.send_signal(signal.SIGINFO)
-        self._powermetrics_process.send_signal(signal.SIGTERM)
-        returncode = self._powermetrics_process.wait()
-        assert returncode in [0, -15], (
-            "powermetrics return code: %d" % returncode)
-        powermetrics_output = open(self._powermetrics_output_file, 'r').read()
-        os.unlink(self._powermetrics_output_file)
-        return powermetrics_output
-      finally:
-        self._powermetrics_output_file = None
-        self._powermetrics_process = None
-
   def __init__(self):
     super(MacPlatformBackend, self).__init__()
     self.libproc = None
-    self.powermetrics_tool_ = MacPlatformBackend.PowerMetricsUtility()
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -165,52 +123,3 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     p = subprocess.Popen(['purge'])
     p.wait()
     assert p.returncode == 0, 'Failed to flush system cache'
-
-  def CanMonitorPowerAsync(self):
-    # powermetrics only runs on OS X version >= 10.9 .
-    os_version = int(os.uname()[2].split('.')[0])
-    binary_path = self.powermetrics_tool_.binary_path
-    return os_version >= 13 and self.CanLaunchApplication(binary_path)
-
-  def SetPowerMetricsUtilityForTest(self, obj):
-    self.powermetrics_tool_ = obj
-
-  def StartMonitoringPowerAsync(self):
-    self.powermetrics_tool_.StartMonitoringPowerAsync()
-
-  def _ParsePowerMetricsOutput(self, powermetrics_output):
-    """Parse output of powermetrics command line utility.
-
-    Returns:
-        Dictionary in the format returned by StopMonitoringPowerAsync().
-    """
-    power_samples = []
-    total_energy_consumption_mwh = 0
-    # powermetrics outputs multiple PLists separated by null terminators.
-    raw_plists = powermetrics_output.split('\0')[:-1]
-    for raw_plist in raw_plists:
-      plist = plistlib.readPlistFromString(raw_plist)
-
-      # Duration of this sample.
-      sample_duration_ms = int(plist['elapsed_ns']) / 10**6
-
-      processor = plist['processor']
-      energy_consumption_mw = int(processor.get('package_watts', 0)) * 10**3
-
-      total_energy_consumption_mwh += (energy_consumption_mw *
-          (sample_duration_ms / 3600000.))
-
-      power_samples.append(energy_consumption_mw)
-
-    # -------- Collect and Process Data -------------
-    out_dict = {}
-    # Raw power usage samples.
-    out_dict['power_samples_mw'] = power_samples
-    out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
-
-    return out_dict
-
-  def StopMonitoringPowerAsync(self):
-    powermetrics_output = self.powermetrics_tool_.StopMonitoringPowerAsync()
-    assert len(powermetrics_output) > 0
-    return self._ParsePowerMetricsOutput(powermetrics_output)

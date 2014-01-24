@@ -196,7 +196,6 @@ class Platform(object):
 
   def StartMonitoringPowerAsync(self):
     """Starts monitoring power utilization statistics."""
-    assert self._platform_backend.CanMonitorPowerAsync()
     self._platform_backend.StartMonitoringPowerAsync()
 
   def StopMonitoringPowerAsync(self):
