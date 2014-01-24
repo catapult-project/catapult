@@ -114,7 +114,7 @@ this.base = (function() {
     didLoadModules = true;
 
     var req = new XMLHttpRequest();
-    var src = '/deps.js';
+    var src = '/base/deps.js';
     req.open('GET', src, false);
     req.send(null);
     if (req.status != 200) {
@@ -181,7 +181,7 @@ this.base = (function() {
     templatesLoaded_ = true;
 
     var req = new XMLHttpRequest();
-    req.open('GET', '/templates', false);
+    req.open('GET', '/base/all_templates.html', false);
     req.send(null);
 
     var elem = document.createElement('div');

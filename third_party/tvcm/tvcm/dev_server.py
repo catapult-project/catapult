@@ -210,9 +210,9 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     # location.
     self.AddPathHandler('/tests.html', do_GET_root)
 
-    self.AddPathHandler('/json/tests', do_GET_json_tests)
-    self.AddPathHandler('/templates', do_GET_templates)
-    self.AddPathHandler('/deps.js', do_GET_deps)
+    self.AddPathHandler('/base/json/tests', do_GET_json_tests)
+    self.AddPathHandler('/base/all_templates.html', do_GET_templates)
+    self.AddPathHandler('/base/deps.js', do_GET_deps)
 
   def AddPathHandler(self, path, handler, supports_get=True, supports_post=False):
     self._path_handlers.append(PathHandler(path, handler, supports_get, supports_post))

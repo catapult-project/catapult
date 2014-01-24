@@ -46,7 +46,7 @@ found in the LICENSE file.
       if (suite !== undefined) {
         base.unittest.Suites([suite + '_test'], tests);
       } else {
-        getAsync('/json/tests', function(data) {
+        getAsync('/base/json/tests', function(data) {
           base.unittest.Suites(JSON.parse(data), tests);
         });
       }

@@ -32,13 +32,13 @@ class DevServerTests(unittest.TestCase):
     self.server.CallOnServer('AddDataPathMapping', '/', THIRD_PARTY_PATH)
 
     # Just smoke test that it works.
-    resp_str = self.server.Get('/deps.js')
+    resp_str = self.server.Get('/base/deps.js')
 
   def testTests(self):
     self.server.CallOnServer('AddSourcePathMapping', '/', TVCM_PATH)
 
     # Just smoke test for a known test to see if things worked.
-    resp_str = self.server.Get('/json/tests')
+    resp_str = self.server.Get('/base/json/tests')
     resp = json.loads(resp_str)
     self.assertTrue('base.raf_test' in resp)
 
