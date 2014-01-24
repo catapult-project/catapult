@@ -33,16 +33,16 @@ base.exportsTo('xyz', function() { });
       loader = resource_loader.ResourceLoader(['/src/'], [])
       x_module = loader.load_module('x')
 
-      self.assertEquals([loader.loaded_scripts['y'],
-                         loader.loaded_scripts['z']],
+      self.assertEquals([loader.loaded_modules['y'],
+                         loader.loaded_modules['z']],
                         x_module.dependent_modules)
 
       already_loaded_set = set()
       load_sequence = []
       x_module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
 
-      self.assertEquals([loader.loaded_scripts['z'],
-                         loader.loaded_scripts['y'],
+      self.assertEquals([loader.loaded_modules['z'],
+                         loader.loaded_modules['y'],
                          x_module],
                         load_sequence)
 

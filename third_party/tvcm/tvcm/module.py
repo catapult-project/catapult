@@ -86,7 +86,7 @@ class Module(object):
     """
     assert self.name, 'Module name must be set before dep resolution.'
     assert self.filename, 'Module filename must be set before dep resolution.'
-    assert self.name in self.loader.loaded_scripts, 'Module must be registered in resource loader before loading.'
+    assert self.name in self.loader.loaded_modules, 'Module must be registered in resource loader before loading.'
 
     metadata = self.dependency_metadata
     for name in metadata.dependent_module_names:

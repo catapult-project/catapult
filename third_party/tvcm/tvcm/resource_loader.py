@@ -20,7 +20,7 @@ class ResourceLoader(object):
     assert isinstance(search_paths, list)
     self._search_paths = [os.path.abspath(path) for path in search_paths]
     self._data_paths = [os.path.abspath(path) for path in data_paths]
-    self.loaded_scripts = {}
+    self.loaded_modules = {}
     self.loaded_raw_scripts = {}
     self.loaded_style_sheets = {}
     self.loaded_html_templates = {}
@@ -118,9 +118,9 @@ class ResourceLoader(object):
     else:
       resource = None # Will be set if we end up needing to load.
 
-    if module_name in self.loaded_scripts:
-      assert self.loaded_scripts[module_name].contents
-      return self.loaded_scripts[module_name]
+    if module_name in self.loaded_modules:
+      assert self.loaded_modules[module_name].contents
+      return self.loaded_modules[module_name]
 
     if not resource: # happens when module_name was given
       resource = self._find_module_resource(module_name)
@@ -132,7 +132,7 @@ class ResourceLoader(object):
 
     m = js_module.JSModule(self, module_name, resource)
     m.parse()
-    self.loaded_scripts[module_name] = m
+    self.loaded_modules[module_name] = m
     m.load()
     return m
 

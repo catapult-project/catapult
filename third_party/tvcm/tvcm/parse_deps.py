@@ -74,19 +74,19 @@ def calc_load_sequence_internal(filenames, search_paths, data_paths):
   # Find the root modules: ones that have no dependencies. While doing that,
   # sort the dependent module list so that the computed load order is stable.
   module_ref_counts = {}
-  for m in loader.loaded_scripts.values():
+  for m in loader.loaded_modules.values():
     m.dependent_modules.sort(lambda x, y: cmp(x.name, y.name))
     module_ref_counts[m.name] = 0
 
   # Count the number of references to each module.
   def inc_ref_count(name):
     module_ref_counts[name] = module_ref_counts[name] + 1
-  for m in loader.loaded_scripts.values():
+  for m in loader.loaded_modules.values():
     for dependent_module in m.dependent_modules:
       inc_ref_count(dependent_module.name)
 
   # Root modules are modules with nothing depending on them.
-  root_modules = [loader.loaded_scripts[name]
+  root_modules = [loader.loaded_modules[name]
                   for name, ref_count in module_ref_counts.items()
                   if ref_count == 0]
 

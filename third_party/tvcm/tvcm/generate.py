@@ -105,7 +105,7 @@ def generate_js(load_sequence, include_html_templates=True):
 def generate_deps_js(load_sequence, mapped_paths):
   chunks = [js_warning_message, '\n']
   loader = load_sequence[0].loader
-  for module in loader.loaded_scripts.values():
+  for module in loader.loaded_modules.values():
     chunks.append("base.setResourceFileName('%s','%s');\n" % (
         module.name, module.resource.relative_path))
 
