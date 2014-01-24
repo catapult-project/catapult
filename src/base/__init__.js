@@ -58,6 +58,13 @@ this.base = (function() {
   var moduleDependencies = {};
   var moduleStylesheets = {};
   var moduleRawScripts = {};
+  var moduleRelativeFileNames = {};
+
+  function setModuleRelativeFileName(moduleName, relativeFileName) {
+    if (moduleRelativeFileNames[moduleName] !== undefined)
+      throw new Error('Cannot set file name twice!');
+    moduleRelativeFileNames[moduleName] = relativeFileName;
+  }
 
   function addModuleDependency(moduleName, dependentModuleName) {
     if (!moduleDependencies[moduleName])
@@ -148,6 +155,7 @@ this.base = (function() {
       throw new Error(msg);
     }
 
+    base.setModuleRelativeFileName = setModuleRelativeFileName;
     base.addModuleDependency = addModuleDependency;
     base.addModuleRawScriptDependency = addModuleRawScriptDependency;
     base.addModuleStylesheet = addModuleStylesheet;
@@ -158,6 +166,7 @@ this.base = (function() {
       throw new Error('When loading deps, got ' +
                       e.stack ? e.stack : e.message);
     }
+    delete base.setModuleRelativeFileName;
     delete base.addModuleStylesheet;
     delete base.addModuleRawScriptDependency;
     delete base.addModuleDependency;
@@ -219,7 +228,9 @@ this.base = (function() {
     moduleLoadStatus[dependentModuleName] = 'RESOLVING';
     requireDependencies(dependentModuleName, indentLevel);
 
-    loadScript(dependentModuleName.replace(/\./g, '/') + '.js');
+    if (moduleRelativeFileNames[dependentModuleName] === undefined)
+      throw new Error('Not sure what filename is for ' + dependentModuleName);
+    loadScript(moduleRelativeFileNames[dependentModuleName]);
     moduleLoadStatus[name] = 'APPENDED';
   }
 
@@ -274,7 +285,8 @@ this.base = (function() {
 
     if (rawScriptLoadStatus[relativeRawScriptPath])
       return;
-    throw new Error(relativeRawScriptPath + ' should already have been loaded.' +
+    throw new Error(
+        relativeRawScriptPath + ' should already have been loaded.' +
         ' Did you forget to run build/generate_about_tracing_contents.py?');
   }
 

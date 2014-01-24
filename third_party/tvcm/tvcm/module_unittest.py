@@ -11,7 +11,7 @@ from tvcm import module
 from tvcm import strip_js_comments
 from tvcm import resource_loader
 
-class FlattenTests(unittest.TestCase):
+class ModuleIntegrationTests(unittest.TestCase):
   def test_module(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/src/x.js', """
@@ -81,3 +81,36 @@ base.exportTo('foo', function() {
       rs = my_module.dependent_raw_scripts[0]
       self.assertEquals('hello', rs.contents)
       self.assertEquals('/x/raw/bar.js', rs.filename)
+
+
+  def testModulesThatAreDirectores(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/foo/__init__.js', """'use strict';""")
+
+    loader = resource_loader.ResourceLoader(['/x'], [])
+    with fs:
+      foo_module = loader.load_module(module_name = 'foo')
+      self.assertEquals('foo', foo_module.name)
+      self.assertEquals('/x/foo/__init__.js', foo_module.filename)
+
+  def testModulesThatAreDirectoresLoadedWithAbsoluteName(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/foo/__init__.js', """'use strict';""")
+
+    loader = resource_loader.ResourceLoader(['/x'], [])
+    with fs:
+      foo_module = loader.load_module(module_filename = '/x/foo/__init__.js')
+      self.assertEquals('foo', foo_module.name)
+      self.assertEquals('/x/foo/__init__.js', foo_module.filename)
+
+  def testExceptionRaisedWhenOldStyleModuleRootExists(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/foo/__init__.js', """'use strict';""")
+    fs.AddFile('/x/foo.js', """'use strict';""")
+
+    loader = resource_loader.ResourceLoader(['/x'], [])
+    with fs:
+      self.assertRaises(module.DepsException,
+          lambda: loader.load_module(module_name = 'foo'))
+      self.assertRaises(module.DepsException,
+          lambda: loader.load_module(module_filename = '/x/foo/__init__.js'))

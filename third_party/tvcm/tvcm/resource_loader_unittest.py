@@ -20,9 +20,9 @@ class ResourceLoaderTest(unittest.TestCase):
     loader = resource_loader.ResourceLoader([SRC_DIR], [THIRD_PARTY_DIR])
     guid_module = loader.load_module(module_name='base')
     self.assertTrue(os.path.samefile(guid_module.filename,
-                                     os.path.join(SRC_DIR, 'base.js')))
+                                     os.path.join(SRC_DIR, 'base', '__init__.js')))
     expected_contents = ''
-    with open(os.path.join(SRC_DIR, 'base.js')) as f:
+    with open(os.path.join(SRC_DIR, 'base', '__init__.js')) as f:
       expected_contents = f.read()
     self.assertEquals(guid_module.contents, expected_contents)
 

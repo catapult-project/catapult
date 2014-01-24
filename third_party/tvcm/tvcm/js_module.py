@@ -17,15 +17,6 @@ from tvcm import module
 from tvcm import strip_js_comments
 
 class JSModule(module.Module):
-  """Represents a javascript-based module.
-  """
-  def __init__(self, loader, name, filename):
-    super(JSModule, self).__init__(loader, name, filename)
-
-  @staticmethod
-  def html_contents_is_polymer_module(contents):
-    return '<polymer-component>' in contents
-
   def parse(self):
     stripped_text = strip_js_comments.strip_js_comments(self.contents)
     validate_uses_strict_mode(self.name, stripped_text)

@@ -23,8 +23,8 @@ class DevServerTests(unittest.TestCase):
 
   def testBasic(self):
     self.server.CallOnServer('AddSourcePathMapping', '/', src_path)
-    resp_str = self.server.Get('/base.js')
-    with open(os.path.join(src_path, 'base.js'), 'r') as f:
+    resp_str = self.server.Get('/base/__init__.js')
+    with open(os.path.join(src_path, 'base', '__init__.js'), 'r') as f:
       base_str = f.read()
     self.assertEquals(resp_str, base_str)
 

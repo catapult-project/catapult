@@ -5,46 +5,8 @@
 
 import os
 from tvcm import module
+from tvcm import resource as resource_module
 from tvcm import js_module
-
-class Resource(object):
-  """Represents a file found via a path search."""
-  def __init__(self, toplevel_dir, absolute_path):
-    self.toplevel_dir = toplevel_dir
-    self.absolute_path = absolute_path
-    self._contents = None
-
-  @property
-  def relative_path(self):
-    """The path to the file from the top-level directory"""
-    return os.path.relpath(self.absolute_path, self.toplevel_dir)
-
-  @property
-  def name(self):
-    """The dotted name for this resource based on its relative path."""
-    return self.name_from_relative_path(self.relative_path)
-
-  @staticmethod
-  def name_from_relative_path(relative_path):
-    dirname = os.path.dirname(relative_path)
-    modname  = os.path.splitext(os.path.basename(relative_path))[0]
-    if len(dirname):
-      name = dirname.replace(os.path.sep, '.') + '.' + modname
-    else:
-      name = modname
-    return name
-
-  @property
-  def contents(self):
-    if self._contents:
-      return self._contents
-    if not os.path.exists(self.absolute_path):
-      raise Exception('%s not found.' % self.absolute_path)
-    f = open(self.absolute_path, 'r')
-    self._contents = f.read()
-    f.close()
-    return self._contents
-
 
 class ResourceLoader(object):
   """Manges loading modules and their dependencies from files.
@@ -86,7 +48,7 @@ class ResourceLoader(object):
     """Returns a Resource for the given absolute path."""
     for search_path in self._search_paths:
       if absolute_path.startswith(search_path):
-        return Resource(search_path, absolute_path)
+        return resource_module.Resource(search_path, absolute_path)
     return None
 
   def find_resource_given_relative_path(self, relative_path):
@@ -95,7 +57,7 @@ class ResourceLoader(object):
     for search_path in self._search_paths:
       absolute_path = os.path.join(search_path, relative_path)
       if os.path.exists(absolute_path):
-        return Resource(search_path, absolute_path)
+        return resource_module.Resource(search_path, absolute_path)
     return None
 
 
@@ -121,7 +83,16 @@ class ResourceLoader(object):
 
   def _find_module_resource(self, requested_module_name):
     """Finds a module javascript file and returns a Resource, or none."""
+    # TODO(nduca): Look for name/__init__.js as well as name.js
     js_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.js', return_resource=True)
+    if not js_resource:
+      js_resource = self._find_resource_given_name_and_suffix(requested_module_name + '.__init__', '.js', return_resource=True)
+    else:
+      # Verify that no __init__.js exists.
+      init_resource = self._find_resource_given_name_and_suffix(requested_module_name + '.__init__', '.js', return_resource=True)
+      if init_resource:
+        raise module.DepsException('While loading %s, found a __init__.js form as well', requested_module_name)
+
     html_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.html', return_resource=True)
     if js_resource and html_resource:
       if module.Module.html_contents_is_polymer_module(html_resource.contents):
@@ -139,6 +110,11 @@ class ResourceLoader(object):
         raise Exception('Could not find %s in %s' % (
             filename, repr(self.search_paths)))
       module_name = resource.name
+      if resource.absolute_path.endswith('__init__.js'):
+        old_style_filename = os.path.dirname(resource.absolute_path) + '.js'
+        if os.path.exists(old_style_filename):
+          raise module.DepsException('While loading __init__.js of %s, found %s which should never exist',
+                                     module_name, old_style_filename)
     else:
       resource = None # Will be set if we end up needing to load.
 
@@ -155,7 +131,7 @@ class ResourceLoader(object):
         else:
           raise module.DepsException('No resource for module %s' % module_name)
 
-    m = js_module.JSModule(self, module_name, resource.absolute_path)
+    m = js_module.JSModule(self, module_name, resource)
     m.parse()
     self.loaded_scripts[module_name] = m
     m.load()
@@ -166,7 +142,7 @@ class ResourceLoader(object):
     for data_path in self._data_paths:
       possible_absolute_path = os.path.join(data_path, relative_raw_script_path)
       if os.path.exists(possible_absolute_path):
-        resource = Resource(data_path, possible_absolute_path)
+        resource = resource_module.Resource(data_path, possible_absolute_path)
         break
     if not resource:
       raise DepsException('Could not find a file for raw script %s in %s' % (

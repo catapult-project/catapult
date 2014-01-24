@@ -32,7 +32,7 @@ def calc_load_sequence(filenames, search_paths, data_paths):
   objects that need to be loaded to satisfy their dependencies.
 
   The javascript files should specify their dependencies in a format that is
-  textually equivalent to base.js' require syntax, namely:
+  textually equivalent to base/__init__.js' require syntax, namely:
 
       base.require(module1);
       base.require(module2);
@@ -48,9 +48,9 @@ def calc_load_sequence(filenames, search_paths, data_paths):
   Returns:
     A list of Module objects in the order that they should be loaded.
   """
-  if 'base.js' not in filenames:
+  if os.path.join('base', '__init__.js') not in filenames:
     filenames = list(filenames)
-    filenames.insert(0, 'base.js')
+    filenames.insert(0, os.path.join('base', '__init__.js'))
   return calc_load_sequence_internal(filenames, search_paths, data_paths)
 
 

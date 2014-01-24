@@ -13,6 +13,8 @@ Other resources include HTML templates, raw javascript files, and stylesheets.
 import os
 import re
 
+from tvcm import resource as resource_module
+
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
   pass
@@ -40,11 +42,12 @@ class Module(object):
   In addition to these properties, a Module also contains lists of other
   resources that it depends on.
   """
-  def __init__(self, loader, name, filename):
+  def __init__(self, loader, name, resource):
     assert isinstance(name, basestring), 'Got %s instead' % repr(name)
+    assert isinstance(resource, resource_module.Resource)
     self.loader = loader
     self.name = name
-    self.filename = filename
+    self.resource = resource
 
     f = open(self.filename, 'r')
     self.contents = f.read()
@@ -61,6 +64,10 @@ class Module(object):
 
   def __repr__(self):
     return '%s(%s)' % (self.__class__.__name__, self.name)
+
+  @property
+  def filename(self):
+    return self.resource.absolute_path
 
   @staticmethod
   def html_contents_is_polymer_module(contents):

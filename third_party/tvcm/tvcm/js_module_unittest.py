@@ -6,6 +6,7 @@ import unittest
 from tvcm import fake_fs
 from tvcm import module
 from tvcm import js_module
+from tvcm import resource as resource_module
 from tvcm import resource_loader
 from tvcm import strip_js_comments
 
@@ -13,7 +14,8 @@ class SmokeTest(unittest.TestCase):
   def testBasic(self):
     with fake_fs.FakeFS({"/src/test.js": "// blahblahblah\n\n'use strict';\n\nbase.require('dependency1');"}):
       loader = resource_loader.ResourceLoader(['/src/'], [])
-      my_module = js_module.JSModule(loader, 'test', '/src/test.js')
+      resource = resource_module.Resource('/src/', '/src/test.js')
+      my_module = js_module.JSModule(loader, 'test', resource)
 
 class ValidateStrictModeTests(unittest.TestCase):
   """Test case for validate_uses_strict_mode."""

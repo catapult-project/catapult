@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('about_tracing.profiling_view');
-base.requireStylesheet('about_tracing');
+base.requireStylesheet('about_tracing.common');
 
 base.exportTo('about_tracing', function() {
   window.profilingView = undefined;  // Made global for debugging purposes only.

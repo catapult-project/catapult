@@ -76,7 +76,7 @@ def main(args):
     parser.print_help()
     return 1
 
-  filenames = ["base.js", "about_tracing.js"]
+  filenames = ["base/__init__.js", "about_tracing/__init__.js"]
   load_sequence = tvcm.calc_load_sequence(filenames, [src_dir], [third_party_dir])
 
   olddir = os.getcwd()
