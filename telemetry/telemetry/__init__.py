@@ -10,9 +10,9 @@ import os
 import sys
 
 
-# Ensure Python >= 2.6
-if sys.version_info < (2, 6):
-  logging.critical('Need Python 2.6 or greater.')
+# Ensure Python >= 2.7
+if sys.version_info < (2, 7):
+  logging.critical('Need Python 2.7 or greater.')
   sys.exit(1)
 
 
