@@ -8,7 +8,7 @@ import unittest
 
 from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_timeline
-from telemetry.unittest import tab_test_case
+from telemetry.unittest import DisabledTest, tab_test_case
 
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):
@@ -20,6 +20,8 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
       return bool(self._tab.EvaluateJavaScript('window.done'))
     util.WaitFor(_IsDone, 5)
 
+  # Flaky on XP+Vista: crbug.com/321529
+  @DisabledTest
   def testGotTimeline(self):
     if sys.platform in ('win32', 'cygwin'):
       if platform.win32_ver()[0] == 'XP':
