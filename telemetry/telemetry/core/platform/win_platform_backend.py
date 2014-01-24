@@ -24,11 +24,6 @@ from telemetry.core.platform import desktop_platform_backend
 
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
-  def _GetProcessHandle(self, pid):
-    mask = (win32con.PROCESS_QUERY_INFORMATION |
-            win32con.PROCESS_VM_READ)
-    return win32api.OpenProcess(mask, False, pid)
-
   # pylint: disable=W0613
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -181,10 +176,16 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return 'clear_system_cache.exe'
 
   def _GetWin32ProcessInfo(self, func, pid):
+    mask = (win32con.PROCESS_QUERY_INFORMATION |
+            win32con.PROCESS_VM_READ)
     try:
-      return func(self._GetProcessHandle(pid))
+      handle = win32api.OpenProcess(mask, False, pid)
+      return func(handle)
     except pywintypes.error, e:
       errcode = e[0]
       if errcode == 87:
         raise exceptions.ProcessGoneException()
       raise
+    finally:
+      if handle:
+        win32api.CloseHandle(handle)
