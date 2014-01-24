@@ -105,9 +105,9 @@ def generate_js(load_sequence, include_html_templates=True):
 def generate_deps_js(load_sequence, mapped_paths):
   chunks = [js_warning_message, '\n']
   for module in load_sequence:
-    for dependent_module_name in module.dependent_module_names:
+    for dependent_module in module.dependent_modules:
       chunks.append("base.addModuleDependency('%s','%s');\n" % (
-          module.name, dependent_module_name));
+          module.name, dependent_module.name));
 
     for dependent_raw_script in module.dependent_raw_scripts:
       # Figure out mapped path for dependent_raw_script.filename.

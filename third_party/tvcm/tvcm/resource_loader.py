@@ -5,6 +5,7 @@
 
 import os
 from tvcm import module
+from tvcm import js_module
 
 class Resource(object):
   """Represents a file found via a path search."""
@@ -154,7 +155,7 @@ class ResourceLoader(object):
         else:
           raise module.DepsException('No resource for module %s' % module_name)
 
-    m = module.Module(self, module_name, resource.absolute_path)
+    m = js_module.JSModule(self, module_name, resource.absolute_path)
     m.parse()
     self.loaded_scripts[module_name] = m
     m.load()

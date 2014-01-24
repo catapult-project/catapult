@@ -3,11 +3,22 @@
 # found in the LICENSE file.
 import os
 import sys
-import cStringIO
+import StringIO
+
+class WithableStringIO(StringIO.StringIO):
+  def __enter__(self, *args):
+    return self
+
+  def __exit__(self, *args):
+    pass
 
 class FakeFS(object):
-  def __init__(self):
+  def __init__(self, initial_filenames_and_contents=None):
     self._file_contents = {}
+    if initial_filenames_and_contents:
+      for k,v in initial_filenames_and_contents.iteritems():
+        self._file_contents[k] = v
+
     self._bound = False
     self._real_open = sys.modules['__builtin__'].open
     self._real_exists = os.path.exists
@@ -41,7 +52,7 @@ class FakeFS(object):
     if mode == 'r' or mode == 'rU':
       if path not in self._file_contents:
         return self._real_open(path, mode)
-      return cStringIO.StringIO(self._file_contents[path])
+      return WithableStringIO(self._file_contents[path])
 
     raise NotImplementedError()
 

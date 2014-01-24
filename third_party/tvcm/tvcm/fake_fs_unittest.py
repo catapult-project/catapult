@@ -15,3 +15,11 @@ class FakeFSUnittest(unittest.TestCase):
       self.assertEquals(
           'foobar',
           open('/blah/x', 'r').read())
+
+
+  def testWithableOpen(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/blah/x', 'foobar')
+    with fs:
+      with open('/blah/x', 'r') as f:
+        self.assertEquals('foobar', f.read())
