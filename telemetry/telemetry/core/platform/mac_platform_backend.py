@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import ctypes
+import logging
 import os
 import plistlib
 import signal
@@ -35,9 +36,15 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       self._powermetrics_output_file = tempfile.NamedTemporaryFile().name
       args = [self.binary_path, '-f', 'plist', '-i',
           '%d' % SAMPLE_INTERVAL_MS, '-u', self._powermetrics_output_file]
-      # TODO(jeremy): Need to ensure command is run as root user.
+
+      # powermetrics writes lots of output to stderr, don't echo unless verbose
+      # logging enabled.
+      stderror_destination = subprocess.PIPE
+      if logging.getLogger().isEnabledFor(logging.DEBUG):
+        stderror_destination = None
+
       self._powermetrics_process = subprocess.Popen(args,
-          stdout=subprocess.PIPE)
+          stdout=subprocess.PIPE, stderr=stderror_destination)
 
     def StopMonitoringPowerAsync(self):
       assert self._powermetrics_process, (
