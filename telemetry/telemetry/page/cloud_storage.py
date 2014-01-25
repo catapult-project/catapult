@@ -27,10 +27,13 @@ _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions(gsutil_path):
-    return ('To configure your credentials:\n'
-            '  1. Run "%s config" and follow its instructions.\n'
-            '  2. If you have a @google.com account, use that account.\n'
-            '  3. For the project-id, just enter 0.' % gsutil_path)
+    if _SupportsProdaccess(gsutil_path):
+      return 'Run prodaccess to authenticate.'
+    else:
+      return ('To configure your credentials:\n'
+              '  1. Run "%s config" and follow its instructions.\n'
+              '  2. If you have a @google.com account, use that account.\n'
+              '  3. For the project-id, just enter 0.' % gsutil_path)
 
 
 class PermissionError(CloudStorageError):
@@ -51,6 +54,14 @@ class NotFoundError(CloudStorageError):
   pass
 
 
+def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
+  for path in list(extra_search_paths) + os.environ['PATH'].split(os.pathsep):
+    executable_path = os.path.join(path, relative_executable_path)
+    if os.path.exists(executable_path) and os.access(executable_path, os.X_OK):
+      return executable_path
+  return None
+
+
 def _DownloadGsutil():
   logging.info('Downloading gsutil')
   response = urllib2.urlopen(_GSUTIL_URL)
@@ -62,33 +73,34 @@ def _DownloadGsutil():
 
 
 def _FindGsutil():
-  """Return the gsutil executable path. If we can't find it, download it.
-
-  Also returns a list of any extra flags that gsutil needs.
-  """
-  search_paths = [_DOWNLOAD_PATH] + os.environ['PATH'].split(os.pathsep)
-
+  """Return the gsutil executable path. If we can't find it, download it."""
   # Look for a depot_tools installation.
-  # gsutil in depot_tools has local modifications, and requires an extra arg.
-  for path in search_paths:
-    gsutil_path = os.path.join(path, 'third_party', 'gsutil', 'gsutil')
-    if os.path.isfile(gsutil_path):
-      return gsutil_path, ['--bypass_prodaccess']
+  gsutil_path = _FindExecutableInPath(
+      os.path.join('third_party', 'gsutil', 'gsutil'), _DOWNLOAD_PATH)
+  if gsutil_path:
+    return gsutil_path
 
   # Look for a gsutil installation.
-  for path in search_paths:
-    gsutil_path = os.path.join(path, 'gsutil')
-    if os.path.isfile(gsutil_path):
-      return gsutil_path, []
+  gsutil_path = _FindExecutableInPath('gsutil', _DOWNLOAD_PATH)
+  if gsutil_path:
+    return gsutil_path
 
   # Failed to find it. Download it!
-  return _DownloadGsutil(), []
+  return _DownloadGsutil()
+
+
+def _SupportsProdaccess(gsutil_path):
+  def GsutilSupportsProdaccess():
+    with open(gsutil_path, 'r') as gsutil:
+      return 'prodaccess' in gsutil.read()
+
+  return _FindExecutableInPath('prodaccess') and GsutilSupportsProdaccess()
 
 
 def _RunCommand(args):
-  gsutil_path, extra_args = _FindGsutil()
+  gsutil_path = _FindGsutil()
 
-  gsutil = subprocess.Popen([sys.executable, gsutil_path] + extra_args + args,
+  gsutil = subprocess.Popen([sys.executable, gsutil_path] + args,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   stdout, stderr = gsutil.communicate()
 
@@ -167,7 +179,9 @@ def GetIfChanged(file_path, bucket=None):
   found = False
   for bucket in buckets:
     try:
-      Get(bucket, expected_hash, file_path)
+      url = 'gs://%s/%s' % (bucket, expected_hash)
+      _RunCommand(['cp', url, file_path])
+      logging.info('Downloaded %s to %s' % (url, file_path))
       found = True
     except NotFoundError:
       continue
