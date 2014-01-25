@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 '''Imports event data obtained from the inspector's timeline.'''
-import json
-import sys
 
 from telemetry.core.timeline import importer
 import telemetry.core.timeline.thread as timeline_thread
@@ -27,13 +25,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     render_process = self._model.GetOrCreateProcess(0)
     for raw_event in self._event_data:
       thread = render_process.GetOrCreateThread(raw_event.get('thread', 0))
-      try:
-        InspectorTimelineImporter.AddRawEventToThreadRecursive(
-            thread, raw_event)
-      except ValueError:
-        sys.stderr.write('While importing raw_event=%s:\s' %
-                         json.dumps(raw_event))
-        raise
+      InspectorTimelineImporter.AddRawEventToThreadRecursive(thread, raw_event)
 
   def FinalizeImport(self):
     pass
