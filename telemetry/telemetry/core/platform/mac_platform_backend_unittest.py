@@ -12,15 +12,15 @@ from telemetry.core import util
 
 class MockPowermetricsUtility(
     mac_platform_backend.MacPlatformBackend.PowerMetricsUtility):
-  def __init__(self):
+  def __init__(self, output):
     super(MockPowermetricsUtility, self).__init__()
+    self._output = output
 
   def StartMonitoringPowerAsync(self):
     pass
 
   def StopMonitoringPowerAsync(self):
-    test_data_path = os.path.join(util.GetUnittestDataDir(),
-        'powermetrics_output.output')
+    test_data_path = os.path.join(util.GetUnittestDataDir(), self._output)
     return open(test_data_path, 'r').read()
 
 class MacPlatformBackendTest(unittest.TestCase):
@@ -43,8 +43,18 @@ class MacPlatformBackendTest(unittest.TestCase):
       logging.warning('Test not supported on this platform.')
       return
 
-    backend.SetPowerMetricsUtilityForTest(MockPowermetricsUtility())
+    # Supported hardware reports power samples and energy consumption.
+    backend.SetPowerMetricsUtilityForTest(MockPowermetricsUtility(
+        'powermetrics_output.output'))
     backend.StartMonitoringPowerAsync()
     result = backend.StopMonitoringPowerAsync()
     self.assertTrue(len(result['power_samples_mw']) > 1)
     self.assertTrue(result['energy_consumption_mwh'] > 0)
+
+    # Unsupported hardware doesn't.
+    backend.SetPowerMetricsUtilityForTest(MockPowermetricsUtility(
+        'powermetrics_output_unsupported_hardware.output'))
+    backend.StartMonitoringPowerAsync()
+    result = backend.StopMonitoringPowerAsync()
+    self.assertNotIn('power_samples_mw', result)
+    self.assertNotIn('energy_consumption_mwh', result)

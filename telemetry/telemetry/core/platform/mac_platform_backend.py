@@ -201,7 +201,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       # Duration of this sample.
       sample_duration_ms = int(plist['elapsed_ns']) / 10**6
 
+      if 'processor' not in plist:
+        continue
       processor = plist['processor']
+
       energy_consumption_mw = int(processor.get('package_watts', 0)) * 10**3
 
       total_energy_consumption_mwh += (energy_consumption_mw *
@@ -212,8 +215,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     # -------- Collect and Process Data -------------
     out_dict = {}
     # Raw power usage samples.
-    out_dict['power_samples_mw'] = power_samples
-    out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
+    if power_samples:
+      out_dict['power_samples_mw'] = power_samples
+      out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
 
     return out_dict
 
