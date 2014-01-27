@@ -750,6 +750,18 @@ base.exportTo('cc', function() {
       return quads;
     },
 
+    appendAnimationQuads_: function(quads, layer, layerQuad) {
+      if (!layer.animationBounds)
+        return;
+
+      var abq = base.Quad.fromRect(layer.animationBounds);
+      abq.backgroundColor = 'rgba(164,191,48,0.5)';
+      abq.borderColor = 'rgba(205,255,0,0.75)';
+      abq.borderWidth = 3.0;
+      abq.stackingGroupId = layerQuad.stackingGroupId;
+      quads.push(abq);
+    },
+
     generateLayerQuads: function() {
       this.updateContentsPending_ = false;
 
@@ -774,6 +786,8 @@ base.exportTo('cc', function() {
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
 
+        if (this.selectedLayer === layer)
+          this.appendAnimationQuads_(quads, layer, layerQuad);
         this.appendImageQuads_(quads, layer, layerQuad);
         quads.push(layerQuad);
 

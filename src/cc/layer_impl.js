@@ -51,6 +51,13 @@ base.exportTo('cc', function() {
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
+      if (this.args.animationBounds) {
+        // AnimationBounds[2] and [5] are the Z-component of the box.
+        this.animationBounds = base.Rect.fromXYWH(
+            this.args.animationBounds[0], this.args.animationBounds[1],
+            this.args.animationBounds[3], this.args.animationBounds[4]);
+      }
+
       for (var i = 0; i < this.children.length; i++)
         this.children[i].parentLayer = this;
       if (this.maskLayer)
