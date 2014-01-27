@@ -2,18 +2,30 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
+import copy
 import logging
 import sys
 import traceback
 import unittest
 
 class PageTestResults(unittest.TestResult):
-  def __init__(self):
+  def __init__(self, output_stream=None):
     super(PageTestResults, self).__init__()
+    self._output_stream = output_stream
     self.pages_that_had_errors = set()
     self.pages_that_had_failures = set()
     self.successes = []
     self.skipped = []
+
+  def __copy__(self):
+    cls = self.__class__
+    result = cls.__new__(cls)
+    for k, v in self.__dict__.items():
+      if isinstance(v, collections.Container):
+        v = copy.copy(v)
+      setattr(result, k, v)
+    return result
 
   @property
   def pages_that_had_errors_or_failures(self):

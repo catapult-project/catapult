@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import sys
 
 from telemetry.core import util
 from telemetry.page import buildbot_page_measurement_results
@@ -30,12 +31,11 @@ class HtmlPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
   def __init__(self, output_stream, test_name, reset_results, upload_results,
       browser_type, results_label=None, trace_tag=''):
-    super(HtmlPageMeasurementResults, self).__init__(trace_tag)
-
-    self._output_stream = output_stream
+    super(HtmlPageMeasurementResults, self).__init__(sys.stdout, trace_tag)
     self._test_name = test_name
     self._reset_results = reset_results
     self._upload_results = upload_results
+    self._html_output_stream = output_stream
     self._existing_results = self._ReadExistingResults(output_stream)
     self._result = {
         'buildTime': self._GetBuildTime(),
@@ -78,9 +78,9 @@ class HtmlPageMeasurementResults(
     return json.loads(m.group(1))[:512]
 
   def _SaveResults(self, results):
-    self._output_stream.seek(0)
-    self._output_stream.write(results)
-    self._output_stream.truncate()
+    self._html_output_stream.seek(0)
+    self._html_output_stream.write(results)
+    self._html_output_stream.truncate()
 
   def _PrintPerfResult(self, measurement, trace, values, units,
                        result_type='default'):
@@ -115,7 +115,7 @@ class HtmlPageMeasurementResults(
     self._SaveResults(html)
 
     if self._upload_results:
-      file_path = os.path.abspath(self._output_stream.name)
+      file_path = os.path.abspath(self._html_output_stream.name)
       file_name = 'html-results/results-%s' % datetime.datetime.now().strftime(
           '%Y-%m-%d_%H-%M-%S')
       cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
@@ -123,4 +123,5 @@ class HtmlPageMeasurementResults(
       print ('View online at '
           'http://storage.googleapis.com/chromium-telemetry/%s' % file_name)
     print
-    print 'View result at file://%s' % os.path.abspath(self._output_stream.name)
+    print 'View result at file://%s' % os.path.abspath(
+        self._html_output_stream.name)

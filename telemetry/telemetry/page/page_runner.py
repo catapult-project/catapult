@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import collections
+import copy
 import glob
 import logging
 import os
@@ -18,7 +19,6 @@ from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
 from telemetry.page import page_filter as page_filter_module
-from telemetry.page import page_measurement_results
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
 from telemetry.page import results_options
@@ -106,9 +106,6 @@ class _RunState(object):
       # loading so we'll wait forever.
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
-
-    if self.first_page[page]:
-      self.first_page[page] = False
 
   def StopBrowser(self):
     if self.browser:
@@ -205,21 +202,19 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         wpr_modes.WPR_REPLAY
         if page.archive_path and os.path.isfile(page.archive_path)
         else wpr_modes.WPR_OFF)
-  results_for_current_run = results
-  if state.first_page[page] and test.discard_first_result:
-    # If discarding results, substitute a dummy object.
-    results_for_current_run = page_measurement_results.PageMeasurementResults()
-  results_for_current_run.StartTest(page)
+
   tries = 3
   while tries:
     tries -= 1
     try:
+      results_for_current_run = copy.copy(results)
+      results_for_current_run.StartTest(page)
       if test.RestartBrowserBeforeEachPage():
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.
       state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
-                         credentials_path, page.archive_path)
+                                 credentials_path, page.archive_path)
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
 
@@ -247,7 +242,13 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
       if (test.StopBrowserAfterPage(state.browser, page)):
         state.StopBrowser()
 
-      break
+      results_for_current_run.StopTest(page)
+
+      if state.first_page[page]:
+        state.first_page[page] = False
+        if test.discard_first_result:
+          return results
+      return results_for_current_run
     except exceptions.BrowserGoneException:
       _LogStackTrace('Browser crashed', state.browser)
       logging.warning('Lost connection to browser. Retrying.')
@@ -259,7 +260,6 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         logging.error(
           'Lost connection to browser during multi-tab test. Failing.')
         raise
-  results_for_current_run.StopTest(page)
 
 
 def Run(test, page_set, expectations, finder_options):
@@ -334,10 +334,9 @@ def Run(test, page_set, expectations, finder_options):
         state.repeat_state.WillRunPage()
         test.WillRunPageRepeats(page)
         while state.repeat_state.ShouldRepeatPage():
-          # execute test on page
-          _PrepareAndRunPage(test, page_set, expectations, finder_options,
-                             browser_options, page, credentials_path,
-                             possible_browser, results, state)
+          results = _PrepareAndRunPage(
+              test, page_set, expectations, finder_options, browser_options,
+              page, credentials_path, possible_browser, results, state)
           state.repeat_state.DidRunPage()
         test.DidRunPageRepeats(page)
         if test.IsExiting():

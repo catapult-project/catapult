@@ -12,14 +12,16 @@ from telemetry.value import merge_values
 
 class BuildbotPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
-  def __init__(self, trace_tag=''):
-    super(BuildbotPageMeasurementResults, self).__init__()
+  def __init__(self, output_stream, trace_tag=''):
+    super(BuildbotPageMeasurementResults, self).__init__(output_stream)
     self._trace_tag = trace_tag
 
   def _PrintPerfResult(self, measurement, trace, v, units,
                        result_type='default'):
-    perf_tests_helper.PrintPerfResult(
-        measurement, trace, v, units, result_type)
+    output = perf_tests_helper.PrintPerfResult(
+        measurement, trace, v, units, result_type, print_to_stdout=False)
+    self._output_stream.write(output + '\n')
+    self._output_stream.flush()
 
   def PrintSummary(self):
     """Print summary data in a format expected by buildbot for perf dashboards.
@@ -29,7 +31,7 @@ class BuildbotPageMeasurementResults(
     """
     # Print out the list of unique pages.
     perf_tests_helper.PrintPages(
-      [page.display_name for page in self.pages_that_succeeded])
+        [page.display_name for page in self.pages_that_succeeded])
     self._PrintPerPageResults()
     self._PrintOverallResults()
 

@@ -14,8 +14,8 @@ from telemetry.page import page_measurement
 from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import page_runner
-from telemetry.unittest import options_for_unittests
 from telemetry.page import test_expectations
+from telemetry.unittest import options_for_unittests
 
 SIMPLE_CREDENTIALS_STRING = """
 {
@@ -131,7 +131,7 @@ class PageRunnerTests(unittest.TestCase):
 
     self.assertEquals(1, len(results.successes))
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(1, len(results.errors))
+    self.assertEquals(0, len(results.errors))
 
   def testDiscardFirstResult(self):
     ps = page_set.PageSet()
@@ -178,6 +178,43 @@ class PageRunnerTests(unittest.TestCase):
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
+
+  def testPagesetRepeat(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    ps.pages.append(page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir()))
+    ps.pages.append(page_module.Page(
+        'file://green_rect.html', ps, base_dir=util.GetUnittestDataDir()))
+
+    class Measurement(page_measurement.PageMeasurement):
+      i = 0
+      def MeasurePage(self, _, __, results):
+        self.i += 1
+        results.Add('metric', 'unit', self.i)
+
+    output_file = tempfile.NamedTemporaryFile(delete=False).name
+    try:
+      options = options_for_unittests.GetCopy()
+      options.output_format = 'buildbot'
+      options.output_file = output_file
+      options.reset_results = None
+      options.upload_results = None
+      options.results_label = None
+
+      options.repeat_options.page_repeat_iters = 1
+      options.repeat_options.pageset_repeat_iters = 2
+      results = page_runner.Run(Measurement(), ps, expectations, options)
+      results.PrintSummary()
+      self.assertEquals(4, len(results.successes))
+      self.assertEquals(0, len(results.failures))
+      stdout = open(output_file).read()
+      self.assertIn('RESULT metric_by_url: blank.html= [1,3] unit', stdout)
+      self.assertIn('RESULT metric_by_url: green_rect.html= [2,4] unit', stdout)
+      self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', stdout)
+    finally:
+      results._output_stream.close()  # pylint: disable=W0212
+      os.remove(output_file)
 
   def testCredentialsWhenLoginFails(self):
     credentials_backend = StubCredentialsBackend(login_return_value=False)

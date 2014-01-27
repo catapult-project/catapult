@@ -22,7 +22,8 @@ def _MakePageSet():
 class SummarySavingPageMeasurementResults(
     buildbot_page_measurement_results.BuildbotPageMeasurementResults):
   def __init__(self, trace_tag=''):
-    super(SummarySavingPageMeasurementResults, self).__init__(trace_tag)
+    super(SummarySavingPageMeasurementResults, self).__init__(
+        None, trace_tag=trace_tag)
     self.results = []
 
   def _PrintPerfResult(self, *args):

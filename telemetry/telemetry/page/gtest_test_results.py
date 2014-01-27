@@ -11,8 +11,7 @@ from telemetry.page import page_test_results
 
 class GTestTestResults(page_test_results.PageTestResults):
   def __init__(self, output_stream):
-    super(GTestTestResults, self).__init__()
-    self._output_stream = output_stream
+    super(GTestTestResults, self).__init__(output_stream)
     self._timestamp = None
 
   def _GetMs(self):
