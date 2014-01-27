@@ -29,9 +29,11 @@ def GypCheck():
       dirnames.remove('.svn')
   for (dirpath, dirnames, filenames) in os.walk('src'):
     handle(dirpath, dirnames, filenames)
-  for (dirpath, dirnames, filenames) in os.walk(
-        os.path.join('third_party', 'tvcm', 'base')):
-    handle(dirpath, dirnames, filenames)
+
+  for directory in ('base', 'ui'):
+    for (dirpath, dirnames, filenames) in os.walk(
+        os.path.join('third_party', 'tvcm', directory)):
+      handle(dirpath, dirnames, filenames)
 
   u = set(gyp_files).union(set(known_files))
   i = set(gyp_files).intersection(set(known_files))
