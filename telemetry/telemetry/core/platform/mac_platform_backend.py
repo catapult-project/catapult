@@ -33,9 +33,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       assert not self._powermetrics_process, (
           "Must call StopMonitoringPowerAsync().")
       SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
-      self._powermetrics_output_file = tempfile.NamedTemporaryFile().name
+      self._powermetrics_output_file = tempfile.NamedTemporaryFile()
       args = [self.binary_path, '-f', 'plist', '-i',
-          '%d' % SAMPLE_INTERVAL_MS, '-u', self._powermetrics_output_file]
+          '%d' % SAMPLE_INTERVAL_MS, '-u', self._powermetrics_output_file.name]
 
       # powermetrics writes lots of output to stderr, don't echo unless verbose
       # logging enabled.
@@ -56,10 +56,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         returncode = self._powermetrics_process.wait()
         assert returncode in [0, -15], (
             "powermetrics return code: %d" % returncode)
-        powermetrics_output = open(self._powermetrics_output_file, 'r').read()
-        os.unlink(self._powermetrics_output_file)
-        return powermetrics_output
+        return open(self._powermetrics_output_file.name, 'r').read()
       finally:
+        self._powermetrics_output_file.close()
         self._powermetrics_output_file = None
         self._powermetrics_process = None
 
