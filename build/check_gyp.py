@@ -23,7 +23,8 @@ def GypCheck():
   known_files = []
   def handle(dirpath, dirnames, filenames):
     for name in filenames:
-      if not name.endswith(("_test.js", "_test_data.js", "tests.html")):
+      if not (name.endswith(("_test.js", "_test_data.js", "tests.html")) or
+         name.startswith(("."))):
         known_files.append(os.path.normpath(os.path.join(dirpath, name)))
     if '.svn' in dirnames:
       dirnames.remove('.svn')
