@@ -324,8 +324,8 @@ base.exportTo('tracing.analysis', function() {
         if (labelEl) {
           labelEl.textContent = '';
           labelEl.appendChild(
-            this.createSelectionChangingLink(label, opt_selectionGenerator,
-                                             tooltip));
+              this.createSelectionChangingLink(label, opt_selectionGenerator,
+                                               tooltip));
         }
       }
       cellNum++;

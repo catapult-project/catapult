@@ -16,11 +16,13 @@ base.unittest.testSuite('about_tracing.profiling_view', function() {
     {name: 'b', args: {}, pid: 52, ts: 54000, cat: 'foo', tid: 53, ph: 'E'}
   ];
 
-  var monitoringOptions = {isMonitoring: false,
-                           categoryFilter: "*",
-                           useSystemTracing: false,
-                           useContinuousTracing: false,
-                           useSampling: false};
+  var monitoringOptions = {
+    isMonitoring: false,
+    categoryFilter: '*',
+    useSystemTracing: false,
+    useContinuousTracing: false,
+    useSampling: false
+  };
 
   var ProfilingView = about_tracing.ProfilingView;
 

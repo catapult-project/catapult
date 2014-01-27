@@ -71,13 +71,13 @@ base.unittest.testSuite('about_tracing.tracing_ui_client', function() {
         setTimeout(function() {
           var capturePromise = about_tracing.captureMonitoring(tracingRequest);
           capturePromise.then(
-          function(data) {
-            var testDataString = JSON.stringify(testData);
-            assertEquals(testDataString, data);
-          },
-          function(error) {
-            r.reject();
-          });
+              function(data) {
+                var testDataString = JSON.stringify(testData);
+                assertEquals(testDataString, data);
+              },
+              function(error) {
+                r.reject();
+              });
         }, 10);
         return '';
       });
@@ -86,13 +86,13 @@ base.unittest.testSuite('about_tracing.tracing_ui_client', function() {
         setTimeout(function() {
           var endPromise = about_tracing.endMonitoring(tracingRequest);
           endPromise.then(
-          function(data) {
-            mock.assertAllRequestsHandled();
-            r.resolve();
-          },
-          function(error) {
-            r.reject();
-          });
+              function(data) {
+                mock.assertAllRequestsHandled();
+                r.resolve();
+              },
+              function(error) {
+                r.reject();
+              });
         }, 10);
         return JSON.stringify(testData);
       });

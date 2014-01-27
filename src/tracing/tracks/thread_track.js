@@ -63,7 +63,7 @@ base.exportTo('tracing.tracks', function() {
         samplesTrack.slices = this.thread_.samples;
         samplesTrack.heading = this.thread_.userFriendlyName;
         samplesTrack.tooltip = this.thread_.userFriendlyDetails;
-        samplesTrack.selectionGenerator = function () {
+        samplesTrack.selectionGenerator = function() {
           var selection = new tracing.Selection();
           for (var i = 0; i < samplesTrack.slices.length; i++) {
             selection.push(samplesTrack.slices[i]);

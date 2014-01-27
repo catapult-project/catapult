@@ -38,22 +38,22 @@ base.exportTo('about_tracing', function() {
 
     // TODO(haraken): Implement a configure dialog to set these options.
     var monitoringOptions = {
-      categoryFilter: "*",
+      categoryFilter: '*',
       useSystemTracing: false,
       useContinuousTracing: false,
-      useSampling: true,
+      useSampling: true
     };
 
     var monitoringOptionsB64 = btoa(JSON.stringify(monitoringOptions));
     var beginMonitoringPromise = tracingRequest(
-      'GET', '/json/begin_monitoring?' + monitoringOptionsB64);
+        'GET', '/json/begin_monitoring?' + monitoringOptionsB64);
     beginMonitoringPromise.then(
-      function () {
-        finalPromiseResolver.resolve();
-      },
-      function (err) {
-        finalPromiseResolver.reject(err);
-      });
+        function() {
+          finalPromiseResolver.resolve();
+        },
+        function(err) {
+          finalPromiseResolver.reject(err);
+        });
 
     return finalPromise;
   }
@@ -66,12 +66,12 @@ base.exportTo('about_tracing', function() {
 
     var endMonitoringPromise = tracingRequest('GET', '/json/end_monitoring');
     endMonitoringPromise.then(
-      function () {
-        finalPromiseResolver.resolve();
-      },
-      function (err) {
-        finalPromiseResolver.reject(err);
-      });
+        function() {
+          finalPromiseResolver.resolve();
+        },
+        function(err) {
+          finalPromiseResolver.reject(err);
+        });
 
     return finalPromise;
   }
@@ -83,10 +83,10 @@ base.exportTo('about_tracing', function() {
     });
 
     var captureMonitoringPromise =
-      tracingRequest('GET', '/json/capture_monitoring');
+        tracingRequest('GET', '/json/capture_monitoring');
     captureMonitoringPromise.then(
-      captureMonitoringResolved,
-      captureMonitoringRejected);
+        captureMonitoringResolved,
+        captureMonitoringRejected);
 
     function captureMonitoringResolved(tracedData) {
       finalPromiseResolver.resolve(tracedData);
@@ -106,19 +106,19 @@ base.exportTo('about_tracing', function() {
     });
 
     var getMonitoringStatusPromise =
-      tracingRequest('GET', '/json/get_monitoring_status');
+        tracingRequest('GET', '/json/get_monitoring_status');
     getMonitoringStatusPromise.then(
-      function (monitoringOptionsBase64) {
-        var monitoringOptions = JSON.parse(atob(monitoringOptionsBase64));
-        finalPromiseResolver.resolve(monitoringOptions.isMonitoring,
-                                     monitoringOptions.categoryFilter,
-                                     monitoringOptions.useSystemTracing,
-                                     monitoringOptions.useContinuousTracing,
-                                     monitoringOptions.useSampling);
-      },
-      function (err) {
-        finalPromiseResolver.reject(err);
-      });
+        function(monitoringOptionsBase64) {
+          var monitoringOptions = JSON.parse(atob(monitoringOptionsBase64));
+          finalPromiseResolver.resolve(monitoringOptions.isMonitoring,
+                                       monitoringOptions.categoryFilter,
+                                       monitoringOptions.useSystemTracing,
+                                       monitoringOptions.useContinuousTracing,
+                                       monitoringOptions.useSampling);
+        },
+        function(err) {
+          finalPromiseResolver.reject(err);
+        });
 
     return finalPromise;
   }

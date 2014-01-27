@@ -254,8 +254,9 @@ base.exportTo('tracing.analysis', function() {
         occurrence = sliceGroups[title].length;
         totalOccurrence += occurrence;
       }
-      sortedSlices.push({title: title, sliceGroup: sliceGroups[title],
-                         occurrence: occurrence});
+      sortedSlices.push({
+        title: title, sliceGroup: sliceGroups[title],
+        occurrence: occurrence});
     }
     sortedSlices = sortedSlices.sort(function(a, b) {
       return b.occurrence - a.occurrence;
@@ -274,8 +275,9 @@ base.exportTo('tracing.analysis', function() {
       results.appendDataRow(table, title, null, null,
           null, sliceGroup.length,
           (title === 'Sleeping' ? '-' :
-           tracing.analysis.tsRound(sliceGroup.length / totalOccurrence * 100)
-           + '%'), null,
+           tracing.analysis.tsRound(
+               sliceGroup.length / totalOccurrence * 100) + '%'),
+          null,
           function() {
             return new tracing.Selection(sliceGroup);
           });

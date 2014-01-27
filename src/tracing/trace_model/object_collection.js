@@ -86,7 +86,7 @@ base.exportTo('tracing.trace_model', function() {
                         ' with a different category ' +
                         'than when it was created. It previous had cat=' +
                         deletedInstance.category + ' but the delete command ' +
-                       'had cat=' + category);
+                        'had cat=' + category);
       }
       if (deletedInstance.name != name) {
         throw new Error('Deleting an object with a different name than ' +

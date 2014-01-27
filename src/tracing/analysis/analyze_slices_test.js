@@ -208,17 +208,18 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     assertEquals('Slices:', results.headers[0].label);
     // Table 1.
     t = results.tables[0];
-    assertObjectEquals(
-        {label: 'c',
-         duration: 0.1,
-         threadDuration: null,
-         selfTime: 0.1,
-         occurences: 2,
-         percentage: null,
-         details: {min: 0.04, max: 0.06, avg: 0.05,
-                   avg_stddev: 0.014142135623730947}
-        },
-        t.rows[0]);
+    assertObjectEquals({
+      label: 'c',
+      duration: 0.1,
+      threadDuration: null,
+      selfTime: 0.1,
+      occurences: 2,
+      percentage: null,
+      details: {
+        min: 0.04, max: 0.06, avg: 0.05,
+        avg_stddev: 0.014142135623730947
+      }
+    }, t.rows[0]);
     assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
     assertObjectEquals({label: 'Selection extent', time: 0.18}, t.rows[2]);
 
@@ -254,49 +255,45 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
     assertEquals('Sample Events:', results.headers[0].label);
 
     var table = results.tables[0];
-    assertObjectEquals(
-      {label: 'AAA',
-       duration: null,
-       threadDuration: null,
-       selfTime: null,
-       occurences: 3,
-       percentage: "50%",
-       details: null
-      },
-      table.rows[0]);
+    assertObjectEquals({
+      label: 'AAA',
+      duration: null,
+      threadDuration: null,
+      selfTime: null,
+      occurences: 3,
+      percentage: '50%',
+      details: null
+    }, table.rows[0]);
 
-    assertObjectEquals(
-      {label: 'BBB',
-       duration: null,
-       threadDuration: null,
-       selfTime: null,
-       occurences: 2,
-       percentage: "33.333%",
-       details: null
-      },
-      table.rows[1]);
+    assertObjectEquals({
+      label: 'BBB',
+      duration: null,
+      threadDuration: null,
+      selfTime: null,
+      occurences: 2,
+      percentage: '33.333%',
+      details: null
+    }, table.rows[1]);
 
-    assertObjectEquals(
-      {label: 'CCC',
-       duration: null,
-       threadDuration: null,
-       selfTime: null,
-       occurences: 1,
-       percentage: "16.667%",
-       details: null
-      },
-      table.rows[2]);
+    assertObjectEquals({
+      label: 'CCC',
+      duration: null,
+      threadDuration: null,
+      selfTime: null,
+      occurences: 1,
+      percentage: '16.667%',
+      details: null
+    }, table.rows[2]);
 
-    assertObjectEquals(
-      {label: 'Sleeping',
-       duration: null,
-       threadDuration: null,
-       selfTime: null,
-       occurences: 2,
-       percentage: "-",
-       details: null
-      },
-      table.rows[3]);
+    assertObjectEquals({
+      label: 'Sleeping',
+      duration: null,
+      threadDuration: null,
+      selfTime: null,
+      occurences: 2,
+      percentage: '-',
+      details: null
+    }, table.rows[3]);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {
