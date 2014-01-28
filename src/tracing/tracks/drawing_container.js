@@ -73,13 +73,12 @@ base.exportTo('tracing.tracks', function() {
 
       var typesToDraw = [
         DrawType.BACKGROUND,
+        DrawType.FLOW_ARROWS,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
         DrawType.SLICE,
         DrawType.MARKERS
       ];
-      if (this.viewport.showFlowEvents)
-        typesToDraw.push(DrawType.FLOW_ARROWS);
 
       for (var idx in typesToDraw) {
         for (var i = 0; i < this.children.length; ++i) {
