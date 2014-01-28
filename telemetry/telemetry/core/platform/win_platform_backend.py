@@ -178,6 +178,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def _GetWin32ProcessInfo(self, func, pid):
     mask = (win32con.PROCESS_QUERY_INFORMATION |
             win32con.PROCESS_VM_READ)
+    handle = None
     try:
       handle = win32api.OpenProcess(mask, False, pid)
       return func(handle)
