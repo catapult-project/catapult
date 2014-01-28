@@ -73,11 +73,11 @@ base.exportTo('tracing.tracks', function() {
 
       var typesToDraw = [
         DrawType.BACKGROUND,
-        DrawType.FLOW_ARROWS,
         DrawType.GRID,
         DrawType.INSTANT_EVENT,
         DrawType.SLICE,
-        DrawType.MARKERS
+        DrawType.MARKERS,
+        DrawType.FLOW_ARROWS
       ];
 
       for (var idx in typesToDraw) {
