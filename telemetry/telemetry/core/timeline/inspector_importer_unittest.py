@@ -108,6 +108,24 @@ class InspectorEventParsingTest(unittest.TestCase):
     self.assertEquals(1, event.start)
     self.assertEquals(1, event.end)
 
+  def testOutOfOrderData(self):
+    raw_event = {
+      'startTime': 5295.004, 'endTime': 5305.004,
+      'data': {}, 'type': 'Program',
+      'children': [
+        {'startTime': 5295.004, 'data': {'id': 0}, 'type': 'BeginFrame', },
+        {'startTime': 4492.973, 'endTime': 4493.086, 'data': {'rootNode': -3},
+         'type': 'PaintSetup'},
+        {'startTime': 5298.004, 'endTime': 5301.004, 'type': 'Paint',
+         'frameId': '53228.1',
+         'data': {'rootNode': -3, 'clip': [0, 0, 1018, 0, 1018, 764, 0, 764],
+                  'layerId': 10}, 'children': []},
+        {'startTime': 5301.004, 'endTime': 5305.004, 'data': {},
+         'type': 'CompositeLayers', 'children': []},
+        {'startTime': 5305.004, 'data': {}, 'type': 'MarkFirstPaint'}
+    ]}
+    model.TimelineModel([raw_event], shift_world_to_zero=False)
+
 class InspectorImporterTest(unittest.TestCase):
   def testImport(self):
     messages = [_BACKGROUND_MESSAGE, _SAMPLE_MESSAGE]

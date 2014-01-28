@@ -4,7 +4,9 @@
 '''Imports event data obtained from the inspector's timeline.'''
 
 from telemetry.core.timeline import importer
+
 import telemetry.core.timeline.thread as timeline_thread
+import telemetry.core.timeline.slice as tracing_slice
 
 class InspectorTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, event_data):
@@ -32,7 +34,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
 
   @staticmethod
   def AddRawEventToThreadRecursive(thread, raw_inspector_event):
-    did_begin_slice = False
+    pending_slice = None
     if ('startTime' in raw_inspector_event and
         'type' in raw_inspector_event):
       args = {}
@@ -44,18 +46,21 @@ class InspectorTimelineImporter(importer.TimelineImporter):
         args = None
       start_time = raw_inspector_event['startTime']
       end_time = raw_inspector_event.get('endTime', start_time)
-      thread.BeginSlice('inspector',
-                        raw_inspector_event['type'],
-                        start_time,
-                        args=args)
-      did_begin_slice = True
+
+      pending_slice = tracing_slice.Slice(
+        thread, 'inspector',
+        raw_inspector_event['type'],
+        start_time,
+        thread_timestamp=None,
+        args=args)
 
     for child in raw_inspector_event.get('children', []):
       InspectorTimelineImporter.AddRawEventToThreadRecursive(
           thread, child)
 
-    if did_begin_slice:
-      thread.EndSlice(end_time)
+    if pending_slice:
+      pending_slice.duration = end_time - pending_slice.start
+      thread.PushSlice(pending_slice)
 
   @staticmethod
   def RawEventToTimelineEvent(raw_inspector_event):

@@ -2,13 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import platform
-import sys
-import unittest
-
 from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_timeline
-from telemetry.unittest import DisabledTest, tab_test_case
+from telemetry.unittest import tab_test_case
 
 
 class InspectorTimelineTabTest(tab_test_case.TabTestCase):
@@ -20,14 +16,7 @@ class InspectorTimelineTabTest(tab_test_case.TabTestCase):
       return bool(self._tab.EvaluateJavaScript('window.done'))
     util.WaitFor(_IsDone, 5)
 
-  # Flaky on XP+Vista: crbug.com/321529
-  @DisabledTest
   def testGotTimeline(self):
-    if sys.platform in ('win32', 'cygwin'):
-      if platform.win32_ver()[0] == 'XP':
-        raise unittest.SkipTest(
-            'Test flaky on Windows XP. http://crbug.com/321529')
-
     # While the timeline is recording, call window.webkitRequestAnimationFrame.
     # This will create a FireAnimationEvent, which can be checked below. See:
     # https://developer.mozilla.org/en/docs/Web/API/window.requestAnimationFrame
