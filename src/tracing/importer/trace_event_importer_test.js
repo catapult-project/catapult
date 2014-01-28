@@ -144,10 +144,10 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
   test('nestedParsing', function() {
     var events = [
-      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
-      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
-      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'E'},
-      {name: 'a', args: {}, pid: 1, ts: 4, cat: 'foo', tid: 1, ph: 'E'}
+      {name: 'a', args: {}, pid: 1, ts: 1, tts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, tts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 4, tts: 3, cat: 'foo', tid: 1, ph: 'E'}
     ];
     var m = new tracing.TraceModel(events, false);
     var t = m.processes[1].threads[1];
@@ -160,6 +160,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(0.001, sA.start);
     assertEquals(0.003, sA.duration);
     assertEquals(0.002, sA.selfTime);
+    assertEquals(0.001, sA.threadSelfTime);
 
     assertEquals('b', sB.title);
     assertEquals('bar', sB.category);
@@ -173,12 +174,12 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
 
   test('nestedParsingWithTwoSubSlices', function() {
     var events = [
-      {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
-      {name: 'b', args: {}, pid: 1, ts: 2, cat: 'bar', tid: 1, ph: 'B'},
-      {name: 'b', args: {}, pid: 1, ts: 3, cat: 'bar', tid: 1, ph: 'E'},
-      {name: 'c', args: {}, pid: 1, ts: 5, cat: 'baz', tid: 1, ph: 'B'},
-      {name: 'c', args: {}, pid: 1, ts: 7, cat: 'baz', tid: 1, ph: 'E'},
-      {name: 'a', args: {}, pid: 1, ts: 8, cat: 'foo', tid: 1, ph: 'E'}
+      {name: 'a', args: {}, pid: 1, ts: 1, tts: 1, cat: 'foo', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2, tts: 2, cat: 'bar', tid: 1, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 3, tts: 3, cat: 'bar', tid: 1, ph: 'E'},
+      {name: 'c', args: {}, pid: 1, ts: 5, tts: 5, cat: 'baz', tid: 1, ph: 'B'},
+      {name: 'c', args: {}, pid: 1, ts: 7, tts: 6, cat: 'baz', tid: 1, ph: 'E'},
+      {name: 'a', args: {}, pid: 1, ts: 8, tts: 8, cat: 'foo', tid: 1, ph: 'E'}
     ];
     var m = new tracing.TraceModel(events, false);
     var t = m.processes[1].threads[1];
@@ -192,6 +193,7 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals(0.001, sA.start);
     assertEquals(0.007, sA.duration);
     assertEquals(0.004, sA.selfTime);
+    assertEquals(0.005, sA.threadSelfTime);
 
     assertEquals('b', sB.title);
     assertEquals('bar', sB.category);

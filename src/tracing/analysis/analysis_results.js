@@ -54,9 +54,15 @@ base.exportTo('tracing.analysis', function() {
       return textNode;
     },
 
-    appendTableCell_: function(table, row, cellnum, text) {
+    appendTableCell_: function(table, row, cellnum, text, opt_warning) {
       var td = this.appendElement_(row, 'td', text);
       td.className = table.className + '-col-' + cellnum;
+      if (opt_warning) {
+        var span = document.createElement('span');
+        span.textContent = ' ' + String.fromCharCode(9888);
+        span.title = opt_warning;
+        td.appendChild(span);
+      }
       return td;
     },
 
@@ -202,14 +208,14 @@ base.exportTo('tracing.analysis', function() {
      * Creates and appends a row to |table| with a left-aligned |label] in the
      * first column and a millisecond |time| value in the second column.
      */
-    appendInfoRowTime: function(table, label, time, opt_inFoot) {
+    appendInfoRowTime: function(table, label, time, opt_inFoot, opt_warning) {
       if (table.tfoot || opt_inFoot)
         var row = this.appendFootRow(table);
       else
         var row = this.appendBodyRow(table);
       this.appendTableCell_(table, row, 0, label);
-      this.appendTableCell_(table, row, 1,
-                            tracing.analysis.tsRound(time) + ' ms');
+      this.appendTableCell_(
+          table, row, 1, tracing.analysis.tsRound(time) + ' ms', opt_warning);
     },
 
     /**
@@ -279,9 +285,9 @@ base.exportTo('tracing.analysis', function() {
      *          or min/max/avg/start/end for counters.
      */
     appendDataRow: function(table, label, opt_duration, opt_threadDuration,
-                            opt_selfTime, opt_occurences, opt_percentage,
-                            opt_statistics, opt_selectionGenerator,
-                            opt_inFoot) {
+                            opt_selfTime, opt_threadSelfTime, opt_occurences,
+                            opt_percentage, opt_statistics,
+                            opt_selectionGenerator, opt_inFoot) {
 
       var tooltip = undefined;
       if (opt_statistics) {
@@ -359,6 +365,16 @@ base.exportTo('tracing.analysis', function() {
         if (opt_selfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
               tracing.analysis.tsRound(opt_selfTime), tooltip);
+        } else {
+          this.appendTableCell_(table, row, cellNum, '');
+        }
+        cellNum++;
+      }
+
+      if (opt_threadSelfTime !== null) {
+        if (opt_threadSelfTime) {
+          this.appendTableCellWithTooltip_(table, row, cellNum,
+              tracing.analysis.tsRound(opt_threadSelfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }

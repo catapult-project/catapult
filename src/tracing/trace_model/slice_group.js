@@ -228,8 +228,9 @@ base.exportTo('tracing.trace_model', function() {
 
     /**
      * Construct subSlices for this group.
-     * Populate the group topLevelSlices, parent slices get a subSlices[]
-     * and a selfTime, child slices get a parentSlice reference.
+     * Populate the group topLevelSlices, parent slices get a subSlices[],
+     * a selfThreadTime and a selfTime, child slices get a parentSlice
+     * reference.
      */
     createSubSlices: function() {
       function addSliceIfBounds(root, child) {
@@ -244,11 +245,15 @@ base.exportTo('tracing.trace_model', function() {
           }
           if (!root.selfTime)
             root.selfTime = root.duration;
+          if (!root.threadSelfTime && root.threadDuration)
+            root.threadSelfTime = root.threadDuration;
           child.parentSlice = root;
           if (!root.subSlices)
             root.subSlices = [];
           root.subSlices.push(child);
           root.selfTime -= child.duration;
+          if (child.threadDuration)
+            root.threadSelfTime -= child.threadDuration;
           return true;
         }
         return false;

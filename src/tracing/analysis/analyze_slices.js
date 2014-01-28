@@ -30,6 +30,19 @@ base.exportTo('tracing.analysis', function() {
     if (slice.selfTime)
       results.appendInfoRowTime(table, 'SelfTime', slice.selfTime);
 
+    if (slice.threadSelfTime) {
+      var warning;
+      if (slice.threadSelfTime > slice.selfTime) {
+        warning =
+            'Note that ThreadSelfTime is larger than SelfTime. ' +
+            'This is a known limitation of this system, which occurs ' +
+            'due to several subslices, rounding issues, and inprecise ' +
+            'time at which we get thread- and real-time.';
+      }
+      results.appendInfoRowTime(table, 'ThreadSelfTime', slice.threadSelfTime,
+                                false, warning);
+    }
+
     if (slice.durationInUserTime) {
       results.appendInfoRowTime(table, 'Duration (U)',
                                 slice.durationInUserTime);
@@ -107,15 +120,19 @@ base.exportTo('tracing.analysis', function() {
     if (hasThreadDuration)
       results.appendTableCell(table, row, 'ThreadDuration (ms)');
     results.appendTableCell(table, row, 'SelfTime (ms)');
+    if (hasThreadDuration)
+      results.appendTableCell(table, row, 'ThreadSelfTime (ms)');
     results.appendTableCell(table, row, 'Occurrences');
 
     var totalDuration = 0;
     var totalthreadDuration = 0;
     var totalSelfTime = 0;
+    var totalThreadSelfTime = 0;
     base.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
       var duration = 0;
       var threadDuration = 0;
       var selfTime = 0;
+      var threadSelfTime = 0;
       var avg = 0;
       var startOfFirstOccurrence = Number.MAX_VALUE;
       var startOfLastOccurrence = -Number.MAX_VALUE;
@@ -124,8 +141,11 @@ base.exportTo('tracing.analysis', function() {
       for (var i = 0; i < sliceGroup.length; i++) {
         var slice = sliceGroup[i];
         duration += slice.duration;
-        if (slice.threadDuration)
+        if (slice.threadDuration) {
           threadDuration += slice.threadDuration;
+          threadSelfTime += slice.threadSelfTime ? slice.threadSelfTime :
+                                                   slice.threadDuration;
+        }
         selfTime += slice.selfTime ? slice.selfTime : slice.duration;
         startOfFirstOccurrence = Math.min(slice.start, startOfFirstOccurrence);
         startOfLastOccurrence = Math.max(slice.start, startOfLastOccurrence);
@@ -136,6 +156,7 @@ base.exportTo('tracing.analysis', function() {
       totalDuration += duration;
       totalthreadDuration += threadDuration;
       totalSelfTime += selfTime;
+      totalThreadSelfTime += threadSelfTime;
 
       if (sliceGroup.length == 0)
         avg = 0;
@@ -181,8 +202,8 @@ base.exportTo('tracing.analysis', function() {
       results.appendDataRow(table, sliceGroupTitle, duration,
                             hasThreadDuration ? (threadDuration > 0 ?
                                 threadDuration : '') : null,
-                            selfTime, sliceGroup.length, null, statistics,
-                            function() {
+                            selfTime, threadSelfTime, sliceGroup.length, null,
+                            statistics, function() {
                               return new tracing.Selection(sliceGroup);
                             });
 
@@ -196,8 +217,8 @@ base.exportTo('tracing.analysis', function() {
     if (numTitles !== 1) {
       results.appendDataRow(table, 'Totals', totalDuration,
                             hasThreadDuration ? totalthreadDuration : null,
-                            totalSelfTime, slices.length, null, null,
-                            null, true);
+                            totalSelfTime, totalThreadSelfTime, slices.length,
+                            null, null, null, true);
       results.appendSpacingRow(table, true);
       ui.SortableTable.decorate(table);
     }
@@ -273,7 +294,7 @@ base.exportTo('tracing.analysis', function() {
       var title = sortedSlices[i].title;
       var sliceGroup = sortedSlices[i].sliceGroup;
       results.appendDataRow(table, title, null, null,
-          null, sliceGroup.length,
+          null, null, sliceGroup.length,
           (title === 'Sleeping' ? '-' :
            tracing.analysis.tsRound(
                sliceGroup.length / totalOccurrence * 100) + '%'),
@@ -290,8 +311,8 @@ base.exportTo('tracing.analysis', function() {
 
     // Only one row so we already know the totals.
     if (numTitles !== 1) {
-      results.appendDataRow(table, 'Totals', null, null, null, slices.length,
-                            '100%', null, null, true);
+      results.appendDataRow(table, 'Totals', null, null, null, null,
+                            slices.length, '100%', null, null, true);
       results.appendSpacingRow(table, true);
       ui.SortableTable.decorate(table);
     }

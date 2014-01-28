@@ -213,6 +213,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
       duration: 0.1,
       threadDuration: null,
       selfTime: 0.1,
+      threadSelfTime: 0,
       occurences: 2,
       percentage: null,
       details: {
@@ -220,6 +221,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
         avg_stddev: 0.014142135623730947
       }
     }, t.rows[0]);
+
     assertObjectEquals({label: 'Selection start', time: 0}, t.rows[1]);
     assertObjectEquals({label: 'Selection extent', time: 0.18}, t.rows[2]);
 
@@ -260,6 +262,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
       duration: null,
       threadDuration: null,
       selfTime: null,
+      threadSelfTime: null,
       occurences: 3,
       percentage: '50%',
       details: null
@@ -270,6 +273,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
       duration: null,
       threadDuration: null,
       selfTime: null,
+      threadSelfTime: null,
       occurences: 2,
       percentage: '33.333%',
       details: null
@@ -280,6 +284,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
       duration: null,
       threadDuration: null,
       selfTime: null,
+      threadSelfTime: null,
       occurences: 1,
       percentage: '16.667%',
       details: null
@@ -290,6 +295,7 @@ base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
       duration: null,
       threadDuration: null,
       selfTime: null,
+      threadSelfTime: null,
       occurences: 2,
       percentage: '-',
       details: null
