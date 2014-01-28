@@ -57,7 +57,7 @@ class NotFoundError(CloudStorageError):
 def _FindExecutableInPath(relative_executable_path, *extra_search_paths):
   for path in list(extra_search_paths) + os.environ['PATH'].split(os.pathsep):
     executable_path = os.path.join(path, relative_executable_path)
-    if os.path.exists(executable_path) and os.access(executable_path, os.X_OK):
+    if os.path.isfile(executable_path) and os.access(executable_path, os.X_OK):
       return executable_path
   return None
 
