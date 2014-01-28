@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
 import ctypes
 import logging
 import os
@@ -190,15 +191,92 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     Returns:
         Dictionary in the format returned by StopMonitoringPowerAsync().
     """
+
+    # Container to collect samples for running averages.
+    # out_path - list containing the key path in the output dictionary.
+    # src_path - list containing the key path to get the data from in
+    #    powermetrics' output.
+    def ConstructMetric(out_path, src_path):
+      RunningAverage = collections.namedtuple('RunningAverage', [
+        'out_path', 'src_path', 'samples'])
+      return RunningAverage(out_path, src_path, [])
+
+    # List of RunningAverage objects specifying metrics we want to aggregate.
+    metrics = [
+        ConstructMetric(
+            ['component_utilization', 'whole_package', 'average_frequency_mhz'],
+            ['processor','freq_hz']),
+        ConstructMetric(
+            ['component_utilization', 'whole_package', 'idle_percent'],
+            ['processor','packages', 0, 'c_state_ratio'])]
+
+    def DataWithMetricKeyPath(metric, powermetrics_output):
+      """Retrieve the sample from powermetrics' output for a given metric.
+
+      Args:
+          metric: The RunningAverage object we want to collect a new sample for.
+          powermetrics_output: Dictionary containing powermetrics output.
+
+      Returns:
+          The sample corresponding to |metric|'s keypath."""
+      # Get actual data corresponding to key path.
+      out_data = powermetrics_output
+      for k in metric.src_path:
+        out_data = out_data[k]
+
+      assert type(out_data) in [int, float], (
+          "Was expecting a number: %s (%s)" % (type(out_data), out_data))
+      return float(out_data)
+
     power_samples = []
+    sample_durations = []
     total_energy_consumption_mwh = 0
-    # powermetrics outputs multiple PLists separated by null terminators.
-    raw_plists = powermetrics_output.split('\0')[:-1]
+    # powermetrics outputs multiple plists separated by null terminators.
+    raw_plists = powermetrics_output.split('\0')
+    raw_plists = [x for x in raw_plists if len(x) > 0]
+
+    # -------- Examine contents of first plist for systems specs. --------
+    plist = plistlib.readPlistFromString(raw_plists[0])
+
+    if 'GPU' in plist:
+      metrics.extend([
+          ConstructMetric(
+              ['component_utilization', 'gpu', 'average_frequency_mhz'],
+              ['GPU', 0, 'freq_hz']),
+          ConstructMetric(
+              ['component_utilization', 'gpu', 'idle_percent'],
+              ['GPU', 0, 'c_state_ratio'])])
+
+
+    # There's no way of knowing ahead of time how many cpus and packages the
+    # current system has. Iterate over cores and cpus - construct metrics for
+    # each one.
+    if 'processor' in plist:
+      core_dict = plist['processor']['packages'][0]['cores']
+      num_cores = len(core_dict)
+      cpu_num = 0
+      for core_idx in xrange(num_cores):
+        num_cpus = len(core_dict[core_idx]['cpus'])
+        base_src_path = ['processor', 'packages', 0, 'cores', core_idx]
+        for cpu_idx in xrange(num_cpus):
+          base_out_path = ['component_utilization', 'cpu%d' % cpu_num]
+          # C State ratio is per-package, component CPUs of that package may
+          # have different frequencies.
+          metrics.append(ConstructMetric(
+              base_out_path + ['average_frequency_mhz'],
+              base_src_path + ['cpus', cpu_idx, 'freq_hz']))
+          metrics.append(ConstructMetric(
+              base_out_path + ['idle_percent'],
+              base_src_path + ['c_state_ratio']))
+          cpu_num += 1
+
+    # -------- Parse Data Out of Plists --------
     for raw_plist in raw_plists:
       plist = plistlib.readPlistFromString(raw_plist)
 
       # Duration of this sample.
       sample_duration_ms = int(plist['elapsed_ns']) / 10**6
+      sample_durations.append(sample_duration_ms)
 
       if 'processor' not in plist:
         continue
@@ -211,13 +289,45 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
       power_samples.append(energy_consumption_mw)
 
-    # -------- Collect and Process Data -------------
+      for m in metrics:
+        m.samples.append(DataWithMetricKeyPath(m, plist))
+
+    # -------- Collect and Process Data --------
     out_dict = {}
     # Raw power usage samples.
     if power_samples:
       out_dict['power_samples_mw'] = power_samples
       out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
 
+    def StoreMetricAverage(metric, sample_durations, out):
+      """Calculate average value of samples in a metric and store in output
+         path as specified by metric.
+
+      Args:
+          metric: A RunningAverage object containing samples to average.
+          sample_durations: A list which parallels the samples list containing
+              the time slice for each sample.
+          out: The output dicat, average is stored in the location specified by
+              metric.out_path.
+      """
+      if len(metric.samples) == 0:
+        return
+
+      assert len(metric.samples) == len(sample_durations)
+      avg = 0
+      for i in xrange(len(metric.samples)):
+        avg += metric.samples[i] * sample_durations[i]
+      avg /= sum(sample_durations)
+
+      # Store data in output, creating empty dictionaries as we go.
+      for k in metric.out_path[:-1]:
+        if not out.has_key(k):
+          out[k] = {}
+        out = out[k]
+      out[metric.out_path[-1]] = avg
+
+    for m in metrics:
+      StoreMetricAverage(m, sample_durations, out_dict)
     return out_dict
 
   def StopMonitoringPowerAsync(self):

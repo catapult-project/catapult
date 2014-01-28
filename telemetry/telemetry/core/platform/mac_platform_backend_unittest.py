@@ -48,8 +48,15 @@ class MacPlatformBackendTest(unittest.TestCase):
         'powermetrics_output.output'))
     backend.StartMonitoringPowerAsync()
     result = backend.StopMonitoringPowerAsync()
+
     self.assertTrue(len(result['power_samples_mw']) > 1)
     self.assertTrue(result['energy_consumption_mwh'] > 0)
+
+    # Verify that all component entries exist in output.
+    component_utilization = result['component_utilization']
+    for k in ['whole_package', 'gpu'] + ['cpu%d' % x for x in range(8)]:
+      self.assertTrue(component_utilization[k]['average_frequency_mhz'] > 0)
+      self.assertTrue(component_utilization[k]['idle_percent'] > 0)
 
     # Unsupported hardware doesn't.
     backend.SetPowerMetricsUtilityForTest(MockPowermetricsUtility(
