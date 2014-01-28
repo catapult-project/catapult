@@ -152,9 +152,16 @@ class HTMLTemplate(object):
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
   base.requireRawScript(xxx) directive."""
-  def __init__(self, filename, contents):
-    self.filename = filename
-    self.contents = contents
+  def __init__(self, resource):
+    self.resource = resource
+
+  @property
+  def filename(self):
+    return self.resource.absolute_path
+
+  @property
+  def contents(self):
+    return self.resource.contents
 
   def __repr__(self):
     return "RawScript(%s)" % self.filename
