@@ -18,6 +18,10 @@ class Resource(object):
     return os.path.relpath(self.absolute_path, self.toplevel_dir)
 
   @property
+  def unix_style_relative_path(self):
+    return self.relative_path.replace(os.sep, '/')
+
+  @property
   def name(self):
     """The dotted name for this resource based on its relative path."""
     return self.name_from_relative_path(self.relative_path)

@@ -53,7 +53,7 @@ def generate_js(outdir, load_sequence):
     for dependent_raw_script in module.dependent_raw_scripts:
       script_contents += (
         "window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
-        dependent_raw_script.resource.relative_path)
+        dependent_raw_script.resource.unix_style_relative_path)
     script_contents += "window.FLATTENED['%s'] = true;\n" % module.name
 
   for module in load_sequence:
