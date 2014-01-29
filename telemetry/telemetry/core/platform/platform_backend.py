@@ -6,6 +6,22 @@ import time
 
 # pylint: disable=W0613
 
+
+class OSVersion(object):
+  def __init__(self, friendly_name, sortable_name):
+    self._friendly_name = friendly_name
+    self._sortable_name = sortable_name
+
+  def __repr__(self):
+    return self._friendly_name
+
+  def __lt__(self, other):
+    return self._sortable_name < other._sortable_name  # pylint: disable=W0212
+
+  def __eq__(self, other):
+    return str(self) == str(other)
+
+
 class PlatformBackend(object):
   def IsRawDisplayFrameRateSupported(self):
     return False
@@ -70,7 +86,8 @@ class PlatformBackend(object):
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
 
-  def LaunchApplication(self, application, parameters=None):
+  def LaunchApplication(
+      self, application, parameters=None, elevate_privilege=False):
     raise NotImplementedError()
 
   def IsApplicationRunning(self, application):

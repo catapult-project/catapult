@@ -86,7 +86,8 @@ class Platform(object):
     return self._platform_backend.GetOSName()
 
   def GetOSVersionName(self):
-    """Returns a string description of the Platform OS version.
+    """Returns a logically sortable, string-like description of the Platform OS
+    version.
 
     Examples: VISTA, WIN7, LION, MOUNTAINLION"""
     return self._platform_backend.GetOSVersionName()
@@ -111,10 +112,17 @@ class Platform(object):
     return self._platform_backend.FlushSystemCacheForDirectory(
         directory, ignoring=ignoring)
 
-  def LaunchApplication(self, application, parameters=None):
-    """"Launchs a given application on the OS."""
-    return self._platform_backend.LaunchApplication(application,
-                                                    parameters)
+  def LaunchApplication(self, application, parameters=None,
+                        elevate_privilege=False):
+    """"Launches the given |application| with a list of |parameters| on the OS.
+
+    Set |elevate_privilege| to launch the application with root or admin rights.
+
+    Returns:
+      A popen style process handle for host platforms.
+    """
+    return self._platform_backend.LaunchApplication(
+        application, parameters, elevate_privilege=elevate_privilege)
 
   def IsApplicationRunning(self, application):
     """Returns whether an application is currently running."""

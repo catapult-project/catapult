@@ -4,11 +4,9 @@
 
 import collections
 import ctypes
-import logging
 import os
 import plistlib
 import signal
-import subprocess
 import tempfile
 import time
 try:
@@ -17,14 +15,24 @@ except ImportError:
   resource = None  # Not available on all platforms
 
 from ctypes import util
+from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
+
+
+LEOPARD =      platform_backend.OSVersion('leopard',      10.5)
+SNOWLEOPARD =  platform_backend.OSVersion('snowleopard',  10.6)
+LION =         platform_backend.OSVersion('lion',         10.7)
+MOUNTAINLION = platform_backend.OSVersion('mountainlion', 10.8)
+MAVERICKS =    platform_backend.OSVersion('mavericks',    10.9)
+
 
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   class PowerMetricsUtility(object):
-    def __init__(self):
+    def __init__(self, backend):
       self._powermetrics_process = None
       self._powermetrics_output_file = None
+      self._backend = backend
 
     @property
     def binary_path(self):
@@ -35,17 +43,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
           "Must call StopMonitoringPowerAsync().")
       SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
       self._powermetrics_output_file = tempfile.NamedTemporaryFile()
-      args = [self.binary_path, '-f', 'plist', '-i',
-          '%d' % SAMPLE_INTERVAL_MS, '-u', self._powermetrics_output_file.name]
-
-      # powermetrics writes lots of output to stderr, don't echo unless verbose
-      # logging enabled.
-      stderror_destination = subprocess.PIPE
-      if logging.getLogger().isEnabledFor(logging.DEBUG):
-        stderror_destination = None
-
-      self._powermetrics_process = subprocess.Popen(args,
-          stdout=subprocess.PIPE, stderr=stderror_destination)
+      args = ['-f', 'plist',
+              '-i', '%d' % SAMPLE_INTERVAL_MS,
+              '-u', self._powermetrics_output_file.name]
+      self._powermetrics_process = self._backend.LaunchApplication(
+          self.binary_path, args, elevate_privilege=True)
 
     def StopMonitoringPowerAsync(self):
       assert self._powermetrics_process, (
@@ -66,7 +68,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def __init__(self):
     super(MacPlatformBackend, self).__init__()
     self.libproc = None
-    self.powermetrics_tool_ = MacPlatformBackend.PowerMetricsUtility()
+    self.powermetrics_tool_ = MacPlatformBackend.PowerMetricsUtility(self)
 
   def StartRawDisplayFrameRateMeasurement(self):
     raise NotImplementedError()
@@ -153,15 +155,15 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     os_version = os.uname()[2]
 
     if os_version.startswith('9.'):
-      return 'leopard'
+      return LEOPARD
     if os_version.startswith('10.'):
-      return 'snowleopard'
+      return SNOWLEOPARD
     if os_version.startswith('11.'):
-      return 'lion'
+      return LION
     if os_version.startswith('12.'):
-      return 'mountainlion'
+      return MOUNTAINLION
     if os_version.startswith('13.'):
-      return 'mavericks'
+      return MAVERICKS
 
     raise NotImplementedError("Unknown OS X version %s." % os_version)
 
@@ -169,15 +171,15 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     return False
 
   def FlushEntireSystemCache(self):
-    p = subprocess.Popen(['purge'])
+    mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
+    p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
     p.wait()
     assert p.returncode == 0, 'Failed to flush system cache'
 
   def CanMonitorPowerAsync(self):
-    # powermetrics only runs on OS X version >= 10.9 .
-    os_version = int(os.uname()[2].split('.')[0])
+    mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
     binary_path = self.powermetrics_tool_.binary_path
-    return os_version >= 13 and self.CanLaunchApplication(binary_path)
+    return mavericks_or_later and self.CanLaunchApplication(binary_path)
 
   def SetPowerMetricsUtilityForTest(self, obj):
     self.powermetrics_tool_ = obj

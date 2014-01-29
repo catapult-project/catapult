@@ -10,10 +10,11 @@ import unittest
 from telemetry.core.platform import mac_platform_backend
 from telemetry.core import util
 
+
 class MockPowermetricsUtility(
     mac_platform_backend.MacPlatformBackend.PowerMetricsUtility):
   def __init__(self, output):
-    super(MockPowermetricsUtility, self).__init__()
+    super(MockPowermetricsUtility, self).__init__(None)
     self._output = output
 
   def StartMonitoringPowerAsync(self):
@@ -23,7 +24,16 @@ class MockPowermetricsUtility(
     test_data_path = os.path.join(util.GetUnittestDataDir(), self._output)
     return open(test_data_path, 'r').read()
 
+
 class MacPlatformBackendTest(unittest.TestCase):
+  def testVersionCamparison(self):
+    self.assertGreater(mac_platform_backend.MAVERICKS,
+                       mac_platform_backend.SNOWLEOPARD)
+    self.assertGreater(mac_platform_backend.LION,
+                       mac_platform_backend.LEOPARD)
+    self.assertEqual(mac_platform_backend.MAVERICKS, 'mavericks')
+    self.assertEqual('%s2' % mac_platform_backend.MAVERICKS, 'mavericks2')
+
   def testCanMonitorPowerUsage(self):
     if sys.platform != 'darwin':
       return

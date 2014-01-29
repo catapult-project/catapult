@@ -167,10 +167,14 @@ class AndroidPlatformBackend(
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
 
-  def LaunchApplication(self, application, parameters=None):
+  def LaunchApplication(
+      self, application, parameters=None, elevate_privilege=False):
     if application in _HOST_APPLICATIONS:
-      self._host_platform_backend.LaunchApplication(application, parameters)
+      self._host_platform_backend.LaunchApplication(
+          application, parameters, elevate_privilege=elevate_privilege)
       return
+    if elevate_privilege:
+      raise NotImplementedError("elevate_privilege isn't supported on android.")
     if not parameters:
       parameters = ''
     self._adb.RunShellCommand('am start ' + parameters + ' ' + application)

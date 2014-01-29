@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 
 import distutils.spawn
+import logging
+import os
 import re
+import stat
 import subprocess
 
 from telemetry.core.platform import desktop_platform_backend
@@ -58,3 +61,42 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
 
   def CanLaunchApplication(self, application):
     return bool(distutils.spawn.find_executable(application))
+
+  def LaunchApplication(
+      self, application, parameters=None, elevate_privilege=False):
+    assert application, 'Must specify application to launch'
+
+    if os.path.sep not in application:
+      application = distutils.spawn.find_executable(application)
+      assert application, 'Failed to find application in path'
+
+    args = [application]
+
+    if parameters:
+      assert isinstance(parameters, list), 'parameters must be a list'
+      args += parameters
+
+    def IsSetUID(path):
+      return (os.stat(path).st_mode & stat.S_ISUID) == stat.S_ISUID
+
+    def IsElevated():
+      return not subprocess.call(['sudo', '-nv'])  # Check authentication.
+
+    if elevate_privilege and not IsSetUID(application) and not IsElevated():
+      print ('Telemetry needs to run %s under sudo. Please authenticate.' %
+             application)
+      args = ['sudo'] + args
+      subprocess.check_call(['sudo', '-v'])  # Synchronously authenticate.
+
+      prompt = ('Would you like to always allow %s to be run as the current '
+                'user without sudo? If so, Telemetry will `sudo chmod +s %s`. '
+                '(y/N)' % (application, application))
+      if raw_input(prompt).lower() == 'y':
+        subprocess.check_call(['sudo', 'chmod', '+s', application])
+
+    stderror_destination = subprocess.PIPE
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+      stderror_destination = None
+
+    return subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=stderror_destination)
