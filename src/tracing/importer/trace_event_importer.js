@@ -245,6 +245,14 @@ base.exportTo('tracing.importer', function() {
 
         var slice = thread.sliceGroup.endSlice(event.ts / 1000,
                                                event.tts / 1000);
+        if (event.name && slice.title != event.name) {
+          this.model_.importWarning({
+            type: 'title_match_error',
+            message: 'Titles do not match. Title is ' +
+                slice.title + ' in openSlice, and is ' +
+                event.name + ' in endSlice'
+          });
+        }
         for (var arg in event.args) {
           if (slice.args[arg] !== undefined) {
             this.model_.importWarning({

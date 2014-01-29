@@ -142,6 +142,17 @@ base.unittest.testSuite('tracing.importer.trace_event_importer', function() {
     assertEquals('foo', slice.category);
   });
 
+  test('beginEndNameMismatch', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+
+    var m = new tracing.TraceModel(events);
+    assertTrue(m.hasImportWarnings);
+    assertEquals(1, m.importWarnings.length);
+  });
+
   test('nestedParsing', function() {
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, tts: 1, cat: 'foo', tid: 1, ph: 'B'},
