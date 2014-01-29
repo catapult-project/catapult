@@ -9,7 +9,7 @@ from telemetry.core import exceptions
 from telemetry.core import extension_dict
 from telemetry.core import platform
 from telemetry.core import tab_list
-from telemetry.core import temporary_http_server
+from telemetry.core import memory_cache_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
@@ -325,7 +325,7 @@ class Browser(object):
     if not paths:
       return False
 
-    self._http_server = temporary_http_server.TemporaryHTTPServer(
+    self._http_server = memory_cache_http_server.MemoryCacheHTTPServer(
       self._browser_backend, paths)
 
     return True

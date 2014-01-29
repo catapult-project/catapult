@@ -11,6 +11,10 @@ import SimpleHTTPServer
 import SocketServer
 import StringIO
 import sys
+import urlparse
+
+
+from telemetry.core import local_server
 
 
 ByteRange = namedtuple('ByteRange', ['from_byte', 'to_byte'])
@@ -38,6 +42,13 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
   def do_HEAD(self):
     """Serve a HEAD request."""
     self.SendHead()
+
+  def log_error(self, fmt, *args):
+    pass
+
+  def log_request(self, code='-', size='-'):
+    # Dont spam the console unless it is important.
+    pass
 
   def SendHead(self):
     path = os.path.realpath(self.translate_path(self.path))
@@ -118,8 +129,8 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     return ByteRange(from_byte, to_byte)
 
 
-class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
-                            BaseHTTPServer.HTTPServer):
+class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
+                                 BaseHTTPServer.HTTPServer):
   # Increase the request queue size. The default value, 5, is set in
   # SocketServer.TCPServer (the parent of BaseHTTPServer.HTTPServer).
   # Since we're intercepting many domains through this single server,
@@ -181,32 +192,66 @@ class MemoryCacheHTTPServer(SocketServer.ThreadingMixIn,
       self.resource_map[dir_path] = self.resource_map[file_path]
 
 
-def _PrintUsageAndExit():
-  print >> sys.stderr, 'usage: %prog [<path1>, <path2>, ...]'
-  sys.exit(1)
+class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
+  def __init__(self):
+    super(MemoryCacheHTTPServerBackend, self).__init__()
+    self._httpd = None
+
+  def StartAndGetNamedPortPairs(self, args):
+    base_dir = args['base_dir']
+    os.chdir(base_dir)
+
+    paths = args['paths']
+    for path in paths:
+      if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
+        print >> sys.stderr, '"%s" is not under the cwd.' % path
+        sys.exit(1)
+
+    server_address = ('127.0.0.1', 0)
+    MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
+    self._httpd = _MemoryCacheHTTPServerImpl(
+        server_address, MemoryCacheHTTPRequestHandler,
+        paths)
+    return [local_server.NamedPortPair(
+        'http', self._httpd.server_address[1])]
+
+  def ServeForever(self):
+    return self._httpd.serve_forever()
 
 
-def Main():
-  if len(sys.argv) < 2:
-    _PrintUsageAndExit()
+class MemoryCacheHTTPServer(local_server.LocalServer):
+  def __init__(self, browser_backend, paths):
+    paths = list(paths)
+    for path in paths:
+      assert os.path.exists(path), '%s does not exist.' % path
 
-  paths = sys.argv[1:]
-  for path in paths:
-    if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
-      print >> sys.stderr, '"%s" is not under the cwd.' % path
-      sys.exit(1)
+    common_prefix = os.path.commonprefix(paths)
+    if os.path.isdir(common_prefix):
+      self._base_dir = common_prefix
+    else:
+      self._base_dir = os.path.dirname(common_prefix)
+    self._paths_as_set = set(map(os.path.realpath, paths))
 
-  server_address = ('127.0.0.1', 0)
-  MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
-  httpd = MemoryCacheHTTPServer(server_address, MemoryCacheHTTPRequestHandler,
-                                paths)
+    super(MemoryCacheHTTPServer, self).__init__(
+        MemoryCacheHTTPServerBackend,
+        browser_backend,
+        {'base_dir': self._base_dir,
+         'paths': paths})
 
-  # Note: This message may be scraped. Do not change it.
-  print 'HTTP server started on %s:%d' % (httpd.server_address[0],
-                                          httpd.server_address[1])
-  sys.stdout.flush()
-  httpd.serve_forever()
+    assert 'http' in self.forwarders
 
+  @property
+  def paths(self):
+    return self._paths_as_set
 
-if __name__ == '__main__':
-  Main()
+  @property
+  def url(self):
+    return self.forwarders['http'].url
+
+  def UrlOf(self, path):
+    relative_path = os.path.relpath(path, self._base_dir)
+    # Preserve trailing slash or backslash.
+    # It doesn't matter in a file path, but it does matter in a URL.
+    if path.endswith(os.sep) or (os.altsep and path.endswith(os.altsep)):
+      relative_path += '/'
+    return urlparse.urljoin(self.url, relative_path.replace(os.sep, '/'))
