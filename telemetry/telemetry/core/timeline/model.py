@@ -42,6 +42,7 @@ class TimelineModel(object):
     self._bounds = bounds.Bounds()
     self._thread_time_bounds = {}
     self._processes = {}
+    self._browser_process = None
     self._frozen = False
     self.import_errors = []
     self.metadata = []
@@ -64,6 +65,14 @@ class TimelineModel(object):
   @property
   def processes(self):
     return self._processes
+
+  @property
+  def browser_process(self):
+    return self._browser_process
+
+  @browser_process.setter
+  def browser_process(self, browser_process):
+    self._browser_process = browser_process
 
   def ImportTraces(self, traces, shift_world_to_zero=True):
     if self._frozen:

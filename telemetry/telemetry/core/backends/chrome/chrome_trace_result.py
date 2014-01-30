@@ -21,6 +21,9 @@ class ChromeTraceResult(object):
     """Parses the trace result into a timeline model for in-memory
     manipulation."""
     timeline = self._CreateTimelineModel()
+    for thread in timeline.GetAllThreads():
+      if thread.name == 'CrBrowserMain':
+        timeline.browser_process = thread.parent
     for key, value in self._tab_to_marker_mapping.iteritems():
       timeline_markers = timeline.FindTimelineMarkers(value)
       assert(len(timeline_markers) == 1)

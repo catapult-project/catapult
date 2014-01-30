@@ -133,3 +133,14 @@ class ChromeTraceResultTest(unittest.TestCase):
     assert 'traceEvents' in j
     self.assertEquals(j['traceEvents'],
                       ['foo', 'bar', 'baz'])
+
+  def testBrowserProcess(self):
+    ri = self._chromeTraceResultClass([
+        '{"name": "process_name",'
+        '"args": {"name": "Browser"},'
+        '"pid": 5, "ph": "M"}',
+        '{"name": "thread_name",'
+        '"args": {"name": "CrBrowserMain"},'
+        '"pid": 5, "tid": 32578, "ph": "M"}'])
+    model = ri.AsTimelineModel()
+    self.assertEquals(model.browser_process.pid, 5)

@@ -64,6 +64,11 @@ class Thread(event_container.TimelineEventContainer):
       for sub_slice in async_slice.IterEventsInThisContainerRecrusively():
         yield sub_slice
 
+  def IterAllAsyncSlicesOfName(self, name):
+    for s in self.IterAllAsyncSlices():
+      if s.name == name:
+        yield s
+
   def IterEventsInThisContainer(self):
     return itertools.chain(
       iter(self._newly_added_slices),
