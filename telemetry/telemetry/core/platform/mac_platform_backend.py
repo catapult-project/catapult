@@ -4,17 +4,21 @@
 
 import collections
 import ctypes
+import logging
 import os
 import plistlib
+import shutil
 import signal
 import tempfile
 import time
+import xml.parsers.expat
 try:
   import resource  # pylint: disable=F0401
 except ImportError:
   resource = None  # Not available on all platforms
 
 from ctypes import util
+from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 
@@ -31,8 +35,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   class PowerMetricsUtility(object):
     def __init__(self, backend):
       self._powermetrics_process = None
-      self._powermetrics_output_file = None
       self._backend = backend
+      self._output_filename = None
+      self._ouput_directory = None
 
     @property
     def binary_path(self):
@@ -42,12 +47,27 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       assert not self._powermetrics_process, (
           "Must call StopMonitoringPowerAsync().")
       SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
-      self._powermetrics_output_file = tempfile.NamedTemporaryFile()
+      # Empirically powermetrics creates an empty output file immediately upon
+      # starting.  We detect file creation as a signal that measurement has
+      # started.  In order to avoid various race conditions in tempfile creation
+      # we create a temp directory and have powermetrics create it's output
+      # there rather than say, creating a tempfile, deleting it and reusing its
+      # name.
+      self._ouput_directory = tempfile.mkdtemp()
+      self._output_filename = os.path.join(self._ouput_directory,
+          'powermetrics.output')
       args = ['-f', 'plist',
               '-i', '%d' % SAMPLE_INTERVAL_MS,
-              '-u', self._powermetrics_output_file.name]
+              '-u', self._output_filename]
       self._powermetrics_process = self._backend.LaunchApplication(
           self.binary_path, args, elevate_privilege=True)
+
+      # Block until output file is written to ensure this function call is
+      # synchronous in respect to powermetrics starting.
+      def _OutputFileExists():
+        return os.path.isfile(self._output_filename)
+      timeout_sec = 2 * (SAMPLE_INTERVAL_MS / 1000.)
+      util.WaitFor(_OutputFileExists, timeout_sec)
 
     def StopMonitoringPowerAsync(self):
       assert self._powermetrics_process, (
@@ -59,10 +79,12 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         returncode = self._powermetrics_process.wait()
         assert returncode in [0, -15], (
             "powermetrics return code: %d" % returncode)
-        return open(self._powermetrics_output_file.name, 'r').read()
+
+        return open(self._output_filename, 'rb').read()
       finally:
-        self._powermetrics_output_file.close()
-        self._powermetrics_output_file = None
+        shutil.rmtree(self._ouput_directory)
+        self._ouput_directory = None
+        self._output_filename = None
         self._powermetrics_process = None
 
   def __init__(self):
@@ -187,6 +209,21 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def StartMonitoringPowerAsync(self):
     self.powermetrics_tool_.StartMonitoringPowerAsync()
 
+  def _ParsePlistString(self, plist_string):
+    """Wrapper to parse a plist from a string and catch any errors.
+
+    Sometimes powermetrics will exit in the middle of writing it's output,
+    empirically it seems that it always writes at least one sample in it's
+    entirety so we can safely ignore any errors in it's output.
+
+    Returns:
+        Parser output on succesful parse, None on parse error.
+    """
+    try:
+      return plistlib.readPlistFromString(plist_string)
+    except xml.parsers.expat.ExpatError:
+      return None
+
   def _ParsePowerMetricsOutput(self, powermetrics_output):
     """Parse output of powermetrics command line utility.
 
@@ -238,7 +275,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     raw_plists = [x for x in raw_plists if len(x) > 0]
 
     # -------- Examine contents of first plist for systems specs. --------
-    plist = plistlib.readPlistFromString(raw_plists[0])
+    plist = self._ParsePlistString(raw_plists[0])
+    if not plist:
+      logging.warning("powermetrics produced invalid output, output length: "
+          "%d" % len(powermetrics_output))
+      return {}
 
     if 'GPU' in plist:
       metrics.extend([
@@ -274,7 +315,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
     # -------- Parse Data Out of Plists --------
     for raw_plist in raw_plists:
-      plist = plistlib.readPlistFromString(raw_plist)
+      plist = self._ParsePlistString(raw_plist)
+      if not plist:
+        continue
 
       # Duration of this sample.
       sample_duration_ms = int(plist['elapsed_ns']) / 10**6

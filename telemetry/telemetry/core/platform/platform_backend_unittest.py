@@ -16,5 +16,5 @@ class PlatformBackendTest(unittest.TestCase):
       logging.warning('Test not supported on this platform.')
       return
 
-    output = backend.MonitorPowerSync(100)
+    output = backend.MonitorPowerSync(1)
     self.assertTrue(output.has_key('power_samples_mw'))
