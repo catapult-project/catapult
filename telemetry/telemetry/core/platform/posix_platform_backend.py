@@ -80,19 +80,27 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       return (os.stat(path).st_mode & stat.S_ISUID) == stat.S_ISUID
 
     def IsElevated():
-      return not subprocess.call(['sudo', '-nv'])  # Check authentication.
+      p = subprocess.Popen(
+          ['sudo', '-nv'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+           stderr=subprocess.STDOUT)
+      stdout = p.communicate()[0]
+      # Some versions of sudo set the returncode based on whether sudo requires
+      # a password currently. Other versions return output when password is
+      # required and no output when the user is already authenticated.
+      return not p.returncode and not stdout
 
-    if elevate_privilege and not IsSetUID(application) and not IsElevated():
-      print ('Telemetry needs to run %s under sudo. Please authenticate.' %
-             application)
+    if elevate_privilege and not IsSetUID(application):
       args = ['sudo'] + args
-      subprocess.check_call(['sudo', '-v'])  # Synchronously authenticate.
+      if not IsElevated():
+        print ('Telemetry needs to run %s under sudo. Please authenticate.' %
+               application)
+        subprocess.check_call(['sudo', '-v'])  # Synchronously authenticate.
 
-      prompt = ('Would you like to always allow %s to be run as the current '
-                'user without sudo? If so, Telemetry will `sudo chmod +s %s`. '
-                '(y/N)' % (application, application))
-      if raw_input(prompt).lower() == 'y':
-        subprocess.check_call(['sudo', 'chmod', '+s', application])
+        prompt = ('Would you like to always allow %s to be run as the current '
+                  'user without sudo? If so, Telemetry will '
+                  '`sudo chmod +s %s`. (y/N)' % (application, application))
+        if raw_input(prompt).lower() == 'y':
+          subprocess.check_call(['sudo', 'chmod', '+s', application])
 
     stderror_destination = subprocess.PIPE
     if logging.getLogger().isEnabledFor(logging.DEBUG):
