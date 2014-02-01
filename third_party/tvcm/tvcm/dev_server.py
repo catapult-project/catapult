@@ -253,6 +253,10 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         load_sequence)
     self._next_deps_check = current_time + DEPS_CHECK_DELAY
 
+  @property
+  def port(self):
+    return self.server_address[1]
+
   def serve_forever(self):
     if not self._quiet:
       sys.stderr.write("Now running on http://localhost:%i\n" % self._port)
