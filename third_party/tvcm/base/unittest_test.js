@@ -7,7 +7,7 @@
 base.require('base.unittest');
 base.require('base.raf');
 
-base.unittest.testSuite('base.unittest', function() {
+base.unittest.testSuite('base.unittest_test', function() {
   test('dpiAware', function() {
     var currentDevicePixelRatio = window.devicePixelRatio;
     var alternateDevicePixelRatio =

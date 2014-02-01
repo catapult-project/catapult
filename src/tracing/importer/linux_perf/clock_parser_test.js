@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.clock_parser', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.clock_parser_test', function() {
   test('clock', function() {
     var lines = [
       'cfinteractive-23    [000] d..2  8113.233768: clock_set_rate: ' +

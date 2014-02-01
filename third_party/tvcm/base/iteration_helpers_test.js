@@ -6,7 +6,7 @@
 
 base.require('base.iteration_helpers');
 
-base.unittest.testSuite('base.iteration_helpers', function() {
+base.unittest.testSuite('base.iteration_helpers_test', function() {
   var comparePossiblyUndefinedValues = base.comparePossiblyUndefinedValues;
   var compareArrays = base.compareArrays;
 

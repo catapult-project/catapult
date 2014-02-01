@@ -8,7 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.trace_model');
 base.require('tracing.importer');
 
-base.unittest.testSuite('tracing.trace_model', function() {
+base.unittest.testSuite('tracing.trace_model_test', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
   var TraceModel = tracing.TraceModel;
   var TitleFilter = tracing.TitleFilter;

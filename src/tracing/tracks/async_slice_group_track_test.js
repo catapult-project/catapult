@@ -8,7 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.timeline_track_view');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.tracks.async_slice_group_track', function() {
+base.unittest.testSuite('tracing.tracks.async_slice_group_track_test', function() {
   var AsyncSliceGroup = tracing.trace_model.AsyncSliceGroup;
   var AsyncSliceGroupTrack = tracing.tracks.AsyncSliceGroupTrack;
   var Process = tracing.trace_model.Process;

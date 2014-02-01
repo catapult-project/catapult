@@ -10,7 +10,7 @@ base.require('base.unittest');
 base.require('base.bbox2');
 base.require('ui.quad_stack_view');
 
-base.unittest.testSuite('ui.camera', function() {
+base.unittest.testSuite('ui.camera_test', function() {
 
   function createQuads() {
     var quads = [

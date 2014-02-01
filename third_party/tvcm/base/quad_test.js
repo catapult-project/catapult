@@ -7,7 +7,7 @@
 base.require('base.quad');
 base.require('base.rect');
 
-base.unittest.testSuite('base.quad', function() {
+base.unittest.testSuite('base.quad_test', function() {
   test('pointInTri', function() {
     var res = base.pointInTriangle2(
         [0.25, 0.25],

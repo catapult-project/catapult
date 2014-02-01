@@ -7,7 +7,7 @@
 base.require('base.event_target');
 base.require('base.events');
 
-base.unittest.testSuite('base.event_target', function() {
+base.unittest.testSuite('base.event_target_test', function() {
   test('eventTargetHelper', function() {
     var listenerCallCount = 0;
     function listener() { listenerCallCount++; }

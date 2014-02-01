@@ -12,7 +12,7 @@ base.require('tracing.tracks.drawing_container');
 base.require('system_stats.system_stats_instance_track');
 base.require('system_stats.system_stats_snapshot');
 
-base.unittest.testSuite('system_stats.system_stats_instance_track', function() {
+base.unittest.testSuite('system_stats.system_stats_instance_track_test', function() {
   var SystemStatsInstanceTrack = system_stats.SystemStatsInstanceTrack;
   var Viewport = tracing.TimelineViewport;
 

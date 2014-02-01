@@ -8,7 +8,7 @@ base.require('base.unittest');
 base.require('tracing.test_utils');
 base.require('tracing.filter');
 
-base.unittest.testSuite('tracing.filter', function() {
+base.unittest.testSuite('tracing.filter_test', function() {
   var TitleFilter = tracing.TitleFilter;
   var ExactTitleFilter = tracing.ExactTitleFilter;
 

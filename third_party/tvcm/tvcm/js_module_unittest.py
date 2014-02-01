@@ -31,6 +31,45 @@ class ValidateStrictModeTests(unittest.TestCase):
     self.assertRaises(
         lambda: js_module.validate_uses_strict_mode('module', stripped_text))
 
+class ValidateTestSuiteDefinition(unittest.TestCase):
+  def test_basic_success(self):
+    text = """
+base.unittest.testSuite('foo.bar_test', function() {
+});
+"""
+    js_module.validate_test_suite_definition('foo.bar_test', text)
+
+  def test_basic_success(self):
+    text = """
+base.unittest.perfTestSuite('foo.bar_perf_test', function() {
+});
+"""
+    js_module.validate_test_suite_definition('foo.bar_perf_test', text)
+
+  def test_wrong_name(self):
+    text = """
+base.unittest.testSuite('foo.bar', function() {
+});
+"""
+    self.assertRaises(
+      lambda: js_module.validate_test_suite_definition('foo.bar_test', text))
+
+  def test_no_suite_failure(self):
+    text = """
+"""
+    self.assertRaises(
+      lambda: js_module.validate_test_suite_definition('foo.bar_test', text))
+
+  def test_multiple_suites_failure(self):
+    text = """
+base.unittest.testSuite('foo.bar_test', function() {
+});
+base.unittest.testSuite('foo.bar_test', function() {
+});
+"""
+    self.assertRaises(
+      lambda: js_module.validate_test_suite_definition('foo.bar_test', text))
+
 class ParseDefinitionTests(unittest.TestCase):
   """Test case for js_module.parse."""
 

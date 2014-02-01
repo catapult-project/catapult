@@ -7,7 +7,7 @@
 base.require('tracing.trace_model.object_instance');
 base.require('tracing.trace_model.object_snapshot');
 
-base.unittest.testSuite('tracing.trace_model.object_snapshot', function() {
+base.unittest.testSuite('tracing.trace_model.object_snapshot_test', function() {
   test('snapshotTypeRegistry', function() {
     function MySnapshot() {
       tracing.trace_model.ObjectSnapshot.apply(this, arguments);

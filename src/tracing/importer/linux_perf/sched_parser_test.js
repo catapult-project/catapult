@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.sched_parser', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.sched_parser_test', function() {
   test('schedSwitchRE', function() {
     var re = tracing.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +

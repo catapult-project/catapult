@@ -8,7 +8,7 @@ base.require('base.events');
 base.require('tracing.test_utils');
 base.require('tracing.importer.timeline_stream_importer');
 
-base.unittest.testSuite('tracing.importer.timeline_stream_importer', function() { // @suppress longLineCheck
+base.unittest.testSuite('tracing.importer.timeline_stream_importer_test', function() { // @suppress longLineCheck
   var FakeWebSocket = function() {
     base.EventTarget.call(this);
     this.sendHook_ = undefined;

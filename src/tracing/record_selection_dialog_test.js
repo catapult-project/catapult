@@ -8,7 +8,7 @@ base.require('base.settings');
 base.require('tracing.test_utils');
 base.require('tracing.record_selection_dialog');
 
-base.unittest.testSuite('tracing.record_selection_dialog', function() {
+base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   test('instantitate', function() {
     var categories = [];
     for (var i = 0; i < 30; i++)

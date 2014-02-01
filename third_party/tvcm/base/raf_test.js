@@ -6,7 +6,7 @@
 
 base.require('base.raf');
 
-base.unittest.testSuite('base.raf', function() {
+base.unittest.testSuite('base.raf_test', function() {
   var fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
     var oldNow = window.performance.now;

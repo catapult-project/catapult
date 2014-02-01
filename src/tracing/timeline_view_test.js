@@ -8,7 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.timeline_view');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.timeline_view', function() {
+base.unittest.testSuite('tracing.timeline_view_test', function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
   var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {

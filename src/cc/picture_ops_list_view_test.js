@@ -10,7 +10,7 @@ base.require('cc.layer_tree_host_impl_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('cc.picture_ops_list_view', function() {
+base.unittest.testSuite('cc.picture_ops_list_view_test', function() {
   var PictureOpsListView = cc.PictureOpsListView;
 
   test('instantiate', function() {

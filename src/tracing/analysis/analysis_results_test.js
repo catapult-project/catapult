@@ -8,7 +8,7 @@ base.require('tracing.analysis.analysis_results');
 base.require('tracing.analysis.stub_analysis_table');
 base.require('tracing.selection');
 
-base.unittest.testSuite('tracing.analysis.analysis_results', function() {
+base.unittest.testSuite('tracing.analysis.analysis_results_test', function() {
   test('selectionChangingLink', function() {
     var r = tracing.analysis.AnalysisResults();
     var track = {};

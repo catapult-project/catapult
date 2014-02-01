@@ -6,7 +6,7 @@
 
 base.require('base.properties');
 
-base.unittest.testSuite('base.properties', function() {
+base.unittest.testSuite('base.properties_test', function() {
   test('defineProperties', function() {
     var stateChanges = [];
 

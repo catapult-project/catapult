@@ -9,7 +9,7 @@ base.require('cc.util');
 base.require('base.quad');
 base.require('base.rect');
 
-base.unittest.testSuite('cc.util', function() {
+base.unittest.testSuite('cc.util_test', function() {
   test('nameConvert', function() {
     assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
     assertEquals('foo_', cc.convertNameToJSConvention('foo_'));

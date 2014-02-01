@@ -6,7 +6,7 @@
 
 base.require('base.key_event_manager');
 
-base.unittest.testSuite('base.key_event_manager', function() {
+base.unittest.testSuite('base.key_event_manager_test', function() {
   var KeyEventManager = base.KeyEventManager;
 
   function withElementAttachedToChild(element, callback) {

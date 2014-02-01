@@ -9,7 +9,7 @@ base.require('tracing.timeline_track_view');
 base.require('tracing.tracks.thread_track');
 base.require('ui.dom_helpers');
 
-base.unittest.testSuite('tracing.tracks.thread_track', function() {
+base.unittest.testSuite('tracing.tracks.thread_track_test', function() {
   var Process = tracing.trace_model.Process;
   var Selection = tracing.Selection;
   var Thread = tracing.trace_model.Thread;

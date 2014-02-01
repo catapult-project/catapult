@@ -6,7 +6,7 @@
 
 base.require('ui.container_that_decorates_its_children');
 
-base.unittest.testSuite('ui.container_that_decorates_its_children', function() { // @suppress longLineCheck
+base.unittest.testSuite('ui.container_that_decorates_its_children_test', function() { // @suppress longLineCheck
 
   function createChild() {
     var span = document.createElement('span');

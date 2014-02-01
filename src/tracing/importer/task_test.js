@@ -6,7 +6,7 @@
 
 base.require('tracing.importer.task');
 
-base.unittest.testSuite('tracing.importer.task', function() {
+base.unittest.testSuite('tracing.importer.task_test', function() {
   var Task = tracing.importer.Task;
 
   test('basicAllStepsPass', function() {

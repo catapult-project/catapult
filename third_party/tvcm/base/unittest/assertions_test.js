@@ -12,7 +12,7 @@ base.requireRawScript('gl-matrix/src/gl-matrix/common.js');
 base.requireRawScript('gl-matrix/src/gl-matrix/vec2.js');
 base.requireRawScript('gl-matrix/src/gl-matrix/vec3.js');
 
-base.unittest.testSuite('base.unittest.assertions', function() {
+base.unittest.testSuite('base.unittest.assertions_test', function() {
   setup(function() {
     global.rawAssertThrows = function(fn) {
       try {

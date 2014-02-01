@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.trace_model.cpu', function() {
+base.unittest.testSuite('tracing.trace_model.cpu_test', function() {
   var Cpu = tracing.trace_model.Cpu;
 
   test('cpuBounds_Empty', function() {

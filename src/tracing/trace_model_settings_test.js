@@ -7,7 +7,7 @@
 base.require('tracing.trace_model');
 base.require('tracing.trace_model_settings');
 
-base.unittest.testSuite('tracing.trace_model_settings', function() {
+base.unittest.testSuite('tracing.trace_model_settings_test', function() {
 
   test('process_name_uniqueness_0', function() {
     var model = new tracing.TraceModel();

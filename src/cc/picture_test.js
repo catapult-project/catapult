@@ -10,7 +10,7 @@ base.require('cc.layer_tree_host_impl_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('cc.picture', function() {
+base.unittest.testSuite('cc.picture_test', function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = base.dictionaryValues(m.processes)[0];

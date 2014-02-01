@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.object_collection');
 
-base.unittest.testSuite('tracing.trace_model.object_collection', function() {
+base.unittest.testSuite('tracing.trace_model.object_collection_test', function() {
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
     tracing.trace_model.ObjectInstance.call(
         this, parent, id, category, name, creationTs);

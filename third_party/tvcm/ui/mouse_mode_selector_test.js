@@ -6,7 +6,7 @@
 
 base.require('ui.mouse_mode_selector');
 
-base.unittest.testSuite('ui.mouse_mode_selector', function() {
+base.unittest.testSuite('ui.mouse_mode_selector_test', function() {
   var MOUSE_SELECTOR_MODE = ui.MOUSE_SELECTOR_MODE;
   test('instantiate', function() {
     var sel = new ui.MouseModeSelector();

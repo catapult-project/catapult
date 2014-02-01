@@ -6,7 +6,7 @@
 
 base.require('base.range');
 
-base.unittest.testSuite('base.range', function() {
+base.unittest.testSuite('base.range_test', function() {
   test('addValue', function() {
     var range = new base.Range();
     assertTrue(range.isEmpty);

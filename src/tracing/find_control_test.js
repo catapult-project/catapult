@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.find_control');
 
-base.unittest.testSuite('tracing.find_control', function() {
+base.unittest.testSuite('tracing.find_control_test', function() {
   /*
    * Just enough of the Timeline to support the tests below.
    */

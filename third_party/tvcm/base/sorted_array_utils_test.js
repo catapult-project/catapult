@@ -6,7 +6,7 @@
 
 base.require('base.sorted_array_utils');
 
-base.unittest.testSuite('base.sorted_array_utils', function() {
+base.unittest.testSuite('base.sorted_array_utils_test', function() {
   var ArrayOfIntervals = function(array) {
     this.array = array;
   }

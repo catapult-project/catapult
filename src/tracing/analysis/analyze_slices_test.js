@@ -10,7 +10,7 @@ base.require('tracing.analysis.stub_analysis_results');
 base.require('tracing.selection');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.analysis.analyze_slices', function() {
+base.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
   var Model = tracing.TraceModel;
   var Thread = tracing.trace_model.Thread;
   var Selection = tracing.Selection;

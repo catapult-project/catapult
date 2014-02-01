@@ -10,7 +10,7 @@ base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
 
-base.unittest.testSuite('cc.layer_tree_quad_stack_view', function() {
+base.unittest.testSuite('cc.layer_tree_quad_stack_view_test', function() {
   test('tileCoverageRectCount', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];

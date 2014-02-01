@@ -6,7 +6,7 @@
 
 base.require('ui.list_and_associated_view');
 
-base.unittest.testSuite('ui.list_and_associated_view', function() {
+base.unittest.testSuite('ui.list_and_associated_view_test', function() {
   var ListAndAssociatedView = ui.ListAndAssociatedView;
 
   var SimpleView = ui.define('div');

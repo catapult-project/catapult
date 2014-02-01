@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser',
+base.unittest.testSuite('tracing.importer.linux_perf.exynos_parser_test',
                         function() {
 
       test('exynosBusfreqImport', function() {

@@ -8,7 +8,7 @@ base.require('base.utils');
 base.require('ui');
 base.require('ui.sortable_table');
 
-base.unittest.testSuite('ui.sortable_table', function() {
+base.unittest.testSuite('ui.sortable_table_test', function() {
   var SortableTable = ui.SortableTable;
 
   function convertToHTML(s) {

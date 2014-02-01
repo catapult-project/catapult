@@ -7,7 +7,7 @@
 base.require('tracing.trace_model.object_instance');
 base.require('tracing.analysis.generic_object_view');
 
-base.unittest.testSuite('tracing.analysis.generic_object_view', function() {
+base.unittest.testSuite('tracing.analysis.generic_object_view_test', function() {
   var GenericObjectView = tracing.analysis.GenericObjectView;
 
   test('undefinedValue', function() {

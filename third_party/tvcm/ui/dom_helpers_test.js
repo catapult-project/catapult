@@ -6,7 +6,7 @@
 
 base.require('ui.dom_helpers');
 
-base.unittest.testSuite('ui.dom_helpers', function() {
+base.unittest.testSuite('ui.dom_helpers_test', function() {
 
   test('simpleSpanAndDiv', function() {
     var divEl = ui.createDiv({

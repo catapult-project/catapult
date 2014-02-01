@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.slice_group');
 
-base.unittest.testSuite('tracing.trace_model.slice_group', function() {
+base.unittest.testSuite('tracing.trace_model.slice_group_test', function() {
   var Slice = tracing.trace_model.Slice;
   var SliceGroup = tracing.trace_model.SliceGroup;
   var newSlice = tracing.test_utils.newSlice;

@@ -9,7 +9,7 @@ base.require('tracing.timeline_viewport');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.ruler_track');
 
-base.unittest.testSuite('tracing.tracks.ruler_track', function() {
+base.unittest.testSuite('tracing.tracks.ruler_track_test', function() {
   test('instantiate', function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);

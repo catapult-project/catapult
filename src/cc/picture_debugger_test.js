@@ -7,7 +7,7 @@
 base.require('cc.picture');
 base.require('cc.picture_debugger');
 
-base.unittest.testSuite('cc.picture_debugger', function() {
+base.unittest.testSuite('cc.picture_debugger_test', function() {
   test('instantiate', function() {
     var picture = new cc.PictureSnapshot({id: '31415'}, 10, {
       'params': {

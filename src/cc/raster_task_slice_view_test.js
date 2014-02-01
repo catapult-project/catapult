@@ -9,7 +9,7 @@ base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 base.require('cc.layer_tree_host_impl_test_data');
 
-base.unittest.testSuite('cc.raster_task_slice_view', function() {
+base.unittest.testSuite('cc.raster_task_slice_view_test', function() {
   test('instantiate', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];

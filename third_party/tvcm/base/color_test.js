@@ -6,7 +6,7 @@
 
 base.require('base.color');
 
-base.unittest.testSuite('base.color', function() {
+base.unittest.testSuite('base.color_test', function() {
   test('fromRGB', function() {
     var c = base.Color.fromString('rgb(1, 2, 3)');
     assertEquals(1, c.r);

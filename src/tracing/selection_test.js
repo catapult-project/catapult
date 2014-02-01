@@ -10,7 +10,7 @@ base.require('tracing.trace_model');
 base.require('tracing.selection');
 base.require('tracing.tracks.slice_track');
 
-base.unittest.testSuite('tracing.selection', function() {
+base.unittest.testSuite('tracing.selection_test', function() {
   test('selectionObject', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);

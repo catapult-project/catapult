@@ -6,7 +6,7 @@
 
 base.require('base.bbox2');
 
-base.unittest.testSuite('base.bbox2', function() {
+base.unittest.testSuite('base.bbox2_test', function() {
   test('addVec2', function() {
     var bbox = new base.BBox2();
     var x = vec2.create();

@@ -6,7 +6,7 @@
 
 base.require('ui');
 
-base.unittest.testSuite('ui', function() {
+base.unittest.testSuite('ui.ui_test', function() {
   var TestElement = ui.define('div');
   TestElement.prototype = {
     __proto__: HTMLDivElement.prototype,

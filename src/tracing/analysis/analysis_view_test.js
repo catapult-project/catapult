@@ -9,7 +9,7 @@ base.require('tracing.test_utils');
 base.require('tracing.trace_model');
 base.require('tracing.selection');
 
-base.unittest.testSuite('tracing.analysis.analysis_view', function() {
+base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
   var TraceModel = tracing.TraceModel;
   var Selection = tracing.Selection;
   var AnalysisView = tracing.analysis.AnalysisView;

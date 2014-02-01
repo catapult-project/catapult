@@ -12,7 +12,7 @@ base.require('tracing.selection');
 base.require('tracing.trace_model.counter');
 base.require('tracing.trace_model.counter_series');
 
-base.unittest.testSuite('tracing.analysis.analyze_counters', function() {
+base.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
   var Counter = tracing.trace_model.Counter;
   var CounterSeries = tracing.trace_model.CounterSeries;
 

@@ -10,7 +10,7 @@ base.require('tracing.timeline_track_view');
 base.require('tracing.draw_helpers');
 base.require('ui.dom_helpers');
 
-base.unittest.testSuite('tracing.tracks.slice_track', function() {
+base.unittest.testSuite('tracing.tracks.slice_track_test', function() {
   var Selection = tracing.Selection;
   var SliceTrack = tracing.tracks.SliceTrack;
   var Slice = tracing.trace_model.Slice;

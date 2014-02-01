@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.v8_log_importer');
 
-base.unittest.testSuite('tracing.importer.v8_log_importer', function() {
+base.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
   var V8LogImporter = tracing.importer.V8LogImporter;
 
   test('tickEventInSharedLibrary', function() {

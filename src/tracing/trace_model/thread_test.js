@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.trace_model.thread', function() {
+base.unittest.testSuite('tracing.trace_model.thread_test', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
   var Process = tracing.trace_model.Process;
   var Thread = tracing.trace_model.Thread;

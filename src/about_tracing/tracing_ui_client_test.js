@@ -7,7 +7,7 @@
 base.require('about_tracing.mock_request_handler');
 base.require('about_tracing.tracing_ui_client');
 
-base.unittest.testSuite('about_tracing.tracing_ui_client', function() {
+base.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},

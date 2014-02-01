@@ -6,7 +6,7 @@
 
 base.require('tcmalloc.heap');
 
-base.unittest.testSuite('tcmalloc.heap', function() {
+base.unittest.testSuite('tcmalloc.heap_test', function() {
   var HeapSnapshot = tcmalloc.HeapSnapshot;
 
   // Tests total allocation count.

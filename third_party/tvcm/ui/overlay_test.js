@@ -7,7 +7,7 @@
 base.require('ui.overlay');
 base.require('ui.dom_helpers');
 
-base.unittest.testSuite('ui.overlay', function() {
+base.unittest.testSuite('ui.overlay_test', function() {
   function addShowButtonForDialog(dlg) {
     var btn = document.createElement('button');
     btn.textContent = 'Launch Overlay';

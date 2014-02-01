@@ -10,7 +10,7 @@ base.require('gpu.state_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('gpu.state', function() {
+base.unittest.testSuite('gpu.state_test', function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_gpu_state_trace);
     var p = base.dictionaryValues(m.processes)[0];
@@ -23,4 +23,3 @@ base.unittest.testSuite('gpu.state', function() {
     instance.wasDeleted(150);
   });
 });
-

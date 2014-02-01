@@ -7,7 +7,7 @@
 base.require('base.utils');
 base.require('ui.animation_controller');
 
-base.unittest.testSuite('ui.animation_controller', function() {
+base.unittest.testSuite('ui.animation_controller_test', function() {
   function SimpleAnimation(options) {
     this.stopTime = options.stopTime;
 

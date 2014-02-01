@@ -6,7 +6,7 @@
 
 base.require('ui.list_view');
 
-base.unittest.testSuite('ui.list_view', function() {
+base.unittest.testSuite('ui.list_view_test', function() {
   var ListView = ui.ListView;
 
   test('instantiate', function() {

@@ -20,7 +20,38 @@ class JSModule(module.Module):
   def parse(self):
     stripped_text = strip_js_comments.strip_js_comments(self.contents)
     validate_uses_strict_mode(self.name, stripped_text)
+    if self.name.endswith('_test'):
+      validate_test_suite_definition(self.name, stripped_text)
     self.dependency_metadata = parse(self.name, stripped_text)
+
+def validate_test_suite_definition(module_name, stripped_text):
+  rest = stripped_text
+  num_matches = 0
+  while True:
+    m_ts = re.search("""base\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+                     rest, re.DOTALL)
+    m_pts = re.search("""base\s*\.\s*unittest\s*\.\s*perfTestSuite\((["'])(.+?)\\1""",
+                     rest, re.DOTALL)
+
+    # Figure out which was first.
+    matches = [m for m in [m_ts, m_pts] if m]
+    matches.sort(key=lambda x: x.start())
+    if len(matches):
+      m = matches[0]
+    else:
+      break
+
+    suite_name = m.group(2)
+    if suite_name != module_name:
+      raise Exception(('%s must use the module name in its testSuite ' +
+                      'definition instead of %s') % (module_name, suite_name))
+    num_matches += 1
+    rest = rest[m.end():]
+
+  if num_matches == 0:
+      raise Exception("""Expected a base.unittest.testSuite('%s', ...)""" % module_name)
+  if num_matches > 1:
+      raise Exception("""Must only have one base.unittest.testSuite('%s', ...)""" % module_name)
 
 
 def validate_uses_strict_mode(module_name, stripped_text):

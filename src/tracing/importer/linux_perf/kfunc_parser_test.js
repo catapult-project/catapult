@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.kfunc_parser_test', function() {
   test('kernelFunctionParser', function() {
     var lines = [
       'Binder_2-127  ( 127) [001] ....  3431.906759: graph_ent: func=sys_write',

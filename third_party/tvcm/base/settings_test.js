@@ -7,7 +7,7 @@
 base.require('base.settings');
 base.require('base.unittest');
 
-base.unittest.testSuite('base.settings', function() {
+base.unittest.testSuite('base.settings_test', function() {
   function assertSettingIs(expectedValue, key) {
     assertEquals(expectedValue, base.Settings.get('my_key'),
                  'Expected Settings.' + key + ' to be ' + expectedValue);

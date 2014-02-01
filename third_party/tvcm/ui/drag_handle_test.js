@@ -6,7 +6,7 @@
 
 base.require('ui.drag_handle');
 
-base.unittest.testSuite('ui.drag_handle', function() {
+base.unittest.testSuite('ui.drag_handle_test', function() {
   var createDragHandle = function() {
     var el = document.createElement('div');
     el.style.border = '1px solid black';

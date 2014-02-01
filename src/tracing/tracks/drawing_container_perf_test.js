@@ -9,7 +9,7 @@ base.require('tracing.timeline_view');
 base.require('tracing.timeline_viewport');
 base.require('tracing.trace_model');
 
-base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf', function() {  // @suppress longLineCheck
+base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf_test', function() {  // @suppress longLineCheck
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);

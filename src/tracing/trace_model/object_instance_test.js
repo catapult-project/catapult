@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model.object_instance');
 
-base.unittest.testSuite('tracing.trace_model.object_instance', function() {
+base.unittest.testSuite('tracing.trace_model.object_instance_test', function() {
   test('getSnapshotAtWithImplicitCreation', function() {
     var instance = new tracing.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);

@@ -8,7 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.trace_model.counter');
 base.require('tracing.trace_model.counter_series');
 
-base.unittest.testSuite('tracing.trace_model.counter', function() {
+base.unittest.testSuite('tracing.trace_model.counter_test', function() {
   var Counter = tracing.trace_model.Counter;
   var CounterSeries = tracing.trace_model.CounterSeries;
   var CounterSample = tracing.trace_model.CounterSample;

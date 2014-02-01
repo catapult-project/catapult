@@ -6,7 +6,7 @@
 
 base.require('base.interval_tree');
 
-base.unittest.testSuite('base.interval_tree', function() {
+base.unittest.testSuite('base.interval_tree_test', function() {
   function buildSimpleTree() {
     var tree = new base.IntervalTree(
         function(s) { return s.start; },

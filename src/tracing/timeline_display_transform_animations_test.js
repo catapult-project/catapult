@@ -8,7 +8,7 @@ base.require('tracing.timeline_display_transform');
 base.require('tracing.timeline_display_transform_animations');
 base.require('ui.animation_controller');
 
-base.unittest.testSuite('tracing.timeline_display_transform_animations', function() { // @suppress longLineCheck
+base.unittest.testSuite('tracing.timeline_display_transform_animations_test', function() { // @suppress longLineCheck
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
       tracing.TimelineDisplayTransformPanAnimation;

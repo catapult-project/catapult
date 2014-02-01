@@ -6,7 +6,7 @@
 
 base.require('ui.info_bar');
 
-base.unittest.testSuite('ui.info_bar', function() {
+base.unittest.testSuite('ui.info_bar_test', function() {
   test('instantiate', function() {
     var infoBar = new ui.InfoBar();
     infoBar.message = 'This is an info';

@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.trace_event_importer');
 
-base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf', function() { // @suppress longLineCheck
+base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
   var eventStrings = {};
 
   function getSynchronous(url) {

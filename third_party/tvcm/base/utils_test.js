@@ -6,7 +6,7 @@
 
 base.require('base.utils');
 
-base.unittest.testSuite('base.utils', function() {
+base.unittest.testSuite('base.utils_test', function() {
   test('clamping', function() {
     assertEquals(2, base.clamp(2, 1, 3));
     assertEquals(1, base.clamp(1, 1, 3));

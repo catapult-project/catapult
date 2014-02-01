@@ -6,7 +6,7 @@
 
 base.require('base.rect');
 
-base.unittest.testSuite('base.rect', function() {
+base.unittest.testSuite('base.rect_test', function() {
   test('UVRectBasic', function() {
     var container = base.Rect.fromXYWH(0, 0, 10, 10);
     var inner = base.Rect.fromXYWH(1, 1, 8, 8);
