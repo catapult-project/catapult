@@ -51,17 +51,26 @@ class ModuleTestCase(unittest.TestCase):
     self._tab.Navigate(server.url + '/base/tests.html')
     self._tab.WaitForDocumentReadyStateToBeComplete()
     self._tab.EvaluateJavaScript("""
-window.__testsDone = false;
-base.unittest.whenDone.then(
-  function resolve() {
-    window.__testsDone = true;
-  },
-  function reject() {
-    window.__testsDone = true;
-  });
-""")
+    if (base === undefined || base.unittest === undefined) {
+      window.__testsDone = true;
+      window.__testsPass = false;
+    } else {
+      window.__testsDone = false;
+      window.__testsPass = false;
+      base.unittest.whenDone.then(
+        function resolve() {
+          window.__testsDone = true;
+          window.__testsPass = true;
+        },
+        function reject() {
+          window.__testsDone = true;
+          window.__testsPass = false;
+        });
+    }
+    """)
     self._tab.WaitForJavaScriptExpression("window.__testsDone",
                                           timeout=120)
+    self.assertTrue(self._tab.EvaluateJavaScript("window.__testsPass"))
 
   def tearDown(self):
     self._tabs = None
