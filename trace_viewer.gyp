@@ -272,7 +272,7 @@
       'actions': [
         {
           'action_name': 'generate_about_tracing',
-          'script_name': 'build/generate_about_tracing_contents.py',
+          'script_name': 'build/generate_about_tracing_contents',
           'inputs': [
             '<@(tracing_files)',
           ],

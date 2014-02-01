@@ -9,5 +9,5 @@ import sys
 if __name__ == '__main__':
   build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
   sys.path.append(build_dir)
-  from build import gjslint
-  sys.exit(gjslint.main())
+  from build import generate_about_tracing_contents
+  sys.exit(generate_about_tracing_contents.main(sys.argv))

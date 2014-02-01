@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -9,7 +8,6 @@ import sys
 import os
 import re
 
-import tvcm_stub
 import tvcm
 
 src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
@@ -53,6 +51,3 @@ various ordering restrictions between them.
       f.write(tvcm.generate_css(load_sequence))
 
   return 0
-
-if __name__ == "__main__":
-  sys.exit(main(sys.argv))

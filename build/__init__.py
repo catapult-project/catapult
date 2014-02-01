@@ -4,7 +4,7 @@
 import os
 import sys
 
-import tvcm_stub
+from build import tvcm_stub
 
 import tvcm
 from tvcm import *
