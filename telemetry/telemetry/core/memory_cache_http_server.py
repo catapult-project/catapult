@@ -220,25 +220,28 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
 
 
 class MemoryCacheHTTPServer(local_server.LocalServer):
-  def __init__(self, browser_backend, paths):
-    paths = list(paths)
+  def __init__(self, paths):
+    super(MemoryCacheHTTPServer, self).__init__(
+        MemoryCacheHTTPServerBackend)
+    self._base_dir = None
+
     for path in paths:
       assert os.path.exists(path), '%s does not exist.' % path
+
+    paths = list(paths)
+    self._paths = paths
+
+    self._paths_as_set = set(map(os.path.realpath, paths))
 
     common_prefix = os.path.commonprefix(paths)
     if os.path.isdir(common_prefix):
       self._base_dir = common_prefix
     else:
       self._base_dir = os.path.dirname(common_prefix)
-    self._paths_as_set = set(map(os.path.realpath, paths))
 
-    super(MemoryCacheHTTPServer, self).__init__(
-        MemoryCacheHTTPServerBackend,
-        browser_backend,
-        {'base_dir': self._base_dir,
-         'paths': paths})
-
-    assert 'http' in self.forwarders
+  def GetBackendStartupArgs(self):
+    return {'base_dir': self._base_dir,
+            'paths': self._paths}
 
   @property
   def paths(self):

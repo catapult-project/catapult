@@ -39,23 +39,34 @@ class LocalServerBackend(object):
     raise NotImplementedError()
 
 class LocalServer(object):
-  def __init__(self, server_cls, browser_backend, server_args):
-    assert LocalServerBackend in server_cls.__bases__
-    server_module_name = server_cls.__module__
+  def __init__(self, server_backend_class):
+    assert LocalServerBackend in server_backend_class.__bases__
+    server_module_name = server_backend_class.__module__
     assert server_module_name in sys.modules, \
             'The server class\' module must be findable via sys.modules'
-    assert getattr(sys.modules[server_module_name], server_cls.__name__), \
+    assert getattr(sys.modules[server_module_name],
+                   server_backend_class.__name__), \
       'The server class must getattrable from its __module__ by its __name__'
-    server_args_as_json = json.dumps(server_args)
 
+    self._server_backend_class = server_backend_class
     self._subprocess = None
     self._devnull = None
+    self._local_server_controller = None
     self.forwarders = None
+
+  def Start(self, local_server_controller):
+    assert self._subprocess == None
+    self._local_server_controller = local_server_controller
+
+    server_args = self.GetBackendStartupArgs()
+
+    server_args_as_json = json.dumps(server_args)
+    server_module_name = self._server_backend_class.__module__
 
     self._devnull = open(os.devnull, 'w')
     cmd = [sys.executable, '-m', __name__]
     cmd.extend(["run_backend"])
-    cmd.extend([server_module_name, server_cls.__name__,
+    cmd.extend([server_module_name, self._server_backend_class.__name__,
                 server_args_as_json])
 
     env = os.environ.copy()
@@ -74,8 +85,9 @@ class LocalServer(object):
     self.forwarders = {}
     for named_port_pair in named_port_pairs:
       port = named_port_pair.port
-      self.forwarders[named_port_pair.name] = browser_backend.CreateForwarder(
-        util.PortPair(port, browser_backend.GetRemotePort(port)))
+      forwarder = local_server_controller.CreateForwarder(
+          named_port_pair.port)
+      self.forwarders[named_port_pair.name] = forwarder
 
       def IsPortUp():
         return not socket.socket().connect_ex(('localhost', port))
@@ -96,6 +108,10 @@ class LocalServer(object):
                       'without giving us port pairs.')
     return [NamedPortPair.FromDict(pair)
             for pair in json.loads(named_port_pairs_json)]
+
+  @property
+  def is_running(self):
+    return self._subprocess != None
 
   def __enter__(self):
     return self
@@ -118,15 +134,69 @@ class LocalServer(object):
     if self._devnull:
       self._devnull.close()
       self._devnull = None
+    if self._local_server_controller:
+      self._local_server_controller.ServerDidClose(self)
+      self._local_server_controller = None
+
+  def GetBackendStartupArgs(self):
+    """Returns whatever arguments are required to start up the backend"""
+    raise NotImplementedError()
+
+
+class LocalServerController():
+  """Manages the list of running servers
+
+  This class manages the running servers, but also provides an isolation layer
+  to prevent LocalServer subclasses from accessing the browser backend directly.
+
+  """
+  def __init__(self, browser_backend):
+    self._browser_backend = browser_backend
+    self._local_servers_by_class = {}
+
+  def StartServer(self, server):
+    assert not server.is_running, 'Server already started'
+    assert isinstance(server, LocalServer)
+    if server.__class__ in self._local_servers_by_class:
+      raise Exception(
+          'Canont have two servers of the same class running at once. ' +
+          'Locate the existing one and use it, or call Close() on it.')
+
+    server.Start(self)
+    self._local_servers_by_class[server.__class__] = server
+
+  def GetRunningServer(self, server_class, default_value):
+    return self._local_servers_by_class.get(server_class, default_value)
+
+  @property
+  def local_servers(self):
+    return self._local_servers_by_class.values()
+
+  def Close(self):
+    while len(self._local_servers_by_class):
+      server = self._local_servers_by_class.itervalues().next()
+      try:
+        server.Close()
+      except Exception:
+        import traceback
+        traceback.print_exc()
+
+  def CreateForwarder(self, port):
+    return self._browser_backend.CreateForwarder(
+      util.PortPair(port, self._browser_backend.GetRemotePort(port)))
+
+  def ServerDidClose(self, server):
+    del self._local_servers_by_class[server.__class__]
 
 
 def _LocalServerBackendMain(args):
   assert len(args) == 4
-  cmd, server_module_name, server_cls_name, server_args_as_json = args[:4]
+  (cmd, server_module_name,
+   server_backend_class_name, server_args_as_json) = args[:4]
   assert cmd == 'run_backend'
   server_module = __import__(server_module_name, fromlist=[True])
-  server_cls = getattr(server_module, server_cls_name)
-  server = server_cls()
+  server_backend_class = getattr(server_module, server_backend_class_name)
+  server = server_backend_class()
 
   server_args = json.loads(server_args_as_json)
 

@@ -7,9 +7,10 @@ import os
 from telemetry.core import browser_credentials
 from telemetry.core import exceptions
 from telemetry.core import extension_dict
+from telemetry.core import local_server
+from telemetry.core import memory_cache_http_server
 from telemetry.core import platform
 from telemetry.core import tab_list
-from telemetry.core import memory_cache_http_server
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
@@ -29,6 +30,7 @@ class Browser(object):
   """
   def __init__(self, backend, platform_backend):
     self._browser_backend = backend
+    self._local_server_controller = local_server.LocalServerController(backend)
     self._http_server = None
     self._wpr_server = None
     self._platform = platform.Platform(platform_backend)
@@ -292,12 +294,14 @@ class Browser(object):
       self._http_server.Close()
       self._http_server = None
 
+    self._local_server_controller.Close()
     self._browser_backend.Close()
     self.credentials = None
 
   @property
   def http_server(self):
-    return self._http_server
+    return self._local_server_controller.GetRunningServer(
+      memory_cache_http_server.MemoryCacheHTTPServer, None)
 
   def SetHTTPServerDirectories(self, paths):
     """Returns True if the HTTP server was started, False otherwise."""
@@ -315,20 +319,30 @@ class Browser(object):
           duplicates.add(sub_path)
     paths -= duplicates
 
-    if self._http_server:
-      if paths and self._http_server.paths == paths:
+    if self.http_server:
+      if paths and self.http_server.paths == paths:
         return False
 
-      self._http_server.Close()
-      self._http_server = None
+      self.http_server.Close()
 
     if not paths:
       return False
 
-    self._http_server = memory_cache_http_server.MemoryCacheHTTPServer(
-      self._browser_backend, paths)
-
+    server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
+    self.StartLocalServer(server)
     return True
+
+  def StartLocalServer(self, server):
+    """Starts a LocalServer and associates it with this browser.
+
+    It will be closed when the browser closes.
+    """
+    self._local_server_controller.StartServer(server)
+
+  @property
+  def local_servers(self):
+    """Returns the currently running local servers."""
+    return self._local_server_controller.local_servers
 
   def SetReplayArchivePath(self, archive_path, append_to_existing_wpr=False,
                            make_javascript_deterministic=True):
