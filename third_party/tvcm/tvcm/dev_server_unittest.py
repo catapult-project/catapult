@@ -21,21 +21,21 @@ class DevServerTests(unittest.TestCase):
     self.server.Close()
 
   def testBasic(self):
-    self.server.CallOnServer('AddSourcePathMapping', '/', TVCM_PATH)
+    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
     resp_str = self.server.Get('/base/__init__.js')
     with open(os.path.join(TVCM_PATH, 'base', '__init__.js'), 'r') as f:
       base_str = f.read()
     self.assertEquals(resp_str, base_str)
 
   def testDeps(self):
-    self.server.CallOnServer('AddSourcePathMapping', '/', TVCM_PATH)
-    self.server.CallOnServer('AddDataPathMapping', '/', THIRD_PARTY_PATH)
+    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
+    self.server.CallOnServer('AddDataPathMapping', THIRD_PARTY_PATH)
 
     # Just smoke test that it works.
     resp_str = self.server.Get('/base/deps.js')
 
   def testTests(self):
-    self.server.CallOnServer('AddSourcePathMapping', '/', TVCM_PATH)
+    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
 
     # Just smoke test for a known test to see if things worked.
     resp_str = self.server.Get('/base/json/tests')

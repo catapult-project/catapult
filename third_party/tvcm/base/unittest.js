@@ -70,7 +70,7 @@ base.exportTo('base.unittest', function() {
       this.clear_(document.querySelector('#exception-list'));
 
       this.updateStats_();
-      this.runSuites_();
+      return this.runSuites_();
     },
 
     addSuite: function(suite) {
@@ -638,8 +638,18 @@ base.exportTo('base.unittest', function() {
     base.require(modules);
   }
 
+  var whenDoneResolver;
+  var whenDone = new Promise(function(resolver) {
+    whenDoneResolver = resolver;
+  });
+
   function runSuites() {
-    testRunners[testType_].run();
+    testRunners[testType_].run().then(
+        function resolve() {
+          whenDoneResolver.resolve(true);
+        }, function reject() {
+          whenDoneResolver.reject();
+        });
   }
 
   function TestResult() {
@@ -680,6 +690,7 @@ base.exportTo('base.unittest', function() {
     testSuite: testSuite,
     perfTestSuite: perfTestSuite,
     runSuites: runSuites,
+    whenDone: whenDone,
     Suites: Suites,
 
     TestSuite_: TestSuite

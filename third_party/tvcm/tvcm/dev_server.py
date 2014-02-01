@@ -82,11 +82,10 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     path = path.split('?',1)[0]
     path = path.split('#',1)[0]
     for mapping in self.server.mapped_paths:
-      if path.startswith(mapping.mapped_path):
-        rel = os.path.relpath(path, mapping.mapped_path)
-        candidate = os.path.join(mapping.file_system_path, rel)
-        if os.path.exists(candidate):
-          return candidate
+      rel = os.path.relpath(path, '/')
+      candidate = os.path.join(mapping.file_system_path, rel)
+      if os.path.exists(candidate):
+        return candidate
     return ''
 
   def log_error(self, format, *args):
@@ -117,7 +116,7 @@ def do_GET_json_tests(self):
     for dirpath, dirnames, filenames in os.walk(mapping.file_system_path):
       for f in filenames:
         x = os.path.join(dirpath, f)
-        y = os.path.join(mapping.mapped_path, os.path.relpath(x, mapping.file_system_path))
+        y = os.path.join('/', os.path.relpath(x, mapping.file_system_path))
         if is_test(y):
           assert y[0] == '/'
           module_name = resource_module.Resource.name_from_relative_path(
@@ -180,9 +179,7 @@ class PathHandler(object):
     return False
 
 class MappedPath(object):
-  def __init__(self, mapped_path, file_system_path, is_source):
-    assert mapped_path.startswith('/')
-    self.mapped_path = mapped_path
+  def __init__(self, file_system_path, is_source):
     self.file_system_path = file_system_path
     self.is_source = is_source
 
@@ -195,6 +192,8 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def __init__(self, port, quiet=False):
     BaseHTTPServer.HTTPServer.__init__(self, ('', port), DevServerHandler)
     self._quiet = quiet
+    if port == 0:
+      port = self.server_address[1]
     self._port = port
     self._path_handlers = []
     self._mapped_paths = []
@@ -206,8 +205,9 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self.AddPathHandler('', do_GET_root)
     self.default_path = '/base/tests.html'
 
-    # Redirect /tests.html to the new location until folks have gotten used to its new
+    # Redirect old tests.html places to the new location until folks have gotten used to its new
     # location.
+    self.AddPathHandler('/src/tests.html', do_GET_root)
     self.AddPathHandler('/tests.html', do_GET_root)
 
     self.AddPathHandler('/base/json/tests', do_GET_json_tests)
@@ -223,11 +223,11 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         return h.handler
     return None
 
-  def AddSourcePathMapping(self, mapped_path, file_system_path):
-    self._mapped_paths.append(MappedPath(mapped_path, file_system_path, is_source=True))
+  def AddSourcePathMapping(self, file_system_path):
+    self._mapped_paths.append(MappedPath(file_system_path, is_source=True))
 
-  def AddDataPathMapping(self, mapped_path, file_system_path):
-    self._mapped_paths.append(MappedPath(mapped_path, file_system_path, is_source=False))
+  def AddDataPathMapping(self, file_system_path):
+    self._mapped_paths.append(MappedPath(file_system_path, is_source=False))
 
   @property
   def mapped_paths(self):
@@ -255,7 +255,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
   @property
   def port(self):
-    return self.server_address[1]
+    return self._port
 
   def serve_forever(self):
     if not self._quiet:
