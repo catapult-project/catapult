@@ -33,7 +33,7 @@ class RndisForwarderWithRoot(object):
   """
   _RNDIS_DEVICE = '/sys/class/android_usb/android0'
   _NETWORK_INTERFACES = '/etc/network/interfaces'
-  _TELEMETRY_MARKER = '# Added by Telemetry #'
+  _TELEMETRY_MARKER = '# Added by Telemetry for RNDIS forwarding #'
 
   def __init__(self, adb):
     """Args:
@@ -242,17 +242,19 @@ doit &
         if candidate not in used_addresses:
           return candidate
 
-    interfaces = open(self._NETWORK_INTERFACES, 'r').read()
-    if 'auto ' + host_iface not in interfaces:
-      config = ('%(orig)s\n\n'
-                '%(marker)s\n'
-                'auto %(iface)s\n'
-                'iface %(iface)s inet static\n'
-                '  address 192.168.123.1\n'  # Arbitrary IP.
-                '  netmask 255.255.255.0' % {'orig': interfaces,
-                                             'marker': self._TELEMETRY_MARKER,
-                                             'iface': host_iface})
-      self._WriteProtectedFile(self._NETWORK_INTERFACES, config)
+    orig_interfaces = open(self._NETWORK_INTERFACES, 'r').read()
+    if self._TELEMETRY_MARKER not in orig_interfaces:
+      interfaces = '\n'.join([
+          orig_interfaces,
+          '',
+          self._TELEMETRY_MARKER,
+          'auto %s' % host_iface,
+          'iface %s inet static' % host_iface,
+          '  address 192.168.123.1',
+          '  netmask 255.255.255.0',
+          ])
+      subprocess.call(['sudo', 'stop', 'network-manager'])
+      self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
       subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
 
     def HasHostAddress():
@@ -365,4 +367,6 @@ doit &
 
   def Close(self):
     self._OverrideDns(*self._original_dns)
-    self._DisableRndis()
+    # Note that we intentionally leave RNDIS running on the device. This is
+    # because the setup is slow and potentially flaky and leaving it running
+    # doesn't seem to interfere with any other developer use-cases.
