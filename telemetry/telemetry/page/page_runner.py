@@ -426,7 +426,8 @@ def _CheckArchives(page_set, pages, results):
 
 def _RunPage(test, page, state, expectation, results, finder_options):
   if expectation == 'skip':
-    logging.info('Skipped %s' % page.url)
+    logging.debug('Skipping test: Skip expectation for %s', page.url)
+    results.AddSkip(page, 'Skipped by test expectations')
     return
 
   logging.info('Running %s' % page.url)
