@@ -126,12 +126,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def _WaitForBrowserToComeUp(self, wait_for_extensions=True, timeout=None):
     def IsBrowserUp():
       try:
-        # If browser has exited, bail.
-        self._proc.poll()
-        if self._proc.returncode:
-          raise exceptions.ProcessGoneException(
-              "Return code: %d" % self._proc.returncode)
-
         self.Request('', timeout=timeout)
       except (exceptions.BrowserGoneException,
               exceptions.BrowserConnectionGoneException):
@@ -140,7 +134,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         return True
     try:
       util.WaitFor(IsBrowserUp, timeout=30)
-    except (util.TimeoutException, exceptions.ProcessGoneException) as e:
+    except util.TimeoutException:
       raise exceptions.BrowserGoneException(self.GetStackTrace())
 
     def AllExtensionsLoaded():

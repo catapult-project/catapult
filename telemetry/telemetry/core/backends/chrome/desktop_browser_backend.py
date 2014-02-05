@@ -152,13 +152,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._proc.poll() == None
 
   def GetStandardOutput(self):
-    if not self._tmp_output_file:
-      if self.browser_options.show_stdout:
-        # This can happen in the case that loading the Chrome binary fails.
-        # We print rather than using logging here, because that makes a
-        # recursive call to this function.
-        print >> sys.stderr, "Can't get standard output with --show_stdout"
-      return ''
+    assert self._tmp_output_file, "Can't get standard output with show_stdout"
     self._tmp_output_file.flush()
     try:
       with open(self._tmp_output_file.name) as f:
