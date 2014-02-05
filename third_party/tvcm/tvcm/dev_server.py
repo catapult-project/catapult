@@ -99,7 +99,7 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     pass
 
 
-def do_GET_json_tests(self):
+def GetTestModuleNames(handler):
   def is_test(x):
     basename = os.path.basename(x)
     if basename.startswith('.'):
@@ -110,7 +110,7 @@ def do_GET_json_tests(self):
     return False
 
   test_module_names = []
-  for mapping in self.server.mapped_paths:
+  for mapping in handler.server.mapped_paths:
     if not mapping.is_source:
       continue
     for dirpath, dirnames, filenames in os.walk(mapping.file_system_path):
@@ -124,14 +124,20 @@ def do_GET_json_tests(self):
           test_module_names.append(module_name)
 
   test_module_names.sort()
+  return test_module_names
 
-  tests_as_json = json.dumps(test_module_names)
+def do_GET_json_tests(self):
+  test_module_names = GetTestModuleNames(self)
+  tests = {'test_module_names': test_module_names,
+           'test_links': self.server.test_links}
+  tests_as_json = json.dumps(tests);
 
   self.send_response(200)
   self.send_header('Content-Type', 'application/json')
   self.send_header('Content-Length', len(tests_as_json))
   self.end_headers()
   self.wfile.write(tests_as_json)
+
 
 def do_GET_deps(self):
   try:
@@ -197,6 +203,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     self._port = port
     self._path_handlers = []
     self._mapped_paths = []
+    self._test_links = []
 
     self._next_deps_check = -1
     self.deps = None
@@ -229,9 +236,17 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def AddDataPathMapping(self, file_system_path):
     self._mapped_paths.append(MappedPath(file_system_path, is_source=False))
 
+  def AddTestLink(self, path, title):
+    self._test_links.append({'path': path,
+                             'title': title})
+
   @property
   def mapped_paths(self):
     return self._mapped_paths
+
+  @property
+  def test_links(self):
+    return self._test_links
 
   def update_deps_and_templates(self):
     current_time = time.time()

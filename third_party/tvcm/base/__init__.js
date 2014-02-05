@@ -121,37 +121,8 @@ this.base = (function() {
       var serverSideException = JSON.parse(req.responseText);
       var msg = 'You have a module problem: ' +
           serverSideException.message;
-      var baseWarningEl = document.createElement('div');
-      baseWarningEl.style.backgroundColor = 'white';
-      baseWarningEl.style.border = '3px solid red';
-      baseWarningEl.style.boxSizing = 'border-box';
-      baseWarningEl.style.color = 'black';
-      baseWarningEl.style.display = '-webkit-flex';
-      baseWarningEl.style.height = '100%';
-      baseWarningEl.style.left = 0;
-      baseWarningEl.style.padding = '8px';
-      baseWarningEl.style.position = 'fixed';
-      baseWarningEl.style.top = 0;
-      baseWarningEl.style.webkitFlexDirection = 'column';
-      baseWarningEl.style.width = '100%';
-      baseWarningEl.innerHTML =
-          '<h2>Module parsing problem</h2>' +
-          '<div id="message"></div>' +
-          '<pre id="details"></pre>';
-      baseWarningEl.querySelector('#message').textContent =
-          serverSideException.message;
-      var detailsEl = baseWarningEl.querySelector('#details');
-      detailsEl.textContent = serverSideException.details;
-      detailsEl.style.webkitFlex = '1 1 auto';
-      detailsEl.style.overflow = 'auto';
-
-      if (!document.body) {
-        setTimeout(function() {
-          document.body.appendChild(baseWarningEl);
-        }, 150);
-      } else {
-        document.body.appendChild(baseWarningEl);
-      }
+      showPanic(serverSideException.message,
+                serverSideException.details);
       throw new Error(msg);
     }
 
@@ -170,6 +141,39 @@ this.base = (function() {
     delete base.addModuleStylesheet;
     delete base.addModuleRawScriptDependency;
     delete base.addModuleDependency;
+  }
+
+  function showPanic(panicTitle, panicDetails) {
+    var baseWarningEl = document.createElement('div');
+    baseWarningEl.style.backgroundColor = 'white';
+    baseWarningEl.style.border = '3px solid red';
+    baseWarningEl.style.boxSizing = 'border-box';
+    baseWarningEl.style.color = 'black';
+    baseWarningEl.style.display = '-webkit-flex';
+    baseWarningEl.style.height = '100%';
+    baseWarningEl.style.left = 0;
+    baseWarningEl.style.padding = '8px';
+    baseWarningEl.style.position = 'fixed';
+    baseWarningEl.style.top = 0;
+    baseWarningEl.style.webkitFlexDirection = 'column';
+    baseWarningEl.style.width = '100%';
+    baseWarningEl.innerHTML =
+        '<h2>Module parsing problem</h2>' +
+        '<div id="message"></div>' +
+        '<pre id="details"></pre>';
+    baseWarningEl.querySelector('#message').textContent = panicTitle;
+    var detailsEl = baseWarningEl.querySelector('#details');
+    detailsEl.textContent = panicDetails;
+    detailsEl.style.webkitFlex = '1 1 auto';
+    detailsEl.style.overflow = 'auto';
+
+    if (!document.body) {
+      setTimeout(function() {
+        document.body.appendChild(baseWarningEl);
+      }, 150);
+    } else {
+      document.body.appendChild(baseWarningEl);
+    }
   }
 
   // TODO(dsinclair): Remove this when HTML imports land as the templates

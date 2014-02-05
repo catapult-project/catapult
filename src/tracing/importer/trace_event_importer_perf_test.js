@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.trace_event_importer');
 
-base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
+base.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
   var eventStrings = {};
 
   function getSynchronous(url) {
@@ -18,30 +18,41 @@ base.unittest.perfTestSuite('tracing.importer.trace_event_importer_perf_test', f
   }
 
   function getEvents(url) {
-    if (!(url in eventStrings))
-      throw new Error('Missing events for given URL: ' + url);
+    if (url in eventStrings)
+      return eventStrings[url];
+    eventStrings[url] = getSynchronous(url);
     return eventStrings[url];
   }
 
-  setupOnce(function() {
-    var urls = ['/test_data/simple_trace.json', '/test_data/lthi_cats.json'];
-    for (var i = 0; i < urls.length; ++i)
-      eventStrings[urls[i]] = getSynchronous(urls[i]);
-  });
+  function timedPerfTestWithEvents(name, testFn, initialOptions) {
+    if (initialOptions.setUp)
+      throw new Error(
+          'Per-test setUp not supported. Trivial to fix if needed.');
 
-  [1, 10, 100].forEach(function(val) {
-    timedPerfTest('simple_trace', function() {
+    var options = {};
+    for (var k in initialOptions)
+      options[k] = initialOptions[k];
+    options.setUp = function() {
+      ['/test_data/simple_trace.json', '/test_data/lthi_cats.json'].forEach(
+          function warmup(url) {
+            getEvents(url);
+          });
+    };
+    timedPerfTest(name, testFn, options);
+  }
+
+  var n110100 = [1, 10, 100];
+  n110100.forEach(function(val) {
+    timedPerfTestWithEvents('simple_trace_' + val, function() {
       var events = getEvents('/test_data/simple_trace.json');
       var m = new tracing.TraceModel();
       m.importTraces([events], false, false);
     }, {iterations: val});
   });
 
-  [1, 10].forEach(function(val) {
-    timedPerfTest('lthi_cats', function() {
-      var events = getEvents('/test_data/lthi_cats.json');
-      var m = new tracing.TraceModel();
-      m.importTraces([events], false, false);
-    }, {iterations: val});
-  });
+  timedPerfTestWithEvents('lthi_cats_1', function() {
+    var events = getEvents('/test_data/lthi_cats.json');
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+  }, {iterations: 1});
 });

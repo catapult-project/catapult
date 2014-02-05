@@ -40,7 +40,8 @@ class DevServerTests(unittest.TestCase):
     # Just smoke test for a known test to see if things worked.
     resp_str = self.server.Get('/base/json/tests')
     resp = json.loads(resp_str)
-    self.assertTrue('base.raf_test' in resp)
+    self.assertTrue('test_module_names' in resp)
+    self.assertTrue('base.raf_test' in resp['test_module_names'])
 
 
 if __name__ == '__main__':

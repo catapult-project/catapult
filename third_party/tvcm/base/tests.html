@@ -8,171 +8,82 @@ found in the LICENSE file.
 <head>
   <title>All Tracing Tests</title>
   <script src="/base/__init__.js"></script>
-  <script>
-    base.require('base.unittest');
-    base.require('base.settings');
-  </script>
   <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
-  <script>
-    function getAsync(url, cb) {
-      var req = new XMLHttpRequest();
-      req.open('GET', url, true);
-      req.onreadystatechange = function(aEvt) {
-        if (req.readyState == 4) {
-          window.setTimeout(function() {
-            if (req.status == 200) {
-              cb(req.responseText);
-            } else {
-              console.log('Failed to load ' + url);
-            }
-          }, 0);
-        }
-      };
-      req.send(null);
-    }
-
-    function launchTests(suite, tests, testType) {
-      var stats = document.getElementById('stats');
-      base.unittest.testType(testType);
-
-      // Perf tests should never have condensed results.
-      if (testType === 'perf') {
-        base.unittest.showCondensed(false);
-      } else {
-        var val = localStorage.getItem('testing::short-format') === 'true';
-        base.unittest.showCondensed(val);
-      }
-
-      if (suite !== undefined) {
-        base.unittest.Suites([suite + '_test'], tests);
-      } else {
-        getAsync('/base/json/tests', function(data) {
-          base.unittest.Suites(JSON.parse(data), tests);
-        });
-      }
-    }
-
-    function launchTestsIfAvailable() {
-      if (base.unittest === undefined ||
-          base.unittest.showCondensed === undefined ||
-          base.unittest.testType === undefined) {
-        window.setTimeout(launchTestsIfAvailable, 100);
-        return;
-      }
-
-      var suite = undefined;
-      var tests = [];
-      var testType = 'unit';
-
-      // Note, this is nieve, but works for our purposes. Would explode on
-      // encoded &'s.
-      var queryParams = window.location.search.substring(1).split('&');
-      queryParams.forEach(function(param) {
-        var parts = param.split('=');
-        if (parts[0] === 'suite')
-          suite = parts[1];
-        else if (parts[0] === 'test')
-          tests.push(parts[1]);
-        else if (parts[0] === 'type')
-          testType = (parts[1] === 'perf' ? 'perf' : 'unit');
-      });
-
-      var format = document.getElementById('short-format');
-      format.checked = localStorage.getItem('testing::short-format') === 'true';
-      format.addEventListener('click', function(ev) {
-        localStorage.setItem('testing::short-format', ev.target.checked);
-
-        if (testType === 'perf')
-          return;
-
-        base.unittest.showCondensed(ev.target.checked);
-        base.unittest.runSuites();
-      });
-      base.unittest.showCondensed(format.checked);
-
-      var testTypeInputs = document.getElementsByName('test-type');
-      for (var i = 0; i < testTypeInputs.length; ++i) {
-        if (testTypeInputs[i].value === testType)
-          testTypeInputs[i].checked = true;
-
-        testTypeInputs[i].addEventListener('click', function(ev) {
-          testType = ev.target.value;
-
-          var loc = window.location.protocol + '//' + window.location.host +
-              window.location.pathname + '?';
-
-          if (suite !== undefined)
-            loc += 'suite=' + suite + '&';
-          if (tests.length !== 0)
-            loc += 'test=' + tests.join(',') + '&';
-          loc += 'type=' + testType;
-
-          window.location = loc;
-          return;
-        });
-      }
-      launchTests(suite, tests, testType);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      launchTestsIfAvailable();
-    });
-
-  </script>
   <style>
     html, body {
       box-sizing: border-box;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      margin: 0;
+      margin: 0px;
     }
+    body > x-base-interactive-test-runner {
+      height: 100%;
+      width: 100%;
+    }
+
   </style>
 </head>
-
 <body>
-  <div id="test-harness">
-    <h1><a href='/base/tests.html'>Trace-Viewer Tests</a></h1>
+  <script>
+    base.require('base.unittest');
+    base.require('base.unittest.interactive_test_runner');
+  </script>
+  <script>
+    'use strict';
+    function loadAndRunTests() {
+      var loader = new base.unittest.SuiteLoader();
+      return loader.allSuitesLoadedPromise.then(function() {
+        var results = new base.unittest.InteractiveTestRunner();
+        results.testLinks = loader.testLinks;
+        results.allTests = loader.getAllTests();
+        document.body.appendChild(results);
 
-    <div id="stats">
-      <br />
-    </div>
+        results.setState(stateFromSearchString(
+            window.location.search.substring(1)));
 
-    <div id='individual-tests'>
-      <div class="unittest">
-        View a trace file:
-        <a href="/examples/trace_viewer.html"
-          class="unittest-error-link">Trace viewer</a>
-      </div>
-      <div class="unittest">
-        View a skp file:
-        <a href="/examples/skia_debugger.html"
-            class="unittest-error-link">Skia Debugger</a>
-      </div>
-      <div class="unittest">
-        <input type="radio" name="test-type" value="unit" />
-        Run unit tests
+        function stateToSearchString(state) {
+          var parts = [];
+          for (var k in state)
+            parts.push(encodeURI(k) + '=' +
+                       encodeURI(JSON.stringify(state[k])));
+          return parts.join('&');
+        }
 
-        <input type="radio" name="test-type" value="perf" />
-        Run perf tests
-      </div>
-      <div class="unittest">
-        <input type="checkbox" id="short-format" /> Short format
-      </div>
-    </div>
+        function stateFromSearchString(string) {
+          var state = {};
+          string.split('&').forEach(function(part) {
+            var kv = part.split('=');
+            state[decodeURI(kv[0])] = JSON.parse(decodeURI(kv[1]));
+          });
+          return state;
+        }
 
-    <div id='messages'>
-      <h1>Warning</h1>
-      <ul id='message-list'></ul>
-    </div>
+        results.addEventListener('statechange', function() {
+          var state = results.getState();
+          var stateString = stateToSearchString(state);
+          if (window.location.search == stateString)
+            return;
+          var stateURL = window.location.pathname + '?' + stateString;
+          window.history.pushState(state, document.title, stateURL);
+        });
 
-    <div id='test-results'>
-    </div>
+        window.addEventListener('popstate', function(state) {
+          results.setState(state);
+        });
 
-    <div id='exceptions'>
-      <h1>Exceptions</h1>
-      <ol id="exception-list"></ol>
-    </div>
-  </div>
+        results.getHRefForTestCase = function(testCase) {
+          var state = results.getState();
+          state.testFilterString = testCase.fullyQualifiedName;
+          state.shortFormat = false;
+          var stateString = stateToSearchString(state);
+          return window.location.pathname + '?' + stateString;
+        }
+      });
+    }
+
+    window.addEventListener('load', loadAndRunTests);
+
+  </script>
 </body>
 </html>

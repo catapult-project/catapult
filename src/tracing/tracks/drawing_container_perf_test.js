@@ -9,7 +9,7 @@ base.require('tracing.timeline_view');
 base.require('tracing.timeline_viewport');
 base.require('tracing.trace_model');
 
-base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf_test', function() {  // @suppress longLineCheck
+base.unittest.testSuite('tracing.tracks.drawing_container_perf_test', function() {  // @suppress longLineCheck
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);
@@ -17,60 +17,76 @@ base.unittest.perfTestSuite('tracing.tracks.drawing_container_perf_test', functi
     return req.responseText;
   }
 
-  var events = '';
   var model = undefined;
-  setupOnce(function() {
-    events = getSynchronous('/test_data/huge_trace.json');
-    model = new tracing.TraceModel();
-    model.importTraces([events], true);
-  });
 
   var drawingContainer;
   var viewportDiv;
-  setup(function() {
-    viewportDiv = document.createElement('div');
 
-    if (this.name === 'drawTrackContents_softwareCanvas') {
-      viewportDiv.width = '200px';
-      viewportDiv.style.width = '200px';
+  function timedDrawingContainerPerfTest(name, testFn, iterations) {
+
+    function setUpOnce() {
+      if (model !== undefined)
+        return;
+      var events = getSynchronous('/test_data/huge_trace.json');
+      model = new tracing.TraceModel();
+      model.importTraces([events], true);
     }
 
-    this.addHTMLOutput(viewportDiv);
+    function setUp() {
+      setUpOnce();
+      viewportDiv = document.createElement('div');
 
-    var viewport = new tracing.TimelineViewport(viewportDiv);
+      if (this.name === 'drawTrackContents_softwareCanvas') {
+        viewportDiv.width = '200px';
+        viewportDiv.style.width = '200px';
+      }
 
-    drawingContainer = new tracing.tracks.DrawingContainer(viewport);
-    viewport.modelTrackContainer = drawingContainer;
+      this.addHTMLOutput(viewportDiv);
 
-    var modelTrack = new tracing.tracks.TraceModelTrack(viewport);
-    drawingContainer.appendChild(modelTrack);
+      var viewport = new tracing.TimelineViewport(viewportDiv);
 
-    modelTrack.model = model;
+      drawingContainer = new tracing.tracks.DrawingContainer(viewport);
+      viewport.modelTrackContainer = drawingContainer;
 
-    viewportDiv.appendChild(drawingContainer);
+      var modelTrack = new tracing.tracks.TraceModelTrack(viewport);
+      drawingContainer.appendChild(modelTrack);
 
-    // Size the canvas.
-    drawingContainer.updateCanvasSizeIfNeeded_();
+      modelTrack.model = model;
 
-    // Size the viewport.
-    var w = drawingContainer.canvas.width;
-    var min = model.bounds.min;
-    var range = model.bounds.range;
+      viewportDiv.appendChild(drawingContainer);
 
-    var boost = range * 0.15;
-    var dt = new tracing.TimelineDisplayTransform();
-    dt.xSetWorldBounds(min - boost, min + range + boost, w);
-    track.viewport.setDisplayTransformImmediately(dt);
-  });
+      // Size the canvas.
+      drawingContainer.updateCanvasSizeIfNeeded_();
 
-  teardown(function() {
-    viewportDiv.innerText = '';
-    drawingContainer = undefined;
-  });
+      // Size the viewport.
+      var w = drawingContainer.canvas.width;
+      var min = model.bounds.min;
+      var range = model.bounds.range;
 
-  [1, 10, 100].forEach(function(val) {
-    timedPerfTest('drawTrackContents_softwareCanvas', function() {
-      drawingContainer.drawTrackContents_();
-    }, {iterations: val});
+      var boost = range * 0.15;
+      var dt = new tracing.TimelineDisplayTransform();
+      dt.xSetWorldBounds(min - boost, min + range + boost, w);
+      modelTrack.viewport.setDisplayTransformImmediately(dt);
+    };
+
+    function tearDown() {
+      viewportDiv.innerText = '';
+      drawingContainer = undefined;
+    }
+
+    timedPerfTest(name, testFn, {
+      setUp: setUp,
+      tearDown: tearDown,
+      iterations: iterations
+    });
+  }
+
+  var n110100 = [1, 10, 100];
+  n110100.forEach(function(val) {
+    timedDrawingContainerPerfTest(
+        'drawTrackContents_softwareCanvas_' + val,
+        function() {
+          drawingContainer.drawTrackContents_();
+        }, val);
   });
 });

@@ -1,0 +1,68 @@
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<style>
+  x-base-interactive-test-runner {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+  }
+
+  x-base-interactive-test-runner > * {
+    -webkit-flex: 0 0 auto;
+  }
+
+  x-base-interactive-test-runner > h1 {
+    margin: 5px 0px 10px 0px;
+  }
+
+  x-base-interactive-test-runner > #links > * {
+    margin: 0 5px 0 0;
+  }
+
+  x-base-interactive-test-runner > #stats {
+  }
+
+  x-base-interactive-test-runner > #controls {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  x-base-interactive-test-runner > #shortform-results {
+    word-break: break-all;
+    height; 40px;
+  }
+
+  x-base-interactive-test-runner > #results-container {
+    -webkit-flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+</style>
+
+<template id="x-base-interactive-test-runner-template">
+  <h1 id="title">Tests</h1>
+  <div id="stats"></div>
+  <div id="controls">
+    <div id="links">
+    </div>
+    <div>
+      <span>
+        <input type="radio" name="test-type-to-run" value="unit" />
+        Run unit tests
+      </span>
+      <span>
+        <input type="radio" name="test-type-to-run" value="perf" />
+        Run perf tests
+      </span>
+    </div>
+    <span>
+      <input type="checkbox" id="short-format" /> Short format
+    </span>
+  </div>
+  <div id="shortform-results">
+  </div>
+  <div id="results-container">
+  </div>
+</template>

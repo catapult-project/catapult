@@ -13,7 +13,7 @@ base.requireRawScript('gl-matrix/src/gl-matrix/vec2.js');
 base.requireRawScript('gl-matrix/src/gl-matrix/vec3.js');
 
 base.unittest.testSuite('base.unittest.assertions_test', function() {
-  setup(function() {
+  function assertionTestSetup() {
     global.rawAssertThrows = function(fn) {
       try {
         fn();
@@ -32,14 +32,21 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
         throw new Error('Expected <' + fn + '> to not throw: ' + e.message);
       }
     };
-  });
+  }
 
-  teardown(function() {
+  function assertionTestTeardown() {
     global.rawAssertThrows = undefined;
     global.rawAssertNotThrows = undefined;
-  });
+  }
 
-  test('assertTrue', function() {
+  function assertionTest(name, testFn) {
+    test(name, testFn, {
+      setUp: assertionTestSetup,
+      tearDown: assertionTestTeardown
+    });
+  }
+
+  assertionTest('assertTrue', function() {
     rawAssertThrows(function() {
       assertTrue(false);
     });
@@ -48,7 +55,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertFalse', function() {
+  assertionTest('assertFalse', function() {
     rawAssertThrows(function() {
       assertFalse(true);
     });
@@ -57,7 +64,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertUndefined', function() {
+  assertionTest('assertUndefined', function() {
     rawAssertThrows(function() {
       assertUndefined('');
     });
@@ -66,7 +73,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertNotUndefined', function() {
+  assertionTest('assertNotUndefined', function() {
     rawAssertThrows(function() {
       assertNotUndefined(undefined);
     });
@@ -75,7 +82,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertNull', function() {
+  assertionTest('assertNull', function() {
     rawAssertThrows(function() {
       assertNull('');
     });
@@ -84,7 +91,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertNotNull', function() {
+  assertionTest('assertNotNull', function() {
     rawAssertThrows(function() {
       assertNotNull(null);
     });
@@ -93,7 +100,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertEquals', function() {
+  assertionTest('assertEquals', function() {
     rawAssertThrows(function() {
       assertEquals(1, 2);
     });
@@ -120,7 +127,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     }
   });
 
-  test('assertNotEquals', function() {
+  assertionTest('assertNotEquals', function() {
     rawAssertThrows(function() {
       assertNotEquals(1, 1);
     });
@@ -129,7 +136,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertArrayEquals', function() {
+  assertionTest('assertArrayEquals', function() {
     rawAssertThrows(function() {
       assertArrayEquals([2, 3], [2, 4]);
     });
@@ -141,7 +148,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertArrayEqualsShallow', function() {
+  assertionTest('assertArrayEqualsShallow', function() {
     rawAssertThrows(function() {
       assertArrayShallowEquals([2, 3], [2, 4]);
     });
@@ -153,7 +160,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertAlmostEquals', function() {
+  assertionTest('assertAlmostEquals', function() {
     rawAssertThrows(function() {
       assertAlmostEquals(1, 0);
     });
@@ -172,7 +179,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertVec2Equals', function() {
+  assertionTest('assertVec2Equals', function() {
     rawAssertThrows(function() {
       assertVec2Equals(vec2.fromValues(0, 1), vec2.fromValues(0, 2));
     });
@@ -184,7 +191,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertVec3Equals', function() {
+  assertionTest('assertVec3Equals', function() {
     rawAssertThrows(function() {
       assertVec3Equals(vec3.fromValues(0, 1, 2), vec3.fromValues(0, 1, 3));
     });
@@ -199,7 +206,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertQuadEquals', function() {
+  assertionTest('assertQuadEquals', function() {
     rawAssertThrows(function() {
       assertQuadEquals(
           base.Quad.fromXYWH(1, 1, 2, 2), base.Quad.fromXYWH(1, 1, 2, 3));
@@ -210,7 +217,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertRectEquals', function() {
+  assertionTest('assertRectEquals', function() {
     rawAssertThrows(function() {
       assertRectEquals(
           base.Rect.fromXYWH(1, 1, 2, 2), base.Rect.fromXYWH(1, 1, 2, 3));
@@ -221,7 +228,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertObjectEquals', function() {
+  assertionTest('assertObjectEquals', function() {
     rawAssertThrows(function() {
       assertObjectEquals({a: 1}, {a: 2});
     });
@@ -239,7 +246,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertThrows', function() {
+  assertionTest('assertThrows', function() {
     rawAssertThrows(function() {
       assertThrows(function() {
       });
@@ -251,7 +258,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertDoesNotThrow', function() {
+  assertionTest('assertDoesNotThrow', function() {
     rawAssertThrows(function() {
       assertDoesNotThrow(function() {
         throw new Error('expected_error');
@@ -263,7 +270,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertApproxEquals', function() {
+  assertionTest('assertApproxEquals', function() {
     rawAssertThrows(function() {
       assertApproxEquals(1, 5, 0.5);
     });
@@ -272,7 +279,7 @@ base.unittest.testSuite('base.unittest.assertions_test', function() {
     });
   });
 
-  test('assertVisible', function() {
+  assertionTest('assertVisible', function() {
     rawAssertThrows(function() {
       assertVisible({});
     });

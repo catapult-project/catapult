@@ -40,7 +40,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     assertEquals(1, testElement.decorateCallCount);
   });
 
-  test('toString', function() {
+  test('componentToString', function() {
     assertEquals('div', Base.toString());
 
     var Sub = ui.define('Sub', Base);

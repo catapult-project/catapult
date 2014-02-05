@@ -77,6 +77,13 @@ base.exportTo('base', function() {
     return values;
   }
 
+  function dictionaryLength(dict) {
+    var n = 0;
+    for (var key in dict)
+      n++;
+    return n;
+  }
+
   function iterItems(dict, fn, opt_this) {
     opt_this = opt_this || this;
     for (var key in dict)
@@ -108,6 +115,7 @@ base.exportTo('base', function() {
     concatenateObjects: concatenateObjects,
     compareArrays: compareArrays,
     comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
+    dictionaryLength: dictionaryLength,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,

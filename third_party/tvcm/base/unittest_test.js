@@ -8,31 +8,7 @@ base.require('base.unittest');
 base.require('base.raf');
 
 base.unittest.testSuite('base.unittest_test', function() {
-  test('dpiAware', function() {
-    var currentDevicePixelRatio = window.devicePixelRatio;
-    var alternateDevicePixelRatio =
-        currentDevicePixelRatio > 1 ? currentDevicePixelRatio : 2;
 
-    var dpi = [];
-    var names = [];
-    var suite = function() {
-      test('dpiTest', function() {
-        dpi.push(window.devicePixelRatio);
-        names.push(this.name);
-      }, {dpiAware: true});
-    };
-
-    var ts = new base.unittest.TestSuite_('dpiTest Suite', suite);
-    ts.displayInfo();
-    ts.runTests([]).then(function(ignored) {
-      assertEquals(2, ts.testCount);
-      assertArrayEquals([1, alternateDevicePixelRatio], dpi.sort());
-      assertArrayEquals(['dpiTest_hiDPI', 'dpiTest_loDPI'], names.sort());
-
-      // Verify we reset back to the default value.
-      assertEquals(currentDevicePixelRatio, window.devicePixelRatio);
-    });
-  });
 
   test('promise', function() {
     return new Promise(function(r) {

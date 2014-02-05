@@ -1,0 +1,32 @@
+/* Copyright (c) 2014 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+.unittest-pending {
+  color: orange;
+}
+.unittest-running {
+  color: orange;
+  font-weight: bold;
+}
+
+.unittest-passed {
+  color: darkgreen;
+}
+
+.unittest-failed {
+  color: darkred;
+  font-weight: bold;
+}
+
+.unittest-exception {
+  color: red;
+  font-weight: bold;
+}
+
+.unittest-failure {
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 5px;
+}

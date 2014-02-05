@@ -1,0 +1,53 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<style>
+  x-base-unittest-test-results {
+    display: -webkit-flex;
+    -webkit-flex-direction: column;
+  }
+
+  x-base-unittest-test-results > x-html-test-case-result.dark {
+    background-color: #eee;
+  }
+
+  x-html-test-case-result {
+    display: block;
+  }
+  x-html-test-case-result > #title,
+  x-html-test-case-result > #status,
+  x-html-test-case-result > #details > x-html-test-case-error > #message,
+  x-html-test-case-result > #details > x-html-test-case-error > #stack,
+  x-html-test-case-result > #details > x-html-test-case-error > #return-value {
+    -webkit-user-select: auto;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-error {
+    display: block;
+    border: 1px solid grey;
+    border-radius: 5px;
+    font-family: monospace;
+    margin-bottom: 14px;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-error > #message,
+  x-html-test-case-result > #details > x-html-test-case-error > #stack {
+    white-space: pre;
+  }
+
+  x-html-test-case-result > #details > x-html-test-case-html-result {
+    display: block;
+  }
+
+</style>
+<template id="x-html-test-case-result-template">
+  <span id="title"></span> <span id="status"></span> <span id="return-value"></span>
+  <div id="details"></div>
+</template>
+
+<template id="x-html-test-case-error-template">
+  <div id="message"></div>
+  <div id="stack"></div>
+</template>

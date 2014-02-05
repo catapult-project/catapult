@@ -27,33 +27,69 @@ if _try_to_import_telemetry():
 else:
   telemetry = None
 
-class ModuleTestCase(unittest.TestCase):
-  def __init__(self, source_paths, raw_data_paths, method_name):
-    super(ModuleTestCase, self).__init__(methodName=method_name)
+
+class Runner(object):
+  def __init__(self, source_paths, raw_data_paths):
     self._source_paths = source_paths
     self._raw_data_paths = raw_data_paths
-
-  def setUp(self):
-    if telemetry == None:
-      raise Exception('Telemetry not found. Cannot run src/ tests')
-    self._browser = None
-    self._tab = None
 
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser('telemetry_perf_test.py')
     options, _ = parser.parse_args(['--browser', 'any'])
     browser_to_create = browser_finder.FindBrowser(options)
+
+    if telemetry == None:
+      raise Exception('Telemetry not found. Cannot run src/ tests')
+    self._browser = None
+    self._tab = None
+
     assert browser_to_create
     self._browser = browser_to_create.Create()
     self._browser.Start()
     self._tab = self._browser.tabs[0]
 
-  def runTest(self):
-    server = _LocalDevServer(self._source_paths, self._raw_data_paths)
-    self._browser.StartLocalServer(server)
-    self._tab.Navigate(server.url + '/base/tests.html')
+    self._server = _LocalDevServer(self._source_paths, self._raw_data_paths)
+    self._browser.StartLocalServer(self._server)
+
+  def NavigateToPath(self, path):
+    self._tab.Navigate(self._server.url + path)
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    self._tab.EvaluateJavaScript("""
+
+  def EvaluateJavaScript(self, js, timeout=120):
+    self._tab.EvaluateJavaScript(js, timeout)
+
+  def WaitForJavaScriptExpression(self, js, timeout=120):
+    self._tab.WaitForJavaScriptExpression(js, timeout)
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.Close()
+
+  def Close(self):
+    if self._server:
+      self._server.Close()
+      self._server = None
+
+    if self._tab:
+      self._tab = None
+
+    if self._browser:
+      self._browser.Close()
+      self._browser = None
+
+
+class ModuleTestCase(unittest.TestCase):
+  def __init__(self, source_paths, raw_data_paths, method_name):
+    super(ModuleTestCase, self).__init__(methodName=method_name)
+    self.source_paths = source_paths
+    self.raw_data_paths = raw_data_paths
+
+  def runTest(self):
+    with Runner(self.source_paths, self.raw_data_paths) as runner:
+      runner.NavigateToPath('/base/tests.html')
+      runner.EvaluateJavaScript("""
     if (base === undefined || base.unittest === undefined) {
       window.__testsDone = true;
       window.__testsPass = false;
@@ -71,14 +107,10 @@ class ModuleTestCase(unittest.TestCase):
         });
     }
     """)
-    self._tab.WaitForJavaScriptExpression("window.__testsDone",
-                                          timeout=120)
-    self.assertTrue(self._tab.EvaluateJavaScript("window.__testsPass"))
+      runner.WaitForJavaScriptExpression("window.__testsDone",
+                                         timeout=120)
+      self.assertTrue(runner.EvaluateJavaScript("window.__testsPass"))
 
-  def tearDown(self):
-    self._tabs = None
-    if self._browser:
-      self._browser.Close()
 
 class _LocalDevServer(local_server.LocalServer):
   def __init__(self, source_paths, raw_data_paths):

@@ -23,6 +23,7 @@ def main():
   sys.argv.append('--strict')
   sys.argv.append('--unix_mode')
   sys.argv.append('--check_html')
-  sys.argv.extend(['--exclude_files', 'src/about_tracing.js'])
   sys.argv.extend(['-r', 'src/'])
+  sys.argv.extend(['-r', 'third_party/tvcm/base/'])
+  sys.argv.extend(['-r', 'third_party/tvcm/ui/'])
   gjslint.main()

@@ -54,6 +54,8 @@ def Main(port, args):
   server.AddSourcePathMapping(src_path)
   server.AddDataPathMapping(os.path.join(toplevel_path, 'third_party'))
   server.AddDataPathMapping(toplevel_path)
+  server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
+  server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
   server.serve_forever()
 
 if __name__ == '__main__':

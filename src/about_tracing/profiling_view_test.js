@@ -59,8 +59,12 @@ base.unittest.testSuite('about_tracing.profiling_view_test', function() {
       }
       setTimeout(pressRecord, 60);
       recordingPromise.then(
-          resolver.resolve.bind(resolver),
-          resolver.reject.bind(resolver));
+          function() {
+            resolver.resolve();
+          },
+          function() {
+            resolver.reject();
+          });
     });
   });
 
