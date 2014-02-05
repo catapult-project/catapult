@@ -12,7 +12,7 @@ base.require('tracing.timeline_viewport');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.object_instance_track');
 
-base.unittest.testSuite('tracing.tracks.object_instance_track_test', function() {
+base.unittest.testSuite('tracing.tracks.object_instance_track_test', function() { // @suppress longLineCheck
   var Selection = tracing.Selection;
   var ObjectInstanceTrack = tracing.tracks.ObjectInstanceTrack;
   var Viewport = tracing.TimelineViewport;

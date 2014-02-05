@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.trace_model.async_slice_group_test', function() {
+base.unittest.testSuite('tracing.trace_model.async_slice_group_test', function() { // @suppress longLineCheck
   var Process = tracing.trace_model.Process;
   var Thread = tracing.trace_model.Thread;
   var AsyncSlice = tracing.trace_model.AsyncSlice;

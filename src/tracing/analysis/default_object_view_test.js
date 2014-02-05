@@ -8,7 +8,7 @@ base.require('tracing.analysis.default_object_view');
 base.require('tracing.selection');
 base.require('tracing.trace_model.object_instance');
 
-base.unittest.testSuite('tracing.analysis.default_object_view_test', function() {
+base.unittest.testSuite('tracing.analysis.default_object_view_test', function() { // @suppress longLineCheck
   test('instantiate_snapshotView', function() {
     var i10 = new tracing.trace_model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);

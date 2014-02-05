@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.power_parser_test', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.power_parser_test', function() { // @suppress longLineCheck
   test('powerFrequencyImport', function() {
     var lines = [
       ' kworker/0:3-6880  [000]  2784.783015: power_frequency: ' +

@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.disk_parser_test', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.disk_parser_test', function() { // @suppress longLineCheck
   test('diskImport', function() {
     var lines = [
       // NB: spliced from different traces; mismatched timestamps don't matter

@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.trace_event_importer');
 
-base.unittest.testSuite('tracing.importer.trace_event_importer_test', function() {
+base.unittest.testSuite('tracing.importer.trace_event_importer_test', function() { // @suppress longLineCheck
   var findSliceNamed = tracing.test_utils.findSliceNamed;
 
   test('canImportEmpty', function() {

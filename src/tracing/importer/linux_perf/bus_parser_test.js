@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.bus_parser_test', function() {
+base.unittest.testSuite('tracing.importer.linux_perf.bus_parser_test', function() { // @suppress longLineCheck
   test('exynos5Bus', function() {
     var lines = [
       's3c-fb-vsync-85    [001] d..2  8116.730115: memory_bus_usage: ' +
