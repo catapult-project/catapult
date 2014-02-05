@@ -389,7 +389,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
-    assert self.oobe_exists
+    if not self.oobe_exists:
+      raise exceptions.LoginException('Oobe missing')
     self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
     self._WaitForGuestFsMounted()
@@ -398,7 +399,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Navigates through oobe login screen"""
     if self._use_oobe_login_for_testing:
       logging.info('Invoking Oobe.loginForTesting')
-      assert self.oobe_exists
+      if not self.oobe_exists:
+        raise exceptions.LoginException('Oobe missing')
       oobe = self.oobe
       util.WaitFor(lambda: oobe.EvaluateJavaScript(
           'typeof Oobe !== \'undefined\''), 10)
