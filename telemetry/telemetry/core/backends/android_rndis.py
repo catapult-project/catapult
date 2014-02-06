@@ -13,21 +13,6 @@ from telemetry.core import util
 from telemetry.core.backends import adb_commands
 
 
-def _CheckOutput(*popenargs, **kwargs):
-  """Backport of subprocess.check_output to python 2.6"""
-  process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-  output, _ = process.communicate()
-  retcode = process.poll()
-  if retcode:
-    cmd = kwargs.get('args')
-    if cmd is None:
-      cmd = popenargs[0]
-    error = subprocess.CalledProcessError(retcode, cmd)
-    error.output = output
-    raise error
-  return output
-
-
 class RndisForwarderWithRoot(object):
   """Forwards traffic using RNDIS. Assuming the device has root access.
   """
@@ -91,9 +76,9 @@ class RndisForwarderWithRoot(object):
 
   def _EnumerateHostInterfaces(self):
     if sys.platform.startswith('linux'):
-      return _CheckOutput(['ip', 'addr']).splitlines()
+      return subprocess.check_output(['ip', 'addr']).splitlines()
     elif sys.platform == 'darwin':
-      return _CheckOutput(['ifconfig']).splitlines()
+      return subprocess.check_output(['ifconfig']).splitlines()
     raise Exception('Platform %s not supported!' % sys.platform)
 
   def _FindHostRndisInterface(self):
