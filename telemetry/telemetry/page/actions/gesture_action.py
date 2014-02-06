@@ -30,6 +30,11 @@ class GestureAction(page_action.PageAction):
   def RunGesture(self, page, tab, previous_action):
     raise NotImplementedError()
 
+  @staticmethod
+  def GetGestureSourceTypeFromOptions(tab):
+    gesture_source_type = tab.browser.synthetic_gesture_source_type
+    return 'chrome.gpuBenchmarking.' + gesture_source_type.upper() + '_INPUT'
+
   def CustomizeBrowserOptionsForPageSet(self, options):
     options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
 

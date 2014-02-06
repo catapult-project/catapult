@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions import gesture_action
+from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class PinchAction(gesture_action.GestureAction):
+class PinchAction(GestureAction):
   def __init__(self, attributes=None):
     super(PinchAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('PinchAction::RunAction')
@@ -21,6 +21,11 @@ class PinchAction(gesture_action.GestureAction):
     if not tab.EvaluateJavaScript('window.__PinchAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic pinch not supported for this browser')
+
+    if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+        'chrome.gpuBenchmarking.MOUSE_INPUT'):
+      raise page_action.PageActionNotSupported(
+          'Pinch page action does not support mouse input')
 
     done_callback = 'function() { window.__pinchActionDone = true; }'
     tab.ExecuteJavaScript("""

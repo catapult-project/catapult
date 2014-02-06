@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions import gesture_action
+from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class SwipeAction(gesture_action.GestureAction):
+class SwipeAction(GestureAction):
   def __init__(self, attributes=None):
     super(SwipeAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('SwipeAction::RunAction')
@@ -21,6 +21,11 @@ class SwipeAction(gesture_action.GestureAction):
     if not tab.EvaluateJavaScript('window.__SwipeAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic swipe not supported for this browser')
+
+    if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+        'chrome.gpuBenchmarking.MOUSE_INPUT'):
+      raise page_action.PageActionNotSupported(
+          'Swipe page action does not support mouse input')
 
     # TODO(dominikg): Query synthetic gesture target to check if touch is
     #                 supported.

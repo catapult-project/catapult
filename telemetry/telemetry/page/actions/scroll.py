@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions import gesture_action
+from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class ScrollAction(gesture_action.GestureAction):
+class ScrollAction(GestureAction):
   def __init__(self, attributes=None):
     super(ScrollAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('ScrollAction::RunAction')
@@ -25,12 +25,17 @@ class ScrollAction(gesture_action.GestureAction):
     # Fail if this action requires touch and we can't send touch events.
     # TODO(dominikg): Query synthetic gesture target to check if touch is
     #                 supported.
-    if (hasattr(self, 'scroll_requires_touch') and
-        self.scroll_requires_touch and not
-        tab.EvaluateJavaScript(
+    if hasattr(self, 'scroll_requires_touch'):
+      if (self.scroll_requires_touch and not
+          tab.EvaluateJavaScript(
             'chrome.gpuBenchmarking.smoothScrollBySendsTouch()')):
-      raise page_action.PageActionNotSupported(
-          'Touch scroll not supported for this browser')
+        raise page_action.PageActionNotSupported(
+            'Touch scroll not supported for this browser')
+
+      if (GestureAction.GetGestureSourceTypeFromOptions(tab) ==
+          'chrome.gpuBenchmarking.MOUSE_INPUT'):
+        raise page_action.PageActionNotSupported(
+            'Scroll requires touch on this page but mouse input was requested')
 
     distance_func = 'null'
     if hasattr(self, 'scroll_distance_function'):
@@ -52,7 +57,7 @@ class ScrollAction(gesture_action.GestureAction):
     top_start_percentage = 0.5
     direction = 'down'
     speed = 800
-    gesture_source_type = 'chrome.gpuBenchmarking.DEFAULT_INPUT'
+    gesture_source_type = GestureAction.GetGestureSourceTypeFromOptions(tab)
     if hasattr(self, 'left_start_percentage'):
       left_start_percentage = self.left_start_percentage
     if hasattr(self, 'top_start_percentage'):

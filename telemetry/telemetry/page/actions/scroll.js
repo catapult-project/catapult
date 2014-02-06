@@ -100,7 +100,7 @@
         rect.top + rect.height * this.options_.top_start_percentage_;
     chrome.gpuBenchmarking.smoothScrollBy(
         distance, this.onGestureComplete_.bind(this), start_left, start_top,
-        this.options_.gesture_source_type, this.options_.direction_,
+        this.options_.gesture_source_type_, this.options_.direction_,
         this.options_.speed_);
   };
 

@@ -268,6 +268,18 @@ class BrowserOptions(object):
         help='Ignored argument for compatibility with runtest.py harness')
     parser.add_option_group(group)
 
+    group = optparse.OptionGroup(parser, 'Synthetic gesture options')
+    synthetic_gesture_source_type_choices = [ 'default', 'mouse', 'touch' ]
+    group.add_option('--synthetic-gesture-source-type',
+        dest='synthetic_gesture_source_type',
+        default='default', type='choice',
+        choices=synthetic_gesture_source_type_choices,
+        help='Specify the source type for synthetic gestures. Note that some ' +
+             'actions only support a specific source type. ' +
+             'Supported values: ' +
+             ', '.join(synthetic_gesture_source_type_choices))
+    parser.add_option_group(group)
+
 
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options"""
@@ -278,6 +290,7 @@ class BrowserOptions(object):
         'profile_dir',
         'profile_type',
         'show_stdout',
+        'synthetic_gesture_source_type',
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)

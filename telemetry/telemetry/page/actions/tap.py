@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 import os
 
-from telemetry.page.actions import gesture_action
+from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
-class TapAction(gesture_action.GestureAction):
+class TapAction(GestureAction):
   def __init__(self, attributes=None):
     super(TapAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('TapAction::RunAction')
@@ -32,6 +32,7 @@ class TapAction(gesture_action.GestureAction):
     left_position_percentage = 0.5
     top_position_percentage = 0.5
     duration_ms = 0
+    gesture_source_type = GestureAction.GetGestureSourceTypeFromOptions(tab)
     if hasattr(self, 'left_position_percentage'):
       left_position_percentage = self.left_position_percentage
     if hasattr(self, 'top_position_percentage'):
@@ -44,21 +45,25 @@ class TapAction(gesture_action.GestureAction):
              { element: element,
                left_position_percentage: %s,
                top_position_percentage: %s,
-               duration_ms: %s })
+               duration_ms: %s,
+               gesture_source_type: %s })
              });""" % (self.element_function,
                        left_position_percentage,
                        top_position_percentage,
-                       duration_ms))
+                       duration_ms,
+                       gesture_source_type))
     else:
       tab.ExecuteJavaScript("""
           window.__tapAction.start(
           { element: document.body,
             left_position_percentage: %s,
             top_position_percentage: %s,
-            duration_ms: %s });"""
+            duration_ms: %s,
+            gesture_source_type: %s });"""
         % (left_position_percentage,
            top_position_percentage,
-           duration_ms))
+           duration_ms,
+           gesture_source_type))
 
     tab.WaitForJavaScriptExpression('window.__tapActionDone', 60)
 

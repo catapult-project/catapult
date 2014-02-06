@@ -12,11 +12,13 @@
       this.left_position_percentage_ = opt_options.left_position_percentage;
       this.top_position_percentage_ = opt_options.top_position_percentage;
       this.duration_ms_ = opt_options.duration_ms;
+      this.gesture_source_type_ = opt_options.gesture_source_type;
     } else {
       this.element_ = document.body;
       this.left_position_percentage_ = 0.5;
       this.top_position_percentage_ = 0.5;
       this.duration_ms_ = 0;
+      this.gesture_source_type_ = chrome.gpuBenchmarking.DEFAULT_INPUT;
     }
   }
 
@@ -54,7 +56,8 @@
         rect.top + rect.height * this.options_.top_position_percentage_;
     chrome.gpuBenchmarking.tap(position_left, position_top,
                                this.onGestureComplete_.bind(this),
-                               this.options_.duration_ms_);
+                               this.options_.duration_ms_,
+                               this.options_.gesture_source_type_);
   };
 
   TapAction.prototype.onGestureComplete_ = function() {
