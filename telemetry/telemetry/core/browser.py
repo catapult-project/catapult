@@ -138,30 +138,31 @@ class Browser(object):
   def memory_stats(self):
     """Returns a dict of memory statistics for the browser:
     { 'Browser': {
-        'VM': S,
-        'VMPeak': T,
-        'WorkingSetSize': U,
-        'WorkingSetSizePeak': V,
-        'ProportionalSetSize': W,
-        'PrivateDirty': X
+        'VM': R,
+        'VMPeak': S,
+        'WorkingSetSize': T,
+        'WorkingSetSizePeak': U,
+        'ProportionalSetSize': V,
+        'PrivateDirty': W
       },
       'Gpu': {
-        'VM': S,
-        'VMPeak': T,
-        'WorkingSetSize': U,
-        'WorkingSetSizePeak': V,
-        'ProportionalSetSize': W,
-        'PrivateDirty': X
+        'VM': R,
+        'VMPeak': S,
+        'WorkingSetSize': T,
+        'WorkingSetSizePeak': U,
+        'ProportionalSetSize': V,
+        'PrivateDirty': W
       },
       'Renderer': {
-        'VM': S,
-        'VMPeak': T,
-        'WorkingSetSize': U,
-        'WorkingSetSizePeak': V,
-        'ProportionalSetSize': W,
-        'PrivateDirty': X
+        'VM': R,
+        'VMPeak': S,
+        'WorkingSetSize': T,
+        'WorkingSetSizePeak': U,
+        'ProportionalSetSize': V,
+        'PrivateDirty': W
       },
-      'SystemCommitCharge': Y,
+      'SystemCommitCharge': X,
+      'SystemTotalPhysicalMemory': Y,
       'ProcessCount': Z,
     }
     Any of the above keys may be missing on a per-platform basis.
@@ -170,6 +171,8 @@ class Browser(object):
     result = self._GetStatsCommon(self._platform_backend.GetMemoryStats)
     result['SystemCommitCharge'] = \
         self._platform_backend.GetSystemCommitCharge()
+    result['SystemTotalPhysicalMemory'] = \
+        self._platform_backend.GetSystemTotalPhysicalMemory()
     return result
 
   @property

@@ -50,6 +50,9 @@ class PlatformBackend(object):
   def GetSystemCommitCharge(self):
     raise NotImplementedError()
 
+  def GetSystemTotalPhysicalMemory(self):
+    raise NotImplementedError()
+
   def GetCpuStats(self, pid):
     return {}
 

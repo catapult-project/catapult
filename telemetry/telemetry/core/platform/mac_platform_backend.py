@@ -158,6 +158,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         return pages_active * resource.getpagesize() / 1024
     return 0
 
+  def GetSystemTotalPhysicalMemory(self):
+    return int(self._RunCommand(['sysctl', '-n', 'hw.memsize']))
+
   def PurgeUnpinnedMemory(self):
     # TODO(pliard): Implement this.
     pass

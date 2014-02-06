@@ -25,6 +25,11 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
             - self._ConvertKbToByte(meminfo['Buffers'])
             - self._ConvertKbToByte(meminfo['Cached']))
 
+  def GetSystemTotalPhysicalMemory(self):
+    meminfo_contents = self._GetFileContents('/proc/meminfo')
+    meminfo = self._GetProcFileDict(meminfo_contents)
+    return self._ConvertKbToByte(meminfo['MemTotal'])
+
   def GetCpuStats(self, pid):
     stats = self._GetProcFileForPid(pid, 'stat')
     if not stats:

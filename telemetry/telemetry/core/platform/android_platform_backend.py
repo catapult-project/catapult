@@ -98,6 +98,12 @@ class AndroidPlatformBackend(
         return int(line.split()[2]) * 1024
     return 0
 
+  def GetSystemTotalPhysicalMemory(self):
+    for line in self._adb.RunShellCommand('dumpsys meminfo', log_result=False):
+      if line.startswith('Total RAM: '):
+        return int(line.split()[2]) * 1024
+    return 0
+
   def GetCpuStats(self, pid):
     if not self._can_access_protected_file_contents:
       logging.warning('CPU stats cannot be retrieved on non-rooted device.')

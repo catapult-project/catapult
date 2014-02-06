@@ -147,3 +147,6 @@ class BrowserTest(unittest.TestCase):
     for g in info.gpu.devices:
       self.assertTrue(isinstance(g, gpu_device.GPUDevice))
 
+  def testGetSystemTotalMemory(self):
+    b = self.CreateBrowser()
+    self.assertTrue(b.memory_stats['SystemTotalPhysicalMemory'] > 0)

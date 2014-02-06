@@ -41,33 +41,12 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     raise NotImplementedError()
 
   def GetSystemCommitCharge(self):
-    class PerformanceInfo(ctypes.Structure):
-      """Struct for GetPerformanceInfo() call
-      http://msdn.microsoft.com/en-us/library/ms683210
-      """
-      _fields_ = [('size', ctypes.c_ulong),
-                  ('CommitTotal', ctypes.c_size_t),
-                  ('CommitLimit', ctypes.c_size_t),
-                  ('CommitPeak', ctypes.c_size_t),
-                  ('PhysicalTotal', ctypes.c_size_t),
-                  ('PhysicalAvailable', ctypes.c_size_t),
-                  ('SystemCache', ctypes.c_size_t),
-                  ('KernelTotal', ctypes.c_size_t),
-                  ('KernelPaged', ctypes.c_size_t),
-                  ('KernelNonpaged', ctypes.c_size_t),
-                  ('PageSize', ctypes.c_size_t),
-                  ('HandleCount', ctypes.c_ulong),
-                  ('ProcessCount', ctypes.c_ulong),
-                  ('ThreadCount', ctypes.c_ulong)]
-
-      def __init__(self):
-        self.size = ctypes.sizeof(self)
-        super(PerformanceInfo, self).__init__()
-
-    performance_info = PerformanceInfo()
-    ctypes.windll.psapi.GetPerformanceInfo(
-        ctypes.byref(performance_info), performance_info.size)
+    performance_info = self._GetPerformanceInfo()
     return performance_info.CommitTotal * performance_info.PageSize / 1024
+
+  def GetSystemTotalPhysicalMemory(self):
+    performance_info = self._GetPerformanceInfo()
+    return performance_info.PhysicalTotal * performance_info.PageSize / 1024
 
   def GetCpuStats(self, pid):
     cpu_info = self._GetWin32ProcessInfo(win32process.GetProcessTimes, pid)
@@ -190,3 +169,32 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     finally:
       if handle:
         win32api.CloseHandle(handle)
+
+  def _GetPerformanceInfo(self):
+    class PerformanceInfo(ctypes.Structure):
+      """Struct for GetPerformanceInfo() call
+      http://msdn.microsoft.com/en-us/library/ms683210
+      """
+      _fields_ = [('size', ctypes.c_ulong),
+                  ('CommitTotal', ctypes.c_size_t),
+                  ('CommitLimit', ctypes.c_size_t),
+                  ('CommitPeak', ctypes.c_size_t),
+                  ('PhysicalTotal', ctypes.c_size_t),
+                  ('PhysicalAvailable', ctypes.c_size_t),
+                  ('SystemCache', ctypes.c_size_t),
+                  ('KernelTotal', ctypes.c_size_t),
+                  ('KernelPaged', ctypes.c_size_t),
+                  ('KernelNonpaged', ctypes.c_size_t),
+                  ('PageSize', ctypes.c_size_t),
+                  ('HandleCount', ctypes.c_ulong),
+                  ('ProcessCount', ctypes.c_ulong),
+                  ('ThreadCount', ctypes.c_ulong)]
+
+      def __init__(self):
+        self.size = ctypes.sizeof(self)
+        super(PerformanceInfo, self).__init__()
+
+    performance_info = PerformanceInfo()
+    ctypes.windll.psapi.GetPerformanceInfo(
+        ctypes.byref(performance_info), performance_info.size)
+    return performance_info
