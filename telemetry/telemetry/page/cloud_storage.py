@@ -106,8 +106,9 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    if stderr.startswith('You are attempting to access protected data with '
-        'no configured'):
+    if stderr.startswith((
+        'You are attempting to access protected data with no configured',
+        'Failure: No handler was ready to authenticate.')):
       raise CredentialsError(gsutil_path)
     if 'status=403' in stderr or 'status 403' in stderr:
       raise PermissionError(gsutil_path)
