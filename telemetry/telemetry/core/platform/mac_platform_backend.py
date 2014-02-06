@@ -17,7 +17,6 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
-from ctypes import util
 from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
@@ -136,7 +135,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
     proc_info = ProcTaskInfo()
     if not self.libproc:
-      self.libproc = ctypes.CDLL(util.find_library('libproc'))
+      self.libproc = ctypes.CDLL(ctypes.util.find_library('libproc'))
     self.libproc.proc_pidinfo(pid, proc_info.PROC_PIDTASKINFO, 0,
                               ctypes.byref(proc_info), proc_info.size)
 
