@@ -44,6 +44,7 @@ class Monsoon:
     self._coarse_ref = self._fine_ref = self._coarse_zero = self._fine_zero = 0
     self._coarse_scale = self._fine_scale = 0
     self._last_seq = 0
+    self._voltage_multiplier = None
 
     if device:
       self.ser = serial.Serial(device, timeout=1)
@@ -77,6 +78,10 @@ class Monsoon:
         elif serialno and status['serialNumber'] != serialno:
           logging.error('device %s is #%d', dev, status['serialNumber'])
         else:
+          if status['hardwareRevision'] == 1:
+            self._voltage_multiplier = 62.5 / 10**6
+          else:
+            self._voltage_multiplier = 125.0 / 10**6
           return
 
       self._tempfile = None
@@ -194,7 +199,8 @@ class Monsoon:
           continue
 
         out = []
-        for main, usb, _, _ in data:
+        for main, usb, _, voltage in data:
+          main_voltage_v = self._voltage_multiplier * (voltage & ~3)
           sample = 0.0
           if main & 1:
             sample += ((main & ~1) - self._coarse_zero) * self._coarse_scale
@@ -204,7 +210,7 @@ class Monsoon:
             sample += ((usb & ~1) - self._coarse_zero) * self._coarse_scale
           else:
             sample += (usb - self._fine_zero) * self._fine_scale
-          out.append(sample)
+          out.append((sample, main_voltage_v))
         return out
 
       elif packet_type == 1:

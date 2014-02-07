@@ -34,7 +34,7 @@ def _CollectData(output_path, is_collecting):
     mon.StopDataCollection()
 
   # Add x-axis labels.
-  plot_data = [(i / 5000., sample) for i, sample in enumerate(samples)]
+  plot_data = [(i / 5000., sample(0)) for i, sample in enumerate(samples)]
 
   # Print data in csv.
   with open(output_path, 'w') as output_file:
