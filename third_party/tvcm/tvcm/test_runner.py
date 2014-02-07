@@ -6,8 +6,27 @@ import inspect
 import unittest
 import sys
 import os
+import optparse
 
 __all__ = []
+
+def FilterSuite(suite, predicate):
+  new_suite = suite.__class__()
+
+  for x in suite:
+    if isinstance(x, unittest.TestSuite):
+      subsuite = FilterSuite(x, predicate)
+      if subsuite.countTestCases() == 0:
+        continue
+
+      new_suite.addTest(subsuite)
+      continue
+
+    assert isinstance(x, unittest.TestCase)
+    if predicate(x):
+      new_suite.addTest(x)
+
+  return new_suite
 
 class _TestLoader(unittest.TestLoader):
   def __init__(self, *args):
@@ -23,6 +42,25 @@ class _TestLoader(unittest.TestLoader):
       subsuite = self.discover(*discover_args)
       suite.addTest(subsuite)
     return suite
+
+class _RunnerImpl(unittest.TextTestRunner):
+  def __init__(self, filters):
+    super(_RunnerImpl, self).__init__(verbosity=2)
+    self.filters = filters
+
+  def ShouldTestRun(self, test):
+    if len(self.filters) == 0:
+      return True
+    found = False
+    for name in self.filters:
+      if name in test.id():
+        found = True
+    return found
+
+  def run(self, suite):
+    filtered_test = FilterSuite(suite, self.ShouldTestRun)
+    return super(_RunnerImpl, self).run(filtered_test)
+
 
 class TestRunner(object):
   def __init__(self):
@@ -45,4 +83,11 @@ class TestRunner(object):
   def Main(self, argv=None):
     if argv == None:
       argv = sys.argv
-    return unittest.main(module=__name__, argv=argv, testLoader=self._loader)
+
+    parser = optparse.OptionParser()
+    options, args = parser.parse_args(argv[1:])
+
+    runner = _RunnerImpl(filters=args)
+    return unittest.main(module=__name__, argv=[sys.argv[0]],
+                         testLoader=self._loader,
+                         testRunner=runner)
