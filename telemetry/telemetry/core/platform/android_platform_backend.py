@@ -10,6 +10,7 @@ from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
+from telemetry.core.platform import android_power_monitor
 from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
@@ -45,6 +46,7 @@ class AndroidPlatformBackend(
     self._host_platform_backend = platform.CreatePlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
         self._adb.CanAccessProtectedFileContents()
+    self._powermonitor = android_power_monitor.PowerMonitorUtility(self._adb)
     self._video_recorder = None
     self._video_output = None
     if self._no_performance_mode:
@@ -225,6 +227,18 @@ class AndroidPlatformBackend(
     self._video_recorder = None
     for frame in self._FramesFromMp4(self._video_output):
       yield frame
+
+  def CanMonitorPowerAsync(self):
+    return self._powermonitor.CanMonitorPowerAsync()
+
+  def StartMonitoringPowerAsync(self):
+    self._powermonitor.StartMonitoringPowerAsync()
+
+  def StopMonitoringPowerAsync(self):
+    powermonitor_output = self._powermonitor.StopMonitoringPowerAsync()
+    assert powermonitor_output, 'PowerMonitor produced no output'
+    return android_power_monitor.PowerMonitorUtility.ParsePowerMetricsOutput(
+        powermonitor_output)
 
   def _FramesFromMp4(self, mp4_file):
     if not self.CanLaunchApplication('avconv'):
