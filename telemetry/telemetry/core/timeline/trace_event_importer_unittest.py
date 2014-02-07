@@ -1025,3 +1025,63 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertAlmostEqual(9 / 1000.0, slice_event.thread_duration)
     self.assertTrue(slice_event.did_not_finish)
     self.assertEqual(0, len(slice_event.sub_slices))
+
+  def testImportFlowEvent(self):
+    events = [
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 548,
+       'ph': 's', 'args': {}},
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 560,
+       'ph': 't', 'args': {}},
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 580,
+       'ph': 'f', 'args': {}},
+    ]
+
+    m = timeline_model.TimelineModel(event_data=events)
+    p = m.GetAllProcesses()[0]
+    t = p.threads[53]
+    self.assertTrue(t is not None)
+    self.assertEqual(2, len(m.flow_events))
+
+    start = m.flow_events[0][0]
+    step = m.flow_events[0][1]
+    finish = m.flow_events[1][1]
+
+    self.assertEqual('a', start.name)
+    self.assertEqual('foo', start.category)
+    self.assertEqual(72, start.event_id)
+    self.assertEqual(0, start.start)
+    self.assertEqual(0, start.duration)
+
+    self.assertEqual(start.name, step.name)
+    self.assertEqual(start.category, step.category)
+    self.assertEqual(start.event_id, step.event_id)
+    self.assertAlmostEqual(12 / 1000.0, step.start)
+    self.assertEquals(0, step.duration)
+
+    self.assertEqual(start.name, finish.name)
+    self.assertEqual(start.category, finish.category)
+    self.assertEqual(start.event_id, finish.event_id)
+    self.assertAlmostEqual((20 + 12) / 1000.0, finish.start)
+    self.assertEqual(0, finish.duration)
+
+  def testImportOutOfOrderFlowEvent(self):
+    events = [
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 548,
+       'ph': 's', 'args': {}},
+      {'name': 'b', 'cat': 'foo', 'id': 73, 'pid': 52, 'tid': 53, 'ts': 148,
+       'ph': 's', 'args': {}},
+      {'name': 'b', 'cat': 'foo', 'id': 73, 'pid': 52, 'tid': 53, 'ts': 570,
+       'ph': 'f', 'args': {}},
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 560,
+       'ph': 't', 'args': {}},
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 580,
+       'ph': 'f', 'args': {}},
+    ]
+
+    expected = [[0.4, 0.412], [0.0, 0.422], [0.412, 0.432]]
+    m = timeline_model.TimelineModel(event_data=events)
+    self.assertEqual(3, len(m.flow_events))
+
+    for i in range(len(expected)):
+      self.assertAlmostEqual(expected[i][0], m.flow_events[i][0].start)
+      self.assertAlmostEqual(expected[i][1], m.flow_events[i][1].start)

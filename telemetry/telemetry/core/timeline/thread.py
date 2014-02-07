@@ -17,6 +17,7 @@ class Thread(event_container.TimelineEventContainer):
     super(Thread, self).__init__('thread %s' % tid, parent=process)
     self.tid = tid
     self._async_slices = []
+    self._flow_events = []
     self._samples = []
     self._toplevel_slices = []
 
@@ -69,10 +70,15 @@ class Thread(event_container.TimelineEventContainer):
       if s.name == name:
         yield s
 
+  def IterAllFlowEvents(self):
+    for flow_event in self._flow_events:
+      yield flow_event
+
   def IterEventsInThisContainer(self):
     return itertools.chain(
       iter(self._newly_added_slices),
       self.IterAllAsyncSlices(),
+      self.IterAllFlowEvents(),
       self.IterAllSlices(),
       iter(self._samples)
       )
@@ -87,6 +93,9 @@ class Thread(event_container.TimelineEventContainer):
 
   def AddAsyncSlice(self, async_slice):
     self._async_slices.append(async_slice)
+
+  def AddFlowEvent(self, flow_event):
+    self._flow_events.append(flow_event)
 
   def BeginSlice(self, category, name, timestamp, thread_timestamp=None,
                  args=None):

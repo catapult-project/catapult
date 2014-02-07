@@ -48,6 +48,7 @@ class TimelineModel(object):
     self._frozen = False
     self.import_errors = []
     self.metadata = []
+    self.flow_events = []
     # Use a WeakKeyDictionary, because an ordinary dictionary could keep
     # references to Tab objects around until it gets garbage collected.
     # This would prevent telemetry from navigating to another page.
