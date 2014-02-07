@@ -38,7 +38,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise Exception('Cannot create browser, no executable found!')
 
     self._flash_path = flash_path
-    if self._flash_path and not os.path.exists(self._flash_path):
+    if (browser_options.warn_if_no_flash
+        and self._flash_path and not os.path.exists(self._flash_path)):
       logging.warning(('Could not find flash at %s. Running without flash.\n\n'
                        'To fix this see http://go/read-src-internal') %
                       self._flash_path)
