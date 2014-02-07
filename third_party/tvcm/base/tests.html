@@ -53,6 +53,8 @@ found in the LICENSE file.
         function stateFromSearchString(string) {
           var state = {};
           string.split('&').forEach(function(part) {
+            if (part == '')
+              return;
             var kv = part.split('=');
             state[decodeURI(kv[0])] = JSON.parse(decodeURI(kv[1]));
           });

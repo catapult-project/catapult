@@ -14,15 +14,7 @@ src_path = os.path.join(toplevel_path, 'src')
 third_party_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                 "../third_party"))
 
-
-class SrcModulesTest(module_test_case.ModuleTestCase):
-  def __init__(self, method_name):
-    super(SrcModulesTest, self).__init__(
-        [tvcm_path, src_path], [third_party_path],
-        method_name=method_name)
-
 def load_tests(loader, tests, pattern):
-  suite = unittest.TestSuite()
-  t = SrcModulesTest('runTest')
-  suite.addTest(t)
-  return suite
+  return module_test_case.DiscoverTestsInModule(
+      [tvcm_path, src_path], [third_party_path],
+      src_path)

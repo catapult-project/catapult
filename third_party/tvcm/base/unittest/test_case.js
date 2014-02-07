@@ -21,6 +21,16 @@ base.exportTo('base.unittest', function() {
     this.test_ = test;
   }
 
+  TestCase.parseFullyQualifiedName = function(fqn) {
+    var i = fqn.lastIndexOf('.');
+    if (i == -1)
+      throw new Error('FullyQualifiedNames must have a period in them');
+    return {
+      suiteName: fqn.substr(0, i),
+      testCaseName: fqn.substr(i + 1)
+    };
+  };
+
   TestCase.prototype = {
     __proto__: Object.prototype,
 

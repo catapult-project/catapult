@@ -81,7 +81,7 @@ class ResourceLoader(object):
       return None, None
     return _read_file(resource.absolute_path)
 
-  def _find_module_resource(self, requested_module_name):
+  def find_module_resource(self, requested_module_name):
     """Finds a module javascript file and returns a Resource, or none."""
     # TODO(nduca): Look for name/__init__.js as well as name.js
     js_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.js', return_resource=True)
@@ -123,7 +123,7 @@ class ResourceLoader(object):
       return self.loaded_modules[module_name]
 
     if not resource: # happens when module_name was given
-      resource = self._find_module_resource(module_name)
+      resource = self.find_module_resource(module_name)
       if not resource:
         if context:
           raise module.DepsException('No resource for module %s needed by %s' % (module_name, context))
@@ -196,3 +196,29 @@ def _read_file(absolute_path):
   contents = f.read()
   f.close()
   return absolute_path, contents
+
+
+def GetTestModuleNamesInPath(path):
+  assert os.path.isabs(path)
+
+  def is_test(x):
+    basename = os.path.basename(x)
+    if basename.startswith('.'):
+      return False
+
+    if basename.endswith('_test.js'):
+      return True
+    return False
+
+  test_module_names = []
+  for dirpath, dirnames, filenames in os.walk(path):
+    for f in filenames:
+      x = os.path.join(dirpath, f)
+      y = os.path.join('/', os.path.relpath(x, path))
+      if is_test(y):
+        assert y[0] == '/'
+        module_name = resource_module.Resource.name_from_relative_path(
+            y[1:])
+        test_module_names.append(module_name)
+
+  return test_module_names

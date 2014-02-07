@@ -11,7 +11,10 @@ import optparse
 __all__ = []
 
 def FilterSuite(suite, predicate):
-  new_suite = suite.__class__()
+  if hasattr(suite, 'recreateEmptyVersion'):
+    new_suite = suite.recreateEmptyVersion()
+  else:
+    new_suite = suite.__class__()
 
   for x in suite:
     if isinstance(x, unittest.TestSuite):

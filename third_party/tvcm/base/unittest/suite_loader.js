@@ -36,7 +36,7 @@ base.exportTo('base.unittest', function() {
     this.title = title;
   }
 
-  function SuiteLoader() {
+  function SuiteLoader(opt_suiteNamesToLoad) {
     if (currentSuiteLoader_)
       throw new Error('Cannot have more than one SuiteLoader active at once');
     currentSuiteLoader_ = this;
@@ -50,30 +50,54 @@ base.exportTo('base.unittest', function() {
       this.allSuitesLoadedResolver_ = r;
     }.bind(this));
 
-    var allTests = getAsync('/base/json/tests').then(
-        this.beginLoadingModules_.bind(this),
-        this.loadingTestsFailed_.bind(this));
+    if (opt_suiteNamesToLoad) {
+      this.beginLoadingModules_(opt_suiteNamesToLoad);
+    } else {
+      getAsync('/base/json/tests').then(
+          function(data) {
+            var testMetadata = JSON.parse(data);
+            var testModuleNames = testMetadata.test_module_names;
+            this.beginLoadingModules_(testModuleNames, testMetadata);
+          }.bind(this),
+          this.loadingTestsFailed_.bind(this));
+    }
   }
 
-  SuiteLoader.prototype = {
-    beginLoadingModules_: function(data) {
-      var testMetadata = JSON.parse(data);
-      var testModuleNames = testMetadata.test_module_names;
+  var loadedSuitesByName = {};
 
-      for (var i = 0; i < testMetadata.test_links.length; i++) {
-        var tl = testMetadata.test_links[i];
-        this.testLinks.push(new TestLink(tl['path'],
-                                         tl['title']));
+  SuiteLoader.prototype = {
+    beginLoadingModules_: function(testModuleNames, opt_testMetadata) {
+      if (opt_testMetadata) {
+        var testMetadata = opt_testMetadata;
+        for (var i = 0; i < testMetadata.test_links.length; i++) {
+          var tl = testMetadata.test_links[i];
+          this.testLinks.push(new TestLink(tl['path'],
+                                           tl['title']));
+        }
       }
 
-      for (var i = 0; i < testModuleNames.length; i++)
-        this.pendingSuiteNames_[testModuleNames[i]] = true;
+      var moduleNamesThatNeedToBeLoaded = [];
+      for (var i = 0; i < testModuleNames.length; i++) {
+        var name = testModuleNames[i];
+        if (loadedSuitesByName[name] === undefined) {
+          moduleNamesThatNeedToBeLoaded.push(name);
+          continue;
+        }
+        this.testSuites.push(loadedSuitesByName[name]);
+      }
+
+      for (var i = 0; i < moduleNamesThatNeedToBeLoaded.length; i++)
+        this.pendingSuiteNames_[moduleNamesThatNeedToBeLoaded[i]] = true;
 
       // Start the loading.
-      base.require(testModuleNames);
-      this.loadTimeout_ = window.setTimeout(
-          this.loadingTestsTimeout_.bind(this),
-          60 * 1000);
+      if (moduleNamesThatNeedToBeLoaded.length > 0) {
+        base.require(moduleNamesThatNeedToBeLoaded);
+        this.loadTimeout_ = window.setTimeout(
+            this.loadingTestsTimeout_.bind(this),
+            60 * 1000);
+      } else {
+        this.didLoadAllTests_();
+      }
     },
 
     loadingTestsFailed_: function() {
@@ -98,6 +122,7 @@ base.exportTo('base.unittest', function() {
       if (this.pendingSuiteNames_[suite.name] === undefined)
         throw new Error('Did not expect to load ' + suite.name);
 
+      loadedSuitesByName[suite.name] = suite;
       delete this.pendingSuiteNames_[suite.name];
 
       this.testSuites.push(suite);
@@ -107,8 +132,10 @@ base.exportTo('base.unittest', function() {
     },
 
     didLoadAllTests_: function() {
-      window.clearTimeout(this.loadTimeout_);
-      this.loadTimeout_ = undefined;
+      if (this.loadTimeout_) {
+        window.clearTimeout(this.loadTimeout_);
+        this.loadTimeout_ = undefined;
+      }
 
       currentSuiteLoader_ = undefined;
       this.allSuitesLoadedResolver_.resolve(this);
@@ -120,6 +147,18 @@ base.exportTo('base.unittest', function() {
         tests.push.apply(tests, suite.tests);
       });
       return tests;
+    },
+
+    findTestWithFullyQualifiedName: function(fullyQualifiedName) {
+      for (var i = 0; i < this.testSuites.length; i++) {
+        var suite = this.testSuites[i];
+        for (var j = 0; j < suite.tests.length; j++) {
+          var test = suite.tests[j];
+          if (test.fullyQualifiedName == fullyQualifiedName)
+            return test;
+        }
+      }
+      throw new Error('Test ' + fullyQualifiedName + 'not found');
     }
   };
 

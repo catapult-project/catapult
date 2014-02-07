@@ -11,7 +11,7 @@ import traceback
 import base64
 from tvcm import parse_deps
 from tvcm import generate
-from tvcm import resource as resource_module
+from tvcm import resource_loader
 
 import SocketServer
 import SimpleHTTPServer
@@ -98,36 +98,15 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     # Dont spam the console unless it is important.
     pass
 
-
-def GetTestModuleNames(handler):
-  def is_test(x):
-    basename = os.path.basename(x)
-    if basename.startswith('.'):
-      return False
-
-    if basename.endswith('_test.js'):
-      return True
-    return False
-
+def do_GET_json_tests(self):
   test_module_names = []
-  for mapping in handler.server.mapped_paths:
-    if not mapping.is_source:
+  for mapped_path in self.server.mapped_paths:
+    if not mapped_path.is_source:
       continue
-    for dirpath, dirnames, filenames in os.walk(mapping.file_system_path):
-      for f in filenames:
-        x = os.path.join(dirpath, f)
-        y = os.path.join('/', os.path.relpath(x, mapping.file_system_path))
-        if is_test(y):
-          assert y[0] == '/'
-          module_name = resource_module.Resource.name_from_relative_path(
-              y[1:])
-          test_module_names.append(module_name)
+    test_module_names.extend(
+        resource_loader.GetTestModuleNamesInPath(mapped_path.file_system_path))
 
   test_module_names.sort()
-  return test_module_names
-
-def do_GET_json_tests(self):
-  test_module_names = GetTestModuleNames(self)
   tests = {'test_module_names': test_module_names,
            'test_links': self.server.test_links}
   tests_as_json = json.dumps(tests);

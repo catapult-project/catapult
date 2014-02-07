@@ -143,37 +143,63 @@ this.base = (function() {
     delete base.addModuleDependency;
   }
 
-  function showPanic(panicTitle, panicDetails) {
-    var baseWarningEl = document.createElement('div');
-    baseWarningEl.style.backgroundColor = 'white';
-    baseWarningEl.style.border = '3px solid red';
-    baseWarningEl.style.boxSizing = 'border-box';
-    baseWarningEl.style.color = 'black';
-    baseWarningEl.style.display = '-webkit-flex';
-    baseWarningEl.style.height = '100%';
-    baseWarningEl.style.left = 0;
-    baseWarningEl.style.padding = '8px';
-    baseWarningEl.style.position = 'fixed';
-    baseWarningEl.style.top = 0;
-    baseWarningEl.style.webkitFlexDirection = 'column';
-    baseWarningEl.style.width = '100%';
-    baseWarningEl.innerHTML =
-        '<h2>Module parsing problem</h2>' +
-        '<div id="message"></div>' +
-        '<pre id="details"></pre>';
-    baseWarningEl.querySelector('#message').textContent = panicTitle;
-    var detailsEl = baseWarningEl.querySelector('#details');
-    detailsEl.textContent = panicDetails;
-    detailsEl.style.webkitFlex = '1 1 auto';
-    detailsEl.style.overflow = 'auto';
+  var panicElement = undefined;
+  var rawPanicMessages = [];
+  function showPanicElementIfNeeded() {
+    if (panicElement)
+      return;
+
+    var panicOverlay = document.createElement('div');
+    panicOverlay.style.backgroundColor = 'white';
+    panicOverlay.style.border = '3px solid red';
+    panicOverlay.style.boxSizing = 'border-box';
+    panicOverlay.style.color = 'black';
+    panicOverlay.style.display = '-webkit-flex';
+    panicOverlay.style.height = '100%';
+    panicOverlay.style.left = 0;
+    panicOverlay.style.padding = '8px';
+    panicOverlay.style.position = 'fixed';
+    panicOverlay.style.top = 0;
+    panicOverlay.style.webkitFlexDirection = 'column';
+    panicOverlay.style.width = '100%';
+
+    panicElement = document.createElement('div');
+    panicElement.style.webkitFlex = '1 1 auto';
+    panicElement.style.overflow = 'auto';
+    panicOverlay.appendChild(panicElement);
 
     if (!document.body) {
       setTimeout(function() {
-        document.body.appendChild(baseWarningEl);
+        document.body.appendChild(panicOverlay);
       }, 150);
     } else {
-      document.body.appendChild(baseWarningEl);
+      document.body.appendChild(panicOverlay);
     }
+  }
+
+  function showPanic(panicTitle, panicDetails) {
+    showPanicElementIfNeeded();
+    var panicMessageEl = document.createElement('div');
+    panicMessageEl.innerHTML =
+        '<h2 id="message"></h2>' +
+        '<pre id="details"></pre>';
+    panicMessageEl.querySelector('#message').textContent = panicTitle;
+    panicMessageEl.querySelector('#details').textContent = panicDetails;
+    panicElement.appendChild(panicMessageEl);
+
+    rawPanicMessages.push({
+      title: panicTitle,
+      details: panicDetails
+    });
+  }
+
+  function hasPanic() {
+    return rawPanicMessages.length !== 0;
+  }
+  function getPanicText() {
+    return rawPanicMessages.map(function(msg) {
+      return msg.title;
+    }).join(', ');
   }
 
   // TODO(dsinclair): Remove this when HTML imports land as the templates
@@ -392,7 +418,9 @@ this.base = (function() {
     requireStylesheet: requireStylesheet,
     requireRawScript: requireRawScript,
     requireTemplate: requireTemplate,
-    exportTo: exportTo
+    exportTo: exportTo,
+    hasPanic: hasPanic,
+    getPanicText: getPanicText
   };
 })();
 
