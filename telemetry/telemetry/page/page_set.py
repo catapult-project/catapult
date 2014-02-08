@@ -4,6 +4,7 @@
 
 import csv
 import json
+import logging
 import os
 
 from telemetry.page import cloud_storage
@@ -56,8 +57,13 @@ class PageSet(object):
 
     # Attempt to download the credentials file.
     if self.credentials_path:
-      cloud_storage.GetIfChanged(
-          os.path.join(self._base_dir, self.credentials_path))
+      try:
+        cloud_storage.GetIfChanged(
+            os.path.join(self._base_dir, self.credentials_path))
+      except (cloud_storage.CredentialsError,
+              cloud_storage.PermissionError):
+        logging.warning('Cannot retrieve credential file: %s',
+                        self.credentials_path)
 
     # Scan every serving directory for .sha1 files
     # and download them from Cloud Storage. Assume all data is public.
