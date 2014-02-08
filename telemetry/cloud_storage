@@ -1,0 +1,218 @@
+#!/usr/bin/env python
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import argparse
+import logging
+import os
+import subprocess
+
+from telemetry.core import command_line
+from telemetry.page import cloud_storage
+
+
+BUCKET_CHOICES = {
+    'public': cloud_storage.PUBLIC_BUCKET,
+    #'partner': cloud_storage.PARTNER_BUCKET,
+    'google-only': cloud_storage.INTERNAL_BUCKET,
+}
+
+
+def _GetPaths(path):
+  root, ext = os.path.splitext(path)
+  if ext == '.sha1':
+    file_path = root
+    hash_path = path
+  else:
+    file_path = path
+    hash_path = path + '.sha1'
+  return file_path, hash_path
+
+
+def _FindFilesInCloudStorage(files):
+  bucket_contents = {}
+  for easy_bucket_name, bucket in BUCKET_CHOICES.iteritems():
+    try:
+      bucket_contents[easy_bucket_name] = cloud_storage.List(bucket)
+    except (cloud_storage.PermissionError, cloud_storage.CredentialsError):
+      pass
+
+  file_buckets = {}
+  for path in files:
+    file_path, hash_path = _GetPaths(path)
+
+    if file_path in file_buckets:
+      continue
+    if not os.path.exists(hash_path):
+      continue
+
+    with open(hash_path, 'rb') as f:
+      file_hash = f.read(1024).rstrip()
+
+    buckets = []
+    for bucket in BUCKET_CHOICES:
+      if bucket not in bucket_contents:
+        continue
+      if file_hash in bucket_contents[bucket]:
+        buckets.append(bucket)
+
+    file_buckets[file_path] = buckets
+
+  return file_buckets
+
+
+class Ls(command_line.ArgparseCommand):
+  """List which bucket each file is in."""
+
+  def AddCommandLineOptions(self, parser):
+    parser.add_argument('-r', '--recursive', action='store_true')
+    parser.add_argument('paths', nargs='+')
+
+  def ProcessCommandLine(self, parser, args):
+    for path in args.paths:
+      if not os.path.exists(path):
+        parser.error('File not found: %s' % path)
+
+  def Run(self, args):
+    def GetFilesInPath(paths, recursive):
+      """If path is a dir, yields all files in path, otherwise just yields path.
+      
+      If recursive is true, walks subdirectories recursively."""
+      for path in paths:
+        if not os.path.isdir(path):
+          yield path
+          return
+
+        if recursive:
+          for root, _, filenames in os.walk(path):
+            for filename in filenames:
+              yield os.path.join(root, filename)
+        else:
+          for filename in os.listdir(path):
+            yield os.path.join(path, filename)
+
+    files = _FindFilesInCloudStorage(GetFilesInPath(args.paths, args.recursive))
+
+    if not files:
+      print 'No files in Cloud Storage.'
+      return
+
+    for file_path, buckets in sorted(files.iteritems()):
+      if buckets:
+        print '%-11s  %s' % (','.join(buckets), file_path)
+      else:
+        print '%-11s  %s' % ('not found', file_path)
+
+
+class Mv(command_line.ArgparseCommand):
+  """Move files to the given bucket."""
+
+  def AddCommandLineOptions(self, parser):
+    parser.add_argument('files', nargs='+')
+    parser.add_argument('bucket', choices=BUCKET_CHOICES)
+
+  def ProcessCommandLine(self, parser, args):
+    args.bucket = BUCKET_CHOICES[args.bucket]
+
+    for path in args.paths:
+      _, hash_path = _GetPaths(path)
+      if not os.path.exists(hash_path):
+        parser.error('File not found: %s' % hash_path)
+
+  def Run(self, args):
+    files = _FindFilesInCloudStorage(args.files)
+
+    for file_path, buckets in sorted(files.iteritems()):
+      if not buckets:
+        raise IOError('%s not found in Cloud Storage.' % file_path)
+
+    for file_path, buckets in sorted(files.iteritems()):
+      hash_path = file_path + '.sha1'
+      with open(hash_path, 'rb') as f:
+        file_hash = f.read(1024).rstrip()
+
+      cloud_storage.Move(buckets.pop(), args.bucket, file_hash)
+
+      for bucket in buckets:
+        if bucket == args.bucket:
+          continue
+        cloud_storage.Delete(bucket, file_hash)
+
+
+class Rm(command_line.ArgparseCommand):
+  """Remove files from Cloud Storage."""
+
+  def AddCommandLineOptions(self, parser):
+    parser.add_argument('files', nargs='+')
+
+  def ProcessCommandLine(self, parser, args):
+    for path in args.paths:
+      _, hash_path = _GetPaths(path)
+      if not os.path.exists(hash_path):
+        parser.error('File not found: %s' % hash_path)
+
+  def Run(self, args):
+    files = _FindFilesInCloudStorage(args.files)
+    for file_path, buckets in sorted(files.iteritems()):
+      hash_path = file_path + '.sha1'
+      with open(hash_path, 'rb') as f:
+        file_hash = f.read(1024).rstrip()
+
+      for bucket in buckets:
+        cloud_storage.Delete(bucket, file_hash)
+
+
+class Upload(command_line.ArgparseCommand):
+  """Upload files to Cloud Storage."""
+
+  def AddCommandLineOptions(self, parser):
+    parser.add_argument('files', nargs='+')
+    parser.add_argument('bucket', choices=BUCKET_CHOICES)
+
+  def ProcessCommandLine(self, parser, args):
+    args.bucket = BUCKET_CHOICES[args.bucket]
+
+    for path in args.paths:
+      if not os.path.exists(path):
+        parser.error('File not found: %s' % path)
+
+  def Run(self, args):
+    for file_path in args.files:
+      file_hash = cloud_storage.GetHash(file_path)
+
+      # Create or update the hash file.
+      hash_path = file_path + '.sha1'
+      with open(hash_path, 'wb') as f:
+        f.write(file_hash)
+        f.flush()
+
+      # Add the data to Cloud Storage.
+      cloud_storage.Insert(args.bucket, file_hash, file_path)
+
+      # Add the hash file to the branch, for convenience. :)
+      subprocess.call(['git', 'add', hash_path])
+
+
+COMMANDS = (Ls, Mv, Rm, Upload)
+
+
+def main():
+  logging.getLogger().setLevel(logging.INFO)
+
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers()
+
+  for command in COMMANDS:
+    command = command()
+    subparser = subparsers.add_parser(command.name, help=command.description)
+    subparser.set_defaults(command=command)
+    command.AddCommandLineOptions(subparser)
+
+  args = parser.parse_args()
+  args.command.ProcessCommandLine(parser, args)
+  args.command.Run(args)
+
+
+if __name__ == '__main__':
+  main()

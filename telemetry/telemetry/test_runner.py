@@ -10,41 +10,17 @@ actually running the test is in Test and PageRunner."""
 import copy
 import inspect
 import json
-import optparse
 import os
 import sys
 
 from telemetry import test
 from telemetry.core import browser_options
+from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import util
 
 
-class Command(object):
-  usage = ''
-
-  @property
-  def name(self):
-    return self.__class__.__name__.lower()
-
-  @property
-  def description(self):
-    return self.__doc__
-
-  def CreateParser(self):
-    return optparse.OptionParser('%%prog %s %s' % (self.name, self.usage))
-
-  def AddCommandLineOptions(self, parser):
-    pass
-
-  def ProcessCommandLine(self, parser, options, args):
-    pass
-
-  def Run(self, options, args):
-    raise NotImplementedError()
-
-
-class Help(Command):
+class Help(command_line.OptparseCommand):
   """Display help information"""
 
   def Run(self, options, args):
@@ -55,7 +31,7 @@ class Help(Command):
     return 0
 
 
-class List(Command):
+class List(command_line.OptparseCommand):
   """Lists the available tests"""
 
   usage = '[test_name] [<options>]'
@@ -92,7 +68,7 @@ class List(Command):
     return 0
 
 
-class Run(Command):
+class Run(command_line.OptparseCommand):
   """Run one or more tests"""
 
   usage = 'test_name [<options>]'
@@ -146,7 +122,8 @@ class Run(Command):
 
 COMMANDS = [cls() for _, cls in inspect.getmembers(sys.modules[__name__])
             if inspect.isclass(cls)
-            and cls is not Command and issubclass(cls, Command)]
+            and cls is not command_line.OptparseCommand
+            and issubclass(cls, command_line.OptparseCommand)]
 
 
 def _GetScriptName():

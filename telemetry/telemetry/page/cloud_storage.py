@@ -124,12 +124,21 @@ def List(bucket):
   stdout = _RunCommand(['ls', query])
   return [url[len(query):] for url in stdout.splitlines()]
 
+
 def Exists(bucket, remote_path):
   try:
     _RunCommand(['ls', 'gs://%s/%s' % (bucket, remote_path)])
     return True
   except NotFoundError:
     return False
+
+
+def Move(bucket1, bucket2, remote_path):
+  url1 = 'gs://%s/%s' % (bucket1, remote_path)
+  url2 = 'gs://%s/%s' % (bucket2, remote_path)
+  logging.info('Moving %s to %s' % (url1, url2))
+  _RunCommand(['mv', url1, url2])
+
 
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
