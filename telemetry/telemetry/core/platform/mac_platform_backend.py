@@ -4,6 +4,7 @@
 
 import collections
 import ctypes
+import json
 import logging
 import os
 import plistlib
@@ -106,8 +107,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def GetCpuStats(self, pid):
-    """Return current cpu processing time of pid in seconds."""
+  def _CPUTimeForPID(self, pid):
+    """Returns current CPU processing time of pid in seconds."""
     class ProcTaskInfo(ctypes.Structure):
       """Struct for proc_pidinfo() call."""
       _fields_ = [("pti_virtual_size", ctypes.c_uint64),
@@ -142,7 +143,40 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     # Convert nanoseconds to seconds
     cpu_time = (proc_info.pti_total_user / 1000000000.0 +
                 proc_info.pti_total_system / 1000000000.0)
-    return {'CpuProcessTime': cpu_time}
+    return cpu_time
+
+  def _IdleWakeupsForPID(self, pid):
+    """Returns wakeup and idle counters for a given PID."""
+    power_info_util_path = (
+        os.path.join(util.GetTelemetryDir(), 'bin', 'mac_power_info'))
+    args = ['%d' % pid]
+    power_info = self.LaunchApplication(power_info_util_path, parameters=args,
+        elevate_privilege=True)
+    (std_out, std_err) = power_info.communicate()
+    if power_info.returncode != 0:
+      logging.error("Call to %s failed: %s" % (power_info_util_path, std_err))
+      return {}
+    power_info_data = json.loads(std_out)
+
+    # mac_power_info supports processing multiple pids per invocation. Currently
+    # only 1 pid is passed so we only expect a single result.
+    assert len(power_info_data) == 1
+    power_info_data = power_info_data[0]
+    assert pid == power_info_data['pid']
+
+    return {
+        'interrupt_wakeup_count' : power_info_data['interrupt_wakeup_count'],
+        'package_idle_exit_count' : power_info_data['package_idle_exit_count']}
+
+  def GetCpuStats(self, pid):
+    output = {'CpuProcessTime': self._CPUTimeForPID(pid)}
+
+    mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
+    if (mavericks_or_later):
+      idle_stats = self._IdleWakeupsForPID(pid)
+      output = dict(output.items() + idle_stats.items())
+
+    return output
 
   def GetCpuTimestamp(self):
     """Return current timestamp in seconds."""

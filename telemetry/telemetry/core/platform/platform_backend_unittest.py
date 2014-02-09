@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import unittest
 
 from telemetry.core import platform
@@ -18,3 +19,13 @@ class PlatformBackendTest(unittest.TestCase):
 
     output = backend.MonitorPowerSync(1)
     self.assertTrue(output.has_key('power_samples_mw'))
+
+  def testGetCPUStats(self):
+    backend = platform.CreatePlatformBackendForCurrentOS()
+    cpu_stats = backend.GetCpuStats(os.getpid())
+
+    self.assertGreater(cpu_stats['CpuProcessTime'], 0)
+    if backend.CanMonitorPowerSync():
+      self.assertTrue(cpu_stats.has_key('interrupt_wakeup_count'))
+      self.assertTrue(cpu_stats.has_key('package_idle_exit_count'))
+
