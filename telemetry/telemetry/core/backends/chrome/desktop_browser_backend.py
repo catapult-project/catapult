@@ -11,9 +11,11 @@ import sys
 import tempfile
 import time
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
@@ -98,6 +100,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.Close()
       raise
 
+  def HasBrowserFinishedLaunching(self):
+    # In addition to the functional check performed by the base class, quickly
+    # check if the browser process is still alive.
+    self._proc.poll()
+    if self._proc.returncode:
+      raise exceptions.ProcessGoneException(
+          "Return code: %d" % self._proc.returncode)
+    return super(DesktopBrowserBackend, self).HasBrowserFinishedLaunching()
+
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
     self._port = util.GetUnreservedAvailableLocalPort()
@@ -153,7 +164,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._proc.poll() == None
 
   def GetStandardOutput(self):
-    assert self._tmp_output_file, "Can't get standard output with show_stdout"
+    if not self._tmp_output_file:
+      if self.browser_options.show_stdout:
+        # This can happen in the case that loading the Chrome binary fails.
+        # We print rather than using logging here, because that makes a
+        # recursive call to this function.
+        print >> sys.stderr, "Can't get standard output with --show_stdout"
+      return ''
     self._tmp_output_file.flush()
     try:
       with open(self._tmp_output_file.name) as f:

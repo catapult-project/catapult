@@ -25,6 +25,7 @@ from telemetry.core.backends.chrome import tab_list_backend
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.unittest import options_for_unittests
 
+
 class ChromeBrowserBackend(browser_backend.BrowserBackend):
   """An abstract class for chrome browser backends. Provides basic functionality
   once a remote-debugger port has been established."""
@@ -123,18 +124,19 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     return args
 
-  def _WaitForBrowserToComeUp(self, wait_for_extensions=True, timeout=None):
-    def IsBrowserUp():
-      try:
-        self.Request('', timeout=timeout)
-      except (exceptions.BrowserGoneException,
-              exceptions.BrowserConnectionGoneException):
-        return False
-      else:
-        return True
+  def HasBrowserFinishedLaunching(self):
     try:
-      util.WaitFor(IsBrowserUp, timeout=30)
-    except util.TimeoutException:
+      self.Request('')
+    except (exceptions.BrowserGoneException,
+            exceptions.BrowserConnectionGoneException):
+      return False
+    else:
+      return True
+
+  def _WaitForBrowserToComeUp(self, wait_for_extensions=True):
+    try:
+      util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
+    except (util.TimeoutException, exceptions.ProcessGoneException) as e:
       raise exceptions.BrowserGoneException(self.GetStackTrace())
 
     def AllExtensionsLoaded():
