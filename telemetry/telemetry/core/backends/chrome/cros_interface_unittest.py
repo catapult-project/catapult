@@ -5,18 +5,19 @@
 # TODO(nduca): Rewrite what some of these tests to use mocks instead of
 # actually talking to the device. This would improve our coverage quite
 # a bit.
-import unittest
-import socket
-import sys
 
+import socket
+import unittest
+
+from telemetry import test
 from telemetry.core import util
 from telemetry.core.backends.chrome import cros_browser_backend
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.unittest import options_for_unittests
-from telemetry.unittest import RequiresBrowserOfType
+
 
 class CrOSInterfaceTest(unittest.TestCase):
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testPushContents(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -27,7 +28,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     contents = cri.GetFileContents('/tmp/testPushContents')
     self.assertEquals(contents, 'hello world')
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testExists(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -37,16 +38,14 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
+  @test.Enabled('linux')
   def testExistsLocal(self):
-    if not sys.platform.startswith('linux'):
-      return
-
     cri = cros_interface.CrOSInterface()
     self.assertTrue(cri.FileExistsOnDevice('/proc/cpuinfo'))
     self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
     self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testGetFileContents(self): # pylint: disable=R0201
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -55,7 +54,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     hosts = cri.GetFileContents('/etc/hosts')
     assert hosts.startswith('# /etc/hosts')
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testGetFileContentsForSomethingThatDoesntExist(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -65,7 +64,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       OSError,
       lambda: cri.GetFileContents('/tmp/209fuslfskjf/dfsfsf'))
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testIsServiceRunning(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -74,13 +73,12 @@ class CrOSInterfaceTest(unittest.TestCase):
 
     self.assertTrue(cri.IsServiceRunning('openssh-server'))
 
+  @test.Enabled('linux')
   def testIsServiceRunningLocal(self):
-    if not sys.platform.startswith('linux'):
-      return
     cri = cros_interface.CrOSInterface()
     self.assertTrue(cri.IsServiceRunning('dbus'))
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -116,7 +114,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     # longer in use.
     self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
 
-  @RequiresBrowserOfType('cros-chrome')
+  @test.Enabled('cros-chrome')
   def testGetRemotePortReservedPorts(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
@@ -132,14 +130,12 @@ class CrOSInterfaceTest(unittest.TestCase):
 
   # TODO(tengs): It would be best if we can filter this test and other tests
   # that need to be run locally based on the platform of the system browser.
+  @test.Enabled('linux')
   def testEscapeCmdArguments(self):
     ''' Commands and their arguments that are executed through the cros
     interface should follow bash syntax. This test needs to run on remotely
     and locally on the device to check for consistency.
     '''
-    if not sys.platform.startswith('linux'):
-      return
-
     cri = cros_interface.CrOSInterface(
       options_for_unittests.GetCopy().cros_remote,
       options_for_unittests.GetCopy().cros_ssh_identity)

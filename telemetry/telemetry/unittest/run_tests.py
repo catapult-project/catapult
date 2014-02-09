@@ -1,15 +1,17 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import unittest
 
+from telemetry import decorators
 from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import util
-from telemetry.core.backends.chrome import cros_interface
 from telemetry.unittest import gtest_testrunner
 from telemetry.unittest import options_for_unittests
+
 
 def Discover(start_dir, top_level_dir=None, pattern='test*.py'):
   loader = unittest.defaultTestLoader
@@ -45,14 +47,11 @@ def FilterSuite(suite, predicate):
   return new_suite
 
 
-def DiscoverAndRunTests(
-    dir_name, args, top_level_dir,
-    runner=None, run_disabled_tests=False):
+def DiscoverAndRunTests(dir_name, args, top_level_dir, platform,
+                        options, default_options, runner):
   if not runner:
     runner = gtest_testrunner.GTestTestRunner(inner=True)
-
   suite = Discover(dir_name, top_level_dir, '*_unittest.py')
-
   def IsTestSelected(test):
     if len(args) != 0:
       found = False
@@ -61,24 +60,13 @@ def DiscoverAndRunTests(
           found = True
       if not found:
         return False
-
-    if hasattr(test, '_testMethodName'):
-      method = getattr(test, test._testMethodName) # pylint: disable=W0212
-      if hasattr(method, '_requires_browser_types'):
-        types = method._requires_browser_types # pylint: disable=W0212
-        if options_for_unittests.GetBrowserType() not in types:
-          logging.debug('Skipping test %s because it requires %s' %
-                        (test.id(), types))
-          return False
-
-      if (not run_disabled_tests and
-          (hasattr(method, '_disabled_test') or
-              (hasattr(method, '_disabled_test_on_cros') and
-                  cros_interface.IsRunningOnCrosDevice()))):
-        return False
-
-    return True
-
+    if default_options.run_disabled_tests:
+      return True
+    # pylint: disable=W0212
+    if not hasattr(test, '_testMethodName'):
+      return True
+    method = getattr(test, test._testMethodName)
+    return decorators.IsEnabled(method, options.GetBrowserType(), platform)
   filtered_suite = FilterSuite(suite, IsTestSelected)
   test_result = runner.run(filtered_suite)
   return test_result
@@ -115,7 +103,7 @@ def Main(args, start_dir, top_level_dir, runner=None):
   parser.add_option('-d', '--also-run-disabled-tests',
                     dest='run_disabled_tests',
                     action='store_true', default=False,
-                    help='Also run tests decorated with @DisabledTest.')
+                    help='Ignore @Disabled and @Enabled restrictions.')
 
   _, args = parser.parse_args(args)
 
@@ -139,11 +127,10 @@ def Main(args, start_dir, top_level_dir, runner=None):
                             browser_to_create.browser_type)
   try:
     success = True
-    for _ in range(
-        default_options.run_test_repeat_count): # pylint: disable=E1101
+    for _ in xrange(default_options.run_test_repeat_count):
       success = success and DiscoverAndRunTests(
-        start_dir, args, top_level_dir,
-        runner, default_options.run_disabled_tests)
+          start_dir, args, top_level_dir, browser_to_create.platform,
+          options_for_unittests, default_options, runner)
     if success:
       return 0
   finally:

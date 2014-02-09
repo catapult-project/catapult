@@ -4,11 +4,11 @@
 
 import logging
 import os
-import sys
 import unittest
 
-from telemetry.core.platform import mac_platform_backend
+from telemetry import test
 from telemetry.core import util
+from telemetry.core.platform import mac_platform_backend
 
 
 class MockPowermetricsUtility(
@@ -33,21 +33,20 @@ class MacPlatformBackendTest(unittest.TestCase):
                        mac_platform_backend.LEOPARD)
     self.assertEqual(mac_platform_backend.MAVERICKS, 'mavericks')
     self.assertEqual('%s2' % mac_platform_backend.MAVERICKS, 'mavericks2')
+    self.assertEqual(''.join([mac_platform_backend.MAVERICKS, '2']),
+                     'mavericks2')
+    self.assertEqual(mac_platform_backend.LION.upper(), 'LION')
 
+  @test.Enabled('mac')
   def testCanMonitorPowerUsage(self):
-    if sys.platform != 'darwin':
-      return
-
     mavericks_or_later = int(os.uname()[2].split('.')[0]) >= 13
     backend = mac_platform_backend.MacPlatformBackend()
     # Should always be able to monitor power usage on OS Version >= 10.9 .
     self.assertEqual(backend.CanMonitorPowerAsync(), mavericks_or_later,
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
+  @test.Enabled('mac')
   def testParsePowerMetricsOutput(self):
-    if sys.platform != 'darwin':
-      return
-
     backend = mac_platform_backend.MacPlatformBackend()
     if not backend.CanMonitorPowerAsync():
       logging.warning('Test not supported on this platform.')

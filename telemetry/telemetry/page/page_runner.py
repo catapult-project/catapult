@@ -1,17 +1,19 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import collections
 import copy
 import glob
 import logging
 import os
+import random
 import sys
 import tempfile
 import time
 import traceback
-import random
 
+from telemetry import decorators
 from telemetry import exception_formatter
 from telemetry.core import browser_finder
 from telemetry.core import exceptions
@@ -284,6 +286,10 @@ def Run(test, page_set, expectations, finder_options):
     sys.exit(1)
 
   browser_options.browser_type = possible_browser.browser_type
+
+  if not decorators.IsEnabled(
+      test, browser_options.browser_type, possible_browser.platform):
+    return results
 
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)

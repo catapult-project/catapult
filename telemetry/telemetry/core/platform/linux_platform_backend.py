@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from telemetry.core import util
+from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.page import cloud_storage
@@ -34,6 +35,22 @@ class LinuxPlatformBackend(
 
   def GetOSName(self):
     return 'linux'
+
+  def GetOSVersionName(self):
+    if not os.path.exists('/etc/lsb-release'):
+      raise NotImplementedError('Unknown Linux OS version')
+
+    codename = None
+    version = None
+    for line in open('/etc/lsb-release', 'r').readlines():
+      key, _, value = line.partition('=')
+      if key == 'DISTRIB_CODENAME':
+        codename = value.strip()
+      elif key == 'DISTRIB_RELEASE':
+        version = float(value)
+      if codename and version:
+        break
+    return platform_backend.OSVersion(codename, version)
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True

@@ -8,6 +8,7 @@ import shutil
 import sys
 import zipfile
 
+from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import repeat_options
 from telemetry.core import util
@@ -18,13 +19,16 @@ from telemetry.page import page_test
 from telemetry.page import test_expectations
 
 
+Disabled = decorators.Disabled
+Enabled = decorators.Enabled
+
+
 class Test(object):
   """Base class for a Telemetry test or benchmark.
 
   A test packages a PageTest/PageMeasurement and a PageSet together.
   """
   options = {}
-  enabled = True
 
   @classmethod
   def GetName(cls):
@@ -44,10 +48,16 @@ class Test(object):
     for key, value in self.options.iteritems():
       setattr(options, key, value)
 
+    if hasattr(self, '_disabled_strings'):
+      self.test._disabled_strings = self._disabled_strings
+    if hasattr(self, '_enabled_strings'):
+      self.test._enabled_strings = self._enabled_strings
+
     options.repeat_options = self._CreateRepeatOptions(options)
     self.CustomizeBrowserOptions(options)
 
     test = self.test()
+    test.__name__ = self.__class__.__name__
     ps = self.CreatePageSet(options)
     expectations = self.CreateExpectations(ps)
 

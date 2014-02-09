@@ -42,15 +42,21 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
         finder_options)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
+    self.__platform_backend = None
+
+  @property
+  def _platform_backend(self):
+    if not self.__platform_backend:
+      self.__platform_backend = \
+          platform.CreatePlatformBackendForCurrentOS()
+    return self.__platform_backend
 
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()
 
   def Create(self):
-    platform_backend = platform.CreatePlatformBackendForCurrentOS()
-    backend = self.CreateWebDriverBackend(platform_backend)
-    b = browser.Browser(backend, platform_backend)
-    return b
+    backend = self.CreateWebDriverBackend(self._platform_backend)
+    return browser.Browser(backend, self._platform_backend)
 
   def SupportsOptions(self, finder_options):
     if len(finder_options.extensions_to_load) != 0:

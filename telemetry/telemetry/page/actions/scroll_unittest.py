@@ -1,12 +1,15 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 
 from telemetry.core import util
 from telemetry.page import page as page_module
 from telemetry.page.actions import scroll
 from telemetry.unittest import tab_test_case
+from telemetry.unittest import test
+
 
 class ScrollActionTest(tab_test_case.TabTestCase):
   def setUp(self):
@@ -26,8 +29,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     return page
 
-  # Disabled due to flakiness: crbug.com/330544
-  def disabled_testScrollAction(self):
+  @test.Disabled  # Disabled due to flakiness: crbug.com/330544
+  def testScrollAction(self):
     page = self.CreateAndNavigateToPageFromUnittestDataDir(
         "blank.html",
         page_attributes={"smoothness": {

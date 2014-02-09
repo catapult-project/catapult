@@ -17,6 +17,7 @@ from telemetry.core.backends import adb_commands
 from telemetry.core.backends.chrome import android_browser_backend
 from telemetry.core.platform import android_platform_backend
 
+
 CHROME_PACKAGE_NAMES = {
   'android-content-shell':
       ['org.chromium.content_shell_apk',
@@ -65,6 +66,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._backend_settings = backend_settings
     self._local_apk = None
+    self.__platform_backend = None
 
     chrome_root = util.GetChromiumSrcDir()
     if apk_name:
@@ -85,16 +87,21 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
+  @property
+  def _platform_backend(self):
+    if not self.__platform_backend:
+      self.__platform_backend = android_platform_backend.AndroidPlatformBackend(
+          self._backend_settings.adb.Adb(),
+          self.finder_options.no_performance_mode)
+    return self.__platform_backend
+
   def Create(self):
     backend = android_browser_backend.AndroidBrowserBackend(
         self.finder_options.browser_options, self._backend_settings,
         self.finder_options.android_rndis,
         output_profile_path=self.finder_options.output_profile_path,
         extensions_to_load=self.finder_options.extensions_to_load)
-    platform_backend = android_platform_backend.AndroidPlatformBackend(
-        self._backend_settings.adb.Adb(),
-        self.finder_options.no_performance_mode)
-    b = browser.Browser(backend, platform_backend)
+    b = browser.Browser(backend, self._platform_backend)
     return b
 
   def SupportsOptions(self, finder_options):

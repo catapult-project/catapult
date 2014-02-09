@@ -1,16 +1,18 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import unittest
-import sys
 
+from telemetry import test
 from telemetry.core import browser_finder
 from telemetry.core import gpu_device
 from telemetry.core import gpu_info
 from telemetry.core import system_info
 from telemetry.core import util
 from telemetry.unittest import options_for_unittests
+
 
 class BrowserTest(unittest.TestCase):
   def setUp(self):
@@ -106,10 +108,9 @@ class BrowserTest(unittest.TestCase):
     tab.Navigate(b.http_server.UrlOf('blank.html'))
     b.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
+  # Test flaky on windows: http://crbug.com/321527
+  @test.Disabled('win')
   def testCloseReferencedTab(self):
-    if sys.platform in ('win32', 'cygwin'):
-      raise unittest.SkipTest('Test flaky on windows. http://crbug.com/321527')
-
     b = self.CreateBrowser()
     if not b.supports_tab_control:
       logging.warning('Browser does not support tab control, skipping test.')

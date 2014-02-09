@@ -189,7 +189,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     if os_version.startswith('13.'):
       return MAVERICKS
 
-    raise NotImplementedError("Unknown OS X version %s." % os_version)
+    raise NotImplementedError('Unknown mac version %s.' % os_version)
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return False

@@ -1,18 +1,21 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import os
 
+from telemetry import test
 from telemetry.core import wpr_modes
+from telemetry.page import page as page_module
 from telemetry.page import page_measurement
 from telemetry.page import page_measurement_unittest_base
-from telemetry.page import page as page_module
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import page_action
 from telemetry.unittest import options_for_unittests
+
 
 class MeasurementThatFails(page_measurement.PageMeasurement):
   def MeasurePage(self, page, tab, results):
@@ -92,9 +95,10 @@ class PageMeasurementUnitTest(
     self.assertEquals(
       all_results.all_page_specific_values[0].value, 7)
 
-  def disabled_testRecordAndReplay(self):
-    # This test is disabled because it runs against live sites, and needs to be
-    # fixed. crbug.com/179038
+  # This test is disabled because it runs against live sites, and needs to be
+  # fixed. crbug.com/179038
+  @test.Disabled
+  def testRecordAndReplay(self):
     test_archive = '/tmp/google.wpr'
     google_url = 'http://www.google.com/'
     foo_url = 'http://www.foo.com/'

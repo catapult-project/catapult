@@ -7,19 +7,24 @@ import time
 # pylint: disable=W0613
 
 
-class OSVersion(object):
-  def __init__(self, friendly_name, sortable_name):
-    self._friendly_name = friendly_name
-    self._sortable_name = sortable_name
-
-  def __repr__(self):
-    return self._friendly_name
+# pylint: disable=W0212
+class OSVersion(str):
+  def __new__(cls, friendly_name, sortable_name, *args, **kwargs):
+    version = str.__new__(cls, friendly_name)
+    version._sortable_name = sortable_name
+    return version
 
   def __lt__(self, other):
-    return self._sortable_name < other._sortable_name  # pylint: disable=W0212
+    return self._sortable_name < other._sortable_name
 
-  def __eq__(self, other):
-    return str(self) == str(other)
+  def __gt__(self, other):
+    return self._sortable_name > other._sortable_name
+
+  def __le__(self, other):
+    return self._sortable_name <= other._sortable_name
+
+  def __ge__(self, other):
+    return self._sortable_name >= other._sortable_name
 
 
 class PlatformBackend(object):
@@ -78,7 +83,7 @@ class PlatformBackend(object):
     raise NotImplementedError()
 
   def GetOSVersionName(self):
-    return None
+    raise NotImplementedError()
 
   def CanFlushIndividualFilesFromSystemCache(self):
     raise NotImplementedError()

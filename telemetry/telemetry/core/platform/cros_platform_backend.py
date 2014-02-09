@@ -45,6 +45,9 @@ class CrosPlatformBackend(
   def GetOSName(self):
     return 'chromeos'
 
+  def GetOSVersionName(self):
+    return ''  # TODO: Implement this.
+
   def GetChildPids(self, pid):
     """Returns a list of child pids of |pid|."""
     all_process_info = self._cri.ListProcesses()

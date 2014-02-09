@@ -6,11 +6,12 @@ import time
 
 from telemetry.core import util
 from telemetry.page.actions import wait
-from telemetry.unittest import DisabledTestOnCrOS
 from telemetry.unittest import tab_test_case
+from telemetry.unittest import test
+
 
 class WaitActionTest(tab_test_case.TabTestCase):
-  @DisabledTestOnCrOS
+  @test.Disabled('chromeos')
   def testWaitAction(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self._tab.Navigate(

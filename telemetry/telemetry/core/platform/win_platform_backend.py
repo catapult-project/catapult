@@ -21,6 +21,7 @@ except ImportError:
 
 from telemetry.core import exceptions
 from telemetry.core.platform import desktop_platform_backend
+from telemetry.core.platform import platform_backend
 
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
@@ -140,13 +141,15 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     os_version = platform.uname()[3]
 
     if os_version.startswith('5.1.'):
-      return 'xp'
+      return platform_backend.OSVersion('xp', 5.1)
     if os_version.startswith('6.0.'):
-      return 'vista'
+      return platform_backend.OSVersion('vista', 6.0)
     if os_version.startswith('6.1.'):
-      return 'win7'
+      return platform_backend.OSVersion('win7', 6.1)
     if os_version.startswith('6.2.'):
-      return 'win8'
+      return platform_backend.OSVersion('win8', 6.2)
+
+    raise NotImplementedError('Unknown win version %s.' % os_version)
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True

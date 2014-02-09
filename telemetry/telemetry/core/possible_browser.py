@@ -1,6 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+from telemetry.core import platform
+
+
 class PossibleBrowser(object):
   """A browser that can be controlled.
 
@@ -11,6 +15,7 @@ class PossibleBrowser(object):
     self._browser_type = browser_type
     self._target_os = target_os
     self._finder_options = finder_options
+    self._platform = None
 
   def __repr__(self):
     return 'PossibleBrowser(browser_type=%s)' % self.browser_type
@@ -27,6 +32,12 @@ class PossibleBrowser(object):
   @property
   def finder_options(self):
     return self._finder_options
+
+  @property
+  def platform(self):
+    if not self._platform:
+      self._platform = platform.Platform(self._platform_backend)
+    return self._platform
 
   def Create(self):
     raise NotImplementedError()

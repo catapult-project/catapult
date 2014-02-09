@@ -58,7 +58,6 @@ class List(command_line.OptparseCommand):
         test_list.append({
               'name': test_name,
               'description': test_class.__doc__,
-              'enabled': test_class.enabled,
               'options': test_class.options,
             })
       print json.dumps(test_list)
@@ -114,9 +113,6 @@ class Run(command_line.OptparseCommand):
     self._test = matching_tests.popitem()[1]
 
   def Run(self, options, args):
-    if not self._test.enabled:
-      print >> sys.stderr, 'TEST IS DISABLED. SKIPPING.'
-      return 0
     return min(255, self._test().Run(copy.copy(options)))
 
 
