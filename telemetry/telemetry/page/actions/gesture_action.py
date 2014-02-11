@@ -46,13 +46,17 @@ class GestureAction(page_action.PageAction):
 
     # The synthetic gesture controller inserts a trace marker to precisely
     # demarcate when the gesture was running. Find the trace marker that belongs
-    # to this action.
+    # to this action. We check for overlap, not inclusion, because
+    # gesture_actions can start/end slightly outside the action_range on
+    # Windows. This problem is probably caused by a race condition between
+    # the browser and renderer process submitting the trace events for the
+    # markers.
     gesture_events = [
         ev for ev
         in timeline.GetAllEventsOfName('SyntheticGestureController::running',
                                        True)
-        if ev.start >= action_range.min and
-           ev.start + ev.duration <= action_range.max ]
+        if ev.start <= action_range.max and
+           ev.start + ev.duration >= action_range.min ]
     if len(gesture_events) == 0:
       raise page_action.PageActionInvalidTimelineMarker(
           'No valid synthetic gesture marker found in timeline.')
