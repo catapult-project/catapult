@@ -11,7 +11,7 @@ base.require('tracing.tracks.slice_track');
 base.require('tracing.tracks.slice_group_track');
 base.require('tracing.tracks.async_slice_group_track');
 base.require('tracing.filter');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -19,7 +19,7 @@ base.exportTo('tracing.tracks', function() {
    * Visualizes a Thread using a series of of SliceTracks.
    * @constructor
    */
-  var ThreadTrack = ui.define('thread-track', tracing.tracks.ContainerTrack);
+  var ThreadTrack = base.ui.define('thread-track', tracing.tracks.ContainerTrack);
   ThreadTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 

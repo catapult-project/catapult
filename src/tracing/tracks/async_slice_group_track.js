@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('tracing.tracks.slice_group_track');
-base.require('ui');
+base.require('base.ui');
 base.exportTo('tracing.tracks', function() {
 
   /**
@@ -14,7 +14,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {SliceGroup}
    */
 
-  var AsyncSliceGroupTrack = ui.define(
+  var AsyncSliceGroupTrack = base.ui.define(
       'async-slice-group-track',
       tracing.tracks.SliceGroupTrack);
 

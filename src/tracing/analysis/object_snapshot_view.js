@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
-  var ObjectSnapshotView = ui.define('object-snapshot-view');
+  var ObjectSnapshotView = base.ui.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
     __proto__: HTMLDivElement.prototype,

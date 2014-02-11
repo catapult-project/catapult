@@ -8,7 +8,7 @@ base.requireStylesheet('tracing.tracks.drawing_container');
 
 base.require('base.raf');
 base.require('tracing.tracks.track');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
   var DrawType = {
@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
     MARKERS: 6
   };
 
-  var DrawingContainer = ui.define('drawing-container', tracing.tracks.Track);
+  var DrawingContainer = base.ui.define('drawing-container', tracing.tracks.Track);
 
   DrawingContainer.prototype = {
     __proto__: tracing.tracks.Track.prototype,

@@ -19,7 +19,7 @@ base.exportTo('tracing.analysis', function() {
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectSnapshotView = ui.define(
+  var DefaultObjectSnapshotView = base.ui.define(
       'default-object-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
@@ -49,7 +49,7 @@ base.exportTo('tracing.analysis', function() {
       html += '</table>';
       this.innerHTML = html;
 
-      // TODO(nduca): ui.decoreate doesn't work when subclassed. So,
+      // TODO(nduca): base.ui.decoreate doesn't work when subclassed. So,
       // replace the template element.
       var instanceLinkEl = new tracing.analysis.ObjectInstanceLink();
       instanceLinkEl.objectInstance = instance;
@@ -68,7 +68,7 @@ base.exportTo('tracing.analysis', function() {
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectInstanceView = ui.define(
+  var DefaultObjectInstanceView = base.ui.define(
       'default-object-instance-view',
       tracing.analysis.ObjectInstanceView);
 

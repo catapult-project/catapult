@@ -15,7 +15,7 @@ base.exportTo('cc', function() {
    * Displays a tile in a human readable form.
    * @constructor
    */
-  var TileSnapshotView = ui.define(
+  var TileSnapshotView = base.ui.define(
       'tile-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

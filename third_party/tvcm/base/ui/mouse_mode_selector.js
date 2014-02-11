@@ -4,19 +4,19 @@
 
 'use strict';
 
-base.requireStylesheet('ui.tool_button');
-base.requireStylesheet('ui.mouse_mode_selector');
+base.requireStylesheet('base.ui.tool_button');
+base.requireStylesheet('base.ui.mouse_mode_selector');
 
-base.requireTemplate('ui.mouse_mode_selector');
+base.requireTemplate('base.ui.mouse_mode_selector');
 
 base.require('base.events');
 base.require('base.iteration_helpers');
 base.require('base.utils');
 base.require('base.key_event_manager');
-base.require('ui');
-base.require('ui.mouse_tracker');
+base.require('base.ui');
+base.require('base.ui.mouse_tracker');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   var MIN_MOUSE_SELECTION_DISTANCE = 4;
 
@@ -100,7 +100,7 @@ base.exportTo('ui', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var MouseModeSelector = ui.define('div');
+  var MouseModeSelector = base.ui.define('div');
 
   MouseModeSelector.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -353,7 +353,7 @@ base.exportTo('ui', function() {
       this.dispatchEvent(mouseEvent);
       this.isInteracting_ = true;
       this.isClick_ = true;
-      ui.trackMouseMovesUntilMouseUp(this.onMouseMove_, this.onMouseUp_);
+      base.ui.trackMouseMovesUntilMouseUp(this.onMouseMove_, this.onMouseUp_);
     },
 
     onMouseMove_: function(e) {
@@ -520,7 +520,7 @@ base.exportTo('ui', function() {
         x: e.clientX - this.offsetLeft,
         y: e.clientY - this.offsetTop
       };
-      ui.trackMouseMovesUntilMouseUp(function(e) {
+      base.ui.trackMouseMovesUntilMouseUp(function(e) {
         var pos = {};
         pos.x = e.clientX - mouseDownPos.x;
         pos.y = e.clientY - mouseDownPos.y;

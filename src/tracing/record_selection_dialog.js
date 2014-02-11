@@ -12,17 +12,17 @@ base.requireTemplate('tracing.record_selection_dialog');
 
 base.require('base.utils');
 base.require('tracing.filter');
-base.require('ui.overlay');
-base.require('ui.dom_helpers');
+base.require('base.ui.overlay');
+base.require('base.ui.dom_helpers');
 
 base.exportTo('tracing', function() {
-  var RecordSelectionDialog = ui.define('div');
+  var RecordSelectionDialog = base.ui.define('div');
 
   RecordSelectionDialog.prototype = {
-    __proto__: ui.Overlay.prototype,
+    __proto__: base.ui.Overlay.prototype,
 
     decorate: function() {
-      ui.Overlay.prototype.decorate.call(this);
+      base.ui.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
       this.classList.add('record-dialog-overlay');
@@ -38,15 +38,15 @@ base.exportTo('tracing', function() {
       this.recordButtonEl_.style.fontSize = '110%';
       this.rightButtons.appendChild(this.recordButtonEl_);
 
-      this.continuousTracingBn_ = ui.createCheckBox(
+      this.continuousTracingBn_ = base.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useContinuousTracing', true,
           'Continuous tracing');
-      this.systemTracingBn_ = ui.createCheckBox(
+      this.systemTracingBn_ = base.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSystemTracing', true,
           'System tracing');
-      this.samplingTracingBn_ = ui.createCheckBox(
+      this.samplingTracingBn_ = base.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSampling', false,
           'State sampling');

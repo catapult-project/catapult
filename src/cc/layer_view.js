@@ -16,7 +16,7 @@ base.require('cc.constants');
 base.require('cc.layer_tree_quad_stack_view');
 base.require('cc.picture');
 base.require('tracing.analysis.util');
-base.require('ui.drag_handle');
+base.require('base.ui.drag_handle');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
@@ -24,14 +24,14 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerView = ui.define('layer-view');
+  var LayerView = base.ui.define('layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
-      this.dragBar_ = new ui.DragHandle();
+      this.dragBar_ = new base.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
 
       this.dragBar_.target = this.analysisEl_;

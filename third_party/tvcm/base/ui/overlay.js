@@ -13,20 +13,20 @@
  * restores its original parentage.
  *
  */
-base.requireTemplate('ui.overlay');
+base.requireTemplate('base.ui.overlay');
 
 base.require('base.utils');
 base.require('base.properties');
 base.require('base.events');
-base.require('ui');
+base.require('base.ui');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * Creates a new overlay element. It will not be visible until shown.
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Overlay = ui.define('overlay');
+  var Overlay = base.ui.define('overlay');
 
   Overlay.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -49,7 +49,7 @@ base.exportTo('ui', function() {
       this.onClose_ = this.onClose_.bind(this);
 
       this.addEventListener('visibleChange',
-          ui.Overlay.prototype.onVisibleChange_.bind(this), true);
+          base.ui.Overlay.prototype.onVisibleChange_.bind(this), true);
 
       // Setup the shadow root
       this.shadow_ = this.webkitCreateShadowRoot();

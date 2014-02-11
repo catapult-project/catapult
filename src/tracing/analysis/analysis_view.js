@@ -17,10 +17,10 @@ base.require('tracing.analysis.object_instance_view');
 base.require('tracing.analysis.object_snapshot_view');
 base.require('tracing.analysis.slice_view');
 base.require('tracing.analysis.util');
-base.require('ui');
+base.require('base.ui');
 base.exportTo('tracing.analysis', function() {
 
-  var AnalysisView = ui.define('div');
+  var AnalysisView = base.ui.define('div');
 
   AnalysisView.prototype = {
     __proto__: HTMLDivElement.prototype,

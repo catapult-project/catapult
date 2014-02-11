@@ -8,8 +8,8 @@ base.requireStylesheet('cc.picture_ops_list_view');
 
 base.require('cc.constants');
 base.require('cc.selection');
-base.require('ui.list_view');
-base.require('ui.dom_helpers');
+base.require('base.ui.list_view');
+base.require('base.ui.dom_helpers');
 
 base.exportTo('cc', function() {
   var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
@@ -25,13 +25,13 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = ui.define('picture-ops-list-view');
+  var PictureOpsListView = base.ui.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.opsList_ = new ui.ListView();
+      this.opsList_ = new base.ui.ListView();
       this.appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;

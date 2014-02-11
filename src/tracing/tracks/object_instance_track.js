@@ -10,7 +10,7 @@ base.require('base.sorted_array_utils');
 base.require('tracing.trace_model.event');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -23,7 +23,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var ObjectInstanceTrack = ui.define(
+  var ObjectInstanceTrack = base.ui.define(
       'object-instance-track', tracing.tracks.HeadingTrack);
 
   ObjectInstanceTrack.prototype = {

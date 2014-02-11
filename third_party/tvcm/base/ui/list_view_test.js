@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui.list_view');
+base.require('base.ui.list_view');
 
-base.unittest.testSuite('ui.list_view_test', function() {
-  var ListView = ui.ListView;
+base.unittest.testSuite('base.ui.list_view_test', function() {
+  var ListView = base.ui.ListView;
 
   test('instantiate', function() {
     var view = new ListView();

@@ -10,7 +10,7 @@ base.require('base.sorted_array_utils');
 base.require('tracing.tracks.stacked_bars_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.color_scheme');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('system_stats', function() {
 
@@ -47,7 +47,7 @@ base.exportTo('system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = ui.define(
+  var SystemStatsInstanceTrack = base.ui.define(
       'system-stats-instance-track', tracing.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {

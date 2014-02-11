@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
   /**
@@ -13,7 +13,7 @@ base.exportTo('tracing.analysis', function() {
    *
    * @constructor
    */
-  var SliceView = ui.define('slice-view');
+  var SliceView = base.ui.define('slice-view');
 
   SliceView.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('tracing.analysis.util');
-base.require('ui');
+base.require('base.ui');
 base.require('tracing.trace_model.counter_sample');
 base.exportTo('tracing.analysis', function() {
 

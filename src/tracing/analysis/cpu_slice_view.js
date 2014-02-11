@@ -16,7 +16,7 @@ base.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var CpuSliceView = ui.define('cpu-slice-view', tracing.analysis.SliceView);
+  var CpuSliceView = base.ui.define('cpu-slice-view', tracing.analysis.SliceView);
 
   CpuSliceView.prototype = {
     __proto__: tracing.analysis.SliceView.prototype,

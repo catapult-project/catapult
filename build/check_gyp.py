@@ -31,7 +31,7 @@ def GypCheck():
   for (dirpath, dirnames, filenames) in os.walk('src'):
     handle(dirpath, dirnames, filenames)
 
-  for directory in ('base', 'ui'):
+  for directory in ('base'):
     for (dirpath, dirnames, filenames) in os.walk(
         os.path.join('third_party', 'tvcm', directory)):
       handle(dirpath, dirnames, filenames)

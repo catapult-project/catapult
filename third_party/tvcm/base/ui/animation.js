@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * Represents a procedural animation that can be run by an
-   * ui.AnimationController.
+   * base.ui.AnimationController.
    *
    * @constructor
    */

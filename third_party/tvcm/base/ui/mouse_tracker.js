@@ -14,7 +14,7 @@
  *      'mouse-tracker-end' : mouseup and not tracking.
  */
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   /**
    * @constructor

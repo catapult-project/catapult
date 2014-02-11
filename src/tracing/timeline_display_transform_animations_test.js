@@ -6,7 +6,7 @@
 
 base.require('tracing.timeline_display_transform');
 base.require('tracing.timeline_display_transform_animations');
-base.require('ui.animation_controller');
+base.require('base.ui.animation_controller');
 
 base.unittest.testSuite('tracing.timeline_display_transform_animations_test', function() { // @suppress longLineCheck
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
@@ -23,7 +23,7 @@ base.unittest.testSuite('tracing.timeline_display_transform_animations_test', fu
 
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
@@ -43,7 +43,7 @@ base.unittest.testSuite('tracing.timeline_display_transform_animations_test', fu
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 

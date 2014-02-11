@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('ui.list_and_associated_view');
+base.require('base.ui.list_and_associated_view');
 
-base.unittest.testSuite('ui.list_and_associated_view_test', function() {
-  var ListAndAssociatedView = ui.ListAndAssociatedView;
+base.unittest.testSuite('base.ui.list_and_associated_view_test', function() {
+  var ListAndAssociatedView = base.ui.ListAndAssociatedView;
 
-  var SimpleView = ui.define('div');
+  var SimpleView = base.ui.define('div');
   SimpleView.prototype = {
     __proto__: HTMLDivElement.prototype,
 

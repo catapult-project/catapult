@@ -29,7 +29,7 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartSummaryView = ui.define('picture-ops-chart-summary-view');
+  var PictureOpsChartSummaryView = base.ui.define('picture-ops-chart-summary-view');
 
   PictureOpsChartSummaryView.prototype = {
     __proto__: HTMLUnknownElement.prototype,

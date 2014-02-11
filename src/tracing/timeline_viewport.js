@@ -10,8 +10,8 @@
 base.require('base.events');
 base.require('tracing.draw_helpers');
 base.require('tracing.timeline_display_transform');
-base.require('ui.animation');
-base.require('ui.animation_controller');
+base.require('base.ui.animation');
+base.require('base.ui.animation_controller');
 
 base.exportTo('tracing', function() {
 
@@ -150,7 +150,7 @@ base.exportTo('tracing', function() {
     },
 
     initAnimationController_: function() {
-      this.dtAnimationController_ = new ui.AnimationController();
+      this.dtAnimationController_ = new base.ui.AnimationController();
       this.dtAnimationController_.addEventListener(
           'didtick', function(e) {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
@@ -207,8 +207,8 @@ base.exportTo('tracing', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof ui.Animation))
-        throw new Error('animation must be instanceof ui.Animation');
+      if (!(animation instanceof base.ui.Animation))
+        throw new Error('animation must be instanceof base.ui.Animation');
       this.dtAnimationController_.queueAnimation(animation);
     },
 

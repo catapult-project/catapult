@@ -12,7 +12,7 @@ base.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var SpacingTrack = ui.define('spacing-track', tracing.tracks.HeadingTrack);
+  var SpacingTrack = base.ui.define('spacing-track', tracing.tracks.HeadingTrack);
 
   SpacingTrack.prototype = {
     __proto__: tracing.tracks.HeadingTrack.prototype,

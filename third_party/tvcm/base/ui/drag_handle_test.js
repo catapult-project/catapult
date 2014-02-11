@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('ui.drag_handle');
+base.require('base.ui.drag_handle');
 
-base.unittest.testSuite('ui.drag_handle_test', function() {
+base.unittest.testSuite('base.ui.drag_handle_test', function() {
   var createDragHandle = function() {
     var el = document.createElement('div');
     el.style.border = '1px solid black';
@@ -21,7 +21,7 @@ base.unittest.testSuite('ui.drag_handle_test', function() {
     var lowerEl = document.createElement('div');
     lowerEl.style.height = '100px';
 
-    var dragHandle = new ui.DragHandle();
+    var dragHandle = new base.ui.DragHandle();
     dragHandle.target = lowerEl;
 
     el.appendChild(upperEl);

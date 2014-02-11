@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
-base.requireStylesheet('ui.drag_handle');
+base.require('base.ui');
+base.requireStylesheet('base.ui.drag_handle');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   /**
    * Detects when user clicks handle determines new height of container based
@@ -16,7 +16,7 @@ base.exportTo('ui', function() {
    * @extends {HTMLDivElement}
    * You will need to set target to be the draggable element
    */
-  var DragHandle = ui.define('x-drag-handle');
+  var DragHandle = base.ui.define('x-drag-handle');
 
   DragHandle.prototype = {
     __proto__: HTMLDivElement.prototype,

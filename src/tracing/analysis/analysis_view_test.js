@@ -72,7 +72,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new Selection();
     selection.push(s10);
 
-    var MyView = ui.define(
+    var MyView = base.ui.define(
         'my-view', tracing.analysis.ObjectSnapshotView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectSnapshotView.prototype,
@@ -114,7 +114,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new Selection();
     selection.push(i10);
 
-    var MyView = ui.define(
+    var MyView = base.ui.define(
         'my-view', tracing.analysis.ObjectInstanceView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectInstanceView.prototype,
@@ -144,7 +144,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new tracing.Selection();
     selection.push(s10);
 
-    var MySlice = ui.define(
+    var MySlice = base.ui.define(
         'my-slice', tracing.analysis.SliceView);
     MySlice.prototype = {
       __proto__: tracing.analysis.SliceView.prototype,

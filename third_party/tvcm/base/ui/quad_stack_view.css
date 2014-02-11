@@ -14,16 +14,16 @@ quad-stack-view {
 }
 
 quad-stack-view > #chrome-left {
-  content: url('../images/chrome-left.png');
+  content: url('../../../../src/images/chrome-left.png');
   display: none;
 }
 
 quad-stack-view > #chrome-mid {
-  content: url('../images/chrome-mid.png');
+  content: url('../../../../src/images/chrome-mid.png');
   display: none;
 }
 
 quad-stack-view > #chrome-right {
-  content: url('../images/chrome-right.png');
+  content: url('../../../../src/images/chrome-right.png');
   display: none;
 }

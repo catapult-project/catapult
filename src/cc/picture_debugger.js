@@ -14,11 +14,11 @@ base.require('cc.picture_ops_list_view');
 base.require('cc.picture_ops_chart_summary_view');
 base.require('cc.picture_ops_chart_view');
 base.require('tracing.analysis.generic_object_view');
-base.require('ui.drag_handle');
-base.require('ui.info_bar');
-base.require('ui.list_view');
-base.require('ui.overlay');
-base.require('ui.mouse_mode_selector');
+base.require('base.ui.drag_handle');
+base.require('base.ui.info_bar');
+base.require('base.ui.list_view');
+base.require('base.ui.overlay');
+base.require('base.ui.mouse_mode_selector');
 
 base.exportTo('cc', function() {
 
@@ -28,7 +28,7 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = ui.define('picture-debugger');
+  var PictureDebugger = base.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -59,12 +59,12 @@ base.exportTo('cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = ui.createCheckBox(
+      var overdrawCheckbox = base.ui.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = ui.createCheckBox(
+      var chartCheckbox = base.ui.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -81,7 +81,7 @@ base.exportTo('cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new ui.DragHandle();
+      var middleDragHandle = new base.ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -90,7 +90,7 @@ base.exportTo('cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = new ui.InfoBar();
+      this.infoBar_ = new base.ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
@@ -234,7 +234,7 @@ base.exportTo('cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new ui.Overlay();
+          var overlay = new base.ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -331,12 +331,12 @@ base.exportTo('cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new base.ui.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
-      this.mouseModeSelector_.supportedModeMask = ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.supportedModeMask = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

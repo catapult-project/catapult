@@ -164,7 +164,7 @@ base.exportTo('about_tracing', function() {
     var progressDlg;
     var bufferPercentFullDiv;
     function startTracing() {
-      progressDlg = new ui.Overlay();
+      progressDlg = new base.ui.Overlay();
       progressDlg.textContent = 'Recording...';
       progressDlg.userCanClose = false;
 

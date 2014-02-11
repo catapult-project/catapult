@@ -15,7 +15,7 @@ base.exportTo('base.unittest', function() {
   /**
    * @constructor
    */
-  var InteractiveTestRunner = ui.define('x-base-interactive-test-runner');
+  var InteractiveTestRunner = base.ui.define('x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
     __proto__: HTMLUnknownElement.prototype,

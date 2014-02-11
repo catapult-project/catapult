@@ -100,7 +100,7 @@ found in the LICENSE file.
         timelineViewEl.viewTitle = filenames;
       },
       function(err) {
-        var overlay = new ui.Overlay();
+        var overlay = new base.ui.Overlay();
         overlay.textContent = base.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
@@ -147,7 +147,7 @@ found in the LICENSE file.
 
   function onLoad() {
     timelineViewEl = document.querySelector('x-timeline-view');
-    ui.decorate(timelineViewEl, tracing.TimelineView);
+    base.ui.decorate(timelineViewEl, tracing.TimelineView);
 
     getAsync('/json/examples', function(data) {
       var select = document.querySelector('#trace_file');

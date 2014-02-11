@@ -17,7 +17,7 @@ base.exportTo('tracing', function() {
    * FindControl
    * @constructor
    */
-  var FindControl = ui.define('find-control');
+  var FindControl = base.ui.define('find-control');
 
   FindControl.prototype = {
     __proto__: HTMLUnknownElement.prototype,

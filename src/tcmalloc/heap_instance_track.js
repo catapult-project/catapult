@@ -10,7 +10,7 @@ base.require('base.sorted_array_utils');
 base.require('tracing.tracks.stacked_bars_track');
 base.require('tracing.tracks.object_instance_track');
 base.require('tracing.color_scheme');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tcmalloc', function() {
 
@@ -22,7 +22,7 @@ base.exportTo('tcmalloc', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var HeapInstanceTrack = ui.define(
+  var HeapInstanceTrack = base.ui.define(
       'heap-instance-track', tracing.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {

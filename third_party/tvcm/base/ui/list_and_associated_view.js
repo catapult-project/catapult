@@ -8,15 +8,15 @@
  * @fileoverview A list of things, and a viewer for the currently selected
  * thing.
  */
-base.require('ui');
-base.require('ui.list_view');
-base.requireStylesheet('ui.list_and_associated_view');
-base.exportTo('ui', function() {
+base.require('base.ui');
+base.require('base.ui.list_view');
+base.requireStylesheet('base.ui.list_and_associated_view');
+base.exportTo('base.ui', function() {
 
   /**
    * @constructor
    */
-  var ListAndAssociatedView = ui.define('x-list-and-associated-view');
+  var ListAndAssociatedView = base.ui.define('x-list-and-associated-view');
   ListAndAssociatedView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
@@ -25,7 +25,7 @@ base.exportTo('ui', function() {
       this.listProperty_ = undefined;
       this.view_ = undefined;
       this.viewProperty_ = undefined;
-      this.listView_ = new ui.ListView();
+      this.listView_ = new base.ui.ListView();
       this.listView_.addEventListener('selection-changed',
                                       this.onSelectionChanged_.bind(this));
       this.placeholder_ = document.createElement('div');

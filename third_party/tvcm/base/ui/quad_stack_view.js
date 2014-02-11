@@ -8,9 +8,9 @@
  * @fileoverview QuadStackView controls the content and viewing angle a
  * QuadStack.
  */
-base.requireStylesheet('ui.quad_stack_view');
+base.requireStylesheet('base.ui.quad_stack_view');
 
-base.requireTemplate('ui.quad_stack_view');
+base.requireTemplate('base.ui.quad_stack_view');
 
 base.require('base.bbox2');
 base.require('base.gl_matrix');
@@ -18,11 +18,11 @@ base.require('base.quad');
 base.require('base.raf');
 base.require('base.rect');
 base.require('base.settings');
-base.require('ui.camera');
-base.require('ui.mouse_mode_selector');
-base.require('ui.mouse_tracker');
+base.require('base.ui.camera');
+base.require('base.ui.mouse_mode_selector');
+base.require('base.ui.mouse_tracker');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   var constants = {};
   constants.IMAGE_LOAD_RETRY_TIME_MS = 500;
   constants.SUBDIVISION_MINIMUM = 1;
@@ -313,7 +313,7 @@ base.exportTo('ui', function() {
   /**
    * @constructor
    */
-  var QuadStackView = ui.define('quad-stack-view');
+  var QuadStackView = base.ui.define('quad-stack-view');
 
   QuadStackView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -333,7 +333,7 @@ base.exportTo('ui', function() {
 
       this.trackMouse_();
 
-      this.camera_ = new ui.Camera(this.mouseModeSelector_);
+      this.camera_ = new base.ui.Camera(this.mouseModeSelector_);
       this.camera_.addEventListener('renderrequired',
           this.onRenderRequired_.bind(this));
       this.cameraWasReset_ = false;
@@ -550,24 +550,24 @@ base.exportTo('ui', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new base.ui.MouseModeSelector(this);
       this.mouseModeSelector_.supportedModeMask =
-          ui.MOUSE_SELECTOR_MODE.SELECTION |
-          ui.MOUSE_SELECTOR_MODE.PANSCAN |
-          ui.MOUSE_SELECTOR_MODE.ZOOM |
-          ui.MOUSE_SELECTOR_MODE.ROTATE;
-      this.mouseModeSelector_.mode = ui.MOUSE_SELECTOR_MODE.PANSCAN;
+          base.ui.MOUSE_SELECTOR_MODE.SELECTION |
+          base.ui.MOUSE_SELECTOR_MODE.PANSCAN |
+          base.ui.MOUSE_SELECTOR_MODE.ZOOM |
+          base.ui.MOUSE_SELECTOR_MODE.ROTATE;
+      this.mouseModeSelector_.mode = base.ui.MOUSE_SELECTOR_MODE.PANSCAN;
       this.mouseModeSelector_.pos = {x: 0, y: 100};
       this.appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
           'quadStackView.mouseModeSelector';
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          ui.MOUSE_SELECTOR_MODE.ROTATE, ui.MODIFIER.SHIFT);
+          base.ui.MOUSE_SELECTOR_MODE.ROTATE, base.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          ui.MOUSE_SELECTOR_MODE.PANSCAN, ui.MODIFIER.SPACE);
+          base.ui.MOUSE_SELECTOR_MODE.PANSCAN, base.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          ui.MOUSE_SELECTOR_MODE.ZOOM, ui.MODIFIER.CMD_OR_CTRL);
+          base.ui.MOUSE_SELECTOR_MODE.ZOOM, base.ui.MODIFIER.CMD_OR_CTRL);
 
       this.mouseModeSelector_.addEventListener('updateselection',
           this.onSelectionUpdate_.bind(this));

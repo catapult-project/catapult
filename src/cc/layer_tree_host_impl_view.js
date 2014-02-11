@@ -11,14 +11,14 @@ base.require('cc.layer_picker');
 base.require('cc.layer_view');
 base.require('cc.tile');
 base.require('tracing.analysis.object_snapshot_view');
-base.require('ui.drag_handle');
+base.require('base.ui.drag_handle');
 
 base.exportTo('cc', function() {
   /*
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
-  var LayerTreeHostImplSnapshotView = ui.define(
+  var LayerTreeHostImplSnapshotView = base.ui.define(
       'layer-tree-host-impl-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
@@ -39,7 +39,7 @@ base.exportTo('cc', function() {
       this.layerView_.addEventListener(
           'selection-changed',
           this.onLayerViewSelectionChanged_.bind(this));
-      this.dragHandle_ = new ui.DragHandle();
+      this.dragHandle_ = new base.ui.DragHandle();
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 

@@ -8,9 +8,9 @@ base.require('base.rect');
 base.require('base.quad');
 base.require('base.unittest');
 base.require('base.bbox2');
-base.require('ui.quad_stack_view');
+base.require('base.ui.quad_stack_view');
 
-base.unittest.testSuite('ui.camera_test', function() {
+base.unittest.testSuite('base.ui.camera_test', function() {
 
   function createQuads() {
     var quads = [
@@ -36,7 +36,7 @@ base.unittest.testSuite('ui.camera_test', function() {
 
   function createQuadStackView(testFramework) {
     var quads = createQuads();
-    var view = new ui.QuadStackView();
+    var view = new base.ui.QuadStackView();
     // simulate the constraints of the layer-tree-view
     view.style.height = '400px';
     view.style.width = '800px';

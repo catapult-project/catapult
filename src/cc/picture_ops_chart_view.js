@@ -5,7 +5,7 @@
 'use strict';
 
 base.requireStylesheet('cc.picture_ops_chart_view');
-base.require('ui.dom_helpers');
+base.require('base.ui.dom_helpers');
 
 base.exportTo('cc', function() {
 
@@ -30,7 +30,7 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartView = ui.define('picture-ops-chart-view');
+  var PictureOpsChartView = base.ui.define('picture-ops-chart-view');
 
   PictureOpsChartView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -60,7 +60,7 @@ base.exportTo('cc', function() {
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
 
       this.usePercentileScale_ = false;
-      this.usePercentileScaleCheckbox_ = ui.createCheckBox(
+      this.usePercentileScaleCheckbox_ = base.ui.createCheckBox(
           this, 'usePercentileScale',
           'PictureOpsChartView.usePercentileScale', false,
           'Limit to 95%-ile');

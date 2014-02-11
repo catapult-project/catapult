@@ -6,11 +6,11 @@
 
 base.require('base.event_target');
 base.require('base.raf');
-base.require('ui.animation');
+base.require('base.ui.animation');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
-   * Manages execution, queueing and blending of ui.Animations against
+   * Manages execution, queueing and blending of base.ui.Animations against
    * a single target.
    *
    * Targets must have a cloneAnimationState() method that returns all the

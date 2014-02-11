@@ -7,24 +7,24 @@
 /**
  * @fileoverview Simple list view.
  */
-base.requireStylesheet('ui.list_view');
+base.requireStylesheet('base.ui.list_view');
 
 base.require('base.events');
 base.require('base.utils');
-base.require('ui');
-base.require('ui.container_that_decorates_its_children');
+base.require('base.ui');
+base.require('base.ui.container_that_decorates_its_children');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * @constructor
    */
-  var ListView = ui.define('x-list-view', ui.ContainerThatDecoratesItsChildren);
+  var ListView = base.ui.define('x-list-view', base.ui.ContainerThatDecoratesItsChildren);
 
   ListView.prototype = {
-    __proto__: ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: base.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function() {
-      ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      base.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
 
       this.classList.add('x-list-view');
       this.onItemClicked_ = this.onItemClicked_.bind(this);
@@ -105,7 +105,7 @@ base.exportTo('ui', function() {
 
     clear: function() {
       var changed = this.selectedElement !== undefined;
-      ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
+      base.ui.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
       if (changed)
         base.dispatchSimpleEvent(this, 'selection-changed', false);
     },

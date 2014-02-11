@@ -28,7 +28,7 @@ base.require('tracing.importer.task');
 base.require('tracing.trace_model.process');
 base.require('tracing.trace_model.kernel');
 base.require('tracing.filter');
-base.require('ui.overlay');
+base.require('base.ui.overlay');
 
 base.exportTo('tracing', function() {
 
@@ -257,7 +257,7 @@ base.exportTo('tracing', function() {
     importTracesWithProgressDialog: function(traces,
                                              opt_shiftWorldToZero,
                                              opt_pruneEmptyContainers) {
-      var overlay = ui.Overlay();
+      var overlay = base.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');

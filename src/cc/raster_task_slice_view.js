@@ -9,14 +9,14 @@ base.require('cc.tile');
 base.require('cc.tile_view');
 base.require('cc.layer_tree_host_impl_view');
 base.require('tracing.analysis.slice_view');
-base.require('ui.info_bar');
+base.require('base.ui.info_bar');
 
 base.exportTo('cc', function() {
 
   /**
    * @constructor
    */
-  var RasterTaskSliceView = ui.define(
+  var RasterTaskSliceView = base.ui.define(
       'raster-task-slice-view', tracing.analysis.SliceView);
 
   RasterTaskSliceView.prototype = {
@@ -25,7 +25,7 @@ base.exportTo('cc', function() {
     decorate: function() {
       this.classList.add('raster-task-slice-view');
       this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
-      this.infoBar_ = new ui.InfoBar();
+      this.infoBar_ = new base.ui.InfoBar();
       this.appendChild(this.infoBar_);
       this.appendChild(this.layerTreeView_);
     },

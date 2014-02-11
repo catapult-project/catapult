@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 
-base.unittest.testSuite('ui.ui_test', function() {
-  var TestElement = ui.define('div');
+base.unittest.testSuite('base.ui.ui_test', function() {
+  var TestElement = base.ui.define('div');
   TestElement.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -18,7 +18,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     }
   };
 
-  var Base = ui.define('div');
+  var Base = base.ui.define('div');
   Base.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -36,17 +36,17 @@ base.unittest.testSuite('ui.ui_test', function() {
 
   test('decorateOnceDirectly', function() {
     var testElement = document.createElement('div');
-    ui.decorate(testElement, TestElement);
+    base.ui.decorate(testElement, TestElement);
     assertEquals(1, testElement.decorateCallCount);
   });
 
   test('componentToString', function() {
     assertEquals('div', Base.toString());
 
-    var Sub = ui.define('Sub', Base);
+    var Sub = base.ui.define('Sub', Base);
     assertEquals('div::sub', Sub.toString());
 
-    var SubSub = ui.define('Marine', Sub);
+    var SubSub = base.ui.define('Marine', Sub);
     assertEquals('div::sub::marine', SubSub.toString());
   });
 
@@ -63,7 +63,7 @@ base.unittest.testSuite('ui.ui_test', function() {
   });
 
   test('subclassing', function() {
-    var Sub = ui.define('sub', Base);
+    var Sub = base.ui.define('sub', Base);
     Sub.prototype = {
       __proto__: Base.prototype,
       decorate: function() {
@@ -85,7 +85,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     assertTrue(subInstance.basePropertySet);
   });
 
-  var NoArgs = ui.define('div');
+  var NoArgs = base.ui.define('div');
   NoArgs.prototype = {
     __proto__: HTMLDivElement.prototype,
     decorate: function() {
@@ -96,7 +96,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     }
   };
 
-  var Args = ui.define('args', NoArgs);
+  var Args = base.ui.define('args', NoArgs);
   Args.prototype = {
     __proto__: NoArgs.prototype,
     decorate: function(first) {
@@ -111,7 +111,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     }
   };
 
-  var ArgsChild = ui.define('args-child', Args);
+  var ArgsChild = base.ui.define('args-child', Args);
   ArgsChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(_, second) {
@@ -129,7 +129,7 @@ base.unittest.testSuite('ui.ui_test', function() {
     }
   };
 
-  var ArgsDecoratingChild = ui.define('args-decorating-child', Args);
+  var ArgsDecoratingChild = base.ui.define('args-decorating-child', Args);
   ArgsDecoratingChild.prototype = {
     __proto__: Args.prototype,
     decorate: function(first, second) {

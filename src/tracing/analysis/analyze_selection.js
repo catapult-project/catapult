@@ -7,7 +7,7 @@
 base.require('tracing.analysis.analyze_counters');
 base.require('tracing.analysis.analyze_slices');
 base.require('tracing.analysis.util');
-base.require('ui');
+base.require('base.ui');
 base.exportTo('tracing.analysis', function() {
 
   /**

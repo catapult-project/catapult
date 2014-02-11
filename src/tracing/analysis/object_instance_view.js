@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
-  var ObjectInstanceView = ui.define('object-instance-view');
+  var ObjectInstanceView = base.ui.define('object-instance-view');
 
   ObjectInstanceView.prototype = {
     __proto__: HTMLDivElement.prototype,

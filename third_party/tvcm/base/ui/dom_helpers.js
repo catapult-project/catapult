@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 base.require('base.settings');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   function createSpan(opt_dictionary) {
     var spanEl = document.createElement('span');

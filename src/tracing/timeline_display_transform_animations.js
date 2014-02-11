@@ -5,7 +5,7 @@
 'use strict';
 
 base.require('base.utils');
-base.require('ui.animation');
+base.require('base.ui.animation');
 
 base.exportTo('tracing', function() {
   var kDefaultPanAnimatoinDurationMs = 100.0;
@@ -13,7 +13,7 @@ base.exportTo('tracing', function() {
   /**
    * Pans a TimelineDisplayTransform by a given amount.
    * @constructor
-   * @extends {ui.Animation}
+   * @extends {base.ui.Animation}
    * @param {Number} deltaX The total amount of change to the transform's panX.
    * @param {Number} deltaY The total amount of change to the transform's panY.
    * @param {Number=} opt_durationMs How long the pan animation should run.
@@ -34,7 +34,7 @@ base.exportTo('tracing', function() {
   }
 
   TimelineDisplayTransformPanAnimation.prototype = {
-    __proto__: ui.Animation.prototype,
+    __proto__: base.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.deltaY !== 0;
@@ -92,7 +92,7 @@ base.exportTo('tracing', function() {
    * point in addition to the amount by which to zoom.
    *
    * @constructor
-   * @extends {ui.Animation}
+   * @extends {base.ui.Animation}
    * @param {Number} goalFocalPointXWorld The X coordinate in the world which is
    * of interest.
    * @param {Number} goalFocalPointXView Where on the screen the
@@ -125,7 +125,7 @@ base.exportTo('tracing', function() {
   }
 
   TimelineDisplayTransformZoomToAnimation.prototype = {
-    __proto__: ui.Animation.prototype,
+    __proto__: base.ui.Animation.prototype,
 
     get affectsPanY() {
       return this.startPanY != this.goalPanY;

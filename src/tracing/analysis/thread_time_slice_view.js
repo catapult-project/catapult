@@ -19,7 +19,7 @@ base.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var ThreadTimeSliceView = ui.define(
+  var ThreadTimeSliceView = base.ui.define(
       'thread-time-slice-view', tracing.analysis.SliceView);
 
   ThreadTimeSliceView.prototype = {

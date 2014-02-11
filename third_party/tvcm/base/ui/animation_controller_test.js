@@ -5,9 +5,9 @@
 'use strict';
 
 base.require('base.utils');
-base.require('ui.animation_controller');
+base.require('base.ui.animation_controller');
 
-base.unittest.testSuite('ui.animation_controller_test', function() {
+base.unittest.testSuite('base.ui.animation_controller_test', function() {
   function SimpleAnimation(options) {
     this.stopTime = options.stopTime;
 
@@ -18,7 +18,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
   }
 
   SimpleAnimation.prototype = {
-    __proto__: ui.Animation.prototype,
+    __proto__: base.ui.Animation.prototype,
 
     canTakeOverFor: function(existingAnimation) {
       return false;
@@ -52,7 +52,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
 
     var animation = new SimpleAnimation({stopTime: 100});
@@ -71,7 +71,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
 
     var animation = new SimpleAnimation({stopTime: 100});
@@ -95,7 +95,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
 
     var a1 = new SimpleAnimation({stopTime: 100});
@@ -119,7 +119,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
   }
 
   AnimationThatCanTakeOverForSimpleAnimation.prototype = {
-    __proto__: ui.Animation.prototype,
+    __proto__: base.ui.Animation.prototype,
 
 
     canTakeOverFor: function(existingAnimation) {
@@ -141,7 +141,7 @@ base.unittest.testSuite('ui.animation_controller_test', function() {
       cloneAnimationState: function() { return {x: this.x}; }
     };
 
-    var controller = new ui.AnimationController();
+    var controller = new base.ui.AnimationController();
     controller.target = target;
 
     var a1 = new SimpleAnimation({stopTime: 100});

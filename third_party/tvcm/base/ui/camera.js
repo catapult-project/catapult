@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui');
+base.require('base.ui');
 base.require('base.settings');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   var constants = {
     DEFAULT_SCALE: 0.5,
@@ -17,11 +17,11 @@ base.exportTo('ui', function() {
     FOV: 15,
     RESCALE_TIMEOUT_MS: 200,
     MAXIMUM_TILT: 80,
-    SETTINGS_NAMESPACE: 'ui_camera'
+    SETTINGS_NAMESPACE: 'base_ui_camera'
   };
 
 
-  var Camera = ui.define('camera');
+  var Camera = base.ui.define('camera');
 
   Camera.prototype = {
     __proto__: HTMLUnknownElement.prototype,

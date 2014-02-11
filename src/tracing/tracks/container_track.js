@@ -6,7 +6,7 @@
 
 base.require('tracing.tracks.track');
 base.require('tracing.filter');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -14,7 +14,7 @@ base.exportTo('tracing.tracks', function() {
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = ui.define('container-track', tracing.tracks.Track);
+  var ContainerTrack = base.ui.define('container-track', tracing.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 

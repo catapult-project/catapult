@@ -10,7 +10,7 @@ base.require('base.sorted_array_utils');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.fast_rect_renderer');
 base.require('tracing.draw_helpers');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -19,7 +19,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    * @extends {HeadingTrack}
    */
-  var SliceTrack = ui.define(
+  var SliceTrack = base.ui.define(
       'slice-track', tracing.tracks.HeadingTrack);
 
   SliceTrack.prototype = {

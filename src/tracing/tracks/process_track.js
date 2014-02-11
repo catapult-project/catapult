@@ -13,7 +13,7 @@ base.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var ProcessTrack = ui.define('process-track', ProcessTrackBase);
+  var ProcessTrack = base.ui.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,

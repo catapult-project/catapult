@@ -7,7 +7,7 @@
 base.require('base.events');
 base.require('base.utils');
 base.require('base.unittest.constants');
-base.require('ui');
+base.require('base.ui');
 
 base.requireTemplate('base.unittest.html_test_results');
 base.requireStylesheet('base.unittest.common');
@@ -19,7 +19,7 @@ base.exportTo('base.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestCaseResult = ui.define('x-html-test-case-result');
+  var HTMLTestCaseResult = base.ui.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -170,7 +170,7 @@ base.exportTo('base.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = ui.define('x-base-unittest-test-results');
+  var HTMLTestResults = base.ui.define('x-base-unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,

@@ -6,7 +6,7 @@
 
 base.require('base.utils');
 base.require('base.unittest.constants');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('base.unittest', function() {
   /**

@@ -9,10 +9,10 @@ base.requireStylesheet('tracing.analysis.analysis_results');
 base.require('tracing.analysis.util');
 base.require('tracing.analysis.analysis_link');
 base.require('tracing.analysis.generic_object_view');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
-  var AnalysisResults = ui.define('div');
+  var AnalysisResults = base.ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,

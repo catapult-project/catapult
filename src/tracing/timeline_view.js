@@ -8,7 +8,7 @@
  * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-base.requireStylesheet('ui.trace_viewer');
+base.requireStylesheet('base.ui.common');
 base.requireStylesheet('tracing.timeline_view');
 base.requireTemplate('tracing.timeline_view');
 
@@ -17,9 +17,9 @@ base.require('base.settings');
 base.require('tracing.analysis.analysis_view');
 base.require('tracing.find_control');
 base.require('tracing.timeline_track_view');
-base.require('ui.dom_helpers');
-base.require('ui.overlay');
-base.require('ui.drag_handle');
+base.require('base.ui.dom_helpers');
+base.require('base.ui.overlay');
+base.require('base.ui.drag_handle');
 
 base.require('tracing.analysis.cpu_slice_view');
 base.require('tracing.analysis.thread_time_slice_view');
@@ -31,7 +31,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = ui.define('x-timeline-view');
+  var TimelineView = base.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -52,7 +52,7 @@ base.exportTo('tracing', function() {
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
 
-      this.dragEl_ = new ui.DragHandle();
+      this.dragEl_ = new base.ui.DragHandle();
       this.appendChild(this.dragEl_);
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
@@ -73,7 +73,7 @@ base.exportTo('tracing', function() {
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new ui.Overlay();
+      var dlg = new base.ui.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -101,7 +101,7 @@ base.exportTo('tracing', function() {
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new ui.Overlay();
+      var dlg = new base.ui.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);

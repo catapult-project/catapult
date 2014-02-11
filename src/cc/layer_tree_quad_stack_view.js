@@ -20,8 +20,8 @@ base.require('cc.picture');
 base.require('cc.render_pass');
 base.require('cc.tile');
 base.require('cc.debug_colors');
-base.require('ui.quad_stack_view');
-base.require('ui.info_bar');
+base.require('base.ui.quad_stack_view');
+base.require('base.ui.info_bar');
 
 
 base.exportTo('cc', function() {
@@ -41,7 +41,7 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerTreeQuadStackView = ui.define('layer-tree-quad-stack-view');
+  var LayerTreeQuadStackView = base.ui.define('layer-tree-quad-stack-view');
 
   LayerTreeQuadStackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -51,12 +51,12 @@ base.exportTo('cc', function() {
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
-      this.infoBar_ = new ui.InfoBar();
-      this.quadStackView_ = new ui.QuadStackView();
+      this.infoBar_ = new base.ui.InfoBar();
+      this.quadStackView_ = new base.ui.QuadStackView();
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
 
-      var m = ui.MOUSE_SELECTOR_MODE;
+      var m = base.ui.MOUSE_SELECTOR_MODE;
       var mms = this.quadStackView_.mouseModeSelector;
       mms.settingsKey = 'cc.layerTreeQuadStackView.mouseModeSelector';
       mms.setKeyCodeForMode(m.SELECTION, 'Z'.charCodeAt(0));
@@ -68,18 +68,18 @@ base.exportTo('cc', function() {
       this.appendChild(this.infoBar_);
       this.appendChild(this.quadStackView_);
 
-      this.tileRectsSelector_ = ui.createSelector(
+      this.tileRectsSelector_ = base.ui.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           createTileRectsSelectorBaseOptions());
       this.controls_.appendChild(this.tileRectsSelector_);
 
-      var tileHeatmapText = ui.createSpan({
+      var tileHeatmapText = base.ui.createSpan({
         textContent: 'Tile heatmap:'
       });
       this.controls_.appendChild(tileHeatmapText);
 
-      var tileHeatmapSelector = ui.createSelector(
+      var tileHeatmapSelector = base.ui.createSelector(
           this, 'tileHeatmapType',
           'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
           [{label: 'None',
@@ -95,7 +95,7 @@ base.exportTo('cc', function() {
           ]);
       this.controls_.appendChild(tileHeatmapSelector);
 
-      var showOtherLayersCheckbox = ui.createCheckBox(
+      var showOtherLayersCheckbox = base.ui.createCheckBox(
           this, 'showOtherLayers',
           'layerView.showOtherLayers', true,
           'Other layers/passes');
@@ -103,7 +103,7 @@ base.exportTo('cc', function() {
           'When checked, show all layers, selected or not.';
       this.controls_.appendChild(showOtherLayersCheckbox);
 
-      var showInvalidationsCheckbox = ui.createCheckBox(
+      var showInvalidationsCheckbox = base.ui.createCheckBox(
           this, 'showInvalidations',
           'layerView.showInvalidations', true,
           'Invalidations');
@@ -111,7 +111,7 @@ base.exportTo('cc', function() {
           'When checked, compositing invalidations are highlighted in red';
       this.controls_.appendChild(showInvalidationsCheckbox);
 
-      var showUnrecordedRegionCheckbox = ui.createCheckBox(
+      var showUnrecordedRegionCheckbox = base.ui.createCheckBox(
           this, 'showUnrecordedRegion',
           'layerView.showUnrecordedRegion', true,
           'Unrecorded area');
@@ -119,7 +119,7 @@ base.exportTo('cc', function() {
           'When checked, unrecorded areas are highlighted in yellow';
       this.controls_.appendChild(showUnrecordedRegionCheckbox);
 
-      var showBottlenecksCheckbox = ui.createCheckBox(
+      var showBottlenecksCheckbox = base.ui.createCheckBox(
           this, 'showBottlenecks',
           'layerView.showBottlenecks', true,
           'Bottlenecks');
@@ -127,7 +127,7 @@ base.exportTo('cc', function() {
           'When checked, scroll bottlenecks are highlighted';
       this.controls_.appendChild(showBottlenecksCheckbox);
 
-      var showLayoutRectsCheckbox = ui.createCheckBox(
+      var showLayoutRectsCheckbox = base.ui.createCheckBox(
           this, 'showLayoutRects',
           'layerView.showLayoutRects', false,
           'Layout rects');
@@ -135,7 +135,7 @@ base.exportTo('cc', function() {
           'When checked, shows rects for regions where layout happened';
       this.controls_.appendChild(showLayoutRectsCheckbox);
 
-      var showContentsCheckbox = ui.createCheckBox(
+      var showContentsCheckbox = base.ui.createCheckBox(
           this, 'showContents',
           'layerView.showContents', true,
           'Contents');
@@ -328,7 +328,7 @@ base.exportTo('cc', function() {
       }
 
       // Then create a new selector and replace the old one.
-      var new_selector = ui.createSelector(
+      var new_selector = base.ui.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           data);
@@ -834,7 +834,7 @@ base.exportTo('cc', function() {
         this.infoBar_.removeAllButtons();
         this.infoBar_.message = 'Some problems were encountered...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new ui.Overlay();
+          var overlay = new base.ui.Overlay();
           overlay.textContent = '';
           infoBarMessages.forEach(function(message) {
             var title = document.createElement('h3');

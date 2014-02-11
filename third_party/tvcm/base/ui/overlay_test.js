@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('ui.overlay');
-base.require('ui.dom_helpers');
+base.require('base.ui.overlay');
+base.require('base.ui.dom_helpers');
 
-base.unittest.testSuite('ui.overlay_test', function() {
+base.unittest.testSuite('base.ui.overlay_test', function() {
   function addShowButtonForDialog(dlg) {
     var btn = document.createElement('button');
     btn.textContent = 'Launch Overlay';
@@ -34,18 +34,18 @@ base.unittest.testSuite('ui.overlay_test', function() {
   }
 
   test('instantiate', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
     dlg.innerHTML = 'hello';
     dlg.leftButtons.appendChild(makeButton('i am a button'));
     dlg.leftButtons.appendChild(makeCloseButton(dlg));
-    dlg.rightButtons.appendChild(ui.createSpan({textContent: 'i am a span'}));
+    dlg.rightButtons.appendChild(base.ui.createSpan({textContent: 'i am a span'}));
     addShowButtonForDialog.call(this, dlg);
   });
 
   test('instantiate_noButtons', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
     dlg.innerHTML = 'hello';
@@ -53,7 +53,7 @@ base.unittest.testSuite('ui.overlay_test', function() {
   });
 
   test('instantiate_disableUserClose', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.classList.add('example-overlay');
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
@@ -63,7 +63,7 @@ base.unittest.testSuite('ui.overlay_test', function() {
   });
 
   test('instantiateTall', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.title = 'TallContent';
     var contentEl = document.createElement('div');
     contentEl.style.overflowY = 'auto';
@@ -81,7 +81,7 @@ base.unittest.testSuite('ui.overlay_test', function() {
   });
 
   test('instantiateTallWithManyDirectChildren', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.title = 'TallContent';
     for (var i = 0; i < 100; i++) {
       var el = document.createElement('div');
@@ -95,7 +95,7 @@ base.unittest.testSuite('ui.overlay_test', function() {
   });
 
   test('closeclickEvent', function() {
-    var dlg = new ui.Overlay();
+    var dlg = new base.ui.Overlay();
     dlg.title = 'Test closeclick event';
     var closeBtn = makeCloseButton(dlg);
     dlg.leftButtons.appendChild(closeBtn);

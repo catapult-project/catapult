@@ -5,11 +5,11 @@
 'use strict';
 
 base.require('base.utils');
-base.require('ui');
-base.require('ui.sortable_table');
+base.require('base.ui');
+base.require('base.ui.sortable_table');
 
-base.unittest.testSuite('ui.sortable_table_test', function() {
-  var SortableTable = ui.SortableTable;
+base.unittest.testSuite('base.ui.sortable_table_test', function() {
+  var SortableTable = base.ui.SortableTable;
 
   function convertToHTML(s) {
     var res = '';

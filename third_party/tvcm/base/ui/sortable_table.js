@@ -7,15 +7,15 @@
 /**
  * @fileoverview A sortable table with history states.
  */
-base.requireStylesheet('ui.sortable_table');
+base.requireStylesheet('base.ui.sortable_table');
 
-base.require('ui');
+base.require('base.ui');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * @constructor
    */
-  var SortableTable = ui.define('sortable-table');
+  var SortableTable = base.ui.define('sortable-table');
 
   var UNSORTED_ARROW = '&#x25BF';
   var SORT_ASCENDING_ARROW = '&#x25BE';

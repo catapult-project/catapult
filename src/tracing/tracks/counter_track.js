@@ -9,7 +9,7 @@ base.requireStylesheet('tracing.tracks.counter_track');
 base.require('tracing.trace_model.event');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -24,7 +24,7 @@ base.exportTo('tracing.tracks', function() {
    */
 
   var CounterTrack =
-      ui.define('counter-track', tracing.tracks.HeadingTrack);
+      base.ui.define('counter-track', tracing.tracks.HeadingTrack);
 
   CounterTrack.prototype = {
     __proto__: tracing.tracks.HeadingTrack.prototype,

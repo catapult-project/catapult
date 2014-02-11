@@ -21,7 +21,7 @@
 }
 
 .mouse-mode-selector .drag-handle {
-  background: url(../images/ui-states.png) 2px 3px no-repeat;
+  background: url(../../../../images/ui-states.png) 2px 3px no-repeat;
   background-repeat: no-repeat;
   border-bottom: 1px solid #BCBCBC;
   cursor: move;
@@ -31,7 +31,7 @@
 }
 
 .mouse-mode-selector .pan-scan-mode-button {
-  background-image: url(../images/ui-states.png);
+  background-image: url(../../../../images/ui-states.png);
   background-position: 0 -10px;
 }
 
@@ -40,7 +40,7 @@
 }
 
 .mouse-mode-selector .selection-mode-button {
-  background-image: url(../images/ui-states.png);
+  background-image: url(../../../../images/ui-states.png);
   background-position: 0 -40px;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .mouse-mode-selector .zoom-mode-button {
-  background-image: url(../images/ui-states.png);
+  background-image: url(../../../../images/ui-states.png);
   background-position: 0 -70px;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .mouse-mode-selector .timing-mode-button {
-  background-image: url(../images/ui-states.png);
+  background-image: url(../../../../images/ui-states.png);
   background-position: 0 -100px;
   border-bottom: none;
 }
@@ -68,7 +68,7 @@
 }
 
 .mouse-mode-selector .rotate-mode-button {
-  background-image: url(../images/ui-states.png);
+  background-image: url(../../../../images/ui-states.png);
   background-position: 0 -130px;
   border-bottom: none;
 }

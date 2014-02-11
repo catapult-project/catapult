@@ -14,8 +14,8 @@ base.require('tracing.tracks.spacing_track');
 base.require('tracing.tracks.thread_track');
 base.require('tracing.trace_model_settings');
 base.require('tracing.filter');
-base.require('ui');
-base.require('ui.dom_helpers');
+base.require('base.ui');
+base.require('base.ui.dom_helpers');
 
 base.requireStylesheet('tracing.tracks.process_track_base');
 
@@ -31,7 +31,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      ui.define('process-track-base', tracing.tracks.ContainerTrack);
+      base.ui.define('process-track-base', tracing.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
@@ -45,10 +45,10 @@ base.exportTo('tracing.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = ui.createSpan();
+      this.processNameEl_ = base.ui.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = base.ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 

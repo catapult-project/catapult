@@ -8,13 +8,13 @@
  * @fileoverview Container that decorates its children.
  */
 base.require('base.events');
-base.require('ui');
+base.require('base.ui');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * @constructor
    */
-  var ContainerThatDecoratesItsChildren = ui.define('div');
+  var ContainerThatDecoratesItsChildren = base.ui.define('div');
 
   ContainerThatDecoratesItsChildren.prototype = {
     __proto__: HTMLUnknownElement.prototype,

@@ -7,7 +7,7 @@
 base.require('tracing.test_utils');
 base.require('tracing.timeline_track_view');
 base.require('tracing.tracks.thread_track');
-base.require('ui.dom_helpers');
+base.require('base.ui.dom_helpers');
 
 base.unittest.testSuite('tracing.tracks.thread_track_test', function() {
   var Process = tracing.trace_model.Process;
@@ -28,7 +28,7 @@ base.unittest.testSuite('tracing.tracks.thread_track_test', function() {
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = document.createElement('div');
-    testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(base.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);

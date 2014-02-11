@@ -17,7 +17,7 @@ base.exportTo('tcmalloc', function() {
    * Displays a heap memory snapshot in a human readable form.
    * @constructor
    */
-  var TcmallocSnapshotView = ui.define(
+  var TcmallocSnapshotView = base.ui.define(
       'heap-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

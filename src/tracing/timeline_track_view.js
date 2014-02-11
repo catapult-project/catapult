@@ -18,7 +18,7 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-base.requireStylesheet('ui.trace_viewer');
+base.requireStylesheet('base.ui.common');
 base.requireStylesheet('tracing.timeline_track_view');
 base.require('base.events');
 base.require('base.properties');
@@ -32,8 +32,8 @@ base.require('tracing.trace_model.event');
 base.require('tracing.tracks.drawing_container');
 base.require('tracing.tracks.trace_model_track');
 base.require('tracing.tracks.ruler_track');
-base.require('ui');
-base.require('ui.mouse_mode_selector');
+base.require('base.ui');
+base.require('base.ui.mouse_mode_selector');
 
 base.exportTo('tracing', function() {
 
@@ -67,7 +67,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = ui.define('div');
+  var TimelineTrackView = base.ui.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -145,7 +145,7 @@ base.exportTo('tracing', function() {
     },
 
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new base.ui.MouseModeSelector(this);
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -180,7 +180,7 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-      var m = ui.MOUSE_SELECTOR_MODE;
+      var m = base.ui.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.supportedModeMask =
           m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
@@ -191,11 +191,11 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.SELECTION, ui.MODIFIER.SHIFT);
+          m.SELECTION, base.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.PANSCAN, ui.MODIFIER.SPACE);
+          m.PANSCAN, base.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, ui.MODIFIER.CMD_OR_CTRL);
+          m.ZOOM, base.ui.MODIFIER.CMD_OR_CTRL);
     },
 
     detach: function() {
@@ -300,7 +300,7 @@ base.exportTo('tracing', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return ui.elementIsChildOf(document.activeElement, this.focusElement);
+        return base.ui.elementIsChildOf(document.activeElement, this.focusElement);
       }
       return true;
     },
@@ -428,7 +428,7 @@ base.exportTo('tracing', function() {
     },
 
     onDblClick_: function(e) {
-      if (this.mouseModeSelector_.mode !== ui.MOUSE_SELECTOR_MODE.SELECTION)
+      if (this.mouseModeSelector_.mode !== base.ui.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
       if (!this.selection.length || !this.selection[0].title)

@@ -9,14 +9,14 @@
  * TracingController.
  */
 base.requireTemplate('about_tracing.profiling_view');
-base.requireStylesheet('ui.trace_viewer');
+base.requireStylesheet('base.ui.common');
 base.require('about_tracing.tracing_ui_client');
 base.require('base.promise');
 base.require('base.key_event_manager');
 base.require('tracing.timeline_view');
-base.require('ui');
-base.require('ui.info_bar');
-base.require('ui.overlay');
+base.require('base.ui');
+base.require('base.ui.info_bar');
+base.require('base.ui.overlay');
 
 /*
  * Here is where we bring in modules that are used in about:tracing UI only.
@@ -52,7 +52,7 @@ base.exportTo('about_tracing', function() {
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var ProfilingView = ui.define('x-profiling-view');
+  var ProfilingView = base.ui.define('x-profiling-view');
 
   ProfilingView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -63,8 +63,8 @@ base.exportTo('about_tracing', function() {
       this.timelineView_ = this.querySelector('x-timeline-view');
       this.infoBarGroup_ = this.querySelector('x-info-bar-group');
 
-      ui.decorate(this.infoBarGroup_, ui.InfoBarGroup);
-      ui.decorate(this.timelineView_, tracing.TimelineView);
+      base.ui.decorate(this.infoBarGroup_, base.ui.InfoBarGroup);
+      base.ui.decorate(this.timelineView_, tracing.TimelineView);
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make <timeline-view> have a <content select="x-buttons">
@@ -132,7 +132,7 @@ base.exportTo('about_tracing', function() {
             buttons.querySelector('#monitor-checkbox').disabled = false;
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            ui.Overlay.showError('Error while recording', err);
+            base.ui.Overlay.showError('Error while recording', err);
           }.bind(this));
       return resultPromise;
     },
@@ -151,7 +151,7 @@ base.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            ui.Overlay.showError('Error while monitoring', err);
+            base.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -170,7 +170,7 @@ base.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            ui.Overlay.showError('Error while monitoring', err);
+            base.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -187,7 +187,7 @@ base.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            ui.Overlay.showError('Error while monitoring', err);
+            base.ui.Overlay.showError('Error while monitoring', err);
           }.bind(this));
       return resultPromise;
     },
@@ -203,7 +203,7 @@ base.exportTo('about_tracing', function() {
           function(err) {
             if (err instanceof about_tracing.UserCancelledError)
               return;
-            ui.Overlay.showError('Error while updating tracing states', err);
+            base.ui.Overlay.showError('Error while updating tracing states', err);
           }.bind(this));
       return resultPromise;
     },
@@ -257,7 +257,7 @@ base.exportTo('about_tracing', function() {
             this.timelineView_.model = m;
           }.bind(this),
           function(err) {
-            ui.Overlay.showError('While importing: ', err);
+            base.ui.Overlay.showError('While importing: ', err);
           }.bind(this));
     },
 
@@ -324,7 +324,7 @@ base.exportTo('about_tracing', function() {
                   this.setActiveTrace(file.name, data);
                 }.bind(this),
                 function(err) {
-                  ui.Overlay.showError('Error while loading file: ' + err);
+                  base.ui.Overlay.showError('Error while loading file: ' + err);
                 });
           }.bind(this), false);
       inputElement.click();
@@ -366,7 +366,7 @@ base.exportTo('about_tracing', function() {
 
       var files = e.dataTransfer.files;
       if (files.length !== 1) {
-        ui.Overlay.showError('1 file supported at a time.');
+        base.ui.Overlay.showError('1 file supported at a time.');
         return;
       }
 
@@ -375,7 +375,7 @@ base.exportTo('about_tracing', function() {
             this.setActiveTrace(files[0].name, data);
           }.bind(this),
           function(err) {
-            ui.Overlay.showError('Error while loading file: ' + err);
+            base.ui.Overlay.showError('Error while loading file: ' + err);
           });
       return false;
     }

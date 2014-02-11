@@ -11,7 +11,7 @@ base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.kernel_track');
 base.require('tracing.tracks.process_track');
 base.require('tracing.draw_helpers');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
    * CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = ui.define(
+  var TraceModelTrack = base.ui.define(
       'trace-model-track', tracing.tracks.ContainerTrack);
 
   TraceModelTrack.prototype = {

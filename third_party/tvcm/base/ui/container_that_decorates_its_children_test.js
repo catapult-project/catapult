@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('ui.container_that_decorates_its_children');
+base.require('base.ui.container_that_decorates_its_children');
 
-base.unittest.testSuite('ui.container_that_decorates_its_children_test', function() { // @suppress longLineCheck
+base.unittest.testSuite('base.ui.container_that_decorates_its_children_test', function() { // @suppress longLineCheck
 
   function createChild() {
     var span = document.createElement('span');
@@ -17,11 +17,11 @@ base.unittest.testSuite('ui.container_that_decorates_its_children_test', functio
   /**
    * @constructor
    */
-  var SimpleContainer = ui.define('simple-container',
-                                  ui.ContainerThatDecoratesItsChildren);
+  var SimpleContainer = base.ui.define('simple-container',
+                                  base.ui.ContainerThatDecoratesItsChildren);
 
   SimpleContainer.prototype = {
-    __proto__: ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: base.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorateChild_: function(child) {
       assertFalse(child.decorated);

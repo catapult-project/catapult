@@ -15,7 +15,7 @@ base.exportTo('gpu', function() {
    * Displays a GPU state snapshot in a human readable form.
    * @constructor
    */
-  var StateSnapshotView = ui.define(
+  var StateSnapshotView = base.ui.define(
       'gpu-state-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

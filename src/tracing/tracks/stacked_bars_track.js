@@ -6,7 +6,7 @@
 
 base.require('tracing.tracks.heading_track');
 base.require('tracing.color_scheme');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -16,7 +16,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var StackedBarsTrack = ui.define(
+  var StackedBarsTrack = base.ui.define(
       'stacked-bars-track', tracing.tracks.HeadingTrack);
 
   StackedBarsTrack.prototype = {

@@ -7,8 +7,8 @@
 base.requireStylesheet('tracing.analysis.analyze_slices');
 
 base.require('tracing.analysis.util');
-base.require('ui');
-base.require('ui.sortable_table');
+base.require('base.ui');
+base.require('base.ui.sortable_table');
 
 base.exportTo('tracing.analysis', function() {
 
@@ -86,7 +86,7 @@ base.exportTo('tracing.analysis', function() {
           }, slice.threadDuration);
     });
     if (numSlices > 1)
-      ui.SortableTable.decorate(table);
+      base.ui.SortableTable.decorate(table);
   }
 
   function analyzeMultipleSlices(results, slices, type) {
@@ -220,7 +220,7 @@ base.exportTo('tracing.analysis', function() {
                             totalSelfTime, totalThreadSelfTime, slices.length,
                             null, null, null, true);
       results.appendSpacingRow(table, true);
-      ui.SortableTable.decorate(table);
+      base.ui.SortableTable.decorate(table);
     }
 
     results.appendInfoRowTime(table, 'Selection start', tsLo, true);
@@ -245,7 +245,7 @@ base.exportTo('tracing.analysis', function() {
           });
     });
     if (numSlices > 1)
-      ui.SortableTable.decorate(table);
+      base.ui.SortableTable.decorate(table);
   }
 
   function analyzeMultipleSampleEvents(results, slices, type) {
@@ -314,7 +314,7 @@ base.exportTo('tracing.analysis', function() {
       results.appendDataRow(table, 'Totals', null, null, null, null,
                             slices.length, '100%', null, null, true);
       results.appendSpacingRow(table, true);
-      ui.SortableTable.decorate(table);
+      base.ui.SortableTable.decorate(table);
     }
 
     results.appendInfoRowTime(table, 'Selection start', tsLo, true);

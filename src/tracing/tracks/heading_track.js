@@ -8,7 +8,7 @@ base.requireStylesheet('tracing.tracks.heading_track');
 
 base.require('tracing.constants');
 base.require('tracing.tracks.track');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
   /**
@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var HeadingTrack = ui.define('heading-track', tracing.tracks.Track);
+  var HeadingTrack = base.ui.define('heading-track', tracing.tracks.Track);
 
   HeadingTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,

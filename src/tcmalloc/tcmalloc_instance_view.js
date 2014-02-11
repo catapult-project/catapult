@@ -18,7 +18,7 @@ base.exportTo('tcmalloc', function() {
    * has multiple snapshots.
    * @constructor
    */
-  var TcmallocInstanceView = ui.define(
+  var TcmallocInstanceView = base.ui.define(
       'tcmalloc-instance-view', tracing.analysis.ObjectInstanceView);
 
   TcmallocInstanceView.prototype = {

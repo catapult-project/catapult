@@ -4,22 +4,22 @@
 
 'use strict';
 
-base.requireStylesheet('ui.info_bar');
-base.require('ui');
-base.require('ui.dom_helpers');
+base.requireStylesheet('base.ui.info_bar');
+base.require('base.ui');
+base.require('base.ui.dom_helpers');
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
   /**
    * @constructor
    */
-  var InfoBar = ui.define('x-info-bar');
+  var InfoBar = base.ui.define('x-info-bar');
 
   InfoBar.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      this.messageEl_ = ui.createSpan({className: 'message'});
-      this.buttonsEl_ = ui.createSpan({className: 'buttons'});
+      this.messageEl_ = base.ui.createSpan({className: 'message'});
+      this.buttonsEl_ = base.ui.createSpan({className: 'buttons'});
 
       this.appendChild(this.messageEl_);
       this.appendChild(this.buttonsEl_);
@@ -62,7 +62,7 @@ base.exportTo('ui', function() {
   /**
    * @constructor
    */
-  var InfoBarGroup = ui.define('x-info-bar-group');
+  var InfoBarGroup = base.ui.define('x-info-bar-group');
 
   InfoBarGroup.prototype = {
     __proto__: HTMLUnknownElement.prototype,

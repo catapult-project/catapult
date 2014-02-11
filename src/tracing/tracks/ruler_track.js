@@ -10,7 +10,7 @@ base.require('tracing.constants');
 base.require('tracing.tracks.track');
 base.require('tracing.tracks.heading_track');
 base.require('tracing.draw_helpers');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var RulerTrack = ui.define('ruler-track', tracing.tracks.HeadingTrack);
+  var RulerTrack = base.ui.define('ruler-track', tracing.tracks.HeadingTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {

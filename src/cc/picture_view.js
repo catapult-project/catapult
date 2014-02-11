@@ -18,7 +18,7 @@ base.exportTo('cc', function() {
    * Displays a picture snapshot in a human readable form.
    * @constructor
    */
-  var PictureSnapshotView = ui.define(
+  var PictureSnapshotView = base.ui.define(
       'picture-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

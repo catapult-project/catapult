@@ -6,7 +6,7 @@
 
 base.require('base.sorted_array_utils');
 base.require('tracing.tracks.container_track');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -16,7 +16,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {ContainerTrack}
    */
 
-  var SliceGroupTrack = ui.define(
+  var SliceGroupTrack = base.ui.define(
       'slice-group-track', tracing.tracks.ContainerTrack);
 
   SliceGroupTrack.prototype = {

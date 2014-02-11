@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var KernelTrack = ui.define('kernel-track', ProcessTrackBase);
+  var KernelTrack = base.ui.define('kernel-track', ProcessTrackBase);
 
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,

@@ -8,7 +8,7 @@ base.require('tracing.tracks.container_track');
 base.require('tracing.tracks.slice_track');
 base.require('tracing.filter');
 base.require('tracing.trace_model');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.tracks', function() {
 
@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var CpuTrack =
-      ui.define('cpu-track', tracing.tracks.ContainerTrack);
+      base.ui.define('cpu-track', tracing.tracks.ContainerTrack);
   CpuTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 

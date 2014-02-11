@@ -9,7 +9,7 @@ base.requireStylesheet('tracing.analysis.analysis_link');
 base.require('base.events');
 base.require('tracing.selection');
 base.require('tracing.analysis.util');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
 
@@ -24,7 +24,7 @@ base.exportTo('tracing.analysis', function() {
    *
    * @constructor
    */
-  var AnalysisLink = ui.define('a');
+  var AnalysisLink = base.ui.define('a');
 
   AnalysisLink.prototype = {
     __proto__: HTMLAnchorElement.prototype,
@@ -43,7 +43,7 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectSnapshot when clicked.
    * @constructor
    */
-  var ObjectSnapshotLink = ui.define(
+  var ObjectSnapshotLink = base.ui.define(
       'object-snapshot-link', AnalysisLink);
 
   ObjectSnapshotLink.prototype = {
@@ -70,7 +70,7 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectInstance when clicked.
    * @constructor
    */
-  var ObjectInstanceLink = ui.define(
+  var ObjectInstanceLink = base.ui.define(
       'object-instance-link', AnalysisLink);
 
   ObjectInstanceLink.prototype = {

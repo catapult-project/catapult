@@ -69,7 +69,7 @@ class Module(object):
   base.require directive.
 
   Interesting properties include:
-    name: Module name, may include a namespace, e.g. 'ui.foo'.
+    name: Module name, may include a namespace, e.g. 'base.foo'.
     filename: The filename of the actual module.
     contents: The text contents of the module
     dependent_modules: Other modules that this module depends on.

@@ -8,14 +8,14 @@ base.requireStylesheet('tracing.analysis.generic_object_view');
 
 base.require('base.utils');
 base.require('tracing.analysis.analysis_link');
-base.require('ui');
+base.require('base.ui');
 
 base.exportTo('tracing.analysis', function() {
 
   /**
    * @constructor
    */
-  var GenericObjectView = ui.define('x-generic-object-view');
+  var GenericObjectView = base.ui.define('x-generic-object-view');
 
   GenericObjectView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -187,7 +187,7 @@ base.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectViewWithLabel = ui.define(
+  var GenericObjectViewWithLabel = base.ui.define(
       'x-generic-object-view-with-label');
 
   GenericObjectViewWithLabel.prototype = {

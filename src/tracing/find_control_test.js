@@ -11,7 +11,7 @@ base.unittest.testSuite('tracing.find_control_test', function() {
   /*
    * Just enough of the Timeline to support the tests below.
    */
-  var FakeTimeline = ui.define('div');
+  var FakeTimeline = base.ui.define('div');
 
   FakeTimeline.prototype = {
     __proto__: HTMLDivElement.prototype,

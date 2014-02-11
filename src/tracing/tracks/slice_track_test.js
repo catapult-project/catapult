@@ -8,7 +8,7 @@ base.require('tracing.test_utils');
 base.require('tracing.trace_model.slice');
 base.require('tracing.timeline_track_view');
 base.require('tracing.draw_helpers');
-base.require('ui.dom_helpers');
+base.require('base.ui.dom_helpers');
 
 base.unittest.testSuite('tracing.tracks.slice_track_test', function() {
   var Selection = tracing.Selection;
@@ -125,7 +125,7 @@ base.unittest.testSuite('tracing.tracks.slice_track_test', function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(base.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
     this.addHTMLOutput(testEl);
 

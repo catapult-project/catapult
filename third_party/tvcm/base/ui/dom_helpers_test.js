@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.require('ui.dom_helpers');
+base.require('base.ui.dom_helpers');
 
-base.unittest.testSuite('ui.dom_helpers_test', function() {
+base.unittest.testSuite('base.ui.dom_helpers_test', function() {
 
   test('simpleSpanAndDiv', function() {
-    var divEl = ui.createDiv({
+    var divEl = base.ui.createDiv({
       className: 'a-div-class', parent: document.body
     });
     var testText = 'some span text';
-    var spanEl = ui.createSpan({
+    var spanEl = base.ui.createSpan({
       className: 'a-span-class',
       textContent: testText,
       parent: divEl
@@ -25,20 +25,20 @@ base.unittest.testSuite('ui.dom_helpers_test', function() {
 
   test('checkboxFromDefaults', function() {
     var target = {foo: undefined};
-    var cb = ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = base.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     assertEquals(false, target.foo);
   });
 
   test('checkboxFromSettings', function() {
     base.Settings.set('myCheckBox', true);
     var target = {foo: undefined};
-    var cb = ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = base.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     assertEquals(true, target.foo);
   });
 
   test('checkboxChanged', function() {
     var target = {foo: undefined};
-    var cb = ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
+    var cb = base.ui.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');
     cb.checked = true;
 
     assertEquals(true, base.Settings.get('myCheckBox', undefined));
@@ -51,7 +51,7 @@ base.unittest.testSuite('ui.dom_helpers_test', function() {
     var target = {
       scale: 314
     };
-    var sel = ui.createSelector(
+    var sel = base.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},
@@ -71,7 +71,7 @@ base.unittest.testSuite('ui.dom_helpers_test', function() {
     var target = {
       scale: 314
     };
-    var sel = ui.createSelector(
+    var sel = base.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},
@@ -91,7 +91,7 @@ base.unittest.testSuite('ui.dom_helpers_test', function() {
     var target = {
       scale: 314
     };
-    var sel = ui.createSelector(
+    var sel = base.ui.createSelector(
         target, 'scale',
         'myScale', 0.375,
         [{label: '6.25%', value: 0.0625},

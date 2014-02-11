@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('ui', function() {
+base.exportTo('base.ui', function() {
 
   /**
    * Decorates elements as an instance of a class.
@@ -33,7 +33,7 @@ base.exportTo('ui', function() {
    *
    * Base class:
    * <pre>
-   * var List = ui.define('list');
+   * var List = base.ui.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {
@@ -45,7 +45,7 @@ base.exportTo('ui', function() {
    *
    * Derived class:
    * <pre>
-   * var CustomList = ui.define('custom-list', List);
+   * var CustomList = base.ui.define('custom-list', List);
    * CustomList.prototype = {
    *   __proto__: List.prototype,
    *   decorate: function() {
@@ -60,7 +60,7 @@ base.exportTo('ui', function() {
    *     the tag name that will be created by the component.
    * @param {function=} opt_parentConstructor The parent class for this new
    *     element, if subclassing is desired. If provided, the parent class must
-   *     be also a function created by ui.define.
+   *     be also a function created by base.ui.define.
    * @return {function(Object=):Element} The newly created component
    *     constructor.
    */
@@ -72,7 +72,7 @@ base.exportTo('ui', function() {
 
     var tagName = tagName.toLowerCase();
     if (opt_parentConstructor && !opt_parentConstructor.tagName)
-      throw new Error('opt_parentConstructor was not created by ui.define');
+      throw new Error('opt_parentConstructor was not created by base.ui.define');
 
     /**
      * Creates a new UI element constructor.

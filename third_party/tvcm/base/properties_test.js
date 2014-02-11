@@ -10,7 +10,7 @@ base.unittest.testSuite('base.properties_test', function() {
   test('defineProperties', function() {
     var stateChanges = [];
 
-    var ASpan = ui.define('span');
+    var ASpan = base.ui.define('span');
     ASpan.prototype = {
       __proto__: HTMLSpanElement.prototype,
 

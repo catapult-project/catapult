@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.require('ui.info_bar');
+base.require('base.ui.info_bar');
 
-base.unittest.testSuite('ui.info_bar_test', function() {
+base.unittest.testSuite('base.ui.info_bar_test', function() {
   test('instantiate', function() {
-    var infoBar = new ui.InfoBar();
+    var infoBar = new base.ui.InfoBar();
     infoBar.message = 'This is an info';
     infoBar.visible = true;
     this.addHTMLOutput(infoBar);
   });
 
   test('buttons', function() {
-    var infoBar = new ui.InfoBar();
+    var infoBar = new base.ui.InfoBar();
     infoBar.visible = true;
     infoBar.message = 'This is an info bar with buttons';
     var didClick = false;
@@ -28,7 +28,7 @@ base.unittest.testSuite('ui.info_bar_test', function() {
   });
 
   test('group-instantiate', function() {
-    var infoBarGroup = new ui.InfoBarGroup();
+    var infoBarGroup = new base.ui.InfoBarGroup();
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);
@@ -39,7 +39,7 @@ base.unittest.testSuite('ui.info_bar_test', function() {
   });
 
   test('group-populate-then-clear', function() {
-    var infoBarGroup = new ui.InfoBarGroup();
+    var infoBarGroup = new base.ui.InfoBarGroup();
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);
@@ -51,7 +51,7 @@ base.unittest.testSuite('ui.info_bar_test', function() {
   });
 
   test('group-populate-clear-repopulate', function() {
-    var infoBarGroup = new ui.InfoBarGroup();
+    var infoBarGroup = new base.ui.InfoBarGroup();
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick: function() {}}]);

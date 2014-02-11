@@ -13,7 +13,7 @@ base.exportTo('system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
-  var SystemStatsSnapshotView = ui.define('system-stats-snapshot-view',
+  var SystemStatsSnapshotView = base.ui.define('system-stats-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {

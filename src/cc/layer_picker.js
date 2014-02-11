@@ -11,9 +11,9 @@ base.require('cc.layer_tree_host_impl');
 base.require('cc.selection');
 base.require('tracing.analysis.generic_object_view');
 base.require('tracing.trace_model.event');
-base.require('ui.drag_handle');
-base.require('ui.list_view');
-base.require('ui.dom_helpers');
+base.require('base.ui.drag_handle');
+base.require('base.ui.list_view');
+base.require('base.ui.dom_helpers');
 
 base.exportTo('cc', function() {
   var constants = cc.constants;
@@ -23,7 +23,7 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerPicker = ui.define('layer-picker');
+  var LayerPicker = base.ui.define('layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -34,7 +34,7 @@ base.exportTo('cc', function() {
       this.renderPassQuads_ = false;
 
 
-      this.itemList_ = new ui.ListView();
+      this.itemList_ = new base.ui.ListView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.itemList_);
@@ -42,7 +42,7 @@ base.exportTo('cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(ui.createSelector(
+      this.controls_.appendChild(base.ui.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -50,7 +50,7 @@ base.exportTo('cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = ui.createCheckBox(
+      var showPureTransformLayers = base.ui.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -183,7 +183,7 @@ base.exportTo('cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(ui.createSpan());
+        var labelEl = item.appendChild(base.ui.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -210,11 +210,11 @@ base.exportTo('cc', function() {
         var id = layer.layerId;
 
         var item = this.createElementWithDepth_(layerInfo.depth);
-        var labelEl = item.appendChild(ui.createSpan());
+        var labelEl = item.appendChild(base.ui.createSpan());
 
         labelEl.textContent = layerInfo.name + ' ' + id;
 
-        var notesEl = item.appendChild(ui.createSpan());
+        var notesEl = item.appendChild(base.ui.createSpan());
         if (layerInfo.isMaskLayer)
           notesEl.textContent += '(mask)';
         if (layerInfo.isReplicaLayer)
@@ -231,7 +231,7 @@ base.exportTo('cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(ui.createSpan());
+      var indentEl = item.appendChild(base.ui.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';
