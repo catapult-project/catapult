@@ -32,10 +32,10 @@ class SimpleLocalServerBackend(BaseHTTPServer.HTTPServer,
       self, ('127.0.0.1', 0), SimpleLocalServerBackendRequestHandler)
     local_server.LocalServerBackend.__init__(self)
 
-  def StartAndGetNamedPortPairs(self, args):
+  def StartAndGetNamedPorts(self, args):
     assert 'hello' in args
     assert args['hello'] == 'world'
-    return [local_server.NamedPortPair('http', self.server_address[1])]
+    return [local_server.NamedPort('http', self.server_address[1])]
 
   def ServeForever(self):
     self.serve_forever()
@@ -49,7 +49,7 @@ class SimpleLocalServer(local_server.LocalServer):
 
   @property
   def url(self):
-    return self.forwarders['http'].url + '/'
+    return self.forwarder.url + '/'
 
 class LocalServerUnittest(tab_test_case.TabTestCase):
   def testLocalServer(self):

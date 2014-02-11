@@ -12,6 +12,7 @@ import sys
 import urllib2
 
 from telemetry.core import exceptions
+from telemetry.core import forwarders
 from telemetry.core import user_agent
 from telemetry.core import util
 from telemetry.core import web_contents
@@ -49,11 +50,15 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._extensions_to_load = extensions_to_load
 
     if browser_options.netsim:
-      self.wpr_http_port_pair = util.PortPair(80, 80)
-      self.wpr_https_port_pair = util.PortPair(443, 443)
+      self.wpr_port_pairs = forwarders.PortPairs(
+          http=forwarders.PortPair(80, 80),
+          https=forwarders.PortPair(443, 443),
+          dns=forwarders.PortPair(53, 53))
     else:
-      self.wpr_http_port_pair = util.PortPair(0, 0)
-      self.wpr_https_port_pair = util.PortPair(0, 0)
+      self.wpr_port_pairs = forwarders.PortPairs(
+          http=forwarders.PortPair(0, 0),
+          https=forwarders.PortPair(0, 0),
+          dns=None)
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -95,10 +100,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.netsim:
       args.append('--ignore-certificate-errors')
     elif self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
-      args.extend(wpr_server.GetChromeFlags(
-          self.WEBPAGEREPLAY_HOST,
-          self.wpr_http_port_pair.remote_port,
-          self.wpr_https_port_pair.remote_port))
+      args.extend(wpr_server.GetChromeFlags(self.forwarder_factory.host_ip,
+                                            self.wpr_port_pairs))
     args.extend(user_agent.GetChromeUserAgentArgumentFromType(
         self.browser_options.browser_user_agent_type))
 

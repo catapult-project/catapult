@@ -1,42 +1,35 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import collections
 import json
 import os
 import re
-import socket
 import subprocess
 import sys
 
-from telemetry.core import util
+from telemetry.core import forwarders
 
-class NamedPortPair(object):
-  def __init__(self, name, port):
-    self.name = name
-    self.port = port
 
-  @staticmethod
-  def FromDict(d):
-    return NamedPortPair(d['name'],
-                         d['port'])
-  def AsDict(self):
-    return {'name': self.name,
-            'port': self.port}
+NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
+
 
 class LocalServerBackend(object):
   def __init__(self):
     pass
 
-  def StartAndGetNamedPortPairs(self, args):
+  def StartAndGetNamedPorts(self, args):
     """Starts the actual server and obtains any sockets on which it
     should listen.
 
-    Returns a list of NamedPortPair on which this backend is listening.
+    Returns a list of NamedPort on which this backend is listening.
     """
     raise NotImplementedError()
 
   def ServeForever(self):
     raise NotImplementedError()
+
 
 class LocalServer(object):
   def __init__(self, server_backend_class):
@@ -52,14 +45,16 @@ class LocalServer(object):
     self._subprocess = None
     self._devnull = None
     self._local_server_controller = None
-    self.forwarders = None
+    self.forwarder = None
+    self.host_ip = None
 
   def Start(self, local_server_controller):
     assert self._subprocess == None
     self._local_server_controller = local_server_controller
 
-    server_args = self.GetBackendStartupArgs()
+    self.host_ip = local_server_controller.host_ip
 
+    server_args = self.GetBackendStartupArgs()
     server_args_as_json = json.dumps(server_args)
     server_module_name = self._server_backend_class.__module__
 
@@ -76,38 +71,31 @@ class LocalServer(object):
         os.path.join(os.path.dirname(__file__), '..', '..'))
 
     self._subprocess = subprocess.Popen(
-        cmd, cwd=cwd,
-        env=env,
-        stdout=subprocess.PIPE, stderr=sys.stderr)
+        cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=sys.stderr)
 
-    named_port_pairs = self._GetPortPairsFromBackend()
+    named_ports = self._GetNamedPortsFromBackend()
+    named_port_pair_map = {'http': None, 'https': None, 'dns': None}
+    for name, port in named_ports:
+      assert name in named_port_pair_map, '%s forwarding is unsupported' % name
+      named_port_pair_map[name] = (
+          forwarders.PortPair(port,
+                              local_server_controller.GetRemotePort(port)))
+    self.forwarder = local_server_controller.CreateForwarder(
+        forwarders.PortPairs(**named_port_pair_map))
 
-    self.forwarders = {}
-    for named_port_pair in named_port_pairs:
-      port = named_port_pair.port
-      forwarder = local_server_controller.CreateForwarder(
-          named_port_pair.port)
-      self.forwarders[named_port_pair.name] = forwarder
-
-      def IsPortUp():
-        return not socket.socket().connect_ex(('localhost', port))
-      util.WaitFor(IsPortUp, 10)
-
-  def _GetPortPairsFromBackend(self):
-    named_port_pairs_json = None
-    named_port_pairs_re = re.compile(
-        'LocalServerBackend started: (?P<port>.+)')
+  def _GetNamedPortsFromBackend(self):
+    named_ports_json = None
+    named_ports_re = re.compile('LocalServerBackend started: (?P<port>.+)')
     while self._subprocess.poll() == None:
-      m = named_port_pairs_re.match(self._subprocess.stdout.readline())
+      m = named_ports_re.match(self._subprocess.stdout.readline())
       if m:
-        named_port_pairs_json = m.group('port')
+        named_ports_json = m.group('port')
         break
 
-    if not named_port_pairs_json:
+    if not named_ports_json:
       raise Exception('Server process died prematurely ' +
                       'without giving us port pairs.')
-    return [NamedPortPair.FromDict(pair)
-            for pair in json.loads(named_port_pairs_json)]
+    return [NamedPort(**pair) for pair in json.loads(named_ports_json.lower())]
 
   @property
   def is_running(self):
@@ -123,10 +111,9 @@ class LocalServer(object):
     self.Close()
 
   def Close(self):
-    if self.forwarders:
-      for forwarder in self.forwarders.itervalues():
-        forwarder.Close()
-      self.forwarders = None
+    if self.forwarder:
+      self.forwarder.Close()
+      self.forwarder = None
     if self._subprocess:
       # TODO(tonyg): Should this block until it goes away?
       self._subprocess.kill()
@@ -153,6 +140,7 @@ class LocalServerController():
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend
     self._local_servers_by_class = {}
+    self.host_ip = self._browser_backend.forwarder_factory.host_ip
 
   def StartServer(self, server):
     assert not server.is_running, 'Server already started'
@@ -181,9 +169,11 @@ class LocalServerController():
         import traceback
         traceback.print_exc()
 
-  def CreateForwarder(self, port):
-    return self._browser_backend.CreateForwarder(
-      util.PortPair(port, self._browser_backend.GetRemotePort(port)))
+  def CreateForwarder(self, port_pairs):
+    return self._browser_backend.forwarder_factory.Create(port_pairs)
+
+  def GetRemotePort(self, port):
+    return self._browser_backend.GetRemotePort(port)
 
   def ServerDidClose(self, server):
     del self._local_servers_by_class[server.__class__]
@@ -200,22 +190,23 @@ def _LocalServerBackendMain(args):
 
   server_args = json.loads(server_args_as_json)
 
-  named_port_pairs = server.StartAndGetNamedPortPairs(server_args)
-  assert isinstance(named_port_pairs, list)
-  for named_port_pair in named_port_pairs:
-    assert isinstance(named_port_pair, NamedPortPair)
+  named_ports = server.StartAndGetNamedPorts(server_args)
+  assert isinstance(named_ports, list)
+  for named_port in named_ports:
+    assert isinstance(named_port, NamedPort)
 
   # Note: This message is scraped by the parent process'
-  # _GetPortPairsFromBackend(). Do **not** change it.
+  # _GetNamedPortsFromBackend(). Do **not** change it.
   print 'LocalServerBackend started: %s' % json.dumps(
-    [pair.AsDict() for pair in named_port_pairs])
+      [pair._asdict() for pair in named_ports]) # pylint: disable=W0212
   sys.stdout.flush()
 
   return server.ServeForever()
 
+
 if __name__ == '__main__':
-  # This trick is needed because local_server.NamedPortPair is not the
-  # same as sys.modules['__main__'].NamedPortPair. The module itself is loaded
+  # This trick is needed because local_server.NamedPort is not the
+  # same as sys.modules['__main__'].NamedPort. The module itself is loaded
   # twice, basically.
   from telemetry.core import local_server # pylint: disable=W0406
   sys.exit(local_server._LocalServerBackendMain( # pylint: disable=W0212
