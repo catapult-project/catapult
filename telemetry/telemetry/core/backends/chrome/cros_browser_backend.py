@@ -5,8 +5,6 @@
 import logging
 import os
 
-from telemetry import decorators
-
 from telemetry.core import exceptions
 from telemetry.core import forwarders
 from telemetry.core import util
@@ -215,6 +213,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'array:string:"%s"' % ','.join(startup_args)]
     self._cri.RunCmdOnDevice(args)
 
+    self._forwarder_factory = cros_forwarder.CrOsForwarderFactory(self._cri)
     self._forwarder = self.forwarder_factory.Create(
         forwarders.PortPairs(
             http=forwarders.PortPair(util.GetUnreservedAvailableLocalPort(),
@@ -273,9 +272,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri = None
 
   @property
-  @decorators.Cache
   def forwarder_factory(self):
-    return cros_forwarder.CrOsForwarderFactory(self._cri)
+    return self._forwarder_factory
 
   def IsBrowserRunning(self):
     return bool(self.pid)
