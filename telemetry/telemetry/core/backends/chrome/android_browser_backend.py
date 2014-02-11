@@ -10,16 +10,14 @@ import sys
 import time
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
+from telemetry.core.backends import android_rndis
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
-from telemetry.core.forwarders import android_forwarder
 
 
 class AndroidBrowserBackendSettings(object):
-
   def __init__(self, adb, activity, cmdline_file, package, pseudo_exec_name,
                supports_tab_control):
     self.adb = adb
@@ -176,8 +174,9 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
-  """The backend for controlling a browser instance running on Android."""
-  def __init__(self, browser_options, backend_settings, use_rndis_forwarder,
+  """The backend for controlling a browser instance running on Android.
+  """
+  def __init__(self, browser_options, backend_settings, rndis,
                output_profile_path, extensions_to_load):
     super(AndroidBrowserBackend, self).__init__(
         is_content_shell=backend_settings.is_content_shell,
@@ -192,9 +191,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb = backend_settings.adb
     self._backend_settings = backend_settings
     self._saved_cmdline = ''
-
-    # TODO(tonyg): This is flaky because it doesn't reserve the port that it
-    # allocates. Need to fix this.
     self._port = adb_commands.AllocateTestServerPort()
 
     # Kill old browser.
@@ -206,15 +202,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if self.browser_options.profile_dir:
         self._backend_settings.PushProfile(self.browser_options.profile_dir)
 
-    self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-        self._adb, use_rndis_forwarder)
-
-    if self.browser_options.netsim:
-      assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
-      self.wpr_port_pairs = forwarders.PortPairs(
-          http=forwarders.PortPair(0, 80),
-          https=forwarders.PortPair(0, 43),
-          dns=forwarders.PortPair(0, 53))
+    # Pre-configure RNDIS forwarding.
+    self._rndis_forwarder = None
+    if rndis or self.browser_options.netsim:
+      self._rndis_forwarder = android_rndis.RndisForwarderWithRoot(self._adb)
+      self.WEBPAGEREPLAY_HOST = self._rndis_forwarder.host_ip
+    # TODO(szym): only override DNS if WPR has privileges to proxy on port 25.
+    self._override_dns = self.browser_options.netsim
 
     # Set the debug app if needed.
     if self._adb.IsUserBuild():
@@ -320,17 +314,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
-    if self.forwarder_factory.does_forwarder_override_dns:
+    if self._override_dns:
       args = [arg for arg in args
               if not arg.startswith('--host-resolver-rules')]
     args.append('--enable-remote-debugging')
     args.append('--disable-fre')
     args.append('--disable-external-intent-requests')
     return args
-
-  @property
-  def forwarder_factory(self):
-    return self._forwarder_factory
 
   @property
   def adb(self):
@@ -426,7 +416,22 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return ret
 
   def AddReplayServerOptions(self, extra_wpr_args):
-    if not self.forwarder_factory.does_forwarder_override_dns:
+    """Override. Only add --no-dns_forwarding if not using RNDIS."""
+    if not self._override_dns:
       extra_wpr_args.append('--no-dns_forwarding')
     if self.browser_options.netsim:
       extra_wpr_args.append('--net=%s' % self.browser_options.netsim)
+
+  def CreateForwarder(self, *port_pairs):
+    if self._rndis_forwarder:
+      forwarder = self._rndis_forwarder
+      forwarder.SetPorts(*port_pairs)
+      assert self.WEBPAGEREPLAY_HOST == forwarder.host_ip, (
+        'Host IP address on the RNDIS interface changed. Must restart browser!')
+      if self._override_dns:
+        forwarder.OverrideDns()
+      return forwarder
+    assert not self._override_dns, ('The user-space forwarder does not support '
+                                    'DNS override!')
+    logging.warning('Using the user-space forwarder.\n')
+    return adb_commands.Forwarder(self._adb, *port_pairs)

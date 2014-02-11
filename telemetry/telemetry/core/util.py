@@ -104,6 +104,12 @@ def FindElementAndPerformAction(tab, text, callback_code):
   return tab.EvaluateJavaScript(code)
 
 
+class PortPair(object):
+  def __init__(self, local_port, remote_port):
+    self.local_port = local_port
+    self.remote_port = remote_port
+
+
 def GetUnreservedAvailableLocalPort():
   """Returns an available port on the system.
 

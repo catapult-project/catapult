@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import glob
 import heapq
 import logging
@@ -271,3 +270,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._tmp_output_file:
       self._tmp_output_file.close()
       self._tmp_output_file = None
+
+  def CreateForwarder(self, *port_pairs):
+    return browser_backend.DoNothingForwarder(*port_pairs)

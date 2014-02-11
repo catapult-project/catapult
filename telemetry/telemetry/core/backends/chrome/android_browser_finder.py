@@ -95,11 +95,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self.finder_options.no_performance_mode)
 
   def Create(self):
-    use_rndis_forwarder = (self.finder_options.android_rndis or
-                           self.finder_options.browser_options.netsim)
     backend = android_browser_backend.AndroidBrowserBackend(
         self.finder_options.browser_options, self._backend_settings,
-        use_rndis_forwarder,
+        self.finder_options.android_rndis,
         output_profile_path=self.finder_options.output_profile_path,
         extensions_to_load=self.finder_options.extensions_to_load)
     b = browser.Browser(backend, self._platform_backend)

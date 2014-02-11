@@ -197,7 +197,7 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
     super(MemoryCacheHTTPServerBackend, self).__init__()
     self._httpd = None
 
-  def StartAndGetNamedPorts(self, args):
+  def StartAndGetNamedPortPairs(self, args):
     base_dir = args['base_dir']
     os.chdir(base_dir)
 
@@ -207,11 +207,13 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
         print >> sys.stderr, '"%s" is not under the cwd.' % path
         sys.exit(1)
 
-    server_address = (args['host'], args['port'])
+    server_address = ('127.0.0.1', 0)
     MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
     self._httpd = _MemoryCacheHTTPServerImpl(
-        server_address, MemoryCacheHTTPRequestHandler, paths)
-    return [local_server.NamedPort('http', self._httpd.server_address[1])]
+        server_address, MemoryCacheHTTPRequestHandler,
+        paths)
+    return [local_server.NamedPortPair(
+        'http', self._httpd.server_address[1])]
 
   def ServeForever(self):
     return self._httpd.serve_forever()
@@ -239,9 +241,7 @@ class MemoryCacheHTTPServer(local_server.LocalServer):
 
   def GetBackendStartupArgs(self):
     return {'base_dir': self._base_dir,
-            'paths': self._paths,
-            'host': self.host_ip,
-            'port': 0}
+            'paths': self._paths}
 
   @property
   def paths(self):
@@ -249,7 +249,7 @@ class MemoryCacheHTTPServer(local_server.LocalServer):
 
   @property
   def url(self):
-    return self.forwarder.url
+    return self.forwarders['http'].url
 
   def UrlOf(self, path):
     relative_path = os.path.relpath(path, self._base_dir)

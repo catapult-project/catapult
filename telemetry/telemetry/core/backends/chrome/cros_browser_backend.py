@@ -1,16 +1,14 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 import logging
 import os
+import subprocess
 
 from telemetry.core import exceptions
-from telemetry.core import forwarders
 from telemetry.core import util
+from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
-from telemetry.core.forwarders import cros_forwarder
-
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   # Some developers' workflow includes running the Chrome process from
@@ -34,16 +32,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_type = browser_type
     self._cri = cri
     self._is_guest = is_guest
-    self._forwarder = None
 
-    self.wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(self.wpr_port_pairs.http.local_port,
-                                 self._cri.GetRemotePort()),
-        https=forwarders.PortPair(self.wpr_port_pairs.https.local_port,
-                                  self._cri.GetRemotePort()),
-        dns=None)
+    self.wpr_http_port_pair.remote_port = self._cri.GetRemotePort()
+    self.wpr_https_port_pair.remote_port = self._cri.GetRemotePort()
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
+    self._forwarder = None
 
     self._SetBranchNumber(self._GetChromeVersion())
 
@@ -213,13 +207,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'array:string:"%s"' % ','.join(startup_args)]
     self._cri.RunCmdOnDevice(args)
 
-    self._forwarder_factory = cros_forwarder.CrOsForwarderFactory(self._cri)
-    self._forwarder = self.forwarder_factory.Create(
-        forwarders.PortPairs(
-            http=forwarders.PortPair(util.GetUnreservedAvailableLocalPort(),
-                                     self._remote_debugging_port),
-            https=None,
-            dns=None), forwarding_flag='L')
+    if not self._cri.local:
+      # Find a free local port.
+      self._port = util.GetUnreservedAvailableLocalPort()
+
+      # Forward the remote debugging port.
+      logging.info('Forwarding remote debugging port %d to local port %d',
+                   self._remote_debugging_port, self._port)
+      self._forwarder = SSHForwarder(
+        self._cri, 'L',
+        util.PortPair(self._port, self._remote_debugging_port))
 
     try:
       self._WaitForBrowserToComeUp(wait_for_extensions=False)
@@ -258,9 +255,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._RestartUI() # Logs out.
 
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
+    if not self._cri.local:
+      if self._forwarder:
+        self._forwarder.Close()
+        self._forwarder = None
 
     if self._login_ext_dir:
       self._cri.RmRF(self._login_ext_dir)
@@ -271,10 +269,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._cri = None
 
-  @property
-  def forwarder_factory(self):
-    return self._forwarder_factory
-
   def IsBrowserRunning(self):
     return bool(self.pid)
 
@@ -283,6 +277,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStackTrace(self):
     return 'Cannot get stack trace on CrOS'
+
+  def CreateForwarder(self, *port_pairs):
+    assert self._cri
+    return (browser_backend.DoNothingForwarder(*port_pairs) if self._cri.local
+        else SSHForwarder(self._cri, 'R', *port_pairs))
 
   def _RestartUI(self):
     if self._cri:
@@ -447,3 +446,43 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                        'remaining retries %d' % retries)
           if not retries:
             raise
+
+class SSHForwarder(object):
+  def __init__(self, cri, forwarding_flag, *port_pairs):
+    self._proc = None
+
+    if forwarding_flag == 'R':
+      self._host_port = port_pairs[0].remote_port
+      command_line = ['-%s%i:localhost:%i' % (forwarding_flag,
+                                              port_pair.remote_port,
+                                              port_pair.local_port)
+                      for port_pair in port_pairs]
+    else:
+      self._host_port = port_pairs[0].local_port
+      command_line = ['-%s%i:localhost:%i' % (forwarding_flag,
+                                              port_pair.local_port,
+                                              port_pair.remote_port)
+                      for port_pair in port_pairs]
+
+    self._device_port = port_pairs[0].remote_port
+
+    self._proc = subprocess.Popen(
+      cri.FormSSHCommandLine(['sleep', '999999999'], command_line),
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      stdin=subprocess.PIPE,
+      shell=False)
+
+    util.WaitFor(lambda: cri.IsHTTPServerRunningOnPort(self._device_port), 60)
+    logging.debug('ssh forwarder created: %s', command_line)
+
+  @property
+  def url(self):
+    assert self._proc
+    return 'http://localhost:%i' % self._host_port
+
+  def Close(self):
+    if self._proc:
+      self._proc.kill()
+      self._proc = None
+

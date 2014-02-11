@@ -10,11 +10,10 @@ import socket
 import unittest
 
 from telemetry import test
-from telemetry.core import forwarders
+from telemetry.core import util
+from telemetry.core.backends.chrome import cros_browser_backend
 from telemetry.core.backends.chrome import cros_interface
-from telemetry.core.forwarders import cros_forwarder
 from telemetry.unittest import options_for_unittests
-
 
 
 class CrOSInterfaceTest(unittest.TestCase):
@@ -97,9 +96,8 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
 
     # Forward local server's port to remote device's remote_port.
-    forwarder = cros_forwarder.CrOsForwarderFactory(cri).Create(
-        forwarders.PortPairs(http=forwarders.PortPair(port, remote_port),
-                             https=None, dns=None))
+    forwarder = cros_browser_backend.SSHForwarder(
+        cri, 'R', util.PortPair(port, remote_port))
 
     # At this point, remote device should be able to connect to local server.
     self.assertTrue(cri.IsHTTPServerRunningOnPort(remote_port))
