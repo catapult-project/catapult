@@ -7,22 +7,21 @@
 import os
 import unittest
 
-import module
-import resource_loader
-
-TVCM_DIR = os.path.join(os.path.dirname(__file__), '..')
-THIRD_PARTY_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
+from tvcm import module
+from tvcm import resource_loader
+from tvcm import project as project_module
 
 
 class ResourceLoaderTest(unittest.TestCase):
 
   def test_basic(self):
-    loader = resource_loader.ResourceLoader([TVCM_DIR], [THIRD_PARTY_DIR])
+    tvcm_project = project_module.Project()
+    loader = resource_loader.ResourceLoader(tvcm_project)
     guid_module = loader.load_module(module_name='base')
     self.assertTrue(os.path.samefile(guid_module.filename,
-                                     os.path.join(TVCM_DIR, 'base', '__init__.js')))
+                                     os.path.join(tvcm_project.tvcm_path, 'base', '__init__.js')))
     expected_contents = ''
-    with open(os.path.join(TVCM_DIR, 'base', '__init__.js')) as f:
+    with open(os.path.join(tvcm_project.tvcm_path, 'base', '__init__.js')) as f:
       expected_contents = f.read()
     self.assertEquals(guid_module.contents, expected_contents)
 

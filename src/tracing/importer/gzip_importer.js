@@ -10,8 +10,8 @@
  */
 base.require('tracing.importer.importer');
 base.require('tracing.trace_model');
-base.requireRawScript('jszip/jszip.js');
-base.requireRawScript('jszip/jszip-inflate.js');
+base.requireRawScript('jszip.js');
+base.requireRawScript('jszip-inflate.js');
 
 base.exportTo('tracing.importer', function() {
 

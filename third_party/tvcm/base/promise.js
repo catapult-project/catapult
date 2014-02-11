@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.requireRawScript('Promises/polyfill/src/Promise.js');
+base.requireRawScript('Promise.js');
 
 base.exportTo('base', function() {
   var Promise = window.Promise;

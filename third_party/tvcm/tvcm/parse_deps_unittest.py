@@ -7,6 +7,7 @@
 import os
 import unittest
 
+from tvcm import project
 from tvcm import parse_deps
 
 TVCM_DIR = os.path.join(os.path.dirname(__file__), '..')
@@ -15,7 +16,7 @@ THIRD_PARTY_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 class CalcLoadSequenceTest(unittest.TestCase):
   def test_one_toplevel_nodeps(self):
     load_sequence = parse_deps.calc_load_sequence_internal(
-        [os.path.join('base', 'guid.js')], [TVCM_DIR], [THIRD_PARTY_DIR])
+        [os.path.join('base', 'guid.js')], project.Project())
     name_sequence = [x.name for x in load_sequence]
     self.assertEquals(['base.guid'], name_sequence)
 

@@ -6,9 +6,9 @@
 
 base.require('cc.picture_ops_list_view');
 base.require('cc.picture');
-base.require('cc.layer_tree_host_impl_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
+base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
 base.unittest.testSuite('cc.picture_ops_list_view_test', function() {
   var PictureOpsListView = cc.PictureOpsListView;

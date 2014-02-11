@@ -4,8 +4,8 @@
 
 'use strict';
 
-base.requireRawScript('polymer/platform.min.js');
-base.requireRawScript('polymer/polymer.min.js');
+base.requireRawScript('platform.min.js');
+base.requireRawScript('polymer.min.js');
 
 base.exportTo('base', function() {
 });

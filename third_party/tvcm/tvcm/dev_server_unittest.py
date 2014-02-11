@@ -29,7 +29,7 @@ class DevServerTests(unittest.TestCase):
 
   def testDeps(self):
     self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
-    self.server.CallOnServer('AddDataPathMapping', THIRD_PARTY_PATH)
+    self.server.CallOnServer('AddSourcePathMapping', THIRD_PARTY_PATH)
 
     # Just smoke test that it works.
     resp_str = self.server.Get('/base/deps.js')

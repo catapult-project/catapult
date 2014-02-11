@@ -8,7 +8,7 @@ base.require('cc');
 base.require('cc.layer_tree_quad_stack_view');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
-base.require('cc.layer_tree_host_impl_test_data');
+base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
 base.unittest.testSuite('cc.layer_tree_quad_stack_view_test', function() {
   test('tileCoverageRectCount', function() {

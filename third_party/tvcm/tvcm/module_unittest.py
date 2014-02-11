@@ -10,6 +10,7 @@ from tvcm import fake_fs
 from tvcm import module
 from tvcm import strip_js_comments
 from tvcm import resource_loader
+from tvcm import project as project_module
 
 class ModuleIntegrationTests(unittest.TestCase):
   def test_module(self):
@@ -23,14 +24,16 @@ base.exportTo('xyz', function() { });
     fs.AddFile('/src/y.js', """
 'use strict';
 base.require('z');
-base.exportsTo('xyz', function() { });
+base.exportTo('xyz', function() { });
 """)
     fs.AddFile('/src/z.js', """
 'use strict';
-base.exportsTo('xyz', function() { });
+base.exportTo('xyz', function() { });
 """)
     with fs:
-      loader = resource_loader.ResourceLoader(['/src/'], [])
+      project = project_module.Project(['/src/'],
+                                       include_tvcm_paths=False)
+      loader = resource_loader.ResourceLoader(project)
       x_module = loader.load_module('x')
 
       self.assertEquals([loader.loaded_modules['y'],
@@ -60,7 +63,9 @@ base.require('base.foo');
 base.exportTo('foo', function() {
 });
 """);
-    loader = resource_loader.ResourceLoader(['/x'], [])
+    project = project_module.Project(['/x'],
+                                     include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.load_module(module_name = 'src.my_module')
       assert [x.name for x in my_module.dependent_modules] == ['base.foo']
@@ -73,7 +78,9 @@ base.exportTo('foo', function() {
     base.requireRawScript('bar.js');
 """)
     fs.AddFile('/x/raw/bar.js', 'hello');
-    loader = resource_loader.ResourceLoader(['/x/y'], ['/x/raw/'])
+    project = project_module.Project(['/x/y', '/x/raw/'],
+                                     include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.load_module(module_name='z.foo')
       self.assertEquals(1, len(my_module.dependent_raw_scripts))
@@ -85,9 +92,10 @@ base.exportTo('foo', function() {
 
   def testModulesThatAreDirectores(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/x/foo/__init__.js', """'use strict';""")
+    fs.AddFile('/x/foo/__init__.js', """'use strict'; base.exportTo('foo', function(){});""")
 
-    loader = resource_loader.ResourceLoader(['/x'], [])
+    project = project_module.Project(['/x'], include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
     with fs:
       foo_module = loader.load_module(module_name = 'foo')
       self.assertEquals('foo', foo_module.name)
@@ -95,9 +103,10 @@ base.exportTo('foo', function() {
 
   def testModulesThatAreDirectoresLoadedWithAbsoluteName(self):
     fs = fake_fs.FakeFS()
-    fs.AddFile('/x/foo/__init__.js', """'use strict';""")
+    fs.AddFile('/x/foo/__init__.js', """'use strict'; base.exportTo('foo', function(){});""")
 
-    loader = resource_loader.ResourceLoader(['/x'], [])
+    project = project_module.Project(['/x'], include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
     with fs:
       foo_module = loader.load_module(module_filename = '/x/foo/__init__.js')
       self.assertEquals('foo', foo_module.name)
@@ -108,7 +117,8 @@ base.exportTo('foo', function() {
     fs.AddFile('/x/foo/__init__.js', """'use strict';""")
     fs.AddFile('/x/foo.js', """'use strict';""")
 
-    loader = resource_loader.ResourceLoader(['/x'], [])
+    project = project_module.Project(['/x'], include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
     with fs:
       self.assertRaises(module.DepsException,
           lambda: loader.load_module(module_name = 'foo'))

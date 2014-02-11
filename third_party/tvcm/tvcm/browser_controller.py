@@ -6,9 +6,18 @@ import sys
 import os
 
 from tvcm import dev_server
+from tvcm import project as project_module
 
 
 def _try_to_import_telemetry():
+  # Maybe telemetry is just hanging around in PYTHONPATH
+  try:
+    import telemetry
+    return True
+  except:
+    pass
+
+  # Try to find it in a likely location.
   trace_viewer_path = os.path.join(os.path.dirname(__file__), '..', '..', '..')
   parent_chrome_path = os.path.join(trace_viewer_path, '..', '..')
   telemetry_path = os.path.abspath(
@@ -25,40 +34,35 @@ if _try_to_import_telemetry():
   from telemetry.core import browser_finder
   from telemetry.core import browser_options
   from telemetry.core import local_server
+
+  class _LocalDevServer(local_server.LocalServer):
+    def __init__(self, project):
+      super(_LocalDevServer, self).__init__(_LocalDevServerBackend)
+      self.project = project
+
+    def GetBackendStartupArgs(self):
+      return self.project.AsDict()
+
+    @property
+    def url(self):
+      return self.forwarder.url
+
+
+  class _LocalDevServerBackend(local_server.LocalServerBackend):
+    def __init__(self):
+      super(_LocalDevServerBackend, self).__init__()
+      self.server = None
+
+    def StartAndGetNamedPorts(self, args):
+      self.server = dev_server.DevServer(port=0, quiet=True,
+                                         project=project_module.Project.FromDict(args))
+      return [local_server.NamedPort('http', self.server.port)]
+
+    def ServeForever(self):
+      return self.server.serve_forever()
+
 else:
   telemetry = None
-
-
-class _LocalDevServer(local_server.LocalServer):
-  def __init__(self, source_paths, raw_data_paths):
-    super(_LocalDevServer, self).__init__(_LocalDevServerBackend)
-    self.source_paths = source_paths
-    self.raw_data_paths = raw_data_paths
-
-  def GetBackendStartupArgs(self):
-    return {'source_paths': self.source_paths,
-            'raw_data_paths': self.raw_data_paths}
-
-  @property
-  def url(self):
-    return self.forwarders['http'].url
-
-
-class _LocalDevServerBackend(local_server.LocalServerBackend):
-  def __init__(self):
-    super(_LocalDevServerBackend, self).__init__()
-    self.server = None
-
-  def StartAndGetNamedPortPairs(self, args):
-    self.server = dev_server.DevServer(port=0, quiet=True)
-    for path in args['source_paths']:
-      self.server.AddSourcePathMapping(path)
-    for path in args['raw_data_paths']:
-      self.server.AddDataPathMapping(path)
-    return [local_server.NamedPortPair('http', self.server.port)]
-
-  def ServeForever(self):
-    return self.server.serve_forever()
 
 
 def IsSupported():
@@ -66,11 +70,10 @@ def IsSupported():
 
 
 class BrowserController(object):
-  def __init__(self, source_paths, raw_data_paths):
+  def __init__(self, project):
     if telemetry == None:
       raise Exception('Not supported: you trace-viewer to be inside a chrome checkout for this to work.')
-    self._source_paths = source_paths
-    self._raw_data_paths = raw_data_paths
+    self._project = project
 
     finder_options = browser_options.BrowserFinderOptions()
     parser = finder_options.CreateParser('telemetry_perf_test.py')
@@ -85,11 +88,16 @@ class BrowserController(object):
 
     assert browser_to_create
     self._browser = browser_to_create.Create()
-    self._browser.Start()
-    self._tab = self._browser.tabs[0]
+    self._tab = None
+    try:
+      self._browser.Start()
+      self._tab = self._browser.tabs[0]
 
-    self._server = _LocalDevServer(self._source_paths, self._raw_data_paths)
-    self._browser.StartLocalServer(self._server)
+      self._server = _LocalDevServer(self._project)
+      self._browser.StartLocalServer(self._server)
+
+    except:
+      self._browser.Close()
 
   def NavigateToPath(self, path):
     self._tab.Navigate(self._server.url + path)

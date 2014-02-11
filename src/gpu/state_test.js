@@ -6,9 +6,9 @@
 
 base.require('gpu');
 base.require('gpu.state');
-base.require('gpu.state_test_data');
 base.require('tracing.importer.trace_event_importer');
 base.require('tracing.trace_model');
+base.requireRawScript('gpu/state_test_data.js');
 
 base.unittest.testSuite('gpu.state_test', function() {
   test('basic', function() {

@@ -17,24 +17,43 @@ from tvcm import module
 from tvcm import strip_js_comments
 
 class JSModule(module.Module):
-  def parse(self):
+  def Parse(self):
     stripped_text = strip_js_comments.strip_js_comments(self.contents)
-    validate_uses_strict_mode(self.name, stripped_text)
+    if self.name != 'base':
+      assert IsJSModule(stripped_text), '%s is not a JS Module' % (self.name)
+    ValidateUsesStrictMode(self.name, stripped_text)
     if self.name.endswith('_test'):
-      validate_test_suite_definition(self.name, stripped_text)
-    self.dependency_metadata = parse(self.name, stripped_text)
+      ValidateTestSuiteDefinition(self.name, stripped_text)
+    self.dependency_metadata = Parse(self.name, stripped_text)
 
-def validate_test_suite_definition(module_name, stripped_text):
+def IsJSModule(text, text_is_stripped=True):
+  if text_is_stripped:
+    stripped_text = text
+  else:
+    stripped_text = strip_js_comments.strip_js_comments(text)
+  if re.search("""base\s*\.\s*exportTo""",
+               stripped_text, re.DOTALL):
+    return True
+
+  if re.search("""base\s*\.\s*require""",
+               stripped_text, re.DOTALL):
+    return True
+
+  if re.search("""base\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+               stripped_text, re.DOTALL):
+    return True
+
+  return False
+
+def ValidateTestSuiteDefinition(module_name, stripped_text):
   rest = stripped_text
   num_matches = 0
   while True:
     m_ts = re.search("""base\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
                      rest, re.DOTALL)
-    m_pts = re.search("""base\s*\.\s*unittest\s*\.\s*perfTestSuite\((["'])(.+?)\\1""",
-                     rest, re.DOTALL)
 
     # Figure out which was first.
-    matches = [m for m in [m_ts, m_pts] if m]
+    matches = [m for m in [m_ts] if m]
     matches.sort(key=lambda x: x.start())
     if len(matches):
       m = matches[0]
@@ -49,12 +68,14 @@ def validate_test_suite_definition(module_name, stripped_text):
     rest = rest[m.end():]
 
   if num_matches == 0:
-      raise Exception("""Expected a base.unittest.testSuite('%s', ...)""" % module_name)
+      raise Exception("""Expected js module %s to contain a ' +
+          'base.unittest.testSuite('%s', ...)""" % (
+          module_name, module_name))
   if num_matches > 1:
       raise Exception("""Must only have one base.unittest.testSuite('%s', ...)""" % module_name)
 
 
-def validate_uses_strict_mode(module_name, stripped_text):
+def ValidateUsesStrictMode(module_name, stripped_text):
   """Check that the first non-empty line is 'use strict';.
 
   Args:
@@ -68,12 +89,12 @@ def validate_uses_strict_mode(module_name, stripped_text):
     line = line.strip()
     if len(line.strip()) == 0:
       continue
-    if line.strip() == """'use strict';""":
+    if """'use strict';""" in line.strip():
       break
     raise module.DepsException('%s must use strict mode' % module_name)
 
 
-def parse(module_name, stripped_text):
+def Parse(module_name, stripped_text):
   """Parses the base.require* lines in the module and returns module.ModuleDependencyMetadata.
 
   Args:

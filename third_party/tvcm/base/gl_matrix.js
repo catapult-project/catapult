@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.requireRawScript('gl-matrix/src/gl-matrix/common.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/mat2d.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/mat4.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/vec2.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/vec3.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/vec4.js');
+base.requireRawScript('gl-matrix/common.js');
+base.requireRawScript('gl-matrix/mat2d.js');
+base.requireRawScript('gl-matrix/mat4.js');
+base.requireRawScript('gl-matrix/vec2.js');
+base.requireRawScript('gl-matrix/vec3.js');
+base.requireRawScript('gl-matrix/vec4.js');
 
 base.exportTo('base', function() {
   var tmp_vec2 = vec2.create();

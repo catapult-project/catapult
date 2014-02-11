@@ -8,9 +8,9 @@
  * @fileoverview ZipImporter inflates zip compressed data and passes it along
  * to an actual importer.
  */
-base.requireRawScript('jszip/jszip.js');
-base.requireRawScript('jszip/jszip-load.js');
-base.requireRawScript('jszip/jszip-inflate.js');
+base.requireRawScript('jszip.js');
+base.requireRawScript('jszip-load.js');
+base.requireRawScript('jszip-inflate.js');
 
 base.require('tracing.importer.importer');
 base.require('tracing.importer.gzip_importer');

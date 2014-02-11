@@ -53,7 +53,7 @@ class Module(object):
     self.contents = f.read()
     f.close()
 
-    # Dependency metadata, set up during parse().
+    # Dependency metadata, set up during Parse().
     self.dependency_metadata = None
 
     # Actual dependencies, set up during load().
@@ -73,7 +73,7 @@ class Module(object):
   def html_contents_is_polymer_module(contents):
     return '<polymer-component>' in contents
 
-  def parse(self):
+  def Parse(self):
     """Parses self.contents and fills in the module's dependency metadata."""
     raise NotImplementedError()
 

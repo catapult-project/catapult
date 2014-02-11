@@ -16,19 +16,17 @@ class ResourceLoader(object):
   mapping names to file resources.
 
   """
-  def __init__(self, search_paths, data_paths):
-    assert isinstance(search_paths, list)
-    self._search_paths = [os.path.abspath(path) for path in search_paths]
-    self._data_paths = [os.path.abspath(path) for path in data_paths]
+  def __init__(self, project):
+    self.project = project
     self.loaded_modules = {}
     self.loaded_raw_scripts = {}
     self.loaded_style_sheets = {}
     self.loaded_html_templates = {}
 
   @property
-  def search_paths(self):
+  def source_paths(self):
     """A list of base directories to search for modules under."""
-    return self._search_paths
+    return self.project.source_paths
 
   def find_resource(self, some_path):
     """Finds a Resource for the given path.
@@ -46,18 +44,25 @@ class ResourceLoader(object):
 
   def find_resource_given_absolute_path(self, absolute_path):
     """Returns a Resource for the given absolute path."""
-    for search_path in self._search_paths:
-      if absolute_path.startswith(search_path):
-        return resource_module.Resource(search_path, absolute_path)
-    return None
+    candidate_paths = []
+    for source_path in self.source_paths:
+      if absolute_path.startswith(source_path):
+        candidate_paths.append(source_path)
+    if len(candidate_paths) == 0:
+      return None
+
+    # Sort by length. Longest match wins.
+    candidate_paths.sort(lambda x, y: len(x) - len(y))
+    longest_candidate = candidate_paths[-1]
+    return resource_module.Resource(longest_candidate, absolute_path)
 
   def find_resource_given_relative_path(self, relative_path):
     """Returns a Resource for the given relative path."""
     absolute_path = None
-    for search_path in self._search_paths:
-      absolute_path = os.path.join(search_path, relative_path)
+    for script_path in self.source_paths:
+      absolute_path = os.path.join(script_path, relative_path)
       if os.path.exists(absolute_path):
-        return resource_module.Resource(search_path, absolute_path)
+        return resource_module.Resource(script_path, absolute_path)
     return None
 
 
@@ -108,7 +113,7 @@ class ResourceLoader(object):
       resource = self.find_resource(module_filename)
       if not resource:
         raise Exception('Could not find %s in %s' % (
-            module_filename, repr(self.search_paths)))
+            module_filename, repr(self.source_paths)))
       module_name = resource.name
       if resource.absolute_path.endswith('__init__.js'):
         old_style_filename = os.path.dirname(resource.absolute_path) + '.js'
@@ -131,21 +136,21 @@ class ResourceLoader(object):
           raise module.DepsException('No resource for module %s' % module_name)
 
     m = js_module.JSModule(self, module_name, resource)
-    m.parse()
+    m.Parse()
     self.loaded_modules[module_name] = m
     m.load()
     return m
 
   def load_raw_script(self, relative_raw_script_path):
     resource = None
-    for data_path in self._data_paths:
-      possible_absolute_path = os.path.join(data_path, relative_raw_script_path)
+    for source_path in self.source_paths:
+      possible_absolute_path = os.path.join(source_path, relative_raw_script_path)
       if os.path.exists(possible_absolute_path):
-        resource = resource_module.Resource(data_path, possible_absolute_path)
+        resource = resource_module.Resource(source_path, possible_absolute_path)
         break
     if not resource:
       raise module.DepsException('Could not find a file for raw script %s in %s' % (
-        relative_raw_script_path, self._data_paths))
+        relative_raw_script_path, self.source_paths))
     assert relative_raw_script_path == resource.unix_style_relative_path
 
     if resource.absolute_path in self.loaded_raw_scripts:
@@ -196,29 +201,3 @@ def _read_file(absolute_path):
   contents = f.read()
   f.close()
   return absolute_path, contents
-
-
-def GetTestModuleNamesInPath(path):
-  assert os.path.isabs(path)
-
-  def is_test(x):
-    basename = os.path.basename(x)
-    if basename.startswith('.'):
-      return False
-
-    if basename.endswith('_test.js'):
-      return True
-    return False
-
-  test_module_names = []
-  for dirpath, dirnames, filenames in os.walk(path):
-    for f in filenames:
-      x = os.path.join(dirpath, f)
-      y = os.path.join('/', os.path.relpath(x, path))
-      if is_test(y):
-        assert y[0] == '/'
-        module_name = resource_module.Resource.name_from_relative_path(
-            y[1:])
-        test_module_names.append(module_name)
-
-  return test_module_names

@@ -102,7 +102,7 @@ def generate_js(load_sequence, include_html_templates=True):
 
   return ''.join(js_chunks)
 
-def generate_deps_js(load_sequence, mapped_paths):
+def generate_deps_js(load_sequence, project):
   chunks = [js_warning_message, '\n']
   loader = load_sequence[0].loader
   for module in loader.loaded_modules.values():
@@ -115,15 +115,7 @@ def generate_deps_js(load_sequence, mapped_paths):
           module.name, dependent_module.name));
 
     for dependent_raw_script in module.dependent_raw_scripts:
-      # Figure out mapped path for dependent_raw_script.filename.
-      relative_path = None
-      for mapped_path in mapped_paths:
-        if dependent_raw_script.filename.startswith(mapped_path.file_system_path):
-          relative_path = os.path.relpath(
-              dependent_raw_script.filename,
-              mapped_path.file_system_path)
-          break
-      assert relative_path
+      relative_path = dependent_raw_script.resource.relative_path
       chunks.append(
           "base.addModuleRawScriptDependency('%s','%s');\n" % (
            module.name, relative_path));

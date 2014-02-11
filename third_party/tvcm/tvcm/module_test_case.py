@@ -16,15 +16,13 @@ _currently_active_module_test_suite = None
 
 
 class ModuleTestSuite(unittest.TestSuite):
-  def __init__(self, source_paths, raw_data_paths):
+  def __init__(self, project):
     super(ModuleTestSuite, self).__init__()
-    self._source_paths = source_paths
-    self._raw_data_paths = raw_data_paths
+    self._project = project
     self._bc = None
 
   def recreateEmptyVersion(self):
-    return ModuleTestSuite(self._source_paths,
-                           self._raw_data_paths)
+    return ModuleTestSuite(self._project)
 
   def run(self, result):
     self.setUp()
@@ -38,8 +36,7 @@ class ModuleTestSuite(unittest.TestSuite):
     return self._bc
 
   def setUp(self):
-    self._bc = browser_controller.BrowserController(
-        self._source_paths, self._raw_data_paths)
+    self._bc = browser_controller.BrowserController(self._project)
     self._bc.NavigateToPath('/base/unittest/module_test_case_runner.html')
 
     global _currently_active_module_test_suite
@@ -54,15 +51,14 @@ class ModuleTestSuite(unittest.TestSuite):
     global _currently_active_module_test_suite
     _currently_active_module_test_suite = None
 
-def DiscoverTestsInModule(source_paths, raw_data_paths, start_path):
+def DiscoverTestsInModule(project, start_path):
   if not browser_controller.IsSupported():
     raise Exception('Cannot run all tests: telemetry could not be found')
-  rl = resource_loader.ResourceLoader(source_paths, raw_data_paths)
+  rl = resource_loader.ResourceLoader(project)
 
-  test_modules = resource_loader.GetTestModuleNamesInPath(start_path)
+  test_modules = project.FindAllTestModuleNames(start_path=start_path)
 
-  bc = browser_controller.BrowserController(
-      source_paths, raw_data_paths)
+  bc = browser_controller.BrowserController(project)
 
   bc.NavigateToPath('/base/unittest/module_test_case_runner.html')
   try:
@@ -75,7 +71,7 @@ def DiscoverTestsInModule(source_paths, raw_data_paths, start_path):
     if bc.EvaluateJavaScript('base.hasPanic()'):
       raise Exception('Test loading failure: %s' % bc.EvaluateJavaScript('base.getPanicText()'))
 
-    suite = ModuleTestSuite(source_paths, raw_data_paths)
+    suite = ModuleTestSuite(project)
     for fully_qualified_test_name in tests:
       suite.addTest(ModuleTestCase(fully_qualified_test_name))
     return suite

@@ -1,10 +1,9 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""
-The core of this script is the calc_load_sequence function. This function
-walks over the provided javascript files and figures out their dependencies
-by reading the base.require statements in each file. This allows us to, for
+"""The core of this script is the calc_load_sequence function. This function
+loads the provided javascript files and figures out their dependencies by
+reading the base.require statements in each file. This allows us to, for
 example, have a trio of modules, foo, bar and baz, where foo.js contains:
 
     base.require('bar');
@@ -19,6 +18,7 @@ If these three modules are in the current directory, then:
 
 Will return the correct sequence in which to load these modules based on these
 dependencies, which is: [Module('baz'), Module('bar'), Module('foo')].
+
 """
 
 import os
@@ -27,7 +27,7 @@ from tvcm import module
 from tvcm import resource_loader
 
 
-def calc_load_sequence(filenames, search_paths, data_paths):
+def calc_load_sequence(filenames, project):
   """Given a list of starting javascript files, figure out all the Module
   objects that need to be loaded to satisfy their dependencies.
 
@@ -40,10 +40,6 @@ def calc_load_sequence(filenames, search_paths, data_paths):
 
   Args:
     filenames: A list of starting file paths for trace viewer modules.
-    search_paths: A list of top-level directories in which modules can be found.
-        Module paths are relative to these directories.
-    data_paths: A list of top-level directories in which raw scripts and other
-        directly-referenced resources can be found.
 
   Returns:
     A list of Module objects in the order that they should be loaded.
@@ -51,20 +47,20 @@ def calc_load_sequence(filenames, search_paths, data_paths):
   if os.path.join('base', '__init__.js') not in filenames:
     filenames = list(filenames)
     filenames.insert(0, os.path.join('base', '__init__.js'))
-  return calc_load_sequence_internal(filenames, search_paths, data_paths)
+  return calc_load_sequence_internal(filenames, project)
 
 
-def calc_load_sequence_internal(filenames, search_paths, data_paths):
+def calc_load_sequence_internal(filenames, project):
   """Helper function for calc_load_sequence.
 
   Args:
     filenames: A list of starting file paths for trace viewer modules.
-    search_paths: A list of top-level directories to search in.
+    project : A tvcm.Project
 
   Returns:
     A list of Module objects in the list that they should be loaded.
   """
-  loader = resource_loader.ResourceLoader(search_paths, data_paths)
+  loader = resource_loader.ResourceLoader(project)
   initial_module_name_indices = {}
   for filename in filenames:
     m = loader.load_module(module_filename=filename)

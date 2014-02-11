@@ -6,15 +6,13 @@ import os
 
 from tvcm import module_test_case
 from tvcm import test_runner
+from tvcm import project as project_module
 
 class ModuleTestCaseTests(unittest.TestCase):
   def testDiscoverAndRun(self):
-    tvcm_base = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..'))
-    third_party = os.path.abspath(os.path.join(
-      tvcm_base, '..'))
-    t = module_test_case.DiscoverTestsInModule([tvcm_base], [third_party],
-                                               tvcm_base)
+    tvcm_project = project_module.Project()
+    t = module_test_case.DiscoverTestsInModule(
+      tvcm_project, tvcm_project.tvcm_path)
     interesting_t = test_runner.FilterSuite(
       t,
       lambda x: x.id() == 'base.unittest.test_case_test.parseFullyQualifiedName')

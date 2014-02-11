@@ -5,21 +5,12 @@ import unittest
 import sys
 import os
 
+from tvcm import project as project_module
 from tvcm import module_test_case
 
-tvcm_path = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..'))
-third_party_path = os.path.abspath(os.path.join(
-    tvcm_path, '..'))
-
-base_path = os.path.abspath(os.path.join(
-  tvcm_path, 'base'))
-ui_path = os.path.abspath(os.path.join(
-  tvcm_path, 'ui'))
-
 def load_tests(loader, tests, pattern):
+  tvcm_project = project_module.Project()
   suite = unittest.TestSuite()
   suite.addTest(module_test_case.DiscoverTestsInModule(
-      [tvcm_path], [third_party_path],
-      tvcm_path))
+      tvcm_project, tvcm_project.tvcm_path))
   return suite

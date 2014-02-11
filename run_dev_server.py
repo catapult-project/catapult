@@ -6,14 +6,8 @@ import os
 import sys
 import json
 
-import build # Brings in tvcm bindings.
+from build import trace_viewer_project
 import tvcm
-
-toplevel_path = os.path.abspath(os.path.dirname(__file__))
-tvcm_path = os.path.join(toplevel_path, 'third_party', 'tvcm')
-src_path = os.path.join(toplevel_path, 'src')
-test_data_path = os.path.join(toplevel_path, 'test_data')
-skp_data_path = os.path.join(toplevel_path, 'skp_data')
 
 def do_GET_json_examples(request):
   data_files = []
@@ -46,14 +40,13 @@ def do_GET_json_examples_skp(request):
   request.wfile.write(files_as_json)
 
 def Main(port, args):
-  server = tvcm.DevServer(port=port)
+  project = trace_viewer_project.TraceViewerProject()
+
+  server = tvcm.DevServer(port=port, project=project)
   server.AddPathHandler('/json/examples', do_GET_json_examples)
   server.AddPathHandler('/json/examples/skp', do_GET_json_examples_skp)
 
-  server.AddSourcePathMapping(tvcm_path)
-  server.AddSourcePathMapping(src_path)
-  server.AddDataPathMapping(os.path.join(toplevel_path, 'third_party'))
-  server.AddDataPathMapping(toplevel_path)
+  server.AddSourcePathMapping(project.trace_viewer_path)
   server.AddTestLink('/examples/skia_debugger.html', 'Skia Debugger')
   server.AddTestLink('/examples/trace_viewer.html', 'Trace File Viewer')
   server.serve_forever()

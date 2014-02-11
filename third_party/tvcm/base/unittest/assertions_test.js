@@ -8,9 +8,9 @@ base.require('base.unittest.assertions');
 base.require('base.quad');
 base.require('base.rect');
 
-base.requireRawScript('gl-matrix/src/gl-matrix/common.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/vec2.js');
-base.requireRawScript('gl-matrix/src/gl-matrix/vec3.js');
+base.requireRawScript('gl-matrix/common.js');
+base.requireRawScript('gl-matrix/vec2.js');
+base.requireRawScript('gl-matrix/vec3.js');
 
 base.unittest.testSuite('base.unittest.assertions_test', function() {
   function assertionTestSetup() {
