@@ -213,7 +213,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       assert use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
       self.wpr_port_pairs = forwarders.PortPairs(
           http=forwarders.PortPair(0, 80),
-          https=forwarders.PortPair(0, 43),
+          https=forwarders.PortPair(0, 443),
           dns=forwarders.PortPair(0, 53))
 
     # Set the debug app if needed.
