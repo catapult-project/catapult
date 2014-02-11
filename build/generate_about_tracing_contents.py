@@ -7,10 +7,7 @@ import os
 import sys
 
 import tvcm
-
-tvcm_dir = os.path.abspath(os.path.join(os.path.dirname(tvcm.__file__), '..'))
-src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
-third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
+from build import trace_viewer_project
 
 html_warning_message = """
 
@@ -76,7 +73,8 @@ def main(args):
     return 1
 
   filenames = ["base/__init__.js", "about_tracing/__init__.js"]
-  load_sequence = tvcm.calc_load_sequence(filenames, [tvcm_dir, src_dir], [third_party_dir])
+  project = trace_viewer_project.TraceViewerProject()
+  load_sequence = tvcm.calc_load_sequence(filenames, project)
 
   olddir = os.getcwd()
   try:
