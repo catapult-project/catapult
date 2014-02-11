@@ -20,7 +20,8 @@ class JSModule(module.Module):
   def Parse(self):
     stripped_text = strip_js_comments.strip_js_comments(self.contents)
     if self.name != 'base':
-      assert IsJSModule(stripped_text), '%s is not a JS Module' % (self.name)
+      if not IsJSModule(stripped_text):
+        raise module.DepsException('%s is not a JS Module' % self.name)
     ValidateUsesStrictMode(self.name, stripped_text)
     if self.name.endswith('_test'):
       ValidateTestSuiteDefinition(self.name, stripped_text)

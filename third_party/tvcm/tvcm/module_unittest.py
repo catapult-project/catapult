@@ -71,6 +71,34 @@ base.exportTo('foo', function() {
       assert [x.name for x in my_module.dependent_modules] == ['base.foo']
       assert my_module.dependent_modules[0].name == 'base.foo'
 
+  def testDepsExceptionContext(self):
+    fs = fake_fs.FakeFS()
+    fs.AddFile('/x/src/my_module.js', """
+'use strict';
+base.require('base.foo');
+base.exportTo('foo', function() {
+});
+""")
+    fs.AddFile('/x/base/foo.js', """
+'use strict';
+base.require('missing');
+base.exportTo('foo', function() {
+});
+""");
+    project = project_module.Project(['/x'],
+                                     include_tvcm_paths=False)
+    loader = resource_loader.ResourceLoader(project)
+    with fs:
+      exc = None
+      try:
+        my_module = loader.load_module(module_name = 'src.my_module')
+        assertFalse('Expected an exception')
+      except module.DepsException, e:
+        exc = e
+      self.assertEquals(
+        ['src.my_module', 'base.foo'],
+        exc.context)
+
   def testRawScript(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/y/z/foo.js', """

@@ -96,7 +96,7 @@ class ResourceLoader(object):
       # Verify that no __init__.js exists.
       init_resource = self._find_resource_given_name_and_suffix(requested_module_name + '.__init__', '.js', return_resource=True)
       if init_resource:
-        raise module.DepsException('While loading %s, found a __init__.js form as well', requested_module_name)
+        raise module.DepsException('While loading "%s", found a __init__.js form as well', requested_module_name)
 
     html_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.html', return_resource=True)
     if js_resource and html_resource:
@@ -107,7 +107,7 @@ class ResourceLoader(object):
       return js_resource
     return html_resource
 
-  def load_module(self, module_name=None, module_filename=None, context=None):
+  def load_module(self, module_name=None, module_filename=None):
     assert bool(module_name) ^ bool(module_filename), 'Must provide module_name or module_filename.'
     if module_filename:
       resource = self.find_resource(module_filename)
@@ -130,10 +130,7 @@ class ResourceLoader(object):
     if not resource: # happens when module_name was given
       resource = self.find_module_resource(module_name)
       if not resource:
-        if context:
-          raise module.DepsException('No resource for module %s needed by %s' % (module_name, context))
-        else:
-          raise module.DepsException('No resource for module %s' % module_name)
+        raise module.DepsException('No resource for module "%s"' % module_name)
 
     m = js_module.JSModule(self, module_name, resource)
     m.Parse()

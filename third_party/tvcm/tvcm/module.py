@@ -12,12 +12,47 @@ Other resources include HTML templates, raw javascript files, and stylesheets.
 
 import os
 import re
+import inspect
 
 from tvcm import resource as resource_module
 
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
-  pass
+  def __init__(self, fmt, *args):
+    context = []
+    frame = inspect.currentframe()
+    while frame:
+      locals = frame.f_locals
+
+      module_name = None
+      if 'self' in locals:
+        s = locals['self']
+        if isinstance(s, Module):
+          module_name = s.name
+      if not module_name:
+        if 'module' in locals:
+          module = locals['module']
+          if isinstance(s, Module):
+            module_name = module.name
+        elif 'm' in locals:
+          module = locals['m']
+          if isinstance(s, Module):
+            module_name = module.name
+
+      if module_name:
+        if len(context):
+          if context[-1] != module_name:
+            context.append(module_name)
+        else:
+          context.append(module_name)
+
+      frame = frame.f_back
+
+    context.reverse()
+    self.context = context
+    context_str = '\n'.join(['  %s' % x for x in context])
+    Exception.__init__(self, 'While loading:\n%s\nGot: %s' % (context_str, (fmt % args)))
+
 
 class ModuleDependencyMetadata(object):
   def __init__(self):
@@ -90,7 +125,7 @@ class Module(object):
 
     metadata = self.dependency_metadata
     for name in metadata.dependent_module_names:
-      module = self.loader.load_module(module_name=name, context=self.name)
+      module = self.loader.load_module(module_name=name)
       self.dependent_modules.append(module)
 
     for relative_raw_script_path in metadata.dependent_raw_script_relative_paths:
