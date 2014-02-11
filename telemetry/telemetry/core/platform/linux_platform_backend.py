@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
@@ -36,6 +37,7 @@ class LinuxPlatformBackend(
   def GetOSName(self):
     return 'linux'
 
+  @decorators.Cache
   def GetOSVersionName(self):
     if not os.path.exists('/etc/lsb-release'):
       raise NotImplementedError('Unknown Linux OS version')

@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 
+from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core import platform
@@ -42,14 +43,11 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
         finder_options)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
-    self.__platform_backend = None
 
   @property
+  @decorators.Cache
   def _platform_backend(self):
-    if not self.__platform_backend:
-      self.__platform_backend = \
-          platform.CreatePlatformBackendForCurrentOS()
-    return self.__platform_backend
+    return platform.CreatePlatformBackendForCurrentOS()
 
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()

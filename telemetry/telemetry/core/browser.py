@@ -4,6 +4,7 @@
 
 import os
 
+from telemetry import decorators
 from telemetry.core import browser_credentials
 from telemetry.core import exceptions
 from telemetry.core import extension_dict
@@ -30,20 +31,21 @@ class Browser(object):
   """
   def __init__(self, backend, platform_backend):
     self._browser_backend = backend
-    self._local_server_controller = local_server.LocalServerController(backend)
     self._http_server = None
     self._wpr_server = None
-    self._platform = platform.Platform(platform_backend)
     self._platform_backend = platform_backend
-    self._tabs = tab_list.TabList(backend.tab_list_backend)
+    self._active_profilers = []
+    self._profilers_states = {}
+
     self._extensions = None
     if backend.supports_extensions:
       self._extensions = extension_dict.ExtensionDict(
           backend.extension_dict_backend)
+
+    self._local_server_controller = local_server.LocalServerController(backend)
+    self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
-    self._platform.SetFullPerformanceModeEnabled(True)
-    self._active_profilers = []
-    self._profilers_states = {}
+    self.platform.SetFullPerformanceModeEnabled(True)
 
   def __enter__(self):
     self.Start()
@@ -53,8 +55,9 @@ class Browser(object):
     self.Close()
 
   @property
+  @decorators.Cache
   def platform(self):
-    return self._platform
+    return platform.Platform(self._platform_backend)
 
   @property
   def browser_type(self):
@@ -274,13 +277,13 @@ class Browser(object):
   def Start(self):
     browser_options = self._browser_backend.browser_options
     if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-      if self._platform.CanFlushIndividualFilesFromSystemCache():
-        self._platform.FlushSystemCacheForDirectory(
+      if self.platform.CanFlushIndividualFilesFromSystemCache():
+        self.platform.FlushSystemCacheForDirectory(
             self._browser_backend.profile_directory)
-        self._platform.FlushSystemCacheForDirectory(
+        self.platform.FlushSystemCacheForDirectory(
             self._browser_backend.browser_directory)
       else:
-        self._platform.FlushEntireSystemCache()
+        self.platform.FlushEntireSystemCache()
 
     self._browser_backend.Start()
     self._browser_backend.SetBrowser(self)
@@ -291,7 +294,7 @@ class Browser(object):
       profiler_class.WillCloseBrowser(self._browser_backend,
                                       self._platform_backend)
 
-    self._platform.SetFullPerformanceModeEnabled(False)
+    self.platform.SetFullPerformanceModeEnabled(False)
 
     if self._wpr_server:
       self._wpr_server.Close()

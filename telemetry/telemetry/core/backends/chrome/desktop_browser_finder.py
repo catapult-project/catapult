@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 
+from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import platform as core_platform
 from telemetry.core import possible_browser
@@ -38,7 +39,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         finder_options)
     assert browser_type in ALL_BROWSER_TYPES, \
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
-    self.__platform_backend = None
     self._local_executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -50,11 +50,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         self.browser_type, self._local_executable)
 
   @property
+  @decorators.Cache
   def _platform_backend(self):
-    if not self.__platform_backend:
-      self.__platform_backend = (
-          core_platform.CreatePlatformBackendForCurrentOS())
-    return self.__platform_backend
+    return core_platform.CreatePlatformBackendForCurrentOS()
 
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(

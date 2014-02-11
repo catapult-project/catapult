@@ -7,9 +7,11 @@ import inspect
 import os
 import re
 
+from telemetry import decorators
 from telemetry.core import camel_case
 
 
+@decorators.Cache
 def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   """Discover all modules in |start_dir| which match |pattern|.
 
@@ -46,6 +48,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
 
 # TODO(dtu): Normalize all discoverable classes to have corresponding module
 # and class names, then always index by class name.
+@decorators.Cache
 def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
                     index_by_class_name=False):
   """Discover all classes in |start_dir| which subclass |base_class|.

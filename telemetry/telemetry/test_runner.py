@@ -127,14 +127,10 @@ def _GetScriptName():
 
 
 def _GetTests():
-  # Lazy load and cache results.
-  if not hasattr(_GetTests, 'tests'):
-    base_dir = util.GetBaseDir()
-    tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
-                                     index_by_class_name=True)
-    tests = dict((test.GetName(), test) for test in tests.itervalues())
-    _GetTests.tests = tests
-  return _GetTests.tests
+  base_dir = util.GetBaseDir()
+  tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
+                                   index_by_class_name=True)
+  return dict((test.GetName(), test) for test in tests.itervalues())
 
 
 def _MatchTestName(input_test_name):

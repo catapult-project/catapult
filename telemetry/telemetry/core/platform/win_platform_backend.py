@@ -19,6 +19,7 @@ except ImportError:
   win32con = None
   win32process = None
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import desktop_platform_backend
 from telemetry.core.platform import platform_backend
@@ -45,6 +46,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     performance_info = self._GetPerformanceInfo()
     return performance_info.CommitTotal * performance_info.PageSize / 1024
 
+  @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     performance_info = self._GetPerformanceInfo()
     return performance_info.PhysicalTotal * performance_info.PageSize / 1024
@@ -137,6 +139,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def GetOSName(self):
     return 'win'
 
+  @decorators.Cache
   def GetOSVersionName(self):
     os_version = platform.uname()[3]
 

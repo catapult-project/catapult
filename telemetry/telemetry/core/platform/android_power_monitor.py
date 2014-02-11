@@ -8,6 +8,8 @@ import os
 import tempfile
 import time
 
+from telemetry import decorators
+
 
 SAMPLE_INTERVAL_S = 0.5 # 2 Hz. The data is collected from the ds2784 fuel gauge
                         # chip that only updates its data every 3.5s.
@@ -43,7 +45,6 @@ class PowerMonitorUtility(object):
     self._powermonitor_process = None
     self._powermonitor_output_file = None
     self._sending_pipe = None
-    self._has_fuel_gauge = None
 
   def _IsDeviceCharging(self):
     for line in self._adb.RunShellCommand('dumpsys battery'):
@@ -52,10 +53,12 @@ class PowerMonitorUtility(object):
           return True
     return False
 
+  @decorators.Cache
+  def _HasFuelGauge(self):
+    return self._adb.FileExistsOnDevice(CHARGE_COUNTER)
+
   def CanMonitorPowerAsync(self):
-    if self._has_fuel_gauge is None:
-      self._has_fuel_gauge = self._adb.FileExistsOnDevice(CHARGE_COUNTER)
-    if not self._has_fuel_gauge:
+    if not self._HasFuelGauge():
       return False
     if self._IsDeviceCharging():
       logging.warning('Can\'t monitor power usage since device is charging.')

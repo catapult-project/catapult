@@ -18,6 +18,7 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
@@ -191,6 +192,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         return pages_active * resource.getpagesize() / 1024
     return 0
 
+  @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     return int(self._RunCommand(['sysctl', '-n', 'hw.memsize']))
 
@@ -209,6 +211,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def GetOSName(self):
     return 'mac'
 
+  @decorators.Cache
   def GetOSVersionName(self):
     os_version = os.uname()[2]
 
@@ -234,6 +237,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     p.wait()
     assert p.returncode == 0, 'Failed to flush system cache'
 
+  @decorators.Cache
   def CanMonitorPowerAsync(self):
     mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
     binary_path = self.powermetrics_tool_.binary_path

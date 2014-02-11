@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 
+from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core import util
@@ -66,7 +67,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
     self._backend_settings = backend_settings
     self._local_apk = None
-    self.__platform_backend = None
 
     chrome_root = util.GetChromiumSrcDir()
     if apk_name:
@@ -88,12 +88,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
   @property
+  @decorators.Cache
   def _platform_backend(self):
-    if not self.__platform_backend:
-      self.__platform_backend = android_platform_backend.AndroidPlatformBackend(
-          self._backend_settings.adb.Adb(),
-          self.finder_options.no_performance_mode)
-    return self.__platform_backend
+    return android_platform_backend.AndroidPlatformBackend(
+        self._backend_settings.adb.Adb(),
+        self.finder_options.no_performance_mode)
 
   def Create(self):
     use_rndis_forwarder = (self.finder_options.android_rndis or

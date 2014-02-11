@@ -7,6 +7,7 @@ try:
 except ImportError:
   resource = None  # Not available on all platforms
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core.platform import platform_backend
 
@@ -25,6 +26,7 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
             - self._ConvertKbToByte(meminfo['Buffers'])
             - self._ConvertKbToByte(meminfo['Cached']))
 
+  @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     meminfo_contents = self._GetFileContents('/proc/meminfo')
     meminfo = self._GetProcFileDict(meminfo_contents)

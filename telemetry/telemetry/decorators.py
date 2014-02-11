@@ -6,6 +6,28 @@ import functools
 import types
 
 
+def Cache(obj):
+  """Decorator for caching read-only properties.
+
+  Example usage (always returns the same Foo instance):
+    @Cache
+    def CreateFoo():
+      return Foo()
+
+  If CreateFoo() accepts parameters, a separate cached value is maintained
+  for each unique parameter combination.
+  """
+  cache = obj.__cache = {}
+
+  @functools.wraps(obj)
+  def Cacher(*args, **kwargs):
+    key = str(args) + str(kwargs)
+    if key not in cache:
+      cache[key] = obj(*args, **kwargs)
+    return cache[key]
+  return Cacher
+
+
 def Disabled(*args):
   """Decorator for disabling tests/benchmarks.
 

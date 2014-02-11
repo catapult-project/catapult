@@ -6,6 +6,7 @@ import logging
 import subprocess
 import tempfile
 
+from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import platform
@@ -100,6 +101,7 @@ class AndroidPlatformBackend(
         return int(line.split()[2]) * 1024
     return 0
 
+  @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     for line in self._adb.RunShellCommand('dumpsys meminfo', log_result=False):
       if line.startswith('Total RAM: '):
@@ -162,6 +164,7 @@ class AndroidPlatformBackend(
   def GetOSName(self):
     return 'android'
 
+  @decorators.Cache
   def GetOSVersionName(self):
     return self._adb.GetBuildId()[0]
 
@@ -204,6 +207,7 @@ class AndroidPlatformBackend(
     raise NotImplementedError(
         'Please teach Telemetry how to install ' + application)
 
+  @decorators.Cache
   def CanCaptureVideo(self):
     return self.GetOSVersionName() >= 'K'
 

@@ -1,10 +1,12 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Finds CrOS browsers that can be controlled by telemetry."""
 
 import logging
 
+from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import possible_browser
 from telemetry.core.backends.chrome import cros_browser_with_oobe
@@ -19,6 +21,7 @@ ALL_BROWSER_TYPES = [
     'system-guest',
     ]
 
+
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
   def __init__(self, browser_type, finder_options, cri, is_guest):
@@ -29,17 +32,14 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     self._cri = cri
     self._is_guest = is_guest
     self._platform = None
-    self.__platform_backend = None
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
   @property
+  @decorators.Cache
   def _platform_backend(self):
-    if not self.__platform_backend:
-      self.__platform_backend = cros_platform_backend.CrosPlatformBackend(
-          self._cri)
-    return self.__platform_backend
+    return cros_platform_backend.CrosPlatformBackend(self._cri)
 
   def Create(self):
     if self.finder_options.output_profile_path:
