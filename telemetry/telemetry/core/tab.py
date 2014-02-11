@@ -97,7 +97,6 @@ class Tab(web_contents.WebContents):
     self.ExecuteJavaScript("""
       (function() {
         var screen = document.createElement('div');
-        screen.id = '__telemetry_screen_%d';
         screen.style.background = 'rgba(%d, %d, %d, %d)';
         screen.style.position = 'fixed';
         screen.style.top = '0';
@@ -107,20 +106,25 @@ class Tab(web_contents.WebContents):
         screen.style.zIndex = '2147483638';
         document.body.appendChild(screen);
         requestAnimationFrame(function() {
-          screen.has_painted = true;
+          window.__telemetry_screen_%d = screen;
         });
       })();
-    """ % (int(color), color.r, color.g, color.b, color.a))
+    """ % (color.r, color.g, color.b, color.a, int(color)))
     self.WaitForJavaScriptExpression(
-      'document.getElementById("__telemetry_screen_%d").has_painted' %
-      int(color), 5)
+        '!!window.__telemetry_screen_%d' % int(color), 5)
 
   def ClearHighlight(self, color):
     """Clears a highlight of the given bitmap.RgbaColor."""
     self.ExecuteJavaScript("""
-      document.body.removeChild(
-        document.getElementById('__telemetry_screen_%d'));
-    """ % int(color))
+      (function() {
+        document.body.removeChild(window.__telemetry_screen_%d);
+        requestAnimationFrame(function() {
+          window.__telemetry_screen_%d = null;
+        });
+      })();
+    """ % (int(color), int(color)))
+    self.WaitForJavaScriptExpression(
+        '!window.__telemetry_screen_%d' % int(color), 5)
 
   def StartVideoCapture(self, min_bitrate_mbps):
     """Starts capturing video of the tab's contents.
@@ -189,16 +193,27 @@ class Tab(web_contents.WebContents):
     """
     frame_generator = self.browser.platform.StopVideoCapture()
 
-    # Use initial flash to identify the content box, but skip over it.
-    timestamp = 0
+    # Flip through frames until we find the initial tab contents flash.
     content_box = None
-    for timestamp, bmp in frame_generator:
+    for _, bmp in frame_generator:
       try:
         content_box = self._FindHighlightBoundingBox(
             bmp, bitmap.WEB_PAGE_TEST_ORANGE)
+        break
       except BoundingBoxNotFoundException:
-        if not content_box:
-          raise  # Content box is not in first frame.
+        pass
+
+    if not content_box:
+      raise BoundingBoxNotFoundException(
+          'Failed to identify tab contents in video capture.')
+
+    # Flip through frames until the flash goes away and emit that as frame 0.
+    timestamp = 0
+    for timestamp, bmp in frame_generator:
+      try:
+        self._FindHighlightBoundingBox(bmp, bitmap.WEB_PAGE_TEST_ORANGE)
+      except BoundingBoxNotFoundException:
+        yield 0, bmp.Crop(*content_box)
         break
 
     start_time = timestamp
