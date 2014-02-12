@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
+from telemetry.core import forwarders
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.webdriver import webdriver_tab_list_backend
+
 
 class WebDriverBrowserBackend(browser_backend.BrowserBackend):
   """The webdriver-based backend for controlling a locally-executed browser
@@ -20,8 +21,10 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
 
     self._driver_creator = driver_creator
     self._driver = None
-    self.wpr_http_port_pair = util.PortPair(80, 80)
-    self.wpr_https_port_pair = util.PortPair(443, 443)
+    self.wpr_port_pairs = forwarders.PortPairs(
+        http=forwarders.PortPair(80, 80),
+        https=forwarders.PortPair(443, 443),
+        dns=forwarders.PortPair(53, 53))
 
   def Start(self):
     assert not self._driver
@@ -53,9 +56,6 @@ class WebDriverBrowserBackend(browser_backend.BrowserBackend):
     if self._driver:
       self._driver.quit()
       self._driver = None
-
-  def CreateForwarder(self, *port_pairs):
-    return browser_backend.DoNothingForwarder(*port_pairs)
 
   def IsBrowserRunning(self):
     # Assume the browser is running if not explicitly closed.

@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
 import re
@@ -9,53 +10,167 @@ import struct
 import subprocess
 import sys
 
+from telemetry.core import forwarders
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+try:
+  from pylib import forwarder  # pylint: disable=F0401
+except Exception:
+  forwarder = None
 
-class RndisForwarderWithRoot(object):
-  """Forwards traffic using RNDIS. Assuming the device has root access.
-  """
-  _RNDIS_DEVICE = '/sys/class/android_usb/android0'
-  _NETWORK_INTERFACES = '/etc/network/interfaces'
-  _TELEMETRY_MARKER = '# Added by Telemetry for RNDIS forwarding #'
 
-  def __init__(self, adb):
-    """Args:
-         adb: an instance of AdbCommands
-    """
-    is_root_enabled = adb.Adb().EnableAdbRoot()
-    assert is_root_enabled, 'RNDIS forwarding requires a rooted device'
+class AndroidForwarderFactory(forwarders.ForwarderFactory):
+
+  def __init__(self, adb, use_rndis):
+    super(AndroidForwarderFactory, self).__init__()
+    self._adb = adb
+    self._rndis_configurator = None
+    if use_rndis:
+      self._rndis_configurator = AndroidRndisConfigurator(self._adb)
+
+  def Create(self, port_pairs):
+    if self._rndis_configurator:
+      return AndroidRndisForwarder(self._adb, self.host_ip,
+                                   self._rndis_configurator.device_iface,
+                                   port_pairs)
+    return AndroidForwarder(self._adb, port_pairs)
+
+  @property
+  def host_ip(self):
+    if self._rndis_configurator:
+      return self._rndis_configurator.host_ip
+    return super(AndroidForwarderFactory, self).host_ip
+
+  @property
+  def does_forwarder_override_dns(self):
+    return bool(self._rndis_configurator)
+
+
+class AndroidForwarder(forwarders.Forwarder):
+
+  def __init__(self, adb, port_pairs):
+    super(AndroidForwarder, self).__init__(port_pairs)
     self._adb = adb.Adb()
+    forwarder.Forwarder.Map([p for p in port_pairs if p], self._adb)
+    # TODO(tonyg): Verify that each port can connect to host.
 
-    self._host_port = 80
-    self._host_ip = None
-    self._device_ip = None
-    self._host_iface = None
-    self._device_iface = None
+  def Close(self):
+    for port_pair in self._port_pairs:
+      if port_pair:
+        forwarder.Forwarder.UnmapDevicePort(port_pair.local_port, self._adb)
+    super(AndroidForwarder, self).Close()
+
+
+class AndroidRndisForwarder(forwarders.Forwarder):
+  """Forwards traffic using RNDIS. Assumes the device has root access."""
+
+  def __init__(self, adb, host_ip, device_iface, port_pairs):
+    super(AndroidRndisForwarder, self).__init__(port_pairs)
+
+    self._adb = adb
+    self._device_iface = device_iface
+    self._host_ip = host_ip
     self._original_dns = None, None, None
+    self._RedirectPorts(port_pairs)
+    if port_pairs.dns:
+      self._OverrideDns()
+    # TODO(tonyg): Verify that each port can connect to host.
 
-    assert self._IsRndisSupported(), 'Device does not have rndis!'
-    self._CheckConfigureNetwork()
+  @property
+  def host_ip(self):
+    return self._host_ip
 
-  def SetPorts(self, *port_pairs):
-    """Args:
-         port_pairs: Used for compatibility with Forwarder. RNDIS does not
-           support mapping so local_port must match remote_port in all pairs.
-    """
-    assert all(pair.remote_port == pair.local_port for pair in port_pairs), \
-           'Local and remote ports must be the same on all pairs with RNDIS.'
-    self._host_port = port_pairs[0].local_port
+  def Close(self):
+    self._SetDns(*self._original_dns)
+    super(AndroidRndisForwarder, self).Close()
 
-  def OverrideDns(self):
+  def _RedirectPorts(self, port_pairs):
+    """Sets the local to remote pair mappings to use for RNDIS."""
+    self._adb.RunShellCommand('iptables -F -t nat')  # Flush any old nat rules.
+    for port_pair in port_pairs:
+      if not port_pair or port_pair.local_port == port_pair.remote_port:
+        continue
+      protocol = 'udp' if port_pair.remote_port == 53 else 'tcp'
+      self._adb.RunShellCommand(
+          'iptables -t nat -A OUTPUT -p %s --dport %d'
+          ' -j DNAT --to-destination :%d' %
+          (protocol, port_pair.remote_port, port_pair.local_port))
+
+  def _OverrideDns(self):
     """Overrides DNS on device to point at the host."""
     self._original_dns = self._GetCurrentDns()
     if not self._original_dns[0]:
       # No default route. Install one via the host. This is needed because
       # getaddrinfo in bionic uses routes to determine AI_ADDRCONFIG.
       self._adb.RunShellCommand('route add default gw %s dev %s' %
-                                (self._host_ip, self._device_iface))
-    self._OverrideDns(self._device_iface, self._host_ip, self._host_ip)
+                                (self.host_ip, self._device_iface))
+    self._SetDns(self._device_iface, self.host_ip, self.host_ip)
+
+  def _SetDns(self, iface, dns1, dns2):
+    """Overrides device's DNS configuration.
+
+    Args:
+      iface: name of the network interface to make default
+      dns1, dns2: nameserver IP addresses
+    """
+    if not iface:
+      return  # If there is no route, then nobody cares about DNS.
+    # DNS proxy in older versions of Android is configured via properties.
+    # TODO(szym): run via su -c if necessary.
+    self._adb.system_properties['net.dns1'] = dns1
+    self._adb.system_properties['net.dns2'] = dns2
+    dnschange = self._adb.system_properties['net.dnschange']
+    if dnschange:
+      self._adb.system_properties['net.dnschange'] = int(dnschange) + 1
+    # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
+    # the net.dns1 properties have been replaced with explicit commands for netd
+    self._adb.RunShellCommand('ndc netd resolver setifdns %s %s %s' %
+                              (iface, dns1, dns2))
+    # TODO(szym): if we know the package UID, we could setifaceforuidrange
+    self._adb.RunShellCommand('ndc netd resolver setdefaultif %s' % iface)
+
+  def _GetCurrentDns(self):
+    """Returns current gateway, dns1, and dns2."""
+    routes = self._adb.RunShellCommand('cat /proc/net/route')[1:]
+    routes = [route.split() for route in routes]
+    default_routes = [route[0] for route in routes if route[1] == '00000000']
+    return (
+      default_routes[0] if default_routes else None,
+      self._adb.system_properties['net.dns1'],
+      self._adb.system_properties['net.dns2'],
+    )
+
+
+class AndroidRndisConfigurator(object):
+  """Configures a linux host to connect to an android device via RNDIS.
+
+  Note that we intentionally leave RNDIS running on the device. This is
+  because the setup is slow and potentially flaky and leaving it running
+  doesn't seem to interfere with any other developer or bot use-cases.
+  """
+
+  _RNDIS_DEVICE = '/sys/class/android_usb/android0'
+  _NETWORK_INTERFACES = '/etc/network/interfaces'
+  _TELEMETRY_MARKER = '# Added by Telemetry for RNDIS forwarding #'
+
+  def __init__(self, adb):
+    is_root_enabled = adb.Adb().EnableAdbRoot()
+    assert is_root_enabled, 'RNDIS forwarding requires a rooted device.'
+    self._adb = adb.Adb()
+
+    self._device_ip = None
+    self._host_iface = None
+    self._host_ip = None
+    self.device_iface = None
+
+    assert self._IsRndisSupported(), 'Device does not support RNDIS.'
+    self._CheckConfigureNetwork()
+
+  @property
+  def host_ip(self):
+    return self._host_ip
 
   def _IsRndisSupported(self):
     """Checks that the device has RNDIS support in the kernel."""
@@ -286,7 +401,7 @@ doit &
     self._WaitForDevice()
     self._host_iface = host_iface
     self._host_ip = host_ip
-    self._device_iface = device_iface
+    self.device_iface = device_iface
     self._device_ip = device_ip
 
   def _TestConnectivity(self):
@@ -305,53 +420,3 @@ doit &
         return
       force = True
     raise Exception('No connectivity, giving up.')
-
-  def _GetCurrentDns(self):
-    """Returns current gateway, dns1, and dns2."""
-    routes = self._adb.RunShellCommand('cat /proc/net/route')[1:]
-    routes = [route.split() for route in routes]
-    default_routes = [route[0] for route in routes if route[1] == '00000000']
-    return (
-      default_routes[0] if default_routes else None,
-      self._adb.system_properties['net.dns1'],
-      self._adb.system_properties['net.dns2'],
-    )
-
-  def _OverrideDns(self, iface, dns1, dns2):
-    """Overrides device's DNS configuration.
-
-    Args:
-      iface: name of the network interface to make default
-      dns1, dns2: nameserver IP addresses
-    """
-    if not iface:
-      return  # If there is no route, then nobody cares about DNS.
-    # DNS proxy in older versions of Android is configured via properties.
-    # TODO(szym): run via su -c if necessary.
-    self._adb.system_properties['net.dns1'] = dns1
-    self._adb.system_properties['net.dns2'] = dns2
-    dnschange = self._adb.system_properties['net.dnschange']
-    if dnschange:
-      self._adb.system_properties['net.dnschange'] = int(dnschange) + 1
-    # Since commit 8b47b3601f82f299bb8c135af0639b72b67230e6 to frameworks/base
-    # the net.dns1 properties have been replaced with explicit commands for netd
-    self._adb.RunShellCommand('ndc netd resolver setifdns %s %s %s' %
-                              (iface, dns1, dns2))
-    # TODO(szym): if we know the package UID, we could setifaceforuidrange
-    self._adb.RunShellCommand('ndc netd resolver setdefaultif %s' % iface)
-
-  @property
-  def host_ip(self):
-    return self._host_ip
-
-  @property
-  def url(self):
-    # localhost and domains which resolve on the host's private network will not
-    # be resolved by the DNS proxy to the HTTP proxy.
-    return 'http://%s:%d' % (self._host_ip, self._host_port)
-
-  def Close(self):
-    self._OverrideDns(*self._original_dns)
-    # Note that we intentionally leave RNDIS running on the device. This is
-    # because the setup is slow and potentially flaky and leaving it running
-    # doesn't seem to interfere with any other developer use-cases.

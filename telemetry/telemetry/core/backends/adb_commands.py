@@ -1,6 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Brings in Chrome Android's android_commands module, which itself is a
 thin(ish) wrapper around adb."""
 
@@ -21,7 +22,6 @@ util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
 try:
   from pylib import android_commands  # pylint: disable=F0401
   from pylib import constants  # pylint: disable=F0401
-  from pylib import forwarder  # pylint: disable=F0401
   from pylib import ports  # pylint: disable=F0401
   from pylib.utils import apk_helper  # pylint: disable=F0401
   from pylib.utils import test_environment  # pylint: disable=F0401
@@ -241,23 +241,3 @@ http://www.chromium.org/developers/telemetry/upload_to_cloud_storage
       shutil.copyfile(prebuilt_path, dest)
       os.chmod(dest, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
   return True
-
-
-class Forwarder(object):
-  def __init__(self, adb, *port_pairs):
-    self._adb = adb.Adb()
-    self._host_port = port_pairs[0].local_port
-
-    new_port_pairs = [(port_pair.local_port, port_pair.remote_port)
-                      for port_pair in port_pairs]
-
-    self._port_pairs = new_port_pairs
-    forwarder.Forwarder.Map(new_port_pairs, self._adb)
-
-  @property
-  def url(self):
-    return 'http://127.0.0.1:%i' % self._host_port
-
-  def Close(self):
-    for (device_port, _) in self._port_pairs:
-      forwarder.Forwarder.UnmapDevicePort(device_port, self._adb)

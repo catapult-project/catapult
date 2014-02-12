@@ -2,17 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
 from telemetry.core import web_contents
+from telemetry.core.forwarders import do_nothing_forwarder
 
 
 class ExtensionsNotSupportedException(Exception):
   pass
 
+
 class BrowserBackend(object):
   """A base class for browser backends."""
-
-  WEBPAGEREPLAY_HOST = '127.0.0.1'
 
   def __init__(self, is_content_shell, supports_extensions, browser_options,
                tab_list_backend):
@@ -23,6 +22,7 @@ class BrowserBackend(object):
     self.browser_options = browser_options
     self._browser = None
     self._tab_list_backend = tab_list_backend(self)
+    self._forwarder_factory = None
 
   def AddReplayServerOptions(self, extra_wpr_args):
     pass
@@ -63,6 +63,12 @@ class BrowserBackend(object):
   def supports_system_info(self):
     return False
 
+  @property
+  def forwarder_factory(self):
+    if not self._forwarder_factory:
+      self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
+    return self._forwarder_factory
+
   def StartTracing(self, custom_categories=None,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
@@ -70,13 +76,10 @@ class BrowserBackend(object):
   def StopTracing(self):
     raise NotImplementedError()
 
-  def GetRemotePort(self, _):
-    return util.GetUnreservedAvailableLocalPort()
+  def GetRemotePort(self, port):
+    return port
 
   def Start(self):
-    raise NotImplementedError()
-
-  def CreateForwarder(self, *port_pairs):
     raise NotImplementedError()
 
   def IsBrowserRunning(self):
@@ -90,16 +93,3 @@ class BrowserBackend(object):
 
   def GetSystemInfo(self):
     raise NotImplementedError()
-
-
-class DoNothingForwarder(object):
-  def __init__(self, *port_pairs):
-    self._host_port = port_pairs[0].local_port
-
-  @property
-  def url(self):
-    assert self._host_port
-    return 'http://127.0.0.1:%i' % self._host_port
-
-  def Close(self):
-    self._host_port = None
