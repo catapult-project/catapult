@@ -1085,3 +1085,18 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     for i in range(len(expected)):
       self.assertAlmostEqual(expected[i][0], m.flow_events[i][0].start)
       self.assertAlmostEqual(expected[i][1], m.flow_events[i][1].start)
+
+  def testImportErrornousFlowEvent(self):
+    events = [
+      {'name': 'a', 'cat': 'foo', 'id': 70, 'pid': 52, 'tid': 53, 'ts': 548,
+       'ph': 's', 'args': {}},
+      {'name': 'a2', 'cat': 'foo', 'id': 70, 'pid': 52, 'tid': 53, 'ts': 550,
+       'ph': 's', 'args': {}},
+      {'name': 'b', 'cat': 'foo', 'id': 73, 'pid': 52, 'tid': 53, 'ts': 570,
+       'ph': 'f', 'args': {}},
+      {'name': 'a', 'cat': 'foo', 'id': 72, 'pid': 52, 'tid': 53, 'ts': 560,
+       'ph': 't', 'args': {}},
+    ]
+
+    m = timeline_model.TimelineModel(event_data=events)
+    self.assertEqual(0, len(m.flow_events))

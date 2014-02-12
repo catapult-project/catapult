@@ -415,18 +415,17 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       if event['ph'] == 's':
         if event['id'] in flow_id_to_event:
           self._model.import_errors.append(
-              'event id ' + event['id'] + ' already seen when ' +
-              'encountering start of flow event.')
+              'event id %s already seen when encountering start of'
+              'flow event.' % event['id'])
           continue
         flow_id_to_event[event['id']] = flow_event
       elif event['ph'] == 't' or event['ph'] == 'f':
-        flow_position = flow_id_to_event[event['id']]
-        if not flow_position:
+        if not event['id'] in flow_id_to_event:
           self._model.import_errors.append(
-            'Found flow phase ' + event['ph'] + ' for id: ' + event['id'] +
-            ' but no flow start found.')
+            'Found flow phase %s for id: %s but no flow start found.' % (
+                event['ph'], event['id']))
           continue
-
+        flow_position = flow_id_to_event[event['id']]
         self._model.flow_events.append([flow_position, flow_event])
 
         if event['ph'] == 'f':
