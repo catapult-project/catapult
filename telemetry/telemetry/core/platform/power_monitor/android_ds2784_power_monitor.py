@@ -3,50 +3,30 @@
 # found in the LICENSE file.
 
 import logging
-import multiprocessing
 import os
-import tempfile
-import time
 
 from telemetry import decorators
+from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 import telemetry.core.platform.power_monitor as power_monitor
 
 
-SAMPLE_INTERVAL_S = 0.5 # 2 Hz. The data is collected from the ds2784 fuel gauge
-                        # chip that only updates its data every 3.5s.
+SAMPLE_RATE_HZ = 2 # The data is collected from the ds2784 fuel gauge chip
+                   # that only updates its data every 3.5s.
 FUEL_GAUGE_PATH = '/sys/class/power_supply/ds2784-fuelgauge'
 CHARGE_COUNTER = os.path.join(FUEL_GAUGE_PATH, 'charge_counter_ext')
 CURRENT = os.path.join(FUEL_GAUGE_PATH, 'current_now')
 VOLTAGE = os.path.join(FUEL_GAUGE_PATH, 'voltage_now')
 
 
-def _MonitorPower(adb, pipe, output):
-  """Monitoring process
-     Args:
-       pipe: socket used to notify the process to stop monitoring.
-       output: opened file to write the samples.
-  """
-  with output:
-    def _sample():
-      timestamp = time.time()
-      (charge, current, voltage) = adb.RunShellCommand(
-          'cat %s;cat %s;cat %s' % (CHARGE_COUNTER, CURRENT, VOLTAGE),
-          log_result=False)
-      output.write('%f %s %s %s\n' % (timestamp, charge, current, voltage))
-    running = True
-    while running:
-      _sample()
-      running = not pipe.poll(SAMPLE_INTERVAL_S)
-    _sample()
-
-
 class DS2784PowerMonitor(power_monitor.PowerMonitor):
   def __init__(self, adb):
     super(DS2784PowerMonitor, self).__init__()
     self._adb = adb
-    self._powermonitor_process = None
-    self._powermonitor_output_file = None
-    self._sending_pipe = None
+    self._powermonitor_process_port = None
+    android_prebuilt_profiler_helper.InstallOnDevice(adb, 'file_poller')
+    self._file_poller_binary = android_prebuilt_profiler_helper.GetDevicePath(
+        'file_poller')
+
 
   def _IsDeviceCharging(self):
     for line in self._adb.RunShellCommand('dumpsys battery'):
@@ -68,34 +48,23 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
     return True
 
   def StartMonitoringPowerAsync(self):
-    assert not self._powermonitor_process, (
+    assert not self._powermonitor_process_port, (
         'Must call StopMonitoringPowerAsync().')
-    self._powermonitor_output_file = tempfile.TemporaryFile()
-    (reception_pipe, self._sending_pipe) = multiprocessing.Pipe()
-    self._powermonitor_process = multiprocessing.Process(
-        target=_MonitorPower,
-        args=(self._adb,
-              reception_pipe,
-              self._powermonitor_output_file))
-    self._powermonitor_process.start()
-    reception_pipe.close()
+    self._powermonitor_process_port = int(self._adb.RunShellCommand(
+        '%s %d %s %s %s' % (self._file_poller_binary, SAMPLE_RATE_HZ,
+            CHARGE_COUNTER, CURRENT, VOLTAGE))[0])
 
   def StopMonitoringPowerAsync(self):
-    assert self._powermonitor_process, (
+    assert self._powermonitor_process_port, (
         'StartMonitoringPowerAsync() not called.')
     try:
-      # Tell powermonitor to take an immediate sample and join.
-      self._sending_pipe.send_bytes(' ')
-      self._powermonitor_process.join()
-      with self._powermonitor_output_file:
-        self._powermonitor_output_file.seek(0)
-        powermonitor_output = self._powermonitor_output_file.read()
-      assert powermonitor_output, 'PowerMonitor produced no output'
-      return DS2784PowerMonitor.ParseSamplingOutput(powermonitor_output)
+      result = '\n'.join(self._adb.RunShellCommand(
+          '%s %d' % (self._file_poller_binary,
+                     self._powermonitor_process_port)))
+      assert result, 'PowerMonitor produced no output'
+      return DS2784PowerMonitor.ParseSamplingOutput(result)
     finally:
-      self._powermonitor_output_file = None
-      self._powermonitor_process = None
-      self._sending_pipe = None
+      self._powermonitor_process_port = None
 
   @staticmethod
   def ParseSamplingOutput(powermonitor_output):

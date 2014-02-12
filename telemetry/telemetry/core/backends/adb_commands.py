@@ -212,6 +212,7 @@ def SetupPrebuiltTools(adb):
 
   prebuilt_tools = [
       'bitmaptools',
+      'file_poller',
       'forwarder_dist/device_forwarder',
       'host_forwarder',
       'md5sum_dist/md5sum_bin',

@@ -24,6 +24,12 @@ class MockAdbCommands(object):
   def GetProtectedFileContents(self, file_name, log_result):
     return self.mock_content
 
+  def PushIfNeeded(self, host_binary, device_path):
+    pass
+
+  def RunShellCommand(self, command):
+    return []
+
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
