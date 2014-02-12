@@ -9,6 +9,7 @@ import tempfile
 import time
 
 from telemetry import decorators
+import telemetry.core.platform.power_monitor as power_monitor
 
 
 SAMPLE_INTERVAL_S = 0.5 # 2 Hz. The data is collected from the ds2784 fuel gauge
@@ -39,8 +40,9 @@ def _MonitorPower(adb, pipe, output):
     _sample()
 
 
-class PowerMonitorUtility(object):
+class DS2784PowerMonitor(power_monitor.PowerMonitor):
   def __init__(self, adb):
+    super(DS2784PowerMonitor, self).__init__()
     self._adb = adb
     self._powermonitor_process = None
     self._powermonitor_output_file = None
@@ -88,14 +90,15 @@ class PowerMonitorUtility(object):
       with self._powermonitor_output_file:
         self._powermonitor_output_file.seek(0)
         powermonitor_output = self._powermonitor_output_file.read()
-      return powermonitor_output
+      assert powermonitor_output, 'PowerMonitor produced no output'
+      return DS2784PowerMonitor.ParseSamplingOutput(powermonitor_output)
     finally:
       self._powermonitor_output_file = None
       self._powermonitor_process = None
       self._sending_pipe = None
 
   @staticmethod
-  def ParsePowerMetricsOutput(powermonitor_output):
+  def ParseSamplingOutput(powermonitor_output):
     """Parse output of powermonitor command line utility.
 
     Returns:
@@ -154,6 +157,7 @@ class PowerMonitorUtility(object):
     # -------- Collect and Process Data -------------
     out_dict = {}
     # Raw power usage samples.
+    out_dict['identifier'] = 'ds2784'
     out_dict['power_samples_mw'] = power_samples
     out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
 

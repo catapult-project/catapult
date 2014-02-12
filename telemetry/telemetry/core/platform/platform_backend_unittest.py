@@ -18,3 +18,4 @@ class PlatformBackendTest(unittest.TestCase):
 
     output = backend.MonitorPowerSync(1)
     self.assertTrue(output.has_key('power_samples_mw'))
+    self.assertTrue(output.has_key('identifier'))

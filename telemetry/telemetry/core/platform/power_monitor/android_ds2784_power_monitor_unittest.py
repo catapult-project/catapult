@@ -4,10 +4,10 @@
 
 import unittest
 
-from telemetry.core.platform import android_power_monitor
+from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 
 
-class AndroidPowerMonitorTest(unittest.TestCase):
+class DS2784PowerMonitorMonitorTest(unittest.TestCase):
   def testEnergyComsumption(self):
 
     data = ('0000 1000 -10 12\n'
@@ -16,8 +16,9 @@ class AndroidPowerMonitorTest(unittest.TestCase):
             '5400 0000 -20 08\n'
             '7200 0000 -20 11\n'
             '9000 0000 -20 11\n')
-    results = android_power_monitor.PowerMonitorUtility.ParsePowerMetricsOutput(
-        data)
+    results = (
+        android_ds2784_power_monitor.DS2784PowerMonitor.ParseSamplingOutput(
+            data))
     self.assertEqual(results['power_samples_mw'], [1.2e-07, 1.1e-07, 9e-08,
                                                    1.6e-07, 2.2e-07, 2.2e-07])
     self.assertEqual(results['energy_consumption_mwh'], 2.1e-07)

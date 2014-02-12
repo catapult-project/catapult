@@ -212,6 +212,10 @@ class Platform(object):
 
     Returns:
       A dict of power utilization statistics containing: {
+        # An identifier for the data provider. Allows to evaluate the precision
+        # of the data. Example values: monsoon, powermetrics, ds2784
+        'identifier': identifier,
+
         # The instantaneous power (voltage * current) reading in milliwatts at
         # each sample.
         'power_samples_mw':  [mw0, mw1, ..., mwN],

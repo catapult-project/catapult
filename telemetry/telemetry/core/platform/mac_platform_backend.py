@@ -345,6 +345,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
     # -------- Collect and Process Data --------
     out_dict = {}
+    out_dict['identifier'] = 'powermetrics'
     # Raw power usage samples.
     if power_samples:
       out_dict['power_samples_mw'] = power_samples
