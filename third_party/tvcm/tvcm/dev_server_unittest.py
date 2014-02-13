@@ -7,11 +7,8 @@ import httplib
 import os
 import json
 
+from tvcm import project as project_module
 from tvcm import temporary_dev_server
-
-TVCM_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-THIRD_PARTY_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                '..', '..'))
 
 class DevServerTests(unittest.TestCase):
   def setUp(self):
@@ -21,27 +18,24 @@ class DevServerTests(unittest.TestCase):
     self.server.Close()
 
   def testBasic(self):
-    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
-    resp_str = self.server.Get('/base/__init__.js')
-    with open(os.path.join(TVCM_PATH, 'base', '__init__.js'), 'r') as f:
-      base_str = f.read()
-    self.assertEquals(resp_str, base_str)
+    project = project_module.Project()
+    resp_str = self.server.Get('/tvcm/__init__.js')
+    with open(os.path.join(project.tvcm_src_path, 'tvcm', '__init__.js'), 'r') as f:
+      tvcm_str = f.read()
+    self.assertEquals(resp_str, tvcm_str)
 
   def testDeps(self):
-    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
-    self.server.CallOnServer('AddSourcePathMapping', THIRD_PARTY_PATH)
+    project = project_module.Project()
 
     # Just smoke test that it works.
-    resp_str = self.server.Get('/base/deps.js')
+    resp_str = self.server.Get('/tvcm/deps.js')
 
   def testTests(self):
-    self.server.CallOnServer('AddSourcePathMapping', TVCM_PATH)
-
     # Just smoke test for a known test to see if things worked.
-    resp_str = self.server.Get('/base/json/tests')
+    resp_str = self.server.Get('/tvcm/json/tests')
     resp = json.loads(resp_str)
     self.assertTrue('test_module_names' in resp)
-    self.assertTrue('base.raf_test' in resp['test_module_names'])
+    self.assertTrue('tvcm.raf_test' in resp['test_module_names'])
 
 
 if __name__ == '__main__':

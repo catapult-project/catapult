@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.require('cc.tile');
-base.require('tracing.analysis.generic_object_view');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
+tvcm.require('cc.tile');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /*
    * Displays a tile in a human readable form.
    * @constructor
    */
-  var TileSnapshotView = base.ui.define(
+  var TileSnapshotView = tvcm.ui.define(
       'tile-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

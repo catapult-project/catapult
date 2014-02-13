@@ -5,10 +5,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.linux_perf_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.sync_parser_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.linux_perf.sync_parser_test', function() { // @suppress longLineCheck
   test('syncEventImport', function() {
     var lines = [
       's3c-fb-92            (     0) [000] ...1  7206.550061: sync_timeline: name=s3c-fb value=7094', // @suppress longLineCheck

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_track_view');
-base.require('tracing.trace_model');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.tracks.cpu_track_test', function() {
+tvcm.unittest.testSuite('tracing.tracks.cpu_track_test', function() {
   var Cpu = tracing.trace_model.Cpu;
   var CpuTrack = tracing.tracks.CpuTrack;
   var Slice = tracing.trace_model.Slice;

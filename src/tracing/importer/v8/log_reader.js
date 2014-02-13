@@ -7,7 +7,7 @@
 /**
  * @fileoverview Log Reader is used to process log file produced by V8.
  */
-base.exportTo('tracing.importer.v8', function() {
+tvcm.exportTo('tracing.importer.v8', function() {
   /**
    * Creates a CSV lines parser.
    */

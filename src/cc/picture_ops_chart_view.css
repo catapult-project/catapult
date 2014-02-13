@@ -12,7 +12,7 @@ picture-ops-chart-view {
 }
 
 picture-ops-chart-view > .use-percentile-scale {
+  left: 0;
   position: absolute;
   top: 0;
-  left: 0;
 }

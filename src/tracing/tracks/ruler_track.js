@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.ruler_track');
+tvcm.requireStylesheet('tracing.tracks.ruler_track');
 
-base.require('tracing.constants');
-base.require('tracing.tracks.track');
-base.require('tracing.tracks.heading_track');
-base.require('tracing.draw_helpers');
-base.require('base.ui');
+tvcm.require('tracing.constants');
+tvcm.require('tracing.tracks.track');
+tvcm.require('tracing.tracks.heading_track');
+tvcm.require('tracing.draw_helpers');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays the ruler.
@@ -20,7 +20,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var RulerTrack = base.ui.define('ruler-track', tracing.tracks.HeadingTrack);
+  var RulerTrack = tvcm.ui.define('ruler-track', tracing.tracks.HeadingTrack);
 
   var logOf10 = Math.log(10);
   function log10(x) {

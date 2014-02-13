@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.trace_model.timed_event');
+tvcm.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the InstantEvent class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2,

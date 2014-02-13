@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.analysis.analysis_view');
-base.require('tracing.analysis.stub_analysis_results');
-base.require('tracing.analysis.analyze_counters');
-base.require('tracing.selection');
-base.require('tracing.trace_model.counter');
-base.require('tracing.trace_model.counter_series');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.analysis.analysis_view');
+tvcm.require('tracing.analysis.stub_analysis_results');
+tvcm.require('tracing.analysis.analyze_counters');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.trace_model.counter');
+tvcm.require('tracing.trace_model.counter_series');
 
-base.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
+tvcm.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
   var Counter = tracing.trace_model.Counter;
   var CounterSeries = tracing.trace_model.CounterSeries;
 

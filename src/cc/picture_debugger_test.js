@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('cc.picture');
-base.require('cc.picture_debugger');
+tvcm.require('cc.picture');
+tvcm.require('cc.picture_debugger');
 
-base.unittest.testSuite('cc.picture_debugger_test', function() {
+tvcm.unittest.testSuite('cc.picture_debugger_test', function() {
   test('instantiate', function() {
     var picture = new cc.PictureSnapshot({id: '31415'}, 10, {
       'params': {

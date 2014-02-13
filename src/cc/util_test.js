@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('cc.util');
+tvcm.require('cc.util');
 
-base.require('base.quad');
-base.require('base.rect');
+tvcm.require('tvcm.quad');
+tvcm.require('tvcm.rect');
 
-base.unittest.testSuite('cc.util_test', function() {
+tvcm.unittest.testSuite('cc.util_test', function() {
   test('nameConvert', function() {
     assertEquals('_foo', cc.convertNameToJSConvention('_foo'));
     assertEquals('foo_', cc.convertNameToJSConvention('foo_'));
@@ -65,7 +65,7 @@ base.unittest.testSuite('cc.util_test', function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.someQuad instanceof base.Quad);
+    assertTrue(object.args.someQuad instanceof tvcm.Quad);
   });
 
   test('quadConversionNested', function() {
@@ -78,8 +78,8 @@ base.unittest.testSuite('cc.util_test', function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aQuad instanceof base.Quad);
-    assertTrue(object.args.nonNestedQuad instanceof base.Quad);
+    assertTrue(object.args.nestedField.aQuad instanceof tvcm.Quad);
+    assertTrue(object.args.nonNestedQuad instanceof tvcm.Quad);
   });
 
   test('rectCoversion', function() {
@@ -89,7 +89,7 @@ base.unittest.testSuite('cc.util_test', function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.someRect instanceof base.Rect);
+    assertTrue(object.args.someRect instanceof tvcm.Rect);
   });
 
   test('rectCoversionNested', function() {
@@ -102,7 +102,7 @@ base.unittest.testSuite('cc.util_test', function() {
       }
     };
     cc.preInitializeObject(object);
-    assertTrue(object.args.nestedField.aRect instanceof base.Rect);
-    assertTrue(object.args.nonNestedRect instanceof base.Rect);
+    assertTrue(object.args.nestedField.aRect instanceof tvcm.Rect);
+    assertTrue(object.args.nonNestedRect instanceof tvcm.Rect);
   });
 });

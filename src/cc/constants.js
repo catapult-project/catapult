@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var constants = {};
   constants.ACTIVE_TREE = 0;
   constants.PENDING_TREE = 1;

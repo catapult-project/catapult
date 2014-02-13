@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('base.unittest');
-base.require('tracing.test_utils');
-base.require('tracing.filter');
+tvcm.require('tvcm.unittest');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.filter');
 
-base.unittest.testSuite('tracing.filter_test', function() {
+tvcm.unittest.testSuite('tracing.filter_test', function() {
   var TitleFilter = tracing.TitleFilter;
   var ExactTitleFilter = tracing.ExactTitleFilter;
 

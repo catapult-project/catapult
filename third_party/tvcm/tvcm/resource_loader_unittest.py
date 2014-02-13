@@ -17,11 +17,12 @@ class ResourceLoaderTest(unittest.TestCase):
   def test_basic(self):
     tvcm_project = project_module.Project()
     loader = resource_loader.ResourceLoader(tvcm_project)
-    guid_module = loader.load_module(module_name='base')
-    self.assertTrue(os.path.samefile(guid_module.filename,
-                                     os.path.join(tvcm_project.tvcm_path, 'base', '__init__.js')))
+    guid_module = loader.load_module(module_name='tvcm')
+    self.assertTrue(os.path.samefile(
+        guid_module.filename,
+        os.path.join(tvcm_project.tvcm_src_path, 'tvcm', '__init__.js')))
     expected_contents = ''
-    with open(os.path.join(tvcm_project.tvcm_path, 'base', '__init__.js')) as f:
+    with open(os.path.join(tvcm_project.tvcm_src_path, 'tvcm', '__init__.js')) as f:
       expected_contents = f.read()
     self.assertEquals(guid_module.contents, expected_contents)
 

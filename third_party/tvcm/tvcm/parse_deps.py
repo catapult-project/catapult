@@ -3,14 +3,14 @@
 # found in the LICENSE file.
 """The core of this script is the calc_load_sequence function. This function
 loads the provided javascript files and figures out their dependencies by
-reading the base.require statements in each file. This allows us to, for
+reading the tvcm.require statements in each file. This allows us to, for
 example, have a trio of modules, foo, bar and baz, where foo.js contains:
 
-    base.require('bar');
+    tvcm.require('bar');
 
 and bar.js contains:
 
-    base.require('baz');
+    tvcm.require('baz');
 
 If these three modules are in the current directory, then:
 
@@ -32,11 +32,11 @@ def calc_load_sequence(filenames, project):
   objects that need to be loaded to satisfy their dependencies.
 
   The javascript files should specify their dependencies in a format that is
-  textually equivalent to base/__init__.js' require syntax, namely:
+  textually equivalent to tvcm/__init__.js' require syntax, namely:
 
-      base.require(module1);
-      base.require(module2);
-      base.requireStylesheet(stylesheet);
+      tvcm.require(module1);
+      tvcm.require(module2);
+      tvcm.requireStylesheet(stylesheet);
 
   Args:
     filenames: A list of starting file paths for trace viewer modules.
@@ -44,9 +44,9 @@ def calc_load_sequence(filenames, project):
   Returns:
     A list of Module objects in the order that they should be loaded.
   """
-  if os.path.join('base', '__init__.js') not in filenames:
+  if os.path.join('tvcm', '__init__.js') not in filenames:
     filenames = list(filenames)
-    filenames.insert(0, os.path.join('base', '__init__.js'))
+    filenames.insert(0, os.path.join('tvcm', '__init__.js'))
   return calc_load_sequence_internal(filenames, project)
 
 

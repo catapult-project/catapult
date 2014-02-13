@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
   function StubAnalysisResults() {
     this.headers = [];
     this.info = [];

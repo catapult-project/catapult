@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.tracks.heading_track');
-base.require('tracing.color_scheme');
-base.require('base.ui');
+tvcm.require('tracing.tracks.heading_track');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays traces as stacked bars.
@@ -16,7 +16,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var StackedBarsTrack = base.ui.define(
+  var StackedBarsTrack = tvcm.ui.define(
       'stacked-bars-track', tracing.tracks.HeadingTrack);
 
   StackedBarsTrack.prototype = {
@@ -48,7 +48,7 @@ base.exportTo('tracing.tracks', function() {
       var snapshots = this.objectInstance_.snapshots;
       var maxBounds = this.objectInstance_.parent.model.bounds.max;
 
-      base.iterateOverIntersectingIntervals(
+      tvcm.iterateOverIntersectingIntervals(
           snapshots,
           function(x) { return x.ts; },
           function(x, i) {
@@ -93,7 +93,7 @@ base.exportTo('tracing.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var snapshot = base.findClosestElementInSortedArray(
+      var snapshot = tvcm.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           worldX,

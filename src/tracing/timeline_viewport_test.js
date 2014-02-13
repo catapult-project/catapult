@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.timeline_viewport');
+tvcm.require('tracing.timeline_viewport');
 
-base.unittest.testSuite('tracing.timeline_viewport_test', function() {
+tvcm.unittest.testSuite('tracing.timeline_viewport_test', function() {
   test('memoization', function() {
 
     var vp = new tracing.TimelineViewport(document.createElement('div'));

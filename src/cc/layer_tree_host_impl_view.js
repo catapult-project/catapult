@@ -4,21 +4,21 @@
 
 'use strict';
 
-base.requireStylesheet('cc.layer_tree_host_impl_view');
+tvcm.requireStylesheet('cc.layer_tree_host_impl_view');
 
-base.require('cc.layer_tree_host_impl');
-base.require('cc.layer_picker');
-base.require('cc.layer_view');
-base.require('cc.tile');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('base.ui.drag_handle');
+tvcm.require('cc.layer_tree_host_impl');
+tvcm.require('cc.layer_picker');
+tvcm.require('cc.layer_view');
+tvcm.require('cc.tile');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tvcm.ui.drag_handle');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   /*
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
-  var LayerTreeHostImplSnapshotView = base.ui.define(
+  var LayerTreeHostImplSnapshotView = tvcm.ui.define(
       'layer-tree-host-impl-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
@@ -39,7 +39,7 @@ base.exportTo('cc', function() {
       this.layerView_.addEventListener(
           'selection-changed',
           this.onLayerViewSelectionChanged_.bind(this));
-      this.dragHandle_ = new base.ui.DragHandle();
+      this.dragHandle_ = new tvcm.ui.DragHandle();
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 

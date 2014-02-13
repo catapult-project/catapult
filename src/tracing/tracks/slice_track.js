@@ -4,22 +4,22 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.slice_track');
+tvcm.requireStylesheet('tracing.tracks.slice_track');
 
-base.require('base.sorted_array_utils');
-base.require('tracing.tracks.heading_track');
-base.require('tracing.fast_rect_renderer');
-base.require('tracing.draw_helpers');
-base.require('base.ui');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.tracks.heading_track');
+tvcm.require('tracing.fast_rect_renderer');
+tvcm.require('tracing.draw_helpers');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays an array of Slice objects.
    * @constructor
    * @extends {HeadingTrack}
    */
-  var SliceTrack = base.ui.define(
+  var SliceTrack = tvcm.ui.define(
       'slice-track', tracing.tracks.HeadingTrack);
 
   SliceTrack.prototype = {
@@ -110,7 +110,7 @@ base.exportTo('tracing.tracks', function() {
       function onSlice(slice) {
         selection.push(slice);
       }
-      base.iterateOverIntersectingIntervals(this.slices_,
+      tvcm.iterateOverIntersectingIntervals(this.slices_,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,
@@ -123,7 +123,7 @@ base.exportTo('tracing.tracks', function() {
      * @private
      */
     indexOfSlice_: function(slice) {
-      var index = base.findLowIndexInSortedArray(this.slices_,
+      var index = tvcm.findLowIndexInSortedArray(this.slices_,
           function(x) { return x.start; },
           slice.start);
       while (index < this.slices_.length &&
@@ -166,7 +166,7 @@ base.exportTo('tracing.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var slice = base.findClosestIntervalInSortedIntervals(
+      var slice = tvcm.findClosestIntervalInSortedIntervals(
           this.slices_,
           function(x) { return x.start; },
           function(x) { return x.end; },

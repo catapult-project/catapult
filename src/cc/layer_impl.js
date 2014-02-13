@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('base.rect');
-base.require('cc.constants');
-base.require('cc.region');
-base.require('cc.tile_coverage_rect');
-base.require('tracing.trace_model.object_instance');
+tvcm.require('tvcm.rect');
+tvcm.require('cc.constants');
+tvcm.require('cc.region');
+tvcm.require('cc.tile_coverage_rect');
+tvcm.require('tracing.trace_model.object_instance');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var constants = cc.constants;
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
@@ -47,13 +47,13 @@ base.exportTo('cc', function() {
                  'layoutRects']);
 
       // Leave bounds in both places.
-      this.bounds = base.Rect.fromXYWH(
+      this.bounds = tvcm.Rect.fromXYWH(
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
       if (this.args.animationBounds) {
         // AnimationBounds[2] and [5] are the Z-component of the box.
-        this.animationBounds = base.Rect.fromXYWH(
+        this.animationBounds = tvcm.Rect.fromXYWH(
             this.args.animationBounds[0], this.args.animationBounds[1],
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }

@@ -8,7 +8,7 @@
  * @fileoverview Base class for trace data importers.
  */
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
 
   function Importer() {
   }

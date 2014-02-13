@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('base.sorted_array_utils');
-base.require('tracing.color_scheme');
-base.require('tracing.elided_cache');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tracing.elided_cache');
 
 /**
  * @fileoverview Provides various helper methods for drawing to a provided
  * canvas.
  */
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
   var elidedTitleCache = new tracing.ElidedTitleCache();
   var palette = tracing.getColorPalette();
   var EventPresenter = tracing.EventPresenter;
@@ -124,7 +124,7 @@ base.exportTo('tracing', function() {
         ctx, 2 * pixWidth, 2 * pixWidth, palette);
     tr.setYandH(0, height);
 
-    var lowSlice = base.findLowIndexInSortedArray(
+    var lowSlice = tvcm.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
@@ -180,7 +180,7 @@ base.exportTo('tracing', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = base.findLowIndexInSortedArray(
+    var lowSlice = tvcm.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
@@ -229,7 +229,7 @@ base.exportTo('tracing', function() {
     if (async)
       ctx.font = 'italic ' + ctx.font;
 
-    var lowSlice = base.findLowIndexInSortedArray(
+    var lowSlice = tvcm.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);

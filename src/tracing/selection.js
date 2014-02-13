@@ -7,13 +7,13 @@
 /**
  * @fileoverview Code for the viewport.
  */
-base.require('base.events');
-base.require('base.guid');
-base.require('base.range');
-base.require('tracing.trace_model.instant_event');
-base.require('tracing.trace_model');
+tvcm.require('tvcm.events');
+tvcm.require('tvcm.guid');
+tvcm.require('tvcm.range');
+tvcm.require('tracing.trace_model.instant_event');
+tvcm.require('tracing.trace_model');
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   var EVENT_TYPES = [
     {
@@ -54,9 +54,9 @@ base.exportTo('tracing', function() {
    */
   function Selection(opt_events) {
     this.bounds_dirty_ = true;
-    this.bounds_ = new base.Range();
+    this.bounds_ = new tvcm.Range();
     this.length_ = 0;
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
 
     if (opt_events) {
       for (var i = 0; i < opt_events.length; i++)

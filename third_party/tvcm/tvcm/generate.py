@@ -89,22 +89,22 @@ def generate_deps_js(load_sequence, project):
   chunks = [js_warning_message, '\n']
   loader = load_sequence[0].loader
   for module in loader.loaded_modules.values():
-    chunks.append("base.setResourceFileName('%s','%s');\n" % (
+    chunks.append("tvcm.setResourceFileName('%s','%s');\n" % (
         module.name, module.resource.relative_path))
 
   for module in load_sequence:
     for dependent_module in module.dependent_modules:
-      chunks.append("base.addModuleDependency('%s','%s');\n" % (
+      chunks.append("tvcm.addModuleDependency('%s','%s');\n" % (
           module.name, dependent_module.name));
 
     for dependent_raw_script in module.dependent_raw_scripts:
       relative_path = dependent_raw_script.resource.relative_path
       chunks.append(
-          "base.addModuleRawScriptDependency('%s','%s');\n" % (
+          "tvcm.addModuleRawScriptDependency('%s','%s');\n" % (
            module.name, relative_path));
 
     for style_sheet in module.style_sheets:
-      chunks.append("base.addModuleStylesheet('%s','%s');\n" % (
+      chunks.append("tvcm.addModuleStylesheet('%s','%s');\n" % (
           module.name, style_sheet.name));
   return "".join(chunks)
 

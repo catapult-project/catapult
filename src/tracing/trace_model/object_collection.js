@@ -7,13 +7,13 @@
 /**
  * @fileoverview Provides the ObjectCollection class.
  */
-base.require('base.utils');
-base.require('base.range');
-base.require('base.sorted_array_utils');
-base.require('tracing.trace_model.object_instance');
-base.require('tracing.trace_model.time_to_object_instance_map');
+tvcm.require('tvcm.utils');
+tvcm.require('tvcm.range');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('tracing.trace_model.time_to_object_instance_map');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   var ObjectInstance = tracing.trace_model.ObjectInstance;
 
   /**
@@ -24,7 +24,7 @@ base.exportTo('tracing.trace_model', function() {
    */
   function ObjectCollection(parent) {
     this.parent = parent;
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
     this.instanceMapsById_ = {}; // id -> TimeToObjectInstanceMap
     this.instancesByTypeName_ = {};
     this.createObjectInstance_ = this.createObjectInstance_.bind(this);
@@ -95,7 +95,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     autoDeleteObjects: function(maxTimestamp) {
-      base.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tvcm.iterItems(this.instanceMapsById_, function(id, i2imap) {
         var lastInstance = i2imap.lastInstance;
         if (lastInstance.deletionTs != Number.MAX_VALUE)
           return;
@@ -123,7 +123,7 @@ base.exportTo('tracing.trace_model', function() {
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
-      base.iterItems(this.instanceMapsById_, function(id, i2imap) {
+      tvcm.iterItems(this.instanceMapsById_, function(id, i2imap) {
         i2imap.instances.forEach(iter, opt_this);
       });
     },

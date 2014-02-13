@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.analysis_results');
+tvcm.requireStylesheet('tracing.analysis.analysis_results');
 
-base.require('tracing.analysis.util');
-base.require('tracing.analysis.analysis_link');
-base.require('tracing.analysis.generic_object_view');
-base.require('base.ui');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.analysis_link');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.analysis', function() {
-  var AnalysisResults = base.ui.define('div');
+tvcm.exportTo('tracing.analysis', function() {
+  var AnalysisResults = tvcm.ui.define('div');
 
   AnalysisResults.prototype = {
     __proto__: HTMLDivElement.prototype,

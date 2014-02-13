@@ -7,20 +7,20 @@
 /**
  * @fileoverview Displays an analysis of the selection.
  */
-base.requireStylesheet('tracing.analysis.analysis_view');
+tvcm.requireStylesheet('tracing.analysis.analysis_view');
 
-base.require('base.guid');
-base.require('tracing.analysis.analysis_results');
-base.require('tracing.analysis.analyze_selection');
-base.require('tracing.analysis.default_object_view');
-base.require('tracing.analysis.object_instance_view');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.slice_view');
-base.require('tracing.analysis.util');
-base.require('base.ui');
-base.exportTo('tracing.analysis', function() {
+tvcm.require('tracing.analysis.analysis_results');
+tvcm.require('tracing.analysis.analyze_selection');
+tvcm.require('tracing.analysis.default_object_view');
+tvcm.require('tracing.analysis.object_instance_view');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.slice_view');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.guid');
+tvcm.exportTo('tracing.analysis', function() {
 
-  var AnalysisView = base.ui.define('div');
+  var AnalysisView = tvcm.ui.define('div');
 
   AnalysisView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -31,7 +31,7 @@ base.exportTo('tracing.analysis', function() {
       this.currentView_ = undefined;
       this.currentSelection_ = undefined;
       this.selections_ = [];
-      this.guid_ = base.GUID.allocate();
+      this.guid_ = tvcm.GUID.allocate();
 
       window.addEventListener('popstate', this.onPopState.bind(this));
     },

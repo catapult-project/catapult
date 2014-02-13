@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('cc.layer_tree_host_impl');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.trace_model');
-base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
+tvcm.require('cc.layer_tree_host_impl');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
-base.unittest.testSuite('cc.layer_tree_host_impl_test', function() {
+tvcm.unittest.testSuite('cc.layer_tree_host_impl_test', function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
-    var p = base.dictionaryValues(m.processes)[0];
+    var p = tvcm.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     var snapshot = instance.snapshots[0];

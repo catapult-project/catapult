@@ -9,11 +9,11 @@
  */
 'use strict';
 
-base.require('tracing.trace_model.counter');
-base.require('tracing.trace_model.slice');
-base.require('tracing.trace_model.slice_group');
+tvcm.require('tracing.trace_model.counter');
+tvcm.require('tracing.trace_model.slice');
+tvcm.require('tracing.trace_model.slice_group');
 
-base.exportTo('tracing.test_utils', function() {
+tvcm.exportTo('tracing.test_utils', function() {
   function newAsyncSlice(start, duration, startThread, endThread) {
     return newAsyncSliceNamed('a', start, duration, startThread, endThread);
   }

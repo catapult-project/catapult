@@ -7,10 +7,10 @@
 /**
  * @fileoverview Provides the Cpu class.
  */
-base.require('base.range');
-base.require('tracing.trace_model.slice');
-base.require('tracing.trace_model.counter');
-base.exportTo('tracing.trace_model', function() {
+tvcm.require('tvcm.range');
+tvcm.require('tracing.trace_model.slice');
+tvcm.require('tracing.trace_model.counter');
+tvcm.exportTo('tracing.trace_model', function() {
 
   var Counter = tracing.trace_model.Counter;
   var Slice = tracing.trace_model.Slice;
@@ -164,7 +164,7 @@ base.exportTo('tracing.trace_model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
   };
 
   Cpu.prototype = {
@@ -224,7 +224,7 @@ base.exportTo('tracing.trace_model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf: function(cpuSlice) {
-      var i = base.findLowIndexInSortedArray(
+      var i = tvcm.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);

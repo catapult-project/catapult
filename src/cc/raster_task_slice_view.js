@@ -4,19 +4,19 @@
 
 'use strict';
 
-base.requireStylesheet('cc.raster_task_slice_view');
-base.require('cc.tile');
-base.require('cc.tile_view');
-base.require('cc.layer_tree_host_impl_view');
-base.require('tracing.analysis.slice_view');
-base.require('base.ui.info_bar');
+tvcm.requireStylesheet('cc.raster_task_slice_view');
+tvcm.require('cc.tile');
+tvcm.require('cc.tile_view');
+tvcm.require('cc.layer_tree_host_impl_view');
+tvcm.require('tracing.analysis.slice_view');
+tvcm.require('tvcm.ui.info_bar');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /**
    * @constructor
    */
-  var RasterTaskSliceView = base.ui.define(
+  var RasterTaskSliceView = tvcm.ui.define(
       'raster-task-slice-view', tracing.analysis.SliceView);
 
   RasterTaskSliceView.prototype = {
@@ -25,7 +25,7 @@ base.exportTo('cc', function() {
     decorate: function() {
       this.classList.add('raster-task-slice-view');
       this.layerTreeView_ = new cc.LayerTreeHostImplSnapshotView();
-      this.infoBar_ = new base.ui.InfoBar();
+      this.infoBar_ = new tvcm.ui.InfoBar();
       this.appendChild(this.infoBar_);
       this.appendChild(this.layerTreeView_);
     },

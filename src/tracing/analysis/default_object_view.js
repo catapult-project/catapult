@@ -4,22 +4,22 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.default_object_view');
+tvcm.requireStylesheet('tracing.analysis.default_object_view');
 
-base.require('tracing.analysis.analysis_link');
-base.require('tracing.analysis.object_instance_view');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
-base.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.analysis.analysis_link');
+tvcm.require('tracing.analysis.object_instance_view');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.generic_object_view');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /*
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectSnapshotView = base.ui.define(
+  var DefaultObjectSnapshotView = tvcm.ui.define(
       'default-object-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
@@ -49,7 +49,7 @@ base.exportTo('tracing.analysis', function() {
       html += '</table>';
       this.innerHTML = html;
 
-      // TODO(nduca): base.ui.decoreate doesn't work when subclassed. So,
+      // TODO(nduca): tvcm.ui.decoreate doesn't work when subclassed. So,
       // replace the template element.
       var instanceLinkEl = new tracing.analysis.ObjectInstanceLink();
       instanceLinkEl.objectInstance = instance;
@@ -68,7 +68,7 @@ base.exportTo('tracing.analysis', function() {
    * Displays an object instance in a human readable form.
    * @constructor
    */
-  var DefaultObjectInstanceView = base.ui.define(
+  var DefaultObjectInstanceView = tvcm.ui.define(
       'default-object-instance-view',
       tracing.analysis.ObjectInstanceView);
 

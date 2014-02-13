@@ -7,8 +7,8 @@
 /**
  * @fileoverview Parses scheduler events in the Linux event trace format.
  */
-base.require('tracing.importer.linux_perf.parser');
-base.exportTo('tracing.importer.linux_perf', function() {
+tvcm.require('tracing.importer.linux_perf.parser');
+tvcm.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
 

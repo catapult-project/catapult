@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.requireStylesheet('system_stats.system_stats_snapshot_view');
+tvcm.requireStylesheet('system_stats.system_stats_snapshot_view');
 
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('system_stats', function() {
+tvcm.exportTo('system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
-  var SystemStatsSnapshotView = base.ui.define('system-stats-snapshot-view',
+  var SystemStatsSnapshotView = tvcm.ui.define('system-stats-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {

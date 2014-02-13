@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('tracing.importer.v8.splaytree');
+tvcm.require('tracing.importer.v8.splaytree');
 
 /**
  * @fileoverview Map addresses to dynamically created functions.
  */
 
-base.exportTo('tracing.importer.v8', function() {
+tvcm.exportTo('tracing.importer.v8', function() {
   /**
    * Constructs a mapper that maps addresses into code entries.
    *

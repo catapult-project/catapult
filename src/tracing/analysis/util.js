@@ -8,7 +8,7 @@
  * @fileoverview Helper functions for use in selection_analysis files.
  */
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
 
   function tsRound(ts) {
     return Math.round(ts * 1000.0) / 1000.0;

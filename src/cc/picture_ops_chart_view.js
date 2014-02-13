@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.requireStylesheet('cc.picture_ops_chart_view');
-base.require('base.ui.dom_helpers');
+tvcm.requireStylesheet('cc.picture_ops_chart_view');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   var BAR_PADDING = 1;
   var BAR_WIDTH = 5;
@@ -30,7 +30,7 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartView = base.ui.define('picture-ops-chart-view');
+  var PictureOpsChartView = tvcm.ui.define('picture-ops-chart-view');
 
   PictureOpsChartView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -60,7 +60,7 @@ base.exportTo('cc', function() {
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
 
       this.usePercentileScale_ = false;
-      this.usePercentileScaleCheckbox_ = base.ui.createCheckBox(
+      this.usePercentileScaleCheckbox_ = tvcm.ui.createCheckBox(
           this, 'usePercentileScale',
           'PictureOpsChartView.usePercentileScale', false,
           'Limit to 95%-ile');
@@ -157,7 +157,7 @@ base.exportTo('cc', function() {
       index = Math.floor((x - chartLeft) / totalBarWidth *
           this.pictureOps_.length);
 
-      index = base.clamp(index, 0, this.pictureOps_.length - 1);
+      index = tvcm.clamp(index, 0, this.pictureOps_.length - 1);
 
       return index;
     },
@@ -177,7 +177,7 @@ base.exportTo('cc', function() {
 
       e.preventDefault();
 
-      base.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onMouseMove_: function(e) {

@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.analyze_slices');
+tvcm.requireStylesheet('tracing.analysis.analyze_slices');
 
-base.require('tracing.analysis.util');
-base.require('base.ui');
-base.require('base.ui.sortable_table');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.ui.sortable_table');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
 
   function analyzeSingleSlice(results, slice, type) {
     results.appendHeader('Selected ' + type + ':');
@@ -77,7 +77,7 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableCell(table, row, 'Args');
 
     var numSlices = 0;
-    base.iterItems(sliceGroup, function(title, slice) {
+    tvcm.iterItems(sliceGroup, function(title, slice) {
       numSlices++;
       results.appendDetailsRow(table, slice.start, slice.duration,
           slice.selfTime ? slice.selfTime : slice.duration, slice.args,
@@ -86,7 +86,7 @@ base.exportTo('tracing.analysis', function() {
           }, slice.threadDuration);
     });
     if (numSlices > 1)
-      base.ui.SortableTable.decorate(table);
+      tvcm.ui.SortableTable.decorate(table);
   }
 
   function analyzeMultipleSlices(results, slices, type) {
@@ -128,7 +128,7 @@ base.exportTo('tracing.analysis', function() {
     var totalthreadDuration = 0;
     var totalSelfTime = 0;
     var totalThreadSelfTime = 0;
-    base.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
+    tvcm.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
       var duration = 0;
       var threadDuration = 0;
       var selfTime = 0;
@@ -220,7 +220,7 @@ base.exportTo('tracing.analysis', function() {
                             totalSelfTime, totalThreadSelfTime, slices.length,
                             null, null, null, true);
       results.appendSpacingRow(table, true);
-      base.ui.SortableTable.decorate(table);
+      tvcm.ui.SortableTable.decorate(table);
     }
 
     results.appendInfoRowTime(table, 'Selection start', tsLo, true);
@@ -237,7 +237,7 @@ base.exportTo('tracing.analysis', function() {
     results.appendTableCell(table, row, 'Args');
 
     var numSlices = 0;
-    base.iterItems(sliceGroup, function(title, slice) {
+    tvcm.iterItems(sliceGroup, function(title, slice) {
       numSlices++;
       results.appendDetailsRow(table, slice.start, null, null, slice.args,
           function() {
@@ -245,7 +245,7 @@ base.exportTo('tracing.analysis', function() {
           });
     });
     if (numSlices > 1)
-      base.ui.SortableTable.decorate(table);
+      tvcm.ui.SortableTable.decorate(table);
   }
 
   function analyzeMultipleSampleEvents(results, slices, type) {
@@ -314,7 +314,7 @@ base.exportTo('tracing.analysis', function() {
       results.appendDataRow(table, 'Totals', null, null, null, null,
                             slices.length, '100%', null, null, true);
       results.appendSpacingRow(table, true);
-      base.ui.SortableTable.decorate(table);
+      tvcm.ui.SortableTable.decorate(table);
     }
 
     results.appendInfoRowTime(table, 'Selection start', tsLo, true);

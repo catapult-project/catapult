@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.trace_event_importer');
 
-base.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.trace_event_importer_perf_test', function() { // @suppress longLineCheck
   var eventStrings = {};
 
   function getSynchronous(url) {

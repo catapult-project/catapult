@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.trace_model.event');
+tvcm.require('tracing.trace_model.event');
 
 /**
  * @fileoverview Provides color scheme related functions.
  */
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   var SelectionState = tracing.trace_model.SelectionState;
 

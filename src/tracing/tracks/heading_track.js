@@ -4,20 +4,20 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.heading_track');
+tvcm.requireStylesheet('tracing.tracks.heading_track');
 
-base.require('tracing.constants');
-base.require('tracing.tracks.track');
-base.require('base.ui');
+tvcm.require('tracing.constants');
+tvcm.require('tracing.tracks.track');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
   /**
    * A track with a header. Provides the basic heading and tooltip
    * infrastructure. Subclasses must implement drawing code.
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var HeadingTrack = base.ui.define('heading-track', tracing.tracks.Track);
+  var HeadingTrack = tvcm.ui.define('heading-track', tracing.tracks.Track);
 
   HeadingTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,

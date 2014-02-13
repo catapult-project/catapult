@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.trace_model.object_instance');
+tvcm.require('tracing.trace_model.object_instance');
 
-base.exportTo('gpu', function() {
+tvcm.exportTo('gpu', function() {
 
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 

@@ -10,11 +10,11 @@
  *
  */
 
-base.require('base.events');
-base.require('tracing.trace_model');
-base.require('tracing.trace_model.slice');
+tvcm.require('tvcm.events');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.trace_model.slice');
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
 
   var STATE_PAUSED = 0x1;
   var STATE_CAPTURING = 0x2;
@@ -82,7 +82,7 @@ base.exportTo('tracing.importer', function() {
   }
 
   TimelineStreamImporter.prototype = {
-    __proto__: base.EventTarget.prototype,
+    __proto__: tvcm.EventTarget.prototype,
 
     cleanup_: function() {
       if (!this.connection_)

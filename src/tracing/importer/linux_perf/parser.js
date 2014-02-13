@@ -52,7 +52,7 @@
  *
  * All subclasses should depend on importer.linux_perf.parser, e.g.
  *
- * base.defineModule('importer.linux_perf.workqueue_parser')
+ * tvcm.defineModule('importer.linux_perf.workqueue_parser')
  *   .dependsOn('importer.linux_perf.parser')
  *   .exportsTo('tracing', function()
  *
@@ -60,7 +60,7 @@
  * adding a new subclass you must run build/generate_about_tracing_contents.py
  * to regenerate about_tracing.*.
  */
-base.exportTo('tracing.importer.linux_perf', function() {
+tvcm.exportTo('tracing.importer.linux_perf', function() {
 
   var subtypeConstructors = [];
 

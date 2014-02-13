@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.timeline_display_transform');
+tvcm.require('tracing.timeline_display_transform');
 
-base.unittest.testSuite('tracing.timeline_display_transform_test', function() {
+tvcm.unittest.testSuite('tracing.timeline_display_transform_test', function() {
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
 
   test('basics', function() {

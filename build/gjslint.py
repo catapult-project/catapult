@@ -24,6 +24,5 @@ def main():
   sys.argv.append('--unix_mode')
   sys.argv.append('--check_html')
   sys.argv.extend(['-r', 'src/'])
-  sys.argv.extend(['-r', 'third_party/tvcm/base/'])
-  sys.argv.extend(['-r', 'third_party/tvcm/ui/'])
+  sys.argv.extend(['-r', 'third_party/tvcm/src/'])
   gjslint.main()

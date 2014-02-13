@@ -4,20 +4,20 @@
 
 'use strict';
 
-base.require('cc.picture_ops_list_view');
-base.require('cc.picture');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.trace_model');
-base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
+tvcm.require('cc.picture_ops_list_view');
+tvcm.require('cc.picture');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
-base.unittest.testSuite('cc.picture_ops_list_view_test', function() {
+tvcm.unittest.testSuite('cc.picture_ops_list_view_test', function() {
   var PictureOpsListView = cc.PictureOpsListView;
 
   test('instantiate', function() {
     if (!cc.PictureSnapshot.CanRasterize())
       return;
     var m = new tracing.TraceModel(g_catLTHIEvents);
-    var p = base.dictionaryValues(m.processes)[0];
+    var p = tvcm.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];
@@ -31,7 +31,7 @@ base.unittest.testSuite('cc.picture_ops_list_view_test', function() {
     if (!cc.PictureSnapshot.CanRasterize())
       return;
     var m = new tracing.TraceModel(g_catLTHIEvents);
-    var p = base.dictionaryValues(m.processes)[0];
+    var p = tvcm.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
     var snapshot = instance.snapshots[0];

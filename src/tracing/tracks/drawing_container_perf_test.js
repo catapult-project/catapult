@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.timeline_view');
-base.require('tracing.timeline_viewport');
-base.require('tracing.trace_model');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.timeline_view');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.tracks.drawing_container_perf_test', function() {  // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.tracks.drawing_container_perf_test', function() {  // @suppress longLineCheck
   function getSynchronous(url) {
     var req = new XMLHttpRequest();
     req.open('GET', url, false);

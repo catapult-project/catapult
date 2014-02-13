@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('base.range');
-base.require('tracing.constants');
-base.require('tracing.selection');
-base.require('tracing.trace_model.slice');
+tvcm.require('tvcm.range');
+tvcm.require('tracing.constants');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.trace_model.slice');
 
 /**
  * @fileoverview Provides the TimingTool class.
  */
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   var constants = tracing.constants;
 
@@ -275,7 +275,7 @@ base.exportTo('tracing', function() {
         snapped: false
       };
 
-      var eventBounds = new base.Range();
+      var eventBounds = new tvcm.Range();
       for (var i = 0; i < selection.length; i++) {
         var event = selection[i];
         var track = viewport.trackForEvent(event);

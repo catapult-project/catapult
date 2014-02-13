@@ -7,10 +7,10 @@
 /**
  * @fileoverview Provides the Process class.
  */
-base.require('tracing.trace_model.cpu');
-base.require('tracing.trace_model.process_base');
+tvcm.require('tracing.trace_model.cpu');
+tvcm.require('tracing.trace_model.process_base');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
 
   var Cpu = tracing.trace_model.Cpu;
   var ProcessBase = tracing.trace_model.ProcessBase;

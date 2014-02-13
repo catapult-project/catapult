@@ -4,22 +4,22 @@
 
 'use strict';
 
-base.require('tcmalloc.heap_instance_track');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.object_instance_view');
-base.require('tracing.tracks.container_track');
-base.require('tracing.tracks.counter_track');
-base.require('tracing.tracks.object_instance_track');
-base.require('tracing.tracks.spacing_track');
-base.require('tracing.tracks.thread_track');
-base.require('tracing.trace_model_settings');
-base.require('tracing.filter');
-base.require('base.ui');
-base.require('base.ui.dom_helpers');
+tvcm.require('tcmalloc.heap_instance_track');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.object_instance_view');
+tvcm.require('tracing.tracks.container_track');
+tvcm.require('tracing.tracks.counter_track');
+tvcm.require('tracing.tracks.object_instance_track');
+tvcm.require('tracing.tracks.spacing_track');
+tvcm.require('tracing.tracks.thread_track');
+tvcm.require('tracing.trace_model_settings');
+tvcm.require('tracing.filter');
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.requireStylesheet('tracing.tracks.process_track_base');
+tvcm.requireStylesheet('tracing.tracks.process_track_base');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   var ObjectSnapshotView = tracing.analysis.ObjectSnapshotView;
   var ObjectInstanceView = tracing.analysis.ObjectInstanceView;
@@ -31,7 +31,7 @@ base.exportTo('tracing.tracks', function() {
    * @constructor
    */
   var ProcessTrackBase =
-      base.ui.define('process-track-base', tracing.tracks.ContainerTrack);
+      tvcm.ui.define('process-track-base', tracing.tracks.ContainerTrack);
 
   ProcessTrackBase.prototype = {
 
@@ -45,10 +45,10 @@ base.exportTo('tracing.tracks', function() {
       this.classList.add('process-track-base');
       this.classList.add('expanded');
 
-      this.processNameEl_ = base.ui.createSpan();
+      this.processNameEl_ = tvcm.ui.createSpan();
       this.processNameEl_.classList.add('process-track-name');
 
-      this.headerEl_ = base.ui.createDiv({className: 'process-track-header'});
+      this.headerEl_ = tvcm.ui.createDiv({className: 'process-track-header'});
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
@@ -149,7 +149,7 @@ base.exportTo('tracing.tracks', function() {
     appendObjectInstanceTracks_: function() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
-      var instanceTypeNames = base.dictionaryKeys(instancesByTypeName);
+      var instanceTypeNames = tvcm.dictionaryKeys(instancesByTypeName);
       instanceTypeNames.sort();
 
       var didAppendAtLeastOneTrack = false;
@@ -203,7 +203,7 @@ base.exportTo('tracing.tracks', function() {
 
     appendCounterTracks_: function() {
       // Add counter tracks for this process.
-      var counters = base.dictionaryValues(this.processBase.counters);
+      var counters = tvcm.dictionaryValues(this.processBase.counters);
       counters.sort(tracing.trace_model.Counter.compare);
 
       // Create the counters for this process.
@@ -217,7 +217,7 @@ base.exportTo('tracing.tracks', function() {
 
     appendThreadTracks_: function() {
       // Get a sorted list of threads.
-      var threads = base.dictionaryValues(this.processBase.threads);
+      var threads = tvcm.dictionaryValues(this.processBase.threads);
       threads.sort(tracing.trace_model.Thread.compare);
 
       // Create the threads.

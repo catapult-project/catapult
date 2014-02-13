@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('about_tracing.profiling_view');
-base.requireStylesheet('about_tracing.common');
+tvcm.require('about_tracing.profiling_view');
+tvcm.requireStylesheet('about_tracing.common');
 
-base.exportTo('about_tracing', function() {
+tvcm.exportTo('about_tracing', function() {
   window.profilingView = undefined;  // Made global for debugging purposes only.
 
   document.addEventListener('DOMContentLoaded', function() {

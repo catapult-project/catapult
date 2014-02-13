@@ -4,14 +4,14 @@
 
 'use strict';
 
-base.require('cc.layer_tree_host_impl');
-base.require('cc.layer_tree_host_impl_view');
-base.require('cc.picture');
-base.require('cc.picture_view');
-base.require('cc.raster_task_slice_view');
-base.require('cc.tile');
-base.require('cc.tile_view');
+tvcm.require('cc.layer_tree_host_impl');
+tvcm.require('cc.layer_tree_host_impl_view');
+tvcm.require('cc.picture');
+tvcm.require('cc.picture_view');
+tvcm.require('cc.raster_task_slice_view');
+tvcm.require('cc.tile');
+tvcm.require('cc.tile_view');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   return {};
 });

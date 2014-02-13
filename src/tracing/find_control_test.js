@@ -4,14 +4,14 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.find_control');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.find_control');
 
-base.unittest.testSuite('tracing.find_control_test', function() {
+tvcm.unittest.testSuite('tracing.find_control_test', function() {
   /*
    * Just enough of the Timeline to support the tests below.
    */
-  var FakeTimeline = base.ui.define('div');
+  var FakeTimeline = tvcm.ui.define('div');
 
   FakeTimeline.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -18,26 +18,26 @@
  */
 'use strict';
 
-base.require('tracing.trace_model');
-base.require('tracing.color_scheme');
-base.require('tracing.importer.importer');
-base.require('tracing.importer.linux_perf.bus_parser');
-base.require('tracing.importer.linux_perf.clock_parser');
-base.require('tracing.importer.linux_perf.cpufreq_parser');
-base.require('tracing.importer.linux_perf.disk_parser');
-base.require('tracing.importer.linux_perf.drm_parser');
-base.require('tracing.importer.linux_perf.exynos_parser');
-base.require('tracing.importer.linux_perf.gesture_parser');
-base.require('tracing.importer.linux_perf.i915_parser');
-base.require('tracing.importer.linux_perf.mali_parser');
-base.require('tracing.importer.linux_perf.power_parser');
-base.require('tracing.importer.linux_perf.sched_parser');
-base.require('tracing.importer.linux_perf.sync_parser');
-base.require('tracing.importer.linux_perf.workqueue_parser');
-base.require('tracing.importer.linux_perf.android_parser');
-base.require('tracing.importer.linux_perf.kfunc_parser');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.linux_perf.bus_parser');
+tvcm.require('tracing.importer.linux_perf.clock_parser');
+tvcm.require('tracing.importer.linux_perf.cpufreq_parser');
+tvcm.require('tracing.importer.linux_perf.disk_parser');
+tvcm.require('tracing.importer.linux_perf.drm_parser');
+tvcm.require('tracing.importer.linux_perf.exynos_parser');
+tvcm.require('tracing.importer.linux_perf.gesture_parser');
+tvcm.require('tracing.importer.linux_perf.i915_parser');
+tvcm.require('tracing.importer.linux_perf.mali_parser');
+tvcm.require('tracing.importer.linux_perf.power_parser');
+tvcm.require('tracing.importer.linux_perf.sched_parser');
+tvcm.require('tracing.importer.linux_perf.sync_parser');
+tvcm.require('tracing.importer.linux_perf.workqueue_parser');
+tvcm.require('tracing.importer.linux_perf.android_parser');
+tvcm.require('tracing.importer.linux_perf.kfunc_parser');
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
 

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.analysis.generic_object_view');
-base.require('tracing.analysis.analyze_selection');
-base.require('tracing.analysis.analysis_results');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.analysis.analyze_selection');
+tvcm.require('tracing.analysis.analysis_results');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var tsRound = tracing.analysis.tsRound;
 
   var GenericObjectViewWithLabel = tracing.analysis.GenericObjectViewWithLabel;

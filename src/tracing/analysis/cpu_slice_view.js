@@ -4,19 +4,20 @@
 
 'use strict';
 
-base.require('base.utils');
-base.require('tracing.analysis.slice_view');
-base.require('tracing.analysis.util');
-base.require('tracing.analysis.analysis_link');
-base.requireTemplate('tracing.analysis.cpu_slice_view');
+tvcm.require('tvcm.utils');
+tvcm.require('tracing.analysis.slice_view');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.analysis_link');
+tvcm.requireTemplate('tracing.analysis.cpu_slice_view');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /**
    * @constructor
    */
-  var CpuSliceView = base.ui.define('cpu-slice-view', tracing.analysis.SliceView);
+  var CpuSliceView = tvcm.ui.define('cpu-slice-view',
+                                    tracing.analysis.SliceView);
 
   CpuSliceView.prototype = {
     __proto__: tracing.analysis.SliceView.prototype,
@@ -28,7 +29,7 @@ base.exportTo('tracing.analysis', function() {
 
     updateContents: function() {
       this.textContent = '';
-      this.appendChild(base.instantiateTemplate('#cpu-slice-view-template'));
+      this.appendChild(tvcm.instantiateTemplate('#cpu-slice-view-template'));
 
       var cpuSlice = this.slice;
       var thread = cpuSlice.threadThatWasRunning;

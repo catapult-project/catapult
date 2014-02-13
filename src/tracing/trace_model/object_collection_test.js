@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model.object_collection');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model.object_collection');
 
-base.unittest.testSuite('tracing.trace_model.object_collection_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.trace_model.object_collection_test', function() { // @suppress longLineCheck
   var TestObjectInstance = function(parent, id, category, name, creationTs) {
     tracing.trace_model.ObjectInstance.call(
         this, parent, id, category, name, creationTs);
@@ -94,7 +94,7 @@ base.unittest.testSuite('tracing.trace_model.object_collection_test', function()
     assertEquals('skia', picture.category);
     assertEquals('Picture', picture.name);
 
-    var typeNames = base.dictionaryKeys(collection.getAllInstancesByTypeName());
+    var typeNames = tvcm.dictionaryKeys(collection.getAllInstancesByTypeName());
     typeNames.sort();
     assertArrayEquals(
         ['Frame', 'Picture'],

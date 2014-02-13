@@ -165,16 +165,16 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
-    self.default_path = '/base/tests.html'
+    self.default_path = '/tvcm/tests.html'
 
     # Redirect old tests.html places to the new location until folks have gotten used to its new
     # location.
     self.AddPathHandler('/src/tests.html', do_GET_root)
     self.AddPathHandler('/tests.html', do_GET_root)
 
-    self.AddPathHandler('/base/json/tests', do_GET_json_tests)
-    self.AddPathHandler('/base/all_templates.html', do_GET_templates)
-    self.AddPathHandler('/base/deps.js', do_GET_deps)
+    self.AddPathHandler('/tvcm/json/tests', do_GET_json_tests)
+    self.AddPathHandler('/tvcm/all_templates.html', do_GET_templates)
+    self.AddPathHandler('/tvcm/deps.js', do_GET_deps)
 
   def AddPathHandler(self, path, handler, supports_get=True, supports_post=False):
     self._path_handlers.append(PathHandler(path, handler, supports_get, supports_post))

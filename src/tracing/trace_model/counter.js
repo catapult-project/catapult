@@ -4,21 +4,21 @@
 
 'use strict';
 
-base.require('base.guid');
-base.require('base.range');
-base.require('tracing.trace_model.counter_series');
+tvcm.require('tvcm.guid');
+tvcm.require('tvcm.range');
+tvcm.require('tracing.trace_model.counter_series');
 
 /**
  * @fileoverview Provides the Counter class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
 
   /**
    * Stores all the samples for a given counter.
    * @constructor
    */
   function Counter(parent, id, category, name) {
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
 
     this.parent = parent;
     this.id = id;
@@ -27,7 +27,7 @@ base.exportTo('tracing.trace_model', function() {
 
     this.series_ = [];
     this.totals = [];
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
   }
 
   Counter.prototype = {

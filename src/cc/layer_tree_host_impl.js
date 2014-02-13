@@ -7,13 +7,13 @@
 /**
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
-base.require('base.bbox2');
-base.require('tracing.trace_model.object_instance');
-base.require('cc.constants');
-base.require('cc.layer_tree_impl');
-base.require('cc.util');
+tvcm.require('tvcm.bbox2');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('cc.constants');
+tvcm.require('cc.layer_tree_impl');
+tvcm.require('cc.util');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var constants = cc.constants;
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
   var ObjectInstance = tracing.trace_model.ObjectInstance;
@@ -100,14 +100,14 @@ base.exportTo('cc', function() {
         var tileHistory = this.allTileHistories_[tileID];
         scales[tileHistory.contentsScale] = true;
       }
-      this.allContentsScales_ = base.dictionaryKeys(scales);
+      this.allContentsScales_ = tvcm.dictionaryKeys(scales);
       return this.allContentsScales_;
     },
 
     get allLayersBBox() {
       if (this.allLayersBBox_)
         return this.allLayersBBox_;
-      var bbox = new base.BBox2();
+      var bbox = new tvcm.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
           bbox.addQuad(layer.layerQuad);

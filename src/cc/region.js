@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('base.rect');
+tvcm.require('tvcm.rect');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /**
    * @constructor
@@ -21,7 +21,7 @@ base.exportTo('cc', function() {
 
     var r = new Region();
     for (var i = 0; i < array.length; i += 4) {
-      r.rects.push(base.Rect.fromXYWH(array[i], array[i + 1],
+      r.rects.push(tvcm.Rect.fromXYWH(array[i], array[i + 1],
                                       array[i + 2], array[i + 3]));
     }
     return r;

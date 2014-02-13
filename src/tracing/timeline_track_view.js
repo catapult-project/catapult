@@ -18,24 +18,24 @@
  *    Thread2:     CCCCCC                 CCCCC
  *
  */
-base.requireStylesheet('base.ui.common');
-base.requireStylesheet('tracing.timeline_track_view');
-base.require('base.events');
-base.require('base.properties');
-base.require('base.settings');
-base.require('tracing.filter');
-base.require('tracing.selection');
-base.require('tracing.timeline_viewport');
-base.require('tracing.timeline_display_transform_animations');
-base.require('tracing.timing_tool');
-base.require('tracing.trace_model.event');
-base.require('tracing.tracks.drawing_container');
-base.require('tracing.tracks.trace_model_track');
-base.require('tracing.tracks.ruler_track');
-base.require('base.ui');
-base.require('base.ui.mouse_mode_selector');
+tvcm.requireStylesheet('tvcm.ui.common');
+tvcm.requireStylesheet('tracing.timeline_track_view');
+tvcm.require('tvcm.events');
+tvcm.require('tvcm.properties');
+tvcm.require('tvcm.settings');
+tvcm.require('tracing.filter');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.timeline_display_transform_animations');
+tvcm.require('tracing.timing_tool');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tracing.tracks.drawing_container');
+tvcm.require('tracing.tracks.trace_model_track');
+tvcm.require('tracing.tracks.ruler_track');
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.ui.mouse_mode_selector');
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;
@@ -67,7 +67,7 @@ base.exportTo('tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var TimelineTrackView = base.ui.define('div');
+  var TimelineTrackView = tvcm.ui.define('div');
 
   TimelineTrackView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -145,7 +145,7 @@ base.exportTo('tracing', function() {
     },
 
     initMouseModeSelector: function() {
-      this.mouseModeSelector_ = new base.ui.MouseModeSelector(this);
+      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this);
       this.appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.addEventListener('beginpan',
@@ -180,7 +180,7 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.addEventListener('exittiming',
           this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-      var m = base.ui.MOUSE_SELECTOR_MODE;
+      var m = tvcm.ui.MOUSE_SELECTOR_MODE;
       this.mouseModeSelector_.supportedModeMask =
           m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
       this.mouseModeSelector_.settingsKey =
@@ -191,11 +191,11 @@ base.exportTo('tracing', function() {
       this.mouseModeSelector_.setKeyCodeForMode(m.TIMING, '4'.charCodeAt(0));
 
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.SELECTION, base.ui.MODIFIER.SHIFT);
+          m.SELECTION, tvcm.ui.MODIFIER.SHIFT);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.PANSCAN, base.ui.MODIFIER.SPACE);
+          m.PANSCAN, tvcm.ui.MODIFIER.SPACE);
       this.mouseModeSelector_.setModifierForAlternateMode(
-          m.ZOOM, base.ui.MODIFIER.CMD_OR_CTRL);
+          m.ZOOM, tvcm.ui.MODIFIER.CMD_OR_CTRL);
     },
 
     detach: function() {
@@ -229,7 +229,7 @@ base.exportTo('tracing', function() {
       if (modelInstanceChanged)
         this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
 
-      base.setPropertyAndDispatchChange(this, 'model', model);
+      tvcm.setPropertyAndDispatchChange(this, 'model', model);
     },
 
     get hasVisibleContent() {
@@ -300,7 +300,8 @@ base.exportTo('tracing', function() {
       if (this.focusElement.tabIndex >= 0) {
         if (document.activeElement == this.focusElement)
           return true;
-        return base.ui.elementIsChildOf(document.activeElement, this.focusElement);
+        return tvcm.ui.elementIsChildOf(document.activeElement,
+                                        this.focusElement);
       }
       return true;
     },
@@ -428,7 +429,8 @@ base.exportTo('tracing', function() {
     },
 
     onDblClick_: function(e) {
-      if (this.mouseModeSelector_.mode !== base.ui.MOUSE_SELECTOR_MODE.SELECTION)
+      if (this.mouseModeSelector_.mode !==
+          tvcm.ui.MOUSE_SELECTOR_MODE.SELECTION)
         return;
 
       if (!this.selection.length || !this.selection[0].title)
@@ -665,7 +667,7 @@ base.exportTo('tracing', function() {
       } else
         this.selection_ = new Selection();
 
-      base.dispatchSimpleEvent(this, 'selectionChange');
+      tvcm.dispatchSimpleEvent(this, 'selectionChange');
 
       if (this.selectionOfInterest.length) {
         var track = this.viewport.trackForEvent(this.selectionOfInterest[0]);
@@ -754,7 +756,7 @@ base.exportTo('tracing', function() {
       var roundedDuration = Math.round((hiWX - loWX) * 100) / 100;
       this.dragBox_.textContent = roundedDuration + 'ms';
 
-      var e = new base.Event('selectionChanging');
+      var e = new tvcm.Event('selectionChanging');
       e.loWX = loWX;
       e.hiWX = hiWX;
       this.dispatchEvent(e);

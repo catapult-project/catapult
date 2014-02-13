@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('cc.util');
+tvcm.require('cc.util');
 
-base.exportTo('system_stats', function() {
+tvcm.exportTo('system_stats', function() {
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**

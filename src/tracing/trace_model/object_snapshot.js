@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.trace_model.event');
+tvcm.require('tracing.trace_model.event');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A snapshot of an object instance, at a given moment in time.
    *

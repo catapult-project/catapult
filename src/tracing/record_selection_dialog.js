@@ -8,26 +8,26 @@
  * @fileoverview RecordSelectionDialog presents the available categories
  * to be enabled/disabled during tracing.
  */
-base.requireTemplate('tracing.record_selection_dialog');
+tvcm.requireTemplate('tracing.record_selection_dialog');
 
-base.require('base.utils');
-base.require('tracing.filter');
-base.require('base.ui.overlay');
-base.require('base.ui.dom_helpers');
+tvcm.require('tvcm.utils');
+tvcm.require('tracing.filter');
+tvcm.require('tvcm.ui.overlay');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.exportTo('tracing', function() {
-  var RecordSelectionDialog = base.ui.define('div');
+tvcm.exportTo('tracing', function() {
+  var RecordSelectionDialog = tvcm.ui.define('div');
 
   RecordSelectionDialog.prototype = {
-    __proto__: base.ui.Overlay.prototype,
+    __proto__: tvcm.ui.Overlay.prototype,
 
     decorate: function() {
-      base.ui.Overlay.prototype.decorate.call(this);
+      tvcm.ui.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
       this.classList.add('record-dialog-overlay');
 
-      var node = base.instantiateTemplate('#record-selection-dialog-template');
+      var node = tvcm.instantiateTemplate('#record-selection-dialog-template');
       this.appendChild(node);
 
       this.recordButtonEl_ = document.createElement('button');
@@ -38,15 +38,15 @@ base.exportTo('tracing', function() {
       this.recordButtonEl_.style.fontSize = '110%';
       this.rightButtons.appendChild(this.recordButtonEl_);
 
-      this.continuousTracingBn_ = base.ui.createCheckBox(
+      this.continuousTracingBn_ = tvcm.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useContinuousTracing', true,
           'Continuous tracing');
-      this.systemTracingBn_ = base.ui.createCheckBox(
+      this.systemTracingBn_ = tvcm.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSystemTracing', true,
           'System tracing');
-      this.samplingTracingBn_ = base.ui.createCheckBox(
+      this.samplingTracingBn_ = tvcm.ui.createCheckBox(
           undefined, undefined,
           'recordSelectionDialog.useSampling', false,
           'State sampling');
@@ -141,7 +141,7 @@ base.exportTo('tracing', function() {
 
     onRecordButtonClicked_: function() {
       this.visible = false;
-      base.dispatchSimpleEvent(this, 'recordclick');
+      tvcm.dispatchSimpleEvent(this, 'recordclick');
       return false;
     },
 
@@ -183,7 +183,7 @@ base.exportTo('tracing', function() {
         inputEl.id = category;
         inputEl.value = category;
 
-        inputEl.checked = base.Settings.get(
+        inputEl.checked = tvcm.Settings.get(
             category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
@@ -209,7 +209,7 @@ base.exportTo('tracing', function() {
       // returned when we query the category list.
       var set = {};
       var allCategories =
-          this.categories_.concat(base.Settings.keys(this.settings_key_));
+          this.categories_.concat(tvcm.Settings.keys(this.settings_key_));
       var allCategoriesLength = allCategories.length;
       for (var i = 0; i < allCategoriesLength; ++i) {
         set[allCategories[i]] = true;
@@ -237,7 +237,7 @@ base.exportTo('tracing', function() {
 
     updateSetting_: function(e) {
       var checkbox = e.target;
-      base.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
+      tvcm.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
     },
 
     createGroupSelectButtons_: function(parent) {

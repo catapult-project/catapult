@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.analysis.util');
-base.require('base.ui');
-base.require('tracing.trace_model.counter_sample');
-base.exportTo('tracing.analysis', function() {
+tvcm.require('tracing.analysis.util');
+tvcm.require('tvcm.ui');
+tvcm.require('tracing.trace_model.counter_sample');
+tvcm.exportTo('tracing.analysis', function() {
 
   var CounterSample = tracing.trace_model.CounterSample;
 

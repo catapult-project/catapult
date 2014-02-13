@@ -7,14 +7,14 @@
 /**
  * @fileoverview Provides the Thread class.
  */
-base.require('base.guid');
-base.require('base.range');
-base.require('tracing.trace_model.slice');
-base.require('tracing.trace_model.slice_group');
-base.require('tracing.trace_model.async_slice_group');
-base.require('tracing.trace_model.sample');
+tvcm.require('tvcm.guid');
+tvcm.require('tvcm.range');
+tvcm.require('tracing.trace_model.slice');
+tvcm.require('tracing.trace_model.slice_group');
+tvcm.require('tracing.trace_model.async_slice_group');
+tvcm.require('tracing.trace_model.sample');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
 
   var Slice = tracing.trace_model.Slice;
   var SliceGroup = tracing.trace_model.SliceGroup;
@@ -60,7 +60,7 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Thread(parent, tid) {
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
     if (!parent)
       throw new Error('Parent must be provided.');
     this.parent = parent;
@@ -71,7 +71,7 @@ base.exportTo('tracing.trace_model', function() {
     this.samples_ = [];
     this.kernelSliceGroup = new SliceGroup();
     this.asyncSliceGroup = new AsyncSliceGroup();
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
     this.ephemeralSettings = {};
   }
 
@@ -277,7 +277,7 @@ base.exportTo('tracing.trace_model', function() {
      * Returns the index of the slice in the timeSlices array, or undefined.
      */
     indexOfTimeSlice: function(timeSlice) {
-      var i = base.findLowIndexInSortedArray(
+      var i = tvcm.findLowIndexInSortedArray(
           this.timeSlices,
           function(slice) { return slice.start; },
           timeSlice.start);
@@ -311,7 +311,7 @@ base.exportTo('tracing.trace_model', function() {
     if (tmp)
       return tmp;
 
-    tmp = base.comparePossiblyUndefinedValues(
+    tmp = tvcm.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)

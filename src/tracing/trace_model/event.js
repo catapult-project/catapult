@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('base.guid');
+tvcm.require('tvcm.guid');
 
 /**
  * @fileoverview Provides the Event class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
 
   /**
    * The SelectionState enum defines how Events are displayed in the view.
@@ -28,7 +28,7 @@ base.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Event() {
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
     this.selectionState = SelectionState.NONE;
   }
 

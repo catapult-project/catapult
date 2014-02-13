@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.analysis_link');
+tvcm.requireStylesheet('tracing.analysis.analysis_link');
 
-base.require('base.events');
-base.require('tracing.selection');
-base.require('tracing.analysis.util');
-base.require('base.ui');
+tvcm.require('tvcm.events');
+tvcm.require('tvcm.ui');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
 
   var tsRound = tracing.analysis.tsRound;
 
-  var RequestSelectionChangeEvent = base.Event.bind(
+  var RequestSelectionChangeEvent = tvcm.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
   /**
@@ -24,7 +24,7 @@ base.exportTo('tracing.analysis', function() {
    *
    * @constructor
    */
-  var AnalysisLink = base.ui.define('a');
+  var AnalysisLink = tvcm.ui.define('a');
 
   AnalysisLink.prototype = {
     __proto__: HTMLAnchorElement.prototype,
@@ -43,7 +43,7 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectSnapshot when clicked.
    * @constructor
    */
-  var ObjectSnapshotLink = base.ui.define(
+  var ObjectSnapshotLink = tvcm.ui.define(
       'object-snapshot-link', AnalysisLink);
 
   ObjectSnapshotLink.prototype = {
@@ -70,7 +70,7 @@ base.exportTo('tracing.analysis', function() {
    * Changes the selection to the given ObjectInstance when clicked.
    * @constructor
    */
-  var ObjectInstanceLink = base.ui.define(
+  var ObjectInstanceLink = tvcm.ui.define(
       'object-instance-link', AnalysisLink);
 
   ObjectInstanceLink.prototype = {

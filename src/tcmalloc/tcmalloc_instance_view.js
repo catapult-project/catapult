@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.requireStylesheet('tcmalloc.tcmalloc_instance_view');
+tvcm.requireStylesheet('tcmalloc.tcmalloc_instance_view');
 
-base.require('tracing.analysis.object_instance_view');
-base.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.object_instance_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('tcmalloc', function() {
+tvcm.exportTo('tcmalloc', function() {
 
   var tsRound = tracing.analysis.tsRound;
 
@@ -18,7 +18,7 @@ base.exportTo('tcmalloc', function() {
    * has multiple snapshots.
    * @constructor
    */
-  var TcmallocInstanceView = base.ui.define(
+  var TcmallocInstanceView = tvcm.ui.define(
       'tcmalloc-instance-view', tracing.analysis.ObjectInstanceView);
 
   TcmallocInstanceView.prototype = {

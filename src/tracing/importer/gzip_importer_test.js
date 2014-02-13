@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.gzip_importer');
-base.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.gzip_importer');
+tvcm.require('tracing.importer.trace_event_importer');
 
-base.unittest.testSuite('tracing.importer.gzip_importer_test', function() {
+tvcm.unittest.testSuite('tracing.importer.gzip_importer_test', function() {
   var findSliceNamed = tracing.test_utils.findSliceNamed;
   var original_data =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +

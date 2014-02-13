@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
   /**
    * @constructor The generic base class for filtering a TraceModel based on
    * various rules. The base class returns true for everything.

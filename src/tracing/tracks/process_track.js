@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.require('tracing.tracks.process_track_base');
-base.require('tracing.draw_helpers');
+tvcm.require('tracing.tracks.process_track_base');
+tvcm.require('tracing.draw_helpers');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
 
   /**
    * @constructor
    */
-  var ProcessTrack = base.ui.define('process-track', ProcessTrackBase);
+  var ProcessTrack = tvcm.ui.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -102,7 +102,7 @@ base.exportTo('tracing.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      base.iterateOverIntersectingIntervals(this.processBase.instantEvents,
+      tvcm.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

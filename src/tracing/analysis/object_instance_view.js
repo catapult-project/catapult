@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('base.ui');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.analysis', function() {
-  var ObjectInstanceView = base.ui.define('object-instance-view');
+tvcm.exportTo('tracing.analysis', function() {
+  var ObjectInstanceView = tvcm.ui.define('object-instance-view');
 
   ObjectInstanceView.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -4,14 +4,14 @@
 
 'use strict';
 
-base.require('base.guid');
-base.require('base.rect');
-base.require('base.raf');
-base.require('tracing.trace_model.object_instance');
-base.require('cc.picture_as_image_data');
-base.require('cc.util');
+tvcm.require('tvcm.guid');
+tvcm.require('tvcm.rect');
+tvcm.require('tvcm.raf');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('cc.picture_as_image_data');
+tvcm.require('cc.util');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
@@ -24,7 +24,7 @@ base.exportTo('cc', function() {
     this.layerRect_ = layerRect;
     this.opaqueRect_ = opaqueRect;
 
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
   }
 
   Picture.prototype = {
@@ -163,7 +163,7 @@ base.exportTo('cc', function() {
   };
 
   function LayeredPicture(pictures) {
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
     this.pictures_ = pictures;
     this.layerRect_ = undefined;
   }

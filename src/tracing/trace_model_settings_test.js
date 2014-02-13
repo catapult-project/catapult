@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.trace_model');
-base.require('tracing.trace_model_settings');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.trace_model_settings');
 
-base.unittest.testSuite('tracing.trace_model_settings_test', function() {
+tvcm.unittest.testSuite('tracing.trace_model_settings_test', function() {
 
   test('process_name_uniqueness_0', function() {
     var model = new tracing.TraceModel();

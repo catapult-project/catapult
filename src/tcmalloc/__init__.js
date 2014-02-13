@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tcmalloc.heap');
-base.require('tcmalloc.tcmalloc_instance_view');
-base.require('tcmalloc.tcmalloc_snapshot_view');
+tvcm.require('tcmalloc.heap');
+tvcm.require('tcmalloc.tcmalloc_instance_view');
+tvcm.require('tcmalloc.tcmalloc_snapshot_view');
 
-base.exportTo('tcmalloc', function() {
+tvcm.exportTo('tcmalloc', function() {
   return {};
 });

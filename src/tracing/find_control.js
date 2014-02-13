@@ -7,17 +7,17 @@
 /**
  * @fileoverview FindControl and FindController.
  */
-base.requireTemplate('tracing.find_control');
+tvcm.requireTemplate('tracing.find_control');
 
-base.require('tracing.timeline_track_view');
-base.require('tracing.filter');
-base.exportTo('tracing', function() {
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.filter');
+tvcm.exportTo('tracing', function() {
 
   /**
    * FindControl
    * @constructor
    */
-  var FindControl = base.ui.define('find-control');
+  var FindControl = tvcm.ui.define('find-control');
 
   FindControl.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -27,7 +27,7 @@ base.exportTo('tracing', function() {
       shadow.applyAuthorStyles = true;
       shadow.resetStyleInheritance = true;
 
-      shadow.appendChild(base.instantiateTemplate('#find-control-template'));
+      shadow.appendChild(tvcm.instantiateTemplate('#find-control-template'));
 
       this.hitCountEl_ = shadow.querySelector('.hit-count-label');
 

@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.require('base.ui');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
   /**
    * Slice views allow customized visualization of specific slices, indexed by
    * title. If not registered, the default slice viewing logic is used.
    *
    * @constructor
    */
-  var SliceView = base.ui.define('slice-view');
+  var SliceView = tvcm.ui.define('slice-view');
 
   SliceView.prototype = {
     __proto__: HTMLDivElement.prototype,

@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('base.settings');
+tvcm.require('tvcm.settings');
 
-base.exportTo('tracing', function() {
-  var Settings = base.Settings;
+tvcm.exportTo('tracing', function() {
+  var Settings = tvcm.Settings;
 
   /**
    * A way to persist settings specific to parts of a trace model.
@@ -19,7 +19,7 @@ base.exportTo('tracing', function() {
    *
    * This system works on a notion of an object key: for an object's key, it
    * considers all the other keys in the model. If it is unique, then the key is
-   * persisted to base.Settings. However, if it is not unique, then the
+   * persisted to tvcm.Settings. However, if it is not unique, then the
    * setting is stored on the object itself. Thus, objects with unique keys will
    * be persisted across page reloads, whereas objects with nonunique keys will
    * not.
@@ -36,7 +36,7 @@ base.exportTo('tracing', function() {
     buildObjectsByKeyMap_: function() {
       var objects = [this.model.kernel];
       objects.push.apply(objects,
-                         base.dictionaryValues(this.model.processes));
+                         tvcm.dictionaryValues(this.model.processes));
       objects.push.apply(objects,
                          this.model.getAllThreads());
       var objectsByKey = {};
@@ -54,7 +54,7 @@ base.exportTo('tracing', function() {
       }
 
       var nonuniqueKeys = {};
-      base.dictionaryKeys(objectsByKey).forEach(function(objectKey) {
+      tvcm.dictionaryKeys(objectsByKey).forEach(function(objectKey) {
         if (objectsByKey[objectKey] !== NONUNIQUE_KEY)
           return;
         delete objectsByKey[objectKey];
@@ -68,7 +68,7 @@ base.exportTo('tracing', function() {
     removeNonuniqueKeysFromSettings_: function() {
       var settings = Settings.get('trace_model_settings', {});
       var settingsChanged = false;
-      base.dictionaryKeys(settings).forEach(function(objectKey) {
+      tvcm.dictionaryKeys(settings).forEach(function(objectKey) {
         if (!this.nonuniqueKeys[objectKey])
           return;
         settingsChanged = true;

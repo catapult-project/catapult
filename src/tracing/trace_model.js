@@ -20,17 +20,17 @@
  * nesting tasks.
  *
  */
-base.require('base.range');
-base.require('base.events');
-base.require('base.interval_tree');
-base.require('tracing.importer.importer');
-base.require('tracing.importer.task');
-base.require('tracing.trace_model.process');
-base.require('tracing.trace_model.kernel');
-base.require('tracing.filter');
-base.require('base.ui.overlay');
+tvcm.require('tvcm.range');
+tvcm.require('tvcm.events');
+tvcm.require('tvcm.interval_tree');
+tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.task');
+tvcm.require('tracing.trace_model.process');
+tvcm.require('tracing.trace_model.kernel');
+tvcm.require('tracing.filter');
+tvcm.require('tvcm.ui.overlay');
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   var Importer = tracing.importer.Importer;
   var Process = tracing.trace_model.Process;
@@ -50,11 +50,11 @@ base.exportTo('tracing', function() {
     this.processes = {};
     this.metadata = [];
     this.categories = [];
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
     this.instantEvents = [];
     this.flowEvents = [];
 
-    this.flowIntervalTree = new base.IntervalTree(
+    this.flowIntervalTree = new tvcm.IntervalTree(
         function(s) { return s.start; },
         function(e) { return e.start; });
 
@@ -78,7 +78,7 @@ base.exportTo('tracing', function() {
   };
 
   TraceModel.prototype = {
-    __proto__: base.EventTarget.prototype,
+    __proto__: tvcm.EventTarget.prototype,
 
     get numProcesses() {
       var n = 0;
@@ -173,7 +173,7 @@ base.exportTo('tracing', function() {
     getAllCounters: function() {
       var counters = [];
       counters.push.apply(
-          counters, base.dictionaryValues(this.kernel.counters));
+          counters, tvcm.dictionaryValues(this.kernel.counters));
       for (var pid in this.processes) {
         var process = this.processes[pid];
         for (var tid in process.counters) {
@@ -257,7 +257,7 @@ base.exportTo('tracing', function() {
     importTracesWithProgressDialog: function(traces,
                                              opt_shiftWorldToZero,
                                              opt_pruneEmptyContainers) {
-      var overlay = base.ui.Overlay();
+      var overlay = tvcm.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('base.quad');
-base.require('base.rect');
-base.require('tracing.trace_model.object_instance');
+tvcm.require('tvcm.quad');
+tvcm.require('tvcm.rect');
+tvcm.require('tracing.trace_model.object_instance');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var convertedNameCache = {};
   function convertNameToJSConvention(name) {
     if (name in convertedNameCache)
@@ -34,7 +34,7 @@ base.exportTo('cc', function() {
   }
 
   function convertObjectFieldNamesToJSConventions(object) {
-    base.iterObjectFieldsRecursively(
+    tvcm.iterObjectFieldsRecursively(
         object,
         function(object, fieldName, fieldValue) {
           delete object[fieldName];
@@ -44,7 +44,7 @@ base.exportTo('cc', function() {
   }
 
   function convertQuadSuffixedTypesToQuads(object) {
-    base.iterObjectFieldsRecursively(
+    tvcm.iterObjectFieldsRecursively(
         object,
         function(object, fieldName, fieldValue) {
         });
@@ -107,11 +107,11 @@ base.exportTo('cc', function() {
         key = newKey;
       }
 
-      // Convert objects with keys ending with Quad to base.Quad type.
-      if (/Quad$/.test(key) && !(object[key] instanceof base.Quad)) {
+      // Convert objects with keys ending with Quad to tvcm.Quad type.
+      if (/Quad$/.test(key) && !(object[key] instanceof tvcm.Quad)) {
         var q;
         try {
-          q = base.Quad.from8Array(object[key]);
+          q = tvcm.Quad.from8Array(object[key]);
         } catch (e) {
           console.log(e);
         }
@@ -119,11 +119,11 @@ base.exportTo('cc', function() {
         continue;
       }
 
-      // Convert objects with keys ending with Rect to base.Rect type.
-      if (/Rect$/.test(key) && !(object[key] instanceof base.Rect)) {
+      // Convert objects with keys ending with Rect to tvcm.Rect type.
+      if (/Rect$/.test(key) && !(object[key] instanceof tvcm.Rect)) {
         var r;
         try {
-          r = base.Rect.fromArray(object[key]);
+          r = tvcm.Rect.fromArray(object[key]);
         } catch (e) {
           console.log(e);
         }

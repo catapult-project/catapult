@@ -8,10 +8,10 @@
  * @fileoverview Parses trace_marker events that were inserted in the trace by
  * userland.
  */
-base.require('tracing.importer.linux_perf.parser');
-base.require('tracing.trace_model.counter_series');
+tvcm.require('tracing.importer.linux_perf.parser');
+tvcm.require('tracing.trace_model.counter_series');
 
-base.exportTo('tracing.importer.linux_perf', function() {
+tvcm.exportTo('tracing.importer.linux_perf', function() {
 
   var Parser = tracing.importer.linux_perf.Parser;
 

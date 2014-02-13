@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model.counter');
-base.require('tracing.trace_model.counter_series');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model.counter');
+tvcm.require('tracing.trace_model.counter_series');
 
-base.unittest.testSuite('tracing.trace_model.counter_test', function() {
+tvcm.unittest.testSuite('tracing.trace_model.counter_test', function() {
   var Counter = tracing.trace_model.Counter;
   var CounterSeries = tracing.trace_model.CounterSeries;
   var CounterSample = tracing.trace_model.CounterSample;

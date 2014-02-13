@@ -63,8 +63,8 @@ class ParseTests(unittest.TestCase):
                 <template>
                 </template>
                 <script>
-                  base.require("foo");
-                  base.require('bar');
+                  tvcm.require("foo");
+                  tvcm.require('bar');
                 </script>
               </polymer-element>"""
 
@@ -77,7 +77,7 @@ class ParseTests(unittest.TestCase):
 
     val = module.scripts_inline[0]
     val = re.sub(r"\s+", '', val)
-    inner_script = """base.require("foo");base.require('bar');"""
+    inner_script = """tvcm.require("foo");tvcm.require('bar');"""
     self.assertEquals(inner_script, val)
 
   def test_parse_link_rel_stylesheet(self):

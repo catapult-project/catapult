@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tcmalloc.heap');
+tvcm.require('tcmalloc.heap');
 
-base.unittest.testSuite('tcmalloc.heap_test', function() {
+tvcm.unittest.testSuite('tcmalloc.heap_test', function() {
   var HeapSnapshot = tcmalloc.HeapSnapshot;
 
   // Tests total allocation count.

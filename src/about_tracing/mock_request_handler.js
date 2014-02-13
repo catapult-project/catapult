@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('about_tracing', function() {
+tvcm.exportTo('about_tracing', function() {
   function MockRequestHandler() {
     this.requests = [];
     this.nextRequestIndex = 0;

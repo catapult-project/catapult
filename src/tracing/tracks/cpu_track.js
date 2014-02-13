@@ -4,20 +4,20 @@
 
 'use strict';
 
-base.require('tracing.tracks.container_track');
-base.require('tracing.tracks.slice_track');
-base.require('tracing.filter');
-base.require('tracing.trace_model');
-base.require('base.ui');
+tvcm.require('tracing.tracks.container_track');
+tvcm.require('tracing.tracks.slice_track');
+tvcm.require('tracing.filter');
+tvcm.require('tracing.trace_model');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a Cpu using a series of of SliceTracks.
    * @constructor
    */
   var CpuTrack =
-      base.ui.define('cpu-track', tracing.tracks.ContainerTrack);
+      tvcm.ui.define('cpu-track', tracing.tracks.ContainerTrack);
   CpuTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 

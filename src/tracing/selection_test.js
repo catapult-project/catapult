@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('tracing.timeline_viewport');
-base.require('tracing.test_utils');
-base.require('tracing.trace_model');
-base.require('tracing.selection');
-base.require('tracing.tracks.slice_track');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.tracks.slice_track');
 
-base.unittest.testSuite('tracing.selection_test', function() {
+tvcm.unittest.testSuite('tracing.selection_test', function() {
   test('selectionObject', function() {
     var model = new tracing.TraceModel();
     var p1 = model.getOrCreateProcess(1);

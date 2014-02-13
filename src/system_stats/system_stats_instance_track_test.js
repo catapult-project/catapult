@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.selection');
-base.require('tracing.trace_model.event');
-base.require('tracing.timeline_viewport');
-base.require('tracing.tracks.drawing_container');
-base.require('system_stats.system_stats_instance_track');
-base.require('system_stats.system_stats_snapshot');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.tracks.drawing_container');
+tvcm.require('system_stats.system_stats_instance_track');
+tvcm.require('system_stats.system_stats_snapshot');
 
-base.unittest.testSuite('system_stats.system_stats_instance_track_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('system_stats.system_stats_instance_track_test', function() { // @suppress longLineCheck
   var SystemStatsInstanceTrack = system_stats.SystemStatsInstanceTrack;
   var Viewport = tracing.TimelineViewport;
 

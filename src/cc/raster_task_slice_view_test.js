@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('cc.raster_task_slice_view');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.trace_model');
-base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
+tvcm.require('cc.raster_task_slice_view');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
-base.unittest.testSuite('cc.raster_task_slice_view_test', function() {
+tvcm.unittest.testSuite('cc.raster_task_slice_view_test', function() {
   test('instantiate', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];

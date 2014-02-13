@@ -8,8 +8,8 @@
  * @fileoverview Parses graph_ent and graph_ret events that were inserted by
  * the Linux kernel's function graph trace.
  */
-base.require('tracing.importer.linux_perf.parser');
-base.exportTo('tracing.importer.linux_perf', function() {
+tvcm.require('tracing.importer.linux_perf.parser');
+tvcm.exportTo('tracing.importer.linux_perf', function() {
 
   var LinuxPerfParser = tracing.importer.linux_perf.Parser;
 

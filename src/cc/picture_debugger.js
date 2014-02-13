@@ -4,23 +4,23 @@
 
 'use strict';
 
-base.requireTemplate('cc.picture_debugger');
-base.requireStylesheet('cc.picture_debugger');
+tvcm.requireTemplate('cc.picture_debugger');
+tvcm.requireStylesheet('cc.picture_debugger');
 
-base.require('base.key_event_manager');
-base.require('base.utils');
-base.require('cc.picture');
-base.require('cc.picture_ops_list_view');
-base.require('cc.picture_ops_chart_summary_view');
-base.require('cc.picture_ops_chart_view');
-base.require('tracing.analysis.generic_object_view');
-base.require('base.ui.drag_handle');
-base.require('base.ui.info_bar');
-base.require('base.ui.list_view');
-base.require('base.ui.overlay');
-base.require('base.ui.mouse_mode_selector');
+tvcm.require('cc.picture');
+tvcm.require('cc.picture_ops_chart_summary_view');
+tvcm.require('cc.picture_ops_chart_view');
+tvcm.require('cc.picture_ops_list_view');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tvcm.key_event_manager');
+tvcm.require('tvcm.ui.drag_handle');
+tvcm.require('tvcm.ui.info_bar');
+tvcm.require('tvcm.ui.list_view');
+tvcm.require('tvcm.ui.mouse_mode_selector');
+tvcm.require('tvcm.ui.overlay');
+tvcm.require('tvcm.utils');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /**
    * PictureDebugger is a view of a PictureSnapshot for inspecting
@@ -28,13 +28,13 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = base.ui.define('picture-debugger');
+  var PictureDebugger = tvcm.ui.define('picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = base.instantiateTemplate('#picture-debugger-template');
+      var node = tvcm.instantiateTemplate('#picture-debugger-template');
       this.appendChild(node);
 
       this.pictureAsImageData_ = undefined;
@@ -59,12 +59,12 @@ base.exportTo('cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = base.ui.createCheckBox(
+      var overdrawCheckbox = tvcm.ui.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = base.ui.createCheckBox(
+      var chartCheckbox = tvcm.ui.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
@@ -81,7 +81,7 @@ base.exportTo('cc', function() {
       leftPanel.appendChild(this.drawOpsChartSummaryView_);
       leftPanel.appendChild(this.drawOpsView_);
 
-      var middleDragHandle = new base.ui.DragHandle();
+      var middleDragHandle = new tvcm.ui.DragHandle();
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
@@ -90,14 +90,14 @@ base.exportTo('cc', function() {
           this.drawOpsChartView_,
           rightPanel.querySelector('picture-ops-chart-view'));
 
-      this.infoBar_ = new base.ui.InfoBar();
+      this.infoBar_ = new tvcm.ui.InfoBar();
       this.rasterArea_.appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
-      base.KeyEventManager.instance.addListener(
+      tvcm.KeyEventManager.instance.addListener(
           'keypress', this.onKeyPress_, this);
 
       // Add a mutation observer so that when the view is resized we can
@@ -208,7 +208,7 @@ base.exportTo('cc', function() {
       if (this.updateContentsPending_)
         return;
       this.updateContentsPending_ = true;
-      base.requestAnimationFrameInThisFrameIfPossible(
+      tvcm.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
       );
     },
@@ -234,7 +234,7 @@ base.exportTo('cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new base.ui.Overlay();
+          var overlay = new tvcm.ui.Overlay();
           overlay.textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -287,7 +287,7 @@ base.exportTo('cc', function() {
         this.selectedOpIndex = 0;
         return;
       }
-      this.selectedOpIndex = base.clamp(
+      this.selectedOpIndex = tvcm.clamp(
           this.selectedOpIndex + increment,
           0, this.numOps);
     },
@@ -331,12 +331,13 @@ base.exportTo('cc', function() {
     },
 
     trackMouse_: function() {
-      this.mouseModeSelector_ = new base.ui.MouseModeSelector(this.rasterArea_);
+      this.mouseModeSelector_ = new tvcm.ui.MouseModeSelector(this.rasterArea_);
       this.rasterArea_.appendChild(this.mouseModeSelector_);
 
-      this.mouseModeSelector_.supportedModeMask = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.mode = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
-      this.mouseModeSelector_.defaultMode = base.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.supportedModeMask =
+          tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.mode = tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
+      this.mouseModeSelector_.defaultMode = tvcm.ui.MOUSE_SELECTOR_MODE.ZOOM;
       this.mouseModeSelector_.settingsKey = 'pictureDebugger.mouseModeSelector';
 
       this.mouseModeSelector_.addEventListener('beginzoom',

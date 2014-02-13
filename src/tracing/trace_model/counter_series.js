@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.require('tracing.trace_model.counter_sample');
+tvcm.require('tracing.trace_model.counter_sample');
 
 /**
  * @fileoverview Provides the CounterSeries class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   var CounterSample = tracing.trace_model.CounterSample;
 
   function CounterSeries(name, color) {
-    this.guid_ = base.GUID.allocate();
+    this.guid_ = tvcm.GUID.allocate();
 
     this.name_ = name;
     this.color_ = color;

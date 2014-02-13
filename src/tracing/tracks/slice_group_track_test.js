@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_track_view');
-base.require('tracing.trace_model.slice_group');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.trace_model.slice_group');
 
-base.unittest.testSuite('tracing.tracks.slice_group_track_test', function() {
+tvcm.unittest.testSuite('tracing.tracks.slice_group_track_test', function() {
   var SliceGroup = tracing.trace_model.SliceGroup;
   var SliceGroupTrack = tracing.tracks.SliceGroupTrack;
   var newSliceNamed = tracing.test_utils.newSliceNamed;

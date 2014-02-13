@@ -4,29 +4,29 @@
 
 'use strict';
 
-base.require('base.events');
-base.require('tracing.test_utils');
-base.require('tracing.importer.timeline_stream_importer');
+tvcm.require('tvcm.events');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.timeline_stream_importer');
 
-base.unittest.testSuite('tracing.importer.timeline_stream_importer_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.timeline_stream_importer_test', function() { // @suppress longLineCheck
   var FakeWebSocket = function() {
-    base.EventTarget.call(this);
+    tvcm.EventTarget.call(this);
     this.sendHook_ = undefined;
     this.messages_ = [];
     this.connected_ = false;
   };
 
   FakeWebSocket.prototype = {
-    __proto__: base.EventTarget.prototype,
+    __proto__: tvcm.EventTarget.prototype,
 
     set connected(connected) {
       if (this.connected_ == connected)
         return;
       this.connected_ = connected;
       if (this.connected_)
-        base.dispatchSimpleEvent(this, 'connect');
+        tvcm.dispatchSimpleEvent(this, 'connect');
       else
-        base.dispatchSimpleEvent(this, 'disconnect');
+        tvcm.dispatchSimpleEvent(this, 'disconnect');
     },
 
     get readyState() {

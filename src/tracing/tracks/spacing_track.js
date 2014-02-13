@@ -4,15 +4,16 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.spacing_track');
+tvcm.requireStylesheet('tracing.tracks.spacing_track');
 
-base.require('tracing.tracks.heading_track');
+tvcm.require('tracing.tracks.heading_track');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var SpacingTrack = base.ui.define('spacing-track', tracing.tracks.HeadingTrack);
+  var SpacingTrack = tvcm.ui.define('spacing-track',
+                                    tracing.tracks.HeadingTrack);
 
   SpacingTrack.prototype = {
     __proto__: tracing.tracks.HeadingTrack.prototype,

@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.analysis.analysis_view');
-base.require('tracing.test_utils');
-base.require('tracing.trace_model');
-base.require('tracing.selection');
+tvcm.require('tracing.analysis.analysis_view');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.selection');
 
-base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
+tvcm.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
   var TraceModel = tracing.TraceModel;
   var Selection = tracing.Selection;
   var AnalysisView = tracing.analysis.AnalysisView;
@@ -72,7 +72,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new Selection();
     selection.push(s10);
 
-    var MyView = base.ui.define(
+    var MyView = tvcm.ui.define(
         'my-view', tracing.analysis.ObjectSnapshotView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectSnapshotView.prototype,
@@ -114,7 +114,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new Selection();
     selection.push(i10);
 
-    var MyView = base.ui.define(
+    var MyView = tvcm.ui.define(
         'my-view', tracing.analysis.ObjectInstanceView);
     MyView.prototype = {
       __proto__: tracing.analysis.ObjectInstanceView.prototype,
@@ -144,7 +144,7 @@ base.unittest.testSuite('tracing.analysis.analysis_view_test', function() {
     var selection = new tracing.Selection();
     selection.push(s10);
 
-    var MySlice = base.ui.define(
+    var MySlice = tvcm.ui.define(
         'my-slice', tracing.analysis.SliceView);
     MySlice.prototype = {
       __proto__: tracing.analysis.SliceView.prototype,

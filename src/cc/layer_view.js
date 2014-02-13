@@ -8,30 +8,30 @@
  * @fileoverview LayerView coordinates graphical and analysis views of layers.
  */
 
-base.requireStylesheet('cc.layer_view');
+tvcm.requireStylesheet('cc.layer_view');
 
-base.require('base.raf');
-base.require('base.settings');
-base.require('cc.constants');
-base.require('cc.layer_tree_quad_stack_view');
-base.require('cc.picture');
-base.require('tracing.analysis.util');
-base.require('base.ui.drag_handle');
+tvcm.require('tvcm.raf');
+tvcm.require('tvcm.settings');
+tvcm.require('cc.constants');
+tvcm.require('cc.layer_tree_quad_stack_view');
+tvcm.require('cc.picture');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tvcm.ui.drag_handle');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var constants = cc.constants;
 
   /**
    * @constructor
    */
-  var LayerView = base.ui.define('layer-view');
+  var LayerView = tvcm.ui.define('layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ = new cc.LayerTreeQuadStackView();
-      this.dragBar_ = new base.ui.DragHandle();
+      this.dragBar_ = new tvcm.ui.DragHandle();
       this.analysisEl_ = document.createElement('layer-view-analysis');
 
       this.dragBar_.target = this.analysisEl_;

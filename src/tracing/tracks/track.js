@@ -10,22 +10,23 @@
  * the visible slices.
  */
 
-base.requireStylesheet('tracing.tracks.track');
+tvcm.requireStylesheet('tracing.tracks.track');
 
-base.require('base.ui');
-base.require('base.ui.container_that_decorates_its_children');
+tvcm.require('tvcm.ui');
+tvcm.require('tvcm.ui.container_that_decorates_its_children');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
   /**
    * The base class for all tracks.
    * @constructor
    */
-  var Track = base.ui.define('track', base.ui.ContainerThatDecoratesItsChildren);
+  var Track = tvcm.ui.define('track',
+                             tvcm.ui.ContainerThatDecoratesItsChildren);
   Track.prototype = {
-    __proto__: base.ui.ContainerThatDecoratesItsChildren.prototype,
+    __proto__: tvcm.ui.ContainerThatDecoratesItsChildren.prototype,
 
     decorate: function(viewport) {
-      base.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
+      tvcm.ui.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
       if (viewport === undefined)
         throw new Error('viewport is required when creating a Track.');
 
@@ -122,7 +123,7 @@ base.exportTo('tracing.tracks', function() {
 
     addClosestInstantEventToSelection: function(instantEvents, worldX,
                                                 worldMaxDist, selection) {
-      var instantEvent = base.findClosestElementInSortedArray(
+      var instantEvent = tvcm.findClosestElementInSortedArray(
           instantEvents,
           function(x) { return x.start; },
           worldX,

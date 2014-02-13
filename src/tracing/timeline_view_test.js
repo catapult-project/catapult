@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_view');
-base.require('tracing.trace_model');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_view');
+tvcm.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.timeline_view_test', function() {
+tvcm.unittest.testSuite('tracing.timeline_view_test', function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
   var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {

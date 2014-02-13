@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.trace_model.object_instance');
-base.require('cc.layer_impl');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('cc.layer_impl');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**

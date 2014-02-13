@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.linux_perf_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf_importer_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.linux_perf_importer_test', function() { // @suppress longLineCheck
   test('lineParserWithLegacyFmt', function() {
     var p = tracing.importer._LinuxPerfImporterTestExports.lineParserWithLegacyFmt; // @suppress longLineCheck
     var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +

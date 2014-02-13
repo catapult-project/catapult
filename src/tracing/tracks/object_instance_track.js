@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.object_instance_track');
+tvcm.requireStylesheet('tracing.tracks.object_instance_track');
 
-base.require('base.sorted_array_utils');
-base.require('tracing.trace_model.event');
-base.require('tracing.tracks.heading_track');
-base.require('tracing.color_scheme');
-base.require('base.ui');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tracing.tracks.heading_track');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   var SelectionState = tracing.trace_model.SelectionState;
   var EventPresenter = tracing.EventPresenter;
@@ -23,7 +23,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {HeadingTrack}
    */
 
-  var ObjectInstanceTrack = base.ui.define(
+  var ObjectInstanceTrack = tvcm.ui.define(
       'object-instance-track', tracing.tracks.HeadingTrack);
 
   ObjectInstanceTrack.prototype = {
@@ -97,7 +97,7 @@ base.exportTo('tracing.tracks', function() {
 
       // Instances
       var objectInstances = this.objectInstances_;
-      var loI = base.findLowIndexInSortedArray(
+      var loI = tvcm.findLowIndexInSortedArray(
           objectInstances,
           function(instance) {
             return instance.deletionTs;
@@ -119,7 +119,7 @@ base.exportTo('tracing.tracks', function() {
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       var objectSnapshots = this.objectSnapshots_;
-      loI = base.findLowIndexInSortedArray(
+      loI = tvcm.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts + snapshotRadiusWorld;
@@ -196,7 +196,7 @@ base.exportTo('tracing.tracks', function() {
       }
       var snapshotRadiusView = this.snapshotRadiusView;
       var snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
-      base.iterateOverIntersectingIntervals(
+      tvcm.iterateOverIntersectingIntervals(
           this.objectSnapshots_,
           function(x) { return x.ts - snapshotRadiusWorld; },
           function(x) { return 2 * snapshotRadiusWorld; },
@@ -206,7 +206,7 @@ base.exportTo('tracing.tracks', function() {
         return;
 
       // Try picking instances.
-      base.iterateOverIntersectingIntervals(
+      tvcm.iterateOverIntersectingIntervals(
           this.objectInstances_,
           function(x) { return x.creationTs; },
           function(x) { return x.deletionTs - x.creationTs; },
@@ -247,7 +247,7 @@ base.exportTo('tracing.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
                                          selection) {
-      var snapshot = base.findClosestElementInSortedArray(
+      var snapshot = tvcm.findClosestElementInSortedArray(
           this.objectSnapshots_,
           function(x) { return x.ts; },
           worldX,

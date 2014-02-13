@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 'use strict';
-base.require('base.iteration_helpers');
-base.require('base.sorted_array_utils');
-base.require('tracing.trace_model.event');
+tvcm.require('tvcm.iteration_helpers');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.trace_model.event');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   function CounterSample(series, timestamp, value) {
     tracing.trace_model.Event.call(this);
     this.series_ = series;
@@ -24,7 +24,7 @@ base.exportTo('tracing.trace_model', function() {
         samplesByTimestamp[ts] = [];
       samplesByTimestamp[ts].push(sample);
     }
-    var timestamps = base.dictionaryKeys(samplesByTimestamp);
+    var timestamps = tvcm.dictionaryKeys(samplesByTimestamp);
     timestamps.sort();
     var groups = [];
     for (var i = 0; i < timestamps.length; i++) {
@@ -78,7 +78,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     getSampleIndex: function() {
-      return base.findLowIndexInSortedArray(
+      return tvcm.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);

@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.analysis.generic_object_view');
+tvcm.requireStylesheet('tracing.analysis.generic_object_view');
 
-base.require('base.utils');
-base.require('tracing.analysis.analysis_link');
-base.require('base.ui');
+tvcm.require('tvcm.utils');
+tvcm.require('tracing.analysis.analysis_link');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
 
   /**
    * @constructor
    */
-  var GenericObjectView = base.ui.define('x-generic-object-view');
+  var GenericObjectView = tvcm.ui.define('x-generic-object-view');
 
   GenericObjectView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -94,7 +94,7 @@ base.exportTo('tracing.analysis', function() {
         return;
       }
 
-      if (object instanceof base.Rect) {
+      if (object instanceof tvcm.Rect) {
         this.appendSimpleText_(label, indent, object.toString(), suffix);
         return;
       }
@@ -133,7 +133,7 @@ base.exportTo('tracing.analysis', function() {
 
     appendElementsForObject_: function(
         label, object, indent, depth, maxDepth, suffix) {
-      var keys = base.dictionaryKeys(object);
+      var keys = tvcm.dictionaryKeys(object);
       if (keys.length == 0) {
         this.appendSimpleText_(label, indent, '{}', suffix);
         return;
@@ -187,7 +187,7 @@ base.exportTo('tracing.analysis', function() {
   /**
    * @constructor
    */
-  var GenericObjectViewWithLabel = base.ui.define(
+  var GenericObjectViewWithLabel = tvcm.ui.define(
       'x-generic-object-view-with-label');
 
   GenericObjectViewWithLabel.prototype = {

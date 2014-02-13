@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.linux_perf_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.drm_parser_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.linux_perf.drm_parser_test', function() { // @suppress longLineCheck
   test('drmImport', function() {
     var lines = [
       ' chrome-2465  [000]    71.653157: drm_vblank_event: crtc=0, seq=4233',

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model.time_to_object_instance_map');
-base.require('tracing.trace_model.object_instance');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model.time_to_object_instance_map');
+tvcm.require('tracing.trace_model.object_instance');
 
-base.unittest.testSuite('tracing.trace_model.time_to_object_instance_map_test',
+tvcm.unittest.testSuite('tracing.trace_model.time_to_object_instance_map_test',
                         function() {
       var createObjectInstance = function(parent, id, category, name,
                                       creationTs) {

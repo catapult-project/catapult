@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('about_tracing.mock_request_handler');
-base.require('about_tracing.profiling_view');
+tvcm.require('about_tracing.mock_request_handler');
+tvcm.require('about_tracing.profiling_view');
 
-base.unittest.testSuite('about_tracing.profiling_view_test', function() {
+tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
 
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},

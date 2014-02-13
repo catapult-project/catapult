@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('base.utils');
+tvcm.require('tvcm.utils');
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
   function TimelineDisplayTransform(opt_that) {
     if (opt_that) {
       this.set(opt_that);

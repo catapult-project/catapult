@@ -7,7 +7,7 @@
 /**
  * @fileoverview Splay tree used by CodeMap.
  */
-base.exportTo('tracing.importer.v8', function() {
+tvcm.exportTo('tracing.importer.v8', function() {
   /**
    * Constructs a Splay tree.  A splay tree is a self-balancing binary
    * search tree with the additional property that recently accessed

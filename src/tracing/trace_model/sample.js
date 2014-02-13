@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.trace_model.timed_event');
+tvcm.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the Sample class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A Sample represents a sample taken at an instant in time
    * plus parameters associated with that sample.

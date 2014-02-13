@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.trace_model.object_instance');
-base.require('cc.util');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('cc.util');
 
-base.exportTo('tcmalloc', function() {
+tvcm.exportTo('tcmalloc', function() {
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**

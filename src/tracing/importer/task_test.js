@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.importer.task');
+tvcm.require('tracing.importer.task');
 
-base.unittest.testSuite('tracing.importer.task_test', function() {
+tvcm.unittest.testSuite('tracing.importer.task_test', function() {
   var Task = tracing.importer.Task;
 
   test('basicAllStepsPass', function() {

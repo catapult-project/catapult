@@ -38,7 +38,7 @@ class ModuleTestSuite(unittest.TestSuite):
 
   def setUp(self):
     self._bc = browser_controller.BrowserController(self._project)
-    self._bc.NavigateToPath('/base/unittest/module_test_case_runner.html')
+    self._bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
 
     global _currently_active_module_test_suite
     assert _currently_active_module_test_suite == None
@@ -64,16 +64,16 @@ def DiscoverTestsInModule(project, start_path):
 
   bc = browser_controller.BrowserController(project)
 
-  bc.NavigateToPath('/base/unittest/module_test_case_runner.html')
+  bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
   try:
-    if bc.EvaluateJavaScript('base.hasPanic()'):
-      raise Exception('Runner failure: %s' % bc.EvaluateJavaScript('base.getPanicText()'))
+    if bc.EvaluateJavaScript('tvcm.hasPanic()'):
+      raise Exception('Runner failure: %s' % bc.EvaluateJavaScript('tvcm.getPanicText()'))
 
     tests = bc.EvaluateThennableAndWait(
       'discoverTestsInModules(%s)' % json.dumps(test_modules))
 
-    if bc.EvaluateJavaScript('base.hasPanic()'):
-      raise Exception('Test loading failure: %s' % bc.EvaluateJavaScript('base.getPanicText()'))
+    if bc.EvaluateJavaScript('tvcm.hasPanic()'):
+      raise Exception('Test loading failure: %s' % bc.EvaluateJavaScript('tvcm.getPanicText()'))
 
     suite = ModuleTestSuite(project)
     for fully_qualified_test_name in tests:

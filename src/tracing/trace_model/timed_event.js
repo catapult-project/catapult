@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('base.guid');
-base.require('tracing.trace_model.event');
+tvcm.require('tvcm.guid');
+tvcm.require('tracing.trace_model.event');
 
 /**
  * @fileoverview Provides the TimedEvent class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A TimedEvent is the base type for any piece of data in the trace model with
    * a specific start and duration.

@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model.slice');
-base.require('tracing.timeline_track_view');
-base.require('tracing.draw_helpers');
-base.require('base.ui.dom_helpers');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model.slice');
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.draw_helpers');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.unittest.testSuite('tracing.tracks.slice_track_test', function() {
+tvcm.unittest.testSuite('tracing.tracks.slice_track_test', function() {
   var Selection = tracing.Selection;
   var SliceTrack = tracing.tracks.SliceTrack;
   var Slice = tracing.trace_model.Slice;
@@ -125,7 +125,7 @@ base.unittest.testSuite('tracing.tracks.slice_track_test', function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(base.ui.createScopedStyle('heading { width: 100px; }'));
+    testEl.appendChild(tvcm.ui.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
     this.addHTMLOutput(testEl);
 

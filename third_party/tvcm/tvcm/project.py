@@ -51,6 +51,9 @@ class Project(object):
   tvcm_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), '..'))
 
+  tvcm_src_path = os.path.abspath(os.path.join(
+      tvcm_path, 'src'))
+
   tvcm_third_party_path = os.path.abspath(os.path.join(
       tvcm_path, 'third_party'))
 
@@ -62,7 +65,7 @@ class Project(object):
     self.source_paths = []
     if include_tvcm_paths:
       self.source_paths += [
-          self.tvcm_path,
+          self.tvcm_src_path,
           os.path.join(self.tvcm_third_party_path, 'Promises', 'polyfill', 'src'),
           os.path.join(self.tvcm_third_party_path, 'gl-matrix', 'src'),
           os.path.join(self.tvcm_third_party_path, 'polymer')

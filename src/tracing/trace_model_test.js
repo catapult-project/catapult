@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model');
-base.require('tracing.importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.importer');
 
-base.unittest.testSuite('tracing.trace_model_test', function() {
+tvcm.unittest.testSuite('tracing.trace_model_test', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
   var TraceModel = tracing.TraceModel;
   var TitleFilter = tracing.TitleFilter;
@@ -143,7 +143,7 @@ base.unittest.testSuite('tracing.trace_model_test', function() {
 
     var m = new TraceModel();
     m.importTraces([combined]);
-    assertEquals(1, base.dictionaryValues(m.processes).length);
+    assertEquals(1, tvcm.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assertNotUndefined(p1);
@@ -189,7 +189,7 @@ base.unittest.testSuite('tracing.trace_model_test', function() {
 
     var m = new TraceModel();
     m.importTraces([outerTrace]);
-    assertEquals(1, base.dictionaryValues(m.processes).length);
+    assertEquals(1, tvcm.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assertNotUndefined(p1);

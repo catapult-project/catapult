@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('cc');
-base.require('cc.layer_tree_quad_stack_view');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.trace_model');
-base.requireRawScript('cc/layer_tree_host_impl_test_data.js');
+tvcm.require('cc');
+tvcm.require('cc.layer_tree_quad_stack_view');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('cc/layer_tree_host_impl_test_data.js');
 
-base.unittest.testSuite('cc.layer_tree_quad_stack_view_test', function() {
+tvcm.unittest.testSuite('cc.layer_tree_quad_stack_view_test', function() {
   test('tileCoverageRectCount', function() {
     var m = new tracing.TraceModel(g_catLTHIEvents);
     var p = m.processes[1];

@@ -7,7 +7,7 @@
 /**
  * @fileoverview Provides a caching layer for elided text values.
  */
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
   /**
    * Cache for elided strings.
    * Moved from the ElidedTitleCache protoype to a "global" for speed
@@ -106,4 +106,3 @@ base.exportTo('tracing', function() {
     ElidedTitleCache: ElidedTitleCache
   };
 });
-

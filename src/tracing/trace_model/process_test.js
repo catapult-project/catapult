@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.trace_model');
-base.require('tracing.trace_model.process');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.trace_model.process');
 
-base.unittest.testSuite('tracing.trace_model.process_test', function() {
+tvcm.unittest.testSuite('tracing.trace_model.process_test', function() {
   test('getOrCreateCounter', function() {
     var model = new tracing.TraceModel();
     var process = new tracing.trace_model.Process(model, 7);

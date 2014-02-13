@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.requireStylesheet('cc.layer_picker');
+tvcm.requireStylesheet('cc.layer_picker');
 
-base.require('cc.constants');
-base.require('cc.layer_tree_host_impl');
-base.require('cc.selection');
-base.require('tracing.analysis.generic_object_view');
-base.require('tracing.trace_model.event');
-base.require('base.ui.drag_handle');
-base.require('base.ui.list_view');
-base.require('base.ui.dom_helpers');
+tvcm.require('cc.constants');
+tvcm.require('cc.layer_tree_host_impl');
+tvcm.require('cc.selection');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tvcm.ui.drag_handle');
+tvcm.require('tvcm.ui.list_view');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var constants = cc.constants;
   var RENDER_PASS_QUADS =
       Math.max(constants.ACTIVE_TREE, constants.PENDING_TREE) + 1;
@@ -23,7 +23,7 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var LayerPicker = base.ui.define('layer-picker');
+  var LayerPicker = tvcm.ui.define('layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -34,7 +34,7 @@ base.exportTo('cc', function() {
       this.renderPassQuads_ = false;
 
 
-      this.itemList_ = new base.ui.ListView();
+      this.itemList_ = new tvcm.ui.ListView();
       this.appendChild(this.controls_);
 
       this.appendChild(this.itemList_);
@@ -42,7 +42,7 @@ base.exportTo('cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(base.ui.createSelector(
+      this.controls_.appendChild(tvcm.ui.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -50,7 +50,7 @@ base.exportTo('cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = base.ui.createCheckBox(
+      var showPureTransformLayers = tvcm.ui.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -77,7 +77,7 @@ base.exportTo('cc', function() {
       this.whichTree_ = whichTree;
       this.renderPassQuads_ = (whichTree == RENDER_PASS_QUADS);
       this.updateContents_();
-      base.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get isRenderPassQuads() {
@@ -183,7 +183,7 @@ base.exportTo('cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(base.ui.createSpan());
+        var labelEl = item.appendChild(tvcm.ui.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -210,11 +210,11 @@ base.exportTo('cc', function() {
         var id = layer.layerId;
 
         var item = this.createElementWithDepth_(layerInfo.depth);
-        var labelEl = item.appendChild(base.ui.createSpan());
+        var labelEl = item.appendChild(tvcm.ui.createSpan());
 
         labelEl.textContent = layerInfo.name + ' ' + id;
 
-        var notesEl = item.appendChild(base.ui.createSpan());
+        var notesEl = item.appendChild(tvcm.ui.createSpan());
         if (layerInfo.isMaskLayer)
           notesEl.textContent += '(mask)';
         if (layerInfo.isReplicaLayer)
@@ -231,7 +231,7 @@ base.exportTo('cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(base.ui.createSpan());
+      var indentEl = item.appendChild(tvcm.ui.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';
@@ -243,7 +243,7 @@ base.exportTo('cc', function() {
         this.onRenderPassSelected_(e);
       else
         this.onLayerSelected_(e);
-      base.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     onRenderPassSelected_: function(e) {

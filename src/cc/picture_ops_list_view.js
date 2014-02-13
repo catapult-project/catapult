@@ -4,14 +4,14 @@
 
 'use strict';
 
-base.requireStylesheet('cc.picture_ops_list_view');
+tvcm.requireStylesheet('cc.picture_ops_list_view');
 
-base.require('cc.constants');
-base.require('cc.selection');
-base.require('base.ui.list_view');
-base.require('base.ui.dom_helpers');
+tvcm.require('cc.constants');
+tvcm.require('cc.selection');
+tvcm.require('tvcm.ui.list_view');
+tvcm.require('tvcm.ui.dom_helpers');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
   var ANNOTATION = 'Comment';
   var BEGIN_ANNOTATION = 'BeginCommentGroup';
@@ -25,13 +25,13 @@ base.exportTo('cc', function() {
   /**
    * @constructor
    */
-  var PictureOpsListView = base.ui.define('picture-ops-list-view');
+  var PictureOpsListView = tvcm.ui.define('picture-ops-list-view');
 
   PictureOpsListView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      this.opsList_ = new base.ui.ListView();
+      this.opsList_ = new tvcm.ui.ListView();
       this.appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;
@@ -132,7 +132,7 @@ base.exportTo('cc', function() {
         }
       }
 
-      base.dispatchSimpleEvent(this, 'selection-changed', false);
+      tvcm.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
     get numOps() {
@@ -153,7 +153,7 @@ base.exportTo('cc', function() {
         if (s < 0) throw new Error('Invalid index');
         if (s >= this.numOps) throw new Error('Invalid index');
         this.opsList_.selectedElement = this.opsList_.getElementByIndex(s + 1);
-        base.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
+        tvcm.scrollIntoViewIfNeeded(this.opsList_.selectedElement);
       }
     },
 

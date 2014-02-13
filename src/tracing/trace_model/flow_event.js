@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.trace_model.timed_event');
+tvcm.require('tracing.trace_model.timed_event');
 
 /**
  * @fileoverview Provides the Flow class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A Flow represents an interval of time plus parameters associated
    * with that interval.

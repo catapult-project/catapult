@@ -69,10 +69,10 @@ class Module(object):
 
   It can either be directly requested, e.g. passed in by name to
   calc_load_sequence, or created by being referenced a module via the
-  base.require directive.
+  tvcm.require directive.
 
   Interesting properties include:
-    name: Module name, may include a namespace, e.g. 'base.foo'.
+    name: Module name, may include a namespace, e.g. 'tvcm.foo'.
     filename: The filename of the actual module.
     contents: The text contents of the module
     dependent_modules: Other modules that this module depends on.
@@ -165,7 +165,7 @@ class Module(object):
 
 class HTMLTemplate(object):
   """Represents an html template resource referenced by a module via the
-  base.requireTemplate(xxx) directive."""
+  tvcm.requireTemplate(xxx) directive."""
   def __init__(self, name, filename, contents):
     self.name = name
     self.filename = filename
@@ -177,7 +177,7 @@ class HTMLTemplate(object):
 
 class RawScript(object):
   """Represents a raw script resource referenced by a module via the
-  base.requireRawScript(xxx) directive."""
+  tvcm.requireRawScript(xxx) directive."""
   def __init__(self, resource):
     self.resource = resource
 

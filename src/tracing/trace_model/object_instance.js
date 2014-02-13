@@ -7,12 +7,12 @@
 /**
  * @fileoverview Provides the ObjectSnapshot and ObjectHistory classes.
  */
-base.require('base.range');
-base.require('base.sorted_array_utils');
-base.require('tracing.trace_model.event');
-base.require('tracing.trace_model.object_snapshot');
+tvcm.require('tvcm.range');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tracing.trace_model.object_snapshot');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 
   /**
@@ -32,7 +32,7 @@ base.exportTo('tracing.trace_model', function() {
     this.deletionTs = Number.MAX_VALUE;
     this.deletionTsWasExplicit = false;
     this.colorId = 0;
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
     this.snapshots = [];
     this.hasImplicitSnapshots = false;
   }
@@ -112,7 +112,7 @@ base.exportTo('tracing.trace_model', function() {
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
-      var i = base.findLowIndexInSortedIntervals(
+      var i = tvcm.findLowIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {

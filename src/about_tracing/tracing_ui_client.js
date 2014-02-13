@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.record_selection_dialog');
+tvcm.require('tracing.record_selection_dialog');
 
-base.exportTo('about_tracing', function() {
+tvcm.exportTo('about_tracing', function() {
   function tracingRequest(method, path, data) {
     if (data === undefined)
       data = null;
@@ -164,7 +164,7 @@ base.exportTo('about_tracing', function() {
     var progressDlg;
     var bufferPercentFullDiv;
     function startTracing() {
-      progressDlg = new base.ui.Overlay();
+      progressDlg = new tvcm.ui.Overlay();
       progressDlg.textContent = 'Recording...';
       progressDlg.userCanClose = false;
 

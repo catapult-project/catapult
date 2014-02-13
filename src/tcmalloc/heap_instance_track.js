@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.requireStylesheet('tcmalloc.heap_instance_track');
+tvcm.requireStylesheet('tcmalloc.heap_instance_track');
 
-base.require('base.sorted_array_utils');
-base.require('tracing.tracks.stacked_bars_track');
-base.require('tracing.tracks.object_instance_track');
-base.require('tracing.color_scheme');
-base.require('base.ui');
+tvcm.require('tracing.tracks.stacked_bars_track');
+tvcm.require('tracing.tracks.object_instance_track');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tcmalloc', function() {
+tvcm.exportTo('tcmalloc', function() {
 
   var EventPresenter = tracing.EventPresenter;
 
@@ -22,7 +22,7 @@ base.exportTo('tcmalloc', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var HeapInstanceTrack = base.ui.define(
+  var HeapInstanceTrack = tvcm.ui.define(
       'heap-instance-track', tracing.tracks.StackedBarsTrack);
 
   HeapInstanceTrack.prototype = {
@@ -95,7 +95,7 @@ base.exportTo('tcmalloc', function() {
       var maxBytes = this.maxBytes_;
 
       var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = base.findLowIndexInSortedArray(
+      var lowIndex = tvcm.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

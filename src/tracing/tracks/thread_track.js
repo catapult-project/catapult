@@ -4,22 +4,23 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.thread_track');
+tvcm.requireStylesheet('tracing.tracks.thread_track');
 
-base.require('tracing.tracks.container_track');
-base.require('tracing.tracks.slice_track');
-base.require('tracing.tracks.slice_group_track');
-base.require('tracing.tracks.async_slice_group_track');
-base.require('tracing.filter');
-base.require('base.ui');
+tvcm.require('tracing.tracks.container_track');
+tvcm.require('tracing.tracks.slice_track');
+tvcm.require('tracing.tracks.slice_group_track');
+tvcm.require('tracing.tracks.async_slice_group_track');
+tvcm.require('tracing.filter');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a Thread using a series of of SliceTracks.
    * @constructor
    */
-  var ThreadTrack = base.ui.define('thread-track', tracing.tracks.ContainerTrack);
+  var ThreadTrack = tvcm.ui.define('thread-track',
+                                   tracing.tracks.ContainerTrack);
   ThreadTrack.prototype = {
     __proto__: tracing.tracks.ContainerTrack.prototype,
 

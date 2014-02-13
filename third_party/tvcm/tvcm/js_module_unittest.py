@@ -13,7 +13,7 @@ from tvcm import strip_js_comments
 
 class SmokeTest(unittest.TestCase):
   def testBasic(self):
-    with fake_fs.FakeFS({"/src/test.js": "// blahblahblah\n\n'use strict';\n\nbase.require('dependency1');"}):
+    with fake_fs.FakeFS({"/src/test.js": "// blahblahblah\n\n'use strict';\n\ntvcm.require('dependency1');"}):
       project = project_module.Project(['/src/'], include_tvcm_paths=False)
       loader = resource_loader.ResourceLoader(project)
       resource = resource_module.Resource('/src/', '/src/test.js')
@@ -23,17 +23,17 @@ class ValidateStrictModeTests(unittest.TestCase):
   """Test case for ValidateUsesStrictMode."""
 
   def test_ValidateUsesStrictMode_returns_true(self):
-    text = "// blahblahblah\n\n'use strict';\n\nbase.require('dependency1');"
+    text = "// blahblahblah\n\n'use strict';\n\ntvcm.require('dependency1');"
     stripped_text = strip_js_comments.strip_js_comments(text)
     self.assertIsNone(js_module.ValidateUsesStrictMode('module', stripped_text))
 
   def test_ValidateUsesStrictModeOneLiner(self):
-    text = "'use strict'; base.require('dependency1');"
+    text = "'use strict'; tvcm.require('dependency1');"
     stripped_text = strip_js_comments.strip_js_comments(text)
     self.assertIsNone(js_module.ValidateUsesStrictMode('module', stripped_text))
 
   def test_ValidateUsesStrictMode_catches_missing_strict_mode(self):
-    text = "// blahblahblah\n\nbase.require('dependency1');"
+    text = "// blahblahblah\n\ntvcm.require('dependency1');"
     stripped_text = strip_js_comments.strip_js_comments(text)
     self.assertRaises(
         lambda: js_module.ValidateUsesStrictMode('module', stripped_text))
@@ -41,7 +41,7 @@ class ValidateStrictModeTests(unittest.TestCase):
 class ValidateTestSuiteDefinition(unittest.TestCase):
   def test_basic_success(self):
     text = """
-base.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite('foo.bar_test', function() {
 });
 """
     js_module.ValidateTestSuiteDefinition('foo.bar_test', text)
@@ -49,7 +49,7 @@ base.unittest.testSuite('foo.bar_test', function() {
 
   def test_wrong_name(self):
     text = """
-base.unittest.testSuite('foo.bar', function() {
+tvcm.unittest.testSuite('foo.bar', function() {
 });
 """
     self.assertRaises(
@@ -63,9 +63,9 @@ base.unittest.testSuite('foo.bar', function() {
 
   def test_multiple_suites_failure(self):
     text = """
-base.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite('foo.bar_test', function() {
 });
-base.unittest.testSuite('foo.bar_test', function() {
+tvcm.unittest.testSuite('foo.bar_test', function() {
 });
 """
     self.assertRaises(
@@ -80,10 +80,10 @@ class ParseDefinitionTests(unittest.TestCase):
     text = (
         "// blahblahblah\n"
         "'use strict';\n"
-        "base.require('dependency1');\n"
-        "base.require('dependency2');\n"
-        "base.requireStylesheet('myStylesheet');\n"
-        "base.requireTemplate('myTemplate');\n")
+        "tvcm.require('dependency1');\n"
+        "tvcm.require('dependency2');\n"
+        "tvcm.requireStylesheet('myStylesheet');\n"
+        "tvcm.requireTemplate('myTemplate');\n")
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals(['myStylesheet'], deps.style_sheet_names)
@@ -92,13 +92,13 @@ class ParseDefinitionTests(unittest.TestCase):
                       deps.dependent_module_names)
 
   def test_Parse_missing_semicolons(self):
-    # Semicolons can be omitted after base.require statements.
+    # Semicolons can be omitted after tvcm.require statements.
     text = (
         "// blahblahblah\n"
         "'use strict';\n"
-        "base.require('dependency1')\n"
-        "base.require('dependency2');\n"
-        "base.requireStylesheet('myStylesheet')\n")
+        "tvcm.require('dependency1')\n"
+        "tvcm.require('dependency2');\n"
+        "tvcm.requireStylesheet('myStylesheet')\n")
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -111,9 +111,9 @@ class ParseDefinitionTests(unittest.TestCase):
     text = (
         "// blahblahblah\n"
         "'use strict';\n"
-        "base.require('dependency1');\n"
-        "base.requireStylesheet('myStylesheet');\n"
-        "base.require('dependency2');\n")
+        "tvcm.require('dependency1');\n"
+        "tvcm.requireStylesheet('myStylesheet');\n"
+        "tvcm.require('dependency2');\n")
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -122,7 +122,7 @@ class ParseDefinitionTests(unittest.TestCase):
                       deps.dependent_module_names)
 
   def test_Parse_empty_definition(self):
-    # If there are no base.require statements, the lists of resource names
+    # If there are no tvcm.require statements, the lists of resource names
     # for the module are all empty.
     text = "// blahblahblah\n'use strict';"
     # Gross hack. We should separate parsing from the module object.
@@ -132,12 +132,12 @@ class ParseDefinitionTests(unittest.TestCase):
     self.assertEquals([], deps.dependent_module_names)
 
   def test_Parse_with_commented_out_dependency(self):
-    # Commented-out base.require statements don't count.
+    # Commented-out tvcm.require statements don't count.
     text = (
         "// blahblahblah\n"
         "'use strict';\n"
-        "base.require('dependency1');\n"
-        "//base.require('dependency2');\n")
+        "tvcm.require('dependency1');\n"
+        "//tvcm.require('dependency2');\n")
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -145,7 +145,7 @@ class ParseDefinitionTests(unittest.TestCase):
     self.assertEquals(['dependency1'], deps.dependent_module_names)
 
   def test_Parse_with_multiline_comment_before(self):
-    # There can be long comments before the base.require lines.
+    # There can be long comments before the tvcm.require lines.
     text = (
         "// Copyright (c) 2012 The Chromium Authors. All rights reserved.\n"
         "// Use of this source code is governed by a BSD-style license that"
@@ -157,13 +157,13 @@ class ParseDefinitionTests(unittest.TestCase):
         " * the tracing.TimelineTrackView component and adds in selection\n"
         " * summary and control buttons.\n"
         " */\n"
-        "base.requireStylesheet('timeline_view')\n"
-        "base.require('timeline_track_view');\n"
-        "base.require('timeline_analysis');\n"
-        "base.require('overlay');\n"
-        "base.require('trace_event_importer');\n"
-        "base.require('linux_perf_importer');\n"
-        "base.exportsTo('tracing', function() {\n")
+        "tvcm.requireStylesheet('timeline_view')\n"
+        "tvcm.require('timeline_track_view');\n"
+        "tvcm.require('timeline_analysis');\n"
+        "tvcm.require('overlay');\n"
+        "tvcm.require('trace_event_importer');\n"
+        "tvcm.require('linux_perf_importer');\n"
+        "tvcm.exportsTo('tracing', function() {\n")
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -181,13 +181,13 @@ class ParseDefinitionTests(unittest.TestCase):
         "/*\n"
         " * All subclasses should depend on linux_perfParser, e.g.\n"
         " *\n"
-        " * base.require('linux_perfParser');\n"
-        " * base.exportTo('tracing', function() { });\n"
+        " * tvcm.require('linux_perfParser');\n"
+        " * tvcm.exportTo('tracing', function() { });\n"
         " *\n"
         " */\n"
         "'use strict';\n"
-        "base.require('dependency1');\n"
-        "base.require('dependency2');\n")
+        "tvcm.require('dependency1');\n"
+        "tvcm.require('dependency2');\n")
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -197,14 +197,14 @@ class ParseDefinitionTests(unittest.TestCase):
 
   def test_Parse_dependency_with_slashes_throws_error(self):
     # An error should be thrown if a slash is found in a resource name.
-    text = "base.require('foo/dependency1')"
+    text = "tvcm.require('foo/dependency1')"
     # Gross hack. We should separate parsing from the module object.
     self.assertRaises(module.DepsException,
                       lambda: js_module.Parse('module_name', text))
 
   def test_Parse_dependency_with_dots_is_okay(self):
     # Module names can contain dots.
-    text = "base.require('foo.dependency1')"
+    text = "tvcm.require('foo.dependency1')"
     # Gross hack. We should separate parsing from the module object.
     stripped_text = strip_js_comments.strip_js_comments(text)
     deps = js_module.Parse('module_name', stripped_text)
@@ -218,18 +218,18 @@ class IsJSModuleTests(unittest.TestCase):
   def testPositive(self):
     js = """'use strict';
 
-base.requireRawScript('gl-matrix/src/gl-matrix/vec4.js');
+tvcm.requireRawScript('gl-matrix/src/gl-matrix/vec4.js');
 
-base.exportTo('base', function() {
+tvcm.exportTo('tvcm', function() {
   var tmp_vec2 = vec2.create();"""
     self.assertTrue(js_module.IsJSModule(js))
 
   def testPositive(self):
     js = """'use strict';
 
-base.require('base.bbox2');
+tvcm.require('tvcm.bbox2');
 
-base.unittest.testSuite('base.bbox2_test', function() {
+tvcm.unittest.testSuite('tvcm.bbox2_test', function() {
   test('addVec2', function() {"""
     self.assertTrue(js_module.IsJSModule(js))
 

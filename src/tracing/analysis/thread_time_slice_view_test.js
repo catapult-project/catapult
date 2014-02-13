@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('tracing.analysis.cpu_slice_view');
-base.require('tracing.trace_model');
-base.require('tracing.timeline_view');
-base.require('tracing.importer.linux_perf_importer');
+tvcm.require('tracing.analysis.cpu_slice_view');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.timeline_view');
+tvcm.require('tracing.importer.linux_perf_importer');
 
 
-base.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.analysis.thread_time_slice_view_test', function() { // @suppress longLineCheck
   function createBasicModel() {
     var lines = [
       'Android.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck

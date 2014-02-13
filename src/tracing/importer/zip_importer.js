@@ -8,15 +8,15 @@
  * @fileoverview ZipImporter inflates zip compressed data and passes it along
  * to an actual importer.
  */
-base.requireRawScript('jszip.js');
-base.requireRawScript('jszip-load.js');
-base.requireRawScript('jszip-inflate.js');
+tvcm.requireRawScript('jszip.js');
+tvcm.requireRawScript('jszip-load.js');
+tvcm.requireRawScript('jszip-inflate.js');
 
-base.require('tracing.importer.importer');
-base.require('tracing.importer.gzip_importer');
-base.require('tracing.trace_model');
+tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.gzip_importer');
+tvcm.require('tracing.trace_model');
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
   var Importer = tracing.importer.Importer;
 
   function ZipImporter(model, eventData) {

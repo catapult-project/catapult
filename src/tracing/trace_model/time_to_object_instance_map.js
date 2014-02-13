@@ -7,10 +7,10 @@
 /**
  * @fileoverview Provides the TimeToObjectInstanceMap class.
  */
-base.require('base.range');
-base.require('base.sorted_array_utils');
+tvcm.require('tvcm.range');
+tvcm.require('tvcm.sorted_array_utils');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
 
   /**
    * Tracks all the instances associated with a given ID over its lifetime.
@@ -55,7 +55,7 @@ base.exportTo('tracing.trace_model', function() {
             this.parent, this.id, category, name, ts));
       }
 
-      var i = base.findLowIndexInSortedIntervals(
+      var i = tvcm.findLowIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
@@ -149,7 +149,7 @@ base.exportTo('tracing.trace_model', function() {
     },
 
     getInstanceAt: function(ts) {
-      var i = base.findLowIndexInSortedIntervals(
+      var i = tvcm.findLowIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },

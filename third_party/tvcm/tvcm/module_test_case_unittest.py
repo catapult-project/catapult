@@ -17,14 +17,14 @@ class ModuleTestCaseTests(unittest.TestCase):
       tvcm_project, tvcm_project.tvcm_path)
     interesting_t = test_runner.FilterSuite(
       t,
-      lambda x: x.id() == 'base.unittest.test_case_test.parseFullyQualifiedName')
+      lambda x: x.id() == 'tvcm.unittest.test_case_test.parseFullyQualifiedName')
 
     # This test has to manualy call the run and setUp/tearDown methods
     # so that the Python unittest system doesn't suppress the failures.
     interesting_t.setUp()
     try:
       case = list(interesting_t)[0]
-      assert case.id() == 'base.unittest.test_case_test.parseFullyQualifiedName'
+      assert case.id() == 'tvcm.unittest.test_case_test.parseFullyQualifiedName'
       case.runTest()
     finally:
       interesting_t.tearDown()

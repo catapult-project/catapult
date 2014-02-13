@@ -4,16 +4,16 @@
 
 'use strict';
 
-base.require('gpu');
-base.require('gpu.state');
-base.require('tracing.importer.trace_event_importer');
-base.require('tracing.trace_model');
-base.requireRawScript('gpu/state_test_data.js');
+tvcm.require('gpu');
+tvcm.require('gpu.state');
+tvcm.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('gpu/state_test_data.js');
 
-base.unittest.testSuite('gpu.state_test', function() {
+tvcm.unittest.testSuite('gpu.state_test', function() {
   test('basic', function() {
     var m = new tracing.TraceModel(g_gpu_state_trace);
-    var p = base.dictionaryValues(m.processes)[0];
+    var p = tvcm.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];
     var snapshot = instance.snapshots[0];

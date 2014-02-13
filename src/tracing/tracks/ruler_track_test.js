@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_viewport');
-base.require('tracing.tracks.drawing_container');
-base.require('tracing.tracks.ruler_track');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.tracks.drawing_container');
+tvcm.require('tracing.tracks.ruler_track');
 
-base.unittest.testSuite('tracing.tracks.ruler_track_test', function() {
+tvcm.unittest.testSuite('tracing.tracks.ruler_track_test', function() {
   test('instantiate', function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);

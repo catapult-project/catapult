@@ -4,6 +4,6 @@
 
 'use strict';
 
-base.requireStylesheet('base.ui.common');
-base.require('tracing.timeline_view');
-base.require('tracing.importer');
+tvcm.requireStylesheet('tvcm.ui.common');
+tvcm.require('tracing.timeline_view');
+tvcm.require('tracing.importer');

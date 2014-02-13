@@ -8,12 +8,12 @@
  * @fileoverview GzipImporter inflates gzip compressed data and passes it along
  * to an actual importer.
  */
-base.require('tracing.importer.importer');
-base.require('tracing.trace_model');
-base.requireRawScript('jszip.js');
-base.requireRawScript('jszip-inflate.js');
+tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.trace_model');
+tvcm.requireRawScript('jszip.js');
+tvcm.requireRawScript('jszip-inflate.js');
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
 

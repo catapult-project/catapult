@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /**
    * @constructor

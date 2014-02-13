@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
   var constants = {
     HEADING_WIDTH: 250
   };

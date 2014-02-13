@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.importer.linux_perf_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.importer.linux_perf_importer');
 
-base.unittest.testSuite('tracing.importer.linux_perf.workqueue_parser_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.importer.linux_perf.workqueue_parser_test', function() { // @suppress longLineCheck
   test('workQueueImport', function() {
     var lines = [
       ' kworker/0:3-6880  [000]  2784.771958: workqueue_execute_start: ' +

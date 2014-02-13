@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.trace_model.object_instance');
-base.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('tracing.analysis.generic_object_view');
 
-base.unittest.testSuite('tracing.analysis.generic_object_view_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.analysis.generic_object_view_test', function() { // @suppress longLineCheck
   var GenericObjectView = tracing.analysis.GenericObjectView;
 
   test('undefinedValue', function() {

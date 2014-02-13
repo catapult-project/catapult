@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.analysis.analyze_counters');
-base.require('tracing.analysis.analyze_slices');
-base.require('tracing.analysis.util');
-base.require('base.ui');
-base.exportTo('tracing.analysis', function() {
+tvcm.require('tracing.analysis.analyze_counters');
+tvcm.require('tracing.analysis.analyze_slices');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tvcm.ui');
+tvcm.exportTo('tracing.analysis', function() {
 
   /**
    * Analyzes the selection, outputting the analysis results into the provided
@@ -64,8 +64,8 @@ base.exportTo('tracing.analysis', function() {
    * click-through to the main object's analysis view.
    */
   function analyzeObjectEvents(results, objectEvents) {
-    objectEvents = base.asArray(objectEvents).sort(
-        base.Range.compareByMinTimes);
+    objectEvents = tvcm.asArray(objectEvents).sort(
+        tvcm.Range.compareByMinTimes);
 
     results.appendHeader('Selected Objects:');
     var table = results.appendTable('analysis-object-sample-table', 2);

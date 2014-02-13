@@ -37,10 +37,9 @@ def GypCheck():
   for (dirpath, dirnames, filenames) in os.walk(project.src_path):
     handle(dirpath, dirnames, filenames)
 
-  for directory in ('base', 'ui'):
-    for (dirpath, dirnames, filenames) in os.walk(
-        os.path.join(project.tvcm_path, directory)):
-      handle(dirpath, dirnames, filenames)
+  for (dirpath, dirnames, filenames) in os.walk(
+      os.path.join(project.tvcm_path, 'src')):
+    handle(dirpath, dirnames, filenames)
 
   u = set(gyp_files).union(set(known_files))
   i = set(gyp_files).intersection(set(known_files))

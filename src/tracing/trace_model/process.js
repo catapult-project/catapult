@@ -7,8 +7,8 @@
 /**
  * @fileoverview Provides the Process class.
  */
-base.require('tracing.trace_model.process_base');
-base.exportTo('tracing.trace_model', function() {
+tvcm.require('tracing.trace_model.process_base');
+tvcm.exportTo('tracing.trace_model', function() {
 
   var ProcessBase = tracing.trace_model.ProcessBase;
 
@@ -37,13 +37,13 @@ base.exportTo('tracing.trace_model', function() {
     if (tmp)
       return tmp;
 
-    tmp = base.comparePossiblyUndefinedValues(
+    tmp = tvcm.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;
 
-    tmp = base.compareArrays(x.labels, y.labels,
+    tmp = tvcm.compareArrays(x.labels, y.labels,
         function(x, y) { return x.localeCompare(y); });
     if (tmp)
       return tmp;

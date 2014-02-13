@@ -4,17 +4,17 @@
 
 'use strict';
 
-base.require('tracing.tracks.track');
-base.require('tracing.filter');
-base.require('base.ui');
+tvcm.require('tracing.tracks.track');
+tvcm.require('tracing.filter');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A generic track that contains other tracks as its children.
    * @constructor
    */
-  var ContainerTrack = base.ui.define('container-track', tracing.tracks.Track);
+  var ContainerTrack = tvcm.ui.define('container-track', tracing.tracks.Track);
   ContainerTrack.prototype = {
     __proto__: tracing.tracks.Track.prototype,
 

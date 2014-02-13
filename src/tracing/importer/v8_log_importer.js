@@ -7,14 +7,14 @@
 /**
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
-base.require('tracing.importer.importer');
-base.require('tracing.trace_model');
-base.require('tracing.trace_model.slice');
-base.require('tracing.color_scheme');
-base.require('tracing.importer.v8.log_reader');
-base.require('tracing.importer.v8.codemap');
+tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.trace_model');
+tvcm.require('tracing.trace_model.slice');
+tvcm.require('tracing.color_scheme');
+tvcm.require('tracing.importer.v8.log_reader');
+tvcm.require('tracing.importer.v8.codemap');
 
-base.exportTo('tracing.importer', function() {
+tvcm.exportTo('tracing.importer', function() {
 
   var Importer = tracing.importer.Importer;
 

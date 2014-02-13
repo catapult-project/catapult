@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_track_view');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_track_view');
 
-base.unittest.testSuite('tracing.tracks.counter_track_test', function() {
+tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
   var Counter = tracing.trace_model.Counter;
   var Viewport = tracing.TimelineViewport;
   var CounterTrack = tracing.tracks.CounterTrack;

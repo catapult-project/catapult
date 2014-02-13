@@ -7,17 +7,17 @@
 /**
  * @fileoverview Provides the AsyncSliceGroup class.
  */
-base.require('base.range');
-base.require('tracing.trace_model.async_slice');
+tvcm.require('tvcm.range');
+tvcm.require('tracing.trace_model.async_slice');
 
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A group of AsyncSlices.
    * @constructor
    */
   function AsyncSliceGroup() {
     this.slices = [];
-    this.bounds = new base.Range();
+    this.bounds = new tvcm.Range();
   }
 
   AsyncSliceGroup.prototype = {

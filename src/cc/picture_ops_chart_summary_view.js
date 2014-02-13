@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.requireStylesheet('cc.picture_ops_chart_summary_view');
+tvcm.requireStylesheet('cc.picture_ops_chart_summary_view');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   var OPS_TIMING_ITERATIONS = 3;
   var CHART_PADDING_LEFT = 65;
@@ -29,7 +29,8 @@ base.exportTo('cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartSummaryView = base.ui.define('picture-ops-chart-summary-view');
+  var PictureOpsChartSummaryView = tvcm.ui.define(
+      'picture-ops-chart-summary-view');
 
   PictureOpsChartSummaryView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -115,7 +116,7 @@ base.exportTo('cc', function() {
         this.currentBarMouseOverTarget_ = Math.floor(
             (x - chartLeft) / chartInnerWidth * this.opsTimingData_.length);
 
-        this.currentBarMouseOverTarget_ = base.clamp(
+        this.currentBarMouseOverTarget_ = tvcm.clamp(
             this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
 
       }

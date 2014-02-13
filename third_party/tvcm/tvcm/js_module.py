@@ -19,7 +19,7 @@ from tvcm import strip_js_comments
 class JSModule(module.Module):
   def Parse(self):
     stripped_text = strip_js_comments.strip_js_comments(self.contents)
-    if self.name != 'base':
+    if self.name != 'tvcm':
       if not IsJSModule(stripped_text):
         raise module.DepsException('%s is not a JS Module' % self.name)
     ValidateUsesStrictMode(self.name, stripped_text)
@@ -32,15 +32,15 @@ def IsJSModule(text, text_is_stripped=True):
     stripped_text = text
   else:
     stripped_text = strip_js_comments.strip_js_comments(text)
-  if re.search("""base\s*\.\s*exportTo""",
+  if re.search("""tvcm\s*\.\s*exportTo""",
                stripped_text, re.DOTALL):
     return True
 
-  if re.search("""base\s*\.\s*require""",
+  if re.search("""tvcm\s*\.\s*require""",
                stripped_text, re.DOTALL):
     return True
 
-  if re.search("""base\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+  if re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
                stripped_text, re.DOTALL):
     return True
 
@@ -50,7 +50,7 @@ def ValidateTestSuiteDefinition(module_name, stripped_text):
   rest = stripped_text
   num_matches = 0
   while True:
-    m_ts = re.search("""base\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+    m_ts = re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
                      rest, re.DOTALL)
 
     # Figure out which was first.
@@ -70,10 +70,10 @@ def ValidateTestSuiteDefinition(module_name, stripped_text):
 
   if num_matches == 0:
       raise Exception("""Expected js module %s to contain a ' +
-          'base.unittest.testSuite('%s', ...)""" % (
+          'tvcm.unittest.testSuite('%s', ...)""" % (
           module_name, module_name))
   if num_matches > 1:
-      raise Exception("""Must only have one base.unittest.testSuite('%s', ...)""" % module_name)
+      raise Exception("""Must only have one tvcm.unittest.testSuite('%s', ...)""" % module_name)
 
 
 def ValidateUsesStrictMode(module_name, stripped_text):
@@ -96,7 +96,7 @@ def ValidateUsesStrictMode(module_name, stripped_text):
 
 
 def Parse(module_name, stripped_text):
-  """Parses the base.require* lines in the module and returns module.ModuleDependencyMetadata.
+  """Parses the tvcm.require* lines in the module and returns module.ModuleDependencyMetadata.
 
   Args:
     stripped_text: Javascript source code with comments stripped out.
@@ -111,13 +111,13 @@ def Parse(module_name, stripped_text):
   rest = stripped_text
   while True:
     # Search for require statements in the rest of the file.
-    m_r = re.search("""base\s*\.\s*require\((["'])(.+?)\\1\)""",
+    m_r = re.search("""tvcm\s*\.\s*require\((["'])(.+?)\\1\)""",
                     rest, re.DOTALL)
-    m_s = re.search("""base\s*\.\s*requireStylesheet\((["'])(.+?)\\1\)""",
+    m_s = re.search("""tvcm\s*\.\s*requireStylesheet\((["'])(.+?)\\1\)""",
                     rest, re.DOTALL)
-    m_t = re.search("""base\s*\.\s*requireTemplate\((["'])(.+?)\\1\)""",
+    m_t = re.search("""tvcm\s*\.\s*requireTemplate\((["'])(.+?)\\1\)""",
                     rest, re.DOTALL)
-    m_irs = re.search("""base\s*\.\s*requireRawScript\((["'])(.+?)\\1\)""",
+    m_irs = re.search("""tvcm\s*\.\s*requireRawScript\((["'])(.+?)\\1\)""",
                     rest, re.DOTALL)
     matches = [m for m in [m_r, m_s, m_t, m_irs] if m]
 

@@ -8,36 +8,36 @@
  * @fileoverview View visualizes TRACE_EVENT events using the
  * tracing.Timeline component and adds in selection summary and control buttons.
  */
-base.requireStylesheet('base.ui.common');
-base.requireStylesheet('tracing.timeline_view');
-base.requireTemplate('tracing.timeline_view');
+tvcm.requireStylesheet('tvcm.ui.common');
+tvcm.requireStylesheet('tracing.timeline_view');
+tvcm.requireTemplate('tracing.timeline_view');
 
-base.require('base.utils');
-base.require('base.settings');
-base.require('tracing.analysis.analysis_view');
-base.require('tracing.find_control');
-base.require('tracing.timeline_track_view');
-base.require('base.ui.dom_helpers');
-base.require('base.ui.overlay');
-base.require('base.ui.drag_handle');
+tvcm.require('tvcm.utils');
+tvcm.require('tvcm.settings');
+tvcm.require('tracing.analysis.analysis_view');
+tvcm.require('tracing.find_control');
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tvcm.ui.dom_helpers');
+tvcm.require('tvcm.ui.overlay');
+tvcm.require('tvcm.ui.drag_handle');
 
-base.require('tracing.analysis.cpu_slice_view');
-base.require('tracing.analysis.thread_time_slice_view');
+tvcm.require('tracing.analysis.cpu_slice_view');
+tvcm.require('tracing.analysis.thread_time_slice_view');
 
-base.exportTo('tracing', function() {
+tvcm.exportTo('tracing', function() {
 
   /**
    * View
    * @constructor
    * @extends {HTMLUnknownElement}
    */
-  var TimelineView = base.ui.define('x-timeline-view');
+  var TimelineView = tvcm.ui.define('x-timeline-view');
 
   TimelineView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var node = base.instantiateTemplate('#timeline-view-template');
+      var node = tvcm.instantiateTemplate('#timeline-view-template');
       this.appendChild(node);
 
       this.titleEl_ = this.querySelector('.title');
@@ -52,7 +52,7 @@ base.exportTo('tracing', function() {
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
 
-      this.dragEl_ = new base.ui.DragHandle();
+      this.dragEl_ = new tvcm.ui.DragHandle();
       this.appendChild(this.dragEl_);
 
       this.analysisEl_ = new tracing.analysis.AnalysisView();
@@ -69,11 +69,11 @@ base.exportTo('tracing', function() {
     },
 
     createHelpButton_: function() {
-      var node = base.instantiateTemplate('#help-btn-template');
+      var node = tvcm.instantiateTemplate('#help-btn-template');
       var showEl = node.querySelector('.view-help-button');
       var helpTextEl = node.querySelector('.view-help-text');
 
-      var dlg = new base.ui.Overlay();
+      var dlg = new tvcm.ui.Overlay();
       dlg.title = 'chrome://tracing Help';
       dlg.classList.add('view-help-overlay');
       dlg.appendChild(node);
@@ -81,7 +81,7 @@ base.exportTo('tracing', function() {
       function onClick(e) {
         dlg.visible = !dlg.visible;
 
-        var mod = base.isMac ? 'cmd ' : 'ctrl';
+        var mod = tvcm.isMac ? 'cmd ' : 'ctrl';
         var spans = helpTextEl.querySelectorAll('span.mod');
         for (var i = 0; i < spans.length; i++) {
           spans[i].textContent = mod;
@@ -97,11 +97,11 @@ base.exportTo('tracing', function() {
     },
 
     createMetadataButton_: function() {
-      var node = base.instantiateTemplate('#metadata-btn-template');
+      var node = tvcm.instantiateTemplate('#metadata-btn-template');
       var showEl = node.querySelector('.view-metadata-button');
       var textEl = node.querySelector('.info-button-text');
 
-      var dlg = new base.ui.Overlay();
+      var dlg = new tvcm.ui.Overlay();
       dlg.title = 'Metadata for trace';
       dlg.classList.add('view-metadata-overlay');
       dlg.appendChild(node);
@@ -197,7 +197,7 @@ base.exportTo('tracing', function() {
       // Set the model.
       if (modelValid)
         this.timeline_.model = model;
-      base.dispatchSimpleEvent(this, 'modelChange');
+      tvcm.dispatchSimpleEvent(this, 'modelChange');
 
       // Do things that are selection specific
       if (modelInstanceChanged)
@@ -210,7 +210,7 @@ base.exportTo('tracing', function() {
 
     get settings() {
       if (!this.settings_)
-        this.settings_ = new base.Settings();
+        this.settings_ = new tvcm.Settings();
       return this.settings_;
     },
 

@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.requireStylesheet('tcmalloc.tcmalloc_snapshot_view');
+tvcm.requireStylesheet('tcmalloc.tcmalloc_snapshot_view');
 
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('tcmalloc', function() {
+tvcm.exportTo('tcmalloc', function() {
 
   var tsRound = tracing.analysis.tsRound;
 
@@ -17,7 +17,7 @@ base.exportTo('tcmalloc', function() {
    * Displays a heap memory snapshot in a human readable form.
    * @constructor
    */
-  var TcmallocSnapshotView = base.ui.define(
+  var TcmallocSnapshotView = tvcm.ui.define(
       'heap-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

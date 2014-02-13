@@ -4,23 +4,23 @@
 
 'use strict';
 
-base.requireStylesheet('tracing.tracks.trace_model_track');
+tvcm.requireStylesheet('tracing.tracks.trace_model_track');
 
-base.require('base.measuring_stick');
-base.require('tracing.tracks.container_track');
-base.require('tracing.tracks.kernel_track');
-base.require('tracing.tracks.process_track');
-base.require('tracing.draw_helpers');
-base.require('base.ui');
+tvcm.require('tvcm.measuring_stick');
+tvcm.require('tracing.tracks.container_track');
+tvcm.require('tracing.tracks.kernel_track');
+tvcm.require('tracing.tracks.process_track');
+tvcm.require('tracing.draw_helpers');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * Visualizes a Model by building ProcessTracks and
    * CpuTracks.
    * @constructor
    */
-  var TraceModelTrack = base.ui.define(
+  var TraceModelTrack = tvcm.ui.define(
       'trace-model-track', tracing.tracks.ContainerTrack);
 
   TraceModelTrack.prototype = {
@@ -250,7 +250,7 @@ base.exportTo('tracing.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      base.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tvcm.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration; },
           loWX, hiWX,

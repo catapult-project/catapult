@@ -4,10 +4,9 @@
 
 'use strict';
 
-base.require('gpu.state');
-base.require('gpu.state_view');
+tvcm.require('gpu.state');
+tvcm.require('gpu.state_view');
 
-base.exportTo('gpu', function() {
+tvcm.exportTo('gpu', function() {
   return {};
 });
-

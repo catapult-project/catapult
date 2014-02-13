@@ -4,9 +4,9 @@
 
 'use strict';
 
-base.require('tracing.tracks.slice_group_track');
-base.require('base.ui');
-base.exportTo('tracing.tracks', function() {
+tvcm.require('tracing.tracks.slice_group_track');
+tvcm.require('tvcm.ui');
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays a AsyncSliceGroup.
@@ -14,7 +14,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {SliceGroup}
    */
 
-  var AsyncSliceGroupTrack = base.ui.define(
+  var AsyncSliceGroupTrack = tvcm.ui.define(
       'async-slice-group-track',
       tracing.tracks.SliceGroupTrack);
 

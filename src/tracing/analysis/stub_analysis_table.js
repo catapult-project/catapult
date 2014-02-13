@@ -4,7 +4,7 @@
 
 'use strict';
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
 
   function StubAnalysisTable() {
     this.ownerDocument_ = document;

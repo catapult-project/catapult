@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.timeline_display_transform');
-base.require('tracing.timeline_display_transform_animations');
-base.require('base.ui.animation_controller');
+tvcm.require('tracing.timeline_display_transform');
+tvcm.require('tracing.timeline_display_transform_animations');
+tvcm.require('tvcm.ui.animation_controller');
 
-base.unittest.testSuite('tracing.timeline_display_transform_animations_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.timeline_display_transform_animations_test', function() { // @suppress longLineCheck
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
   var TimelineDisplayTransformPanAnimation =
       tracing.TimelineDisplayTransformPanAnimation;
@@ -23,13 +23,13 @@ base.unittest.testSuite('tracing.timeline_display_transform_animations_test', fu
 
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new base.ui.AnimationController();
+    var controller = new tvcm.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    base.forcePendingRAFTasksToRun(50);
+    tvcm.forcePendingRAFTasksToRun(50);
     assertTrue(target.panX > 0);
-    base.forcePendingRAFTasksToRun(100);
+    tvcm.forcePendingRAFTasksToRun(100);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(10, target.panX);
   });
@@ -43,17 +43,17 @@ base.unittest.testSuite('tracing.timeline_display_transform_animations_test', fu
     var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
     var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new base.ui.AnimationController();
+    var controller = new tvcm.ui.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
-    base.forcePendingRAFTasksToRun(50);
+    tvcm.forcePendingRAFTasksToRun(50);
     controller.queueAnimation(b, 50);
 
-    base.forcePendingRAFTasksToRun(100);
+    tvcm.forcePendingRAFTasksToRun(100);
     assertTrue(controller.hasActiveAnimation);
 
-    base.forcePendingRAFTasksToRun(150);
+    tvcm.forcePendingRAFTasksToRun(150);
     assertFalse(controller.hasActiveAnimation);
     assertEquals(20, target.panX);
   });

@@ -4,15 +4,15 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.selection');
-base.require('tracing.trace_model.event');
-base.require('tracing.trace_model.object_collection');
-base.require('tracing.timeline_viewport');
-base.require('tracing.tracks.drawing_container');
-base.require('tracing.tracks.object_instance_track');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.trace_model.event');
+tvcm.require('tracing.trace_model.object_collection');
+tvcm.require('tracing.timeline_viewport');
+tvcm.require('tracing.tracks.drawing_container');
+tvcm.require('tracing.tracks.object_instance_track');
 
-base.unittest.testSuite('tracing.tracks.object_instance_track_test', function() { // @suppress longLineCheck
+tvcm.unittest.testSuite('tracing.tracks.object_instance_track_test', function() { // @suppress longLineCheck
   var Selection = tracing.Selection;
   var ObjectInstanceTrack = tracing.tracks.ObjectInstanceTrack;
   var Viewport = tracing.TimelineViewport;

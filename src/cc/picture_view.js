@@ -4,21 +4,21 @@
 
 'use strict';
 
-base.requireStylesheet('cc.picture_view');
+tvcm.requireStylesheet('cc.picture_view');
 
-base.require('cc.picture');
-base.require('cc.picture_debugger');
-base.require('tracing.analysis.generic_object_view');
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
+tvcm.require('cc.picture');
+tvcm.require('cc.picture_debugger');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   /*
    * Displays a picture snapshot in a human readable form.
    * @constructor
    */
-  var PictureSnapshotView = base.ui.define(
+  var PictureSnapshotView = tvcm.ui.define(
       'picture-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.tracks.process_track_base');
-base.require('tracing.tracks.cpu_track');
-base.require('tracing.tracks.spacing_track');
+tvcm.require('tracing.tracks.process_track_base');
+tvcm.require('tracing.tracks.cpu_track');
+tvcm.require('tracing.tracks.spacing_track');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
   var Cpu = tracing.trace_model.Cpu;
   var CpuTrack = tracing.tracks.cpu_track;
   var ProcessTrackBase = tracing.tracks.ProcessTrackBase;
@@ -17,7 +17,7 @@ base.exportTo('tracing.tracks', function() {
   /**
    * @constructor
    */
-  var KernelTrack = base.ui.define('kernel-track', ProcessTrackBase);
+  var KernelTrack = tvcm.ui.define('kernel-track', ProcessTrackBase);
 
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -37,7 +37,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     willAppendTracks_: function() {
-      var cpus = base.dictionaryValues(this.kernel.cpus);
+      var cpus = tvcm.dictionaryValues(this.kernel.cpus);
       cpus.sort(tracing.trace_model.Cpu.compare);
 
       var didAppendAtLeastOneTrack = false;

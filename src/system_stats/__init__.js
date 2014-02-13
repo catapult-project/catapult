@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('system_stats.system_stats_snapshot');
-base.require('system_stats.system_stats_snapshot_view');
-base.require('system_stats.system_stats_instance_track');
+tvcm.require('system_stats.system_stats_snapshot');
+tvcm.require('system_stats.system_stats_snapshot_view');
+tvcm.require('system_stats.system_stats_instance_track');
 
-base.exportTo('system_stats', function() {
+tvcm.exportTo('system_stats', function() {
   return {};
 });

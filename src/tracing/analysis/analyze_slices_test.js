@@ -4,13 +4,13 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.analysis.analysis_view');
-base.require('tracing.analysis.stub_analysis_results');
-base.require('tracing.selection');
-base.require('tracing.trace_model');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.analysis.analysis_view');
+tvcm.require('tracing.analysis.stub_analysis_results');
+tvcm.require('tracing.selection');
+tvcm.require('tracing.trace_model');
 
-base.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
+tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
   var Model = tracing.TraceModel;
   var Thread = tracing.trace_model.Thread;
   var Selection = tracing.Selection;

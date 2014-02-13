@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('base.rect');
-base.require('tracing.trace_model.object_instance');
-base.require('cc.util');
-base.require('cc.debug_colors');
+tvcm.require('tvcm.rect');
+tvcm.require('tracing.trace_model.object_instance');
+tvcm.require('cc.util');
+tvcm.require('cc.debug_colors');
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
 
   var ObjectSnapshot = tracing.trace_model.ObjectSnapshot;
 

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('base.settings');
-base.require('tracing.test_utils');
-base.require('tracing.record_selection_dialog');
+tvcm.require('tvcm.settings');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.record_selection_dialog');
 
-base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
+tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   test('instantitate', function() {
     var categories = [];
     for (var i = 0; i < 30; i++)
@@ -58,8 +58,8 @@ base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
-    base.Settings.set('two', true, 'categories');
-    base.Settings.set('three', false, 'categories');
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
 
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -101,12 +101,12 @@ base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     assertEquals('disabled-by-default-bar', dlg.categoryFilter());
 
     assertEquals(false,
-        base.Settings.get('disabled-by-default-foo', false, 'categories'));
+        tvcm.Settings.get('disabled-by-default-foo', false, 'categories'));
   });
 
   test('selectAll', function() {
-    base.Settings.set('two', true, 'categories');
-    base.Settings.set('three', false, 'categories');
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
 
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -115,8 +115,8 @@ base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
   });
 
   test('selectNone', function() {
-    base.Settings.set('two', true, 'categories');
-    base.Settings.set('three', false, 'categories');
+    tvcm.Settings.set('two', true, 'categories');
+    tvcm.Settings.set('three', false, 'categories');
 
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = ['disabled-by-default-one'];
@@ -126,13 +126,13 @@ base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     // Enables the three option, two already enabled.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
     assertEquals('', dlg.categoryFilter());
-    assertEquals(true, base.Settings.get('three', false, 'categories'));
+    assertEquals(true, tvcm.Settings.get('three', false, 'categories'));
 
     // Disables three and two.
     dlg.querySelector('.default-enabled-categories .none-btn').click();
     assertEquals('-three,-two', dlg.categoryFilter());
-    assertEquals(false, base.Settings.get('two', false, 'categories'));
-    assertEquals(false, base.Settings.get('three', false, 'categories'));
+    assertEquals(false, tvcm.Settings.get('two', false, 'categories'));
+    assertEquals(false, tvcm.Settings.get('three', false, 'categories'));
 
     // Turn categories back on so they can be ignored.
     dlg.querySelector('.default-enabled-categories .all-btn').click();
@@ -141,12 +141,12 @@ base.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     dlg.querySelector('.default-disabled-categories .all-btn').click();
     assertEquals('disabled-by-default-one', dlg.categoryFilter());
     assertEquals(true,
-        base.Settings.get('disabled-by-default-one', false, 'categories'));
+        tvcm.Settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
     dlg.querySelector('.default-disabled-categories .none-btn').click();
     assertEquals('', dlg.categoryFilter());
     assertEquals(false,
-        base.Settings.get('disabled-by-default-one', false, 'categories'));
+        tvcm.Settings.get('disabled-by-default-one', false, 'categories'));
   });
 });

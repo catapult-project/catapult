@@ -4,22 +4,22 @@
 
 'use strict';
 
-base.require('base.sorted_array_utils');
-base.require('base.utils');
-base.require('tracing.analysis.generic_object_view');
-base.require('tracing.analysis.slice_view');
-base.require('tracing.analysis.util');
-base.require('tracing.analysis.analysis_link');
-base.require('tracing.color_scheme');
-base.requireTemplate('tracing.analysis.thread_time_slice_view');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tvcm.utils');
+tvcm.require('tracing.analysis.generic_object_view');
+tvcm.require('tracing.analysis.slice_view');
+tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.analysis_link');
+tvcm.require('tracing.color_scheme');
+tvcm.requireTemplate('tracing.analysis.thread_time_slice_view');
 
-base.exportTo('tracing.analysis', function() {
+tvcm.exportTo('tracing.analysis', function() {
   var tsRound = tracing.analysis.tsRound;
 
   /**
    * @constructor
    */
-  var ThreadTimeSliceView = base.ui.define(
+  var ThreadTimeSliceView = tvcm.ui.define(
       'thread-time-slice-view', tracing.analysis.SliceView);
 
   ThreadTimeSliceView.prototype = {
@@ -33,7 +33,7 @@ base.exportTo('tracing.analysis', function() {
     updateContents: function() {
       this.textContent = '';
       this.appendChild(
-          base.instantiateTemplate('#thread-time-slice-view-template'));
+          tvcm.instantiateTemplate('#thread-time-slice-view-template'));
 
       var timeSlice = this.slice;
       var thread = timeSlice.thread;
@@ -85,7 +85,7 @@ base.exportTo('tracing.analysis', function() {
       }
 
       var argsEl = this.querySelector('#args');
-      if (base.dictionaryKeys(timeSlice.args).length > 0) {
+      if (tvcm.dictionaryKeys(timeSlice.args).length > 0) {
         var argsView = new tracing.analysis.GenericObjectView();
         argsView.object = timeSlice.args;
         argsEl.appendChild(argsView);

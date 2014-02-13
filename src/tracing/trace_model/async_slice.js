@@ -4,12 +4,12 @@
 
 'use strict';
 
-base.require('tracing.trace_model.slice');
+tvcm.require('tracing.trace_model.slice');
 
 /**
  * @fileoverview Provides the AsyncSlice class.
  */
-base.exportTo('tracing.trace_model', function() {
+tvcm.exportTo('tracing.trace_model', function() {
   /**
    * A AsyncSlice represents an interval of time during which an
    * asynchronous operation is in progress. An AsyncSlice consumes no CPU time

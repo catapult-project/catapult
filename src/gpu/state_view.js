@@ -4,18 +4,18 @@
 
 'use strict';
 
-base.requireStylesheet('gpu.state_view');
+tvcm.requireStylesheet('gpu.state_view');
 
-base.require('tracing.analysis.object_snapshot_view');
-base.require('tracing.analysis.util');
+tvcm.require('tracing.analysis.object_snapshot_view');
+tvcm.require('tracing.analysis.util');
 
-base.exportTo('gpu', function() {
+tvcm.exportTo('gpu', function() {
 
   /*
    * Displays a GPU state snapshot in a human readable form.
    * @constructor
    */
-  var StateSnapshotView = base.ui.define(
+  var StateSnapshotView = tvcm.ui.define(
       'gpu-state-snapshot-view',
       tracing.analysis.ObjectSnapshotView);
 

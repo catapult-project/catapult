@@ -10,7 +10,7 @@
  */
 
 
-base.exportTo('cc', function() {
+tvcm.exportTo('cc', function() {
   var tileTypes = {
     highRes: 'highRes',
     lowRes: 'lowRes',
@@ -72,4 +72,3 @@ base.exportTo('cc', function() {
     tileBorder: tileBorder
   };
 });
-

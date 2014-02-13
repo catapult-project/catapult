@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('tracing.test_utils');
-base.require('tracing.timeline_track_view');
-base.require('tracing.importer.trace_event_importer');
+tvcm.require('tracing.test_utils');
+tvcm.require('tracing.timeline_track_view');
+tvcm.require('tracing.importer.trace_event_importer');
 
-base.unittest.testSuite('tracing.timeline_track_view_test', function() {
+tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
 
   var Selection = tracing.Selection;
   var SelectionState = tracing.trace_model.SelectionState;

@@ -4,11 +4,11 @@
 
 'use strict';
 
-base.require('base.sorted_array_utils');
-base.require('tracing.tracks.container_track');
-base.require('base.ui');
+tvcm.require('tvcm.sorted_array_utils');
+tvcm.require('tracing.tracks.container_track');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.tracks', function() {
+tvcm.exportTo('tracing.tracks', function() {
 
   /**
    * A track that displays a SliceGroup.
@@ -16,7 +16,7 @@ base.exportTo('tracing.tracks', function() {
    * @extends {ContainerTrack}
    */
 
-  var SliceGroupTrack = base.ui.define(
+  var SliceGroupTrack = tvcm.ui.define(
       'slice-group-track', tracing.tracks.ContainerTrack);
 
   SliceGroupTrack.prototype = {
@@ -65,7 +65,7 @@ base.exportTo('tracing.tracks', function() {
     },
 
     get subRows() {
-      return base.asArray(this.children).map(function(sliceTrack) {
+      return tvcm.asArray(this.children).map(function(sliceTrack) {
         return sliceTrack.slices;
       });
     },

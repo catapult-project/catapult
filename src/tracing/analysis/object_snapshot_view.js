@@ -4,10 +4,10 @@
 
 'use strict';
 
-base.require('base.ui');
+tvcm.require('tvcm.ui');
 
-base.exportTo('tracing.analysis', function() {
-  var ObjectSnapshotView = base.ui.define('object-snapshot-view');
+tvcm.exportTo('tracing.analysis', function() {
+  var ObjectSnapshotView = tvcm.ui.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
     __proto__: HTMLDivElement.prototype,
