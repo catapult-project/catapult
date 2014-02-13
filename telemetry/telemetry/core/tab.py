@@ -142,16 +142,18 @@ class Tab(web_contents.WebContents):
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
     self.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
 
-  def _FindHighlightBoundingBox(self, bmp, color):
+  def _FindHighlightBoundingBox(self, bmp, color, bounds_tolerance=4,
+      color_tolerance=8):
     """Returns the bounding box of the content highlight of the given color.
 
     Raises:
       BoundingBoxNotFoundException if the hightlight could not be found.
     """
-    content_box, pixel_count = bmp.GetBoundingBox(color, tolerance=8)
+    content_box, pixel_count = bmp.GetBoundingBox(color,
+        tolerance=color_tolerance)
 
     if not content_box:
-      raise BoundingBoxNotFoundException('Failed to find tab contents.')
+      return None
 
     # We assume arbitrarily that tabs are all larger than 200x200. If this
     # fails it either means that assumption has changed or something is
@@ -173,8 +175,15 @@ class Tab(web_contents.WebContents):
     # TODO(tonyg): This assert doesn't seem to work.
     if (self._previous_tab_contents_bounding_box and
         self._previous_tab_contents_bounding_box != content_box):
-      raise BoundingBoxNotFoundException(
-          'Unexpected change in tab contents box.')
+      # Check if there's just a minor variation on the bounding box. If it's
+      # just a few pixels, we can assume it's probably due to
+      # compression artifacts.
+      for i in xrange(len(content_box)):
+        bounds_difference = abs(content_box[i] -
+            self._previous_tab_contents_bounding_box[i])
+        if bounds_difference > bounds_tolerance:
+          raise BoundingBoxNotFoundException(
+              'Unexpected change in tab contents box.')
     self._previous_tab_contents_bounding_box = content_box
 
     return content_box
@@ -196,12 +205,10 @@ class Tab(web_contents.WebContents):
     # Flip through frames until we find the initial tab contents flash.
     content_box = None
     for _, bmp in frame_generator:
-      try:
-        content_box = self._FindHighlightBoundingBox(
-            bmp, bitmap.WEB_PAGE_TEST_ORANGE)
+      content_box = self._FindHighlightBoundingBox(
+          bmp, bitmap.WEB_PAGE_TEST_ORANGE)
+      if content_box:
         break
-      except BoundingBoxNotFoundException:
-        pass
 
     if not content_box:
       raise BoundingBoxNotFoundException(
@@ -210,9 +217,7 @@ class Tab(web_contents.WebContents):
     # Flip through frames until the flash goes away and emit that as frame 0.
     timestamp = 0
     for timestamp, bmp in frame_generator:
-      try:
-        self._FindHighlightBoundingBox(bmp, bitmap.WEB_PAGE_TEST_ORANGE)
-      except BoundingBoxNotFoundException:
+      if not self._FindHighlightBoundingBox(bmp, bitmap.WEB_PAGE_TEST_ORANGE):
         yield 0, bmp.Crop(*content_box)
         break
 
