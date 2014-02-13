@@ -80,7 +80,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
         assert returncode in [0, -15], (
             "powermetrics return code: %d" % returncode)
 
-        return open(self._output_filename, 'rb').read()
+        with open(self._output_filename, 'rb') as output_file:
+          return output_file.read()
       finally:
         shutil.rmtree(self._ouput_directory)
         self._ouput_directory = None
