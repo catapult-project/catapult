@@ -49,7 +49,7 @@ class FakeFS(object):
   def _FakeOpen(self, path, mode=None):
     if mode == None:
       mode = 'r'
-    if mode == 'r' or mode == 'rU':
+    if mode == 'r' or mode == 'rU' or mode == 'rb':
       if path not in self._file_contents:
         return self._real_open(path, mode)
       return WithableStringIO(self._file_contents[path])

@@ -40,11 +40,6 @@ def _CommonChecks(input_api, output_api):
   if len(gyp_result) > 0:
     results.extend([output_api.PresubmitError(gyp_result)])
 
-  from build import check_grit
-  grit_result = check_grit.GritCheck()
-  if len(grit_result) > 0:
-    results.extend([output_api.PresubmitError(grit_result)])
-
   black_list = input_api.DEFAULT_BLACK_LIST
   sources = lambda x: input_api.FilterSourceFile(x, black_list=black_list)
   results.extend(input_api.canned_checks.CheckLicense(

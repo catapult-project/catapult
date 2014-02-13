@@ -64,6 +64,8 @@ class _RunnerImpl(unittest.TextTestRunner):
     filtered_test = FilterSuite(suite, self.ShouldTestRun)
     return super(_RunnerImpl, self).run(filtered_test)
 
+PY_ONLY_TESTS=False
+
 
 class TestRunner(object):
   def __init__(self):
@@ -88,7 +90,12 @@ class TestRunner(object):
       argv = sys.argv
 
     parser = optparse.OptionParser()
+    parser.add_option('--py-only', action='store_true',
+                      help='Runs only python based tests')
     options, args = parser.parse_args(argv[1:])
+
+    global PY_ONLY_TESTS
+    PY_ONLY_TESTS = options.py_only
 
     runner = _RunnerImpl(filters=args)
     return unittest.main(module=__name__, argv=[sys.argv[0]],

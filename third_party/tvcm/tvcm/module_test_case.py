@@ -9,6 +9,7 @@ import json
 
 from tvcm import dev_server
 from tvcm import browser_controller
+from tvcm import test_runner
 from tvcm import resource_loader
 
 
@@ -52,6 +53,9 @@ class ModuleTestSuite(unittest.TestSuite):
     _currently_active_module_test_suite = None
 
 def DiscoverTestsInModule(project, start_path):
+  if test_runner.PY_ONLY_TESTS:
+    return unittest.TestSuite()
+
   if not browser_controller.IsSupported():
     raise Exception('Cannot run all tests: telemetry could not be found')
   rl = resource_loader.ResourceLoader(project)

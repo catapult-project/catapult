@@ -10,6 +10,8 @@ from tvcm import project as project_module
 
 class ModuleTestCaseTests(unittest.TestCase):
   def testDiscoverAndRun(self):
+    if test_runner.PY_ONLY_TESTS:
+      return
     tvcm_project = project_module.Project()
     t = module_test_case.DiscoverTestsInModule(
       tvcm_project, tvcm_project.tvcm_path)

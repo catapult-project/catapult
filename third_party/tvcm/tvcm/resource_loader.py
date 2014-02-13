@@ -1,10 +1,11 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """ResourceFinder is a helper class for finding resources given their name."""
 
 import os
 from tvcm import module
+from tvcm import style_sheet as style_sheet_module
 from tvcm import resource as resource_module
 from tvcm import js_module
 
@@ -22,6 +23,7 @@ class ResourceLoader(object):
     self.loaded_raw_scripts = {}
     self.loaded_style_sheets = {}
     self.loaded_html_templates = {}
+    self.loaded_images = {}
 
   @property
   def source_paths(self):
@@ -165,7 +167,8 @@ class ResourceLoader(object):
     if not resource:
       raise module.DepsException('Could not find a file for stylesheet %s' % name)
 
-    style_sheet = module.StyleSheet(name, resource.absolute_path, resource.contents)
+    style_sheet = style_sheet_module.StyleSheet(self, name, resource)
+    style_sheet.load()
     self.loaded_style_sheets[name] = style_sheet
     return style_sheet
 
@@ -181,6 +184,24 @@ class ResourceLoader(object):
     html_template = module.HTMLTemplate(name, resource.absolute_path, resource.contents)
     self.loaded_html_templates[name] = html_template
     return html_template
+
+  def load_image(self, abs_path):
+    if abs_path in self.loaded_images:
+      return self.loaded_images[abs_path]
+
+    if not os.path.exists(abs_path):
+      raise module.DepsException(
+        """url('%s') did not exist""" % abs_path)
+
+    res =  self.find_resource_given_absolute_path(abs_path)
+    if res == None:
+      raise module.DepsException(
+          """url('%s') was not in search path""" % abs_path)
+
+    image = style_sheet_module.Image(res)
+    self.loaded_images[abs_path] = image
+    return image
+
 
 def _read_file(absolute_path):
   """Reads a file and returns a (path, contents) pair.

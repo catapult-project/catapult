@@ -4,6 +4,8 @@
 
 import os
 
+from build import trace_viewer_project
+
 GYP_FILE = "trace_viewer.gyp"
 FILE_GROUPS = ["tracing_html_files",
     "tracing_css_files",
@@ -20,20 +22,24 @@ def GypCheck():
   for group in FILE_GROUPS:
     gyp_files.extend(map(os.path.normpath, data["variables"][group]))
 
+  project = trace_viewer_project.TraceViewerProject()
   known_files = []
   def handle(dirpath, dirnames, filenames):
     for name in filenames:
       if not (name.endswith(("_test.js", "_test_data.js", "tests.html")) or
          name.startswith(("."))):
-        known_files.append(os.path.normpath(os.path.join(dirpath, name)))
+        x = os.path.relpath(os.path.normpath(os.path.join(dirpath, name)),
+                            project.trace_viewer_path)
+        known_files.append(x)
     if '.svn' in dirnames:
       dirnames.remove('.svn')
-  for (dirpath, dirnames, filenames) in os.walk('src'):
+
+  for (dirpath, dirnames, filenames) in os.walk(project.src_path):
     handle(dirpath, dirnames, filenames)
 
-  for directory in ('base'):
+  for directory in ('base', 'ui'):
     for (dirpath, dirnames, filenames) in os.walk(
-        os.path.join('third_party', 'tvcm', directory)):
+        os.path.join(project.tvcm_path, directory)):
       handle(dirpath, dirnames, filenames)
 
   u = set(gyp_files).union(set(known_files))

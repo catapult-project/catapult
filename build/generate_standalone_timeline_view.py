@@ -9,11 +9,7 @@ import os
 import re
 
 import tvcm
-
-src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
-tvcm_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party/tvcm"))
-third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
-
+from build import trace_viewer_project
 def _sopen(filename, mode):
   if filename != '-':
     return open(filename, mode)
@@ -39,8 +35,9 @@ various ordering restrictions between them.
     parser.print_help()
     return 1
 
+  project = trace_viewer_project.TraceViewerProject()
   load_sequence = tvcm.calc_load_sequence(
-      ['tracing/standalone_timeline_view.js'], [src_dir], [third_party_dir])
+      ['tracing/standalone_timeline_view.js'], project)
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:

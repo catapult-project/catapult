@@ -49,26 +49,9 @@ def generate_css(load_sequence):
   style_sheet_chunks = [css_warning_message, '\n']
   for module in load_sequence:
     for style_sheet in module.style_sheets:
-      style_sheet_chunks.append("""%s\n""" % style_sheet.contents)
-
-  # Borrowed from grit html_format.py.
-  def InlineUrl(m):
-    filename = m.group('filename')
-    idx = filename.index('/images')
-    filename = "%s%s" % (srcdir, filename[idx:])
-    ext = filename[filename.rindex('.') + 1:]
-
-    with open(filename, 'rb') as f:
-      data = f.read();
-    data = base64.standard_b64encode(data)
-
-    return "url(data:image/%s;base64,%s)" % (ext, data)
-
-  full_style_sheet = ''.join(style_sheet_chunks)
-  # I'm assuming we only have url()'s associated with images
-  return re.sub('url\((?P<quote>"|\'|)(?P<filename>[^"\'()]*)(?P=quote)\)',
-                lambda m: InlineUrl(m),
-                full_style_sheet)
+      style_sheet_chunks.append(style_sheet.contents_with_inlined_images)
+      style_sheet_chunks.append('\n')
+  return ''.join(style_sheet_chunks)
 
 def generate_js(load_sequence, include_html_templates=True):
   js_chunks = [js_warning_message, '\n']

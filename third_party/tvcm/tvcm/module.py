@@ -19,6 +19,7 @@ from tvcm import resource as resource_module
 class DepsException(Exception):
   """Exceptions related to module dependency resolution."""
   def __init__(self, fmt, *args):
+    import style_sheet as style_sheet_module
     context = []
     frame = inspect.currentframe()
     while frame:
@@ -29,6 +30,8 @@ class DepsException(Exception):
         s = locals['self']
         if isinstance(s, Module):
           module_name = s.name
+        if isinstance(s, style_sheet_module.StyleSheet):
+          module_name = s.name + '.css'
       if not module_name:
         if 'module' in locals:
           module = locals['module']
@@ -158,18 +161,6 @@ class Module(object):
     if self.name not in already_loaded_set:
       already_loaded_set.add(self.name)
       load_sequence.append(self)
-
-
-class StyleSheet(object):
-  """Represents a stylesheet resource referenced by a module via the
-  base.requireStylesheet(xxx) directive."""
-  def __init__(self, name, filename, contents):
-    self.name = name
-    self.filename = filename
-    self.contents = contents
-
-  def __repr__(self):
-    return "StyleSheet(%s)" % self.name
 
 
 class HTMLTemplate(object):

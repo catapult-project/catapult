@@ -47,7 +47,7 @@ class Resource(object):
       return self._contents
     if not os.path.exists(self.absolute_path):
       raise Exception('%s not found.' % self.absolute_path)
-    f = open(self.absolute_path, 'r')
+    f = open(self.absolute_path, 'rb')
     self._contents = f.read()
     f.close()
     return self._contents

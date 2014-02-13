@@ -262,12 +262,12 @@
     ],
     'tracing_img_files': [
       'src/images/checkerboard.png',
-      'src/images/chrome-left.png',
-      'src/images/chrome-right.png',
-      'src/images/chrome-mid.png',
       'src/images/collapse.png',
       'src/images/expand.png',
-      'src/images/ui-states.png',
+      'third_party/tvcm/base/images/chrome-left.png',
+      'third_party/tvcm/base/images/chrome-right.png',
+      'third_party/tvcm/base/images/chrome-mid.png',
+      'third_party/tvcm/base/images/ui-states.png',
     ],
     'tracing_files': [
       '<@(tracing_html_files)',
