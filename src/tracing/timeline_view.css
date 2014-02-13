@@ -14,7 +14,7 @@ x-timeline-view {
 
 x-timeline-view > .control > .title {
   font-size: 14px;
-  height: 19px;
+  height: 22px;
   padding-left: 2px;
   padding-right: 8px;
   padding-top: 2px;
@@ -47,8 +47,8 @@ x-timeline-view > .control > span {
 
 x-timeline-view > .control > .controls button,
 x-timeline-view > .control > .controls label {
-  font-size: 11px;
-  height: 19px;
+  font-size: 14px;
+  height: 22px;
   margin: 1px 2px 1px 2px;
 }
 
@@ -91,7 +91,7 @@ x-timeline-view .selection ul {
   border: 1px solid rgba(0, 0, 0, 0.5);
   color: rgba(0,0,0,0.8);
   font-size: 14px;
-  height: 19px;
+  height: 22px;
   margin: 1px;
   min-width: 23px;
   text-align: center;
