@@ -194,7 +194,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Oobe.LoginForTesting was introduced after branch 1599."""
     return self.chrome_branch_number > 1599
 
-  def GetRemotePort(self, _):
+  def GetRemotePort(self, port):
+    if self._cri.local:
+      return port
     return self._cri.GetRemotePort()
 
   def __del__(self):
