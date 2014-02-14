@@ -2,16 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Presubmit script for Chromium WebUI resources.
-
-See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
-for more details about the presubmit API built into gcl/git cl, and see
-http://www.chromium.org/developers/web-development-style-guide for the rules
-we're checking against here.
-"""
-
-# TODO(dbeam): Real CSS parser? pycss? http://code.google.com/p/pycss/
-
 class CSSChecker(object):
   def __init__(self, input_api, output_api, file_filter=None):
     self.input_api = input_api

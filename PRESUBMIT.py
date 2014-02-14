@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import sys
 
 _EXCLUDED_PATHS = []
 
@@ -16,68 +17,41 @@ _LICENSE_HEADER = (
 )
 
 
-def _CommonChecks(input_api, output_api):
+def _CommonChecksImpl(input_api, output_api):
   results = []
-  results.extend(input_api.canned_checks.PanProjectChecks(
-      input_api, output_api, excluded_paths=_EXCLUDED_PATHS))
+  results += input_api.canned_checks.PanProjectChecks(
+      input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
 
-  src_dir = os.path.join(input_api.change.RepositoryRoot(), "src")
+  import build
+  from tvcm import presubmit_checker
+  checker = presubmit_checker.PresubmitChecker(input_api, output_api)
+  results += checker.RunChecks()
 
-  def IsResource(maybe_resource):
-    f = maybe_resource.AbsoluteLocalPath()
-    if not f.endswith(('.css', '.html', '.js')):
-      return False
-    return True
-
-  from web_dev_style import css_checker, js_checker
-  results.extend(css_checker.CSSChecker(input_api, output_api,
-                                        file_filter=IsResource).RunChecks())
-  results.extend(js_checker.JSChecker(input_api, output_api,
-                                      file_filter=IsResource).RunChecks())
 
   from build import check_gyp
   gyp_result = check_gyp.GypCheck()
   if len(gyp_result) > 0:
-    results.extend([output_api.PresubmitError(gyp_result)])
+    results += [output_api.PresubmitError(gyp_result)]
 
   black_list = input_api.DEFAULT_BLACK_LIST
   sources = lambda x: input_api.FilterSourceFile(x, black_list=black_list)
-  results.extend(input_api.canned_checks.CheckLicense(
-                 input_api, output_api, _LICENSE_HEADER,
-                 source_file_filter=sources))
+  results += input_api.canned_checks.CheckLicense(
+      input_api, output_api, _LICENSE_HEADER,
+      source_file_filter=sources)
+
   return results
 
-
-def GetPathsToPrepend(input_api):
-  web_dev_style_path = input_api.os_path.join(
-    input_api.change.RepositoryRoot(),
-    "third_party",
-    "web_dev_style")
-  return [input_api.PresubmitLocalPath(), web_dev_style_path]
-
-
-def RunWithPrependedPath(prepended_path, fn, *args):
-  import sys
-  old_path = sys.path
-
+def _CommonChecks(input_api, output_api):
+  tvcm_path = input_api.change.RepositoryRoot()
+  sys.path.append(tvcm_path)
   try:
-    sys.path = prepended_path + old_path
-    return fn(*args)
+    return _CommonChecksImpl(input_api, output_api)
   finally:
-    sys.path = old_path
-
+    sys.path.remove(tvcm_path)
 
 def CheckChangeOnUpload(input_api, output_api):
-  def go():
-    results = []
-    results.extend(_CommonChecks(input_api, output_api))
-    return results
-  return RunWithPrependedPath(GetPathsToPrepend(input_api), go)
+  return _CommonChecks(input_api, output_api)
 
 
 def CheckChangeOnCommit(input_api, output_api):
-  def go():
-    results = []
-    results.extend(_CommonChecks(input_api, output_api))
-    return results
-  return RunWithPrependedPath(GetPathsToPrepend(input_api), go)
+  return _CommonChecks(input_api, output_api)

@@ -1,11 +1,8 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-"""Presubmit script for Chromium JS resources.
-
-See chrome/browser/resources/PRESUBMIT.py
-"""
+import os
+import sys
 
 class JSChecker(object):
   def __init__(self, input_api, output_api, file_filter=None):
@@ -36,11 +33,6 @@ class JSChecker(object):
           self.error_highlight(start, length))
     return ''
 
-  def ChromeSendCheck(self, i, line):
-    """Checks for a particular misuse of 'chrome.send'."""
-    return self.RegexCheck(i, line, r"chrome\.send\('[^']+'\s*(, \[\])\)",
-        'Passing an empty array to chrome.send is unnecessary.')
-
   def ConstCheck(self, i, line):
     """Check for use of the 'const' keyword."""
     if self.input_api.re.search(r'\*\s+@const', line):
@@ -63,33 +55,7 @@ class JSChecker(object):
     return start * ' ' + length * '^'
 
   def _makeErrorOrWarning(self, error_text, filename):
-    """Takes a few lines of text indicating a style violation and turns it into
-       a PresubmitError (if |filename| is in a directory where we've already
-       taken out all the style guide violations) or a PresubmitPromptWarning
-       (if it's in a directory where we haven't done that yet).
-    """
-    # TODO(tbreisacher): Once we've cleaned up the style nits in all of
-    # resources/ we can get rid of this function.
-    path = self.input_api.os_path
-    resources = self.input_api.PresubmitLocalPath()
-    dirs = (
-        path.join(resources, 'extensions'),
-        path.join(resources, 'help'),
-        path.join(resources, 'history'),
-        path.join(resources, 'net_internals'),
-        path.join(resources, 'network_action_predictor'),
-        path.join(resources, 'ntp4'),
-        path.join(resources, 'options'),
-        path.join(resources, 'print_preview'),
-        path.join(resources, 'profiler'),
-        path.join(resources, 'sync_promo'),
-        path.join(resources, 'tracing'),
-        path.join(resources, 'uber'),
-    )
-    if filename.startswith(dirs):
-      return self.output_api.PresubmitError(error_text)
-    else:
-      return self.output_api.PresubmitPromptWarning(error_text)
+    return self.output_api.PresubmitError(error_text)
 
   def RunChecks(self):
     """Check for violations of the Chromium JavaScript style guide. See
@@ -102,15 +68,12 @@ class JSChecker(object):
     old_filters = warnings.filters
 
     try:
-      closure_linter_path = self.input_api.os_path.join(
-          self.input_api.change.RepositoryRoot(),
-          "third_party",
-          "closure_linter")
-      gflags_path = self.input_api.os_path.join(
-          self.input_api.change.RepositoryRoot(),
-          "third_party",
-          "python_gflags")
-
+      tvcm_path = os.path.abspath(os.path.join(
+          os.path.dirname(__file__), '..'))
+      closure_linter_path = os.path.join(
+          tvcm_path, 'third_party', 'closure_linter')
+      gflags_path = os.path.join(
+          tvcm_path, 'third_party', 'python_gflags')
       sys.path.insert(0, closure_linter_path)
       sys.path.insert(0, gflags_path)
 
@@ -172,13 +135,8 @@ class JSChecker(object):
     for f in affected_js_files:
       error_lines = []
 
-      # Check for the following:
-      # * document.getElementById()
-      # * the 'const' keyword
-      # * Passing an empty array to 'chrome.send()'
       for i, line in enumerate(f.NewContents(), start=1):
         error_lines += filter(None, [
-            self.ChromeSendCheck(i, line),
             self.ConstCheck(i, line),
             self.GetElementByIdCheck(i, line),
         ])
