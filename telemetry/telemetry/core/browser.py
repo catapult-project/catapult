@@ -85,6 +85,18 @@ class Browser(object):
     return self._tabs
 
   @property
+  def foreground_tab(self):
+    for i in xrange(len(self._tabs)):
+      # The foreground tab is the first (only) one that isn't hidden.
+      # This only works through luck on Android, due to crbug.com/322544
+      # which means that tabs that have never been in the foreground return
+      # document.hidden as false; however in current code the Android foreground
+      # tab is always tab 0, which will be the first one that isn't hidden
+      if self._tabs[i].EvaluateJavaScript('!document.hidden'):
+        return self._tabs[i]
+    raise Exception("No foreground tab found")
+
+  @property
   def extensions(self):
     """Returns the extension dictionary if it exists."""
     if not self.supports_extensions:
@@ -392,3 +404,4 @@ class Browser(object):
 
        See the documentation of the SystemInfo class for more details."""
     return self._browser_backend.GetSystemInfo()
+
