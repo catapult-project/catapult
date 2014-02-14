@@ -154,7 +154,7 @@ class PageState(object):
 
     if test:
       if test.clear_cache_before_each_run:
-        self.tab.ClearCache()
+        self.tab.ClearCache(force=True)
 
   def ImplicitPageNavigation(self, test=None):
     """Executes the implicit navigation that occurs for every page iteration.

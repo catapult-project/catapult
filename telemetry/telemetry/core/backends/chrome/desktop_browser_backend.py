@@ -55,7 +55,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_directory = browser_directory
     self._port = None
     self._profile_dir = None
-    self._supports_net_benchmarking = True
     self._tmp_minidump_dir = tempfile.mkdtemp()
 
     self._SetupProfile()
@@ -119,10 +118,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       args.append('--window-size=1280,1024')
       if self._flash_path:
         args.append('--ppapi-flash-path=%s' % self._flash_path)
-      if self._supports_net_benchmarking:
-        args.append('--enable-net-benchmarking')
-      else:
-        args.append('--enable-benchmarking')
       if not self.browser_options.dont_override_profile:
         args.append('--user-data-dir=%s' % self._tmp_profile_dir)
     return args
@@ -139,13 +134,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self):
     self._LaunchBrowser()
-
-    # For old chrome versions, might have to relaunch to have the
-    # correct net_benchmarking switch.
-    if self.chrome_branch_number < 1418:
-      self.Close()
-      self._supports_net_benchmarking = False
-      self._LaunchBrowser()
 
   @property
   def pid(self):

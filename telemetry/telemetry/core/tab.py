@@ -253,6 +253,21 @@ class Tab(web_contents.WebContents):
   def CollectGarbage(self):
     self._inspector_backend.CollectGarbage()
 
-  def ClearCache(self):
-    """Clears the browser's HTTP disk cache and the tab's HTTP memory cache."""
-    self._inspector_backend.ClearCache()
+  def ClearCache(self, force):
+    """Clears the browser's networking related disk, memory and other caches.
+
+    Args:
+      force: Iff true, navigates to about:blank which destroys the previous
+          renderer, ensuring that even "live" resources in the memory cache are
+          cleared.
+    """
+    self.ExecuteJavaScript("""
+        if (window.chrome && chrome.benchmarking &&
+            chrome.benchmarking.clearCache) {
+          chrome.benchmarking.clearCache();
+          chrome.benchmarking.clearPredictorCache();
+          chrome.benchmarking.clearHostResolverCache();
+        }
+    """)
+    if force:
+      self.Navigate('about:blank')

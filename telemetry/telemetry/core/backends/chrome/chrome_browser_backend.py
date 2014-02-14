@@ -93,9 +93,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args = []
     args.extend(self.browser_options.extra_browser_args)
     args.append('--disable-background-networking')
+    args.append('--enable-net-benchmarking')
     args.append('--metrics-recording-only')
-    args.append('--no-first-run')
     args.append('--no-default-browser-check')
+    args.append('--no-first-run')
     args.append('--no-proxy-server')
     if self.browser_options.netsim:
       args.append('--ignore-certificate-errors')

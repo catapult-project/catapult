@@ -46,7 +46,7 @@ class RecordPage(page_test.PageTest):
 
   def WillNavigateToPage(self, page, tab):
     """Override to ensure all resources are fetched from network."""
-    tab.ClearCache()
+    tab.ClearCache(force=False)
     if self.test:
       self.test.WillNavigateToPage(page, tab)
 
