@@ -34,10 +34,12 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
 
   test('recordSelectionDialog_splitCategories', function() {
     var dlg = new tracing.RecordSelectionDialog();
-    dlg.categories = ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
+    dlg.categories =
+        ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
     dlg.updateForm_();
 
-    var expected = ['"cc"', '"cc.debug"', '"disabled-by-default-one"', '"three"', '"two"'];
+    var expected =
+        ['"cc"', '"cc.debug"', '"disabled-by-default-one"', '"three"', '"two"'];
 
     var labels = dlg.getElementsByTagName('input');
     var results = [];
