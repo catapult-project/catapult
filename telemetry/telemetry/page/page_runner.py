@@ -77,6 +77,10 @@ class _RunState(object):
               logging.info('Feature Status:')
               for k, v in sorted(system_info.gpu.feature_status.iteritems()):
                 logging.info('  %-20s: %s', k, v)
+            if system_info.gpu.driver_bug_workarounds:
+              logging.info('Driver Bug Workarounds:')
+              for workaround in system_info.gpu.driver_bug_workarounds:
+                logging.info('  %s', workaround)
           else:
             logging.info('No GPU devices')
     else:

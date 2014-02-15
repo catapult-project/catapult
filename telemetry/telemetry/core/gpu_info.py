@@ -7,7 +7,8 @@ from telemetry.core import gpu_device
 class GPUInfo(object):
   """Provides information about the GPUs on the system."""
 
-  def __init__(self, device_array, aux_attributes, feature_status):
+  def __init__(self, device_array, aux_attributes,
+               feature_status, driver_bug_workarounds):
     if device_array == None:
       raise Exception('Missing required "devices" property')
     if len(device_array) == 0:
@@ -16,6 +17,7 @@ class GPUInfo(object):
     self._devices = [gpu_device.GPUDevice.FromDict(d) for d in device_array]
     self._aux_attributes = aux_attributes
     self._feature_status = feature_status
+    self._driver_bug_workarounds = driver_bug_workarounds
 
   @classmethod
   def FromDict(cls, attrs):
@@ -25,8 +27,9 @@ class GPUInfo(object):
       devices (array of dictionaries, each of which contains
           GPUDevice's required attributes)
     """
-    return cls(attrs['devices'],
-               attrs.get('aux_attributes'), attrs.get('feature_status'))
+    return cls(attrs['devices'], attrs.get('aux_attributes'),
+               attrs.get('feature_status'),
+               attrs.get('driver_bug_workarounds'))
 
   @property
   def devices(self):
@@ -56,3 +59,8 @@ class GPUInfo(object):
   def feature_status(self):
     """Returns an optional dictionary of graphics features and their status."""
     return self._feature_status
+
+  @property
+  def driver_bug_workarounds(self):
+    """Returns an optional array of driver bug workarounds."""
+    return self._driver_bug_workarounds
