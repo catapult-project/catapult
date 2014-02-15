@@ -10,6 +10,7 @@ from build import trace_viewer_project
 import tvcm
 
 def do_GET_json_examples(request):
+  test_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'test_data'))
   data_files = []
   for dirpath, dirnames, filenames in os.walk(test_data_path):
     for f in filenames:

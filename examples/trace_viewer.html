@@ -7,7 +7,7 @@ found in the LICENSE file.
 -->
 <head>
 <title>Simple Embedded Viewer</title>
-<script src="/base/__init__.js"></script>
+<script src="/tvcm/__init__.js"></script>
 <style>
   body {
     margin: 0;
@@ -38,12 +38,12 @@ found in the LICENSE file.
   </x-timeline-view>
 
   <script>
-  base.require('tracing.timeline_view');
-  base.require('tracing.importer');
-  base.require('cc');
-  base.require('tcmalloc');
-  base.require('system_stats');
-  base.require('gpu');
+  tvcm.require('tracing.timeline_view');
+  tvcm.require('tracing.importer');
+  tvcm.require('cc');
+  tvcm.require('tcmalloc');
+  tvcm.require('system_stats');
+  tvcm.require('gpu');
   </script>
   <script>
   'use strict';
@@ -90,7 +90,7 @@ found in the LICENSE file.
 
   function createViewFromTraces(filenames, traces) {
     var m = new tracing.TraceModel();
-    var p = m.importTracesWithProgressDialog(traces, true);
+    var p = m.importTracesWithProgressDialog(traces, false);
     p.then(
       function() {
         timelineViewEl.model = m;
@@ -100,8 +100,8 @@ found in the LICENSE file.
         timelineViewEl.viewTitle = filenames;
       },
       function(err) {
-        var overlay = new base.ui.Overlay();
-        overlay.textContent = base.normalizeException(err).message;
+        var overlay = new tvcm.ui.Overlay();
+        overlay.textContent = tvcm.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });
@@ -147,7 +147,7 @@ found in the LICENSE file.
 
   function onLoad() {
     timelineViewEl = document.querySelector('x-timeline-view');
-    base.ui.decorate(timelineViewEl, tracing.TimelineView);
+    tvcm.ui.decorate(timelineViewEl, tracing.TimelineView);
 
     getAsync('/json/examples', function(data) {
       var select = document.querySelector('#trace_file');
