@@ -99,6 +99,13 @@ tvcm.exportTo('tracing', function() {
 
     set categories(c) {
       this.categories_ = c;
+
+      for (var i = 0; i < this.categories_.length; i++) {
+        var split = this.categories_[i].split(',');
+        this.categories_[i] = split.shift();
+        if (split.length > 0)
+          this.categories_ = this.categories_.concat(split);
+      }
     },
 
     set settings_key(k) {

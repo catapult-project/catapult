@@ -16,6 +16,8 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
     for (var i = 0; i < 20; i++)
       categories.push('disabled-by-default-cat-' + i);
     categories.push('really-really-really-really-really-really-very-loong-cat');
+    categories.push('first,second,third');
+    categories.push('cc,disabled-by-default-cc.debug');
 
     var dlg = new tracing.RecordSelectionDialog();
     dlg.categories = categories;
@@ -28,6 +30,23 @@ tvcm.unittest.testSuite('tracing.record_selection_dialog_test', function() {
       e.stopPropagation();
     });
     this.addHTMLOutput(showButton);
+  });
+
+  test('recordSelectionDialog_splitCategories', function() {
+    var dlg = new tracing.RecordSelectionDialog();
+    dlg.categories = ['cc,disabled-by-default-one,cc.debug', 'two,three', 'three'];
+    dlg.updateForm_();
+
+    var expected = ['"cc"', '"cc.debug"', '"disabled-by-default-one"', '"three"', '"two"'];
+
+    var labels = dlg.getElementsByTagName('input');
+    var results = [];
+    for (var i = 0; i < labels.length; i++) {
+      results.push('"' + labels[i].value + '"');
+    }
+    results = results.sort();
+
+    assertArrayEquals(expected, results);
   });
 
   test('recordSelectionDialog_UpdateForm_NoSettings', function() {
