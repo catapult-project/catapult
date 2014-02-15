@@ -6,8 +6,10 @@ import sys
 
 src_dir = os.path.join(os.path.dirname(__file__), '..')
 
-sys.path.append(os.path.join(src_dir, 'third_party/python_gflags'))
-sys.path.append(os.path.join(src_dir, 'third_party/closure_linter'))
+sys.path.append(os.path.abspath(os.path.join(
+    src_dir, 'third_party', 'tvcm', 'third_party', 'python_gflags')))
+sys.path.append(os.path.abspath(os.path.join(
+    src_dir, 'third_party', 'tvcm', 'third_party', 'closure_linter')))
 
 
 from closure_linter import gjslint
