@@ -61,7 +61,8 @@ class PageTest(object):
                action_name_to_run='',
                needs_browser_restart_after_each_run=False,
                discard_first_result=False,
-               clear_cache_before_each_run=False):
+               clear_cache_before_each_run=False,
+               attempts=3):
     self.options = None
     try:
       self._test_method = getattr(self, test_method_name)
@@ -74,6 +75,8 @@ class PageTest(object):
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
+    self._attempts = attempts
+    assert self._attempts > 0, 'Test attempts must be greater than 0'
     # If the test overrides the TabForPage method, it is considered a multi-tab
     # test.  The main difference between this and a single-tab test is that we
     # do not attempt recovery for the former if a tab or the browser crashes,
@@ -110,6 +113,16 @@ class PageTest(object):
   @close_tabs_before_run.setter
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
+
+  @property
+  def attempts(self):
+    """Maximum number of times test will be attempted."""
+    return self._attempts
+
+  @attempts.setter
+  def attempts(self, count):
+    assert self._attempts > 0, 'Test attempts must be greater than 0'
+    self._attempts = count
 
   def RestartBrowserBeforeEachPage(self):
     """ Should the browser be restarted for the page?

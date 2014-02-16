@@ -209,7 +209,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         if page.archive_path and os.path.isfile(page.archive_path)
         else wpr_modes.WPR_OFF)
 
-  tries = 3
+  tries = test.attempts
   while tries:
     tries -= 1
     try:
