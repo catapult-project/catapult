@@ -34,6 +34,9 @@ def _IsFilenameAJSTest(x):
   if basename.endswith('_test.js'):
     return True
 
+  if basename.endswith('_unittest.js'):
+    return True
+
   # TODO(nduca): Add content test?
   return False
 

@@ -23,9 +23,20 @@ class JSModule(module.Module):
       if not IsJSModule(stripped_text):
         raise module.DepsException('%s is not a JS Module' % self.name)
     ValidateUsesStrictMode(self.name, stripped_text)
-    if self.name.endswith('_test'):
+    if IsJSTest(stripped_text, text_is_stripped=True):
       ValidateTestSuiteDefinition(self.name, stripped_text)
     self.dependency_metadata = Parse(self.name, stripped_text)
+
+def IsJSTest(text, text_is_stripped=True):
+  if text_is_stripped:
+    stripped_text = text
+  else:
+    stripped_text = strip_js_comments.strip_js_comments(text)
+  if re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+               stripped_text, re.DOTALL):
+    return True
+
+  return False
 
 def IsJSModule(text, text_is_stripped=True):
   if text_is_stripped:
@@ -40,8 +51,7 @@ def IsJSModule(text, text_is_stripped=True):
                stripped_text, re.DOTALL):
     return True
 
-  if re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
-               stripped_text, re.DOTALL):
+  if IsJSTest(stripped_text, text_is_stripped=True):
     return True
 
   return False
