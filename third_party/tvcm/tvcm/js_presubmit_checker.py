@@ -42,12 +42,6 @@ class JSChecker(object):
     return self.RegexCheck(i, line, r'(?:^|\s|\()(const)\s',
         'Use var instead of const.')
 
-  def GetElementByIdCheck(self, i, line):
-    """Checks for use of 'document.getElementById' instead of '$'."""
-    return self.RegexCheck(i, line, r"(document\.getElementById)\('",
-        "Use $('id'), from chrome://resources/js/util.js, instead of "
-        "document.getElementById('id'))")
-
   def error_highlight(self, start, length):
     """Takes a start position and a length, and produces a row of '^'s to
        highlight the corresponding part of a string.
@@ -138,7 +132,6 @@ class JSChecker(object):
       for i, line in enumerate(f.NewContents(), start=1):
         error_lines += filter(None, [
             self.ConstCheck(i, line),
-            self.GetElementByIdCheck(i, line),
         ])
 
       # Use closure_linter to check for several different errors
@@ -171,8 +164,6 @@ class JSChecker(object):
     if results:
       results.append(self.output_api.PresubmitNotifyResult(
           'See the JavaScript style guide at '
-          'http://www.chromium.org/developers/web-development-style-guide'
-          '#TOC-JavaScript and if you have any feedback about the JavaScript '
-          'PRESUBMIT check, contact tbreisacher@chromium.org'))
+          'http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml'))
 
     return results
