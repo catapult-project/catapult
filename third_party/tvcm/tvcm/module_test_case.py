@@ -22,6 +22,11 @@ class ModuleTestSuite(unittest.TestSuite):
     self._project = project
     self._bc = None
 
+  @property
+  def __class__(self):
+    def RecreateFunc():
+      return self.recreateEmptyVersion()
+    return RecreateFunc
   def recreateEmptyVersion(self):
     return ModuleTestSuite(self._project)
 
