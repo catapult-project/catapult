@@ -60,7 +60,8 @@ def DiscoverTestsInModule(project, start_path):
     raise Exception('Cannot run all tests: telemetry could not be found')
   rl = resource_loader.ResourceLoader(project)
 
-  test_modules = project.FindAllTestModuleNames(start_path=start_path)
+  test_modules = [x.name for x in
+                  project.FindAllTestModuleResources(start_path=start_path)]
 
   bc = browser_controller.BrowserController(project)
 

@@ -37,6 +37,14 @@ class DevServerTests(unittest.TestCase):
     self.assertTrue('test_module_names' in resp)
     self.assertTrue('tvcm.raf_test' in resp['test_module_names'])
 
+  def testTestsWithFilter(self):
+    self.server.CallOnServer('SetTestFilterToAllowOnlyFilenamesMatching', 'bbox2_test')
+    resp_str = self.server.Get('/tvcm/json/tests')
+    resp = json.loads(resp_str)
+    test_module_names = resp['test_module_names']
+    assert len(test_module_names) == 1
+    assert test_module_names[0] == 'tvcm.bbox2_test'
+
 
 if __name__ == '__main__':
   unittest.main()

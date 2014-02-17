@@ -83,7 +83,13 @@ class DevServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     pass
 
 def do_GET_json_tests(self):
-  test_module_names = self.server.project.FindAllTestModuleNames()
+  test_module_resources = self.server.project.FindAllTestModuleResources()
+  if self.server.test_module_resource_filter:
+    cur_filter = self.server.test_module_resource_filter
+  else:
+    cur_filter = lambda x: True
+
+  test_module_names = [x.name for x in test_module_resources if cur_filter(x)]
 
   tests = {'test_module_names': test_module_names,
            'test_links': self.server.test_links}
@@ -161,12 +167,12 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       self._project = project_module.Project([])
 
     self._next_deps_check = -1
+    self.test_module_resource_filter = None
     self.deps = None
 
     self.AddPathHandler('/', do_GET_root)
     self.AddPathHandler('', do_GET_root)
     self.default_path = '/tvcm/tests.html'
-
     # Redirect old tests.html places to the new location until folks have gotten used to its new
     # location.
     self.AddPathHandler('/src/tests.html', do_GET_root)
@@ -184,6 +190,11 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
       if h.CanHandle(path, method):
         return h.handler
     return None
+
+  def SetTestFilterToAllowOnlyFilenamesMatching(self, x):
+    def FilterOnX(r):
+      return x in r.name
+    self.test_module_resource_filter = FilterOnX
 
   def AddSourcePathMapping(self, file_system_path):
     self._project.AddSourcePath(file_system_path)

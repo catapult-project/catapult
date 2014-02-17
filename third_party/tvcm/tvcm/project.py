@@ -83,16 +83,16 @@ class Project(object):
   def AddSourcePath(self, path):
     self.source_paths.append(path)
 
-  def FindAllTestModuleNames(self, start_path=None):
+  def FindAllTestModuleResources(self, start_path=None):
     if start_path == None:
       test_module_filenames = _FindTestModuleFilenames(self.source_paths)
     else:
       test_module_filenames = _FindTestModuleFilenames([start_path])
     test_module_filenames.sort()
 
-    # Now, need to figure out the relative names now:
+    # Find the equivalent resources.
     loader = resource_loader.ResourceLoader(self)
-    return [loader.find_resource_given_absolute_path(x).name
+    return [loader.find_resource_given_absolute_path(x)
             for x in test_module_filenames]
 
   def FindAllJSModuleFilenames(self):
