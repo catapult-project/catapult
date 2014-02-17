@@ -71,6 +71,7 @@ def DiscoverTestsInModule(project, start_path):
   bc = browser_controller.BrowserController(project)
 
   bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
+  bc.WaitForJavaScriptExpression('tvcm.hasPanic !== undefined')
   try:
     if bc.EvaluateJavaScript('tvcm.hasPanic()'):
       raise Exception('Runner failure: %s' % bc.EvaluateJavaScript('tvcm.getPanicText()'))
