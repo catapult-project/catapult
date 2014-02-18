@@ -35,12 +35,12 @@ js_warning_message = """/**
 """
 
 def generate_html(outdir, load_sequence):
-  return tvcm.generate_standalone_html_file(
+  return tvcm.GenerateStandaloneHTMLFile(
     load_sequence,
     title='chrome://tracing',
     flattened_js_url='chrome://tracing/tracing.js')
 
-def generate_js(outdir, load_sequence):
+def GenerateJS(outdir, load_sequence):
   script_contents = js_warning_message
   script_contents += "window.FLATTENED = {};\n"
   script_contents += "window.FLATTENED_RAW_SCRIPTS = {};\n"
@@ -74,7 +74,7 @@ def main(args):
 
   filenames = ["tvcm/__init__.js", "about_tracing/__init__.js"]
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = tvcm.calc_load_sequence(filenames, project)
+  load_sequence = tvcm.CalcLoadSequence(filenames, project)
 
   olddir = os.getcwd()
   try:
@@ -88,7 +88,7 @@ def main(args):
     o.write(result_html)
     o.close()
 
-    result_js = generate_js(options.out_dir, load_sequence)
+    result_js = GenerateJS(options.out_dir, load_sequence)
     o = open(os.path.join(options.out_dir, "about_tracing.js"), 'w')
     o.write(result_js)
     o.close()

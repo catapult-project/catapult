@@ -24,7 +24,7 @@ class StyleSheetUnittest(unittest.TestCase):
                                        include_tvcm_paths=False)
       loader = resource_loader.ResourceLoader(project)
 
-      foo_x = loader.load_style_sheet('foo.x')
+      foo_x = loader.LoadStyleSheet('foo.x')
       self.assertEquals(1, len(foo_x.images))
 
       r0 = foo_x.images[0]
@@ -52,4 +52,4 @@ class StyleSheetUnittest(unittest.TestCase):
       loader = resource_loader.ResourceLoader(project)
 
       self.assertRaises(module.DepsException,
-                        lambda: loader.load_style_sheet('foo.x'))
+                        lambda: loader.LoadStyleSheet('foo.x'))

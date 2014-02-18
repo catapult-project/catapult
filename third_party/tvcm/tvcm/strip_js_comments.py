@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 """Utility function for stripping comments out of javascript source code."""
 
-def _tokenize_js(text):
+def _TokenizeJS(text):
   """Splits source code text into segments in preparation for comment stripping.
 
   Note that this doesn't tokenize for parsing. There is no notion of statements,
@@ -36,7 +36,7 @@ def _tokenize_js(text):
     rest = rest[min_index + len(token_with_min):]
 
 
-def strip_js_comments(text):
+def StripJSComments(text):
   """Strips comments out of javascript source code.
 
   Args:
@@ -46,7 +46,7 @@ def strip_js_comments(text):
     Javascript source text with comments stripped out.
   """
   result_tokens = []
-  token_stream = _tokenize_js(text).__iter__()
+  token_stream = _TokenizeJS(text).__iter__()
   while True:
     try:
       t = token_stream.next()

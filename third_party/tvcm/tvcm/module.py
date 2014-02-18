@@ -68,7 +68,7 @@ class Module(object):
   """Represents a javascript module.
 
   It can either be directly requested, e.g. passed in by name to
-  calc_load_sequence, or created by being referenced a module via the
+  CalcLoadSequence, or created by being referenced a module via the
   tvcm.require directive.
 
   Interesting properties include:
@@ -115,7 +115,7 @@ class Module(object):
     """Parses self.contents and fills in the module's dependency metadata."""
     raise NotImplementedError()
 
-  def load(self):
+  def Load(self):
     """Loads the sub-resources that this module depends on from its dependency metadata.
 
     Raises:
@@ -128,22 +128,22 @@ class Module(object):
 
     metadata = self.dependency_metadata
     for name in metadata.dependent_module_names:
-      module = self.loader.load_module(module_name=name)
+      module = self.loader.LoadModule(module_name=name)
       self.dependent_modules.append(module)
 
     for relative_raw_script_path in metadata.dependent_raw_script_relative_paths:
-      raw_script = self.loader.load_raw_script(relative_raw_script_path)
+      raw_script = self.loader.LoadRawScript(relative_raw_script_path)
       self.dependent_raw_scripts.append(raw_script)
 
     for name in metadata.style_sheet_names:
-      style_sheet = self.loader.load_style_sheet(name)
+      style_sheet = self.loader.LoadStyleSheet(name)
       self.style_sheets.append(style_sheet)
 
     for name in metadata.html_template_names:
-      html_template = self.loader.load_html_template(name)
+      html_template = self.loader.LoadHTMLTemplate(name)
       self.html_templates.append(html_template)
 
-  def compute_load_sequence_recursive(self, load_sequence, already_loaded_set,
+  def ComputeLoadSequenceRecursive(self, load_sequence, already_loaded_set,
                                       depth=0):
     """Recursively builds up a load sequence list.
 
@@ -156,7 +156,7 @@ class Module(object):
     if depth > 32:
       raise Exception('Include loop detected on %s', self.name)
     for dependent_module in self.dependent_modules:
-      dependent_module.compute_load_sequence_recursive(
+      dependent_module.ComputeLoadSequenceRecursive(
           load_sequence, already_loaded_set, depth+1)
     if self.name not in already_loaded_set:
       already_loaded_set.add(self.name)

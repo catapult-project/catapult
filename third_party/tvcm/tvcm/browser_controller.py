@@ -9,7 +9,7 @@ from tvcm import dev_server
 from tvcm import project as project_module
 
 
-def _try_to_import_telemetry():
+def _TryToImportTelemetry():
   # Maybe telemetry is just hanging around in PYTHONPATH
   try:
     import telemetry
@@ -29,7 +29,7 @@ def _try_to_import_telemetry():
   return True
 
 
-if _try_to_import_telemetry():
+if _TryToImportTelemetry():
   import telemetry
   from telemetry.core import browser_finder
   from telemetry.core import browser_options

@@ -1,7 +1,7 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""The core of this script is the calc_load_sequence function. This function
+"""The core of this script is the CalcLoadSequence function. This function
 loads the provided javascript files and figures out their dependencies by
 reading the tvcm.require statements in each file. This allows us to, for
 example, have a trio of modules, foo, bar and baz, where foo.js contains:
@@ -14,7 +14,7 @@ and bar.js contains:
 
 If these three modules are in the current directory, then:
 
-    calc_load_sequence(['foo'], '.')
+    CalcLoadSequence(['foo'], '.')
 
 Will return the correct sequence in which to load these modules based on these
 dependencies, which is: [Module('baz'), Module('bar'), Module('foo')].
@@ -27,7 +27,7 @@ from tvcm import module
 from tvcm import resource_loader
 
 
-def calc_load_sequence(filenames, project):
+def CalcLoadSequence(filenames, project):
   """Given a list of starting javascript files, figure out all the Module
   objects that need to be loaded to satisfy their dependencies.
 
@@ -47,11 +47,11 @@ def calc_load_sequence(filenames, project):
   if os.path.join('tvcm', '__init__.js') not in filenames:
     filenames = list(filenames)
     filenames.insert(0, os.path.join('tvcm', '__init__.js'))
-  return calc_load_sequence_internal(filenames, project)
+  return CalcLoadSequenceInternal(filenames, project)
 
 
-def calc_load_sequence_internal(filenames, project):
-  """Helper function for calc_load_sequence.
+def CalcLoadSequenceInternal(filenames, project):
+  """Helper function for CalcLoadSequence.
 
   Args:
     filenames: A list of starting file paths for trace viewer modules.
@@ -63,7 +63,7 @@ def calc_load_sequence_internal(filenames, project):
   loader = resource_loader.ResourceLoader(project)
   initial_module_name_indices = {}
   for filename in filenames:
-    m = loader.load_module(module_filename=filename)
+    m = loader.LoadModule(module_filename=filename)
     if m.name not in initial_module_name_indices:
       initial_module_name_indices[m.name] = len(initial_module_name_indices)
 
@@ -75,11 +75,11 @@ def calc_load_sequence_internal(filenames, project):
     module_ref_counts[m.name] = 0
 
   # Count the number of references to each module.
-  def inc_ref_count(name):
+  def IncRefCount(name):
     module_ref_counts[name] = module_ref_counts[name] + 1
   for m in loader.loaded_modules.values():
     for dependent_module in m.dependent_modules:
-      inc_ref_count(dependent_module.name)
+      IncRefCount(dependent_module.name)
 
   # Root modules are modules with nothing depending on them.
   root_modules = [loader.loaded_modules[name]
@@ -88,17 +88,17 @@ def calc_load_sequence_internal(filenames, project):
 
   # Sort root_modules by the order they were originally requested,
   # then sort everything else by name.
-  def compare_root_module(x, y):
+  def CompareRootModule(x, y):
     n = len(initial_module_name_indices)
     iX = initial_module_name_indices.get(x.name, n)
     iY = initial_module_name_indices.get(y.name, n)
     if cmp(iX, iY) != 0:
       return cmp(iX, iY)
     return cmp(x.name, y.name)
-  root_modules.sort(compare_root_module)
+  root_modules.sort(CompareRootModule)
 
   already_loaded_set = set()
   load_sequence = []
   for m in root_modules:
-    m.compute_load_sequence_recursive(load_sequence, already_loaded_set)
+    m.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
   return load_sequence

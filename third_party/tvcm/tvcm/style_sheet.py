@@ -82,7 +82,7 @@ class StyleSheet(object):
         raise module.DepsException('URL references must be relative')
       # URLS are relative to this module's directory
       abs_path = os.path.abspath(os.path.join(module_dirname, url))
-      image = self.loader.load_image(abs_path)
+      image = self.loader.LoadImage(abs_path)
       image.aliases.append(url)
       return image
 

@@ -30,7 +30,7 @@ class ResourceLoader(object):
     """A list of base directories to search for modules under."""
     return self.project.source_paths
 
-  def find_resource(self, some_path):
+  def FindResource(self, some_path):
     """Finds a Resource for the given path.
 
     Args:
@@ -40,11 +40,11 @@ class ResourceLoader(object):
       A Resource or None.
     """
     if os.path.isabs(some_path):
-      return self.find_resource_given_absolute_path(some_path)
+      return self.FindResourceGivenAbsolutePath(some_path)
     else:
-      return self.find_resource_given_relative_path(some_path)
+      return self.FindResourceGivenRelativePath(some_path)
 
-  def find_resource_given_absolute_path(self, absolute_path):
+  def FindResourceGivenAbsolutePath(self, absolute_path):
     """Returns a Resource for the given absolute path."""
     candidate_paths = []
     for source_path in self.source_paths:
@@ -58,7 +58,7 @@ class ResourceLoader(object):
     longest_candidate = candidate_paths[-1]
     return resource_module.Resource(longest_candidate, absolute_path)
 
-  def find_resource_given_relative_path(self, relative_path):
+  def FindResourceGivenRelativePath(self, relative_path):
     """Returns a Resource for the given relative path."""
     absolute_path = None
     for script_path in self.source_paths:
@@ -68,7 +68,7 @@ class ResourceLoader(object):
     return None
 
 
-  def _find_resource_given_name_and_suffix(self, requested_name, extension, return_resource=False):
+  def _FindResourceGivenNameAndSuffix(self, requested_name, extension, return_resource=False):
     """Searches for a file and reads its contents.
 
     Args:
@@ -81,26 +81,26 @@ class ResourceLoader(object):
     pathy_name = requested_name.replace('.', os.sep)
     filename = pathy_name + extension
 
-    resource = self.find_resource_given_relative_path(filename)
+    resource = self.FindResourceGivenRelativePath(filename)
     if return_resource:
       return resource
     if not resource:
       return None, None
     return _read_file(resource.absolute_path)
 
-  def find_module_resource(self, requested_module_name):
+  def FindModuleResource(self, requested_module_name):
     """Finds a module javascript file and returns a Resource, or none."""
     # TODO(nduca): Look for name/__init__.js as well as name.js
-    js_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.js', return_resource=True)
+    js_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.js', return_resource=True)
     if not js_resource:
-      js_resource = self._find_resource_given_name_and_suffix(requested_module_name + '.__init__', '.js', return_resource=True)
+      js_resource = self._FindResourceGivenNameAndSuffix(requested_module_name + '.__init__', '.js', return_resource=True)
     else:
       # Verify that no __init__.js exists.
-      init_resource = self._find_resource_given_name_and_suffix(requested_module_name + '.__init__', '.js', return_resource=True)
+      init_resource = self._FindResourceGivenNameAndSuffix(requested_module_name + '.__init__', '.js', return_resource=True)
       if init_resource:
         raise module.DepsException('While loading "%s", found a __init__.js form as well', requested_module_name)
 
-    html_resource = self._find_resource_given_name_and_suffix(requested_module_name, '.html', return_resource=True)
+    html_resource = self._FindResourceGivenNameAndSuffix(requested_module_name, '.html', return_resource=True)
     if js_resource and html_resource:
       if module.Module.html_contents_is_polymer_module(html_resource.contents):
         return html_resource
@@ -109,10 +109,10 @@ class ResourceLoader(object):
       return js_resource
     return html_resource
 
-  def load_module(self, module_name=None, module_filename=None):
+  def LoadModule(self, module_name=None, module_filename=None):
     assert bool(module_name) ^ bool(module_filename), 'Must provide module_name or module_filename.'
     if module_filename:
-      resource = self.find_resource(module_filename)
+      resource = self.FindResource(module_filename)
       if not resource:
         raise Exception('Could not find %s in %s' % (
             module_filename, repr(self.source_paths)))
@@ -130,17 +130,17 @@ class ResourceLoader(object):
       return self.loaded_modules[module_name]
 
     if not resource: # happens when module_name was given
-      resource = self.find_module_resource(module_name)
+      resource = self.FindModuleResource(module_name)
       if not resource:
         raise module.DepsException('No resource for module "%s"' % module_name)
 
     m = js_module.JSModule(self, module_name, resource)
     m.Parse()
     self.loaded_modules[module_name] = m
-    m.load()
+    m.Load()
     return m
 
-  def load_raw_script(self, relative_raw_script_path):
+  def LoadRawScript(self, relative_raw_script_path):
     resource = None
     for source_path in self.source_paths:
       possible_absolute_path = os.path.join(source_path, relative_raw_script_path)
@@ -159,11 +159,11 @@ class ResourceLoader(object):
     self.loaded_raw_scripts[resource.absolute_path] = raw_script
     return raw_script
 
-  def load_style_sheet(self, name):
+  def LoadStyleSheet(self, name):
     if name in self.loaded_style_sheets:
       return self.loaded_style_sheets[name]
 
-    resource = self._find_resource_given_name_and_suffix(name, '.css', return_resource=True)
+    resource = self._FindResourceGivenNameAndSuffix(name, '.css', return_resource=True)
     if not resource:
       raise module.DepsException('Could not find a file for stylesheet %s' % name)
 
@@ -172,11 +172,11 @@ class ResourceLoader(object):
     self.loaded_style_sheets[name] = style_sheet
     return style_sheet
 
-  def load_html_template(self, name):
+  def LoadHTMLTemplate(self, name):
     if name in self.loaded_html_templates:
       return self.loaded_html_templates[name]
 
-    resource = self._find_resource_given_name_and_suffix(name, '.html', return_resource=True)
+    resource = self._FindResourceGivenNameAndSuffix(name, '.html', return_resource=True)
     if not resource:
       raise module.DepsException(
           'Could not find a file for html template named %s' % name)
@@ -185,7 +185,7 @@ class ResourceLoader(object):
     self.loaded_html_templates[name] = html_template
     return html_template
 
-  def load_image(self, abs_path):
+  def LoadImage(self, abs_path):
     if abs_path in self.loaded_images:
       return self.loaded_images[abs_path]
 
@@ -193,7 +193,7 @@ class ResourceLoader(object):
       raise module.DepsException(
         """url('%s') did not exist""" % abs_path)
 
-    res =  self.find_resource_given_absolute_path(abs_path)
+    res =  self.FindResourceGivenAbsolutePath(abs_path)
     if res == None:
       raise module.DepsException(
           """url('%s') was not in search path""" % abs_path)

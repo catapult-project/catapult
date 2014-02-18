@@ -104,7 +104,7 @@ def do_GET_json_tests(self):
 
 def do_GET_deps(self):
   try:
-    self.server.update_deps_and_templates()
+    self.server.UpdateDepsAndTemplate()
   except Exception, ex:
     msg = json.dumps({"details": traceback.format_exc(),
                       "message": ex.message});
@@ -123,7 +123,7 @@ def do_GET_deps(self):
   self.wfile.write(self.server.deps)
 
 def do_GET_templates(self):
-  self.server.update_deps_and_templates()
+  self.server.UpdateDepsAndTemplate()
   self.send_response(200)
   self.send_header('Content-Type', 'text/html')
   self.send_header('Content-Length', len(self.server.templates))
@@ -211,7 +211,7 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
   def project(self):
     return self._project
 
-  def update_deps_and_templates(self):
+  def UpdateDepsAndTemplate(self):
     current_time = time.time()
     if self._next_deps_check >= current_time:
       return
@@ -219,10 +219,10 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     if not self._quiet:
       sys.stderr.write('Regenerating deps and templates\n')
 
-    load_sequence = self.project.calc_load_sequence()
-    self.deps = generate.generate_deps_js(
+    load_sequence = self.project.CalcLoadSequenceForAllJSModules()
+    self.deps = generate.GenerateDepsJS(
         load_sequence, self.project)
-    self.templates = generate.generate_html_for_combined_templates(
+    self.templates = generate.GenerateHTMLForCombinedTemplates(
         load_sequence)
     self._next_deps_check = current_time + DEPS_CHECK_DELAY
 

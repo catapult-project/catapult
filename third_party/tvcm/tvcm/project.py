@@ -95,12 +95,12 @@ class Project(object):
 
     # Find the equivalent resources.
     loader = resource_loader.ResourceLoader(self)
-    return [loader.find_resource_given_absolute_path(x)
+    return [loader.FindResourceGivenAbsolutePath(x)
             for x in test_module_filenames]
 
   def FindAllJSModuleFilenames(self):
     return _FindAllJSModuleFilenames(self.source_paths)
 
-  def calc_load_sequence(self):
-    return parse_deps.calc_load_sequence(
+  def CalcLoadSequenceForAllJSModules(self):
+    return parse_deps.CalcLoadSequence(
       self.FindAllJSModuleFilenames(), self)

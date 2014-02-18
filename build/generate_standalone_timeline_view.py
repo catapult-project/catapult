@@ -36,15 +36,15 @@ various ordering restrictions between them.
     return 1
 
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = tvcm.calc_load_sequence(
+  load_sequence = tvcm.CalcLoadSequence(
       ['tracing/standalone_timeline_view.js'], project)
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:
-      f.write(tvcm.generate_js(load_sequence))
+      f.write(tvcm.GenerateJS(load_sequence))
 
   if options.css_file:
     with _sopen(options.css_file, 'w') as f:
-      f.write(tvcm.generate_css(load_sequence))
+      f.write(tvcm.GenerateCSS(load_sequence))
 
   return 0

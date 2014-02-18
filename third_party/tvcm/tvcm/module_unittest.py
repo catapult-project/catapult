@@ -34,7 +34,7 @@ tvcm.exportTo('xyz', function() { });
       project = project_module.Project(['/src/'],
                                        include_tvcm_paths=False)
       loader = resource_loader.ResourceLoader(project)
-      x_module = loader.load_module('x')
+      x_module = loader.LoadModule('x')
 
       self.assertEquals([loader.loaded_modules['y'],
                          loader.loaded_modules['z']],
@@ -42,7 +42,7 @@ tvcm.exportTo('xyz', function() { });
 
       already_loaded_set = set()
       load_sequence = []
-      x_module.compute_load_sequence_recursive(load_sequence, already_loaded_set)
+      x_module.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
 
       self.assertEquals([loader.loaded_modules['z'],
                          loader.loaded_modules['y'],
@@ -67,7 +67,7 @@ tvcm.exportTo('foo', function() {
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
-      my_module = loader.load_module(module_name = 'src.my_module')
+      my_module = loader.LoadModule(module_name = 'src.my_module')
       assert [x.name for x in my_module.dependent_modules] == ['tvcm.foo']
       assert my_module.dependent_modules[0].name == 'tvcm.foo'
 
@@ -91,7 +91,7 @@ tvcm.exportTo('foo', function() {
     with fs:
       exc = None
       try:
-        my_module = loader.load_module(module_name = 'src.my_module')
+        my_module = loader.LoadModule(module_name = 'src.my_module')
         assertFalse('Expected an exception')
       except module.DepsException, e:
         exc = e
@@ -110,7 +110,7 @@ tvcm.exportTo('foo', function() {
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
-      my_module = loader.load_module(module_name='z.foo')
+      my_module = loader.LoadModule(module_name='z.foo')
       self.assertEquals(1, len(my_module.dependent_raw_scripts))
 
       rs = my_module.dependent_raw_scripts[0]
@@ -125,7 +125,7 @@ tvcm.exportTo('foo', function() {
     project = project_module.Project(['/x'], include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
-      foo_module = loader.load_module(module_name = 'foo')
+      foo_module = loader.LoadModule(module_name = 'foo')
       self.assertEquals('foo', foo_module.name)
       self.assertEquals('/x/foo/__init__.js', foo_module.filename)
 
@@ -136,7 +136,7 @@ tvcm.exportTo('foo', function() {
     project = project_module.Project(['/x'], include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
-      foo_module = loader.load_module(module_filename = '/x/foo/__init__.js')
+      foo_module = loader.LoadModule(module_filename = '/x/foo/__init__.js')
       self.assertEquals('foo', foo_module.name)
       self.assertEquals('/x/foo/__init__.js', foo_module.filename)
 
@@ -149,6 +149,6 @@ tvcm.exportTo('foo', function() {
     loader = resource_loader.ResourceLoader(project)
     with fs:
       self.assertRaises(module.DepsException,
-          lambda: loader.load_module(module_name = 'foo'))
+          lambda: loader.LoadModule(module_name = 'foo'))
       self.assertRaises(module.DepsException,
-          lambda: loader.load_module(module_filename = '/x/foo/__init__.js'))
+          lambda: loader.LoadModule(module_filename = '/x/foo/__init__.js'))

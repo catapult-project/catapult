@@ -17,7 +17,7 @@ class ResourceLoaderTest(unittest.TestCase):
   def test_basic(self):
     tvcm_project = project_module.Project()
     loader = resource_loader.ResourceLoader(tvcm_project)
-    guid_module = loader.load_module(module_name='tvcm')
+    guid_module = loader.LoadModule(module_name='tvcm')
     self.assertTrue(os.path.samefile(
         guid_module.filename,
         os.path.join(tvcm_project.tvcm_src_path, 'tvcm', '__init__.js')))

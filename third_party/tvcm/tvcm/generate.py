@@ -45,7 +45,7 @@ css_warning_message = """
  */
 """
 
-def generate_css(load_sequence):
+def GenerateCSS(load_sequence):
   style_sheet_chunks = [css_warning_message, '\n']
   for module in load_sequence:
     for style_sheet in module.style_sheets:
@@ -53,7 +53,7 @@ def generate_css(load_sequence):
       style_sheet_chunks.append('\n')
   return ''.join(style_sheet_chunks)
 
-def generate_js(load_sequence, include_html_templates=True):
+def GenerateJS(load_sequence, include_html_templates=True):
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
   js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
@@ -66,7 +66,7 @@ def generate_js(load_sequence, include_html_templates=True):
 
   if include_html_templates:
     html_encoded = base64.b64encode(
-        generate_html_for_combined_templates(load_sequence))
+        GenerateHTMLForCombinedTemplates(load_sequence))
     js_chunks.append("var templateData_ = window.atob('" +
                      html_encoded + "');\n");
     js_chunks.append("var templateElem_ = document.createElement('div');\n");
@@ -85,7 +85,7 @@ def generate_js(load_sequence, include_html_templates=True):
 
   return ''.join(js_chunks)
 
-def generate_deps_js(load_sequence, project):
+def GenerateDepsJS(load_sequence, project):
   chunks = [js_warning_message, '\n']
   loader = load_sequence[0].loader
   for module in loader.loaded_modules.values():
@@ -108,7 +108,7 @@ def generate_deps_js(load_sequence, project):
           module.name, style_sheet.name));
   return "".join(chunks)
 
-def generate_html_for_combined_templates(load_sequence):
+def GenerateHTMLForCombinedTemplates(load_sequence):
   chunks = []
   for module in load_sequence:
     for html_template in module.html_templates:
@@ -124,22 +124,22 @@ class ExtraScript(object):
     self.text_content = text_content
     self.content_type = content_type
 
-def generate_standalone_html_file(load_sequence,
-                                  title,
-                                  flattened_js_url=None,
-                                  extra_scripts=None):
+def GenerateStandaloneHTMLFile(load_sequence,
+                               title,
+                               flattened_js_url=None,
+                               extra_scripts=None):
   extra_scripts = extra_scripts or []
 
   head_html_chunks = []
   head_html_chunks.append("<style>")
-  head_html_chunks.append(generate_css(load_sequence))
+  head_html_chunks.append(GenerateCSS(load_sequence))
   head_html_chunks.append("</style>")
-  head_html_chunks.append(generate_html_for_combined_templates(load_sequence))
+  head_html_chunks.append(GenerateHTMLForCombinedTemplates(load_sequence))
   if flattened_js_url:
     head_html_chunks.append('<script src="%s"></script>' % flattened_js_url)
   else:
     head_html_chunks.append('<script>')
-    head_html_chunks.append(generate_js(load_sequence,
+    head_html_chunks.append(GenerateJS(load_sequence,
                                         include_html_templates=False))
     head_html_chunks.append('</script>')
 

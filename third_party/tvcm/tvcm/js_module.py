@@ -18,7 +18,7 @@ from tvcm import strip_js_comments
 
 class JSModule(module.Module):
   def Parse(self):
-    stripped_text = strip_js_comments.strip_js_comments(self.contents)
+    stripped_text = strip_js_comments.StripJSComments(self.contents)
     if self.name != 'tvcm':
       if not IsJSModule(stripped_text):
         raise module.DepsException('%s is not a JS Module' % self.name)
@@ -31,7 +31,7 @@ def IsJSTest(text, text_is_stripped=True):
   if text_is_stripped:
     stripped_text = text
   else:
-    stripped_text = strip_js_comments.strip_js_comments(text)
+    stripped_text = strip_js_comments.StripJSComments(text)
   if re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
                stripped_text, re.DOTALL):
     return True
@@ -42,7 +42,7 @@ def IsJSModule(text, text_is_stripped=True):
   if text_is_stripped:
     stripped_text = text
   else:
-    stripped_text = strip_js_comments.strip_js_comments(text)
+    stripped_text = strip_js_comments.StripJSComments(text)
   if re.search("""tvcm\s*\.\s*exportTo""",
                stripped_text, re.DOTALL):
     return True
