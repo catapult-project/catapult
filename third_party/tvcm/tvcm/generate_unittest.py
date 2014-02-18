@@ -12,6 +12,10 @@ from tvcm import resource_loader
 class GenerateTests(unittest.TestCase):
   def setUp(self):
     self.fs = fake_fs.FakeFS()
+    self.fs.AddFile('/x/tvcm/__init__.js', """
+'use strict';
+/* ohai */
+    """)
     self.fs.AddFile('/x/foo/my_module.js', """
 'use strict';
 tvcm.require('foo.other_module');
@@ -20,13 +24,24 @@ tvcm.exportTo('foo', function() {
 """)
     self.fs.AddFile('/x/foo/other_module.js', """
 'use strict';
-tvcm.exportTo('foo', function() {
+tvcm.requireRawScript('foo/raw/raw_script.js');
+    tvcm.exportTo('foo', function() {
     HelloWorld();
 });
 """)
+    self.fs.AddFile('/x/foo/raw/raw_script.js', """
+/* raw script */
+""")
     self.project = project_module.Project(
         ['/x'],
-        include_tvcm_paths=True)
+        include_tvcm_paths=False)
+
+  def testJSGeneration(self):
+    with self.fs:
+      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
+          ['foo/my_module.js'])
+      res = generate.GenerateJS(load_sequence, False)
+      res = generate.GenerateJS(load_sequence, True)
 
   def testHTMLGeneration(self):
     with self.fs:

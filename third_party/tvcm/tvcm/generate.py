@@ -58,7 +58,7 @@ def GenerateJS(load_sequence, include_html_templates=True):
   js_chunks.append("window.FLATTENED_RAW_SCRIPTS = {};\n")
 
   for module in load_sequence:
-    for dependent_raw_scripts in module.dependent_raw_scripts:
+    for dependent_raw_script in module.dependent_raw_scripts:
       js_chunks.append("window.FLATTENED_RAW_SCRIPTS['%s'] = true;\n" %
         dependent_raw_script.resource.unix_style_relative_path)
     js_chunks.append( "window.FLATTENED['%s'] = true;\n" % module.name)
