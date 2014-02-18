@@ -35,7 +35,7 @@ js_warning_message = """/**
 """
 
 def generate_html(outdir, load_sequence):
-  return tvcm.GenerateStandaloneHTMLFile(
+  return tvcm.GenerateStandaloneHTMLAsString(
     load_sequence,
     title='chrome://tracing',
     flattened_js_url='chrome://tracing/tracing.js')

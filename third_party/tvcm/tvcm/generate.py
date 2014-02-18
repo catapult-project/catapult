@@ -7,6 +7,7 @@ import optparse
 import sys
 import os
 import re
+import StringIO
 
 srcdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       "..", "..", "..", "src"))
@@ -122,24 +123,38 @@ class ExtraScript(object):
     self.text_content = text_content
     self.content_type = content_type
 
-def GenerateStandaloneHTMLFile(load_sequence,
-                               title,
-                               flattened_js_url=None,
-                               extra_scripts=None):
+def GenerateStandaloneHTMLAsString(*args, **kwargs):
+  f = StringIO.StringIO()
+  GenerateStandaloneHTMLToFile(f, *args, **kwargs)
+  return f.getvalue()
+
+def GenerateStandaloneHTMLToFile(output_file,
+                                 load_sequence,
+                                 title,
+                                 flattened_js_url=None,
+                                 extra_scripts=None):
   extra_scripts = extra_scripts or []
 
-  head_html_chunks = []
-  head_html_chunks.append("<style>")
-  head_html_chunks.append(GenerateCSS(load_sequence))
-  head_html_chunks.append("</style>")
-  head_html_chunks.append(GenerateHTMLForCombinedTemplates(load_sequence))
+  output_file.write("""<!DOCTYPE HTML>
+<html>
+  <head i18n-values="dir:textdirection;">
+  <title>%s</title>
+""" % title)
+
+  output_file.write('<style>\n')
+  output_file.write(GenerateCSS(load_sequence))
+  output_file.write('\n')
+  output_file.write('</style>\n')
+
+  output_file.write(GenerateHTMLForCombinedTemplates(load_sequence))
+
   if flattened_js_url:
-    head_html_chunks.append('<script src="%s"></script>' % flattened_js_url)
+    output_file.write('<script src="%s"></script>\n' % flattened_js_url)
   else:
-    head_html_chunks.append('<script>')
-    head_html_chunks.append(GenerateJS(load_sequence,
-                                        include_html_templates=False))
-    head_html_chunks.append('</script>')
+    output_file.write('<script>\n')
+    output_file.write(GenerateJS(load_sequence,
+                                 include_html_templates=False))
+    output_file.write('</script>\n')
 
   for extra_script in extra_scripts:
     attrs = []
@@ -147,24 +162,18 @@ def GenerateStandaloneHTMLFile(load_sequence,
       attrs.append('id="%s"' % extra_script.script_id)
     if extra_script.content_type:
       attrs.append('content-type="%s"' % extra_script.content_type)
-    if len(attrs) > 0:
-      head_html_chunks.append('<script %s>' % ' '.join(attrs))
-    else:
-      head_html_chunks.append('<script>')
-    head_html_chunks.append(extra_script.text_content)
-    head_html_chunks.append('</script>')
 
-  return """
-<!DOCTYPE HTML>
-<html>
-  %s
-  <head i18n-values="dir:textdirection;">
-  <title>%s</title>
-  %s
-</head>
+    if len(attrs) > 0:
+      output_file.write('<script %s>\n' % ' '.join(attrs))
+    else:
+      output_file.write('<script>\n')
+    output_file.write(extra_script.text_content)
+    output_file.write('</script>')
+
+  output_file.write("""</head>
 <body>
-</body>
+""")
+
+  output_file.write("""</body>
 </html>
-""" % (html_warning_message,
-       title,
-       '\n'.join(head_html_chunks))
+""")

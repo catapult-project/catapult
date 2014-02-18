@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import unittest
+import StringIO
 
 from tvcm import generate
 from tvcm import fake_fs
@@ -9,24 +10,27 @@ from tvcm import project as project_module
 from tvcm import resource_loader
 
 class GenerateTests(unittest.TestCase):
-  def testHTMLGeneration(self):
-    fs = fake_fs.FakeFS()
-    fs.AddFile('/x/foo/my_module.js', """
+  def setUp(self):
+    self.fs = fake_fs.FakeFS()
+    self.fs.AddFile('/x/foo/my_module.js', """
 'use strict';
 tvcm.require('foo.other_module');
 tvcm.exportTo('foo', function() {
 });
 """)
-    fs.AddFile('/x/foo/other_module.js', """
+    self.fs.AddFile('/x/foo/other_module.js', """
 'use strict';
 tvcm.exportTo('foo', function() {
     HelloWorld();
 });
 """)
-    project = project_module.Project(['/x'],
-                                     include_tvcm_paths=True)
-    with fs:
-      load_sequence = project.CalcLoadSequenceForModuleFilenames(
+    self.project = project_module.Project(
+        ['/x'],
+        include_tvcm_paths=True)
+
+  def testHTMLGeneration(self):
+    with self.fs:
+      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
           ['foo/my_module.js'])
-      res = generate.GenerateStandaloneHTMLFile(load_sequence, 'Title')
+      res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
