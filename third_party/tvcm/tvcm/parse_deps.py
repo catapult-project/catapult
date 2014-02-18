@@ -44,22 +44,6 @@ def CalcLoadSequence(filenames, project):
   Returns:
     A list of Module objects in the order that they should be loaded.
   """
-  if os.path.join('tvcm', '__init__.js') not in filenames:
-    filenames = list(filenames)
-    filenames.insert(0, os.path.join('tvcm', '__init__.js'))
-  return CalcLoadSequenceInternal(filenames, project)
-
-
-def CalcLoadSequenceInternal(filenames, project):
-  """Helper function for CalcLoadSequence.
-
-  Args:
-    filenames: A list of starting file paths for trace viewer modules.
-    project : A tvcm.Project
-
-  Returns:
-    A list of Module objects in the list that they should be loaded.
-  """
   loader = resource_loader.ResourceLoader(project)
   initial_module_name_indices = {}
   for filename in filenames:

@@ -30,13 +30,15 @@ tvcm.exportTo('xyz', function() { });
 'use strict';
 tvcm.exportTo('xyz', function() { });
 """)
+    fs.AddFile('/src/tvcm/__init__.js', '/* nothing */')
     with fs:
       project = project_module.Project(['/src/'],
                                        include_tvcm_paths=False)
       loader = resource_loader.ResourceLoader(project)
       x_module = loader.LoadModule('x')
 
-      self.assertEquals([loader.loaded_modules['y'],
+      self.assertEquals([loader.loaded_modules['tvcm'],
+                         loader.loaded_modules['y'],
                          loader.loaded_modules['z']],
                         x_module.dependent_modules)
 
@@ -44,7 +46,8 @@ tvcm.exportTo('xyz', function() { });
       load_sequence = []
       x_module.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
 
-      self.assertEquals([loader.loaded_modules['z'],
+      self.assertEquals([loader.loaded_modules['tvcm'],
+                         loader.loaded_modules['z'],
                          loader.loaded_modules['y'],
                          x_module],
                         load_sequence)
@@ -63,13 +66,14 @@ tvcm.require('tvcm.foo');
 tvcm.exportTo('foo', function() {
 });
 """);
+    fs.AddFile('/x/tvcm/__init__.js', '/* nothing */')
     project = project_module.Project(['/x'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
     with fs:
       my_module = loader.LoadModule(module_name = 'src.my_module')
-      assert [x.name for x in my_module.dependent_modules] == ['tvcm.foo']
-      assert my_module.dependent_modules[0].name == 'tvcm.foo'
+      dep_names = [x.name for x in my_module.dependent_modules]
+      self.assertEquals(['tvcm', 'tvcm.foo'], dep_names)
 
   def testDepsExceptionContext(self):
     fs = fake_fs.FakeFS()
@@ -85,6 +89,7 @@ tvcm.require('missing');
 tvcm.exportTo('foo', function() {
 });
 """);
+    fs.AddFile('/x/tvcm/__init__.js', '/* nothing */')
     project = project_module.Project(['/x'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
@@ -106,6 +111,7 @@ tvcm.exportTo('foo', function() {
     tvcm.requireRawScript('bar.js');
 """)
     fs.AddFile('/x/raw/bar.js', 'hello');
+    fs.AddFile('/x/y/tvcm/__init__.js', '/* nothing */')
     project = project_module.Project(['/x/y', '/x/raw/'],
                                      include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
@@ -121,6 +127,7 @@ tvcm.exportTo('foo', function() {
   def testModulesThatAreDirectores(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/foo/__init__.js', """'use strict'; tvcm.exportTo('foo', function(){});""")
+    fs.AddFile('/x/tvcm/__init__.js', '/* nothing */')
 
     project = project_module.Project(['/x'], include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)
@@ -132,6 +139,7 @@ tvcm.exportTo('foo', function() {
   def testModulesThatAreDirectoresLoadedWithAbsoluteName(self):
     fs = fake_fs.FakeFS()
     fs.AddFile('/x/foo/__init__.js', """'use strict'; tvcm.exportTo('foo', function(){});""")
+    fs.AddFile('/x/tvcm/__init__.js', '/* nothing */')
 
     project = project_module.Project(['/x'], include_tvcm_paths=False)
     loader = resource_loader.ResourceLoader(project)

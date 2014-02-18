@@ -88,7 +88,7 @@ class ParseDefinitionTests(unittest.TestCase):
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals(['myStylesheet'], deps.style_sheet_names)
     self.assertEquals(['myTemplate'], deps.html_template_names)
-    self.assertEquals(['dependency1', 'dependency2'],
+    self.assertEquals(['tvcm', 'dependency1', 'dependency2'],
                       deps.dependent_module_names)
 
   def test_Parse_missing_semicolons(self):
@@ -103,7 +103,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals(['myStylesheet'], deps.style_sheet_names)
-    self.assertEquals(['dependency1', 'dependency2'],
+    self.assertEquals(['tvcm', 'dependency1', 'dependency2'],
                       deps.dependent_module_names)
 
   def test_Parse_with_deps_and_stylesheet_swapped(self):
@@ -118,7 +118,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals(['myStylesheet'], deps.style_sheet_names)
-    self.assertEquals(['dependency1', 'dependency2'],
+    self.assertEquals(['tvcm', 'dependency1', 'dependency2'],
                       deps.dependent_module_names)
 
   def test_Parse_empty_definition(self):
@@ -129,7 +129,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals([], deps.style_sheet_names)
-    self.assertEquals([], deps.dependent_module_names)
+    self.assertEquals(['tvcm'], deps.dependent_module_names)
 
   def test_Parse_with_commented_out_dependency(self):
     # Commented-out tvcm.require statements don't count.
@@ -142,7 +142,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals([], deps.style_sheet_names)
-    self.assertEquals(['dependency1'], deps.dependent_module_names)
+    self.assertEquals(['tvcm', 'dependency1'], deps.dependent_module_names)
 
   def test_Parse_with_multiline_comment_before(self):
     # There can be long comments before the tvcm.require lines.
@@ -168,7 +168,8 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals(['timeline_view'], deps.style_sheet_names)
-    self.assertEquals(['timeline_track_view',
+    self.assertEquals(['tvcm',
+                       'timeline_track_view',
                        'timeline_analysis',
                        'overlay',
                        'trace_event_importer',
@@ -192,7 +193,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals([], deps.style_sheet_names)
-    self.assertEquals(['dependency1', 'dependency2'],
+    self.assertEquals(['tvcm', 'dependency1', 'dependency2'],
                       deps.dependent_module_names)
 
   def test_Parse_dependency_with_slashes_throws_error(self):
@@ -209,7 +210,7 @@ class ParseDefinitionTests(unittest.TestCase):
     stripped_text = strip_js_comments.StripJSComments(text)
     deps = js_module.Parse('module_name', stripped_text)
     self.assertEquals([], deps.style_sheet_names)
-    self.assertEquals(['foo.dependency1'],
+    self.assertEquals(['tvcm', 'foo.dependency1'],
                       deps.dependent_module_names)
 
 

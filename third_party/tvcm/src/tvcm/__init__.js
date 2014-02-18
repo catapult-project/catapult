@@ -238,12 +238,14 @@ this.tvcm = (function() {
 
   var modulesWaiting = [];
   function requireModule(dependentModuleName, indentLevel) {
+    if (dependentModuleName == 'tvcm')
+      return;
+
     if (window.FLATTENED) {
       if (!window.FLATTENED[dependentModuleName]) {
         throw new Error('Somehow, module ' + dependentModuleName +
                         ' didn\'t get stored in the flattened js file! ' +
-                        'You may need to rerun ' +
-                        'build/generate_about_tracing_contents.py');
+                        'You have likely found a tvcm bug.');
       }
       return;
     }
@@ -308,7 +310,7 @@ this.tvcm = (function() {
       if (!window.FLATTENED_RAW_SCRIPTS[relativeRawScriptPath]) {
         throw new Error('Somehow, ' + relativeRawScriptPath +
             ' didn\'t get stored in the flattened js file! ' +
-            'You may need to rerun build/generate_about_tracing_contents.py');
+            'You have probably found a tvcm bug.');
       }
       return;
     }
@@ -317,7 +319,7 @@ this.tvcm = (function() {
       return;
     throw new Error(
         relativeRawScriptPath + ' should already have been loaded.' +
-        ' Did you forget to run build/generate_about_tracing_contents.py?');
+        'You have probably found a tvcm bug.');
   }
 
   var stylesheetLoadStatus = {};

@@ -12,10 +12,10 @@ from tvcm import parse_deps
 
 class CalcLoadSequenceTest(unittest.TestCase):
   def test_one_toplevel_nodeps(self):
-    load_sequence = parse_deps.CalcLoadSequenceInternal(
+    load_sequence = parse_deps.CalcLoadSequence(
         [os.path.join('tvcm', 'guid.js')], project.Project())
     name_sequence = [x.name for x in load_sequence]
-    self.assertEquals(['tvcm.guid'], name_sequence)
+    self.assertEquals(['tvcm', 'tvcm.guid'], name_sequence)
 
 
 if __name__ == '__main__':

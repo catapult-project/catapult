@@ -115,6 +115,8 @@ def Parse(module_name, stripped_text):
     DepsException: The name of a resource was not formatted properly.
   """
   res = module.ModuleDependencyMetadata()
+  if module_name != 'tvcm':
+    res.dependent_module_names.append('tvcm')
   if not module_name:
     raise Exception("Module.name must be set.")
 

@@ -46,7 +46,7 @@ class FakeFS(object):
     sys.modules['__builtin__'].open = self._real_open
     os.path.exists = self._real_exists
     os.walk = self._real_walk
-    os.walk = self._real_listdir
+    os.listdir = self._real_listdir
     self._bound = False
 
   def AddFile(self, path, contents):
