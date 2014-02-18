@@ -89,7 +89,7 @@ def GenerateDepsJS(load_sequence, project):
   loader = load_sequence[0].loader
   for module in loader.loaded_modules.values():
     chunks.append("tvcm.setResourceFileName('%s','%s');\n" % (
-        module.name, module.resource.relative_path))
+        module.name, module.resource.unix_style_relative_path))
 
   for module in load_sequence:
     for dependent_module in module.dependent_modules:
@@ -97,7 +97,7 @@ def GenerateDepsJS(load_sequence, project):
           module.name, dependent_module.name));
 
     for dependent_raw_script in module.dependent_raw_scripts:
-      relative_path = dependent_raw_script.resource.relative_path
+      relative_path = dependent_raw_script.resource.unix_style_relative_path
       chunks.append(
           "tvcm.addModuleRawScriptDependency('%s','%s');\n" % (
            module.name, relative_path));
