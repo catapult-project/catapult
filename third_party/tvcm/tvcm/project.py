@@ -118,6 +118,11 @@ class Project(object):
                filename in filenames]
     return self.CalcLoadSequenceForModules(modules)
 
+  def CalcLoadSequenceForModuleNames(self, module_names):
+    modules = [self.loader.LoadModule(module_name=name) for
+               name in module_names]
+    return self.CalcLoadSequenceForModules(modules)
+
   def CalcLoadSequenceForModules(self, modules):
     already_loaded_set = set()
     load_sequence = []
