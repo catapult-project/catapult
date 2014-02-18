@@ -115,13 +115,28 @@ def GenerateHTMLForCombinedTemplates(load_sequence):
   return "\n".join(chunks)
 
 class ExtraScript(object):
-  def __init__(self, script_id, text_content, content_type=None):
+  def __init__(self, script_id=None, text_content=None, content_type=None):
     if script_id != None:
       assert script_id[0] != '#'
-    assert isinstance(text_content, basestring)
     self.script_id = script_id
     self.text_content = text_content
     self.content_type = content_type
+
+  def WriteToFile(self, output_file):
+    attrs = []
+    if self.script_id:
+      attrs.append('id="%s"' % self.script_id)
+    if self.content_type:
+      attrs.append('content-type="%s"' % self.content_type)
+
+    if len(attrs) > 0:
+      output_file.write('<script %s>\n' % ' '.join(attrs))
+    else:
+      output_file.write('<script>\n')
+    if self.text_content:
+      output_file.write(self.text_content)
+    output_file.write('</script>\n')
+
 
 def GenerateStandaloneHTMLAsString(*args, **kwargs):
   f = StringIO.StringIO()
@@ -157,18 +172,7 @@ def GenerateStandaloneHTMLToFile(output_file,
     output_file.write('</script>\n')
 
   for extra_script in extra_scripts:
-    attrs = []
-    if extra_script.script_id:
-      attrs.append('id="%s"' % extra_script.script_id)
-    if extra_script.content_type:
-      attrs.append('content-type="%s"' % extra_script.content_type)
-
-    if len(attrs) > 0:
-      output_file.write('<script %s>\n' % ' '.join(attrs))
-    else:
-      output_file.write('<script>\n')
-    output_file.write(extra_script.text_content)
-    output_file.write('</script>')
+    extra_script.WriteToFile(output_file)
 
   output_file.write("""</head>
 <body>

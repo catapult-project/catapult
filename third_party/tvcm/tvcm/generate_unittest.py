@@ -34,3 +34,17 @@ tvcm.exportTo('foo', function() {
           ['foo/my_module.js'])
       res = generate.GenerateStandaloneHTMLAsString(load_sequence, 'Title')
       assert 'HelloWorld();' in res
+
+
+  def testExtraScriptWithWriteContentsFunc(self):
+    with self.fs:
+      load_sequence = self.project.CalcLoadSequenceForModuleFilenames(
+          ['foo/my_module.js'])
+
+      class ExtraScript(generate.ExtraScript):
+        def WriteToFile(self, f):
+          f.write('<script>ExtraScript!</script>')
+
+      res = generate.GenerateStandaloneHTMLAsString(
+          load_sequence, 'Title', extra_scripts=[ExtraScript()])
+      assert 'ExtraScript' in res
