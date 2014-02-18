@@ -4,7 +4,6 @@
 import os
 
 from tvcm import resource as resource_module
-from tvcm import parse_deps
 from tvcm import resource_loader
 from tvcm import js_module
 
@@ -75,6 +74,7 @@ class Project(object):
       ]
     if source_paths != None:
       self.source_paths += [os.path.abspath(p) for p in source_paths]
+    self._loader = None
 
   @staticmethod
   def FromDict(d):
@@ -86,6 +86,15 @@ class Project(object):
   def AddSourcePath(self, path):
     self.source_paths.append(path)
 
+  @property
+  def loader(self):
+    if self._loader == None:
+      self._loader = resource_loader.ResourceLoader(self)
+    return self._loader
+
+  def ResetLoader(self):
+    self._loader = None
+
   def FindAllTestModuleResources(self, start_path=None):
     if start_path == None:
       test_module_filenames = _FindTestModuleFilenames(self.source_paths)
@@ -94,13 +103,24 @@ class Project(object):
     test_module_filenames.sort()
 
     # Find the equivalent resources.
-    loader = resource_loader.ResourceLoader(self)
-    return [loader.FindResourceGivenAbsolutePath(x)
+    return [self.loader.FindResourceGivenAbsolutePath(x)
             for x in test_module_filenames]
 
   def FindAllJSModuleFilenames(self):
     return _FindAllJSModuleFilenames(self.source_paths)
 
-  def CalcLoadSequenceForAllJSModules(self):
-    return parse_deps.CalcLoadSequence(
-      self.FindAllJSModuleFilenames(), self)
+  def CalcLoadSequenceForAllModules(self):
+    filenames = self.FindAllJSModuleFilenames()
+    return self.CalcLoadSequenceForModuleFilenames(filenames)
+
+  def CalcLoadSequenceForModuleFilenames(self, filenames):
+    modules = [self.loader.LoadModule(module_filename=filename) for
+               filename in filenames]
+    return self.CalcLoadSequenceForModules(modules)
+
+  def CalcLoadSequenceForModules(self, modules):
+    already_loaded_set = set()
+    load_sequence = []
+    for m in modules:
+      m.ComputeLoadSequenceRecursive(load_sequence, already_loaded_set)
+    return load_sequence

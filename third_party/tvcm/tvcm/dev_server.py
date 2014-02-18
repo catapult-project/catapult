@@ -10,7 +10,6 @@ import time
 import traceback
 import base64
 
-from tvcm import parse_deps
 from tvcm import project as project_module
 from tvcm import generate
 from tvcm import resource_loader
@@ -219,7 +218,8 @@ class DevServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     if not self._quiet:
       sys.stderr.write('Regenerating deps and templates\n')
 
-    load_sequence = self.project.CalcLoadSequenceForAllJSModules()
+    self.project.ResetLoader()
+    load_sequence = self.project.CalcLoadSequenceForAllModules()
     self.deps = generate.GenerateDepsJS(
         load_sequence, self.project)
     self.templates = generate.GenerateHTMLForCombinedTemplates(

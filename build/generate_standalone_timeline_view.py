@@ -36,8 +36,8 @@ various ordering restrictions between them.
     return 1
 
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = tvcm.CalcLoadSequence(
-      ['tracing/standalone_timeline_view.js'], project)
+  load_sequence = project.CalcLoadSequenceForModuleFilenames(
+      ['tracing/standalone_timeline_view.js'])
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:

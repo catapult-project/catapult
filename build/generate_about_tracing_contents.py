@@ -74,7 +74,7 @@ def main(args):
 
   filenames = ["tvcm/__init__.js", "about_tracing/__init__.js"]
   project = trace_viewer_project.TraceViewerProject()
-  load_sequence = tvcm.CalcLoadSequence(filenames, project)
+  load_sequence = project.CalcLoadSequenceForModuleFilenames(filenames)
 
   olddir = os.getcwd()
   try:

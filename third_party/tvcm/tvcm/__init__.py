@@ -7,7 +7,6 @@ This module implements trace-viewer's component model.
 
 """
 
-from tvcm.parse_deps import CalcLoadSequence
 from tvcm.generate import *
 from tvcm.dev_server import DevServer
 from tvcm.project import Project

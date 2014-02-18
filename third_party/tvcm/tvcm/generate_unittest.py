@@ -7,7 +7,6 @@ from tvcm import generate
 from tvcm import fake_fs
 from tvcm import project as project_module
 from tvcm import resource_loader
-from tvcm import parse_deps
 
 class GenerateTests(unittest.TestCase):
   def testHTMLGeneration(self):
@@ -27,6 +26,7 @@ tvcm.exportTo('foo', function() {
     project = project_module.Project(['/x'],
                                      include_tvcm_paths=True)
     with fs:
-      load_sequence = parse_deps.CalcLoadSequence(['foo/my_module.js'], project)
+      load_sequence = project.CalcLoadSequenceForModuleFilenames(
+          ['foo/my_module.js'])
       res = generate.GenerateStandaloneHTMLFile(load_sequence, 'Title')
       assert 'HelloWorld();' in res

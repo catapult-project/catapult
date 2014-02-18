@@ -67,10 +67,6 @@ class ModuleDependencyMetadata(object):
 class Module(object):
   """Represents a javascript module.
 
-  It can either be directly requested, e.g. passed in by name to
-  CalcLoadSequence, or created by being referenced a module via the
-  tvcm.require directive.
-
   Interesting properties include:
     name: Module name, may include a namespace, e.g. 'tvcm.foo'.
     filename: The filename of the actual module.

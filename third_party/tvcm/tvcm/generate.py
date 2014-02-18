@@ -4,7 +4,6 @@
 
 import base64
 import optparse
-import parse_deps
 import sys
 import os
 import re
