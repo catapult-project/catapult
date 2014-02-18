@@ -421,6 +421,7 @@ this.tvcm = (function() {
     requireRawScript: requireRawScript,
     requireTemplate: requireTemplate,
     exportTo: exportTo,
+    showPanic: showPanic,
     hasPanic: hasPanic,
     getPanicText: getPanicText
   };
