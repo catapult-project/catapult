@@ -34,6 +34,8 @@ if _TryToImportTelemetry():
   from telemetry.core import browser_finder
   from telemetry.core import browser_options
   from telemetry.core import local_server
+  from telemetry.unittest import options_for_unittests as \
+      telemetry_options_for_unittests
 
   class _LocalDevServer(local_server.LocalServer):
     def __init__(self, project):
@@ -68,16 +70,22 @@ else:
 def IsSupported():
   return telemetry != None
 
-
 class BrowserController(object):
   def __init__(self, project):
     if telemetry == None:
       raise Exception('Not supported: you trace-viewer to be inside a chrome checkout for this to work.')
     self._project = project
 
-    finder_options = browser_options.BrowserFinderOptions()
-    parser = finder_options.CreateParser('telemetry_perf_test.py')
-    finder_options, _ = parser.parse_args(['--browser', 'any'])
+    # If run in the context of the telemetry test runner, use
+    # telemetry's browser options instead.
+    if telemetry_options_for_unittests.AreSet():
+      finder_options = telemetry_options_for_unittests.GetCopy()
+    else:
+      finder_options = browser_options.BrowserFinderOptions()
+      parser = finder_options.CreateParser('telemetry_perf_test.py')
+      finder_options, _ = parser.parse_args(['--browser', 'any'])
+
+
     finder_options.browser_options.warn_if_no_flash = False
     browser_to_create = browser_finder.FindBrowser(finder_options)
 
