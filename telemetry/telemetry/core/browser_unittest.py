@@ -121,6 +121,25 @@ class BrowserTest(unittest.TestCase):
     tab.Close()
     self.assertEquals(1, len(b.tabs))
 
+  def testForegroundTab(self):
+    b = self.CreateBrowser()
+    if not b.supports_tab_control:
+      logging.warning('Browser does not support tab control, skipping test.')
+      return
+    # Should be only one tab at this stage, so that must be the foreground tab
+    original_tab = b.tabs[0]
+    self.assertEqual(b.foreground_tab, original_tab)
+    new_tab = b.tabs.New()
+    # New tab shouls be foreground tab
+    self.assertEqual(b.foreground_tab, new_tab)
+    # Make sure that activating the background tab makes it the foreground tab
+    original_tab.Activate()
+    self.assertEqual(b.foreground_tab, original_tab)
+    # Closing the current foreground tab should switch the foreground tab to the
+    # other tab
+    original_tab.Close()
+    self.assertEqual(b.foreground_tab, new_tab)
+
   def testDirtyProfileCreation(self):
     b = self.CreateBrowser(profile_type = 'small_profile')
 
