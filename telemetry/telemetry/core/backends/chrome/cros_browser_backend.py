@@ -445,7 +445,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           # Open a new window/tab.
           tab = self.tab_list_backend.New(timeout=30)
           tab.Navigate('about:blank', timeout=10)
-        except (exceptions.TabCrashException, util.TimeoutException):
+        except (exceptions.TabCrashException, util.TimeoutException,
+                IndexError):
           retries -= 1
           logging.warn('TabCrashException/TimeoutException in '
                        'new tab creation/navigation, '
