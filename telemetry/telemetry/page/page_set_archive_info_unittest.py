@@ -7,17 +7,19 @@ import tempfile
 import unittest
 
 from telemetry.page import cloud_storage
+from telemetry.page import page
 from telemetry.page import page_set_archive_info
 
 
-class MockPage(object):
-  def __init__(self, url):
-    self.url = url
+class MockPage(page.Page):
+  def __init__(self, url, name=None):
+    super(MockPage, self).__init__(url, None)
+    self.name = name
 
 
-url1 = 'http://www.foo.com/'
-url2 = 'http://www.bar.com/'
-url3 = 'http://www.baz.com/'
+page1 = MockPage('http://www.foo.com/', 'Foo')
+page2 = MockPage('http://www.bar.com/', 'Bar')
+page3 = MockPage('http://www.baz.com/')
 recording1 = 'data_001.wpr'
 recording2 = 'data_002.wpr'
 archive_info_contents = ("""
@@ -27,10 +29,8 @@ archive_info_contents = ("""
   "%s": ["%s"]
 }
 }
-""" % (recording1, url1, url2, recording2, url3))
-page1 = MockPage(url1)
-page2 = MockPage(url2)
-page3 = MockPage(url3)
+""" % (recording1, page1.display_name, page2.display_name, recording2,
+       page3.display_name))
 
 
 class TestPageSetArchiveInfo(unittest.TestCase):
@@ -59,10 +59,15 @@ class TestPageSetArchiveInfo(unittest.TestCase):
       self.assertEquals(cloud_storage.GetHash(file_path), f.read())
 
   def testReadingArchiveInfo(self):
+    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page1))
     self.assertEquals(recording1, os.path.basename(
         self.archive_info.WprFilePathForPage(page1)))
+
+    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page2))
     self.assertEquals(recording1, os.path.basename(
         self.archive_info.WprFilePathForPage(page2)))
+
+    self.assertIsNotNone(self.archive_info.WprFilePathForPage(page3))
     self.assertEquals(recording2, os.path.basename(
         self.archive_info.WprFilePathForPage(page3)))
 
@@ -84,7 +89,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForPage(page3))
 
-    self.archive_info.AddRecordedPages([page2.url])
+    self.archive_info.AddRecordedPages([page2.display_name])
 
     self.assertTrue(os.path.exists(new_recording1))
     self.assertFalse(os.path.exists(new_temp_recording))
@@ -98,7 +103,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
       f.write('wpr data')
 
     self.archive_info.AddNewTemporaryRecording(new_temp_recording)
-    self.archive_info.AddRecordedPages([page3.url])
+    self.archive_info.AddRecordedPages([page3.display_name])
 
     self.assertTrue(os.path.exists(new_recording2))
     self.assertCorrectHashFile(new_recording2)
@@ -118,7 +123,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
                 "url": "%s",
             }
         ]
-    }""" % url1)
+    }""" % page1.url)
 
     page_set_file = os.path.join(self.tmp_dir, 'new_page_set.json')
     with open(page_set_file, 'w') as f:
@@ -141,7 +146,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
     self.assertEquals(new_temp_recording,
                       self.archive_info.WprFilePathForPage(page1))
 
-    self.archive_info.AddRecordedPages([page1.url])
+    self.archive_info.AddRecordedPages([page1.display_name])
 
     # Expected name for the recording (decided by PageSetArchiveInfo).
     new_recording = os.path.join(self.tmp_dir, 'new_archive_info_000.wpr')
