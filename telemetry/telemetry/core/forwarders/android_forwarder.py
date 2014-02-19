@@ -153,7 +153,8 @@ class AndroidRndisConfigurator(object):
 
   _RNDIS_DEVICE = '/sys/class/android_usb/android0'
   _NETWORK_INTERFACES = '/etc/network/interfaces'
-  _TELEMETRY_MARKER = '# Added by Telemetry for RNDIS forwarding #'
+  _INTERFACES_INCLUDE = 'source /etc/network/interfaces.d/*.conf'
+  _TELEMETRY_INTERFACE_FILE = '/etc/network/interfaces.d/telemetry-{}.conf'
 
   def __init__(self, adb):
     is_root_enabled = adb.Adb().EnableAdbRoot()
@@ -343,19 +344,32 @@ doit &
           return candidate
 
     orig_interfaces = open(self._NETWORK_INTERFACES, 'r').read()
-    if self._TELEMETRY_MARKER not in orig_interfaces:
+    if self._INTERFACES_INCLUDE not in orig_interfaces:
       interfaces = '\n'.join([
           orig_interfaces,
           '',
-          self._TELEMETRY_MARKER,
+          '# Added by Telemetry.',
+          self._INTERFACES_INCLUDE])
+      self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
+    interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
+    if not os.path.exists(interface_conf_file):
+      interface_conf_dir = os.path.dirname(interface_conf_file)
+      if not interface_conf_dir:
+        subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
+        subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
+      interface_conf = '\n'.join([
+          '# Added by Telemetry for RNDIS forwarding.',
           'auto %s' % host_iface,
           'iface %s inet static' % host_iface,
           '  address 192.168.123.1',
           '  netmask 255.255.255.0',
           ])
-      subprocess.call(['sudo', 'stop', 'network-manager'])
-      self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
+      self._WriteProtectedFile(interface_conf_file, interface_conf)
       subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
+    if 'stop/waiting' not in subprocess.check_output(
+        ['status', 'network-manager']):
+      logging.info('Stopping network-manager...')
+      subprocess.call(['sudo', 'stop', 'network-manager'])
 
     def HasHostAddress():
       _, host_address = self._GetHostAddresses(host_iface)
