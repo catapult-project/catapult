@@ -7,12 +7,11 @@ import logging
 import os
 import sys
 
-from telemetry import decorators
 from telemetry.core import browser
 from telemetry.core import possible_browser
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends.webdriver import webdriver_ie_backend
+from telemetry.core.platform import factory
 from telemetry.page import cloud_storage
 
 # Try to import the selenium python lib which may be not available.
@@ -45,9 +44,8 @@ class PossibleWebDriverBrowser(possible_browser.PossibleBrowser):
         'Please add %s to ALL_BROWSER_TYPES' % browser_type
 
   @property
-  @decorators.Cache
   def _platform_backend(self):
-    return platform.CreatePlatformBackendForCurrentOS()
+    return factory.GetPlatformBackendForCurrentOS()
 
   def CreateWebDriverBackend(self, platform_backend):
     raise NotImplementedError()

@@ -12,6 +12,7 @@ from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.platform import proc_supporting_platform_backend
+from telemetry.core.platform import factory
 from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
@@ -46,7 +47,7 @@ class AndroidPlatformBackend(
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
-    self._host_platform_backend = platform.CreatePlatformBackendForCurrentOS()
+    self._host_platform_backend = factory.GetPlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
         self._adb.CanAccessProtectedFileContents()
     self._powermonitor = power_monitor_controller.PowerMonitorController([

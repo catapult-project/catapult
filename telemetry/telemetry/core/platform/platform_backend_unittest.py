@@ -5,13 +5,13 @@
 import logging
 import unittest
 
-from telemetry.core import platform
+from telemetry.core.platform import factory
 
 
 class PlatformBackendTest(unittest.TestCase):
   def testPowerMonitoringSync(self):
     # Tests that the act of monitoring power doesn't blow up.
-    backend = platform.CreatePlatformBackendForCurrentOS()
+    backend = factory.GetPlatformBackendForCurrentOS()
     if not backend.CanMonitorPowerSync():
       logging.warning('Test not supported on this platform.')
       return

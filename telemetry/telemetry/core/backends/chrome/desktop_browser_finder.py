@@ -8,13 +8,12 @@ import os
 import subprocess
 import sys
 
-from telemetry import decorators
 from telemetry.core import browser
-from telemetry.core import platform as core_platform
 from telemetry.core import possible_browser
 from telemetry.core import util
 from telemetry.core.backends.chrome import cros_interface
 from telemetry.core.backends.chrome import desktop_browser_backend
+from telemetry.core.platform import factory
 
 ALL_BROWSER_TYPES = [
     'exact',
@@ -50,9 +49,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         self.browser_type, self._local_executable)
 
   @property
-  @decorators.Cache
   def _platform_backend(self):
-    return core_platform.CreatePlatformBackendForCurrentOS()
+    return factory.GetPlatformBackendForCurrentOS()
 
   def Create(self):
     backend = desktop_browser_backend.DesktopBrowserBackend(

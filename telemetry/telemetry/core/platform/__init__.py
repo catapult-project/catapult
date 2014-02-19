@@ -2,12 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import sys
-
-from telemetry.core.platform import linux_platform_backend
-from telemetry.core.platform import mac_platform_backend
-from telemetry.core.platform import win_platform_backend
-
 class Platform(object):
   """The platform that the target browser is running on.
 
@@ -233,14 +227,3 @@ class Platform(object):
       }
     """
     return self._platform_backend.StopMonitoringPowerAsync()
-
-
-def CreatePlatformBackendForCurrentOS():
-  if sys.platform.startswith('linux'):
-    return linux_platform_backend.LinuxPlatformBackend()
-  elif sys.platform == 'darwin':
-    return mac_platform_backend.MacPlatformBackend()
-  elif sys.platform == 'win32':
-    return win_platform_backend.WinPlatformBackend()
-  else:
-    raise NotImplementedError()
