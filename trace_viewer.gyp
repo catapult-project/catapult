@@ -156,6 +156,7 @@
       'src/tracing/importer/task.js',
       'src/tracing/importer/timeline_stream_importer.js',
       'src/tracing/importer/trace_event_importer.js',
+      'src/tracing/importer/etw_importer.js',
       'src/tracing/importer/v8/codemap.js',
       'src/tracing/importer/v8/log_reader.js',
       'src/tracing/importer/v8/splaytree.js',
