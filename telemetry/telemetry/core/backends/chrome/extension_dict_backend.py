@@ -1,21 +1,23 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import re
-import weakref
 
 from telemetry.core import extension_page
 from telemetry.core.backends.chrome import inspector_backend
 
+
 class ExtensionNotFoundException(Exception):
   pass
+
 
 class ExtensionDictBackend(object):
   def __init__(self, browser_backend):
     self._browser_backend = browser_backend
     # Maps extension ids to ExtensionPage objects.
-    self._extension_dict = weakref.WeakValueDictionary()
+    self._extension_dict = {}
 
   def __getitem__(self, extension_id):
     extension_object = self._extension_dict.get(extension_id)

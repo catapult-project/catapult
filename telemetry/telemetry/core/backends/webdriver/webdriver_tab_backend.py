@@ -11,9 +11,6 @@ class WebDriverTabBackend(object):
     self._browser_backend = browser_backend
     self._window_handle = window_handle
 
-  def Disconnect(self):
-    pass
-
   @property
   def browser(self):
     return self._browser_backend.browser

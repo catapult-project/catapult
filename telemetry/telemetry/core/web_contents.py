@@ -13,12 +13,6 @@ class WebContents(object):
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
 
-  def __del__(self):
-    self.Disconnect()
-
-  def Disconnect(self):
-    self._inspector_backend.Disconnect()
-
   def Close(self):
     """Closes this page.
 

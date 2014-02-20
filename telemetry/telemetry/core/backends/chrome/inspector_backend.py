@@ -33,6 +33,8 @@ class InspectorBackend(object):
     self._cur_socket_timeout = 0
     self._next_request_id = 0
 
+    self._Connect()
+
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
     self._page = inspector_page.InspectorPage(self, timeout=timeout)
@@ -41,11 +43,10 @@ class InspectorBackend(object):
     self._network = inspector_network.InspectorNetwork(self)
 
   def __del__(self):
-    self.Disconnect()
+    self._Disconnect()
 
   def _Connect(self, timeout=10):
-    if self._socket:
-      return
+    assert not self._socket
     try:
       self._socket = websocket.create_connection(self._debugger_url,
           timeout=timeout)
@@ -58,7 +59,7 @@ class InspectorBackend(object):
     self._cur_socket_timeout = 0
     self._next_request_id = 0
 
-  def Disconnect(self):
+  def _Disconnect(self):
     for _, handlers in self._domain_handlers.items():
       _, will_close_handler = handlers
       will_close_handler()
@@ -76,15 +77,12 @@ class InspectorBackend(object):
 
   @property
   def url(self):
-    self.Disconnect()
     return self._browser_backend.tab_list_backend.GetTabUrl(self._debugger_url)
 
   def Activate(self):
-    self._Connect()
     self._browser_backend.tab_list_backend.ActivateTab(self._debugger_url)
 
   def Close(self):
-    self.Disconnect()
     self._browser_backend.tab_list_backend.CloseTab(self._debugger_url)
 
   # Public methods implemented in JavaScript.
@@ -201,7 +199,6 @@ class InspectorBackend(object):
   # Methods used internally by other backends.
 
   def DispatchNotifications(self, timeout=10):
-    self._Connect(timeout)
     self._SetTimeout(timeout)
     res = self._ReceiveJsonData(timeout)
     if 'method' in res:
@@ -248,7 +245,6 @@ class InspectorBackend(object):
       logging.debug('Unhandled inspector message: %s', res)
 
   def SendAndIgnoreResponse(self, req):
-    self._Connect()
     req['id'] = self._next_request_id
     self._next_request_id += 1
     data = json.dumps(req)
@@ -281,7 +277,6 @@ class InspectorBackend(object):
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
 
   def SyncRequest(self, req, timeout=10):
-    self._Connect(timeout)
     self._SetTimeout(timeout)
     self.SendAndIgnoreResponse(req)
 

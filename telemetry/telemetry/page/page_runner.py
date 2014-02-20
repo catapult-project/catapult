@@ -178,10 +178,6 @@ class PageState(object):
       self.tab.browser.credentials.LoginNoLongerNeeded(
           self.tab, self.page.credentials)
 
-    if self.tab:
-      self.tab.Disconnect()
-      self.tab = None
-
 
 def AddCommandLineOptions(parser):
   page_filter_module.PageFilter.AddCommandLineOptions(parser)

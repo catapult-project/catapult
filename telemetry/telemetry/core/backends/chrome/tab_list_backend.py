@@ -1,13 +1,14 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import urllib2
-import weakref
 
-from telemetry.core import util
 from telemetry.core import tab
+from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_backend
+
 
 class TabListBackend(object):
   def __init__(self, browser_backend):
@@ -16,7 +17,7 @@ class TabListBackend(object):
     # Stores web socket debugger URLs in iteration order.
     self._tab_list = []
     # Maps debugger URLs to Tab objects.
-    self._tab_dict = weakref.WeakValueDictionary()
+    self._tab_dict = {}
 
   def Init(self):
     self._UpdateTabList()
@@ -68,10 +69,8 @@ class TabListBackend(object):
 
   def GetTabUrl(self, debugger_url):
     tab_info = self._FindTabInfo(debugger_url)
-    # TODO(hartmanng): crbug.com/166886 (uncomment the following assert and
-    # remove the extra None check when _ListTabs is fixed):
-    # assert tab_info is not None
-    return tab_info['url'] if tab_info else None
+    assert tab_info is not None
+    return tab_info['url']
 
   def __iter__(self):
     self._UpdateTabList()

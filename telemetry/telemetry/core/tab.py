@@ -27,9 +27,6 @@ class Tab(web_contents.WebContents):
     super(Tab, self).__init__(inspector_backend)
     self._previous_tab_contents_bounding_box = None
 
-  def __del__(self):
-    super(Tab, self).__del__()
-
   @property
   def browser(self):
     """The browser in which this tab resides."""
@@ -56,7 +53,6 @@ class Tab(web_contents.WebContents):
             all([x in dom_counters for x in ['document_count', 'node_count',
                                              'event_listener_count']]))
     return dom_counters
-
 
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
