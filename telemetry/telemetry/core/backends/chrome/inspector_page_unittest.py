@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import test
-from telemetry.core import util
 from telemetry.unittest import tab_test_case
 
 
@@ -13,17 +11,12 @@ class InspectorPageTest(tab_test_case.TabTestCase):
 
   def setUp(self):
     super(InspectorPageTest, self).setUp()
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
 
   def testPageNavigateToNormalUrl(self):
-    self._tab.Navigate(self._browser.http_server.UrlOf('blank.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('blank.html')
 
-  @test.Disabled('chromeos')
   def testCustomActionToNavigate(self):
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_with_link.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_with_link.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
@@ -41,15 +34,12 @@ class InspectorPageTest(tab_test_case.TabTestCase):
         '/blank.html')
 
   def testGetCookieByName(self):
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('blank.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('blank.html')
     self._tab.ExecuteJavaScript('document.cookie="foo=bar"')
     self.assertEquals(self._tab.GetCookieByName('foo'), 'bar')
 
   def testScriptToEvaluateOnCommit(self):
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('blank.html'),
-      script_to_evaluate_on_commit='var foo = "bar";')
+    self.Navigate('blank.html',
+                  script_to_evaluate_on_commit='var foo = "bar";')
     self._tab.WaitForDocumentReadyStateToBeComplete()
     self.assertEquals(self._tab.EvaluateJavaScript('foo'), 'bar')

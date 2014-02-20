@@ -5,22 +5,16 @@
 import re
 import StringIO
 
-from telemetry import test
 from telemetry.core import util
 from telemetry.unittest import tab_test_case
 
 
 class TabConsoleTest(tab_test_case.TabTestCase):
-  @test.Disabled('chromeos')
   def testConsoleOutputStream(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-
     stream = StringIO.StringIO()
     self._tab.message_output_stream = stream
 
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_that_logs_to_console.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_that_logs_to_console.html')
 
     initial = self._tab.EvaluateJavaScript('window.__logCount')
     def GotLog():

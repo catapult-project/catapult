@@ -2,20 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import util
 from telemetry.page.actions import click_element
 from telemetry.page.actions import wait
 from telemetry.unittest import tab_test_case
-from telemetry.unittest import test
 
 
 class ClickElementActionTest(tab_test_case.TabTestCase):
-  @test.Disabled('chromeos')
   def testClickWithSelectorWaitForNavigation(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_with_link.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_with_link.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
@@ -30,12 +24,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-  @test.Disabled('chromeos')
   def testClickWithSingleQuoteSelectorWaitForNavigation(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_with_link.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_with_link.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
@@ -50,12 +40,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-  @test.Disabled('chromeos')
   def testClickWithTextWaitForRefChange(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_with_link.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_with_link.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
@@ -70,12 +56,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-  @test.Disabled('chromeos')
   def testClickWithXPathWaitForRefChange(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('page_with_link.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('page_with_link.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')

@@ -7,16 +7,11 @@ import time
 from telemetry.core import util
 from telemetry.page.actions import wait
 from telemetry.unittest import tab_test_case
-from telemetry.unittest import test
 
 
 class WaitActionTest(tab_test_case.TabTestCase):
-  @test.Disabled('chromeos')
   def testWaitAction(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('blank.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('blank.html')
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')

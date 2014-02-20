@@ -4,11 +4,13 @@
 import unittest
 
 from telemetry.core import browser_finder
+from telemetry.unittest import navigate_test
 from telemetry.unittest import options_for_unittests
 
 class TabTestCase(unittest.TestCase):
   def __init__(self, *args):
     self._extra_browser_args = []
+    self.test_file_path = None
     super(TabTestCase, self).__init__(*args)
 
   def setUp(self):
@@ -42,3 +44,11 @@ class TabTestCase(unittest.TestCase):
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""
     pass
+
+  def Navigate(self, filename, script_to_evaluate_on_commit=None):
+    """Navigates |tab| to |filename| in the unittest data directory.
+
+    Also sets up http server to point to the unittest data directory.
+    """
+    self.test_file_path = navigate_test.NavigateToTestFile(
+        self._tab, filename, script_to_evaluate_on_commit)

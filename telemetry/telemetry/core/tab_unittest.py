@@ -4,7 +4,6 @@
 
 import logging
 
-from telemetry import test
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.unittest import tab_test_case
@@ -53,16 +52,12 @@ class GpuTabTest(tab_test_case.TabTestCase):
     self._extra_browser_args = ['--enable-gpu-benchmarking']
     super(GpuTabTest, self).setUp()
 
-  @test.Disabled('chromeos')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')
       return
 
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(
-      self._browser.http_server.UrlOf('green_rect.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self.Navigate('green_rect.html')
     pixel_ratio = self._tab.EvaluateJavaScript('window.devicePixelRatio || 1')
 
     screenshot = self._tab.Screenshot(5)
