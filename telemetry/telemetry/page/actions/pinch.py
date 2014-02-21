@@ -34,16 +34,41 @@ class PinchAction(GestureAction):
         % done_callback)
 
   def RunGesture(self, page, tab, previous_action):
-    zoom_in = True
-    if hasattr(self, 'zoom_in'):
-      zoom_in = self.zoom_in
+    left_anchor_percentage = getattr(self, 'left_anchor_percentage', 0.5)
+    top_anchor_percentage = getattr(self, 'top_anchor_percentage', 0.5)
+    zoom_in = getattr(self, 'zoom_in', True)
+    pixels_to_cover = getattr(self, 'pixels_to_cover', 4000)
+    speed = getattr(self, 'speed', 800)
 
-    pixels_to_move = 4000
-    if hasattr(self, 'pixels_to_move'):
-      pixels_to_move = self.pixels_to_move
-
-    tab.ExecuteJavaScript('window.__pinchAction.start(%s, %f)'
-                          % ("true" if zoom_in else "false", pixels_to_move))
+    if hasattr(self, 'element_function'):
+      tab.ExecuteJavaScript("""
+          (%s)(function(element) { window.__pinchAction.start(
+             { element: element,
+               left_anchor_percentage: %s,
+               top_anchor_percentage: %s,
+               zoom_in: %s,
+               pixels_to_cover: %s,
+               speed: %s })
+             });""" % (self.element_function,
+                       left_anchor_percentage,
+                       top_anchor_percentage,
+                       'true' if zoom_in else 'false',
+                       pixels_to_cover,
+                       speed))
+    else:
+      tab.ExecuteJavaScript("""
+          window.__pinchAction.start(
+          { element: document.body,
+            left_anchor_percentage: %s,
+            top_anchor_percentage: %s,
+            zoom_in: %s,
+            pixels_to_cover: %s,
+            speed: %s });"""
+        % (left_anchor_percentage,
+           top_anchor_percentage,
+           'true' if zoom_in else 'false',
+           pixels_to_cover,
+           speed))
 
     tab.WaitForJavaScriptExpression('window.__pinchActionDone', 60)
 

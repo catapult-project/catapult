@@ -10,33 +10,29 @@
 
 (function() {
 
+  function PinchGestureOptions(opt_options) {
+    if (opt_options) {
+      this.element_ = opt_options.element;
+      this.left_anchor_percentage_ = opt_options.left_anchor_percentage;
+      this.top_anchor_percentage_ = opt_options.top_anchor_percentage;
+      this.zoom_in_ = opt_options.zoom_in;
+      this.pixels_to_cover_ = opt_options.pixels_to_cover;
+      this.speed_ = opt_options.speed;
+    } else {
+      this.element_ = document.body;
+      this.left_anchor_percentage_ = 0.5;
+      this.top_anchor_percentage_ = 0.5;
+      this.zoom_in_ = true;
+      this.pixels_to_cover_ = 4000;
+      this.speed_ = 800;
+    }
+  }
+
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
               chrome.gpuBenchmarking.pinchBy);
   }
-
-  /**
-    * Performs a single vertical pinch gesture to zoom in or out, anchored
-    * in the center of the window.
-    * Only works if pinchBy gesture is available.
-    * @constructor
-    */
-  function PinchGesture(zoom_in) {
-    this.zoom_in_ = zoom_in;
-  };
-
-  PinchGesture.prototype.start = function(pixels_to_move, callback) {
-    this.callback_ = callback;
-
-    // The anchor point of the gesture is the center of the window.
-    var anchor_x = window.innerWidth / 2;
-    var anchor_y = window.innerHeight / 2;
-
-    chrome.gpuBenchmarking.pinchBy(this.zoom_in_, pixels_to_move,
-                                   anchor_x, anchor_y,
-                                   function() { callback(); });
-  };
 
   // This class zooms into or out of a page, given a number of pixels for
   // the synthetic pinch gesture to cover.
@@ -49,9 +45,8 @@
     this.callback_ = opt_callback;
   };
 
-  PinchAction.prototype.start = function(zoom_in, pixels_to_move) {
-    this.zoom_in_ = zoom_in;
-    this.pixels_to_move_ = pixels_to_move;
+  PinchAction.prototype.start = function(opt_options) {
+    this.options_ = new PinchGestureOptions(opt_options);
 
     requestAnimationFrame(this.startPass_.bind(this));
   };
@@ -59,9 +54,16 @@
   PinchAction.prototype.startPass_ = function() {
     this.beginMeasuringHook();
 
-    this.gesture_ = new PinchGesture(this.zoom_in_);
-    this.gesture_.start(this.pixels_to_move_,
-                        this.onGestureComplete_.bind(this));
+    var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
+    var anchor_left =
+        rect.left + rect.width * this.options_.left_anchor_percentage_;
+    var anchor_top =
+        rect.top + rect.height * this.options_.top_anchor_percentage_;
+    chrome.gpuBenchmarking.pinchBy(this.options_.zoom_in_,
+                                   this.options_.pixels_to_cover_,
+                                   anchor_left, anchor_top,
+                                   this.onGestureComplete_.bind(this),
+                                   this.speed_);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {
