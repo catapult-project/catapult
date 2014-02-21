@@ -149,7 +149,8 @@ class Test(object):
     By default, it will create a page set from the file at this test's
     page_set attribute. Override to generate a custom page set.
     """
-    assert hasattr(self, 'page_set'), 'This test has no "page_set" attribute.'
+    if not hasattr(self, 'page_set'):
+      raise NotImplementedError('This test has no "page_set" attribute.')
     return page_set.PageSet.FromFile(
         os.path.join(util.GetBaseDir(), self.page_set))
 
