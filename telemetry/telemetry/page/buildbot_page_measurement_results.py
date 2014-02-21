@@ -26,8 +26,8 @@ class BuildbotPageMeasurementResults(
   def PrintSummary(self):
     """Print summary data in a format expected by buildbot for perf dashboards.
 
-    If any failed pages exist, only output individual page results for
-    non-failing pages, and do not output any average data.
+    If any failed pages exist, only output individual page results, and do
+    not output any average data.
     """
     # Print out the list of unique pages.
     perf_tests_helper.PrintPages(
@@ -40,8 +40,7 @@ class BuildbotPageMeasurementResults(
     return self.errors or self.failures
 
   def _PrintPerPageResults(self):
-    all_successful_page_values = (
-        self.GetAllPageSpecificValuesForSuccessfulPages())
+    all_successful_page_values = self.all_page_specific_values
 
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
@@ -83,10 +82,11 @@ class BuildbotPageMeasurementResults(
     # value name so that we can find them when printing out value names in
     # alphabetical order.
     merged_pages_value_by_value_name = {}
-    for value in merge_values.MergeLikeValuesFromDifferentPages(
-        all_successful_page_values):
-      assert value.name not in merged_pages_value_by_value_name
-      merged_pages_value_by_value_name[value.name] = value
+    if not self.pages_that_had_errors_or_failures:
+      for value in merge_values.MergeLikeValuesFromDifferentPages(
+          all_successful_page_values):
+        assert value.name not in merged_pages_value_by_value_name
+        merged_pages_value_by_value_name[value.name] = value
 
     # sorted_value names will govern the order we start printing values.
     value_names = set([v.name for v in merged_page_values])

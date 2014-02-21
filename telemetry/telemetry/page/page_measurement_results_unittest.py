@@ -150,7 +150,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.Add('a', 'seconds', 3)
     results.DidMeasurePage()
 
-    values = results.GetAllPageSpecificValuesForSuccessfulPages()
+    values = results.all_page_specific_values
     self.assertEquals(3, len(values))
     self.assertEquals([self.pages[0], self.pages[1], self.pages[2]],
                       [v.page for v in values])
@@ -169,7 +169,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.Add('a', 'seconds', 3)
     results.DidMeasurePage()
 
-    values = results.GetAllPageSpecificValuesForSuccessfulPages()
+    values = results.all_page_specific_values
     self.assertEquals(2, len(values))
     self.assertEquals([self.pages[0], self.pages[2]],
                       [v.page for v in values])

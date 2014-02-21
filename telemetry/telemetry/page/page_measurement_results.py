@@ -46,12 +46,6 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     assert self._current_page
     return self._page_specific_values_for_current_page
 
-  def GetAllPageSpecificValuesForSuccessfulPages(self):
-    pages_that_had_errors_or_failures = self.pages_that_had_errors_or_failures
-    return [
-      value for value in self._all_page_specific_values
-      if value.page not in pages_that_had_errors_or_failures]
-
   def WillMeasurePage(self, page):
     assert not self._current_page
     self._current_page = page
