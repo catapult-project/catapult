@@ -16,6 +16,13 @@ from tvcm import resource_loader
 _currently_active_module_test_suite = None
 
 
+def _NavigateToTestCaseRunner(bc):
+  bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
+  bc.WaitForJavaScriptExpression('tvcm.hasPanic !== undefined')
+  bc.WaitForJavaScriptExpression('window.discoverTestsInModules !== undefined')
+  bc.WaitForJavaScriptExpression('window.runTestNamed !== undefined')
+
+
 class ModuleTestSuite(unittest.TestSuite):
   def __init__(self, project):
     super(ModuleTestSuite, self).__init__()
@@ -42,8 +49,13 @@ class ModuleTestSuite(unittest.TestSuite):
     return self._bc
 
   def setUp(self):
-    self._bc = browser_controller.BrowserController(self._project)
-    self._bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
+    try:
+      self._bc = browser_controller.BrowserController(self._project)
+      _NavigateToTestCaseRunner(self._bc)
+    except:
+      self._bc.Close()
+      self._bc = None
+      return
 
     global _currently_active_module_test_suite
     assert _currently_active_module_test_suite == None
@@ -69,12 +81,8 @@ def DiscoverTestsInModule(project, start_path):
                   project.FindAllTestModuleResources(start_path=start_path)]
 
   bc = browser_controller.BrowserController(project)
-
-  bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
-  bc.WaitForJavaScriptExpression('tvcm.hasPanic !== undefined')
-  bc.WaitForJavaScriptExpression('window.discoverTestsInModules !== undefined')
-  bc.WaitForJavaScriptExpression('window.runTestNamed !== undefined')
   try:
+    _NavigateToTestCaseRunner(bc)
     if bc.EvaluateJavaScript('tvcm.hasPanic()'):
       raise Exception('Runner failure: %s' % bc.EvaluateJavaScript('tvcm.getPanicText()'))
 
