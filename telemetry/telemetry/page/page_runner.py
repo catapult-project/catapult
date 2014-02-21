@@ -62,6 +62,9 @@ class _RunState(object):
       if self._first_browser:
         self._first_browser = False
         self.browser.credentials.WarnIfMissingCredentials(page_set)
+        logging.info('OS: %s %s',
+                     self.browser.platform.GetOSName(),
+                     self.browser.platform.GetOSVersionName())
         if self.browser.supports_system_info:
           system_info = self.browser.GetSystemInfo()
           if system_info.model_name:
