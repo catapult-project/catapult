@@ -25,7 +25,7 @@ class Tab(web_contents.WebContents):
   """
   def __init__(self, inspector_backend):
     super(Tab, self).__init__(inspector_backend)
-    self._previous_tab_contents_bounding_box = None
+    self._tab_contents_bounding_box = None
 
   @property
   def browser(self):
@@ -138,7 +138,7 @@ class Tab(web_contents.WebContents):
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
     self.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
 
-  def _FindHighlightBoundingBox(self, bmp, color, bounds_tolerance=4,
+  def _FindHighlightBoundingBox(self, bmp, color, bounds_tolerance=8,
       color_tolerance=8):
     """Returns the bounding box of the content highlight of the given color.
 
@@ -162,27 +162,26 @@ class Tab(web_contents.WebContents):
       raise BoundingBoxNotFoundException(
           'Low count of pixels in tab contents matching expected color.')
 
-    # Since Telemetry doesn't know how to resize the window, we assume
-    # that we should always get the same content box for a tab. If this
-    # fails, it means either that assumption has changed or something is
-    # awry with our bounding box calculation. If this assumption changes,
-    # this can be removed.
+    # Since we allow some fuzziness in bounding box finding, we want to make
+    # sure that the bounds are always stable across a run. So we cache the
+    # first box, whatever it may be.
     #
-    # TODO(tonyg): This assert doesn't seem to work.
-    if (self._previous_tab_contents_bounding_box and
-        self._previous_tab_contents_bounding_box != content_box):
-      # Check if there's just a minor variation on the bounding box. If it's
-      # just a few pixels, we can assume it's probably due to
-      # compression artifacts.
-      for i in xrange(len(content_box)):
-        bounds_difference = abs(content_box[i] -
-            self._previous_tab_contents_bounding_box[i])
-        if bounds_difference > bounds_tolerance:
-          raise BoundingBoxNotFoundException(
-              'Unexpected change in tab contents box.')
-    self._previous_tab_contents_bounding_box = content_box
+    # This relies on the assumption that since Telemetry doesn't know how to
+    # resize the window, we should always get the same content box for a tab.
+    # If this assumption changes, this caching needs to be reworked.
+    if not self._tab_contents_bounding_box:
+      self._tab_contents_bounding_box = content_box
 
-    return content_box
+    # Verify that there is only minor variation in the bounding box. If it's
+    # just a few pixels, we can assume it's due to compression artifacts.
+    for x, y in zip(self._tab_contents_bounding_box, content_box):
+      if abs(x - y) > bounds_tolerance:
+        # If this fails, it means either that either the above assumption has
+        # changed or something is awry with our bounding box calculation.
+        raise BoundingBoxNotFoundException(
+            'Unexpected change in tab contents box.')
+
+    return self._tab_contents_bounding_box
 
   def StopVideoCapture(self):
     """Stops recording video of the tab's contents.
