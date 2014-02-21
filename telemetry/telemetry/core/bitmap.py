@@ -10,6 +10,7 @@ tools: crop, find bounding box of a color and compute histogram of color values.
 import array
 import base64
 import cStringIO
+import collections
 import struct
 import subprocess
 import sys
@@ -20,14 +21,74 @@ util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
 
 
-class RgbaColor(object):
-  """Encapsulates an RGBA color retreived from a Bitmap"""
+def HistogramDistance(hist1, hist2):
+  """Earth mover's distance.
 
-  def __init__(self, r, g, b, a=255):
-    self.r = r
-    self.g = g
-    self.b = b
-    self.a = a
+  http://en.wikipedia.org/wiki/Earth_mover's_distance
+  First, normalize the two histograms. Then, treat the two histograms as
+  piles of dirt, and calculate the cost of turning one pile into the other.
+
+  To do this, calculate the difference in one bucket between the two
+  histograms. Then carry it over in the calculation for the next bucket.
+  In this way, the difference is weighted by how far it has to move."""
+  if len(hist1) != len(hist2):
+    raise ValueError('Trying to compare histograms '
+      'of different sizes, %s != %s' % (len(hist1), len(hist2)))
+
+  n1 = sum(hist1)
+  n2 = sum(hist2)
+  if n1 == 0:
+    raise ValueError('First histogram has 0 pixels in it.')
+  if n2 == 0:
+    raise ValueError('Second histogram has 0 pixels in it.')
+
+  total = 0
+  remainder = 0
+  for value1, value2 in zip(hist1, hist2):
+    remainder += value1 * n2 - value2 * n1
+    total += abs(remainder)
+  assert remainder == 0, (
+      '%s pixel(s) left over after computing histogram distance.'
+      % abs(remainder))
+  return abs(float(total) / n1 / n2)
+
+
+class ColorHistogram(
+    collections.namedtuple('ColorHistogram', ['r', 'g', 'b', 'default_color'])):
+  # pylint: disable=W0232
+  # pylint: disable=E1002
+
+  def __new__(cls, r, g, b, default_color=None):
+    return super(ColorHistogram, cls).__new__(cls, r, g, b, default_color)
+
+  def Distance(self, other):
+    total = 0
+    for i in xrange(3):
+      hist1 = self[i]
+      hist2 = other[i]
+
+      if sum(self[i]) == 0:
+        if not self.default_color:
+          raise ValueError('Histogram has no data and no default color.')
+        hist1 = [0] * 256
+        hist1[self.default_color[i]] = 1
+      if sum(other[i]) == 0:
+        if not other.default_color:
+          raise ValueError('Histogram has no data and no default color.')
+        hist2 = [0] * 256
+        hist2[other.default_color[i]] = 1
+
+      total += HistogramDistance(hist1, hist2)
+    return total
+
+
+class RgbaColor(collections.namedtuple('RgbaColor', ['r', 'g', 'b', 'a'])):
+  """Encapsulates an RGBA color retreived from a Bitmap"""
+  # pylint: disable=W0232
+  # pylint: disable=E1002
+
+  def __new__(cls, r, g, b, a=255):
+    return super(RgbaColor, cls).__new__(cls, r, g, b, a)
 
   def __int__(self):
     return (self.r << 16) | (self.g << 8) | self.b
@@ -93,11 +154,14 @@ class _BitmapTools(object):
     return self._RunCommand(_BitmapTools.CROP_PIXELS)
 
   def Histogram(self, ignore_color, tolerance):
-    ignore_color = -1 if ignore_color is None else int(ignore_color)
-    response = self._RunCommand(_BitmapTools.HISTOGRAM, ignore_color, tolerance)
+    ignore_color_int = -1 if ignore_color is None else int(ignore_color)
+    response = self._RunCommand(_BitmapTools.HISTOGRAM,
+                                ignore_color_int, tolerance)
     out = array.array('i')
     out.fromstring(response)
-    return out
+    assert len(out) == 768, (
+        'The ColorHistogram has the wrong number of buckets: %s' % len(out))
+    return ColorHistogram(out[:256], out[256:512], out[512:], ignore_color)
 
   def BoundingBox(self, color, tolerance):
     response = self._RunCommand(_BitmapTools.BOUNDING_BOX, int(color),
@@ -280,7 +344,6 @@ class Bitmap(object):
       tolerance: A tolerance for the ignore_color.
 
     Returns:
-      A list of 3x256 integers formatted as
-      [r0, r1, ..., g0, g1, ..., b0, b1, ...].
+      A ColorHistogram namedtuple with 256 integers in each field: r, g, and b.
     """
     return self._PrepareTools().Histogram(ignore_color, tolerance)

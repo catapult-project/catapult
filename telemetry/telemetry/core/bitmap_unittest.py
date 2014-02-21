@@ -23,6 +23,47 @@ test_png_path = os.path.join(util.GetUnittestDataDir(), 'test_png.png')
 test_png_2_path = os.path.join(util.GetUnittestDataDir(), 'test_png_2.png')
 
 
+class HistogramDistanceTest(unittest.TestCase):
+  def testNoData(self):
+    hist1 = []
+    hist2 = []
+    self.assertRaises(
+        ValueError, lambda: bitmap.HistogramDistance(hist1, hist2))
+
+    hist1 = [0, 0, 0]
+    hist2 = [0, 0, 0]
+    self.assertRaises(
+        ValueError, lambda: bitmap.HistogramDistance(hist1, hist2))
+
+  def testWrongSizes(self):
+    hist1 = [1]
+    hist2 = [1, 0]
+    self.assertRaises(
+        ValueError, lambda: bitmap.HistogramDistance(hist1, hist2))
+
+  def testNoDistance(self):
+    hist1 = [2, 4, 1, 8, 0, -1]
+    hist2 = [2, 4, 1, 8, 0, -1]
+    self.assertEqual(bitmap.HistogramDistance(hist1, hist2), 0)
+
+  def testNormalizeCounts(self):
+    hist1 = [0, 0, 1, 0, 0]
+    hist2 = [0, 0, 0, 0, 7]
+    self.assertEqual(bitmap.HistogramDistance(hist1, hist2), 2)
+    self.assertEqual(bitmap.HistogramDistance(hist2, hist1), 2)
+
+  def testDistance(self):
+    hist1 = [2, 0, 1, 3, 4]
+    hist2 = [3, 1, 2, 4, 0]
+    self.assertEqual(bitmap.HistogramDistance(hist1, hist2), 1)
+    self.assertEqual(bitmap.HistogramDistance(hist2, hist1), 1)
+
+    hist1 = [0, 1, 3, 1]
+    hist2 = [2, 2, 1, 0]
+    self.assertEqual(bitmap.HistogramDistance(hist1, hist2), 1.2)
+    self.assertEqual(bitmap.HistogramDistance(hist2, hist1), 1.2)
+
+
 class BitmapTest(unittest.TestCase):
 
   # pylint: disable=C0324
@@ -139,15 +180,16 @@ class BitmapTest(unittest.TestCase):
     bmp.Crop(1, 1, 2, 2)
 
     histogram = bmp.ColorHistogram()
-    self.assertEquals(sum(histogram), bmp.width * bmp.height * 3)
-    self.assertEquals(histogram[1], 0)
-    self.assertEquals(histogram[5], 2)
-    self.assertEquals(histogram[8], 2)
-    self.assertEquals(histogram[2 + 256], 0)
-    self.assertEquals(histogram[4 + 256], 2)
-    self.assertEquals(histogram[7 + 256], 2)
-    self.assertEquals(histogram[3 + 512], 0)
-    self.assertEquals(histogram[6 + 512], 4)
+    for i in xrange(3):
+      self.assertEquals(sum(histogram[i]), bmp.width * bmp.height)
+    self.assertEquals(histogram.r[1], 0)
+    self.assertEquals(histogram.r[5], 2)
+    self.assertEquals(histogram.r[8], 2)
+    self.assertEquals(histogram.g[2], 0)
+    self.assertEquals(histogram.g[4], 2)
+    self.assertEquals(histogram.g[7], 2)
+    self.assertEquals(histogram.b[3], 0)
+    self.assertEquals(histogram.b[6], 4)
 
   @test.Disabled
   def testHistogramIgnoreColor(self):
@@ -157,14 +199,14 @@ class BitmapTest(unittest.TestCase):
     bmp = bitmap.Bitmap(3, 4, 3, pixels)
 
     histogram = bmp.ColorHistogram(ignore_color=bitmap.RgbaColor(1, 2, 3))
-    self.assertEquals(histogram[1], 0)
-    self.assertEquals(histogram[5], 2)
-    self.assertEquals(histogram[8], 2)
-    self.assertEquals(histogram[2 + 256], 0)
-    self.assertEquals(histogram[4 + 256], 2)
-    self.assertEquals(histogram[7 + 256], 2)
-    self.assertEquals(histogram[3 + 512], 0)
-    self.assertEquals(histogram[6 + 512], 4)
+    self.assertEquals(histogram.r[1], 0)
+    self.assertEquals(histogram.r[5], 2)
+    self.assertEquals(histogram.r[8], 2)
+    self.assertEquals(histogram.g[2], 0)
+    self.assertEquals(histogram.g[4], 2)
+    self.assertEquals(histogram.g[7], 2)
+    self.assertEquals(histogram.b[3], 0)
+    self.assertEquals(histogram.b[6], 4)
 
   @test.Disabled
   def testHistogramIgnoreColorTolerance(self):
@@ -174,14 +216,25 @@ class BitmapTest(unittest.TestCase):
 
     histogram = bmp.ColorHistogram(ignore_color=bitmap.RgbaColor(0, 1, 2),
                                    tolerance=1)
-    self.assertEquals(histogram[1], 0)
-    self.assertEquals(histogram[4], 1)
-    self.assertEquals(histogram[7], 1)
-    self.assertEquals(histogram[8], 1)
-    self.assertEquals(histogram[2 + 256], 0)
-    self.assertEquals(histogram[5 + 256], 1)
-    self.assertEquals(histogram[7 + 256], 1)
-    self.assertEquals(histogram[8 + 256], 1)
-    self.assertEquals(histogram[3 + 512], 0)
-    self.assertEquals(histogram[6 + 512], 2)
-    self.assertEquals(histogram[9 + 512], 1)
+    self.assertEquals(histogram.r[1], 0)
+    self.assertEquals(histogram.r[4], 1)
+    self.assertEquals(histogram.r[7], 1)
+    self.assertEquals(histogram.r[8], 1)
+    self.assertEquals(histogram.g[2], 0)
+    self.assertEquals(histogram.g[5], 1)
+    self.assertEquals(histogram.g[7], 1)
+    self.assertEquals(histogram.g[8], 1)
+    self.assertEquals(histogram.b[3], 0)
+    self.assertEquals(histogram.b[6], 2)
+    self.assertEquals(histogram.b[9], 1)
+
+  @test.Disabled
+  def testHistogramDistanceIgnoreColor(self):
+    pixels = [1,2,3, 1,2,3,
+              1,2,3, 1,2,3]
+    bmp = bitmap.Bitmap(3, 2, 2, pixels)
+
+    hist1 = bmp.ColorHistogram(ignore_color=bitmap.RgbaColor(1, 2, 3))
+    hist2 = bmp.ColorHistogram()
+
+    self.assertEquals(hist1.Distance(hist2), 0)
