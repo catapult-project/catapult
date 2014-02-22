@@ -16,14 +16,14 @@ class TimeoutException(Exception):
 def GetBaseDir():
   main_module = sys.modules['__main__']
   if hasattr(main_module, '__file__'):
-    return os.path.dirname(os.path.realpath(main_module.__file__))
+    return os.path.dirname(os.path.abspath(main_module.__file__))
   else:
     return os.getcwd()
 
 
 def GetTelemetryDir():
   return os.path.normpath(os.path.join(
-      os.path.realpath(__file__), os.pardir, os.pardir, os.pardir))
+      __file__, os.pardir, os.pardir, os.pardir))
 
 
 def GetUnittestDataDir():

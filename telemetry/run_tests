@@ -11,7 +11,7 @@ from telemetry.unittest import run_tests
 
 
 if __name__ == '__main__':
-  top_level_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+  top_level_dir = os.path.abspath(os.path.dirname(__file__))
   runner = gtest_testrunner.GTestTestRunner(print_result_after_run=False)
   ret = run_tests.Main(sys.argv[1:], top_level_dir, top_level_dir, runner)
 
