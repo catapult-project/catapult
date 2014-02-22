@@ -205,27 +205,27 @@ def FindAllAvailableBrowsers(finder_options):
                         os.getenv('PROGRAMFILES'),
                         os.getenv('LOCALAPPDATA')]
 
-    def AddIfFoundWin(browser_name, app_path):
-      browser_directory = os.path.join(path, app_path)
+    def AddIfFoundWin(browser_name, search_path, app_path):
+      browser_directory = os.path.join(search_path, app_path)
       for chromium_app_name in chromium_app_names:
         app = os.path.join(browser_directory, chromium_app_name)
         if IsExecutable(app):
           browsers.append(PossibleDesktopBrowser(browser_name, finder_options,
                                                  app, None, False,
                                                  browser_directory))
-        return True
+          return True
       return False
 
     for path in win_search_paths:
       if not path:
         continue
-      if AddIfFoundWin('canary', canary_path):
+      if AddIfFoundWin('canary', path, canary_path):
         break
 
     for path in win_search_paths:
       if not path:
         continue
-      if AddIfFoundWin('system', system_path):
+      if AddIfFoundWin('system', path, system_path):
         break
 
   if len(browsers) and not has_display:
