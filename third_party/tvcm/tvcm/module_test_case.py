@@ -70,6 +70,16 @@ class ModuleTestSuite(unittest.TestSuite):
     _currently_active_module_test_suite = None
 
 def DiscoverTestsInModule(project, start_path):
+  try:
+    return _DiscoverTestsInModuleImpl(project, start_path)
+  except:
+    import traceback
+    sys.stderr.write("While discovering tests in %s:\n" % repr(project))
+    traceback.print_exc()
+    sys.stderr.write("\n\n" % repr(project))
+    raise
+
+def _DiscoverTestsInModuleImpl(project, start_path):
   if test_runner.PY_ONLY_TESTS:
     return unittest.TestSuite()
 

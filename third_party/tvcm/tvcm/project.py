@@ -83,6 +83,9 @@ class Project(object):
   def AsDict(self):
     return {'source_paths': self.source_paths}
 
+  def __repr__(self):
+    return "Project(%s)" % repr(self.source_paths)
+
   def AddSourcePath(self, path):
     self.source_paths.append(path)
 
