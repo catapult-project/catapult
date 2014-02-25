@@ -77,7 +77,7 @@ def DiscoverTestsInModule(project, start_path):
     import traceback
     sys.stderr.write("While discovering tests in %s:\n" % repr(project))
     traceback.print_exc()
-    sys.stderr.write("\n\n" % repr(project))
+    sys.stderr.write("\n\n")
     raise
 
 def _DiscoverTestsInModuleImpl(project, start_path):
