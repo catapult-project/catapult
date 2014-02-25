@@ -30,14 +30,14 @@ document.addEventListener('DOMContentLoaded', function() {
   g_timelineViewEl.id = 'timeline-view';
   document.body.appendChild(g_timelineViewEl);
 
-  var viewerDataScripts = document.querySelectorAll('#viewer-data');
   var traces = [];
+  var viewerDataScripts = document.querySelectorAll('#viewer-data');
   for (var i = 0; i < viewerDataScripts.length; i++) {
     var text = viewerDataScripts[i].textContent;
     // Trim leading newlines off the text. They happen during writing.
     while (text[0] == '\n')
       text = text.substring(1);
-    traces.push(text);
+    traces.push(atob(text));
   }
 
   var m = new tracing.TraceModel();
