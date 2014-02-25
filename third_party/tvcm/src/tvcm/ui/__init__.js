@@ -106,16 +106,6 @@ tvcm.exportTo('tvcm.ui', function() {
       return el;
     }
 
-    try {
-      // f.name is not directly writable. So make it writable anyway.
-      Object.defineProperty(
-          f, 'name',
-          {value: tagName, writable: false, configurable: false});
-    } catch (e) {
-      // defineProperty throws a TypeError about name already being defined
-      // although, it also correctly sets the value to tagName.
-    }
-
     /**
      * Decorates an element as a UI element class.
      * @param {!Element} el The element to decorate.

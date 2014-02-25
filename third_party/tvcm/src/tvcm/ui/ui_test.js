@@ -56,7 +56,7 @@ tvcm.unittest.testSuite('tvcm.ui.ui_test', function() {
     assertTrue(baseInstance.decoratedAsBase);
 
     assertEquals(baseInstance.constructor, Base);
-    assertEquals(baseInstance.constructor.name, 'div');
+    assertEquals(baseInstance.constructor.toString(), 'div');
 
     baseInstance.basePropertySet = 7;
     assertEquals(7, baseInstance.basePropertySet);
@@ -79,7 +79,7 @@ tvcm.unittest.testSuite('tvcm.ui.ui_test', function() {
     assertFalse(subInstance.decoratedAsBase);
 
     assertEquals(subInstance.constructor, Sub);
-    assertEquals(subInstance.constructor.name, 'sub');
+    assertEquals(subInstance.constructor.toString(), 'div::sub');
 
     subInstance.baseProperty = true;
     assertTrue(subInstance.basePropertySet);
