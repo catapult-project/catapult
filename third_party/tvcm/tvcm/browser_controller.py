@@ -124,19 +124,29 @@ class BrowserController(object):
     full_js = """
     window.__thennableSucceeded = undefined;
     window.__thennableResult = undefined;
-(%s).then(
-    function(res) {
-      window.__thennableSucceeded = true;
-      window.__thennableResult = res;
-    },
-    function(err) {
-      window.__thennableSucceeded = false;
-      if (typeof(err) === 'string') {
-        window.__thennableResult = err;
+    (function() {
+      var thennable;
+      try {
+        thennable = %s;
+      } catch(e) {
+        window.__thennableSucceeded = false;
+        window.__thennableResult = e.stack ? e.stack : e;
         return;
       }
-      window.__thennableResult = e.message + '\\n' + e.stack;
-    });
+      thennable.then(
+          function(res) {
+            window.__thennableSucceeded = true;
+            window.__thennableResult = res;
+          },
+          function(err) {
+            window.__thennableSucceeded = false;
+            if (typeof(err) === 'string') {
+              window.__thennableResult = err;
+              return;
+            }
+            window.__thennableResult = e.message + '\\n' + e.stack;
+          });
+    })();
 """ % js
     self._tab.message_output_stream = sys.stderr
     self._tab.ExecuteJavaScript(full_js)
