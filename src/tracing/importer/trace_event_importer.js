@@ -719,9 +719,17 @@ tvcm.exportTo('tracing.importer', function() {
             } else {
               cat = event.cat;
             }
+
+            var baseTypename;
+            if (args.base_type) {
+              baseTypename = args.base_type;
+              delete args.base_type;
+            } else {
+              baseTypename = undefined;
+            }
             snapshot = process.objects.addSnapshot(
                 event.id, cat, event.name, ts,
-                args);
+                args, baseTypename);
           } catch (e) {
             this.model_.importWarning({
               type: 'object_parse_error',

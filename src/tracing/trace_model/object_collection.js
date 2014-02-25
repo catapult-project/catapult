@@ -33,9 +33,9 @@ tvcm.exportTo('tracing.trace_model', function() {
   ObjectCollection.prototype = {
     __proto__: Object.prototype,
 
-    createObjectInstance_: function(parent, id, category, name, creationTs) {
+    createObjectInstance_: function(parent, id, category, name, creationTs, opt_baseTypeName) {
       var constructor = tracing.trace_model.ObjectInstance.getConstructor(name);
-      var instance = new constructor(parent, id, category, name, creationTs);
+      var instance = new constructor(parent, id, category, name, creationTs, opt_baseTypeName);
       var typeName = instance.typeName;
       var instancesOfTypeName = this.instancesByTypeName_[typeName];
       if (!instancesOfTypeName) {
@@ -61,9 +61,9 @@ tvcm.exportTo('tracing.trace_model', function() {
       return instanceMap.idWasCreated(category, name, ts);
     },
 
-    addSnapshot: function(id, category, name, ts, args) {
-      var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
-      var snapshot = instanceMap.addSnapshot(category, name, ts, args);
+    addSnapshot: function(id, category, name, ts, args, opt_baseTypeName) {
+      var instanceMap = this.getOrCreateInstanceMap_(id);
+      var snapshot = instanceMap.addSnapshot(category, name, ts, args, opt_baseTypeName);
       if (snapshot.objectInstance.category != category) {
         var msg = 'Added snapshot name=' + name + ' with cat=' + category +
             ' impossible. It instance was created/snapshotted with cat=' +
@@ -71,15 +71,23 @@ tvcm.exportTo('tracing.trace_model', function() {
             snapshot.objectInstance.name;
         throw new Error(msg);
       }
+      if (opt_baseTypeName &&
+          snapshot.objectInstance.baseTypeName != opt_baseTypeName) {
+        throw new Error('Could not add snapshot with baseTypeName=' +
+                        opt_baseTypeName + '. It ' +
+                        'was previously created with name=' +
+                        snapshot.objectInstance.baseTypeName);
+      }
       if (snapshot.objectInstance.name != name) {
-        throw new Error('Added snapshot with different name than ' +
-                        'when it was created');
+        throw new Error('Could not add snapshot with name=' + name + '. It ' +
+                        'was previously created with name=' +
+                        snapshot.objectInstance.name);
       }
       return snapshot;
     },
 
     idWasDeleted: function(id, category, name, ts) {
-      var instanceMap = this.getOrCreateInstanceMap_(id, category, name, ts);
+      var instanceMap = this.getOrCreateInstanceMap_(id);
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance)
         return;
@@ -91,9 +99,11 @@ tvcm.exportTo('tracing.trace_model', function() {
             'had cat=' + category;
         throw new Error(msg);
       }
-      if (deletedInstance.name != name) {
-        throw new Error('Deleting an object with a different name than ' +
-                        'when it was created');
+      if (deletedInstance.baseTypeName != name) {
+        throw new Error('Deletion requested for name=' +
+                        name + ' could not proceed: ' +
+                        'An existing object with baseTypeName=' +
+                        deletedInstance.baseTypeName + ' existed.')
       }
     },
 

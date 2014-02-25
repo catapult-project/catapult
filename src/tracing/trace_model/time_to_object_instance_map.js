@@ -49,10 +49,10 @@ tvcm.exportTo('tracing.trace_model', function() {
       return lastInstance;
     },
 
-    addSnapshot: function(category, name, ts, args) {
+    addSnapshot: function(category, name, ts, args, opt_baseTypeName) {
       if (this.instances.length == 0) {
         this.instances.push(this.createObjectInstanceFunction_(
-            this.parent, this.id, category, name, ts));
+            this.parent, this.id, category, name, ts, opt_baseTypeName));
       }
 
       var i = tvcm.findLowIndexInSortedIntervals(
@@ -84,7 +84,7 @@ tvcm.exportTo('tracing.trace_model', function() {
           // The snap is added after our oldest and deleted instance. This means
           // that this is a new implicit instance.
           instance = this.createObjectInstanceFunction_(
-              this.parent, this.id, category, name, ts);
+              this.parent, this.id, category, name, ts, opt_baseTypeName);
           this.instances.push(instance);
         } else {
           // If the ts is before the last objects deletion time, then the caller
@@ -114,7 +114,7 @@ tvcm.exportTo('tracing.trace_model', function() {
         instance = this.instances[i];
       }
 
-      return instance.addSnapshot(ts, args);
+      return instance.addSnapshot(ts, args, name, opt_baseTypeName);
     },
 
     get lastInstance() {

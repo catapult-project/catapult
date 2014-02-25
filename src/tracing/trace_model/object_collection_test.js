@@ -138,6 +138,45 @@ tvcm.unittest.testSuite('tracing.trace_model.object_collection_test', function()
     assertEquals(collection.bounds.max, 15);
   });
 
+  test('snapshotWithCustomBaseTypeThenDelete', function() {
+    var collection = new tracing.trace_model.ObjectCollection({});
+    var s10 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 10, {}, 'cc::LayerImpl');
+    collection.idWasDeleted(
+        '0x1000', 'cat', 'cc::LayerImpl', 15);
+    collection.updateBounds();
+    assertEquals(collection.bounds.min, 10);
+    assertEquals(collection.bounds.max, 15);
+    assertEquals('cc::PictureLayerImpl', s10.objectInstance.name);
+    assertEquals('cc::LayerImpl', s10.objectInstance.baseTypeName);
+  });
+
+  test('newWithSnapshotThatChangesBaseType', function() {
+    var collection = new tracing.trace_model.ObjectCollection({});
+    var i10 = collection.idWasCreated(
+        '0x1000', 'cat', 'cc::LayerImpl', 10);
+    var s15 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
+    collection.updateBounds();
+    assertEquals(collection.bounds.min, 10);
+    assertEquals(collection.bounds.max, 15);
+    assertEquals(i10, s15.objectInstance);
+    assertEquals('cc::PictureLayerImpl', i10.name);
+    assertEquals('cc::LayerImpl', i10.baseTypeName);
+  });
+
+  test('deleteThenSnapshotWithCustomBase', function() {
+    var collection = new tracing.trace_model.ObjectCollection({});
+    collection.idWasDeleted(
+        '0x1000', 'cat', 'cc::LayerImpl', 10);
+    var s15 = collection.addSnapshot(
+        '0x1000', 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
+    collection.updateBounds();
+    assertEquals(collection.bounds.min, 10);
+    assertEquals(collection.bounds.max, 15);
+    assertEquals('cc::PictureLayerImpl', s15.objectInstance.name);
+  });
+
   test('autoDelete', function() {
     var collection = new tracing.trace_model.ObjectCollection({});
     collection.idWasCreated(

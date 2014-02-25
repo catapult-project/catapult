@@ -21,11 +21,12 @@ tvcm.exportTo('tracing.trace_model', function() {
    *
    * @constructor
    */
-  function ObjectInstance(parent, id, category, name, creationTs) {
+  function ObjectInstance(parent, id, category, name, creationTs, opt_baseTypeName) {
     tracing.trace_model.Event.call(this);
     this.parent = parent;
     this.id = id;
     this.category = category;
+    this.baseTypeName = opt_baseTypeName ? opt_baseTypeName : name;
     this.name = name;
     this.creationTs = creationTs;
     this.creationTsWasExplicit = false;
@@ -48,7 +49,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       range.addRange(this.bounds);
     },
 
-    addSnapshot: function(ts, args) {
+    addSnapshot: function(ts, args, opt_name, opt_baseTypeName) {
       if (ts < this.creationTs)
         throw new Error('Snapshots must be >= instance.creationTs');
       if (ts >= this.deletionTs)
@@ -64,6 +65,18 @@ tvcm.exportTo('tracing.trace_model', function() {
           throw new Error(
               'Snapshots must be added in increasing timestamp order');
         }
+      }
+
+      // Update baseTypeName if needed.
+      if (opt_name &&
+          (this.name != opt_name)) {
+        if (!opt_baseTypeName)
+          throw new Error('Must provide base type name for name update');
+        if (!this.creationTsWasExplicit)
+          throw new Error('Cannot update type name on implicit instance.');
+        if (this.baseTypeName != opt_baseTypeName)
+          throw new Error('Cannot update type name: base types dont match');
+        this.name = opt_name;
       }
 
       var snapshotConstructor =

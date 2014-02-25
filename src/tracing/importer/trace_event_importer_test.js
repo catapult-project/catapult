@@ -1273,6 +1273,25 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(1, subObjectInstances.length);
   });
 
+  test('importImplicitObjectWithBaseTypeOverride', function() {
+    var events = [
+      {ts: 10000, pid: 1, tid: 1, ph: 'O', cat: 'c', id: '0x1000', name: 'PictureLayerImpl', args: { // @suppress longLineCheck
+        snapshot: {
+          base_type: 'LayerImpl'
+        }
+      }},
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}}, // @suppress longLineCheck
+    ];
+
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false);
+    var p1 = m.processes[1];
+    assertEquals(0, m.importWarnings.length);
+
+    var iA = p1.objects.getObjectInstanceAt('0x1000', 10);
+    assertEquals(1, iA.snapshots.length);
+  });
+
   test('importIDRefs', function() {
     var events = [
       // An object with two snapshots.
