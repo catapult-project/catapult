@@ -38,10 +38,13 @@ class ModuleTestSuite(unittest.TestSuite):
   def recreateEmptyVersion(self):
     return ModuleTestSuite(self._project)
 
+  def __call__(self, *args):
+    return self.run(*args)
+
   def run(self, result):
     self.setUp()
     try:
-      super(ModuleTestSuite, self).run(result)
+      return super(ModuleTestSuite, self).run(result)
     finally:
       self.tearDown()
 
@@ -130,6 +133,7 @@ class ModuleTestCase(unittest.TestCase):
     return '%s (%s)' % (testname, modname)
 
   def runTest(self):
+    global _currently_active_module_test_suite
     mts = _currently_active_module_test_suite
     assert mts, 'Something is wrong: ModuleTestCase can only be run inside a ModuleTestSuite.run()'
 
