@@ -94,3 +94,14 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
       classes[key_name] = obj
 
   return classes
+
+def GetAllPageSetFilenames(dir_path):
+  results = []
+  start_dir = os.path.dirname(dir_path)
+  for dirpath, _, filenames in os.walk(start_dir):
+    for f in filenames:
+      if os.path.splitext(f)[1] != '.json':
+        continue
+      filename = os.path.join(dirpath, f)
+      results.append(filename)
+  return results
