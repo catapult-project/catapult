@@ -11,6 +11,7 @@ import socket
 import sys
 import urllib2
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import forwarders
 from telemetry.core import user_agent
@@ -19,7 +20,7 @@ from telemetry.core import web_contents
 from telemetry.core import wpr_modes
 from telemetry.core import wpr_server
 from telemetry.core.backends import browser_backend
-from telemetry.core.backends.chrome import extension_dict_backend
+from telemetry.core.backends.chrome import extension_backend
 from telemetry.core.backends.chrome import misc_web_contents_backend
 from telemetry.core.backends.chrome import system_info_backend
 from telemetry.core.backends.chrome import tab_list_backend
@@ -66,12 +67,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
                        'unexpected effects due to profile-specific settings, '
                        'such as about:flags settings, cookies, and '
                        'extensions.\n')
-    self._misc_web_contents_backend = (
-        misc_web_contents_backend.MiscWebContentsBackend(self))
-    self._extension_dict_backend = None
-    if supports_extensions:
-      self._extension_dict_backend = (
-          extension_dict_backend.ExtensionDictBackend(self))
 
   def AddReplayServerOptions(self, extra_wpr_args):
     if self.browser_options.netsim:
@@ -80,14 +75,17 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       extra_wpr_args.append('--no-dns_forwarding')
 
   @property
+  @decorators.Cache
   def misc_web_contents_backend(self):
-    """Access to chrome://oobe/login page which is neither a tab nor an
-    extension."""
-    return self._misc_web_contents_backend
+    """Access to chrome://oobe/login page."""
+    return misc_web_contents_backend.MiscWebContentsBackend(self)
 
   @property
-  def extension_dict_backend(self):
-    return self._extension_dict_backend
+  @decorators.Cache
+  def extension_backend(self):
+    if not self.supports_extensions:
+      return None
+    return extension_backend.ExtensionBackendDict(self)
 
   def GetBrowserStartupArgs(self):
     args = []
@@ -153,9 +151,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
            document.readyState == 'interactive')
       """
       for e in self._extensions_to_load:
-        if not e.extension_id in self._extension_dict_backend:
+        if not e.extension_id in self.extension_backend:
           return False
-        extension_object = self._extension_dict_backend[e.extension_id]
+        extension_object = self.extension_backend[e.extension_id]
         try:
           res = extension_object.EvaluateJavaScript(
               extension_ready_js % e.extension_id)
@@ -182,8 +180,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         logging.error('ExtensionsToLoad: ' +
             repr([e.extension_id for e in self._extensions_to_load]))
         logging.error('Extension list: ' +
-            pprint.pformat(self._extension_dict_backend.GetExtensionInfoList(),
-                           indent=4))
+            pprint.pformat(self._extension_backend, indent=4))
         raise
 
 

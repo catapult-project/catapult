@@ -356,8 +356,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Closes the startup window, which is an extension on official builds,
     and a webpage on chromiumos"""
     startup_window_ext_id = 'honijodknafkokifofgiaalefdiedpko'
-    return (self.extension_dict_backend[startup_window_ext_id]
-        if startup_window_ext_id in self.extension_dict_backend
+    return (self.extension_backend[startup_window_ext_id]
+        if startup_window_ext_id in self.extension_backend
         else self.tab_list_backend.Get(0, None))
 
   def _WaitForSigninScreen(self):

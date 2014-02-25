@@ -23,11 +23,10 @@ class InspectorException(Exception):
   pass
 
 class InspectorBackend(object):
-  def __init__(self, browser, browser_backend, debugger_url, timeout=60):
-    assert debugger_url
+  def __init__(self, browser, browser_backend, context, timeout=60):
     self._browser = browser
     self._browser_backend = browser_backend
-    self._debugger_url = debugger_url
+    self._context = context
     self._socket = None
     self._domain_handlers = {}
     self._cur_socket_timeout = 0
@@ -48,7 +47,7 @@ class InspectorBackend(object):
   def _Connect(self, timeout=10):
     assert not self._socket
     try:
-      self._socket = websocket.create_connection(self._debugger_url,
+      self._socket = websocket.create_connection(self.debugger_url,
           timeout=timeout)
     except (websocket.WebSocketException):
       if self._browser_backend.IsBrowserRunning():
@@ -77,13 +76,24 @@ class InspectorBackend(object):
 
   @property
   def url(self):
-    return self._browser_backend.tab_list_backend.GetTabUrl(self._debugger_url)
+    return self._context['url']
+
+  @property
+  def id(self):
+    return self._context['id']
+
+  @property
+  def debugger_url(self):
+    return self._context['webSocketDebuggerUrl']
+
+  # TODO(tonyg): TabListBackend should ask InspectorBackend to
+  # Activate and Close, not the other way around (crbug.com/233001).
 
   def Activate(self):
-    self._browser_backend.tab_list_backend.ActivateTab(self._debugger_url)
+    self._browser_backend.tab_list_backend.ActivateTab(self.debugger_url)
 
   def Close(self):
-    self._browser_backend.tab_list_backend.CloseTab(self._debugger_url)
+    self._browser_backend.tab_list_backend.CloseTab(self.debugger_url)
 
   # Public methods implemented in JavaScript.
 
@@ -210,7 +220,7 @@ class InspectorBackend(object):
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
       if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
-          self._debugger_url):
+          self.debugger_url):
         elapsed_time = time.time() - start_time
         raise util.TimeoutException(
             'Received a socket error in the browser connection and the tab '
@@ -263,7 +273,7 @@ class InspectorBackend(object):
     self._socket = None
     def IsBack():
       if not self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
-        self._debugger_url):
+        self.debugger_url):
         return False
       try:
         self._Connect()

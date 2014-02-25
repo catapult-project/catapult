@@ -11,7 +11,6 @@ import unittest
 from telemetry.core import browser_finder
 from telemetry.core import extension_to_load
 from telemetry.core import util
-from telemetry.core.backends.chrome import extension_dict_backend
 from telemetry.unittest import options_for_unittests
 
 
@@ -69,8 +68,7 @@ class NonExistentExtensionTest(unittest.TestCase):
     browser_to_create = browser_finder.FindBrowser(options)
     with browser_to_create.Create() as b:
       if b.supports_extensions:
-        self.assertRaises(extension_dict_backend.ExtensionNotFoundException,
-                          lambda: b.extensions[load_extension])
+        self.assertRaises(KeyError, lambda: b.extensions[load_extension])
 
 class MultipleExtensionTest(unittest.TestCase):
   def setUp(self):

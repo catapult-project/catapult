@@ -2,16 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import re
+
 from telemetry.core import web_contents
+
+
+def UrlToExtensionId(url):
+  return re.match(r"(chrome-extension://)([^/]+)", url).group(2)
 
 
 class ExtensionPage(web_contents.WebContents):
   """Represents an extension page in the browser"""
-  def __init__(self, extension_id, url, inspector_backend):
+
+  def __init__(self, inspector_backend):
     super(ExtensionPage, self).__init__(inspector_backend)
-    self.extension_id = extension_id
-    self.url = url
-    assert url.startswith('chrome-extension://' + extension_id)
+    self.url = inspector_backend.url
+    self.extension_id = UrlToExtensionId(self.url)
 
   def Reload(self):
     """Reloading an extension page is used as a workaround for an extension

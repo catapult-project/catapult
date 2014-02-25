@@ -36,12 +36,6 @@ class Browser(object):
     self._platform_backend = platform_backend
     self._active_profilers = []
     self._profilers_states = {}
-
-    self._extensions = None
-    if backend.supports_extensions:
-      self._extensions = extension_dict.ExtensionDict(
-          backend.extension_dict_backend)
-
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
@@ -97,12 +91,12 @@ class Browser(object):
     raise Exception("No foreground tab found")
 
   @property
+  @decorators.Cache
   def extensions(self):
-    """Returns the extension dictionary if it exists."""
     if not self.supports_extensions:
       raise browser_backend.ExtensionsNotSupportedException(
           'Extensions not supported')
-    return self._extensions
+    return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
 
   @property
   def supports_tracing(self):

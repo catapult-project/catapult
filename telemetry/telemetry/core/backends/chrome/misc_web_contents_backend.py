@@ -1,47 +1,30 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
 
-from telemetry.core import exceptions
 from telemetry.core import web_contents
-from telemetry.core.backends.chrome import inspector_backend
+from telemetry.core.backends.chrome import inspector_backend_list
 
-class MiscWebContentsBackend(object):
-  """Provides acccess to chrome://oobe/login page, which is neither an extension
-  nor a tab."""
+
+class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
+  """A dynamic sequence of web contents not related to tabs and extensions.
+
+  Provides acccess to chrome://oobe/login page.
+  """
+
   def __init__(self, browser_backend):
-    self._browser_backend = browser_backend
+    super(MiscWebContentsBackend, self).__init__(
+        browser_backend, backend_wrapper=web_contents.WebContents)
 
   @property
   def oobe_exists(self):
     """Lightweight property to determine if the oobe webui is visible."""
-    return bool(self._FindWebContentsInfo())
+    return bool(len(self))
 
   def GetOobe(self):
-    oobe_web_contents_info = self._FindWebContentsInfo()
-    if oobe_web_contents_info:
-      debugger_url = oobe_web_contents_info.get('webSocketDebuggerUrl')
-      if debugger_url:
-        try:
-          inspector = self._CreateInspectorBackend(debugger_url)
-        except exceptions.TabCrashException:
-          return None
-        return web_contents.WebContents(inspector)
-    return None
+    if not len(self):
+      return None
+    return self[0]
 
-  def _CreateInspectorBackend(self, debugger_url):
-    return inspector_backend.InspectorBackend(self._browser_backend.browser,
-                                              self._browser_backend,
-                                              debugger_url)
-
-  def _ListWebContents(self, timeout=None):
-    data = self._browser_backend.Request('', timeout=timeout)
-    return json.loads(data)
-
-  def _FindWebContentsInfo(self):
-    for web_contents_info in self._ListWebContents():
-      # Prior to crrev.com/203152, url was chrome://oobe/login.
-      if (web_contents_info.get('url').startswith('chrome://oobe')):
-        return web_contents_info
-    return None
+  def ShouldIncludeContext(self, context):
+    return context.get('url').startswith('chrome://oobe')

@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
+
 from telemetry.core import web_contents
 from telemetry.core.forwarders import do_nothing_forwarder
 
@@ -21,7 +23,7 @@ class BrowserBackend(object):
     self._supports_extensions = supports_extensions
     self.browser_options = browser_options
     self._browser = None
-    self._tab_list_backend = tab_list_backend(self)
+    self._tab_list_backend_class = tab_list_backend
     self._forwarder_factory = None
 
   def AddReplayServerOptions(self, extra_wpr_args):
@@ -29,7 +31,6 @@ class BrowserBackend(object):
 
   def SetBrowser(self, browser):
     self._browser = browser
-    self._tab_list_backend.Init()
     if (self.browser_options.netsim and
         not browser.platform.CanLaunchApplication('ipfw')):
       browser.platform.InstallApplication('ipfw')
@@ -52,8 +53,9 @@ class BrowserBackend(object):
     raise NotImplementedError()
 
   @property
+  @decorators.Cache
   def tab_list_backend(self):
-    return self._tab_list_backend
+    return self._tab_list_backend_class(self)
 
   @property
   def supports_tracing(self):

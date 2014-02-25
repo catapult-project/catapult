@@ -9,8 +9,6 @@ class WebDriverTabListBackend(object):
     self._browser_backend = browser_backend
     # Stores the window handles.
     self._tab_list = []
-
-  def Init(self):
     self._UpdateTabList()
 
   def New(self, timeout=None):
