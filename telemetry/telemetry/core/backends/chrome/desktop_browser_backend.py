@@ -114,6 +114,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = util.GetUnreservedAvailableLocalPort()
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
+    args.append('--use-mock-keychain')
     if not self.is_content_shell:
       args.append('--window-size=1280,1024')
       if self._flash_path:
