@@ -70,10 +70,12 @@ class TimelineModel(object):
     return self._processes
 
   @property
+  #pylint: disable=E0202
   def browser_process(self):
     return self._browser_process
 
   @browser_process.setter
+  #pylint: disable=E0202
   def browser_process(self, browser_process):
     self._browser_process = browser_process
 

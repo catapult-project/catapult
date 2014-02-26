@@ -2,7 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import weakref
+
+from telemetry.core.timeline import model
 
 
 class ChromeTraceResult(object):
@@ -15,12 +18,14 @@ class ChromeTraceResult(object):
 
   def Serialize(self, f):
     """Serializes the trace result to a file-like object"""
-    raise NotImplementedError()
+    f.write('{"traceEvents":')
+    json.dump(self._tracing_data, f)
+    f.write('}')
 
   def AsTimelineModel(self):
     """Parses the trace result into a timeline model for in-memory
     manipulation."""
-    timeline = self._CreateTimelineModel()
+    timeline = model.TimelineModel(self._tracing_data)
     for thread in timeline.GetAllThreads():
       if thread.name == 'CrBrowserMain':
         timeline.browser_process = thread.parent
@@ -30,6 +35,3 @@ class ChromeTraceResult(object):
       renderer_process = timeline_markers[0].start_thread.parent
       timeline.AddCoreObjectToContainerMapping(key, renderer_process)
     return timeline
-
-  def _CreateTimelineModel(self):
-    raise NotImplementedError()

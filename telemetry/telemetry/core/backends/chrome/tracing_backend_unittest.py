@@ -8,6 +8,7 @@ import logging
 import unittest
 
 from telemetry.core import util
+from telemetry.core.backends.chrome import chrome_trace_result
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.unittest import tab_test_case
 
@@ -81,25 +82,11 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
 
 class ChromeTraceResultTest(unittest.TestCase):
-  # Override TestCase.run to run a test with all possible
-  # implementations of ChromeTraceResult.
   def __init__(self, method_name):
-    self._chromeTraceResultClass = None
     super(ChromeTraceResultTest, self).__init__(method_name)
 
-  def run(self, result=None):
-    def ChromeRawTraceResultWrapper(strings):
-      return tracing_backend.ChromeRawTraceResult(map(json.loads, strings))
-    classes = [
-        tracing_backend.ChromeLegacyTraceResult,
-        ChromeRawTraceResultWrapper
-    ]
-    for cls in classes:
-      self._chromeTraceResultClass = cls
-      super(ChromeTraceResultTest, self).run(result)
-
   def testWrite1(self):
-    ri = self._chromeTraceResultClass([])
+    ri = chrome_trace_result.ChromeTraceResult(map(json.loads, []))
     f = cStringIO.StringIO()
     ri.Serialize(f)
     v = f.getvalue()
@@ -109,9 +96,9 @@ class ChromeTraceResultTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], [])
 
   def testWrite2(self):
-    ri = self._chromeTraceResultClass([
+    ri = chrome_trace_result.ChromeTraceResult(map(json.loads, [
         '"foo"',
-        '"bar"'])
+        '"bar"']))
     f = cStringIO.StringIO()
     ri.Serialize(f)
     v = f.getvalue()
@@ -121,10 +108,10 @@ class ChromeTraceResultTest(unittest.TestCase):
     self.assertEquals(j['traceEvents'], ['foo', 'bar'])
 
   def testWrite3(self):
-    ri = self._chromeTraceResultClass([
+    ri = chrome_trace_result.ChromeTraceResult(map(json.loads, [
         '"foo"',
         '"bar"',
-        '"baz"'])
+        '"baz"']))
     f = cStringIO.StringIO()
     ri.Serialize(f)
     v = f.getvalue()
@@ -135,12 +122,12 @@ class ChromeTraceResultTest(unittest.TestCase):
                       ['foo', 'bar', 'baz'])
 
   def testBrowserProcess(self):
-    ri = self._chromeTraceResultClass([
+    ri = chrome_trace_result.ChromeTraceResult(map(json.loads, [
         '{"name": "process_name",'
         '"args": {"name": "Browser"},'
         '"pid": 5, "ph": "M"}',
         '{"name": "thread_name",'
         '"args": {"name": "CrBrowserMain"},'
-        '"pid": 5, "tid": 32578, "ph": "M"}'])
+        '"pid": 5, "tid": 32578, "ph": "M"}']))
     model = ri.AsTimelineModel()
     self.assertEquals(model.browser_process.pid, 5)
