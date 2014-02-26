@@ -10,18 +10,20 @@ found in the LICENSE file.
   <script src="/tvcm/__init__.js"></script>
   <style>
   </style>
-</head>
-<body>
   <script>
     tvcm.require('tvcm.unittest');
     tvcm.require('tvcm.unittest.text_test_results');
     tvcm.require('tvcm.unittest.suite_loader');
     tvcm.require('tvcm.unittest.test_runner');
   </script>
+</head>
+<body>
   <h1 id="status">
   </h1>
   <script>
     'use strict';
+    window.__readyToRun = false;
+
     var statusEl = document.querySelector('#status');
     function discoverTestsInModules(testModuleNames) {
       statusEl.textContent = 'Discovering tests...';
@@ -87,6 +89,10 @@ found in the LICENSE file.
       }
       return runTestPromise;
     }
+
+    window.addEventListener('load', function() {
+      window.__readyToRun = true;
+    });
   </script>
 </body>
 </html>
