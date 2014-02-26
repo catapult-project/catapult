@@ -183,7 +183,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
             pprint.pformat(self._extension_backend, indent=4))
         raise
 
-
   def _PostBrowserStartupInitialization(self):
     # Detect version information.
     data = self.Request('version')
@@ -214,6 +213,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # Detection has failed: assume 18.0.1025.168 ~= Chrome Android.
     self._inspector_protocol_version = 1.0
     self._chrome_branch_number = 1025
+
+  def ListInspectableContexts(self):
+    return json.loads(self.Request(''))
 
   def Request(self, path, timeout=None, throw_network_exception=False):
     url = 'http://127.0.0.1:%i/json' % self._port

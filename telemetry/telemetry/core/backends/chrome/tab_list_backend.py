@@ -21,10 +21,6 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     self._browser_backend.Request('new', timeout=timeout)
     return self[-1]
 
-  def DoesDebuggerUrlExist(self, debugger_url):
-    tab_id = inspector_backend_list.DebuggerUrlToId(debugger_url)
-    return bool(self[tab_id])
-
   def CloseTab(self, debugger_url, timeout=None):
     assert self._browser_backend.supports_tab_control
     tab_id = inspector_backend_list.DebuggerUrlToId(debugger_url)

@@ -214,13 +214,16 @@ class InspectorBackend(object):
     if 'method' in res:
       self._HandleNotification(res)
 
+  def _IsInspectable(self):
+    contexts = self._browser_backend.ListInspectableContexts()
+    return self.id in [c['id'] for c in contexts]
+
   def _ReceiveJsonData(self, timeout):
     try:
       start_time = time.time()
       data = self._socket.recv()
     except (socket.error, websocket.WebSocketException):
-      if self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
-          self.debugger_url):
+      if self._IsInspectable():
         elapsed_time = time.time() - start_time
         raise util.TimeoutException(
             'Received a socket error in the browser connection and the tab '
@@ -272,8 +275,7 @@ class InspectorBackend(object):
     self._socket.close()
     self._socket = None
     def IsBack():
-      if not self._browser_backend.tab_list_backend.DoesDebuggerUrlExist(
-        self.debugger_url):
+      if not self._IsInspectable():
         return False
       try:
         self._Connect()

@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import collections
-import json
 
 from telemetry.core.backends.chrome import inspector_backend
 
@@ -63,7 +62,7 @@ class InspectorBackendList(collections.Sequence):
     return len(self._inspectable_contexts_dict)
 
   def _Update(self):
-    contexts = json.loads(self._browser_backend.Request(''))
+    contexts = self._browser_backend.ListInspectableContexts()
     context_ids = [context['id'] for context in contexts]
 
     # Append all new inspectable contexts to the dict.
