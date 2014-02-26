@@ -348,6 +348,14 @@ def Run(test, page_set, expectations, finder_options):
               page, credentials_path, possible_browser, results, state)
           state.repeat_state.DidRunPage()
         test.DidRunPageRepeats(page)
+        if (not test.max_failures is None and
+            len(results.failures) > test.max_failures):
+          logging.error('Too many failures. Aborting.')
+          test.RequestExit()
+        if (not test.max_errors is None and
+            len(results.errors) > test.max_errors):
+          logging.error('Too many errors. Aborting.')
+          test.RequestExit()
         if test.IsExiting():
           break
       state.repeat_state.DidRunPageSet()
