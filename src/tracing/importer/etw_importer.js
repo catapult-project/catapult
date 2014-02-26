@@ -31,7 +31,7 @@
  * The payload is an undecoded version of the raw event sent by ETW.
  * This importer uses specific parsers to decode recognized events.
  * A parser need to register the recognized event by calling
- * registerEventHandler(guid, opcode, handler). The parser is reponsible to
+ * registerEventHandler(guid, opcode, handler). The parser is responsible to
  * decode the payload and update the TraceModel.
  *
  * The payload formats are described there:
@@ -43,6 +43,8 @@
 tvcm.require('tvcm.base64');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.etw.process_parser');
+tvcm.require('tracing.importer.etw.thread_parser');
 
 tvcm.exportTo('tracing.importer', function() {
 
@@ -191,11 +193,20 @@ tvcm.exportTo('tracing.importer', function() {
     this.events_ = events;
     this.handlers_ = {};
     this.decoder_ = new Decoder();
+    this.parsers_ = [];
 
     // A map of tids to their process pid. On Windows, the tid is global to
     // the system and doesn't need to belong to a process. As many events
     // only provide tid, this map allows to retrieve the parent process.
     this.tidsToPid_ = {};
+
+
+    // Instantiate the parsers; this will register handlers for known events.
+    var constructors = tracing.importer.etw.Parser.getSubtypeConstructors();
+    for (var i = 0; i < constructors.length; ++i) {
+      var parser = constructors[i];
+      this.parsers_.push(new parser(this));
+    }
   }
 
   /**
