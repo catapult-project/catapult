@@ -82,9 +82,13 @@ def GetAvailableBrowserTypes():
 
 class BrowserController(object):
   def __init__(self, project):
+    self._project = project
+    self._browser = None
+    self._tab = None
+    self._server = None
+
     if telemetry == None:
       raise Exception('Not supported: you trace-viewer to be inside a chrome checkout for this to work.')
-    self._project = project
 
     # If run in the context of the telemetry test runner, use
     # telemetry's browser options instead.
@@ -103,12 +107,11 @@ class BrowserController(object):
 
     if telemetry == None:
       raise Exception('Telemetry not found. Cannot run src/ tests')
-    self._browser = None
-    self._tab = None
 
     assert browser_to_create
     self._browser = browser_to_create.Create()
     self._tab = None
+
     try:
       self._browser.Start()
       self._tab = self._browser.tabs[0]
