@@ -133,4 +133,56 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(decoder.decodeInt32() == 0x63620061);
   });
 
+  test('decodeUInteger', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    decoder.reset('AQIDBAUGBwg=');
+    assertTrue(decoder.decodeUInteger(false) == 0x04030201);
+
+    decoder.reset('AQIDBAUGBwg=');
+    assertTrue(decoder.decodeUInteger(true) == 0x0807060504030201);
+  });
+
+  test('decodeString', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    decoder.reset('dGVzdAA=');
+    assertTrue(decoder.decodeString() == 'test');
+
+    decoder.reset('VGhpcyBpcyBhIHRlc3Qu');
+    assertTrue(decoder.decodeString() == 'This is a test.');
+  });
+
+  test('decodeW16String', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+    decoder.reset('dABlAHMAdAAAAA==');
+    assertTrue(decoder.decodeW16String() == 'test');
+  });
+
+  test('decodeBytes', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+    decoder.reset('AAECAwQFBgc=');
+    var bytes = decoder.decodeBytes(8);
+    for (var i = 0; i < length; ++i)
+      assertTrue(bytes[i] == i);
+  });
+
+  test('decodeSID', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    // Decode a SID structure with 64-bit pointer.
+    decoder.reset(
+        'AQIDBAECAwQFBAMCAAAAAAEFAAAAAAAFFQAAAAECAwQFBgcICQoLDA0DAAA=');
+    var sid = decoder.decodeSID(true);
+
+    assertTrue(sid.pSid == 0x0403020104030201);
+    assertTrue(sid.attributes == 0x02030405);
+    assertTrue(sid.sid.length == 20);
+  });
+
 });

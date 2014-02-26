@@ -116,6 +116,68 @@ tvcm.exportTo('tracing.importer', function() {
       if (value > 0x7FFFFFFFFFFFFFFF)
         return value - 0x10000000000000000;
       return value;
+    },
+
+    decodeUInteger: function(is64) {
+      if (is64)
+        return this.decodeUInt64();
+      return this.decodeUInt32();
+    },
+
+    decodeString: function() {
+      var str = '';
+      while (true) {
+        var c = this.decodeUInt8();
+        if (!c)
+          return str;
+        str = str + String.fromCharCode(c);
+      }
+    },
+
+    decodeW16String: function() {
+      var str = '';
+      while (true) {
+        var c = this.decodeUInt16();
+        if (!c)
+          return str;
+        str = str + String.fromCharCode(c);
+      }
+    },
+
+    decodeBytes: function(length) {
+      var bytes = [];
+      for (var i = 0; i < length; ++i) {
+        var c = this.decodeUInt8();
+        bytes.push(c);
+      }
+      return bytes;
+    },
+
+    decodeSID: function(is64) {
+      // Decode the TOKEN_USER structure.
+      var pSid = this.decodeUInteger(is64);
+      var attributes = this.decodeUInt32();
+
+      // Skip padding.
+      if (is64)
+        this.decodeUInt32();
+
+      // Decode the SID structure.
+      var revision = this.decodeUInt8();
+      var subAuthorityCount = this.decodeUInt8();
+      this.decodeUInt16();
+      this.decodeUInt32();
+
+      if (revision != 1)
+        throw 'Invalid SID revision: could not decode the SID structure.';
+
+      var sid = this.decodeBytes(4 * subAuthorityCount);
+
+      return {
+        pSid: pSid,
+        attributes: attributes,
+        sid: sid
+      };
     }
   };
 
