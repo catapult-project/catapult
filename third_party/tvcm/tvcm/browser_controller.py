@@ -7,7 +7,7 @@ import os
 
 from tvcm import dev_server
 from tvcm import project as project_module
-
+from tvcm import test_runner
 
 def _TryToImportTelemetry():
   # Maybe telemetry is just hanging around in PYTHONPATH
@@ -70,6 +70,16 @@ else:
 def IsSupported():
   return telemetry != None
 
+def GetAvailableBrowserTypes():
+  if telemetry == None:
+    sys.stderr.write(
+      'Could not find telemetry in $PYTHONPATH. No browsers will run\n')
+    return ''
+  from telemetry.core import browser_finder
+  finder_options = browser_options.BrowserFinderOptions()
+  return ','.join(browser_finder.GetAllAvailableBrowserTypes(finder_options) +
+                  ['any'])
+
 class BrowserController(object):
   def __init__(self, project):
     if telemetry == None:
@@ -83,7 +93,9 @@ class BrowserController(object):
     else:
       finder_options = browser_options.BrowserFinderOptions()
       parser = finder_options.CreateParser('telemetry_perf_test.py')
-      finder_options, _ = parser.parse_args(['--browser', 'any'])
+      from tvcm import test_runner
+      finder_options, _ = parser.parse_args(
+        ['--browser', test_runner.BROWSER_TYPE_TO_USE])
 
 
     finder_options.browser_options.warn_if_no_flash = False

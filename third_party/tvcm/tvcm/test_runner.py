@@ -62,6 +62,7 @@ class _RunnerImpl(unittest.TextTestRunner):
     return super(_RunnerImpl, self).run(filtered_test)
 
 PY_ONLY_TESTS=False
+BROWSER_TYPE_TO_USE='any'
 
 
 class TestRunner(object):
@@ -89,7 +90,18 @@ class TestRunner(object):
     parser = optparse.OptionParser()
     parser.add_option('--py-only', action='store_true',
                       help='Runs only python based tests')
+    parser.add_option('--browser',
+                      default='any',
+                      dest='browser_type',
+                      help='Which browser to use for tests. Use --browser=list for options.')
     options, args = parser.parse_args(argv[1:])
+    if options.browser_type == 'list':
+      import browser_controller
+      parser.error('Supported browsers: %s\n' %
+                   browser_controller.GetAvailableBrowserTypes())
+
+    global BROWSER_TYPE_TO_USE
+    BROWSER_TYPE_TO_USE = options.browser_type
 
     global PY_ONLY_TESTS
     PY_ONLY_TESTS = options.py_only
