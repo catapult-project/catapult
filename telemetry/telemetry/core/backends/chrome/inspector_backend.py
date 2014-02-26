@@ -1,12 +1,15 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import logging
+import os
 import socket
 import sys
 import time
 
+from telemetry import decorators
 from telemetry.core import bitmap
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -19,8 +22,10 @@ from telemetry.core.backends.chrome import inspector_timeline
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.heap import model
 
+
 class InspectorException(Exception):
   pass
+
 
 class InspectorBackend(object):
   def __init__(self, browser, browser_backend, context, timeout=60):
@@ -98,26 +103,20 @@ class InspectorBackend(object):
   # Public methods implemented in JavaScript.
 
   @property
+  @decorators.Cache
   def screenshot_supported(self):
-    if self._runtime.Evaluate(
-        'window.chrome.gpuBenchmarking === undefined'):
+    if (self.browser.platform.GetOSName() == 'linux' and
+        os.getenv('DISPLAY') != ':0'):
+      # Displays other than 0 mean we are likely running in something like
+      # xvfb where screenshotting doesn't work.
       return False
-
-    if self._runtime.Evaluate(
-        'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
-      return False
-
-    return (self._browser_backend.chrome_branch_number >= 1391 or
-            self._browser_backend.is_content_shell)
+    return not self._runtime.Evaluate("""
+        window.chrome.gpuBenchmarking === undefined ||
+        window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined
+      """)
 
   def Screenshot(self, timeout):
-    if self._runtime.Evaluate(
-        'window.chrome.gpuBenchmarking === undefined'):
-      raise Exception("Browser was not started with --enable-gpu-benchmarking")
-
-    if self._runtime.Evaluate(
-        'window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined'):
-      raise Exception("Browser does not support window snapshot API.")
+    assert self.screenshot_supported, 'Browser does not support screenshotting'
 
     self._runtime.Evaluate("""
         if(!window.__telemetry) {
