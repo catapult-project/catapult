@@ -195,16 +195,16 @@ class PageTest(object):
     """Override to customize if the test can be ran for the given page."""
     return True
 
-  def WillRunTest(self):
+  def WillRunTest(self, options):
     """Override to do operations before the page set(s) are navigated."""
-    pass
+    self.options = options
 
-  def DidRunTest(self, browser, results):
+  def DidRunTest(self, browser, results): # pylint: disable=W0613
     """Override to do operations after all page set(s) are completed.
 
     This will occur before the browser is torn down.
     """
-    pass
+    self.options = None
 
   def WillRunPageRepeats(self, page):
     """Override to do operations before each page is iterated over."""
@@ -267,18 +267,14 @@ class PageTest(object):
     example to validate that the pageset can be used with the test."""
     pass
 
-  def Run(self, options, page, tab, results):
-    self.options = options
-    interactive = options and options.interactive
+  def Run(self, page, tab, results):
+    interactive = self.options and self.options.interactive
     compound_action = GetCompoundActionFromPage(
         page, self._action_name_to_run, interactive)
     self.WillRunActions(page, tab)
     self._RunCompoundAction(page, tab, compound_action)
     self.DidRunActions(page, tab)
-    try:
-      self._test_method(page, tab, results)
-    finally:
-      self.options = None
+    self._test_method(page, tab, results)
 
   def _RunCompoundAction(self, page, tab, actions, run_setup_methods=True):
     for i, action in enumerate(actions):

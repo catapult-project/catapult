@@ -55,7 +55,7 @@ class RecordPage(page_test.PageTest):
     if self.test:
       self.test.DidNavigateToPage(page, tab)
 
-  def Run(self, options, page, tab, results):
+  def Run(self, page, tab, results):
     # When recording, sleep to catch any resources that load post-onload.
     tab.WaitForDocumentReadyStateToBeComplete()
 
@@ -74,7 +74,7 @@ class RecordPage(page_test.PageTest):
     # Run the actions for all measurements. Reload the page between
     # actions.
     should_reload = False
-    for compound_action in self._CompoundActionsForPage(page, options):
+    for compound_action in self._CompoundActionsForPage(page, self.options):
       if should_reload:
         self.RunNavigateSteps(page, tab)
       self._RunCompoundAction(page, tab, compound_action)

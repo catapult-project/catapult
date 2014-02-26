@@ -154,10 +154,11 @@ class ExtensionsProfileCreator(profile_creator.ProfileCreator):
   def CustomizeBrowserOptions(self, options):
     self._output_profile_path = options.output_profile_path
 
-  def WillRunTest(self):
+  def WillRunTest(self, options):
     """Run before browser starts.
 
     Download extensions and write installation files."""
+    super(ExtensionsProfileCreator, self).WillRunTest(options)
 
     # Running this script on a corporate network or other managed environment
     # could potentially alter the profile contents.
@@ -176,6 +177,7 @@ class ExtensionsProfileCreator(profile_creator.ProfileCreator):
 
   def DidRunTest(self, browser, results):
     """Run before exit."""
+    super(ExtensionsProfileCreator, self).DidRunTest()
     # Do some basic sanity checks to make sure the profile is complete.
     installed_extensions = browser.extensions.keys()
     if not len(installed_extensions) == len(self._extensions_to_install):

@@ -333,7 +333,7 @@ def Run(test, page_set, expectations, finder_options):
   # TODO(dtu): Move results creation and results_for_current_run into RunState.
 
   try:
-    test.WillRunTest()
+    test.WillRunTest(finder_options)
     state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
                              finder_options.repeat_options)
 
@@ -458,7 +458,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     if state.repeat_state.ShouldNavigate(
         finder_options.skip_navigate_on_repeat):
       page_state.ImplicitPageNavigation(test)
-    test.Run(finder_options, page, page_state.tab, results)
+    test.Run(page, page_state.tab, results)
     util.CloseConnections(page_state.tab)
   except page_test.Failure:
     if expectation == 'fail':
