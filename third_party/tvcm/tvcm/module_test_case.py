@@ -18,8 +18,8 @@ _currently_active_module_test_suite = None
 
 def _NavigateToTestCaseRunner(bc):
   bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
-  bc.WaitForJavaScriptExpression('tvcm !== undefined')
-  bc.WaitForJavaScriptExpression('tvcm.hasPanic !== undefined')
+  bc.WaitForJavaScriptExpression('window.tvcm !== undefined')
+  bc.WaitForJavaScriptExpression('window.tvcm.hasPanic !== undefined')
   bc.WaitForJavaScriptExpression('window.discoverTestsInModules !== undefined')
   bc.WaitForJavaScriptExpression('window.runTestNamed !== undefined')
 
