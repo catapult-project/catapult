@@ -185,4 +185,32 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(sid.sid.length == 20);
   });
 
+  test('manageThreads', function() {
+    var events = [];
+    var model = 'dummy';
+    var importer = new tracing.importer.EtwImporter(model, events);
+
+    // After initialisation, no threads must exists.
+    assertTrue(Object.getOwnPropertyNames(importer.tidsToPid_).length == 0);
+
+    // Add some threads.
+    var thread10 = importer.createThreadIfNeeded(1, 10);
+    var thread11 = importer.createThreadIfNeeded(1, 11);
+    var thread20 = importer.createThreadIfNeeded(2, 20);
+
+    assertTrue(Object.getOwnPropertyNames(importer.tidsToPid_).length == 3);
+    assertTrue(importer.tidsToPid_.hasOwnProperty(10));
+    assertTrue(importer.tidsToPid_.hasOwnProperty(11));
+    assertTrue(importer.tidsToPid_.hasOwnProperty(20));
+
+    // Retrieve existing threads and processes.
+    var pid10 = importer.getThreadFromWindowsTid(10);
+    var pid11 = importer.getThreadFromWindowsTid(11);
+    var pid20 = importer.getThreadFromWindowsTid(20);
+
+    assertTrue(pid10, 1);
+    assertTrue(pid11, 1);
+    assertTrue(pid20, 2);
+  });
+
 });

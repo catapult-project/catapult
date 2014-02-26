@@ -191,6 +191,11 @@ tvcm.exportTo('tracing.importer', function() {
     this.events_ = events;
     this.handlers_ = {};
     this.decoder_ = new Decoder();
+
+    // A map of tids to their process pid. On Windows, the tid is global to
+    // the system and doesn't need to belong to a process. As many events
+    // only provide tid, this map allows to retrieve the parent process.
+    this.tidsToPid_ = {};
   }
 
   /**
@@ -215,6 +220,17 @@ tvcm.exportTo('tracing.importer', function() {
 
     get model() {
       return this.model_;
+    },
+
+    createThreadIfNeeded: function(pid, tid) {
+      this.tidsToPid_[tid] = pid;
+    },
+
+    getThreadFromWindowsTid: function(tid) {
+      var pid = this.tidsToPid_[tid];
+      if (pid == undefined)
+        throw new Error('Process ID cannot be found.');
+      return pid;
     },
 
     /**
