@@ -121,6 +121,7 @@ class BrowserController(object):
 
     except:
       self._browser.Close()
+      raise
 
   def NavigateToPath(self, path):
     self._tab.Navigate(self._server.url + path)
