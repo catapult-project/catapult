@@ -23,6 +23,9 @@ file that contains both the trace and the trace viewer.""")
       "--output", dest="output",
       help='Where to put the generated result. If not ' +
            'given, the trace filename is used, with an html suffix.')
+  parser.add_option(
+      "--quiet", action='store_true',
+      help='Dont print the output file name')
   options, args = parser.parse_args(args)
   if len(args) == 0:
     parser.error('At least one trace file required')
@@ -38,7 +41,8 @@ file that contains both the trace and the trace viewer.""")
   with open(output_filename, 'w') as f:
     WriteHTMLForTracesToFile(args, f)
 
-  print output_filename
+  if not options.quiet:
+    print output_filename
   return 0
 
 class ViewerDataScript(generate.ExtraScript):
