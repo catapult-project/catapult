@@ -40,6 +40,7 @@
  */
 'use strict';
 
+tvcm.require('tvcm.base64');
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.importer.importer');
 
@@ -52,17 +53,70 @@ tvcm.exportTo('tracing.importer', function() {
    * @constructor
    */
   function Decoder() {
-    this.payload_ = [];
+    this.payload_ = new DataView(new ArrayBuffer(256));
   };
 
   Decoder.prototype = {
     __proto__: Object.prototype,
 
-    reset: function(payload) {
-      this.payload_ = undefined;
-    }
+    reset: function(base64_payload) {
+      var decoded_size = tvcm.Base64.getDecodedBufferLength(base64_payload);
+      if (decoded_size > this.payload_.byteLength)
+        this.bytes_ = new DataView(new ArrayBuffer(decoded_size));
 
-    /* TODO(etienneb): Implement decoding methods. */
+      tvcm.Base64.DecodeToTypedArray(base64_payload, this.payload_);
+      this.position_ = 0;
+    },
+
+    decodeUInt8: function() {
+      var result = this.payload_.getUint8(this.position_, true);
+      this.position_ += 1;
+      return result;
+    },
+
+    decodeUInt16: function() {
+      var result = this.payload_.getUint16(this.position_, true);
+      this.position_ += 2;
+      return result;
+    },
+
+    decodeUInt32: function() {
+      var result = this.payload_.getUint32(this.position_, true);
+      this.position_ += 4;
+      return result;
+    },
+
+    decodeUInt64: function() {
+      var low = this.decodeUInt32();
+      var high = this.decodeUInt32();
+      var result = (high * 0x100000000) + low;
+      return result;
+    },
+
+    decodeInt8: function() {
+      var result = this.payload_.getInt8(this.position_, true);
+      this.position_ += 1;
+      return result;
+    },
+
+    decodeInt16: function() {
+      var result = this.payload_.getInt16(this.position_, true);
+      this.position_ += 2;
+      return result;
+    },
+
+    decodeInt32: function() {
+      var result = this.payload_.getInt32(this.position_, true);
+      this.position_ += 4;
+      return result;
+    },
+
+    decodeInt64: function() {
+      var value = this.decodeUInt64();
+      if (value > 0x7FFFFFFFFFFFFFFF)
+        return value - 0x10000000000000000;
+      return value;
+    }
   };
 
   /**
@@ -76,8 +130,6 @@ tvcm.exportTo('tracing.importer', function() {
     this.handlers_ = {};
     this.decoder_ = new Decoder();
   }
-
-  var TestExports = {};
 
   /**
    * Guesses whether the provided events is from a Windows ETW trace.

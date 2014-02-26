@@ -214,6 +214,7 @@
       'src/tracing/tracks/trace_model_track.js',
       'src/tracing/tracks/track.js',
       'third_party/tvcm/src/tvcm/__init__.js',
+      'third_party/tvcm/src/tvcm/base64.js',
       'third_party/tvcm/src/tvcm/bbox2.js',
       'third_party/tvcm/src/tvcm/color.js',
       'third_party/tvcm/src/tvcm/event_target.js',
