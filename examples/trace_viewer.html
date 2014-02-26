@@ -90,7 +90,7 @@ found in the LICENSE file.
 
   function createViewFromTraces(filenames, traces) {
     var m = new tracing.TraceModel();
-    var p = m.importTracesWithProgressDialog(traces, false);
+    var p = m.importTracesWithProgressDialog(traces, true);
     p.then(
       function() {
         timelineViewEl.model = m;
