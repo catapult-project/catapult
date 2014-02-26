@@ -88,7 +88,7 @@ class BrowserController(object):
     self._server = None
 
     if telemetry == None:
-      raise Exception('Not supported: you trace-viewer to be inside a chrome checkout for this to work.')
+      raise Exception('Not supported: trace-viewer must be inside a chrome checkout for this to work.')
 
     # If run in the context of the telemetry test runner, use
     # telemetry's browser options instead.
@@ -104,11 +104,11 @@ class BrowserController(object):
 
     finder_options.browser_options.warn_if_no_flash = False
     browser_to_create = browser_finder.FindBrowser(finder_options)
+    if not browser_to_create:
+      raise Exception(
+          'Failed to find the specified browser. ' +
+          ' Its binary is probably broken.')
 
-    if telemetry == None:
-      raise Exception('Telemetry not found. Cannot run src/ tests')
-
-    assert browser_to_create
     self._browser = browser_to_create.Create()
     self._tab = None
 
