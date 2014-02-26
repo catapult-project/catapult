@@ -72,8 +72,6 @@ tvcm.exportTo('tracing.trace_model', function() {
           (this.name != opt_name)) {
         if (!opt_baseTypeName)
           throw new Error('Must provide base type name for name update');
-        if (!this.creationTsWasExplicit)
-          throw new Error('Cannot update type name on implicit instance.');
         if (this.baseTypeName != opt_baseTypeName)
           throw new Error('Cannot update type name: base types dont match');
         this.name = opt_name;

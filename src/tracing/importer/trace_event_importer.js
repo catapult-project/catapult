@@ -819,11 +819,17 @@ tvcm.exportTo('tracing.importer', function() {
         else
           cat = containingSnapshot.objectInstance.category;
 
+        var baseTypename;
+        if (implicitSnapshot.base_type)
+          baseTypename = implicitSnapshot.base_type;
+        else
+          baseTypename = undefined;
+
         try {
           res = process.objects.addSnapshot(
               id, cat,
               name, containingSnapshot.ts,
-              implicitSnapshot);
+              implicitSnapshot, baseTypename);
         } catch (e) {
           this.model_.importWarning({
             type: 'object_snapshot_parse_error',
