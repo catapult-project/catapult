@@ -124,12 +124,12 @@ def IsEnabled(test, browser_type, platform):
       return True  # No arguments to @Enabled means always enable.
     for enabled_string in enabled_strings:
       if enabled_string in platform_attributes:
-        print (
-            'Skipping %s because it is only enabled for %s. '
-            'You are running %s.' % (test.__name__,
-                                     ' or '.join(enabled_strings),
-                                     ' '.join(platform_attributes)))
         return True
+    print (
+        'Skipping %s because it is only enabled for %s. '
+        'You are running %s.' % (test.__name__,
+                                 ' or '.join(enabled_strings),
+                                 ' '.join(platform_attributes)))
     return False
 
   return True
