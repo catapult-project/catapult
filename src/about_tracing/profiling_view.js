@@ -17,16 +17,7 @@ tvcm.require('tvcm.ui.info_bar');
 tvcm.require('tvcm.ui.overlay');
 
 tvcm.requireTemplate('about_tracing.profiling_view');
-tvcm.requireStylesheet('tvcm.ui.common');
-
-/*
- * Here is where we bring in modules that are used in about:tracing UI only.
- */
-tvcm.require('tracing.importer');
-tvcm.require('cc');
-tvcm.require('tcmalloc');
-tvcm.require('system_stats');
-tvcm.require('gpu');
+tvcm.require('about_tracing.features');
 
 tvcm.exportTo('about_tracing', function() {
   function readFile(file) {
