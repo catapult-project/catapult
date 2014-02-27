@@ -57,7 +57,7 @@ class AdbCommands(object):
   """A thin wrapper around ADB"""
 
   def __init__(self, device):
-    self._adb = android_commands.AndroidCommands(device, api_strict_mode=True)
+    self._adb = android_commands.AndroidCommands(device)
     self._device = device
 
   def device(self):
