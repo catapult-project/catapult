@@ -45,7 +45,6 @@ class InspectorBackendList(collections.Sequence):
     context_id = self._inspectable_contexts_dict.keys()[index]
     if context_id not in self._inspector_backend_dict:
       backend = inspector_backend.InspectorBackend(
-          self._browser_backend.browser,
           self._browser_backend,
           self._inspectable_contexts_dict[context_id])
       if self._backend_wrapper:

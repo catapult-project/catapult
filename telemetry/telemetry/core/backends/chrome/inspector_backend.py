@@ -28,8 +28,7 @@ class InspectorException(Exception):
 
 
 class InspectorBackend(object):
-  def __init__(self, browser, browser_backend, context, timeout=60):
-    self._browser = browser
+  def __init__(self, browser_backend, context, timeout=60):
     self._browser_backend = browser_backend
     self._context = context
     self._socket = None
@@ -77,7 +76,7 @@ class InspectorBackend(object):
 
   @property
   def browser(self):
-    return self._browser
+    return self._browser_backend.browser
 
   @property
   def url(self):
