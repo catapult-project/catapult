@@ -27,7 +27,7 @@ _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions(gsutil_path):
-    if _SupportsProdaccess(gsutil_path):
+    if SupportsProdaccess(gsutil_path):
       return 'Run prodaccess to authenticate.'
     else:
       return ('To configure your credentials:\n'
@@ -73,7 +73,7 @@ def _DownloadGsutil():
   return os.path.join(_DOWNLOAD_PATH, 'gsutil')
 
 
-def _FindGsutil():
+def FindGsutil():
   """Return the gsutil executable path. If we can't find it, download it."""
   # Look for a depot_tools installation.
   gsutil_path = _FindExecutableInPath(
@@ -90,7 +90,7 @@ def _FindGsutil():
   return _DownloadGsutil()
 
 
-def _SupportsProdaccess(gsutil_path):
+def SupportsProdaccess(gsutil_path):
   def GsutilSupportsProdaccess():
     with open(gsutil_path, 'r') as gsutil:
       return 'prodaccess' in gsutil.read()
@@ -99,7 +99,7 @@ def _SupportsProdaccess(gsutil_path):
 
 
 def _RunCommand(args):
-  gsutil_path = _FindGsutil()
+  gsutil_path = FindGsutil()
 
   gsutil = subprocess.Popen([sys.executable, gsutil_path] + args,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
