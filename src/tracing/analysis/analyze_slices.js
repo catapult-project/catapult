@@ -202,8 +202,10 @@ tvcm.exportTo('tracing.analysis', function() {
       results.appendDataRow(table, sliceGroupTitle, duration,
                             hasThreadDuration ? (threadDuration > 0 ?
                                 threadDuration : '') : null,
-                            selfTime, threadSelfTime, sliceGroup.length, null,
-                            statistics, function() {
+                            selfTime,
+                            hasThreadDuration ? (threadSelfTime > 0 ?
+                                threadSelfTime : '') : null,
+                            sliceGroup.length, null, statistics, function() {
                               return new tracing.Selection(sliceGroup);
                             });
 

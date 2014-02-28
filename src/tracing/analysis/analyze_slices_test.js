@@ -213,7 +213,7 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
       duration: 0.1,
       threadDuration: null,
       selfTime: 0.1,
-      threadSelfTime: 0,
+      threadSelfTime: null,
       occurences: 2,
       percentage: null,
       details: {

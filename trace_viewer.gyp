@@ -70,6 +70,7 @@
     ],
     'tracing_js_files': [
       'src/about_tracing/__init__.js',
+      'src/about_tracing/features.js',
       'src/about_tracing/mock_request_handler.js',
       'src/about_tracing/profiling_view.js',
       'src/about_tracing/tracing_ui_client.js',
