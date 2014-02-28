@@ -40,7 +40,7 @@ class MarkerOverlapError(Exception):
 
 
 class TimelineModel(object):
-  def __init__(self, event_data=None, shift_world_to_zero=True):
+  def __init__(self, timeline_data=None, shift_world_to_zero=True):
     self._bounds = bounds.Bounds()
     self._thread_time_bounds = {}
     self._processes = {}
@@ -54,8 +54,8 @@ class TimelineModel(object):
     # This would prevent telemetry from navigating to another page.
     self._core_object_to_timeline_container_map = weakref.WeakKeyDictionary()
 
-    if event_data is not None:
-      self.ImportTraces([event_data], shift_world_to_zero=shift_world_to_zero)
+    if timeline_data is not None:
+      self.ImportTraces(timeline_data, shift_world_to_zero=shift_world_to_zero)
 
   @property
   def bounds(self):
@@ -79,13 +79,16 @@ class TimelineModel(object):
   def browser_process(self, browser_process):
     self._browser_process = browser_process
 
-  def ImportTraces(self, traces, shift_world_to_zero=True):
+  def ImportTraces(self, timeline_data, shift_world_to_zero=True):
     if self._frozen:
       raise Exception("Cannot add events once recording is done")
 
     importers = []
-    for event_data in traces:
-      importers.append(self._CreateImporter(event_data))
+    if isinstance(timeline_data, list):
+      for item in timeline_data:
+        importers.append(self._CreateImporter(item))
+    else:
+      importers.append(self._CreateImporter(timeline_data))
 
     importers.sort(cmp=lambda x, y: x.import_priority - y.import_priority)
 

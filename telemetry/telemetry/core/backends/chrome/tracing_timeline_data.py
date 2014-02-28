@@ -1,16 +1,16 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import json
 import weakref
 
-from telemetry.core.timeline import model
+from telemetry.core.timeline_data import TimelineData
 
-
-class ChromeTraceResult(object):
-  def __init__(self, tracing_data, tab_to_marker_mapping = None):
-    self._tracing_data = tracing_data
+class TracingTimelineData(TimelineData):
+  def __init__(self, event_data, tab_to_marker_mapping = None):
+    super(TracingTimelineData, self).__init__()
+    self._event_data = event_data
     if tab_to_marker_mapping == None:
       self._tab_to_marker_mapping = weakref.WeakKeyDictionary()
     else:
@@ -19,13 +19,13 @@ class ChromeTraceResult(object):
   def Serialize(self, f):
     """Serializes the trace result to a file-like object"""
     f.write('{"traceEvents":')
-    json.dump(self._tracing_data, f)
+    json.dump(self._event_data, f)
     f.write('}')
 
-  def AsTimelineModel(self):
-    """Parses the trace result into a timeline model for in-memory
-    manipulation."""
-    timeline = model.TimelineModel(self._tracing_data)
+  def EventData(self):
+    return self._event_data
+
+  def AugmentTimelineModel(self, timeline):
     for thread in timeline.GetAllThreads():
       if thread.name == 'CrBrowserMain':
         timeline.browser_process = thread.parent
@@ -34,4 +34,3 @@ class ChromeTraceResult(object):
       assert(len(timeline_markers) == 1)
       renderer_process = timeline_markers[0].start_thread.parent
       timeline.AddCoreObjectToContainerMapping(key, renderer_process)
-    return timeline

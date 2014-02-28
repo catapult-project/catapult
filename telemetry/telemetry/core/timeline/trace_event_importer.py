@@ -11,14 +11,17 @@ import copy
 import json
 import re
 
+from telemetry.core.backends.chrome import tracing_timeline_data
 from telemetry.core.timeline import importer
 import telemetry.core.timeline.async_slice as tracing_async_slice
 import telemetry.core.timeline.flow_event as tracing_flow_event
 
 class TraceEventTimelineImporter(importer.TimelineImporter):
-  def __init__(self, model, event_data):
+  def __init__(self, model, timeline_data):
     super(TraceEventTimelineImporter, self).__init__(
-        model, event_data, import_priority=1)
+        model, timeline_data, import_priority=1)
+
+    event_data = timeline_data.EventData()
 
     self._events_were_from_string = False
     self._all_async_events = []
@@ -58,8 +61,14 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
             'value' : container['field_name']})
 
   @staticmethod
-  def CanImport(event_data):
+  def CanImport(timeline_data):
     ''' Returns whether obj is a TraceEvent array. '''
+    if not isinstance(timeline_data,
+                      tracing_timeline_data.TracingTimelineData):
+      return False
+
+    event_data = timeline_data.EventData()
+
     # May be encoded JSON. But we dont want to parse it fully yet.
     # Use a simple heuristic:
     #   - event_data that starts with [ are probably trace_event
@@ -268,6 +277,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._CreateFlowSlices()
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
+
+    self._timeline_data.AugmentTimelineModel(self._model)
 
   def _CreateAsyncSlices(self):
     if len(self._all_async_events) == 0:

@@ -8,8 +8,7 @@ import socket
 import threading
 import weakref
 
-from telemetry.core import trace_result
-from telemetry.core.backends.chrome import chrome_trace_result
+from telemetry.core.backends.chrome import tracing_timeline_data
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.backends.chrome import websocket_browser_connection
 
@@ -148,8 +147,8 @@ class TracingBackend(object):
 
   def _GetTraceResult(self):
     assert not self._IsTracing()
-    return trace_result.TraceResult(chrome_trace_result.ChromeTraceResult(
-        self._tracing_data, self._tab_to_marker_mapping))
+    return tracing_timeline_data.TracingTimelineData(
+        self._tracing_data, self._tab_to_marker_mapping)
 
   def _GetTraceResultAndReset(self):
     result = self._GetTraceResult()
