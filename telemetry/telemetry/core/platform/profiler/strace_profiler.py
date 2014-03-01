@@ -11,7 +11,7 @@ import sys
 import tempfile
 
 from telemetry.core.platform import profiler
-
+from telemetry.core.timeline import model
 
 # Parses one line of strace output, for example:
 # 6052  1311456063.159722 read(8, "\1\0\0\0\0\0\0\0", 8) = 8 <0.000022>
@@ -135,25 +135,25 @@ def _StraceToChromeTrace(pid, infile):
   return out
 
 
-def _GenerateTraceMetadata(model):
+def _GenerateTraceMetadata(timeline_model):
   out = []
-  for process in model.processes:
+  for process in timeline_model.processes:
     out.append({
         'name': 'process_name',
         'ph': 'M',  # Metadata
         'pid': process,
         'args': {
-          'name': model.processes[process].name
+          'name': timeline_model.processes[process].name
           }
         })
-    for thread in model.processes[process].threads:
+    for thread in timeline_model.processes[process].threads:
       out.append({
           'name': 'thread_name',
           'ph': 'M',  # Metadata
           'pid': process,
           'tid': thread,
           'args': {
-            'name': model.processes[process].threads[thread].name
+            'name': timeline_model.processes[process].threads[thread].name
             }
           })
   return out
@@ -241,8 +241,9 @@ class StraceProfiler(profiler.Profiler):
     for single_process in self._process_profilers:
       out_json.extend(single_process.CollectProfile())
 
-    model = self._browser_backend.StopTracing().AsTimelineModel()
-    out_json.extend(_GenerateTraceMetadata(model))
+    timeline_data = self._browser_backend.StopTracing()
+    timeline_model = model.TimelineModel(timeline_data)
+    out_json.extend(_GenerateTraceMetadata(timeline_model))
 
     with open(self._output_file, 'w') as f:
       f.write(json.dumps(out_json, separators=(',', ':')))
