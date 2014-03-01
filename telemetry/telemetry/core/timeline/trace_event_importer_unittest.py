@@ -19,6 +19,10 @@ def FindEventNamed(events, name):
 
 class TraceEventTimelineImporterTest(unittest.TestCase):
   def testCanImportEmpty(self):
+    # TraceEventTimelineImporter needs to return false for empty lists and
+    # strings, because it assumes that they are >0 in len. But, TimelineMode can
+    # still import empty lists and strings (wrapped in a TimelineData object)
+    # via EmptyTimelineDataImporter.
     self.assertFalse(
         trace_event_importer.TraceEventTimelineImporter.CanImport(
             tracing_timeline_data.TracingTimelineData([])))

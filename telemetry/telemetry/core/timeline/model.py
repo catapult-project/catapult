@@ -16,12 +16,12 @@ from telemetry.core import browser
 
 # Register importers for data
 from telemetry.core.timeline import bounds
-from telemetry.core.timeline import empty_trace_importer
+from telemetry.core.timeline import empty_timeline_data_importer
 from telemetry.core.timeline import inspector_importer
 from telemetry.core.timeline import trace_event_importer
 
 _IMPORTERS = [
-    empty_trace_importer.EmptyTraceImporter,
+    empty_timeline_data_importer.EmptyTimelineDataImporter,
     inspector_importer.InspectorTimelineImporter,
     trace_event_importer.TraceEventTimelineImporter
 ]

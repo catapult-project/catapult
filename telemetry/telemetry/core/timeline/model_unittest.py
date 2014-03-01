@@ -5,8 +5,11 @@
 import unittest
 
 from telemetry.core.timeline import model
+from telemetry.core.backends.chrome import tracing_timeline_data
 
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):
-    model.TimelineModel([])
-    model.TimelineModel('')
+    model.TimelineModel(
+        tracing_timeline_data.TracingTimelineData([]))
+    model.TimelineModel(
+        tracing_timeline_data.TracingTimelineData(''))
