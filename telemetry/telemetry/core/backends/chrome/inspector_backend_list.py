@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import logging
 
 from telemetry.core.backends.chrome import inspector_backend
 
@@ -42,6 +43,12 @@ class InspectorBackendList(collections.Sequence):
 
   def __getitem__(self, index):
     self._Update()
+    if index >= len(self._inspectable_contexts_dict.keys()):
+      logging.error('About to explode: _inspectable_contexts_dict.keys() = %s',
+                    repr({
+                      "index": index,
+                      "keys": self._inspectable_contexts_dict.keys()
+                    }))
     context_id = self._inspectable_contexts_dict.keys()[index]
     if context_id not in self._inspector_backend_dict:
       backend = inspector_backend.InspectorBackend(

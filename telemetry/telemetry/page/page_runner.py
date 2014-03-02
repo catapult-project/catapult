@@ -98,6 +98,9 @@ class _RunState(object):
     if self.browser.supports_tab_control and test.close_tabs_before_run:
       # Create a tab if there's none.
       if len(self.browser.tabs) == 0:
+        # TODO(nduca/tonyg): Remove this line. Added as part of crbug.com/348337
+        # chasing.
+        logging.warning('Making a new tab\n')
         self.browser.tabs.New()
 
       # Ensure only one tab is open, unless the test is a multi-tab test.
