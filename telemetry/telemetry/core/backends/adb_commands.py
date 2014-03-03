@@ -201,15 +201,6 @@ def GetBuildTypeOfPath(path):
 def SetupPrebuiltTools(adb):
   # TODO(bulach): build the host tools for mac, and the targets for x86/mips.
   # Prebuilt tools from r226197.
-  has_prebuilt = sys.platform.startswith('linux')
-  if has_prebuilt:
-    abi = adb.system_properties['ro.product.cpu.abi']
-    has_prebuilt = abi.startswith('armeabi')
-  if not has_prebuilt:
-    logging.error(
-        'Prebuilt android tools only available for Linux host and ARM device.')
-    return False
-
   prebuilt_tools = [
       'bitmaptools',
       'file_poller',
@@ -219,6 +210,12 @@ def SetupPrebuiltTools(adb):
       'md5sum_bin_host',
       'purge_ashmem',
   ]
+  has_prebuilt = (
+    sys.platform.startswith('linux') and
+    adb.system_properties['ro.product.cpu.abi'].startswith('armeabi'))
+  if not has_prebuilt:
+    return all([util.FindSupportBinary(t) for t in prebuilt_tools])
+
   build_type = None
   for t in prebuilt_tools:
     src = os.path.basename(t)

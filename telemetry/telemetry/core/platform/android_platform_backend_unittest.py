@@ -14,8 +14,11 @@ from telemetry.unittest import system_stub
 
 
 class MockAdbCommands(object):
-  def __init__(self, mock_content):
+  def __init__(self, mock_content, system_properties):
     self.mock_content = mock_content
+    self.system_properties = system_properties
+    if self.system_properties.get('ro.product.cpu.abi') == None:
+      self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
 
   def CanAccessProtectedFileContents(self):
     return True
@@ -47,7 +50,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '4294967295 1074458624 1074463824 3197495984 3197494152 '
         '1074767676 0 4612 0 38136 4294967295 0 0 17 0 0 0 0 0 0 '
         '1074470376 1074470912 1102155776']
-    adb_valid_proc_content = MockAdbCommands(proc_stat_content)
+    adb_valid_proc_content = MockAdbCommands(proc_stat_content, {})
     backend = android_platform_backend.AndroidPlatformBackend(
         adb_valid_proc_content, False)
     cpu_stats = backend.GetCpuStats('7702')
@@ -56,7 +59,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @test.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
-    adb_empty_proc_stat = MockAdbCommands([])
+    adb_empty_proc_stat = MockAdbCommands([], {})
     backend = android_platform_backend.AndroidPlatformBackend(
         adb_empty_proc_stat, False)
     cpu_stats = backend.GetCpuStats('7702')

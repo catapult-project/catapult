@@ -131,7 +131,9 @@ class AndroidPlatformBackend(
 
     This can be used to make memory measurements more stable in particular.
     """
-    android_prebuilt_profiler_helper.InstallOnDevice(self._adb, 'purge_ashmem')
+    if not android_prebuilt_profiler_helper.InstallOnDevice(
+        self._adb, 'purge_ashmem'):
+      raise Exception('Error installing purge_ashmem.')
     if self._adb.RunShellCommand(
         android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
         log_result=True):
