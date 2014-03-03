@@ -235,6 +235,13 @@ class BrowserOptions(object):
     self.disable_component_extensions_with_background_pages = True
 
   def AddCommandLineOptions(self, parser):
+
+    ############################################################################
+    # Please do not add any more options here without first discussing with    #
+    # a telemetry owner. This is not the right place for platform-specific     #
+    # options.                                                                 #
+    ############################################################################
+
     group = optparse.OptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
     group.add_option('--profile-type',
