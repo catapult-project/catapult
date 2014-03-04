@@ -158,6 +158,7 @@
       'src/tracing/importer/timeline_stream_importer.js',
       'src/tracing/importer/trace_event_importer.js',
       'src/tracing/importer/etw/parser.js',
+      'src/tracing/importer/etw/eventtrace_parser.js',
       'src/tracing/importer/etw/process_parser.js',
       'src/tracing/importer/etw/thread_parser.js',
       'src/tracing/importer/etw_importer.js',

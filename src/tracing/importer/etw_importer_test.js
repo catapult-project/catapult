@@ -72,6 +72,25 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(handler_called);
   });
 
+  test('resetTooSmall', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    var oldByteLength = decoder.payload_.byteLength;
+    // Decode a payload too big for the actual buffer.
+    decoder.reset('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==');
+    var newByteLength = decoder.payload_.byteLength;
+
+    // Validate the buffer has been resized.
+    assertTrue(oldByteLength < newByteLength);
+  });
+
   test('decode', function() {
     var model = 'dummy';
     var events = [];
@@ -149,7 +168,7 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     var decoder = importer.decoder_;
 
     decoder.reset('dGVzdAA=');
-    assertTrue(decoder.decodeString() == 'test');
+    assertTrue(decoder.decodeString() === 'test');
 
     decoder.reset('VGhpcyBpcyBhIHRlc3Qu');
     assertTrue(decoder.decodeString() === 'This is a test.');
@@ -160,6 +179,18 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     var decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assertTrue(decoder.decodeW16String() === 'test');
+  });
+
+  test('decodeFixedW16String', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+    decoder.reset('dABlAHMAdAAAAA==');
+    assertTrue(decoder.decodeFixedW16String(32) === 'test');
+    assertTrue(decoder.position_ == 64);
+
+    decoder.reset('dABlAHMAdAAAAA==');
+    assertTrue(decoder.decodeFixedW16String(1) === 't');
+    assertTrue(decoder.position_ == 2);
   });
 
   test('decodeBytes', function() {
@@ -183,6 +214,42 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(sid.pSid === '0403020104030201');
     assertTrue(sid.attributes == 0x02030405);
     assertTrue(sid.sid.length == 20);
+  });
+
+  test('decodeSystemTime', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    // Decode a SystemTime structure.
+    decoder.reset('AQACAAMABAAFAAYABwAIAA==');
+    var time = decoder.decodeSystemTime();
+    assertTrue(time.wYear == 1);
+    assertTrue(time.wMonth == 2);
+    assertTrue(time.wDayOfWeek == 3);
+    assertTrue(time.wDay == 4);
+    assertTrue(time.wHour == 5);
+    assertTrue(time.wMinute == 6);
+    assertTrue(time.wSecond == 7);
+    assertTrue(time.wMilliseconds == 8);
+  });
+
+  test('decodeTimeZoneInformation', function() {
+    var importer = new tracing.importer.EtwImporter('dummy', []);
+    var decoder = importer.decoder_;
+
+    // Decode a TimeZoneInformation structure.
+    decoder.reset('AQIDBGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAIAAwAEAAUABgAHAAgABA' +
+                  'MCAWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
+                  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAIAAwAEAAUABgAHAAgACAgI' +
+                  'CA==');
+    var time = decoder.decodeTimeZoneInformation();
+
+    assertTrue(time.bias == 0x04030201);
+    assertTrue(time.standardBias == 0x01020304);
+    assertTrue(time.daylightBias == 0x08080808);
+    assertTrue(time.standardName === 'a');
+    assertTrue(time.daylightName === 'b');
   });
 
   test('manageThreads', function() {

@@ -64,7 +64,7 @@ tvcm.exportTo('tracing.importer', function() {
     reset: function(base64_payload) {
       var decoded_size = tvcm.Base64.getDecodedBufferLength(base64_payload);
       if (decoded_size > this.payload_.byteLength)
-        this.bytes_ = new DataView(new ArrayBuffer(decoded_size));
+        this.payload_ = new DataView(new ArrayBuffer(decoded_size));
 
       tvcm.Base64.DecodeToTypedArray(base64_payload, this.payload_);
       this.position_ = 0;
@@ -152,6 +152,21 @@ tvcm.exportTo('tracing.importer', function() {
       }
     },
 
+    decodeFixedW16String: function(length) {
+      var old_position = this.position_;
+      var str = '';
+      for (var i = 0; i < length; i++) {
+        var c = this.decodeUInt16();
+        if (!c)
+          break;
+        str = str + String.fromCharCode(c);
+      }
+
+      // Move the position after the fixed buffer (i.e. wchar[length]).
+      this.position_ = old_position + 2 * length;
+      return str;
+    },
+
     decodeBytes: function(length) {
       var bytes = [];
       for (var i = 0; i < length; ++i) {
@@ -186,7 +201,50 @@ tvcm.exportTo('tracing.importer', function() {
         attributes: attributes,
         sid: sid
       };
+    },
+
+    decodeSystemTime: function() {
+      // Decode the SystemTime structure.
+      var wYear = this.decodeInt16();
+      var wMonth = this.decodeInt16();
+      var wDayOfWeek = this.decodeInt16();
+      var wDay = this.decodeInt16();
+      var wHour = this.decodeInt16();
+      var wMinute = this.decodeInt16();
+      var wSecond = this.decodeInt16();
+      var wMilliseconds = this.decodeInt16();
+      return {
+        wYear: wYear,
+        wMonth: wMonth,
+        wDayOfWeek: wDayOfWeek,
+        wDay: wDay,
+        wHour: wHour,
+        wMinute: wMinute,
+        wSecond: wSecond,
+        wMilliseconds: wMilliseconds
+      };
+    },
+
+    decodeTimeZoneInformation: function() {
+      // Decode the TimeZoneInformation structure.
+      var bias = this.decodeUInt32();
+      var standardName = this.decodeFixedW16String(32);
+      var standardDate = this.decodeSystemTime();
+      var standardBias = this.decodeUInt32();
+      var daylightName = this.decodeFixedW16String(32);
+      var daylightDate = this.decodeSystemTime();
+      var daylightBias = this.decodeUInt32();
+      return {
+        bias: bias,
+        standardName: standardName,
+        standardDate: standardDate,
+        standardBias: standardBias,
+        daylightName: daylightName,
+        daylightDate: daylightDate,
+        daylightBias: daylightBias
+      };
     }
+
   };
 
   /**

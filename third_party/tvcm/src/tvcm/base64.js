@@ -36,7 +36,7 @@ tvcm.exportTo('tvcm', function() {
     var nUint24 = 0;
     var nOutIdx = 0;
 
-    if (nOutLen >= output.byteLength)
+    if (nOutLen > output.byteLength)
       throw new Error('Output buffer too small to decode.');
 
     for (var nInIdx = 0; nInIdx < nInLen; nInIdx++) {
