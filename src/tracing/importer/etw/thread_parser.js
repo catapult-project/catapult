@@ -42,29 +42,150 @@ tvcm.exportTo('tracing.importer.etw', function() {
   }
 
   ThreadParser.prototype = {
+    __proto__: Parser.prototype,
+
+    decodeFields: function(header, decoder) {
+      if (header.version > 3)
+        throw new Error('Incompatible Thread event version.');
+
+      // Common fields to all Thread events.
+      var processId = decoder.decodeUInt32();
+      var threadId = decoder.decodeUInt32();
+
+      // Extended fields.
+      var stackBase;
+      var stackLimit;
+      var userStackBase;
+      var userStackLimit;
+      var affinity;
+      var startAddr;
+      var win32StartAddr;
+      var tebBase;
+      var subProcessTag;
+      var basePriority;
+      var pagePriority;
+      var ioPriority;
+      var threadFlags;
+      var waitMode;
+
+      if (header.version == 1) {
+        // On version 1, only start events have extended information.
+        if (header.opcode == kThreadStartOpcode ||
+            header.opcode == kThreadDCStartOpcode) {
+          stackBase = decoder.decodeUInteger(header.is64);
+          stackLimit = decoder.decodeUInteger(header.is64);
+          userStackBase = decoder.decodeUInteger(header.is64);
+          userStackLimit = decoder.decodeUInteger(header.is64);
+          startAddr = decoder.decodeUInteger(header.is64);
+          win32StartAddr = decoder.decodeUInteger(header.is64);
+          waitMode = decoder.decodeInt8();
+          decoder.skip(3);
+        }
+      } else {
+        stackBase = decoder.decodeUInteger(header.is64);
+        stackLimit = decoder.decodeUInteger(header.is64);
+        userStackBase = decoder.decodeUInteger(header.is64);
+        userStackLimit = decoder.decodeUInteger(header.is64);
+
+        // Version 2 produces a field named 'startAddr'.
+        if (header.version == 2)
+          startAddr = decoder.decodeUInteger(header.is64);
+        else
+          affinity = decoder.decodeUInteger(header.is64);
+
+        win32StartAddr = decoder.decodeUInteger(header.is64);
+        tebBase = decoder.decodeUInteger(header.is64);
+        subProcessTag = decoder.decodeUInt32();
+
+        if (header.version == 3) {
+          basePriority = decoder.decodeUInt8();
+          pagePriority = decoder.decodeUInt8();
+          ioPriority = decoder.decodeUInt8();
+          threadFlags = decoder.decodeUInt8();
+        }
+      }
+
+      return {
+        processId: processId,
+        threadId: threadId,
+        stackBase: stackBase,
+        stackLimit: stackLimit,
+        userStackBase: userStackBase,
+        userStackLimit: userStackLimit,
+        affinity: affinity,
+        startAddr: startAddr,
+        win32StartAddr: win32StartAddr,
+        tebBase: tebBase,
+        subProcessTag: subProcessTag,
+        waitMode: waitMode,
+        basePriority: basePriority,
+        pagePriority: pagePriority,
+        ioPriority: ioPriority,
+        threadFlags: threadFlags
+      };
+    },
+
+    decodeCSwitchFields: function(header, decoder) {
+      if (header.version != 2)
+        throw new Error('Incompatible Thread event version.');
+
+      // Decode CSwitch payload.
+      var newThreadId = decoder.decodeUInt32();
+      var oldThreadId = decoder.decodeUInt32();
+      var newThreadPriority = decoder.decodeInt8();
+      var oldThreadPriority = decoder.decodeInt8();
+      var previousCState = decoder.decodeUInt8();
+      var spareByte = decoder.decodeInt8();
+      var oldThreadWaitReason = decoder.decodeInt8();
+      var oldThreadWaitMode = decoder.decodeInt8();
+      var oldThreadState = decoder.decodeInt8();
+      var oldThreadWaitIdealProcessor = decoder.decodeInt8();
+      var newThreadWaitTime = decoder.decodeUInt32();
+      var reserved = decoder.decodeUInt32();
+
+      return {
+        newThreadId: newThreadId,
+        oldThreadId: oldThreadId,
+        newThreadPriority: newThreadPriority,
+        oldThreadPriority: oldThreadPriority,
+        previousCState: previousCState,
+        spareByte: spareByte,
+        oldThreadWaitReason: oldThreadWaitReason,
+        oldThreadWaitMode: oldThreadWaitMode,
+        oldThreadState: oldThreadState,
+        oldThreadWaitIdealProcessor: oldThreadWaitIdealProcessor,
+        newThreadWaitTime: newThreadWaitTime,
+        reserved: reserved
+      };
+    },
 
     decodeStart: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|..
       return true;
     },
 
     decodeEnd: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeDCStart: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeDCEnd: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeCSwitch: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeCSwitchFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     }
 

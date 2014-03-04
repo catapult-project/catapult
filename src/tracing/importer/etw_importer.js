@@ -70,6 +70,10 @@ tvcm.exportTo('tracing.importer', function() {
       this.position_ = 0;
     },
 
+    skip: function(length) {
+      this.position_ += length;
+    },
+
     decodeUInt8: function() {
       var result = this.payload_.getUint8(this.position_, true);
       this.position_ += 1;
@@ -88,10 +92,13 @@ tvcm.exportTo('tracing.importer', function() {
       return result;
     },
 
-    decodeUInt64: function() {
+    decodeUInt64ToString: function() {
+      // Javascript isn't able to manage 64-bit numeric values.
       var low = this.decodeUInt32();
       var high = this.decodeUInt32();
-      var result = (high * 0x100000000) + low;
+      var low_str = ('0000000' + low.toString(16)).substr(-8);
+      var high_str = ('0000000' + high.toString(16)).substr(-8);
+      var result = high_str + low_str;
       return result;
     },
 
@@ -113,16 +120,15 @@ tvcm.exportTo('tracing.importer', function() {
       return result;
     },
 
-    decodeInt64: function() {
-      var value = this.decodeUInt64();
-      if (value > 0x7FFFFFFFFFFFFFFF)
-        return value - 0x10000000000000000;
-      return value;
+    decodeInt64ToString: function() {
+      // Javascript isn't able to manage 64-bit numeric values.
+      // Fallback to unsigned 64-bit hexa value.
+      return this.decodeUInt64ToString();
     },
 
     decodeUInteger: function(is64) {
       if (is64)
-        return this.decodeUInt64();
+        return this.decodeUInt64ToString();
       return this.decodeUInt32();
     },
 

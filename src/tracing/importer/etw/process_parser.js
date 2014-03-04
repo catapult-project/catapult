@@ -42,29 +42,104 @@ tvcm.exportTo('tracing.importer.etw', function() {
   }
 
   ProcessParser.prototype = {
+    __proto__: Parser.prototype,
+
+    decodeFields: function(header, decoder) {
+      if (header.version > 5)
+        throw new Error('Incompatible Process event version.');
+
+      var pageDirectoryBase;
+      if (header.version == 1)
+        pageDirectoryBase = decoder.decodeUInteger(header.is64);
+
+      var uniqueProcessKey;
+      if (header.version >= 2)
+        uniqueProcessKey = decoder.decodeUInteger(header.is64);
+
+      var processId = decoder.decodeUInt32();
+      var parentId = decoder.decodeUInt32();
+
+      var sessionId;
+      var exitStatus;
+      if (header.version >= 1) {
+        sessionId = decoder.decodeUInt32();
+        exitStatus = decoder.decodeInt32();
+      }
+
+      var directoryTableBase;
+      if (header.version >= 3)
+        directoryTableBase = decoder.decodeUInteger(header.is64);
+
+      var flags;
+      if (header.version >= 4)
+        flags = decoder.decodeUInt32();
+
+      var userSID = decoder.decodeSID(header.is64);
+
+      var imageFileName;
+      if (header.version >= 1)
+        imageFileName = decoder.decodeString();
+
+      var commandLine;
+      if (header.version >= 2)
+        commandLine = decoder.decodeW16String();
+
+      var packageFullName;
+      var applicationId;
+      if (header.version >= 4) {
+        packageFullName = decoder.decodeW16String();
+        applicationId = decoder.decodeW16String();
+      }
+
+      var exitTime;
+      if (header.version == 5 && header.opcode == kProcessDefunctOpcode)
+        exitTime = decoder.decodeUInt64ToString();
+
+      return {
+        pageDirectoryBase: pageDirectoryBase,
+        uniqueProcessKey: uniqueProcessKey,
+        processId: processId,
+        parentId: parentId,
+        sessionId: sessionId,
+        exitStatus: exitStatus,
+        directoryTableBase: directoryTableBase,
+        flags: flags,
+        userSID: userSID,
+        imageFileName: imageFileName,
+        commandLine: commandLine,
+        packageFullName: packageFullName,
+        applicationId: applicationId,
+        exitTime: exitTime
+      };
+    },
 
     decodeStart: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeEnd: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeDCStart: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeDCEnd: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     },
 
     decodeDefunct: function(header, decoder) {
-      // TODO(etienneb): decode payload.
+      var fields = this.decodeFields(header, decoder);
+      // TODO(etienneb): Update the TraceModel with |fields|.
       return true;
     }
 

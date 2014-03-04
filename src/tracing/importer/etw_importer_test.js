@@ -93,7 +93,7 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(decoder.decodeUInt32() == 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
-    assertTrue(decoder.decodeUInt64() == 0x0807060504030201);
+    assertTrue(decoder.decodeUInt64ToString() === '0807060504030201');
 
     // Decode signed numbers.
     decoder.reset('AQ==');
@@ -106,7 +106,7 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(decoder.decodeInt32() == 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
-    assertTrue(decoder.decodeInt64() == 0x0807060504030201);
+    assertTrue(decoder.decodeInt64ToString() === '0807060504030201');
 
     // Last value before being a signed number.
     decoder.reset('fw==');
@@ -141,7 +141,7 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(decoder.decodeUInteger(false) == 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
-    assertTrue(decoder.decodeUInteger(true) == 0x0807060504030201);
+    assertTrue(decoder.decodeUInteger(true) === '0807060504030201');
   });
 
   test('decodeString', function() {
@@ -152,14 +152,14 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
     assertTrue(decoder.decodeString() == 'test');
 
     decoder.reset('VGhpcyBpcyBhIHRlc3Qu');
-    assertTrue(decoder.decodeString() == 'This is a test.');
+    assertTrue(decoder.decodeString() === 'This is a test.');
   });
 
   test('decodeW16String', function() {
     var importer = new tracing.importer.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
-    assertTrue(decoder.decodeW16String() == 'test');
+    assertTrue(decoder.decodeW16String() === 'test');
   });
 
   test('decodeBytes', function() {
@@ -180,7 +180,7 @@ tvcm.unittest.testSuite('tracing.importer.etw_importer_test', function() {
         'AQIDBAECAwQFBAMCAAAAAAEFAAAAAAAFFQAAAAECAwQFBgcICQoLDA0DAAA=');
     var sid = decoder.decodeSID(true);
 
-    assertTrue(sid.pSid == 0x0403020104030201);
+    assertTrue(sid.pSid === '0403020104030201');
     assertTrue(sid.attributes == 0x02030405);
     assertTrue(sid.sid.length == 20);
   });
