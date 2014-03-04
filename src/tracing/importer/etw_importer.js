@@ -264,7 +264,6 @@ tvcm.exportTo('tracing.importer', function() {
     // only provide tid, this map allows to retrieve the parent process.
     this.tidsToPid_ = {};
 
-
     // Instantiate the parsers; this will register handlers for known events.
     var constructors = tracing.importer.etw.Parser.getSubtypeConstructors();
     for (var i = 0; i < constructors.length; ++i) {
@@ -361,17 +360,18 @@ tvcm.exportTo('tracing.importer', function() {
      * Registers a windows ETW event handler used by parseEvent().
      */
     registerEventHandler: function(guid, opcode, handler) {
-      var eventName = guid + '_' + opcode;
-      this.handlers_[eventName] = handler;
+      if (this.handlers_[guid] == undefined)
+        this.handlers_[guid] = [];
+      this.handlers_[guid][opcode] = handler;
     },
 
     /**
      * Retrieves a registered event handler.
      */
     getEventHandler: function(guid, opcode) {
-      var eventName = guid + '_' + opcode;
-      var handler = this.handlers_[eventName];
-      return handler;
+      if (this.handlers_[guid] == undefined)
+        return undefined;
+      return this.handlers_[guid][opcode];
     }
 
   };
