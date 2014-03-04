@@ -2,6 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""Profiler using data collected from a Monsoon power meter.
+
+http://msoon.com/LabEquipment/PowerMonitor/
+Data collected is a namedtuple of (amps, volts), at 5000 samples/second.
+Output graph plots power in watts over time in seconds.
+"""
+
 import csv
 import multiprocessing
 
@@ -34,7 +41,8 @@ def _CollectData(output_path, is_collecting):
     mon.StopDataCollection()
 
   # Add x-axis labels.
-  plot_data = [(i / 5000., sample(0)) for i, sample in enumerate(samples)]
+  plot_data = [(i / 5000., sample.amps * sample.volts)
+               for i, sample in enumerate(samples)]
 
   # Print data in csv.
   with open(output_path, 'w') as output_file:
@@ -48,11 +56,6 @@ def _CollectData(output_path, is_collecting):
 
 
 class MonsoonProfiler(profiler.Profiler):
-  """Profiler that tracks current using Monsoon Power Monitor.
-
-  http://www.msoon.com/LabEquipment/PowerMonitor/
-  The Monsoon device measures current in amps at 5000 samples/second.
-  """
   def __init__(self, browser_backend, platform_backend, output_path, state):
     super(MonsoonProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)

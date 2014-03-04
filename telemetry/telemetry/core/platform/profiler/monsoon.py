@@ -2,12 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Interface for a USB-connected Monsoon power meter
-(http://msoon.com/LabEquipment/PowerMonitor/).
+"""Interface for a USB-connected Monsoon power meter.
 
+http://msoon.com/LabEquipment/PowerMonitor/
 Currently Unix-only. Relies on fcntl, /dev, and /tmp.
 """
 
+import collections
 import logging
 import os
 import select
@@ -18,6 +19,9 @@ from telemetry.core import util
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'pyserial')
 import serial  # pylint: disable=F0401
+
+
+Power = collections.namedtuple('Power', ['amps', 'volts'])
 
 
 class Monsoon:
@@ -210,7 +214,7 @@ class Monsoon:
             sample += ((usb & ~1) - self._coarse_zero) * self._coarse_scale
           else:
             sample += (usb - self._fine_zero) * self._fine_scale
-          out.append((sample, main_voltage_v))
+          out.append(Power(sample, main_voltage_v))
         return out
 
       elif packet_type == 1:
