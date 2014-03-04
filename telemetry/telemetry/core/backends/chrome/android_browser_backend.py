@@ -129,7 +129,7 @@ class ChromiumTestShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
     super(ChromiumTestShellBackendSettings, self).__init__(
           adb=adb,
-          activity='org.chromium.chrome.testshell.ChromiumTestShellActivity',
+          activity='org.chromium.chrome.shell.ChromiumTestShellActivity',
           cmdline_file='/data/local/tmp/chromium-testshell-command-line',
           package=package,
           pseudo_exec_name='chromium_testshell',
