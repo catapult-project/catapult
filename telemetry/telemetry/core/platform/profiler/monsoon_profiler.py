@@ -19,7 +19,6 @@ from telemetry.core.platform.profiler import monsoon
 
 def _CollectData(output_path, is_collecting):
   mon = monsoon.Monsoon(wait=False)
-  mon.SetMaxCurrent(2.0)
   # Note: Telemetry requires the device to be connected by USB, but that
   # puts it in charging mode. This increases the power consumption.
   mon.SetUsbPassthrough(1)

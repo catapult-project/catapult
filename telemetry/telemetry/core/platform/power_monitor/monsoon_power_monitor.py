@@ -51,7 +51,6 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     self._monsoon = None
     try:
       self._monsoon = monsoon.Monsoon(wait=False)
-      self._monsoon.SetMaxCurrent(2.0)
       # Nominal Li-ion voltage is 3.7V, but it puts out 4.2V at max capacity.
       # Use 4.0V to simulate a "~80%" charged battery. Google "li-ion voltage
       # curve". This is true only for a single cell. (Most smartphones, some
