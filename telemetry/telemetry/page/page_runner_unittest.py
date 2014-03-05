@@ -358,3 +358,32 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
     page_runner.Run(test, ps, expectations, options)
+
+  # Ensure that page_runner calls cleanUp when a page run fails.
+  def testCleanUpPage(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    page = page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
+    ps.pages.append(page)
+
+    class Test(page_test.PageTest):
+      def __init__(self,
+                   test_method_name,
+                   action_name_to_run=''):
+        super(Test, self).__init__(
+            test_method_name, action_name_to_run, False)
+        self.did_call_clean_up = False
+
+      def RunTest(self, _, _2, _3):
+        raise Exception('Intentional failure')
+
+      def CleanUpAfterPage(self, page, tab):
+        self.did_call_clean_up = True
+
+
+    test = Test('RunTest')
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    page_runner.Run(test, ps, expectations, options)
+    assert test.did_call_clean_up

@@ -179,7 +179,13 @@ class PageState(object):
       i = navigate.NavigateAction()
       i.RunAction(self.page, self.tab, None)
 
-  def CleanUpPage(self):
+  def CleanUpPage(self, test):
+    try:
+      test.CleanUpAfterPage(self.page, self.tab)
+    except Exception:
+      logging.error('While cleaning up %s:\n%s', self.page.url,
+                    traceback.format_exc())
+
     if self.page.credentials and self._did_login:
       self.tab.browser.credentials.LoginNoLongerNeeded(
           self.tab, self.page.credentials)
@@ -495,7 +501,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       logging.warning('%s was expected to fail, but passed.\n', page.url)
     results.AddSuccess(page)
   finally:
-    page_state.CleanUpPage()
+    page_state.CleanUpPage(test)
 
 
 def _GetSequentialFileName(base_name):

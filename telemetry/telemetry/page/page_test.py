@@ -269,6 +269,10 @@ class PageTest(object):
     """Override to do operations after running the action on the page."""
     pass
 
+  def CleanUpAfterPage(self, page, tab):
+    """Called after the test run method was run, even if it failed."""
+    pass
+
   def CreatePageSet(self, args, options):   # pylint: disable=W0613
     """Override to make this test generate its own page set instead of
     allowing arbitrary page sets entered from the command-line."""
