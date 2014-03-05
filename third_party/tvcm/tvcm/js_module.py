@@ -35,6 +35,9 @@ def IsJSTest(text, text_is_stripped=True):
   if re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
                stripped_text, re.DOTALL):
     return True
+  if re.search("""tvcm\s*\.\s*testSuite\((["'])(.+?)\\1""",
+               stripped_text, re.DOTALL):
+    return True
 
   return False
 
@@ -60,11 +63,13 @@ def ValidateTestSuiteDefinition(module_name, stripped_text):
   rest = stripped_text
   num_matches = 0
   while True:
-    m_ts = re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
-                     rest, re.DOTALL)
+    m_ts1 = re.search("""tvcm\s*\.\s*unittest\s*\.\s*testSuite\((["'])(.+?)\\1""",
+                      rest, re.DOTALL)
+    m_ts2 = re.search("""tvcm\s*\.\s*testSuite\((["'])(.+?)\\1""",
+                      rest, re.DOTALL)
 
     # Figure out which was first.
-    matches = [m for m in [m_ts] if m]
+    matches = [m for m in [m_ts1, m_ts2] if m]
     matches.sort(key=lambda x: x.start())
     if len(matches):
       m = matches[0]

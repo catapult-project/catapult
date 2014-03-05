@@ -14,6 +14,10 @@ tvcm.require('tvcm.unittest.test_suite');
 tvcm.require('tvcm.unittest.test_runner');
 
 tvcm.exportTo('tvcm.unittest', function() {
+  // Manually export tvcm.unittest.testSuite to the tvcm namespace. This is done
+  // to avoid linewrapping in 80col-constrained environments.
+  tvcm.testSuite = tvcm.unittest.testSuite;
+
   return {
   };
 });

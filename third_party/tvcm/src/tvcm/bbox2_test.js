@@ -6,7 +6,7 @@
 
 tvcm.require('tvcm.bbox2');
 
-tvcm.unittest.testSuite('tvcm.bbox2_test', function() {
+tvcm.testSuite('tvcm.bbox2_test', function() {
   test('addVec2', function() {
     var bbox = new tvcm.BBox2();
     var x = vec2.create();
