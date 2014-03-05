@@ -48,16 +48,17 @@ class Test(object):
     for key, value in self.options.iteritems():
       setattr(options, key, value)
 
-    if hasattr(self, '_disabled_strings'):
-      self.test._disabled_strings = self._disabled_strings
-    if hasattr(self, '_enabled_strings'):
-      self.test._enabled_strings = self._enabled_strings
-
     options.repeat_options = self._CreateRepeatOptions(options)
     self.CustomizeBrowserOptions(options)
 
     test = self.test()
     test.__name__ = self.__class__.__name__
+
+    if hasattr(self, '_disabled_strings'):
+      test._disabled_strings = self._disabled_strings
+    if hasattr(self, '_enabled_strings'):
+      test._enabled_strings = self._enabled_strings
+
     ps = self.CreatePageSet(options)
     expectations = self.CreateExpectations(ps)
 

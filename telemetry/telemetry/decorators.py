@@ -105,6 +105,13 @@ def IsEnabled(test, browser_type, platform):
       platform.GetOSVersionName(),
       ]]
 
+  if hasattr(test, '__name__'):
+    name = test.__name__
+  elif hasattr(test, '__class__'):
+    name = test.__class__.__name__
+  else:
+    name = str(test)
+
   if hasattr(test, '_disabled_strings'):
     disabled_strings = test._disabled_strings
     if not disabled_strings:
@@ -113,7 +120,7 @@ def IsEnabled(test, browser_type, platform):
       if disabled_string in platform_attributes:
         print (
             'Skipping %s because it is disabled for %s. '
-            'You are running %s.' % (test.__name__,
+            'You are running %s.' % (name,
                                      ' and '.join(disabled_strings),
                                      ' '.join(platform_attributes)))
         return False
@@ -127,7 +134,7 @@ def IsEnabled(test, browser_type, platform):
         return True
     print (
         'Skipping %s because it is only enabled for %s. '
-        'You are running %s.' % (test.__name__,
+        'You are running %s.' % (name,
                                  ' or '.join(enabled_strings),
                                  ' '.join(platform_attributes)))
     return False
