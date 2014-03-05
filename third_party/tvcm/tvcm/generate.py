@@ -153,6 +153,7 @@ def GenerateStandaloneHTMLToFile(output_file,
   output_file.write("""<!DOCTYPE HTML>
 <html>
   <head i18n-values="dir:textdirection;">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>%s</title>
 """ % title)
 
