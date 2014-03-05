@@ -135,11 +135,19 @@ tvcm.exportTo('about_tracing', function() {
       finalPromiseResolver.reject(err);
     }
 
-    // Step 1: Get categories.
-    tracingRequest('GET', '/json/categories').then(
-        showTracingDialog,
-        beginRecordingError);
+    // Step 0: End recording. This is necessary when the user reloads the
+    // about:tracing page when we are recording. Window.onbeforeunload is not
+    // reliable to end recording on reload.
+    endRecording(tracingRequest).then(
+        getCategories,
+        getCategories);  // Ignore error.
 
+    // Step 1: Get categories.
+    function getCategories() {
+      tracingRequest('GET', '/json/categories').then(
+          showTracingDialog,
+          beginRecordingError);
+    }
 
     // Step 2: Show tracing dialog.
     var selectionDlg;

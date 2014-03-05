@@ -18,6 +18,9 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
   test('fullRecording', function() {
     return new Promise(function(r) {
       var mock = new about_tracing.MockRequestHandler();
+      mock.expectRequest('GET', '/json/end_recording', function() {
+        return '';
+      });
       mock.expectRequest('GET', '/json/categories', function() {
         setTimeout(function() {
           recordingPromise.selectionDlg.clickRecordButton();

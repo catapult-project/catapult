@@ -33,6 +33,9 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
     mock.expectRequest('GET', '/json/get_monitoring_status', function() {
       return btoa(JSON.stringify(monitoringOptions));
     });
+    mock.expectRequest('GET', '/json/end_recording', function() {
+      return '';
+    });
     mock.expectRequest('GET', '/json/categories', function() {
       return JSON.stringify(['a', 'b', 'c']);
     });
