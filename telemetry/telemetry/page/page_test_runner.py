@@ -62,19 +62,11 @@ class PageTestRunner(object):
       test_name or None
     """
     test_name = None
-    for arg in [self.GetModernizedTestName(a) for a in args]:
+    for arg in args:
       if arg in test_constructors:
         test_name = arg
 
     return test_name
-
-  def GetModernizedTestName(self, arg):
-    """Sometimes tests change names but buildbots keep calling the old name.
-
-    If arg matches an old test name, return the new test name instead.
-    Otherwise, return the arg.
-    """
-    return arg
 
   def GetPageSet(self, test, env):
     ps = test.CreatePageSet(self._args, self._options)
