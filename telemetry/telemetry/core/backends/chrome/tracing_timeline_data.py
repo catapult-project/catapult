@@ -32,5 +32,7 @@ class TracingTimelineData(TimelineData):
     for key, value in self._tab_to_marker_mapping.iteritems():
       timeline_markers = timeline.FindTimelineMarkers(value)
       assert(len(timeline_markers) == 1)
-      renderer_process = timeline_markers[0].start_thread.parent
-      timeline.AddCoreObjectToContainerMapping(key, renderer_process)
+      assert(timeline_markers[0].start_thread ==
+             timeline_markers[0].end_thread)
+      renderer_thread = timeline_markers[0].start_thread
+      timeline.AddCoreObjectToContainerMapping(key, renderer_thread)

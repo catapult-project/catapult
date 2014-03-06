@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <style type="text/css">
+      body { height: 1500px; }
+      #center {
+         position: fixed;
+         left: 40%;;
+         width: 50%;
+         height: 250px;
+         top: 25%;
+         background-color: grey;
+         -webkit-transform: scale(0.25, 0.25);
+         -webkit-transition: -webkit-transform 1s;
+      }
+
+      #drawer {
+         position: fixed;
+         top: 0;
+         left: 0;
+         height: 100%;
+         width: 120px;
+         background-color: red;
+         -webkit-transform: translate3d(-1000px, 0, 0);
+         -webkit-transition: -webkit-transform 1s;
+      }
+
+    </style>
+    <script>
+    'use strict';
+    window.animationDone = false;
+    window.addEventListener('load', function() {
+      var centerEl = document.querySelector('#center');
+      centerEl.style.webkitTransform = 'scale(1.0, 1.0)';
+      console.time('Interaction.CenterAnimation/is_smooth');
+      centerEl.addEventListener('transitionend', function() {
+        console.timeEnd('Interaction.CenterAnimation/is_smooth');
+        var drawerEl = document.querySelector('#drawer');
+        drawerEl.style.webkitTransform = 'translate3D(0, 0, 0)';
+        console.time('Interaction.DrawerAnimation/is_smooth');
+        drawerEl.addEventListener('transitionend', function() {
+          console.timeEnd('Interaction.DrawerAnimation/is_smooth');
+          window.animationDone = true;
+        });
+      });
+    });
+    </script>
+  </head>
+  <body>
+    <div id="center">
+      This is something in the middle.
+    </div>
+    <div id="drawer">
+      This is a drawer.
+    </div>
+  </body>
+</html>

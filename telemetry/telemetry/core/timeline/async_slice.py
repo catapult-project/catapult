@@ -9,12 +9,13 @@ class AsyncSlice(event.TimelineEvent):
   asynchronous operation is in progress. An AsyncSlice consumes no CPU time
   itself and so is only associated with Threads at its start and end point.
   '''
-  def __init__(self, category, name, timestamp, args=None):
+  def __init__(self, category, name, timestamp, args=None,
+               duration=0, start_thread=None, end_thread=None):
     super(AsyncSlice, self).__init__(
-        category, name, timestamp, duration=0, args=args)
+        category, name, timestamp, duration=duration, args=args)
     self.parent_slice = None
-    self.start_thread = None
-    self.end_thread = None
+    self.start_thread = start_thread
+    self.end_thread = end_thread
     self.sub_slices = []
     self.id = None
 

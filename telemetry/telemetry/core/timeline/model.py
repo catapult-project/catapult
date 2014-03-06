@@ -233,6 +233,9 @@ class TimelineModel(object):
     return events
 
   def GetRendererProcessFromTab(self, tab):
+    return self._core_object_to_timeline_container_map[tab].parent
+
+  def GetRendererThreadFromTab(self, tab):
     return self._core_object_to_timeline_container_map[tab]
 
   def AddCoreObjectToContainerMapping(self, core_object, container):
