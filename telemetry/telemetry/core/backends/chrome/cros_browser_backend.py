@@ -270,8 +270,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RmRF(self._login_ext_dir)
       self._login_ext_dir = None
 
-    for e in self._extensions_to_load:
-      self._cri.RmRF(os.path.dirname(e.local_path))
+    if self._cri:
+      for e in self._extensions_to_load:
+        self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
 
