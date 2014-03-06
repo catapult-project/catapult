@@ -278,6 +278,7 @@ class Browser(object):
     return self._browser_backend.StartTracing(custom_categories, timeout)
 
   def StopTracing(self):
+    """ Stops tracing and returns the result as TimelineData object. """
     return self._browser_backend.StopTracing()
 
   def Start(self):
@@ -398,4 +399,3 @@ class Browser(object):
 
        See the documentation of the SystemInfo class for more details."""
     return self._browser_backend.GetSystemInfo()
-

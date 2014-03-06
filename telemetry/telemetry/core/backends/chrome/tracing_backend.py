@@ -128,7 +128,7 @@ class TracingBackend(object):
   def StopTracing(self):
     """ Stops tracing on the innermost (!) nested call, because we cannot get
         results otherwise. Resets _tracing_data on the outermost nested call.
-        Returns the result of the trace, as TraceResult object.
+        Returns the result of the trace, as TracingTimelineData object.
     """
     self._nesting -= 1
     assert self._nesting >= 0

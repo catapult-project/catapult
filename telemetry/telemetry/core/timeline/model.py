@@ -41,6 +41,12 @@ class MarkerOverlapError(Exception):
 
 class TimelineModel(object):
   def __init__(self, timeline_data=None, shift_world_to_zero=True):
+    """ Initializes a TimelineModel. timeline_data can be a single TimelineData
+    object, a list of TimelineData objects, or None. If timeline_data is not
+    None, all events from it will be imported into the model. The events will
+    be shifted such that the first event starts at time 0, if
+    shift_world_to_zero is True.
+    """
     self._bounds = bounds.Bounds()
     self._thread_time_bounds = {}
     self._processes = {}
