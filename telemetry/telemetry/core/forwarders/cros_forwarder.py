@@ -42,6 +42,7 @@ class CrOsSshForwarder(forwarders.Forwarder):
                                        self.host_ip,
                                        port_pair.remote_port)
                       for port_pair in port_pairs if port_pair]
+      logging.debug('Forwarding to localhost:%d', port_pairs[0].local_port)
     self._proc = subprocess.Popen(
         self._cri.FormSSHCommandLine(['sleep', '999999999'], command_line),
         stdout=subprocess.PIPE,
@@ -50,7 +51,7 @@ class CrOsSshForwarder(forwarders.Forwarder):
         shell=False)
     util.WaitFor(
         lambda: self._cri.IsHTTPServerRunningOnPort(self.host_port), 60)
-    logging.debug('Server started on %s:%d' % (self.host_ip, self.host_port))
+    logging.debug('Server started on %s:%d', self.host_ip, self.host_port)
 
   @property
   def host_port(self):
