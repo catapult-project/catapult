@@ -95,7 +95,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--metrics-recording-only')
     args.append('--no-default-browser-check')
     args.append('--no-first-run')
-    args.append('--no-proxy-server')
+    # Set --no-proxy-server to work around some XP issues unless
+    # some other flag indicates a proxy is needed.
+    if not '--enable-spdy-proxy-auth' in args:
+      args.append('--no-proxy-server')
+
     if self.browser_options.netsim:
       args.append('--ignore-certificate-errors')
     elif self.browser_options.wpr_mode != wpr_modes.WPR_OFF:
