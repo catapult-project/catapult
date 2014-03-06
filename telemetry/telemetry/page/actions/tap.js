@@ -31,8 +31,8 @@
   function TapAction(opt_callback) {
     var self = this;
 
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
   }
@@ -43,10 +43,6 @@
     // ensures this method will be called after the document is loaded.
     this.element_ = this.options_.element_;
 
-    requestAnimationFrame(this.startPass_.bind(this));
-  };
-
-  TapAction.prototype.startPass_ = function() {
     this.beginMeasuringHook();
 
     var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
@@ -54,6 +50,10 @@
         rect.left + rect.width * this.options_.left_position_percentage_;
     var position_top =
         rect.top + rect.height * this.options_.top_position_percentage_;
+    if (position_left < 0 || position_left >= window.innerWidth ||
+        position_top < 0 || position_top >= window.innerHeight) {
+      throw new Error('Tap position is off-screen');
+    }
     chrome.gpuBenchmarking.tap(position_left, position_top,
                                this.onGestureComplete_.bind(this),
                                this.options_.duration_ms_,

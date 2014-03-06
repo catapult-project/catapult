@@ -2,9 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import re
 
+from telemetry.core import util
 from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
+
+def _EscapeSelector(selector):
+  return selector.replace('\'', '\\\'')
+
 
 class TapAction(GestureAction):
   def __init__(self, attributes=None):
@@ -28,6 +34,36 @@ class TapAction(GestureAction):
         window.__tapAction = new __TapAction(%s);"""
         % (done_callback))
 
+  def HasElementSelector(self):
+    return (hasattr(self, 'element_function') or hasattr(self, 'selector') or
+            hasattr(self, 'text') or hasattr(self, 'xpath'))
+
+  def TapSelectedElement(self, tab, js_cmd):
+    assert self.HasElementSelector()
+    if hasattr(self, 'text'):
+      callback_code = 'function(element) { %s }' % js_cmd
+      util.FindElementAndPerformAction(tab, self.text, callback_code)
+    else:
+      if hasattr(self, 'element_function'):
+        element_function = self.element_function
+      elif hasattr(self, 'selector'):
+        element_cmd = ('document.querySelector(\'' +
+            _EscapeSelector(self.selector) + '\')')
+        element_function = 'function(callback) { callback(%s); }' % element_cmd
+      elif hasattr(self, 'xpath'):
+        element_cmd = ('document.evaluate("%s",'
+                                          'document,'
+                                          'null,'
+                                          'XPathResult.FIRST_ORDERED_NODE_TYPE,'
+                                          'null)'
+                              '.singleNodeValue' % re.escape(self.xpath))
+        element_function = 'function(callback) { callback(%s); }' % element_cmd
+      else:
+        assert False
+
+      tab.ExecuteJavaScript('(%s)(function(element) { %s });' %
+                                (element_function, js_cmd))
+
   def RunGesture(self, page, tab, previous_action):
     left_position_percentage = 0.5
     top_position_percentage = 0.5
@@ -39,20 +75,8 @@ class TapAction(GestureAction):
       top_position_percentage = self.top_position_percentage
     if hasattr(self, 'duration_ms'):
       duration_ms = self.duration_ms
-    if hasattr(self, 'element_function'):
-      tab.ExecuteJavaScript("""
-          (%s)(function(element) { window.__tapAction.start(
-             { element: element,
-               left_position_percentage: %s,
-               top_position_percentage: %s,
-               duration_ms: %s,
-               gesture_source_type: %s })
-             });""" % (self.element_function,
-                       left_position_percentage,
-                       top_position_percentage,
-                       duration_ms,
-                       gesture_source_type))
-    else:
+
+    if not self.HasElementSelector():
       tab.ExecuteJavaScript("""
           window.__tapAction.start(
           { element: document.body,
@@ -64,6 +88,19 @@ class TapAction(GestureAction):
            top_position_percentage,
            duration_ms,
            gesture_source_type))
+    else:
+      js_cmd = ("""
+          window.__tapAction.start(
+             { element: element,
+               left_position_percentage: %s,
+               top_position_percentage: %s,
+               duration_ms: %s,
+               gesture_source_type: %s });"""
+          % (left_position_percentage,
+             top_position_percentage,
+             duration_ms,
+             gesture_source_type))
+      self.TapSelectedElement(tab, js_cmd)
 
     tab.WaitForJavaScriptExpression('window.__tapActionDone', 60)
 
