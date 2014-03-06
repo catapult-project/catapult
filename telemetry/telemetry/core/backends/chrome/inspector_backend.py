@@ -21,6 +21,8 @@ from telemetry.core.backends.chrome import inspector_runtime
 from telemetry.core.backends.chrome import inspector_timeline
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.heap import model
+from telemetry.core.timeline import model as timeline_model
+from telemetry.core.timeline import recording_options
 
 
 class InspectorException(Exception):
@@ -44,6 +46,7 @@ class InspectorBackend(object):
     self._runtime = inspector_runtime.InspectorRuntime(self)
     self._timeline = inspector_timeline.InspectorTimeline(self)
     self._network = inspector_network.InspectorNetwork(self)
+    self._timeline_model = None
 
   def __del__(self):
     self._Disconnect()
@@ -191,13 +194,29 @@ class InspectorBackend(object):
 
   @property
   def timeline_model(self):
-    return self._timeline.timeline_model
+    return self._timeline_model
 
-  def StartTimelineRecording(self):
-    self._timeline.Start()
+  def StartTimelineRecording(self, options=None):
+    if not options:
+      options = recording_options.TimelineRecordingOptions()
+    if options.record_timeline:
+      self._timeline.Start()
+    if options.record_network:
+      self._network.timeline_recorder.Start()
 
   def StopTimelineRecording(self):
-    self._timeline.Stop()
+    data = []
+    timeline_data = self._timeline.Stop()
+    if timeline_data:
+      data.append(timeline_data)
+    network_data = self._network.timeline_recorder.Stop()
+    if network_data:
+      data.append(network_data)
+    if data:
+      self._timeline_model = timeline_model.TimelineModel(
+          timeline_data=data, shift_world_to_zero=False)
+    else:
+      self._timeline_model = None
 
   # Network public methods.
 
