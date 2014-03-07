@@ -26,7 +26,7 @@ class PlayAction(media_action.MediaAction):
     super(PlayAction, self).WillRunAction(page, tab)
     self.LoadJS(tab, 'play.js')
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     try:
       selector = self.selector if hasattr(self, 'selector') else ''
       tab.ExecuteJavaScript('window.__playMedia("%s");' % selector)

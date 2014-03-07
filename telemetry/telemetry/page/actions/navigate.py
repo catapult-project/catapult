@@ -8,7 +8,7 @@ class NavigateAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(NavigateAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     if page.is_file:
       target_side_url = tab.browser.http_server.UrlOf(page.file_path_url)
     else:

@@ -47,7 +47,7 @@ class ScrollAction(GestureAction):
         window.__scrollAction = new __ScrollAction(%s, %s);"""
         % (done_callback, distance_func))
 
-  def RunGesture(self, page, tab, previous_action):
+  def RunGesture(self, page, tab):
     # scrollable_element_function is a function that passes the scrollable
     # element on the page to a callback. For example:
     #   function (callback) {

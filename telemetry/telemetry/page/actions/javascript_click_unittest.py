@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.page.actions import javascript_click
-from telemetry.page.actions import wait
+from telemetry.page.actions import wait_until
 from telemetry.unittest import tab_test_case
 
 
@@ -17,8 +17,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     data = {'selector': 'a[id="clickme"]'}
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    j = wait_until.WaitUntil(i, data)
+    j.RunActionAndWait(None, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -33,8 +33,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     data = {'selector': 'a[id=\'clickme\']'}
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    j = wait_until.WaitUntil(i, data)
+    j.RunActionAndWait(None, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -49,8 +49,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     data = {'text': 'Click me'}
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    j = wait_until.WaitUntil(i, data)
+    j.RunActionAndWait(None, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -65,8 +65,8 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     data = {'xpath': '//a[@id="clickme"]'}
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
-    j = wait.WaitAction(data)
-    j.RunAction(None, self._tab, i)
+    j = wait_until.WaitUntil(i, data)
+    j.RunActionAndWait(None, self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),

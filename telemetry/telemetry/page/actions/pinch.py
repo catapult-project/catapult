@@ -33,7 +33,7 @@ class PinchAction(GestureAction):
         window.__pinchAction = new __PinchAction(%s);"""
         % done_callback)
 
-  def RunGesture(self, page, tab, previous_action):
+  def RunGesture(self, page, tab):
     left_anchor_percentage = getattr(self, 'left_anchor_percentage', 0.5)
     top_anchor_percentage = getattr(self, 'top_anchor_percentage', 0.5)
     zoom_in = getattr(self, 'zoom_in', True)

@@ -16,8 +16,8 @@ class MediaAction(page_action.PageAction):
     """Loads the common media action JS code prior to running the action."""
     self.LoadJS(tab, 'media_action.js')
 
-  def RunAction(self, page, tab, previous_action):
-    super(MediaAction, self).RunAction(page, tab, previous_action)
+  def RunAction(self, page, tab):
+    super(MediaAction, self).RunAction(page, tab)
 
   def LoadJS(self, tab, js_file_name):
     """Loads and executes a JS file in the tab."""

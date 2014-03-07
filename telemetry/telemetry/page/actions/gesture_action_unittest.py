@@ -13,7 +13,7 @@ class MockGestureAction(gesture_action.GestureAction):
     super(MockGestureAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('MockGestureAction::RunAction')
 
-  def RunGesture(self, page, tab, previous_action):
+  def RunGesture(self, page, tab):
     duration = getattr(self, 'duration', 2)
 
     time.sleep(duration)
@@ -25,7 +25,7 @@ class GestureActionTest(tab_test_case.TabTestCase):
     action = MockGestureAction({ 'duration': 1 })
 
     start_time = time.time()
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     self.assertGreaterEqual(time.time() - start_time, 1.0)
 
   def testWaitAfter(self):
@@ -33,5 +33,5 @@ class GestureActionTest(tab_test_case.TabTestCase):
                                  'wait_after': { 'seconds': 1 } })
 
     start_time = time.time()
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     self.assertGreaterEqual(time.time() - start_time, 2.0)

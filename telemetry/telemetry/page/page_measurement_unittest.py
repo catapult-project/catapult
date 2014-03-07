@@ -148,7 +148,7 @@ class PageMeasurementUnitTest(
   def testActions(self):
     action_called = [False]
     class MockAction(page_action.PageAction):
-      def RunAction(self, page, tab, previous_action):
+      def RunAction(self, page, tab):
         action_called[0] = True
     all_page_actions.RegisterClassForTest('mock', MockAction)
 

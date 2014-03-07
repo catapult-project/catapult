@@ -64,7 +64,7 @@ class TapAction(GestureAction):
       tab.ExecuteJavaScript('(%s)(function(element) { %s });' %
                                 (element_function, js_cmd))
 
-  def RunGesture(self, page, tab, previous_action):
+  def RunGesture(self, page, tab):
     left_position_percentage = 0.5
     top_position_percentage = 0.5
     duration_ms = 0

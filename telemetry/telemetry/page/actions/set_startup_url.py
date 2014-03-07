@@ -12,7 +12,7 @@ class SetStartupUrlAction(page_action.PageAction):
   the browser for each page.
   """
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     pass
 
   def CustomizeBrowserOptionsForSinglePage(self, options):

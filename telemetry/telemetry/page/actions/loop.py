@@ -25,7 +25,7 @@ class LoopAction(media_action.MediaAction):
     super(LoopAction, self).WillRunAction(page, tab)
     self.LoadJS(tab, 'loop.js')
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     try:
       assert hasattr(self, 'loop_count') and self.loop_count > 0
       selector = self.selector if hasattr(self, 'selector') else ''

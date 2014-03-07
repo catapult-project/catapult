@@ -303,24 +303,16 @@ class PageTest(object):
     self._test_method(page, tab, results)
 
   def _RunCompoundAction(self, page, tab, actions, run_setup_methods=True):
-    for i, action in enumerate(actions):
-      prev_action = actions[i - 1] if i > 0 else None
-      next_action = actions[i + 1] if i < len(actions) - 1 else None
-
-      if (action.RunsPreviousAction() and
-          next_action and next_action.RunsPreviousAction()):
-        raise page_action.PageActionFailed('Consecutive actions cannot both '
-                                           'have RunsPreviousAction() == True.')
-
-      if not (next_action and next_action.RunsPreviousAction()):
+    for action in actions:
+      if not action.WillWaitAfterRun():
         action.WillRunAction(page, tab)
+      if run_setup_methods:
+        self.WillRunAction(page, tab, action)
+      try:
+        action.RunActionAndMaybeWait(page, tab)
+      finally:
         if run_setup_methods:
-          self.WillRunAction(page, tab, action)
-        try:
-          action.RunAction(page, tab, prev_action)
-        finally:
-          if run_setup_methods:
-            self.DidRunAction(page, tab, action)
+          self.DidRunAction(page, tab, action)
 
       # Note that we must not call util.CloseConnections here. Many tests
       # navigate to a URL in the first action and then wait for a condition

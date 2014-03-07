@@ -21,7 +21,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     data = {'selector': '#video_1', 'loop_count': 2}
     action = loop.LoopAction(data)
     action.WillRunAction(None, self._tab)
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert only first video has played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
@@ -34,7 +34,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert all media elements played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
@@ -47,12 +47,11 @@ class LoopActionTest(tab_test_case.TabTestCase):
     action = loop.LoopAction(data)
     action.WillRunAction(None, self._tab)
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab,
-                      None)
+    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
 
   def testLoopWithoutLoopCount(self):
     """Tests that loop action fails with no loop count."""
     data = {}
     action = loop.LoopAction(data)
     action.WillRunAction(None, self._tab)
-    self.assertRaises(AssertionError, action.RunAction, None, self._tab, None)
+    self.assertRaises(AssertionError, action.RunAction, None, self._tab)

@@ -25,7 +25,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert only first video has played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
@@ -38,7 +38,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert only video matching selector has played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
@@ -51,7 +51,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert all media elements played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
@@ -66,8 +66,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     action.WillRunAction(None, self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab,
-                      None)
+    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
 
   def testPlayWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
@@ -77,7 +76,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert video ended.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
 
@@ -89,7 +88,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
-    action.RunAction(None, self._tab, None)
+    action.RunAction(None, self._tab)
     # Assert video did not end.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
 
@@ -101,7 +100,6 @@ class PlayActionTest(tab_test_case.TabTestCase):
     # Assert video not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab,
-                      None)
+    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
     # Assert video did not end.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_ENDED_CHECK))

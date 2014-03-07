@@ -9,6 +9,6 @@ class JavascriptAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(JavascriptAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     assert hasattr(self, 'expression')
     tab.ExecuteJavaScript(self.expression)

@@ -29,7 +29,7 @@ class SeekAction(media_action.MediaAction):
     super(SeekAction, self).WillRunAction(page, tab)
     self.LoadJS(tab, 'seek.js')
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     try:
       assert hasattr(self, 'seek_time')
       selector = self.selector if hasattr(self, 'selector') else ''

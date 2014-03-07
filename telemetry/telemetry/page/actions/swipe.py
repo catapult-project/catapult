@@ -36,7 +36,7 @@ class SwipeAction(GestureAction):
         window.__swipeAction = new __SwipeAction(%s);"""
         % (done_callback))
 
-  def RunGesture(self, page, tab, previous_action):
+  def RunGesture(self, page, tab):
     left_start_percentage = 0.5
     top_start_percentage = 0.5
     direction = 'left'

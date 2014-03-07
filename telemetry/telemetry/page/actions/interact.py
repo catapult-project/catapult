@@ -9,7 +9,7 @@ class InteractAction(page_action.PageAction):
     super(InteractAction, self).__init__(attributes)
     self._SetTimelineMarkerBaseName('InteractAction::RunAction')
 
-  def RunAction(self, page, tab, previous_action):
+  def RunAction(self, page, tab):
     tab.ExecuteJavaScript(
         'console.time("' + self._GetUniqueTimelineMarkerName() + '")')
     raw_input("Interacting... Press Enter to continue.")
