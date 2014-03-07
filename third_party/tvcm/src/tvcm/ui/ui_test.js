@@ -185,9 +185,9 @@ tvcm.unittest.testSuite('tvcm.ui.ui_test', function() {
 
   test('defineWithNamespace', function() {
     var svgNS = 'http://www.w3.org/2000/svg';
-    var cls = tvcm.ui.define('svg', undefined, svgNS)
+    var cls = tvcm.ui.define('svg', undefined, svgNS);
     cls.prototype = {
-      __proto__: HTMLUnknownElement.prototype, // Puzzled why <svg> has prototype of HTMLUnknownElement
+      __proto__: HTMLUnknownElement.prototype,
 
       decorate: function() {
         this.setAttribute('width', 200);
@@ -202,7 +202,39 @@ tvcm.unittest.testSuite('tvcm.ui.ui_test', function() {
       }
     };
     var el = new cls();
-    assertEquals(el.namespaceURI, svgNS);
+    assertEquals('svg', el.tagName);
+    assertEquals(svgNS, el.namespaceURI);
     this.addHTMLOutput(el);
+  });
+
+  test('defineSubclassWithNamespace', function() {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var cls = tvcm.ui.define('svg', undefined, svgNS);
+    cls.prototype = {
+      __proto__: HTMLUnknownElement.prototype,
+
+      decorate: function() {
+        this.setAttribute('width', 200);
+        this.setAttribute('height', 200);
+        this.setAttribute('viewPort', '0 0 200 200');
+        var rectEl = document.createElementNS(svgNS, 'rect');
+        rectEl.setAttribute('x', 10);
+        rectEl.setAttribute('y', 10);
+        rectEl.setAttribute('width', 180);
+        rectEl.setAttribute('height', 180);
+        this.appendChild(rectEl);
+      }
+    };
+
+    var subCls = tvcm.ui.define('sub', cls);
+    subCls.prototype = {
+      __proto__: cls.prototype
+    };
+    assertEquals('svg::sub', subCls.toString());
+
+    var el = new subCls();
+    this.addHTMLOutput(el);
+    assertEquals('svg', el.tagName);
+    assertEquals(svgNS, el.namespaceURI);
   });
 });

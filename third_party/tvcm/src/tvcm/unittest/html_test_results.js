@@ -81,8 +81,6 @@ tvcm.exportTo('tvcm.unittest', function() {
       var errorEl = document.createElement('x-html-test-case-error');
       errorEl.appendChild(tvcm.instantiateTemplate(
           '#x-html-test-case-error-template'));
-      errorEl.querySelector('#message').textContent =
-          normalizedException.message;
       errorEl.querySelector('#stack').textContent = normalizedException.stack;
       this.querySelector('#details').appendChild(errorEl);
       this.updateColorAndStatus_();

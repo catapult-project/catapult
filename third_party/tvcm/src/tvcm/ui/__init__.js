@@ -55,25 +55,49 @@ tvcm.exportTo('tvcm.ui', function() {
    * };
    * </pre>
    *
-   * @param {string} tagName The tagName of the newly created subtype. If
-   *     subclassing, this is used for debugging. If not subclassing, then it is
-   *     the tag name that will be created by the component.
+   * @param {string} className The className of the newly created subtype. If
+   *     subclassing by passing in opt_parentConstructor, this is used for
+   *     debugging. If not subclassing, then it is the tag name that will be
+   *     created by the component.
+
    * @param {function=} opt_parentConstructor The parent class for this new
    *     element, if subclassing is desired. If provided, the parent class must
    *     be also a function created by tvcm.ui.define.
+   *
+   * @param {string=} opt_tagNS The namespace in which to create the base
+   *     element. Has no meaning when opt_parentConstructor is passed and must
+   *     either be undefined or the same namespace as the parent class.
+   *
    * @return {function(Object=):Element} The newly created component
    *     constructor.
    */
-  function define(tagName, opt_parentConstructor, opt_tagNS) {
-    if (typeof tagName == 'function') {
-      throw new Error('Passing functions as tagName is deprecated. Please ' +
-                      'use (tagName, opt_parentConstructor) to subclass');
+  function define(className, opt_parentConstructor, opt_tagNS) {
+    if (typeof className == 'function') {
+      throw new Error('Passing functions as className is deprecated. Please ' +
+                      'use (className, opt_parentConstructor) to subclass');
     }
 
-    var tagName = tagName.toLowerCase();
+    var className = className.toLowerCase();
     if (opt_parentConstructor && !opt_parentConstructor.tagName)
       throw new Error('opt_parentConstructor was not ' +
                       'created by tvcm.ui.define');
+
+    // Walk up the parent constructors until we can find the type of tag
+    // to create.
+    var tagName = className;
+    var tagNS = undefined;
+    if (opt_parentConstructor) {
+      if (opt_tagNS)
+        throw new Error('Must not specify tagNS if parentConstructor is given');
+      var parent = opt_parentConstructor;
+      while (parent && parent.tagName) {
+        tagName = parent.tagName;
+        tagNS = parent.tagNS;
+        parent = parent.parentConstructor;
+      }
+    } else {
+      tagNS = opt_tagNS;
+    }
 
     /**
      * Creates a new UI element constructor.
@@ -86,26 +110,15 @@ tvcm.exportTo('tvcm.ui', function() {
       if (opt_parentConstructor &&
           f.prototype.__proto__ != opt_parentConstructor.prototype) {
         throw new Error(
-            tagName + ' prototye\'s __proto__ field is messed up. ' +
+            className + ' prototye\'s __proto__ field is messed up. ' +
             'It MUST be the prototype of ' + opt_parentConstructor.tagName);
       }
 
-      // Walk up the parent constructors until we can find the type of tag
-      // to create.
-      var tag = tagName;
-      if (opt_parentConstructor) {
-        var parent = opt_parentConstructor;
-        while (parent && parent.tagName) {
-          tag = parent.tagName;
-          parent = parent.parentConstructor;
-        }
-      }
-
       var el;
-      if (opt_tagNS === undefined)
-        el = tvcm.doc.createElement(tag);
+      if (tagNS === undefined)
+        el = tvcm.doc.createElement(tagName);
       else
-        el = tvcm.doc.createElementNS(opt_tagNS, tag);
+        el = tvcm.doc.createElementNS(tagNS, tagName);
       f.decorate.call(this, el, arguments);
       return el;
     }
@@ -120,13 +133,15 @@ tvcm.exportTo('tvcm.ui', function() {
       el.constructor = f;
     };
 
+    f.className = className;
     f.tagName = tagName;
+    f.tagNS = tagNS;
     f.parentConstructor = (opt_parentConstructor ? opt_parentConstructor :
                                                    undefined);
     f.toString = function() {
       if (!f.parentConstructor)
         return f.tagName;
-      return f.parentConstructor.toString() + '::' + f.tagName;
+      return f.parentConstructor.toString() + '::' + f.className;
     };
 
     return f;
