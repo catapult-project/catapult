@@ -28,6 +28,8 @@ class JSModule(module.Module):
     self.dependency_metadata = Parse(self.name, stripped_text)
 
 def IsJSTest(text, text_is_stripped=True):
+  if 'tvcm' not in text:
+    return False
   if text_is_stripped:
     stripped_text = text
   else:
@@ -42,6 +44,8 @@ def IsJSTest(text, text_is_stripped=True):
   return False
 
 def IsJSModule(text, text_is_stripped=True):
+  if 'tvcm' not in text:
+    return False
   if text_is_stripped:
     stripped_text = text
   else:
