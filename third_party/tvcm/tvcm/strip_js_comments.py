@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 """Utility function for stripping comments out of javascript source code."""
 
+import re
+
 def _TokenizeJS(text):
   """Splits source code text into segments in preparation for comment stripping.
 
@@ -17,23 +19,21 @@ def _TokenizeJS(text):
   """
   rest = text
   tokens = ["//", "/*", "*/", "\n"]
+  next_tok = re.compile('|'.join([re.escape(x) for x in tokens]))
   while len(rest):
-    indices = [rest.find(token) for token in tokens]
-    found_indices = [index for index in indices if index >= 0]
-
-    if len(found_indices) == 0:
+    m = next_tok.search(rest)
+    if not m:
       # end of string
       yield rest
       return
-
-    min_index = min(found_indices)
-    token_with_min = tokens[indices.index(min_index)]
+    min_index = m.start()
+    end_index = m.end()
 
     if min_index > 0:
       yield rest[:min_index]
 
-    yield rest[min_index:min_index + len(token_with_min)]
-    rest = rest[min_index + len(token_with_min):]
+    yield rest[min_index:end_index]
+    rest = rest[end_index:]
 
 
 def StripJSComments(text):

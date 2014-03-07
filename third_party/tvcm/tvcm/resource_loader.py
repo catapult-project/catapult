@@ -8,6 +8,7 @@ from tvcm import module
 from tvcm import style_sheet as style_sheet_module
 from tvcm import resource as resource_module
 from tvcm import js_module
+from tvcm import strip_js_comments
 
 class ResourceLoader(object):
   """Manges loading modules and their dependencies from files.
@@ -19,6 +20,7 @@ class ResourceLoader(object):
   """
   def __init__(self, project):
     self.project = project
+    self.stripped_js_by_filename = {}
     self.loaded_modules = {}
     self.loaded_raw_scripts = {}
     self.loaded_style_sheets = {}
@@ -201,6 +203,19 @@ class ResourceLoader(object):
     image = style_sheet_module.Image(res)
     self.loaded_images[abs_path] = image
     return image
+
+  def GetStrippedJSForFilename(self, filename, early_out_if_no_tvcm):
+    if filename in self.stripped_js_by_filename:
+      return self.stripped_js_by_filename[filename]
+
+    with open(filename, 'r') as f:
+      contents = f.read(4096)
+    if early_out_if_no_tvcm and ('tvcm' not in contents):
+      return None
+
+    s = strip_js_comments.StripJSComments(contents)
+    self.stripped_js_by_filename[filename] = s
+    return s
 
 
 def _read_file(absolute_path):

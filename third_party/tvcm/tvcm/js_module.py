@@ -18,9 +18,10 @@ from tvcm import strip_js_comments
 
 class JSModule(module.Module):
   def Parse(self):
-    stripped_text = strip_js_comments.StripJSComments(self.contents)
+    stripped_text = self.loader.GetStrippedJSForFilename(self.resource.absolute_path,
+                                                         early_out_if_no_tvcm=False)
     if self.name != 'tvcm':
-      if not IsJSModule(stripped_text):
+      if not IsJSModule(stripped_text, text_is_stripped=True):
         raise module.DepsException('%s is not a JS Module' % self.name)
     ValidateUsesStrictMode(self.name, stripped_text)
     if IsJSTest(stripped_text, text_is_stripped=True):
@@ -28,8 +29,6 @@ class JSModule(module.Module):
     self.dependency_metadata = Parse(self.name, stripped_text)
 
 def IsJSTest(text, text_is_stripped=True):
-  if 'tvcm' not in text:
-    return False
   if text_is_stripped:
     stripped_text = text
   else:
@@ -44,8 +43,6 @@ def IsJSTest(text, text_is_stripped=True):
   return False
 
 def IsJSModule(text, text_is_stripped=True):
-  if 'tvcm' not in text:
-    return False
   if text_is_stripped:
     stripped_text = text
   else:

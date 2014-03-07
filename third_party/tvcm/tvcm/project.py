@@ -12,42 +12,29 @@ def _FindAllFilesRecursive(source_paths):
   for source_path in source_paths:
     for dirpath, dirnames, filenames in os.walk(source_path):
       for f in filenames:
+        if f.startswith('.'):
+          continue
         x = os.path.abspath(os.path.join(dirpath, f))
         all_filenames.add(x)
   return all_filenames
 
-def _IsFilenameAJSModule(x):
-  if os.path.basename(x).startswith('.'):
+def _IsFilenameAJSModule(loader, x):
+  if not x.endswith(".js"):
     return False
-  if os.path.splitext(x)[1] != ".js":
-    return False
-  with open(x, 'r') as f:
-    content = f.read()
-  return js_module.IsJSModule(content, text_is_stripped=False)
+  s = loader.GetStrippedJSForFilename(x, early_out_if_no_tvcm=True)
+  if not s:
+    return
+  return js_module.IsJSModule(s, text_is_stripped=True)
 
-def _IsFilenameAJSTest(x):
-  basename = os.path.basename(x)
-  if basename.startswith('.'):
-    return False
-
-  if basename.endswith('_test.js'):
+def _IsFilenameAJSTest(loader, x):
+  if x.endswith('_test.js'):
     return True
 
-  if basename.endswith('_unittest.js'):
+  if x.endswith('_unittest.js'):
     return True
 
   # TODO(nduca): Add content test?
   return False
-
-def _FindAllJSModuleFilenames(source_paths):
-  all_filenames = _FindAllFilesRecursive(source_paths)
-  return [x for x in all_filenames if
-          _IsFilenameAJSModule(x)]
-
-def _FindTestModuleFilenames(source_paths):
-  all_filenames = _FindAllFilesRecursive(source_paths)
-  return [x for x in all_filenames if
-          _IsFilenameAJSTest(x)]
 
 class Project(object):
   tvcm_path = os.path.abspath(os.path.join(
@@ -98,11 +85,21 @@ class Project(object):
   def ResetLoader(self):
     self._loader = None
 
+  def _FindAllJSModuleFilenames(self, source_paths):
+    all_filenames = _FindAllFilesRecursive(source_paths)
+    return [x for x in all_filenames if
+            _IsFilenameAJSModule(self.loader, x)]
+
+  def _FindTestModuleFilenames(self, source_paths):
+    all_filenames = _FindAllFilesRecursive(source_paths)
+    return [x for x in all_filenames if
+            _IsFilenameAJSTest(self.loader, x)]
+
   def FindAllTestModuleResources(self, start_path=None):
     if start_path == None:
-      test_module_filenames = _FindTestModuleFilenames(self.source_paths)
+      test_module_filenames = self._FindTestModuleFilenames(self.source_paths)
     else:
-      test_module_filenames = _FindTestModuleFilenames([start_path])
+      test_module_filenames = self._FindTestModuleFilenames([start_path])
     test_module_filenames.sort()
 
     # Find the equivalent resources.
@@ -110,15 +107,18 @@ class Project(object):
             for x in test_module_filenames]
 
   def FindAllJSModuleFilenames(self):
-    return _FindAllJSModuleFilenames(self.source_paths)
+    return self._FindAllJSModuleFilenames(self.source_paths)
 
   def CalcLoadSequenceForAllModules(self):
     filenames = self.FindAllJSModuleFilenames()
     return self.CalcLoadSequenceForModuleFilenames(filenames)
 
+  def _Load(self, filenames):
+    return [self.loader.LoadModule(module_filename=filename) for
+            filename in filenames]
+
   def CalcLoadSequenceForModuleFilenames(self, filenames):
-    modules = [self.loader.LoadModule(module_filename=filename) for
-               filename in filenames]
+    modules = self._Load(filenames)
     return self.CalcLoadSequenceForModules(modules)
 
   def CalcLoadSequenceForModuleNames(self, module_names):

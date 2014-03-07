@@ -152,6 +152,8 @@ class Module(object):
     if depth > 32:
       raise Exception('Include loop detected on %s', self.name)
     for dependent_module in self.dependent_modules:
+      if dependent_module.name in already_loaded_set:
+        continue
       dependent_module.ComputeLoadSequenceRecursive(
           load_sequence, already_loaded_set, depth+1)
     if self.name not in already_loaded_set:
