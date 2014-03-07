@@ -12,7 +12,7 @@ class Trace2HTMLTests(unittest.TestCase):
     try:
       tmpfile = tempfile.NamedTemporaryFile()
       big_trace_path = os.path.join(os.path.dirname(__file__),
-                                    '..', 'test_data', 'big_trace.json')
+                                    '..', '..', 'test_data', 'big_trace.json')
       res = trace2html.Main(
           ['--output', tmpfile.name, big_trace_path, '--quiet'])
       assert res == 0
