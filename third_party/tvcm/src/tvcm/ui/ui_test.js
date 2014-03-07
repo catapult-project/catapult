@@ -182,4 +182,27 @@ tvcm.unittest.testSuite('tvcm.ui.ui_test', function() {
     assertTrue(argsDecoratingChild.argsDecorated);
     assertFalse(argsDecoratingChild.noArgsDecorated);
   });
+
+  test('defineWithNamespace', function() {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var cls = tvcm.ui.define('svg', undefined, svgNS)
+    cls.prototype = {
+      __proto__: HTMLUnknownElement.prototype, // Puzzled why <svg> has prototype of HTMLUnknownElement
+
+      decorate: function() {
+        this.setAttribute('width', 200);
+        this.setAttribute('height', 200);
+        this.setAttribute('viewPort', '0 0 200 200');
+        var rectEl = document.createElementNS(svgNS, 'rect');
+        rectEl.setAttribute('x', 10);
+        rectEl.setAttribute('y', 10);
+        rectEl.setAttribute('width', 180);
+        rectEl.setAttribute('height', 180);
+        this.appendChild(rectEl);
+      }
+    };
+    var el = new cls();
+    assertEquals(el.namespaceURI, svgNS);
+    this.addHTMLOutput(el);
+  });
 });

@@ -64,7 +64,7 @@ tvcm.exportTo('tvcm.ui', function() {
    * @return {function(Object=):Element} The newly created component
    *     constructor.
    */
-  function define(tagName, opt_parentConstructor) {
+  function define(tagName, opt_parentConstructor, opt_tagNS) {
     if (typeof tagName == 'function') {
       throw new Error('Passing functions as tagName is deprecated. Please ' +
                       'use (tagName, opt_parentConstructor) to subclass');
@@ -101,7 +101,11 @@ tvcm.exportTo('tvcm.ui', function() {
         }
       }
 
-      var el = tvcm.doc.createElement(tag);
+      var el;
+      if (opt_tagNS === undefined)
+        el = tvcm.doc.createElement(tag);
+      else
+        el = tvcm.doc.createElementNS(opt_tagNS, tag);
       f.decorate.call(this, el, arguments);
       return el;
     }
