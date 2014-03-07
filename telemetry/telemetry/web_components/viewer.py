@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import HTMLParser
+import json
 import os
 import string
 
@@ -61,3 +63,46 @@ class Viewer(object):
         f, load_sequence,
         title='Telemetry results',
         extra_scripts=[bootstrap_script, ViewerDataScript(self)])
+
+  @staticmethod
+  def ReadDataObjectFromViewerFile(f):
+    """Reads the data inside a viewer file written with WriteViewerToFile
+
+    Returns None if the viewer data wasn't found, the JSON.parse'd object on
+    success. Raises exception if the viewer data was corrupt.
+    """
+    class MyHTMLParser(HTMLParser.HTMLParser):
+      def __init__(self):
+        HTMLParser.HTMLParser.__init__(self)
+        self._got_data_tag = False
+        self._in_data_tag = False
+        self._data_records = []
+
+      def handle_starttag(self, tag, attrs):
+        if tag != 'script':
+          return
+        id_attr = dict(attrs).get('id', None)
+        if id_attr == 'viewer-data':
+          assert not self._got_data_tag
+          self._got_data_tag = True
+          self._in_data_tag = True
+
+      def handle_endtag(self, tag):
+        self._in_data_tag = False
+
+      def handle_data(self, data):
+        if self._in_data_tag:
+          self._data_records.append(data)
+
+      @property
+      def data(self):
+        if not self._got_data_tag:
+          raise Exception('Missing <script> with #data-view')
+        if self._in_data_tag:
+          raise Exception('Missing </script> on #data-view')
+        return json.loads(''.join(self._data_records))
+
+    parser = MyHTMLParser()
+    for line in f:
+      parser.feed(line)
+    return parser.data

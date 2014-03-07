@@ -23,3 +23,14 @@ class ViewerTests(unittest.TestCase):
 
     f = StringIO.StringIO()
     v.WriteViewerToFile(f)
+
+  def testRead(self):
+    v = SimpleViewer()
+
+    f = StringIO.StringIO()
+    v.WriteViewerToFile(f)
+
+    f.seek(0)
+
+    data = SimpleViewer.ReadDataObjectFromViewerFile(f)
+    self.assertEquals(data, 1)
