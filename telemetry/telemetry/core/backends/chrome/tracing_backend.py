@@ -93,7 +93,8 @@ class TracingBackend(object):
     # This would prevent telemetry from navigating to another page.
     self._tab_to_marker_mapping = weakref.WeakKeyDictionary()
 
-  def _IsTracing(self):
+  @property
+  def is_tracing_running(self):
     return self._thread != None
 
   def AddTabToMarkerMapping(self, tab, marker):
@@ -104,7 +105,7 @@ class TracingBackend(object):
         and does nothing on subsequent nested calls.
     """
     self._nesting += 1
-    if self._IsTracing():
+    if self.is_tracing_running:
       new_category_filter = CategoryFilter(custom_categories)
       is_subset = new_category_filter.IsSubset(self._category_filter)
       assert(is_subset != False)
@@ -132,7 +133,7 @@ class TracingBackend(object):
     """
     self._nesting -= 1
     assert self._nesting >= 0
-    if self._IsTracing():
+    if self.is_tracing_running:
       req = {'method': 'Tracing.end'}
       self._conn.SendRequest(req)
       self._thread.join(timeout=30)
@@ -146,7 +147,7 @@ class TracingBackend(object):
       return self._GetTraceResult()
 
   def _GetTraceResult(self):
-    assert not self._IsTracing()
+    assert not self.is_tracing_running
     return tracing_timeline_data.TracingTimelineData(
         self._tracing_data, self._tab_to_marker_mapping)
 

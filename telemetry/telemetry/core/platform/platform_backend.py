@@ -113,6 +113,10 @@ class PlatformBackend(object):
   def StartVideoCapture(self, min_bitrate_mbps):
     raise NotImplementedError()
 
+  @property
+  def is_video_capture_running(self):
+    return False
+
   def StopVideoCapture(self):
     raise NotImplementedError()
 

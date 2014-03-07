@@ -75,6 +75,10 @@ class BrowserBackend(object):
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 
+  @property
+  def is_tracing_running(self):
+    return False
+
   def StopTracing(self):
     raise NotImplementedError()
 

@@ -82,6 +82,10 @@ class WebContents(object):
   def StartTimelineRecording(self, options=None):
     self._inspector_backend.StartTimelineRecording(options)
 
+  @property
+  def is_timeline_recording_running(self):
+    return self._inspector_backend.is_timeline_recording_running
+
   def StopTimelineRecording(self):
     self._inspector_backend.StopTimelineRecording()
 

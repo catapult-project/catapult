@@ -183,6 +183,10 @@ class Tab(web_contents.WebContents):
 
     return self._tab_contents_bounding_box
 
+  @property
+  def is_video_capture_running(self):
+    return self.browser.platform.is_video_capture_running
+
   def StopVideoCapture(self):
     """Stops recording video of the tab's contents.
 

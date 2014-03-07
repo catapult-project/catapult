@@ -38,6 +38,10 @@ class InspectorTimeline(timeline_recorder.TimelineRecorder):
     self._inspector_backend = inspector_backend
     self._is_recording = False
 
+  @property
+  def is_timeline_recording_running(self):
+    return self._is_recording
+
   def Start(self):
     """Starts recording."""
     assert not self._is_recording, 'Start should only be called once.'

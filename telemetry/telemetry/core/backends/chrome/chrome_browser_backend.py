@@ -270,6 +270,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._tracing_backend = tracing_backend.TracingBackend(self._port)
     return self._tracing_backend.StartTracing(custom_categories, timeout)
 
+  @property
+  def is_tracing_running(self):
+    if not self._tracing_backend:
+      return None
+    return self._tracing_backend.is_tracing_running
+
   def StopTracing(self):
     """ Stops tracing and returns the result as TimelineData object. """
     for (i, debugger_url) in enumerate(self._browser.tabs):

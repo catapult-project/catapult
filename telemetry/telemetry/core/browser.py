@@ -34,12 +34,13 @@ class Browser(object):
     self._http_server = None
     self._wpr_server = None
     self._platform_backend = platform_backend
+    self._platform = platform.Platform(platform_backend)
     self._active_profilers = []
     self._profilers_states = {}
     self._local_server_controller = local_server.LocalServerController(backend)
     self._tabs = tab_list.TabList(backend.tab_list_backend)
     self.credentials = browser_credentials.BrowserCredentials()
-    self.platform.SetFullPerformanceModeEnabled(True)
+    self._platform.SetFullPerformanceModeEnabled(True)
 
   def __enter__(self):
     self.Start()
@@ -49,9 +50,8 @@ class Browser(object):
     self.Close()
 
   @property
-  @decorators.Cache
   def platform(self):
-    return platform.Platform(self._platform_backend)
+    return self._platform
 
   @property
   def browser_type(self):
@@ -276,6 +276,10 @@ class Browser(object):
 
   def StartTracing(self, custom_categories=None, timeout=10):
     return self._browser_backend.StartTracing(custom_categories, timeout)
+
+  @property
+  def is_tracing_running(self):
+    return self._browser_backend.is_tracing_running
 
   def StopTracing(self):
     """ Stops tracing and returns the result as TimelineData object. """

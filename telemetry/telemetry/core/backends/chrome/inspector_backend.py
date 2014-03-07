@@ -218,6 +218,10 @@ class InspectorBackend(object):
     else:
       self._timeline_model = None
 
+  @property
+  def is_timeline_recording_running(self):
+    return self._timeline.is_timeline_recording_running
+
   # Network public methods.
 
   def ClearCache(self):

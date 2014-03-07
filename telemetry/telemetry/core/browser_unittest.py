@@ -170,3 +170,13 @@ class BrowserTest(unittest.TestCase):
   def testGetSystemTotalMemory(self):
     b = self.CreateBrowser()
     self.assertTrue(b.memory_stats['SystemTotalPhysicalMemory'] > 0)
+
+  def testIsTracingRunning(self):
+    b = self.CreateBrowser()
+    if not b.supports_tracing:
+      return
+    self.assertFalse(b.is_tracing_running)
+    b.StartTracing()
+    self.assertTrue(b.is_tracing_running)
+    b.StopTracing()
+    self.assertFalse(b.is_tracing_running)
