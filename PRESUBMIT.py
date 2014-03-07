@@ -22,13 +22,13 @@ def _CommonChecksImpl(input_api, output_api):
   results += input_api.canned_checks.PanProjectChecks(
       input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
 
-  import build
+  from trace_viewer import build
   from tvcm import presubmit_checker
   checker = presubmit_checker.PresubmitChecker(input_api, output_api)
   results += checker.RunChecks()
 
 
-  from build import check_gyp
+  from trace_viewer.build import check_gyp
   gyp_result = check_gyp.GypCheck()
   if len(gyp_result) > 0:
     results += [output_api.PresubmitError(gyp_result)]

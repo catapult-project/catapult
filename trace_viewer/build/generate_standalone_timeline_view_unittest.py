@@ -6,7 +6,7 @@ import tempfile
 import shutil
 import os
 
-from build import generate_standalone_timeline_view
+from trace_viewer.build import generate_standalone_timeline_view
 
 class GenerateStandaloneTimelineViewTests(unittest.TestCase):
   def test_smokeTest(self):

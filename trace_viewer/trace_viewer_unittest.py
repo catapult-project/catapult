@@ -5,7 +5,7 @@ import unittest
 import sys
 import os
 
-from build import trace_viewer_project
+from trace_viewer import trace_viewer_project
 from tvcm import module_test_case
 
 def load_tests(loader, tests, pattern):

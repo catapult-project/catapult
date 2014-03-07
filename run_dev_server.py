@@ -6,7 +6,7 @@ import os
 import sys
 import json
 
-from build import trace_viewer_project
+from trace_viewer import trace_viewer_project
 import tvcm
 
 def do_GET_json_examples(request):

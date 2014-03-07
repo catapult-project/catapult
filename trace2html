@@ -5,7 +5,7 @@
 
 import sys
 
-from build import trace2html
+from trace_viewer.build import trace2html
 
 
 if __name__ == '__main__':

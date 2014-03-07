@@ -5,7 +5,7 @@ import unittest
 import tempfile
 import os
 
-from build import trace2html
+from trace_viewer.build import trace2html
 
 class Trace2HTMLTests(unittest.TestCase):
   def test_smokeTest(self):

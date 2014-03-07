@@ -9,7 +9,7 @@ import os
 import re
 
 import tvcm
-from build import trace_viewer_project
+from trace_viewer import trace_viewer_project
 def _sopen(filename, mode):
   if filename != '-':
     return open(filename, mode)

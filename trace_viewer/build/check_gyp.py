@@ -4,7 +4,7 @@
 
 import os
 
-from build import trace_viewer_project
+from trace_viewer import trace_viewer_project
 
 GYP_FILE = "trace_viewer.gyp"
 FILE_GROUPS = ["tracing_html_files",

@@ -13,7 +13,7 @@ class TraceViewerProject(project_module.Project):
       os.path.dirname(__file__), '..'))
 
   src_path = os.path.abspath(os.path.join(
-      trace_viewer_path, 'src'))
+      trace_viewer_path, 'trace_viewer'))
 
   trace_viewer_third_party_path = os.path.abspath(os.path.join(
       trace_viewer_path, 'third_party'))
