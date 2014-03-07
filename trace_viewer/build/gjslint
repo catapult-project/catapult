@@ -6,8 +6,15 @@
 import os
 import sys
 
+
+src_dir = os.path.join(os.path.dirname(__file__), '..')
+
 if __name__ == '__main__':
   top_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
   sys.path.append(top_dir)
-  from trace_viewer.build import gjslint
-  sys.exit(gjslint.main())
+  import trace_viewer
+  from tvcm import gjslint
+  sys.exit(gjslint.Main([
+    os.path.join(top_dir, 'src'),
+    os.path.join(top_dir, 'third_party/tvcm/src')
+  ]))
