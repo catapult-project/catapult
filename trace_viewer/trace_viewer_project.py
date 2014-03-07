@@ -24,6 +24,9 @@ class TraceViewerProject(project_module.Project):
   test_data_path = os.path.join(trace_viewer_path, 'test_data')
   skp_data_path = os.path.join(trace_viewer_path, 'skp_data')
 
-  def __init__(self):
+  def __init__(self, other_paths=None):
+    paths = [self.src_path, self.jszip_path]
+    if other_paths:
+      paths.extend(other_paths)
     super(TraceViewerProject, self).__init__(
-      [self.src_path, self.jszip_path])
+      paths)
