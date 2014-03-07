@@ -51,8 +51,7 @@ class WebContents(object):
 
     If the expression failed to evaluate, EvaluateException will be raised.
     """
-    return self.ExecuteJavaScriptInContext(
-        expr, context_id=None, timeout=timeout)
+    self._inspector_backend.ExecuteJavaScript(expr, timeout)
 
   def EvaluateJavaScript(self, expr, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Evalutes expr in JavaScript and returns the JSONized result.
@@ -66,24 +65,7 @@ class WebContents(object):
     If the result of the evaluation cannot be JSONized, then an
     EvaluationException will be raised.
     """
-    return self.EvaluateJavaScriptInContext(
-        expr, context_id=None, timeout=timeout)
-
-  def ExecuteJavaScriptInContext(self, expr, context_id,
-                                 timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
-    """Similar to ExecuteJavaScript, except context_id can refer to an iframe.
-    The main page has context_id=1, the first iframe context_id=2, etc.
-    """
-    return self._inspector_backend.ExecuteJavaScript(
-        expr, context_id=context_id, timeout=timeout)
-
-  def EvaluateJavaScriptInContext(self, expr, context_id,
-                                  timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
-    """Similar to ExecuteJavaScript, except context_id can refer to an iframe.
-    The main page has context_id=1, the first iframe context_id=2, etc.
-    """
-    return self._inspector_backend.EvaluateJavaScript(
-        expr, context_id=context_id, timeout=timeout)
+    return self._inspector_backend.EvaluateJavaScript(expr, timeout)
 
   @property
   def message_output_stream(self):

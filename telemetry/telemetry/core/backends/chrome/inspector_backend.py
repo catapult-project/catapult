@@ -112,7 +112,7 @@ class InspectorBackend(object):
       # Displays other than 0 mean we are likely running in something like
       # xvfb where screenshotting doesn't work.
       return False
-    return not self.EvaluateJavaScript("""
+    return not self._runtime.Evaluate("""
         window.chrome.gpuBenchmarking === undefined ||
         window.chrome.gpuBenchmarking.beginWindowSnapshotPNG === undefined
       """)
@@ -120,7 +120,7 @@ class InspectorBackend(object):
   def Screenshot(self, timeout):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
 
-    self.EvaluateJavaScript("""
+    self._runtime.Evaluate("""
         if(!window.__telemetry) {
           window.__telemetry = {}
         }
@@ -135,12 +135,11 @@ class InspectorBackend(object):
     """)
 
     def IsSnapshotComplete():
-      return self.EvaluateJavaScript(
-          'window.__telemetry.snapshotComplete')
+      return self._runtime.Evaluate('window.__telemetry.snapshotComplete')
 
     util.WaitFor(IsSnapshotComplete, timeout)
 
-    snap = self.EvaluateJavaScript("""
+    snap = self._runtime.Evaluate("""
       (function() {
         var data = window.__telemetry.snapshotData;
         delete window.__telemetry.snapshotComplete;
@@ -185,11 +184,11 @@ class InspectorBackend(object):
 
   # Runtime public methods.
 
-  def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
-    self._runtime.Execute(expr, context_id, timeout)
+  def ExecuteJavaScript(self, expr, timeout):
+    self._runtime.Execute(expr, timeout)
 
-  def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
-    return self._runtime.Evaluate(expr, context_id, timeout)
+  def EvaluateJavaScript(self, expr, timeout):
+    return self._runtime.Evaluate(expr, timeout)
 
   # Timeline public methods.
 
