@@ -21,7 +21,10 @@ tvcm.exportTo('tvcm', function() {
   }
 
   function instantiateTemplate(selector) {
-    return document.querySelector(selector).content.cloneNode(true);
+    var el = document.querySelector(selector);
+    if (!el)
+      throw new Error('Element not found');
+    return el.content.cloneNode(true);
   }
 
   function tracedFunction(fn, name, opt_this) {
