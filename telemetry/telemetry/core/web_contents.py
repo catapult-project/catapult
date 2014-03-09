@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+
 from telemetry.core import util
 
 DEFAULT_WEB_CONTENTS_TIMEOUT = 90
@@ -12,6 +14,10 @@ class WebContents(object):
   """Represents web contents in the browser"""
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
+
+    with open(os.path.join(os.path.dirname(__file__),
+        'network_quiescence.js')) as f:
+      self._quiescence_js = f.read()
 
   def Close(self):
     """Closes this page.
@@ -45,6 +51,22 @@ class WebContents(object):
         # timeout of this method.
         return False
     util.WaitFor(IsTrue, timeout)
+
+  def HasReachedQuiescence(self):
+    """Determine whether the page has reached quiescence after loading.
+
+    Returns:
+      True if 2 seconds have passed since last resource received, false
+      otherwise."""
+
+    # Inclusion of the script that provides
+    # window.__telemetry_testHasReachedNetworkQuiescence()
+    # is idempotent, it's run on every call because WebContents doesn't track
+    # page loads and we need to execute anew for every newly loaded page.
+    has_reached_quiescence = (
+        self.EvaluateJavaScript(self._quiescence_js +
+            "window.__telemetry_testHasReachedNetworkQuiescence()"))
+    return has_reached_quiescence
 
   def ExecuteJavaScript(self, expr, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Executes expr in JavaScript. Does not return the result.
