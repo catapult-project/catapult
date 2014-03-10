@@ -39,8 +39,12 @@ class ProcSupportingPlatformBackendTest(unittest.TestCase):
     backend.SetMockFile(
         '/proc/1/status',
         open(os.path.join(util.GetUnittestDataDir(), 'status')).read())
+    backend.SetMockFile(
+        '/proc/1/smaps',
+        open(os.path.join(util.GetUnittestDataDir(), 'smaps')).read())
     result = backend.GetMemoryStats(1)
-    self.assertEquals(result, {'VM': 1025978368,
+    self.assertEquals(result, {'PrivateDirty': 5324800,
+                               'VM': 1025978368,
                                'VMPeak': 1050099712,
                                'WorkingSetSize': 84000768,
                                'WorkingSetSizePeak': 144547840})
@@ -57,8 +61,12 @@ class ProcSupportingPlatformBackendTest(unittest.TestCase):
     backend.SetMockFile(
         '/proc/1/status',
         open(os.path.join(util.GetUnittestDataDir(), 'status_nohwm')).read())
+    backend.SetMockFile(
+        '/proc/1/smaps',
+        open(os.path.join(util.GetUnittestDataDir(), 'smaps')).read())
     result = backend.GetMemoryStats(1)
-    self.assertEquals(result, {'VM': 1025978368,
+    self.assertEquals(result, {'PrivateDirty': 5324800,
+                               'VM': 1025978368,
                                'VMPeak': 1025978368,
                                'WorkingSetSize': 84000768,
                                'WorkingSetSizePeak': 84000768})

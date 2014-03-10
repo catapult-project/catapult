@@ -59,8 +59,15 @@ class ProcSupportingPlatformBackend(platform_backend.PlatformBackend):
     wss = int(stats[23]) * resource.getpagesize()
     wss_peak = (self._ConvertKbToByte(status['VmHWM'])
                 if 'VmHWM' in status else wss)
+
+    private_dirty_bytes = 0
+    for line in self._GetProcFileForPid(pid, 'smaps').splitlines():
+      if line.startswith('Private_Dirty:'):
+        private_dirty_bytes += self._ConvertKbToByte(line.split(':')[1].strip())
+
     return {'VM': vm,
             'VMPeak': vm_peak,
+            'PrivateDirty': private_dirty_bytes,
             'WorkingSetSize': wss,
             'WorkingSetSizePeak': wss_peak}
 
