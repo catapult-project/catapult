@@ -59,7 +59,7 @@ class PageTest(object):
   def __init__(self,
                test_method_name,
                action_name_to_run='',
-               needs_browser_restart_after_each_run=False,
+               needs_browser_restart_after_each_page=False,
                discard_first_result=False,
                clear_cache_before_each_run=False,
                attempts=3,
@@ -72,8 +72,8 @@ class PageTest(object):
       raise ValueError, 'No such method %s.%s' % (
         self.__class_, test_method_name)  # pylint: disable=E1101
     self._action_name_to_run = action_name_to_run
-    self._needs_browser_restart_after_each_run = (
-        needs_browser_restart_after_each_run)
+    self._needs_browser_restart_after_each_page = (
+        needs_browser_restart_after_each_page)
     self._discard_first_result = discard_first_result
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
@@ -152,7 +152,7 @@ class PageTest(object):
     This returns true if the test needs to unconditionally restart the
     browser for each page. It may be called before the browser is started.
     """
-    return self._needs_browser_restart_after_each_run
+    return self._needs_browser_restart_after_each_page
 
   def StopBrowserAfterPage(self, browser, page):  # pylint: disable=W0613
     """Should the browser be stopped after the page is run?

@@ -304,9 +304,9 @@ class PageRunnerTests(unittest.TestCase):
       def __init__(self,
                    test_method_name,
                    action_name_to_run='',
-                   needs_browser_restart_after_each_run=False):
+                   needs_browser_restart_after_each_page=False):
         super(TestOneTab, self).__init__(test_method_name, action_name_to_run,
-                                         needs_browser_restart_after_each_run)
+                                         needs_browser_restart_after_each_page)
         self._browser = None
 
       def DidStartBrowser(self, browser):
