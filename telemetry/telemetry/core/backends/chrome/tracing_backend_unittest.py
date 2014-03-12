@@ -60,6 +60,44 @@ class CategoryFilterTest(unittest.TestCase):
         "disabled-by-default-test1,disabled-by-default-test2")
     self.assertEquals(a.IsSubset(b), False)
 
+    b = tracing_backend.CategoryFilter("disabled-by-default-test1")
+    a = tracing_backend.CategoryFilter("disabled-by-default-test2")
+    self.assertEquals(a.IsSubset(b), False)
+
+  def testIsSubsetWithSyntheticDelays(self):
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016)")
+    a = tracing_backend.CategoryFilter("DELAY(foo;0.016)")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016)")
+    a = tracing_backend.CategoryFilter(None)
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter(None)
+    a = tracing_backend.CategoryFilter("DELAY(foo;0.016)")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016)")
+    a = tracing_backend.CategoryFilter("DELAY(foo;0.032)")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016;static)")
+    a = tracing_backend.CategoryFilter("DELAY(foo;0.016;oneshot)")
+    self.assertEquals(a.IsSubset(b), False)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016),DELAY(bar;0.1)")
+    a = tracing_backend.CategoryFilter("DELAY(bar;0.1),DELAY(foo;0.016)")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016),DELAY(bar;0.1)")
+    a = tracing_backend.CategoryFilter("DELAY(bar;0.1)")
+    self.assertEquals(a.IsSubset(b), True)
+
+    b = tracing_backend.CategoryFilter("DELAY(foo;0.016),DELAY(bar;0.1)")
+    a = tracing_backend.CategoryFilter("DELAY(foo;0.032),DELAY(bar;0.1)")
+    self.assertEquals(a.IsSubset(b), False)
+
+
 class TracingBackendTest(tab_test_case.TabTestCase):
   def _StartServer(self):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())

@@ -4,6 +4,7 @@
 
 import json
 import logging
+import re
 import socket
 import threading
 import weakref
@@ -22,6 +23,7 @@ class CategoryFilter(object):
     self.excluded = set()
     self.included = set()
     self.disabled = set()
+    self.synthetic_delays = set()
     self.contains_wildcards = False
 
     if not filter_string:
@@ -31,10 +33,13 @@ class CategoryFilter(object):
       self.contains_wildcards = True
 
     filter_set = set(filter_string.split(','))
+    delay_re = re.compile(r'DELAY[(][A-Za-z0-9._;]+[)]')
     for category in filter_set:
       if category == '':
         continue
-      if category[0] == '-':
+      if delay_re.match(category):
+        self.synthetic_delays.add(category)
+      elif category[0] == '-':
         category = category[1:]
         self.excluded.add(category)
       elif category.startswith('disabled-by-default-'):
@@ -52,23 +57,27 @@ class CategoryFilter(object):
       return None
 
     # Disabled categories get into a trace if and only if they are contained in
-    # the 'disabled' set.  Return False if A's disabled set is a superset of B's
-    # disabled set.
-    if len(self.disabled):
-      if self.disabled > other.disabled:
-        return False
+    # the 'disabled' set. Return False if A's disabled set is not a subset of
+    # B's disabled set.
+    if not self.disabled <= other.disabled:
+      return False
 
-    if len(self.included) and len(other.included):
+    # If A defines more or different synthetic delays than B, then A is not a
+    # subset.
+    if not self.synthetic_delays <= other.synthetic_delays:
+      return False
+
+    if self.included and other.included:
       # A and B have explicit include lists. If A includes something that B
       # doesn't, return False.
       if not self.included <= other.included:
         return False
-    elif len(self.included):
+    elif self.included:
       # Only A has an explicit include list. If A includes something that B
       # excludes, return False.
-      if len(self.included.intersection(other.excluded)):
+      if self.included.intersection(other.excluded):
         return False
-    elif len(other.included):
+    elif other.included:
       # Only B has an explicit include list. We don't know which categories are
       # contained in the default list, so return None.
       return None
