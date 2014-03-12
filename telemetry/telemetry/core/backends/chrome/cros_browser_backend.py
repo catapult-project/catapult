@@ -319,17 +319,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       }
     ''')
 
-  def _CryptohomePath(self, user):
-    (path, _) = self._cri.RunCmdOnDevice(['cryptohome-path', 'user',
-                                          "'%s'" % user])
-    return path
-
-  def _IsCryptohomeMounted(self):
-    """Returns True if a cryptohome vault at the user mount point."""
-    profile_path = self._CryptohomePath(self.browser_options.username)
-    mount = self._cri.FilesystemMountedAt(profile_path)
-    return mount and mount.startswith('/home/.shadow/')
-
   def _HandleUserImageSelectionScreen(self):
     """If we're stuck on the user image selection screen, we click the ok
     button.
@@ -351,7 +340,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     has been dismissed."""
     if self.chrome_branch_number <= 1547:
       self._HandleUserImageSelectionScreen()
-    return self._IsCryptohomeMounted() and not self.oobe_exists
+    return (self._cri.IsCryptohomeMounted(self.browser_options.username) and
+            not self.oobe_exists)
 
   def _StartupWindow(self):
     """Closes the startup window, which is an extension on official builds,

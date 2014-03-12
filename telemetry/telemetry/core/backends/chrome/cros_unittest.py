@@ -25,14 +25,6 @@ class CrOSTest(unittest.TestCase):
     self._password = options.browser_options.password
     self._load_extension = None
 
-  def _IsCryptohomeMounted(self):
-    """Returns True if cryptohome is mounted"""
-    cryptohomeJSON, _ = self._cri.RunCmdOnDevice(['/usr/sbin/cryptohome',
-                                                 '--action=status'])
-    cryptohomeStatus = json.loads(cryptohomeJSON)
-    return (cryptohomeStatus['mounts'] and
-            cryptohomeStatus['mounts'][0]['mounted'])
-
   def _CreateBrowser(self, autotest_ext=False, auto_login=True):
     """Finds and creates a browser for tests. if autotest_ext is True,
     also loads the autotest extension"""
@@ -59,6 +51,38 @@ class CrOSTest(unittest.TestCase):
     self.assertTrue(extension)
     return extension
 
+  def _IsCryptohomeMounted(self):
+    """Returns True if cryptohome is mounted. as determined by the cmd
+    cryptohome --action=status"""
+    cryptohomeJSON, _ = self._cri.RunCmdOnDevice(['/usr/sbin/cryptohome',
+                                                 '--action=status'])
+    cryptohomeStatus = json.loads(cryptohomeJSON)
+    return (cryptohomeStatus['mounts'] and
+            cryptohomeStatus['mounts'][0]['mounted'])
+
+  @test.Enabled('chromeos')
+  def testCryptohome(self):
+    """Verifies cryptohome mount status for regular and guest user and when
+    logged out"""
+    with self._CreateBrowser() as b:
+      self.assertEquals(1, len(b.tabs))
+      self.assertTrue(b.tabs[0].url)
+      self.assertTrue(self._IsCryptohomeMounted())
+
+      # TODO(achuith): Remove dependency on /home/chronos/user.
+      chronos_fs = self._cri.FilesystemMountedAt('/home/chronos/user')
+      self.assertTrue(chronos_fs)
+      if self._is_guest:
+        self.assertEquals(chronos_fs, 'guestfs')
+      else:
+        crypto_fs = self._cri.FilesystemMountedAt(
+            self._cri.CryptohomePath(self._username))
+        self.assertEquals(crypto_fs, chronos_fs)
+
+    self.assertFalse(self._IsCryptohomeMounted())
+    self.assertEquals(self._cri.FilesystemMountedAt('/home/chronos/user'),
+                      '/dev/mapper/encstateful')
+
   def _GetLoginStatus(self, browser):
     extension = self._GetAutotestExtension(browser)
     self.assertTrue(extension.EvaluateJavaScript(
@@ -71,29 +95,6 @@ class CrOSTest(unittest.TestCase):
     ''')
     return util.WaitFor(
         lambda: extension.EvaluateJavaScript('window.__login_status'), 10)
-
-  @test.Enabled('chromeos')
-  def testCryptohomeMounted(self):
-    """Verifies cryptohome mount status for regular and guest user and when
-    logged out"""
-    with self._CreateBrowser() as b:
-      self.assertEquals(1, len(b.tabs))
-      self.assertTrue(b.tabs[0].url)
-      self.assertTrue(self._IsCryptohomeMounted())
-
-      chronos_fs = self._cri.FilesystemMountedAt('/home/chronos/user')
-      self.assertTrue(chronos_fs)
-      if self._is_guest:
-        self.assertEquals(chronos_fs, 'guestfs')
-      else:
-        home, _ = self._cri.RunCmdOnDevice(['/usr/sbin/cryptohome-path',
-                                            'user', self._username])
-        self.assertEquals(self._cri.FilesystemMountedAt(home.rstrip()),
-                          chronos_fs)
-
-    self.assertFalse(self._IsCryptohomeMounted())
-    self.assertEquals(self._cri.FilesystemMountedAt('/home/chronos/user'),
-                      '/dev/mapper/encstateful')
 
   @test.Enabled('chromeos')
   def testLoginStatus(self):

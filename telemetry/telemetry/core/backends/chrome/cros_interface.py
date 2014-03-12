@@ -325,6 +325,17 @@ class CrOSInterface(object):
         return line_ary[0]
     return None
 
+  def CryptohomePath(self, user):
+    """Returns the cryptohome mount point for |user|."""
+    return self.RunCmdOnDevice(
+        ['cryptohome-path', 'user', "'%s'" % user])[0].strip()
+
+  def IsCryptohomeMounted(self, username):
+    """Returns True iff |user|'s cryptohome is mounted."""
+    profile_path = self.CryptohomePath(username)
+    mount = self.FilesystemMountedAt(profile_path)
+    return mount and mount.startswith('/home/.shadow/')
+
   def TakeScreenShot(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""
     # TODO(achuith): Find a better location for screenshots. Cros autotests
