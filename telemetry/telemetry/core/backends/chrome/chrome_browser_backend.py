@@ -95,6 +95,14 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--metrics-recording-only')
     args.append('--no-default-browser-check')
     args.append('--no-first-run')
+
+    # Turn on GPU benchmarking extension for all runs. The only side effect of
+    # the extension being on is that render stats are tracked. This is believed
+    # to be effectively free. And, by doing so here, it avoids us having to
+    # programmatically inspect a pageset's actions in order to determine if it
+    # might eventually scroll.
+    args.append('--enable-gpu-benchmarking')
+
     # Set --no-proxy-server to work around some XP issues unless
     # some other flag indicates a proxy is needed.
     if not '--enable-spdy-proxy-auth' in args:

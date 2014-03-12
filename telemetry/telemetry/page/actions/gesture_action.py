@@ -38,9 +38,6 @@ cannot have wait_after and wait_until at the same time.'''
     gesture_source_type = tab.browser.synthetic_gesture_source_type
     return 'chrome.gpuBenchmarking.' + gesture_source_type.upper() + '_INPUT'
 
-  def CustomizeBrowserOptionsForPageSet(self, options):
-    options.AppendExtraBrowserArgs('--enable-gpu-benchmarking')
-
   def GetActiveRangeOnTimeline(self, timeline):
     action_range = super(GestureAction, self).GetActiveRangeOnTimeline(timeline)
     if action_range.is_empty:

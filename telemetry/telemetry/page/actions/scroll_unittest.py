@@ -13,7 +13,6 @@ from telemetry.unittest import test
 
 class ScrollActionTest(tab_test_case.TabTestCase):
   def setUp(self):
-    self._extra_browser_args.append('--enable-gpu-benchmarking')
     super(ScrollActionTest, self).setUp()
 
   def CreateAndNavigateToPageFromUnittestDataDir(
