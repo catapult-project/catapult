@@ -380,7 +380,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _WaitForGuestFsMounted(self):
     """Waits for the guest user to be mounted as guestfs"""
-    guest_path = self._CryptohomePath('$guest')
+    guest_path = self._cri.CryptohomePath('$guest')
     util.WaitFor(lambda: (self._cri.FilesystemMountedAt(guest_path) ==
                           'guestfs'), 20)
 
