@@ -24,7 +24,7 @@ class MockAdbCommands(object):
     return True
 
   # pylint: disable=W0613
-  def GetProtectedFileContents(self, file_name, log_result):
+  def GetProtectedFileContents(self, file_name):
     return self.mock_content
 
   def PushIfNeeded(self, host_binary, device_path):
