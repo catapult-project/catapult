@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_network
 from telemetry.core.timeline import recording_options
 from telemetry.unittest import tab_test_case
@@ -22,7 +21,6 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
     super(InspectorNetworkTabTest, self).__init__(*args)
 
   def testHTTPResponseTimelineRecorder(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     tests = {
         'blank.html': InspectorNetworkTabTest.TestCase(),
         'green_rect.html': InspectorNetworkTabTest.TestCase(
@@ -35,8 +33,7 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
       if test.monitoring:
         opts.record_network = True
       self._tab.StartTimelineRecording(opts)
-      self._tab.Navigate(self._browser.http_server.UrlOf(page))
-      self._tab.WaitForDocumentReadyStateToBeComplete()
+      self.Navigate(page)
       self._tab.StopTimelineRecording()
 
       self.assertTrue(self._tab.timeline_model)
