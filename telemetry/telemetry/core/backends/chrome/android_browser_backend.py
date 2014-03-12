@@ -125,18 +125,18 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
     return True
 
 
-class ChromiumTestShellBackendSettings(AndroidBrowserBackendSettings):
+class ChromeShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
-    super(ChromiumTestShellBackendSettings, self).__init__(
+    super(ChromeShellBackendSettings, self).__init__(
           adb=adb,
           activity='org.chromium.chrome.shell.ChromeShellActivity',
-          cmdline_file='/data/local/tmp/chromium-testshell-command-line',
+          cmdline_file='/data/local/tmp/chrome-shell-command-line',
           package=package,
-          pseudo_exec_name='chromium_testshell',
+          pseudo_exec_name='chrome_shell',
           supports_tab_control=False)
 
   def GetDevtoolsRemotePort(self):
-    return 'localabstract:chromium_testshell_devtools_remote'
+    return 'localabstract:chrome_shell_devtools_remote'
 
   @property
   def is_content_shell(self):
