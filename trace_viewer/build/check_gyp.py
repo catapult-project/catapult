@@ -24,10 +24,16 @@ def GypCheck():
 
   project = trace_viewer_project.TraceViewerProject()
   known_files = []
+  build_dir = os.path.join(project.src_path, 'build')
   def handle(dirpath, dirnames, filenames):
     for name in filenames:
-      if not (name.endswith(("_test.js", "_test_data.js", "tests.html")) or
-         name.startswith(("."))):
+      if not (name.endswith(("_test.js",
+                             "_test_data.js",
+                             "tests.html",
+                             ".py",
+                             ".pyc")) or
+         name.startswith((".")) or
+         dirpath == build_dir):
         x = os.path.relpath(os.path.normpath(os.path.join(dirpath, name)),
                             project.trace_viewer_path)
         known_files.append(x)
