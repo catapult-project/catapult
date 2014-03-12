@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.unittest import tab_test_case
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
@@ -29,3 +30,39 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
 
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
+
+  def testIFrame(self):
+    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
+    self._tab.Navigate(self._browser.http_server.UrlOf('host.html'))
+
+    # Access host page.
+    test_defined_js = "typeof(testVar) != 'undefined'"
+    self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=5)
+    self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
+
+    def TestVarReady(context_id):
+      """Returns True if the context and testVar are both ready."""
+      try:
+        return self._tab.EvaluateJavaScriptInContext(test_defined_js,
+                                                     context_id)
+      except exceptions.EvaluateException:
+        # This happens when the context is not ready.
+        return False
+
+    def TestVar(context_id):
+      """Waits for testVar and the context to be ready, then returns the value
+      of testVar."""
+      util.WaitFor(lambda: TestVarReady(context_id), timeout=10)
+      return self._tab.EvaluateJavaScriptInContext('testVar', context_id)
+
+    # Access parent page using EvaluateJavaScriptInContext.
+    self.assertEquals(TestVar(context_id=1), 'host')
+
+    # Access the iframes.
+    self.assertEquals(TestVar(context_id=2), 'iframe1')
+    self.assertTrue(TestVar(context_id=3) in ['iframe2', 'iframe3'])
+    self.assertTrue(TestVar(context_id=4) in ['iframe2', 'iframe3'])
+
+    # Accessing a non-existent iframe throws an exception.
+    self.assertRaises(exceptions.EvaluateException,
+        lambda: self._tab.EvaluateJavaScriptInContext('1+1', context_id=5))
