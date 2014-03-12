@@ -6,16 +6,16 @@ import os
 
 
 from telemetry.core import util
-from tvcm import project as project_module
+from trace_viewer import trace_viewer_project
 
 
-class WebComponentsProject(project_module.Project):
+class WebComponentsProject(trace_viewer_project.TraceViewerProject):
   telemetry_path = os.path.abspath(util.GetTelemetryDir())
 
-  trace_viewer_path = os.path.abspath(os.path.join(
-      util.GetChromiumSrcDir(),
-      'third_party', 'trace-viewer'))
+  d3_path = os.path.abspath(os.path.join(
+      telemetry_path,
+      'third_party', 'd3'))
 
   def __init__(self):
     super(WebComponentsProject, self).__init__(
-      [self.telemetry_path])
+      [self.telemetry_path, self.d3_path])

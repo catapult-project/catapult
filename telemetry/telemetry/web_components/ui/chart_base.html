@@ -1,0 +1,26 @@
+<!--
+Copyright 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<style>
+  .chart-base #title {
+    font-size: 18pt;
+  }
+
+  .chart-base .axis path,
+  .chart-base .axis line {
+    fill: none;
+    shape-rendering: crispEdges;
+    stroke: #000;
+  }
+</style>
+<template id="chart-base-template">
+  <svg> <!-- svg tag is dropped by ChartBase.decorate. -->
+    <g xmlns="http://www.w3.org/2000/svg" id="chart-area">
+      <g class="x axis"></g>
+      <g class="y axis"></g>
+      <text id="title"></text>
+    </g>
+  </svg>
+</template>
