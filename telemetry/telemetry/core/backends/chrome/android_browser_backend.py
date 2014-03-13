@@ -75,9 +75,6 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
     return 'localabstract:chrome_devtools_remote'
 
   def PushProfile(self, new_profile_dir):
-    # Clear the old profile first, since copying won't delete files.
-    self.RemoveProfile()
-
     # Pushing the profile is slow, so we don't want to do it every time.
     # Avoid this by pushing to a safe location using PushIfNeeded, and
     # then copying into the correct location on each test run.
@@ -90,11 +87,9 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
     self.adb.Adb().PushIfNeeded(new_profile_dir, saved_profile_location)
-    self.adb.RunShellCommand('cp -r %s/* %s' % (saved_profile_location,
-                                                self.profile_dir),
-                             timeout_time = 60)
 
-    # We now need to give the ownership back to the browser UID
+    self.adb.Adb().EfficientDeviceDirectoryCopy(saved_profile_location,
+                                                self.profile_dir)
     dumpsys = self.adb.RunShellCommand('dumpsys package %s' % self.package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
@@ -105,7 +100,6 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
       self.adb.RunShellCommand('chown %s.%s %s' %
                              (uid, uid, extended_path))
-
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
@@ -201,10 +195,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._adb.CloseApplication(self._backend_settings.package)
 
     if self._adb.Adb().CanAccessProtectedFileContents():
-      if not self.browser_options.dont_override_profile:
-        self._backend_settings.RemoveProfile()
       if self.browser_options.profile_dir:
         self._backend_settings.PushProfile(self.browser_options.profile_dir)
+      elif not self.browser_options.dont_override_profile:
+        self._backend_settings.RemoveProfile()
 
     self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
         self._adb, use_rndis_forwarder)
