@@ -23,6 +23,7 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
     ps = page_set.PageSet(file_path=base_dir)
     page = page_module.Page(test_filename, ps, base_dir=base_dir)
     setattr(page, 'smoothness', {'action': 'scroll'})
+    setattr(page, 'repaint', { "action": "repaint_continuously", "seconds": 2 })
     ps.pages.append(page)
     return ps
 
