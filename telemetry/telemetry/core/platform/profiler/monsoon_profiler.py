@@ -15,6 +15,7 @@ import multiprocessing
 from telemetry.core import exceptions
 from telemetry.core.platform import profiler
 from telemetry.core.platform.profiler import monsoon
+from telemetry.util import statistics
 
 
 def _CollectData(output_path, is_collecting):
@@ -48,6 +49,15 @@ def _CollectData(output_path, is_collecting):
     output_writer = csv.writer(output_file)
     output_writer.writerows(plot_data)
     output_file.flush()
+
+  power_samples = [s.amps * s.volts for s in samples]
+
+  print 'Monsoon profile power readings in watts:'
+  print ('  Total    = %f' % statistics.TrapezoidalRule(power_samples, 1/5000.))
+  print ('  Average  = %f' % statistics.ArithmeticMean(power_samples) +
+         '+-%f' % statistics.StandardDeviation(power_samples))
+  print ('  Peak     = %f' % max(power_samples))
+  print ('  Duration = %f' % (len(power_samples) / 5000.))
 
   print 'To view the Monsoon profile, run:'
   print ('  echo "set datafile separator \',\'; plot \'%s\' with lines" | '
