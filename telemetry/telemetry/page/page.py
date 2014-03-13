@@ -28,6 +28,13 @@ class Page(object):
     if not self._scheme:
       raise ValueError('Must prepend the URL with scheme (e.g. file://)')
 
+    if hasattr(self, 'startup_url') and self.startup_url:
+      startup_url_scheme = urlparse.urlparse(self.startup_url).scheme
+      if not startup_url_scheme:
+        raise ValueError('Must prepend the URL with scheme (e.g. http://)')
+      if startup_url_scheme == 'file':
+        raise ValueError('startup_url with local file scheme is not supported')
+
   def __getattr__(self, name):
     # Inherit attributes from the page set.
     if self.page_set and hasattr(self.page_set, name):

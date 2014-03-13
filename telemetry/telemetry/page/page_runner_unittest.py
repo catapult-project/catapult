@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 
+from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import user_agent
 from telemetry.core import util
@@ -358,6 +359,37 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
     page_runner.Run(test, ps, expectations, options)
+
+  def testRunPageWithStartupUrl(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+    expectations = test_expectations.TestExpectations()
+    page = page_module.Page(
+        'file://blank.html', ps, base_dir=util.GetUnittestDataDir())
+    page.startup_url = 'about:blank'
+    ps.pages.append(page)
+
+    class Measurement(page_measurement.PageMeasurement):
+      def __init__(self):
+        super(Measurement, self).__init__()
+        self.browser_restarted = False
+
+      def CustomizeBrowserOptionsForPageSet(self, ps, options):
+        self.browser_restarted = True
+        super(Measurement, self).CustomizeBrowserOptionsForPageSet(ps,
+                                                                   options)
+      def MeasurePage(self, page, tab, results):
+        pass
+
+    options = options_for_unittests.GetCopy()
+    options.repeat_options.page_repeat_iters = 2
+    options.output_format = 'none'
+    if not browser_finder.FindBrowser(options):
+      return
+    test = Measurement()
+    page_runner.Run(test, ps, expectations, options)
+    self.assertEquals('about:blank', options.browser_options.startup_url)
+    self.assertTrue(test.browser_restarted)
 
   # Ensure that page_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):

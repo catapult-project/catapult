@@ -198,12 +198,11 @@ class PageTest(object):
 
     This will be called with the current page when the browser is (re)started.
     Changing options at this point only makes sense if the browser is being
-    restarted for each page.
+    restarted for each page. Note that if page has a startup_url, the browser
+    will always be restarted for each run.
     """
-    interactive = options and options.interactive
-    for action in GetCompoundActionFromPage(
-        page, self._action_name_to_run, interactive):
-      action.CustomizeBrowserOptionsForSinglePage(options)
+    if page.startup_url:
+      options.browser_options.startup_url = page.startup_url
 
   def WillStartBrowser(self, browser):
     """Override to manipulate the browser environment before it launches."""

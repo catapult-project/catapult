@@ -223,7 +223,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
     try:
       results_for_current_run = copy.copy(results)
       results_for_current_run.StartTest(page)
-      if test.RestartBrowserBeforeEachPage():
+      if test.RestartBrowserBeforeEachPage() or page.startup_url:
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.

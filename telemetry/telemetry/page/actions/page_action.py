@@ -41,16 +41,6 @@ class PageAction(object):
     """
     pass
 
-  def CustomizeBrowserOptionsForSinglePage(self, options):
-    """Override to add action-specific options to the BrowserOptions
-    object. These options will be set for just the page calling the action
-
-    This will only take effect if the browser is restarted for the page calling
-    the action, so should only be used in tests that restart the browser for
-    each page.
-    """
-    pass
-
   def WillRunAction(self, page, tab):
     """Override to do action-specific setup before
     Test.WillRunAction is called."""

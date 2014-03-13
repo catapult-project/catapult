@@ -23,6 +23,7 @@ class PageSet(object):
     self.user_agent_type = None
     self.make_javascript_deterministic = True
     self.navigate_steps = {'action': 'navigate'}
+    self.startup_url = ''
 
     if attributes:
       for k, v in attributes.iteritems():
