@@ -431,15 +431,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     else:
       # Workaround for crbug.com/329271, crbug.com/334726.
       retries = 3
-      while True:
+      while not len(self.tab_list_backend):
         try:
           # Open a new window/tab.
-          if len(self.tab_list_backend):
-            tab = self.tab_list_backend[-1]
-          else:
-            tab = self.tab_list_backend.New(timeout=30)
+          tab = self.tab_list_backend.New(timeout=30)
           tab.Navigate('about:blank', timeout=10)
-          break
         except (exceptions.TabCrashException, util.TimeoutException,
                 IndexError):
           retries -= 1
