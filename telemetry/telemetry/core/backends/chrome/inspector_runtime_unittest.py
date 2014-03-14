@@ -32,12 +32,11 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self._tab.ExecuteJavaScript('window')
 
   def testIFrame(self):
-    self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
-    self._tab.Navigate(self._browser.http_server.UrlOf('host.html'))
+    self.Navigate('host.html')
 
     # Access host page.
     test_defined_js = "typeof(testVar) != 'undefined'"
-    self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=5)
+    self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=30)
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
     def TestVarReady(context_id):
@@ -52,7 +51,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     def TestVar(context_id):
       """Waits for testVar and the context to be ready, then returns the value
       of testVar."""
-      util.WaitFor(lambda: TestVarReady(context_id), timeout=10)
+      util.WaitFor(lambda: TestVarReady(context_id), timeout=30)
       return self._tab.EvaluateJavaScriptInContext('testVar', context_id)
 
     # Access parent page using EvaluateJavaScriptInContext.
