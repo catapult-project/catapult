@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import optparse
 import os
 import shutil
 import sys
@@ -10,7 +11,7 @@ import zipfile
 
 from telemetry import decorators
 from telemetry.core import browser_finder
-from telemetry.core import repeat_options
+from telemetry.core import command_line
 from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import cloud_storage
@@ -23,7 +24,7 @@ Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 
 
-class Test(object):
+class Test(command_line.Command):
   """Base class for a Telemetry test or benchmark.
 
   A test packages a PageTest/PageMeasurement and a PageSet together.
@@ -31,7 +32,7 @@ class Test(object):
   options = {}
 
   @classmethod
-  def GetName(cls):
+  def Name(cls):
     name = cls.__module__.split('.')[-1]
     if hasattr(cls, 'tag'):
       name += '.' + cls.tag
@@ -39,19 +40,32 @@ class Test(object):
       name += '.' + os.path.basename(os.path.splitext(cls.page_set)[0])
     return name
 
-  def Run(self, options):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    cls.PageTestClass().AddCommandLineArgs(parser)
+
+    if hasattr(cls, 'AddTestCommandLineArgs'):
+      group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
+      cls.AddTestCommandLineArgs(group)
+      parser.add_option_group(group)
+
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    cls.PageTestClass().ProcessCommandLineArgs(parser, args)
+
+  def CustomizeBrowserOptions(self, options):
+    """Add browser options that are required by this benchmark."""
+
+  def Run(self, args):
     """Run this test with the given options."""
-    assert hasattr(self, 'test'), 'This test has no "test" attribute.'
-    assert issubclass(self.test, page_test.PageTest), (
-            '"%s" is not a PageTest.' % self.test.__name__)
-
+    # TODO: This overrides the arguments the user specifies at the command-line.
+    # That's not right. http://crbug.com/330058
     for key, value in self.options.iteritems():
-      setattr(options, key, value)
+      setattr(args, key, value)
 
-    options.repeat_options = self._CreateRepeatOptions(options)
-    self.CustomizeBrowserOptions(options)
+    self.CustomizeBrowserOptions(args)
 
-    test = self.test()
+    test = self.PageTestClass()()
     test.__name__ = self.__class__.__name__
 
     if hasattr(self, '_disabled_strings'):
@@ -59,27 +73,14 @@ class Test(object):
     if hasattr(self, '_enabled_strings'):
       test._enabled_strings = self._enabled_strings
 
-    ps = self.CreatePageSet(options)
+    ps = self.CreatePageSet(args)
     expectations = self.CreateExpectations(ps)
 
-    # Ensure the test's default options are set if needed.
-    parser = options.CreateParser()
-    test.AddCommandLineOptions(parser)
-    options.MergeDefaultValues(parser.get_default_values())
+    self._DownloadGeneratedProfileArchive(args)
 
-    self._DownloadGeneratedProfileArchive(options)
-
-    results = page_runner.Run(test, ps, expectations, options)
+    results = page_runner.Run(test, ps, expectations, args)
     results.PrintSummary()
     return len(results.failures) + len(results.errors)
-
-  def _CreateRepeatOptions(self, options):
-    return repeat_options.RepeatOptions(
-        getattr(options, 'page_repeat_secs', None),
-        getattr(options, 'pageset_repeat_secs', None),
-        getattr(options, 'page_repeat_iters', 1),
-        getattr(options, 'pageset_repeat_iters', 1),
-      )
 
   def _DownloadGeneratedProfileArchive(self, options):
     """Download and extract profile directory archive if one exists."""
@@ -144,37 +145,46 @@ class Test(object):
         extracted_profile_dir_path)
     options.browser_options.profile_dir = extracted_profile_dir_path
 
-  def CreatePageSet(self, options):  # pylint: disable=W0613
+  @classmethod
+  def PageTestClass(cls):
+    """Get the PageTest for this Test.
+
+    If the Test has no PageTest, raises NotImplementedError.
+    """
+    if not hasattr(cls, 'test'):
+      raise NotImplementedError('This test has no "test" attribute.')
+    if not issubclass(cls.test, page_test.PageTest):
+      raise TypeError('"%s" is not a PageTest.' % cls.test.__name__)
+    return cls.test
+
+  @classmethod
+  def CreatePageSet(cls, options):  # pylint: disable=W0613
     """Get the page set this test will run on.
 
     By default, it will create a page set from the file at this test's
     page_set attribute. Override to generate a custom page set.
     """
-    if not hasattr(self, 'page_set'):
+    if not hasattr(cls, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return page_set.PageSet.FromFile(
-        os.path.join(util.GetBaseDir(), self.page_set))
+        os.path.join(util.GetBaseDir(), cls.page_set))
 
-  def CreateExpectations(self, ps):  # pylint: disable=W0613
+  @classmethod
+  def CreateExpectations(cls, ps):  # pylint: disable=W0613
     """Get the expectations this test will run with.
 
     By default, it will create an empty expectations set. Override to generate
     custom expectations.
     """
-    if hasattr(self, 'expectations'):
-      return self.expectations
+    if hasattr(cls, 'expectations'):
+      return cls.expectations
     else:
       return test_expectations.TestExpectations()
 
-  @staticmethod
-  def AddCommandLineOptions(parser):
-    page_runner.AddCommandLineOptions(parser)
 
-  @staticmethod
-  def AddTestCommandLineOptions(parser):
-    """Override to accept custom command line options."""
-    pass
+def AddCommandLineArgs(parser):
+  page_runner.AddCommandLineArgs(parser)
 
-  def CustomizeBrowserOptions(self, options):
-    """Add browser options that are required by this benchmark."""
-    pass
+
+def ProcessCommandLineArgs(parser, args):
+  page_runner.ProcessCommandLineArgs(parser, args)

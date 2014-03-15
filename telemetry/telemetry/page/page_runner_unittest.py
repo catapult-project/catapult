@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
 import tempfile
@@ -18,6 +19,7 @@ from telemetry.page import page_runner
 from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
 
+
 SIMPLE_CREDENTIALS_STRING = """
 {
   "test": {
@@ -26,6 +28,15 @@ SIMPLE_CREDENTIALS_STRING = """
   }
 }
 """
+
+
+def SetUpPageRunnerArguments(options):
+  parser = options.CreateParser()
+  page_runner.AddCommandLineArgs(parser)
+  options.MergeDefaultValues(parser.get_default_values())
+  page_runner.ProcessCommandLineArgs(parser, options)
+
+
 class StubCredentialsBackend(object):
   def __init__(self, login_return_value):
     self.did_get_login = False
@@ -43,6 +54,7 @@ class StubCredentialsBackend(object):
   def LoginNoLongerNeeded(self, tab): # pylint: disable=W0613
     self.did_get_login_no_longer_needed = True
 
+
 class PageRunnerTests(unittest.TestCase):
   # TODO(nduca): Move the basic "test failed, test succeeded" tests from
   # page_measurement_unittest to here.
@@ -59,6 +71,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(Test('RunTest'), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
@@ -88,6 +101,7 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
     test = Test('RunTest')
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(test, ps, expectations, options)
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(results.successes))
@@ -106,6 +120,7 @@ class PageRunnerTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(
         Test('RunTest'), ps, expectations, options)
     self.assertEquals(1, len(results.successes))
@@ -128,6 +143,7 @@ class PageRunnerTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_format = 'csv'
 
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(CrashyMeasurement(), ps, expectations, options)
 
     self.assertEquals(1, len(results.successes))
@@ -157,18 +173,21 @@ class PageRunnerTests(unittest.TestCase):
 
     options.repeat_options.page_repeat_iters = 1
     options.repeat_options.pageset_repeat_iters = 1
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
     options.repeat_options.page_repeat_iters = 1
     options.repeat_options.pageset_repeat_iters = 2
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
     options.repeat_options.page_repeat_iters = 2
     options.repeat_options.pageset_repeat_iters = 1
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
@@ -176,6 +195,7 @@ class PageRunnerTests(unittest.TestCase):
     options.output_format = 'html'
     options.repeat_options.page_repeat_iters = 1
     options.repeat_options.pageset_repeat_iters = 1
+    SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
@@ -205,6 +225,7 @@ class PageRunnerTests(unittest.TestCase):
 
       options.repeat_options.page_repeat_iters = 1
       options.repeat_options.pageset_repeat_iters = 2
+      SetUpPageRunnerArguments(options)
       results = page_runner.Run(Measurement(), ps, expectations, options)
       results.PrintSummary()
       self.assertEquals(4, len(results.successes))
@@ -261,6 +282,7 @@ class PageRunnerTests(unittest.TestCase):
       test = TestThatInstallsCredentialsBackend(credentials_backend)
       options = options_for_unittests.GetCopy()
       options.output_format = 'none'
+      SetUpPageRunnerArguments(options)
       page_runner.Run(test, ps, expectations, options)
     finally:
       os.remove(f.name)
@@ -289,6 +311,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestUserAgent('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
@@ -324,6 +347,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestOneTab('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
 
   # Ensure that page_runner allows the test to customize the browser before it
@@ -358,6 +382,7 @@ class PageRunnerTests(unittest.TestCase):
     test = TestBeforeLaunch('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
 
   def testRunPageWithStartupUrl(self):
@@ -417,5 +442,6 @@ class PageRunnerTests(unittest.TestCase):
     test = Test('RunTest')
     options = options_for_unittests.GetCopy()
     options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
     assert test.did_call_clean_up

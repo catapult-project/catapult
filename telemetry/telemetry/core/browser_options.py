@@ -43,11 +43,6 @@ class BrowserFinderOptions(optparse.Values):
     self.profiler = None
     self.verbosity = 0
 
-    self.page_filter = None
-    self.page_filter_exclude = None
-    self.page_label_filter = None
-    self.page_label_filter_exclude = None
-
     self.report_root_metrics = False
 
     self.repeat_options = repeat_options.RepeatOptions()
@@ -105,8 +100,8 @@ class BrowserFinderOptions(optparse.Values):
         help='Shuffle the order of pages within a pageset.')
     group.add_option('--pageset-shuffle-order-file',
         dest='pageset_shuffle_order_file', default=None,
-        help='Filename of an output of a previously run test on the current ' +
-        'pageset. The tests will run in the same order again, overriding ' +
+        help='Filename of an output of a previously run test on the current '
+        'pageset. The tests will run in the same order again, overriding '
         'what is specified by --page-repeat and --pageset-repeat.')
     parser.add_option_group(group)
 
@@ -122,17 +117,17 @@ class BrowserFinderOptions(optparse.Values):
     group = optparse.OptionGroup(parser, 'When things go wrong')
     profiler_choices = profiler_finder.GetAllAvailableProfilers()
     group.add_option(
-      '--profiler', default=None, type='choice',
-      choices=profiler_choices,
-      help=('Record profiling data using this tool. Supported values: ' +
-            ', '.join(profiler_choices)))
+        '--profiler', default=None, type='choice',
+        choices=profiler_choices,
+        help='Record profiling data using this tool. Supported values: ' +
+             ', '.join(profiler_choices))
     group.add_option(
-      '--interactive', dest='interactive', action='store_true',
-      help=('Let the user interact with the page; the actions specified for '
-            'the page are not run.'))
+        '--interactive', dest='interactive', action='store_true',
+        help='Let the user interact with the page; the actions specified for '
+             'the page are not run.')
     group.add_option(
-      '-v', '--verbose', action='count', dest='verbosity',
-      help='Increase verbosity level (repeat as needed)')
+        '-v', '--verbose', action='count', dest='verbosity',
+        help='Increase verbosity level (repeat as needed)')
     group.add_option('--print-bootstrap-deps',
                      action='store_true',
                      help='Output bootstrap deps list.')
@@ -146,8 +141,8 @@ class BrowserFinderOptions(optparse.Values):
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
     group.add_option(
-      '--report-root-metrics', action='store_true',dest='report_root_metrics',
-      help='Enable metrics that require root access to record.')
+        '--report-root-metrics', action='store_true',dest='report_root_metrics',
+        help='Enable metrics that require root access to record.')
     group.add_option('--android-rndis', dest='android_rndis', default=False,
         action='store_true', help='Use RNDIS forwarding on Android.')
     group.add_option('--no-android-rndis', dest='android_rndis',
@@ -156,10 +151,10 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # Repeat options.
-    self.repeat_options.AddCommandLineOptions(parser)
+    self.repeat_options.AddCommandLineArgs(parser)
 
     # Browser options.
-    self.browser_options.AddCommandLineOptions(parser)
+    self.browser_options.AddCommandLineArgs(parser)
 
     real_parse = parser.parse_args
     def ParseArgs(args=None):
@@ -234,7 +229,8 @@ class BrowserOptions(object):
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
 
     ############################################################################
     # Please do not add any more options here without first discussing with    #

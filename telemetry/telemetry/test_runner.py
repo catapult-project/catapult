@@ -7,7 +7,6 @@
 Handles test configuration, but all the logic for
 actually running the test is in Test and PageRunner."""
 
-import copy
 import inspect
 import json
 import os
@@ -23,11 +22,12 @@ from telemetry.core import util
 class Help(command_line.OptparseCommand):
   """Display help information"""
 
-  def Run(self, options, args):
-    print >> sys.stderr, ('usage: %s <command> [<options>]' % _GetScriptName())
+  def Run(self, args):
+    print >> sys.stderr, ('usage: %s <command> [<options>]' % _ScriptName())
     print >> sys.stderr, 'Available commands are:'
-    for command in COMMANDS:
-      print >> sys.stderr, '  %-10s %s' % (command.name, command.description)
+    for command in _Commands():
+      print >> sys.stderr, '  %-10s %s' % (
+          command.Name(), command.Description())
     return 0
 
 
@@ -36,34 +36,32 @@ class List(command_line.OptparseCommand):
 
   usage = '[test_name] [<options>]'
 
-  def __init__(self):
-    super(List, self).__init__()
-    self._tests = None
-
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     parser.add_option('-j', '--json', action='store_true')
 
-  def ProcessCommandLine(self, parser, options, args):
-    if not args:
-      self._tests = _GetTests()
-    elif len(args) == 1:
-      self._tests = _MatchTestName(args[0])
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    if not args.tests:
+      args.tests = _Tests()
+    elif len(args.tests) == 1:
+      args.tests = _MatchTestName(args.tests[0])
     else:
       parser.error('Must provide at most one test name.')
 
-  def Run(self, options, args):
-    if options.json:
+  def Run(self, args):
+    if args.json:
       test_list = []
-      for test_name, test_class in sorted(self._tests.items()):
+      for test_name, test_class in sorted(args.tests.items()):
         test_list.append({
               'name': test_name,
-              'description': test_class.__doc__,
+              'description': test_class.Description(),
               'options': test_class.options,
             })
       print json.dumps(test_list)
     else:
       print >> sys.stderr, 'Available tests are:'
-      _PrintTestList(self._tests)
+      _PrintTestList(args.tests)
     return 0
 
 
@@ -72,36 +70,38 @@ class Run(command_line.OptparseCommand):
 
   usage = 'test_name [<options>]'
 
-  def __init__(self):
-    super(Run, self).__init__()
-    self._test = None
-
-  def CreateParser(self):
+  @classmethod
+  def CreateParser(cls):
     options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser('%%prog %s %s' % (self.name, self.usage))
+    parser = options.CreateParser('%%prog %s %s' % (cls.Name(), cls.usage))
     return parser
 
-  def AddCommandLineOptions(self, parser):
-    test.Test.AddCommandLineOptions(parser)
-
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     # Allow tests to add their own command line options.
     matching_tests = {}
     for arg in sys.argv[1:]:
       matching_tests.update(_MatchTestName(arg))
-    for test_class in matching_tests.itervalues():
-      test_class.AddTestCommandLineOptions(parser)
+    # TODO(dtu): After move to argparse, add command-line args for all tests
+    # to subparser. Using subparsers will avoid duplicate arguments.
+    if matching_tests:
+      matching_tests.values().pop().AddCommandLineArgs(parser)
+    test.AddCommandLineArgs(parser)
 
-  def ProcessCommandLine(self, parser, options, args):
-    if len(args) != 1:
-      parser.error('Must provide one test name.')
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    if len(args.tests) != 1:
+      print >> sys.stderr, 'Available tests are:'
+      _PrintTestList(_Tests())
+      sys.exit(1)
 
-    input_test_name = args[0]
+    input_test_name = args.tests[0]
     matching_tests = _MatchTestName(input_test_name)
     if not matching_tests:
       print >> sys.stderr, 'No test named "%s".' % input_test_name
       print >> sys.stderr
       print >> sys.stderr, 'Available tests:'
-      _PrintTestList(_GetTests())
+      _PrintTestList(_Tests())
       sys.exit(1)
     if len(matching_tests) > 1:
       print >> sys.stderr, 'Multiple tests named "%s".' % input_test_name
@@ -110,27 +110,33 @@ class Run(command_line.OptparseCommand):
       _PrintTestList(matching_tests)
       sys.exit(1)
 
-    self._test = matching_tests.popitem()[1]
+    args.test = matching_tests.popitem()[1]
+    args.test.ProcessCommandLineArgs(parser, args)
+    test.ProcessCommandLineArgs(parser, args)
 
-  def Run(self, options, args):
-    return min(255, self._test().Run(copy.copy(options)))
-
-
-COMMANDS = [cls() for _, cls in inspect.getmembers(sys.modules[__name__])
-            if inspect.isclass(cls)
-            and cls is not command_line.OptparseCommand
-            and issubclass(cls, command_line.OptparseCommand)]
+  def Run(self, args):
+    return min(255, args.test().Run(args))
 
 
-def _GetScriptName():
+def _ScriptName():
   return os.path.basename(sys.argv[0])
 
 
-def _GetTests():
+def _Commands():
+  """Generates a list of all classes in this file that subclass Command."""
+  for _, cls in inspect.getmembers(sys.modules[__name__]):
+    if not inspect.isclass(cls):
+      continue
+    if not issubclass(cls, command_line.Command):
+      continue
+    yield cls
+
+
+def _Tests():
   base_dir = util.GetBaseDir()
   tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
                                    index_by_class_name=True)
-  return dict((test.GetName(), test) for test in tests.itervalues())
+  return dict((test.Name(), test) for test in tests.itervalues())
 
 
 def _MatchTestName(input_test_name):
@@ -147,24 +153,20 @@ def _MatchTestName(input_test_name):
     exact_match = test_aliases[input_test_name]
   else:
     exact_match = input_test_name
-  if exact_match in _GetTests():
-    return {exact_match: _GetTests()[exact_match]}
+  if exact_match in _Tests():
+    return {exact_match: _Tests()[exact_match]}
 
   # Fuzzy matching.
   return dict((test_name, test_class)
-      for test_name, test_class in _GetTests().iteritems()
+      for test_name, test_class in _Tests().iteritems()
       if _Matches(input_test_name, test_name))
 
 
 def _PrintTestList(tests):
   for test_name, test_class in sorted(tests.items()):
-    if test_class.__doc__:
-      description = test_class.__doc__.splitlines()[0]
-      # Align the test names to the longest one.
-      format_string = '  %%-%ds %%s' % max(map(len, tests.iterkeys()))
-      print >> sys.stderr, format_string % (test_name, description)
-    else:
-      print >> sys.stderr, '  %s' % test_name
+    # Align the test names to the longest one.
+    format_string = '  %%-%ds %%s' % max(map(len, tests.iterkeys()))
+    print >> sys.stderr, format_string % (test_name, test_class.Description())
 
 
 test_aliases = {}
@@ -182,24 +184,26 @@ def Main():
       break
 
   # Validate and interpret the command name.
-  commands = [command for command in COMMANDS
-              if command.name.startswith(command_name)]
+  commands = [command for command in _Commands()
+              if command.Name().startswith(command_name)]
   if len(commands) > 1:
     print >> sys.stderr, ('"%s" is not a %s command. Did you mean one of these?'
-                          % (command_name, _GetScriptName()))
+                          % (command_name, _ScriptName()))
     for command in commands:
-      print >> sys.stderr, '  %-10s %s' % (command.name, command.description)
+      print >> sys.stderr, '  %-10s %s' % (
+          command.Name(), command.Description())
     return 1
   if commands:
     command = commands[0]
   else:
-    command = Run()
+    command = Run
 
   # Parse and run the command.
   parser = command.CreateParser()
-  command.AddCommandLineOptions(parser)
+  command.AddCommandLineArgs(parser)
   options, args = parser.parse_args()
   if commands:
     args = args[1:]
-  command.ProcessCommandLine(parser, options, args)
-  return command.Run(options, args)
+  options.tests = args
+  command.ProcessCommandLineArgs(parser, options)
+  return command().Run(options)

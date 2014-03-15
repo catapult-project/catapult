@@ -35,6 +35,7 @@ def _DiscoverProfileCreatorClasses():
     profile_creators[test_name] = test_class
   return profile_creators
 
+
 def GenerateProfiles(profile_creator_class, profile_creator_name, options):
   """Generate a profile"""
   expectations = test_expectations.TestExpectations()
@@ -78,16 +79,12 @@ def GenerateProfiles(profile_creator_class, profile_creator_name, options):
 
   return 0
 
-def Main():
-  profile_creators = _DiscoverProfileCreatorClasses()
-  legal_profile_creators = '|'.join(profile_creators.keys())
 
-  options = browser_options.BrowserFinderOptions()
-  parser = options.CreateParser(
-      "%%prog <--profile-type-to-generate=...> <--browser=...>"
-      " <--output-directory>")
-  page_runner.AddCommandLineOptions(parser)
+def AddCommandLineArgs(parser):
+  page_runner.AddCommandLineArgs(parser)
 
+  profile_creators = _DiscoverProfileCreatorClasses().keys()
+  legal_profile_creators = '|'.join(profile_creators)
   group = optparse.OptionGroup(parser, 'Profile generation options')
   group.add_option('--profile-type-to-generate',
       dest='profile_type_to_generate',
@@ -99,26 +96,40 @@ def Main():
       help='Generated profile is placed in this directory.')
   parser.add_option_group(group)
 
-  _, _ = parser.parse_args()
 
-  # Sanity check arguments.
-  if not options.profile_type_to_generate:
-    raise Exception("Must specify --profile-type-to-generate option.")
+def ProcessCommandLineArgs(parser, args):
+  page_runner.ProcessCommandLineArgs(parser, args)
 
-  if options.profile_type_to_generate not in profile_creators.keys():
-    raise Exception("Invalid profile type, legal values are: %s." %
+  if not args.profile_type_to_generate:
+    parser.error("Must specify --profile-type-to-generate option.")
+
+  profile_creators = _DiscoverProfileCreatorClasses().keys()
+  if args.profile_type_to_generate not in profile_creators:
+    legal_profile_creators = '|'.join(profile_creators)
+    parser.error("Invalid profile type, legal values are: %s." %
         legal_profile_creators)
 
-  if not options.browser_type:
-    raise Exception("Must specify --browser option.")
+  if not args.browser_type:
+    parser.error("Must specify --browser option.")
 
-  if not options.output_dir:
-    raise Exception("Must specify --output-dir option.")
+  if not args.output_dir:
+    parser.error("Must specify --output-dir option.")
 
-  if options.browser_options.dont_override_profile:
-    raise Exception("Can't use existing profile when generating profile.")
+  if args.browser_options.dont_override_profile:
+    parser.error("Can't use existing profile when generating profile.")
+
+
+def Main():
+  options = browser_options.BrowserFinderOptions()
+  parser = options.CreateParser(
+      "%%prog <--profile-type-to-generate=...> <--browser=...>"
+      " <--output-directory>")
+  AddCommandLineArgs(parser)
+  _, _ = parser.parse_args()
+  ProcessCommandLineArgs(parser, options)
 
   # Generate profile.
+  profile_creators = _DiscoverProfileCreatorClasses()
   profile_creator_class = profile_creators[options.profile_type_to_generate]
   return GenerateProfiles(profile_creator_class,
       options.profile_type_to_generate, options)

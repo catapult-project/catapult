@@ -81,8 +81,7 @@ class PageTestRunner(object):
         page_set_dir = os.path.join(perf_path, "page_sets")
         if not os.path.exists(page_set_dir):
           continue
-        page_set_filenames.append(
-            discover.GetAllPageSetFilenames(page_set_dir))
+        page_set_filenames += discover.GetAllPageSetFilenames(page_set_dir)
       page_set_list = ',\n'.join(
           sorted([os.path.relpath(f) for f in page_set_filenames]))
       self.PrintParseError(
@@ -140,10 +139,11 @@ class PageTestRunner(object):
       test = test_constructors[test_name]()
       if isinstance(test, test_module.Test):
         page_test = test.test()
+        test.AddCommandLineArgs(self._parser)
       else:
         page_test = test
-      page_test.AddCommandLineOptions(self._parser)
-    page_runner.AddCommandLineOptions(self._parser)
+        page_test.AddCommandLineArgs(self._parser)
+    page_runner.AddCommandLineArgs(self._parser)
 
     _, self._args = self._parser.parse_args()
 
@@ -162,12 +162,16 @@ class PageTestRunner(object):
     if isinstance(test, test_module.Test):
       ps = test.CreatePageSet(self._options)
       expectations = test.CreateExpectations(ps)
+      test.ProcessCommandLineArgs(self._parser, self._options)
     else:
       ps = self.GetPageSet(test, env)
       expectations = test.CreateExpectations(ps)
+      page_test.ProcessCommandLineArgs(self._parser, self._options)
+    page_runner.ProcessCommandLineArgs(self._parser, self._options)
 
     if len(self._args) > 2:
       self.PrintParseError('Too many arguments.')
+
 
     return page_test, ps, expectations
 

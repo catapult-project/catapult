@@ -35,7 +35,8 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
       options = options_for_unittests.GetCopy()
     assert options
     temp_parser = options.CreateParser()
-    measurement.AddCommandLineOptions(temp_parser)
+    page_runner.AddCommandLineArgs(temp_parser)
+    measurement.AddCommandLineArgs(temp_parser)
     defaults = temp_parser.get_default_values()
     for k, v in defaults.__dict__.items():
       if hasattr(options, k):
@@ -46,4 +47,6 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
     options.output_file = None
     options.output_format = 'none'
     options.output_trace_tag = None
+    page_runner.ProcessCommandLineArgs(temp_parser, options)
+    measurement.ProcessCommandLineArgs(temp_parser, options)
     return page_runner.Run(measurement, ps, expectations, options)

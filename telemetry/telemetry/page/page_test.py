@@ -1,8 +1,10 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 
+from telemetry.core import command_line
 from telemetry.page import test_expectations
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import interact
@@ -53,7 +55,7 @@ class Failure(Exception):
   pass
 
 
-class PageTest(object):
+class PageTest(command_line.ArgumentHandlerMixIn):
   """A class styled on unittest.TestCase for creating page-specific tests."""
 
   def __init__(self,
@@ -65,6 +67,8 @@ class PageTest(object):
                attempts=3,
                max_failures=None,
                max_errors=None):
+    super(PageTest, self).__init__()
+
     self.options = None
     try:
       self._test_method = getattr(self, test_method_name)
@@ -165,14 +169,6 @@ class PageTest(object):
     decide whether it needs to stop the browser.
     """
     return False
-
-  def AddCommandLineOptions(self, parser):
-    """Override to expose command-line options for this test.
-
-    The provided parser is an optparse.OptionParser instance and accepts all
-    normal results. The parsed options are available in Run as
-    self.options."""
-    pass
 
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""

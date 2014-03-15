@@ -62,14 +62,16 @@ def _FindFilesInCloudStorage(files):
   return file_buckets
 
 
-class Ls(command_line.ArgparseCommand):
+class Ls(command_line.Command):
   """List which bucket each file is in."""
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     parser.add_argument('-r', '--recursive', action='store_true')
     parser.add_argument('paths', nargs='+')
 
-  def ProcessCommandLine(self, parser, args):
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
     for path in args.paths:
       if not os.path.exists(path):
         parser.error('File not found: %s' % path)
@@ -105,14 +107,16 @@ class Ls(command_line.ArgparseCommand):
         print '%-11s  %s' % ('not found', file_path)
 
 
-class Mv(command_line.ArgparseCommand):
+class Mv(command_line.Command):
   """Move files to the given bucket."""
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
     parser.add_argument('bucket', choices=BUCKET_CHOICES)
 
-  def ProcessCommandLine(self, parser, args):
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
     args.bucket = BUCKET_CHOICES[args.bucket]
 
     for path in args.paths:
@@ -140,13 +144,15 @@ class Mv(command_line.ArgparseCommand):
         cloud_storage.Delete(bucket, file_hash)
 
 
-class Rm(command_line.ArgparseCommand):
+class Rm(command_line.Command):
   """Remove files from Cloud Storage."""
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
 
-  def ProcessCommandLine(self, parser, args):
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
     for path in args.paths:
       _, hash_path = _GetPaths(path)
       if not os.path.exists(hash_path):
@@ -163,14 +169,16 @@ class Rm(command_line.ArgparseCommand):
         cloud_storage.Delete(bucket, file_hash)
 
 
-class Upload(command_line.ArgparseCommand):
+class Upload(command_line.Command):
   """Upload files to Cloud Storage."""
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
     parser.add_argument('bucket', choices=BUCKET_CHOICES)
 
-  def ProcessCommandLine(self, parser, args):
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
     args.bucket = BUCKET_CHOICES[args.bucket]
 
     for path in args.paths:
@@ -204,14 +212,14 @@ def main():
   subparsers = parser.add_subparsers()
 
   for command in COMMANDS:
-    command = command()
-    subparser = subparsers.add_parser(command.name, help=command.description)
+    subparser = subparsers.add_parser(
+        command.Name(), help=command.Description())
     subparser.set_defaults(command=command)
-    command.AddCommandLineOptions(subparser)
+    command.AddCommandLineArgs(subparser)
 
   args = parser.parse_args()
-  args.command.ProcessCommandLine(parser, args)
-  args.command.Run(args)
+  args.command.ProcessCommandLineArgs(parser, args)
+  args.command().Run(args)
 
 
 if __name__ == '__main__':

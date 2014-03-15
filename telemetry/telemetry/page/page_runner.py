@@ -20,7 +20,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
-from telemetry.page import page_filter as page_filter_module
+from telemetry.page import page_filter
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
 from telemetry.page import results_options
@@ -191,9 +191,13 @@ class PageState(object):
           self.tab, self.page.credentials)
 
 
-def AddCommandLineOptions(parser):
-  page_filter_module.PageFilter.AddCommandLineOptions(parser)
+def AddCommandLineArgs(parser):
+  page_filter.PageFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
+
+
+def ProcessCommandLineArgs(parser, args):
+  page_filter.PageFilter.ProcessCommandLineArgs(parser, args)
 
 
 def _LogStackTrace(title, browser):
@@ -384,9 +388,8 @@ def _ShuffleAndFilterPageSet(page_set, finder_options):
   if finder_options.pageset_shuffle_order_file:
     return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
 
-  page_filter = page_filter_module.PageFilter(finder_options)
   pages = [page for page in page_set.pages[:]
-           if not page.disabled and page_filter.IsSelected(page)]
+           if not page.disabled and page_filter.PageFilter.IsSelected(page)]
 
   if finder_options.pageset_shuffle:
     random.Random().shuffle(pages)

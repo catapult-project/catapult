@@ -29,7 +29,7 @@ class PageMeasurement(page_test.PageTest):
   To add test-specific options:
 
      class BodyChildElementMeasurement(PageMeasurement):
-        def AddCommandLineOptions(parser):
+        def AddCommandLineArgs(parser):
            parser.add_option('--element', action='store', default='body')
 
         def MeasurePage(self, page, tab, results):

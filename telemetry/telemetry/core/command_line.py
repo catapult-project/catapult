@@ -5,22 +5,56 @@
 import optparse
 
 
-class Command(object):
-  @property
-  def name(self):
-    return self.__class__.__name__.lower()
+class ArgumentHandlerMixIn(object):
+  """A structured way to handle command-line arguments.
 
-  @property
-  def description(self):
-    return self.__doc__
+  In AddCommandLineArgs, add command-line arguments.
+  In ProcessCommandLineArgs, validate them and store them in a private class
+  variable. This way, each class encapsulates its own arguments, without needing
+  to pass an arguments object around everywhere.
+  """
 
-  def AddCommandLineOptions(self, parser):
-    pass
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    """Override to accept custom command-line arguments."""
+
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    """Override to process command-line arguments.
+
+    We pass in parser so we can call parser.error()."""
 
 
-class ArgparseCommand(Command):
-  def ProcessCommandLine(self, parser, args):
-    pass
+class Command(ArgumentHandlerMixIn):
+  """Represents a command-line sub-command for use with an argparse sub-parser.
+
+  E.g. "svn checkout", "svn update", and "svn commit" are separate sub-commands.
+
+  Example usage, to set up argparse to use these commands:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    for command in COMMANDS:
+      subparser = subparsers.add_parser(
+          command.Name(), help=command.Description())
+      subparser.set_defaults(command=command)
+      command.AddCommandLineArgs(subparser)
+
+    args = parser.parse_args()
+    args.command.ProcessCommandLineArgs(parser, args)
+    args.command().Run(args)
+  """
+
+  @classmethod
+  def Name(cls):
+    return cls.__name__.lower()
+
+  @classmethod
+  def Description(cls):
+    if cls.__doc__:
+      return cls.__doc__.splitlines()[0]
+    else:
+      return ''
 
   def Run(self, args):
     raise NotImplementedError()
@@ -30,11 +64,9 @@ class ArgparseCommand(Command):
 class OptparseCommand(Command):
   usage = ''
 
-  def CreateParser(self):
-    return optparse.OptionParser('%%prog %s %s' % (self.name, self.usage))
+  @classmethod
+  def CreateParser(cls):
+    return optparse.OptionParser('%%prog %s %s' % (cls.Name(), cls.usage))
 
-  def ProcessCommandLine(self, parser, options, args):
-    pass
-
-  def Run(self, options, args):
+  def Run(self, args):
     raise NotImplementedError()

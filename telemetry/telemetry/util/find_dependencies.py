@@ -77,7 +77,7 @@ def FindPageSetDependencies(base_dir):
 
     # Ensure the test's default options are set if needed.
     parser = optparse.OptionParser()
-    test_obj.AddTestCommandLineOptions(parser)
+    test_obj.AddCommandLineArgs(parser)
     options = optparse.Values()
     for k, v in parser.get_default_values().__dict__.iteritems():
       options.ensure_value(k, v)

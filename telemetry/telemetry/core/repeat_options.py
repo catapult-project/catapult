@@ -18,15 +18,16 @@ class RepeatOptions(object):
     return RepeatOptions(self.page_repeat_secs, self.pageset_repeat_secs,
                          self.page_repeat_iters, self.pageset_repeat_iters)
 
-  def AddCommandLineOptions(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
     group = optparse.OptionGroup(parser, 'Repeat options')
-    group.add_option('--page-repeat', dest='page_repeat', default='1',
+    group.add_option('--page-repeat', default='1',
                      help='Number of iterations or length of time to repeat '
                      'each individual page in the pageset before proceeding.  '
                      'Append an \'s\' to specify length of time in seconds. '
                      'e.g., \'10\' to repeat for 10 iterations, or \'30s\' to '
                      'repeat for 30 seconds.')
-    group.add_option('--pageset-repeat', dest='pageset_repeat', default='1',
+    group.add_option('--pageset-repeat', default='1',
                      help='Number of iterations or length of time to repeat '
                      'the entire pageset before finishing.  Append an \'s\' '
                      'to specify length of time in seconds. e.g., \'10\' to '
