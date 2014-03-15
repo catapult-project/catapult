@@ -14,7 +14,7 @@ from telemetry.page import cloud_storage
 
 BUCKET_CHOICES = {
     'public': cloud_storage.PUBLIC_BUCKET,
-    #'partner': cloud_storage.PARTNER_BUCKET,
+    'partner': cloud_storage.PARTNER_BUCKET,
     'google-only': cloud_storage.INTERNAL_BUCKET,
 }
 

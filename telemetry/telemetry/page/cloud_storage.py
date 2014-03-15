@@ -17,6 +17,7 @@ from telemetry.core import util
 
 
 PUBLIC_BUCKET = 'chromium-telemetry'
+PARTNER_BUCKET = 'chrome-partner-telemetry'
 INTERNAL_BUCKET = 'chrome-telemetry'
 
 
@@ -185,7 +186,7 @@ def GetIfChanged(file_path, bucket=None):
   if bucket:
     buckets = [bucket]
   else:
-    buckets = [PUBLIC_BUCKET, INTERNAL_BUCKET]
+    buckets = [PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET]
 
   found = False
   for bucket in buckets:
