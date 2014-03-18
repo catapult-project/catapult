@@ -49,21 +49,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._SetBranchNumber(self._GetChromeVersion())
 
-    self._login_ext_dir = None
-    if not self._use_oobe_login_for_testing:
-      self._login_ext_dir = os.path.join(os.path.dirname(__file__),
-                                         'chromeos_login_ext')
-
-      # Push a dummy login extension to the device.
-      # This extension automatically logs in test user specified by
-      # self.browser_options.username.
-      # Note that we also perform this copy locally to ensure that
-      # the owner of the extensions is set to chronos.
-      logging.info('Copying dummy login extension to the device')
-      cri.PushFile(self._login_ext_dir, '/tmp/')
-      self._login_ext_dir = '/tmp/chromeos_login_ext'
-      cri.Chown(self._login_ext_dir)
-
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
     # the owner of the extensions is set to chronos.
@@ -119,11 +104,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           # Skip hwid check, for VMs and pre-MP lab devices.
           '--skip-hwid-check'
       ])
-    elif not self._use_oobe_login_for_testing:
-      # This extension bypasses gaia and logs us in.
-      logging.info('Using --auth-ext-path=%s to login', self._login_ext_dir)
-      args.append('--auth-ext-path=%s' % self._login_ext_dir)
-
     return args
 
   def _GetSessionManagerPid(self, procs):
@@ -185,15 +165,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def profile_directory(self):
     return '/home/chronos/Default'
 
-  @property
-  def hwid(self):
-    return self._cri.RunCmdOnDevice(['/usr/bin/crossystem', 'hwid'])[0]
-
-  @property
-  def _use_oobe_login_for_testing(self):
-    """Oobe.LoginForTesting was introduced after branch 1599."""
-    return self.chrome_branch_number > 1599
-
   def GetRemotePort(self, port):
     if self._cri.local:
       return port
@@ -234,14 +205,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.Close()
       raise
 
-    # chrome_branch_number is set in _PostBrowserStartupInitialization.
-    # Without --skip-hwid-check (introduced in crrev.com/203397), devices/VMs
-    # will be stuck on the bad hwid screen.
-    if self.chrome_branch_number <= 1500 and not self.hwid:
-      raise exceptions.LoginException(
-          'Hardware id not set on device/VM. --skip-hwid-check not supported '
-          'with chrome branches 1500 or earlier.')
-
     util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:
@@ -265,10 +228,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._forwarder:
       self._forwarder.Close()
       self._forwarder = None
-
-    if self._login_ext_dir:
-      self._cri.RmRF(self._login_ext_dir)
-      self._login_ext_dir = None
 
     if self._cri:
       for e in self._extensions_to_load:
@@ -319,37 +278,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       }
     ''')
 
-  def _HandleUserImageSelectionScreen(self):
-    """If we're stuck on the user image selection screen, we click the ok
-    button.
-    """
-    oobe = self.oobe
-    if oobe:
-      try:
-        oobe.EvaluateJavaScript("""
-            var ok = document.getElementById("ok-button");
-            if (ok) {
-              ok.click();
-            }
-        """)
-      except (exceptions.TabCrashException):
-        pass
-
   def _IsLoggedIn(self):
     """Returns True if we're logged in (cryptohome has mounted), and the oobe
     has been dismissed."""
-    if self.chrome_branch_number <= 1547:
-      self._HandleUserImageSelectionScreen()
     return (self._cri.IsCryptohomeMounted(self.browser_options.username) and
             not self.oobe_exists)
-
-  def _StartupWindow(self):
-    """Closes the startup window, which is an extension on official builds,
-    and a webpage on chromiumos"""
-    startup_window_ext_id = 'honijodknafkokifofgiaalefdiedpko'
-    return (self.extension_backend[startup_window_ext_id]
-        if startup_window_ext_id in self.extension_backend
-        else self.tab_list_backend.Get(0, None))
 
   def _WaitForSigninScreen(self):
     """Waits for oobe to be on the signin or account picker screen."""
@@ -394,21 +327,20 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateLogin(self):
     """Navigates through oobe login screen"""
-    if self._use_oobe_login_for_testing:
-      logging.info('Invoking Oobe.loginForTesting')
-      if not self.oobe_exists:
-        raise exceptions.LoginException('Oobe missing')
-      oobe = self.oobe
-      util.WaitFor(lambda: oobe.EvaluateJavaScript(
-          'typeof Oobe !== \'undefined\''), 10)
+    logging.info('Invoking Oobe.loginForTesting')
+    if not self.oobe_exists:
+      raise exceptions.LoginException('Oobe missing')
+    oobe = self.oobe
+    util.WaitFor(lambda: oobe.EvaluateJavaScript(
+        'typeof Oobe !== \'undefined\''), 10)
 
-      if oobe.EvaluateJavaScript(
-          'typeof Oobe.loginForTesting == \'undefined\''):
-        raise exceptions.LoginException('Oobe.loginForTesting js api missing')
+    if oobe.EvaluateJavaScript(
+        'typeof Oobe.loginForTesting == \'undefined\''):
+      raise exceptions.LoginException('Oobe.loginForTesting js api missing')
 
-      oobe.ExecuteJavaScript(
-          'Oobe.loginForTesting(\'%s\', \'%s\');'
-              % (self.browser_options.username, self.browser_options.password))
+    oobe.ExecuteJavaScript(
+        'Oobe.loginForTesting(\'%s\', \'%s\');'
+            % (self.browser_options.username, self.browser_options.password))
 
     try:
       util.WaitFor(self._IsLoggedIn, 60)
@@ -424,23 +356,18 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.TakeScreenShot('extension-timeout')
       raise
 
-    if self.chrome_branch_number < 1500:
-      # Wait for the startup window, then close it. Startup window doesn't exist
-      # post-M27. crrev.com/197900
-      util.WaitFor(self._StartupWindow, 20).Close()
-    else:
-      # Workaround for crbug.com/329271, crbug.com/334726.
-      retries = 3
-      while not len(self.tab_list_backend):
-        try:
-          # Open a new window/tab.
-          tab = self.tab_list_backend.New(timeout=30)
-          tab.Navigate('about:blank', timeout=10)
-        except (exceptions.TabCrashException, util.TimeoutException,
-                IndexError):
-          retries -= 1
-          logging.warn('TabCrashException/TimeoutException in '
-                       'new tab creation/navigation, '
-                       'remaining retries %d' % retries)
-          if not retries:
-            raise
+    # Workaround for crbug.com/329271, crbug.com/334726.
+    retries = 3
+    while not len(self.tab_list_backend):
+      try:
+        # Open a new window/tab.
+        tab = self.tab_list_backend.New(timeout=30)
+        tab.Navigate('about:blank', timeout=10)
+      except (exceptions.TabCrashException, util.TimeoutException,
+              IndexError):
+        retries -= 1
+        logging.warn('TabCrashException/TimeoutException in '
+                     'new tab creation/navigation, '
+                     'remaining retries %d' % retries)
+        if not retries:
+          raise
