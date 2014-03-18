@@ -20,6 +20,16 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
   def __init__(self, *args):
     super(InspectorNetworkTabTest, self).__init__(*args)
 
+  def _NavigateAndGetHTTPResponseEvents(self, page, record_network=True):
+    opts = recording_options.TimelineRecordingOptions()
+    opts.record_network = record_network
+    self._tab.StartTimelineRecording(opts)
+    self.Navigate(page)
+    self._tab.StopTimelineRecording()
+
+    self.assertTrue(self._tab.timeline_model)
+    return self._tab.timeline_model.GetAllEventsOfName('HTTPResponse')
+
   def testHTTPResponseTimelineRecorder(self):
     tests = {
         'blank.html': InspectorNetworkTabTest.TestCase(),
@@ -29,15 +39,7 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
             monitoring=True, responses_count=2, subresources=['image.png']),
         }
     for page, test in tests.iteritems():
-      opts = recording_options.TimelineRecordingOptions()
-      if test.monitoring:
-        opts.record_network = True
-      self._tab.StartTimelineRecording(opts)
-      self.Navigate(page)
-      self._tab.StopTimelineRecording()
-
-      self.assertTrue(self._tab.timeline_model)
-      events = self._tab.timeline_model.GetAllEventsOfName('HTTPResponse')
+      events = self._NavigateAndGetHTTPResponseEvents(page, test.monitoring)
       self.assertEqual(test.responses_count, len(events))
       if not test.monitoring:
         continue
@@ -58,9 +60,34 @@ class InspectorNetworkTabTest(tab_test_case.TabTestCase):
         if link == page:
           self.assertEqual(resp.GetHeader('Content-Type'), 'text/html')
           self.assertTrue('<!DOCTYPE HTML>' in body)
-          self.assertEqual(False, base64_encoded)
+          self.assertFalse(base64_encoded)
         else:
           # We know this is the only subresource type in our setup.
           self.assertEqual(resp.GetHeader('Content-Type'), 'image/png')
           self.assertFalse('<!DOCTYPE HTML>' in body)
-          self.assertEqual(True, base64_encoded)
+          self.assertTrue(base64_encoded)
+
+  def testCacheableHTTPResponse(self):
+    # We know this page has one PNG image and its cacheable.
+    events = self._NavigateAndGetHTTPResponseEvents('image_decoding.html')
+    images_first = []
+    for event in events:
+      resp = inspector_network.InspectorNetworkResponseData.FromTimelineEvent(
+          event)
+      if resp.GetHeader('Content-Type') == 'image/png':
+        images_first.append(resp)
+
+    self.assertEqual(1, len(images_first))
+    self.assertFalse(images_first[0].served_from_cache)
+
+    events = self._NavigateAndGetHTTPResponseEvents('image_decoding.html')
+    images_second = []
+    for event in events:
+      resp = inspector_network.InspectorNetworkResponseData.FromTimelineEvent(
+          event)
+      if resp.GetHeader('Content-Type') == 'image/png':
+        images_second.append(resp)
+    self.assertEqual(1, len(images_second))
+    # On the second fetch, the image is served from cache.
+    self.assertTrue(images_second[0].served_from_cache)
+

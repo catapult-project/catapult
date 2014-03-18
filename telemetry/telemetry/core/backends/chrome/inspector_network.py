@@ -82,7 +82,7 @@ class InspectorNetworkResponseData(object):
 
   @property
   def served_from_cache(self):
-    self._served_from_cache = False
+    return self._served_from_cache
 
   def GetHeader(self, name):
     if name in self.headers:
