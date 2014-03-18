@@ -51,6 +51,11 @@ class Test(command_line.Command):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
+    # TODO: This overrides the arguments the user specifies at the command-line.
+    # That's not right. http://crbug.com/330058
+    for key, value in cls.options.iteritems():
+      setattr(args, key, value)
+
     cls.PageTestClass().ProcessCommandLineArgs(parser, args)
 
   def CustomizeBrowserOptions(self, options):
@@ -58,11 +63,6 @@ class Test(command_line.Command):
 
   def Run(self, args):
     """Run this test with the given options."""
-    # TODO: This overrides the arguments the user specifies at the command-line.
-    # That's not right. http://crbug.com/330058
-    for key, value in self.options.iteritems():
-      setattr(args, key, value)
-
     self.CustomizeBrowserOptions(args)
 
     test = self.PageTestClass()()
