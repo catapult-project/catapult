@@ -210,6 +210,8 @@ class PageTest(command_line.ArgumentHandlerMixIn):
 
   def CanRunForPage(self, page):  # pylint: disable=W0613
     """Override to customize if the test can be ran for the given page."""
+    if self._action_name_to_run:
+      return hasattr(page, self._action_name_to_run)
     return True
 
   def WillRunTest(self, options):
