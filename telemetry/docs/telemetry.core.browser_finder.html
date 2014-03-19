@@ -17,10 +17,13 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.chrome.android_browser_finder.html">telemetry.core.chrome.android_browser_finder</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.chrome.cros_browser_finder.html">telemetry.core.chrome.cros_browser_finder</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.chrome.desktop_browser_finder.html">telemetry.core.chrome.desktop_browser_finder</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.backends.chrome.android_browser_finder.html">telemetry.core.backends.chrome.android_browser_finder</a><br>
+<a href="telemetry.core.backends.webdriver.webdriver_desktop_browser_finder.html">telemetry.core.backends.webdriver.webdriver_desktop_browser_finder</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.backends.chrome.cros_browser_finder.html">telemetry.core.backends.chrome.cros_browser_finder</a><br>
+<a href="telemetry.core.backends.chrome.desktop_browser_finder.html">telemetry.core.backends.chrome.desktop_browser_finder</a><br>
 </td><td width="25%" valign=top><a href="logging.html">logging</a><br>
+<a href="operator.html">operator</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.backends.webdriver.webdriver_desktop_browser_finder.html">telemetry.core.backends.webdriver.webdriver_desktop_browser_finder</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -160,14 +163,26 @@ Data descriptors inherited from <a href="exceptions.html#BaseException">exceptio
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-FindBrowser"><strong>FindBrowser</strong></a>(options)</dt><dd><tt>Finds&nbsp;the&nbsp;best&nbsp;PossibleBrowser&nbsp;object&nbsp;to&nbsp;run&nbsp;given&nbsp;the&nbsp;provided<br>
-BrowserOptions&nbsp;object.&nbsp;The&nbsp;returned&nbsp;possiblity&nbsp;object&nbsp;can&nbsp;then&nbsp;be&nbsp;used&nbsp;to<br>
-connect&nbsp;to&nbsp;and&nbsp;control&nbsp;the&nbsp;located&nbsp;browser.&nbsp;A&nbsp;<a href="#BrowserFinderException">BrowserFinderException</a>&nbsp;will<br>
-be&nbsp;raised&nbsp;if&nbsp;the&nbsp;BrowserOptions&nbsp;argument&nbsp;is&nbsp;improperly&nbsp;set&nbsp;or&nbsp;if&nbsp;an&nbsp;error<br>
-occurs&nbsp;when&nbsp;finding&nbsp;a&nbsp;browser.</tt></dd></dl>
- <dl><dt><a name="-GetAllAvailableBrowserTypes"><strong>GetAllAvailableBrowserTypes</strong></a>(options)</dt><dd><tt>Returns&nbsp;an&nbsp;array&nbsp;of&nbsp;browser&nbsp;types&nbsp;supported&nbsp;on&nbsp;this&nbsp;system.<br>
-A&nbsp;<a href="#BrowserFinderException">BrowserFinderException</a>&nbsp;will&nbsp;be&nbsp;raised&nbsp;if&nbsp;the&nbsp;BrowserOptions&nbsp;argument&nbsp;is<br>
-improperly&nbsp;set&nbsp;or&nbsp;if&nbsp;an&nbsp;error&nbsp;occurs&nbsp;when&nbsp;finding&nbsp;a&nbsp;browser.</tt></dd></dl>
+<td width="100%"><dl><dt><a name="-FindBrowser"><strong>FindBrowser</strong></a>(options)</dt><dd><tt>Finds&nbsp;the&nbsp;best&nbsp;PossibleBrowser&nbsp;object&nbsp;given&nbsp;a&nbsp;BrowserOptions&nbsp;object.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;A&nbsp;BrowserOptions&nbsp;object.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;A&nbsp;PossibleBrowser&nbsp;object.<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;<a href="#BrowserFinderException">BrowserFinderException</a>:&nbsp;Options&nbsp;improperly&nbsp;set,&nbsp;or&nbsp;an&nbsp;error&nbsp;occurred.</tt></dd></dl>
+ <dl><dt><a name="-GetAllAvailableBrowserTypes"><strong>GetAllAvailableBrowserTypes</strong></a>(options)</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;available&nbsp;browser&nbsp;types.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;options:&nbsp;A&nbsp;BrowserOptions&nbsp;object.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;A&nbsp;list&nbsp;of&nbsp;browser&nbsp;type&nbsp;strings.<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;<a href="#BrowserFinderException">BrowserFinderException</a>:&nbsp;Options&nbsp;are&nbsp;improperly&nbsp;set,&nbsp;or&nbsp;an&nbsp;error&nbsp;occurred.</tt></dd></dl>
 </td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#55aa55">
@@ -175,5 +190,6 @@ improperly&nbsp;set&nbsp;or&nbsp;if&nbsp;an&nbsp;error&nbsp;occurs&nbsp;when&nbs
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>ALL_BROWSER_TYPES</strong> = 'exact,release,debug,canary,content-shell-debug,c...chrome,cros-chrome,cros-chrome-guest,system-guest'</td></tr></table>
+<td width="100%"><strong>ALL_BROWSER_TYPES</strong> = ['exact', 'release', 'release_x64', 'debug', 'debug_x64', 'canary', 'content-shell-debug', 'content-shell-debug_x64', 'content-shell-release', 'content-shell-release_x64', 'system', 'android-chrome-beta', 'android-chrome-dev', 'android-chromium-testshell', 'android-jb-system-chrome', 'android-chrome-canary', 'android-chrome', 'android-webview', 'android-content-shell', 'cros-chrome', ...]<br>
+<strong>BROWSER_FINDERS</strong> = [&lt;module 'telemetry.core.backends.chrome.desktop_...core/backends/chrome/desktop_browser_finder.pyc'&gt;, &lt;module 'telemetry.core.backends.chrome.android_...core/backends/chrome/android_browser_finder.pyc'&gt;, &lt;module 'telemetry.core.backends.chrome.cros_bro...ry/core/backends/chrome/cros_browser_finder.pyc'&gt;, &lt;module 'telemetry.core.backends.webdriver.webdr.../webdriver/webdriver_desktop_browser_finder.pyc'&gt;]</td></tr></table>
 </body></html>

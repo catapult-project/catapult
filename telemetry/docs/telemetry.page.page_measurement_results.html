@@ -9,7 +9,7 @@
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="telemetry.html"><font color="#ffffff">telemetry</font></a>.<a href="telemetry.page.html"><font color="#ffffff">page</font></a>.page_measurement_results</strong></big></big></font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="../telemetry/page/page_measurement_results.py">telemetry/page/page_measurement_results.py</a></font></td></tr></table>
-    <p><tt>#&nbsp;Copyright&nbsp;(c)&nbsp;2012&nbsp;The&nbsp;Chromium&nbsp;Authors.&nbsp;All&nbsp;rights&nbsp;reserved.<br>
+    <p><tt>#&nbsp;Copyright&nbsp;(c)&nbsp;2013&nbsp;The&nbsp;Chromium&nbsp;Authors.&nbsp;All&nbsp;rights&nbsp;reserved.<br>
 #&nbsp;Use&nbsp;of&nbsp;this&nbsp;source&nbsp;code&nbsp;is&nbsp;governed&nbsp;by&nbsp;a&nbsp;BSD-style&nbsp;license&nbsp;that&nbsp;can&nbsp;be<br>
 #&nbsp;found&nbsp;in&nbsp;the&nbsp;LICENSE&nbsp;file.</tt></p>
 <p>
@@ -19,9 +19,10 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.page.page_measurement_value.html">telemetry.page.page_measurement_value</a><br>
-</td><td width="25%" valign=top><a href="telemetry.page.page_test_results.html">telemetry.page.page_test_results</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.page.page_test_results.html">telemetry.page.page_test_results</a><br>
+</td><td width="25%" valign=top><a href="telemetry.value.value_backcompat.html">telemetry.value.value_backcompat</a><br>
+</td><td width="25%" valign=top><a href="telemetry.value.html">telemetry.value</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -29,12 +30,6 @@
     
 <tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl>
-<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
-</font></dt><dd>
-<dl>
-<dt><font face="helvetica, arial"><a href="telemetry.page.page_measurement_results.html#ValuesForSinglePage">ValuesForSinglePage</a>
-</font></dt></dl>
-</dd>
 <dt><font face="helvetica, arial"><a href="telemetry.page.page_test_results.html#PageTestResults">telemetry.page.page_test_results.PageTestResults</a>(<a href="unittest.result.html#TestResult">unittest.result.TestResult</a>)
 </font></dt><dd>
 <dl>
@@ -63,21 +58,27 @@ Methods defined here:<br>
 
 <dl><dt><a name="PageMeasurementResults-DidMeasurePage"><strong>DidMeasurePage</strong></a>(self)</dt></dl>
 
+<dl><dt><a name="PageMeasurementResults-FindAllPageSpecificValuesNamed"><strong>FindAllPageSpecificValuesNamed</strong></a>(self, value_name)</dt></dl>
+
+<dl><dt><a name="PageMeasurementResults-FindPageSpecificValuesForPage"><strong>FindPageSpecificValuesForPage</strong></a>(self, page, value_name)</dt></dl>
+
+<dl><dt><a name="PageMeasurementResults-GetUnitsForValueName"><strong>GetUnitsForValueName</strong></a>(self, value_name)</dt></dl>
+
 <dl><dt><a name="PageMeasurementResults-WillMeasurePage"><strong>WillMeasurePage</strong></a>(self, page)</dt></dl>
 
-<dl><dt><a name="PageMeasurementResults-__getitem__"><strong>__getitem__</strong></a>(self, i)</dt><dd><tt>Shorthand&nbsp;for&nbsp;self.<strong>page_results</strong>[i]</tt></dd></dl>
-
-<dl><dt><a name="PageMeasurementResults-__init__"><strong>__init__</strong></a>(self, trace_tag<font color="#909090">=''</font>)</dt></dl>
-
-<dl><dt><a name="PageMeasurementResults-__len__"><strong>__len__</strong></a>(self)</dt></dl>
+<dl><dt><a name="PageMeasurementResults-__init__"><strong>__init__</strong></a>(self, output_stream<font color="#909090">=None</font>, trace_tag<font color="#909090">=''</font>)</dt></dl>
 
 <hr>
 Data descriptors defined here:<br>
-<dl><dt><strong>all_measurements_that_have_been_seen</strong></dt>
+<dl><dt><strong>all_page_specific_values</strong></dt>
 </dl>
-<dl><dt><strong>page_results</strong></dt>
+<dl><dt><strong>all_value_names_that_have_been_seen</strong></dt>
 </dl>
-<dl><dt><strong>values_for_current_page</strong></dt>
+<dl><dt><strong>current_page</strong></dt>
+</dl>
+<dl><dt><strong>page_specific_values_for_current_page</strong></dt>
+</dl>
+<dl><dt><strong>pages_that_succeeded</strong></dt>
 </dl>
 <hr>
 Methods inherited from <a href="telemetry.page.page_test_results.html#PageTestResults">telemetry.page.page_test_results.PageTestResults</a>:<br>
@@ -99,10 +100,16 @@ Methods inherited from <a href="telemetry.page.page_test_results.html#PageTestRe
 
 <dl><dt><a name="PageMeasurementResults-StopTest"><strong>StopTest</strong></a>(self, page)</dt></dl>
 
+<dl><dt><a name="PageMeasurementResults-__copy__"><strong>__copy__</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="PageMeasurementResults-addSkip"><strong>addSkip</strong></a>(self, test, reason)</dt></dl>
 
 <dl><dt><a name="PageMeasurementResults-addSuccess"><strong>addSuccess</strong></a>(self, test)</dt></dl>
 
+<hr>
+Data descriptors inherited from <a href="telemetry.page.page_test_results.html#PageTestResults">telemetry.page.page_test_results.PageTestResults</a>:<br>
+<dl><dt><strong>pages_that_had_errors_or_failures</strong></dt>
+</dl>
 <hr>
 Methods inherited from <a href="unittest.result.html#TestResult">unittest.result.TestResult</a>:<br>
 <dl><dt><a name="PageMeasurementResults-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
@@ -142,36 +149,6 @@ Data descriptors inherited from <a href="unittest.result.html#TestResult">unitte
 </dl>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="ValuesForSinglePage">class <strong>ValuesForSinglePage</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
-    
-<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%">Methods defined here:<br>
-<dl><dt><a name="ValuesForSinglePage-AddValue"><strong>AddValue</strong></a>(self, value)</dt></dl>
-
-<dl><dt><a name="ValuesForSinglePage-FindValueByMeasurementName"><strong>FindValueByMeasurementName</strong></a>(self, measurement_name)</dt></dl>
-
-<dl><dt><a name="ValuesForSinglePage-FindValueByTraceName"><strong>FindValueByTraceName</strong></a>(self, trace_name)</dt></dl>
-
-<dl><dt><a name="ValuesForSinglePage-__contains__"><strong>__contains__</strong></a>(self, trace_name)</dt></dl>
-
-<dl><dt><a name="ValuesForSinglePage-__getitem__"><strong>__getitem__</strong></a>(self, trace_name)</dt></dl>
-
-<dl><dt><a name="ValuesForSinglePage-__init__"><strong>__init__</strong></a>(self, page)</dt></dl>
-
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__dict__</strong></dt>
-<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<dl><dt><strong>measurement_names</strong></dt>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

@@ -20,8 +20,10 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.browser_finder.html">telemetry.core.browser_finder</a><br>
-</td><td width="25%" valign=top><a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
-</td><td width="25%" valign=top><a href="unittest.html">unittest</a><br>
+<a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
+</td><td width="25%" valign=top><a href="os.html">os</a><br>
+<a href="unittest.html">unittest</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.util.html">telemetry.core.util</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -52,6 +54,10 @@
 <hr>
 Methods defined here:<br>
 <dl><dt><a name="TabTestCase-CustomizeBrowserOptions"><strong>CustomizeBrowserOptions</strong></a>(self, options)</dt><dd><tt>Override&nbsp;to&nbsp;add&nbsp;test-specific&nbsp;options&nbsp;to&nbsp;the&nbsp;BrowserOptions&nbsp;object</tt></dd></dl>
+
+<dl><dt><a name="TabTestCase-Navigate"><strong>Navigate</strong></a>(self, filename, script_to_evaluate_on_commit<font color="#909090">=None</font>)</dt><dd><tt>Navigates&nbsp;|tab|&nbsp;to&nbsp;|filename|&nbsp;in&nbsp;the&nbsp;unittest&nbsp;data&nbsp;directory.<br>
+&nbsp;<br>
+Also&nbsp;sets&nbsp;up&nbsp;http&nbsp;server&nbsp;to&nbsp;point&nbsp;to&nbsp;the&nbsp;unittest&nbsp;data&nbsp;directory.</tt></dd></dl>
 
 <dl><dt><a name="TabTestCase-__init__"><strong>__init__</strong></a>(self, *args)</dt></dl>
 
@@ -188,10 +194,10 @@ as&nbsp;significant&nbsp;digits&nbsp;(measured&nbsp;from&nbsp;the&nbsp;most&nbsp
 &nbsp;<br>
 Objects&nbsp;that&nbsp;are&nbsp;equal&nbsp;automatically&nbsp;fail.</tt></dd></dl>
 
-<dl><dt><a name="TabTestCase-assertNotEqual"><strong>assertNotEqual</strong></a>(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'=='<br>
+<dl><dt><a name="TabTestCase-assertNotEqual"><strong>assertNotEqual</strong></a>(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'!='<br>
 operator.</tt></dd></dl>
 
-<dl><dt><a name="TabTestCase-assertNotEquals"><strong>assertNotEquals</strong></a> = assertNotEqual(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'=='<br>
+<dl><dt><a name="TabTestCase-assertNotEquals"><strong>assertNotEquals</strong></a> = assertNotEqual(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'!='<br>
 operator.</tt></dd></dl>
 
 <dl><dt><a name="TabTestCase-assertNotIn"><strong>assertNotIn</strong></a>(self, member, container, msg<font color="#909090">=None</font>)</dt><dd><tt>Just&nbsp;like&nbsp;<a href="#TabTestCase-assertTrue">assertTrue</a>(a&nbsp;not&nbsp;in&nbsp;b),&nbsp;but&nbsp;with&nbsp;a&nbsp;nicer&nbsp;default&nbsp;message.</tt></dd></dl>
@@ -200,10 +206,10 @@ operator.</tt></dd></dl>
 
 <dl><dt><a name="TabTestCase-assertNotRegexpMatches"><strong>assertNotRegexpMatches</strong></a>(self, text, unexpected_regexp, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;the&nbsp;test&nbsp;if&nbsp;the&nbsp;text&nbsp;matches&nbsp;the&nbsp;regular&nbsp;expression.</tt></dd></dl>
 
-<dl><dt><a name="TabTestCase-assertRaises"><strong>assertRaises</strong></a>(self, excClass, callableObj<font color="#909090">=None</font>, *args, **kwargs)</dt><dd><tt>Fail&nbsp;unless&nbsp;an&nbsp;exception&nbsp;of&nbsp;class&nbsp;excClass&nbsp;is&nbsp;thrown<br>
+<dl><dt><a name="TabTestCase-assertRaises"><strong>assertRaises</strong></a>(self, excClass, callableObj<font color="#909090">=None</font>, *args, **kwargs)</dt><dd><tt>Fail&nbsp;unless&nbsp;an&nbsp;exception&nbsp;of&nbsp;class&nbsp;excClass&nbsp;is&nbsp;raised<br>
 by&nbsp;callableObj&nbsp;when&nbsp;invoked&nbsp;with&nbsp;arguments&nbsp;args&nbsp;and&nbsp;keyword<br>
 arguments&nbsp;kwargs.&nbsp;If&nbsp;a&nbsp;different&nbsp;type&nbsp;of&nbsp;exception&nbsp;is<br>
-thrown,&nbsp;it&nbsp;will&nbsp;not&nbsp;be&nbsp;caught,&nbsp;and&nbsp;the&nbsp;test&nbsp;case&nbsp;will&nbsp;be<br>
+raised,&nbsp;it&nbsp;will&nbsp;not&nbsp;be&nbsp;caught,&nbsp;and&nbsp;the&nbsp;test&nbsp;case&nbsp;will&nbsp;be<br>
 deemed&nbsp;to&nbsp;have&nbsp;suffered&nbsp;an&nbsp;error,&nbsp;exactly&nbsp;as&nbsp;for&nbsp;an<br>
 unexpected&nbsp;exception.<br>
 &nbsp;<br>

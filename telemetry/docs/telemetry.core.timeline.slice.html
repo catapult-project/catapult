@@ -65,10 +65,15 @@ Methods defined here:<br>
 
 <dl><dt><a name="Slice-IterEventsInThisContainerRecrusively"><strong>IterEventsInThisContainerRecrusively</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="Slice-__init__"><strong>__init__</strong></a>(self, category, name, timestamp, args<font color="#909090">=None</font>, parent<font color="#909090">=None</font>, duration<font color="#909090">=0</font>)</dt></dl>
+<dl><dt><a name="Slice-__init__"><strong>__init__</strong></a>(self, parent_thread, category, name, timestamp, duration<font color="#909090">=0</font>, thread_timestamp<font color="#909090">=None</font>, thread_duration<font color="#909090">=None</font>, args<font color="#909090">=None</font>)</dt></dl>
 
 <hr>
 Data descriptors defined here:<br>
+<dl><dt><strong>self_thread_time</strong></dt>
+<dd><tt>Thread&nbsp;(scheduled)&nbsp;time&nbsp;spent&nbsp;in&nbsp;this&nbsp;function&nbsp;less&nbsp;any&nbsp;thread&nbsp;time&nbsp;spent<br>
+in&nbsp;child&nbsp;events.&nbsp;Returns&nbsp;None&nbsp;if&nbsp;the&nbsp;slice&nbsp;or&nbsp;any&nbsp;of&nbsp;its&nbsp;children&nbsp;does&nbsp;not<br>
+have&nbsp;a&nbsp;thread_duration&nbsp;value.</tt></dd>
+</dl>
 <dl><dt><strong>self_time</strong></dt>
 <dd><tt>Time&nbsp;spent&nbsp;in&nbsp;this&nbsp;function&nbsp;less&nbsp;any&nbsp;time&nbsp;spent&nbsp;in&nbsp;child&nbsp;events.</tt></dd>
 </dl>
@@ -85,6 +90,11 @@ Data descriptors inherited from <a href="telemetry.core.timeline.event.html#Time
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>end</strong></dt>
+</dl>
+<dl><dt><strong>thread_end</strong></dt>
+<dd><tt>Thread-specific&nbsp;CPU&nbsp;time&nbsp;when&nbsp;this&nbsp;event&nbsp;ended.<br>
+&nbsp;<br>
+May&nbsp;be&nbsp;None&nbsp;if&nbsp;the&nbsp;trace&nbsp;event&nbsp;didn't&nbsp;have&nbsp;thread&nbsp;time&nbsp;data.</tt></dd>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

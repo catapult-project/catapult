@@ -14,6 +14,14 @@
 #&nbsp;found&nbsp;in&nbsp;the&nbsp;LICENSE&nbsp;file.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.platform.html">telemetry.core.platform</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
@@ -41,11 +49,13 @@ Call&nbsp;<a href="#PossibleBrowser-Create">Create</a>()&nbsp;to&nbsp;launch&nbs
 <td width="100%">Methods defined here:<br>
 <dl><dt><a name="PossibleBrowser-Create"><strong>Create</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="PossibleBrowser-SupportsOptions"><strong>SupportsOptions</strong></a>(self, options)</dt><dd><tt>Tests&nbsp;for&nbsp;extension&nbsp;support.</tt></dd></dl>
+<dl><dt><a name="PossibleBrowser-SupportsOptions"><strong>SupportsOptions</strong></a>(self, finder_options)</dt><dd><tt>Tests&nbsp;for&nbsp;extension&nbsp;support.</tt></dd></dl>
 
-<dl><dt><a name="PossibleBrowser-__init__"><strong>__init__</strong></a>(self, browser_type, options)</dt></dl>
+<dl><dt><a name="PossibleBrowser-__init__"><strong>__init__</strong></a>(self, browser_type, target_os, finder_options)</dt></dl>
 
 <dl><dt><a name="PossibleBrowser-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="PossibleBrowser-last_modification_time"><strong>last_modification_time</strong></a>(self)</dt></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -57,7 +67,12 @@ Data descriptors defined here:<br>
 </dl>
 <dl><dt><strong>browser_type</strong></dt>
 </dl>
-<dl><dt><strong>options</strong></dt>
+<dl><dt><strong>finder_options</strong></dt>
+</dl>
+<dl><dt><strong>platform</strong></dt>
+</dl>
+<dl><dt><strong>target_os</strong></dt>
+<dd><tt>Target&nbsp;OS,&nbsp;the&nbsp;browser&nbsp;will&nbsp;run&nbsp;on.</tt></dd>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

@@ -19,23 +19,18 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.discover.html">telemetry.core.discover</a><br>
-</td><td width="25%" valign=top><a href="os.html">os</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.profile_creator.html">telemetry.core.profile_creator</a><br>
-</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.util.html">telemetry.core.util</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#eeaa77">
 <td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-ClearProfieCreatorsForTests"><strong>ClearProfieCreatorsForTests</strong></a>()</dt><dd><tt>Clears&nbsp;the&nbsp;discovered&nbsp;profile&nbsp;creator&nbsp;objects.&nbsp;&nbsp;Used&nbsp;for&nbsp;unit&nbsp;tests.</tt></dd></dl>
- <dl><dt><a name="-FindProfileCreators"><strong>FindProfileCreators</strong></a>(profile_creators_dir, base_dir)</dt><dd><tt>Discover&nbsp;all&nbsp;the&nbsp;ProfileCreator&nbsp;objects&nbsp;in&nbsp;|profile_creators_dir|.</tt></dd></dl>
- <dl><dt><a name="-GetProfileCreator"><strong>GetProfileCreator</strong></a>(profile_type)</dt><dd><tt>Returns&nbsp;the&nbsp;profile&nbsp;creator&nbsp;object&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;|profile_type|<br>
-string.</tt></dd></dl>
- <dl><dt><a name="-GetProfileDir"><strong>GetProfileDir</strong></a>(profile_type)</dt><dd><tt>Given&nbsp;a&nbsp;|profile_type|&nbsp;(as&nbsp;returned&nbsp;by&nbsp;<a href="#-GetProfileTypes">GetProfileTypes</a>()),&nbsp;return&nbsp;the<br>
-directory&nbsp;to&nbsp;use&nbsp;for&nbsp;that&nbsp;profile&nbsp;or&nbsp;None&nbsp;if&nbsp;the&nbsp;profile&nbsp;needs&nbsp;to&nbsp;be&nbsp;generated<br>
-or&nbsp;doesn't&nbsp;need&nbsp;a&nbsp;profile&nbsp;directory&nbsp;(e.g.&nbsp;using&nbsp;the&nbsp;browser&nbsp;default&nbsp;profile).</tt></dd></dl>
+<td width="100%"><dl><dt><a name="-GetProfileDir"><strong>GetProfileDir</strong></a>(profile_type)</dt><dd><tt>Given&nbsp;a&nbsp;|profile_type|&nbsp;(as&nbsp;returned&nbsp;by&nbsp;<a href="#-GetProfileTypes">GetProfileTypes</a>()),&nbsp;return&nbsp;the<br>
+directory&nbsp;to&nbsp;use&nbsp;for&nbsp;that&nbsp;profile&nbsp;or&nbsp;None&nbsp;if&nbsp;the&nbsp;profile&nbsp;doesn't&nbsp;need&nbsp;a<br>
+profile&nbsp;directory&nbsp;(e.g.&nbsp;using&nbsp;the&nbsp;browser&nbsp;default&nbsp;profile).</tt></dd></dl>
  <dl><dt><a name="-GetProfileTypes"><strong>GetProfileTypes</strong></a>()</dt><dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;all&nbsp;command&nbsp;line&nbsp;options&nbsp;that&nbsp;can&nbsp;be&nbsp;specified&nbsp;for<br>
 profile&nbsp;type.</tt></dd></dl>
 </td></tr></table><p>
@@ -46,6 +41,5 @@ profile&nbsp;type.</tt></dd></dl>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><strong>BASE_PROFILE_TYPES</strong> = ['clean', 'default']<br>
-<strong>PROFILE_CREATORS</strong> = {}<br>
 <strong>PROFILE_TYPE_MAPPING</strong> = {'power_user': 'chrome/test/data/extensions/profiles/extension_webrequest', 'typical_user': 'chrome/test/data/extensions/profiles/content_scripts1'}</td></tr></table>
 </body></html>

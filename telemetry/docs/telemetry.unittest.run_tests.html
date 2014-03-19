@@ -20,13 +20,13 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.browser_options.html">telemetry.core.browser_options</a><br>
-<a href="telemetry.core.discover.html">telemetry.core.discover</a><br>
-</td><td width="25%" valign=top><a href="telemetry.unittest.gtest_testrunner.html">telemetry.unittest.gtest_testrunner</a><br>
-<a href="logging.html">logging</a><br>
-</td><td width="25%" valign=top><a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
-<a href="os.html">os</a><br>
-</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
-<a href="unittest.html">unittest</a><br>
+<a href="telemetry.decorators.html">telemetry.decorators</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.discover.html">telemetry.core.discover</a><br>
+<a href="telemetry.unittest.gtest_testrunner.html">telemetry.unittest.gtest_testrunner</a><br>
+</td><td width="25%" valign=top><a href="logging.html">logging</a><br>
+<a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
+</td><td width="25%" valign=top><a href="unittest.html">unittest</a><br>
+<a href="telemetry.core.util.html">telemetry.core.util</a><br>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#eeaa77">
@@ -35,8 +35,9 @@
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl><dt><a name="-Discover"><strong>Discover</strong></a>(start_dir, top_level_dir<font color="#909090">=None</font>, pattern<font color="#909090">='test*.py'</font>)</dt></dl>
- <dl><dt><a name="-DiscoverAndRunTests"><strong>DiscoverAndRunTests</strong></a>(dir_name, args, top_level_dir, runner<font color="#909090">=None</font>, run_disabled_tests<font color="#909090">=False</font>)</dt></dl>
+ <dl><dt><a name="-DiscoverAndRunTests"><strong>DiscoverAndRunTests</strong></a>(dir_name, args, top_level_dir, platform, options, default_options, runner)</dt></dl>
  <dl><dt><a name="-FilterSuite"><strong>FilterSuite</strong></a>(suite, predicate)</dt></dl>
- <dl><dt><a name="-Main"><strong>Main</strong></a>(args, start_dir, top_level_dir, runner<font color="#909090">=None</font>)</dt><dd><tt>Unit&nbsp;test&nbsp;suite&nbsp;that&nbsp;collects&nbsp;all&nbsp;test&nbsp;cases&nbsp;for&nbsp;telemetry.</tt></dd></dl>
+ <dl><dt><a name="-Main"><strong>Main</strong></a> = _LoggingRestoreWrapper(*args, **kwargs)</dt></dl>
+ <dl><dt><a name="-RestoreLoggingLevel"><strong>RestoreLoggingLevel</strong></a>(func)</dt></dl>
 </td></tr></table>
 </body></html>

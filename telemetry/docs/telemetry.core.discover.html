@@ -19,18 +19,22 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="fnmatch.html">fnmatch</a><br>
-</td><td width="25%" valign=top><a href="inspect.html">inspect</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.camel_case.html">telemetry.core.camel_case</a><br>
+<a href="telemetry.decorators.html">telemetry.decorators</a><br>
+</td><td width="25%" valign=top><a href="fnmatch.html">fnmatch</a><br>
+<a href="inspect.html">inspect</a><br>
 </td><td width="25%" valign=top><a href="os.html">os</a><br>
-</td><td width="25%" valign=top><a href="re.html">re</a><br>
-</td></tr></table></td></tr></table><p>
+<a href="re.html">re</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#eeaa77">
 <td colspan=3 valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-DiscoverClasses"><strong>DiscoverClasses</strong></a>(start_dir, top_level_dir, base_class, pattern<font color="#909090">='*'</font>, index_by_class_name<font color="#909090">=False</font>)</dt><dd><tt>Discover&nbsp;all&nbsp;classes&nbsp;in&nbsp;|start_dir|&nbsp;which&nbsp;subclass&nbsp;|base_class|.<br>
+<td width="100%"><dl><dt><a name="-DiscoverClasses"><strong>DiscoverClasses</strong></a>(*args, **kwargs)</dt><dd><tt>Discover&nbsp;all&nbsp;classes&nbsp;in&nbsp;|start_dir|&nbsp;which&nbsp;subclass&nbsp;|base_class|.<br>
+&nbsp;<br>
+Base&nbsp;classes&nbsp;that&nbsp;contain&nbsp;subclasses&nbsp;are&nbsp;ignored&nbsp;by&nbsp;default.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;start_dir:&nbsp;The&nbsp;directory&nbsp;to&nbsp;recursively&nbsp;search.<br>
@@ -42,7 +46,7 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;dict&nbsp;of&nbsp;{module_name:&nbsp;class}&nbsp;or&nbsp;{underscored_class_name:&nbsp;class}</tt></dd></dl>
- <dl><dt><a name="-DiscoverModules"><strong>DiscoverModules</strong></a>(start_dir, top_level_dir, pattern<font color="#909090">='*'</font>)</dt><dd><tt>Discover&nbsp;all&nbsp;modules&nbsp;in&nbsp;|start_dir|&nbsp;which&nbsp;match&nbsp;|pattern|.<br>
+ <dl><dt><a name="-DiscoverModules"><strong>DiscoverModules</strong></a>(*args, **kwargs)</dt><dd><tt>Discover&nbsp;all&nbsp;modules&nbsp;in&nbsp;|start_dir|&nbsp;which&nbsp;match&nbsp;|pattern|.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;start_dir:&nbsp;The&nbsp;directory&nbsp;to&nbsp;recursively&nbsp;search.<br>
@@ -51,5 +55,6 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;list&nbsp;of&nbsp;modules.</tt></dd></dl>
+ <dl><dt><a name="-GetAllPageSetFilenames"><strong>GetAllPageSetFilenames</strong></a>(dir_path)</dt></dl>
 </td></tr></table>
 </body></html>

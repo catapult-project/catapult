@@ -18,8 +18,10 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.timeline.importer.html">telemetry.core.timeline.importer</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.backends.chrome.inspector_timeline_data.html">telemetry.core.backends.chrome.inspector_timeline_data</a><br>
 </td><td width="25%" valign=top><a href="telemetry.core.timeline.thread.html">telemetry.core.timeline.thread</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+</td><td width="25%" valign=top><a href="telemetry.core.timeline.slice.html">telemetry.core.timeline.slice</a><br>
+</td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -52,13 +54,13 @@ Methods defined here:<br>
 
 <dl><dt><a name="InspectorTimelineImporter-ImportEvents"><strong>ImportEvents</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="InspectorTimelineImporter-__init__"><strong>__init__</strong></a>(self, model, event_data)</dt></dl>
+<dl><dt><a name="InspectorTimelineImporter-__init__"><strong>__init__</strong></a>(self, model, timeline_data)</dt></dl>
 
 <hr>
 Static methods defined here:<br>
 <dl><dt><a name="InspectorTimelineImporter-AddRawEventToThreadRecursive"><strong>AddRawEventToThreadRecursive</strong></a>(thread, raw_inspector_event)</dt></dl>
 
-<dl><dt><a name="InspectorTimelineImporter-CanImport"><strong>CanImport</strong></a>(event_data)</dt><dd><tt>Checks&nbsp;if&nbsp;event_data&nbsp;is&nbsp;from&nbsp;the&nbsp;inspector&nbsp;timeline.&nbsp;We&nbsp;assume<br>
+<dl><dt><a name="InspectorTimelineImporter-CanImport"><strong>CanImport</strong></a>(timeline_data)</dt><dd><tt>Checks&nbsp;if&nbsp;timeline_data&nbsp;is&nbsp;from&nbsp;the&nbsp;inspector&nbsp;timeline.&nbsp;We&nbsp;assume<br>
 that&nbsp;if&nbsp;the&nbsp;first&nbsp;event&nbsp;is&nbsp;a&nbsp;valid&nbsp;inspector&nbsp;event,&nbsp;we&nbsp;can&nbsp;import&nbsp;the<br>
 entire&nbsp;list.</tt></dd></dl>
 

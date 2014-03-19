@@ -19,11 +19,12 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="os.html">os</a><br>
-<a href="telemetry.core.platform.profiler.html">telemetry.core.platform.profiler</a><br>
-</td><td width="25%" valign=top><a href="subprocess.html">subprocess</a><br>
-<a href="threading.html">threading</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.util.html">telemetry.core.util</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.backends.chrome.android_browser_finder.html">telemetry.core.backends.chrome.android_browser_finder</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="telemetry.core.platform.profiler.html">telemetry.core.platform.profiler</a><br>
+<a href="subprocess.html">subprocess</a><br>
+</td><td width="25%" valign=top><a href="threading.html">threading</a><br>
+<a href="telemetry.core.util.html">telemetry.core.util</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -57,13 +58,19 @@
 Methods defined here:<br>
 <dl><dt><a name="JavaHeapProfiler-CollectProfile"><strong>CollectProfile</strong></a>(self)</dt></dl>
 
-<dl><dt><a name="JavaHeapProfiler-__init__"><strong>__init__</strong></a>(self, browser_backend, platform_backend, output_path)</dt></dl>
+<dl><dt><a name="JavaHeapProfiler-__init__"><strong>__init__</strong></a>(self, browser_backend, platform_backend, output_path, state)</dt></dl>
 
 <hr>
 Class methods defined here:<br>
-<dl><dt><a name="JavaHeapProfiler-is_supported"><strong>is_supported</strong></a>(cls, options)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+<dl><dt><a name="JavaHeapProfiler-is_supported"><strong>is_supported</strong></a>(cls, browser_type)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
 <dl><dt><a name="JavaHeapProfiler-name"><strong>name</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Class methods inherited from <a href="telemetry.core.platform.profiler.html#Profiler">telemetry.core.platform.profiler.Profiler</a>:<br>
+<dl><dt><a name="JavaHeapProfiler-CustomizeBrowserOptions"><strong>CustomizeBrowserOptions</strong></a>(cls, browser_type, options)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt><dd><tt>Override&nbsp;to&nbsp;customize&nbsp;the&nbsp;Browser's&nbsp;options&nbsp;before&nbsp;it&nbsp;is&nbsp;created.</tt></dd></dl>
+
+<dl><dt><a name="JavaHeapProfiler-WillCloseBrowser"><strong>WillCloseBrowser</strong></a>(cls, browser_backend, platform_backend)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt><dd><tt>Called&nbsp;before&nbsp;the&nbsp;browser&nbsp;is&nbsp;stopped.</tt></dd></dl>
 
 <hr>
 Data descriptors inherited from <a href="telemetry.core.platform.profiler.html#Profiler">telemetry.core.platform.profiler.Profiler</a>:<br>

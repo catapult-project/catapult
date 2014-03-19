@@ -57,7 +57,7 @@ All&nbsp;time&nbsp;units&nbsp;are&nbsp;stored&nbsp;in&nbsp;milliseconds.<br>&nbs
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="Sample-__init__"><strong>__init__</strong></a>(self, category, name, timestamp, args<font color="#909090">=None</font>, parent<font color="#909090">=None</font>)</dt></dl>
+<dl><dt><a name="Sample-__init__"><strong>__init__</strong></a>(self, parent_thread, category, name, timestamp, args<font color="#909090">=None</font>)</dt></dl>
 
 <hr>
 Methods inherited from <a href="telemetry.core.timeline.event.html#TimelineEvent">telemetry.core.timeline.event.TimelineEvent</a>:<br>
@@ -72,6 +72,11 @@ Data descriptors inherited from <a href="telemetry.core.timeline.event.html#Time
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>end</strong></dt>
+</dl>
+<dl><dt><strong>thread_end</strong></dt>
+<dd><tt>Thread-specific&nbsp;CPU&nbsp;time&nbsp;when&nbsp;this&nbsp;event&nbsp;ended.<br>
+&nbsp;<br>
+May&nbsp;be&nbsp;None&nbsp;if&nbsp;the&nbsp;trace&nbsp;event&nbsp;didn't&nbsp;have&nbsp;thread&nbsp;time&nbsp;data.</tt></dd>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

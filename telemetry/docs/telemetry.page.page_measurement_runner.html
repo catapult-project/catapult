@@ -57,7 +57,7 @@ Data descriptors defined here:<br>
 </dl>
 <hr>
 Methods inherited from <a href="telemetry.page.page_test_runner.html#PageTestRunner">telemetry.page.page_test_runner.PageTestRunner</a>:<br>
-<dl><dt><a name="PageMeasurementRunner-FindTestConstructors"><strong>FindTestConstructors</strong></a>(self, base_dir)</dt></dl>
+<dl><dt><a name="PageMeasurementRunner-FindTestConstructors"><strong>FindTestConstructors</strong></a>(self, base_dirs)</dt></dl>
 
 <dl><dt><a name="PageMeasurementRunner-FindTestName"><strong>FindTestName</strong></a>(self, test_constructors, args)</dt><dd><tt>Find&nbsp;the&nbsp;test&nbsp;name&nbsp;in&nbsp;an&nbsp;arbitrary&nbsp;argument&nbsp;list.<br>
 &nbsp;<br>
@@ -68,18 +68,13 @@ optparse&nbsp;parsing&nbsp;will&nbsp;fail.<br>
 Returns:<br>
 &nbsp;&nbsp;test_name&nbsp;or&nbsp;None</tt></dd></dl>
 
-<dl><dt><a name="PageMeasurementRunner-GetModernizedTestName"><strong>GetModernizedTestName</strong></a>(self, arg)</dt><dd><tt>Sometimes&nbsp;tests&nbsp;change&nbsp;names&nbsp;but&nbsp;buildbots&nbsp;keep&nbsp;calling&nbsp;the&nbsp;old&nbsp;name.<br>
-&nbsp;<br>
-If&nbsp;arg&nbsp;matches&nbsp;an&nbsp;old&nbsp;test&nbsp;name,&nbsp;return&nbsp;the&nbsp;new&nbsp;test&nbsp;name&nbsp;instead.<br>
-Otherwise,&nbsp;return&nbsp;the&nbsp;arg.</tt></dd></dl>
+<dl><dt><a name="PageMeasurementRunner-GetPageSet"><strong>GetPageSet</strong></a>(self, test, env)</dt></dl>
 
-<dl><dt><a name="PageMeasurementRunner-GetPageSet"><strong>GetPageSet</strong></a>(self, test, page_set_filenames)</dt></dl>
-
-<dl><dt><a name="PageMeasurementRunner-ParseCommandLine"><strong>ParseCommandLine</strong></a>(self, args, base_dir, page_set_filenames)</dt></dl>
+<dl><dt><a name="PageMeasurementRunner-ParseCommandLine"><strong>ParseCommandLine</strong></a>(self, args, env)</dt></dl>
 
 <dl><dt><a name="PageMeasurementRunner-PrintParseError"><strong>PrintParseError</strong></a>(self, message)</dt></dl>
 
-<dl><dt><a name="PageMeasurementRunner-Run"><strong>Run</strong></a>(self, base_dir, page_set_filenames)</dt></dl>
+<dl><dt><a name="PageMeasurementRunner-Run"><strong>Run</strong></a>(self, env)</dt></dl>
 
 <dl><dt><a name="PageMeasurementRunner-__init__"><strong>__init__</strong></a>(self)</dt></dl>
 
@@ -98,7 +93,7 @@ Data descriptors inherited from <a href="telemetry.page.page_test_runner.html#Pa
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-Main"><strong>Main</strong></a>(base_dir, page_set_filenames)</dt><dd><tt>Turns&nbsp;a&nbsp;PageMeasurement&nbsp;into&nbsp;a&nbsp;command-line&nbsp;program.<br>
+<td width="100%"><dl><dt><a name="-Main"><strong>Main</strong></a>(env)</dt><dd><tt>Turns&nbsp;a&nbsp;PageMeasurement&nbsp;into&nbsp;a&nbsp;command-line&nbsp;program.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;base_dir:&nbsp;Path&nbsp;to&nbsp;directory&nbsp;containing&nbsp;tests&nbsp;and&nbsp;ProfileCreators.</tt></dd></dl>

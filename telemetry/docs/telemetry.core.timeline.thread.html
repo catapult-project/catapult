@@ -20,9 +20,10 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.timeline.event_container.html">telemetry.core.timeline.event_container</a><br>
+</td><td width="25%" valign=top><a href="itertools.html">itertools</a><br>
 </td><td width="25%" valign=top><a href="telemetry.core.timeline.sample.html">telemetry.core.timeline.sample</a><br>
 </td><td width="25%" valign=top><a href="telemetry.core.timeline.slice.html">telemetry.core.timeline.slice</a><br>
-</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+</td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -58,25 +59,31 @@ The&nbsp;asynchronous&nbsp;slices&nbsp;are&nbsp;stored&nbsp;in&nbsp;an&nbsp;Asyn
 Methods defined here:<br>
 <dl><dt><a name="Thread-AddAsyncSlice"><strong>AddAsyncSlice</strong></a>(self, async_slice)</dt></dl>
 
+<dl><dt><a name="Thread-AddFlowEvent"><strong>AddFlowEvent</strong></a>(self, flow_event)</dt></dl>
+
 <dl><dt><a name="Thread-AddSample"><strong>AddSample</strong></a>(self, category, name, timestamp, args<font color="#909090">=None</font>)</dt></dl>
 
-<dl><dt><a name="Thread-AutoCloseOpenSlices"><strong>AutoCloseOpenSlices</strong></a>(self, max_timestamp)</dt></dl>
+<dl><dt><a name="Thread-AutoCloseOpenSlices"><strong>AutoCloseOpenSlices</strong></a>(self, max_timestamp, max_thread_timestamp)</dt></dl>
 
-<dl><dt><a name="Thread-BeginSlice"><strong>BeginSlice</strong></a>(self, category, name, timestamp, args<font color="#909090">=None</font>)</dt><dd><tt>Opens&nbsp;a&nbsp;new&nbsp;slice&nbsp;for&nbsp;the&nbsp;thread.<br>
+<dl><dt><a name="Thread-BeginSlice"><strong>BeginSlice</strong></a>(self, category, name, timestamp, thread_timestamp<font color="#909090">=None</font>, args<font color="#909090">=None</font>)</dt><dd><tt>Opens&nbsp;a&nbsp;new&nbsp;slice&nbsp;for&nbsp;the&nbsp;thread.<br>
 Calls&nbsp;to&nbsp;beginSlice&nbsp;and&nbsp;endSlice&nbsp;must&nbsp;be&nbsp;made&nbsp;with<br>
 non-monotonically-decreasing&nbsp;timestamps.<br>
 &nbsp;<br>
 *&nbsp;category:&nbsp;Category&nbsp;to&nbsp;which&nbsp;the&nbsp;slice&nbsp;belongs.<br>
 *&nbsp;name:&nbsp;Name&nbsp;of&nbsp;the&nbsp;slice&nbsp;to&nbsp;add.<br>
 *&nbsp;timestamp:&nbsp;The&nbsp;timetsamp&nbsp;of&nbsp;the&nbsp;slice,&nbsp;in&nbsp;milliseconds.<br>
+*&nbsp;thread_timestamp:&nbsp;<a href="#Thread">Thread</a>&nbsp;specific&nbsp;clock&nbsp;(scheduled)&nbsp;timestamp&nbsp;of&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;slice,&nbsp;in&nbsp;milliseconds.<br>
 *&nbsp;args:&nbsp;Arguments&nbsp;associated&nbsp;with<br>
 &nbsp;<br>
 Returns&nbsp;newly&nbsp;opened&nbsp;slice</tt></dd></dl>
 
-<dl><dt><a name="Thread-EndSlice"><strong>EndSlice</strong></a>(self, end_timestamp)</dt><dd><tt>Ends&nbsp;the&nbsp;last&nbsp;begun&nbsp;slice&nbsp;in&nbsp;this&nbsp;group&nbsp;and&nbsp;pushes&nbsp;it&nbsp;onto&nbsp;the&nbsp;slice<br>
+<dl><dt><a name="Thread-EndSlice"><strong>EndSlice</strong></a>(self, end_timestamp, end_thread_timestamp<font color="#909090">=None</font>)</dt><dd><tt>Ends&nbsp;the&nbsp;last&nbsp;begun&nbsp;slice&nbsp;in&nbsp;this&nbsp;group&nbsp;and&nbsp;pushes&nbsp;it&nbsp;onto&nbsp;the&nbsp;slice<br>
 array.<br>
 &nbsp;<br>
 *&nbsp;end_timestamp:&nbsp;Timestamp&nbsp;when&nbsp;the&nbsp;slice&nbsp;ended&nbsp;in&nbsp;milliseconds<br>
+*&nbsp;end_thread_timestamp:&nbsp;Timestamp&nbsp;when&nbsp;the&nbsp;scheduled&nbsp;time&nbsp;of&nbsp;the&nbsp;slice&nbsp;ended<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in&nbsp;milliseconds<br>
 &nbsp;<br>
 returns&nbsp;completed&nbsp;slice.</tt></dd></dl>
 
@@ -84,11 +91,21 @@ returns&nbsp;completed&nbsp;slice.</tt></dd></dl>
 
 <dl><dt><a name="Thread-IsTimestampValidForBeginOrEnd"><strong>IsTimestampValidForBeginOrEnd</strong></a>(self, timestamp)</dt></dl>
 
+<dl><dt><a name="Thread-IterAllAsyncSlices"><strong>IterAllAsyncSlices</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Thread-IterAllAsyncSlicesOfName"><strong>IterAllAsyncSlicesOfName</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="Thread-IterAllFlowEvents"><strong>IterAllFlowEvents</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="Thread-IterAllSlices"><strong>IterAllSlices</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Thread-IterAllSlicesOfName"><strong>IterAllSlicesOfName</strong></a>(self, name)</dt></dl>
 
 <dl><dt><a name="Thread-IterChildContainers"><strong>IterChildContainers</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="Thread-IterEventsInThisContainer"><strong>IterEventsInThisContainer</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Thread-PushCompleteSlice"><strong>PushCompleteSlice</strong></a>(self, category, name, timestamp, duration, thread_timestamp, thread_duration, args<font color="#909090">=None</font>)</dt></dl>
 
 <dl><dt><a name="Thread-PushSlice"><strong>PushSlice</strong></a>(self, new_slice)</dt></dl>
 

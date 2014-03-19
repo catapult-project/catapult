@@ -34,10 +34,17 @@
 <font color="#000000" face="helvetica, arial"><a name="TimelineEvent">class <strong>TimelineEvent</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>Represents&nbsp;a&nbsp;timeline&nbsp;event.<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt>Represents&nbsp;a&nbsp;timeline&nbsp;event.<br>
+&nbsp;<br>
+thread_start,&nbsp;thread_duration&nbsp;and&nbsp;thread_end&nbsp;are&nbsp;the&nbsp;start&nbsp;time,&nbsp;duration<br>
+and&nbsp;end&nbsp;time&nbsp;of&nbsp;this&nbsp;event&nbsp;as&nbsp;measured&nbsp;by&nbsp;the&nbsp;thread-specific&nbsp;CPU&nbsp;clock<br>
+(ticking&nbsp;when&nbsp;the&nbsp;thread&nbsp;is&nbsp;actually&nbsp;scheduled).&nbsp;Thread&nbsp;time&nbsp;is&nbsp;optional<br>
+on&nbsp;trace&nbsp;events&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;attributes&nbsp;in&nbsp;<a href="#TimelineEvent">TimelineEvent</a>&nbsp;will&nbsp;be<br>
+set&nbsp;to&nbsp;None&nbsp;(not&nbsp;0)&nbsp;if&nbsp;not&nbsp;present.&nbsp;Users&nbsp;of&nbsp;this&nbsp;class&nbsp;need&nbsp;to&nbsp;properly<br>
+handle&nbsp;this&nbsp;case.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="TimelineEvent-__init__"><strong>__init__</strong></a>(self, category, name, start, duration, args<font color="#909090">=None</font>, parent<font color="#909090">=None</font>)</dt></dl>
+<dl><dt><a name="TimelineEvent-__init__"><strong>__init__</strong></a>(self, category, name, start, duration, thread_start<font color="#909090">=None</font>, thread_duration<font color="#909090">=None</font>, args<font color="#909090">=None</font>)</dt></dl>
 
 <dl><dt><a name="TimelineEvent-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
 
@@ -50,6 +57,11 @@ Data descriptors defined here:<br>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>end</strong></dt>
+</dl>
+<dl><dt><strong>thread_end</strong></dt>
+<dd><tt>Thread-specific&nbsp;CPU&nbsp;time&nbsp;when&nbsp;this&nbsp;event&nbsp;ended.<br>
+&nbsp;<br>
+May&nbsp;be&nbsp;None&nbsp;if&nbsp;the&nbsp;trace&nbsp;event&nbsp;didn't&nbsp;have&nbsp;thread&nbsp;time&nbsp;data.</tt></dd>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

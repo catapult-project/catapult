@@ -21,16 +21,15 @@ actually&nbsp;running&nbsp;the&nbsp;test&nbsp;is&nbsp;in&nbsp;Test&nbsp;and&nbsp
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.core.browser_options.html">telemetry.core.browser_options</a><br>
-<a href="telemetry.test.html">telemetry.test</a><br>
-<a href="copy.html">copy</a><br>
-</td><td width="25%" valign=top><a href="telemetry.core.discover.html">telemetry.core.discover</a><br>
-<a href="inspect.html">inspect</a><br>
+<a href="telemetry.core.command_line.html">telemetry.core.command_line</a><br>
+<a href="telemetry.core.discover.html">telemetry.core.discover</a><br>
+</td><td width="25%" valign=top><a href="inspect.html">inspect</a><br>
 <a href="json.html">json</a><br>
-</td><td width="25%" valign=top><a href="optparse.html">optparse</a><br>
 <a href="os.html">os</a><br>
-<a href="sys.html">sys</a><br>
-</td><td width="25%" valign=top><a href="telemetry.test.html">telemetry.test</a><br>
-</td></tr></table></td></tr></table><p>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+<a href="telemetry.test.html">telemetry.test</a><br>
+<a href="telemetry.core.util.html">telemetry.core.util</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -38,10 +37,7 @@ actually&nbsp;running&nbsp;the&nbsp;test&nbsp;is&nbsp;in&nbsp;Test&nbsp;and&nbsp
     
 <tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl>
-<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
-</font></dt><dd>
-<dl>
-<dt><font face="helvetica, arial"><a href="telemetry.test_runner.html#Command">Command</a>
+<dt><font face="helvetica, arial"><a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>(<a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a>)
 </font></dt><dd>
 <dl>
 <dt><font face="helvetica, arial"><a href="telemetry.test_runner.html#Help">Help</a>
@@ -50,165 +46,149 @@ actually&nbsp;running&nbsp;the&nbsp;test&nbsp;is&nbsp;in&nbsp;Test&nbsp;and&nbsp
 </font></dt></dl>
 </dd>
 </dl>
-</dd>
-</dl>
  <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="Command">class <strong>Command</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
-    
-<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%">Methods defined here:<br>
-<dl><dt><a name="Command-AddParserOptions"><strong>AddParserOptions</strong></a>(self, parser)</dt></dl>
-
-<dl><dt><a name="Command-CreateParser"><strong>CreateParser</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="Command-Run"><strong>Run</strong></a>(self, options, args)</dt></dl>
-
-<dl><dt><a name="Command-ValidateCommandLine"><strong>ValidateCommandLine</strong></a>(self, parser, options, args)</dt></dl>
-
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__dict__</strong></dt>
-<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<dl><dt><strong>description</strong></dt>
-</dl>
-<dl><dt><strong>name</strong></dt>
-</dl>
-<hr>
-Data and other attributes defined here:<br>
-<dl><dt><strong>usage</strong> = ''</dl>
-
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="Help">class <strong>Help</strong></a>(<a href="telemetry.test_runner.html#Command">Command</a>)</font></td></tr>
+<font color="#000000" face="helvetica, arial"><a name="Help">class <strong>Help</strong></a>(<a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt>Display&nbsp;help&nbsp;information<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="telemetry.test_runner.html#Help">Help</a></dd>
-<dd><a href="telemetry.test_runner.html#Command">Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a></dd>
+<dd><a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a></dd>
 <dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="Help-Run"><strong>Run</strong></a>(self, options, args)</dt></dl>
+<dl><dt><a name="Help-Run"><strong>Run</strong></a>(self, args)</dt></dl>
 
 <hr>
-Methods inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
-<dl><dt><a name="Help-AddParserOptions"><strong>AddParserOptions</strong></a>(self, parser)</dt></dl>
-
-<dl><dt><a name="Help-CreateParser"><strong>CreateParser</strong></a>(self)</dt></dl>
-
-<dl><dt><a name="Help-ValidateCommandLine"><strong>ValidateCommandLine</strong></a>(self, parser, options, args)</dt></dl>
+Class methods inherited from <a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>:<br>
+<dl><dt><a name="Help-CreateParser"><strong>CreateParser</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
 <hr>
-Data descriptors inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
+Data and other attributes inherited from <a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>:<br>
+<dl><dt><strong>usage</strong> = ''</dl>
+
+<hr>
+Class methods inherited from <a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a>:<br>
+<dl><dt><a name="Help-Description"><strong>Description</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="Help-Name"><strong>Name</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Class methods inherited from <a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a>:<br>
+<dl><dt><a name="Help-AddCommandLineArgs"><strong>AddCommandLineArgs</strong></a>(cls, parser)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt><dd><tt>Override&nbsp;to&nbsp;accept&nbsp;custom&nbsp;command-line&nbsp;arguments.</tt></dd></dl>
+
+<dl><dt><a name="Help-ProcessCommandLineArgs"><strong>ProcessCommandLineArgs</strong></a>(cls, parser, args)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt><dd><tt>Override&nbsp;to&nbsp;process&nbsp;command-line&nbsp;arguments.<br>
+&nbsp;<br>
+We&nbsp;pass&nbsp;in&nbsp;parser&nbsp;so&nbsp;we&nbsp;can&nbsp;call&nbsp;parser.error().</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a>:<br>
 <dl><dt><strong>__dict__</strong></dt>
 <dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
-<dl><dt><strong>description</strong></dt>
-</dl>
-<dl><dt><strong>name</strong></dt>
-</dl>
-<hr>
-Data and other attributes inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
-<dl><dt><strong>usage</strong> = ''</dl>
-
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="List">class <strong>List</strong></a>(<a href="telemetry.test_runner.html#Command">Command</a>)</font></td></tr>
+<font color="#000000" face="helvetica, arial"><a name="List">class <strong>List</strong></a>(<a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt>Lists&nbsp;the&nbsp;available&nbsp;tests<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="telemetry.test_runner.html#List">List</a></dd>
-<dd><a href="telemetry.test_runner.html#Command">Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a></dd>
+<dd><a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a></dd>
 <dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="List-AddParserOptions"><strong>AddParserOptions</strong></a>(self, parser)</dt></dl>
-
-<dl><dt><a name="List-Run"><strong>Run</strong></a>(self, options, args)</dt></dl>
+<dl><dt><a name="List-Run"><strong>Run</strong></a>(self, args)</dt></dl>
 
 <hr>
-Methods inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
-<dl><dt><a name="List-CreateParser"><strong>CreateParser</strong></a>(self)</dt></dl>
+Class methods defined here:<br>
+<dl><dt><a name="List-AddCommandLineArgs"><strong>AddCommandLineArgs</strong></a>(cls, parser)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
-<dl><dt><a name="List-ValidateCommandLine"><strong>ValidateCommandLine</strong></a>(self, parser, options, args)</dt></dl>
+<dl><dt><a name="List-ProcessCommandLineArgs"><strong>ProcessCommandLineArgs</strong></a>(cls, parser, args)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
 <hr>
-Data descriptors inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
+Data and other attributes defined here:<br>
+<dl><dt><strong>usage</strong> = '[test_name] [&lt;options&gt;]'</dl>
+
+<hr>
+Class methods inherited from <a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>:<br>
+<dl><dt><a name="List-CreateParser"><strong>CreateParser</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Class methods inherited from <a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a>:<br>
+<dl><dt><a name="List-Description"><strong>Description</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="List-Name"><strong>Name</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a>:<br>
 <dl><dt><strong>__dict__</strong></dt>
 <dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
-<dl><dt><strong>description</strong></dt>
-</dl>
-<dl><dt><strong>name</strong></dt>
-</dl>
-<hr>
-Data and other attributes inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
-<dl><dt><strong>usage</strong> = ''</dl>
-
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ffc8d8">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="Run">class <strong>Run</strong></a>(<a href="telemetry.test_runner.html#Command">Command</a>)</font></td></tr>
+<font color="#000000" face="helvetica, arial"><a name="Run">class <strong>Run</strong></a>(<a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt><a href="#Run">Run</a>&nbsp;one&nbsp;or&nbsp;more&nbsp;tests<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%"><dl><dt>Method resolution order:</dt>
 <dd><a href="telemetry.test_runner.html#Run">Run</a></dd>
-<dd><a href="telemetry.test_runner.html#Command">Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#OptparseCommand">telemetry.core.command_line.OptparseCommand</a></dd>
+<dd><a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a></dd>
+<dd><a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a></dd>
 <dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
 </dl>
 <hr>
 Methods defined here:<br>
-<dl><dt><a name="Run-CreateParser"><strong>CreateParser</strong></a>(self)</dt></dl>
+<dl><dt><a name="Run-Run"><strong>Run</strong></a>(self, args)</dt></dl>
 
-<dl><dt><a name="Run-Run"><strong>Run</strong></a>(self, options, args)</dt></dl>
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="Run-AddCommandLineArgs"><strong>AddCommandLineArgs</strong></a>(cls, parser)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
-<dl><dt><a name="Run-ValidateCommandLine"><strong>ValidateCommandLine</strong></a>(self, parser, options, args)</dt></dl>
+<dl><dt><a name="Run-CreateParser"><strong>CreateParser</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="Run-ProcessCommandLineArgs"><strong>ProcessCommandLineArgs</strong></a>(cls, parser, args)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
 <hr>
 Data and other attributes defined here:<br>
-<dl><dt><strong>usage</strong> = 'test_name [...] [&lt;args&gt;]'</dl>
+<dl><dt><strong>usage</strong> = 'test_name [&lt;options&gt;]'</dl>
 
 <hr>
-Methods inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
-<dl><dt><a name="Run-AddParserOptions"><strong>AddParserOptions</strong></a>(self, parser)</dt></dl>
+Class methods inherited from <a href="telemetry.core.command_line.html#Command">telemetry.core.command_line.Command</a>:<br>
+<dl><dt><a name="Run-Description"><strong>Description</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="Run-Name"><strong>Name</strong></a>(cls)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
 
 <hr>
-Data descriptors inherited from <a href="telemetry.test_runner.html#Command">Command</a>:<br>
+Data descriptors inherited from <a href="telemetry.core.command_line.html#ArgumentHandlerMixIn">telemetry.core.command_line.ArgumentHandlerMixIn</a>:<br>
 <dl><dt><strong>__dict__</strong></dt>
 <dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<dl><dt><strong>description</strong></dt>
-</dl>
-<dl><dt><strong>name</strong></dt>
 </dl>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -225,5 +205,5 @@ Data descriptors inherited from <a href="telemetry.test_runner.html#Command">Com
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>COMMANDS</strong> = [&lt;telemetry.test_runner.Help object&gt;, &lt;telemetry.test_runner.List object&gt;, &lt;telemetry.test_runner.Run object&gt;]</td></tr></table>
+<td width="100%"><strong>test_aliases</strong> = {}</td></tr></table>
 </body></html>

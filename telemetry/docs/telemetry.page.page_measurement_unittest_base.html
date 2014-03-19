@@ -20,12 +20,13 @@
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.unittest.options_for_unittests.html">telemetry.unittest.options_for_unittests</a><br>
-<a href="os.html">os</a><br>
-</td><td width="25%" valign=top><a href="telemetry.page.page.html">telemetry.page.page</a><br>
-<a href="telemetry.page.page_runner.html">telemetry.page.page_runner</a><br>
-</td><td width="25%" valign=top><a href="telemetry.page.page_set.html">telemetry.page.page_set</a><br>
+<a href="telemetry.page.page.html">telemetry.page.page</a><br>
+</td><td width="25%" valign=top><a href="telemetry.page.page_runner.html">telemetry.page.page_runner</a><br>
+<a href="telemetry.page.page_set.html">telemetry.page.page_set</a><br>
+</td><td width="25%" valign=top><a href="telemetry.page.test_expectations.html">telemetry.page.test_expectations</a><br>
 <a href="unittest.html">unittest</a><br>
-</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+</td><td width="25%" valign=top><a href="telemetry.core.util.html">telemetry.core.util</a><br>
+</td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -61,7 +62,7 @@ Methods defined here:<br>
 
 <dl><dt><a name="PageMeasurementUnitTestBase-CreatePageSetFromFileInUnittestDataDir"><strong>CreatePageSetFromFileInUnittestDataDir</strong></a>(self, test_filename)</dt></dl>
 
-<dl><dt><a name="PageMeasurementUnitTestBase-RunMeasurement"><strong>RunMeasurement</strong></a>(self, measurement, ps, options<font color="#909090">=None</font>)</dt><dd><tt>Runs&nbsp;a&nbsp;measurement&nbsp;against&nbsp;a&nbsp;pageset,&nbsp;returning&nbsp;the&nbsp;rows&nbsp;its&nbsp;outputs.</tt></dd></dl>
+<dl><dt><a name="PageMeasurementUnitTestBase-RunMeasurement"><strong>RunMeasurement</strong></a>(self, measurement, ps, expectations<font color="#909090">=&lt;telemetry.page.test_expectations.TestExpectations object&gt;</font>, options<font color="#909090">=None</font>)</dt><dd><tt>Runs&nbsp;a&nbsp;measurement&nbsp;against&nbsp;a&nbsp;pageset,&nbsp;returning&nbsp;the&nbsp;rows&nbsp;its&nbsp;outputs.</tt></dd></dl>
 
 <hr>
 Methods inherited from <a href="unittest.case.html#TestCase">unittest.case.TestCase</a>:<br>
@@ -196,10 +197,10 @@ as&nbsp;significant&nbsp;digits&nbsp;(measured&nbsp;from&nbsp;the&nbsp;most&nbsp
 &nbsp;<br>
 Objects&nbsp;that&nbsp;are&nbsp;equal&nbsp;automatically&nbsp;fail.</tt></dd></dl>
 
-<dl><dt><a name="PageMeasurementUnitTestBase-assertNotEqual"><strong>assertNotEqual</strong></a>(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'=='<br>
+<dl><dt><a name="PageMeasurementUnitTestBase-assertNotEqual"><strong>assertNotEqual</strong></a>(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'!='<br>
 operator.</tt></dd></dl>
 
-<dl><dt><a name="PageMeasurementUnitTestBase-assertNotEquals"><strong>assertNotEquals</strong></a> = assertNotEqual(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'=='<br>
+<dl><dt><a name="PageMeasurementUnitTestBase-assertNotEquals"><strong>assertNotEquals</strong></a> = assertNotEqual(self, first, second, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;if&nbsp;the&nbsp;two&nbsp;objects&nbsp;are&nbsp;equal&nbsp;as&nbsp;determined&nbsp;by&nbsp;the&nbsp;'!='<br>
 operator.</tt></dd></dl>
 
 <dl><dt><a name="PageMeasurementUnitTestBase-assertNotIn"><strong>assertNotIn</strong></a>(self, member, container, msg<font color="#909090">=None</font>)</dt><dd><tt>Just&nbsp;like&nbsp;<a href="#PageMeasurementUnitTestBase-assertTrue">assertTrue</a>(a&nbsp;not&nbsp;in&nbsp;b),&nbsp;but&nbsp;with&nbsp;a&nbsp;nicer&nbsp;default&nbsp;message.</tt></dd></dl>
@@ -208,10 +209,10 @@ operator.</tt></dd></dl>
 
 <dl><dt><a name="PageMeasurementUnitTestBase-assertNotRegexpMatches"><strong>assertNotRegexpMatches</strong></a>(self, text, unexpected_regexp, msg<font color="#909090">=None</font>)</dt><dd><tt>Fail&nbsp;the&nbsp;test&nbsp;if&nbsp;the&nbsp;text&nbsp;matches&nbsp;the&nbsp;regular&nbsp;expression.</tt></dd></dl>
 
-<dl><dt><a name="PageMeasurementUnitTestBase-assertRaises"><strong>assertRaises</strong></a>(self, excClass, callableObj<font color="#909090">=None</font>, *args, **kwargs)</dt><dd><tt>Fail&nbsp;unless&nbsp;an&nbsp;exception&nbsp;of&nbsp;class&nbsp;excClass&nbsp;is&nbsp;thrown<br>
+<dl><dt><a name="PageMeasurementUnitTestBase-assertRaises"><strong>assertRaises</strong></a>(self, excClass, callableObj<font color="#909090">=None</font>, *args, **kwargs)</dt><dd><tt>Fail&nbsp;unless&nbsp;an&nbsp;exception&nbsp;of&nbsp;class&nbsp;excClass&nbsp;is&nbsp;raised<br>
 by&nbsp;callableObj&nbsp;when&nbsp;invoked&nbsp;with&nbsp;arguments&nbsp;args&nbsp;and&nbsp;keyword<br>
 arguments&nbsp;kwargs.&nbsp;If&nbsp;a&nbsp;different&nbsp;type&nbsp;of&nbsp;exception&nbsp;is<br>
-thrown,&nbsp;it&nbsp;will&nbsp;not&nbsp;be&nbsp;caught,&nbsp;and&nbsp;the&nbsp;test&nbsp;case&nbsp;will&nbsp;be<br>
+raised,&nbsp;it&nbsp;will&nbsp;not&nbsp;be&nbsp;caught,&nbsp;and&nbsp;the&nbsp;test&nbsp;case&nbsp;will&nbsp;be<br>
 deemed&nbsp;to&nbsp;have&nbsp;suffered&nbsp;an&nbsp;error,&nbsp;exactly&nbsp;as&nbsp;for&nbsp;an<br>
 unexpected&nbsp;exception.<br>
 &nbsp;<br>

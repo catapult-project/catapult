@@ -19,9 +19,11 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.page.page_measurement_results.html">telemetry.page.page_measurement_results</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="telemetry.value.merge_values.html">telemetry.value.merge_values</a><br>
+</td><td width="25%" valign=top><a href="telemetry.page.page_measurement_results.html">telemetry.page.page_measurement_results</a><br>
 </td><td width="25%" valign=top><a href="telemetry.page.perf_tests_helper.html">telemetry.page.perf_tests_helper</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+</td><td width="25%" valign=top><a href="telemetry.value.html">telemetry.value</a><br>
+</td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -54,11 +56,15 @@
 Methods defined here:<br>
 <dl><dt><a name="BuildbotPageMeasurementResults-PrintSummary"><strong>PrintSummary</strong></a>(self)</dt><dd><tt>Print&nbsp;summary&nbsp;data&nbsp;in&nbsp;a&nbsp;format&nbsp;expected&nbsp;by&nbsp;buildbot&nbsp;for&nbsp;perf&nbsp;dashboards.<br>
 &nbsp;<br>
-If&nbsp;any&nbsp;failed&nbsp;pages&nbsp;exist,&nbsp;only&nbsp;output&nbsp;individual&nbsp;page&nbsp;results&nbsp;for<br>
-non-failing&nbsp;pages,&nbsp;and&nbsp;do&nbsp;not&nbsp;output&nbsp;any&nbsp;average&nbsp;data.</tt></dd></dl>
+If&nbsp;any&nbsp;failed&nbsp;pages&nbsp;exist,&nbsp;only&nbsp;output&nbsp;individual&nbsp;page&nbsp;results,&nbsp;and&nbsp;do<br>
+not&nbsp;output&nbsp;any&nbsp;average&nbsp;data.</tt></dd></dl>
 
-<dl><dt><a name="BuildbotPageMeasurementResults-__init__"><strong>__init__</strong></a>(self, trace_tag<font color="#909090">=''</font>)</dt></dl>
+<dl><dt><a name="BuildbotPageMeasurementResults-__init__"><strong>__init__</strong></a>(self, output_stream, trace_tag<font color="#909090">=''</font>)</dt></dl>
 
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>had_errors_or_failures</strong></dt>
+</dl>
 <hr>
 Methods inherited from <a href="telemetry.page.page_measurement_results.html#PageMeasurementResults">telemetry.page.page_measurement_results.PageMeasurementResults</a>:<br>
 <dl><dt><a name="BuildbotPageMeasurementResults-Add"><strong>Add</strong></a>(self, trace_name, units, value, chart_name<font color="#909090">=None</font>, data_type<font color="#909090">='default'</font>)</dt></dl>
@@ -67,19 +73,25 @@ Methods inherited from <a href="telemetry.page.page_measurement_results.html#Pag
 
 <dl><dt><a name="BuildbotPageMeasurementResults-DidMeasurePage"><strong>DidMeasurePage</strong></a>(self)</dt></dl>
 
+<dl><dt><a name="BuildbotPageMeasurementResults-FindAllPageSpecificValuesNamed"><strong>FindAllPageSpecificValuesNamed</strong></a>(self, value_name)</dt></dl>
+
+<dl><dt><a name="BuildbotPageMeasurementResults-FindPageSpecificValuesForPage"><strong>FindPageSpecificValuesForPage</strong></a>(self, page, value_name)</dt></dl>
+
+<dl><dt><a name="BuildbotPageMeasurementResults-GetUnitsForValueName"><strong>GetUnitsForValueName</strong></a>(self, value_name)</dt></dl>
+
 <dl><dt><a name="BuildbotPageMeasurementResults-WillMeasurePage"><strong>WillMeasurePage</strong></a>(self, page)</dt></dl>
-
-<dl><dt><a name="BuildbotPageMeasurementResults-__getitem__"><strong>__getitem__</strong></a>(self, i)</dt><dd><tt>Shorthand&nbsp;for&nbsp;self.<strong>page_results</strong>[i]</tt></dd></dl>
-
-<dl><dt><a name="BuildbotPageMeasurementResults-__len__"><strong>__len__</strong></a>(self)</dt></dl>
 
 <hr>
 Data descriptors inherited from <a href="telemetry.page.page_measurement_results.html#PageMeasurementResults">telemetry.page.page_measurement_results.PageMeasurementResults</a>:<br>
-<dl><dt><strong>all_measurements_that_have_been_seen</strong></dt>
+<dl><dt><strong>all_page_specific_values</strong></dt>
 </dl>
-<dl><dt><strong>page_results</strong></dt>
+<dl><dt><strong>all_value_names_that_have_been_seen</strong></dt>
 </dl>
-<dl><dt><strong>values_for_current_page</strong></dt>
+<dl><dt><strong>current_page</strong></dt>
+</dl>
+<dl><dt><strong>page_specific_values_for_current_page</strong></dt>
+</dl>
+<dl><dt><strong>pages_that_succeeded</strong></dt>
 </dl>
 <hr>
 Methods inherited from <a href="telemetry.page.page_test_results.html#PageTestResults">telemetry.page.page_test_results.PageTestResults</a>:<br>
@@ -99,10 +111,16 @@ Methods inherited from <a href="telemetry.page.page_test_results.html#PageTestRe
 
 <dl><dt><a name="BuildbotPageMeasurementResults-StopTest"><strong>StopTest</strong></a>(self, page)</dt></dl>
 
+<dl><dt><a name="BuildbotPageMeasurementResults-__copy__"><strong>__copy__</strong></a>(self)</dt></dl>
+
 <dl><dt><a name="BuildbotPageMeasurementResults-addSkip"><strong>addSkip</strong></a>(self, test, reason)</dt></dl>
 
 <dl><dt><a name="BuildbotPageMeasurementResults-addSuccess"><strong>addSuccess</strong></a>(self, test)</dt></dl>
 
+<hr>
+Data descriptors inherited from <a href="telemetry.page.page_test_results.html#PageTestResults">telemetry.page.page_test_results.PageTestResults</a>:<br>
+<dl><dt><strong>pages_that_had_errors_or_failures</strong></dt>
+</dl>
 <hr>
 Methods inherited from <a href="unittest.result.html#TestResult">unittest.result.TestResult</a>:<br>
 <dl><dt><a name="BuildbotPageMeasurementResults-__repr__"><strong>__repr__</strong></a>(self)</dt></dl>
