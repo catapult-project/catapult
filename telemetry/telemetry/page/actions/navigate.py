@@ -14,5 +14,10 @@ class NavigateAction(page_action.PageAction):
     else:
       target_side_url = page.url
 
-    tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
+    if hasattr(self, 'timeout_seconds') and self.timeout_seconds:
+      tab.Navigate(target_side_url,
+                   page.script_to_evaluate_on_commit,
+                   self.timeout_seconds)
+    else:
+      tab.Navigate(target_side_url, page.script_to_evaluate_on_commit)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
