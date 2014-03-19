@@ -325,16 +325,10 @@ class CrOSInterface(object):
         return line_ary[0]
     return None
 
-  def CryptohomePath(self, user):
-    """Returns the cryptohome mount point for |user|."""
-    return self.RunCmdOnDevice(
-        ['cryptohome-path', 'user', "'%s'" % user])[0].strip()
-
-  def IsCryptohomeMounted(self, username):
-    """Returns True iff |user|'s cryptohome is mounted."""
-    profile_path = self.CryptohomePath(username)
-    mount = self.FilesystemMountedAt(profile_path)
-    return mount and mount.startswith('/home/.shadow/')
+  def IsCryptohomeMounted(self):
+    """Returns True iff a cryptohome is mounted (either as a user or guest)."""
+    return (self.RunCmdOnDevice(['/usr/sbin/cryptohome',
+                                 '--action=is_mounted'])[0].strip() == 'true')
 
   def TakeScreenShot(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""

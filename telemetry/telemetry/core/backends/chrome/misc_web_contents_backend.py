@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.core import web_contents
+from telemetry.core import util
 from telemetry.core.backends.chrome import inspector_backend_list
 
 
@@ -18,7 +19,10 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
 
   @property
   def oobe_exists(self):
-    """Lightweight property to determine if the oobe webui is visible."""
+    """Lightweight property to determine if the oobe webui is visible. Note that
+    the browser goes away when we're logging in, we wait for it to be ready.
+    """
+    util.WaitFor(self._browser_backend.HasBrowserFinishedLaunching, timeout=30)
     return bool(len(self))
 
   def GetOobe(self):
