@@ -11,6 +11,18 @@ from telemetry.page import cloud_storage
 from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
 
+# TODO(nednguyen): Remove this when crbug.com/239179 is marked fixed
+LEGACY_NAME_CONVERSION_DICT = {
+  'endure' : 'RunEndure',
+  'navigate_steps' : 'RunNavigateSteps',
+  'media_metrics' : 'RunMediaMetrics',
+  'stress_memory' : 'RunStressMemory',
+  'no_op' : 'RunNoOp',
+  'repaint' : 'RunRepaint',
+  'smoothness' : 'RunSmoothness',
+  'webrtc' : 'RunWebrtc'
+}
+
 
 class PageSet(object):
   def __init__(self, file_path='', attributes=None):
@@ -22,12 +34,18 @@ class PageSet(object):
     self.credentials_path = None
     self.user_agent_type = None
     self.make_javascript_deterministic = True
-    self.navigate_steps = {'action': 'navigate'}
     self.startup_url = ''
+
+    # Temporay fixes for default navigate steps.
+    # TODO(nednguyen): change this to a method of page set.
+    self.RunNavigateSteps = {'action': 'navigate'}
 
     if attributes:
       for k, v in attributes.iteritems():
-        setattr(self, k, v)
+        if k in LEGACY_NAME_CONVERSION_DICT:
+          setattr(self, LEGACY_NAME_CONVERSION_DICT[k], v)
+        else:
+          setattr(self, k, v)
 
     # Create a PageSetArchiveInfo object.
     if self.archive_data_file:

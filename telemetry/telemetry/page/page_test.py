@@ -75,6 +75,11 @@ class PageTest(command_line.ArgumentHandlerMixIn):
     except AttributeError:
       raise ValueError, 'No such method %s.%s' % (
         self.__class_, test_method_name)  # pylint: disable=E1101
+    if action_name_to_run:
+      assert action_name_to_run.startswith('Run') \
+          and '_' not in action_name_to_run, \
+          ('Wrong way of naming action_name_to_run. By new convention,'
+           'action_name_to_run must start with Run- prefix and in CamelCase.')
     self._action_name_to_run = action_name_to_run
     self._needs_browser_restart_after_each_page = (
         needs_browser_restart_after_each_page)
@@ -321,7 +326,7 @@ class PageTest(command_line.ArgumentHandlerMixIn):
 
     Runs the 'navigate_steps' page attribute as a compound action.
     """
-    navigate_actions = GetCompoundActionFromPage(page, 'navigate_steps')
+    navigate_actions = GetCompoundActionFromPage(page, 'RunNavigateSteps')
     if not any(isinstance(action, navigate.NavigateAction)
         for action in navigate_actions):
       raise page_action.PageActionFailed(
