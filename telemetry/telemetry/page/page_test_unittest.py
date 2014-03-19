@@ -41,7 +41,7 @@ class PageTestUnitTest(unittest.TestCase):
     ]
     setattr(self._page, 'action_to_run', action_to_run)
 
-    self._page_test.Run(self._page, None, None)
+    self._page_test.RunPage(self._page, None, None)
 
     self.assertTrue(action_called)
 
@@ -54,7 +54,7 @@ class PageTestUnitTest(unittest.TestCase):
     setattr(self._page, 'action_to_run', action_to_run)
     setattr(self._page, 'referenced_action', referenced_action)
 
-    self._page_test.Run(self._page, None, None)
+    self._page_test.RunPage(self._page, None, None)
 
     self.assertEqual(action_list, [True])
 
@@ -63,7 +63,7 @@ class PageTestUnitTest(unittest.TestCase):
     action_to_run = { 'action': 'append', 'var': action_list, 'repeat': 10 }
     setattr(self._page, 'action_to_run', action_to_run)
 
-    self._page_test.Run(self._page, None, None)
+    self._page_test.RunPage(self._page, None, None)
 
     self.assertEqual(len(action_list), 10)
 
@@ -76,7 +76,7 @@ class PageTestUnitTest(unittest.TestCase):
     setattr(self._page, 'action_to_run', action_to_run)
     setattr(self._page, 'referenced_action', referenced_action)
 
-    self._page_test.Run(self._page, None, None)
+    self._page_test.RunPage(self._page, None, None)
 
     self.assertEqual(action_list,
                      [True, True, True])

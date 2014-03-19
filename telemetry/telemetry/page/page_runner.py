@@ -478,7 +478,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     if state.repeat_state.ShouldNavigate(
         finder_options.skip_navigate_on_repeat):
       page_state.ImplicitPageNavigation(test)
-    test.Run(page, page_state.tab, results)
+    test.RunPage(page, page_state.tab, results)
     util.CloseConnections(page_state.tab)
   except page_test.Failure:
     if expectation == 'fail':

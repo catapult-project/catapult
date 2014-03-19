@@ -4,6 +4,8 @@
 
 import optparse
 
+from telemetry.core import camel_case
+
 
 class ArgumentHandlerMixIn(object):
   """A structured way to handle command-line arguments.
@@ -47,7 +49,7 @@ class Command(ArgumentHandlerMixIn):
 
   @classmethod
   def Name(cls):
-    return cls.__name__.lower()
+    return camel_case.ToUnderscore(cls.__name__)
 
   @classmethod
   def Description(cls):

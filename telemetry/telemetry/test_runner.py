@@ -17,6 +17,8 @@ from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import util
+from telemetry.page import page_test
+from telemetry.page import profile_creator
 
 
 class Help(command_line.OptparseCommand):
@@ -45,22 +47,21 @@ class List(command_line.OptparseCommand):
     if not args.tests:
       args.tests = _Tests()
     elif len(args.tests) == 1:
-      args.tests = _MatchTestName(args.tests[0])
+      args.tests = _MatchTestName(args.tests[0], exact_matches=False)
     else:
       parser.error('Must provide at most one test name.')
 
   def Run(self, args):
     if args.json:
       test_list = []
-      for test_name, test_class in sorted(args.tests.items()):
+      for test_class in sorted(args.tests, key=lambda t: t.Name()):
         test_list.append({
-              'name': test_name,
-              'description': test_class.Description(),
-              'options': test_class.options,
-            })
+            'name': test_class.Name(),
+            'description': test_class.Description(),
+            'options': test_class.options,
+        })
       print json.dumps(test_list)
     else:
-      print >> sys.stderr, 'Available tests are:'
       _PrintTestList(args.tests)
     return 0
 
@@ -68,7 +69,7 @@ class List(command_line.OptparseCommand):
 class Run(command_line.OptparseCommand):
   """Run one or more tests"""
 
-  usage = 'test_name [<options>]'
+  usage = 'test_name [page_set] [<options>]'
 
   @classmethod
   def CreateParser(cls):
@@ -79,19 +80,18 @@ class Run(command_line.OptparseCommand):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     # Allow tests to add their own command line options.
-    matching_tests = {}
+    matching_tests = []
     for arg in sys.argv[1:]:
-      matching_tests.update(_MatchTestName(arg))
+      matching_tests += _MatchTestName(arg)
     # TODO(dtu): After move to argparse, add command-line args for all tests
     # to subparser. Using subparsers will avoid duplicate arguments.
     if matching_tests:
-      matching_tests.values().pop().AddCommandLineArgs(parser)
+      matching_tests.pop().AddCommandLineArgs(parser)
     test.AddCommandLineArgs(parser)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    if len(args.tests) != 1:
-      print >> sys.stderr, 'Available tests are:'
+    if not args.tests:
       _PrintTestList(_Tests())
       sys.exit(1)
 
@@ -100,22 +100,46 @@ class Run(command_line.OptparseCommand):
     if not matching_tests:
       print >> sys.stderr, 'No test named "%s".' % input_test_name
       print >> sys.stderr
-      print >> sys.stderr, 'Available tests:'
       _PrintTestList(_Tests())
       sys.exit(1)
+
     if len(matching_tests) > 1:
       print >> sys.stderr, 'Multiple tests named "%s".' % input_test_name
-      print >> sys.stderr
       print >> sys.stderr, 'Did you mean one of these?'
+      print >> sys.stderr
       _PrintTestList(matching_tests)
       sys.exit(1)
 
-    args.test = matching_tests.popitem()[1]
-    args.test.ProcessCommandLineArgs(parser, args)
+    test_class = matching_tests.pop()
+    if issubclass(test_class, page_test.PageTest):
+      if len(args.tests) < 2:
+        parser.error('Need to specify a page set for "%s".' % test_class.Name())
+      if len(args.tests) > 2:
+        parser.error('Too many arguments.')
+      page_set_path = args.tests[1]
+      if not os.path.exists(page_set_path):
+        parser.error('Page set not found.')
+      if not (os.path.isfile(page_set_path) and
+              os.path.splitext(page_set_path)[1] == '.json'):
+        parser.error('Page set is not a JSON file.')
+
+      class TestWrapper(test.Test):
+        test = test_class
+        page_set = page_set_path
+      test_class = TestWrapper
+    else:
+      if len(args.tests) > 1:
+        parser.error('Too many arguments.')
+
+    assert issubclass(test_class, test.Test), 'Trying to run a non-Test?!'
+
+    test_class.ProcessCommandLineArgs(parser, args)
     test.ProcessCommandLineArgs(parser, args)
 
+    cls._test = test_class
+
   def Run(self, args):
-    return min(255, args.test().Run(args))
+    return min(255, self._test().Run(args))
 
 
 def _ScriptName():
@@ -135,11 +159,15 @@ def _Commands():
 def _Tests():
   base_dir = util.GetBaseDir()
   tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
-                                   index_by_class_name=True)
-  return dict((test.Name(), test) for test in tests.itervalues())
+                                   index_by_class_name=True).values()
+  page_tests = discover.DiscoverClasses(base_dir, base_dir, page_test.PageTest,
+                                        index_by_class_name=True).values()
+  page_tests = [test_class for test_class in page_tests
+                if not issubclass(test_class, profile_creator.ProfileCreator)]
+  return tests + page_tests
 
 
-def _MatchTestName(input_test_name):
+def _MatchTestName(input_test_name, exact_matches=True):
   def _Matches(input_string, search_string):
     if search_string.startswith(input_string):
       return True
@@ -149,24 +177,47 @@ def _MatchTestName(input_test_name):
     return False
 
   # Exact matching.
-  if input_test_name in test_aliases:
-    exact_match = test_aliases[input_test_name]
-  else:
-    exact_match = input_test_name
-  if exact_match in _Tests():
-    return {exact_match: _Tests()[exact_match]}
+  if exact_matches:
+    # Don't add aliases to search dict, only allow exact matching for them.
+    if input_test_name in test_aliases:
+      exact_match = test_aliases[input_test_name]
+    else:
+      exact_match = input_test_name
+
+    for test_class in _Tests():
+      if exact_match == test_class.Name():
+        return [test_class]
 
   # Fuzzy matching.
-  return dict((test_name, test_class)
-      for test_name, test_class in _Tests().iteritems()
-      if _Matches(input_test_name, test_name))
+  return [test_class for test_class in _Tests()
+          if _Matches(input_test_name, test_class.Name())]
 
 
 def _PrintTestList(tests):
-  for test_name, test_class in sorted(tests.items()):
-    # Align the test names to the longest one.
-    format_string = '  %%-%ds %%s' % max(map(len, tests.iterkeys()))
-    print >> sys.stderr, format_string % (test_name, test_class.Description())
+  if not tests:
+    print >> sys.stderr, 'No tests found!'
+    return
+
+  # Align the test names to the longest one.
+  format_string = '  %%-%ds %%s' % max(len(t.Name()) for t in tests)
+
+  filtered_tests = [test_class for test_class in tests
+                    if issubclass(test_class, test.Test)]
+  if filtered_tests:
+    print >> sys.stderr, 'Available tests are:'
+    for test_class in sorted(filtered_tests, key=lambda t: t.Name()):
+      print >> sys.stderr, format_string % (
+          test_class.Name(), test_class.Description())
+    print >> sys.stderr
+
+  filtered_tests = [test_class for test_class in tests
+                    if issubclass(test_class, page_test.PageTest)]
+  if filtered_tests:
+    print >> sys.stderr, 'Available page tests are:'
+    for test_class in sorted(filtered_tests, key=lambda t: t.Name()):
+      print >> sys.stderr, format_string % (
+          test_class.Name(), test_class.Description())
+    print >> sys.stderr
 
 
 test_aliases = {}
