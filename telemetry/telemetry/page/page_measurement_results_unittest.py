@@ -7,6 +7,7 @@ import unittest
 from telemetry.page import page_measurement_results
 from telemetry.page import page_set
 from telemetry.page import perf_tests_helper
+from telemetry.value import scalar
 
 def _MakePageSet():
   return page_set.PageSet.FromDict({
@@ -78,7 +79,7 @@ class PageMeasurementResultsTest(unittest.TestCase):
     results.WillMeasurePage(self.pages[0])
     results.Add('a', 'a_units', 3)
     results.Add('b', 'b_units', 3)
-    results.AddSummary('c', 'c_units', 3)
+    results.AddSummaryValue(scalar.ScalarValue(None, 'c', 'c_units', 3))
     results.DidMeasurePage()
     self.assertEquals(set(['a', 'b', 'c']),
                       set(results.all_value_names_that_have_been_seen))

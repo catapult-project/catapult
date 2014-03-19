@@ -7,6 +7,8 @@ import unittest
 from telemetry.page import buildbot_page_measurement_results
 from telemetry.page import page_set
 from telemetry.page import perf_tests_helper
+from telemetry.value import list_of_scalar_values
+from telemetry.value import scalar
 
 def _MakePageSet():
   return page_set.PageSet.FromDict({
@@ -329,7 +331,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     measurement_results = SummarySavingPageMeasurementResults(trace_tag='_ref')
 
-    measurement_results.AddSummary('a', 'seconds', 1)
+    measurement_results.AddSummaryValue(
+        scalar.ScalarValue(None, 'a', 'seconds', 1))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('b', 'seconds', 2)
@@ -341,7 +344,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.DidMeasurePage()
     measurement_results.AddSuccess(test_page_set.pages[1])
 
-    measurement_results.AddSummary('c', 'seconds', 4)
+    measurement_results.AddSummaryValue(
+        scalar.ScalarValue(None, 'c', 'seconds', 4))
 
     measurement_results.PrintSummary()
 
@@ -360,7 +364,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     measurement_results = SummarySavingPageMeasurementResults()
 
-    measurement_results.AddSummary('a', 'seconds', 1)
+    measurement_results.AddSummaryValue(
+        scalar.ScalarValue(None, 'a', 'seconds', 1))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('b', 'seconds', 2)
@@ -389,7 +394,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     measurement_results = SummarySavingPageMeasurementResults()
 
-    measurement_results.AddSummary('a', 'seconds', 1, data_type='unimportant')
+    measurement_results.AddSummaryValue(
+        scalar.ScalarValue(None, 'a', 'seconds', 1, important=False))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('b', 'seconds', 2, data_type='unimportant')
@@ -418,7 +424,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     measurement_results = SummarySavingPageMeasurementResults()
 
-    measurement_results.AddSummary('a', 'seconds', [1, 1])
+    measurement_results.AddSummaryValue(
+        list_of_scalar_values.ListOfScalarValues(None, 'a', 'seconds', [1, 1]))
 
     measurement_results.WillMeasurePage(test_page_set.pages[0])
     measurement_results.Add('b', 'seconds', [2, 2])
