@@ -168,6 +168,8 @@ tvcm.exportTo('cc', function() {
     createAnalysis: function() {
       var dataView = new GenericObjectViewWithLabel();
       dataView.label = 'Layer ' + this.layer_.layerId;
+      if (this.layer_.usingGpuRasterization)
+        dataView.label += ' (GPU-rasterized)';
       dataView.object = this.layer_.args;
       return dataView;
     },

@@ -44,7 +44,7 @@ tvcm.exportTo('cc', function() {
       cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['maskLayer', 'replicaLayer',
                  'idealContentsScale', 'geometryContentsScale',
-                 'layoutRects']);
+                 'layoutRects', 'usingGpuRasterization']);
 
       // Leave bounds in both places.
       this.bounds = tvcm.Rect.fromXYWH(
