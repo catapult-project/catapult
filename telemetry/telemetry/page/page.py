@@ -6,6 +6,8 @@ import os
 import re
 import urlparse
 
+from telemetry import decorators
+
 
 class Page(object):
   def __init__(self, url, page_set, attributes=None, base_dir=None):
@@ -39,6 +41,17 @@ class Page(object):
       return getattr(self.page_set, name)
     raise AttributeError(
         '%r object has no attribute %r' % (self.__class__, name))
+
+  @decorators.Cache
+  def GetSyntheticDelayCategories(self):
+    if not hasattr(self, 'synthetic_delays'):
+      return []
+    result = []
+    for delay, options in self.synthetic_delays.items():
+      options = '%f;%s' % (options.get('target_duration', 0),
+                           options.get('mode', 'static'))
+      result.append('DELAY(%s;%s)' % (delay, options))
+    return result
 
   def __lt__(self, other):
     return self.url < other.url
