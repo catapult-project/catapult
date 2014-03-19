@@ -186,6 +186,9 @@ class AndroidPlatformBackend(
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
 
+  def FlushDnsCache(self):
+    self._adb.RunShellCommandWithSU('ndc resolver flushdefaultif')
+
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
     if application in _HOST_APPLICATIONS:

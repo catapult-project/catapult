@@ -106,6 +106,12 @@ class Platform(object):
     return self._platform_backend.FlushSystemCacheForDirectory(
         directory, ignoring=ignoring)
 
+  def FlushDnsCache(self):
+    """Flushes the OS's DNS cache completely.
+
+    This function may require root or administrator access."""
+    return self._platform_backend.FlushDnsCache()
+
   def LaunchApplication(self, application, parameters=None,
                         elevate_privilege=False):
     """"Launches the given |application| with a list of |parameters| on the OS.

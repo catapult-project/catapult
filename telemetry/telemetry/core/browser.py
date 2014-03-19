@@ -287,6 +287,7 @@ class Browser(object):
 
   def Start(self):
     browser_options = self._browser_backend.browser_options
+    self.platform.FlushDnsCache()
     if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
       if self.platform.CanFlushIndividualFilesFromSystemCache():
         self.platform.FlushSystemCacheForDirectory(

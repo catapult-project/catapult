@@ -260,6 +260,7 @@ class Tab(web_contents.WebContents):
           renderer, ensuring that even "live" resources in the memory cache are
           cleared.
     """
+    self.browser.platform.FlushDnsCache()
     self.ExecuteJavaScript("""
         if (window.chrome && chrome.benchmarking &&
             chrome.benchmarking.clearCache) {

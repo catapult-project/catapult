@@ -94,6 +94,9 @@ class PlatformBackend(object):
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
 
+  def FlushDnsCache(self):
+    pass
+
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
     raise NotImplementedError()
