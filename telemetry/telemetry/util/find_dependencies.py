@@ -200,12 +200,15 @@ def ZipDependencies(paths, dependencies, options):
     # location in the archive. This can be confusing for users.
     gsutil_path = cloud_storage.FindGsutil()
     if cloud_storage.SupportsProdaccess(gsutil_path):
+      gsutil_base_dir = os.path.join(os.path.dirname(gsutil_path), os.pardir)
       gsutil_dependencies = path_set.PathSet()
       gsutil_dependencies.add(os.path.dirname(gsutil_path))
+      # Also add modules from depot_tools that are needed by gsutil.
+      gsutil_dependencies.add(os.path.join(gsutil_base_dir, 'boto'))
+      gsutil_dependencies.add(os.path.join(gsutil_base_dir, 'retry_decorator'))
       gsutil_dependencies -= FindExcludedFiles(
           set(gsutil_dependencies), options)
 
-      gsutil_base_dir = os.path.join(os.path.dirname(gsutil_path), os.pardir)
       for path in gsutil_dependencies:
         path_in_archive = os.path.join(
             'telemetry', os.path.relpath(util.GetTelemetryDir(), base_dir),
