@@ -57,7 +57,8 @@ class Project(object):
           self.tvcm_src_path,
           os.path.join(self.tvcm_third_party_path, 'Promises', 'polyfill', 'src'),
           os.path.join(self.tvcm_third_party_path, 'gl-matrix', 'src'),
-          os.path.join(self.tvcm_third_party_path, 'polymer')
+          os.path.join(self.tvcm_third_party_path, 'polymer'),
+          os.path.join(self.tvcm_third_party_path, 'd3')
       ]
     if source_paths != None:
       self.source_paths += [os.path.abspath(p) for p in source_paths]
