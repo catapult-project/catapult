@@ -649,6 +649,11 @@ tvcm.exportTo('tracing.importer', function() {
           }
           this.model_.flowEvents.push([flowPosition, slice]);
 
+          if (flowPosition)
+            flowPosition.nextFlowEvent = slice;
+          if (slice)
+            slice.previousFlowEvent = flowPosition;
+
           if (event.ph === 'f') {
             flowIdToEvent[event.id] = undefined;
           } else {

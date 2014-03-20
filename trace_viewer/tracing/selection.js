@@ -11,6 +11,7 @@ tvcm.require('tvcm.events');
 tvcm.require('tvcm.guid');
 tvcm.require('tvcm.range');
 tvcm.require('tracing.trace_model.instant_event');
+tvcm.require('tracing.trace_model.flow_event');
 tvcm.require('tracing.trace_model');
 
 tvcm.exportTo('tracing', function() {
@@ -45,6 +46,11 @@ tvcm.exportTo('tracing', function() {
       constructor: tracing.trace_model.Sample,
       name: 'sample',
       pluralName: 'samples'
+    },
+    {
+      constructor: tracing.trace_model.FlowEvent,
+      name: 'flowEvent',
+      pluralName: 'flowEvents'
     }
   ];
 
@@ -150,7 +156,7 @@ tvcm.exportTo('tracing', function() {
 
     /**
      * Helper for selection previous or next.
-     * @param {boolean} forwardp If true, select one forward (next).
+     * @param {boolean} offset If positive, select one forward (next).
      *   Else, select previous.
      *
      * @param {TimelineViewport} viewport The viewport to use to determine what
@@ -162,6 +168,23 @@ tvcm.exportTo('tracing', function() {
       var newSelection = new Selection();
       for (var i = 0; i < this.length_; i++) {
         var event = this[i];
+
+        var addEventToNewSelection = function(event) {
+        };
+
+        // If this is a flow event, and we have a next/prev item in the chain
+        // then we use that as the item to move too. Otherwise, we let the
+        // normal movement for a slice kick in and use that.
+        if (event instanceof tracing.trace_model.FlowEvent) {
+          if ((offset > 0) && event.nextFlowEvent) {
+            newSelection.push(event.nextFlowEvent);
+            continue;
+          } else if ((offset < 0) && event.previousFlowEvent) {
+            newSelection.push(event.previousFlowEvent);
+            continue;
+          }
+        }
+
         var track = viewport.trackForEvent(event);
         track.addItemNearToProvidedEventToSelection(
             event, offset, newSelection);

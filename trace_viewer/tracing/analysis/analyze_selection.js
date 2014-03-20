@@ -26,6 +26,8 @@ tvcm.exportTo('tracing.analysis', function() {
     var counterSampleEvents = eventsByType.counterSamples;
     var instantEvents = eventsByType.instantEvents;
     var sampleEvents = eventsByType.samples;
+    var flowEvents = eventsByType.flowEvents;
+
     var objectEvents = new tracing.Selection();
     objectEvents.addSelection(eventsByType.objectSnapshots);
     objectEvents.addSelection(eventsByType.objectInstances);
@@ -34,6 +36,13 @@ tvcm.exportTo('tracing.analysis', function() {
       tracing.analysis.analyzeSingleSlice(results, sliceEvents[0], 'Slice');
     } else if (sliceEvents.length > 1) {
       tracing.analysis.analyzeMultipleSlices(results, sliceEvents, 'Slices');
+    }
+
+    if (flowEvents.length == 1) {
+      tracing.analysis.analyzeSingleSlice(results, flowEvents[0], 'Flow Event');
+    } else if (flowEvents.length > 1) {
+      tracing.analysis.analyzeMultipleSlices(results, flowEvents,
+                                             'Flow Events');
     }
 
     if (instantEvents.length == 1) {

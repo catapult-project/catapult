@@ -26,10 +26,29 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.args = args;
 
     this.id = id;
+
+    this.nextFlowEvent_ = undefined;
+    this.previousFlowEvent_ = undefined;
   }
 
   FlowEvent.prototype = {
-    __proto__: tracing.trace_model.TimedEvent.prototype
+    __proto__: tracing.trace_model.TimedEvent.prototype,
+
+    set nextFlowEvent(nextFlowEvent) {
+      this.nextFlowEvent_ = nextFlowEvent;
+    },
+
+    set previousFlowEvent(prev) {
+      this.previousFlowEvent_ = prev;
+    },
+
+    get nextFlowEvent() {
+      return this.nextFlowEvent_;
+    },
+
+    get previousFlowEvent() {
+      return this.previousFlowEvent_;
+    }
   };
 
   return {

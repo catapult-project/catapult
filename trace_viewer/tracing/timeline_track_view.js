@@ -385,6 +385,7 @@ tvcm.exportTo('tracing', function() {
         case 37:   // left arrow
           sel = this.selection.getShiftedSelection(
               this.viewport, -1);
+
           if (sel) {
             this.setSelectionAndClearHighlight(sel);
             this.panToSelection();

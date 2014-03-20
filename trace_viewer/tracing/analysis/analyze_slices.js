@@ -16,7 +16,8 @@ tvcm.exportTo('tracing.analysis', function() {
     results.appendHeader('Selected ' + type + ':');
     var table = results.appendTable('analysis-slice-table', 2);
 
-    results.appendInfoRow(table, 'Title', slice.title);
+    if (slice.title)
+      results.appendInfoRow(table, 'Title', slice.title);
 
     if (slice.category)
       results.appendInfoRow(table, 'Category', slice.category);
