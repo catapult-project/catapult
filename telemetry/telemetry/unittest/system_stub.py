@@ -106,6 +106,7 @@ class CloudStorageModuleStub(object):
   def __init__(self):
     self.remote_paths = []
     self.local_file_hashes = {}
+    self.local_hash_files = {}
 
   def List(self, _):
     return self.remote_paths
@@ -113,8 +114,11 @@ class CloudStorageModuleStub(object):
   def Insert(self, bucket, remote_path, local_path):
     pass
 
-  def GetHash(self, file_path):
+  def CalculateHash(self, file_path):
     return self.local_file_hashes[file_path]
+
+  def ReadHash(self, hash_path):
+    return self.local_hash_files[hash_path]
 
 
 class OpenFunctionStub(object):

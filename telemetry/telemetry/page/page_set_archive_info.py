@@ -78,7 +78,7 @@ class PageSetArchiveInfo(object):
 
     # Update the hash file.
     with open(target_wpr_file_path + '.sha1', 'wb') as f:
-      f.write(cloud_storage.GetHash(target_wpr_file_path))
+      f.write(cloud_storage.CalculateHash(target_wpr_file_path))
       f.flush()
 
     self._WriteToFile()

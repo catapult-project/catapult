@@ -56,7 +56,7 @@ class TestPageSetArchiveInfo(unittest.TestCase):
   def assertCorrectHashFile(self, file_path):
     self.assertTrue(os.path.exists(file_path + '.sha1'))
     with open(file_path + '.sha1', 'rb') as f:
-      self.assertEquals(cloud_storage.GetHash(file_path), f.read())
+      self.assertEquals(cloud_storage.CalculateHash(file_path), f.read())
 
   def testReadingArchiveInfo(self):
     self.assertIsNotNone(self.archive_info.WprFilePathForPage(page1))

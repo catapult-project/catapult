@@ -12,11 +12,13 @@ from telemetry.core import command_line
 from telemetry.page import cloud_storage
 
 
-BUCKET_CHOICES = {
+BUCKET_ALIASES = {
     'public': cloud_storage.PUBLIC_BUCKET,
     'partner': cloud_storage.PARTNER_BUCKET,
     'google-only': cloud_storage.INTERNAL_BUCKET,
 }
+BUCKETS = {bucket: easy_bucket_name for easy_bucket_name, bucket
+           in BUCKET_ALIASES.iteritems()}
 
 
 def _GetPaths(path):
@@ -31,33 +33,32 @@ def _GetPaths(path):
 
 
 def _FindFilesInCloudStorage(files):
+  """Returns a dict of all files and which buckets they're in."""
+  # Preprocessing: get the contents of all buckets.
   bucket_contents = {}
-  for easy_bucket_name, bucket in BUCKET_CHOICES.iteritems():
+  for bucket in BUCKETS:
     try:
-      bucket_contents[easy_bucket_name] = cloud_storage.List(bucket)
+      bucket_contents[bucket] = cloud_storage.List(bucket)
     except (cloud_storage.PermissionError, cloud_storage.CredentialsError):
       pass
 
+  # Check if each file is in the bucket contents.
   file_buckets = {}
   for path in files:
     file_path, hash_path = _GetPaths(path)
 
     if file_path in file_buckets:
+      # Ignore duplicates, if both data and sha1 file were in the file list.
       continue
     if not os.path.exists(hash_path):
+      # Probably got some non-Cloud Storage files in the file list. Ignore.
       continue
 
-    with open(hash_path, 'rb') as f:
-      file_hash = f.read(1024).rstrip()
-
-    buckets = []
-    for bucket in BUCKET_CHOICES:
-      if bucket not in bucket_contents:
-        continue
+    file_hash = cloud_storage.ReadHash(hash_path)
+    file_buckets[file_path] = []
+    for bucket in BUCKETS:
       if file_hash in bucket_contents[bucket]:
-        buckets.append(bucket)
-
-    file_buckets[file_path] = buckets
+        file_buckets[file_path].append(bucket)
 
   return file_buckets
 
@@ -74,10 +75,10 @@ class Ls(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     for path in args.paths:
       if not os.path.exists(path):
-        parser.error('File not found: %s' % path)
+        parser.error('Path not found: %s' % path)
 
   def Run(self, args):
-    def GetFilesInPath(paths, recursive):
+    def GetFilesInPaths(paths, recursive):
       """If path is a dir, yields all files in path, otherwise just yields path.
       
       If recursive is true, walks subdirectories recursively."""
@@ -94,7 +95,7 @@ class Ls(command_line.Command):
           for filename in os.listdir(path):
             yield os.path.join(path, filename)
 
-    files = _FindFilesInCloudStorage(GetFilesInPath(args.paths, args.recursive))
+    files = _FindFilesInCloudStorage(GetFilesInPaths(args.paths, args.recursive))
 
     if not files:
       print 'No files in Cloud Storage.'
@@ -102,6 +103,7 @@ class Ls(command_line.Command):
 
     for file_path, buckets in sorted(files.iteritems()):
       if buckets:
+        buckets = [BUCKETS[bucket] for bucket in buckets]
         print '%-11s  %s' % (','.join(buckets), file_path)
       else:
         print '%-11s  %s' % ('not found', file_path)
@@ -113,13 +115,13 @@ class Mv(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
-    parser.add_argument('bucket', choices=BUCKET_CHOICES)
+    parser.add_argument('bucket', choices=BUCKET_ALIASES)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    args.bucket = BUCKET_CHOICES[args.bucket]
+    args.bucket = BUCKET_ALIASES[args.bucket]
 
-    for path in args.paths:
+    for path in args.files:
       _, hash_path = _GetPaths(path)
       if not os.path.exists(hash_path):
         parser.error('File not found: %s' % hash_path)
@@ -132,12 +134,11 @@ class Mv(command_line.Command):
         raise IOError('%s not found in Cloud Storage.' % file_path)
 
     for file_path, buckets in sorted(files.iteritems()):
-      hash_path = file_path + '.sha1'
-      with open(hash_path, 'rb') as f:
-        file_hash = f.read(1024).rstrip()
-
+      # Move to the target bucket.
+      file_hash = cloud_storage.ReadHash(file_path + '.sha1')
       cloud_storage.Move(buckets.pop(), args.bucket, file_hash)
 
+      # Delete all additional copies.
       for bucket in buckets:
         if bucket == args.bucket:
           continue
@@ -153,7 +154,7 @@ class Rm(command_line.Command):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    for path in args.paths:
+    for path in args.files:
       _, hash_path = _GetPaths(path)
       if not os.path.exists(hash_path):
         parser.error('File not found: %s' % hash_path)
@@ -161,10 +162,7 @@ class Rm(command_line.Command):
   def Run(self, args):
     files = _FindFilesInCloudStorage(args.files)
     for file_path, buckets in sorted(files.iteritems()):
-      hash_path = file_path + '.sha1'
-      with open(hash_path, 'rb') as f:
-        file_hash = f.read(1024).rstrip()
-
+      file_hash = cloud_storage.ReadHash(file_path + '.sha1')
       for bucket in buckets:
         cloud_storage.Delete(bucket, file_hash)
 
@@ -175,19 +173,19 @@ class Upload(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
-    parser.add_argument('bucket', choices=BUCKET_CHOICES)
+    parser.add_argument('bucket', choices=BUCKET_ALIASES)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    args.bucket = BUCKET_CHOICES[args.bucket]
+    args.bucket = BUCKET_ALIASES[args.bucket]
 
-    for path in args.paths:
+    for path in args.files:
       if not os.path.exists(path):
         parser.error('File not found: %s' % path)
 
   def Run(self, args):
     for file_path in args.files:
-      file_hash = cloud_storage.GetHash(file_path)
+      file_hash = cloud_storage.CalculateHash(file_path)
 
       # Create or update the hash file.
       hash_path = file_path + '.sha1'
