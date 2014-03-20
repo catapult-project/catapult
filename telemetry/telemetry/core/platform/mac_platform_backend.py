@@ -45,6 +45,13 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
+  def _GetIdleWakeupCount(self, pid):
+    top_output = self._GetTopOutput(pid, ['idlew'])
+    assert top_output[-2] == 'IDLEW'
+    # Numbers reported by top may have a '+' appended.
+    wakeup_count = int(top_output[-1].strip('+ '))
+    return wakeup_count
+
   def GetCpuStats(self, pid):
     """Return current cpu processing time of pid in seconds."""
     class ProcTaskInfo(ctypes.Structure):
@@ -78,10 +85,16 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     self.libproc.proc_pidinfo(pid, proc_info.PROC_PIDTASKINFO, 0,
                               ctypes.byref(proc_info), proc_info.size)
 
-    # Convert nanoseconds to seconds
+    # Convert nanoseconds to seconds.
     cpu_time = (proc_info.pti_total_user / 1000000000.0 +
                 proc_info.pti_total_system / 1000000000.0)
-    return {'CpuProcessTime': cpu_time}
+    results = {'CpuProcessTime': cpu_time,
+               'ContextSwitches': proc_info.pti_csw}
+
+    # top only reports idle wakeup count starting from OS X 10.9.
+    if self.GetOSVersionName() >= MAVERICKS:
+      results.update({'IdleWakeupCount': self._GetIdleWakeupCount(pid)})
+    return results
 
   def GetCpuTimestamp(self):
     """Return current timestamp in seconds."""

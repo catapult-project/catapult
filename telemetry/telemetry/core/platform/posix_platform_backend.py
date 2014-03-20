@@ -40,6 +40,18 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       args.extend(['-o', c + '='])
     return self._RunCommand(args).splitlines()
 
+  def _GetTopOutput(self, pid, columns):
+    """Returns output of the 'top' command as a list of lines.
+
+    Args:
+      pid: pid of process to examine.
+      columns: A list of require columns, e.g., ['idlew', 'vsize'].
+    """
+    args = ['top']
+    args.extend(['-pid', str(pid), '-l', '1', '-s', '0', '-stats',
+        ','.join(columns)])
+    return self._RunCommand(args).splitlines()
+
   def GetChildPids(self, pid):
     """Returns a list of child pids of |pid|."""
     ps_output = self._GetPsOutput(['pid', 'ppid', 'state'])
