@@ -185,7 +185,7 @@ class BrowserFinderOptions(optparse.Values):
         sys.exit(0)
 
       # Parse repeat options.
-      self.repeat_options.UpdateFromParseResults(self, parser)
+      self.repeat_options.UpdateFromParseResults(self)
 
       # Parse browser options.
       self.browser_options.UpdateFromParseResults(self)

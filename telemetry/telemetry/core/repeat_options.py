@@ -3,59 +3,30 @@
 # found in the LICENSE file.
 
 import optparse
-import re
 
 
 class RepeatOptions(object):
-  def __init__(self, page_repeat_secs=None, pageset_repeat_secs=None,
-               page_repeat_iters=None, pageset_repeat_iters=None):
-    self.page_repeat_secs = page_repeat_secs
-    self.pageset_repeat_secs = pageset_repeat_secs
-    self.page_repeat_iters = page_repeat_iters
-    self.pageset_repeat_iters = pageset_repeat_iters
+  def __init__(self, page_repeat=None, pageset_repeat=None):
+    self.page_repeat = page_repeat
+    self.pageset_repeat = pageset_repeat
 
   def __deepcopy__(self, _):
-    return RepeatOptions(self.page_repeat_secs, self.pageset_repeat_secs,
-                         self.page_repeat_iters, self.pageset_repeat_iters)
+    return RepeatOptions(self.page_repeat, self.pageset_repeat)
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
     group = optparse.OptionGroup(parser, 'Repeat options')
-    group.add_option('--page-repeat', default='1',
-                     help='Number of iterations or length of time to repeat '
-                     'each individual page in the pageset before proceeding.  '
-                     'Append an \'s\' to specify length of time in seconds. '
-                     'e.g., \'10\' to repeat for 10 iterations, or \'30s\' to '
-                     'repeat for 30 seconds.')
-    group.add_option('--pageset-repeat', default='1',
-                     help='Number of iterations or length of time to repeat '
-                     'the entire pageset before finishing.  Append an \'s\' '
-                     'to specify length of time in seconds. e.g., \'10\' to '
-                     'repeat for 10 iterations, or \'30s\' to repeat for 30 '
-                     'seconds.')
-    parser.add_option_group(group)
+    group.add_option('--page-repeat', default=1, type='int',
+                     help='Number of times to repeat each individual page '
+                     'before proceeding with the next page in the pageset.')
+    group.add_option('--pageset-repeat', default=1, type='int',
+                     help='Number of times to repeat the entire pageset.')
 
-  def _ParseRepeatOption(self, finder_options, input_str, parser):
-    match = re.match('([0-9]+)([sS]?)$', str(getattr(finder_options,
-                                                     input_str, '')))
-    if match:
-      if match.group(2):
-        setattr(self, input_str + '_secs', float(match.group(1)))
-        # Set _iters to the default value
-        setattr(self, input_str + '_iters', 1)
-      else:
-        setattr(self, input_str + '_iters', int(match.group(1)))
-      delattr(finder_options, input_str)
-    else:
-      parser.error('Usage: --%s only accepts an int '
-                   'followed by only an \'s\' if using time. '
-                   'e.g. \'10\' or \'10s\'\n' % input_str.replace('_','-'))
-
-  def UpdateFromParseResults(self, finder_options, parser):
-    self._ParseRepeatOption(finder_options, 'page_repeat', parser)
-    self._ParseRepeatOption(finder_options, 'pageset_repeat', parser)
+  def UpdateFromParseResults(self, finder_options):
+    """Copies options from the given options object to this object."""
+    self.page_repeat = finder_options.page_repeat
+    self.pageset_repeat = finder_options.pageset_repeat
 
   def IsRepeating(self):
     """Returns True if we will be repeating pages or pagesets."""
-    return (self.page_repeat_iters != 1 or self.pageset_repeat_iters != 1 or
-            self.page_repeat_secs or self.pageset_repeat_secs)
+    return self.page_repeat != 1 or self.pageset_repeat != 1
