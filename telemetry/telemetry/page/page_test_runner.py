@@ -68,11 +68,7 @@ class PageTestRunner(object):
 
     return test_name
 
-  def GetPageSet(self, test, env):
-    ps = test.CreatePageSet(self._args, self._options)
-    if ps:
-      return ps
-
+  def GetPageSet(self, env):
     if len(self._args) < 2:
       page_set_filenames = []
       for perf_path in env.base_paths:
@@ -164,7 +160,7 @@ class PageTestRunner(object):
       expectations = test.CreateExpectations(ps)
       test.ProcessCommandLineArgs(self._parser, self._options)
     else:
-      ps = self.GetPageSet(test, env)
+      ps = self.GetPageSet(env)
       expectations = test.CreateExpectations(ps)
       page_test.ProcessCommandLineArgs(self._parser, self._options)
     page_runner.ProcessCommandLineArgs(self._parser, self._options)
