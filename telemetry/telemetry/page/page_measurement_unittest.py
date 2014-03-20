@@ -57,7 +57,7 @@ class MeasurementQueryParams(page_measurement.PageMeasurement):
 
 class MeasurementWithAction(page_measurement.PageMeasurement):
   def __init__(self):
-    super(MeasurementWithAction, self).__init__('test_action')
+    super(MeasurementWithAction, self).__init__('RunTestAction')
 
   def MeasurePage(self, page, tab, results):
     pass
@@ -153,7 +153,7 @@ class PageMeasurementUnitTest(
     all_page_actions.RegisterClassForTest('mock', MockAction)
 
     ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
-    setattr(ps.pages[0], 'test_action', {'action': 'mock'})
+    setattr(ps.pages[0], 'RunTestAction', {'action': 'mock'})
     measurement = MeasurementWithAction()
     self.RunMeasurement(measurement, ps, options=self._options)
     self.assertTrue(action_called[0])

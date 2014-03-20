@@ -71,3 +71,25 @@ class TestPageSet(unittest.TestCase):
     self.assertEquals(ps.serving_dirs, expected_serving_dirs)
     self.assertEquals(ps[0].serving_dir, os.path.join(real_directory_path, 'c'))
     self.assertEquals(ps[2].serving_dir, os.path.join(real_directory_path, 'd'))
+
+  def testRenamingCompoundActions(self):
+    ps = page_set.PageSet.FromDict({
+      'serving_dirs': ['a/b'],
+      'smoothness' : { 'action' : 'scroll' },
+      'pages': [
+        {'url': 'http://www.foo.com',
+         'stress_memory': {'action': 'javasciprt'}
+        },
+        {'url': 'http://www.bar.com',
+         'navigate_steps': {'action': 'navigate2'},
+         'repaint' : {'action': 'scroll'}
+        },
+      ]}, 'file://foo.js')
+
+    self.assertEquals(ps.pages[0].RunNavigateSteps, {'action': 'navigate'})
+    self.assertEquals(ps.pages[0].RunSmoothness, {'action': 'scroll'})
+    self.assertEquals(ps.pages[0].RunStressMemory, {'action': 'javasciprt'})
+
+    self.assertEquals(ps.pages[1].RunSmoothness, {'action': 'scroll'})
+    self.assertEquals(ps.pages[1].RunNavigateSteps, {'action': 'navigate2'})
+    self.assertEquals(ps.pages[1].RunRepaint, {'action': 'scroll'})
