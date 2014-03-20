@@ -131,6 +131,7 @@ def Main(base_dir):
     recorder.test = tests[target]().test()
     recorder.test.AddCommandLineArgs(parser)
     parser.parse_args()
+    recorder.test.ProcessCommandLineArgs(parser, options)
     ps = tests[target]().CreatePageSet(options)
   elif target.endswith('.json'):
     parser.parse_args()
@@ -141,6 +142,9 @@ def Main(base_dir):
   else:
     parser.print_usage()
     sys.exit(1)
+
+  page_runner.ProcessCommandLineArgs(parser, options)
+  recorder.ProcessCommandLineArgs(parser, options)
 
   expectations = test_expectations.TestExpectations()
 
