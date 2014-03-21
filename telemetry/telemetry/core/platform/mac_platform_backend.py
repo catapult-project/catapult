@@ -47,7 +47,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   def _GetIdleWakeupCount(self, pid):
     top_output = self._GetTopOutput(pid, ['idlew'])
-    assert top_output[-2] == 'IDLEW'
+
+    # Sometimes top won't return anything here, just ignore such cases -
+    # crbug.com/354812 .
+    if top_output[-2] != 'IDLEW':
+      return 0
     # Numbers reported by top may have a '+' appended.
     wakeup_count = int(top_output[-1].strip('+ '))
     return wakeup_count
