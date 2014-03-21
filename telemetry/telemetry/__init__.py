@@ -19,6 +19,9 @@ if sys.version_info < (2, 7):
 from telemetry import exception_formatter
 exception_formatter.InstallUnhandledExceptionFormatter()
 
+from telemetry import interactive_debugging
+interactive_debugging.InstallDebuggingHooks()
+
 from telemetry.core.browser import Browser
 from telemetry.core.browser_options import BrowserFinderOptions
 from telemetry.core.tab import Tab
