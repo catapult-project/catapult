@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import os
 import unittest
@@ -20,8 +21,7 @@ class CrOSTest(unittest.TestCase):
     self._cri = cros_interface.CrOSInterface(options.cros_remote,
                                              options.cros_ssh_identity)
     self._is_guest = options.browser_type == 'cros-chrome-guest'
-    self._username = ('$guest' if self._is_guest
-                                else options.browser_options.username)
+    self._username = '' if self._is_guest else options.browser_options.username
     self._password = options.browser_options.password
     self._load_extension = None
 
@@ -51,20 +51,14 @@ class CrOSTest(unittest.TestCase):
     self.assertTrue(extension)
     return extension
 
-  def _CryptohomePath(self, user):
-    """Returns the cryptohome mount point for |user|."""
-    return self._cri.RunCmdOnDevice(
-        ['cryptohome-path', 'user', "'%s'" % user])[0].strip()
-
   def _IsCryptohomeMounted(self):
-    """Returns True iff |user|'s cryptohome is mounted."""
-    profile_path = self._CryptohomePath(self._username)
-    mount = self._cri.FilesystemMountedAt(profile_path)
-    if not mount:
-      return False
-    if self._is_guest:
-      return mount == 'guestfs'
-    return mount.startswith('/home/.shadow/')
+    """Returns True if cryptohome is mounted. as determined by the cmd
+    cryptohome --action=status"""
+    cryptohomeJSON, _ = self._cri.RunCmdOnDevice(['/usr/sbin/cryptohome',
+                                                 '--action=status'])
+    cryptohomeStatus = json.loads(cryptohomeJSON)
+    return (cryptohomeStatus['mounts'] and
+            cryptohomeStatus['mounts'][0]['mounted'])
 
   @test.Enabled('chromeos')
   def testCryptohome(self):
@@ -82,7 +76,7 @@ class CrOSTest(unittest.TestCase):
         self.assertEquals(chronos_fs, 'guestfs')
       else:
         crypto_fs = self._cri.FilesystemMountedAt(
-            self._CryptohomePath(self._username))
+            self._cri.CryptohomePath(self._username))
         self.assertEquals(crypto_fs, chronos_fs)
 
     self.assertFalse(self._IsCryptohomeMounted())
@@ -105,8 +99,6 @@ class CrOSTest(unittest.TestCase):
   @test.Enabled('chromeos')
   def testLoginStatus(self):
     """Tests autotestPrivate.loginStatus"""
-    if self._is_guest:
-      return
     with self._CreateBrowser(autotest_ext=True) as b:
       login_status = self._GetLoginStatus(b)
       self.assertEquals(type(login_status), dict)
@@ -161,8 +153,6 @@ class CrOSTest(unittest.TestCase):
   @test.Enabled('chromeos')
   def testScreenLock(self):
     """Tests autotestPrivate.screenLock"""
-    if self._is_guest:
-      return
     with self._CreateBrowser(autotest_ext=True) as browser:
       self._LockScreen(browser)
       self._AttemptUnlockBadPassword(browser)
@@ -171,8 +161,6 @@ class CrOSTest(unittest.TestCase):
   @test.Enabled('chromeos')
   def testLogout(self):
     """Tests autotestPrivate.logout"""
-    if self._is_guest:
-      return
     with self._CreateBrowser(autotest_ext=True) as b:
       extension = self._GetAutotestExtension(b)
       try:

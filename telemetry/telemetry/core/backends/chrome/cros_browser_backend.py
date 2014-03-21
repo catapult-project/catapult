@@ -205,7 +205,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.Close()
       raise
 
-    util.WaitFor(lambda: self.oobe_exists, 30)
+    util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:
       if self._is_guest:
@@ -279,10 +279,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     ''')
 
   def _IsLoggedIn(self):
-    """Returns True if cryptohome has mounted, and the oobe has been
-    dismissed."""
-    return (self._cri.IsCryptohomeMounted() and
-            self.HasBrowserFinishedLaunching() and
+    """Returns True if we're logged in (cryptohome has mounted), and the oobe
+    has been dismissed."""
+    return (self._cri.IsCryptohomeMounted(self.browser_options.username) and
             not self.oobe_exists)
 
   def _WaitForSigninScreen(self):
@@ -312,13 +311,19 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             exceptions.BrowserConnectionGoneException):
       pass
 
+  def _WaitForGuestFsMounted(self):
+    """Waits for the guest user to be mounted as guestfs"""
+    guest_path = self._cri.CryptohomePath('$guest')
+    util.WaitFor(lambda: (self._cri.FilesystemMountedAt(guest_path) ==
+                          'guestfs'), 20)
+
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest"""
     if not self.oobe_exists:
       raise exceptions.LoginException('Oobe missing')
     self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
-    util.WaitFor(self._IsLoggedIn, 30)
+    self._WaitForGuestFsMounted()
 
   def _NavigateLogin(self):
     """Navigates through oobe login screen"""
