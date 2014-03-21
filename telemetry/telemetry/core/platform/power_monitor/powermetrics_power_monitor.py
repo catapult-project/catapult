@@ -239,9 +239,13 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     try:
       self._powermetrics_process.send_signal(signal.SIGINFO)
       self._powermetrics_process.send_signal(signal.SIGTERM)
-      returncode = self._powermetrics_process.wait()
+      (power_stdout, power_stderr) = self._powermetrics_process.communicate()
+      returncode = self._powermetrics_process.returncode
       assert returncode in [0, -15], (
-          "powermetrics return code: %d" % returncode)
+          """powermetrics error
+          return code=%d
+          stdout=(%s)
+          stderr=(%s)""" % (returncode, power_stdout, power_stderr))
 
       with open(self._output_filename, 'rb') as output_file:
         powermetrics_output = output_file.read()
