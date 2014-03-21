@@ -5,6 +5,7 @@
 'use strict';
 
 tvcm.require('tvcm.range');
+tvcm.require('tvcm.ui');
 tvcm.require('tracing.constants');
 tvcm.require('tracing.selection');
 tvcm.require('tracing.trace_model.slice');
@@ -105,7 +106,7 @@ tvcm.exportTo('tracing', function() {
       if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
         var rangeX = Math.abs(this.rangeStartMarker_.positionView -
                               this.rangeEndMarker_.positionView);
-        if (rangeX >= constants.MIN_MOUSE_SELECTION_DISTANCE)
+        if (rangeX >= tvcm.ui.MIN_MOUSE_SELECTION_DISTANCE)
           this.viewport.addMarker(this.rangeStartMarker_);
       }
     },
@@ -123,7 +124,7 @@ tvcm.exportTo('tracing', function() {
 
         // The range is only valid when it exceeds the minimum mouse selection
         // distance, otherwise it could have been just a click.
-        if (rangeX >= constants.MIN_MOUSE_SELECTION_DISTANCE) {
+        if (rangeX >= tvcm.ui.MIN_MOUSE_SELECTION_DISTANCE) {
           this.rangeStartMarker_.selected = false;
           this.rangeEndMarker_.selected = false;
           this.activeMarker_ = null;

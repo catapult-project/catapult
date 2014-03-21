@@ -555,6 +555,7 @@ tvcm.exportTo('tvcm.ui', function() {
   };
 
   return {
+    MIN_MOUSE_SELECTION_DISTANCE: MIN_MOUSE_SELECTION_DISTANCE,
     MouseModeSelector: MouseModeSelector,
     MOUSE_SELECTOR_MODE: MOUSE_SELECTOR_MODE,
     MODIFIER: MODIFIER
