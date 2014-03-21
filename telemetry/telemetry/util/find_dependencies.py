@@ -12,7 +12,6 @@ import sys
 import zipfile
 
 from telemetry import test
-from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.page import cloud_storage
@@ -217,42 +216,43 @@ def ZipDependencies(paths, dependencies, options):
         zip_file.write(path, path_in_archive)
 
 
-class FindDependenciesCommand(command_line.OptparseCommand):
-  """Prints all dependencies"""
+def ParseCommandLine():
+  parser = optparse.OptionParser()
+  parser.add_option(
+      '-v', '--verbose', action='count', dest='verbosity',
+      help='Increase verbosity level (repeat as needed).')
 
-  @classmethod
-  def AddCommandLineArgs(cls, parser):
-    parser.add_option(
-        '-v', '--verbose', action='count', dest='verbosity',
-        help='Increase verbosity level (repeat as needed).')
+  parser.add_option(
+      '-p', '--include-page-set-data', action='store_true', default=False,
+      help='Scan tests for page set data and include them.')
 
-    parser.add_option(
-        '-p', '--include-page-set-data', action='store_true', default=False,
-        help='Scan tests for page set data and include them.')
+  parser.add_option(
+      '-e', '--exclude', action='append', default=[],
+      help='Exclude paths matching EXCLUDE. Can be used multiple times.')
 
-    parser.add_option(
-        '-e', '--exclude', action='append', default=[],
-        help='Exclude paths matching EXCLUDE. Can be used multiple times.')
+  parser.add_option(
+      '-z', '--zip',
+      help='Store files in a zip archive at ZIP.')
 
-    parser.add_option(
-        '-z', '--zip',
-        help='Store files in a zip archive at ZIP.')
+  options, args = parser.parse_args()
 
-  @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
-    if args.verbosity >= 2:
-      logging.getLogger().setLevel(logging.DEBUG)
-    elif args.verbosity:
-      logging.getLogger().setLevel(logging.INFO)
-    else:
-      logging.getLogger().setLevel(logging.WARNING)
+  if options.verbosity >= 2:
+    logging.getLogger().setLevel(logging.DEBUG)
+  elif options.verbosity:
+    logging.getLogger().setLevel(logging.INFO)
+  else:
+    logging.getLogger().setLevel(logging.WARNING)
 
-  def Run(self, args):
-    paths = args.positional_args
-    dependencies = FindDependencies(paths, args)
-    if args.zip:
-      ZipDependencies(paths, dependencies, args)
-      print 'Zip archive written to %s.' % args.zip
-    else:
-      print '\n'.join(sorted(dependencies))
-    return 0
+  return options, args
+
+
+def main():
+  options, paths = ParseCommandLine()
+
+  dependencies = FindDependencies(paths, options)
+
+  if options.zip:
+    ZipDependencies(paths, dependencies, options)
+    print 'Zip archive written to %s.' % options.zip
+  else:
+    print '\n'.join(sorted(dependencies))
