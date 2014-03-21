@@ -412,6 +412,7 @@ class PageRunnerTests(unittest.TestCase):
     if not browser_finder.FindBrowser(options):
       return
     test = Measurement()
+    SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
     self.assertEquals('about:blank', options.browser_options.startup_url)
     self.assertTrue(test.browser_restarted)
