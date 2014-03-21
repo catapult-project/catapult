@@ -19,6 +19,16 @@ from telemetry.core import discover
 from telemetry.core import util
 from telemetry.page import page_test
 from telemetry.page import profile_creator
+from telemetry.util import find_dependencies
+
+
+class Deps(find_dependencies.FindDependenciesCommand):
+  """Prints all dependencies"""
+
+  def Run(self, args):
+    main_module = sys.modules['__main__']
+    args.positional_args.append(os.path.realpath(main_module.__file__))
+    return super(Deps, self).Run(args)
 
 
 class Help(command_line.OptparseCommand):
@@ -44,10 +54,10 @@ class List(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    if not args.tests:
+    if not args.positional_args:
       args.tests = _Tests()
-    elif len(args.tests) == 1:
-      args.tests = _MatchTestName(args.tests[0], exact_matches=False)
+    elif len(args.positional_args) == 1:
+      args.tests = _MatchTestName(args.positional_args[0], exact_matches=False)
     else:
       parser.error('Must provide at most one test name.')
 
@@ -91,11 +101,11 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
-    if not args.tests:
+    if not args.positional_args:
       _PrintTestList(_Tests())
       sys.exit(1)
 
-    input_test_name = args.tests[0]
+    input_test_name = args.positional_args[0]
     matching_tests = _MatchTestName(input_test_name)
     if not matching_tests:
       print >> sys.stderr, 'No test named "%s".' % input_test_name
@@ -255,6 +265,6 @@ def Main():
   options, args = parser.parse_args()
   if commands:
     args = args[1:]
-  options.tests = args
+  options.positional_args = args
   command.ProcessCommandLineArgs(parser, options)
   return command().Run(options)
