@@ -57,10 +57,13 @@ class InspectorBackend(object):
       self._socket = websocket.create_connection(self.debugger_url,
           timeout=timeout)
     except (websocket.WebSocketException):
-      if self._browser_backend.IsBrowserRunning():
-        raise exceptions.TabCrashException(sys.exc_info()[1])
+      err_msg = sys.exc_info()[1]
+      if not self._browser_backend.IsBrowserRunning():
+        raise exceptions.BrowserGoneException(err_msg)
+      elif not self._browser_backend.HasBrowserFinishedLaunching():
+        raise exceptions.BrowserConnectionGoneException(err_msg)
       else:
-        raise exceptions.BrowserGoneException()
+        raise exceptions.TabCrashException(err_msg)
 
     self._cur_socket_timeout = 0
     self._next_request_id = 0
