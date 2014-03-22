@@ -334,7 +334,8 @@ class CrOSInterface(object):
     """Returns True iff |user|'s cryptohome is mounted."""
     profile_path = self.CryptohomePath(username)
     mount = self.FilesystemMountedAt(profile_path)
-    return mount and mount.startswith('/home/.shadow/')
+    mount_prefix = 'guestfs' if username == '$guest' else '/home/.shadow/'
+    return mount and mount.startswith(mount_prefix)
 
   def TakeScreenShot(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""

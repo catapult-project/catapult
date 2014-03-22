@@ -216,7 +216,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         util.WaitFor(lambda: pid != self.pid, 10)
         self._WaitForBrowserToComeUp()
       else:
-        self._NavigateLogin()
+        self._NavigateFakeLogin()
 
     logging.info('Browser is up!')
 
@@ -279,9 +279,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     ''')
 
   def _IsLoggedIn(self):
-    """Returns True if we're logged in (cryptohome has mounted), and the oobe
-    has been dismissed."""
+    """Returns True if cryptohome has mounted, the browser is
+    responsive to devtools requests, and the oobe has been dismissed."""
     return (self._cri.IsCryptohomeMounted(self.browser_options.username) and
+            self.HasBrowserFinishedLaunching() and
             not self.oobe_exists)
 
   def _WaitForSigninScreen(self):
@@ -311,25 +312,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             exceptions.BrowserConnectionGoneException):
       pass
 
-  def _WaitForGuestFsMounted(self):
-    """Waits for the guest user to be mounted as guestfs"""
-    guest_path = self._cri.CryptohomePath('$guest')
-    util.WaitFor(lambda: (self._cri.FilesystemMountedAt(guest_path) ==
-                          'guestfs'), 20)
-
   def _NavigateGuestLogin(self):
-    """Navigates through oobe login screen as guest"""
-    if not self.oobe_exists:
-      raise exceptions.LoginException('Oobe missing')
+    """Navigates through oobe login screen as guest."""
+    logging.info('Logging in as guest')
     self._WaitForSigninScreen()
     self._ClickBrowseAsGuest()
-    self._WaitForGuestFsMounted()
+    util.WaitFor(lambda: self._cri.IsCryptohomeMounted('$guest'), 30)
 
-  def _NavigateLogin(self):
-    """Navigates through oobe login screen"""
+  def _NavigateFakeLogin(self):
+    """Logs in using Oobe.loginForTesting."""
     logging.info('Invoking Oobe.loginForTesting')
-    if not self.oobe_exists:
-      raise exceptions.LoginException('Oobe missing')
     oobe = self.oobe
     util.WaitFor(lambda: oobe.EvaluateJavaScript(
         'typeof Oobe !== \'undefined\''), 10)
@@ -341,7 +333,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     oobe.ExecuteJavaScript(
         'Oobe.loginForTesting(\'%s\', \'%s\');'
             % (self.browser_options.username, self.browser_options.password))
+    self._WaitForLogin()
 
+  def _WaitForLogin(self):
     try:
       util.WaitFor(self._IsLoggedIn, 60)
     except util.TimeoutException:
