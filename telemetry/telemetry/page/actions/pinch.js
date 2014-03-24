@@ -63,7 +63,7 @@
                                    this.options_.pixels_to_cover_,
                                    anchor_left, anchor_top,
                                    this.onGestureComplete_.bind(this),
-                                   this.speed_);
+                                   this.options_.speed_);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {
