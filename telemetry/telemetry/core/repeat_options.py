@@ -15,12 +15,14 @@ class RepeatOptions(object):
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
+    """Adds the repeat options group to the given options parser."""
     group = optparse.OptionGroup(parser, 'Repeat options')
     group.add_option('--page-repeat', default=1, type='int',
                      help='Number of times to repeat each individual page '
                      'before proceeding with the next page in the pageset.')
     group.add_option('--pageset-repeat', default=1, type='int',
                      help='Number of times to repeat the entire pageset.')
+    parser.add_option_group(group)
 
   def UpdateFromParseResults(self, finder_options):
     """Copies options from the given options object to this object."""
