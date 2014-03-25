@@ -155,7 +155,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def FlushEntireSystemCache(self):
     mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
     p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
-    p.wait()
+    p.communicate()
     assert p.returncode == 0, 'Failed to flush system cache'
 
   def CanMonitorPowerAsync(self):

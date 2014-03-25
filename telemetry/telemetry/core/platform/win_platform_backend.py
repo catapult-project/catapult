@@ -83,7 +83,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     if kill_process_tree:
       cmd.append('/T')
     subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                     stderr=subprocess.STDOUT).wait()
+                     stderr=subprocess.STDOUT).communicate()
 
   def GetSystemProcessInfo(self):
     # [3:] To skip 2 blank lines and header.

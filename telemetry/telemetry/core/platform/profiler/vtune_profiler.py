@@ -91,9 +91,10 @@ class VTuneProfiler(profiler.Profiler):
         browser_type.startswith('cros')):
       return False
     try:
-      return not subprocess.Popen(['amplxe-cl', '-version'],
-                                  stderr=subprocess.STDOUT,
-                                  stdout=subprocess.PIPE).wait()
+      proc = subprocess.Popen(['amplxe-cl', '-version'],
+                              stderr=subprocess.STDOUT,
+                              stdout=subprocess.PIPE).communicate()
+      return not proc.returncode
     except OSError:
       return False
 

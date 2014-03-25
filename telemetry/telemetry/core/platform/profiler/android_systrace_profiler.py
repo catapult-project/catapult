@@ -53,7 +53,7 @@ class AndroidSystraceProfiler(profiler.Profiler):
   def CollectProfile(self):
     self._profiler.communicate(input='\n')
     trace_result = self._browser_backend.StopTracing()
-    self._profiler.wait()
+    self._profiler.communicate()
 
     trace_file = StringIO.StringIO()
     trace_result.Serialize(trace_file)

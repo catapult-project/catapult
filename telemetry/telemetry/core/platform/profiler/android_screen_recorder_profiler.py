@@ -36,7 +36,6 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
 
   def CollectProfile(self):
     self._recorder.communicate(input='\n')
-    self._recorder.wait()
 
     print 'Screen recording saved as %s' % self._output_path
     print 'To view, open in Chrome or a video player'
