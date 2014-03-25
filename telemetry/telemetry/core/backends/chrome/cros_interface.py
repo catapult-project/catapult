@@ -5,6 +5,7 @@
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -221,26 +222,52 @@ class CrOSInterface(object):
       f.flush()
       self.PushFile(f.name, remote_filename)
 
+  def GetFile(self, filename, destfile=None):
+    """Copies a local file |filename| to |destfile| on the device.
+
+    Args:
+      filename: The name of the local source file.
+      destfile: The name of the file to copy to, and if it is not specified
+        then it is the basename of the source file.
+
+    """
+    logging.debug("GetFile(%s, %s)" % (filename, destfile))
+    if self.local:
+      if destfile is not None and destfile != filename:
+        shutil.copyfile(filename, destfile)
+      return
+
+    if destfile is None:
+      destfile = os.path.basename(filename)
+    args = ['scp'] + self._ssh_args
+    if self._ssh_identity:
+      args.extend(['-i', self._ssh_identity])
+
+    args.extend(['root@%s:%s' % (self._hostname, filename),
+                 os.path.abspath(destfile)])
+    stdout, stderr = GetAllCmdOutput(args, quiet=True)
+    stderr = self._RemoveSSHWarnings(stderr)
+    if stderr != '':
+      raise OSError('No such file or directory %s' % stderr)
+
   def GetFileContents(self, filename):
+    """Get the contents of a file on the device.
+
+    Args:
+      filename: The name of the file on the device.
+
+    Returns:
+      A string containing the contents of the file.
+    """
+    # TODO: handle the self.local case
     assert not self.local
-    with tempfile.NamedTemporaryFile() as f:
-      args = ['scp'] + self._ssh_args
-      if self._ssh_identity:
-        args.extend(['-i', self._ssh_identity])
-
-      args.extend(['root@%s:%s' % (self._hostname, filename),
-                   os.path.abspath(f.name)])
-
-      stdout, stderr = GetAllCmdOutput(args, quiet=True)
-      stderr = self._RemoveSSHWarnings(stderr)
-
-      if stderr != '':
-        raise OSError('No such file or directory %s' % stderr)
-
-      with open(f.name, 'r') as f2:
-        res = f2.read()
-        logging.debug("GetFileContents(%s)->%s" % (filename, res))
-        return res
+    t = tempfile.NamedTemporaryFile()
+    self.GetFile(filename, t.name)
+    with open(t.name, 'r') as f2:
+      res = f2.read()
+      logging.debug("GetFileContents(%s)->%s" % (filename, res))
+      f2.close()
+      return res
 
   def ListProcesses(self):
     """Returns (pid, cmd, ppid, state) of all processes on the device."""

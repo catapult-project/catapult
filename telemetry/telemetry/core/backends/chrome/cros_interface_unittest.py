@@ -7,6 +7,7 @@
 # a bit.
 
 import socket
+import tempfile
 import unittest
 
 from telemetry import test
@@ -52,18 +53,46 @@ class CrOSInterfaceTest(unittest.TestCase):
     cri = cros_interface.CrOSInterface(
       remote,
       options_for_unittests.GetCopy().cros_ssh_identity)
-    hosts = cri.GetFileContents('/etc/hosts')
-    assert hosts.startswith('# /etc/hosts')
+    hosts = cri.GetFileContents('/etc/lsb-release')
+    self.assertTrue('CHROMEOS' in hosts)
 
   @test.Enabled('cros-chrome')
-  def testGetFileContentsForSomethingThatDoesntExist(self):
+  def testGetFileContentsNonExistent(self):
     remote = options_for_unittests.GetCopy().cros_remote
     cri = cros_interface.CrOSInterface(
       remote,
       options_for_unittests.GetCopy().cros_ssh_identity)
+    f = tempfile.NamedTemporaryFile()
+    cri.PushContents('testGetFileNonExistent', f.name)
+    cri.RmRF(f.name)
     self.assertRaises(
       OSError,
-      lambda: cri.GetFileContents('/tmp/209fuslfskjf/dfsfsf'))
+      lambda: cri.GetFileContents(f.name))
+
+  @test.Enabled('cros-chrome')
+  def testGetFile(self): # pylint: disable=R0201
+    remote = options_for_unittests.GetCopy().cros_remote
+    cri = cros_interface.CrOSInterface(
+      remote,
+      options_for_unittests.GetCopy().cros_ssh_identity)
+    f = tempfile.NamedTemporaryFile()
+    cri.GetFile('/etc/lsb-release', f.name)
+    with open(f.name, 'r') as f2:
+      res = f2.read()
+      self.assertTrue('CHROMEOS' in res)
+
+  @test.Enabled('cros-chrome')
+  def testGetFileNonExistent(self):
+    remote = options_for_unittests.GetCopy().cros_remote
+    cri = cros_interface.CrOSInterface(
+      remote,
+      options_for_unittests.GetCopy().cros_ssh_identity)
+    f = tempfile.NamedTemporaryFile()
+    cri.PushContents('testGetFileNonExistent', f.name)
+    cri.RmRF(f.name)
+    self.assertRaises(
+      OSError,
+      lambda: cri.GetFile(f.name))
 
   @test.Enabled('cros-chrome')
   def testIsServiceRunning(self):
