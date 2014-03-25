@@ -89,15 +89,20 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
+    test.AddCommandLineArgs(parser)
+
     # Allow tests to add their own command line options.
     matching_tests = []
     for arg in sys.argv[1:]:
       matching_tests += _MatchTestName(arg)
-    # TODO(dtu): After move to argparse, add command-line args for all tests
-    # to subparser. Using subparsers will avoid duplicate arguments.
+
     if matching_tests:
-      matching_tests.pop().AddCommandLineArgs(parser)
-    test.AddCommandLineArgs(parser)
+      # TODO(dtu): After move to argparse, add command-line args for all tests
+      # to subparser. Using subparsers will avoid duplicate arguments.
+      matching_test = matching_tests.pop()
+      matching_test.AddCommandLineArgs(parser)
+      # The test's options override the defaults!
+      matching_test.SetArgumentDefaults(parser)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):

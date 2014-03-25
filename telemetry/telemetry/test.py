@@ -50,12 +50,12 @@ class Test(command_line.Command):
       parser.add_option_group(group)
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
-    # TODO: This overrides the arguments the user specifies at the command-line.
-    # That's not right. http://crbug.com/330058
-    for key, value in cls.options.iteritems():
-      setattr(args, key, value)
+  def SetArgumentDefaults(cls, parser):
+    cls.PageTestClass().SetArgumentDefaults(parser)
+    parser.set_defaults(**cls.options)
 
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
     cls.PageTestClass().ProcessCommandLineArgs(parser, args)
 
   def CustomizeBrowserOptions(self, options):

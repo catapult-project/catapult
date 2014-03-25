@@ -58,6 +58,8 @@ class Failure(Exception):
 class PageTest(command_line.Command):
   """A class styled on unittest.TestCase for creating page-specific tests."""
 
+  options = {}
+
   def __init__(self,
                test_method_name,
                action_name_to_run='',
@@ -99,6 +101,10 @@ class PageTest(command_line.Command):
                               self.__class__.__bases__[0].TabForPage.__func__)
     # _exit_requested is set to true when the test requests an early exit.
     self._exit_requested = False
+
+  @classmethod
+  def SetArgumentDefaults(cls, parser):
+    parser.set_defaults(**cls.options)
 
   @property
   def discard_first_result(self):

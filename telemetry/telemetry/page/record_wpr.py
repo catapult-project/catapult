@@ -130,6 +130,7 @@ def Main(base_dir):
   if target in tests:
     recorder.test = tests[target]().test()
     recorder.test.AddCommandLineArgs(parser)
+    recorder.test.SetArgumentDefaults(parser)
     parser.parse_args()
     recorder.test.ProcessCommandLineArgs(parser, options)
     ps = tests[target]().CreatePageSet(options)
