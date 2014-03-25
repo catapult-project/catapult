@@ -60,6 +60,7 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     self._all_page_specific_values.append(value)
 
   def AddSummaryValue(self, value):
+    assert value.page is None
     self._ValidateValue(value)
     self._all_summary_values.append(value)
 

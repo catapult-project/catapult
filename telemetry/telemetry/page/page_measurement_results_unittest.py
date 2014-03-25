@@ -87,6 +87,14 @@ class PageMeasurementResultsTest(unittest.TestCase):
     self.assertEquals('b_units', results.GetUnitsForValueName('b'))
     self.assertEquals('c_units', results.GetUnitsForValueName('c'))
 
+  def test_add_summary_value_with_page_specified(self):
+    results = NonPrintingPageMeasurementResults()
+    results.WillMeasurePage(self.pages[0])
+    self.assertRaises(
+      AssertionError,
+      lambda: results.AddSummaryValue(scalar.ScalarValue(self.pages[0],
+                                                         'a', 'units', 3)))
+
   def test_unit_change(self):
     results = NonPrintingPageMeasurementResults()
     results.WillMeasurePage(self.pages[0])
