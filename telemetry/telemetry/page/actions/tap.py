@@ -67,7 +67,7 @@ class TapAction(GestureAction):
   def RunGesture(self, page, tab):
     left_position_percentage = 0.5
     top_position_percentage = 0.5
-    duration_ms = 0
+    duration_ms = 50
     gesture_source_type = GestureAction.GetGestureSourceTypeFromOptions(tab)
     if hasattr(self, 'left_position_percentage'):
       left_position_percentage = self.left_position_percentage

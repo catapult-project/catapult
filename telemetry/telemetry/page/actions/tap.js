@@ -17,7 +17,7 @@
       this.element_ = document.body;
       this.left_position_percentage_ = 0.5;
       this.top_position_percentage_ = 0.5;
-      this.duration_ms_ = 0;
+      this.duration_ms_ = 50;
       this.gesture_source_type_ = chrome.gpuBenchmarking.DEFAULT_INPUT;
     }
   }
