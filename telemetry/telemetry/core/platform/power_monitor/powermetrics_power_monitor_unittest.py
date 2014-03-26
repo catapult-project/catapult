@@ -24,6 +24,12 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
   @test.Enabled('mac')
+  def testParseEmptyPowerMetricsOutput(self):
+    # Important to handle zero length powermetrics outout - crbug.com/353250 .
+    self.assertIsNone(powermetrics_power_monitor.PowerMetricsPowerMonitor.
+        ParsePowerMetricsOutput(''))
+
+  @test.Enabled('mac')
   def testParsePowerMetricsOutput(self):
     def getOutput(output_file):
       test_data_path = os.path.join(util.GetUnittestDataDir(),

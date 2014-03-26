@@ -84,8 +84,12 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     """Parse output of powermetrics command line utility.
 
     Returns:
-        Dictionary in the format returned by StopMonitoringPowerAsync().
+        Dictionary in the format returned by StopMonitoringPowerAsync() or None
+        if |powermetrics_output| is empty - crbug.com/353250 .
     """
+    if len(powermetrics_output) == 0:
+      logging.warning("powermetrics produced zero length output")
+      return None
 
     # Container to collect samples for running averages.
     # out_path - list containing the key path in the output dictionary.
@@ -249,7 +253,6 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
       with open(self._output_filename, 'rb') as output_file:
         powermetrics_output = output_file.read()
-      assert len(powermetrics_output) > 0
       return PowerMetricsPowerMonitor.ParsePowerMetricsOutput(
           powermetrics_output)
 

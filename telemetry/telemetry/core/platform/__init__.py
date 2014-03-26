@@ -211,7 +211,8 @@ class Platform(object):
     """Stops monitoring power utilization and returns collects stats
 
     Returns:
-      A dict of power utilization statistics containing: {
+      None if power measurement failed for some reason, otherwise a dict of
+      power utilization statistics containing: {
         # An identifier for the data provider. Allows to evaluate the precision
         # of the data. Example values: monsoon, powermetrics, ds2784
         'identifier': identifier,
