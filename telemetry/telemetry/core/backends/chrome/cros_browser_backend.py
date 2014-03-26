@@ -315,8 +315,17 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _NavigateGuestLogin(self):
     """Navigates through oobe login screen as guest."""
     logging.info('Logging in as guest')
-    self._WaitForSigninScreen()
-    self._ClickBrowseAsGuest()
+    oobe = self.oobe
+    util.WaitFor(lambda: oobe.EvaluateJavaScript(
+        'typeof Oobe !== \'undefined\''), 10)
+
+    if oobe.EvaluateJavaScript(
+        "typeof Oobe.guestLoginForTesting != 'undefined'"):
+      oobe.ExecuteJavaScript('Oobe.guestLoginForTesting();')
+    else:
+      self._WaitForSigninScreen()
+      self._ClickBrowseAsGuest()
+
     util.WaitFor(lambda: self._cri.IsCryptohomeMounted('$guest'), 30)
 
   def _NavigateFakeLogin(self):
