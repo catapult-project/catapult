@@ -95,8 +95,8 @@ class PageTestRunner(object):
           'pages': [{'url': page_set_arg}]
           }, os.path.dirname(__file__))
 
-    # We've been given a page set JSON. Load it.
-    if page_set_arg.endswith('.json'):
+    # We've been given a page set JSON or PYTHON. Load it.
+    if page_set_arg.endswith('.json') or page_set_arg.endswith('.py'):
       return page_set.PageSet.FromFile(page_set_arg)
 
     # We've been given a file or directory. Create a page set containing it.

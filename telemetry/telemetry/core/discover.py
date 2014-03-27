@@ -9,6 +9,7 @@ import re
 
 from telemetry import decorators
 from telemetry.core import camel_case
+from telemetry.core import util
 
 
 @decorators.Cache
@@ -95,12 +96,31 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
 
   return classes
 
+_counter = [0]
+def _GetUniqueModuleName():
+  _counter[0] += 1
+  return "module_" + str(_counter[0])
+
+def IsPageSetFile(file_path):
+  root_name, ext_name = os.path.splitext(file_path)
+  if ext_name == '.json':
+    return True
+  elif ext_name != '.py':
+    return False
+  if 'unittest' in root_name or root_name in ('PRESUBMIT', '__init__'):
+    return False
+  module = util.GetPythonPageSetModule(file_path)
+  for class_name in dir(module):
+    if class_name.endswith('PageSet') and class_name != 'PageSet':
+      return True
+  return False
+
 def GetAllPageSetFilenames(dir_path):
   results = []
   start_dir = os.path.dirname(dir_path)
   for dirpath, _, filenames in os.walk(start_dir):
     for f in filenames:
-      if os.path.splitext(f)[1] != '.json':
+      if not IsPageSetFile(filenames):
         continue
       filename = os.path.join(dirpath, f)
       results.append(filename)

@@ -5,11 +5,11 @@
 import logging
 
 from telemetry.core import command_line
+
 from telemetry.page import test_expectations
+from telemetry.page.actions import action_runner as action_runner_module
 from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import interact
-from telemetry.page.actions import navigate
-from telemetry.page.actions import page_action
 
 
 def _GetActionFromData(action_data):
@@ -47,6 +47,13 @@ def GetCompoundActionFromPage(page, action_name, interactive=False):
     for _ in xrange(subaction_data.get('repeat', 1)):
       action_list += GetSubactionFromData(page, subaction_data, interactive)
   return action_list
+
+
+def GetRunMethodForPage(page, action_name):
+  def RunMethod(action_runner):
+    for action in GetCompoundActionFromPage(page, action_name):
+      action_runner.RunAction(action)
+  return RunMethod
 
 
 class Failure(Exception):
@@ -190,21 +197,6 @@ class PageTest(command_line.Command):
     """Override to add test-specific options to the BrowserOptions object"""
     pass
 
-  def CustomizeBrowserOptionsForPageSet(self, page_set, options):
-    """Set options required for this page set.
-
-    These options will be used every time the browser is started while running
-    this page set. They may, however, be further modified by
-    CustomizeBrowserOptionsForSinglePage or by the profiler.
-    """
-    for page in page_set:
-      if not self.CanRunForPage(page):
-        return
-      interactive = options and options.interactive
-      for action in GetCompoundActionFromPage(
-          page, self._action_name_to_run, interactive):
-        action.CustomizeBrowserOptionsForPageSet(options)
-
   def CustomizeBrowserOptionsForSinglePage(self, page, options):
     """Set options specific to the test and the given page.
 
@@ -303,42 +295,30 @@ class PageTest(command_line.Command):
 
   def RunPage(self, page, tab, results):
     interactive = self.options and self.options.interactive
-    compound_action = GetCompoundActionFromPage(
-        page, self._action_name_to_run, interactive)
+    action_runner = action_runner_module.ActionRunner(page, tab, self)
     self.WillRunActions(page, tab)
-    self._RunCompoundAction(page, tab, compound_action)
+    if interactive:
+      action_runner.RunAction(interact.InteractAction())
+    else:
+      self._RunMethod(page, self._action_name_to_run, action_runner)
     self.DidRunActions(page, tab)
     self._test_method(page, tab, results)
 
-  def _RunCompoundAction(self, page, tab, actions, run_setup_methods=True):
-    for action in actions:
-      if not action.WillWaitAfterRun():
-        action.WillRunAction(page, tab)
-      if run_setup_methods:
-        self.WillRunAction(page, tab, action)
-      try:
-        action.RunActionAndMaybeWait(page, tab)
-      finally:
-        if run_setup_methods:
-          self.DidRunAction(page, tab, action)
-
-      # Note that we must not call util.CloseConnections here. Many tests
-      # navigate to a URL in the first action and then wait for a condition
-      # in the second action. Calling util.CloseConnections here often
-      # aborts resource loads performed by the page.
+  def _RunMethod(self, page, method_name, action_runner):
+    if hasattr(page, method_name):
+      run_method = getattr(page, method_name)
+      # method is runnable, this must be the RunMethod of legacy json page_set
+      if not callable(run_method):
+        run_method = GetRunMethodForPage(page, method_name)
+      run_method(action_runner)
 
   def RunNavigateSteps(self, page, tab):
     """Navigates the tab to the page URL attribute.
 
     Runs the 'navigate_steps' page attribute as a compound action.
     """
-    navigate_actions = GetCompoundActionFromPage(page, 'RunNavigateSteps')
-    if not any(isinstance(action, navigate.NavigateAction)
-        for action in navigate_actions):
-      raise page_action.PageActionFailed(
-          'No NavigateAction in navigate_steps')
-
-    self._RunCompoundAction(page, tab, navigate_actions, False)
+    action_runner = action_runner_module.ActionRunner(page, tab, None)
+    self._RunMethod(page, "RunNavigateSteps", action_runner)
 
   def IsExiting(self):
     return self._exit_requested

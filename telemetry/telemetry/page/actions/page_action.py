@@ -30,17 +30,6 @@ class PageAction(object):
     else:
       self.wait_until = None
 
-  def CustomizeBrowserOptionsForPageSet(self, options):
-    """Override to add action-specific options to the BrowserOptions
-    object. These options will be set for the whole page set.
-
-    If the browser is not being restarted for every page in the page set then
-    all browser options required for the action must be set here. This, however,
-    requires that they do not conflict with options require by other actions
-    used up by the page set.
-    """
-    pass
-
   def WillRunAction(self, page, tab):
     """Override to do action-specific setup before
     Test.WillRunAction is called."""

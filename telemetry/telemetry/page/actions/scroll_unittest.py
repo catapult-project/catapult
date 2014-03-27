@@ -16,12 +16,11 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     super(ScrollActionTest, self).setUp()
 
   def CreateAndNavigateToPageFromUnittestDataDir(
-    self, filename, page_attributes):
+    self, filename):
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     page = page_module.Page(
       self._browser.http_server.UrlOf(filename),
-      None, # In this test, we don't need a page set.
-      attributes=page_attributes)
+      None) # In this test, we don't need a page set.
 
     self._tab.Navigate(page.url)
     self._tab.WaitForDocumentReadyStateToBeComplete()
@@ -30,11 +29,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
   @test.Disabled  # Disabled due to flakiness: crbug.com/330544
   def testScrollAction(self):
-    page = self.CreateAndNavigateToPageFromUnittestDataDir(
-        "blank.html",
-        page_attributes={"smoothness": {
-          "action": "scroll"
-          }})
+    page = self.CreateAndNavigateToPageFromUnittestDataDir("blank.html")
+    setattr(page, 'smoothness', {"action": "scroll"})
     # Make page bigger than window so it's scrollable.
     self._tab.ExecuteJavaScript("""document.body.style.height =
                               (2 * window.innerHeight + 1) + 'px';""")
@@ -69,7 +65,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
                             (scroll_position, scroll_height))
 
   def testBoundingClientRect(self):
-    self.CreateAndNavigateToPageFromUnittestDataDir('blank.html', {})
+    self.CreateAndNavigateToPageFromUnittestDataDir('blank.html')
     with open(os.path.join(os.path.dirname(__file__),
                            'gesture_common.js')) as f:
       js = f.read()

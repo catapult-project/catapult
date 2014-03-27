@@ -326,8 +326,6 @@ def Run(test, page_set, expectations, finder_options):
   if page_set.user_agent_type:
     browser_options.browser_user_agent_type = page_set.user_agent_type
 
-  test.CustomizeBrowserOptionsForPageSet(page_set,
-                                         possible_browser.finder_options)
   if finder_options.profiler:
     profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
     profiler_class.CustomizeBrowserOptions(possible_browser.browser_type,

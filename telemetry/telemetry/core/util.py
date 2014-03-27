@@ -1,6 +1,7 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import imp
 import inspect
 import logging
 import os
@@ -38,6 +39,14 @@ def AddDirToPythonPath(*path_parts):
   path = os.path.abspath(os.path.join(*path_parts))
   if os.path.isdir(path) and path not in sys.path:
     sys.path.append(path)
+
+_counter = [0]
+def _GetUniqueModuleName():
+  _counter[0] += 1
+  return "page_set_module_" + str(_counter[0])
+
+def GetPythonPageSetModule(file_path):
+  return imp.load_source(_GetUniqueModuleName(), file_path)
 
 
 def WaitFor(condition, timeout):

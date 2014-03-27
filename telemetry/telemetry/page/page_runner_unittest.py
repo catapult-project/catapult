@@ -399,10 +399,10 @@ class PageRunnerTests(unittest.TestCase):
         super(Measurement, self).__init__()
         self.browser_restarted = False
 
-      def CustomizeBrowserOptionsForPageSet(self, ps, options):
+      def CustomizeBrowserOptionsForSinglePage(self, ps, options):
         self.browser_restarted = True
-        super(Measurement, self).CustomizeBrowserOptionsForPageSet(ps,
-                                                                   options)
+        super(Measurement, self).CustomizeBrowserOptionsForSinglePage(ps,
+                                                                      options)
       def MeasurePage(self, page, tab, results):
         pass
 

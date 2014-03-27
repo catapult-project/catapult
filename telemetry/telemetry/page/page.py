@@ -10,37 +10,40 @@ from telemetry import decorators
 
 
 class Page(object):
-  def __init__(self, url, page_set, attributes=None, base_dir=None):
+  def __init__(self, url, page_set=None, base_dir=None):
     self.url = url
     self.page_set = page_set
     self._base_dir = base_dir
 
     # These attributes can be set dynamically by the page.
+    self.startup_url = page_set.startup_url if page_set else ''
     self.credentials = None
     self.disabled = False
     self.name = None
     self.script_to_evaluate_on_commit = None
+    self._SchemeErrorCheck()
 
-    if attributes:
-      for k, v in attributes.iteritems():
-        setattr(self, k, v)
-
+  def _SchemeErrorCheck(self):
     if not self._scheme:
       raise ValueError('Must prepend the URL with scheme (e.g. file://)')
 
-    if hasattr(self, 'startup_url') and self.startup_url:
+    if self.startup_url:
       startup_url_scheme = urlparse.urlparse(self.startup_url).scheme
       if not startup_url_scheme:
         raise ValueError('Must prepend the URL with scheme (e.g. http://)')
       if startup_url_scheme == 'file':
         raise ValueError('startup_url with local file scheme is not supported')
 
+  # With python page_set, this property will no longer be needed since pages can
+  # share property through a common ancestor class.
+  # TODO(nednguyen): remove this when crbug.com/239179 is marked fixed
   def __getattr__(self, name):
     # Inherit attributes from the page set.
     if self.page_set and hasattr(self.page_set, name):
       return getattr(self.page_set, name)
     raise AttributeError(
         '%r object has no attribute %r' % (self.__class__, name))
+
 
   @decorators.Cache
   def GetSyntheticDelayCategories(self):
@@ -64,6 +67,10 @@ class Page(object):
 
   def __str__(self):
     return self.url
+
+  def AddCustomizeBrowserOptions(self, options):
+    """ Inherit page overrides this to add customized browser options."""
+    pass
 
   @property
   def _scheme(self):
