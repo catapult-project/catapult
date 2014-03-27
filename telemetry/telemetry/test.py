@@ -122,7 +122,7 @@ class Test(command_line.Command):
                       'instructions below.',
                       generated_profile_archive_path)
         logging.error(e)
-        sys.exit(1)
+        sys.exit(-1)
 
     # Unzip profile directory.
     extracted_profile_dir_path = (
@@ -138,7 +138,7 @@ class Test(command_line.Command):
         if os.path.exists(extracted_profile_dir_path):
           shutil.rmtree(extracted_profile_dir_path)
         logging.error("Error extracting profile directory zip file: %s", e)
-        sys.exit(1)
+        sys.exit(-1)
 
     # Run with freshly extracted profile directory.
     logging.info("Using profile archive directory: %s",

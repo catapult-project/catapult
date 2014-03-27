@@ -14,7 +14,6 @@ import time
 import traceback
 
 from telemetry import decorators
-from telemetry import exception_formatter
 from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -26,6 +25,7 @@ from telemetry.page import page_test
 from telemetry.page import results_options
 from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
+from telemetry.util import exception_formatter
 
 
 class _RunState(object):

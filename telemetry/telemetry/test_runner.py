@@ -108,7 +108,7 @@ class Run(command_line.OptparseCommand):
   def ProcessCommandLineArgs(cls, parser, args):
     if not args.positional_args:
       _PrintTestList(_Tests())
-      sys.exit(1)
+      sys.exit(-1)
 
     input_test_name = args.positional_args[0]
     matching_tests = _MatchTestName(input_test_name)
@@ -116,14 +116,14 @@ class Run(command_line.OptparseCommand):
       print >> sys.stderr, 'No test named "%s".' % input_test_name
       print >> sys.stderr
       _PrintTestList(_Tests())
-      sys.exit(1)
+      sys.exit(-1)
 
     if len(matching_tests) > 1:
       print >> sys.stderr, 'Multiple tests named "%s".' % input_test_name
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
       _PrintTestList(matching_tests)
-      sys.exit(1)
+      sys.exit(-1)
 
     test_class = matching_tests.pop()
     if issubclass(test_class, page_test.PageTest):
