@@ -117,11 +117,8 @@ def IsPageSetFile(file_path):
 
 def GetAllPageSetFilenames(dir_path):
   results = []
-  start_dir = os.path.dirname(dir_path)
-  for dirpath, _, filenames in os.walk(start_dir):
-    for f in filenames:
-      if not IsPageSetFile(filenames):
-        continue
-      filename = os.path.join(dirpath, f)
+  for f in os.listdir(dir_path):
+    filename = os.path.join(dir_path, f)
+    if IsPageSetFile(filename):
       results.append(filename)
   return results
