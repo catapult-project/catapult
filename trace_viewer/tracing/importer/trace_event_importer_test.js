@@ -1580,6 +1580,34 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertTrue(sB.parentSlice == sA);
   });
 
+  test('importAsyncEventWithSameTimestamp', function() {
+    var events = [];
+    // Events are added with ts 0, 1, 1, 2, 2, 3, 3 ...500, 500, 1000
+    // and use 'seq' to track the order of when the event is recorded.
+    events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 0, ph: 'S', args: {'seq': 0}});  // @suppress longLineCheck
+
+    for (var i = 1; i <= 1000; i++)
+      events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2) , ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
+
+    events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
+
+    var m = new tracing.TraceModel(events);
+    var t = m.processes[52].threads[53];
+
+    assertEquals(1, t.asyncSliceGroup.slices.length);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assertEquals('a', parentSlice.title);
+    assertEquals('foo', parentSlice.category);
+
+    assertNotUndefined(parentSlice.subSlices);
+    var subSlices = parentSlice.subSlices;
+    assertEquals(1001, subSlices.length);
+    // Slices should be sorted according to 'ts'. And if 'ts' is the same,
+    // slices should keep the order that they were recorded.
+    for (var i = 0; i < 1000; i++)
+      assertEquals(subSlices[i].args['seq'], i);
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
 

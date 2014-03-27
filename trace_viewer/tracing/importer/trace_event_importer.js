@@ -153,6 +153,7 @@ tvcm.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allAsyncEvents_.push({
+        sequenceNumber: this.allAsyncEvents_.length,
         event: event,
         thread: thread});
     },
@@ -164,6 +165,7 @@ tvcm.exportTo('tracing.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
+        sequenceNumber: this.allFlowEvents_.length,
         event: event,
         thread: thread
       });
@@ -437,7 +439,10 @@ tvcm.exportTo('tracing.importer', function() {
         return;
 
       this.allAsyncEvents_.sort(function(x, y) {
-        return x.event.ts - y.event.ts;
+        var d = x.event.ts - y.event.ts;
+        if (d != 0)
+          return d;
+        return x.sequenceNumber - y.sequenceNumber;
       });
 
       var asyncEventStatesByNameThenID = {};
@@ -594,7 +599,10 @@ tvcm.exportTo('tracing.importer', function() {
         return;
 
       this.allFlowEvents_.sort(function(x, y) {
-        return x.event.ts - y.event.ts;
+        var d = x.event.ts - y.event.ts;
+        if (d != 0)
+          return d;
+        return x.sequenceNumber - y.sequenceNumber;
       });
 
       var flowIdToEvent = {};
