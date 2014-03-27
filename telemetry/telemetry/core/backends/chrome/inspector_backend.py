@@ -96,15 +96,6 @@ class InspectorBackend(object):
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
 
-  # TODO(tonyg): TabListBackend should ask InspectorBackend to
-  # Activate and Close, not the other way around (crbug.com/233001).
-
-  def Activate(self):
-    self._browser_backend.tab_list_backend.ActivateTab(self.debugger_url)
-
-  def Close(self):
-    self._browser_backend.tab_list_backend.CloseTab(self.debugger_url)
-
   # Public methods implemented in JavaScript.
 
   @property

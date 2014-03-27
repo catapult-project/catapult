@@ -12,19 +12,13 @@ DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 # independent of Tab.
 class WebContents(object):
   """Represents web contents in the browser"""
-  def __init__(self, inspector_backend):
+  def __init__(self, inspector_backend, backend_list):
     self._inspector_backend = inspector_backend
+    self._backend_list = backend_list
 
     with open(os.path.join(os.path.dirname(__file__),
         'network_quiescence.js')) as f:
       self._quiescence_js = f.read()
-
-  def Close(self):
-    """Closes this page.
-
-    Not all browsers or browser versions support this method.
-    Be sure to check browser.supports_tab_control."""
-    self._inspector_backend.Close()
 
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):

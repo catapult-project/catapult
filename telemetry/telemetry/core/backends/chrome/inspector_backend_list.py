@@ -15,15 +15,16 @@ def DebuggerUrlToId(debugger_url):
 class InspectorBackendList(collections.Sequence):
   """A dynamic sequence of active InspectorBackends."""
 
-  def __init__(self, browser_backend, backend_wrapper=None):
+  def __init__(self, browser_backend, backend_wrapper):
     """Constructor.
 
     Args:
       browser_backend: The BrowserBackend instance to query for
           InspectorBackends.
       backend_wrapper: A public interface for wrapping each
-          InspectorBackend. It must accept a single argument of the
-          InspectorBackend to wrap and may expose whatever methods
+          InspectorBackend. It must accept an argument of the
+          InspectorBackend to wrap, and an argument of the
+          InspectorBackendList, and may expose whatever methods
           are desired on top of that backend.
     """
     self._browser_backend = browser_backend
@@ -54,8 +55,7 @@ class InspectorBackendList(collections.Sequence):
       backend = inspector_backend.InspectorBackend(
           self._browser_backend,
           self._inspectable_contexts_dict[context_id])
-      if self._backend_wrapper:
-        backend = self._backend_wrapper(backend)
+      backend = self._backend_wrapper(backend, self)
       self._inspector_backend_dict[context_id] = backend
     return self._inspector_backend_dict[context_id]
 
