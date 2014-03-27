@@ -29,7 +29,7 @@ class ValueTest(TestBase):
     page0 = self.pages[0]
     v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True)
     self.assertEquals('default', v.GetBuildbotDataType(
-        value.MERGED_PAGES_RESULT_OUTPUT_CONTEXT))
+        value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
     self.assertEquals([3], v.GetBuildbotValue())
     self.assertEquals(('x_by_url', page0.display_name),
                       v.GetBuildbotMeasurementAndTraceNameForPerPageResult())
@@ -37,7 +37,7 @@ class ValueTest(TestBase):
     v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=False)
     self.assertEquals(
         'unimportant',
-        v.GetBuildbotDataType(value.MERGED_PAGES_RESULT_OUTPUT_CONTEXT))
+        v.GetBuildbotDataType(value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
 
   def testScalarSamePageMerging(self):
     page0 = self.pages[0]

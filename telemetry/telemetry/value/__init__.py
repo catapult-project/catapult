@@ -31,7 +31,7 @@ PICK_FIRST = 'pick-first'
 # but there you have it. There are three contexts in which Values are converted
 # for use by buildbot, represented by these output-intent values.
 PER_PAGE_RESULT_OUTPUT_CONTEXT = 'per-page-result-output-context'
-MERGED_PAGES_RESULT_OUTPUT_CONTEXT = 'merged-pages-result-output-context'
+COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT = 'merged-pages-result-output-context'
 SUMMARY_RESULT_OUTPUT_CONTEXT = 'summary-result-output-context'
 
 class Value(object):
@@ -99,7 +99,7 @@ class Value(object):
   def _IsImportantGivenOutputIntent(self, output_context):
     if output_context == PER_PAGE_RESULT_OUTPUT_CONTEXT:
       return False
-    elif output_context == MERGED_PAGES_RESULT_OUTPUT_CONTEXT:
+    elif output_context == COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT:
       return self.important
     elif output_context == SUMMARY_RESULT_OUTPUT_CONTEXT:
       return self.important
@@ -128,7 +128,8 @@ class Value(object):
     else:
       return self.name
 
-  def GetBuildbotMeasurementAndTraceNameForMergedPagesResult(self, trace_tag):
+  def GetBuildbotMeasurementAndTraceNameForComputedSummaryResult(
+      self, trace_tag):
     measurement, bb_trace_name = (
         _ConvertValueNameToBuildbotChartAndTraceName(self.name))
     if trace_tag:
