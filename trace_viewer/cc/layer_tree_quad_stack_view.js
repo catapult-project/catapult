@@ -779,10 +779,13 @@ tvcm.exportTo('cc', function() {
           continue;
 
         var layerQuad = layer.layerQuad.clone();
-        if (layer.usingGpuRasterization)
+        if (layer.usingGpuRasterization) {
+          var pixelRatio = window.devicePixelRatio || 1;
+          layerQuad.borderWidth = 2.0 * pixelRatio;
           layerQuad.borderColor = 'rgba(154,205,50,0.75)';
-        else
+        } else {
           layerQuad.borderColor = 'rgba(0,0,0,0.75)';
+        }
         layerQuad.stackingGroupId = nextStackingGroupId++;
         layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         layerQuad.layer = layer;
