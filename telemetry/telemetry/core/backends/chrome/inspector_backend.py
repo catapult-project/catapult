@@ -53,10 +53,11 @@ class InspectorBackend(object):
 
   def _Connect(self, timeout=10):
     assert not self._socket
+    logging.debug('InspectorBackend._Connect() to %s' % self.debugger_url)
     try:
       self._socket = websocket.create_connection(self.debugger_url,
           timeout=timeout)
-    except (websocket.WebSocketException):
+    except (websocket.WebSocketException, util.TimeoutException):
       err_msg = sys.exc_info()[1]
       if not self._browser_backend.IsBrowserRunning():
         raise exceptions.BrowserGoneException(err_msg)

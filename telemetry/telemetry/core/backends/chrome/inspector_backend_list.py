@@ -83,6 +83,15 @@ class InspectorBackendList(collections.Sequence):
     for context_id in self._inspectable_contexts_dict.keys():
       if context_id not in context_ids:
         del self._inspectable_contexts_dict[context_id]
+      else:
+        # Also remove inspectable contexts that have no websocketDebuggerUrls.
+        context = next(context for context in contexts
+                      if context['id'] == context_id)
+        if (context_id not in self._inspector_backend_dict.keys() and
+            'webSocketDebuggerUrl' not in context):
+          logging.debug('webSocketDebuggerUrl missing, removing %s'
+                        % context_id)
+          del self._inspectable_contexts_dict[context_id]
 
     # Clean up any backends for contexts that have gone away.
     for context_id in self._inspector_backend_dict.keys():
