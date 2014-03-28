@@ -37,5 +37,6 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     # Create a browser with oobe property.
     self.create_browser_with_oobe = False
     self.auto_login = True
+    self.gaia_login = False
     self.username = 'test@test.test'
     self.password = ''
