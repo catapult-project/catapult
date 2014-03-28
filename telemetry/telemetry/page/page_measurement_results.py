@@ -52,9 +52,13 @@ class PageMeasurementResults(page_test_results.PageTestResults):
     self._page_specific_values_for_current_page = []
 
   def Add(self, trace_name, units, value, chart_name=None, data_type='default'):
+    # TODO(isherman): Remove this as well.
     value = value_backcompat.ConvertOldCallingConventionToValue(
       self._current_page,
       trace_name, units, value, chart_name, data_type)
+    self.AddValue(value)
+
+  def AddValue(self, value):
     self._ValidateValue(value)
     self._page_specific_values_for_current_page.append(value)
     self._all_page_specific_values.append(value)
