@@ -52,7 +52,9 @@ tvcm.exportTo('tvcm.ui', function() {
           tvcm.ui.Overlay.prototype.onVisibleChange_.bind(this), true);
 
       // Setup the shadow root
-      this.shadow_ = this.webkitCreateShadowRoot();
+      var createShadowRoot = this.createShadowRoot ||
+          this.webkitCreateShadowRoot;
+      this.shadow_ = createShadowRoot.call(this);
       this.shadow_.appendChild(tvcm.instantiateTemplate('#overlay-template'));
 
       this.closeBtn_ = this.shadow_.querySelector('close-button');

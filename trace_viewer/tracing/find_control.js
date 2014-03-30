@@ -23,9 +23,9 @@ tvcm.exportTo('tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function() {
-      var shadow = this.webkitCreateShadowRoot();
-      shadow.applyAuthorStyles = true;
-      shadow.resetStyleInheritance = true;
+      var createShadowRoot = this.createShadowRoot ||
+          this.webkitCreateShadowRoot;
+      var shadow = createShadowRoot.call(this);
 
       shadow.appendChild(tvcm.instantiateTemplate('#find-control-template'));
 
