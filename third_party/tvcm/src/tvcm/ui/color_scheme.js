@@ -109,6 +109,13 @@ tvcm.exportTo('tvcm.ui', function() {
   }
 
   /**
+   * Gets the raw color palette, where entries are still objects.
+   */
+  function getRawColorPalette() {
+    return paletteRaw;
+  }
+
+  /**
    * @return {Number} The value to add to a color ID to get its highlighted
    * colro ID. E.g. 7 + getPaletteHighlightIdBoost() yields a brightened from
    * of 7's base color.
@@ -153,6 +160,9 @@ tvcm.exportTo('tvcm.ui', function() {
   }
 
   return {
+    colorToRGBString: colorToRGBString,
+    colorToRGBAString: colorToRGBAString,
+    getRawColorPalette: getRawColorPalette,
     getColorPalette: getColorPalette,
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
     getColorIdByName: getColorIdByName,

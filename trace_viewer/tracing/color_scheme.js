@@ -12,6 +12,9 @@ tvcm.require('tvcm.ui.color_scheme');
  */
 tvcm.exportTo('tracing', function() {
 
+  var paletteRaw = tvcm.ui.getRawColorPalette();
+  var palette = tvcm.ui.getColorPalette();
+
   var SelectionState = tracing.trace_model.SelectionState;
 
   /**
@@ -49,12 +52,12 @@ tvcm.exportTo('tracing', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return colorToRGBAString(paletteRaw[colorId], this.getAlpha_(instant));
+      return tvcm.ui.colorToRGBAString(paletteRaw[colorId], this.getAlpha_(instant));
     },
 
     getObjectInstanceColor: function(instance) {
       var colorId = instance.colorId + this.getColorIdOffset_(instance);
-      return colorToRGBAString(paletteRaw[colorId], 0.25);
+      return tvcm.ui.colorToRGBAString(paletteRaw[colorId], 0.25);
     },
 
     getObjectSnapshotColor: function(snapshot) {
@@ -64,7 +67,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     getCounterSeriesColor: function(colorId, selectionState) {
-      return colorToRGBAString(
+      return tvcm.ui.colorToRGBAString(
           paletteRaw[colorId],
           this.getAlpha_({selectionState: selectionState}));
     },
@@ -73,7 +76,7 @@ tvcm.exportTo('tracing', function() {
       var colorId =
           (snapshot.objectInstance.colorId + offset) % numRegularColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return colorToRGBAString(paletteRaw[colorId], this.getAlpha_(snapshot));
+      return tvcm.ui.colorToRGBAString(paletteRaw[colorId], this.getAlpha_(snapshot));
     }
   };
 
