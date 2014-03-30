@@ -301,7 +301,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tracing.trace_model.CounterSeries(seriesName,
-            tracing.getStringColorId(counter.name)));
+            tvcm.ui.getStringColorId(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addSample(ts, value);
@@ -345,7 +345,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tracing.trace_model.CounterSeries(seriesName,
-            tracing.getStringColorId(counter.name)));
+            tvcm.ui.getStringColorId(counter.name)));
       }
       counter.series.forEach(function(series) {
         series.addSample(ts, value);

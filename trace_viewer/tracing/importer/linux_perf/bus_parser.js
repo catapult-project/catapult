@@ -55,7 +55,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tracing.trace_model.CounterSeries('value',
-            tracing.getStringColorId(ctr.name + '.' + 'value')));
+            tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
         series.addSample(ts, r_bw);
@@ -65,7 +65,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
               .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tracing.trace_model.CounterSeries('value',
-            tracing.getStringColorId(ctr.name + '.' + 'value')));
+            tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
         series.addSample(ts, r_bw);

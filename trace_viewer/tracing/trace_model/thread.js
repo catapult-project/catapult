@@ -124,7 +124,7 @@ tvcm.exportTo('tracing.trace_model', function() {
               Error('Samples must be added in increasing timestamp order.');
         }
       }
-      var colorId = tracing.getStringColorId(title);
+      var colorId = tvcm.ui.getStringColorId(title);
       var sample = new tracing.trace_model.Sample(category, title, colorId, ts,
                                                   opt_args ? opt_args : {});
       this.samples_.push(sample);

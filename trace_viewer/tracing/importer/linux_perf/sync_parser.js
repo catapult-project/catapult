@@ -56,7 +56,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           value = ' ';
         var slice = new tracing.trace_model.Slice(
             '', value,
-            tracing.getStringColorId(value),
+            tvcm.ui.getStringColorId(value),
             thread.lastActiveTs, {},
             duration);
         thread.thread.sliceGroup.pushSlice(slice);

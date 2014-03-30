@@ -716,10 +716,10 @@ tvcm.exportTo('cc', function() {
       var unitRect = rect.asUVRectInside(layer.bounds);
       var quad = layerQuad.projectUnitRect(unitRect);
 
-      var colorId = tracing.getStringColorId(selection.title);
-      colorId += tracing.getColorPaletteHighlightIdBoost();
+      var colorId = tvcm.ui.getStringColorId(selection.title);
+      colorId += tvcm.ui.getColorPaletteHighlightIdBoost();
 
-      var color = tvcm.Color.fromString(tracing.getColorPalette()[colorId]);
+      var color = tvcm.Color.fromString(tvcm.ui.getColorPalette()[colorId]);
 
       var quadForDrawing = quad.clone();
       quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();

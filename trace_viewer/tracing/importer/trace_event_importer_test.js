@@ -378,7 +378,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
   test('taskColoring', function() {
     // The test below depends on hashing of 'a' != 'b'. Fail early if that
     // assumption is incorrect.
-    assertNotEquals(tracing.getStringHash('a'), tracing.getStringHash('b'));
+    assertNotEquals(tvcm.ui.getStringHash('a'), tvcm.ui.getStringHash('b'));
 
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -646,7 +646,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(1, ctr.numSeries);
 
     assertEquals('value', ctr.series[0].name);
-    assertEquals(tracing.getStringColorId('ctr.value'), ctr.series[0].color);
+    assertEquals(tvcm.ui.getStringColorId('ctr.value'), ctr.series[0].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
 
@@ -777,8 +777,8 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
 
     assertEquals('value1', ctr.series[0].name);
     assertEquals('value2', ctr.series[1].name);
-    assertEquals(tracing.getStringColorId('ctr.value1'), ctr.series[0].color);
-    assertEquals(tracing.getStringColorId('ctr.value2'), ctr.series[1].color);
+    assertEquals(tvcm.ui.getStringColorId('ctr.value1'), ctr.series[0].color);
+    assertEquals(tvcm.ui.getStringColorId('ctr.value2'), ctr.series[1].color);
 
     assertArrayEquals([0, 0.01, 0.02], ctr.timestamps);
     var samples = [];
@@ -1280,7 +1280,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
           base_type: 'LayerImpl'
         }
       }},
-      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}}, // @suppress longLineCheck
+      {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'LayerImpl', args: {}} // @suppress longLineCheck
     ];
 
     var m = new tracing.TraceModel();

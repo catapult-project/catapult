@@ -39,7 +39,7 @@ tvcm.exportTo('tracing.analysis', function() {
       var thread = timeSlice.thread;
 
       this.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tracing.getColorPalette()[timeSlice.colorId];
+      var stateColor = tvcm.ui.getColorPalette()[timeSlice.colorId];
       this.querySelector('#state').style.backgroundColor = stateColor;
 
       this.querySelector('#process-name').textContent =

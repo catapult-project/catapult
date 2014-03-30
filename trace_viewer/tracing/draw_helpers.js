@@ -14,7 +14,7 @@ tvcm.require('tracing.elided_cache');
  */
 tvcm.exportTo('tracing', function() {
   var elidedTitleCache = new tracing.ElidedTitleCache();
-  var palette = tracing.getColorPalette();
+  var palette = tvcm.ui.getColorPalette();
   var EventPresenter = tracing.EventPresenter;
 
   /**

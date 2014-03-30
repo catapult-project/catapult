@@ -49,7 +49,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
 
     openAsyncSlice: function(thread, category, name, cookie, ts, args) {
       var slice = new tracing.trace_model.AsyncSlice(
-          category, name, tracing.getStringColorId(name), ts);
+          category, name, tvcm.ui.getStringColorId(name), ts);
       var key = category + ':' + name + ':' + cookie;
       slice.id = cookie;
       slice.startThread = thread;
@@ -161,7 +161,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           // Initialize the counter's series fields if needed.
           if (ctr.numSeries === 0) {
             ctr.addSeries(new tracing.trace_model.CounterSeries(value,
-                tracing.getStringColorId(ctr.name + '.' + 'value')));
+                tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
           }
 
           ctr.series.forEach(function(series) {

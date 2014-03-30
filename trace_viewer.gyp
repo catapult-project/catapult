@@ -259,6 +259,7 @@
       'third_party/tvcm/src/tvcm/ui/bar_chart.js',
       'third_party/tvcm/src/tvcm/ui/camera.js',
       'third_party/tvcm/src/tvcm/ui/chart_base.js',
+      'third_party/tvcm/src/tvcm/ui/color_scheme.js',
       'third_party/tvcm/src/tvcm/ui/container_that_decorates_its_children.js',
       'third_party/tvcm/src/tvcm/ui/d3.js',
       'third_party/tvcm/src/tvcm/ui/dom_helpers.js',

@@ -45,7 +45,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tracing.trace_model.CounterSeries('value',
-            tracing.getStringColorId(ctr.name + '.' + 'value')));
+            tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
         series.addSample(ts, rate);

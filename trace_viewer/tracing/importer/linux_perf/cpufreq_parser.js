@@ -57,7 +57,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
-          tracing.getStringColorId(kthread.openSlice), ts, args, 0);
+          tvcm.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },
@@ -66,7 +66,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
       var slice = new tracing.trace_model.Slice('', kthread.openSlice,
-          tracing.getStringColorId(kthread.openSlice), ts, args, 0);
+          tvcm.ui.getStringColorId(kthread.openSlice), ts, args, 0);
 
       kthread.thread.sliceGroup.pushSlice(slice);
     },

@@ -189,7 +189,7 @@ tvcm.exportTo('tracing.importer', function() {
       if (ctr.numSeries === 0) {
         for (var seriesName in event.args) {
           ctr.addSeries(new tracing.trace_model.CounterSeries(seriesName,
-              tracing.getStringColorId(ctr.name + '.' + seriesName)));
+              tvcm.ui.getStringColorId(ctr.name + '.' + seriesName)));
         }
 
         if (ctr.numSeries === 0) {
@@ -327,7 +327,7 @@ tvcm.exportTo('tracing.importer', function() {
           break;
       }
 
-      var colorId = tracing.getStringColorId(event.name);
+      var colorId = tvcm.ui.getStringColorId(event.name);
       var instantEvent = new constructor(event.cat, event.name,
           colorId, event.ts / 1000, this.deepCopyIfNeeded_(event.args));
 
@@ -511,7 +511,7 @@ tvcm.exportTo('tracing.importer', function() {
             var slice = new tracing.trace_model.AsyncSlice(
                 events[0].event.cat,
                 name,
-                tracing.getStringColorId(name),
+                tvcm.ui.getStringColorId(name),
                 events[0].event.ts / 1000);
 
             slice.duration = (event.ts / 1000) - (events[0].event.ts / 1000);
@@ -548,7 +548,7 @@ tvcm.exportTo('tracing.importer', function() {
               var subSlice = new tracing.trace_model.AsyncSlice(
                   events[0].event.cat,
                   subName,
-                  tracing.getStringColorId(subName + j),
+                  tvcm.ui.getStringColorId(subName + j),
                   events[j - 1].event.ts / 1000);
 
               subSlice.duration =
@@ -631,7 +631,7 @@ tvcm.exportTo('tracing.importer', function() {
             event.cat,
             event.id,
             event.name,
-            tracing.getStringColorId(event.name),
+            tvcm.ui.getStringColorId(event.name),
             event.ts / 1000,
             this.deepCopyIfNeeded_(event.args));
         thread.sliceGroup.pushSlice(slice);
@@ -767,7 +767,7 @@ tvcm.exportTo('tracing.importer', function() {
         }
 
         if (instance)
-          instance.colorId = tracing.getStringColorId(instance.typeName);
+          instance.colorId = tvcm.ui.getStringColorId(instance.typeName);
       }
 
       this.allObjectEvents_.sort(function(x, y) {

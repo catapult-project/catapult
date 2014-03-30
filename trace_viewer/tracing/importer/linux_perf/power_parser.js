@@ -50,7 +50,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
-            tracing.getStringColorId(powerCounter.name + '.' + 'state')));
+            tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
         series.addSample(ts, cpuState);
@@ -62,7 +62,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var powerCounter = targetCpu.cpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
-            tracing.getStringColorId(powerCounter.name)));
+            tvcm.ui.getStringColorId(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
       var val = (cpuState != 4294967295 ? cpuState : 0);
@@ -77,7 +77,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           targetCpu.cpu.getOrCreateCounter('', 'Clock Frequency');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tracing.trace_model.CounterSeries('state',
-            tracing.getStringColorId(powerCounter.name + '.' + 'state')));
+            tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
         series.addSample(ts, powerState);

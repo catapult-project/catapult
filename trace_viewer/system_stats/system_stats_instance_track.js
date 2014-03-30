@@ -16,8 +16,8 @@ tvcm.exportTo('system_stats', function() {
 
   var EventPresenter = tracing.EventPresenter;
 
-  var palette = tracing.getColorPalette();
-  var highlightIdBoost = tracing.getColorPaletteHighlightIdBoost();
+  var palette = tvcm.ui.getColorPalette();
+  var highlightIdBoost = tvcm.ui.getColorPaletteHighlightIdBoost();
 
   var statCount;
 

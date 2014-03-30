@@ -64,7 +64,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           pid, pid);
       if (kthread.openSlice) {
         var slice = new tracing.trace_model.Slice('', kthread.openSlice,
-            tracing.getStringColorId(kthread.openSlice),
+            tvcm.ui.getStringColorId(kthread.openSlice),
             kthread.openSliceTS,
             {},
             ts - kthread.openSliceTS);

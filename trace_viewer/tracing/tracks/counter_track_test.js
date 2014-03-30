@@ -21,7 +21,7 @@ tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
 
     for (var i = 0; i < n; ++i) {
       ctr.addSeries(new tracing.trace_model.CounterSeries('value' + i,
-          tracing.getStringColorId('value' + i)));
+          tvcm.ui.getStringColorId('value' + i)));
     }
 
     for (var i = 0; i < samples.length; ++i) {
@@ -60,9 +60,9 @@ tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
     var ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
     ctr.addSeries(new tracing.trace_model.CounterSeries('value1',
-        tracing.getStringColorId('testBasicCounter.value1')));
+        tvcm.ui.getStringColorId('testBasicCounter.value1')));
     ctr.addSeries(new tracing.trace_model.CounterSeries('value2',
-        tracing.getStringColorId('testBasicCounter.value2')));
+        tvcm.ui.getStringColorId('testBasicCounter.value2')));
 
     var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
     var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],

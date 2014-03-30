@@ -70,7 +70,7 @@ tvcm.exportTo('tracing.importer', function() {
 
         var slice = new tracing.trace_model.CpuSlice(
             '', name,
-            tracing.getStringColorId(name),
+            tvcm.ui.getStringColorId(name),
             this.lastActiveTs,
             {
               comm: this.lastActiveComm,
@@ -436,10 +436,10 @@ tvcm.exportTo('tracing.importer', function() {
       }
 
       // Create slices for when the thread is not running.
-      var runningId = tracing.getColorIdByName('running');
-      var runnableId = tracing.getColorIdByName('runnable');
-      var sleepingId = tracing.getColorIdByName('sleeping');
-      var ioWaitId = tracing.getColorIdByName('iowait');
+      var runningId = tvcm.ui.getColorIdByName('running');
+      var runnableId = tvcm.ui.getColorIdByName('runnable');
+      var sleepingId = tvcm.ui.getColorIdByName('sleeping');
+      var ioWaitId = tvcm.ui.getColorIdByName('iowait');
       this.model_.getAllThreads().forEach(function(thread) {
         if (thread.tempCpuSlices === undefined)
           return;

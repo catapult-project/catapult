@@ -37,7 +37,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       var slice = new tracing.trace_model.AsyncSlice(
-          category, name, tracing.getStringColorId(name), ts);
+          category, name, tvcm.ui.getStringColorId(name), ts);
       slice.startThread = kthread.thread;
 
       if (!kthread.openAsyncSlices) {

@@ -7,7 +7,6 @@
 tvcm.require('tvcm.range');
 tvcm.require('tvcm.ui.d3');
 tvcm.require('tvcm.ui.chart_base');
-tvcm.require('tracing.color_scheme');
 
 tvcm.requireStylesheet('tvcm.ui.bar_chart');
 

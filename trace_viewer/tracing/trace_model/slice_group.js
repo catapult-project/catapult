@@ -92,7 +92,7 @@ tvcm.exportTo('tracing.trace_model', function() {
           throw new Error('Slices must be added in increasing timestamp order');
       }
 
-      var colorId = tracing.getStringColorId(title);
+      var colorId = tvcm.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {}, null,
                                             opt_tts);
@@ -163,7 +163,7 @@ tvcm.exportTo('tracing.trace_model', function() {
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
                                 threadDuration, opt_args) {
-      var colorId = tracing.getStringColorId(title);
+      var colorId = tvcm.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
                                             duration, tts, threadDuration);

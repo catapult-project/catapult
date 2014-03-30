@@ -4,6 +4,7 @@
 
 'use strict';
 
+tvcm.require('tvcm.ui.color_scheme');
 tvcm.require('tvcm.ui.d3');
 tvcm.requireTemplate('tvcm.ui.chart_base');
 
@@ -11,8 +12,8 @@ tvcm.exportTo('tvcm.ui', function() {
   var svgNS = 'http://www.w3.org/2000/svg';
 
   function getColorOfKey(key) {
-    var id = tracing.getStringColorId(key);
-    return tracing.getColorPalette()[id];
+    var id = tvcm.ui.getStringColorId(key);
+    return tvcm.ui.getColorPalette()[id];
   }
 
   /**

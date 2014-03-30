@@ -78,7 +78,7 @@ tvcm.exportTo('tracing.importer', function() {
       if (args === undefined) return;
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
-      var colorId = tracing.getStringColorId(name);
+      var colorId = tvcm.ui.getStringColorId(name);
       var slice = new tracing.trace_model.Slice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
@@ -265,7 +265,7 @@ tvcm.exportTo('tracing.importer', function() {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
           var slice = new tracing.trace_model.Slice('v8', slices[i].name,
-              tracing.getStringColorId(slices[i].name),
+              tvcm.ui.getStringColorId(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
           addSlices(slices[i].children, thread);
