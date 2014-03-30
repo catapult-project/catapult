@@ -57,7 +57,7 @@ def _FindFilesInCloudStorage(files):
     file_hash = cloud_storage.ReadHash(hash_path)
     file_buckets[file_path] = []
     for bucket in BUCKETS:
-      if file_hash in bucket_contents[bucket]:
+      if bucket in bucket_contents and file_hash in bucket_contents[bucket]:
         file_buckets[file_path].append(bucket)
 
   return file_buckets
@@ -85,7 +85,7 @@ class Ls(command_line.Command):
       for path in paths:
         if not os.path.isdir(path):
           yield path
-          return
+          continue
 
         if recursive:
           for root, _, filenames in os.walk(path):
@@ -121,11 +121,6 @@ class Mv(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     args.bucket = BUCKET_ALIASES[args.bucket]
 
-    for path in args.files:
-      _, hash_path = _GetPaths(path)
-      if not os.path.exists(hash_path):
-        parser.error('File not found: %s' % hash_path)
-
   def Run(self, args):
     files = _FindFilesInCloudStorage(args.files)
 
@@ -134,14 +129,18 @@ class Mv(command_line.Command):
         raise IOError('%s not found in Cloud Storage.' % file_path)
 
     for file_path, buckets in sorted(files.iteritems()):
+      if args.bucket in buckets:
+        buckets.remove(args.bucket)
+      if not buckets:
+        logging.info('Skipping %s, no action needed.' % file_path)
+        continue
+
       # Move to the target bucket.
       file_hash = cloud_storage.ReadHash(file_path + '.sha1')
       cloud_storage.Move(buckets.pop(), args.bucket, file_hash)
 
       # Delete all additional copies.
       for bucket in buckets:
-        if bucket == args.bucket:
-          continue
         cloud_storage.Delete(bucket, file_hash)
 
 
@@ -151,13 +150,6 @@ class Rm(command_line.Command):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_argument('files', nargs='+')
-
-  @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
-    for path in args.files:
-      _, hash_path = _GetPaths(path)
-      if not os.path.exists(hash_path):
-        parser.error('File not found: %s' % hash_path)
 
   def Run(self, args):
     files = _FindFilesInCloudStorage(args.files)
