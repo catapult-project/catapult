@@ -14,4 +14,12 @@ tvcm.unittest.testSuite('tvcm.utils_test', function() {
     assertEquals(3, tvcm.clamp(3, 1, 3));
     assertEquals(3, tvcm.clamp(4, 1, 3));
   });
+
+  test('getUsingPath', function() {
+    var z = tvcm.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
+    assertEquals(3, z);
+
+    var w = tvcm.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
+    assertEquals(undefined, w);
+  });
 });

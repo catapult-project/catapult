@@ -94,6 +94,22 @@ tvcm.exportTo('tvcm', function() {
     }
   }
 
+  function getUsingPath(path, from_dict) {
+    var parts = path.split('.');
+    var cur = from_dict;
+
+    for (var part; parts.length && (part = parts.shift());) {
+      if (!parts.length) {
+        return cur[part];
+      } else if (part in cur) {
+        cur = cur[part];
+      } else {
+        return undefined;
+      }
+    }
+    return undefined;
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
@@ -108,6 +124,8 @@ tvcm.exportTo('tvcm', function() {
 
     clamp: clamp,
     lerp: lerp,
-    deg2rad: deg2rad
+    deg2rad: deg2rad,
+
+    getUsingPath: getUsingPath
   };
 });
