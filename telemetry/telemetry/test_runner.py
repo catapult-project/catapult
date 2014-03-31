@@ -12,10 +12,12 @@ import json
 import os
 import sys
 
+from telemetry import decorators
 from telemetry import test
 from telemetry.core import browser_options
 from telemetry.core import command_line
 from telemetry.core import discover
+from telemetry.core import environment
 from telemetry.core import util
 from telemetry.page import page_test
 from telemetry.page import profile_creator
@@ -171,15 +173,18 @@ def _Commands():
     yield cls
 
 
+@decorators.Cache
 def _Tests():
-  base_dir = util.GetBaseDir()
-  tests = discover.DiscoverClasses(base_dir, base_dir, test.Test,
-                                   index_by_class_name=True).values()
-  page_tests = discover.DiscoverClasses(base_dir, base_dir, page_test.PageTest,
-                                        index_by_class_name=True).values()
-  page_tests = [test_class for test_class in page_tests
-                if not issubclass(test_class, profile_creator.ProfileCreator)]
-  return tests + page_tests
+  tests = []
+  for base_dir in config.base_paths:
+    tests += discover.DiscoverClasses(base_dir, base_dir, test.Test,
+                                      index_by_class_name=True).values()
+    page_tests = discover.DiscoverClasses(base_dir, base_dir,
+                                          page_test.PageTest,
+                                          index_by_class_name=True).values()
+    tests += [test_class for test_class in page_tests
+              if not issubclass(test_class, profile_creator.ProfileCreator)]
+  return tests
 
 
 def _MatchTestName(input_test_name, exact_matches=True):
@@ -194,8 +199,8 @@ def _MatchTestName(input_test_name, exact_matches=True):
   # Exact matching.
   if exact_matches:
     # Don't add aliases to search dict, only allow exact matching for them.
-    if input_test_name in test_aliases:
-      exact_match = test_aliases[input_test_name]
+    if input_test_name in config.test_aliases:
+      exact_match = config.test_aliases[input_test_name]
     else:
       exact_match = input_test_name
 
@@ -235,10 +240,10 @@ def _PrintTestList(tests):
     print >> sys.stderr
 
 
-test_aliases = {}
+config = environment.Environment([util.GetBaseDir()])
 
 
-def Main():
+def main():
   # Get the command name from the command line.
   if len(sys.argv) > 1 and sys.argv[1] == '--help':
     sys.argv[1] = 'help'
