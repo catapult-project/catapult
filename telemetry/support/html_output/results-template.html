@@ -325,9 +325,9 @@ function PerfTestMetric(name, metric, unit, isImportant) {
         if (window.unitToBiggerIsBetter == undefined) {
             window.unitToBiggerIsBetter = {};
             var units = JSON.parse(document.getElementById('units-json').textContent);
-            for (var unit in units) {
-                if (units[unit].improvement_direction == 'up') {
-                    window.unitToBiggerIsBetter[unit] = true;
+            for (var u in units) {
+                if (units[u].improvement_direction == 'up') {
+                    window.unitToBiggerIsBetter[u] = true;
                 }
             }
         }
