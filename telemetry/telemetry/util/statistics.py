@@ -4,7 +4,6 @@
 
 """A collection of statistical utility functions to be used by metrics."""
 
-import bisect
 import math
 
 
@@ -33,61 +32,86 @@ def NormalizeSamples(samples):
   new_low = 0.5 / len(samples)
   new_high = (len(samples)-0.5) / len(samples)
   if high-low == 0.0:
-    return samples, 1.0
+    return [0.5] * len(samples), 1.0
   scale = (new_high - new_low) / (high - low)
   for i in xrange(0, len(samples)):
     samples[i] = float(samples[i] - low) * scale + new_low
   return samples, scale
 
 
-def Discrepancy(samples, interval_multiplier=10000):
+def Discrepancy(samples, location_count=None):
   """Computes the discrepancy of a set of 1D samples from the interval [0,1].
 
-  The samples must be sorted.
+  The samples must be sorted. We define the discrepancy of an empty set
+  of samples to be zero.
 
   http://en.wikipedia.org/wiki/Low-discrepancy_sequence
   http://mathworld.wolfram.com/Discrepancy.html
   """
   if not samples:
-    return 1.0
+    return 0.0
 
   max_local_discrepancy = 0
+  inv_sample_count = 1.0 / len(samples)
   locations = []
   # For each location, stores the number of samples less than that location.
-  left = []
+  count_less = []
   # For each location, stores the number of samples less than or equal to that
   # location.
-  right = []
+  count_less_equal = []
 
-  interval_count = len(samples) * interval_multiplier
-  # Compute number of locations the will roughly result in the requested number
-  # of intervals.
-  location_count = int(math.ceil(math.sqrt(interval_count*2)))
-  inv_sample_count = 1.0 / len(samples)
-
-  # Generate list of equally spaced locations.
-  for i in xrange(0, location_count):
-    location = float(i) / (location_count-1)
-    locations.append(location)
-    left.append(bisect.bisect_left(samples, location))
-    right.append(bisect.bisect_right(samples, location))
+  if location_count:
+    # Generate list of equally spaced locations.
+    sample_index = 0
+    for i in xrange(0, int(location_count)):
+      location = float(i) / (location_count-1)
+      locations.append(location)
+      while sample_index < len(samples) and samples[sample_index] < location:
+        sample_index += 1
+      count_less.append(sample_index)
+      while  sample_index < len(samples) and samples[sample_index] <= location:
+        sample_index += 1
+      count_less_equal.append(sample_index)
+  else:
+    # Populate locations with sample positions. Append 0 and 1 if necessary.
+    if samples[0] > 0.0:
+      locations.append(0.0)
+      count_less.append(0)
+      count_less_equal.append(0)
+    for i in xrange(0, len(samples)):
+      locations.append(samples[i])
+      count_less.append(i)
+      count_less_equal.append(i+1)
+    if samples[-1] < 1.0:
+      locations.append(1.0)
+      count_less.append(len(samples))
+      count_less_equal.append(len(samples))
 
   # Iterate over the intervals defined by any pair of locations.
   for i in xrange(0, len(locations)):
-    for j in xrange(i, len(locations)):
-      # Compute length of interval and number of samples in the interval.
+    for j in xrange(i+1, len(locations)):
+      # Length of interval
       length = locations[j] - locations[i]
-      count = right[j] - left[i]
 
-      # Compute local discrepancy and update max_local_discrepancy.
-      local_discrepancy = abs(float(count)*inv_sample_count - length)
-      max_local_discrepancy = max(local_discrepancy, max_local_discrepancy)
+      # Local discrepancy for closed interval
+      count_closed = count_less_equal[j] - count_less[i]
+      local_discrepancy_closed = abs(float(count_closed) *
+                                     inv_sample_count - length)
+      max_local_discrepancy = max(local_discrepancy_closed,
+                                  max_local_discrepancy)
+
+      # Local discrepancy for open interval
+      count_open = count_less[j] - count_less_equal[i]
+      local_discrepancy_open = abs(float(count_open) *
+                                   inv_sample_count - length)
+      max_local_discrepancy = max(local_discrepancy_open,
+                                  max_local_discrepancy)
 
   return max_local_discrepancy
 
 
 def TimestampsDiscrepancy(timestamps, absolute=True,
-                          interval_multiplier=10000):
+                          location_count=None):
   """A discrepancy based metric for measuring timestamp jank.
 
   TimestampsDiscrepancy quantifies the largest area of jank observed in a series
@@ -119,14 +143,14 @@ def TimestampsDiscrepancy(timestamps, absolute=True,
   D(S) = max(D(S_1), D(S_2), ..., D(S_N))
   """
   if not timestamps:
-    return 1.0
+    return 0.0
 
   if isinstance(timestamps[0], list):
     range_discrepancies = [TimestampsDiscrepancy(r) for r in timestamps]
     return max(range_discrepancies)
 
   samples, sample_scale = NormalizeSamples(timestamps)
-  discrepancy = Discrepancy(samples, interval_multiplier)
+  discrepancy = Discrepancy(samples, location_count)
   inv_sample_count = 1.0 / len(samples)
   if absolute:
     # Compute absolute discrepancy
@@ -138,7 +162,7 @@ def TimestampsDiscrepancy(timestamps, absolute=True,
 
 
 def DurationsDiscrepancy(durations, absolute=True,
-                         interval_multiplier=10000):
+                         location_count=None):
   """A discrepancy based metric for measuring duration jank.
 
   DurationsDiscrepancy computes a jank metric which measures how irregular a
@@ -155,8 +179,11 @@ def DurationsDiscrepancy(durations, absolute=True,
     absolute: See TimestampsDiscrepancy.
     interval_multiplier: See TimestampsDiscrepancy.
   """
-  timestamps = reduce(lambda x, y: x + [x[-1] + y], durations, [0])[1:]
-  return TimestampsDiscrepancy(timestamps, absolute, interval_multiplier)
+  if not durations:
+    return 0.0
+
+  timestamps = reduce(lambda x, y: x + [x[-1] + y], durations, [0])
+  return TimestampsDiscrepancy(timestamps, absolute, location_count)
 
 
 def ArithmeticMean(data):
@@ -305,4 +332,3 @@ def GeometricMean(values):
   mean = math.pow(math.e, (log_sum / len(new_values)))
   # Return the rounded mean.
   return int(round(mean))
-

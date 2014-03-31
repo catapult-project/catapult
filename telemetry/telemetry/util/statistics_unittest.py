@@ -28,18 +28,26 @@ def Relax(samples, iterations=10):
     samples = relaxed_samples
   return samples
 
+def CreateRandomSamples(num_samples):
+  samples = []
+  position = 0.0
+  samples.append(position)
+  for _ in xrange(1, num_samples):
+    position += random.random()
+    samples.append(position)
+  return samples
 
 class StatisticsUnitTest(unittest.TestCase):
 
   def testNormalizeSamples(self):
     samples = []
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, samples)
+    self.assertEquals(normalized_samples, [])
     self.assertEquals(scale, 1.0)
 
     samples = [0.0, 0.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, samples)
+    self.assertEquals(normalized_samples, [0.5, 0.5])
     self.assertEquals(scale, 1.0)
 
     samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0]
@@ -62,86 +70,90 @@ class StatisticsUnitTest(unittest.TestCase):
     """
     random.seed(1234567)
     for _ in xrange(0, 10):
-      samples = []
-      num_samples = 10
-      clock = 0.0
-      samples.append(clock)
-      for _ in xrange(1, num_samples):
-        clock += random.random()
-        samples.append(clock)
+      samples = CreateRandomSamples(10)
       samples = statistics.NormalizeSamples(samples)[0]
       d = statistics.Discrepancy(samples)
-
       relaxed_samples = Relax(samples)
       d_relaxed = statistics.Discrepancy(relaxed_samples)
-
       self.assertTrue(d_relaxed <= d)
 
   def testDiscrepancyAnalytic(self):
     """Computes discrepancy for sample sets with known statistics."""
-    interval_multiplier = 100000
-
     samples = []
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertEquals(d, 1.0)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.0)
 
     samples = [0.5]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertEquals(round(d), 1.0)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.5)
 
     samples = [0.0, 1.0]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertAlmostEquals(round(d, 2), 1.0)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 1.0)
 
     samples = [0.5, 0.5, 0.5]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertAlmostEquals(d, 1.0)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 1.0)
 
     samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertAlmostEquals(round(d, 2), 0.25)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.25)
 
     samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertAlmostEquals(round(d, 2), 0.5)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.5)
 
     samples = statistics.NormalizeSamples(samples)[0]
-    d = statistics.Discrepancy(samples, interval_multiplier)
-    self.assertAlmostEquals(round(d, 2), 0.25)
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.25)
+
+  def testTimestampsDiscrepancy(self):
+    time_stamps = []
+    d_abs = statistics.TimestampsDiscrepancy(time_stamps, True)
+    self.assertEquals(d_abs, 0.0)
+
+    time_stamps = [4]
+    d_abs = statistics.TimestampsDiscrepancy(time_stamps, True)
+    self.assertEquals(d_abs, 0.5)
 
     time_stamps_a = [0, 1, 2, 3, 5, 6]
     time_stamps_b = [0, 1, 2, 3, 5, 7]
     time_stamps_c = [0, 2, 3, 4]
     time_stamps_d = [0, 2, 3, 4, 5]
-    d_abs_a = statistics.TimestampsDiscrepancy(time_stamps_a, True,
-                                               interval_multiplier)
-    d_abs_b = statistics.TimestampsDiscrepancy(time_stamps_b, True,
-                                               interval_multiplier)
-    d_abs_c = statistics.TimestampsDiscrepancy(time_stamps_c, True,
-                                               interval_multiplier)
-    d_abs_d = statistics.TimestampsDiscrepancy(time_stamps_d, True,
-                                               interval_multiplier)
-    d_rel_a = statistics.TimestampsDiscrepancy(time_stamps_a, False,
-                                               interval_multiplier)
-    d_rel_b = statistics.TimestampsDiscrepancy(time_stamps_b, False,
-                                               interval_multiplier)
-    d_rel_c = statistics.TimestampsDiscrepancy(time_stamps_c, False,
-                                               interval_multiplier)
-    d_rel_d = statistics.TimestampsDiscrepancy(time_stamps_d, False,
-                                               interval_multiplier)
+
+    d_abs_a = statistics.TimestampsDiscrepancy(time_stamps_a, True)
+    d_abs_b = statistics.TimestampsDiscrepancy(time_stamps_b, True)
+    d_abs_c = statistics.TimestampsDiscrepancy(time_stamps_c, True)
+    d_abs_d = statistics.TimestampsDiscrepancy(time_stamps_d, True)
+    d_rel_a = statistics.TimestampsDiscrepancy(time_stamps_a, False)
+    d_rel_b = statistics.TimestampsDiscrepancy(time_stamps_b, False)
+    d_rel_c = statistics.TimestampsDiscrepancy(time_stamps_c, False)
+    d_rel_d = statistics.TimestampsDiscrepancy(time_stamps_d, False)
 
     self.assertTrue(d_abs_a < d_abs_b)
     self.assertTrue(d_rel_a < d_rel_b)
     self.assertTrue(d_rel_d < d_rel_c)
-    self.assertEquals(round(d_abs_d, 2), round(d_abs_c, 2))
+    self.assertAlmostEquals(d_abs_d, d_abs_c)
 
   def testDiscrepancyMultipleRanges(self):
     samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]]
-    d_0 = statistics.Discrepancy(samples[0])
-    d_1 = statistics.Discrepancy(samples[1])
-    d_2 = statistics.Discrepancy(samples[2])
-    d = statistics.Discrepancy(samples)
+    d_0 = statistics.TimestampsDiscrepancy(samples[0])
+    d_1 = statistics.TimestampsDiscrepancy(samples[1])
+    d_2 = statistics.TimestampsDiscrepancy(samples[2])
+    d = statistics.TimestampsDiscrepancy(samples)
     self.assertEquals(d, max(d_0, d_1, d_2))
+
+  def testApproximateDiscrepancy(self):
+    """Tests approimate discrepancy implementation by comparing to exact
+    solution.
+    """
+    random.seed(1234567)
+    for _ in xrange(0, 5):
+      samples = CreateRandomSamples(10)
+      samples = statistics.NormalizeSamples(samples)[0]
+      d = statistics.Discrepancy(samples)
+      d_approx = statistics.Discrepancy(samples, 500)
+      self.assertEquals(round(d, 2), round(d_approx, 2))
 
   def testPercentile(self):
     # The 50th percentile is the median value.
@@ -167,11 +179,11 @@ class StatisticsUnitTest(unittest.TestCase):
   def testDurationsDiscrepancy(self):
     durations = []
     d = statistics.DurationsDiscrepancy(durations)
-    self.assertEquals(d, 1.0)
+    self.assertEquals(d, 0.0)
 
     durations = [4]
     d = statistics.DurationsDiscrepancy(durations)
-    self.assertEquals(d, 1.0)
+    self.assertEquals(d, 4.0)
 
     durations_a = [1, 1, 1, 1, 1]
     durations_b = [1, 1, 2, 1, 1]
