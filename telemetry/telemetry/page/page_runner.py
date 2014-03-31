@@ -478,6 +478,8 @@ def _RunPage(test, page, state, expectation, results, finder_options):
       page_state.ImplicitPageNavigation(test)
     test.RunPage(page, page_state.tab, results)
     util.CloseConnections(page_state.tab)
+  except page_test.TestNotSupportedOnPlatformFailure:
+    raise
   except page_test.Failure:
     if expectation == 'fail':
       logging.info('%s:\n%s', page.url, traceback.format_exc())

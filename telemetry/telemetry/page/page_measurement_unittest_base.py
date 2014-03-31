@@ -8,6 +8,7 @@ from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
 from telemetry.page import page_set
+from telemetry.page import page_test
 from telemetry.page import test_expectations
 from telemetry.unittest import options_for_unittests
 
@@ -80,6 +81,9 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
         return measurement_class.TabForPage(self, page, browser)
 
     measurement = BuggyMeasurement()
-    self.RunMeasurement(measurement, ps, options=options)
+    try:
+      self.RunMeasurement(measurement, ps, options=options)
+    except page_test.TestNotSupportedOnPlatformFailure:
+      pass
     if start_tracing_called[0]:
       self.assertTrue(stop_tracing_called[0])

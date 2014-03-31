@@ -1,15 +1,17 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import logging
 import os
 import sys
 
 from telemetry import test as test_module
 from telemetry.core import browser_options
 from telemetry.core import discover
-from telemetry.page import page_test as page_test_module
 from telemetry.page import page_runner
 from telemetry.page import page_set
+from telemetry.page import page_test as page_test_module
+from telemetry.page import page_test_results
 
 def Main(env):
   """Turns a PageTest into a command-line program.
@@ -36,7 +38,11 @@ class PageTestRunner(object):
 
   def Run(self, env):
     test, ps, expectations = self.ParseCommandLine(sys.argv, env)
-    results = page_runner.Run(test, ps, expectations, self._options)
+    results = page_test_results.PageTestResults()
+    try:
+      results = page_runner.Run(test, ps, expectations, self._options)
+    except page_test_module.TestNotSupportedOnPlatformFailure as failure:
+      logging.warning(str(failure))
     results.PrintSummary()
     return min(255, len(results.failures + results.errors))
 

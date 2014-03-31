@@ -62,6 +62,13 @@ class Failure(Exception):
   pass
 
 
+class TestNotSupportedOnPlatformFailure(Failure):
+  """Exception that can be thrown to indicate that a certain feature required
+  to run the test is not available on the platform, hardware configuration, or
+  browser version."""
+  pass
+
+
 class PageTest(command_line.Command):
   """A class styled on unittest.TestCase for creating page-specific tests."""
 
