@@ -246,7 +246,7 @@ tvcm.exportTo('tvcm.unittest', function() {
       if (state.testFilterString !== undefined)
         this.testFilterString = state.testFilterString;
       else
-        this.testFilterString = [];
+        this.testFilterString = '';
 
       if (state.shortFormat === undefined)
         this.shortFormat = false;
@@ -261,6 +261,14 @@ tvcm.exportTo('tvcm.unittest', function() {
       this.suppressStateChange_ = false;
       this.onShortFormatClick_();
       this.scheduleRerun_();
+    },
+
+    getDefaultState: function() {
+      return {
+        testFilterString: '',
+        shortFormat: false,
+        testTypeToRun: tvcm.unittest.TestTypes.UNITTEST
+      };
     },
 
     getState: function() {

@@ -43,11 +43,25 @@ found in the LICENSE file.
         results.setState(stateFromSearchString(
             window.location.search.substring(1)));
 
-        function stateToSearchString(state) {
+        function stateToSearchString(defaultState, state) {
           var parts = [];
-          for (var k in state)
-            parts.push(encodeURI(k) + '=' +
-                       encodeURI(JSON.stringify(state[k])));
+          for (var k in state) {
+            if (state[k] === defaultState[k])
+              continue;
+            var v = state[k];
+            var kv;
+            if (v === true) {
+              kv = k;
+            } else if (v === false) {
+              kv = k + '=false';
+            } else if (v === '') {
+              debugger;
+              continue;
+            } else {
+              kv = k + '=' + v;
+            }
+            parts.push(kv);
+          }
           return parts.join('&');
         }
 
@@ -57,17 +71,34 @@ found in the LICENSE file.
             if (part == '')
               return;
             var kv = part.split('=');
-            state[decodeURI(kv[0])] = JSON.parse(decodeURI(kv[1]));
+            var k, v;
+            if (kv.length == 1) {
+              k = kv[0];
+              v = true;
+            } else {
+              k = kv[0];
+              if (kv[1] == 'false')
+                v = false;
+              else
+                v = kv[1];
+            }
+            state[k] = v;
           });
           return state;
         }
 
         results.addEventListener('statechange', function() {
+          debugger;
           var state = results.getState();
-          var stateString = stateToSearchString(state);
+          var stateString = stateToSearchString(results.getDefaultState(),
+                                                state);
           if (window.location.search == stateString)
             return;
-          var stateURL = window.location.pathname + '?' + stateString;
+          var stateURL;
+          if (stateString.length > 0)
+            stateURL = window.location.pathname + '?' + stateString;
+          else
+            stateURL = window.location.pathname;
           window.history.pushState(state, document.title, stateURL);
         });
 
@@ -79,8 +110,13 @@ found in the LICENSE file.
           var state = results.getState();
           state.testFilterString = testCase.fullyQualifiedName;
           state.shortFormat = false;
-          var stateString = stateToSearchString(state);
-          return window.location.pathname + '?' + stateString;
+
+          var stateString = stateToSearchString(results.getDefaultState(),
+                                                state);
+          if (stateString.length > 0)
+            return window.location.pathname + '?' + stateString;
+          else
+            return window.location.pathname;
         }
       });
     }
