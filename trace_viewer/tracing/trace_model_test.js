@@ -263,4 +263,17 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
     });
     assertTrue(wasCalled);
   });
+
+  test('customizeCallback', function() {
+    var m = new tracing.TraceModel();
+    m.importTraces([], false, false, function() {
+      var browserProcess = m.getOrCreateProcess(1);
+      var browserMain = browserProcess.getOrCreateThread(2);
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 0);
+      browserMain.sliceGroup.endSlice(10);
+      browserMain.sliceGroup.beginSlice('cat', 'Task', 20);
+      browserMain.sliceGroup.endSlice(30);
+    });
+    assertEquals(2, m.processes[1].threads[2].sliceGroup.length);
+  });
 });

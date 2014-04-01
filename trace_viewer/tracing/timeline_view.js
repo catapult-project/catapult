@@ -23,6 +23,8 @@ tvcm.require('tvcm.ui.drag_handle');
 
 tvcm.require('tracing.analysis.cpu_slice_view');
 tvcm.require('tracing.analysis.thread_time_slice_view');
+tvcm.require('tracing.thread_times_side_panel');
+tvcm.require('tracing.timeline_view_side_panel');
 
 tvcm.exportTo('tracing', function() {
 
@@ -43,7 +45,12 @@ tvcm.exportTo('tracing', function() {
       this.titleEl_ = this.querySelector('.title');
       this.leftControlsEl_ = this.querySelector('#left-controls');
       this.rightControlsEl_ = this.querySelector('#right-controls');
-      this.timelineContainer_ = this.querySelector('.container');
+      this.timelineViewSidePanelContainer_ = this.querySelector(
+          'x-timeline-view-side-panel-container');
+      this.trackViewContainer_ = this.querySelector('track-view-container');
+
+      tvcm.ui.decorate(this.timelineViewSidePanelContainer_,
+                       tracing.TimelineViewSidePanelContainer);
 
       this.findCtl_ = new tracing.FindControl();
       this.findCtl_.controller = new tracing.FindController();
@@ -52,10 +59,12 @@ tvcm.exportTo('tracing', function() {
       this.rightControls.appendChild(this.findCtl_);
       this.rightControls.appendChild(this.createHelpButton_());
 
-      this.dragEl_ = new tvcm.ui.DragHandle();
-      this.appendChild(this.dragEl_);
+      this.dragEl_ = this.querySelector('x-drag-handle');
+      tvcm.ui.decorate(this.dragEl_, tvcm.ui.DragHandle);
 
-      this.analysisEl_ = new tracing.analysis.AnalysisView();
+      this.analysisEl_ = this.querySelector('#analysis');
+      tvcm.ui.decorate(this.analysisEl_, tracing.analysis.AnalysisView);
+
       this.appendChild(this.analysisEl_);
       this.addEventListener('requestSelectionChange',
                             this.onRequestSelectionChange_.bind(this));
@@ -161,8 +170,8 @@ tvcm.exportTo('tracing', function() {
     },
 
     get model() {
-      if (this.timeline_)
-        return this.timeline_.model;
+      if (this.trackView_)
+        return this.trackView_.model;
       return undefined;
     },
 
@@ -170,33 +179,36 @@ tvcm.exportTo('tracing', function() {
       var modelInstanceChanged = model != this.model;
       var modelValid = model && !model.bounds.isEmpty;
 
-      // Remove old timeline if the model has completely changed.
+      // Remove old trackView if the model has completely changed.
       if (modelInstanceChanged) {
-        this.timelineContainer_.textContent = '';
-        if (this.timeline_) {
-          this.timeline_.removeEventListener(
+        this.trackViewContainer_.textContent = '';
+        if (this.trackView_) {
+          this.trackView_.removeEventListener(
               'selectionChange', this.onSelectionChanged_);
-          this.timeline_.detach();
-          this.timeline_ = undefined;
-          this.findCtl_.controller.timeline = undefined;
+          this.trackView_.detach();
+          this.trackView_ = undefined;
+          this.findCtl_.controller.trackView = undefined;
         }
+        this.timelineViewSidePanelContainer_.model = undefined;
       }
 
-      // Create new timeline if needed.
-      if (modelValid && !this.timeline_) {
-        this.timeline_ = new tracing.TimelineTrackView();
-        this.timeline_.focusElement =
+      // Create new trackView if needed.
+      if (modelValid && !this.trackView_) {
+        this.trackView_ = new tracing.TimelineTrackView();
+        this.trackView_.focusElement =
             this.focusElement_ ? this.focusElement_ : this.parentElement;
-        this.timelineContainer_.appendChild(this.timeline_);
-        this.findCtl_.controller.timeline = this.timeline_;
-        this.timeline_.addEventListener(
+        this.trackViewContainer_.appendChild(this.trackView_);
+        this.findCtl_.controller.timeline = this.trackView_;
+        this.trackView_.addEventListener(
             'selectionChange', this.onSelectionChanged_);
         this.analysisEl_.clearSelectionHistory();
       }
 
       // Set the model.
-      if (modelValid)
-        this.timeline_.model = model;
+      if (modelValid) {
+        this.trackView_.model = model;
+        this.timelineViewSidePanelContainer_.model = model;
+      }
       tvcm.dispatchSimpleEvent(this, 'modelChange');
 
       // Do things that are selection specific
@@ -205,7 +217,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get timeline() {
-      return this.timeline_;
+      return this.trackView_;
     },
 
     get settings() {
@@ -220,8 +232,8 @@ tvcm.exportTo('tracing', function() {
      */
     set focusElement(value) {
       this.focusElement_ = value;
-      if (this.timeline_)
-        this.timeline_.focusElement = value;
+      if (this.trackView_)
+        this.trackView_.focusElement = value;
     },
 
     /**
@@ -236,7 +248,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     /**
-     * @return {boolean} Whether the current timeline is attached to the
+     * @return {boolean} Whether the current view is attached to the
      * document.
      */
     get isAttachedToDocument_() {
@@ -288,7 +300,7 @@ tvcm.exportTo('tracing', function() {
       this.findInProgress_ = true;
       var dlg = tracing.FindControl();
       dlg.controller = new tracing.FindController();
-      dlg.controller.timeline = this.timeline;
+      dlg.controller.trackView = this.trackView;
       dlg.visible = true;
       dlg.addEventListener('close', function() {
         this.findInProgress_ = false;
@@ -300,17 +312,17 @@ tvcm.exportTo('tracing', function() {
     },
 
     onSelectionChanged_: function(e) {
-      var oldScrollTop = this.timelineContainer_.scrollTop;
+      var oldScrollTop = this.trackViewContainer_.scrollTop;
 
-      var selection = this.timeline_ ?
-          this.timeline_.selectionOfInterest :
+      var selection = this.trackView_ ?
+          this.trackView_.selectionOfInterest :
           new tracing.Selection();
       this.analysisEl_.selection = selection;
-      this.timelineContainer_.scrollTop = oldScrollTop;
+      this.trackViewContainer_.scrollTop = oldScrollTop;
     },
 
     onRequestSelectionChange_: function(e) {
-      this.timeline_.selection = e.selection;
+      this.trackView_.selection = e.selection;
       e.stopPropagation();
     }
   };

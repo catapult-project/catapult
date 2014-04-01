@@ -4,10 +4,9 @@
  */
 
 x-timeline-view {
-  -webkit-box-flex: 1;
-  -webkit-box-orient: vertical;
+  -webkit-flex-direction: column;
   cursor: default;
-  display: -webkit-box;
+  display: -webkit-flex;
   font-family: sans-serif;
   padding: 0;
 }
@@ -21,6 +20,7 @@ x-timeline-view > .control > .title {
 }
 
 x-timeline-view > .control {
+  -webkit-flex: 0 0 auto;
   background-color: #e6e6e6;
   background-image: -webkit-gradient(linear,
                                      0 0,
@@ -53,17 +53,34 @@ x-timeline-view > .control > .controls label {
 }
 
 x-timeline-view > .control > .spacer {
-  -webkit-box-flex: 1;
+  -webkit-flex: 1 1 auto;
 }
 
-x-timeline-view > .container {
-  -webkit-box-flex: 1;
+x-timeline-view > middle-container {
+  -webkit-flex: 1 1 auto;
+  -webkit-flex-direction: row;
   border-bottom: 1px solid #8e8e8e;
-  display: -webkit-box;
+  display: -webkit-flex;
+  min-height: 0;
 }
 
-x-timeline-view > .container > * {
-  -webkit-box-flex: 1;
+x-timeline-view > middle-container > track-view-container {
+  -webkit-flex: 1 1 auto;
+  display: -webkit-flex;
+  min-height: 0;
+  min-width: 0;
+}
+
+x-timeline-view > middle-container > track-view-container > * {
+  -webkit-flex: 1 1 auto;
+}
+
+x-timeline-view > middle-container > x-timeline-view-side-panel-container {
+  -webkit-flex: 0 0 auto;
+}
+
+x-timeline-view > x-drag-handle {
+  -webkit-flex: 0 0 auto;
 }
 
 x-timeline-view > .analysis-view {
@@ -121,8 +138,8 @@ x-timeline-view .selection ul {
 }
 
 .view-help-text {
-  -webkit-box-flex: 1;
-  -webkit-box-orient: horizontal;
+  -webkit-flex: 1 1 auto;
+  -webkit-flex-direction: row;
   display: -webkit-flex;
   width: 700px;
 }
@@ -141,8 +158,8 @@ x-timeline-view .selection ul {
   margin-top: 10px;
 }
 .view-help-text .pair {
-  -webkit-box-flex: 1;
-  -webkit-box-orient: horizontal;
+  -webkit-flex: 1 1 auto;
+  -webkit-flex-direction: row;
   display: -webkit-flex;
 }
 .view-help-text .command {

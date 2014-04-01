@@ -234,10 +234,14 @@ tvcm.exportTo('tracing', function() {
      * Defaults to true.
      * @param {bool=} opt_pruneEmptyContainers Whether to prune empty
      * containers. Defaults to true.
+     * @param {Function=} opt_customizeModelCallback Callback called after
+     * importers run in which more data can be added to the model, before it is
+     * finalized.
      */
     importTraces: function(traces,
                            opt_shiftWorldToZero,
-                           opt_pruneEmptyContainers) {
+                           opt_pruneEmptyContainers,
+                           opt_customizeModelCallback) {
       var progressMeter = {
         update: function(msg) {}
       };
@@ -245,7 +249,8 @@ tvcm.exportTo('tracing', function() {
           progressMeter,
           traces,
           opt_shiftWorldToZero,
-          opt_pruneEmptyContainers);
+          opt_pruneEmptyContainers,
+          opt_customizeModelCallback);
       tracing.importer.Task.RunSynchronously(task);
     },
 
@@ -256,7 +261,8 @@ tvcm.exportTo('tracing', function() {
      */
     importTracesWithProgressDialog: function(traces,
                                              opt_shiftWorldToZero,
-                                             opt_pruneEmptyContainers) {
+                                             opt_pruneEmptyContainers,
+                                             opt_customizeModelCallback) {
       var overlay = tvcm.ui.Overlay();
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
@@ -272,7 +278,8 @@ tvcm.exportTo('tracing', function() {
           overlay,
           traces,
           opt_shiftWorldToZero,
-          opt_pruneEmptyContainers);
+          opt_pruneEmptyContainers,
+          opt_customizeModelCallback);
       var promise = tracing.importer.Task.RunWhenIdle(task);
       promise.then(
           function() {
@@ -291,7 +298,8 @@ tvcm.exportTo('tracing', function() {
     createImportTracesTask: function(progressMeter,
                                      traces,
                                      opt_shiftWorldToZero,
-                                     opt_pruneEmptyContainers) {
+                                     opt_pruneEmptyContainers,
+                                     opt_customizeModelCallback) {
       if (this.importing_)
         throw new Error('Already importing.');
       if (opt_shiftWorldToZero === undefined)
@@ -347,6 +355,13 @@ tvcm.exportTo('tracing', function() {
           }, this);
         }, this);
       }, this);
+
+      // Run the cusomizeModelCallback if needed.
+      if (opt_customizeModelCallback) {
+        lastTask = lastTask.after(function(task) {
+          opt_customizeModelCallback(this);
+        }, this);
+      }
 
       // Autoclose open slices.
       lastTask = lastTask.after(function() {
