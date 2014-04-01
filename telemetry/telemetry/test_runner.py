@@ -19,6 +19,7 @@ from telemetry.core import command_line
 from telemetry.core import discover
 from telemetry.core import environment
 from telemetry.core import util
+from telemetry.page import page_set
 from telemetry.page import page_test
 from telemetry.page import profile_creator
 from telemetry.util import find_dependencies
@@ -142,7 +143,11 @@ class Run(command_line.OptparseCommand):
 
       class TestWrapper(test.Test):
         test = test_class
-        page_set = page_set_path
+
+        @classmethod
+        def CreatePageSet(cls, options):
+          return page_set.PageSet.FromFile(page_set_path)
+
       test_class = TestWrapper
     else:
       if len(args.positional_args) > 1:
