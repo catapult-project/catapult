@@ -54,10 +54,13 @@ class DiscoverTest(unittest.TestCase):
   def testIsPageSetFile(self):
     top_10_ps_dir = os.path.join(util.GetChromiumSrcDir(),
                                  'tools/perf/page_sets/top_10.py')
+    top_10_json_data = os.path.join(util.GetChromiumSrcDir(),
+                                    'tools/perf/page_sets/data/top_10.json')
     test_ps_dir = os.path.join(util.GetTelemetryDir(),
                                'unittest_data/test_page_set.py')
     page_set_dir = os.path.join(util.GetTelemetryDir(),
                                'telemetry/page/page_set.py')
     self.assertTrue(discover.IsPageSetFile(top_10_ps_dir))
+    self.assertFalse(discover.IsPageSetFile(top_10_json_data))
     self.assertFalse(discover.IsPageSetFile(test_ps_dir))
     self.assertFalse(discover.IsPageSetFile(page_set_dir))

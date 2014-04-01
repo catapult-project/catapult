@@ -103,11 +103,13 @@ def _GetUniqueModuleName():
 
 def IsPageSetFile(file_path):
   root_name, ext_name = os.path.splitext(file_path)
+  if ('unittest' in root_name or
+      'page_sets/data' in root_name or
+      root_name in ('PRESUBMIT', '__init__')):
+    return False
   if ext_name == '.json':
     return True
   elif ext_name != '.py':
-    return False
-  if 'unittest' in root_name or root_name in ('PRESUBMIT', '__init__'):
     return False
   module = util.GetPythonPageSetModule(file_path)
   for class_name in dir(module):
