@@ -164,6 +164,10 @@ tvcm.exportTo('tvcm.ui', function() {
     colorToRGBAString: colorToRGBAString,
     getRawColorPalette: getRawColorPalette,
     getColorPalette: getColorPalette,
+    paletteProperties: {
+      numRegularColorIds: numRegularColorIds,
+      highlightIdBoost: highlightIdBoost
+    },
     getColorPaletteHighlightIdBoost: getColorPaletteHighlightIdBoost,
     getColorIdByName: getColorIdByName,
     getStringHash: getStringHash,

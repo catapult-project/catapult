@@ -29,7 +29,7 @@ tvcm.exportTo('tracing', function() {
 
     getColorIdOffset_: function(event) {
       if (event.selectionState === SelectionState.SELECTED)
-        return highlightIdBoost;
+        return tvcm.ui.paletteProperties.highlightIdBoost;
       return 0;
     },
 
@@ -52,7 +52,8 @@ tvcm.exportTo('tracing', function() {
 
     getInstantSliceColor: function(instant) {
       var colorId = instant.colorId + this.getColorIdOffset_(instant);
-      return tvcm.ui.colorToRGBAString(paletteRaw[colorId], this.getAlpha_(instant));
+      return tvcm.ui.colorToRGBAString(paletteRaw[colorId],
+                                       this.getAlpha_(instant));
     },
 
     getObjectInstanceColor: function(instance) {
@@ -74,9 +75,11 @@ tvcm.exportTo('tracing', function() {
 
     getBarSnapshotColor: function(snapshot, offset) {
       var colorId =
-          (snapshot.objectInstance.colorId + offset) % numRegularColorIds;
+          (snapshot.objectInstance.colorId + offset) %
+          tvcm.ui.paletteProperties.numRegularColorIds;
       colorId += this.getColorIdOffset_(snapshot);
-      return tvcm.ui.colorToRGBAString(paletteRaw[colorId], this.getAlpha_(snapshot));
+      return tvcm.ui.colorToRGBAString(paletteRaw[colorId],
+                                       this.getAlpha_(snapshot));
     }
   };
 
