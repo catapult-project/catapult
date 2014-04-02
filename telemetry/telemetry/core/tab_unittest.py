@@ -57,7 +57,7 @@ class TabTest(tab_test_case.TabTestCase):
       logging.warning('Browser does not support tab control, skipping test.')
       return
 
-    self.assertTrue(_IsDocumentVisible(self._tab))
+    util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()
     new_tab.Navigate('about:blank')
     util.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
