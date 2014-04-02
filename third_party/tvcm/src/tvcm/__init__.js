@@ -361,13 +361,7 @@ this.tvcm = (function() {
 
   function exportTo(namespace, fn) {
     var obj = exportPath(namespace);
-    try {
-      var exports = fn();
-    } catch (e) {
-      console.log('While running exports for ', namespace, ':');
-      console.log(e.stack || e);
-      throw e;
-    }
+    var exports = fn();
 
     for (var propertyName in exports) {
       // Maybe we should check the prototype chain here? The current usage
