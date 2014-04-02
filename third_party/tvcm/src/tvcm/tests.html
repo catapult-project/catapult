@@ -64,7 +64,6 @@ found in the LICENSE file.
           } else if (v === false) {
             kv = k + '=false';
           } else if (v === '') {
-            debugger;
             continue;
           } else {
             kv = k + '=' + v;
@@ -97,7 +96,6 @@ found in the LICENSE file.
       }
 
       results.addEventListener('statechange', function() {
-        debugger;
         var state = results.getState();
         var stateString = stateToSearchString(results.getDefaultState(),
                                               state);
