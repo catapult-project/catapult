@@ -71,6 +71,9 @@ class AndroidPlatformBackend(
     self._surface_stats_collector.Start()
 
   def StopRawDisplayFrameRateMeasurement(self):
+    if not self._surface_stats_collector:
+      return
+
     self._surface_stats_collector.Stop()
     for r in self._surface_stats_collector.GetResults():
       self._raw_display_frame_rate_measurements.append(
