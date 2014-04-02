@@ -7,12 +7,24 @@
 tvcm.require('tvcm.raf');
 
 tvcm.exportTo('tvcm.unittest', function() {
-  var realTvcmOnAnimationFrameError = tvcm.onAnimationFrameError;
+  var realTvcmOnAnimationFrameError;
+  var realWindowOnError;
 
   function installGlobalTestHooks(runner) {
+    realTvcmOnAnimationFrameError = tvcm.onAnimationFrameError;
     tvcm.onAnimationFrameError = function(error) {
       runner.results.addErrorForCurrentTest(error);
     }
+
+    realWindowOnError = window.onerror;
+    window.onerror = function(errorMsg, url, lineNumber) {
+      runner.results.addErrorForCurrentTest(
+          errorMsg + ' at ' + url + ':' + lineNumber);
+      if (realWindowOnError)
+        return realWindowOnError(errorMsg, url, lineNumber);
+      return false;
+    }
+
     tvcm.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
@@ -23,7 +35,12 @@ tvcm.exportTo('tvcm.unittest', function() {
   }
 
   function uninstallGlobalTestHooks() {
+    window.onerror = realWindowOnError;
+    realWindowOnError = undefined;
+
     tvcm.onAnimationFrameError = realTvcmOnAnimationFrameError;
+    realTvcmOnAnimationFrameError = undefined;
+
     tvcm.unittest.addHTMLOutputForCurrentTest = undefined;
   }
 

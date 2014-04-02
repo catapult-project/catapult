@@ -34,91 +34,99 @@ found in the LICENSE file.
     'use strict';
     function loadAndRunTests() {
       var loader = new tvcm.unittest.SuiteLoader();
-      return loader.allSuitesLoadedPromise.then(function() {
-        var results = new tvcm.unittest.InteractiveTestRunner();
-        results.testLinks = loader.testLinks;
-        results.allTests = loader.getAllTests();
-        document.body.appendChild(results);
+      return loader.allSuitesLoadedPromise.then(
+        function() {
+          runTests(loader);
+        },
+        function(err) {
+          tvcm.showPanic('Module loading failure', err);
+        });
+    }
 
-        results.setState(stateFromSearchString(
-            window.location.search.substring(1)));
+    function runTests(loader) {
+      var results = new tvcm.unittest.InteractiveTestRunner();
+      results.testLinks = loader.testLinks;
+      results.allTests = loader.getAllTests();
+      document.body.appendChild(results);
 
-        function stateToSearchString(defaultState, state) {
-          var parts = [];
-          for (var k in state) {
-            if (state[k] === defaultState[k])
-              continue;
-            var v = state[k];
-            var kv;
-            if (v === true) {
-              kv = k;
-            } else if (v === false) {
-              kv = k + '=false';
-            } else if (v === '') {
-              debugger;
-              continue;
-            } else {
-              kv = k + '=' + v;
-            }
-            parts.push(kv);
+      results.setState(stateFromSearchString(
+          window.location.search.substring(1)));
+
+      function stateToSearchString(defaultState, state) {
+        var parts = [];
+        for (var k in state) {
+          if (state[k] === defaultState[k])
+            continue;
+          var v = state[k];
+          var kv;
+          if (v === true) {
+            kv = k;
+          } else if (v === false) {
+            kv = k + '=false';
+          } else if (v === '') {
+            debugger;
+            continue;
+          } else {
+            kv = k + '=' + v;
           }
-          return parts.join('&');
+          parts.push(kv);
         }
+        return parts.join('&');
+      }
 
-        function stateFromSearchString(string) {
-          var state = {};
-          string.split('&').forEach(function(part) {
-            if (part == '')
-              return;
-            var kv = part.split('=');
-            var k, v;
-            if (kv.length == 1) {
-              k = kv[0];
-              v = true;
-            } else {
-              k = kv[0];
-              if (kv[1] == 'false')
-                v = false;
-              else
-                v = kv[1];
-            }
-            state[k] = v;
-          });
-          return state;
-        }
-
-        results.addEventListener('statechange', function() {
-          debugger;
-          var state = results.getState();
-          var stateString = stateToSearchString(results.getDefaultState(),
-                                                state);
-          if (window.location.search == stateString)
+      function stateFromSearchString(string) {
+        var state = {};
+        string.split('&').forEach(function(part) {
+          if (part == '')
             return;
-          var stateURL;
-          if (stateString.length > 0)
-            stateURL = window.location.pathname + '?' + stateString;
-          else
-            stateURL = window.location.pathname;
-          window.history.pushState(state, document.title, stateURL);
+          var kv = part.split('=');
+          var k, v;
+          if (kv.length == 1) {
+            k = kv[0];
+            v = true;
+          } else {
+            k = kv[0];
+            if (kv[1] == 'false')
+              v = false;
+            else
+              v = kv[1];
+          }
+          state[k] = v;
         });
+        return state;
+      }
 
-        window.addEventListener('popstate', function(state) {
-          results.setState(state);
-        });
-
-        results.getHRefForTestCase = function(testCase) {
-          var state = results.getState();
-          state.testFilterString = testCase.fullyQualifiedName;
-          state.shortFormat = false;
-
-          var stateString = stateToSearchString(results.getDefaultState(),
-                                                state);
-          if (stateString.length > 0)
-            return window.location.pathname + '?' + stateString;
-          else
-            return window.location.pathname;
-        }
+      results.addEventListener('statechange', function() {
+        debugger;
+        var state = results.getState();
+        var stateString = stateToSearchString(results.getDefaultState(),
+                                              state);
+        if (window.location.search == stateString)
+          return;
+        var stateURL;
+        if (stateString.length > 0)
+          stateURL = window.location.pathname + '?' + stateString;
+        else
+          stateURL = window.location.pathname;
+        window.history.pushState(state, document.title, stateURL);
       });
+
+      window.addEventListener('popstate', function(state) {
+        results.setState(state);
+      });
+
+      results.getHRefForTestCase = function(testCase) {
+        var state = results.getState();
+        state.testFilterString = testCase.fullyQualifiedName;
+        state.shortFormat = false;
+
+        var stateString = stateToSearchString(results.getDefaultState(),
+                                              state);
+        if (stateString.length > 0)
+          return window.location.pathname + '?' + stateString;
+        else
+          return window.location.pathname;
+      }
     }
 
     window.addEventListener('load', loadAndRunTests);

@@ -65,9 +65,11 @@ class ModuleTestSuite(unittest.TestSuite):
     global _currently_active_module_test_suite
     assert _currently_active_module_test_suite == None
     _currently_active_module_test_suite = self
+    self._bc.stdout_enabled = True
 
   def tearDown(self):
     if self._bc:
+      self._bc.stdout_enabled = False
       self._bc.Close()
       self._bc = None
 
@@ -79,8 +81,8 @@ def DiscoverTestsInModule(project, start_path):
     return _DiscoverTestsInModuleImpl(project, start_path)
   except:
     import traceback
-    sys.stderr.write("While discovering tests in %s:\n" % repr(project))
-    traceback.print_exc()
+    sys.stderr.write("While discovering tests:\n")
+    sys.stderr.write(sys.exc_info()[1].message)
     sys.stderr.write("\n\n")
     raise
 

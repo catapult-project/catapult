@@ -366,7 +366,7 @@ this.tvcm = (function() {
     } catch (e) {
       console.log('While running exports for ', namespace, ':');
       console.log(e.stack || e);
-      return;
+      throw e;
     }
 
     for (var propertyName in exports) {

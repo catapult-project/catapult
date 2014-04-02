@@ -160,19 +160,28 @@ class BrowserController(object):
               window.__thennableResult = err;
               return;
             }
-            window.__thennableResult = e.message + '\\n' + e.stack;
+            if (err.stack)
+               window.__thennableResult = err.stack;
+            else
+               window.__thennableResult = err;
           });
     })();
 """ % js
-    self._tab.message_output_stream = sys.stderr
     self._tab.ExecuteJavaScript(full_js)
     self._tab.WaitForJavaScriptExpression('window.__thennableSucceeded !== undefined',
                                           timeout=timeout)
     val = self._tab.EvaluateJavaScript('window.__thennableSucceeded')
     if val == False:
-      raise Exception('Failed: %s' % self._tab.EvaluateJavaScript(
-          'window.__thennableResult'))
+      raise Exception(str(self._tab.EvaluateJavaScript(
+          'window.__thennableResult')))
     return self._tab.EvaluateJavaScript('window.__thennableResult')
+
+  @property
+  def stdout_enabled(self, enabled):
+    if enabled:
+      self._tab.message_output_stream = sys.stderr
+    else:
+      self._tab.message_output_stream = None
 
   def __enter__(self):
     return self

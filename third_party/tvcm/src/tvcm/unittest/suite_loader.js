@@ -10,6 +10,7 @@ tvcm.require('tvcm.unittest.test_suite');
 
 tvcm.exportTo('tvcm.unittest', function() {
   var currentSuiteLoader_ = undefined;
+  var hadLoaderFailure_ = false;
 
   function getAsync(url, cb) {
     return new tvcm.Promise(function(resolver) {
@@ -91,6 +92,7 @@ tvcm.exportTo('tvcm.unittest', function() {
 
       // Start the loading.
       if (moduleNamesThatNeedToBeLoaded.length > 0) {
+        this.willLoadTests_();
         tvcm.require(moduleNamesThatNeedToBeLoaded);
         this.loadTimeout_ = window.setTimeout(
             this.loadingTestsTimeout_.bind(this),
@@ -107,8 +109,10 @@ tvcm.exportTo('tvcm.unittest', function() {
     },
 
     loadingTestsTimeout_: function() {
+      window.onerror = this.oldWindowOnError_;
+      this.oldWindowOnError_ = undefined;
+
       currentSuiteLoader_ = undefined;
-      this.loadingTestsTimeout_ = undefined;
       this.allSuitesLoadedResolver_.reject(
           new Error('Timed out waiting for %s to define suites: ' +
                     tvcm.dictionaryKeys(this.pendingSuiteNames_)));
@@ -131,7 +135,36 @@ tvcm.exportTo('tvcm.unittest', function() {
       this.didLoadAllTests_();
     },
 
+    willLoadTests_: function() {
+      this.oldWindowOnError_ = window.onerror;
+      window.onerror = function(errorMsg, url, lineNumber) {
+        this.hadErrorDuringTestLoading_(
+            new Error(errorMsg + '\n' + url + ':' + lineNumber));
+        if (this.oldWindowOnError_)
+          return this.oldWindowOnError_(errorMsg, url, lineNumber);
+        return false;
+      }.bind(this);
+    },
+
+    hadErrorDuringTestLoading_: function(err) {
+      window.onerror = this.oldWindowOnError_;
+      this.oldWindowOnError_ = undefined;
+
+      if (this.loadTimeout_) {
+        window.clearTimeout(this.loadTimeout_);
+        this.loadTimeout_ = undefined;
+      }
+
+      currentSuiteLoader_ = undefined;
+      hadLoaderFailure_ = true; // Lets testSuite adding to fail silently.
+
+      this.allSuitesLoadedResolver_.reject(err);
+    },
+
     didLoadAllTests_: function() {
+      window.onerror = this.oldWindowOnError_;
+      this.oldWindowOnError_ = undefined;
+
       if (this.loadTimeout_) {
         window.clearTimeout(this.loadTimeout_);
         this.loadTimeout_ = undefined;
@@ -163,8 +196,11 @@ tvcm.exportTo('tvcm.unittest', function() {
   };
 
   function testSuite(name, suiteConstructor) {
-    if (currentSuiteLoader_ === undefined)
+    if (currentSuiteLoader_ === undefined) {
+      if (hadLoaderFailure_)
+        return;
       throw new Error('Cannot define testSuites when no SuiteLoader exists.');
+    }
     currentSuiteLoader_.addTestSuite(new tvcm.unittest.TestSuite(
         currentSuiteLoader_, name, suiteConstructor));
   }
