@@ -63,68 +63,16 @@ class AdbCommands(object):
   def device(self):
     return self._device
 
-  @property
-  def system_properties(self):
-    return self._adb.system_properties
-
   def Adb(self):
     return self._adb
+
+  def __getattr__(self, name):
+    """Delegate all unknown calls to the underlying _adb object."""
+    return getattr(self._adb, name)
 
   def Forward(self, local, remote):
     ret = self._adb.Adb().SendCommand('forward %s %s' % (local, remote))
     assert ret == ''
-
-  def RunShellCommand(self, command, timeout_time=20, log_result=False):
-    """Send a command to the adb shell and return the result.
-
-    Args:
-      command: String containing the shell command to send. Must not include
-               the single quotes as we use them to escape the whole command.
-      timeout_time: Number of seconds to wait for command to respond before
-        retrying, used by AdbInterface.SendShellCommand.
-      log_result: Boolean to indicate whether we should log the result of the
-                  shell command.
-
-    Returns:
-      list containing the lines of output received from running the command
-    """
-    return self._adb.RunShellCommand(command, timeout_time, log_result)
-
-  def RunShellCommandWithSU(self, command, timeout_time=20, log_result=False):
-    return self._adb.RunShellCommandWithSU(command, timeout_time, log_result)
-
-  def CloseApplication(self, package):
-    """Attempt to close down the application, using increasing violence.
-
-    Args:
-      package: Name of the process to kill off, e.g.
-      com.google.android.apps.chrome
-    """
-    self._adb.CloseApplication(package)
-
-  def KillAll(self, process):
-    """Android version of killall, connected via adb.
-
-    Args:
-      process: name of the process to kill off
-
-    Returns:
-      the number of processess killed
-    """
-    return self._adb.KillAll(process)
-
-  def ExtractPid(self, process_name):
-    """Extracts Process Ids for a given process name from Android Shell.
-
-    Args:
-      process_name: name of the process on the device.
-
-    Returns:
-      List of all the process ids (as strings) that match the given name.
-      If the name of a process exactly matches the given name, the pid of
-      that process will be inserted to the front of the pid list.
-    """
-    return self._adb.ExtractPid(process_name)
 
   def Install(self, apk_path):
     """Installs specified package if necessary.
@@ -142,48 +90,6 @@ class AdbCommands(object):
 
     apk_package_name = apk_helper.GetPackageName(apk_path)
     return self._adb.ManagedInstall(apk_path, package_name=apk_package_name)
-
-  def StartActivity(self, package, activity, wait_for_completion=False,
-                    action='android.intent.action.VIEW',
-                    category=None, data=None,
-                    extras=None, trace_file_name=None,
-                    flags=None):
-    """Starts |package|'s activity on the device.
-
-    Args:
-      package: Name of package to start (e.g. 'com.google.android.apps.chrome').
-      activity: Name of activity (e.g. '.Main' or
-        'com.google.android.apps.chrome.Main').
-      wait_for_completion: wait for the activity to finish launching (-W flag).
-      action: string (e.g. 'android.intent.action.MAIN'). Default is VIEW.
-      category: string (e.g. 'android.intent.category.HOME')
-      data: Data string to pass to activity (e.g. 'http://www.example.com/').
-      extras: Dict of extras to pass to activity. Values are significant.
-      trace_file_name: If used, turns on and saves the trace to this file name.
-    """
-    return self._adb.StartActivity(package, activity, wait_for_completion,
-                    action,
-                    category, data,
-                    extras, trace_file_name,
-                    flags)
-
-  def Push(self, local, remote):
-    return self._adb.Adb().Push(local, remote)
-
-  def Pull(self, remote, local):
-    return self._adb.Adb().Pull(remote, local)
-
-  def FileExistsOnDevice(self, file_name):
-    return self._adb.FileExistsOnDevice(file_name)
-
-  def IsRootEnabled(self):
-    return self._adb.IsRootEnabled()
-
-  def GoHome(self):
-    return self._adb.GoHome()
-
-  def RestartAdbdOnDevice(self):
-    return self._adb.RestartAdbdOnDevice()
 
   def IsUserBuild(self):
     return self._adb.GetBuildType() == 'user'
