@@ -12,24 +12,24 @@ class PowerMonitorControllerTest(unittest.TestCase):
   def testComposition(self):
 
     class P1(power_monitor.PowerMonitor):
-      def StartMonitoringPowerAsync(self):
+      def StartMonitoringPower(self, browser):
         raise NotImplementedError()
-      def StopMonitoringPowerAsync(self):
+      def StopMonitoringPower(self):
         raise NotImplementedError()
 
     class P2(power_monitor.PowerMonitor):
       def __init__(self, value):
         super(P2, self).__init__()
         self._value = value
-      def CanMonitorPowerAsync(self):
+      def CanMonitorPower(self):
         return True
-      def StartMonitoringPowerAsync(self):
+      def StartMonitoringPower(self, browser):
         pass
-      def StopMonitoringPowerAsync(self):
+      def StopMonitoringPower(self):
         return self._value
 
     controller = power_monitor_controller.PowerMonitorController(
         [P1(), P2(1), P2(2)])
-    self.assertEqual(controller.CanMonitorPowerAsync(), True)
-    controller.StartMonitoringPowerAsync()
-    self.assertEqual(controller.StopMonitoringPowerAsync(), 1)
+    self.assertEqual(controller.CanMonitorPower(), True)
+    controller.StartMonitoringPower(None)
+    self.assertEqual(controller.StopMonitoringPower(), 1)

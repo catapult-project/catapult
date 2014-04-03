@@ -29,9 +29,9 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
   def binary_path(self):
     return '/usr/bin/powermetrics'
 
-  def StartMonitoringPowerAsync(self):
+  def StartMonitoringPower(self, browser):
     assert not self._powermetrics_process, (
-        "Must call StopMonitoringPowerAsync().")
+        "Must call StopMonitoringPower().")
     SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
     # Empirically powermetrics creates an empty output file immediately upon
     # starting.  We detect file creation as a signal that measurement has
@@ -56,7 +56,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     util.WaitFor(_OutputFileExists, timeout_sec)
 
   @decorators.Cache
-  def CanMonitorPowerAsync(self):
+  def CanMonitorPower(self):
     mavericks_or_later = (self._backend.GetOSVersionName() >=
                           platform.mac_platform_backend.MAVERICKS)
     binary_path = self.binary_path
@@ -84,7 +84,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     """Parse output of powermetrics command line utility.
 
     Returns:
-        Dictionary in the format returned by StopMonitoringPowerAsync() or None
+        Dictionary in the format returned by StopMonitoringPower() or None
         if |powermetrics_output| is empty - crbug.com/353250 .
     """
     if len(powermetrics_output) == 0:
@@ -236,9 +236,9 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
       StoreMetricAverage(m, sample_durations, out_dict)
     return out_dict
 
-  def StopMonitoringPowerAsync(self):
+  def StopMonitoringPower(self):
     assert self._powermetrics_process, (
-        "StartMonitoringPowerAsync() not called.")
+        "StartMonitoringPower() not called.")
     # Tell powermetrics to take an immediate sample.
     try:
       self._powermetrics_process.send_signal(signal.SIGINFO)

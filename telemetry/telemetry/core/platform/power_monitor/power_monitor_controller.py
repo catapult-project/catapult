@@ -17,20 +17,20 @@ class PowerMonitorController(power_monitor.PowerMonitor):
 
   def _AsyncPowerMonitor(self):
     return next(
-        (x for x in self._cascading_power_monitors if x.CanMonitorPowerAsync()),
+        (x for x in self._cascading_power_monitors if x.CanMonitorPower()),
         None)
 
-  def CanMonitorPowerAsync(self):
+  def CanMonitorPower(self):
     return bool(self._AsyncPowerMonitor())
 
-  def StartMonitoringPowerAsync(self):
+  def StartMonitoringPower(self, browser):
     self._active_monitor = self._AsyncPowerMonitor()
     assert self._active_monitor, 'No available monitor.'
-    self._active_monitor.StartMonitoringPowerAsync()
+    self._active_monitor.StartMonitoringPower(browser)
 
-  def StopMonitoringPowerAsync(self):
-    assert self._active_monitor, 'StartMonitoringPowerAsync() not called.'
+  def StopMonitoringPower(self):
+    assert self._active_monitor, 'StartMonitoringPower() not called.'
     try:
-      return self._active_monitor.StopMonitoringPowerAsync()
+      return self._active_monitor.StopMonitoringPower()
     finally:
       self._active_monitor = None

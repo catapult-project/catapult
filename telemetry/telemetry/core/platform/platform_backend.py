@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import time
-
 # pylint: disable=W0613
 
 
@@ -123,19 +121,11 @@ class PlatformBackend(object):
   def StopVideoCapture(self):
     raise NotImplementedError()
 
-  def CanMonitorPowerSync(self):
-    return self.CanMonitorPowerAsync()
-
-  def MonitorPowerSync(self, duration_ms):
-    self.StartMonitoringPowerAsync()
-    time.sleep(duration_ms / 1000.)
-    return self.StopMonitoringPowerAsync()
-
-  def CanMonitorPowerAsync(self):
+  def CanMonitorPower(self):
     return False
 
-  def StartMonitoringPowerAsync(self):
+  def StartMonitoringPower(self, browser):
     raise NotImplementedError()
 
-  def StopMonitoringPowerAsync(self):
+  def StopMonitoringPower(self):
     raise NotImplementedError()

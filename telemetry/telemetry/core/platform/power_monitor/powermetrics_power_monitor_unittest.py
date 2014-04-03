@@ -20,7 +20,7 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     mavericks_or_later = (
         backend.GetOSVersionName() >= mac_platform_backend.MAVERICKS)
     # Should always be able to monitor power usage on OS Version >= 10.9 .
-    self.assertEqual(power_monitor.CanMonitorPowerAsync(), mavericks_or_later,
+    self.assertEqual(power_monitor.CanMonitorPower(), mavericks_or_later,
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
   @test.Enabled('mac')
@@ -40,7 +40,7 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
 
     power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         mac_platform_backend.MacPlatformBackend())
-    if not power_monitor.CanMonitorPowerAsync():
+    if not power_monitor.CanMonitorPower():
       logging.warning('Test not supported on this platform.')
       return
 

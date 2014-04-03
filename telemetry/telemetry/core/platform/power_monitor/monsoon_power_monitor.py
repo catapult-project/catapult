@@ -59,12 +59,12 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     except EnvironmentError:
       self._monsoon = None
 
-  def CanMonitorPowerAsync(self):
+  def CanMonitorPower(self):
     return self._monsoon is not None
 
-  def StartMonitoringPowerAsync(self):
+  def StartMonitoringPower(self, browser):
     assert not self._powermonitor_process, (
-        'Must call StopMonitoringPowerAsync().')
+        'Must call StopMonitoringPower().')
     self._powermonitor_output_file = tempfile.TemporaryFile()
     self._is_collecting = multiprocessing.Event()
     self._powermonitor_process = multiprocessing.Process(
@@ -77,9 +77,9 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
       self._powermonitor_process.terminate()
       raise exceptions.ProfilingException('Failed to start data collection.')
 
-  def StopMonitoringPowerAsync(self):
+  def StopMonitoringPower(self):
     assert self._powermonitor_process, (
-        'StartMonitoringPowerAsync() not called.')
+        'StartMonitoringPower() not called.')
     try:
       # Tell powermonitor to take an immediate sample and join.
       self._is_collecting.clear()
@@ -99,7 +99,7 @@ class MonsoonPowerMonitor(power_monitor.PowerMonitor):
     """Parse the output of of the samples collector process.
 
     Returns:
-        Dictionary in the format returned by StopMonitoringPowerAsync().
+        Dictionary in the format returned by StopMonitoringPower().
     """
     power_samples = []
     total_energy_consumption_mwh = 0

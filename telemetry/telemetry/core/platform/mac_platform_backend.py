@@ -158,11 +158,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     p.communicate()
     assert p.returncode == 0, 'Failed to flush system cache'
 
-  def CanMonitorPowerAsync(self):
-    return self.power_monitor_.CanMonitorPowerAsync()
+  def CanMonitorPower(self):
+    return self.power_monitor_.CanMonitorPower()
 
-  def StartMonitoringPowerAsync(self):
-    self.power_monitor_.StartMonitoringPowerAsync()
+  def StartMonitoringPower(self, browser):
+    self.power_monitor_.StartMonitoringPower(browser)
 
-  def StopMonitoringPowerAsync(self):
-    return self.power_monitor_.StopMonitoringPowerAsync()
+  def StopMonitoringPower(self):
+    return self.power_monitor_.StopMonitoringPower()
