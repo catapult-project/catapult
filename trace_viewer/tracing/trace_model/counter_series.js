@@ -109,8 +109,8 @@ tvcm.exportTo('tracing.trace_model', function() {
       }
     },
 
-    iterateAllEvents: function(callback) {
-      this.samples_.forEach(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.samples_.forEach(callback, opt_this);
     }
   };
 

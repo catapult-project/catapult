@@ -1,0 +1,30 @@
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<style>
+  .x-time-summary-side-panel {
+    -webkit-flex-direction: column;
+    display: -webkit-flex;
+  }
+  .x-time-summary-side-panel > toolbar {
+    -webkit-flex: 0 0 auto;
+    border-bottom: 1px solid black;
+    display: -webkit-flex;
+  }
+  .x-time-summary-side-panel > result-area {
+    -webkit-flex: 1 1 auto;
+    display: block;
+    min-height: 0;
+    overflow-y: auto;
+  }
+</style>
+
+<template id="x-time-summary-side-panel-template">
+  <toolbar>
+  </toolbar>
+  <result-area>
+  </result-area>
+</template>

@@ -84,11 +84,11 @@ tvcm.exportTo('tracing.trace_model', function() {
       return 'kernel';
     },
 
-    iterateAllEvents: function(callback) {
+    iterateAllEvents: function(callback, opt_this) {
       for (var cpuNumber in this.cpus)
-        this.cpus[cpuNumber].iterateAllEvents(callback);
+        this.cpus[cpuNumber].iterateAllEvents(callback, opt_this);
 
-      ProcessBase.prototype.iterateAllEvents.call(this, callback);
+      ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
     }
   };
 

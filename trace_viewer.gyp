@@ -7,6 +7,7 @@
     'tracing_html_files': [
       'trace_viewer/about_tracing/profiling_view.html',
       'trace_viewer/tracing/record_selection_dialog.html',
+      'trace_viewer/tracing/time_summary_side_panel.html',
       'trace_viewer/tracing/timeline_view.html',
       'trace_viewer/tracing/analysis/cpu_slice_view.html',
       'trace_viewer/tracing/analysis/thread_time_slice_view.html',
@@ -176,7 +177,7 @@
       'trace_viewer/tracing/selection.js',
       'trace_viewer/tracing/standalone_timeline_view.js',
       'trace_viewer/tracing/test_utils.js',
-      'trace_viewer/tracing/thread_times_side_panel.js',
+      'trace_viewer/tracing/time_summary_side_panel.js',
       'trace_viewer/tracing/timeline_display_transform.js',
       'trace_viewer/tracing/timeline_display_transform_animations.js',
       'trace_viewer/tracing/timeline_track_view.js',

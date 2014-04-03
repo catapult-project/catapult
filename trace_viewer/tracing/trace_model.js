@@ -363,13 +363,19 @@ tvcm.exportTo('tracing', function() {
         }, this);
       }
 
-      // Autoclose open slices.
+      // Autoclose open slices and create subSlices.
       lastTask = lastTask.after(function() {
         progressMeter.update('Autoclosing open slices...');
         this.updateBounds();
         this.kernel.autoCloseOpenSlices(this.bounds.max);
         for (var pid in this.processes)
           this.processes[pid].autoCloseOpenSlices(this.bounds.max);
+
+        for (var pid in this.processes) {
+          var process = this.processes[pid];
+          for (var tid in process.threads)
+            process.threads[tid].createSubSlices();
+        }
       }, this);
 
       // Finalize import.
@@ -483,13 +489,13 @@ tvcm.exportTo('tracing', function() {
      * Iterates all events in the model and calls callback on each event.
      * @param {function(event)} callback The callback called for every event.
      */
-    iterateAllEvents: function(callback) {
-      this.instantEvents.forEach(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.instantEvents.forEach(callback, opt_this);
 
-      this.kernel.iterateAllEvents(callback);
+      this.kernel.iterateAllEvents(callback, opt_this);
 
       for (var pid in this.processes)
-        this.processes[pid].iterateAllEvents(callback);
+        this.processes[pid].iterateAllEvents(callback, opt_this);
     }
   };
 

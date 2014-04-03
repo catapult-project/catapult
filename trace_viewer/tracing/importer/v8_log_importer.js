@@ -272,8 +272,6 @@ tvcm.exportTo('tracing.importer', function() {
         }
       }
       addSlices(this.v8_stack_timeline_, this.v8_stack_thread_);
-      this.v8_stack_thread_.createSubSlices();
-      this.v8_timer_thread_.createSubSlices();
     }
   };
 

@@ -411,7 +411,6 @@ tvcm.exportTo('tracing.importer', function() {
      * events.
      */
     finalizeImport: function() {
-      this.createSubSlices_();
       this.createAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
@@ -424,14 +423,6 @@ tvcm.exportTo('tracing.importer', function() {
      */
     joinRefs: function() {
       this.joinObjectRefs_();
-    },
-
-    createSubSlices_: function() {
-      tvcm.iterItems(this.model_.processes, function(pid, process) {
-        tvcm.iterItems(process.threads, function(tid, thread) {
-          thread.createSubSlices();
-        }, this);
-      }, this);
     },
 
     createAsyncSlices_: function() {

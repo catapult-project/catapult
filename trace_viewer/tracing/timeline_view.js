@@ -23,7 +23,7 @@ tvcm.require('tvcm.ui.drag_handle');
 
 tvcm.require('tracing.analysis.cpu_slice_view');
 tvcm.require('tracing.analysis.thread_time_slice_view');
-tvcm.require('tracing.thread_times_side_panel');
+tvcm.require('tracing.time_summary_side_panel');
 tvcm.require('tracing.timeline_view_side_panel');
 
 tvcm.exportTo('tracing', function() {

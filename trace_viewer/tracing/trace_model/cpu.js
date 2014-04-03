@@ -233,11 +233,11 @@ tvcm.exportTo('tracing.trace_model', function() {
       return i;
     },
 
-    iterateAllEvents: function(callback) {
-      this.slices.forEach(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.slices.forEach(callback, opt_this);
 
       for (var id in this.counters)
-        this.counters[id].iterateAllEvents(callback);
+        this.counters[id].iterateAllEvents(callback, opt_this);
     }
   };
 

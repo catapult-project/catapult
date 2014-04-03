@@ -167,9 +167,9 @@ tvcm.exportTo('tracing.trace_model', function() {
       }
     },
 
-    iterateAllEvents: function(callback) {
+    iterateAllEvents: function(callback, opt_this) {
       for (var i = 0; i < this.series_.length; i++)
-        this.series_[i].iterateAllEvents(callback);
+        this.series_[i].iterateAllEvents(callback, opt_this);
     }
   };
 

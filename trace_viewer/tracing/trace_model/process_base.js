@@ -199,14 +199,14 @@ tvcm.exportTo('tracing.trace_model', function() {
       throw new Error('Not implemented');
     },
 
-    iterateAllEvents: function(callback) {
+    iterateAllEvents: function(callback, opt_this) {
       for (var tid in this.threads)
-        this.threads[tid].iterateAllEvents(callback);
+        this.threads[tid].iterateAllEvents(callback, opt_this);
 
       for (var id in this.counters)
-        this.counters[id].iterateAllEvents(callback);
+        this.counters[id].iterateAllEvents(callback, opt_this);
 
-      this.objects.iterateAllEvents(callback);
+      this.objects.iterateAllEvents(callback, opt_this);
     }
   };
 

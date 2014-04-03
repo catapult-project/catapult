@@ -66,7 +66,20 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.parent = parent;
     this.sortIndex = 0;
     this.tid = tid;
-    this.sliceGroup = new SliceGroup(ThreadSlice);
+
+    var that = this;
+    function ThreadSliceForThisThread(
+        cat, title, colorId, start, args, opt_duration,
+        opt_threadStart, opt_threadDuration) {
+      ThreadSlice.call(this, cat, title, colorId, start, args, opt_duration,
+                       opt_threadStart, opt_threadDuration);
+      this.parentThread = that;
+    }
+    ThreadSliceForThisThread.prototype = {
+      __proto__: ThreadSlice.prototype
+    };
+
+    this.sliceGroup = new SliceGroup(ThreadSliceForThisThread);
     this.timeSlices = undefined;
     this.samples_ = [];
     this.kernelSliceGroup = new SliceGroup();
@@ -286,15 +299,15 @@ tvcm.exportTo('tracing.trace_model', function() {
       return i;
     },
 
-    iterateAllEvents: function(callback) {
-      this.sliceGroup.iterateAllEvents(callback);
-      this.kernelSliceGroup.iterateAllEvents(callback);
-      this.asyncSliceGroup.iterateAllEvents(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.sliceGroup.iterateAllEvents(callback, opt_this);
+      this.kernelSliceGroup.iterateAllEvents(callback, opt_this);
+      this.asyncSliceGroup.iterateAllEvents(callback, opt_this);
 
       if (this.timeSlices && this.timeSlices.length)
-        this.timeSlices.forEach(callback);
+        this.timeSlices.forEach(callback, opt_this);
 
-      this.samples_.forEach(callback);
+      this.samples_.forEach(callback, opt_this);
     }
   };
 

@@ -85,12 +85,12 @@ tvcm.exportTo('tracing.trace_model', function() {
       return groups;
     },
 
-    iterateAllEvents: function(callback) {
+    iterateAllEvents: function(callback, opt_this) {
       for (var i = 0; i < this.slices.length; i++) {
         var slice = this.slices[i];
-        callback(slice);
+        callback.call(opt_this, slice);
         if (slice.subSlices)
-          slice.subSlices.forEach(callback);
+          slice.subSlices.forEach(callback, opt_this);
       }
     }
   };

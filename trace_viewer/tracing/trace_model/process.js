@@ -103,10 +103,10 @@ tvcm.exportTo('tracing.trace_model', function() {
           .shiftTimestampsForward.apply(this, arguments);
     },
 
-    iterateAllEvents: function(callback) {
-      this.instantEvents.forEach(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.instantEvents.forEach(callback, opt_this);
 
-      ProcessBase.prototype.iterateAllEvents.call(this, callback);
+      ProcessBase.prototype.iterateAllEvents.call(this, callback, opt_this);
     }
   };
 

@@ -270,10 +270,14 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
       var browserProcess = m.getOrCreateProcess(1);
       var browserMain = browserProcess.getOrCreateThread(2);
       browserMain.sliceGroup.beginSlice('cat', 'Task', 0);
+      browserMain.sliceGroup.beginSlice('cat', 'SubTask', 1);
+      browserMain.sliceGroup.endSlice(9);
       browserMain.sliceGroup.endSlice(10);
       browserMain.sliceGroup.beginSlice('cat', 'Task', 20);
       browserMain.sliceGroup.endSlice(30);
     });
-    assertEquals(2, m.processes[1].threads[2].sliceGroup.length);
+    var t2 = m.processes[1].threads[2];
+    assertEquals(3, t2.sliceGroup.length);
+    assertEquals(2, t2.sliceGroup.topLevelSlices.length);
   });
 });

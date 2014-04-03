@@ -109,6 +109,13 @@ tvcm.exportTo('tvcm', function() {
     }
   }
 
+  function sum(func, ary, opt_this) {
+    var res = 0;
+    for (var i = 0; i < ary.length; i++)
+      res += func.call(opt_this, ary[i]);
+    return res;
+  }
+
   return {
     asArray: asArray,
     concatenateArrays: concatenateArrays,
@@ -119,6 +126,7 @@ tvcm.exportTo('tvcm', function() {
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
-    iterObjectFieldsRecursively: iterObjectFieldsRecursively
+    iterObjectFieldsRecursively: iterObjectFieldsRecursively,
+    sum: sum
   };
 });

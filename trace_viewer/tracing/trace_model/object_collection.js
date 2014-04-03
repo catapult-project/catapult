@@ -198,11 +198,11 @@ tvcm.exportTo('tracing.trace_model', function() {
       return {};
     },
 
-    iterateAllEvents: function(callback) {
+    iterateAllEvents: function(callback, opt_this) {
       this.iterObjectInstances(function(instance) {
-        callback(instance);
+        callback.call(this, instance);
         instance.snapshots.forEach(callback);
-      });
+      }, opt_this);
     }
   };
 

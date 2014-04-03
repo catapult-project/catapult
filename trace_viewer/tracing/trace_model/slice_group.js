@@ -222,8 +222,8 @@ tvcm.exportTo('tracing.trace_model', function() {
       return newSlice;
     },
 
-    iterateAllEvents: function(callback) {
-      this.slices.forEach(callback);
+    iterateAllEvents: function(callback, opt_this) {
+      this.slices.forEach(callback, opt_this);
     },
 
     /**
