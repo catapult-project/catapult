@@ -138,8 +138,8 @@ class Run(command_line.OptparseCommand):
       if not os.path.exists(page_set_path):
         parser.error('Page set not found.')
       if not (os.path.isfile(page_set_path) and
-              os.path.splitext(page_set_path)[1] == '.json'):
-        parser.error('Page set is not a JSON file.')
+              discover.IsPageSetFile(page_set_path)):
+        parser.error('Unsupported page set file format.')
 
       class TestWrapper(test.Test):
         test = test_class

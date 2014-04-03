@@ -127,7 +127,7 @@ def Main(base_dir):
     parser.parse_args()
     recorder.test.ProcessCommandLineArgs(parser, options)
     ps = tests[target]().CreatePageSet(options)
-  elif target.endswith('.json') or target.endswith('.py'):
+  elif discover.IsPageSetFile(target):
     parser.parse_args()
     ps = page_set.PageSet.FromFile(target)
   elif target.startswith('http'):
