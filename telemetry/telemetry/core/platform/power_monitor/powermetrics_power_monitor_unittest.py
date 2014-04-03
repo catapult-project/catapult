@@ -53,7 +53,7 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     # Verify that all component entries exist in output.
     component_utilization = result['component_utilization']
     for k in ['whole_package', 'gpu'] + ['cpu%d' % x for x in range(8)]:
-      self.assertTrue(component_utilization[k]['average_frequency_mhz'] > 0)
+      self.assertTrue(component_utilization[k]['average_frequency_hz'] > 0)
       self.assertTrue(component_utilization[k]['idle_percent'] > 0)
 
     # Unsupported hardware doesn't.

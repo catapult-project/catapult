@@ -103,7 +103,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # List of RunningAverage objects specifying metrics we want to aggregate.
     metrics = [
         ConstructMetric(
-            ['component_utilization', 'whole_package', 'average_frequency_mhz'],
+            ['component_utilization', 'whole_package', 'average_frequency_hz'],
             ['processor','freq_hz']),
         ConstructMetric(
             ['component_utilization', 'whole_package', 'idle_percent'],
@@ -144,7 +144,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     if 'GPU' in plist:
       metrics.extend([
           ConstructMetric(
-              ['component_utilization', 'gpu', 'average_frequency_mhz'],
+              ['component_utilization', 'gpu', 'average_frequency_hz'],
               ['GPU', 0, 'freq_hz']),
           ConstructMetric(
               ['component_utilization', 'gpu', 'idle_percent'],
@@ -166,7 +166,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           # C State ratio is per-package, component CPUs of that package may
           # have different frequencies.
           metrics.append(ConstructMetric(
-              base_out_path + ['average_frequency_mhz'],
+              base_out_path + ['average_frequency_hz'],
               base_src_path + ['cpus', cpu_idx, 'freq_hz']))
           metrics.append(ConstructMetric(
               base_out_path + ['idle_percent'],
