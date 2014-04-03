@@ -124,7 +124,6 @@ class TestPageSet(unittest.TestCase):
     google_page = pps.pages[0]
     self.assertEqual('https://www.google.com', google_page.url)
     self.assertIs(pps, google_page.page_set)
-    self.assertTrue(hasattr(google_page, 'RunNavigateSteps'))
     self.assertTrue(5, google_page.RunGetActionRunner(action_runner=5))
 
   def testMultiplePythonPageSetsLoading(self):
