@@ -115,7 +115,7 @@ tvcm.exportTo('tvcm.ui', function() {
       // Apply new size to the container.
       var curSize = this.getTargetSize_();
       var newSize;
-      if (this.target_ === this.nextSibling) {
+      if (this.target_ === this.nextElementSibling) {
         newSize = curSize + delta;
       } else {
         newSize = curSize - delta;

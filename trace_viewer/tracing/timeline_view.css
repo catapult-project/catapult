@@ -85,6 +85,7 @@ x-timeline-view > x-drag-handle {
 
 x-timeline-view > .analysis-view {
   display: -webkit-flex;
+  -webkit-flex: 0 0 auto;
   padding-left: 2px;
   padding-right: 2px;
 }
