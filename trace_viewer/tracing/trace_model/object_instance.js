@@ -21,7 +21,8 @@ tvcm.exportTo('tracing.trace_model', function() {
    *
    * @constructor
    */
-  function ObjectInstance(parent, id, category, name, creationTs, opt_baseTypeName) {
+  function ObjectInstance(
+      parent, id, category, name, creationTs, opt_baseTypeName) {
     tracing.trace_model.Event.call(this);
     this.parent = parent;
     this.id = id;

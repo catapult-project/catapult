@@ -15,6 +15,6 @@ if __name__ == '__main__':
   import trace_viewer
   from tvcm import gjslint
   sys.exit(gjslint.Main([
-    os.path.join(top_dir, 'src'),
+    os.path.join(top_dir, 'trace_viewer'),
     os.path.join(top_dir, 'third_party/tvcm/src')
   ]))

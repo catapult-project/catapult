@@ -33,9 +33,11 @@ tvcm.exportTo('tracing.trace_model', function() {
   ObjectCollection.prototype = {
     __proto__: Object.prototype,
 
-    createObjectInstance_: function(parent, id, category, name, creationTs, opt_baseTypeName) {
+    createObjectInstance_: function(
+        parent, id, category, name, creationTs, opt_baseTypeName) {
       var constructor = tracing.trace_model.ObjectInstance.getConstructor(name);
-      var instance = new constructor(parent, id, category, name, creationTs, opt_baseTypeName);
+      var instance = new constructor(
+          parent, id, category, name, creationTs, opt_baseTypeName);
       var typeName = instance.typeName;
       var instancesOfTypeName = this.instancesByTypeName_[typeName];
       if (!instancesOfTypeName) {
@@ -63,7 +65,8 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     addSnapshot: function(id, category, name, ts, args, opt_baseTypeName) {
       var instanceMap = this.getOrCreateInstanceMap_(id);
-      var snapshot = instanceMap.addSnapshot(category, name, ts, args, opt_baseTypeName);
+      var snapshot = instanceMap.addSnapshot(
+          category, name, ts, args, opt_baseTypeName);
       if (snapshot.objectInstance.category != category) {
         var msg = 'Added snapshot name=' + name + ' with cat=' + category +
             ' impossible. It instance was created/snapshotted with cat=' +
@@ -103,7 +106,7 @@ tvcm.exportTo('tracing.trace_model', function() {
         throw new Error('Deletion requested for name=' +
                         name + ' could not proceed: ' +
                         'An existing object with baseTypeName=' +
-                        deletedInstance.baseTypeName + ' existed.')
+                        deletedInstance.baseTypeName + ' existed.');
       }
     },
 
