@@ -4,7 +4,6 @@
 
 import telemetry.core.platform.power_monitor as power_monitor
 
-import logging
 import csv
 
 from collections import defaultdict
@@ -59,11 +58,6 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     Returns:
         Dictionary in the format returned by StopMonitoringPower().
     """
-    # Raw power usage samples.
-    out_dict = {}
-    out_dict['identifier'] = 'dumpsys'
-    out_dict['power_samples_mw'] = []
-
     # csv columns
     DUMP_VERSION_INDEX = 0
     COLUMN_TYPE_INDEX = 3
@@ -79,10 +73,7 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
         continue
       entries_by_type[entry[COLUMN_TYPE_INDEX]].append(entry)
     # Find the uid of for the given package.
-    if not package in entries_by_type:
-      logging.warning('Unable to parse dumpsys output. Please upgrade the OS.')
-      out_dict['energy_consumption_mwh'] = 0
-      return out_dict
+    assert package in entries_by_type, 'Expected package not found'
     assert len(entries_by_type[package]) == 1, 'Multiple entries for package.'
     uid = entries_by_type[package][0][PACKAGE_UID_INDEX]
     consumptions_mah = [float(entry[PWI_POWER_COMSUMPTION_INDEX])
@@ -94,5 +85,9 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     # Converting at a nominal voltage of 4.0V, as those values are obtained by a
     # heuristic, and 4.0V is the voltage we set when using a monsoon device.
     consumption_mwh = consumption_mah * 4.0
+    # Raw power usage samples.
+    out_dict = {}
+    out_dict['identifier'] = 'dumpsys'
+    out_dict['power_samples_mw'] = []
     out_dict['energy_consumption_mwh'] = consumption_mwh
     return out_dict
