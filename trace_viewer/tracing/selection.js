@@ -16,6 +16,9 @@ tvcm.require('tracing.trace_model');
 
 tvcm.exportTo('tracing', function() {
 
+  var RequestSelectionChangeEvent = tvcm.Event.bind(
+      undefined, 'requestSelectionChange', true, false);
+
   var EVENT_TYPES = [
     {
       constructor: tracing.trace_model.Slice,
@@ -197,6 +200,7 @@ tvcm.exportTo('tracing', function() {
   };
 
   return {
-    Selection: Selection
+    Selection: Selection,
+    RequestSelectionChangeEvent: RequestSelectionChangeEvent
   };
 });

@@ -103,12 +103,57 @@ tvcm.exportTo('tvcm.ui', function() {
         .innerRadius(0)
         .outerRadius(radius - 20);
       piePathsSel.enter().append('path')
+        .attr('class', 'arc')
         .attr('fill', function(d, i) {
             var origData = this.data_[i];
-            return getColorOfKey(origData.label);
+            var highlighted = (origData.label ===
+                               this.currentHighlightedLegendKey);
+            return getColorOfKey(origData.label, highlighted);
           }.bind(this))
-        .attr('d', arcRenderer);
+        .attr('d', arcRenderer)
+        .on('click', function(d, i) {
+            var origData = this.data_[i];
+            if (origData.onClick)
+              origData.onClick(d, i);
+            d3.event.stopPropagation();
+          }.bind(this))
+        .on('mouseenter', function(d, i) {
+            var origData = this.data_[i];
+            this.pushTempHighlightedLegendKey(origData.label);
+          }.bind(this))
+        .on('mouseleave', function(d, i) {
+            var origData = this.data_[i];
+            this.popTempHighlightedLegendKey(origData.label);
+          }.bind(this));
+
+      piePathsSel.enter().append('text')
+        .attr('class', 'arc-text')
+        .attr('transform', function(d) {
+            return 'translate(' + arcRenderer.centroid(d) + ')';
+          })
+        .attr('dy', '.35em')
+        .style('text-anchor', 'middle')
+        .text(function(d, i) {
+            var origData = this.data_[i];
+            if (origData.valueText)
+              return origData.valueText;
+            return '';
+          }.bind(this));
+
       piePathsSel.exit().remove();
+    },
+
+    updateHighlight_: function() {
+      ChartBase.prototype.updateHighlight_.call(this);
+      // Update color of pie segments.
+      var pieGroupSel = d3.select(this.pieGroup_);
+      var that = this;
+      pieGroupSel.selectAll('.arc').each(function(d, i) {
+        var origData = that.data_[i];
+        var highlighted = origData.label == that.currentHighlightedLegendKey;
+        var color = getColorOfKey(origData.label, highlighted);
+        this.style.fill = color;
+      });
     }
   };
 

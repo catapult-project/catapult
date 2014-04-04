@@ -319,6 +319,7 @@ tvcm.exportTo('tracing', function() {
           new tracing.Selection();
       this.analysisEl_.selection = selection;
       this.trackViewContainer_.scrollTop = oldScrollTop;
+      this.timelineViewSidePanelContainer_.selection = selection;
     },
 
     onRequestSelectionChange_: function(e) {

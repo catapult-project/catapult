@@ -18,6 +18,8 @@ tvcm.exportTo('tvcm.ui', function() {
         spanEl.textContent = opt_dictionary.textContent;
       if (opt_dictionary.parent)
         opt_dictionary.parent.appendChild(spanEl);
+      if (opt_dictionary.bold)
+        spanEl.style.fontWeight = 'bold';
     }
     return spanEl;
   };

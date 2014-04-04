@@ -144,7 +144,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       slice.duration = ts - slice.start;
       slice.didNotFinish = false;
 
-      if (opt_tts && slice.threadStart)
+      if (opt_tts && slice.threadStart !== undefined)
         slice.threadDuration = opt_tts - slice.threadStart;
 
       return slice;

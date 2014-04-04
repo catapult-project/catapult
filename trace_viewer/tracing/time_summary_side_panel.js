@@ -4,41 +4,47 @@
 
 'use strict';
 
+tvcm.require('tracing.analysis.util');
+tvcm.require('tracing.selection');
 tvcm.require('tracing.timeline_view_side_panel');
 tvcm.require('tvcm.iteration_helpers');
-tvcm.require('tvcm.ui.pie_chart');
 tvcm.require('tvcm.ui.dom_helpers');
+tvcm.require('tvcm.ui.pie_chart');
 
 tvcm.requireTemplate('tracing.time_summary_side_panel');
 
 tvcm.exportTo('tracing', function() {
   var ThreadSlice = tracing.trace_model.ThreadSlice;
 
-  var OVERHEAD_TRACE_CATEGORY = "trace_event_overhead"
-  var OVERHEAD_TRACE_NAME = "overhead"
+  var OVERHEAD_TRACE_CATEGORY = 'trace_event_overhead';
+  var OVERHEAD_TRACE_NAME = 'overhead';
+
+  var tsRound = tracing.analysis.tsRound;
+
+  var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
 
   function getWallTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
         event.name == OVERHEAD_TRACE_NAME) {
-      return event.duration
+      return event.duration;
     }
-    return 0
+    return 0;
   }
 
   function getCpuTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
         event.threadDuration) {
-      return event.threadDuration
+      return event.threadDuration;
     }
-    return 0
+    return 0;
   }
 
   function getSlicesInsideRange(filterRange, slices) {
-    var slicesInFilterRange = []
+    var slicesInFilterRange = [];
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
       if (filterRange.containsExplicitRange(slice.start, slice.end))
-        slicesInFilterRange.push(slice)
+        slicesInFilterRange.push(slice);
     }
     return slicesInFilterRange;
   }
@@ -73,30 +79,30 @@ tvcm.exportTo('tracing', function() {
         // None.
         if (x.threadDuration === undefined) {
           if (x.duration === undefined)
-            continue
+            continue;
           return 0;
         } else {
-          cpuDuration += x.threadDuration
+          cpuDuration += x.threadDuration;
         }
       }
 
       var cpuOverhead = tvcm.sum(function(x) {
         return getCpuTimeOverheadForEvent(x);
       }, this.allSlices);
-      return cpuDuration - cpuOverhead
+      return cpuDuration - cpuOverhead;
     },
 
     appendThreadSlices: function(filterRange, thread) {
-      getSlicesInsideRange(
-          filterRange, thread.sliceGroup.slices).forEach(
-              function(slice) {
-                this.allSlices.push(slice);
-              }, this);
-      getSlicesInsideRange(
-          filterRange, thread.sliceGroup.topLevelSlices).forEach(
-              function(slice) {
-                this.topLevelSlices.push(slice);
-              }, this);
+      var tmp = getSlicesInsideRange(
+          filterRange, thread.sliceGroup.slices);
+      tmp.forEach(function(slice) {
+        this.allSlices.push(slice);
+      }, this);
+      tmp = getSlicesInsideRange(
+          filterRange, thread.sliceGroup.topLevelSlices);
+      tmp.forEach(function(slice) {
+        this.topLevelSlices.push(slice);
+      }, this);
     }
   };
 
@@ -128,22 +134,23 @@ tvcm.exportTo('tracing', function() {
           '#x-time-summary-side-panel-template'));
 
       this.groupBy_ = GROUP_BY_PROCESS_NAME;
+      this.chart_ = undefined;
 
       var toolbarEl = this.querySelector('toolbar');
       toolbarEl.appendChild(tvcm.ui.createSelector(
-        this, 'groupBy',
-        'timeSummarySidePanel.groupBy', this.groupBy_,
-        [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
-         {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
-         ]));
+          this, 'groupBy',
+          'timeSummarySidePanel.groupBy', this.groupBy_,
+          [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
+           {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
+          ]));
 
-      this.groupingUnit_ = WALL_TIME_GROUPING_UNIT;
+      this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
       toolbarEl.appendChild(tvcm.ui.createSelector(
-        this, 'groupingUnit',
-        'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
-        [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
-         {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
-         ]));
+          this, 'groupingUnit',
+          'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
+          [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
+           {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
+          ]));
     },
 
     get model() {
@@ -175,7 +182,7 @@ tvcm.exportTo('tracing', function() {
 
     getGroupNameForThread_: function(thread) {
       if (this.groupBy_ == GROUP_BY_THREAD_NAME)
-        return thread.name;
+        return thread.name ? thread.name : thread.userFriendlyName;
 
       if (this.groupBy_ == GROUP_BY_PROCESS_NAME)
         return thread.parent.userFriendlyName;
@@ -183,6 +190,7 @@ tvcm.exportTo('tracing', function() {
 
     updateContents_: function() {
       var resultArea = this.querySelector('result-area');
+      this.chart_ = undefined;
       resultArea.textContent = '';
 
       if (this.model_ === undefined)
@@ -192,6 +200,7 @@ tvcm.exportTo('tracing', function() {
       // for bounds instead of the world bounds.
       var filterRange = this.model_.bounds;
 
+      var allGroup = new ResultsForGroup(this.model_, 'all');
       var resultsByGroupName = {};
       this.model_.getAllThreads().forEach(function(thread) {
         var groupName = this.getGroupNameForThread_(thread);
@@ -200,37 +209,79 @@ tvcm.exportTo('tracing', function() {
               this.model_, groupName);
         }
         resultsByGroupName[groupName].appendThreadSlices(filterRange, thread);
+
+        allGroup.appendThreadSlices(filterRange, thread);
       }, this);
 
       // Build chart data.
       var groupNames = tvcm.dictionaryKeys(resultsByGroupName);
       groupNames.sort();
 
+
+      var getValueFromGroup = function(group) {
+        if (this.groupingUnit_ == WALL_TIME_GROUPING_UNIT)
+          return group.wallTime;
+        return group.cpuTime;
+      }.bind(this);
+
       var data = [];
       groupNames.forEach(function(groupName) {
         var resultsForGroup = resultsByGroupName[groupName];
-        var value;
-        if (this.groupingUnit_ == WALL_TIME_GROUPING_UNIT)
-          value = resultsForGroup.wallTime;
-        else
-          value = resultsForGroup.cpuTime;
+        var value = getValueFromGroup(resultsForGroup);
         if (value === 0)
           return;
         data.push({
           label: groupName,
-          value: value
+          value: value,
+          valueText: tsRound(value) + 'ms',
+          onClick: function() {
+            var event = new tracing.RequestSelectionChangeEvent();
+            event.selection = new tracing.Selection(resultsForGroup.allSlices);
+            event.selection.timeSummaryGroupName = groupName;
+            this.dispatchEvent(event);
+          }.bind(this)
         });
       }, this);
+
       if (data.length == 0) {
         resultArea.appendChild(tvcm.ui.createSpan({textContent: 'No data'}));
         return;
       }
-      var chart = new tvcm.ui.PieChart();
-      chart.width = 400;
-      chart.height = 400;
-      chart.chartTitle = this.groupingUnit_ + ' breakdown by ' + this.groupBy_;
-      chart.data = data;
-      resultArea.appendChild(chart);
+
+      var summaryText = document.createElement('div');
+      summaryText.appendChild(tvcm.ui.createSpan({
+        textContent: 'Total ' + this.groupingUnit_ + ': ',
+        bold: true}));
+      summaryText.appendChild(tvcm.ui.createSpan({
+        textContent: tsRound(getValueFromGroup(allGroup)) + 'ms'
+      }));
+      resultArea.appendChild(summaryText);
+
+      this.chart_ = new tvcm.ui.PieChart();
+      this.chart_.width = 400;
+      this.chart_.height = 400;
+      this.chart_.chartTitle = this.groupingUnit_ + ' breakdown by ' +
+          this.groupBy_;
+      this.chart_.data = data;
+      this.chart_.addEventListener('click', function() {
+        var event = new tracing.RequestSelectionChangeEvent();
+        event.selection = new tracing.Selection([]);
+        this.dispatchEvent(event);
+      });
+
+      resultArea.appendChild(this.chart_);
+    },
+
+    get selection() {
+      return selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      if (selection.timeSummaryGroupName)
+        this.chart_.highlightedLegendKey = selection.timeSummaryGroupName;
+      else
+        this.chart_.highlightedLegendKey = undefined;
     }
   };
 

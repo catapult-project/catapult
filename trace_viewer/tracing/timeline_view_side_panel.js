@@ -73,10 +73,16 @@ tvcm.exportTo('tracing', function() {
       this.hasAttribute('expanded');
     },
 
-    get activePanelConstructor() {
+    get activePanel() {
       if (this.activePanelContainer_.children.length === 0)
         return undefined;
-      return this.activePanelContainer_.children[0].constructor;
+      return this.activePanelContainer_.children[0];
+    },
+
+    get activePanelConstructor() {
+      if (this.activePanel)
+        return this.activePanel.constructor;
+      return undefined;
     },
 
     set activePanelConstructor(panelConstructor) {
@@ -99,6 +105,7 @@ tvcm.exportTo('tracing', function() {
 
       var panelEl = new panelConstructor();
       panelEl.model = this.model_;
+      panelEl.selection = this.selection_;
       this.activePanelContainer_.appendChild(panelEl);
 
       this.getLabelForConstructor_(
@@ -154,6 +161,16 @@ tvcm.exportTo('tracing', function() {
         this.activePanelContainer_.textContent = '';
         this.removeAttribute('expanded');
       }
+    },
+
+    get selection() {
+      return selection_;
+    },
+
+    set selection(selection) {
+      this.selection_ = selection;
+      if (this.activePanel)
+        this.activePanel.selection = selection;
     }
   };
 

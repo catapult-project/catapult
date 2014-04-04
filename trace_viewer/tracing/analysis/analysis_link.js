@@ -6,7 +6,6 @@
 
 tvcm.requireStylesheet('tracing.analysis.analysis_link');
 
-tvcm.require('tvcm.events');
 tvcm.require('tvcm.ui');
 tvcm.require('tracing.selection');
 tvcm.require('tracing.analysis.util');
@@ -15,8 +14,7 @@ tvcm.exportTo('tracing.analysis', function() {
 
   var tsRound = tracing.analysis.tsRound;
 
-  var RequestSelectionChangeEvent = tvcm.Event.bind(
-      undefined, 'requestSelectionChange', true, false);
+  var RequestSelectionChangeEvent = tracing.RequestSelectionChangeEvent;
 
   /**
    * A clickable link that requests a change of selection to the return value of

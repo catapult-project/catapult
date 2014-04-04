@@ -10,9 +10,12 @@ tvcm.requireTemplate('tvcm.ui.chart_base');
 
 tvcm.exportTo('tvcm.ui', function() {
   var svgNS = 'http://www.w3.org/2000/svg';
+  var highlightIdBoost = tvcm.ui.getColorPaletteHighlightIdBoost();
 
-  function getColorOfKey(key) {
+  function getColorOfKey(key, selected) {
     var id = tvcm.ui.getStringColorId(key);
+    if (selected)
+      id += highlightIdBoost;
     return tvcm.ui.getColorPalette()[id];
   }
 
@@ -149,6 +152,7 @@ tvcm.exportTo('tvcm.ui', function() {
         titleSel.style('display', 'none');
       }
 
+      // Basics
       this.updateLegend_();
     },
 
@@ -175,8 +179,9 @@ tvcm.exportTo('tvcm.ui', function() {
           .attr('width', 18)
           .attr('height', 18)
           .style('fill', function(key) {
-            return getColorOfKey(key);
-          });
+            var selected = this.currentHighlightedLegendKey === key;
+            return getColorOfKey(key, selected);
+          }.bind(this));
 
       legendEntriesSel.selectAll('text')
         .attr('x', chartAreaSize.width - 24)
@@ -184,6 +189,52 @@ tvcm.exportTo('tvcm.ui', function() {
         .attr('dy', '.35em')
         .style('text-anchor', 'end')
         .text(function(d) { return d; });
+    },
+
+    get highlightedLegendKey() {
+      return this.highlightedLegendKey_;
+    },
+
+    set highlightedLegendKey(highlightedLegendKey) {
+      this.highlightedLegendKey_ = highlightedLegendKey;
+      this.updateHighlight_();
+    },
+
+    get currentHighlightedLegendKey() {
+      if (this.tempHighlightedLegendKey_)
+        return this.tempHighlightedLegendKey_;
+      return this.highlightedLegendKey_;
+    },
+
+    pushTempHighlightedLegendKey: function(key) {
+      if (this.tempHighlightedLegendKey_)
+        throw new Error('push cannot nest');
+      this.tempHighlightedLegendKey_ = key;
+      this.updateHighlight_();
+    },
+
+    popTempHighlightedLegendKey: function(key) {
+      if (this.tempHighlightedLegendKey_ != key)
+        throw new Error('pop cannot happen');
+      this.tempHighlightedLegendKey_ = undefined;
+      this.updateHighlight_();
+    },
+
+    updateHighlight_: function() {
+      // Update label colors.
+      var chartAreaSel = d3.select(this.chartAreaElement);
+      var legendEntriesSel = chartAreaSel.selectAll('.legend');
+
+      var that = this;
+      legendEntriesSel.each(function(key) {
+        var highlighted = key == that.currentHighlightedLegendKey;
+        var color = getColorOfKey(key, highlighted);
+        this.style.fill = color;
+        if (highlighted)
+          this.style.fontWeight = 'bold';
+        else
+          this.style.fontWeight = '';
+      });
     }
   };
 
