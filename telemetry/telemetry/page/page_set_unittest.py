@@ -120,7 +120,7 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual('data/credential', pps.credentials_path)
     self.assertEqual('desktop', pps.user_agent_type)
     self.assertEqual(test_pps_dir, pps.file_path)
-    self.assertEqual(1, len(pps.pages))
+    self.assertEqual(3, len(pps.pages))
     google_page = pps.pages[0]
     self.assertEqual('https://www.google.com', google_page.url)
     self.assertIs(pps, google_page.page_set)
@@ -136,3 +136,15 @@ class TestPageSet(unittest.TestCase):
 
     self.assertEqual('TestSimpleOnePageSet', pps1.__class__.__name__)
     self.assertEqual('TestSimpleTwoPageSet', pps2.__class__.__name__)
+
+  def testPageFilePath(self):
+    test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
+    pps = page_set.PageSet.FromFile(test_pps_dir)
+    internal_page = pps.pages[1]
+    external_page = pps.pages[2]
+    self.assertEqual(
+      os.path.normpath(os.path.join(
+        util.GetUnittestDataDir(), 'bar.html')), internal_page.file_path)
+    self.assertEqual(
+      os.path.normpath(os.path.join(
+        util.GetUnittestDataDir(), 'pages/foo.html')), external_page.file_path)

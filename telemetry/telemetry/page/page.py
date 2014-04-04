@@ -10,7 +10,7 @@ import urlparse
 class Page(object):
   def __init__(self, url, page_set=None, base_dir=None):
     self.url = url
-    self.page_set = page_set
+    self._page_set = page_set
     self._base_dir = base_dir
 
     # These attributes can be set dynamically by the page.
@@ -43,6 +43,9 @@ class Page(object):
     raise AttributeError(
         '%r object has no attribute %r' % (self.__class__, name))
 
+  @property
+  def page_set(self):
+    return self._page_set
 
   def GetSyntheticDelayCategories(self):
     if not hasattr(self, 'synthetic_delays'):

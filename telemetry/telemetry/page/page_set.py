@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 import os
+import sys
 
 from telemetry.core import util
 from telemetry.page import cloud_storage
@@ -126,6 +127,7 @@ class PageSet(object):
           cloud_storage.GetIfChanged(path)
 
   def AddPage(self, page):
+    assert page.page_set is self
     self.pages.append(page)
 
   # In json page_set, a page inherits attributes from its page_set. With
@@ -157,9 +159,7 @@ class PageSet(object):
                          " with prefix 'PageSet'")
     page_set = page_set_classes[0]()
     page_set.file_path = file_path
-    page_set._Initialize() # pylint: disable=W0212
     for page in page_set.pages:
-      page.page_set = page_set
       page_class = page.__class__
 
       for method_name, method in inspect.getmembers(page_class,
@@ -170,6 +170,11 @@ class PageSet(object):
             raise PageSetError("""Definition of Run<...> method of all
 pages in %s must be in the form of def Run<...>(self, action_runner):"""
                                      % file_path)
+      # Set page's _base_dir attribute.
+      page_file_path = sys.modules[page_class.__module__].__file__
+      page._base_dir = os.path.dirname(page_file_path)
+
+    page_set._Initialize() # pylint: disable=W0212
     return page_set
 
 
