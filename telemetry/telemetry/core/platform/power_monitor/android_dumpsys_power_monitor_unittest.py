@@ -20,5 +20,17 @@ class DS2784PowerMonitorMonitorTest(unittest.TestCase):
     self.assertEqual(results['identifier'], 'dumpsys')
     self.assertAlmostEqual(results['energy_consumption_mwh'], 2.924)
 
+  # Older version of the OS do not have the data.
+  def testNoData(self):
+    package = 'com.android.chrome'
+    dumpsys_output = os.path.join(GetUnittestDataDir(),
+                                  'batterystats_v7_no_data.csv')
+    with open(dumpsys_output, 'r') as output:
+      results = (
+          android_dumpsys_power_monitor.DumpsysPowerMonitor.ParseSamplingOutput(
+              package, output))
+    self.assertEqual(results['identifier'], 'dumpsys')
+    self.assertEqual(results['energy_consumption_mwh'], 0)
+
 if __name__ == '__main__':
   unittest.main()
