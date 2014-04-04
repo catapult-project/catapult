@@ -6,6 +6,8 @@ import os
 import re
 import urlparse
 
+from telemetry.page.actions.navigate import NavigateAction
+
 
 class Page(object):
   def __init__(self, url, page_set=None, base_dir=None):
@@ -135,3 +137,13 @@ class Page(object):
   @property
   def archive_path(self):
     return self.page_set.WprFilePathForPage(self)
+
+
+# TODO(nednguyen): remove this and move RunNavigateSteps to page when
+# crbug.com/239179 is marked fixed
+class PageWithDefaultRunNavigate(Page):
+  def __init__(self, *args, **kwargs):
+    super(PageWithDefaultRunNavigate, self).__init__(*args, **kwargs)
+
+  def RunNavigateSteps(self, action_runner):
+    action_runner.RunAction(NavigateAction())
