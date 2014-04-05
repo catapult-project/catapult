@@ -99,6 +99,14 @@ class StatisticsUnitTest(unittest.TestCase):
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.25)
 
+    samples = [1.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0]
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.5)
+
+    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0]
+    d = statistics.Discrepancy(samples)
+    self.assertEquals(d, 0.4)
+
     samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0]
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.5)
