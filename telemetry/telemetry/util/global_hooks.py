@@ -7,7 +7,6 @@
 import os
 import signal
 import sys
-import traceback
 
 from telemetry.core import util
 from telemetry.util import exception_formatter
@@ -60,16 +59,15 @@ def InstallStackDumpOnSigusr1():
     return
 
   def PrintDiagnostics(_, stack_frame):
-    print >> sys.stderr, 'SIGUSR1 received, printing stack trace:'
-    traceback.print_stack(stack_frame)
+    exception_string = 'SIGUSR1 received, printed stack trace'
+    exception_formatter.PrintFormattedFrame(stack_frame, exception_string)
   signal.signal(signal.SIGUSR1, PrintDiagnostics)
 
 
 def InstallTerminationHook():
   """Catch SIGTERM, print a stack trace, and exit."""
   def PrintStackAndExit(sig, stack_frame):
-    print >> sys.stderr, 'Traceback (most recent call last):'
-    traceback.print_stack(stack_frame)
-    print >> sys.stderr, 'Received signal %s, exiting' % sig
+    exception_string = 'Received signal %s, exiting' % sig
+    exception_formatter.PrintFormattedFrame(stack_frame, exception_string)
     sys.exit(-1)
   signal.signal(signal.SIGTERM, PrintStackAndExit)

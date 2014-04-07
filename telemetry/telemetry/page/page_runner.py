@@ -11,7 +11,6 @@ import random
 import sys
 import tempfile
 import time
-import traceback
 
 from telemetry import decorators
 from telemetry.core import browser_finder
@@ -180,12 +179,7 @@ class PageState(object):
       i.RunAction(self.page, self.tab, None)
 
   def CleanUpPage(self, test):
-    try:
-      test.CleanUpAfterPage(self.page, self.tab)
-    except Exception:
-      logging.error('While cleaning up %s:\n%s', self.page.url,
-                    traceback.format_exc())
-
+    test.CleanUpAfterPage(self.page, self.tab)
     if self.page.credentials and self._did_login:
       self.tab.browser.credentials.LoginNoLongerNeeded(
           self.tab, self.page.credentials)
@@ -293,13 +287,13 @@ def Run(test, page_set, expectations, finder_options):
     possible_browser = browser_finder.FindBrowser(finder_options)
   except browser_finder.BrowserTypeRequiredException, e:
     sys.stderr.write(str(e) + '\n')
-    sys.exit(1)
+    sys.exit(-1)
   if not possible_browser:
     sys.stderr.write(
         'No browser found. Available browsers:\n' +
         '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)) +
         '\n')
-    sys.exit(1)
+    sys.exit(-1)
 
   browser_options.browser_type = possible_browser.browser_type
 
@@ -464,7 +458,8 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   page_action.PageAction.ResetNextTimelineMarkerId()
 
   def ProcessError():
-    logging.error('%s:\n%s', page.url, traceback.format_exc())
+    logging.error('%s:', page.url)
+    exception_formatter.PrintFormattedException()
     if expectation == 'fail':
       logging.info('Error was expected\n')
       results.AddSuccess(page)
@@ -482,11 +477,13 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     raise
   except page_test.Failure:
     if expectation == 'fail':
-      logging.info('%s:\n%s', page.url, traceback.format_exc())
+      logging.info('%s:', page.url)
+      exception_formatter.PrintFormattedException()
       logging.info('Failure was expected\n')
       results.AddSuccess(page)
     else:
-      logging.warning('%s:\n%s', page.url, traceback.format_exc())
+      logging.warning('%s:', page.url)
+      exception_formatter.PrintFormattedException()
       results.AddFailure(page, sys.exc_info())
   except (util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
@@ -497,7 +494,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     raise
   except Exception:
     logging.warning('While running %s', page.url)
-    exception_formatter.PrintFormattedException(*sys.exc_info())
+    exception_formatter.PrintFormattedException()
     results.AddFailure(page, sys.exc_info())
   else:
     if expectation == 'fail':

@@ -36,7 +36,7 @@ class WebContents(object):
 
     This method is robust against any given Evaluation timing out.
     """
-    def IsTrue():
+    def IsJavaScriptExpressionTrue():
       try:
         return bool(self.EvaluateJavaScript(expr))
       except util.TimeoutException:
@@ -44,7 +44,7 @@ class WebContents(object):
         # may time out here early. Instead, we want to wait for the full
         # timeout of this method.
         return False
-    util.WaitFor(IsTrue, timeout)
+    util.WaitFor(IsJavaScriptExpressionTrue, timeout)
 
   def HasReachedQuiescence(self):
     """Determine whether the page has reached quiescence after loading.
