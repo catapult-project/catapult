@@ -30,9 +30,6 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
       if not ignoring or item not in ignoring:
         args.append(os.path.join(directory, item))
 
-    if not args:
-      return
-
     # According to msdn:
     # http://msdn.microsoft.com/en-us/library/ms682425%28VS.85%29.aspx
     # there's a maximum allowable command line of 32,768 characters on windows.
@@ -41,7 +38,5 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
       # [:N] will return a list with the first N elements, ie.
       # with [1,2,3,4,5], [:2] -> [1,2], and [2:] -> [3,4,5]
       # with [1,2,3,4,5], [:5] -> [1,2,3,4,5] and [5:] -> []
-      p = subprocess.Popen([flush_command, '--recurse'] + args[:256])
-      p.wait()
-      assert p.returncode == 0, 'Failed to flush system cache'
+      subprocess.check_call([flush_command, '--recurse'] + args[:256])
       args = args[256:]
