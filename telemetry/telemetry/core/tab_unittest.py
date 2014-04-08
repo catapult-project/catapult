@@ -4,6 +4,7 @@
 
 import logging
 
+from telemetry import test
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.unittest import tab_test_case
@@ -93,6 +94,8 @@ class GpuTabTest(tab_test_case.TabTestCase):
     self._extra_browser_args = ['--enable-gpu-benchmarking']
     super(GpuTabTest, self).setUp()
 
+  # Test flaky on mac: http://crbug.com/358664
+  @test.Disabled('mac')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')
