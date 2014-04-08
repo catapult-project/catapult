@@ -28,13 +28,6 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
         'file_poller')
 
 
-  def _IsDeviceCharging(self):
-    for line in self._adb.RunShellCommand('dumpsys battery'):
-      if 'powered: ' in line:
-        if 'true' == line.split('powered: ')[1]:
-          return True
-    return False
-
   @decorators.Cache
   def _HasFuelGauge(self):
     return self._adb.FileExistsOnDevice(CHARGE_COUNTER)
@@ -42,7 +35,7 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
   def CanMonitorPower(self):
     if not self._HasFuelGauge():
       return False
-    if self._IsDeviceCharging():
+    if self._adb.IsDeviceCharging():
       logging.warning('Can\'t monitor power usage since device is charging.')
       return False
     return True
