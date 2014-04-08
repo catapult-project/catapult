@@ -103,8 +103,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def HasBrowserFinishedLaunching(self):
     # In addition to the functional check performed by the base class, quickly
     # check if the browser process is still alive.
-    self._proc.poll()
-    if self._proc.returncode:
+    if self._proc.poll() != None:
       raise exceptions.ProcessGoneException(
           "Return code: %d" % self._proc.returncode)
     return super(DesktopBrowserBackend, self).HasBrowserFinishedLaunching()
