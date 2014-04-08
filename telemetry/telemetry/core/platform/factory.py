@@ -9,6 +9,7 @@ from telemetry.core.platform import linux_platform_backend
 from telemetry.core.platform import mac_platform_backend
 from telemetry.core.platform import win_platform_backend
 
+
 @decorators.Cache
 def GetPlatformBackendForCurrentOS():
   if sys.platform.startswith('linux'):
