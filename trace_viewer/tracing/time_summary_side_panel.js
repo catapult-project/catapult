@@ -281,6 +281,10 @@ tvcm.exportTo('tracing', function() {
 
     set selection(selection) {
       this.selection_ = selection;
+
+      if (this.chart_ === undefined)
+        return;
+
       if (selection.timeSummaryGroupName) {
         this.chart_.highlightedLegendKey =
             selection.timeSummaryGroupName;
