@@ -81,6 +81,12 @@ tvcm.exportTo('tracing', function() {
       return this.range_.range;
     },
 
+    asRangeObject: function() {
+      var range = new tvcm.Range();
+      range.addRange(this.range_);
+      return range;
+    },
+
     get leftSelected() {
       return this.leftSelected_;
     },

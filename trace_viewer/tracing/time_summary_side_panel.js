@@ -39,11 +39,11 @@ tvcm.exportTo('tracing', function() {
     return 0;
   }
 
-  function getSlicesInsideRange(filterRange, slices) {
+  function getSlicesInsideRange(rangeOfInterest, slices) {
     var slicesInFilterRange = [];
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
-      if (filterRange.containsExplicitRange(slice.start, slice.end))
+      if (rangeOfInterest.containsExplicitRange(slice.start, slice.end))
         slicesInFilterRange.push(slice);
     }
     return slicesInFilterRange;
@@ -92,14 +92,14 @@ tvcm.exportTo('tracing', function() {
       return cpuDuration - cpuOverhead;
     },
 
-    appendThreadSlices: function(filterRange, thread) {
+    appendThreadSlices: function(rangeOfInterest, thread) {
       var tmp = getSlicesInsideRange(
-          filterRange, thread.sliceGroup.slices);
+          rangeOfInterest, thread.sliceGroup.slices);
       tmp.forEach(function(slice) {
         this.allSlices.push(slice);
       }, this);
       tmp = getSlicesInsideRange(
-          filterRange, thread.sliceGroup.topLevelSlices);
+          rangeOfInterest, thread.sliceGroup.topLevelSlices);
       tmp.forEach(function(slice) {
         this.topLevelSlices.push(slice);
       }, this);
@@ -196,9 +196,11 @@ tvcm.exportTo('tracing', function() {
       if (this.model_ === undefined)
         return;
 
-      // TODO(nduca): Use the timeline view's interest region
-      // for bounds instead of the world bounds.
-      var filterRange = this.model_.bounds;
+      var rangeOfInterest;
+      if (this.rangeOfInterest_.isEmpty)
+        rangeOfInterest = this.model_.bounds;
+      else
+        rangeOfInterest = this.rangeOfInterest_;
 
       var allGroup = new ResultsForGroup(this.model_, 'all');
       var resultsByGroupName = {};
@@ -208,9 +210,10 @@ tvcm.exportTo('tracing', function() {
           resultsByGroupName[groupName] = new ResultsForGroup(
               this.model_, groupName);
         }
-        resultsByGroupName[groupName].appendThreadSlices(filterRange, thread);
+        resultsByGroupName[groupName].appendThreadSlices(
+            rangeOfInterest, thread);
 
-        allGroup.appendThreadSlices(filterRange, thread);
+        allGroup.appendThreadSlices(rangeOfInterest, thread);
       }, this);
 
       // Build chart data.
@@ -278,10 +281,21 @@ tvcm.exportTo('tracing', function() {
 
     set selection(selection) {
       this.selection_ = selection;
-      if (selection.timeSummaryGroupName)
-        this.chart_.highlightedLegendKey = selection.timeSummaryGroupName;
-      else
+      if (selection.timeSummaryGroupName) {
+        this.chart_.highlightedLegendKey =
+            selection.timeSummaryGroupName;
+      } else {
         this.chart_.highlightedLegendKey = undefined;
+      }
+    },
+
+    get rangeOfInterest() {
+      return this.rangeOfInterest_;
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+      this.rangeOfInterest_ = rangeOfInterest;
+      this.updateContents_();
     }
   };
 

@@ -4,6 +4,8 @@
 
 'use strict';
 
+tvcm.require('tvcm.range');
+
 tvcm.requireStylesheet('tracing.timeline_view_side_panel');
 
 tvcm.exportTo('tracing', function() {
@@ -58,6 +60,7 @@ tvcm.exportTo('tracing', function() {
       this.appendChild(this.activePanelContainer_);
       this.appendChild(this.tabStrip_);
       this.model_ = undefined;
+      this.rangeOfInterest_ = new tvcm.Range();
     },
 
     get model() {
@@ -104,8 +107,9 @@ tvcm.exportTo('tracing', function() {
       }
 
       var panelEl = new panelConstructor();
-      panelEl.model = this.model_;
+      panelEl.rangeOfInterest = this.rangeOfInterest_;
       panelEl.selection = this.selection_;
+      panelEl.model = this.model_;
       this.activePanelContainer_.appendChild(panelEl);
 
       this.getLabelForConstructor_(
@@ -171,6 +175,18 @@ tvcm.exportTo('tracing', function() {
       this.selection_ = selection;
       if (this.activePanel)
         this.activePanel.selection = selection;
+    },
+
+    get rangeOfInterest() {
+      return this.rangeOfInterest_;
+    },
+
+    set rangeOfInterest(range) {
+      if (range == undefined)
+        throw new Error('Must not be undefined');
+      this.rangeOfInterest_ = range;
+      if (this.activePanel)
+        this.activePanel.rangeOfInterest = range;
     }
   };
 
