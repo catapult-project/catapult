@@ -137,6 +137,9 @@ class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
   # it is quite possible to get more than 5 concurrent requests.
   request_queue_size = 128
 
+  # Don't prevent python from exiting when there is thread activity.
+  daemon_threads = True
+
   def __init__(self, host_port, handler, paths):
     BaseHTTPServer.HTTPServer.__init__(self, host_port, handler)
     self.resource_map = {}
