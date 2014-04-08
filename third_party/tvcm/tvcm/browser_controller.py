@@ -177,6 +177,10 @@ class BrowserController(object):
     return self._tab.EvaluateJavaScript('window.__thennableResult')
 
   @property
+  def stdout_enabled(self):
+    return self._tab.message_output_stream != None
+
+  @stdout_enabled.setter
   def stdout_enabled(self, enabled):
     if enabled:
       self._tab.message_output_stream = sys.stderr

@@ -43,8 +43,8 @@ class ModuleTestSuite(unittest.TestSuite):
     return self.run(*args)
 
   def run(self, result):
-    self.setUp()
     try:
+      self.setUp()
       return super(ModuleTestSuite, self).run(result)
     finally:
       self.tearDown()
