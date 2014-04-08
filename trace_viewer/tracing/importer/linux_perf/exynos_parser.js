@@ -39,7 +39,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(counter.name + '.' + 'frequency')));
       }
       counter.series.forEach(function(series) {
-        series.addSample(ts, frequency);
+        series.addCounterSample(ts, frequency);
       });
     },
 

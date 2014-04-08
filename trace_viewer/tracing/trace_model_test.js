@@ -29,15 +29,15 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
     c.addSeries(aSeries);
     c.addSeries(bSeries);
 
-    aSeries.addSample(0, 5);
-    aSeries.addSample(1, 6);
-    aSeries.addSample(2, 5);
-    aSeries.addSample(3, 7);
+    aSeries.addCounterSample(0, 5);
+    aSeries.addCounterSample(1, 6);
+    aSeries.addCounterSample(2, 5);
+    aSeries.addCounterSample(3, 7);
 
-    bSeries.addSample(0, 10);
-    bSeries.addSample(1, 15);
-    bSeries.addSample(2, 12);
-    bSeries.addSample(3, 16);
+    bSeries.addCounterSample(0, 10);
+    bSeries.addCounterSample(1, 15);
+    bSeries.addCounterSample(2, 12);
+    bSeries.addCounterSample(3, 16);
 
     var c1 = cpu.getOrCreateCounter('', 'CpuCounter');
     var aSeries = new tracing.trace_model.CounterSeries('a', 0);
@@ -45,15 +45,15 @@ tvcm.unittest.testSuite('tracing.trace_model_test', function() {
     c1.addSeries(aSeries);
     c1.addSeries(bSeries);
 
-    aSeries.addSample(0, 5);
-    aSeries.addSample(1, 6);
-    aSeries.addSample(2, 5);
-    aSeries.addSample(3, 7);
+    aSeries.addCounterSample(0, 5);
+    aSeries.addCounterSample(1, 6);
+    aSeries.addCounterSample(2, 5);
+    aSeries.addCounterSample(3, 7);
 
-    bSeries.addSample(0, 10);
-    bSeries.addSample(1, 15);
-    bSeries.addSample(2, 12);
-    bSeries.addSample(3, 16);
+    bSeries.addCounterSample(0, 10);
+    bSeries.addCounterSample(1, 15);
+    bSeries.addCounterSample(2, 12);
+    bSeries.addCounterSample(3, 16);
 
     m.updateBounds();
 

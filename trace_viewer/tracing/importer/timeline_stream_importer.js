@@ -185,7 +185,7 @@ tvcm.exportTo('tracing.importer', function() {
           var ts = count['t'];
           var values = count['v'];
           for (var i = 0; i < values.length; ++i) {
-            counter.series[i].addSample(ts, values[i]);
+            counter.series[i].addCounterSample(ts, values[i]);
           }
         }
         modelDirty = true;

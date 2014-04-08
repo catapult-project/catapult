@@ -26,7 +26,7 @@ tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
 
     for (var i = 0; i < samples.length; ++i) {
       for (var k = 0; k < timestamps.length; ++k) {
-        ctr.series[i].addSample(timestamps[k], samples[i][k]);
+        ctr.series[i].addCounterSample(timestamps[k], samples[i][k]);
       }
     }
 
@@ -69,7 +69,7 @@ tvcm.unittest.testSuite('tracing.tracks.counter_track_test', function() {
                    [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
     for (var i = 0; i < samples.length; ++i) {
       for (var k = 0; k < timestamps.length; ++k) {
-        ctr.series[i].addSample(timestamps[k], samples[i][k]);
+        ctr.series[i].addCounterSample(timestamps[k], samples[i][k]);
       }
     }
 

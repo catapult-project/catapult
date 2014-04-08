@@ -28,8 +28,8 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
     var series = new CounterSeries('value', 0);
     ctr.addSeries(series);
 
-    series.addSample(0, 0);
-    series.addSample(10, 10);
+    series.addCounterSample(0, 0);
+    series.addCounterSample(10, 10);
 
     var selection = new Selection();
     var t1track = {};
@@ -49,13 +49,13 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
     ctr.addSeries(allocatedSeries);
     ctr.addSeries(freeSeries);
 
-    allocatedSeries.addSample(0, 0);
-    allocatedSeries.addSample(10, 25);
-    allocatedSeries.addSample(20, 10);
+    allocatedSeries.addCounterSample(0, 0);
+    allocatedSeries.addCounterSample(10, 25);
+    allocatedSeries.addCounterSample(20, 10);
 
-    freeSeries.addSample(0, 15);
-    freeSeries.addSample(10, 20);
-    freeSeries.addSample(20, 5);
+    freeSeries.addCounterSample(0, 15);
+    freeSeries.addCounterSample(10, 20);
+    freeSeries.addCounterSample(20, 5);
   }
 
   var createSelectionWithTwoSeriesSingleCounter = function() {
@@ -94,9 +94,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
     var ctr1AllocatedSeries = new CounterSeries('bytesallocated', 0);
     ctr1.addSeries(ctr1AllocatedSeries);
 
-    ctr1AllocatedSeries.addSample(0, 0);
-    ctr1AllocatedSeries.addSample(10, 25);
-    ctr1AllocatedSeries.addSample(20, 15);
+    ctr1AllocatedSeries.addCounterSample(0, 0);
+    ctr1AllocatedSeries.addCounterSample(10, 25);
+    ctr1AllocatedSeries.addCounterSample(20, 15);
 
     assertEquals('a', ctr1.name);
     assertEquals(3, ctr1.numSamples);
@@ -109,15 +109,15 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_counters_test', function() {
     ctr2.addSeries(ctr2AllocatedSeries);
     ctr2.addSeries(ctr2FreeSeries);
 
-    ctr2AllocatedSeries.addSample(0, 0);
-    ctr2AllocatedSeries.addSample(10, 25);
-    ctr2AllocatedSeries.addSample(20, 10);
-    ctr2AllocatedSeries.addSample(30, 15);
+    ctr2AllocatedSeries.addCounterSample(0, 0);
+    ctr2AllocatedSeries.addCounterSample(10, 25);
+    ctr2AllocatedSeries.addCounterSample(20, 10);
+    ctr2AllocatedSeries.addCounterSample(30, 15);
 
-    ctr2FreeSeries.addSample(0, 20);
-    ctr2FreeSeries.addSample(10, 5);
-    ctr2FreeSeries.addSample(20, 25);
-    ctr2FreeSeries.addSample(30, 0);
+    ctr2FreeSeries.addCounterSample(0, 20);
+    ctr2FreeSeries.addCounterSample(10, 5);
+    ctr2FreeSeries.addCounterSample(20, 25);
+    ctr2FreeSeries.addCounterSample(30, 0);
 
     assertEquals('b', ctr2.name);
     assertEquals(4, ctr2.numSamples);

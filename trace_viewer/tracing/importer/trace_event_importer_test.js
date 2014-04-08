@@ -726,23 +726,23 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     ctr.addSeries(value1Series);
     ctr.addSeries(value2Series);
 
-    value1Series.addSample(0, 0);
-    value1Series.addSample(1, 1);
-    value1Series.addSample(2, 1);
-    value1Series.addSample(3, 2);
-    value1Series.addSample(4, 3);
-    value1Series.addSample(5, 1);
-    value1Series.addSample(6, 3);
-    value1Series.addSample(7, 3.1);
+    value1Series.addCounterSample(0, 0);
+    value1Series.addCounterSample(1, 1);
+    value1Series.addCounterSample(2, 1);
+    value1Series.addCounterSample(3, 2);
+    value1Series.addCounterSample(4, 3);
+    value1Series.addCounterSample(5, 1);
+    value1Series.addCounterSample(6, 3);
+    value1Series.addCounterSample(7, 3.1);
 
-    value2Series.addSample(0, 0);
-    value2Series.addSample(1, 0);
-    value2Series.addSample(2, 1);
-    value2Series.addSample(3, 1.1);
-    value2Series.addSample(4, 0);
-    value2Series.addSample(5, 7);
-    value2Series.addSample(6, 0);
-    value2Series.addSample(7, 0.5);
+    value2Series.addCounterSample(0, 0);
+    value2Series.addCounterSample(1, 0);
+    value2Series.addCounterSample(2, 1);
+    value2Series.addCounterSample(3, 1.1);
+    value2Series.addCounterSample(4, 0);
+    value2Series.addCounterSample(5, 7);
+    value2Series.addCounterSample(6, 0);
+    value2Series.addCounterSample(7, 0.5);
 
     ctr.updateBounds();
 

@@ -165,7 +165,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
           }
 
           ctr.series.forEach(function(series) {
-            series.addSample(ts, value);
+            series.addCounterSample(ts, value);
           });
 
           break;

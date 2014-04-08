@@ -208,7 +208,7 @@ tvcm.exportTo('tracing.importer', function() {
       var ts = event.ts / 1000;
       ctr.series.forEach(function(series) {
         var val = event.args[series.name] ? event.args[series.name] : 0;
-        series.addSample(ts, val);
+        series.addCounterSample(ts, val);
       });
     },
 

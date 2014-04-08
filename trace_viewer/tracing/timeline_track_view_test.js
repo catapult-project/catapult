@@ -116,7 +116,7 @@ tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
     var p1 = model.getOrCreateProcess(1);
     var ctr = p1.getOrCreateCounter('', 'a');
     var series = new tracing.trace_model.CounterSeries('a', 0);
-    series.addSample(0, 1);
+    series.addCounterSample(0, 1);
     ctr.addSeries(series);
 
     var timeline = new tracing.TimelineTrackView();

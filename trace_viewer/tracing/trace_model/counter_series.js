@@ -73,7 +73,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       return this.timestamps_[idx];
     },
 
-    addSample: function(ts, val) {
+    addCounterSample: function(ts, val) {
       this.timestamps_.push(ts);
       var sample = new CounterSample(this, ts, val);
       this.samples_.push(sample);

@@ -16,10 +16,10 @@ tvcm.unittest.testSuite('tracing.trace_model.counter_sample_test', function() {
     var s0 = counter.addSeries(new CounterSeries('x', 0));
     var s1 = counter.addSeries(new CounterSeries('y', 1));
 
-    var s0_0 = s0.addSample(0, 100);
-    var s0_1 = s1.addSample(0, 200);
-    var s1_0 = s0.addSample(1, 100);
-    var s1_1 = s1.addSample(1, 200);
+    var s0_0 = s0.addCounterSample(0, 100);
+    var s0_1 = s1.addCounterSample(0, 200);
+    var s1_0 = s0.addCounterSample(1, 100);
+    var s1_1 = s1.addCounterSample(1, 200);
 
     var groups = CounterSample.groupByTimestamp([s0_1, s0_0,
                                                  s1_1, s1_0]);
@@ -34,8 +34,8 @@ tvcm.unittest.testSuite('tracing.trace_model.counter_sample_test', function() {
     var s0 = new CounterSeries('a', 0);
     ctr.addSeries(s0);
 
-    var s0_0 = s0.addSample(0, 0);
-    var s0_1 = s0.addSample(1, 100);
+    var s0_0 = s0.addCounterSample(0, 0);
+    var s0_1 = s0.addCounterSample(1, 100);
     assertEquals(0, s0_0.getSampleIndex());
     assertEquals(1, s0_1.getSampleIndex());
   });

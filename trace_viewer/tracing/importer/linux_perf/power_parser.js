@@ -53,7 +53,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
-        series.addSample(ts, cpuState);
+        series.addCounterSample(ts, cpuState);
       });
     },
 
@@ -67,7 +67,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
       // NB: 4294967295/-1 means an exit from the current state
       var val = (cpuState != 4294967295 ? cpuState : 0);
       powerCounter.series.forEach(function(series) {
-        series.addSample(ts, val);
+        series.addCounterSample(ts, val);
       });
     },
 
@@ -80,7 +80,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(powerCounter.name + '.' + 'state')));
       }
       powerCounter.series.forEach(function(series) {
-        series.addSample(ts, powerState);
+        series.addCounterSample(ts, powerState);
       });
     },
 

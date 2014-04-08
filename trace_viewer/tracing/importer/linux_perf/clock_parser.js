@@ -48,7 +48,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addSample(ts, rate);
+        series.addCounterSample(ts, rate);
       });
 
       return true;

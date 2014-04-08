@@ -58,7 +58,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addSample(ts, r_bw);
+        series.addCounterSample(ts, r_bw);
       });
 
       ctr = this.model_.getOrCreateProcess(0)
@@ -68,7 +68,7 @@ tvcm.exportTo('tracing.importer.linux_perf', function() {
             tvcm.ui.getStringColorId(ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addSample(ts, r_bw);
+        series.addCounterSample(ts, r_bw);
       });
 
       return true;
