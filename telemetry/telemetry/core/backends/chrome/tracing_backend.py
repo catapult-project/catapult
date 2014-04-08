@@ -145,7 +145,7 @@ class TracingBackend(object):
     if self.is_tracing_running:
       req = {'method': 'Tracing.end'}
       self._conn.SendRequest(req)
-      self._thread.join(timeout=30)
+      self._thread.join(timeout=60)
       if self._thread.is_alive():
         raise RuntimeError('Timed out waiting for tracing thread to join.')
       self._thread = None
