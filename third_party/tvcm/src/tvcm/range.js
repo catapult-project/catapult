@@ -46,6 +46,11 @@ tvcm.exportTo('tvcm', function() {
       this.min_ = Math.min(this.min_, value);
     },
 
+    set min(min) {
+      this.isEmpty_ = false;
+      this.min_ = min;
+    },
+
     get min() {
       if (this.isEmpty_)
         return undefined;
@@ -56,6 +61,11 @@ tvcm.exportTo('tvcm', function() {
       if (this.isEmpty_)
         return undefined;
       return this.max_;
+    },
+
+    set max(max) {
+      this.isEmpty_ = false;
+      this.max_ = max;
     },
 
     get range() {

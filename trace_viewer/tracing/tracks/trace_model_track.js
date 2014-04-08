@@ -115,7 +115,7 @@ tvcm.exportTo('tracing.tracks', function() {
 
       switch (type) {
         case tracing.tracks.DrawType.GRID:
-          this.viewport.drawMarkLines(ctx);
+          this.viewport.drawMajorMarkLines(ctx);
           // The model is the only thing that draws grid lines.
           ctx.restore();
           return;
@@ -147,8 +147,11 @@ tvcm.exportTo('tracing.tracks', function() {
           break;
 
         case tracing.tracks.DrawType.MARKERS:
-          this.viewport.drawMarkerLines(ctx, viewLWorld, viewRWorld);
-          this.viewport.drawMarkerIndicators(ctx, viewLWorld, viewRWorld);
+          if (!this.viewport.interestRange.isEmpty) {
+            this.viewport.interestRange.draw(ctx, viewLWorld, viewRWorld);
+            this.viewport.interestRange.drawIndicators(
+                ctx, viewLWorld, viewRWorld);
+          }
           ctx.restore();
           return;
       }

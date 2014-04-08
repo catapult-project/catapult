@@ -368,7 +368,7 @@ tvcm.exportTo('tracing', function() {
           this.zoomToSelection();
           break;
         case 'm'.charCodeAt(0):
-          this.putMarkAroundCurrentSelection_();
+          this.setCurrentSelectionAsInterestRange_();
           break;
       }
     },
@@ -551,19 +551,18 @@ tvcm.exportTo('tracing', function() {
       this.viewport.queueDisplayTransformAnimation(animation);
     },
 
-    putMarkAroundCurrentSelection_: function() {
+    setCurrentSelectionAsInterestRange_: function() {
       var selectionBounds = this.selection.bounds;
-      if (selectionBounds.empty)
-        return this.viewport.removeAllMarkers();
-      var markerBounds = this.viewport.getMarkerBounds();
-
-
-      if (selectionBounds.equals(markerBounds)) {
-        return this.viewport.removeAllMarkers();
+      if (selectionBounds.empty) {
+        this.viewport.interestRange.reset();
+        return;
       }
-      this.viewport.removeAllMarkers();
-      this.viewport.addMarker(this.viewport.createMarker(selectionBounds.min));
-      this.viewport.addMarker(this.viewport.createMarker(selectionBounds.max));
+
+      if (this.viewport.interestRange.min == selectionBounds.min &&
+          this.viewport.interestRange.max == selectionBounds.max)
+        this.viewport.interestRange.reset();
+      else
+        this.viewport.interestRange.set(selectionBounds);
     },
 
     /**

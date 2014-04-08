@@ -36,22 +36,22 @@ tvcm.exportTo('tracing.tracks', function() {
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
 
-      this.viewportMarkersChange_ = this.viewportMarkersChange_.bind(this);
-      viewport.addEventListener('markersChange', this.viewportMarkersChange_);
+      this.viewportChange_ = this.viewportChange_.bind(this);
+      viewport.addEventListener('change', this.viewportChange_);
 
     },
 
     detach: function() {
       tracing.tracks.HeadingTrack.prototype.detach.call(this);
-      this.viewport.removeEventListener('markersChange',
-                                        this.viewportMarkersChange_);
+      this.viewport.removeEventListener('change',
+                                        this.viewportChange_);
     },
 
-    viewportMarkersChange_: function() {
-      if (this.viewport.markers.length < 1)
-        this.classList.remove('ruler-track-with-distance-measurements');
+    viewportChange_: function() {
+      if (this.viewport.interestRange.isEmpty)
+        this.classList.remove('tall-mode');
       else
-        this.classList.add('ruler-track-with-distance-measurements');
+        this.classList.add('tall-mode');
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
@@ -60,7 +60,9 @@ tvcm.exportTo('tracing.tracks', function() {
           this.drawSlices_(viewLWorld, viewRWorld);
           break;
         case tracing.tracks.DrawType.MARKERS:
-          this.viewport.drawMarkerLines(this.context(), viewLWorld, viewRWorld);
+          if (!this.viewport.interestRange.isEmpty)
+            this.viewport.interestRange.draw(this.context(),
+                                             viewLWorld, viewRWorld);
           break;
       }
     },
@@ -73,10 +75,9 @@ tvcm.exportTo('tracing.tracks', function() {
       var width = bounds.width * pixelRatio;
       var height = bounds.height * pixelRatio;
 
-      var measurements = this.classList.contains(
-          'ruler-track-with-distance-measurements');
+      var hasInterestRange = !this.viewport.interestRange.isEmpty;
 
-      var rulerHeight = measurements ? (height * 2) / 5 : height;
+      var rulerHeight = hasInterestRange ? (height * 2) / 5 : height;
 
       var vp = this.viewport;
       var dt = vp.currentDisplayTransform;
@@ -185,18 +186,12 @@ tvcm.exportTo('tracing.tracks', function() {
       ctx.stroke();
 
       // Give distance between directly adjacent markers.
-      if (!measurements)
+      if (!hasInterestRange)
         return;
 
       // Draw middle bar.
       tracing.drawLine(ctx, 0, rulerHeight, width, rulerHeight);
       ctx.stroke();
-
-      // Obtain a sorted array of markers
-      var sortedMarkers = vp.markers.slice();
-      sortedMarkers.sort(function(a, b) {
-        return a.positionWorld_ - b.positionWorld_;
-      });
 
       // Distance Variables.
       var displayDistance;
@@ -214,9 +209,11 @@ tvcm.exportTo('tracing.tracks', function() {
       ctx.font = (14 * pixelRatio) + 'px sans-serif';
       var textPosY = arrowPosY;
 
-      // If there is only on marker, draw it's timestamp next to the line.
-      if (sortedMarkers.length === 1) {
-        var markerWorld = sortedMarkers[0].positionWorld;
+      var interestRange = vp.interestRange;
+
+      // If the range is zero, draw it's min timestamp next to the line.
+      if (interestRange.range === 0) {
+        var markerWorld = interestRange.min;
         var markerView = dt.xWorldToView(markerWorld);
         var displayValue = markerWorld / unitDivisor;
         displayValue = Math.abs((Math.floor(displayValue * 1000) / 1000));
@@ -231,99 +228,97 @@ tvcm.exportTo('tracing.tracks', function() {
 
         ctx.fillStyle = displayTextColor;
         ctx.fillText(textToDraw, textLeftView, textPosY);
+        return;
       }
 
-      for (i = 0; i < sortedMarkers.length - 1; i++) {
-        var leftMarker = sortedMarkers[i];
-        var rightMarker = sortedMarkers[i + 1];
-        var leftMarkerView = dt.xWorldToView(leftMarker.positionWorld);
-        var rightMarkerView = dt.xWorldToView(rightMarker.positionWorld);
+      var leftMarker = interestRange.min;
+      var rightMarker = interestRange.max;
 
-        var distanceBetweenMarkers =
-            rightMarker.positionWorld - leftMarker.positionWorld;
-        var distanceBetweenMarkersView =
-            dt.xWorldVectorToView(distanceBetweenMarkers);
-        var positionInMiddleOfMarkersView =
-            leftMarkerView + (distanceBetweenMarkersView / 2);
+      var leftMarkerView = dt.xWorldToView(leftMarker);
+      var rightMarkerView = dt.xWorldToView(rightMarker);
 
-        // Determine units.
-        if (distanceBetweenMarkers < 100) {
-          unit = 'ms';
-          unitDivisor = 1;
-        } else {
-          unit = 's';
-          unitDivisor = 1000;
-        }
+      var distanceBetweenMarkers = interestRange.range;
+      var distanceBetweenMarkersView =
+          dt.xWorldVectorToView(distanceBetweenMarkers);
+      var positionInMiddleOfMarkersView =
+          leftMarkerView + (distanceBetweenMarkersView / 2);
 
-        // Calculate display value to print.
-        displayDistance = distanceBetweenMarkers / unitDivisor;
-        var roundedDisplayDistance =
-            Math.abs((Math.floor(displayDistance * 1000) / 1000));
-        var textToDraw = roundedDisplayDistance + ' ' + unit;
-        var textWidthView = ctx.measureText(textToDraw).width;
-        var spaceForArrowsAndTextView =
-            textWidthView + spaceForArrowsView + arrowSpacing;
+      // Determine units.
+      if (distanceBetweenMarkers < 100) {
+        unit = 'ms';
+        unitDivisor = 1;
+      } else {
+        unit = 's';
+        unitDivisor = 1000;
+      }
 
-        // Set text positions.
-        var textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
-        var textRightView = textLeftView + textWidthView;
+      // Calculate display value to print.
+      displayDistance = distanceBetweenMarkers / unitDivisor;
+      var roundedDisplayDistance =
+          Math.abs((Math.floor(displayDistance * 1000) / 1000));
+      var textToDraw = roundedDisplayDistance + ' ' + unit;
+      var textWidthView = ctx.measureText(textToDraw).width;
+      var spaceForArrowsAndTextView =
+          textWidthView + spaceForArrowsView + arrowSpacing;
 
-        if (sortedMarkers.length === 2 &&
-            spaceForArrowsAndTextView > distanceBetweenMarkersView) {
-          // Print the display distance text right of the 2 markers.
-          textLeftView = rightMarkerView + 2 * arrowSpacing;
+      // Set text positions.
+      var textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
+      var textRightView = textLeftView + textWidthView;
 
-          // Put text to the left in case it gets cut off.
-          if (textLeftView + textWidthView > width)
-            textLeftView = leftMarkerView - 2 * arrowSpacing - textWidthView;
+      if (spaceForArrowsAndTextView > distanceBetweenMarkersView) {
+        // Print the display distance text right of the 2 markers.
+        textLeftView = rightMarkerView + 2 * arrowSpacing;
 
+        // Put text to the left in case it gets cut off.
+        if (textLeftView + textWidthView > width)
+          textLeftView = leftMarkerView - 2 * arrowSpacing - textWidthView;
+
+        ctx.fillStyle = displayTextColor;
+        ctx.fillText(textToDraw, textLeftView, textPosY);
+
+        // Draw the arrows pointing from outside in and a line in between.
+        ctx.strokeStyle = arrowColor;
+        ctx.beginPath();
+        tracing.drawLine(ctx, leftMarkerView, arrowPosY, rightMarkerView,
+            arrowPosY);
+        ctx.stroke();
+
+        ctx.fillStyle = arrowColor;
+        tracing.drawArrow(ctx,
+            leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
+            leftMarkerView, arrowPosY,
+            arrowLengthView, arrowWidthView);
+        tracing.drawArrow(ctx,
+            rightMarkerView + 1.5 * arrowSpacing, arrowPosY,
+            rightMarkerView, arrowPosY,
+            arrowLengthView, arrowWidthView);
+
+      } else if (spaceForArrowsView <= distanceBetweenMarkersView) {
+        var leftArrowStart;
+        var rightArrowStart;
+        if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
+          // Print the display distance text.
           ctx.fillStyle = displayTextColor;
           ctx.fillText(textToDraw, textLeftView, textPosY);
 
-          // Draw the arrows pointing from outside in and a line in between.
-          ctx.strokeStyle = arrowColor;
-          ctx.beginPath();
-          tracing.drawLine(ctx, leftMarkerView, arrowPosY, rightMarkerView,
-              arrowPosY);
-          ctx.stroke();
-
-          ctx.fillStyle = arrowColor;
-          tracing.drawArrow(ctx,
-              leftMarkerView - 1.5 * arrowSpacing, arrowPosY,
-              leftMarkerView, arrowPosY,
-              arrowLengthView, arrowWidthView);
-          tracing.drawArrow(ctx,
-              rightMarkerView + 1.5 * arrowSpacing, arrowPosY,
-              rightMarkerView, arrowPosY,
-              arrowLengthView, arrowWidthView);
-
-        } else if (spaceForArrowsView <= distanceBetweenMarkersView) {
-          var leftArrowStart;
-          var rightArrowStart;
-          if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
-            // Print the display distance text.
-            ctx.fillStyle = displayTextColor;
-            ctx.fillText(textToDraw, textLeftView, textPosY);
-
-            leftArrowStart = textLeftView - arrowSpacing;
-            rightArrowStart = textRightView + arrowSpacing;
-          } else {
-            leftArrowStart = positionInMiddleOfMarkersView;
-            rightArrowStart = positionInMiddleOfMarkersView;
-          }
-
-          // Draw the arrows pointing inside out.
-          ctx.strokeStyle = arrowColor;
-          ctx.fillStyle = arrowColor;
-          tracing.drawArrow(ctx,
-              leftArrowStart, arrowPosY,
-              leftMarkerView, arrowPosY,
-              arrowLengthView, arrowWidthView);
-          tracing.drawArrow(ctx,
-              rightArrowStart, arrowPosY,
-              rightMarkerView, arrowPosY,
-              arrowLengthView, arrowWidthView);
+          leftArrowStart = textLeftView - arrowSpacing;
+          rightArrowStart = textRightView + arrowSpacing;
+        } else {
+          leftArrowStart = positionInMiddleOfMarkersView;
+          rightArrowStart = positionInMiddleOfMarkersView;
         }
+
+        // Draw the arrows pointing inside out.
+        ctx.strokeStyle = arrowColor;
+        ctx.fillStyle = arrowColor;
+        tracing.drawArrow(ctx,
+            leftArrowStart, arrowPosY,
+            leftMarkerView, arrowPosY,
+            arrowLengthView, arrowWidthView);
+        tracing.drawArrow(ctx,
+            rightArrowStart, arrowPosY,
+            rightMarkerView, arrowPosY,
+            arrowLengthView, arrowWidthView);
       }
 
       ctx.restore();

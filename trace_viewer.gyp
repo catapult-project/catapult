@@ -180,6 +180,7 @@
       'trace_viewer/tracing/time_summary_side_panel.js',
       'trace_viewer/tracing/timeline_display_transform.js',
       'trace_viewer/tracing/timeline_display_transform_animations.js',
+      'trace_viewer/tracing/timeline_interest_range.js',
       'trace_viewer/tracing/timeline_track_view.js',
       'trace_viewer/tracing/timeline_view.js',
       'trace_viewer/tracing/timeline_view_side_panel.js',

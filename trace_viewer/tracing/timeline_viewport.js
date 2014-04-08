@@ -9,6 +9,7 @@
  */
 tvcm.require('tvcm.events');
 tvcm.require('tracing.draw_helpers');
+tvcm.require('tracing.timeline_interest_range');
 tvcm.require('tracing.timeline_display_transform');
 tvcm.require('tvcm.ui.animation');
 tvcm.require('tvcm.ui.animation_controller');
@@ -16,6 +17,7 @@ tvcm.require('tvcm.ui.animation_controller');
 tvcm.exportTo('tracing', function() {
 
   var TimelineDisplayTransform = tracing.TimelineDisplayTransform;
+  var TimelineInterestRange = tracing.TimelineInterestRange;
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -54,8 +56,8 @@ tvcm.exportTo('tracing', function() {
     this.checkForAttachInterval_ = setInterval(
         this.checkForAttach_.bind(this), 250);
 
-    this.markers = [];
     this.majorMarkPositions = [];
+    this.interestRange_ = new TimelineInterestRange(this);
 
     this.eventToTrackMap_ = {};
   }
@@ -132,10 +134,6 @@ tvcm.exportTo('tracing', function() {
      */
     dispatchChangeEvent: function() {
       tvcm.dispatchSimpleEvent(this, 'change');
-    },
-
-    dispatchMarkersChangeEvent_: function() {
-      tvcm.dispatchSimpleEvent(this, 'markersChange');
     },
 
     detach: function() {
@@ -280,59 +278,11 @@ tvcm.exportTo('tracing', function() {
       return this.gridStep_;
     },
 
-    createMarker: function(positionWorld) {
-      return new ViewportMarker(this, positionWorld);
+    get interestRange() {
+      return this.interestRange_;
     },
 
-    addMarker: function(marker) {
-      if (this.markers.indexOf(marker) >= 0)
-        return false;
-      this.markers.push(marker);
-      this.dispatchChangeEvent();
-      this.dispatchMarkersChangeEvent_();
-      return marker;
-    },
-
-    removeAllMarkers: function() {
-      this.markers = [];
-      this.dispatchChangeEvent();
-      this.dispatchMarkersChangeEvent_();
-    },
-
-    getMarkerBounds: function() {
-      var bounds = new tvcm.Range();
-      for (var i = 0; i < this.markers.length; ++i)
-        bounds.addValue(this.markers[i].positionWorld);
-      return bounds;
-    },
-
-    removeMarker: function(marker) {
-      for (var i = 0; i < this.markers.length; ++i) {
-        if (this.markers[i] === marker) {
-          this.markers.splice(i, 1);
-          this.dispatchChangeEvent();
-          this.dispatchMarkersChangeEvent_();
-          return true;
-        }
-      }
-    },
-
-    findMarkerNear: function(positionWorld, nearnessInViewPixels) {
-      // Converts pixels into distance in world.
-      var dt = this.currentDisplayTransform;
-      var nearnessThresholdWorld = dt.xViewVectorToWorld(
-          nearnessInViewPixels);
-      for (var i = 0; i < this.markers.length; ++i) {
-        if (Math.abs(this.markers[i].positionWorld - positionWorld) <=
-            nearnessThresholdWorld) {
-          var marker = this.markers[i];
-          return marker;
-        }
-      }
-      return undefined;
-    },
-
-    drawMarkLines: function(ctx) {
+    drawMajorMarkLines: function(ctx) {
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
@@ -378,58 +328,6 @@ tvcm.exportTo('tracing', function() {
       ctx.restore();
     },
 
-    drawMarkerLines: function(ctx, viewLWorld, viewRWorld) {
-      // Dim the area left and right of the markers if there are 2 markers.
-      var dt = this.currentDisplayTransform;
-      if (this.markers.length === 2) {
-        var posWorld0 = this.markers[0].positionWorld;
-        var posWorld1 = this.markers[1].positionWorld;
-
-        var markerLWorld = Math.min(posWorld0, posWorld1);
-        var markerRWorld = Math.max(posWorld0, posWorld1);
-
-        var markerLView = Math.round(dt.xWorldToView(markerLWorld));
-        var markerRView = Math.round(dt.xWorldToView(markerRWorld));
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        if (markerLWorld > viewLWorld) {
-          ctx.fillRect(dt.xWorldToView(viewLWorld), 0,
-              markerLView, ctx.canvas.height);
-        }
-
-        if (markerRWorld < viewRWorld) {
-          ctx.fillRect(markerRView, 0,
-              dt.xWorldToView(viewRWorld), ctx.canvas.height);
-        }
-      }
-
-      var pixelRatio = window.devicePixelRatio || 1;
-      ctx.lineWidth = Math.round(pixelRatio);
-
-      for (var i = 0; i < this.markers.length; ++i) {
-        var marker = this.markers[i];
-
-        var ts = marker.positionWorld;
-        if (ts < viewLWorld || ts >= viewRWorld)
-          continue;
-
-        marker.drawLine(ctx, ctx.canvas.height);
-      }
-
-      ctx.lineWidth = 1;
-    },
-
-    drawMarkerIndicators: function(ctx, viewLWorld, viewRWorld) {
-      for (var i = 0; i < this.markers.length; ++i) {
-        var marker = this.markers[i];
-        var ts = marker.positionWorld;
-        if (ts < viewLWorld || ts >= viewRWorld)
-          continue;
-
-        marker.drawIndicator(ctx);
-      }
-    },
-
     rebuildEventToTrackMap: function() {
       this.eventToTrackMap_ = undefined;
 
@@ -448,110 +346,7 @@ tvcm.exportTo('tracing', function() {
     }
   };
 
-  /**
-   * Represents a marked position in the world, at a viewport level.
-   * @constructor
-   */
-  function ViewportMarker(vp, positionWorld) {
-    this.viewport_ = vp;
-    this.positionWorld_ = positionWorld;
-    this.selected_ = false;
-
-    this.snapIndicator_ = {
-      show: false,
-      y: 0,
-      height: 0
-    };
-  }
-
-  ViewportMarker.prototype = {
-    get positionWorld() {
-      return this.positionWorld_;
-    },
-
-    set positionWorld(positionWorld) {
-      this.positionWorld_ = positionWorld;
-      this.viewport_.dispatchChangeEvent();
-    },
-
-    get positionView() {
-      return this.viewport_.currentDisplayTransform.xWorldToView(
-          this.positionWorld);
-    },
-
-    set selected(selected) {
-      if (this.selected === selected)
-        return;
-      this.selected_ = selected;
-      this.viewport_.dispatchChangeEvent();
-    },
-
-    get selected() {
-      return this.selected_;
-    },
-
-    get color() {
-      return this.selected ? 'rgb(255, 0, 0)' : 'rgb(0, 0, 0)';
-    },
-
-    drawLine: function(ctx, height) {
-      var dt = this.viewport_.currentDisplayTransform;
-      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
-
-      // Apply subpixel translate to get crisp lines.
-      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
-      ctx.save();
-      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
-
-      ctx.beginPath();
-      tracing.drawLine(ctx, viewX, 0, viewX, height);
-      ctx.strokeStyle = this.color;
-      ctx.stroke();
-
-      ctx.restore();
-    },
-
-    drawIndicator: function(ctx) {
-      if (!this.snapIndicator_.show)
-        return;
-
-      var dt = this.viewport_.currentDisplayTransform;
-      var viewX = Math.round(dt.xWorldToView(this.positionWorld_));
-
-      // Apply subpixel translate to get crisp lines.
-      // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
-      ctx.save();
-      ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
-
-      var pixelRatio = window.devicePixelRatio || 1;
-      var viewY = this.snapIndicator_.y * devicePixelRatio;
-      var viewHeight = this.snapIndicator_.height * devicePixelRatio;
-      var arrowSize = 4 * pixelRatio;
-
-      ctx.fillStyle = this.color;
-      tracing.drawTriangle(ctx,
-          viewX - arrowSize * 0.75, viewY,
-          viewX + arrowSize * 0.75, viewY,
-          viewX, viewY + arrowSize);
-      ctx.fill();
-      tracing.drawTriangle(ctx,
-          viewX - arrowSize * 0.75, viewY + viewHeight,
-          viewX + arrowSize * 0.75, viewY + viewHeight,
-          viewX, viewY + viewHeight - arrowSize);
-      ctx.fill();
-
-      ctx.restore();
-    },
-
-    setSnapIndicator: function(show, y, height) {
-      this.snapIndicator_.show = show;
-      this.snapIndicator_.y = y;
-      this.snapIndicator_.height = height;
-    }
-  };
-
   return {
-    TimelineViewport: TimelineViewport,
-    ViewportMarker: ViewportMarker
+    TimelineViewport: TimelineViewport
   };
 });

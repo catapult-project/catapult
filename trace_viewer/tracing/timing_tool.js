@@ -22,207 +22,187 @@ tvcm.exportTo('tracing', function() {
    * Viewportmarkers.
    * @constructor
    */
-  var TimingTool = function(viewport, targetElement) {
-    this.viewport = viewport;
-
-    this.rangeStartMarker_ = viewport.createMarker(0);
-    this.rangeEndMarker_ = viewport.createMarker(0);
-    this.cursorMarker_ = viewport.createMarker(0);
-    this.activeMarker_ = this.cursorMarker_;
+  function TimingTool(viewport, targetElement) {
+    this.viewport_ = viewport;
 
     // Prepare the event handlers to be added and removed repeatedly.
     this.onMouseMove_ = this.onMouseMove_.bind(this);
     this.onDblClick_ = this.onDblClick_.bind(this);
     this.targetElement_ = targetElement;
+
+    // Valid only during mousedown.
+    this.isMovingLeftEdge_ = false;
   };
 
   TimingTool.prototype = {
 
-    getWorldXFromEvent_: function(e) {
-      var pixelRatio = window.devicePixelRatio || 1;
-      var modelTrackContainer = this.viewport.modelTrackContainer;
-      var viewX = (e.clientX -
-                   modelTrackContainer.offsetLeft -
-                   constants.HEADING_WIDTH) * pixelRatio;
-      return this.viewport.currentDisplayTransform.xViewToWorld(viewX);
-    },
-
     onEnterTiming: function(e) {
-      // Show the cursor marker if it was the active marker, otherwise the two
-      // range markers should be left.
-      if (this.activeMarker_ === this.cursorMarker_)
-        this.viewport.addMarker(this.cursorMarker_);
-
       this.targetElement_.addEventListener('mousemove', this.onMouseMove_);
       this.targetElement_.addEventListener('dblclick', this.onDblClick_);
     },
 
     onBeginTiming: function(e) {
-      var worldX = this.getWorldXFromEvent_(e);
+      var pt = this.getSnappedToEventPosition_(e);
+      this.mouseDownAt_(pt.x, pt.y);
 
-      // Check if click was on a range marker that can be moved.
-      if (!this.activeMarker_) {
-        var marker = this.viewport.findMarkerNear(worldX, 6);
-        if (marker === this.rangeStartMarker_ ||
-            marker === this.rangeEndMarker_) {
-          // Set the clicked marker as active marker so it will be moved.
-          this.activeMarker_ = marker;
-          marker.selected = true;
-          return;
-        }
-      } else {
-        // Otherwise start selecting a new range by hiding the cursor marker and
-        // adding the end marker. This is skipped if there was already a range
-        // on screen.
-        this.viewport.removeMarker(this.cursorMarker_);
-        this.viewport.addMarker(this.rangeEndMarker_);
-      }
+      this.updateSnapIndicators_(pt);
+    },
 
-      // Set the range markers to the mouse or snapped position and select them.
-      var snapPos = this.getSnappedToEventPosition_(e);
-      this.updateMarkerToSnapPosition_(this.rangeStartMarker_, snapPos);
-      this.updateMarkerToSnapPosition_(this.rangeEndMarker_, snapPos);
-
-      this.rangeStartMarker_.selected = true;
-      this.rangeEndMarker_.selected = true;
-
-      // The end marker is the one that is moved.
-      this.activeMarker_ = this.rangeEndMarker_;
+    updateSnapIndicators_: function(pt) {
+      if (!pt.snapped)
+        return;
+      var ir = this.viewport_.interestRange;
+      if (ir.min === pt.x)
+        ir.leftSnapIndicator = new tracing.SnapIndicator(pt.y, pt.height);
+      if (ir.max === pt.x)
+        ir.rightSnapIndicator = new tracing.SnapIndicator(pt.y, pt.height);
     },
 
     onUpdateTiming: function(e) {
-      if (!this.activeMarker_ || this.activeMarker_ === this.cursorMarker_)
-        return;
-
-      // Update the position of the active marker to the cursor position.
-      // This is either the end marker when creating a range, or one of the
-      // range markers when they are moved.
-      var snapPos = this.getSnappedToEventPosition_(e);
-      this.updateMarkerToSnapPosition_(this.activeMarker_, snapPos);
-
-      // When creating a range, only show the start marker after the range
-      // exceeds a certain amount. This prevents a short flicker showing the
-      // dimmed areas left and right of the range when clicking.
-      if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
-        var rangeX = Math.abs(this.rangeStartMarker_.positionView -
-                              this.rangeEndMarker_.positionView);
-        if (rangeX >= tvcm.ui.MIN_MOUSE_SELECTION_DISTANCE)
-          this.viewport.addMarker(this.rangeStartMarker_);
-      }
+      var pt = this.getSnappedToEventPosition_(e);
+      this.mouseMoveAt_(pt.x, pt.y, true);
+      this.updateSnapIndicators_(pt);
     },
 
     onEndTiming: function(e) {
-      if (!this.activeMarker_ || !this.activeMarker_.selected)
-        return;
-
-      e.preventDefault();
-
-      // Check if a range selection is finished now.
-      if (this.rangeStartMarker_.selected && this.rangeEndMarker_.selected) {
-        var rangeX = Math.abs(this.rangeStartMarker_.positionView -
-                              this.rangeEndMarker_.positionView);
-
-        // The range is only valid when it exceeds the minimum mouse selection
-        // distance, otherwise it could have been just a click.
-        if (rangeX >= tvcm.ui.MIN_MOUSE_SELECTION_DISTANCE) {
-          this.rangeStartMarker_.selected = false;
-          this.rangeEndMarker_.selected = false;
-          this.activeMarker_ = null;
-        } else {
-          // If the range is not valid, hide it and activate the cursor marker.
-          this.viewport.removeMarker(this.rangeStartMarker_);
-          this.viewport.removeMarker(this.rangeEndMarker_);
-
-          this.viewport.addMarker(this.cursorMarker_);
-          this.cursorMarker_.positionWorld =
-              this.getWorldXFromEvent_(e);
-          this.activeMarker_ = this.cursorMarker_;
-          e.preventDefault();
-        }
-        return;
-      }
-
-      // Deselect and deactivate a range marker that was moved.
-      this.activeMarker_.selected = false;
-      this.activeMarker_ = null;
+      this.mouseUp_();
     },
 
     onExitTiming: function(e) {
-      // If there is a selected range the markers are left on screen, but the
-      // cursor marker gets removed.
-      if (this.activeMarker_ === this.cursorMarker_)
-        this.viewport.removeMarker(this.cursorMarker_);
-
       this.targetElement_.removeEventListener('mousemove', this.onMouseMove_);
       this.targetElement_.removeEventListener('dblclick', this.onDblClick_);
     },
 
     onMouseMove_: function(e) {
-      var worldX = this.getWorldXFromEvent_(e);
-
-      if (this.activeMarker_) {
-        // Update the position of the cursor marker.
-        if (this.activeMarker_ === this.cursorMarker_) {
-          var snapPos = this.getSnappedToEventPosition_(e);
-          this.updateMarkerToSnapPosition_(this.cursorMarker_, snapPos);
-        }
+      if (e.button)
         return;
-      }
-
-      // If there is no active marker then look for a marker close to the cursor
-      // and indicate that it can be moved by displaying it selected.
-      var marker = this.viewport.findMarkerNear(worldX, 6);
-      if (marker === this.rangeStartMarker_ ||
-          marker === this.rangeEndMarker_) {
-        marker.selected = true;
-      } else {
-        // Otherwise deselect markers that may have been selected before.
-        this.rangeEndMarker_.selected = false;
-        this.rangeStartMarker_.selected = false;
-      }
+      var worldX = this.getWorldXFromEvent_(e);
+      this.mouseMoveAt_(worldX, e.clientY, false);
     },
 
     onDblClick_: function(e) {
-      var modelTrackContainer = this.viewport.modelTrackContainer;
-      var modelTrackContainerRect = modelTrackContainer.getBoundingClientRect();
-
-      var eventWorldX = this.getWorldXFromEvent_(e);
-      var y = e.clientY;
-
-      var selection = new tracing.Selection();
-      modelTrackContainer.addClosestEventToSelection(
-          eventWorldX, Infinity, y, y, selection);
-
-      if (!selection.length)
-        return;
-
-      var slice = selection[0];
-
-      if (!(slice instanceof tracing.trace_model.Slice))
-        return;
-
-      if (slice.start > eventWorldX || slice.end < eventWorldX)
-        return;
-
-      var track = this.viewport.trackForEvent(slice);
-      var trackRect = track.getBoundingClientRect();
-
-      var snapPos = {
-        x: slice.start,
-        y: trackRect.top +
-            modelTrackContainer.scrollTop - modelTrackContainerRect.top,
-        height: trackRect.height,
-        snapped: true
-      };
-      this.updateMarkerToSnapPosition_(this.rangeStartMarker_, snapPos);
-      snapPos.x = slice.end;
-      this.updateMarkerToSnapPosition_(this.rangeEndMarker_, snapPos);
-
-      this.viewport.addMarker(this.rangeStartMarker_);
-      this.viewport.addMarker(this.rangeEndMarker_);
-      this.viewport.removeMarker(this.cursorMarker_);
-      this.activeMarker_ = null;
+      // TODO(nduca): Implement dobuleclicking.
+      console.error('not implemented');
     },
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    mouseDownAt_: function(worldX, y) {
+      var ir = this.viewport_.interestRange;
+      var dt = this.viewport_.currentDisplayTransform;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var nearnessThresholdWorld = dt.xViewVectorToWorld(6 * pixelRatio);
+
+      if (ir.isEmpty) {
+        ir.setMinAndMax(worldX, worldX);
+        ir.rightSelected = true;
+        this.isMovingLeftEdge_ = false;
+        return;
+      }
+
+
+      // Left edge test.
+      if (Math.abs(worldX - ir.min) < nearnessThresholdWorld) {
+        ir.leftSelected = true;
+        ir.min = worldX;
+        this.isMovingLeftEdge_ = true;
+        return;
+      }
+
+      // Right edge test.
+      if (Math.abs(worldX - ir.max) < nearnessThresholdWorld) {
+        ir.rightSelected = true;
+        ir.max = worldX;
+        this.isMovingLeftEdge_ = false;
+        return;
+      }
+
+      ir.setMinAndMax(worldX, worldX);
+      ir.rightSelected = true;
+      this.isMovingLeftEdge_ = false;
+    },
+
+    mouseMoveAt_: function(worldX, y, mouseDown) {
+      var ir = this.viewport_.interestRange;
+
+      if (mouseDown) {
+        this.updateMovingEdge_(worldX);
+        return;
+      }
+
+      var ir = this.viewport_.interestRange;
+      var dt = this.viewport_.currentDisplayTransform;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var nearnessThresholdWorld = dt.xViewVectorToWorld(6 * pixelRatio);
+
+      // Left edge test.
+      if (Math.abs(worldX - ir.min) < nearnessThresholdWorld) {
+        ir.leftSelected = true;
+        ir.rightSelected = false;
+        return;
+      }
+
+      // Right edge test.
+      if (Math.abs(worldX - ir.max) < nearnessThresholdWorld) {
+        ir.leftSelected = false;
+        ir.rightSelected = true;
+        return;
+      }
+
+      ir.leftSelected = false;
+      ir.rightSelected = false;
+      return;
+    },
+
+    updateMovingEdge_: function(newWorldX) {
+      var ir = this.viewport_.interestRange;
+      var a = ir.min;
+      var b = ir.max;
+      if (this.isMovingLeftEdge_)
+        a = newWorldX;
+      else
+        b = newWorldX;
+
+      if (a <= b)
+        ir.setMinAndMax(a, b);
+      else
+        ir.setMinAndMax(b, a);
+
+      if (ir.min == newWorldX) {
+        this.isMovingLeftEdge_ = true;
+        ir.leftSelected = true;
+        ir.rightSelected = false;
+      } else {
+        this.isMovingLeftEdge_ = false;
+        ir.leftSelected = false;
+        ir.rightSelected = true;
+      }
+    },
+
+    mouseUp_: function() {
+      var dt = this.viewport_.currentDisplayTransform;
+      var ir = this.viewport_.interestRange;
+
+      ir.leftSelected = false;
+      ir.rightSelected = false;
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var minWidthValue = dt.xViewVectorToWorld(2 * pixelRatio);
+      if (ir.range < minWidthValue)
+        ir.reset();
+    },
+
+    getWorldXFromEvent_: function(e) {
+      var pixelRatio = window.devicePixelRatio || 1;
+      var modelTrackContainer = this.viewport_.modelTrackContainer;
+      var viewX = (e.clientX -
+                   modelTrackContainer.offsetLeft -
+                   constants.HEADING_WIDTH) * pixelRatio;
+      return this.viewport_.currentDisplayTransform.xViewToWorld(viewX);
+    },
+
 
     /**
      * Get the closest position of an event within a vertical range of the mouse
@@ -240,10 +220,10 @@ tvcm.exportTo('tracing', function() {
       var pixelRatio = window.devicePixelRatio || 1;
       var EVENT_SNAP_RANGE = 16 * pixelRatio;
 
-      var modelTrackContainer = this.viewport.modelTrackContainer;
+      var modelTrackContainer = this.viewport_.modelTrackContainer;
       var modelTrackContainerRect = modelTrackContainer.getBoundingClientRect();
 
-      var viewport = this.viewport;
+      var viewport = this.viewport_;
       var dt = viewport.currentDisplayTransform;
       var worldMaxDist = dt.xViewVectorToWorld(EVENT_SNAP_RANGE);
 
@@ -315,22 +295,6 @@ tvcm.exportTo('tracing', function() {
       }
 
       return result;
-    },
-
-    /**
-     * Update the marker to the snapped position.
-     * @param {ViewportMarker} marker The marker to be updated.
-     * @param {
-     *   {Number} x, The new positionWorld of the marker.
-     *   {Number} y, The new indicatorY of the marker.
-     *   {Number} height, The new indicatorHeight of the marker.
-     *   {boolean} snapped Whether the coordinates are from a snapped event or
-     *     the mouse position.
-     * } snapPos
-     */
-    updateMarkerToSnapPosition_: function(marker, snapPos) {
-      marker.setSnapIndicator(snapPos.snapped, snapPos.y, snapPos.height);
-      marker.positionWorld = snapPos.x;
     }
   };
 

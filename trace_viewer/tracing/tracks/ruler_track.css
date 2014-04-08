@@ -7,6 +7,6 @@
   height: 12px;
 }
 
-.ruler-track-with-distance-measurements {
+.ruler-track.tall-mode {
   height: 30px;
 }

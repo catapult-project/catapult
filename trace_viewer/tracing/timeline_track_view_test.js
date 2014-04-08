@@ -242,4 +242,58 @@ tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
     timeline.setSelectionAndHighlight(null, null);
     checkSelectionStates(timeline, null, null);
   });
+
+  test('interestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tracing.TraceModel(events);
+    var trackView = new tracing.TimelineTrackView();
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+
+    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    trackView.viewport.interestRange.setMinAndMax(slice.start, slice.end);
+  });
+
+  test('emptyInterestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tracing.TraceModel(events);
+    var trackView = new tracing.TimelineTrackView();
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+    trackView.viewport.interestRange.reset();
+  });
+
+
+  test('thinnestInterestRange', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'c', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    var model = new tracing.TraceModel(events);
+    var trackView = new tracing.TimelineTrackView();
+    trackView.model = model;
+    this.addHTMLOutput(trackView);
+    trackView.viewport.interestRange.reset();
+
+    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    trackView.viewport.interestRange.setMinAndMax(slice.start, slice.start);
+  });
 });
