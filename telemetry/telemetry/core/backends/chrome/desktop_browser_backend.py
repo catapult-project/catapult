@@ -77,29 +77,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         shutil.rmtree(self._tmp_profile_dir)
         shutil.copytree(profile_dir, self._tmp_profile_dir)
 
-  def _LaunchBrowser(self):
-    args = [self._executable]
-    args.extend(self.GetBrowserStartupArgs())
-    if self.browser_options.startup_url:
-      args.append(self.browser_options.startup_url)
-    env = os.environ.copy()
-    env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
-    env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
-    logging.debug('Starting Chrome %s', args)
-    if not self.browser_options.show_stdout:
-      self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
-      self._proc = subprocess.Popen(
-          args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
-    else:
-      self._proc = subprocess.Popen(args, env=env)
-
-    try:
-      self._WaitForBrowserToComeUp()
-      self._PostBrowserStartupInitialization()
-    except:
-      self.Close()
-      raise
-
   def HasBrowserFinishedLaunching(self):
     # In addition to the functional check performed by the base class, quickly
     # check if the browser process is still alive.
@@ -133,7 +110,29 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._profile_dir = profile_dir
 
   def Start(self):
-    self._LaunchBrowser()
+    assert not self._proc, 'Must call Close() before Start()'
+
+    args = [self._executable]
+    args.extend(self.GetBrowserStartupArgs())
+    if self.browser_options.startup_url:
+      args.append(self.browser_options.startup_url)
+    env = os.environ.copy()
+    env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
+    env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
+    logging.debug('Starting Chrome %s', args)
+    if not self.browser_options.show_stdout:
+      self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
+      self._proc = subprocess.Popen(
+          args, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
+    else:
+      self._proc = subprocess.Popen(args, env=env)
+
+    try:
+      self._WaitForBrowserToComeUp()
+      self._PostBrowserStartupInitialization()
+    except:
+      self.Close()
+      raise
 
   @property
   def pid(self):
