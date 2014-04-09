@@ -3,10 +3,14 @@
 # found in the LICENSE file.
 
 from telemetry.core import forwarders
+from telemetry.core import util
+
 
 # TODO(tonyg): Move webpagereplay.py's guts into this class and
 # make ReplayServer subclass LocalServer.
-from telemetry.core import webpagereplay
+util.AddDirToPythonPath(
+    util.GetChromiumSrcDir(), 'chrome', 'test', 'functional')
+import webpagereplay  # pylint: disable=F0401
 
 
 def GetChromeFlags(replay_host, port_pairs):
