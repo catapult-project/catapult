@@ -492,6 +492,8 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     ProcessError()
     # Run() catches these exceptions to relaunch the tab/browser, so re-raise.
     raise
+  except page_action.PageActionNotSupported as e:
+    results.AddSkip(page, 'Unsupported page action: %s' % e)
   except Exception:
     logging.warning('While running %s', page.url)
     exception_formatter.PrintFormattedException()

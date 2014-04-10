@@ -42,6 +42,7 @@ class PageTestResults(unittest.TestResult):
     self.successes.append(test)
 
   def addSkip(self, test, reason):  # Python 2.7 has this in unittest.TestResult
+    logging.warning('%s\n%s\nSkipping page.', test, reason)
     self.skipped.append((test, reason))
 
   def StartTest(self, page):
