@@ -335,10 +335,13 @@ tvcm.exportTo('tracing', function() {
     },
 
     onViewportChanged_: function(e) {
-      if (this.trackView_ === undefined)
-        return;
-      var vr = this.trackView_.viewport.interestRange.asRangeObject();
       var spc = this.timelineViewSidePanelContainer_;
+      if (!this.trackView_) {
+        spc.rangeOfInterest.reset();
+        return;
+      }
+
+      var vr = this.trackView_.viewport.interestRange.asRangeObject();
       if (!spc.rangeOfInterest.equals(vr))
         spc.rangeOfInterest = vr;
     }
