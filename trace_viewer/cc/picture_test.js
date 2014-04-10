@@ -32,7 +32,7 @@ tvcm.unittest.testSuite('cc.picture_test', function() {
     var ops = snapshot.getOps();
     if (!ops)
       return;
-    assertEquals(627, ops.length);
+    assertEquals(140, ops.length);
 
     var op0 = ops[0];
     assertEquals('Save', op0.cmd_string);

@@ -24,7 +24,7 @@ tvcm.unittest.testSuite('cc.picture_ops_list_view_test', function() {
 
     var view = new PictureOpsListView();
     view.picture = snapshot;
-    assertEquals(627, view.opsList_.children.length);
+    assertEquals(140, view.opsList_.children.length);
   });
 
   test('selection', function() {
