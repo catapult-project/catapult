@@ -133,6 +133,8 @@ tvcm.exportTo('tracing', function() {
       this.appendChild(tvcm.instantiateTemplate(
           '#x-time-summary-side-panel-template'));
 
+      this.rangeOfInterest_ = new tvcm.Range();
+      this.selection_ = undefined;
       this.groupBy_ = GROUP_BY_PROCESS_NAME;
       this.chart_ = undefined;
 
