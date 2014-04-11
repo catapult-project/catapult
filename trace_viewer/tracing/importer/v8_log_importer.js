@@ -27,12 +27,12 @@ tvcm.exportTo('tracing.importer', function() {
 
     this.code_map_ = new tracing.importer.v8.CodeMap();
     this.v8_timer_thread_ = undefined;
-    this.v8_stack_thread_ = undefined;
-    this.v8_samples_thread_ = undefined;
+    this.v8_thread_ = undefined;
 
-    // we maintain the timestamp of the last tick to verify if a stack is
-    // a continuation from the last sample, or it is a new stack.
-    this.last_tick_timestamp_ = undefined;
+    this.root_stack_frame_ = new tracing.trace_model.StackFrame(
+        undefined, 'v8-root-stack-frame',
+        'v8-root-stack-frame', 'v8-root-stack-frame', 0);
+
     // We reconstruct the stack timeline from ticks.
     this.v8_stack_timeline_ = new Array();
   }
@@ -132,61 +132,58 @@ tvcm.exportTo('tracing.importer', function() {
       }
     },
 
-    nameForCodeEntry_: function(entry) {
-      if (entry)
-        return entry.name;
-      return 'UnknownCode';
-    },
-
     processTickEvent_: function(pc, start, unused_x, unused_y, vmstate, stack) {
-      // Transform ticks into events by aggregating stack frames across ticks
-      // For example:
-      //
-      // Tick Time: 0 1 2 3 4 5 6 7 8 9
-      // Stack:     A A A A B B   C C C
-      //            D D   E F       G G
-      //            H     I           J
-      //
-      // would become
-      //
-      // Time:      0 1   3 4 5   7   9
-      // Slices:    [  A  ] [B]   [ C ]
-      //            [D]   E F       [G]
-      //            H     I           J
-
-      var entry = this.code_map_.findEntry(pc);
-      var name = this.nameForCodeEntry_(entry);
       start /= 1000;
-      this.v8_samples_thread_.addSample('v8', name, start);
 
-      if (stack && stack.length) {
-        var stack_frame = this.v8_stack_timeline_;
-        for (var i = stack.length - 1; i >= 0; i--) {
-          if (!stack[i]) break;
-          entry = this.code_map_.findEntry(stack[i]);
-          name = this.nameForCodeEntry_(entry);
-          if (stack_frame.length > 0 &&
-                  stack_frame[stack_frame.length - 1].name == name &&
-                  stack_frame[stack_frame.length - 1].end ==
-                      this.last_tick_timestamp_) {
-            // If the entry from the previous stack at the same level had the
-            // same name we extend it to include the current tick as well.
-            stack_frame[stack_frame.length - 1].end = start;
-          } else {
-            // otherwise we create a new entry.
-            var record = {
-              name: name,
-              start: start,
-              end: start,
-              children: new Array()
-            };
-            stack_frame.push(record);
-          }
-          stack_frame = stack_frame[stack_frame.length - 1].children;
+      function findChildWithEntryID(stackFrame, entryID) {
+        for (var i = 0; i < stackFrame.children.length; i++) {
+          if (stackFrame.children[i].entryID == entryID)
+            return stackFrame.children[i];
         }
-        // The last tick time stamp gets updated only when we have a stack
-        this.last_tick_timestamp_ = start;
+        return undefined;
       }
+
+      var lastStackFrame;
+      if (stack && stack.length) {
+
+        lastStackFrame = this.root_stack_frame_;
+        for (var i = 0; i < stack.length; i++) {
+          if (!stack[i])
+            break;
+          var entry = this.code_map_.findEntry(stack[i]);
+
+          var entryID = entry ? entry.id : 'Unknown';
+          var childFrame = findChildWithEntryID(lastStackFrame, entryID);
+          if (childFrame === undefined) {
+            var entryName = entry ? entry.name : 'Unknown';
+            lastStackFrame = new tracing.trace_model.StackFrame(
+                lastStackFrame, 'v8sf-' + tvcm.GUID.allocate(),
+                'v8', entryName,
+                tvcm.ui.getStringColorId(name));
+            lastStackFrame.entryID = entryID;
+            this.model_.addStackFrame(lastStackFrame);
+          } else {
+            lastStackFrame = childFrame;
+          }
+        }
+      } else {
+        var pcEntry = this.code_map_.findEntry(pc);
+        var pcEntryID = 'v8pc-' + (pcEntry ? pcEntry.id : 'Unknown');
+        if (this.model_.stackFrames[pcEntryID] === undefined) {
+          var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
+          lastStackFrame = new tracing.trace_model.StackFrame(
+              undefined, pcEntryID,
+              'v8', pcEntryName,
+              tvcm.ui.getStringColorId(name));
+          this.model_.addStackFrame(lastStackFrame);
+        }
+        lastStackFrame = this.model_.stackFrames[pcEntryID];
+      }
+
+      var sample = new tracing.trace_model.Sample(
+          undefined, this.v8_thread_, 'V8 PC',
+          start, lastStackFrame, 1);
+      this.model_.samples.push(sample);
     },
 
     processDistortion_: function(distortion_in_picoseconds) {
@@ -249,17 +246,19 @@ tvcm.exportTo('tracing.importer', function() {
       this.v8_timer_thread_ =
           this.model_.getOrCreateProcess(-32).getOrCreateThread(1);
       this.v8_timer_thread_.name = 'V8 Timers';
-      this.v8_stack_thread_ =
+      this.v8_thread_ =
           this.model_.getOrCreateProcess(-32).getOrCreateThread(2);
-      this.v8_stack_thread_.name = 'V8 JavaScript';
-      this.v8_samples_thread_ =
-          this.model_.getOrCreateProcess(-32).getOrCreateThread(3);
-      this.v8_samples_thread_.name = 'V8 PC';
+      this.v8_thread_.name = 'V8';
 
       var lines = this.logData_.split('\n');
       for (var i = 0; i < lines.length; i++) {
         logreader.processLogLine(lines[i]);
       }
+
+      // The processing of samples adds all the root stack frame to
+      // this.root_stack_frame_. But, we don't want that stack frame in the real
+      // model. So get rid of it.
+      this.root_stack_frame_.removeAllChildren();
 
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {
@@ -271,7 +270,7 @@ tvcm.exportTo('tracing.importer', function() {
           addSlices(slices[i].children, thread);
         }
       }
-      addSlices(this.v8_stack_timeline_, this.v8_stack_thread_);
+      addSlices(this.v8_stack_timeline_, this.v8_thread_);
     }
   };
 

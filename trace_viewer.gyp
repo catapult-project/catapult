@@ -203,6 +203,7 @@
       'trace_viewer/tracing/trace_model/process.js',
       'trace_viewer/tracing/trace_model/process_base.js',
       'trace_viewer/tracing/trace_model/sample.js',
+      'trace_viewer/tracing/trace_model/stack_frame.js',
       'trace_viewer/tracing/trace_model/slice.js',
       'trace_viewer/tracing/trace_model/slice_group.js',
       'trace_viewer/tracing/trace_model/thread.js',

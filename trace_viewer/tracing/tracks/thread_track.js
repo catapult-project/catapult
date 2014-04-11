@@ -12,6 +12,7 @@ tvcm.require('tracing.tracks.slice_group_track');
 tvcm.require('tracing.tracks.async_slice_group_track');
 tvcm.require('tracing.filter');
 tvcm.require('tvcm.ui');
+tvcm.require('tvcm.iteration_helpers');
 
 tvcm.exportTo('tracing.tracks', function() {
 
@@ -58,21 +59,7 @@ tvcm.exportTo('tracing.tracks', function() {
           this.appendChild(asyncTrack);
       }
 
-      if (this.thread_.samples.length) {
-        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
-        samplesTrack.group = this.thread_;
-        samplesTrack.slices = this.thread_.samples;
-        samplesTrack.heading = this.thread_.userFriendlyName;
-        samplesTrack.tooltip = this.thread_.userFriendlyDetails;
-        samplesTrack.selectionGenerator = function() {
-          var selection = new tracing.Selection();
-          for (var i = 0; i < samplesTrack.slices.length; i++) {
-            selection.push(samplesTrack.slices[i]);
-          }
-          return selection;
-        };
-        this.appendChild(samplesTrack);
-      }
+      this.appendThreadSamplesTracks_();
 
       if (this.thread_.timeSlices) {
         var timeSlicesTrack = new tracing.tracks.SliceTrack(this.viewport);
@@ -91,6 +78,39 @@ tvcm.exportTo('tracing.tracks', function() {
         if (track.hasVisibleContent)
           this.appendChild(track);
       }
+    },
+
+    appendThreadSamplesTracks_: function() {
+      var threadSamples = this.thread_.samples;
+      if (threadSamples === undefined || threadSamples.length === 0)
+        return;
+      var samplesByTitle = {};
+      threadSamples.forEach(function(sample) {
+        if (samplesByTitle[sample.title] === undefined)
+          samplesByTitle[sample.title] = [];
+        samplesByTitle[sample.title].push(sample);
+      });
+
+      var sampleTitles = tvcm.dictionaryKeys(samplesByTitle);
+      sampleTitles.sort();
+
+      sampleTitles.forEach(function(sampleTitle) {
+        var samples = samplesByTitle[sampleTitle];
+        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        samplesTrack.group = this.thread_;
+        samplesTrack.slices = samples;
+        samplesTrack.heading = this.thread_.userFriendlyName + ': ' +
+            sampleTitle;
+        samplesTrack.tooltip = this.thread_.userFriendlyDetails;
+        samplesTrack.selectionGenerator = function() {
+          var selection = new tracing.Selection();
+          for (var i = 0; i < samplesTrack.slices.length; i++) {
+            selection.push(samplesTrack.slices[i]);
+          }
+          return selection;
+        };
+        this.appendChild(samplesTrack);
+      }, this);
     },
 
     collapsedDidChange: function(collapsed) {

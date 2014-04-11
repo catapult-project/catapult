@@ -54,6 +54,8 @@ tvcm.exportTo('tracing.importer', function() {
     this.importPriority = 1;
     this.model_ = model;
     this.events_ = undefined;
+    this.sampleEvents_ = undefined;
+    this.stackFrameEvents_ = undefined;
     this.systemTraceEvents_ = undefined;
     this.eventsWereFromString_ = false;
     this.allAsyncEvents_ = [];
@@ -90,9 +92,14 @@ tvcm.exportTo('tracing.importer', function() {
       // out. It will be picked up by extractSubtraces later on.
       this.systemTraceEvents_ = container.systemTraceEvents;
 
+      // Sampling data.
+      this.sampleEvents_ = container.samples;
+      this.stackFrameEvents_ = container.stackFrames;
+
       // Any other fields in the container should be treated as metadata.
       for (var fieldName in container) {
-        if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents')
+        if (fieldName === 'traceEvents' || fieldName === 'systemTraceEvents' ||
+            fieldName === 'samples' || fieldName === 'stackFrames')
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
@@ -118,9 +125,14 @@ tvcm.exportTo('tracing.importer', function() {
       return true;
 
     // Might be an object with a traceEvents field in it.
-    if (eventData.traceEvents)
-      return eventData.traceEvents instanceof Array &&
-          eventData.traceEvents[0].ph;
+    if (eventData.traceEvents) {
+      if (eventData.traceEvents instanceof Array) {
+        if (eventData.traceEvents.length && eventData.traceEvents[0].ph)
+          return true;
+        if (eventData.samples.length && eventData.stackFrames !== undefined)
+          return true;
+      }
+    }
 
     return false;
   };
@@ -351,11 +363,22 @@ tvcm.exportTo('tracing.importer', function() {
       }
     },
 
-    processSampleEvent: function(event) {
+    processTraceSampleEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
-      thread.addSample(event.cat, event.name, event.ts / 1000,
-                       this.deepCopyIfNeeded_(event.args));
+
+      var id = 'te-' + tvcm.GUID.allocate();
+      var stackFrame = new tracing.trace_model.StackFrame(
+          undefined, id,
+          event.cat, event.name,
+          tvcm.ui.getStringColorId(event.name));
+      this.model_.addStackFrame(stackFrame);
+
+      var sample = new tracing.trace_model.Sample(
+          undefined, thread, 'TRACE_EVENT_SAMPLE',
+          event.ts / 1000, stackFrame, 1,
+          this.deepCopyIfNeeded_(event.args));
+      this.model_.samples.push(sample);
     },
 
     /**
@@ -382,7 +405,7 @@ tvcm.exportTo('tracing.importer', function() {
           this.processInstantEvent(event);
 
         } else if (event.ph == 'P') {
-          this.processSampleEvent(event);
+          this.processTraceSampleEvent(event);
 
         } else if (event.ph == 'C') {
           this.processCounterEvent(event);
@@ -404,6 +427,41 @@ tvcm.exportTo('tracing.importer', function() {
           });
         }
       }
+
+      if (this.stackFrameEvents_)
+        this.importStackFrames_();
+    },
+
+    importStackFrames_: function() {
+      var m = this.model_;
+      var events = this.stackFrameEvents_;
+      for (var id in events) {
+        var event = events[id];
+        var textForColor = event.category ? event.category : event.name;
+        var frame = new tracing.trace_model.StackFrame(
+            undefined, id,
+            event.category, event.name,
+            tvcm.ui.getStringColorId(textForColor));
+        m.addStackFrame(frame);
+      }
+      for (var id in events) {
+        var event = events[id];
+        if (event.parent === undefined)
+          continue;
+
+        var frame = m.stackFrames[id];
+        if (frame === undefined)
+          throw new Error('omg');
+        var parentFrame;
+        if (event.parent === undefined) {
+          parentFrame = undefined;
+        } else {
+          parentFrame = m.stackFrames[event.parent];
+          if (parentFrame === undefined)
+            throw new Error('omg');
+        }
+        frame.parentFrame = parentFrame;
+      }
     },
 
     /**
@@ -415,6 +473,58 @@ tvcm.exportTo('tracing.importer', function() {
       this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
+    },
+
+    importSampleData: function() {
+      if (!this.sampleEvents_)
+        return;
+      var m = this.model_;
+
+      // If this is the only importer, then fake-create the threads.
+      var events = this.sampleEvents_;
+      if (this.events_.length === 0) {
+        for (var i = 0; i < events.length; i++) {
+          var event = events[i];
+          m.getOrCreateProcess(event.tid).getOrCreateThread(event.tid);
+        }
+      }
+
+      var threadsByTid = {};
+      m.getAllThreads().forEach(function(t) {
+        threadsByTid[t.tid] = t;
+      });
+
+      for (var i = 0; i < events.length; i++) {
+        var event = events[i];
+        var thread = threadsByTid[event.tid];
+        if (thread === undefined) {
+          m.importWarning({
+            type: 'sample_import_error',
+            message: 'Thread ' + events.tid + 'not found'
+          });
+          continue;
+        }
+
+        var cpu;
+        if (event.cpu !== undefined)
+          cpu = m.kernel.getOrCreateCpu(event.cpu);
+
+        var stackFrame = m.stackFrames[event.sf];
+        if (stackFrame === undefined) {
+          m.importWarning({
+            type: 'sample_import_error',
+            message: 'No frame for ' + event.sf
+          });
+          continue;
+        }
+
+        var sample = new tracing.trace_model.Sample(
+            cpu, thread,
+            event.name, event.ts / 1000,
+            stackFrame,
+            event.weight);
+        m.samples.push(sample);
+      }
     },
 
     /**

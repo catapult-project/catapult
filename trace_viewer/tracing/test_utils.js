@@ -54,8 +54,12 @@ tvcm.exportTo('tracing.test_utils', function() {
     return s;
   }
 
-  function newSampleNamed(name, start) {
-    var s = new tracing.trace_model.Sample('', name, 0, start, {});
+  function newSampleNamed(thread, sampleName, lastFrameName, start) {
+    var f = new tracing.trace_model.StackFrame(undefined, tvcm.GUID.allocate(),
+                                               '', lastFrameName, 0);
+    thread.parent.model.addStackFrame(f);
+    var s = new tracing.trace_model.Sample(undefined, thread, sampleName,
+                                           0, f, 1);
     return s;
   }
 

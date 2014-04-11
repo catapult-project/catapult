@@ -11,14 +11,14 @@ tvcm.unittest.testSuite('tracing.trace_model.cpu_test', function() {
   var Cpu = tracing.trace_model.Cpu;
 
   test('cpuBounds_Empty', function() {
-    var cpu = new Cpu(undefined, 1);
+    var cpu = new Cpu({}, 1);
     cpu.updateBounds();
     assertEquals(undefined, cpu.bounds.min);
     assertEquals(undefined, cpu.bounds.max);
   });
 
   test('cpuBounds_OneSlice', function() {
-    var cpu = new Cpu(undefined, 1);
+    var cpu = new Cpu({}, 1);
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
     cpu.updateBounds();
     assertEquals(1, cpu.bounds.min);
@@ -26,14 +26,14 @@ tvcm.unittest.testSuite('tracing.trace_model.cpu_test', function() {
   });
 
   test('getOrCreateCounter', function() {
-    var cpu = new Cpu(undefined, 1);
+    var cpu = new Cpu({}, 1);
     var ctrBar = cpu.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = cpu.getOrCreateCounter('foo', 'bar');
     assertEquals(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
-    var cpu = new Cpu(undefined, 1);
+    var cpu = new Cpu({}, 1);
     var ctr = cpu.getOrCreateCounter('foo', 'bar');
     cpu.slices.push(tracing.test_utils.newSlice(1, 3));
     var shiftCount = 0;

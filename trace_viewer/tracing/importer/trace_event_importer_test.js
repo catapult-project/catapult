@@ -1151,9 +1151,9 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(0.0, t.samples_[0].start);
     assertEquals(0.0, t.samples_[1].start);
     assertApproxEquals(0.01, t.samples_[2].start);
-    assertEquals('a', t.samples_[0].title);
-    assertEquals('b', t.samples_[1].title);
-    assertEquals('c', t.samples_[2].title);
+    assertEquals('a', t.samples_[0].leafStackFrame.title);
+    assertEquals('b', t.samples_[1].leafStackFrame.title);
+    assertEquals('c', t.samples_[2].leafStackFrame.title);
     assertFalse(m.hasImportWarnings);
   });
 
@@ -1606,6 +1606,70 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     // slices should keep the order that they were recorded.
     for (var i = 0; i < 1000; i++)
       assertEquals(subSlices[i].args['seq'], i);
+  });
+
+  test('sampleDataSimple', function() {
+    var events = {
+      'traceEvents': [],
+      'stackFrames': {
+        '1': {
+          'category': 'mod',
+          'name': 'main'
+        },
+        '2': {
+          'category': 'mod',
+          'name': 'a',
+          'parent': 1
+        },
+        '3': {
+          'category': 'mod',
+          'name': 'a_sub',
+          'parent': 2
+        },
+        '4': {
+          'category': 'mod',
+          'name': 'b',
+          'parent': 1
+        }
+      },
+      'samples': [
+        {
+          'cpu': 0, 'tid': 1, 'ts': 1000.0,
+          'name': 'cycles:HG', 'sf': 3, 'weight': 1
+        },
+        {
+          'cpu': 0, 'tid': 1, 'ts': 2000.0,
+          'name': 'cycles:HG', 'sf': 2, 'weight': 1
+        },
+        {
+          'cpu': 1, 'tid': 1, 'ts': 3000.0,
+          'name': 'cycles:HG', 'sf': 3, 'weight': 1
+        }
+      ]
+    };
+    var m = new tracing.TraceModel(events, false);
+    assertNotUndefined(m.kernel.cpus[0]);
+    assertEquals(1, m.getAllThreads().length);
+
+    assertEquals(4, tvcm.dictionaryKeys(m.stackFrames).length);
+    assertEquals(3, m.samples.length);
+
+    var t1 = m.processes[1].threads[1];
+    assertEquals(3, t1.samples.length);
+
+    var c0 = m.kernel.cpus[0];
+    var c1 = m.kernel.cpus[1];
+    assertEquals(2, c0.samples.length);
+    assertEquals(1, c1.samples.length);
+
+    assertEquals(c0, m.samples[0].cpu);
+    assertEquals(t1, m.samples[0].thread);
+    assertEquals('cycles:HG', m.samples[0].title);
+    assertEquals(1, m.samples[0].start);
+    assertArrayEquals(
+        ['main', 'a', 'a_sub'],
+        m.samples[0].stackTrace.map(function(x) { return x.title; }));
+    assertEquals(1, m.samples[0].weight);
   });
 
   // TODO(nduca): one slice, two threads

@@ -60,6 +60,8 @@ tvcm.exportTo('tracing.tracks', function() {
         this.appendChild(track);
       }
 
+      this.appendSamplesTracks_();
+
       for (var counterName in this.cpu_.counters) {
         var counter = this.cpu_.counters[counterName];
         track = new tracing.tracks.CounterTrack(this.viewport);
@@ -68,6 +70,39 @@ tvcm.exportTo('tracing.tracks', function() {
         track.counter = counter;
         this.appendChild(track);
       }
+    },
+
+    appendSamplesTracks_: function() {
+      var samples = this.cpu_.samples;
+      if (samples === undefined || samples.length === 0)
+        return;
+      var samplesByTitle = {};
+      samples.forEach(function(sample) {
+        if (samplesByTitle[sample.title] === undefined)
+          samplesByTitle[sample.title] = [];
+        samplesByTitle[sample.title].push(sample);
+      });
+
+      var sampleTitles = tvcm.dictionaryKeys(samplesByTitle);
+      sampleTitles.sort();
+
+      sampleTitles.forEach(function(sampleTitle) {
+        var samples = samplesByTitle[sampleTitle];
+        var samplesTrack = new tracing.tracks.SliceTrack(this.viewport);
+        samplesTrack.group = this.cpu_;
+        samplesTrack.slices = samples;
+        samplesTrack.heading = this.cpu_.userFriendlyName + ': ' +
+            sampleTitle;
+        samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
+        samplesTrack.selectionGenerator = function() {
+          var selection = new tracing.Selection();
+          for (var i = 0; i < samplesTrack.slices.length; i++) {
+            selection.push(samplesTrack.slices[i]);
+          }
+          return selection;
+        };
+        this.appendChild(samplesTrack);
+      }, this);
     }
   };
 

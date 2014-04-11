@@ -55,7 +55,7 @@ tvcm.exportTo('tracing.trace_model', function() {
      */
     getOrCreateCpu: function(cpuNumber) {
       if (!this.cpus[cpuNumber])
-        this.cpus[cpuNumber] = new Cpu(cpuNumber);
+        this.cpus[cpuNumber] = new Cpu(this, cpuNumber);
       return this.cpus[cpuNumber];
     },
 
@@ -71,6 +71,14 @@ tvcm.exportTo('tracing.trace_model', function() {
         var cpu = this.cpus[cpuNumber];
         cpu.updateBounds();
         this.bounds.addRange(cpu.bounds);
+      }
+    },
+
+    createSubSlices: function() {
+      ProcessBase.prototype.createSubSlices.call(this);
+      for (var cpuNumber in this.cpus) {
+        var cpu = this.cpus[cpuNumber];
+        cpu.createSubSlices();
       }
     },
 

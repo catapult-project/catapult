@@ -72,22 +72,25 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
 
   var createSelectionWithSamples = function() {
     var model = new Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
-    t53.sliceGroup.pushSlice(newSampleNamed('BBB', 0));
-    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.02));
-    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.04));
-    t53.sliceGroup.pushSlice(newSampleNamed('Sleeping', 0.06));
-    t53.sliceGroup.pushSlice(newSampleNamed('BBB', 0.08));
-    t53.sliceGroup.pushSlice(newSampleNamed('AAA', 0.10));
-    t53.sliceGroup.pushSlice(newSampleNamed('CCC', 0.12));
-    t53.sliceGroup.pushSlice(newSampleNamed('Sleeping', 0.14));
+    var t53;
+    model.importTraces([], false, false, function() {
+      t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+      model.samples.push(newSampleNamed(t53, 'X', 'BBB', 0));
+      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.02));
+      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.04));
+      model.samples.push(newSampleNamed(t53, 'X', 'Sleeping', 0.06));
+      model.samples.push(newSampleNamed(t53, 'X', 'BBB', 0.08));
+      model.samples.push(newSampleNamed(t53, 'X', 'AAA', 0.10));
+      model.samples.push(newSampleNamed(t53, 'X', 'CCC', 0.12));
+      model.samples.push(newSampleNamed(t53, 'X', 'Sleeping', 0.14));
+    });
 
     var t53track = {};
     t53track.thread = t53;
 
     var selection = new Selection();
-    for (var i = 0; i < 8; i++)
-      selection.push(t53.sliceGroup.slices[i]);
+    for (var i = 0; i < t53.samples.length; i++)
+      selection.push(t53.samples[i]);
     return selection;
   };
 

@@ -12,6 +12,8 @@ tvcm.require('tvcm.ui.dom_helpers');
 tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
   var Process = tracing.trace_model.Process;
   var Selection = tracing.Selection;
+  var StackFrame = tracing.trace_model.StackFrame;
+  var Sample = tracing.trace_model.Sample;
   var Thread = tracing.trace_model.Thread;
   var ThreadSlice = tracing.trace_model.ThreadSlice;
   var ThreadTrack = tracing.tracks.ThreadTrack;
@@ -76,21 +78,53 @@ tvcm.unittest.testSuite('tracing.tracks.thread_track_test', function() {
 
   test('sampleThreadSlices', function() {
     var model = new tracing.TraceModel();
-    var thread = new Thread(new Process(model, 7), 1);
-    thread.addSample('a', 'b', 0);
-    thread.addSample('a', 'c', 5);
-    thread.addSample('aa', 'd', 10);
-    thread.addSample('aa', 'e', 15);
+    var thread;
+    var cpu;
+    model.importTraces([], false, false, function() {
+      cpu = model.kernel.getOrCreateCpu(1);
+      thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+
+      var fA = model.addStackFrame(new StackFrame(
+          undefined, 1, 'cat', 'a', 7));
+      var fAB = model.addStackFrame(new StackFrame(
+          fA, 2, 'cat', 'b', 7));
+      var fABC = model.addStackFrame(new StackFrame(
+          fAB, 3, 'cat', 'c', 7));
+      var fAD = model.addStackFrame(new StackFrame(
+          fA, 4, 'cat', 'd', 7));
+
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    10, fABC, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    20, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    30, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'instructions_retired',
+                                    40, fAD, 10));
+
+      model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                    25, fAB, 10));
+      model.samples.push(new Sample(undefined, thread, 'page_fault',
+                                    35, fAD, 10));
+    });
+
     var t = new ThreadTrack(new tracing.TimelineViewport());
     t.thread = thread;
-    assertEquals(1, t.tracks_.length);
-    assertTrue(t.tracks_[0] instanceof tracing.tracks.SliceTrack);
-    assertTrue(4, t.tracks_[0].slices.length);
-    var slices = t.tracks_[0].slices;
-    assertTrue(4, slices.length);
-    assertTrue(slices[0] instanceof tracing.trace_model.Sample);
-    assertTrue(slices[1] instanceof tracing.trace_model.Sample);
-    assertTrue(slices[2] instanceof tracing.trace_model.Sample);
-    assertTrue(slices[3] instanceof tracing.trace_model.Sample);
+    assertEquals(2, t.tracks_.length);
+
+    // Instructions retired
+    var t0 = t.tracks_[0];
+    assertTrue(t0.heading.indexOf('instructions_retired') != -1);
+    assertTrue(t0 instanceof tracing.tracks.SliceTrack);
+    assertTrue(4, t0.slices.length);
+    t0.slices.forEach(function(s) {
+      assertTrue(s instanceof tracing.trace_model.Sample);
+    });
+
+    // page_fault
+    var t1 = t.tracks_[1];
+    assertTrue(t1.heading.indexOf('page_fault') != -1);
+    assertTrue(t1 instanceof tracing.tracks.SliceTrack);
+    assertTrue(2, t1.slices.length);
   });
 });

@@ -12,7 +12,6 @@ tvcm.require('tvcm.range');
 tvcm.require('tracing.trace_model.slice');
 tvcm.require('tracing.trace_model.slice_group');
 tvcm.require('tracing.trace_model.async_slice_group');
-tvcm.require('tracing.trace_model.sample');
 
 tvcm.exportTo('tracing.trace_model', function() {
 
@@ -66,6 +65,8 @@ tvcm.exportTo('tracing.trace_model', function() {
     this.parent = parent;
     this.sortIndex = 0;
     this.tid = tid;
+    this.name = undefined;
+    this.samples_ = undefined; // Set during createSubSlices
 
     var that = this;
     function ThreadSliceForThisThread(
@@ -81,7 +82,6 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     this.sliceGroup = new SliceGroup(ThreadSliceForThisThread);
     this.timeSlices = undefined;
-    this.samples_ = [];
     this.kernelSliceGroup = new SliceGroup();
     this.asyncSliceGroup = new AsyncSliceGroup();
     this.bounds = new tvcm.Range();
@@ -118,48 +118,6 @@ tvcm.exportTo('tracing.trace_model', function() {
     },
 
     /**
-     * Adds a new sample in the thread's samples.
-     *
-     * Calls to addSample must be made with non-monotonically-decreasing
-     * timestamps.
-     *
-     * @param {String} category Category of the sample to add.
-     * @param {String} title Title of the sample to add.
-     * @param {Number} ts The timetsamp of the sample, in milliseconds.
-     * @param {Object.<string, Object>=} opt_args Arguments associated with
-     * the sample.
-     */
-    addSample: function(category, title, ts, opt_args) {
-      if (this.samples_.length) {
-        var lastSample = this.samples_[this.samples_.length - 1];
-        if (ts < lastSample.start) {
-          throw new
-              Error('Samples must be added in increasing timestamp order.');
-        }
-      }
-      var colorId = tvcm.ui.getStringColorId(title);
-      var sample = new tracing.trace_model.Sample(category, title, colorId, ts,
-                                                  opt_args ? opt_args : {});
-      this.samples_.push(sample);
-      return sample;
-    },
-
-    /**
-     * Returns the array of samples added to this thread. If no samples
-     * have been added, an empty array is returned.
-     *
-     * @return {Array<Sample>} array of samples.
-     */
-    get samples() {
-      return this.samples_;
-    },
-
-    /**
-     * Name of the thread, if present.
-     */
-    name: undefined,
-
-    /**
      * Shifts all the timestamps inside this thread forward by the amount
      * specified.
      */
@@ -170,13 +128,6 @@ tvcm.exportTo('tracing.trace_model', function() {
         for (var i = 0; i < this.timeSlices.length; i++) {
           var slice = this.timeSlices[i];
           slice.start += amount;
-        }
-      }
-
-      if (this.samples_.length) {
-        for (var i = 0; i < this.samples_.length; i++) {
-          var sample = this.samples_[i];
-          sample.start += amount;
         }
       }
 
@@ -225,7 +176,7 @@ tvcm.exportTo('tracing.trace_model', function() {
         this.bounds.addValue(
             this.timeSlices[this.timeSlices.length - 1].end);
       }
-      if (this.samples_.length) {
+      if (this.samples_ && this.samples_.length) {
         this.bounds.addValue(this.samples_[0].start);
         this.bounds.addValue(
             this.samples_[this.samples_.length - 1].end);
@@ -239,8 +190,10 @@ tvcm.exportTo('tracing.trace_model', function() {
         categoriesDict[this.kernelSliceGroup.slices[i].category] = true;
       for (var i = 0; i < this.asyncSliceGroup.length; i++)
         categoriesDict[this.asyncSliceGroup.slices[i].category] = true;
-      for (var i = 0; i < this.samples_.length; i++)
-        categoriesDict[this.samples_[i].category] = true;
+      if (this.samples_) {
+        for (var i = 0; i < this.samples_.length; i++)
+          categoriesDict[this.samples_[i].category] = true;
+      }
     },
 
     autoCloseOpenSlices: function(opt_maxTimestamp) {
@@ -260,6 +213,9 @@ tvcm.exportTo('tracing.trace_model', function() {
 
     createSubSlices: function() {
       this.sliceGroup.createSubSlices();
+      this.samples_ = this.parent.model.samples.filter(function(sample) {
+        return sample.thread == this;
+      }, this);
     },
 
     /**
@@ -306,8 +262,10 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       if (this.timeSlices && this.timeSlices.length)
         this.timeSlices.forEach(callback, opt_this);
+    },
 
-      this.samples_.forEach(callback, opt_this);
+    get samples() {
+      return this.samples_;
     }
   };
 

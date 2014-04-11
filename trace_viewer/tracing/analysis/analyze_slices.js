@@ -259,11 +259,11 @@ tvcm.exportTo('tracing.analysis', function() {
     var sliceGroups = {};
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
-      if (sliceGroups[slice.title] === undefined) {
-        sliceGroups[slice.title] = [];
+      if (sliceGroups[slice.leafStackFrame.title] === undefined) {
+        sliceGroups[slice.leafStackFrame.title] = [];
         numTitles++;
       }
-      sliceGroups[slice.title].push(slices[i]);
+      sliceGroups[slice.leafStackFrame.title].push(slices[i]);
     }
 
     // Sort slice groups in the descending order of occurrences.

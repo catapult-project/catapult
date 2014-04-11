@@ -25,8 +25,10 @@ tvcm.require('tvcm.events');
 tvcm.require('tvcm.interval_tree');
 tvcm.require('tracing.importer.importer');
 tvcm.require('tracing.importer.task');
-tvcm.require('tracing.trace_model.process');
 tvcm.require('tracing.trace_model.kernel');
+tvcm.require('tracing.trace_model.process');
+tvcm.require('tracing.trace_model.sample');
+tvcm.require('tracing.trace_model.stack_frame');
 tvcm.require('tracing.filter');
 tvcm.require('tvcm.ui.overlay');
 
@@ -53,6 +55,9 @@ tvcm.exportTo('tracing', function() {
     this.bounds = new tvcm.Range();
     this.instantEvents = [];
     this.flowEvents = [];
+
+    this.stackFrames = {};
+    this.samples = [];
 
     this.flowIntervalTree = new tvcm.IntervalTree(
         function(s) { return s.start; },
@@ -101,6 +106,13 @@ tvcm.exportTo('tracing', function() {
       this.instantEvents.push(instantEvent);
     },
 
+    addStackFrame: function(stackFrame) {
+      if (this.stackFrames[stackFrame.id])
+        throw new Error('Stack frame already exists');
+      this.stackFrames[stackFrame.id] = stackFrame;
+      return stackFrame;
+    },
+
     /**
      * Generates the set of categories from the slices and counters.
      */
@@ -139,6 +151,11 @@ tvcm.exportTo('tracing', function() {
 
       for (var pid in this.processes)
         this.processes[pid].shiftTimestampsForward(-timeBase);
+
+      for (var i = 0; i < this.samples.length; i++) {
+        var sample = this.samples[i];
+        sample.start -= timeBase;
+      }
 
       this.updateBounds();
     },
@@ -363,19 +380,31 @@ tvcm.exportTo('tracing', function() {
         }, this);
       }
 
+      // Finalize import.
+      lastTask = lastTask.after(function(task) {
+        importers.forEach(function(importer, index) {
+          progressMeter.update(
+              'Importing sample data ' + (index + 1) + '/' + importers.length);
+          importer.importSampleData();
+        }, this);
+      }, this);
+
       // Autoclose open slices and create subSlices.
       lastTask = lastTask.after(function() {
         progressMeter.update('Autoclosing open slices...');
+        // Sort the samples.
+        this.samples.sort(function(x, y) {
+          return x.ts - y.ts;
+        });
+
         this.updateBounds();
         this.kernel.autoCloseOpenSlices(this.bounds.max);
         for (var pid in this.processes)
           this.processes[pid].autoCloseOpenSlices(this.bounds.max);
 
-        for (var pid in this.processes) {
-          var process = this.processes[pid];
-          for (var tid in process.threads)
-            process.threads[tid].createSubSlices();
-        }
+        this.kernel.createSubSlices();
+        for (var pid in this.processes)
+          this.processes[pid].createSubSlices();
       }, this);
 
       // Finalize import.
@@ -496,6 +525,8 @@ tvcm.exportTo('tracing', function() {
 
       for (var pid in this.processes)
         this.processes[pid].iterateAllEvents(callback, opt_this);
+
+      this.samples.forEach(callback, opt_this);
     }
   };
 

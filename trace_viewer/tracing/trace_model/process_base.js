@@ -199,6 +199,11 @@ tvcm.exportTo('tracing.trace_model', function() {
       throw new Error('Not implemented');
     },
 
+    createSubSlices: function() {
+      for (var tid in this.threads)
+        this.threads[tid].createSubSlices();
+    },
+
     iterateAllEvents: function(callback, opt_this) {
       for (var tid in this.threads)
         this.threads[tid].iterateAllEvents(callback, opt_this);

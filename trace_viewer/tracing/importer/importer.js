@@ -30,6 +30,12 @@ tvcm.exportTo('tracing.importer', function() {
     },
 
     /**
+     * Called to import sample data into the Model.
+     */
+    importSampleData: function() {
+    },
+
+    /**
      * Called by the Model after all other importers have imported their
      * events.
      */

@@ -160,11 +160,15 @@ tvcm.exportTo('tracing.trace_model', function() {
    * The Cpu represents a Cpu from the kernel's point of view.
    * @constructor
    */
-  function Cpu(number) {
+  function Cpu(kernel, number) {
+    if (kernel === undefined || number === undefined)
+      throw new Error('Missing arguments');
+    this.kernel = kernel;
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
     this.bounds = new tvcm.Range();
+    this.samples_ = undefined; // Set during createSubSlices
   };
 
   Cpu.prototype = {
@@ -207,6 +211,17 @@ tvcm.exportTo('tracing.trace_model', function() {
         this.counters[id].updateBounds();
         this.bounds.addRange(this.counters[id].bounds);
       }
+      if (this.samples_ && this.samples_.length) {
+        this.bounds.addValue(this.samples_[0].start);
+        this.bounds.addValue(
+            this.samples_[this.samples_.length - 1].end);
+      }
+    },
+
+    createSubSlices: function() {
+      this.samples_ = this.kernel.model.samples.filter(function(sample) {
+        return sample.cpu == this;
+      }, this);
     },
 
     addCategoriesToDict: function(categoriesDict) {
@@ -214,10 +229,26 @@ tvcm.exportTo('tracing.trace_model', function() {
         categoriesDict[this.slices[i].category] = true;
       for (var id in this.counters)
         categoriesDict[this.counters[id].category] = true;
+      for (var i = 0; i < this.samples_.length; i++)
+        categoriesDict[this.samples_[i].category] = true;
     },
 
     get userFriendlyName() {
       return 'CPU ' + this.cpuNumber;
+    },
+
+    toJSON: function() {
+      var obj = new Object();
+      var keys = Object.keys(this);
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        if (typeof this[key] == 'function')
+          continue;
+        if (key == 'kernel')
+          continue;
+        obj[key] = this[key];
+      }
+      return obj;
     },
 
     /*
@@ -238,6 +269,10 @@ tvcm.exportTo('tracing.trace_model', function() {
 
       for (var id in this.counters)
         this.counters[id].iterateAllEvents(callback, opt_this);
+    },
+
+    get samples() {
+      return this.samples_;
     }
   };
 

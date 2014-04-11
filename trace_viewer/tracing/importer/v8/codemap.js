@@ -247,6 +247,7 @@ tvcm.exportTo('tracing.importer.v8', function() {
    * @constructor
    */
   CodeMap.CodeEntry = function(size, opt_name) {
+    this.id = tvcm.GUID.allocate();
     this.size = size;
     this.name = opt_name || '';
     this.nameUpdated_ = false;
