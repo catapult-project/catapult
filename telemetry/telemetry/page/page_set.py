@@ -159,6 +159,14 @@ class PageSet(object):
                          " with prefix 'PageSet'")
     page_set = page_set_classes[0]()
     page_set.file_path = file_path
+    # Makes sure that page_set's serving_dirs are absolute paths
+    if page_set.serving_dirs:
+      abs_serving_dirs = set()
+      for serving_dir in page_set.serving_dirs:
+        abs_serving_dirs.add(os.path.realpath(os.path.join(
+          page_set._base_dir,  # pylint: disable=W0212
+          serving_dir)))
+      page_set.serving_dirs = abs_serving_dirs
     for page in page_set.pages:
       page_class = page.__class__
 
