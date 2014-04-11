@@ -52,6 +52,9 @@ class Bounds(object):
       return False
     return self.min <= other.min and self.max >= other.max
 
+  def ContainsInterval(self, start, end):
+    return self.min <= start and self.max >= end
+
   def Intersects(self, other):
     if self.is_empty or other.is_empty:
       return False

@@ -54,6 +54,11 @@ class Thread(event_container.TimelineEventContainer):
       for sub_slice in s.IterEventsInThisContainerRecrusively():
         yield sub_slice
 
+  def IterAllSlicesInRange(self, start, end):
+    for s in self.IterAllSlices():
+      if s.start >= start and s.end <= end:
+        yield s
+
   def IterAllSlicesOfName(self, name):
     for s in self.IterAllSlices():
       if s.name == name:
