@@ -229,7 +229,7 @@ tvcm.exportTo('tracing.analysis', function() {
      *          or min/max/avg/start/end for counters.
      */
     appendDetailsRow: function(table, start, duration, selfTime, args,
-        opt_selectionGenerator, opt_threadDuration) {
+        opt_selectionGenerator, opt_cpuDuration) {
       var row = this.appendBodyRow(table);
 
       if (opt_selectionGenerator) {
@@ -246,10 +246,10 @@ tvcm.exportTo('tracing.analysis', function() {
       if (duration !== null)
         this.appendTableCell(table, row, tracing.analysis.tsRound(duration));
 
-      if (opt_threadDuration)
+      if (opt_cpuDuration)
         this.appendTableCell(table, row,
-                             opt_threadDuration != '' ?
-                             tracing.analysis.tsRound(opt_threadDuration) :
+                             opt_cpuDuration != '' ?
+                             tracing.analysis.tsRound(opt_cpuDuration) :
                              '');
 
       if (selfTime !== null)
@@ -284,8 +284,8 @@ tvcm.exportTo('tracing.analysis', function() {
      *          contains calculated staistics containing min/max/avg for slices,
      *          or min/max/avg/start/end for counters.
      */
-    appendDataRow: function(table, label, opt_duration, opt_threadDuration,
-                            opt_selfTime, opt_threadSelfTime, opt_occurences,
+    appendDataRow: function(table, label, opt_duration, opt_cpuDuration,
+                            opt_selfTime, opt_cpuSelfTime, opt_occurences,
                             opt_percentage, opt_statistics,
                             opt_selectionGenerator, opt_inFoot) {
 
@@ -351,10 +351,10 @@ tvcm.exportTo('tracing.analysis', function() {
         cellNum++;
       }
 
-      if (opt_threadDuration !== null) {
-        if (opt_threadDuration != '') {
+      if (opt_cpuDuration !== null) {
+        if (opt_cpuDuration != '') {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tracing.analysis.tsRound(opt_threadDuration), tooltip);
+              tracing.analysis.tsRound(opt_cpuDuration), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }
@@ -371,10 +371,10 @@ tvcm.exportTo('tracing.analysis', function() {
         cellNum++;
       }
 
-      if (opt_threadSelfTime !== null) {
-        if (opt_threadSelfTime) {
+      if (opt_cpuSelfTime !== null) {
+        if (opt_cpuSelfTime) {
           this.appendTableCellWithTooltip_(table, row, cellNum,
-              tracing.analysis.tsRound(opt_threadSelfTime), tooltip);
+              tracing.analysis.tsRound(opt_cpuSelfTime), tooltip);
         } else {
           this.appendTableCell_(table, row, cellNum, '');
         }

@@ -48,7 +48,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(0, slice.subSlices.length);
   });
 
-  test('basicSingleThreadNonnestedParsingWiththreadDuration', function() {
+  test('basicSingleThreadNonnestedParsingWithCpuDuration', function() {
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B', tts: 221}, // @suppress longLineCheck
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E', tts: 259}, // @suppress longLineCheck
@@ -71,7 +71,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals('foo', slice.category);
     assertEquals(0, slice.start);
     assertAlmostEquals((560 - 520) / 1000, slice.duration);
-    assertAlmostEquals((259 - 221) / 1000, slice.threadDuration);
+    assertAlmostEquals((259 - 221) / 1000, slice.cpuDuration);
     assertEquals(0, slice.subSlices.length);
 
     slice = t.sliceGroup.slices[1];
@@ -79,7 +79,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals('bar', slice.category);
     assertAlmostEquals((629 - 520) / 1000, slice.start);
     assertAlmostEquals((631 - 629) / 1000, slice.duration);
-    assertAlmostEquals((331 - 329) / 1000, slice.threadDuration);
+    assertAlmostEquals((331 - 329) / 1000, slice.cpuDuration);
     assertEquals(0, slice.subSlices.length);
   });
 
@@ -171,7 +171,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(0.001, sA.start);
     assertEquals(0.003, sA.duration);
     assertEquals(0.002, sA.selfTime);
-    assertEquals(0.001, sA.threadSelfTime);
+    assertEquals(0.001, sA.cpuSelfTime);
 
     assertEquals('b', sB.title);
     assertEquals('bar', sB.category);
@@ -204,7 +204,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals(0.001, sA.start);
     assertEquals(0.007, sA.duration);
     assertEquals(0.004, sA.selfTime);
-    assertEquals(0.005, sA.threadSelfTime);
+    assertEquals(0.005, sA.cpuSelfTime);
 
     assertEquals('b', sB.title);
     assertEquals('bar', sB.category);
@@ -1510,7 +1510,7 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertAlmostEquals(10 / 1000, slice.duration);
   });
 
-  test('importCompleteEventWithThreadDuration', function() {
+  test('importCompleteEventWithCpuDuration', function() {
     var events = [
       { name: 'a', args: {}, pid: 52, ts: 629, dur: 1, cat: 'baz', tid: 53, ph: 'X', tts: 12, tdur: 1 },  // @suppress longLineCheck
       { name: 'b', args: {}, pid: 52, ts: 730, dur: 20, cat: 'foo', tid: 53, ph: 'X', tts: 110, tdur: 16 },  // @suppress longLineCheck
@@ -1533,8 +1533,8 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals('baz', slice.category);
     assertAlmostEquals(0, slice.start);
     assertAlmostEquals(1 / 1000, slice.duration);
-    assertAlmostEquals(12 / 1000, slice.threadStart);
-    assertAlmostEquals(1 / 1000, slice.threadDuration);
+    assertAlmostEquals(12 / 1000, slice.cpuStart);
+    assertAlmostEquals(1 / 1000, slice.cpuDuration);
     assertEquals(0, slice.subSlices.length);
 
     slice = t.sliceGroup.slices[1];
@@ -1542,8 +1542,8 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertEquals('foo', slice.category);
     assertAlmostEquals((730 - 629) / 1000, slice.start);
     assertAlmostEquals(20 / 1000, slice.duration);
-    assertAlmostEquals(110 / 1000, slice.threadStart);
-    assertAlmostEquals(16 / 1000, slice.threadDuration);
+    assertAlmostEquals(110 / 1000, slice.cpuStart);
+    assertAlmostEquals(16 / 1000, slice.cpuDuration);
     assertEquals(1, slice.subSlices.length);
 
     slice = t.sliceGroup.slices[2];

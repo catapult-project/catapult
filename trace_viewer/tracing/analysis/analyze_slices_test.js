@@ -181,17 +181,17 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertEquals(1, table.rows[0].occurences);
     assertAlmostEquals(0.04, table.rows[0].duration);
     assertAlmostEquals(0.04, table.rows[0].selfTime);
-    assertEquals(null, table.rows[0].threadDuration);
+    assertEquals(null, table.rows[0].cpuDuration);
     assertEquals('aa', table.rows[1].label);
     assertEquals(1, table.rows[1].occurences);
     assertAlmostEquals(0.06, table.rows[1].duration);
     assertAlmostEquals(0.06, table.rows[1].selfTime);
-    assertEquals(null, table.rows[1].threadDuration);
+    assertEquals(null, table.rows[1].cpuDuration);
     assertEquals('Totals', table.rows[2].label);
     assertEquals(2, table.rows[2].occurences);
     assertAlmostEquals(0.1, table.rows[2].duration);
     assertAlmostEquals(0.1, table.rows[2].selfTime);
-    assertEquals(null, table.rows[2].threadDuration);
+    assertEquals(null, table.rows[2].cpuDuration);
 
     assertEquals('Selection start', table.rows[4].label);
     assertAlmostEquals(0, table.rows[4].time);
@@ -214,9 +214,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertObjectEquals({
       label: 'c',
       duration: 0.1,
-      threadDuration: null,
+      cpuDuration: null,
       selfTime: 0.1,
-      threadSelfTime: null,
+      cpuSelfTime: null,
       occurences: 2,
       percentage: null,
       details: {
@@ -263,9 +263,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertObjectEquals({
       label: 'AAA',
       duration: null,
-      threadDuration: null,
+      cpuDuration: null,
       selfTime: null,
-      threadSelfTime: null,
+      cpuSelfTime: null,
       occurences: 3,
       percentage: '50%',
       details: null
@@ -274,9 +274,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertObjectEquals({
       label: 'BBB',
       duration: null,
-      threadDuration: null,
+      cpuDuration: null,
       selfTime: null,
-      threadSelfTime: null,
+      cpuSelfTime: null,
       occurences: 2,
       percentage: '33.333%',
       details: null
@@ -285,9 +285,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertObjectEquals({
       label: 'CCC',
       duration: null,
-      threadDuration: null,
+      cpuDuration: null,
       selfTime: null,
-      threadSelfTime: null,
+      cpuSelfTime: null,
       occurences: 1,
       percentage: '16.667%',
       details: null
@@ -296,9 +296,9 @@ tvcm.unittest.testSuite('tracing.analysis.analyze_slices_test', function() {
     assertObjectEquals({
       label: 'Sleeping',
       duration: null,
-      threadDuration: null,
+      cpuDuration: null,
       selfTime: null,
-      threadSelfTime: null,
+      cpuSelfTime: null,
       occurences: 2,
       percentage: '-',
       details: null

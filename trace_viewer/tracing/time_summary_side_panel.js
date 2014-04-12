@@ -33,8 +33,8 @@ tvcm.exportTo('tracing', function() {
 
   function getCpuTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
-        event.threadDuration) {
-      return event.threadDuration;
+        event.cpuDuration) {
+      return event.cpuDuration;
     }
     return 0;
   }
@@ -73,16 +73,16 @@ tvcm.exportTo('tracing', function() {
       var cpuDuration = 0;
       for (var i = 0; i < this.topLevelSlices.length; i++) {
         var x = this.topLevelSlices[i];
-        // Only report thread-duration if we have it for all events.
+        // Only report cpu-duration if we have it for all events.
         //
-        // A thread_duration of 0 is valid, so this only returns 0 if it is
+        // A cpu_duration of 0 is valid, so this only returns 0 if it is
         // None.
-        if (x.threadDuration === undefined) {
+        if (x.cpuDuration === undefined) {
           if (x.duration === undefined)
             continue;
           return 0;
         } else {
-          cpuDuration += x.threadDuration;
+          cpuDuration += x.cpuDuration;
         }
       }
 

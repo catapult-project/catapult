@@ -41,14 +41,14 @@ tvcm.exportTo('tracing.analysis', function() {
     },
 
     appendDetailsRow: function(table, start, duration, selfTime, args,
-                               selectionGenerator, threadDuration) {
+                               selectionGenerator, cpuDuration) {
       table.rows.push({
         start: start,
         duration: duration,
         selfTime: selfTime,
         args: args,
         selectionGenerator: selectionGenerator,
-        threadDuration: threadDuration});
+        cpuDuration: cpuDuration});
     },
 
     appendHeadRow: function(table) {
@@ -80,15 +80,15 @@ tvcm.exportTo('tracing.analysis', function() {
       return row;
     },
 
-    appendDataRow: function(table, label, duration, threadDuration, selfTime,
-                            threadSelfTime, occurences, percentage, details,
+    appendDataRow: function(table, label, duration, cpuDuration, selfTime,
+                            cpuSelfTime, occurences, percentage, details,
                             selectionGenerator) {
       var row = {
         label: label,
         duration: duration,
-        threadDuration: threadDuration,
+        cpuDuration: cpuDuration,
         selfTime: selfTime,
-        threadSelfTime: threadSelfTime,
+        cpuSelfTime: cpuSelfTime,
         occurences: occurences,
         percentage: percentage,
         details: details,

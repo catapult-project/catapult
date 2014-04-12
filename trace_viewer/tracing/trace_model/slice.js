@@ -17,7 +17,7 @@ tvcm.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function Slice(category, title, colorId, start, args, opt_duration,
-                 opt_threadStart, opt_threadDuration) {
+                 opt_cpuStart, opt_cpuDuration) {
     tracing.trace_model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -29,11 +29,11 @@ tvcm.exportTo('tracing.trace_model', function() {
     if (opt_duration !== undefined)
       this.duration = opt_duration;
 
-    if (opt_threadStart !== undefined)
-      this.threadStart = opt_threadStart;
+    if (opt_cpuStart !== undefined)
+      this.cpuStart = opt_cpuStart;
 
-    if (opt_threadDuration !== undefined)
-      this.threadDuration = opt_threadDuration;
+    if (opt_cpuDuration !== undefined)
+      this.cpuDuration = opt_cpuDuration;
   }
 
   Slice.prototype = {

@@ -23,24 +23,24 @@ tvcm.exportTo('tracing.analysis', function() {
       results.appendInfoRow(table, 'Category', slice.category);
 
     results.appendInfoRowTime(table, 'Start', slice.start);
-    results.appendInfoRowTime(table, 'Duration', slice.duration);
+    results.appendInfoRowTime(table, 'Wall Duration', slice.duration);
 
-    if (slice.threadDuration)
-      results.appendInfoRowTime(table, 'ThreadDuration', slice.threadDuration);
+    if (slice.cpuDuration)
+      results.appendInfoRowTime(table, 'CPU Duration', slice.cpuDuration);
 
     if (slice.selfTime)
-      results.appendInfoRowTime(table, 'SelfTime', slice.selfTime);
+      results.appendInfoRowTime(table, 'Self Time', slice.selfTime);
 
-    if (slice.threadSelfTime) {
+    if (slice.cpuSelfTime) {
       var warning;
-      if (slice.threadSelfTime > slice.selfTime) {
+      if (slice.cpuSelfTime > slice.selfTime) {
         warning =
-            'Note that ThreadSelfTime is larger than SelfTime. ' +
+            'Note that CPU Self Time is larger than Self Time. ' +
             'This is a known limitation of this system, which occurs ' +
             'due to several subslices, rounding issues, and inprecise ' +
-            'time at which we get thread- and real-time.';
+            'time at which we get cpu- and real-time.';
       }
-      results.appendInfoRowTime(table, 'ThreadSelfTime', slice.threadSelfTime,
+      results.appendInfoRowTime(table, 'CPU Self Time', slice.cpuSelfTime,
                                 false, warning);
     }
 
@@ -63,18 +63,18 @@ tvcm.exportTo('tracing.analysis', function() {
     }
   }
 
-  function analyzeSingleTypeSlices_(results, sliceGroup, hasThreadDuration) {
+  function analyzeSingleTypeSlices_(results, sliceGroup, hasCpuDuration) {
     results.appendInfo('Title: ', sliceGroup[0].title);
     results.appendInfo('Category: ', sliceGroup[0].category);
 
     var table = results.appendTable('analysis-slice-table',
-                                    4 + hasThreadDuration);
+                                    4 + hasCpuDuration);
     var row = results.appendHeadRow(table);
     results.appendTableCell(table, row, 'Start');
-    results.appendTableCell(table, row, 'Duration (ms)');
-    if (hasThreadDuration)
-      results.appendTableCell(table, row, 'ThreadDuration (ms)');
-    results.appendTableCell(table, row, 'SelfTime (ms)');
+    results.appendTableCell(table, row, 'Wall Duration (ms)');
+    if (hasCpuDuration)
+      results.appendTableCell(table, row, 'CPU Duration (ms)');
+    results.appendTableCell(table, row, 'Self Time (ms)');
     results.appendTableCell(table, row, 'Args');
 
     var numSlices = 0;
@@ -84,7 +84,7 @@ tvcm.exportTo('tracing.analysis', function() {
           slice.selfTime ? slice.selfTime : slice.duration, slice.args,
           function() {
             return new tracing.Selection([slice]);
-          }, slice.threadDuration);
+          }, slice.cpuDuration);
     });
     if (numSlices > 1)
       tvcm.ui.SortableTable.decorate(table);
@@ -96,7 +96,7 @@ tvcm.exportTo('tracing.analysis', function() {
 
     var numTitles = 0;
     var sliceGroups = {};
-    var hasThreadDuration = false;
+    var hasCpuDuration = false;
 
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
@@ -105,8 +105,8 @@ tvcm.exportTo('tracing.analysis', function() {
         numTitles++;
       }
 
-      if (slice.threadDuration)
-        hasThreadDuration = true;
+      if (slice.cpuDuration)
+        hasCpuDuration = true;
 
       var sliceGroup = sliceGroups[slice.title];
       sliceGroup.push(slices[i]);
@@ -114,26 +114,26 @@ tvcm.exportTo('tracing.analysis', function() {
 
     results.appendHeader(type + ':');
     var table = results.appendTable('analysis-slice-table',
-                                    4 + hasThreadDuration);
+                                    4 + hasCpuDuration);
     var row = results.appendHeadRow(table);
     results.appendTableCell(table, row, 'Name');
-    results.appendTableCell(table, row, 'Duration (ms)');
-    if (hasThreadDuration)
-      results.appendTableCell(table, row, 'ThreadDuration (ms)');
-    results.appendTableCell(table, row, 'SelfTime (ms)');
-    if (hasThreadDuration)
-      results.appendTableCell(table, row, 'ThreadSelfTime (ms)');
+    results.appendTableCell(table, row, 'Wall Duration (ms)');
+    if (hasCpuDuration)
+      results.appendTableCell(table, row, 'CPU Duration (ms)');
+    results.appendTableCell(table, row, 'Self Time (ms)');
+    if (hasCpuDuration)
+      results.appendTableCell(table, row, 'CPU Self Time (ms)');
     results.appendTableCell(table, row, 'Occurrences');
 
     var totalDuration = 0;
-    var totalthreadDuration = 0;
+    var totalCpuDuration = 0;
     var totalSelfTime = 0;
-    var totalThreadSelfTime = 0;
+    var totalCpuSelfTime = 0;
     tvcm.iterItems(sliceGroups, function(sliceGroupTitle, sliceGroup) {
       var duration = 0;
-      var threadDuration = 0;
+      var cpuDuration = 0;
       var selfTime = 0;
-      var threadSelfTime = 0;
+      var cpuSelfTime = 0;
       var avg = 0;
       var startOfFirstOccurrence = Number.MAX_VALUE;
       var startOfLastOccurrence = -Number.MAX_VALUE;
@@ -142,10 +142,10 @@ tvcm.exportTo('tracing.analysis', function() {
       for (var i = 0; i < sliceGroup.length; i++) {
         var slice = sliceGroup[i];
         duration += slice.duration;
-        if (slice.threadDuration) {
-          threadDuration += slice.threadDuration;
-          threadSelfTime += slice.threadSelfTime ? slice.threadSelfTime :
-                                                   slice.threadDuration;
+        if (slice.cpuDuration) {
+          cpuDuration += slice.cpuDuration;
+          cpuSelfTime += slice.cpuSelfTime ? slice.cpuSelfTime :
+                                             slice.cpuDuration;
         }
         selfTime += slice.selfTime ? slice.selfTime : slice.duration;
         startOfFirstOccurrence = Math.min(slice.start, startOfFirstOccurrence);
@@ -155,9 +155,9 @@ tvcm.exportTo('tracing.analysis', function() {
       }
 
       totalDuration += duration;
-      totalthreadDuration += threadDuration;
+      totalCpuDuration += cpuDuration;
       totalSelfTime += selfTime;
-      totalThreadSelfTime += threadSelfTime;
+      totalCpuSelfTime += cpuSelfTime;
 
       if (sliceGroup.length == 0)
         avg = 0;
@@ -201,11 +201,11 @@ tvcm.exportTo('tracing.analysis', function() {
             Math.sqrt(sumOfSquaredDistancesToMean / (numDistances - 1));
       }
       results.appendDataRow(table, sliceGroupTitle, duration,
-                            hasThreadDuration ? (threadDuration > 0 ?
-                                threadDuration : '') : null,
+                            hasCpuDuration ? (cpuDuration > 0 ?
+                                cpuDuration : '') : null,
                             selfTime,
-                            hasThreadDuration ? (threadSelfTime > 0 ?
-                                threadSelfTime : '') : null,
+                            hasCpuDuration ? (cpuSelfTime > 0 ?
+                                cpuSelfTime : '') : null,
                             sliceGroup.length, null, statistics, function() {
                               return new tracing.Selection(sliceGroup);
                             });
@@ -213,14 +213,16 @@ tvcm.exportTo('tracing.analysis', function() {
       // The whole selection is a single type so list out the information
       // for each sub slice.
       if (numTitles === 1)
-        analyzeSingleTypeSlices_(results, sliceGroup, hasThreadDuration);
+        analyzeSingleTypeSlices_(results, sliceGroup, hasCpuDuration);
     });
 
     // Only one row so we already know the totals.
     if (numTitles !== 1) {
       results.appendDataRow(table, 'Totals', totalDuration,
-                            hasThreadDuration ? totalthreadDuration : null,
-                            totalSelfTime, totalThreadSelfTime, slices.length,
+                            hasCpuDuration ? totalCpuDuration : null,
+                            totalSelfTime,
+                            hasCpuDuration ? totalCpuSelfTime : null,
+                            slices.length,
                             null, null, null, true);
       results.appendSpacingRow(table, true);
       tvcm.ui.SortableTable.decorate(table);

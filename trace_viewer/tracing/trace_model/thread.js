@@ -35,9 +35,9 @@ tvcm.exportTo('tracing.trace_model', function() {
    * @constructor
    */
   function ThreadSlice(cat, title, colorId, start, args, opt_duration,
-                       opt_threadStart, opt_threadDuration) {
+                       opt_cpuStart, opt_cpuDuration) {
     Slice.call(this, cat, title, colorId, start, args, opt_duration,
-               opt_threadStart, opt_threadDuration);
+               opt_cpuStart, opt_cpuDuration);
     // Do not modify this directly.
     // subSlices is configured by SliceGroup.rebuildSubRows_.
     this.subSlices = [];
@@ -71,9 +71,9 @@ tvcm.exportTo('tracing.trace_model', function() {
     var that = this;
     function ThreadSliceForThisThread(
         cat, title, colorId, start, args, opt_duration,
-        opt_threadStart, opt_threadDuration) {
+        opt_cpuStart, opt_cpuDuration) {
       ThreadSlice.call(this, cat, title, colorId, start, args, opt_duration,
-                       opt_threadStart, opt_threadDuration);
+                       opt_cpuStart, opt_cpuDuration);
       this.parentThread = that;
     }
     ThreadSliceForThisThread.prototype = {

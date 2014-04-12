@@ -144,8 +144,8 @@ tvcm.exportTo('tracing.trace_model', function() {
       slice.duration = ts - slice.start;
       slice.didNotFinish = false;
 
-      if (opt_tts && slice.threadStart !== undefined)
-        slice.threadDuration = opt_tts - slice.threadStart;
+      if (opt_tts && slice.cpuStart !== undefined)
+        slice.cpuDuration = opt_tts - slice.cpuStart;
 
       return slice;
     },
@@ -162,11 +162,11 @@ tvcm.exportTo('tracing.trace_model', function() {
      * the slice.
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
-                                threadDuration, opt_args) {
+                                cpuDuration, opt_args) {
       var colorId = tvcm.ui.getStringColorId(title);
       var slice = new this.sliceConstructor(category, title, colorId, ts,
                                             opt_args ? opt_args : {},
-                                            duration, tts, threadDuration);
+                                            duration, tts, cpuDuration);
       if (duration === undefined)
         slice.didNotFinish = true;
       this.pushSlice(slice);
@@ -217,7 +217,7 @@ tvcm.exportTo('tracing.trace_model', function() {
     copySlice: function(slice) {
       var newSlice = new this.sliceConstructor(slice.category, slice.title,
           slice.colorId, slice.start,
-          slice.args, slice.duration, slice.threadStart, slice.threadDuration);
+          slice.args, slice.duration, slice.cpuStart, slice.cpuDuration);
       newSlice.didNotFinish = slice.didNotFinish;
       return newSlice;
     },
@@ -245,15 +245,15 @@ tvcm.exportTo('tracing.trace_model', function() {
           }
           if (!root.selfTime)
             root.selfTime = root.duration;
-          if (!root.threadSelfTime && root.threadDuration)
-            root.threadSelfTime = root.threadDuration;
+          if (!root.cpuSelfTime && root.cpuDuration)
+            root.cpuSelfTime = root.cpuDuration;
           child.parentSlice = root;
           if (!root.subSlices)
             root.subSlices = [];
           root.subSlices.push(child);
           root.selfTime -= child.duration;
-          if (child.threadDuration)
-            root.threadSelfTime -= child.threadDuration;
+          if (child.cpuDuration)
+            root.cpuSelfTime -= child.cpuDuration;
           return true;
         }
         return false;
