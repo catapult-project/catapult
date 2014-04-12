@@ -147,6 +147,8 @@ tvcm.exportTo('tracing.importer', function() {
       if (stack && stack.length) {
 
         lastStackFrame = this.root_stack_frame_;
+        // v8 log stacks are inverted, leaf first and the root at the end.
+        stack = stack.reverse();
         for (var i = 0; i < stack.length; i++) {
           if (!stack[i])
             break;

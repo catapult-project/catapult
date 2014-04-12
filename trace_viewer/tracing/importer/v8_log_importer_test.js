@@ -71,8 +71,8 @@ tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assertEquals(2, t.samples.length);
-    assertEquals(t.samples[0].start, 528674 / 1000);
-    assertEquals(t.samples[1].start, 536213 / 1000);
+    assertEquals(528674 / 1000, t.samples[0].start);
+    assertEquals(536213 / 1000, t.samples[1].start);
     assertArrayEquals(
         ['v8: InstantiateFunction native apinatives.js:26:29'],
         t.samples[0].getUserFriendlyStackTrace());
@@ -94,19 +94,25 @@ tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
     var t = p.findAllThreadsNamed('V8')[0];
     assertEquals(2, t.samples.length);
 
-    // TODO(fmeawad): Fixme.
-    if (true)
-      return;
+    assertEquals(528674 / 1000, t.samples[0].start);
+    assertEquals(536213 / 1000, t.samples[1].start);
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[1].getUserFriendlyStackTrace());
 
-    assertEquals(0, slice.start);
-    assertAlmostEquals((536213 - 528674) / 1000, slice.duration);
-    assertEquals('Instantiate native apinatives.js:9:21', slice.title);
-    assertEquals(1, slice.subSlices.length);
-    var subSlice = slice.subSlices[0];
-    assertEquals(0, subSlice.start);
-    assertAlmostEquals((536213 - 528674) / 1000, subSlice.duration);
-    assertEquals('InstantiateFunction native apinatives.js:26:29',
-                 subSlice.title);
+    var childStackFrame = t.samples[0].leafStackFrame;
+    assertEquals(childStackFrame, t.samples[1].leafStackFrame);
+    assertEquals(0, childStackFrame.children.length);
+
+    var parentStackFrame = childStackFrame.parentFrame;
+    assertEquals(1, parentStackFrame.children.length);
+    assertEquals(childStackFrame, parentStackFrame.children[0]);
+
   });
 
   test('threeTickEventsWithTwoStackFrames', function() {
@@ -119,27 +125,31 @@ tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
     var m = new tracing.TraceModel(lines.join('\n'), false);
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
-    // TODO(fmeawad): Fixme.
-    if (true)
-      return;
-
 
     var t = threads[0];
     assertEquals(3, t.samples.length);
-    threads = p.findAllThreadsNamed('V8 JavaScript');
-    t = threads[0];
-    assertEquals(2, t.sliceGroup.slices.length);
-    var slice = t.sliceGroup.slices[0];
-    assertEquals(0, slice.start);
-    assertAlmostEquals((536213 - 518328) / 1000, slice.duration);
-    assertEquals('Instantiate native apinatives.js:9:21', slice.title);
-    assertEquals(1, slice.subSlices.length);
-    var subSlice = slice.subSlices[0];
-    assertAlmostEquals((528674 - 518328) / 1000, subSlice.start);
-    assertAlmostEquals((536213 - 528674) / 1000, subSlice.duration);
-    assertEquals('InstantiateFunction native apinatives.js:26:29',
-                 subSlice.title);
-    assertEquals(subSlice, t.sliceGroup.slices[1]);
+    assertEquals(518328 / 1000, t.samples[0].start);
+    assertEquals(528674 / 1000, t.samples[1].start);
+    assertEquals(536213 / 1000, t.samples[2].start);
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[1].getUserFriendlyStackTrace());
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[2].getUserFriendlyStackTrace());
+
+    var topLevelStackFrame = t.samples[0].leafStackFrame;
+    var childStackFrame = t.samples[1].leafStackFrame;
+    assertEquals(childStackFrame, t.samples[2].leafStackFrame);
+    assertEquals(topLevelStackFrame, childStackFrame.parentFrame);
+    assertEquals(1, topLevelStackFrame.children.length);
+    assertEquals(0, childStackFrame.children.length);
+    assertEquals(childStackFrame, topLevelStackFrame.children[0]);
   });
 
   test('twoSubStacks', function() {
@@ -153,54 +163,48 @@ tvcm.unittest.testSuite('tracing.importer.v8_log_importer_test', function() {
       'tick,0xb6f51d30,794049,0,0xb6f7b368,2,0x2906a914',
       'tick,0xb6f51d30,799146,0,0xb6f7b368,0,0x2906a914'
     ];
-    // TODO(fmeawad): Fixme.
-    if (true)
-      return;
     var m = new tracing.TraceModel(lines.join('\n'), false);
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
     assertEquals(5, t.samples.length);
-    threads = p.findAllThreadsNamed('V8 JavaScript');
-    t = threads[0];
-    assertEquals(3, t.sliceGroup.slices.length);
-    var slice = t.sliceGroup.slices[0];
-    assertEquals(0, slice.start);
-    assertAlmostEquals((536213 - 518328) / 1000, slice.duration);
-    assertEquals('Instantiate native apinatives.js:9:21', slice.title);
-    assertEquals(1, slice.subSlices.length);
-    var subSlice = slice.subSlices[0];
-    assertAlmostEquals((528674 - 518328) / 1000, subSlice.start);
-    assertAlmostEquals((536213 - 528674) / 1000, subSlice.duration);
-    assertEquals('InstantiateFunction native apinatives.js:26:29',
-                 subSlice.title);
-    assertEquals(subSlice, t.sliceGroup.slices[1]);
-    slice = t.sliceGroup.slices[2];
-    assertAlmostEquals((794049 - 518328) / 1000, slice.start);
-    assertAlmostEquals((799146 - 794049) / 1000, slice.duration);
-    assertEquals('http://www.google.com/', slice.title);
-  });
 
-  test('twoUnrelatedTickEventsWithStack', function() {
-    var lines = [
-      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
-      'tick,0x7fc6fe34,528674,0,0x3,0,0x2905d304',
-      'tick,0x7fc6fe34,529674,0,0x3,0,0x2905d304'];
-    // TODO(fmeawad): Fixme.
-    if (true)
-      return;
-    var m = new tracing.TraceModel(lines.join('\n'), false);
-    var p = m.processes[-32];
-    var threads = p.findAllThreadsNamed('V8');
-    var t = threads[0];
-    assertEquals(2, t.samples.length);
-    assertEquals('UnknownCode', t.samples[0].leafStackFrame.title);
-    threads = p.findAllThreadsNamed('V8 JavaScript');
-    t = threads[0];
-    assertEquals(1, t.sliceGroup.slices.length);
-    var slice = t.sliceGroup.slices[0];
-    assertEquals(0, slice.start);
-    assertEquals(1, slice.duration);
+    assertEquals(518328 / 1000, t.samples[0].start);
+    assertEquals(528674 / 1000, t.samples[1].start);
+    assertEquals(536213 / 1000, t.samples[2].start);
+    assertEquals(794049 / 1000, t.samples[3].start);
+    assertEquals(799146 / 1000, t.samples[4].start);
+
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21'],
+        t.samples[0].getUserFriendlyStackTrace());
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[1].getUserFriendlyStackTrace());
+    assertArrayEquals(
+        ['v8: Instantiate native apinatives.js:9:21',
+         'v8: InstantiateFunction native apinatives.js:26:29'],
+        t.samples[2].getUserFriendlyStackTrace());
+    assertArrayEquals(['v8: http://www.google.com/'],
+                      t.samples[3].getUserFriendlyStackTrace());
+    assertArrayEquals(['v8: http://www.google.com/'],
+                      t.samples[4].getUserFriendlyStackTrace());
+
+    var firsStackTopLevelStackFrame = t.samples[0].leafStackFrame;
+    var firsStackChildStackFrame = t.samples[1].leafStackFrame;
+    assertEquals(firsStackChildStackFrame, t.samples[2].leafStackFrame);
+    assertEquals(firsStackTopLevelStackFrame,
+                 firsStackChildStackFrame.parentFrame);
+    assertEquals(1, firsStackTopLevelStackFrame.children.length);
+    assertEquals(0, firsStackChildStackFrame.children.length);
+    assertEquals(firsStackChildStackFrame,
+                 firsStackTopLevelStackFrame.children[0]);
+
+    var secondStackStackFrame = t.samples[3].leafStackFrame;
+    assertEquals(secondStackStackFrame, t.samples[4].leafStackFrame);
+    assertEquals(0, secondStackStackFrame.children.length);
+    assertEquals(undefined, secondStackStackFrame.parentFrame);
   });
 
   test('timerEventSliceCreation', function() {
