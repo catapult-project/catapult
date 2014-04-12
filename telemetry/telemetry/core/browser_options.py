@@ -11,7 +11,6 @@ import sys
 
 from telemetry.core import browser_finder
 from telemetry.core import profile_types
-from telemetry.core import repeat_options
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
@@ -45,7 +44,6 @@ class BrowserFinderOptions(optparse.Values):
 
     self.report_root_metrics = False
 
-    self.repeat_options = repeat_options.RepeatOptions()
     self.browser_options = BrowserOptions()
     self.output_file = None
     self.skip_navigate_on_repeat = False
@@ -93,26 +91,6 @@ class BrowserFinderOptions(optparse.Values):
         help='The identity file to use when ssh\'ing into the ChromeOS device')
     parser.add_option_group(group)
 
-    # Page set options
-    group = optparse.OptionGroup(parser, 'Page set options')
-    group.add_option('--pageset-shuffle', action='store_true',
-        dest='pageset_shuffle',
-        help='Shuffle the order of pages within a pageset.')
-    group.add_option('--pageset-shuffle-order-file',
-        dest='pageset_shuffle_order_file', default=None,
-        help='Filename of an output of a previously run test on the current '
-        'pageset. The tests will run in the same order again, overriding '
-        'what is specified by --page-repeat and --pageset-repeat.')
-    parser.add_option_group(group)
-
-    group = optparse.OptionGroup(parser, 'Web Page Replay options')
-    group.add_option('--allow-live-sites',
-        dest='allow_live_sites', action='store_true',
-        help='Run against live sites if the Web Page Replay archives don\'t '
-             'exist. Without this flag, the test will just fail instead '
-             'of running against live sites.')
-    parser.add_option_group(group)
-
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
     profiler_choices = profiler_finder.GetAllAvailableProfilers()
@@ -150,9 +128,6 @@ class BrowserFinderOptions(optparse.Values):
         ' [default]')
     parser.add_option_group(group)
 
-    # Repeat options.
-    self.repeat_options.AddCommandLineArgs(parser)
-
     # Browser options.
     self.browser_options.AddCommandLineArgs(parser)
 
@@ -183,9 +158,6 @@ class BrowserFinderOptions(optparse.Values):
         sys.stdout.write('Available browsers:\n')
         sys.stdout.write('  %s\n' % '\n  '.join(types))
         sys.exit(0)
-
-      # Parse repeat options.
-      self.repeat_options.UpdateFromParseResults(self)
 
       # Parse browser options.
       self.browser_options.UpdateFromParseResults(self)

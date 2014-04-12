@@ -6,6 +6,7 @@ import collections
 import copy
 import glob
 import logging
+import optparse
 import os
 import random
 import sys
@@ -132,7 +133,9 @@ class _RunState(object):
     if not self.profiler_dir:
       self.profiler_dir = tempfile.mkdtemp()
     output_file = os.path.join(self.profiler_dir, page.file_safe_name)
-    if finder_options.repeat_options.IsRepeating():
+    is_repeating = (finder_options.page_repeat != 1 or
+                    finder_options.pageset_repeat != 1)
+    if is_repeating:
       output_file = _GetSequentialFileName(output_file)
     self.browser.StartProfiling(finder_options.profiler, output_file)
 
@@ -189,9 +192,44 @@ def AddCommandLineArgs(parser):
   page_filter.PageFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
 
+  # Page set options
+  group = optparse.OptionGroup(parser, 'Page set ordering and repeat options')
+  group.add_option('--pageset-shuffle', action='store_true',
+      dest='pageset_shuffle',
+      help='Shuffle the order of pages within a pageset.')
+  group.add_option('--pageset-shuffle-order-file',
+      dest='pageset_shuffle_order_file', default=None,
+      help='Filename of an output of a previously run test on the current '
+      'pageset. The tests will run in the same order again, overriding '
+      'what is specified by --page-repeat and --pageset-repeat.')
+  group.add_option('--page-repeat', default=1, type='int',
+                   help='Number of times to repeat each individual page '
+                   'before proceeding with the next page in the pageset.')
+  group.add_option('--pageset-repeat', default=1, type='int',
+                   help='Number of times to repeat the entire pageset.')
+  parser.add_option_group(group)
+
+  # WPR options
+  group = optparse.OptionGroup(parser, 'Web Page Replay options')
+  group.add_option('--allow-live-sites',
+      dest='allow_live_sites', action='store_true',
+      help='Run against live sites if the Web Page Replay archives don\'t '
+           'exist. Without this flag, the test will just fail instead '
+           'of running against live sites.')
+  parser.add_option_group(group)
+
 
 def ProcessCommandLineArgs(parser, args):
   page_filter.PageFilter.ProcessCommandLineArgs(parser, args)
+
+  # Page set options
+  if args.pageset_shuffle_order_file and not args.pageset_shuffle:
+    parser.error('--pageset-shuffle-order-file requires --pageset-shuffle.')
+
+  if args.page_repeat < 1:
+    parser.error('--page-repeat must be a positive integer.')
+  if args.pageset_repeat < 1:
+    parser.error('--pageset-repeat must be a positive integer.')
 
 
 def _LogStackTrace(title, browser):
@@ -340,7 +378,7 @@ def Run(test, page_set, expectations, finder_options):
   try:
     test.WillRunTest(finder_options)
     state.repeat_state = page_runner_repeat.PageRunnerRepeatState(
-                             finder_options.repeat_options)
+        finder_options)
 
     state.repeat_state.WillRunPageSet()
     while state.repeat_state.ShouldRepeatPageSet() and not test.IsExiting():
@@ -373,10 +411,6 @@ def Run(test, page_set, expectations, finder_options):
 
 
 def _ShuffleAndFilterPageSet(page_set, finder_options):
-  if (finder_options.pageset_shuffle_order_file and
-      not finder_options.pageset_shuffle):
-    raise Exception('--pageset-shuffle-order-file requires --pageset-shuffle.')
-
   if finder_options.pageset_shuffle_order_file:
     return page_set.ReorderPageSet(finder_options.pageset_shuffle_order_file)
 

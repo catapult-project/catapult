@@ -4,10 +4,12 @@
 
 
 class PageRunnerRepeatState(object):
-  def __init__(self, repeat_options):
+  def __init__(self, args):
+    self.total_pageset_iters = args.pageset_repeat
+    self.total_page_iters = args.page_repeat
+
     self.pageset_iters = None
     self.page_iters = None
-    self.options = repeat_options
 
   def WillRunPage(self):
     """Runs before we start repeating a page."""
@@ -27,11 +29,11 @@ class PageRunnerRepeatState(object):
 
   def ShouldRepeatPageSet(self):
     """Returns True if we need to repeat this pageset more times."""
-    return self.pageset_iters < self.options.pageset_repeat
+    return self.pageset_iters < self.total_pageset_iters
 
   def ShouldRepeatPage(self):
     """Returns True if we need to repeat this page more times."""
-    return self.page_iters < self.options.page_repeat
+    return self.page_iters < self.total_page_iters
 
   def ShouldNavigate(self, skip_navigate_on_repeat):
     """Checks whether we want to perform a navigate action.

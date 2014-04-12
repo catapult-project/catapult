@@ -171,30 +171,30 @@ class PageRunnerTests(unittest.TestCase):
     options.upload_results = None
     options.results_label = None
 
-    options.repeat_options.page_repeat = 1
-    options.repeat_options.pageset_repeat = 1
+    options.page_repeat = 1
+    options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
-    options.repeat_options.page_repeat = 1
-    options.repeat_options.pageset_repeat = 2
+    options.page_repeat = 1
+    options.pageset_repeat = 2
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
-    options.repeat_options.page_repeat = 2
-    options.repeat_options.pageset_repeat = 1
+    options.page_repeat = 2
+    options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(2, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
     options.output_format = 'html'
-    options.repeat_options.page_repeat = 1
-    options.repeat_options.pageset_repeat = 1
+    options.page_repeat = 1
+    options.pageset_repeat = 1
     SetUpPageRunnerArguments(options)
     results = page_runner.Run(Measurement(), ps, expectations, options)
     self.assertEquals(0, len(results.successes))
@@ -223,8 +223,8 @@ class PageRunnerTests(unittest.TestCase):
       options.upload_results = None
       options.results_label = None
 
-      options.repeat_options.page_repeat = 1
-      options.repeat_options.pageset_repeat = 2
+      options.page_repeat = 1
+      options.pageset_repeat = 2
       SetUpPageRunnerArguments(options)
       results = page_runner.Run(Measurement(), ps, expectations, options)
       results.PrintSummary()
@@ -407,7 +407,7 @@ class PageRunnerTests(unittest.TestCase):
         pass
 
     options = options_for_unittests.GetCopy()
-    options.repeat_options.page_repeat = 2
+    options.page_repeat = 2
     options.output_format = 'none'
     if not browser_finder.FindBrowser(options):
       return
