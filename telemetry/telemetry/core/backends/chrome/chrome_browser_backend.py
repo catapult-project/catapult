@@ -192,7 +192,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         logging.error('ExtensionsToLoad: ' +
             repr([e.extension_id for e in self._extensions_to_load]))
         logging.error('Extension list: ' +
-            pprint.pformat(self._extension_backend, indent=4))
+            pprint.pformat(self.extension_backend, indent=4))
         raise
 
   def _PostBrowserStartupInitialization(self):
