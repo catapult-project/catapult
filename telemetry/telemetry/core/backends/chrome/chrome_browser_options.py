@@ -9,12 +9,8 @@ from telemetry.core.backends.chrome import cros_interface
 def CreateChromeBrowserOptions(br_options):
   browser_type = br_options.browser_type
 
-  # Unit tests.
-  if not browser_type:
-    return br_options
-
   if (cros_interface.IsRunningOnCrosDevice() or
-      browser_type.startswith('cros')):
+      (browser_type and browser_type.startswith('cros'))):
     return CrosBrowserOptions(br_options)
 
   return br_options
