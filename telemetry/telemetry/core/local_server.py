@@ -71,7 +71,7 @@ class LocalServer(object):
         os.path.join(os.path.dirname(__file__), '..', '..'))
 
     self._subprocess = subprocess.Popen(
-        cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=sys.stderr)
+        cmd, cwd=cwd, env=env, stdout=subprocess.PIPE)
 
     named_ports = self._GetNamedPortsFromBackend()
     named_port_pair_map = {'http': None, 'https': None, 'dns': None}
@@ -86,6 +86,7 @@ class LocalServer(object):
   def _GetNamedPortsFromBackend(self):
     named_ports_json = None
     named_ports_re = re.compile('LocalServerBackend started: (?P<port>.+)')
+    # TODO: This will hang if the subprocess doesn't print the correct output.
     while self._subprocess.poll() == None:
       m = named_ports_re.match(self._subprocess.stdout.readline())
       if m:

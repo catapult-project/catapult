@@ -193,9 +193,10 @@ class PerfProfiler(profiler.Profiler):
   @classmethod
   def _CheckLinuxPerf(cls):
     try:
-      return not subprocess.Popen(['perf', '--version'],
-                                  stderr=subprocess.STDOUT,
-                                  stdout=subprocess.PIPE).wait()
+      with open(os.devnull, 'w') as devnull:
+        return not subprocess.Popen(['perf', '--version'],
+                                    stderr=devnull,
+                                    stdout=devnull).wait()
     except OSError:
       return False
 
@@ -218,11 +219,11 @@ class PerfProfiler(profiler.Profiler):
     {function: period} dict of the |number| hottests functions.
     """
     assert os.path.exists(file_name)
-    cmd = 'perf'
-    report = subprocess.Popen(
-        [cmd, 'report', '--show-total-period', '-U', '-t', '^', '-i',
-         file_name],
-        stdout=subprocess.PIPE, stderr=open(os.devnull, 'w')).communicate()[0]
+    with open(os.devnull, 'w') as devnull:
+      report = subprocess.Popen(
+          ['perf', 'report', '--show-total-period', '-U', '-t', '^', '-i',
+           file_name],
+          stdout=subprocess.PIPE, stderr=devnull).communicate()[0]
     period_by_function = {}
     for line in report.split('\n'):
       if not line or line.startswith('#'):

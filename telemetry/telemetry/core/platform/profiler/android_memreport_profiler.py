@@ -35,7 +35,6 @@ class AndroidMemReportProfiler(profiler.Profiler):
 
   def CollectProfile(self):
     self._memreport.communicate(input='\n')
-    self._memreport.wait()
     print 'To view the memory report, open:'
     print self._html_file
     return [self._html_file]

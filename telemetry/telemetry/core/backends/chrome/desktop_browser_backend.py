@@ -157,7 +157,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # This can happen in the case that loading the Chrome binary fails.
         # We print rather than using logging here, because that makes a
         # recursive call to this function.
-        print >> sys.stderr, "Can't get standard output with --show_stdout"
+        print >> sys.stderr, "Can't get standard output with --show-stdout"
       return ''
     self._tmp_output_file.flush()
     try:

@@ -275,7 +275,7 @@ class AndroidPlatformBackend(
           dimensions = line.split(',')[2]
           dimensions = map(int, dimensions.split()[0].split('x'))
           break
-      proc.wait()
+      proc.communicate()
       assert dimensions, ('Failed to determine video dimensions. output=%s' %
                           output)
       return dimensions
