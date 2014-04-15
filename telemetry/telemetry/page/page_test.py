@@ -273,14 +273,6 @@ class PageTest(command_line.Command):
     """Override to do operations after running the actions on the page."""
     pass
 
-  def WillRunAction(self, page, tab, action):
-    """Override to do operations before running the action on the page."""
-    pass
-
-  def DidRunAction(self, page, tab, action):
-    """Override to do operations after running the action on the page."""
-    pass
-
   def CleanUpAfterPage(self, page, tab):
     """Called after the test run method was run, even if it failed."""
     pass
