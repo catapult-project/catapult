@@ -20,6 +20,9 @@ from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.pinch import PinchAction
 from telemetry.page.actions.play import PlayAction
 from telemetry.page.actions.reload import ReloadAction
+# pylint: disable=C0301
+from telemetry.page.actions.repaint_continuously import (
+  RepaintContinuouslyAction)
 from telemetry.page.actions.scroll import ScrollAction
 from telemetry.page.actions.seek import SeekAction
 from telemetry.page.actions.tap import TapAction
