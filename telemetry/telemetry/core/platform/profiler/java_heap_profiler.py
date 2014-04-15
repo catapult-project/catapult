@@ -10,6 +10,13 @@ from telemetry.core import util
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.platform import profiler
 
+util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'android')
+try:
+  from pylib import constants  # pylint: disable=F0401
+except Exception:
+  constants = None
+
+
 class JavaHeapProfiler(profiler.Profiler):
   """Android-specific, trigger and fetch java heap dumps."""
 
@@ -48,7 +55,9 @@ class JavaHeapProfiler(profiler.Profiler):
       if os.path.splitext(f)[1] == '.aprof':
         input_file = os.path.join(self._output_path, f)
         output_file = input_file.replace('.aprof', '.hprof')
-        subprocess.call(['hprof-conv', input_file, output_file])
+        hprof_conv = os.path.join(constants.ANDROID_SDK_ROOT,
+                                  'tools', 'hprof-conv')
+        subprocess.call([hprof_conv, input_file, output_file])
         output_files.append(output_file)
     return output_files
 
