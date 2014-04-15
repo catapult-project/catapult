@@ -37,7 +37,7 @@ class PinchAction(GestureAction):
     left_anchor_percentage = getattr(self, 'left_anchor_percentage', 0.5)
     top_anchor_percentage = getattr(self, 'top_anchor_percentage', 0.5)
     zoom_in = getattr(self, 'zoom_in', True)
-    pixels_to_cover = getattr(self, 'pixels_to_cover', 4000)
+    pixels_to_cover = getattr(self, 'pixels_to_cover', 500)
     speed = getattr(self, 'speed', 800)
 
     if hasattr(self, 'element_function'):
