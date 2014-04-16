@@ -203,19 +203,8 @@ class Platform(object):
 
         # A platform-specific dictionary of additional details about the
         # utilization of individual hardware components.
-        component_utilization: {
-
-          # Platform-specific data not attributed to any particular hardware
-          # component.
-          whole_package: {
-
-            # Device-specific onboard temperature sensor.
-            'average_temperature_c': c,
-
-            ...
-          }
-
-          ...
+        hw_component_utilization: {
+           ...
         }
       }
     """

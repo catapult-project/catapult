@@ -15,7 +15,6 @@ from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.core.platform import factory
 from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
-from telemetry.core.platform.power_monitor import android_temperature_monitor
 from telemetry.core.platform.power_monitor import monsoon_power_monitor
 from telemetry.core.platform.power_monitor import power_monitor_controller
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
@@ -52,13 +51,11 @@ class AndroidPlatformBackend(
     self._host_platform_backend = factory.GetPlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
         self._adb.CanAccessProtectedFileContents()
-    power_controller = power_monitor_controller.PowerMonitorController([
+    self._powermonitor = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(),
         android_ds2784_power_monitor.DS2784PowerMonitor(adb),
         android_dumpsys_power_monitor.DumpsysPowerMonitor(adb),
     ])
-    self._powermonitor = android_temperature_monitor.AndroidTemperatureMonitor(
-        power_controller, adb)
     self._video_recorder = None
     self._video_output = None
     if self._no_performance_mode:
