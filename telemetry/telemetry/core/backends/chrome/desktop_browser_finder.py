@@ -142,7 +142,7 @@ def FindAllAvailableBrowsers(finder_options):
                                              normalized_executable, flash_path,
                                              False, browser_directory))
     else:
-      logging.warning('%s specified by browser_executable does not exist',
+      raise Exception('%s specified by --browser-executable does not exist',
                       normalized_executable)
 
   def AddIfFound(browser_type, build_dir, type_dir, app_name, content_shell):
