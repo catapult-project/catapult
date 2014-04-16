@@ -13,12 +13,9 @@ class RepaintContinuouslyAction(page_action.PageAction):
   """
   def __init__(self, attributes=None):
     super(RepaintContinuouslyAction, self).__init__(attributes)
-    self._SetTimelineMarkerBaseName('RepaintContinuouslyAction::RunAction')
 
   def RunAction(self, page, tab):
     assert(hasattr(self, 'seconds'))
-    tab.ExecuteJavaScript(
-        'console.time("' + self._GetUniqueTimelineMarkerName() + '")')
     start_time = time.time()
     tab.ExecuteJavaScript(
         'window.__rafCount = 0;'
@@ -42,6 +39,3 @@ class RepaintContinuouslyAction(page_action.PageAction):
       elif elapsed_time > self.seconds and raf_count > min_rafs:
         break
       time.sleep(1)
-
-    tab.ExecuteJavaScript(
-        'console.timeEnd("' + self._GetUniqueTimelineMarkerName() + '")')

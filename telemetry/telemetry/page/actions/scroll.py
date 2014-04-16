@@ -9,7 +9,6 @@ from telemetry.page.actions import page_action
 class ScrollAction(GestureAction):
   def __init__(self, attributes=None):
     super(ScrollAction, self).__init__(attributes)
-    self._SetTimelineMarkerBaseName('ScrollAction::RunAction')
 
   def WillRunAction(self, page, tab):
     for js_file in ['gesture_common.js', 'scroll.js']:

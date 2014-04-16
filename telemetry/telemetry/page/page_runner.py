@@ -489,8 +489,6 @@ def _RunPage(test, page, state, expectation, results, finder_options):
 
   page_state = PageState(page, test.TabForPage(page, state.browser))
 
-  page_action.PageAction.ResetNextTimelineMarkerId()
-
   def ProcessError():
     logging.error('%s:', page.url)
     exception_formatter.PrintFormattedException()

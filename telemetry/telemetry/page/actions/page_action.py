@@ -1,9 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-
-import telemetry.core.timeline.bounds as timeline_bounds
 from telemetry.page.actions import wait_until
 
 class PageActionNotSupported(Exception):
@@ -12,19 +9,14 @@ class PageActionNotSupported(Exception):
 class PageActionFailed(Exception):
   pass
 
-class PageActionInvalidTimelineMarker(Exception):
-  pass
 
 class PageAction(object):
   """Represents an action that a user might try to perform to a page."""
-  _next_timeline_marker_id = 0
 
   def __init__(self, attributes=None):
     if attributes:
       for k, v in attributes.iteritems():
         setattr(self, k, v)
-    self._timeline_marker_base_name = None
-    self._timeline_marker_id = None
     if hasattr(self, 'wait_until'):
       self.wait_until = wait_until.WaitUntil(self, self.wait_until)
     else:
@@ -70,32 +62,3 @@ class PageAction(object):
       stop_js: JavaScript code that stops measurements.
     """
     raise Exception('This action cannot be bound.')
-
-  @staticmethod
-  def ResetNextTimelineMarkerId():
-    PageAction._next_timeline_marker_id = 0
-
-  def _SetTimelineMarkerBaseName(self, name):
-    self._timeline_marker_base_name = name
-    self._timeline_marker_id = PageAction._next_timeline_marker_id
-    PageAction._next_timeline_marker_id += 1
-
-  def _GetUniqueTimelineMarkerName(self):
-    if self._timeline_marker_base_name:
-      return \
-        '%s_%d' % (self._timeline_marker_base_name, self._timeline_marker_id)
-    else:
-      return None
-
-  def GetActiveRangeOnTimeline(self, timeline):
-    active_range = timeline_bounds.Bounds()
-
-    if self._GetUniqueTimelineMarkerName():
-      active_range.AddEvent(
-          timeline.GetEventOfName(self._GetUniqueTimelineMarkerName(),
-                                  True, True))
-    if self.wait_until:
-      active_range.AddBounds(
-          self.wait_until.GetActiveRangeOnTimeline(timeline))
-
-    return active_range

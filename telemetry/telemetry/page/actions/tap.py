@@ -15,7 +15,6 @@ def _EscapeSelector(selector):
 class TapAction(GestureAction):
   def __init__(self, attributes=None):
     super(TapAction, self).__init__(attributes)
-    self._SetTimelineMarkerBaseName('TapAction::RunAction')
 
   def WillRunAction(self, page, tab):
     for js_file in ['gesture_common.js', 'tap.js']:

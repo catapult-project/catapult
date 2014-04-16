@@ -11,7 +11,6 @@ class MockGestureAction(gesture_action.GestureAction):
   """Mock gesture action that simply sleeps for a specified amount of time."""
   def __init__(self, attributes=None):
     super(MockGestureAction, self).__init__(attributes)
-    self._SetTimelineMarkerBaseName('MockGestureAction::RunAction')
 
   def RunGesture(self, page, tab):
     duration = getattr(self, 'duration', 2)
