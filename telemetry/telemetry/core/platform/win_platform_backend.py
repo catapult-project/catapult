@@ -157,9 +157,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 
-  def GetFlushUtilityName(self):
-    return 'clear_system_cache.exe'
-
   def _GetWin32ProcessInfo(self, func, pid):
     mask = (win32con.PROCESS_QUERY_INFORMATION |
             win32con.PROCESS_VM_READ)

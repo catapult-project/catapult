@@ -13,6 +13,7 @@ from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform import proc_supporting_platform_backend
 from telemetry.page import cloud_storage
+from telemetry.util import support_binaries
 
 
 class LinuxPlatformBackend(
@@ -81,8 +82,8 @@ class LinuxPlatformBackend(
         ['lsmod'], stdout=subprocess.PIPE).communicate()[0]
 
   def _InstallIpfw(self):
-    ipfw_bin = os.path.join(util.GetTelemetryDir(), 'bin', 'ipfw')
-    ipfw_mod = os.path.join(util.GetTelemetryDir(), 'bin', 'ipfw_mod.ko')
+    ipfw_bin = support_binaries.FindPath('ipfw', self.GetOSName())
+    ipfw_mod = support_binaries.FindPath('ipfw_mod.ko', self.GetOSName())
 
     try:
       changed = cloud_storage.GetIfChanged(
@@ -104,9 +105,9 @@ class LinuxPlatformBackend(
     assert self.CanLaunchApplication('ipfw'), 'Failed to install ipfw'
 
   def _InstallAvconv(self):
-    telemetry_bin_dir = os.path.join(util.GetTelemetryDir(), 'bin')
-    avconv_bin = os.path.join(telemetry_bin_dir, 'avconv')
-    os.environ['PATH'] += os.pathsep + telemetry_bin_dir
+    avconv_bin = support_binaries.FindPath('avconv', self.GetOSName())
+    os.environ['PATH'] += os.pathsep + os.path.join(util.GetTelemetryDir(),
+                                                    'bin')
 
     try:
       cloud_storage.GetIfChanged(avconv_bin, cloud_storage.INTERNAL_BUCKET)

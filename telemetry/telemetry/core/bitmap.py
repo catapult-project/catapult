@@ -13,9 +13,10 @@ import cStringIO
 import collections
 import struct
 import subprocess
-import sys
 
 from telemetry.core import util
+from telemetry.core.platform import factory
+from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
 import png  # pylint: disable=F0401
@@ -121,8 +122,8 @@ class _BitmapTools(object):
   BOUNDING_BOX = 2
 
   def __init__(self, dimensions, pixels):
-    suffix = '.exe' if sys.platform == 'win32' else ''
-    binary = util.FindSupportBinary('bitmaptools' + suffix)
+    binary = support_binaries.FindPath(
+        'bitmaptools', factory.GetPlatformBackendForCurrentOS().GetOSName())
     assert binary, 'You must build bitmaptools first!'
 
     self._popen = subprocess.Popen([binary],

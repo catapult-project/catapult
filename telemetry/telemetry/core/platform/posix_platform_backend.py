@@ -68,9 +68,6 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     command = self._GetPsOutput(['command'], pid)
     return command[0] if command else None
 
-  def GetFlushUtilityName(self):
-    return 'clear_system_cache'
-
   def CanLaunchApplication(self, application):
     return bool(distutils.spawn.find_executable(application))
 

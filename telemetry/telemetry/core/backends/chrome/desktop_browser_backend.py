@@ -16,6 +16,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends import browser_backend
 from telemetry.core.backends.chrome import chrome_browser_backend
+from telemetry.util import support_binaries
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -167,7 +168,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return ''
 
   def GetStackTrace(self):
-    stackwalk = util.FindSupportBinary('minidump_stackwalk')
+    stackwalk = support_binaries.FindPath('minidump_stackwalk',
+                                          self._browser.platform.GetOSName())
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found. Must build it to '
                       'symbolize crash dumps. Returning browser stdout.')

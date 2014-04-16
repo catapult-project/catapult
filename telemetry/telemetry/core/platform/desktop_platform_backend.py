@@ -5,8 +5,8 @@
 import os
 import subprocess
 
-from telemetry.core import util
 from telemetry.core.platform import platform_backend
+from telemetry.util import support_binaries
 
 
 class DesktopPlatformBackend(platform_backend.PlatformBackend):
@@ -14,15 +14,12 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
   # This is an abstract class. It is OK to have abstract methods.
   # pylint: disable=W0223
 
-  def GetFlushUtilityName(self):
-    return NotImplementedError()
-
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     assert directory and os.path.exists(directory), \
         'Target directory %s must exist' % directory
-    flush_command = util.FindSupportBinary(self.GetFlushUtilityName())
-    assert flush_command, \
-        'You must build %s first' % self.GetFlushUtilityName()
+    flush_command = support_binaries.FindPath('clear_system_cache',
+                                              self.GetOSName())
+    assert flush_command, 'You must build clear_system_cache first'
 
     args = []
     directory_contents = os.listdir(directory)
