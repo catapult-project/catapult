@@ -142,6 +142,14 @@ tvcm.exportTo('cc', function() {
       showContentsCheckbox.title =
           'When checked, show the rendered contents inside the layer outlines';
       this.controls_.appendChild(showContentsCheckbox);
+
+      var showAnimationBoundsCheckbox = tvcm.ui.createCheckBox(
+          this, 'showAnimationBounds',
+          'layerView.showAnimationBounds', false,
+          'Animation Bounds');
+      showAnimationBoundsCheckbox.title = 'When checked, show a border around' +
+          ' a layer showing the extent of its animation.';
+      this.controls_.appendChild(showAnimationBoundsCheckbox);
     },
 
     get layerTreeImpl() {
@@ -172,6 +180,15 @@ tvcm.exportTo('cc', function() {
 
     set showOtherLayers(show) {
       this.showOtherLayers_ = show;
+      this.updateContents_();
+    },
+
+    get showAnimationBounds() {
+      return this.showAnimationBounds_;
+    },
+
+    set showAnimationBounds(show) {
+      this.showAnimationBounds_ = show;
       this.updateContents_();
     },
 
@@ -469,6 +486,22 @@ tvcm.exportTo('cc', function() {
       }
     },
 
+    appendAnimationQuads_: function(quads, layer, layerQuad) {
+      if (!layer.animationBoundsRect)
+        return;
+
+      var rect = layer.animationBoundsRect;
+      var abq = tvcm.Quad.fromRect(rect);
+
+      abq.backgroundColor = 'rgba(164,191,48,0.5)';
+      abq.borderColor = 'rgba(205,255,0,0.75)';
+      abq.borderWidth = 3.0;
+      abq.stackingGroupId = layerQuad.stackingGroupId;
+      abq.selectionToSetIfClicked = new cc.AnimationRectSelection(
+          layer, rect);
+      quads.push(abq);
+    },
+
     appendInvalidationQuads_: function(quads, layer, layerQuad) {
       // Generate the invalidation rect quads.
       for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
@@ -750,18 +783,6 @@ tvcm.exportTo('cc', function() {
       return quads;
     },
 
-    appendAnimationQuads_: function(quads, layer, layerQuad) {
-      if (!layer.animationBounds)
-        return;
-
-      var abq = tvcm.Quad.fromRect(layer.animationBounds);
-      abq.backgroundColor = 'rgba(164,191,48,0.5)';
-      abq.borderColor = 'rgba(205,255,0,0.75)';
-      abq.borderWidth = 3.0;
-      abq.stackingGroupId = layerQuad.stackingGroupId;
-      quads.push(abq);
-    },
-
     generateLayerQuads: function() {
       this.updateContentsPending_ = false;
 
@@ -792,8 +813,9 @@ tvcm.exportTo('cc', function() {
         if (this.showOtherLayers && this.selectedLayer == layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
 
-        if (this.selectedLayer === layer)
+        if (this.showAnimationBounds)
           this.appendAnimationQuads_(quads, layer, layerQuad);
+
         this.appendImageQuads_(quads, layer, layerQuad);
         quads.push(layerQuad);
 

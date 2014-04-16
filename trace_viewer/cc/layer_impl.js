@@ -53,7 +53,7 @@ tvcm.exportTo('cc', function() {
 
       if (this.args.animationBounds) {
         // AnimationBounds[2] and [5] are the Z-component of the box.
-        this.animationBounds = tvcm.Rect.fromXYWH(
+        this.animationBoundsRect = tvcm.Rect.fromXYWH(
             this.args.animationBounds[0], this.args.animationBounds[1],
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }

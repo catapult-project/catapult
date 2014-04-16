@@ -277,6 +277,37 @@ tvcm.exportTo('cc', function() {
   /**
    * @constructor
    */
+  function AnimationRectSelection(layer, rect) {
+    this.layer_ = layer;
+    this.rect_ = rect;
+  }
+
+  AnimationRectSelection.prototype = {
+    __proto__: Selection.prototype,
+
+    get specicifity() {
+      return 0;
+    },
+
+    get associatedLayerId() {
+      return this.layer_.layerId;
+    },
+
+    createAnalysis: function() {
+      var analysis = new GenericObjectViewWithLabel();
+      analysis.label = 'Animation Bounds of layer ' + this.layer_.layerId;
+      analysis.object = this.rect_;
+      return analysis;
+    },
+
+    get title() {
+      return 'AnimationRectSelection';
+    }
+  };
+
+  /**
+   * @constructor
+   */
   function RasterTaskSelection(rasterTask) {
     this.rasterTask_ = rasterTask;
   }
@@ -324,6 +355,7 @@ tvcm.exportTo('cc', function() {
     LayerSelection: LayerSelection,
     TileSelection: TileSelection,
     LayerRectSelection: LayerRectSelection,
+    AnimationRectSelection: AnimationRectSelection,
     RasterTaskSelection: RasterTaskSelection
   };
 });
