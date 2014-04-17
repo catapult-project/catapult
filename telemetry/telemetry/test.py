@@ -173,7 +173,8 @@ class Test(command_line.Command):
     if not hasattr(cls, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return page_set.PageSet.FromFile(
-        os.path.join(util.GetBaseDir(), cls.page_set))
+        file_path=os.path.join(util.GetBaseDir(), cls.page_set),
+        ignore_archive=options.use_live_sites)
 
   @classmethod
   def CreateExpectations(cls, ps):  # pylint: disable=W0613

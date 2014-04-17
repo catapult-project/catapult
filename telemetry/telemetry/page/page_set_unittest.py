@@ -148,3 +148,8 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual(
       os.path.normpath(os.path.join(
         util.GetUnittestDataDir(), 'pages/foo.html')), external_page.file_path)
+
+  def testIgnoreArchive(self):
+    test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
+    ps = page_set.PageSet.FromFile(test_pps_dir, True)
+    self.assertEquals(None, ps.wpr_archive_info)

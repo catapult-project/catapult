@@ -55,7 +55,7 @@ class PageSet(object):
     else:
       self.serving_dirs = set()
 
-  def _InitializeFromDict(self, attributes):
+  def _InitializeFromDict(self, attributes, ignore_archive=False):
     if attributes:
       for k, v in attributes.iteritems():
         if k in LEGACY_NAME_CONVERSION_DICT:
@@ -89,13 +89,14 @@ class PageSet(object):
       for serving_dir in attributes['serving_dirs']:
         self.serving_dirs.add(
             os.path.realpath(os.path.join(self._base_dir, serving_dir)))
-    self._Initialize()
+    if not ignore_archive:
+      self._InitializeArchive()
 
-  def _Initialize(self):
+  def _InitializeArchive(self):
     # Create a PageSetArchiveInfo object.
     if self.archive_data_file:
       self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-          os.path.join(self._base_dir, self.archive_data_file))
+        os.path.join(self._base_dir, self.archive_data_file))
 
     # Attempt to download the credentials file.
     if self.credentials_path:
@@ -138,17 +139,17 @@ class PageSet(object):
     action_runner.RunAction(NavigateAction())
 
   @staticmethod
-  def FromFile(file_path):
+  def FromFile(file_path, ignore_archive=False):
     _, ext_name = os.path.splitext(file_path)
     if ext_name == '.json':
-      return PageSet.FromJSONFile(file_path)
+      return PageSet.FromJSONFile(file_path, ignore_archive)
     elif ext_name == '.py':
-      return PageSet.FromPythonFile(file_path)
+      return PageSet.FromPythonFile(file_path, ignore_archive)
     else:
       raise PageSetError("Pageset %s has unsupported file type" % file_path)
 
   @staticmethod
-  def FromPythonFile(file_path):
+  def FromPythonFile(file_path, ignore_archive=False):
     page_set_classes = []
     module = util.GetPythonPageSetModule(file_path)
     for m in dir(module):
@@ -182,21 +183,22 @@ pages in %s must be in the form of def Run<...>(self, action_runner):"""
       page_file_path = sys.modules[page_class.__module__].__file__
       page._base_dir = os.path.dirname(page_file_path)
 
-    page_set._Initialize() # pylint: disable=W0212
+    if not ignore_archive:
+      page_set._InitializeArchive() # pylint: disable=W0212
     return page_set
 
-
   @staticmethod
-  def FromJSONFile(file_path):
+  def FromJSONFile(file_path, ignore_archive=False):
     with open(file_path, 'r') as f:
       contents = f.read()
     data = json.loads(contents)
-    return PageSet.FromDict(data, file_path)
+    return PageSet.FromDict(data, file_path, ignore_archive)
 
   @staticmethod
-  def FromDict(attributes, file_path=''):
+  def FromDict(attributes, file_path='', ignore_archive=False):
     page_set = PageSet(file_path)
-    page_set._InitializeFromDict(attributes) # pylint: disable=W0212
+    # pylint: disable=W0212
+    page_set._InitializeFromDict(attributes, ignore_archive)
     return page_set
 
   @property

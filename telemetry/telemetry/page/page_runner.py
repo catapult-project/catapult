@@ -211,11 +211,9 @@ def AddCommandLineArgs(parser):
 
   # WPR options
   group = optparse.OptionGroup(parser, 'Web Page Replay options')
-  group.add_option('--allow-live-sites',
-      dest='allow_live_sites', action='store_true',
-      help='Run against live sites if the Web Page Replay archives don\'t '
-           'exist. Without this flag, the test will just fail instead '
-           'of running against live sites.')
+  group.add_option('--use-live-sites',
+      dest='use_live_sites', action='store_true',
+      help='Run against live sites and ignore the Web Page Replay archives.')
   parser.add_option_group(group)
 
 
@@ -342,7 +340,7 @@ def Run(test, page_set, expectations, finder_options):
   # Reorder page set based on options.
   pages = _ShuffleAndFilterPageSet(page_set, finder_options)
 
-  if (not finder_options.allow_live_sites and
+  if (not finder_options.use_live_sites and
       browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     pages = _CheckArchives(page_set, pages, results)
 
@@ -438,7 +436,7 @@ def _CheckArchives(page_set, pages, results):
     if not page_set.archive_data_file:
       logging.warning('The page set is missing an "archive_data_file" '
                       'property. Skipping any live sites. To include them, '
-                      'pass the flag --allow-live-sites.')
+                      'pass the flag --use-live-sites.')
     if not page_set.wpr_archive_info:
       logging.warning('The archive info file is missing. '
                       'To fix this, either add svn-internal to your '
@@ -462,13 +460,13 @@ def _CheckArchives(page_set, pages, results):
     logging.warning('The page set archives for some pages do not exist. '
                     'Skipping those pages. To fix this, record those pages '
                     'using record_wpr. To ignore this warning and run '
-                    'against live sites, pass the flag --allow-live-sites.')
+                    'against live sites, pass the flag --use-live-sites.')
   if pages_missing_archive_data:
     logging.warning('The page set archives for some pages are missing. '
                     'Someone forgot to check them in, or they were deleted. '
                     'Skipping those pages. To fix this, record those pages '
                     'using record_wpr. To ignore this warning and run '
-                    'against live sites, pass the flag --allow-live-sites.')
+                    'against live sites, pass the flag --use-live-sites.')
 
   for page in pages_missing_archive_path + pages_missing_archive_data:
     results.StartTest(page)
