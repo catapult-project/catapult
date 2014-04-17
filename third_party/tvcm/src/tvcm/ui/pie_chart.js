@@ -30,8 +30,18 @@ tvcm.exportTo('tvcm.ui', function() {
       this.seriesKeys_ = undefined;
 
       var chartAreaSel = d3.select(this.chartAreaElement);
-      this.pieGroup_ = chartAreaSel.append('g')
-        .attr('class', 'pie-group')
+      var pieGroupSel = chartAreaSel.append('g')
+        .attr('class', 'pie-group');
+      this.pieGroup_ = pieGroupSel.node();
+
+      this.pathsGroup_ = pieGroupSel.append('g')
+        .attr('class', 'paths')
+        .node();
+      this.labelsGroup_ = pieGroupSel.append('g')
+        .attr('class', 'labels')
+        .node();
+      this.linesGroup_ = pieGroupSel.append('g')
+        .attr('class', 'lines')
         .node();
     },
 
@@ -67,9 +77,8 @@ tvcm.exportTo('tvcm.ui', function() {
     },
 
     getLegendKeys_: function() {
-      if (this.data_ === undefined)
-        return [];
-      return this.seriesKeys_;
+      // This class creates its own legend, instead of using ChartBase.
+      return undefined;
     },
 
     updateScales_: function(width, height) {
@@ -84,24 +93,43 @@ tvcm.exportTo('tvcm.ui', function() {
 
       var width = this.chartAreaSize.width;
       var height = this.chartAreaSize.height;
-      var radius = Math.min(width, height) / 2;
+      var radius = Math.max(100, Math.min(width, height) / 2);
 
-      var pieGroupSel = d3.select(this.pieGroup_);
-      pieGroupSel.attr('transform',
-                       'translate(' + width / 2 + ',' + height / 2 + ')');
+      d3.select(this.pieGroup_).attr(
+          'transform',
+          'translate(' + width / 2 + ',' + height / 2 + ')');
 
       // Bind the pie layout to its data
       var pieLayout = d3.layout.pie()
         .value(function(d) { return d.value; })
         .sort(null);
 
-      var piePathsSel = pieGroupSel.datum(this.data_).selectAll('path')
-        .data(pieLayout);
+      var piePathsSel = d3.select(this.pathsGroup_)
+          .datum(this.data_)
+          .selectAll('path')
+          .data(pieLayout);
 
+      function midAngle(d) {
+        return d.startAngle + (d.endAngle - d.startAngle) / 2;
+      }
 
-      var arcRenderer = d3.svg.arc()
+      var pathsArc = d3.svg.arc()
         .innerRadius(0)
-        .outerRadius(radius - 20);
+        .outerRadius(radius - 30);
+
+      var valueLabelArc = d3.svg.arc()
+        .innerRadius(radius - 100)
+        .outerRadius(radius - 30);
+
+      var lineBeginArc = d3.svg.arc()
+        .innerRadius(radius - 50)
+        .outerRadius(radius - 50);
+
+      var lineEndArc = d3.svg.arc()
+        .innerRadius(radius)
+        .outerRadius(radius);
+
+      // Paths.
       piePathsSel.enter().append('path')
         .attr('class', 'arc')
         .attr('fill', function(d, i) {
@@ -110,7 +138,7 @@ tvcm.exportTo('tvcm.ui', function() {
                                this.currentHighlightedLegendKey);
             return getColorOfKey(origData.label, highlighted);
           }.bind(this))
-        .attr('d', arcRenderer)
+        .attr('d', pathsArc)
         .on('click', function(d, i) {
             var origData = this.data_[i];
             if (origData.onClick)
@@ -126,10 +154,11 @@ tvcm.exportTo('tvcm.ui', function() {
             this.popTempHighlightedLegendKey(origData.label);
           }.bind(this));
 
+      // Value labels.
       piePathsSel.enter().append('text')
         .attr('class', 'arc-text')
         .attr('transform', function(d) {
-            return 'translate(' + arcRenderer.centroid(d) + ')';
+            return 'translate(' + valueLabelArc.centroid(d) + ')';
           })
         .attr('dy', '.35em')
         .style('text-anchor', 'middle')
@@ -141,14 +170,47 @@ tvcm.exportTo('tvcm.ui', function() {
           }.bind(this));
 
       piePathsSel.exit().remove();
+
+      // Labels.
+      var labelSel = d3.select(this.labelsGroup_).selectAll('.label')
+          .data(pieLayout(this.data_));
+      labelSel.enter()
+          .append('text')
+          .attr('class', 'label')
+          .attr('dy', '.35em');
+
+      labelSel.text(function(d) {
+        return d.data.label;
+      });
+      labelSel.attr('transform', function(d) {
+        var pos = lineEndArc.centroid(d);
+        pos[0] = radius * (midAngle(d) < Math.PI ? 1 : -1);
+        return 'translate(' + pos + ')';
+      });
+      labelSel.style('text-anchor', function(d) {
+        return midAngle(d) < Math.PI ? 'start' : 'end';
+      });
+
+      // Lines.
+      var lineSel = d3.select(this.linesGroup_).selectAll('.line')
+          .data(pieLayout(this.data_));
+      lineSel.enter()
+        .append('polyline')
+        .attr('class', 'line')
+        .attr('dy', '.35em');
+      lineSel.attr('points', function(d) {
+        var pos = lineEndArc.centroid(d);
+        pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
+        return [lineBeginArc.centroid(d), lineEndArc.centroid(d), pos];
+      });
     },
 
     updateHighlight_: function() {
       ChartBase.prototype.updateHighlight_.call(this);
       // Update color of pie segments.
-      var pieGroupSel = d3.select(this.pieGroup_);
+      var pathsGroupSel = d3.select(this.pathsGroup_);
       var that = this;
-      pieGroupSel.selectAll('.arc').each(function(d, i) {
+      pathsGroupSel.selectAll('.arc').each(function(d, i) {
         var origData = that.data_[i];
         var highlighted = origData.label == that.currentHighlightedLegendKey;
         var color = getColorOfKey(origData.label, highlighted);

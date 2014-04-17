@@ -40,4 +40,27 @@ tvcm.testSuite('tvcm.ui.pie_chart_test', function() {
     chart.data = data;
     this.addHTMLOutput(chart);
   });
+
+  test('lotsOfValues', function() {
+    var chart = new tvcm.ui.PieChart();
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {label: 'a', value: 100},
+      {label: 'bb', value: 200},
+      {label: 'cccc', value: 300},
+      {label: 'dd', value: 50},
+      {label: 'eeeee', value: 250},
+      {label: 'fffffff', value: 120},
+      {label: 'ggg', value: 90},
+      {label: 'hhhh', value: 175},
+      {label: 'iiiiiiiiii', value: 325},
+      {label: 'jjjjjj', value: 140},
+      {label: 'kkkkkkkkk', value: 170},
+      {label: 'lll', value: 220}
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
 });

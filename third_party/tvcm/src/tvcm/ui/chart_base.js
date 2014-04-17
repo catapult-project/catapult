@@ -158,6 +158,8 @@ tvcm.exportTo('tvcm.ui', function() {
 
     updateLegend_: function() {
       var keys = this.getLegendKeys_();
+      if (keys === undefined)
+        return;
 
       var chartAreaSel = d3.select(this.chartAreaElement);
       var chartAreaSize = this.chartAreaSize;
