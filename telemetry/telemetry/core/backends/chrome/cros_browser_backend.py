@@ -215,6 +215,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._RestartUI() # Logs out.
 
+    util.WaitFor(lambda: not self._IsCryptohomeMounted(), 30)
+
     if self._forwarder:
       self._forwarder.Close()
       self._forwarder = None
@@ -268,10 +270,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       }
     ''')
 
+  def _IsCryptohomeMounted(self):
+    username = '$guest' if self._is_guest else self.browser_options.username
+    return self._cri.IsCryptohomeMounted(username, self._is_guest)
+
   def _IsLoggedIn(self):
     """Returns True if cryptohome has mounted, the browser is
     responsive to devtools requests, and the oobe has been dismissed."""
-    return (self._cri.IsCryptohomeMounted(self.browser_options.username) and
+    return (self._IsCryptohomeMounted() and
             self.HasBrowserFinishedLaunching() and
             not self.oobe_exists)
 
@@ -330,7 +336,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._WaitForSigninScreen()
       self._ClickBrowseAsGuest()
 
-    util.WaitFor(lambda: self._cri.IsCryptohomeMounted('$guest'), 30)
+    util.WaitFor(self._IsCryptohomeMounted, 30)
 
   def _NavigateFakeLogin(self):
     """Logs in using Oobe.loginForTesting."""

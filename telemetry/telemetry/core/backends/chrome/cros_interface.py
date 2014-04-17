@@ -357,11 +357,11 @@ class CrOSInterface(object):
     return self.RunCmdOnDevice(
         ['cryptohome-path', 'user', "'%s'" % user])[0].strip()
 
-  def IsCryptohomeMounted(self, username):
+  def IsCryptohomeMounted(self, username, is_guest):
     """Returns True iff |user|'s cryptohome is mounted."""
     profile_path = self.CryptohomePath(username)
     mount = self.FilesystemMountedAt(profile_path)
-    mount_prefix = 'guestfs' if username == '$guest' else '/home/.shadow/'
+    mount_prefix = 'guestfs' if is_guest else '/home/.shadow/'
     return mount and mount.startswith(mount_prefix)
 
   def TakeScreenShot(self, screenshot_prefix):
