@@ -12,7 +12,5 @@
 
 .pie-chart polyline {
   fill: none;
-  opacity: .3;
   stroke: black;
-  stroke-width: 2px;
 }
