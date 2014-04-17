@@ -106,16 +106,16 @@ tvcm.exportTo('tracing', function() {
         return;
       }
 
-      var panelEl = new panelConstructor();
-      panelEl.rangeOfInterest = this.rangeOfInterest_;
-      panelEl.selection = this.selection_;
-      panelEl.model = this.model_;
-      this.activePanelContainer_.appendChild(panelEl);
-
       this.getLabelForConstructor_(
           panelConstructor).setAttribute('selected', true);
 
       this.setAttribute('expanded', true);
+
+      var panelEl = new panelConstructor();
+      this.activePanelContainer_.appendChild(panelEl);
+      panelEl.rangeOfInterest = this.rangeOfInterest_;
+      panelEl.selection = this.selection_;
+      panelEl.model = this.model_;
     },
 
     getLabelForConstructor_: function(panelConstructor) {

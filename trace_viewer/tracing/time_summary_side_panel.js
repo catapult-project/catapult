@@ -33,8 +33,8 @@ tvcm.exportTo('tracing', function() {
 
   function getCpuTimeOverheadForEvent(event) {
     if (event.category == OVERHEAD_TRACE_CATEGORY &&
-        event.cpuDuration) {
-      return event.cpuDuration;
+        event.threadDuration) {
+      return event.threadDuration;
     }
     return 0;
   }
@@ -73,16 +73,16 @@ tvcm.exportTo('tracing', function() {
       var cpuDuration = 0;
       for (var i = 0; i < this.topLevelSlices.length; i++) {
         var x = this.topLevelSlices[i];
-        // Only report cpu-duration if we have it for all events.
+        // Only report thread-duration if we have it for all events.
         //
-        // A cpu_duration of 0 is valid, so this only returns 0 if it is
+        // A thread_duration of 0 is valid, so this only returns 0 if it is
         // None.
-        if (x.cpuDuration === undefined) {
+        if (x.threadDuration === undefined) {
           if (x.duration === undefined)
             continue;
           return 0;
         } else {
-          cpuDuration += x.cpuDuration;
+          cpuDuration += x.threadDuration;
         }
       }
 
@@ -263,18 +263,17 @@ tvcm.exportTo('tracing', function() {
       resultArea.appendChild(summaryText);
 
       this.chart_ = new tvcm.ui.PieChart();
-      this.chart_.width = 400;
-      this.chart_.height = 400;
+      resultArea.appendChild(this.chart_);
       this.chart_.chartTitle = this.groupingUnit_ + ' breakdown by ' +
           this.groupBy_;
       this.chart_.data = data;
+      this.chart_.setSize(this.chart_.getMinSize());
       this.chart_.addEventListener('click', function() {
         var event = new tracing.RequestSelectionChangeEvent();
         event.selection = new tracing.Selection([]);
         this.dispatchEvent(event);
       });
 
-      resultArea.appendChild(this.chart_);
     },
 
     get selection() {

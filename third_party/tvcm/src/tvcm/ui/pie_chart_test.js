@@ -45,8 +45,6 @@ tvcm.testSuite('tvcm.ui.pie_chart_test', function() {
 
   test('lotsOfValues', function() {
     var chart = new tvcm.ui.PieChart();
-    chart.width = 400;
-    chart.height = 200;
     chart.chartTitle = 'Chart title';
     var data = [
       {label: 'a', value: 100},
@@ -57,12 +55,15 @@ tvcm.testSuite('tvcm.ui.pie_chart_test', function() {
       {label: 'fffffff', value: 120},
       {label: 'ggg', value: 90},
       {label: 'hhhh', value: 175},
-      {label: 'iiiiiiiiii', value: 325},
+      {label: 'toolongiiiiiiiiiiiiiiiiiiiiiiiii', value: 325},
       {label: 'jjjjjj', value: 140},
       {label: 'kkkkkkkkk', value: 170},
       {label: 'lll', value: 220}
     ];
     chart.data = data;
     this.addHTMLOutput(chart);
+
+    var minSize = chart.getMinSize();
+    chart.setSize(chart.getMinSize());
   });
 });

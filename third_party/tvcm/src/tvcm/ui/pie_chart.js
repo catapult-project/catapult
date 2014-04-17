@@ -14,6 +14,8 @@ tvcm.exportTo('tvcm.ui', function() {
   var ChartBase = tvcm.ui.ChartBase;
   var getColorOfKey = tvcm.ui.getColorOfKey;
 
+  var MIN_RADIUS = 100;
+
   /**
    * @constructor
    */
@@ -76,6 +78,32 @@ tvcm.exportTo('tvcm.ui', function() {
       this.updateContents_();
     },
 
+    getMinSize: function() {
+      this.updateContents_();
+
+      var labelSel = d3.select(this.labelsGroup_).selectAll('.label');
+      var maxLabelWidth = -Number.MAX_VALUE;
+      var leftTextHeightSum = 0;
+      var rightTextHeightSum = 0;
+      labelSel.each(function(l) {
+        var r = this.getBoundingClientRect();
+        maxLabelWidth = Math.max(maxLabelWidth, r.width);
+        if (this.style.textAnchor == 'end') {
+          leftTextHeightSum += r.height;
+        } else {
+          rightTextHeightSum += r.height;
+        }
+      });
+
+      return {
+        width: 2 * MIN_RADIUS + 2 * maxLabelWidth,
+        height: 40 + Math.max(2 * MIN_RADIUS,
+                              leftTextHeightSum,
+                              rightTextHeightSum) * 1.25
+      };
+    },
+
+
     getLegendKeys_: function() {
       // This class creates its own legend, instead of using ChartBase.
       return undefined;
@@ -93,7 +121,7 @@ tvcm.exportTo('tvcm.ui', function() {
 
       var width = this.chartAreaSize.width;
       var height = this.chartAreaSize.height;
-      var radius = Math.max(100, Math.min(width, height) / 2);
+      var radius = Math.max(MIN_RADIUS, Math.min(width, height) / 2);
 
       d3.select(this.pieGroup_).attr(
           'transform',
