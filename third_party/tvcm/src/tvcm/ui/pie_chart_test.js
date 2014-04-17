@@ -11,6 +11,8 @@ tvcm.testSuite('tvcm.ui.pie_chart_test', function() {
     var chart = new tvcm.ui.PieChart();
     chart.width = 400;
     chart.height = 200;
+    assertEquals('400', chart.getAttribute('width'));
+    assertEquals('200', chart.getAttribute('height'));
     chart.chartTitle = 'Chart title';
     var data = [
       {label: 'a', value: 100},

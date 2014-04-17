@@ -45,6 +45,29 @@ tvcm.exportTo('tvcm.ui', function() {
       var svgEl = template.content.querySelector('svg');
       for (var i = 0; i < svgEl.children.length; i++)
         this.appendChild(svgEl.children[i].cloneNode(true));
+
+      // svg likes to take over width & height properties for some reason. This
+      // works around it.
+      Object.defineProperty(
+          this, 'width', {
+            get: function() {
+              return this.width_;
+            },
+            set: function(width) {
+              this.width_ = width;
+              this.updateContents_();
+            }
+          });
+      Object.defineProperty(
+          this, 'height', {
+            get: function() {
+              return this.height_;
+            },
+            set: function(height) {
+              this.height_ = height;
+              this.updateContents_();
+            }
+          });
     },
 
     get chartTitle() {
@@ -60,26 +83,14 @@ tvcm.exportTo('tvcm.ui', function() {
       return this.querySelector('#chart-area');
     },
 
-    get width() {
-      return width_;
-    },
-
-    set width(width) {
-      this.width_ = width;
-      this.updateContents_();
-    },
-
-    get height() {
-      return height_;
-    },
-
-    set height(height) {
-      this.height_ = height;
-      this.updateContents_();
-    },
-
     get data() {
       return this.data_;
+    },
+
+    setSize: function(size) {
+      this.width_ = size.width;
+      this.height_ = size.height;
+      this.updateContents_();
     },
 
     get margin() {
