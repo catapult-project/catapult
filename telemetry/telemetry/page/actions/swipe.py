@@ -9,7 +9,6 @@ from telemetry.page.actions import page_action
 class SwipeAction(GestureAction):
   def __init__(self, attributes=None):
     super(SwipeAction, self).__init__(attributes)
-    self._SetTimelineMarkerBaseName('SwipeAction::RunAction')
 
   def WillRunAction(self, page, tab):
     for js_file in ['gesture_common.js', 'swipe.js']:
