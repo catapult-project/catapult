@@ -173,9 +173,11 @@ tvcm.exportTo('tvcm.unittest', function() {
     onResultsStatsChanged_: function() {
       var statsEl = this.querySelector('#stats');
       var stats = this.results_.getStats();
-      var numTests = this.runner_.testCases.length;
+      var numTestsOverall = this.runner_.testCases.length;
+      var numTestsThatRan = stats.numTestsThatPassed + stats.numTestsThatFailed;
       statsEl.innerHTML =
-          '<span class="unittest-passed">' + numTests + '</span> tests, ' +
+          '<span>' + numTestsThatRan + '/' + numTestsOverall +
+          '</span> tests run, ' +
           '<span class="unittest-failed">' + stats.numTestsThatFailed +
           '</span> failures, ' +
           ' in ' + stats.totalRunTime.toFixed(2) + 'ms.';
