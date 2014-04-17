@@ -18,18 +18,6 @@ def _IsInCloudStorage(binary_name, platform_name):
   return os.path.exists(_GetBinPath(binary_name, platform_name) + '.sha1')
 
 
-def _UpdateFromCloudStorage(binary_name, platform_name):
-  for bucket in [cloud_storage.INTERNAL_BUCKET,
-                 cloud_storage.PARTNER_BUCKET,
-                 cloud_storage.PUBLIC_BUCKET]:
-    try:
-      cloud_storage.GetIfChanged(
-          _GetBinPath(binary_name, platform_name), bucket)
-      return
-    except cloud_storage.CloudStorageError:
-      continue
-
-
 @decorators.Cache
 def FindLocallyBuiltPath(binary_name):
   """Finds the most recently built |binary_name|."""
@@ -57,6 +45,6 @@ def FindPath(binary_name, platform_name):
     binary_name += '.exe'
   command = FindLocallyBuiltPath(binary_name)
   if not command and _IsInCloudStorage(binary_name, platform_name):
-    _UpdateFromCloudStorage(binary_name, platform_name)
+    cloud_storage.GetIfChanged(_GetBinPath(binary_name, platform_name))
     command = _GetBinPath(binary_name, platform_name)
   return command
