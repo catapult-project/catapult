@@ -254,19 +254,8 @@ tvcm.exportTo('tracing', function() {
       return this.parentElement;
     },
 
-    /**
-     * @return {boolean} Whether the current view is attached to the
-     * document.
-     */
-    get isAttachedToDocument_() {
-      var cur = this;
-      while (cur.parentNode)
-        cur = cur.parentNode;
-      return cur == this.ownerDocument;
-    },
-
     get listenToKeys_() {
-      if (!this.isAttachedToDocument_)
+      if (!tvcm.ui.isElementAttachedToDocument(this))
         return;
       if (!this.focusElement_)
         return true;

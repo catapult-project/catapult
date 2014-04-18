@@ -43,8 +43,8 @@ tvcm.unittest.testSuite('tracing.time_summary_side_panel_test', function() {
     assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
 
     var panel = new tracing.TimeSummarySidePanel();
+    this.addHTMLOutput(panel);
     panel.model = m;
     panel.style.border = '1px solid black';
-    this.addHTMLOutput(panel);
   });
 });

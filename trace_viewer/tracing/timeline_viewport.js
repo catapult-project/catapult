@@ -79,14 +79,11 @@ tvcm.exportTo('tracing', function() {
      * @return {boolean} Whether the current timeline is attached to the
      * document.
      */
-    get isAttachedToDocument_() {
-      var cur = this.parentEl_;
+    get isAttachedToDocumentOrInTestMode() {
       // Allow not providing a parent element, used by tests.
-      if (cur === undefined)
+      if (this.parentEl_ === undefined)
         return;
-      while (cur.parentNode)
-        cur = cur.parentNode;
-      return cur == this.parentEl_.ownerDocument;
+      return tvcm.ui.isElementAttachedToDocument(this.parentEl_);
     },
 
     onResize_: function() {
@@ -99,7 +96,7 @@ tvcm.exportTo('tracing', function() {
      * and then runs the pendingSetFunction_, if present.
      */
     checkForAttach_: function() {
-      if (!this.isAttachedToDocument_ || this.clientWidth == 0)
+      if (!this.isAttachedToDocumentOrInTestMode || this.clientWidth == 0)
         return;
 
       if (!this.iframe_) {

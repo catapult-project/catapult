@@ -291,7 +291,7 @@ tvcm.exportTo('tracing', function() {
     },
 
     get listenToKeys_() {
-      if (!this.viewport_.isAttachedToDocument_)
+      if (!this.viewport_.isAttachedToDocumentOrInTestMode)
         return false;
       if (this.activeElement instanceof tracing.FindControl)
         return false;

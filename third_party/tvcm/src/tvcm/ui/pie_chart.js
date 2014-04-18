@@ -79,6 +79,8 @@ tvcm.exportTo('tvcm.ui', function() {
     },
 
     getMinSize: function() {
+      if (!tvcm.ui.isElementAttachedToDocument(this))
+        throw new Error('Cannot measure when unattached');
       this.updateContents_();
 
       var labelSel = d3.select(this.labelsGroup_).selectAll('.label');

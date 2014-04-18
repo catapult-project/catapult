@@ -147,11 +147,19 @@ tvcm.exportTo('tvcm.ui', function() {
     return spanEl;
   }
 
+  function isElementAttachedToDocument(el) {
+    var cur = el;
+    while (cur.parentNode)
+      cur = cur.parentNode;
+    return cur == el.ownerDocument;
+  }
+
   return {
     createSpan: createSpan,
     createDiv: createDiv,
     createScopedStyle: createScopedStyle,
     createSelector: createSelector,
-    createCheckBox: createCheckBox
+    createCheckBox: createCheckBox,
+    isElementAttachedToDocument: isElementAttachedToDocument
   };
 });
