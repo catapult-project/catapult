@@ -10,6 +10,7 @@ import re
 from telemetry import decorators
 from telemetry.core import camel_case
 from telemetry.core import util
+from telemetry.page import page_set
 
 
 @decorators.Cache
@@ -70,57 +71,78 @@ def DiscoverClasses(start_dir, top_level_dir, base_class, pattern='*',
   modules = DiscoverModules(start_dir, top_level_dir, pattern)
   classes = {}
   for module in modules:
-    for _, obj in inspect.getmembers(module):
-      # Ensure object is a class.
-      if not inspect.isclass(obj):
-        continue
-      # Include only subclasses of base_class.
-      if not issubclass(obj, base_class):
-        continue
-      # Exclude the base_class itself.
-      if obj is base_class:
-        continue
-      # Exclude protected or private classes.
-      if obj.__name__.startswith('_'):
-        continue
-      # Include only the module in which the class is defined.
-      # If a class is imported by another module, exclude those duplicates.
-      if obj.__module__ != module.__name__:
-        continue
+    new_classes = DiscoverClassesInModule(
+        module, base_class, index_by_class_name)
+    classes = dict(classes.items() + new_classes.items())
+  return classes
 
-      if index_by_class_name:
-        key_name = camel_case.ToUnderscore(obj.__name__)
-      else:
-        key_name = module.__name__.split('.')[-1]
-      classes[key_name] = obj
+@decorators.Cache
+def DiscoverClassesInModule(module, base_class, index_by_class_name=False):
+  """Discover all classes in |module| which subclass |base_class|.
+
+  Base classes that contain subclasses are ignored by default.
+
+  Args:
+    module: The module to search.
+    base_class: The base class to search for.
+    index_by_class_name: If True, use class name converted to
+        lowercase_with_underscores instead of module name in return dict keys.
+
+  Returns:
+    dict of {module_name: class} or {underscored_class_name: class}
+  """
+  classes = {}
+  for _, obj in inspect.getmembers(module):
+    # Ensure object is a class.
+    if not inspect.isclass(obj):
+      continue
+    # Include only subclasses of base_class.
+    if not issubclass(obj, base_class):
+      continue
+    # Exclude the base_class itself.
+    if obj is base_class:
+      continue
+    # Exclude protected or private classes.
+    if obj.__name__.startswith('_'):
+      continue
+    # Include only the module in which the class is defined.
+    # If a class is imported by another module, exclude those duplicates.
+    if obj.__module__ != module.__name__:
+      continue
+
+    if index_by_class_name:
+      key_name = camel_case.ToUnderscore(obj.__name__)
+    else:
+      key_name = module.__name__.split('.')[-1]
+    classes[key_name] = obj
 
   return classes
+
 
 _counter = [0]
 def _GetUniqueModuleName():
   _counter[0] += 1
   return "module_" + str(_counter[0])
 
+
 def IsPageSetFile(file_path):
   root_name, ext_name = os.path.splitext(file_path)
-  if ('unittest' in root_name or
-      'page_sets/data' in root_name or
-      root_name in ('PRESUBMIT', '__init__')):
+  if 'unittest' in root_name or 'page_sets/data' in root_name:
     return False
   if ext_name == '.json':
     return True
   elif ext_name != '.py':
     return False
   module = util.GetPythonPageSetModule(file_path)
-  for class_name in dir(module):
-    if class_name.endswith('PageSet') and class_name != 'PageSet':
-      return True
-  return False
+  return bool(DiscoverClassesInModule(module, page_set.PageSet))
+
 
 def GetAllPageSetFilenames(dir_path):
   results = []
   for sub_path, _, filenames in os.walk(dir_path):
     for f in filenames:
+      if f.startswith('.'):
+        continue
       filename = os.path.join(sub_path, f)
       if IsPageSetFile(filename):
         results.append(filename)
