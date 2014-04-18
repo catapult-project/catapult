@@ -29,24 +29,7 @@ class ArgumentHandlerMixIn(object):
 
 
 class Command(ArgumentHandlerMixIn):
-  """Represents a command-line sub-command for use with an argparse sub-parser.
-
-  E.g. "svn checkout", "svn update", and "svn commit" are separate sub-commands.
-
-  Example usage, to set up argparse to use these commands:
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-
-    for command in COMMANDS:
-      subparser = subparsers.add_parser(
-          command.Name(), help=command.Description())
-      subparser.set_defaults(command=command)
-      command.AddCommandLineArgs(subparser)
-
-    args = parser.parse_args()
-    args.command.ProcessCommandLineArgs(parser, args)
-    args.command().Run(args)
-  """
+  """An abstraction for things that run from the command-line."""
 
   @classmethod
   def Name(cls):
@@ -64,11 +47,12 @@ class Command(ArgumentHandlerMixIn):
 
   @classmethod
   def main(cls):
+    """Main method to run this command as a standalone script."""
     parser = argparse.ArgumentParser()
     cls.AddCommandLineArgs(parser)
     args = parser.parse_args()
     cls.ProcessCommandLineArgs(parser, args)
-    cls().Run(args)
+    return cls().Run(args)
 
 
 # TODO: Convert everything to argparse.
@@ -84,9 +68,43 @@ class OptparseCommand(Command):
 
   @classmethod
   def main(cls):
-    parser = optparse.OptionParser()
+    """Main method to run this command as a standalone script."""
+    parser = cls.CreateParser()
     cls.AddCommandLineArgs(parser)
     options, args = parser.parse_args()
     options.positional_args = args
     cls.ProcessCommandLineArgs(parser, options)
-    cls().Run(options)
+    return cls().Run(options)
+
+
+class SubcommandCommand(Command):
+  """Combines Commands into one big command with sub-commands.
+
+  E.g. "svn checkout", "svn update", and "svn commit" are separate sub-commands.
+
+  Example usage:
+    class MyCommand(command_line.SubcommandCommand):
+      commands = (Help, List, Run)
+
+    if __name__ == '__main__':
+      sys.exit(MyCommand.main())
+  """
+
+  commands = ()
+
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
+    subparsers = parser.add_subparsers()
+
+    for command in cls.commands:
+      subparser = subparsers.add_parser(
+          command.Name(), help=command.Description())
+      subparser.set_defaults(command=command)
+      command.AddCommandLineArgs(subparser)
+
+  @classmethod
+  def ProcessCommandLineArgs(cls, parser, args):
+    args.command.ProcessCommandLineArgs(parser, args)
+
+  def Run(self, args):
+    args.command().Run(args)

@@ -7,6 +7,7 @@ import argparse
 import logging
 import os
 import subprocess
+import sys
 
 from telemetry.core import command_line
 from telemetry.page import cloud_storage
@@ -192,25 +193,10 @@ class Upload(command_line.Command):
       subprocess.call(['git', 'add', hash_path])
 
 
-COMMANDS = (Ls, Mv, Rm, Upload)
-
-
-def main():
-  logging.getLogger().setLevel(logging.INFO)
-
-  parser = argparse.ArgumentParser()
-  subparsers = parser.add_subparsers()
-
-  for command in COMMANDS:
-    subparser = subparsers.add_parser(
-        command.Name(), help=command.Description())
-    subparser.set_defaults(command=command)
-    command.AddCommandLineArgs(subparser)
-
-  args = parser.parse_args()
-  args.command.ProcessCommandLineArgs(parser, args)
-  args.command().Run(args)
+class CloudStorageCommand(command_line.SubcommandCommand):
+  commands = (Ls, Mv, Rm, Upload)
 
 
 if __name__ == '__main__':
-  main()
+  logging.getLogger().setLevel(logging.INFO)
+  sys.exit(CloudStorageCommand.main())
