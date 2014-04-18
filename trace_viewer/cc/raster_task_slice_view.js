@@ -69,7 +69,7 @@ tvcm.exportTo('cc', function() {
   tracing.analysis.SliceView.register(
       'RasterTaskImpl::Raster', RasterTaskSliceView);
   tracing.analysis.SliceView.register(
-      'RasterTaskImpl::Analyze', RasterTaskSliceView);
+      'cc::RasterTask', RasterTaskSliceView);
 
   tracing.analysis.SliceView.register(
       'TileManager::RunAnalyzeTask', RasterTaskSliceView);
@@ -77,6 +77,10 @@ tvcm.exportTo('cc', function() {
       'RasterWorkerPoolTaskImpl::RunAnalysisOnThread', RasterTaskSliceView);
   tracing.analysis.SliceView.register(
       'RasterWorkerPoolTaskImpl::Analyze', RasterTaskSliceView);
+  tracing.analysis.SliceView.register(
+      'RasterTaskImpl::Analyze', RasterTaskSliceView);
+  tracing.analysis.SliceView.register(
+      'cc::AnalyzeTask', RasterTaskSliceView);
 
   return {
     RasterTaskSliceView: RasterTaskSliceView
