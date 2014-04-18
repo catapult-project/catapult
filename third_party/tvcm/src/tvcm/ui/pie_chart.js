@@ -97,8 +97,11 @@ tvcm.exportTo('tvcm.ui', function() {
         }
       });
 
+      var titleWidth = this.querySelector(
+          '#title').getBoundingClientRect().width;
       return {
-        width: 2 * MIN_RADIUS + 2 * maxLabelWidth,
+        width: Math.max(2 * MIN_RADIUS + 2 * maxLabelWidth,
+                        titleWidth * 1.1),
         height: 40 + Math.max(2 * MIN_RADIUS,
                               leftTextHeightSum,
                               rightTextHeightSum) * 1.25
