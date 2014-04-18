@@ -197,9 +197,12 @@ tvcm.exportTo('tvcm.ui', function() {
         .style('text-anchor', 'middle')
         .text(function(d, i) {
             var origData = this.data_[i];
-            if (origData.valueText)
-              return origData.valueText;
-            return '';
+            if (origData.valueText === undefined)
+              return '';
+
+            if (d.endAngle - d.startAngle < 0.4)
+              return '';
+            return origData.valueText;
           }.bind(this));
 
       piePathsSel.exit().remove();
