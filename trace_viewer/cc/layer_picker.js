@@ -151,6 +151,9 @@ tvcm.exportTo('cc', function() {
         else
           info.name = 'cc::LayerImpl';
 
+        if (layer.usingGpuRasterization)
+          info.name += ' (G)';
+
         info.isMaskLayer = isMask;
         info.replicaLayer = isReplica;
 
