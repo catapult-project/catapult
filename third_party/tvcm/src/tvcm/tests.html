@@ -32,75 +32,107 @@ found in the LICENSE file.
   </script>
   <script>
     'use strict';
+    function stateToSearchString(defaultState, state) {
+      var parts = [];
+      for (var k in state) {
+        if (state[k] === defaultState[k])
+          continue;
+        var v = state[k];
+        var kv;
+        if (v === true) {
+          kv = k;
+        } else if (v === false) {
+          kv = k + '=false';
+        } else if (v === '') {
+          continue;
+        } else {
+          kv = k + '=' + v;
+        }
+        parts.push(kv);
+      }
+      return parts.join('&');
+    }
+
+    function stateFromSearchString(string) {
+      var state = {};
+      string.split('&').forEach(function(part) {
+        if (part == '')
+          return;
+        var kv = part.split('=');
+        var k, v;
+        if (kv.length == 1) {
+          k = kv[0];
+          v = true;
+        } else {
+          k = kv[0];
+          if (kv[1] == 'false')
+            v = false;
+          else
+            v = kv[1];
+        }
+        state[k] = v;
+      });
+      return state;
+    }
+
     function loadAndRunTests() {
-      var loader = new tvcm.unittest.SuiteLoader();
+      var state = stateFromSearchString(
+          window.location.search.substring(1));
+
+
+      var suiteNamesToLoad;
+      if (state.testSuiteName) {
+        suiteNamesToLoad = [];
+        suiteNamesToLoad.push(state.testSuiteName);
+      }
+
+      var loader = new tvcm.unittest.SuiteLoader(suiteNamesToLoad);
       return loader.allSuitesLoadedPromise.then(
         function() {
-          runTests(loader);
+          runTests(loader, state);
         },
         function(err) {
           tvcm.showPanic('Module loading failure', err);
         });
     }
 
-    function runTests(loader) {
+    function updateTitle(state) {
+      var testFilterString = state.testFilterString || '';
+      var testSuiteName = state.testSuiteName || '';
+
+      var title;
+      if (testSuiteName && testFilterString.length) {
+        title = testFilterString + ' in ' + testSuiteName;
+      } else if (testSuiteName) {
+        title = testSuiteName;
+      } else if (testFilterString) {
+        title = testFilterString + ' in all tests';
+      } else {
+        title = 'All TVCM Tests';
+      }
+
+      if (state.shortFormat)
+        title += '(s)';
+      document.title = title;
+    }
+
+    function runTests(loader, state) {
       var results = new tvcm.unittest.InteractiveTestRunner();
       results.testLinks = loader.testLinks;
       results.allTests = loader.getAllTests();
       document.body.appendChild(results);
 
-      results.setState(stateFromSearchString(
-          window.location.search.substring(1)));
-
-      function stateToSearchString(defaultState, state) {
-        var parts = [];
-        for (var k in state) {
-          if (state[k] === defaultState[k])
-            continue;
-          var v = state[k];
-          var kv;
-          if (v === true) {
-            kv = k;
-          } else if (v === false) {
-            kv = k + '=false';
-          } else if (v === '') {
-            continue;
-          } else {
-            kv = k + '=' + v;
-          }
-          parts.push(kv);
-        }
-        return parts.join('&');
-      }
-
-      function stateFromSearchString(string) {
-        var state = {};
-        string.split('&').forEach(function(part) {
-          if (part == '')
-            return;
-          var kv = part.split('=');
-          var k, v;
-          if (kv.length == 1) {
-            k = kv[0];
-            v = true;
-          } else {
-            k = kv[0];
-            if (kv[1] == 'false')
-              v = false;
-            else
-              v = kv[1];
-          }
-          state[k] = v;
-        });
-        return state;
-      }
+      results.setState(state);
+      updateTitle(state);
 
       results.addEventListener('statechange', function() {
         var state = results.getState();
         var stateString = stateToSearchString(results.getDefaultState(),
                                               state);
-        if (window.location.search == stateString)
+        if (window.location.search.substring(1) == stateString)
           return;
+
+        updateTitle(state);
         var stateURL;
         if (stateString.length > 0)
           stateURL = window.location.pathname + '?' + stateString;
@@ -110,12 +142,13 @@ found in the LICENSE file.
       });
 
       window.addEventListener('popstate', function(state) {
-        results.setState(state);
+        results.setState(state, true);
       });
 
       results.getHRefForTestCase = function(testCase) {
         var state = results.getState();
-        state.testFilterString = testCase.fullyQualifiedName;
+        state.testSuiteName = testCase.suite.name;
+        state.testFilterString = testCase.name;
         state.shortFormat = false;
 
         var stateString = stateToSearchString(results.getDefaultState(),
