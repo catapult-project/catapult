@@ -104,6 +104,13 @@ tvcm.exportTo('tvcm', function() {
         return false;
       return !(range.max < this.min ||
                range.min > this.max);
+    },
+
+    intersectsExplicitRange: function(min, max) {
+      if (this.isEmpty)
+        return false;
+      return !(max < this.min ||
+               min > this.max);
     }
   };
 

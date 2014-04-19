@@ -40,11 +40,11 @@ tvcm.exportTo('tracing', function() {
     return 0;
   }
 
-  function getSlicesInsideRange(rangeOfInterest, slices) {
+  function getSlicesIntersectingRange(rangeOfInterest, slices) {
     var slicesInFilterRange = [];
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
-      if (rangeOfInterest.containsExplicitRange(slice.start, slice.end))
+      if (rangeOfInterest.intersectsExplicitRange(slice.start, slice.end))
         slicesInFilterRange.push(slice);
     }
     return slicesInFilterRange;
@@ -174,12 +174,12 @@ tvcm.exportTo('tracing', function() {
     },
 
     appendThreadSlices: function(rangeOfInterest, thread) {
-      var tmp = getSlicesInsideRange(
+      var tmp = getSlicesIntersectingRange(
           rangeOfInterest, thread.sliceGroup.slices);
       tmp.forEach(function(slice) {
         this.allSlices.push(slice);
       }, this);
-      tmp = getSlicesInsideRange(
+      tmp = getSlicesIntersectingRange(
           rangeOfInterest, thread.sliceGroup.topLevelSlices);
       tmp.forEach(function(slice) {
         this.topLevelSlices.push(slice);
