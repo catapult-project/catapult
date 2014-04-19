@@ -78,6 +78,13 @@ tvcm.exportTo('tvcm.ui', function() {
       this.updateContents_();
     },
 
+    get margin() {
+      var margin = {top: 0, right: 0, bottom: 0, left: 0};
+      if (this.chartTitle_)
+        margin.top += 40;
+      return margin;
+    },
+
     getMinSize: function() {
       if (!tvcm.ui.isElementAttachedToDocument(this))
         throw new Error('Cannot measure when unattached');
@@ -99,12 +106,15 @@ tvcm.exportTo('tvcm.ui', function() {
 
       var titleWidth = this.querySelector(
           '#title').getBoundingClientRect().width;
+      var margin = this.margin;
+      var marginWidth = margin.left + margin.right;
+      var marginHeight = margin.top + margin.bottom;
       return {
         width: Math.max(2 * MIN_RADIUS + 2 * maxLabelWidth,
-                        titleWidth * 1.1),
-        height: 40 + Math.max(2 * MIN_RADIUS,
-                              leftTextHeightSum,
-                              rightTextHeightSum) * 1.25
+                        titleWidth * 1.1) + marginWidth,
+        height: marginHeight + Math.max(2 * MIN_RADIUS,
+                                        leftTextHeightSum,
+                                        rightTextHeightSum) * 1.25
       };
     },
 

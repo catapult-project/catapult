@@ -8,6 +8,7 @@ tvcm.require('tracing.analysis.util');
 tvcm.require('tracing.selection');
 tvcm.require('tracing.timeline_view_side_panel');
 tvcm.require('tvcm.iteration_helpers');
+tvcm.require('tvcm.statistics');
 tvcm.require('tvcm.ui.dom_helpers');
 tvcm.require('tvcm.ui.pie_chart');
 
@@ -50,6 +51,80 @@ tvcm.exportTo('tracing', function() {
   }
 
   /**
+   * This function takes an array of groups and merges smaller groups into the
+   * provided 'Other' group item such that the remaining items are ready for
+   * pie-chart consumption. Otherwise, the pie chart gets overwhelmed with tons
+   * of little slices.
+   */
+  function trimPieChartData(groups, otherGroup, getValue) {
+    // Copy the array so it can be mutated.
+    groups = groups.filter(function(d) {
+      return getValue(d) != 0;
+    });
+
+    // Figure out total array range.
+    var sum = tvcm.Statistics.sum(groups, getValue);
+
+    // Sort by value.
+    function compareByValue(a, b) {
+      return getValue(a) - getValue(b);
+    }
+    groups.sort(compareByValue);
+
+    // Now start fusing elements until none are less than threshold in size.
+    var thresshold = 0.05 * sum;
+    while (groups.length > 1) {
+      var group = groups[0];
+      if (getValue(group) >= thresshold)
+        break;
+
+      var v = getValue(group);
+      if (v + getValue(otherGroup) > thresshold)
+        break;
+
+      // Remove the group from the list and add it to the 'Other' group.
+      groups.splice(0, 1);
+      otherGroup.appendGroupContents(group);
+    }
+
+    // Final return.
+    if (getValue(otherGroup) > 0)
+      groups.push(otherGroup);
+
+    groups.sort(compareByValue);
+
+    return groups;
+  }
+
+  function createPieChartFromResultGroups(groups, title, getValue) {
+    var chart = new tvcm.ui.PieChart();
+
+    // Build chart data.
+    var data = [];
+    groups.forEach(function(resultsForGroup) {
+      var value = getValue(resultsForGroup);
+      if (value === 0)
+        return;
+      data.push({
+        label: resultsForGroup.name,
+        value: value,
+        valueText: tsRound(value) + 'ms',
+        onClick: function() {
+          var event = new tracing.RequestSelectionChangeEvent();
+          event.selection = new tracing.Selection(resultsForGroup.allSlices);
+          event.selection.timeSummaryGroupName = resultsForGroup.name;
+          chart.dispatchEvent(event);
+        }
+      });
+    });
+
+    chart.chartTitle = title;
+    chart.data = data;
+    return chart;
+  }
+
+
+  /**
    * @constructor
    */
   function ResultsForGroup(model, name) {
@@ -61,12 +136,9 @@ tvcm.exportTo('tracing', function() {
 
   ResultsForGroup.prototype = {
     get wallTime() {
-      var wallSum = tvcm.sum(function(x) { return x.duration; },
-                             this.topLevelSlices);
-      var wallOverheadSum = tvcm.sum(function(x) {
-        return getWallTimeOverheadForEvent(x);
-      },this.allSlices);
-      return wallSum - wallOverheadSum;
+      var wallSum = tvcm.Statistics.sum(
+          this.topLevelSlices, function(x) { return x.duration; });
+      return wallSum;
     },
 
     get cpuTime() {
@@ -86,10 +158,19 @@ tvcm.exportTo('tracing', function() {
         }
       }
 
-      var cpuOverhead = tvcm.sum(function(x) {
-        return getCpuTimeOverheadForEvent(x);
-      }, this.allSlices);
-      return cpuDuration - cpuOverhead;
+      return cpuDuration;
+    },
+
+    appendGroupContents: function(group) {
+      if (group.model != this.model)
+        throw new Error('Models must be the same');
+
+      group.allSlices.forEach(function(slice) {
+        this.allSlices.push(slice);
+      }, this);
+      group.topLevelSlices.forEach(function(slice) {
+        this.topLevelSlices.push(slice);
+      }, this);
     },
 
     appendThreadSlices: function(rangeOfInterest, thread) {
@@ -218,41 +299,14 @@ tvcm.exportTo('tracing', function() {
         allGroup.appendThreadSlices(rangeOfInterest, thread);
       }, this);
 
-      // Build chart data.
-      var groupNames = tvcm.dictionaryKeys(resultsByGroupName);
-      groupNames.sort();
-
-
+      // Helper function for working with the produced group.
       var getValueFromGroup = function(group) {
         if (this.groupingUnit_ == WALL_TIME_GROUPING_UNIT)
           return group.wallTime;
         return group.cpuTime;
       }.bind(this);
 
-      var data = [];
-      groupNames.forEach(function(groupName) {
-        var resultsForGroup = resultsByGroupName[groupName];
-        var value = getValueFromGroup(resultsForGroup);
-        if (value === 0)
-          return;
-        data.push({
-          label: groupName,
-          value: value,
-          valueText: tsRound(value) + 'ms',
-          onClick: function() {
-            var event = new tracing.RequestSelectionChangeEvent();
-            event.selection = new tracing.Selection(resultsForGroup.allSlices);
-            event.selection.timeSummaryGroupName = groupName;
-            this.dispatchEvent(event);
-          }.bind(this)
-        });
-      }, this);
-
-      if (data.length == 0) {
-        resultArea.appendChild(tvcm.ui.createSpan({textContent: 'No data'}));
-        return;
-      }
-
+      // Create summary.
       var summaryText = document.createElement('div');
       summaryText.appendChild(tvcm.ui.createSpan({
         textContent: 'Total ' + this.groupingUnit_ + ': ',
@@ -262,18 +316,28 @@ tvcm.exportTo('tracing', function() {
       }));
       resultArea.appendChild(summaryText);
 
-      this.chart_ = new tvcm.ui.PieChart();
+      // Create the actual chart.
+      var otherGroup = new ResultsForGroup(this.model_, 'Other');
+      var groups = trimPieChartData(
+          tvcm.dictionaryValues(resultsByGroupName),
+          otherGroup,
+          getValueFromGroup);
+      if (groups.length == 0) {
+        resultArea.appendChild(tvcm.ui.createSpan({textContent: 'No data'}));
+        return undefined;
+      }
+
+      this.chart_ = createPieChartFromResultGroups(
+          groups,
+          this.groupingUnit_ + ' breakdown by ' + this.groupBy_,
+          getValueFromGroup);
       resultArea.appendChild(this.chart_);
-      this.chart_.chartTitle = this.groupingUnit_ + ' breakdown by ' +
-          this.groupBy_;
-      this.chart_.data = data;
-      this.chart_.setSize(this.chart_.getMinSize());
       this.chart_.addEventListener('click', function() {
         var event = new tracing.RequestSelectionChangeEvent();
         event.selection = new tracing.Selection([]);
         this.dispatchEvent(event);
       });
-
+      this.chart_.setSize(this.chart_.getMinSize());
     },
 
     get selection() {
@@ -307,6 +371,8 @@ tvcm.exportTo('tracing', function() {
   tracing.TimelineViewSidePanel.registerPanelSubtype(TimeSummarySidePanel);
 
   return {
+    trimPieChartData: trimPieChartData,
+    createPieChartFromResultGroups: createPieChartFromResultGroups,
     ResultsForGroup: ResultsForGroup,
     TimeSummarySidePanel: TimeSummarySidePanel
   };

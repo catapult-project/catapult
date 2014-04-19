@@ -249,6 +249,7 @@
       'third_party/tvcm/src/tvcm/rect.js',
       'third_party/tvcm/src/tvcm/settings.js',
       'third_party/tvcm/src/tvcm/sorted_array_utils.js',
+      'third_party/tvcm/src/tvcm/statistics.js',
       'third_party/tvcm/src/tvcm/unittest/__init__.js',
       'third_party/tvcm/src/tvcm/unittest/assertions.js',
       'third_party/tvcm/src/tvcm/unittest/constants.js',

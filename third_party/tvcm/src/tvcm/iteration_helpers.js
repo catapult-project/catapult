@@ -109,11 +109,24 @@ tvcm.exportTo('tvcm', function() {
     }
   }
 
-  function sum(func, ary, opt_this) {
-    var res = 0;
-    for (var i = 0; i < ary.length; i++)
-      res += func.call(opt_this, ary[i]);
-    return res;
+  function identity(d) {
+    return d;
+  }
+
+  function findFirstIndexInArray(ary, opt_func, opt_this) {
+    var func = opt_func || identity;
+    for (var i = 0; i < ary.length; i++) {
+      if (func.call(opt_this, ary[i], i))
+        return i;
+    }
+    return -1;
+  }
+
+  function findFirstInArray(ary, opt_func, opt_this) {
+    var i = findFirstIndexInArray(ary, opt_func, opt_func);
+    if (i === -1)
+      return undefined;
+    return ary[i];
   }
 
   return {
@@ -127,6 +140,7 @@ tvcm.exportTo('tvcm', function() {
     dictionaryValues: dictionaryValues,
     iterItems: iterItems,
     iterObjectFieldsRecursively: iterObjectFieldsRecursively,
-    sum: sum
+    findFirstIndexInArray: findFirstIndexInArray,
+    findFirstInArray: findFirstInArray
   };
 });
