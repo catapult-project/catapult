@@ -297,8 +297,8 @@ class Browser(object):
       else:
         self.platform.FlushEntireSystemCache()
 
-    self._browser_backend.SetBrowser(self)
     self._browser_backend.Start()
+    self._browser_backend.SetBrowser(self)
 
   def Close(self):
     """Closes this browser."""
