@@ -32,6 +32,11 @@ found in the LICENSE file.
   </script>
   <script>
     'use strict';
+
+    // The test runner no-ops pushState so keep it around.
+    var realWindowHistoryPushState = window.history.pushState.bind(
+        window.history);
+
     function stateToSearchString(defaultState, state) {
       var parts = [];
       for (var k in state) {
@@ -141,7 +146,7 @@ found in the LICENSE file.
           stateURL = window.location.pathname + '?' + stateString;
         else
           stateURL = window.location.pathname;
-        window.history.pushState(state, document.title, stateURL);
+        realWindowHistoryPushState(state, document.title, stateURL);
       });
 
       window.addEventListener('popstate', function(state) {

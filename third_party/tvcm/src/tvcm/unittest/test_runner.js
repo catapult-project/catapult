@@ -9,6 +9,7 @@ tvcm.require('tvcm.raf');
 tvcm.exportTo('tvcm.unittest', function() {
   var realTvcmOnAnimationFrameError;
   var realWindowOnError;
+  var realWindowHistoryPushState;
 
   function installGlobalTestHooks(runner) {
     realTvcmOnAnimationFrameError = tvcm.onAnimationFrameError;
@@ -25,6 +26,10 @@ tvcm.exportTo('tvcm.unittest', function() {
       return false;
     }
 
+    realWindowHistoryPushState = window.history.pushState;
+    window.history.pushState = function() {
+    };
+
     tvcm.unittest.addHTMLOutputForCurrentTest = function(element) {
       runner.results.addHTMLOutputForCurrentTest(element);
     }
@@ -40,6 +45,10 @@ tvcm.exportTo('tvcm.unittest', function() {
 
     tvcm.onAnimationFrameError = realTvcmOnAnimationFrameError;
     realTvcmOnAnimationFrameError = undefined;
+
+    realWindowHistoryPushState = undefined;
+    window.history.pushState = realWindowHistoryPushState;
+
 
     tvcm.unittest.addHTMLOutputForCurrentTest = undefined;
   }
