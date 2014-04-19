@@ -58,10 +58,14 @@ tvcm.exportTo('tvcm.unittest', function() {
       shortFormatEl.addEventListener(
           'click', this.onShortFormatClick_.bind(this));
       this.updateShortFormResultsDisplay_();
-    },
 
-    set title(title) {
-      this.querySelector('#title').textContent = title;
+      // Oh, DOM, how I love you. Title is such a convenient property name and I
+      // refuse to change my worldview because of tooltips.
+      this.__defineSetter__(
+          'title',
+          function(title) {
+            this.querySelector('#title').textContent = title;
+          });
     },
 
     get allTests() {

@@ -6,7 +6,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
-  <title>All TVCM Tests</title>
+  <title>TVCM Tests: loading...</title>
   <script src="/tvcm/__init__.js"></script>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="shortcut icon" href="data:image/x-icon;base64," type="image/x-icon">
@@ -78,7 +78,7 @@ found in the LICENSE file.
     function loadAndRunTests() {
       var state = stateFromSearchString(
           window.location.search.substring(1));
-
+      updateTitle(state);
 
       var suiteNamesToLoad;
       if (state.testSuiteName) {
@@ -114,20 +114,23 @@ found in the LICENSE file.
       if (state.shortFormat)
         title += '(s)';
       document.title = title;
+      var runner = document.querySelector('x-base-interactive-test-runner');
+      if (runner)
+        runner.title = title;
     }
 
     function runTests(loader, state) {
-      var results = new tvcm.unittest.InteractiveTestRunner();
-      results.testLinks = loader.testLinks;
-      results.allTests = loader.getAllTests();
-      document.body.appendChild(results);
+      var runner = new tvcm.unittest.InteractiveTestRunner();
+      runner.testLinks = loader.testLinks;
+      runner.allTests = loader.getAllTests();
+      document.body.appendChild(runner);
 
-      results.setState(state);
+      runner.setState(state);
       updateTitle(state);
 
-      results.addEventListener('statechange', function() {
-        var state = results.getState();
-        var stateString = stateToSearchString(results.getDefaultState(),
+      runner.addEventListener('statechange', function() {
+        var state = runner.getState();
+        var stateString = stateToSearchString(runner.getDefaultState(),
                                               state);
         if (window.location.search.substring(1) == stateString)
           return;
@@ -142,16 +145,16 @@ found in the LICENSE file.
       });
 
       window.addEventListener('popstate', function(state) {
-        results.setState(state, true);
+        runner.setState(state, true);
       });
 
-      results.getHRefForTestCase = function(testCase) {
-        var state = results.getState();
+      runner.getHRefForTestCase = function(testCase) {
+        var state = runner.getState();
         state.testSuiteName = testCase.suite.name;
         state.testFilterString = testCase.name;
         state.shortFormat = false;
 
-        var stateString = stateToSearchString(results.getDefaultState(),
+        var stateString = stateToSearchString(runner.getDefaultState(),
                                               state);
         if (stateString.length > 0)
           return window.location.pathname + '?' + stateString;
