@@ -218,7 +218,8 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
       # flake out during the test. We skip this if Telemetry is running under a
       # buildbot because build/android/test_runner.py wrapper already took care
       # of it before starting the shards.
-      adb_commands.CleanupLeftoverProcesses()
+      adb.RestartAdbdOnDevice()
+      adb.WaitForDevicePm()
 
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
