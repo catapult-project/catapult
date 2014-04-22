@@ -4,7 +4,6 @@
 
 import csv
 import inspect
-import json
 import logging
 import os
 import sys
@@ -141,9 +140,7 @@ class PageSet(object):
   @staticmethod
   def FromFile(file_path, ignore_archive=False):
     _, ext_name = os.path.splitext(file_path)
-    if ext_name == '.json':
-      return PageSet.FromJSONFile(file_path, ignore_archive)
-    elif ext_name == '.py':
+    if ext_name == '.py':
       return PageSet.FromPythonFile(file_path, ignore_archive)
     else:
       raise PageSetError("Pageset %s has unsupported file type" % file_path)
@@ -186,13 +183,6 @@ pages in %s must be in the form of def Run<...>(self, action_runner):"""
     if not ignore_archive:
       page_set._InitializeArchive() # pylint: disable=W0212
     return page_set
-
-  @staticmethod
-  def FromJSONFile(file_path, ignore_archive=False):
-    with open(file_path, 'r') as f:
-      contents = f.read()
-    data = json.loads(contents)
-    return PageSet.FromDict(data, file_path, ignore_archive)
 
   @staticmethod
   def FromDict(attributes, file_path='', ignore_archive=False):

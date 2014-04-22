@@ -129,9 +129,7 @@ def IsPageSetFile(file_path):
   root_name, ext_name = os.path.splitext(file_path)
   if 'unittest' in root_name or 'page_sets/data' in root_name:
     return False
-  if ext_name == '.json':
-    return True
-  elif ext_name != '.py':
+  if ext_name != '.py':
     return False
   module = util.GetPythonPageSetModule(file_path)
   return bool(DiscoverClassesInModule(module, page_set.PageSet))
