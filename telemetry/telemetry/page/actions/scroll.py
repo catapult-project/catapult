@@ -22,12 +22,9 @@ class ScrollAction(GestureAction):
           'Synthetic scroll not supported for this browser')
 
     # Fail if this action requires touch and we can't send touch events.
-    # TODO(dominikg): Query synthetic gesture target to check if touch is
-    #                 supported.
     if hasattr(self, 'scroll_requires_touch'):
       if (self.scroll_requires_touch and not
-          tab.EvaluateJavaScript(
-            'chrome.gpuBenchmarking.smoothScrollBySendsTouch()')):
+          GestureAction.IsGestureSourceTypeSupported(tab, 'touch')):
         raise page_action.PageActionNotSupported(
             'Touch scroll not supported for this browser')
 

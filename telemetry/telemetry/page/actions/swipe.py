@@ -26,8 +26,9 @@ class SwipeAction(GestureAction):
       raise page_action.PageActionNotSupported(
           'Swipe page action does not support mouse input')
 
-    # TODO(dominikg): Query synthetic gesture target to check if touch is
-    #                 supported.
+    if not GestureAction.IsGestureSourceTypeSupported(tab, 'touch'):
+      raise page_action.PageActionNotSupported(
+          'Touch input not supported for this browser')
 
     done_callback = 'function() { window.__swipeActionDone = true; }'
     tab.ExecuteJavaScript("""

@@ -4,6 +4,7 @@
 
 from telemetry.page.actions import page_action
 from telemetry.page.actions import wait
+from telemetry import decorators
 
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
@@ -29,3 +30,19 @@ cannot have wait_after and wait_until at the same time.'''
   def GetGestureSourceTypeFromOptions(tab):
     gesture_source_type = tab.browser.synthetic_gesture_source_type
     return 'chrome.gpuBenchmarking.' + gesture_source_type.upper() + '_INPUT'
+
+  @staticmethod
+  @decorators.Cache
+  def IsGestureSourceTypeSupported(tab, gesture_source_type):
+    # TODO(dominikg): remove once support for
+    #                 'chrome.gpuBenchmarking.gestureSourceTypeSupported' has
+    #                 been rolled into reference build.
+    if tab.EvaluateJavaScript("""
+        typeof chrome.gpuBenchmarking.gestureSourceTypeSupported ===
+            'undefined'"""):
+      return True
+
+    return tab.EvaluateJavaScript("""
+        chrome.gpuBenchmarking.gestureSourceTypeSupported(
+            chrome.gpuBenchmarking.%s_INPUT)"""
+        % (gesture_source_type.upper()))

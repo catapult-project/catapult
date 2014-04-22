@@ -26,6 +26,10 @@ class PinchAction(GestureAction):
       raise page_action.PageActionNotSupported(
           'Pinch page action does not support mouse input')
 
+    if not GestureAction.IsGestureSourceTypeSupported(tab, 'touch'):
+      raise page_action.PageActionNotSupported(
+          'Touch input not supported for this browser')
+
     done_callback = 'function() { window.__pinchActionDone = true; }'
     tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
