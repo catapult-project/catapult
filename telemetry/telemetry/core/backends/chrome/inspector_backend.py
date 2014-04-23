@@ -2,12 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import logging
 import os
-import socket
 import sys
-import time
 
 from telemetry import decorators
 from telemetry.core import bitmap
@@ -19,6 +16,7 @@ from telemetry.core.backends.chrome import inspector_network
 from telemetry.core.backends.chrome import inspector_page
 from telemetry.core.backends.chrome import inspector_runtime
 from telemetry.core.backends.chrome import inspector_timeline
+from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.backends.chrome import websocket
 from telemetry.core.heap import model
 from telemetry.core.timeline import model as timeline_model
@@ -29,16 +27,26 @@ class InspectorException(Exception):
   pass
 
 
-class InspectorBackend(object):
+class InspectorBackend(inspector_websocket.InspectorWebsocket):
   def __init__(self, browser_backend, context, timeout=60):
+    super(InspectorBackend, self).__init__(self._HandleNotification,
+                                           self._HandleError)
+
     self._browser_backend = browser_backend
     self._context = context
-    self._socket = None
     self._domain_handlers = {}
-    self._cur_socket_timeout = 0
-    self._next_request_id = 0
 
-    self._Connect()
+    logging.debug('InspectorBackend._Connect() to %s' % self.debugger_url)
+    try:
+      self.Connect(self.debugger_url)
+    except (websocket.WebSocketException, util.TimeoutException):
+      err_msg = sys.exc_info()[1]
+      if not self._browser_backend.IsBrowserRunning():
+        raise exceptions.BrowserGoneException(err_msg)
+      elif not self._browser_backend.HasBrowserFinishedLaunching():
+        raise exceptions.BrowserConnectionGoneException(err_msg)
+      else:
+        raise exceptions.TabCrashException(err_msg)
 
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
@@ -49,37 +57,15 @@ class InspectorBackend(object):
     self._timeline_model = None
 
   def __del__(self):
-    self._Disconnect()
+    self.Disconnect()
 
-  def _Connect(self, timeout=10):
-    assert not self._socket
-    logging.debug('InspectorBackend._Connect() to %s' % self.debugger_url)
-    try:
-      self._socket = websocket.create_connection(self.debugger_url,
-          timeout=timeout)
-    except (websocket.WebSocketException, util.TimeoutException):
-      err_msg = sys.exc_info()[1]
-      if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException(err_msg)
-      elif not self._browser_backend.HasBrowserFinishedLaunching():
-        raise exceptions.BrowserConnectionGoneException(err_msg)
-      else:
-        raise exceptions.TabCrashException(err_msg)
-
-    self._cur_socket_timeout = 0
-    self._next_request_id = 0
-
-  def _Disconnect(self):
+  def Disconnect(self):
     for _, handlers in self._domain_handlers.items():
       _, will_close_handler = handlers
       will_close_handler()
     self._domain_handlers = {}
 
-    if self._socket:
-      self._socket.close()
-      self._socket = None
-
-  # General public methods.
+    super(InspectorBackend, self).Disconnect()
 
   @property
   def browser(self):
@@ -225,34 +211,9 @@ class InspectorBackend(object):
 
   # Methods used internally by other backends.
 
-  def DispatchNotifications(self, timeout=10):
-    self._SetTimeout(timeout)
-    res = self._ReceiveJsonData(timeout)
-    if 'method' in res:
-      self._HandleNotification(res)
-
   def _IsInspectable(self):
     contexts = self._browser_backend.ListInspectableContexts()
     return self.id in [c['id'] for c in contexts]
-
-  def _ReceiveJsonData(self, timeout):
-    try:
-      start_time = time.time()
-      data = self._socket.recv()
-    except (socket.error, websocket.WebSocketException):
-      if self._IsInspectable():
-        elapsed_time = time.time() - start_time
-        raise util.TimeoutException(
-            'Received a socket error in the browser connection and the tab '
-            'still exists, assuming it timed out. '
-            'Timeout=%ds Elapsed=%ds Error=%s' % (
-                timeout, elapsed_time, sys.exc_info()[1]))
-      raise exceptions.TabCrashException(
-          'Received a socket error in the browser connection and the tab no '
-          'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
-    res = json.loads(data)
-    logging.debug('got [%s]', data)
-    return res
 
   def _HandleNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
@@ -274,28 +235,27 @@ class InspectorBackend(object):
     else:
       logging.debug('Unhandled inspector message: %s', res)
 
-  def SendAndIgnoreResponse(self, req):
-    req['id'] = self._next_request_id
-    self._next_request_id += 1
-    data = json.dumps(req)
-    self._socket.send(data)
-    logging.debug('sent [%s]', data)
-
-  def _SetTimeout(self, timeout):
-    if self._cur_socket_timeout != timeout:
-      self._socket.settimeout(timeout)
-      self._cur_socket_timeout = timeout
+  def _HandleError(self, elapsed_time):
+    if self._IsInspectable():
+      raise util.TimeoutException(
+          'Received a socket error in the browser connection and the tab '
+          'still exists, assuming it timed out. '
+          'Elapsed=%ds Error=%s' % (elapsed_time, sys.exc_info()[1]))
+    raise exceptions.TabCrashException(
+        'Received a socket error in the browser connection and the tab no '
+        'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
 
   def _WaitForInspectorToGoAwayAndReconnect(self):
     sys.stderr.write('The connection to Chrome was lost to the Inspector UI.\n')
     sys.stderr.write('Telemetry is waiting for the inspector to be closed...\n')
+    super(InspectorBackend, self).Disconnect()
     self._socket.close()
     self._socket = None
     def IsBack():
       if not self._IsInspectable():
         return False
       try:
-        self._Connect()
+        self.Connect(self.debugger_url)
       except exceptions.TabCrashException, ex:
         if ex.message.message.find('Handshake Status 500') == 0:
           return False
@@ -304,20 +264,6 @@ class InspectorBackend(object):
     util.WaitFor(IsBack, 512)
     sys.stderr.write('\n')
     sys.stderr.write('Inspector\'s UI closed. Telemetry will now resume.\n')
-
-  def SyncRequest(self, req, timeout=10):
-    self._SetTimeout(timeout)
-    self.SendAndIgnoreResponse(req)
-
-    while True:
-      res = self._ReceiveJsonData(timeout)
-      if 'method' in res:
-        self._HandleNotification(res)
-        continue
-      if 'id' not in res or res['id'] != req['id']:
-        logging.debug('Dropped reply: %s', json.dumps(res))
-        continue
-      return res
 
   def RegisterDomain(self,
       domain_name, notification_handler, will_close_handler):

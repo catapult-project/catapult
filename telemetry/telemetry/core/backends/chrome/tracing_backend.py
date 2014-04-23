@@ -2,16 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import logging
 import re
-import socket
-import threading
 import weakref
 
+from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.backends.chrome import tracing_timeline_data
-from telemetry.core.backends.chrome import websocket
-from telemetry.core.backends.chrome import websocket_browser_connection
 
 
 class TracingUnsupportedException(Exception):
@@ -91,9 +87,12 @@ class CategoryFilter(object):
 
 class TracingBackend(object):
   def __init__(self, devtools_port):
-    self._conn = websocket_browser_connection.WebSocketBrowserConnection(
-        devtools_port)
-    self._thread = None
+    self._inspector_websocket = inspector_websocket.InspectorWebsocket(
+        self._NotificationHandler,
+        self._ErrorHandler)
+
+    self._inspector_websocket.Connect(
+        'ws://127.0.0.1:%i/devtools/browser' % devtools_port)
     self._category_filter = None
     self._nesting = 0
     self._tracing_data = []
@@ -104,7 +103,7 @@ class TracingBackend(object):
 
   @property
   def is_tracing_running(self):
-    return self._thread != None
+    return self._inspector_websocket.is_dispatching_async_notifications
 
   def AddTabToMarkerMapping(self, tab, marker):
     self._tab_to_marker_mapping[tab] = marker
@@ -127,12 +126,10 @@ class TracingBackend(object):
     self._category_filter = CategoryFilter(custom_categories)
     if custom_categories:
       req['params'] = {'categories': custom_categories}
-    self._conn.SyncRequest(req, timeout)
+    self._inspector_websocket.SyncRequest(req, timeout)
     # Tracing.start will send asynchronous notifications containing trace
     # data, until Tracing.end is called.
-    self._thread = threading.Thread(target=self._TracingReader)
-    self._thread.daemon = True
-    self._thread.start()
+    self._inspector_websocket.StartAsyncDispatchNotifications()
     return True
 
   def StopTracing(self):
@@ -144,11 +141,8 @@ class TracingBackend(object):
     assert self._nesting >= 0
     if self.is_tracing_running:
       req = {'method': 'Tracing.end'}
-      self._conn.SendRequest(req)
-      self._thread.join(timeout=60)
-      if self._thread.is_alive():
-        raise RuntimeError('Timed out waiting for tracing thread to join.')
-      self._thread = None
+      self._inspector_websocket.SendAndIgnoreResponse(req)
+      self._inspector_websocket.StopAsyncDispatchNotifications()
     if self._nesting == 0:
       self._category_filter = None
       return self._GetTraceResultAndReset()
@@ -168,39 +162,30 @@ class TracingBackend(object):
     self._tracing_data = []
     return result
 
-  def _TracingReader(self):
-    while self._conn.socket:
-      try:
-        data = self._conn.socket.recv()
-        if not data:
-          break
-        res = json.loads(data)
-        logging.debug('got [%s]', data)
-        if 'Tracing.dataCollected' == res.get('method'):
-          value = res.get('params', {}).get('value')
-          if type(value) in [str, unicode]:
-            self._tracing_data.append(value)
-          elif type(value) is list:
-            self._tracing_data.extend(value)
-          else:
-            logging.warning('Unexpected type in tracing data')
-        elif 'Tracing.tracingComplete' == res.get('method'):
-          break
-      except websocket.WebSocketTimeoutException as e:
-        logging.warning('Unusual timeout waiting for tracing response (%s).',
-                        e)
-      except (socket.error, websocket.WebSocketException) as e:
-        logging.warning('Unrecoverable exception when reading tracing response '
-                        '(%s, %s).', type(e), e)
-        raise
+  def _ErrorHandler(self, elapsed):
+    logging.error('Unrecoverable error after %ds reading tracing response.',
+                  elapsed)
+    raise
+
+  def _NotificationHandler(self, res):
+    if 'Tracing.dataCollected' == res.get('method'):
+      value = res.get('params', {}).get('value')
+      if type(value) in [str, unicode]:
+        self._tracing_data.append(value)
+      elif type(value) is list:
+        self._tracing_data.extend(value)
+      else:
+        logging.warning('Unexpected type in tracing data')
+    elif 'Tracing.tracingComplete' == res.get('method'):
+      return True
 
   def Close(self):
-    self._conn.Close()
+    self._inspector_websocket.Disconnect()
 
   def _CheckNotificationSupported(self):
     """Ensures we're running against a compatible version of chrome."""
     req = {'method': 'Tracing.hasCompleted'}
-    res = self._conn.SyncRequest(req)
+    res = self._inspector_websocket.SyncRequest(req)
     if res.get('response'):
       raise TracingUnsupportedException(
           'Tracing not supported for this browser')
