@@ -5,6 +5,8 @@
 from telemetry.page.actions import page_action
 from telemetry.page.actions import wait
 from telemetry import decorators
+from telemetry.page.actions import action_runner
+from telemetry.web_perf import timeline_interaction_record as tir_module
 
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
@@ -14,14 +16,17 @@ class GestureAction(page_action.PageAction):
     else:
       self.wait_action = None
 
-    assert self.wait_until is None or self.wait_action is None, '''gesture
-cannot have wait_after and wait_until at the same time.'''
-
+    assert self.wait_until is None or self.wait_action is None, (
+      'gesture cannot have wait_after and wait_until at the same time.')
 
   def RunAction(self, page, tab):
+    runner = action_runner.ActionRunner(None, tab)
+    interaction_name = 'Gesture_%s' % self.__class__.__name__
+    runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
     self.RunGesture(page, tab)
     if self.wait_action:
       self.wait_action.RunAction(page, tab)
+    runner.EndInteraction(interaction_name, [tir_module.IS_SMOOTH])
 
   def RunGesture(self, page, tab):
     raise NotImplementedError()
