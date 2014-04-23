@@ -78,13 +78,13 @@ def FindBrowser(options):
 
       logging.warning('--browser omitted. Using most recent local build: %s' %
                       default_browser.browser_type)
-      # TODO: We should do this even when --browser is specified.
       default_browser.UpdateExecutableIfNeeded()
       return default_browser
 
     if len(browsers) == 1:
       logging.warning('--browser omitted. Using only available browser: %s' %
                       browsers[0].browser_type)
+      browsers[0].UpdateExecutableIfNeeded()
       return browsers[0]
 
     raise BrowserTypeRequiredException(
@@ -99,6 +99,7 @@ def FindBrowser(options):
       return x_idx - y_idx
     browsers.sort(CompareBrowsersOnTypePriority)
     if len(browsers) >= 1:
+      browsers[0].UpdateExecutableIfNeeded()
       return browsers[0]
     else:
       return None
@@ -117,6 +118,7 @@ def FindBrowser(options):
 
   if chosen_browser:
     logging.info('Chose browser: %s' % (repr(chosen_browser)))
+    chosen_browser.UpdateExecutableIfNeeded()
 
   return chosen_browser
 
