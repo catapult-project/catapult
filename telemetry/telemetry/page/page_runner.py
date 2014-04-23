@@ -19,6 +19,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.core.platform.profiler import profiler_finder
+from telemetry.page import cloud_storage
 from telemetry.page import page_filter
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
@@ -310,6 +311,35 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         raise
 
 
+def _UpdatePageSetArchivesIfChanged(page_set):
+  # Attempt to download the credentials file.
+  if page_set.credentials_path:
+    try:
+      cloud_storage.GetIfChanged(
+          os.path.join(page_set.base_dir, page_set.credentials_path))
+    except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
+      logging.warning('Cannot retrieve credential file: %s',
+                      page_set.credentials_path)
+  # Scan every serving directory for .sha1 files
+  # and download them from Cloud Storage. Assume all data is public.
+  all_serving_dirs = page_set.serving_dirs.copy()
+  # Add individual page dirs to all serving dirs.
+  for page in page_set:
+    if page.is_file:
+      all_serving_dirs.add(page.serving_dir)
+  # Scan all serving dirs.
+  for serving_dir in all_serving_dirs:
+    if os.path.splitdrive(serving_dir)[1] == '/':
+      raise ValueError('Trying to serve root directory from HTTP server.')
+    for dirpath, _, filenames in os.walk(serving_dir):
+      for filename in filenames:
+        path, extension = os.path.splitext(
+            os.path.join(dirpath, filename))
+        if extension != '.sha1':
+          continue
+        cloud_storage.GetIfChanged(path)
+
+
 def Run(test, page_set, expectations, finder_options):
   """Runs a given test against a given page_set with the given options."""
   results = results_options.PrepareResults(test, finder_options)
@@ -342,6 +372,7 @@ def Run(test, page_set, expectations, finder_options):
 
   if (not finder_options.use_live_sites and
       browser_options.wpr_mode != wpr_modes.WPR_RECORD):
+    _UpdatePageSetArchivesIfChanged(page_set)
     pages = _CheckArchives(page_set, pages, results)
 
   # Verify credentials path.

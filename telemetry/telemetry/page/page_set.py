@@ -4,12 +4,10 @@
 
 import csv
 import inspect
-import logging
 import os
 import sys
 
 from telemetry.core import util
-from telemetry.page import cloud_storage
 from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
 from telemetry.page.actions.navigate import NavigateAction
@@ -34,7 +32,7 @@ class PageSetError(Exception):
 class PageSet(object):
   def __init__(self, file_path='', description='', archive_data_file='',
                credentials_path=None, user_agent_type=None,
-               make_javascript_deterministic=True, startup_url='', pages=None,
+               make_javascript_deterministic=True, startup_url='',
                serving_dirs=None):
     self.file_path = file_path
     # These attributes can be set dynamically by the page set.
@@ -43,18 +41,15 @@ class PageSet(object):
     self.credentials_path = credentials_path
     self.user_agent_type = user_agent_type
     self.make_javascript_deterministic = make_javascript_deterministic
-    self.wpr_archive_info = None
+    self._wpr_archive_info = None
     self.startup_url = startup_url
-    if pages:
-      self.pages = pages
-    else:
-      self.pages = []
+    self.pages = []
     if serving_dirs:
       self.serving_dirs = serving_dirs
     else:
       self.serving_dirs = set()
 
-  def _InitializeFromDict(self, attributes, ignore_archive=False):
+  def _InitializeFromDict(self, attributes):
     if attributes:
       for k, v in attributes.iteritems():
         if k in LEGACY_NAME_CONVERSION_DICT:
@@ -68,7 +63,7 @@ class PageSet(object):
       for page_attributes in attributes['pages']:
         url = page_attributes.pop('url')
         page = page_module.Page(
-            url, self, base_dir=self._base_dir)
+            url, self, base_dir=self.base_dir)
         for k, v in page_attributes.iteritems():
           setattr(page, k, v)
         page._SchemeErrorCheck()  # pylint: disable=W0212
@@ -79,7 +74,7 @@ class PageSet(object):
             delattr(page, legacy_name)
         self.AddPage(page)
 
-    # Prepend _base_dir to our serving dirs.
+    # Prepend base_dir to our serving dirs.
     # Always use realpath to ensure no duplicates in set.
     self.serving_dirs = set()
     if attributes and 'serving_dirs' in attributes:
@@ -87,48 +82,18 @@ class PageSet(object):
         raise ValueError('serving_dirs must be a list.')
       for serving_dir in attributes['serving_dirs']:
         self.serving_dirs.add(
-            os.path.realpath(os.path.join(self._base_dir, serving_dir)))
-    if not ignore_archive:
-      self._InitializeArchive()
-
-  def _InitializeArchive(self):
-    # Create a PageSetArchiveInfo object.
-    if self.archive_data_file:
-      self.wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        os.path.join(self._base_dir, self.archive_data_file))
-
-    # Attempt to download the credentials file.
-    if self.credentials_path:
-      try:
-        cloud_storage.GetIfChanged(
-            os.path.join(self._base_dir, self.credentials_path))
-      except (cloud_storage.CredentialsError,
-              cloud_storage.PermissionError):
-        logging.warning('Cannot retrieve credential file: %s',
-                        self.credentials_path)
-
-    # Scan every serving directory for .sha1 files
-    # and download them from Cloud Storage. Assume all data is public.
-    all_serving_dirs = self.serving_dirs.copy()
-    # Add individual page dirs to all serving dirs.
-    for page in self:
-      if page.is_file:
-        all_serving_dirs.add(page.serving_dir)
-    # Scan all serving dirs.
-    for serving_dir in all_serving_dirs:
-      if os.path.splitdrive(serving_dir)[1] == '/':
-        raise ValueError('Trying to serve root directory from HTTP server.')
-      for dirpath, _, filenames in os.walk(serving_dir):
-        for filename in filenames:
-          path, extension = os.path.splitext(
-              os.path.join(dirpath, filename))
-          if extension != '.sha1':
-            continue
-          cloud_storage.GetIfChanged(path)
+            os.path.realpath(os.path.join(self.base_dir, serving_dir)))
 
   def AddPage(self, page):
     assert page.page_set is self
     self.pages.append(page)
+
+  def AddPageWithDefaultRunNavigate(self, page_url):
+    """ Add a simple page with url equals to page_url that contains only default
+    RunNavigateSteps.
+    """
+    self.AddPage(page_module.PageWithDefaultRunNavigate(
+      page_url, self, self.base_dir))
 
   # In json page_set, a page inherits attributes from its page_set. With
   # python page_set, this property will no longer be needed since pages can
@@ -138,15 +103,15 @@ class PageSet(object):
     action_runner.RunAction(NavigateAction())
 
   @staticmethod
-  def FromFile(file_path, ignore_archive=False):
+  def FromFile(file_path):
     _, ext_name = os.path.splitext(file_path)
     if ext_name == '.py':
-      return PageSet.FromPythonFile(file_path, ignore_archive)
+      return PageSet.FromPythonFile(file_path)
     else:
       raise PageSetError("Pageset %s has unsupported file type" % file_path)
 
   @staticmethod
-  def FromPythonFile(file_path, ignore_archive=False):
+  def FromPythonFile(file_path):
     page_set_classes = []
     module = util.GetPythonPageSetModule(file_path)
     for m in dir(module):
@@ -162,7 +127,7 @@ class PageSet(object):
       abs_serving_dirs = set()
       for serving_dir in page_set.serving_dirs:
         abs_serving_dirs.add(os.path.realpath(os.path.join(
-          page_set._base_dir,  # pylint: disable=W0212
+          page_set.base_dir,  # pylint: disable=W0212
           serving_dir)))
       page_set.serving_dirs = abs_serving_dirs
     for page in page_set.pages:
@@ -176,27 +141,38 @@ class PageSet(object):
             raise PageSetError("""Definition of Run<...> method of all
 pages in %s must be in the form of def Run<...>(self, action_runner):"""
                                      % file_path)
-      # Set page's _base_dir attribute.
+      # Set page's base_dir attribute.
       page_file_path = sys.modules[page_class.__module__].__file__
       page._base_dir = os.path.dirname(page_file_path)
 
-    if not ignore_archive:
-      page_set._InitializeArchive() # pylint: disable=W0212
     return page_set
 
   @staticmethod
-  def FromDict(attributes, file_path='', ignore_archive=False):
+  def FromDict(attributes, file_path=''):
     page_set = PageSet(file_path)
     # pylint: disable=W0212
-    page_set._InitializeFromDict(attributes, ignore_archive)
+    page_set._InitializeFromDict(attributes)
     return page_set
 
   @property
-  def _base_dir(self):
+  def base_dir(self):
     if os.path.isfile(self.file_path):
       return os.path.dirname(self.file_path)
     else:
       return self.file_path
+
+  @property
+  def wpr_archive_info(self):  # pylint: disable=E0202
+    """Lazily constructs wpr_archive_info if it's not set and returns it."""
+    if self.archive_data_file and not self._wpr_archive_info:
+      self._wpr_archive_info = (
+          page_set_archive_info.PageSetArchiveInfo.FromFile(
+            os.path.join(self.base_dir, self.archive_data_file)))
+    return self._wpr_archive_info
+
+  @wpr_archive_info.setter
+  def wpr_archive_info(self, value):  # pylint: disable=E0202
+    self._wpr_archive_info = value
 
   def ContainsOnlyFileURLs(self):
     for page in self.pages:
