@@ -2,12 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import distutils
 import glob
 import heapq
 import logging
 import os
-import subprocess as subprocess
 import shutil
+import subprocess as subprocess
 import sys
 import tempfile
 import time
@@ -57,6 +58,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._port = None
     self._profile_dir = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
+    self._crash_service = None
 
     self._SetupProfile()
 
@@ -77,6 +79,44 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         logging.info("Using profile directory:'%s'." % profile_dir)
         shutil.rmtree(self._tmp_profile_dir)
         shutil.copytree(profile_dir, self._tmp_profile_dir)
+
+  def _GetCrashServicePipeName(self):
+    # Ensure a unique pipe name by using the name of the temp dir.
+    return r'\\.\pipe\%s_service' % os.path.basename(self._tmp_minidump_dir)
+
+  def _StartCrashService(self):
+    os_name = self._browser.platform.GetOSName()
+    if os_name != 'win':
+      return None
+    return subprocess.Popen([
+        support_binaries.FindPath('crash_service', os_name),
+        '--no-window',
+        '--dumps-dir=%s' % self._tmp_minidump_dir,
+        '--pipe-name=%s' % self._GetCrashServicePipeName()])
+
+  def _GetCdbPath(self):
+    search_paths = [os.getenv('PROGRAMFILES(X86)', ''),
+                    os.getenv('PROGRAMFILES', ''),
+                    os.getenv('LOCALAPPDATA', ''),
+                    os.getenv('PATH', '')]
+    possible_paths = [
+        'Debugging Tools For Windows',
+        'Debugging Tools For Windows (x86)',
+        'Debugging Tools For Windows (x64)',
+        os.path.join('Windows Kits', '8.0', 'Debuggers', 'x86'),
+        os.path.join('Windows Kits', '8.0', 'Debuggers', 'x64'),
+        os.path.join('win_toolchain', 'vs2013_files', 'win8sdk', 'Debuggers',
+                     'x86'),
+        os.path.join('win_toolchain', 'vs2013_files', 'win8sdk', 'Debuggers',
+                     'x64'),
+        ]
+    for possible_path in possible_paths:
+      path = distutils.spawn.find_executable(
+          os.path.join(possible_path, 'cdb'),
+          path=os.pathsep.join(search_paths))
+      if path:
+        return path
+    return None
 
   def HasBrowserFinishedLaunching(self):
     # In addition to the functional check performed by the base class, quickly
@@ -120,6 +160,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
+    env['CHROME_BREAKPAD_PIPE_NAME'] = self._GetCrashServicePipeName()
+    self._crash_service = self._StartCrashService()
     logging.debug('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
@@ -167,29 +209,40 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except IOError:
       return ''
 
-  def GetStackTrace(self):
-    stackwalk = support_binaries.FindPath('minidump_stackwalk',
-                                          self._browser.platform.GetOSName())
-    if not stackwalk:
-      logging.warning('minidump_stackwalk binary not found. Must build it to '
-                      'symbolize crash dumps. Returning browser stdout.')
-      return self.GetStandardOutput()
-
+  def _GetMostRecentMinidump(self):
     dumps = glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
     if not dumps:
-      logging.warning('No crash dump found. Returning browser stdout.')
-      return self.GetStandardOutput()
+      return None
     most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
     if os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60)):
       logging.warning('Crash dump is older than 5 minutes. May not be correct.')
+    return most_recent_dump
+
+  def _GetStackFromMinidump(self, minidump):
+    os_name = self._browser.platform.GetOSName()
+    if os_name == 'win':
+      cdb = self._GetCdbPath()
+      if not cdb:
+        logging.warning('cdb.exe not found.')
+        return None
+      output = subprocess.check_output([cdb, '-y', self._browser_directory,
+                                        '-c', '.ecxr;k30;q', '-z', minidump])
+      stack_start = output.find('ChildEBP')
+      stack_end = output.find('quit:')
+      return output[stack_start:stack_end]
+
+    stackwalk = support_binaries.FindPath('minidump_stackwalk', os_name)
+    if not stackwalk:
+      logging.warning('minidump_stackwalk binary not found.')
+      return None
 
     symbols = glob.glob(os.path.join(self._browser_directory, '*.breakpad*'))
     if not symbols:
-      logging.warning('No breakpad symbols found. Returning browser stdout.')
-      return self.GetStandardOutput()
+      logging.warning('No breakpad symbols found.')
+      return None
 
-    minidump = most_recent_dump + '.stripped'
-    with open(most_recent_dump, 'rb') as infile:
+    with open(minidump, 'rb') as infile:
+      minidump += '.stripped'
       with open(minidump, 'wb') as outfile:
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
@@ -209,10 +262,21 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       os.makedirs(symbol_path)
       shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
 
-    error = tempfile.NamedTemporaryFile('w', 0)
-    return subprocess.Popen(
-        [stackwalk, minidump, symbols_path],
-        stdout=subprocess.PIPE, stderr=error).communicate()[0]
+    return subprocess.check_output([stackwalk, minidump, symbols_path],
+                                   stderr=open(os.devnull, 'w'))
+
+  def GetStackTrace(self):
+    most_recent_dump = self._GetMostRecentMinidump()
+    if not most_recent_dump:
+      logging.warning('No crash dump found. Returning browser stdout.')
+      return self.GetStandardOutput()
+
+    stack = self._GetStackFromMinidump(most_recent_dump)
+    if not stack:
+      logging.warning('Failed to symbolize minidump. Returning browser stdout.')
+      return self.GetStandardOutput()
+
+    return stack
 
   def __del__(self):
     self.Close()
@@ -239,6 +303,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise Exception('Could not shutdown the browser.')
     finally:
       self._proc = None
+
+    if self._crash_service:
+      self._crash_service.kill()
+      self._crash_service = None
 
     if self._output_profile_path:
       # If we need the output then double check that it exists.
