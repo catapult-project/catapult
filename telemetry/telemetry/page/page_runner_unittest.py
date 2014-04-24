@@ -62,7 +62,7 @@ class PageRunnerTests(unittest.TestCase):
   def testHandlingOfCrashedTab(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
-    page1 = page_module.Page('chrome://crash', ps)
+    page1 = page_module.PageWithDefaultRunNavigate('chrome://crash', ps)
     ps.pages.append(page1)
 
     class Test(page_test.PageTest):

@@ -22,7 +22,8 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
   def CreatePageSet(self, test_filename):
     base_dir = util.GetUnittestDataDir()
     ps = page_set.PageSet(file_path=base_dir)
-    page = page_module.Page(test_filename, ps, base_dir=base_dir)
+    page = page_module.PageWithDefaultRunNavigate(test_filename,
+                                                  ps, base_dir=base_dir)
     setattr(page, 'RunSmoothness', {'action': 'scroll'})
     setattr(page, 'RunRepaint',
             { "action": "repaint_continuously", "seconds": 2 })

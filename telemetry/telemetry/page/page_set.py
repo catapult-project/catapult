@@ -48,8 +48,14 @@ class PageSet(object):
       self.serving_dirs = serving_dirs
     else:
       self.serving_dirs = set()
+    self._is_dict_based_page_set = False
+
+  # TODO(nednguyen): Remove this when crbug.com/239179 is marked fixed
+  def IsDictBasedPageSet(self):
+    return self._is_dict_based_page_set
 
   def _InitializeFromDict(self, attributes):
+    self._is_dict_based_page_set = True
     if attributes:
       for k, v in attributes.iteritems():
         if k in LEGACY_NAME_CONVERSION_DICT:

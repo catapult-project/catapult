@@ -38,9 +38,9 @@ class Page(object):
   # share property through a common ancestor class.
   # TODO(nednguyen): remove this when crbug.com/239179 is marked fixed
   def __getattr__(self, name):
-    # Disable this property on python page_set
+    # Disable this property on not dict based page_set
     if (self.page_set and hasattr(self.page_set, name) and
-        not self.page_set.file_path.endswith('.py')):
+        self.page_set.IsDictBasedPageSet()):
       return getattr(self.page_set, name)
     raise AttributeError(
         '%r object has no attribute %r' % (self.__class__, name))
