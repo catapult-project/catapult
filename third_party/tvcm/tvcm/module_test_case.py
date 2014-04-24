@@ -19,10 +19,18 @@ _currently_active_module_test_suite = None
 def _NavigateToTestCaseRunner(bc):
   bc.NavigateToPath('/tvcm/unittest/module_test_case_runner.html')
   bc.WaitForJavaScriptExpression('window.__readyToRun == true')
-  bc.WaitForJavaScriptExpression('window.tvcm !== undefined')
-  bc.WaitForJavaScriptExpression('window.tvcm.hasPanic !== undefined')
-  bc.WaitForJavaScriptExpression('window.discoverTestsInModules !== undefined')
-  bc.WaitForJavaScriptExpression('window.runTestNamed !== undefined')
+  # Sanity checks that __readyToRun is working right. If any of these pop,
+  # it implies that __readyToRun isn't working.
+  sanity_checks = [
+    'window.tvcm !== undefined',
+    'window.tvcm.GUID.allocate !== undefined',
+    'window.tvcm.hasPanic !== undefined',
+    'window.discoverTestsInModules !== undefined',
+    'window.runTestNamed !== undefined'
+  ]
+  for check in sanity_checks:
+    if not bc.EvaluateJavaScript(check):
+      raise Exception('Load failed because sanity check %s failed')
 
 
 class ModuleTestSuite(unittest.TestSuite):
