@@ -2,11 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import time
-
 from telemetry.core import util
 from telemetry.page.actions import wait
 from telemetry.unittest import tab_test_case
+from telemetry.unittest import simple_mock
 
 
 class WaitActionTest(tab_test_case.TabTestCase):
@@ -16,21 +15,40 @@ class WaitActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-    i = wait.WaitAction({ 'condition': 'duration', 'seconds': 1 })
+    mock_timer = simple_mock.MockTimer()
+    real_time_sleep = wait.time.sleep
+    wait.time.sleep = mock_timer.Sleep
 
-    start_time = time.time()
-    i.RunAction(None, self._tab)
-    self.assertTrue(time.time() - start_time >= 1.0)
+    try:
+      i = wait.WaitAction({ 'condition': 'duration', 'seconds': 1 })
+
+      i.RunAction(None, self._tab)
+      self.assertEqual(mock_timer.GetTime(), 1)
+    finally:
+      wait.time.sleep = real_time_sleep
 
   def testWaitActionTimeout(self):
-    wait_action = wait.WaitAction({
-      'condition': 'javascript',
-      'javascript': '1 + 1 === 3',
-      'timeout': 1
-    })
+    mock_timer = simple_mock.MockTimer()
+    real_wait_time_sleep = wait.time.sleep
+    real_util_time_sleep = util.time.sleep
+    real_util_time_time = util.time.time
 
-    start_time = time.time()
-    self.assertRaises(
-        util.TimeoutException,
-        lambda: wait_action.RunAction(None, self._tab))
-    self.assertTrue(time.time() - start_time < 5)
+    wait.time.sleep = mock_timer.Sleep
+    util.time.sleep = mock_timer.Sleep
+    util.time.time = mock_timer.GetTime
+
+    try:
+      wait_action = wait.WaitAction({
+        'condition': 'javascript',
+        'javascript': '1 + 1 === 3',
+        'timeout': 1
+      })
+
+      self.assertRaises(
+          util.TimeoutException,
+          lambda: wait_action.RunAction(None, self._tab))
+      self.assertLess(mock_timer.GetTime(), 5)
+    finally:
+      wait.time.sleep = real_wait_time_sleep
+      util.time.sleep = real_util_time_sleep
+      util.time.time = real_util_time_time

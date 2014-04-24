@@ -93,3 +93,14 @@ class MockObject(object):
       return expected_call.return_value
     handler.is_hook = True
     setattr(self, func_name, handler)
+
+
+class MockTimer(object):
+  def __init__(self):
+    self._elapsed_time = 0
+
+  def Sleep(self, time):
+    self._elapsed_time += time
+
+  def GetTime(self):
+    return self._elapsed_time
