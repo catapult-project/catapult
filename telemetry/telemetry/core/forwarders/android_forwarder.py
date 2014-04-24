@@ -343,7 +343,8 @@ doit &
         if candidate not in used_addresses:
           return candidate
 
-    orig_interfaces = open(self._NETWORK_INTERFACES, 'r').read()
+    with open(self._NETWORK_INTERFACES) as f:
+      orig_interfaces = f.read()
     if self._INTERFACES_INCLUDE not in orig_interfaces:
       interfaces = '\n'.join([
           orig_interfaces,

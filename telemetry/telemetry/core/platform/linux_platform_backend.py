@@ -45,14 +45,15 @@ class LinuxPlatformBackend(
 
     codename = None
     version = None
-    for line in open('/etc/lsb-release', 'r').readlines():
-      key, _, value = line.partition('=')
-      if key == 'DISTRIB_CODENAME':
-        codename = value.strip()
-      elif key == 'DISTRIB_RELEASE':
-        version = float(value)
-      if codename and version:
-        break
+    with open('/etc/lsb-release') as f:
+      for line in f.readlines():
+        key, _, value = line.partition('=')
+        if key == 'DISTRIB_CODENAME':
+          codename = value.strip()
+        elif key == 'DISTRIB_RELEASE':
+          version = float(value)
+        if codename and version:
+          break
     return platform_backend.OSVersion(codename, version)
 
   def CanFlushIndividualFilesFromSystemCache(self):

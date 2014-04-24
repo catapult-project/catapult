@@ -32,9 +32,9 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
   @test.Enabled('mac')
   def testParsePowerMetricsOutput(self):
     def getOutput(output_file):
-      test_data_path = os.path.join(util.GetUnittestDataDir(),
-                                    output_file)
-      process_output = open(test_data_path, 'r').read()
+      test_data_path = os.path.join(util.GetUnittestDataDir(), output_file)
+      with open(test_data_path, 'r') as f:
+        process_output = f.read()
       return (powermetrics_power_monitor.PowerMetricsPowerMonitor.
           ParsePowerMetricsOutput(process_output))
 

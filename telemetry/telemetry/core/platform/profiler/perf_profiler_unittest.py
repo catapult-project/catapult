@@ -19,7 +19,8 @@ class TestPerfProfiler(unittest.TestCase):
 
     profile_file = os.path.join(
         util.GetUnittestDataDir(), 'perf_report_output.txt')
-    perf_report_output = open(profile_file, 'r').read()
+    with open(profile_file) as f:
+      perf_report_output = f.read()
 
     mock_popen = simple_mock.MockObject()
     mock_popen.ExpectCall('communicate').WillReturn([perf_report_output])

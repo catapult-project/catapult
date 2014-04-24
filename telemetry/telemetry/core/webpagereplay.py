@@ -126,7 +126,6 @@ class ReplayServer(object):
       self._CheckPath('archive file', self.archive_path)
     self._CheckPath('replay script', self.replay_py)
 
-    self.log_fh = None
     self.replay_process = None
 
   def _AddDefaultReplayOptions(self):
@@ -165,15 +164,16 @@ class ReplayServer(object):
 
       # Read the ports from the WPR log.
       if not self.http_port or not self.https_port or not self.dns_port:
-        for line in open(self.log_path).readlines():
-          m = port_re.match(line.strip())
-          if m:
-            if not self.http_port and m.group('protocol') == 'HTTP':
-              self.http_port = int(m.group('port'))
-            elif not self.https_port and m.group('protocol') == 'HTTPS':
-              self.https_port = int(m.group('port'))
-            elif not self.dns_port and m.group('protocol') == 'DNS':
-              self.dns_port = int(m.group('port'))
+        with open(self.log_path) as f:
+          for line in f.readlines():
+            m = port_re.match(line.strip())
+            if m:
+              if not self.http_port and m.group('protocol') == 'HTTP':
+                self.http_port = int(m.group('port'))
+              elif not self.https_port and m.group('protocol') == 'HTTPS':
+                self.https_port = int(m.group('port'))
+              elif not self.dns_port and m.group('protocol') == 'DNS':
+                self.dns_port = int(m.group('port'))
 
       # Try to connect to the WPR ports.
       if self.http_port and self.https_port:
@@ -202,14 +202,17 @@ class ReplayServer(object):
     cmd_line = [sys.executable, self.replay_py]
     cmd_line.extend(self.replay_options)
     cmd_line.append(self.archive_path)
-    self.log_fh = self._OpenLogFile()
+
     logging.debug('Starting Web-Page-Replay: %s', cmd_line)
-    kwargs = {'stdout': self.log_fh, 'stderr': subprocess.STDOUT}
-    if sys.platform.startswith('linux') or sys.platform == 'darwin':
-      kwargs['preexec_fn'] = ResetInterruptHandler
-    self.replay_process = subprocess.Popen(cmd_line, **kwargs)
+    with self._OpenLogFile() as log_fh:
+      kwargs = {'stdout': log_fh, 'stderr': subprocess.STDOUT}
+      if sys.platform.startswith('linux') or sys.platform == 'darwin':
+        kwargs['preexec_fn'] = ResetInterruptHandler
+      self.replay_process = subprocess.Popen(cmd_line, **kwargs)
+
     if not self.WaitForStart(30):
-      log = open(self.log_path).read()
+      with open(self.log_path) as f:
+        log = f.read()
       raise ReplayNotStartedError(
           'Web Page Replay failed to start. Log output:\n%s' % log)
 
@@ -242,8 +245,6 @@ class ReplayServer(object):
           except:  # pylint: disable=W0702
             pass
         self.replay_process.wait()
-    if self.log_fh:
-      self.log_fh.close()
 
   def __enter__(self):
     """Add support for with-statement."""

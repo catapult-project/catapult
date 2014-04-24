@@ -54,16 +54,19 @@ class HtmlPageMeasurementResults(
     return lastchange.FetchVersionInfo(None).revision
 
   def _GetHtmlTemplate(self):
-    return open(_TEMPLATE_HTML_PATH, 'r').read()
+    with open(_TEMPLATE_HTML_PATH) as f:
+      return f.read()
 
   def _GetPlugins(self):
     plugins = ''
     for p in _PLUGINS:
-      plugins += open(os.path.join(util.GetChromiumSrcDir(), *p), 'r').read()
+      with open(os.path.join(util.GetChromiumSrcDir(), *p)) as f:
+        plugins += f.read()
     return plugins
 
   def _GetUnitJson(self):
-    return open(os.path.join(util.GetChromiumSrcDir(), *_UNIT_JSON), 'r').read()
+    with open(os.path.join(util.GetChromiumSrcDir(), *_UNIT_JSON)) as f:
+      return f.read()
 
   def _ReadExistingResults(self, output_stream):
     results_html = output_stream.read()
