@@ -118,6 +118,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def HaveLocalAPK(self):
     return self._local_apk and os.path.exists(self._local_apk)
 
+  @decorators.Cache
   def UpdateExecutableIfNeeded(self):
     if self.HaveLocalAPK():
       real_logging.warn(
