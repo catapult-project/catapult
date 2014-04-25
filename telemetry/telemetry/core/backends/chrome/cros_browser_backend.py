@@ -314,9 +314,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _GaiaLoginContext(self):
     oobe = self.oobe
-    # TODO(achuith): Implement an api in the oobe instead of calling
-    # chrome.send.
-    oobe.ExecuteJavaScript("chrome.send('addUser');")
     for gaia_context in range(15):
       try:
         if oobe.EvaluateJavaScriptInContext(
@@ -360,18 +357,24 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _NavigateGaiaLogin(self):
     """Logs into the GAIA service with provided credentials."""
-    # TODO(achuith): Fake gaia service with a python server.
-    self._WaitForSigninScreen()
-    gaia_context = util.WaitFor(self._GaiaLoginContext, timeout=10)
+    logging.info('Invoking Oobe.addUserForTesting')
     oobe = self.oobe
-    oobe.ExecuteJavaScriptInContext(
-        "document.getElementById('Email').value='%s';"
-            % self.browser_options.username, gaia_context)
-    oobe.ExecuteJavaScriptInContext(
-        "document.getElementById('Passwd').value='%s';"
-            % self.browser_options.password, gaia_context)
-    oobe.ExecuteJavaScriptInContext(
-        "document.getElementById('signIn').click();", gaia_context)
+    util.WaitFor(lambda: oobe.EvaluateJavaScript(
+        'typeof Oobe !== \'undefined\''), 10)
+    oobe.ExecuteJavaScript('Oobe.addUserForTesting();')
+
+    try:
+      gaia_context = util.WaitFor(self._GaiaLoginContext, timeout=30)
+    except util.TimeoutException:
+      self._cri.TakeScreenShot('add-user-screen')
+      raise
+
+    oobe.ExecuteJavaScriptInContext("""
+        document.getElementById('Email').value='%s';
+        document.getElementById('Passwd').value='%s';
+        document.getElementById('signIn').click();"""
+            % (self.browser_options.username, self.browser_options.password),
+        gaia_context)
     self._WaitForLogin()
 
   def _WaitForLogin(self):
