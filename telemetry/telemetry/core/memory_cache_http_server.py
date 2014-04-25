@@ -23,6 +23,9 @@ ResourceAndRange = namedtuple('ResourceAndRange', ['resource', 'byte_range'])
 
 class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
+  protocol_version = 'HTTP/1.1'  # override BaseHTTPServer setting
+  wbufsize = -1  # override StreamRequestHandler (a base class) setting
+
   def do_GET(self):
     """Serve a GET request."""
     resource_range = self.SendHead()
