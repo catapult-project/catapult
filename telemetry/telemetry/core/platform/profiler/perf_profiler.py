@@ -41,8 +41,10 @@ class _SingleProcessPerfProfiler(object):
           'mkdir -p ' + os.path.dirname(self._device_output_file))
     else:
       cmd_prefix = ['perf']
+    # In perf 3.13 --call-graph requires an argument, so use
+    # the -g short-hand which does not.
     self._proc = subprocess.Popen(cmd_prefix +
-        ['record', '--call-graph',
+        ['record', '-g',
          '--pid', str(pid), '--output', output_file],
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
