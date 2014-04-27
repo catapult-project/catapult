@@ -7,6 +7,7 @@ import os
 import tempfile
 import unittest
 
+from telemetry import decorators
 from telemetry.core import browser_finder
 from telemetry.core import exceptions
 from telemetry.core import user_agent
@@ -200,6 +201,7 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
 
+  @decorators.Disabled('win')
   def testPagesetRepeat(self):
     ps = page_set.PageSet()
     expectations = test_expectations.TestExpectations()
