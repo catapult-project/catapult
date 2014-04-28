@@ -47,8 +47,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
 
-    self._SetBranchNumber(self._GetChromeVersion())
-
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
     # the owner of the extensions is set to chronos.
@@ -59,9 +57,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.Chown(extension_dir)
       e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
-    # Ensure the UI is running and logged out.
-    self._RestartUI()
-    util.WaitFor(self.IsBrowserRunning, 20)
+    self._cri.RunCmdOnDevice(['stop', 'ui'])
+
+    if self.browser_options.clear_enterprise_policy:
+      self._cri.RmRF('/var/lib/whitelist/*')
+      self._cri.RmRF('/home/chronos/Local\ State')
 
     # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
@@ -72,6 +72,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.PushFile(self.browser_options.profile_dir + '/Default',
                    self.profile_directory)
       cri.Chown(self.profile_directory)
+
+    self._cri.RunCmdOnDevice(['start', 'ui'])
+    util.WaitFor(self.IsBrowserRunning, 20)
+
+    self._SetBranchNumber(self._GetChromeVersion())
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
