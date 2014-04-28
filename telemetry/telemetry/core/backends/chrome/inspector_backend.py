@@ -73,7 +73,10 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   @property
   def url(self):
-    return self._context['url']
+    for c in self._browser_backend.ListInspectableContexts():
+      if c['id'] == self.id:
+        return c['url']
+    return None
 
   @property
   def id(self):

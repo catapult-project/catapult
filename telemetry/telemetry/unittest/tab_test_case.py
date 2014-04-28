@@ -14,6 +14,7 @@ class TabTestCase(unittest.TestCase):
   def __init__(self, *args):
     self._extra_browser_args = []
     self.test_file_path = None
+    self.test_url = None
     super(TabTestCase, self).__init__(*args)
 
   def setUp(self):
@@ -55,6 +56,6 @@ class TabTestCase(unittest.TestCase):
     """
     self._browser.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self.test_file_path = os.path.join(util.GetUnittestDataDir(), filename)
-    self._tab.Navigate(self._browser.http_server.UrlOf(self.test_file_path),
-                       script_to_evaluate_on_commit)
+    self.test_url = self._browser.http_server.UrlOf(self.test_file_path)
+    self._tab.Navigate(self.test_url, script_to_evaluate_on_commit)
     self._tab.WaitForDocumentReadyStateToBeComplete()

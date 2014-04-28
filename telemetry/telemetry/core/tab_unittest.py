@@ -67,6 +67,11 @@ class TabTest(tab_test_case.TabTestCase):
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     self.assertFalse(_IsDocumentVisible(new_tab))
 
+  def testTabUrl(self):
+    self.assertEquals(self._tab.url, 'about:blank')
+    self.Navigate('blank.html')
+    self.assertEquals(self._tab.url, self.test_url)
+
   def testIsTimelineRecordingRunningTab(self):
     self.assertFalse(self._tab.is_timeline_recording_running)
     self._tab.StartTimelineRecording()
