@@ -14,7 +14,7 @@ deps = {
         "https://web-page-replay.googlecode.com/svn/trunk",
     "src/third_party/trace-viewer":
         "https://trace-viewer.googlecode.com/svn/trunk",
-    "src/third_party/third_party/android_tools/sdk/platform-tools":
+    "src/third_party/android_tools/sdk/platform-tools":
         "https://src.chromium.org/chrome/trunk/src/third_party/android_tools/sdk/platform-tools",
     "src/build/android":
         "https://src.chromium.org/chrome/trunk/src/build/android",
