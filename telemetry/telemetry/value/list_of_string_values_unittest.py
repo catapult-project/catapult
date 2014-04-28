@@ -10,15 +10,10 @@ from telemetry.value import list_of_string_values
 
 class TestBase(unittest.TestCase):
   def setUp(self):
-    self.page_set =  page_set.PageSet.FromDict({
-      "description": "hello",
-      "archive_path": "foo.wpr",
-      "pages": [
-        {"url": "http://www.bar.com/"},
-        {"url": "http://www.baz.com/"},
-        {"url": "http://www.foo.com/"}
-        ]
-      }, os.path.dirname(__file__))
+    self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
+    self.page_set.AddPageWithDefaultRunNavigate("http://www.bar.com/")
+    self.page_set.AddPageWithDefaultRunNavigate("http://www.baz.com/")
+    self.page_set.AddPageWithDefaultRunNavigate("http://www.foo.com/")
 
   @property
   def pages(self):

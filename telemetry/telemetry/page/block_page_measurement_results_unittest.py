@@ -12,14 +12,11 @@ BlockPageMeasurementResults = \
     block_page_measurement_results.BlockPageMeasurementResults
 
 def _MakePageSet():
-  return page_set.PageSet.FromDict({
-      "description": "hello",
-      "archive_path": "foo.wpr",
-      "pages": [
-        {"url": "http://www.foo.com/"},
-        {"url": "http://www.bar.com/"}
-        ]
-      }, os.path.dirname(__file__))
+  ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+  ps.AddPageWithDefaultRunNavigate('http://www.foo.com/')
+  ps.AddPageWithDefaultRunNavigate('http://www.bar.com/')
+  return ps
+
 
 class NonPrintingBlockPageMeasurementResults(BlockPageMeasurementResults):
   def __init__(self, *args):

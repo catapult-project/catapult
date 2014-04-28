@@ -10,15 +10,11 @@ from telemetry.page import perf_tests_helper
 from telemetry.value import scalar
 
 def _MakePageSet():
-  return page_set.PageSet.FromDict({
-      "description": "hello",
-      "archive_path": "foo.wpr",
-      "pages": [
-        {"url": "http://www.bar.com/"},
-        {"url": "http://www.baz.com/"},
-        {"url": "http://www.foo.com/"}
-        ]
-      }, os.path.dirname(__file__))
+  ps = page_set.PageSet(file_path=os.path.dirname(__file__))
+  ps.AddPageWithDefaultRunNavigate("http://www.bar.com/")
+  ps.AddPageWithDefaultRunNavigate("http://www.baz.com/")
+  ps.AddPageWithDefaultRunNavigate("http://www.foo.com/")
+  return ps
 
 class NonPrintingPageMeasurementResults(
     page_measurement_results.PageMeasurementResults):
