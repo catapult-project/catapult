@@ -32,7 +32,7 @@ class _SingleProcessPerfProfiler(object):
     if self._is_android:
       perf_binary = android_prebuilt_profiler_helper.GetDevicePath(
           'perf')
-      cmd_prefix = ['adb', '-s', browser_backend.adb.device(), 'shell',
+      cmd_prefix = ['adb', '-s', browser_backend.adb.device_serial(), 'shell',
                     perf_binary]
       output_file = os.path.join('/sdcard', 'perf_profiles',
                                  os.path.basename(output_file))
@@ -56,10 +56,12 @@ class _SingleProcessPerfProfiler(object):
                       'To collect a full profile rerun with '
                       '"--extra-browser-args=--single-process"')
     if self._is_android:
-      adb = self._browser_backend.adb.Adb()
-      perf_pids = adb.ExtractPid('perf')
-      adb.RunShellCommand('kill -SIGINT ' + ' '.join(perf_pids))
-      util.WaitFor(lambda: not adb.ExtractPid('perf'), timeout=2)
+      device = self._browser_backend.adb.device()
+      perf_pids = device.old_interface.ExtractPid('perf')
+      device.old_interface.RunShellCommand(
+          'kill -SIGINT ' + ' '.join(perf_pids))
+      util.WaitFor(lambda: not device.old_interface.ExtractPid('perf'),
+                   timeout=2)
     self._proc.send_signal(signal.SIGINT)
     exit_code = self._proc.wait()
     try:
@@ -100,8 +102,8 @@ Try rerunning this script under sudo or setting
       List of arguments to be passed to perf to point it to the created symfs.
     """
     assert self._is_android
-    adb = self._browser_backend.adb.Adb()
-    adb.Adb().Pull(self._device_output_file, self._output_file)
+    device = self._browser_backend.adb.device()
+    device.old_interface.Adb().Pull(self._device_output_file, self._output_file)
     symfs_dir = os.path.dirname(self._output_file)
     host_app_symfs = os.path.join(symfs_dir, 'data', 'app-lib')
     if not os.path.exists(host_app_symfs):
@@ -114,7 +116,7 @@ Try rerunning this script under sudo or setting
       # the one in the device, and symlink it in the host to match --symfs.
       device_dir = filter(
           lambda app_lib: app_lib.startswith(self._browser_backend.package),
-          adb.RunShellCommand('ls /data/app-lib'))
+          device.old_interface.RunShellCommand('ls /data/app-lib'))
       os.symlink(os.path.abspath(
                     os.path.join(util.GetChromiumSrcDir(),
                                  os.environ.get('CHROMIUM_OUT_DIR', 'out'),
@@ -144,11 +146,12 @@ Try rerunning this script under sudo or setting
         'libz.so',
       ]
       for lib in common_system_libs:
-        adb.Adb().Pull('/system/lib/%s' % lib, host_system_symfs)
+        device.old_interface.Adb().Pull('/system/lib/%s' % lib,
+                                        host_system_symfs)
     # Pull a copy of the kernel symbols.
     host_kallsyms = os.path.join(symfs_dir, 'kallsyms')
     if not os.path.exists(host_kallsyms):
-      adb.Adb().Pull('/proc/kallsyms', host_kallsyms)
+      device.old_interface.Adb().Pull('/proc/kallsyms', host_kallsyms)
     return ['--kallsyms', host_kallsyms, '--symfs', symfs_dir]
 
   def _GetStdOut(self):
@@ -169,9 +172,9 @@ class PerfProfiler(profiler.Profiler):
     self._process_profilers = []
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb.Adb(), 'perf')
+          browser_backend.adb.device(), 'perf')
       # Make sure kernel pointers are not hidden.
-      browser_backend.adb.Adb().SetProtectedFileContents(
+      browser_backend.adb.device().old_interface.SetProtectedFileContents(
           '/proc/sys/kernel/kptr_restrict', '0')
     for pid, output_file in process_output_file_map.iteritems():
       if 'zygote' in output_file:

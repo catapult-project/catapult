@@ -25,11 +25,12 @@ try:
   from pylib import ports  # pylint: disable=F0401
 except Exception:
   ports = None
+from pylib.device import device_utils
 from pylib.utils import apk_helper  # pylint: disable=F0401
 
 
 def IsAndroidSupported():
-  return android_commands != None
+  return device_utils != None
 
 
 def GetAttachedDevices():
@@ -52,21 +53,22 @@ class AdbCommands(object):
   """A thin wrapper around ADB"""
 
   def __init__(self, device):
-    self._adb = android_commands.AndroidCommands(device)
-    self._device = device
+    self._device = device_utils.DeviceUtils(device)
+    self._device_serial = device
+
+  def device_serial(self):
+    return self._device_serial
 
   def device(self):
     return self._device
 
-  def Adb(self):
-    return self._adb
-
   def __getattr__(self, name):
-    """Delegate all unknown calls to the underlying _adb object."""
-    return getattr(self._adb, name)
+    """Delegate all unknown calls to the underlying AndroidCommands object."""
+    return getattr(self._device.old_interface, name)
 
   def Forward(self, local, remote):
-    ret = self._adb.Adb().SendCommand('forward %s %s' % (local, remote))
+    ret = self._device.old_interface.Adb().SendCommand(
+        'forward %s %s' % (local, remote))
     assert ret == ''
 
   def Install(self, apk_path):
@@ -84,10 +86,11 @@ class AdbCommands(object):
       constants.SetBuildType('Debug')
 
     apk_package_name = apk_helper.GetPackageName(apk_path)
-    return self._adb.ManagedInstall(apk_path, package_name=apk_package_name)
+    return self._device.old_interface.ManagedInstall(
+        apk_path, package_name=apk_package_name)
 
   def IsUserBuild(self):
-    return self._adb.GetBuildType() == 'user'
+    return self._device.old_interface.GetBuildType() == 'user'
 
 
 def GetBuildTypeOfPath(path):

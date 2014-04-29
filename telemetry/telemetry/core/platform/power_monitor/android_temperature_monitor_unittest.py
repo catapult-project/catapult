@@ -62,9 +62,11 @@ class AndroidTemperatureMonitorTest(unittest.TestCase):
     mock_power_monitor.ExpectCall('CanMonitorPower').WillReturn(False)
     mock_adb = simple_mock.MockObject()
     mock_adb.ExpectCall('GetFileContents', _).WillReturn([])
+    mock_device_utils = simple_mock.MockObject()
+    setattr(mock_device_utils, 'old_interface', mock_adb)
 
     monitor = android_temperature_monitor.AndroidTemperatureMonitor(
-        mock_power_monitor, mock_adb)
+        mock_power_monitor, mock_device_utils)
     self.assertTrue(monitor.CanMonitorPower())
     monitor.StartMonitoringPower(None)
     measurements = monitor.StopMonitoringPower()

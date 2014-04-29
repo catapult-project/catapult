@@ -13,9 +13,9 @@ class AndroidTemperatureMonitor(power_monitor.PowerMonitor):
   Delegates monitoring to another PowerMonitor and adds temperature measurements
   to overall results.
   """
-  def __init__(self, monitor, adb):
+  def __init__(self, monitor, device):
     super(AndroidTemperatureMonitor, self).__init__()
-    self._adb = adb
+    self._device = device
     self._power_monitor = monitor
     self._can_monitor_with_power_monitor = None
 
@@ -58,7 +58,7 @@ class AndroidTemperatureMonitor(power_monitor.PowerMonitor):
     return power_data
 
   def _GetBoardTemperatureCelsius(self):
-    contents = self._adb.GetFileContents(_TEMPERATURE_FILE)
+    contents = self._device.old_interface.GetFileContents(_TEMPERATURE_FILE)
     if len(contents) > 0:
       return float(contents[0])
     return None

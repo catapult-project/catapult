@@ -96,7 +96,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   @decorators.Cache
   def _platform_backend(self):
     return android_platform_backend.AndroidPlatformBackend(
-        self._backend_settings.adb.Adb(),
+        self._backend_settings.adb.device(),
         self.finder_options.no_performance_mode)
 
   def Create(self):

@@ -86,10 +86,11 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
       profile_base = os.path.basename(profile_parent)
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
-    self.adb.Adb().PushIfNeeded(new_profile_dir, saved_profile_location)
+    self.adb.device().old_interface.PushIfNeeded(
+        new_profile_dir, saved_profile_location)
 
-    self.adb.Adb().EfficientDeviceDirectoryCopy(saved_profile_location,
-                                                self.profile_dir)
+    self.adb.device().old_interface.EfficientDeviceDirectoryCopy(
+        saved_profile_location, self.profile_dir)
     dumpsys = self.adb.RunShellCommand('dumpsys package %s' % self.package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
@@ -194,7 +195,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Kill old browser.
     self._adb.CloseApplication(self._backend_settings.package)
 
-    if self._adb.Adb().CanAccessProtectedFileContents():
+    if self._adb.device().old_interface.CanAccessProtectedFileContents():
       if self.browser_options.profile_dir:
         self._backend_settings.PushProfile(self.browser_options.profile_dir)
       elif not self.browser_options.dont_override_profile:
@@ -240,8 +241,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _SetCommandLineFile(self, file_contents):
     logging.debug('Using command line: ' + file_contents)
     def IsProtectedFile(name):
-      if self._adb.Adb().FileExistsOnDevice(name):
-        return not self._adb.Adb().IsFileWritableOnDevice(name)
+      if self._adb.device().old_interface.FileExistsOnDevice(name):
+        return not self._adb.device().old_interface.IsFileWritableOnDevice(name)
       else:
         parent_name = os.path.dirname(name)
         if parent_name != '':
@@ -250,19 +251,23 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           return True
 
     if IsProtectedFile(self._backend_settings.cmdline_file):
-      if not self._adb.Adb().CanAccessProtectedFileContents():
+      if not self._adb.device().old_interface.CanAccessProtectedFileContents():
         logging.critical('Cannot set Chrome command line. '
                          'Fix this by flashing to a userdebug build.')
         sys.exit(1)
-      self._saved_cmdline = ''.join(self._adb.Adb().GetProtectedFileContents(
-          self._backend_settings.cmdline_file) or [])
-      self._adb.Adb().SetProtectedFileContents(
+      self._saved_cmdline = ''.join(
+          self._adb.device().old_interface.GetProtectedFileContents(
+              self._backend_settings.cmdline_file)
+          or [])
+      self._adb.device().old_interface.SetProtectedFileContents(
           self._backend_settings.cmdline_file, file_contents)
     else:
-      self._saved_cmdline = ''.join(self._adb.Adb().GetFileContents(
-          self._backend_settings.cmdline_file) or [])
-      self._adb.Adb().SetFileContents(self._backend_settings.cmdline_file,
-                                      file_contents)
+      self._saved_cmdline = ''.join(
+          self._adb.device().old_interface.GetFileContents(
+              self._backend_settings.cmdline_file)
+          or [])
+      self._adb.device().old_interface.SetFileContents(
+          self._backend_settings.cmdline_file, file_contents)
 
   def Start(self):
     self._SetUpCommandLine()
@@ -275,7 +280,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # If we have no existing tabs start with a blank page since default
       # startup with the NTP can lead to race conditions with Telemetry
       url = 'about:blank'
-    self._adb.Adb().DismissCrashDialogIfNeeded()
+    self._adb.device().old_interface.DismissCrashDialogIfNeeded()
     self._adb.StartActivity(self._backend_settings.package,
                             self._backend_settings.activity,
                             True,
@@ -291,7 +296,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._PostBrowserStartupInitialization()
     except exceptions.BrowserGoneException:
       logging.critical('Failed to connect to browser.')
-      if not self._adb.Adb().CanAccessProtectedFileContents():
+      if not self._adb.device().old_interface.CanAccessProtectedFileContents():
         logging.critical(
           'Resolve this by either: '
           '(1) Flashing to a userdebug build OR '
@@ -383,7 +388,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           # is fixed in android's adb_interface at 60 seconds, which may
           # be too short to pull the cache.
           cmd = 'pull %s %s' % (source, dest)
-          self._adb.Adb().Adb().SendCommand(cmd, timeout_time=240)
+          self._adb.device().old_interface.Adb().SendCommand(
+              cmd, timeout_time=240)
 
   def IsBrowserRunning(self):
     pids = self._adb.ExtractPid(self._backend_settings.package)
@@ -415,7 +421,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if os.path.exists(tombstones):
       ret += Decorate('Tombstones',
                       subprocess.Popen([tombstones, '-w', '--device',
-                                        self._adb.device()],
+                                        self._adb.device_serial()],
                                        stdout=subprocess.PIPE).communicate()[0])
     return ret
 

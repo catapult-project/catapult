@@ -52,14 +52,14 @@ class AndroidForwarder(forwarders.Forwarder):
 
   def __init__(self, adb, port_pairs):
     super(AndroidForwarder, self).__init__(port_pairs)
-    self._adb = adb.Adb()
-    forwarder.Forwarder.Map([p for p in port_pairs if p], self._adb)
+    self._device = adb.device()
+    forwarder.Forwarder.Map([p for p in port_pairs if p], self._device)
     # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):
     for port_pair in self._port_pairs:
       if port_pair:
-        forwarder.Forwarder.UnmapDevicePort(port_pair.local_port, self._adb)
+        forwarder.Forwarder.UnmapDevicePort(port_pair.local_port, self._device)
     super(AndroidForwarder, self).Close()
 
 
@@ -157,9 +157,10 @@ class AndroidRndisConfigurator(object):
   _TELEMETRY_INTERFACE_FILE = '/etc/network/interfaces.d/telemetry-{}.conf'
 
   def __init__(self, adb):
-    is_root_enabled = adb.Adb().EnableAdbRoot()
+    self._device = adb.device()
+
+    is_root_enabled = self._device.old_interface.EnableAdbRoot()
     assert is_root_enabled, 'RNDIS forwarding requires a rooted device.'
-    self._adb = adb.Adb()
 
     self._device_ip = None
     self._host_iface = None
@@ -175,15 +176,15 @@ class AndroidRndisConfigurator(object):
 
   def _IsRndisSupported(self):
     """Checks that the device has RNDIS support in the kernel."""
-    return self._adb.FileExistsOnDevice(
+    return self._device.old_interface.FileExistsOnDevice(
         '%s/f_rndis/device' % self._RNDIS_DEVICE)
 
   def _WaitForDevice(self):
-    self._adb.Adb().SendCommand('wait-for-device')
+    self._device.old_interface.Adb().SendCommand('wait-for-device')
 
   def _FindDeviceRndisInterface(self):
     """Returns the name of the RNDIS network interface if present."""
-    config = self._adb.RunShellCommand('netcfg')
+    config = self._device.old_interface.RunShellCommand('netcfg')
     interfaces = [line.split()[0] for line in config]
     candidates = [iface for iface in interfaces if re.match('rndis|usb', iface)]
     if candidates:
@@ -200,7 +201,7 @@ class AndroidRndisConfigurator(object):
   def _FindHostRndisInterface(self):
     """Returns the name of the host-side network interface."""
     interface_list = self._EnumerateHostInterfaces()
-    ether_address = self._adb.GetFileContents(
+    ether_address = self._device.old_interface.GetFileContents(
         '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE)[0]
     interface_name = None
     for line in interface_list:
@@ -214,7 +215,7 @@ class AndroidRndisConfigurator(object):
         ['sudo', 'bash', '-c', 'echo -e "%s" > %s' % (contents, path)])
 
   def _DisableRndis(self):
-    self._adb.system_properties['sys.usb.config'] = 'adb'
+    self._device.old_interface.system_properties['sys.usb.config'] = 'adb'
     self._WaitForDevice()
 
   def _EnableRndis(self):
@@ -253,12 +254,13 @@ function doit() {
 doit &
     """ % {'dev': self._RNDIS_DEVICE, 'functions': 'rndis,adb',
            'prefix': script_prefix }
-    self._adb.SetFileContents('%s.sh' % script_prefix, script)
+    self._device.old_interface.SetFileContents('%s.sh' % script_prefix, script)
     # TODO(szym): run via su -c if necessary.
-    self._adb.RunShellCommand('rm %s.log' % script_prefix)
-    self._adb.RunShellCommand('. %s.sh' % script_prefix)
+    self._device.old_interface.RunShellCommand('rm %s.log' % script_prefix)
+    self._device.old_interface.RunShellCommand('. %s.sh' % script_prefix)
     self._WaitForDevice()
-    result = self._adb.GetFileContents('%s.log' % script_prefix)
+    result = self._device.old_interface.GetFileContents(
+        '%s.log' % script_prefix)
     assert any('DONE' in line for line in result), 'RNDIS script did not run!'
 
   def _CheckEnableRndis(self, force):
@@ -305,15 +307,16 @@ doit &
     """Returns the IP addresses on all connected devices.
     Excludes interface |excluded_iface| on the selected device.
     """
-    my_device = self._adb.GetDevice()
+    my_device = self._device.old_interface.GetDevice()
     addresses = []
-    for device in adb_commands.GetAttachedDevices():
-      adb = adb_commands.AdbCommands(device).Adb()
-      if device == my_device:
+    for device_serial in adb_commands.GetAttachedDevices():
+      device = adb_commands.AdbCommands(device_serial).device()
+      if device_serial == my_device:
         excluded = excluded_iface
       else:
         excluded = 'no interfaces excluded on other devices'
-      addresses += [line.split()[2] for line in adb.RunShellCommand('netcfg')
+      addresses += [line.split()[2]
+                    for line in device.old_interface.RunShellCommand('netcfg')
                     if excluded not in line]
     return addresses
 
@@ -410,7 +413,7 @@ doit &
     netmask = _Long2Ip(netmask)
 
     # TODO(szym) run via su -c if necessary.
-    self._adb.RunShellCommand('ifconfig %s %s netmask %s up' %
+    self._device.old_interface.RunShellCommand('ifconfig %s %s netmask %s up' %
                               (device_iface, device_ip, netmask))
     # Enabling the interface sometimes breaks adb.
     self._WaitForDevice()

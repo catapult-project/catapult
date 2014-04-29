@@ -30,7 +30,7 @@ class _TCPDumpProfilerAndroid(object):
     self._adb.RunShellCommand('mkdir -p ' +
                               os.path.dirname(self._DEVICE_DUMP_FILE))
     self._proc = subprocess.Popen(
-        ['adb', '-s', self._adb.device(),
+        ['adb', '-s', self._adb.device_serial(),
          'shell', android_prebuilt_profiler_helper.GetDevicePath('tcpdump')] +
          _TCP_DUMP_BASE_OPTS +
          [self._DEVICE_DUMP_FILE])
@@ -45,7 +45,8 @@ class _TCPDumpProfilerAndroid(object):
     self._proc.terminate()
     host_dump = os.path.join(self._output_path,
                              os.path.basename(self._DEVICE_DUMP_FILE))
-    self._adb.Adb().Adb().Pull(self._DEVICE_DUMP_FILE, host_dump)
+    self._adb.device().old_interface.Adb().Pull(self._DEVICE_DUMP_FILE,
+                                                host_dump)
     print 'TCP dump available at: %s ' % host_dump
     print 'Use Wireshark to open it.'
     return host_dump
@@ -99,7 +100,7 @@ class TCPDumpProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     if platform_backend.GetOSName() == 'android':
       android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb.Adb(), 'tcpdump')
+          browser_backend.adb.device(), 'tcpdump')
       self._platform_profiler = _TCPDumpProfilerAndroid(
           browser_backend.adb, output_path)
     else:

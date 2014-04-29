@@ -34,6 +34,11 @@ class MockAdbCommands(object):
     return []
 
 
+class MockDevice(object):
+  def __init__(self, mock_adb_commands):
+    self.old_interface = mock_adb_commands
+
+
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
     self._stubs = system_stub.Override(android_platform_backend,
@@ -50,7 +55,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '4294967295 1074458624 1074463824 3197495984 3197494152 '
         '1074767676 0 4612 0 38136 4294967295 0 0 17 0 0 0 0 0 0 '
         '1074470376 1074470912 1102155776']
-    adb_valid_proc_content = MockAdbCommands(proc_stat_content, {})
+    adb_valid_proc_content = MockDevice(MockAdbCommands(proc_stat_content, {}))
     backend = android_platform_backend.AndroidPlatformBackend(
         adb_valid_proc_content, False)
     cpu_stats = backend.GetCpuStats('7702')
@@ -59,7 +64,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @test.Disabled('chromeos')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
-    adb_empty_proc_stat = MockAdbCommands([], {})
+    adb_empty_proc_stat = MockDevice(MockAdbCommands([], {}))
     backend = android_platform_backend.AndroidPlatformBackend(
         adb_empty_proc_stat, False)
     cpu_stats = backend.GetCpuStats('7702')
@@ -67,7 +72,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
   @test.Disabled
   def testFramesFromMp4(self):
-    mock_adb = MockAdbCommands([])
+    mock_adb = MockDevice(MockAdbCommands([]))
     backend = android_platform_backend.AndroidPlatformBackend(mock_adb, False)
 
     try:

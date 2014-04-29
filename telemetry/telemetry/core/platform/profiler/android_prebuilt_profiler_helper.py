@@ -19,7 +19,7 @@ def GetDevicePath(profiler_binary):
 
 
 @decorators.Cache
-def InstallOnDevice(adb, profiler_binary):
+def InstallOnDevice(device, profiler_binary):
   host_path = support_binaries.FindPath(profiler_binary, 'android')
   if not host_path:
     logging.error('Profiler binary "%s" not found. Could not be installed',
@@ -27,6 +27,7 @@ def InstallOnDevice(adb, profiler_binary):
     return False
 
   device_binary_path = GetDevicePath(profiler_binary)
-  adb.PushIfNeeded(host_path, device_binary_path)
-  adb.RunShellCommand('chmod 777 ' + device_binary_path)
+  device.old_interface.PushIfNeeded(host_path, device_binary_path)
+  device.old_interface.RunShellCommand('chmod 777 ' + device_binary_path)
   return True
+

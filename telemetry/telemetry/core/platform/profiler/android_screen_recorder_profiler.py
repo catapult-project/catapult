@@ -21,7 +21,7 @@ class AndroidScreenRecordingProfiler(profiler.Profiler):
                       'screenshot.py'),
          '--video',
          '--file', self._output_path,
-         '--device', browser_backend.adb.device()],
+         '--device', browser_backend.adb.device_serial()],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
   @classmethod

@@ -41,24 +41,24 @@ _HOST_APPLICATIONS = [
 
 class AndroidPlatformBackend(
     proc_supporting_platform_backend.ProcSupportingPlatformBackend):
-  def __init__(self, adb, no_performance_mode):
+  def __init__(self, device, no_performance_mode):
     super(AndroidPlatformBackend, self).__init__()
-    self._adb = adb
+    self._device = device
     self._surface_stats_collector = None
-    self._perf_tests_setup = perf_control.PerfControl(self._adb)
-    self._thermal_throttle = thermal_throttle.ThermalThrottle(self._adb)
+    self._perf_tests_setup = perf_control.PerfControl(self._device)
+    self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
     self._host_platform_backend = factory.GetPlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
-        self._adb.CanAccessProtectedFileContents()
+        self._device.old_interface.CanAccessProtectedFileContents()
     power_controller = power_monitor_controller.PowerMonitorController([
         monsoon_power_monitor.MonsoonPowerMonitor(),
-        android_ds2784_power_monitor.DS2784PowerMonitor(adb),
-        android_dumpsys_power_monitor.DumpsysPowerMonitor(adb),
+        android_ds2784_power_monitor.DS2784PowerMonitor(device),
+        android_dumpsys_power_monitor.DumpsysPowerMonitor(device),
     ])
     self._powermonitor = android_temperature_monitor.AndroidTemperatureMonitor(
-        power_controller, adb)
+        power_controller, device)
     self._video_recorder = None
     self._video_output = None
     if self._no_performance_mode:
@@ -72,7 +72,7 @@ class AndroidPlatformBackend(
     # Clear any leftover data from previous timed out tests
     self._raw_display_frame_rate_measurements = []
     self._surface_stats_collector = \
-        surface_stats_collector.SurfaceStatsCollector(self._adb)
+        surface_stats_collector.SurfaceStatsCollector(self._device)
     self._surface_stats_collector.Start()
 
   def StopRawDisplayFrameRateMeasurement(self):
@@ -110,14 +110,16 @@ class AndroidPlatformBackend(
     return self._thermal_throttle.HasBeenThrottled()
 
   def GetSystemCommitCharge(self):
-    for line in self._adb.RunShellCommand('dumpsys meminfo', log_result=False):
+    for line in self._device.old_interface.RunShellCommand(
+        'dumpsys meminfo', log_result=False):
       if line.startswith('Total PSS: '):
         return int(line.split()[2]) * 1024
     return 0
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
-    for line in self._adb.RunShellCommand('dumpsys meminfo', log_result=False):
+    for line in self._device.old_interface.RunShellCommand(
+        'dumpsys meminfo', log_result=False):
       if line.startswith('Total RAM: '):
         return int(line.split()[2]) * 1024
     return 0
@@ -140,16 +142,16 @@ class AndroidPlatformBackend(
     This can be used to make memory measurements more stable in particular.
     """
     if not android_prebuilt_profiler_helper.InstallOnDevice(
-        self._adb, 'purge_ashmem'):
+        self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    if self._adb.RunShellCommand(
+    if self._device.old_interface.RunShellCommand(
         android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
         log_result=True):
       return
     raise Exception('Error while purging ashmem.')
 
   def GetMemoryStats(self, pid):
-    memory_usage = self._adb.GetMemoryUsageForPid(pid)[0]
+    memory_usage = self._device.old_interface.GetMemoryUsageForPid(pid)[0]
     return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
             'SharedDirty': memory_usage['Shared_Dirty'] * 1024,
             'PrivateDirty': memory_usage['Private_Dirty'] * 1024,
@@ -182,20 +184,21 @@ class AndroidPlatformBackend(
 
   @decorators.Cache
   def GetOSVersionName(self):
-    return self._adb.GetBuildId()[0]
+    return self._device.old_interface.GetBuildId()[0]
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
 
   def FlushEntireSystemCache(self):
-    cache = cache_control.CacheControl(self._adb)
+    cache = cache_control.CacheControl(self._device)
     cache.DropRamCaches()
 
   def FlushSystemCacheForDirectory(self, directory, ignoring=None):
     raise NotImplementedError()
 
   def FlushDnsCache(self):
-    self._adb.RunShellCommandWithSU('ndc resolver flushdefaultif')
+    self._device.old_interface.RunShellCommandWithSU(
+        'ndc resolver flushdefaultif')
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
@@ -207,12 +210,13 @@ class AndroidPlatformBackend(
       raise NotImplementedError("elevate_privilege isn't supported on android.")
     if not parameters:
       parameters = ''
-    self._adb.RunShellCommand('am start ' + parameters + ' ' + application)
+    self._device.old_interface.RunShellCommand(
+        'am start ' + parameters + ' ' + application)
 
   def IsApplicationRunning(self, application):
     if application in _HOST_APPLICATIONS:
       return self._host_platform_backend.IsApplicationRunning(application)
-    return len(self._adb.ExtractPid(application)) > 0
+    return len(self._device.old_interface.ExtractPid(application)) > 0
 
   def CanLaunchApplication(self, application):
     if application in _HOST_APPLICATIONS:
@@ -239,7 +243,7 @@ class AndroidPlatformBackend(
     if self.is_video_capture_running:
       self._video_recorder.Stop()
     self._video_recorder = screenshot.VideoRecorder(
-        self._adb, self._video_output, megabits_per_second=min_bitrate_mbps)
+        self._device, self._video_output, megabits_per_second=min_bitrate_mbps)
     self._video_recorder.Start()
     util.WaitFor(self._video_recorder.IsStarted, 5)
 
@@ -323,7 +327,7 @@ class AndroidPlatformBackend(
       logging.warning('%s cannot be retrieved on non-rooted device.' % fname)
       return ''
     return '\n'.join(
-        self._adb.GetProtectedFileContents(fname))
+        self._device.old_interface.GetProtectedFileContents(fname))
 
   def _GetPsOutput(self, columns, pid=None):
     assert columns == ['pid', 'name'] or columns == ['pid'], \
@@ -331,7 +335,8 @@ class AndroidPlatformBackend(
     command = 'ps'
     if pid:
       command += ' -p %d' % pid
-    ps = self._adb.RunShellCommand(command, log_result=False)[1:]
+    ps = self._device.old_interface.RunShellCommand(
+        command, log_result=False)[1:]
     output = []
     for line in ps:
       data = line.split()

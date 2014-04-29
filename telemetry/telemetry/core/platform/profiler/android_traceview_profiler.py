@@ -18,7 +18,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     super(AndroidTraceviewProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
 
-    if self._browser_backend.adb.Adb().FileExistsOnDevice(
+    if self._browser_backend.adb.device().old_interface.FileExistsOnDevice(
         self._DEFAULT_DEVICE_DIR):
       self._browser_backend.adb.RunShellCommand(
           'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
@@ -52,7 +52,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
       self._browser_backend.adb.RunShellCommand('am profile %s stop' % pid)
       util.WaitFor(lambda: self._FileSize(trace_file) > 0, timeout=10)
       output_files.append(trace_file)
-    self._browser_backend.adb.Adb().Adb().Pull(
+    self._browser_backend.adb.device().old_interface.Adb().Pull(
         self._DEFAULT_DEVICE_DIR, self._output_path)
     self._browser_backend.adb.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
@@ -62,5 +62,6 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     return output_files
 
   def _FileSize(self, file_name):
-    f = self._browser_backend.adb.Adb().ListPathContents(file_name)
+    f = self._browser_backend.adb.device().old_interface.ListPathContents(
+        file_name)
     return f.get(os.path.basename(file_name), (0, ))[0]

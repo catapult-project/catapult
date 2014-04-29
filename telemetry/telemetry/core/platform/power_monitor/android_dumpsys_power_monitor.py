@@ -15,18 +15,18 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
   consumption of a single android application. This measure uses a heuristic
   and is the same information end-users see with the battery application.
   """
-  def __init__(self, adb):
+  def __init__(self, device):
     """Constructor.
 
     Args:
-        adb: adb proxy.
+        device: DeviceUtils instance.
     """
     super(DumpsysPowerMonitor, self).__init__()
-    self._adb = adb
+    self._device = device
     self._browser = None
 
   def CanMonitorPower(self):
-    return self._adb.CanControlUsbCharging()
+    return self._device.old_interface.CanControlUsbCharging()
 
   def StartMonitoringPower(self, browser):
     assert not self._browser, (
@@ -35,18 +35,19 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
     # Disable the charging of the device over USB. This is necessary because the
     # device only collects information about power usage when the device is not
     # charging.
-    self._adb.DisableUsbCharging()
+    self._device.old_interface.DisableUsbCharging()
 
   def StopMonitoringPower(self):
     assert self._browser, (
         'StartMonitoringPower() not called.')
     try:
-      self._adb.EnableUsbCharging()
+      self._device.old_interface.EnableUsbCharging()
       # pylint: disable=W0212
       package = self._browser._browser_backend.package
       # By default, 'dumpsys batterystats' measures power consumption during the
       # last unplugged period.
-      result = self._adb.RunShellCommand('dumpsys batterystats -c %s' % package)
+      result = self._device.old_interface.RunShellCommand(
+          'dumpsys batterystats -c %s' % package)
       assert result, 'Dumpsys produced no output'
       return DumpsysPowerMonitor.ParseSamplingOutput(package, result)
     finally:

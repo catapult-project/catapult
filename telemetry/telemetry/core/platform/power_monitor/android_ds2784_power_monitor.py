@@ -19,23 +19,23 @@ VOLTAGE = os.path.join(FUEL_GAUGE_PATH, 'voltage_now')
 
 
 class DS2784PowerMonitor(power_monitor.PowerMonitor):
-  def __init__(self, adb):
+  def __init__(self, device):
     super(DS2784PowerMonitor, self).__init__()
-    self._adb = adb
+    self._device = device
     self._powermonitor_process_port = None
-    android_prebuilt_profiler_helper.InstallOnDevice(adb, 'file_poller')
+    android_prebuilt_profiler_helper.InstallOnDevice(device, 'file_poller')
     self._file_poller_binary = android_prebuilt_profiler_helper.GetDevicePath(
         'file_poller')
 
 
   @decorators.Cache
   def _HasFuelGauge(self):
-    return self._adb.FileExistsOnDevice(CHARGE_COUNTER)
+    return self._device.old_interface.FileExistsOnDevice(CHARGE_COUNTER)
 
   def CanMonitorPower(self):
     if not self._HasFuelGauge():
       return False
-    if self._adb.IsDeviceCharging():
+    if self._device.old_interface.IsDeviceCharging():
       logging.warning('Can\'t monitor power usage since device is charging.')
       return False
     return True
@@ -43,15 +43,16 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._powermonitor_process_port, (
         'Must call StopMonitoringPower().')
-    self._powermonitor_process_port = int(self._adb.RunShellCommand(
-        '%s %d %s %s %s' % (self._file_poller_binary, SAMPLE_RATE_HZ,
-            CHARGE_COUNTER, CURRENT, VOLTAGE))[0])
+    self._powermonitor_process_port = int(
+        self._device.old_interface.RunShellCommand(
+            '%s %d %s %s %s' % (self._file_poller_binary, SAMPLE_RATE_HZ,
+                                CHARGE_COUNTER, CURRENT, VOLTAGE))[0])
 
   def StopMonitoringPower(self):
     assert self._powermonitor_process_port, (
         'StartMonitoringPower() not called.')
     try:
-      result = '\n'.join(self._adb.RunShellCommand(
+      result = '\n'.join(self._device.old_interface.RunShellCommand(
           '%s %d' % (self._file_poller_binary,
                      self._powermonitor_process_port)))
       assert result, 'PowerMonitor produced no output'
