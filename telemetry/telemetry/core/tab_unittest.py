@@ -100,7 +100,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
     super(GpuTabTest, self).setUp()
 
   # Test flaky on mac: http://crbug.com/358664
-  @test.Disabled('mac')
+  @test.Disabled('android', 'mac')
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')

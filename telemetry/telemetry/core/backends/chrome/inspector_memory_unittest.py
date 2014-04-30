@@ -2,11 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
 from telemetry.unittest import tab_test_case
 
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
+
   def testGetDOMStats(self):
+    if not self._browser.supports_tab_control:
+      logging.warning('Browser does not support tab control, skipping test.')
+      return
+
     # Due to an issue with CrOS, we create a new tab here rather than
     # using the existing tab to get a consistent starting page on all platforms.
     self._tab = self._browser.tabs.New()

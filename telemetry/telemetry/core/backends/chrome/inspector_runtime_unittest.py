@@ -1,9 +1,12 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.unittest import tab_test_case
+
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeEvaluateSimple(self):
@@ -31,6 +34,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
 
+  @decorators.Disabled('android')
   def testIFrame(self):
     self.Navigate('host.html')
 

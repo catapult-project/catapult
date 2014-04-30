@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.page.actions import play
 from telemetry.unittest import tab_test_case
+
 
 AUDIO_1_PLAYING_CHECK = 'window.__hasEventCompleted("#audio_1", "playing");'
 VIDEO_1_PLAYING_CHECK = 'window.__hasEventCompleted("#video_1", "playing");'
@@ -17,6 +19,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
+  @decorators.Disabled('android')
   def testPlayWithNoSelector(self):
     """Tests that with no selector Play action plays first video element."""
     data = {'wait_for_playing': True}
@@ -30,6 +33,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
 
+  @decorators.Disabled('android')
   def testPlayWithVideoSelector(self):
     """Tests that Play action plays video element matching selector."""
     data = {'selector': '#video_1', 'wait_for_playing': True}
@@ -43,6 +47,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
 
+  @decorators.Disabled('android')
   def testPlayWithAllSelector(self):
     """Tests that Play action plays all video elements with selector='all'."""
     data = {'selector': 'all', 'wait_for_playing': True}
@@ -68,6 +73,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
 
+  @decorators.Disabled('android')
   def testPlayWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
     data = {'selector': '#video_1', 'wait_for_ended': True}

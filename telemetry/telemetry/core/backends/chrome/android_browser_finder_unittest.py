@@ -1,12 +1,14 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import unittest
 
 from telemetry import test
 from telemetry.core import browser_options
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.unittest import system_stub
+
 
 class LoggingStub(object):
   def __init__(self):
@@ -18,10 +20,11 @@ class LoggingStub(object):
   def warn(self, msg, *args):
     self.warnings.append(msg % args)
 
+
 class AndroidBrowserFinderTest(unittest.TestCase):
   def setUp(self):
     self._stubs = system_stub.Override(android_browser_finder,
-                                       ['adb_commands', 'subprocess'])
+                                       ['adb_commands', 'os', 'subprocess'])
     android_browser_finder.adb_works = None  # Blow cache between runs.
 
   def tearDown(self):
@@ -42,7 +45,6 @@ class AndroidBrowserFinderTest(unittest.TestCase):
     browsers = android_browser_finder.FindAllAvailableBrowsers(finder_options)
     self.assertEquals(0, len(browsers))
 
-
   def test_adb_permissions_error(self):
     finder_options = browser_options.BrowserFinderOptions()
 
@@ -58,7 +60,6 @@ class AndroidBrowserFinderTest(unittest.TestCase):
       finder_options, log_stub)
     self.assertEquals(3, len(log_stub.warnings))
     self.assertEquals(0, len(browsers))
-
 
   def test_adb_two_devices(self):
     finder_options = browser_options.BrowserFinderOptions()

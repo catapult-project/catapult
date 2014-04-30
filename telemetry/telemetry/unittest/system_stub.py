@@ -51,8 +51,6 @@ class Override(object):
 
 
 class AdbCommandsModuleStub(object):
-# adb not even found
-# android_browser_finder not returning
   class AdbCommandsStub(object):
     def __init__(self, module, device):
       self._module = module
@@ -73,6 +71,9 @@ class AdbCommandsModuleStub(object):
 
     def IsUserBuild(self):
       return False
+
+    def WaitForDevicePm(self):
+      pass
 
   def __init__(self):
     self.attached_devices = []
@@ -146,6 +147,10 @@ class OpenFunctionStub(object):
 
 
 class OsModuleStub(object):
+  class OsEnvironModuleStub(object):
+    def get(self, _):
+      return None
+
   class OsPathModuleStub(object):
     def __init__(self, sys_module):
       self.sys = sys_module
@@ -194,6 +199,7 @@ class OsModuleStub(object):
 
   def __init__(self, sys_module=sys):
     self.path = OsModuleStub.OsPathModuleStub(sys_module)
+    self.environ = OsModuleStub.OsEnvironModuleStub()
     self.display = ':0'
     self.local_app_data = None
     self.program_files = None

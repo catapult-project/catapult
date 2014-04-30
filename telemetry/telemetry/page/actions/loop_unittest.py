@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.page.actions import loop
 from telemetry.unittest import tab_test_case
+
 
 AUDIO_1_LOOP_CHECK = 'window.__hasEventCompleted("#audio_1", "loop");'
 VIDEO_1_LOOP_CHECK = 'window.__hasEventCompleted("#video_1", "loop");'
@@ -16,6 +18,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
+  @decorators.Disabled('android')
   def testLoopWithNoSelector(self):
     """Tests that with no selector Loop action loops first media element."""
     data = {'selector': '#video_1', 'loop_count': 2}
@@ -26,6 +29,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
+  @decorators.Disabled('android')
   def testLoopWithAllSelector(self):
     """Tests that Loop action loops all video elements with selector='all'."""
     data = {'selector': 'all', 'loop_count': 2}
@@ -39,6 +43,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
 
+  @decorators.Disabled('android')
   def testLoopWaitForLoopTimeout(self):
     """Tests that wait_for_loop timeouts if video does not loop."""
     data = {'selector': '#video_1',
@@ -49,6 +54,7 @@ class LoopActionTest(tab_test_case.TabTestCase):
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
 
+  @decorators.Disabled('android')
   def testLoopWithoutLoopCount(self):
     """Tests that loop action fails with no loop count."""
     data = {}
