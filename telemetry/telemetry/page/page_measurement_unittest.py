@@ -76,7 +76,7 @@ class PageMeasurementUnitTest(
     self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
-    ps = self.CreatePageSet('file://blank.html?foo=1')
+    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html?foo=1')
     measurement = MeasurementQueryParams()
     all_results = self.RunMeasurement(measurement, ps, options=self._options)
     self.assertEquals(0, len(all_results.failures))

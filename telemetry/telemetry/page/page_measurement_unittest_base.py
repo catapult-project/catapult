@@ -7,27 +7,34 @@ import unittest
 from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
-from telemetry.page import page_set
+from telemetry.page import page_set as page_set_module
 from telemetry.page import page_test
 from telemetry.page import test_expectations
+# pylint: disable=W0401,W0614
+from telemetry.page.actions.all_page_actions import *
 from telemetry.unittest import options_for_unittests
+
+
+class BasicTestPage(page_module.PageWithDefaultRunNavigate):
+  def __init__(self, url, page_set, base_dir):
+    super(BasicTestPage, self).__init__(url, page_set, base_dir)
+
+  def RunSmoothness(self, action_runner):
+    action_runner.RunAction(ScrollAction())
 
 class PageMeasurementUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests
   for a measurement."""
 
   def CreatePageSetFromFileInUnittestDataDir(self, test_filename):
-    return self.CreatePageSet('file://' + test_filename)
+    ps = self.CreateEmptyPageSet()
+    page = BasicTestPage('file://' + test_filename, ps, base_dir=ps.base_dir)
+    ps.AddPage(page)
+    return ps
 
-  def CreatePageSet(self, test_filename):
+  def CreateEmptyPageSet(self):
     base_dir = util.GetUnittestDataDir()
-    ps = page_set.PageSet(file_path=base_dir)
-    page = page_module.PageWithDefaultRunNavigate(test_filename,
-                                                  ps, base_dir=base_dir)
-    setattr(page, 'RunSmoothness', {'action': 'scroll'})
-    setattr(page, 'RunRepaint',
-            { "action": "repaint_continuously", "seconds": 2 })
-    ps.pages.append(page)
+    ps = page_set_module.PageSet(file_path=base_dir)
     return ps
 
   def RunMeasurement(self, measurement, ps,
