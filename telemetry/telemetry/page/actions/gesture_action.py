@@ -21,7 +21,10 @@ class GestureAction(page_action.PageAction):
 
   def RunAction(self, page, tab):
     runner = action_runner.ActionRunner(None, tab)
-    interaction_name = 'Gesture_%s' % self.__class__.__name__
+    if self.wait_action:
+      interaction_name = 'Action_%s' % self.__class__.__name__
+    else:
+      interaction_name = 'Gesture_%s' % self.__class__.__name__
     runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
     self.RunGesture(page, tab)
     if self.wait_action:
