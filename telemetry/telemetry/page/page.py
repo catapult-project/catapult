@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import inspect
 import os
 import re
 import urlparse
@@ -13,6 +14,10 @@ class Page(object):
   def __init__(self, url, page_set=None, base_dir=None):
     self.url = url
     self._page_set = page_set
+    # Default value of base_dir is the directory of the file that defines the
+    # class of this page instace.
+    if base_dir is None:
+      base_dir = os.path.dirname(inspect.getfile(self.__class__))
     self._base_dir = base_dir
 
     # These attributes can be set dynamically by the page.

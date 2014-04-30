@@ -5,7 +5,6 @@
 import csv
 import inspect
 import os
-import sys
 
 from telemetry.core import util
 from telemetry.page import page as page_module
@@ -30,10 +29,18 @@ class PageSetError(Exception):
 
 
 class PageSet(object):
-  def __init__(self, file_path='', description='', archive_data_file='',
+  def __init__(self, file_path=None, description='', archive_data_file='',
                credentials_path=None, user_agent_type=None,
                make_javascript_deterministic=True, startup_url='',
                serving_dirs=None):
+    # The default value of file_path is location of the file that define this
+    # page set instance's class.
+    if file_path is None:
+      file_path = inspect.getfile(self.__class__)
+      # Turn pyc file into py files if we can
+      if file_path.endswith('.pyc') and os.path.exists(file_path[:-1]):
+        file_path = file_path[:-1]
+
     self.file_path = file_path
     # These attributes can be set dynamically by the page set.
     self.description = description
@@ -44,11 +51,16 @@ class PageSet(object):
     self._wpr_archive_info = None
     self.startup_url = startup_url
     self.pages = []
-    if serving_dirs:
-      self.serving_dirs = serving_dirs
-    else:
-      self.serving_dirs = set()
+    self.serving_dirs = set()
+    serving_dirs = [] if serving_dirs is None else serving_dirs
+    # Makes sure that page_set's serving_dirs are absolute paths
+    for sd in serving_dirs:
+      if os.path.isabs(sd):
+        self.serving_dirs.add(os.path.realpath(sd))
+      else:
+        self.serving_dirs.add(os.path.realpath(os.path.join(self.base_dir, sd)))
     self._is_dict_based_page_set = False
+
 
   # TODO(nednguyen): Remove this when crbug.com/239179 is marked fixed
   def IsDictBasedPageSet(self):
@@ -127,15 +139,6 @@ class PageSet(object):
       raise PageSetError("Pageset file needs to contain exactly 1 pageset class"
                          " with prefix 'PageSet'")
     page_set = page_set_classes[0]()
-    page_set.file_path = file_path
-    # Makes sure that page_set's serving_dirs are absolute paths
-    if page_set.serving_dirs:
-      abs_serving_dirs = set()
-      for serving_dir in page_set.serving_dirs:
-        abs_serving_dirs.add(os.path.realpath(os.path.join(
-          page_set.base_dir,  # pylint: disable=W0212
-          serving_dir)))
-      page_set.serving_dirs = abs_serving_dirs
     for page in page_set.pages:
       page_class = page.__class__
 
@@ -147,10 +150,6 @@ class PageSet(object):
             raise PageSetError("""Definition of Run<...> method of all
 pages in %s must be in the form of def Run<...>(self, action_runner):"""
                                      % file_path)
-      # Set page's base_dir attribute.
-      page_file_path = sys.modules[page_class.__module__].__file__
-      page._base_dir = os.path.dirname(page_file_path)
-
     return page_set
 
   @staticmethod
