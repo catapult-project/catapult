@@ -2,9 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import web_contents
 from telemetry.core.backends.chrome import inspector_backend_list
-
+from telemetry.core.backends.chrome import oobe
 
 class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   """A dynamic sequence of web contents not related to tabs and extensions.
@@ -13,8 +12,10 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   """
 
   def __init__(self, browser_backend):
+    def OobeBackendWrapper(inspector_backend, backend_list):
+      return oobe.Oobe(inspector_backend, backend_list, browser_backend)
     super(MiscWebContentsBackend, self).__init__(
-        browser_backend, backend_wrapper=web_contents.WebContents)
+        browser_backend, backend_wrapper=OobeBackendWrapper)
 
   @property
   def oobe_exists(self):
