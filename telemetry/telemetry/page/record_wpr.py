@@ -2,18 +2,15 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
 import logging
 import os
 import sys
 import tempfile
 import time
-import urlparse
 
 from telemetry import test
 from telemetry.core import browser_options
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry.core import wpr_modes
 from telemetry.page import page_measurement
 from telemetry.page import page_measurement_results
@@ -84,20 +81,6 @@ class RecordPage(page_test.PageTest):
       should_reload = True
 
 
-def _CreatePageSetForUrl(url):
-  ps_name = urlparse.urlparse(url).hostname + '.json'
-  ps_path = os.path.join(util.GetBaseDir(), 'page_sets', ps_name)
-  ps = {'archive_data_file': '../data/%s' % ps_name,
-        'pages': [
-          { 'url': url }
-          ]
-        }
-  with open(ps_path, 'w') as f:
-    f.write(json.dumps(ps))
-  print 'Created new page set %s' % ps_path
-  return page_set.PageSet.FromFile(ps_path)
-
-
 def Main(base_dir):
   measurements = {
       n: cls for n, cls in discover.DiscoverClasses(
@@ -130,9 +113,6 @@ def Main(base_dir):
   elif discover.IsPageSetFile(target):
     parser.parse_args()
     ps = page_set.PageSet.FromFile(target)
-  elif target.startswith('http'):
-    parser.parse_args()
-    ps = _CreatePageSetForUrl(target)
   else:
     parser.print_usage()
     sys.exit(1)

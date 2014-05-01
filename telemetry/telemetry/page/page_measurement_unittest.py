@@ -12,8 +12,6 @@ from telemetry.page import page_measurement
 from telemetry.page import page_measurement_unittest_base
 from telemetry.page import page_set
 from telemetry.page import page_set_archive_info
-from telemetry.page.actions import all_page_actions
-from telemetry.page.actions import page_action
 from telemetry.unittest import options_for_unittests
 
 
@@ -61,6 +59,14 @@ class MeasurementWithAction(page_measurement.PageMeasurement):
 
   def MeasurePage(self, page, tab, results):
     pass
+
+class PageWithAction(page_module.Page):
+  def __init__(self, url, ps):
+    super(PageWithAction, self).__init__(url, ps, ps.base_dir)
+    self.run_test_action_called = False
+
+  def RunTestAction(self, _):
+    self.run_test_action_called = True
 
 class PageMeasurementUnitTest(
   page_measurement_unittest_base.PageMeasurementUnitTestBase):
@@ -146,14 +152,9 @@ class PageMeasurementUnitTest(
         os.remove(test_archive)
 
   def testActions(self):
-    action_called = [False]
-    class MockAction(page_action.PageAction):
-      def RunAction(self, page, tab):
-        action_called[0] = True
-    all_page_actions.RegisterClassForTest('mock', MockAction)
-
-    ps = self.CreatePageSetFromFileInUnittestDataDir('blank.html')
-    setattr(ps.pages[0], 'RunTestAction', {'action': 'mock'})
+    ps = self.CreateEmptyPageSet()
+    page = PageWithAction('file://blank.html', ps)
+    ps.AddPage(page)
     measurement = MeasurementWithAction()
     self.RunMeasurement(measurement, ps, options=self._options)
-    self.assertTrue(action_called[0])
+    self.assertTrue(page.run_test_action_called)

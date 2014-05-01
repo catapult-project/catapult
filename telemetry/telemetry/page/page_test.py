@@ -2,58 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-
 from telemetry.core import command_line
 
 from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
-from telemetry.page.actions import all_page_actions
 from telemetry.page.actions import interact
-
-
-def _GetActionFromData(action_data):
-  action_name = action_data['action']
-  action = all_page_actions.FindClassWithName(action_name)
-  if not action:
-    logging.critical('Could not find an action named %s.', action_name)
-    logging.critical('Check the page set for a typo and check the error '
-                     'log for possible Python loading/compilation errors.')
-    raise Exception('Action "%s" not found.' % action_name)
-  return action(action_data)
-
-
-def GetSubactionFromData(page, subaction_data, interactive):
-  subaction_name = subaction_data['action']
-  if hasattr(page, subaction_name):
-    return GetCompoundActionFromPage(page, subaction_name, interactive)
-  else:
-    return [_GetActionFromData(subaction_data)]
-
-
-def GetCompoundActionFromPage(page, action_name, interactive=False):
-  if interactive:
-    return [interact.InteractAction()]
-
-  if not action_name:
-    return []
-
-  action_data_list = getattr(page, action_name)
-  if not isinstance(action_data_list, list):
-    action_data_list = [action_data_list]
-
-  action_list = []
-  for subaction_data in action_data_list:
-    for _ in xrange(subaction_data.get('repeat', 1)):
-      action_list += GetSubactionFromData(page, subaction_data, interactive)
-  return action_list
-
-
-def GetRunMethodForPage(page, action_name):
-  def RunMethod(action_runner):
-    for action in GetCompoundActionFromPage(page, action_name):
-      action_runner.RunAction(action)
-  return RunMethod
 
 
 class Failure(Exception):
@@ -306,9 +259,6 @@ class PageTest(command_line.Command):
   def _RunMethod(self, page, method_name, action_runner):
     if hasattr(page, method_name):
       run_method = getattr(page, method_name)
-      # method is runnable, this must be the RunMethod of legacy json page_set
-      if not callable(run_method):
-        run_method = GetRunMethodForPage(page, method_name)
       run_method(action_runner)
 
   def RunNavigateSteps(self, page, tab):
@@ -317,7 +267,7 @@ class PageTest(command_line.Command):
     Runs the 'navigate_steps' page attribute as a compound action.
     """
     action_runner = action_runner_module.ActionRunner(page, tab, None)
-    self._RunMethod(page, "RunNavigateSteps", action_runner)
+    page.RunNavigateSteps(action_runner)
 
   def IsExiting(self):
     return self._exit_requested

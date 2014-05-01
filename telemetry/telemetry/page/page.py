@@ -21,6 +21,7 @@ class Page(object):
     self._base_dir = base_dir
 
     # These attributes can be set dynamically by the page.
+    self.synthetic_delays = dict()
     self.startup_url = page_set.startup_url if page_set else ''
     self.credentials = None
     self.disabled = False
@@ -39,24 +40,14 @@ class Page(object):
       if startup_url_scheme == 'file':
         raise ValueError('startup_url with local file scheme is not supported')
 
-  # With python page_set, this property will no longer be needed since pages can
-  # share property through a common ancestor class.
-  # TODO(nednguyen): remove this when crbug.com/239179 is marked fixed
-  def __getattr__(self, name):
-    # Disable this property on not dict based page_set
-    if (self.page_set and hasattr(self.page_set, name) and
-        self.page_set.IsDictBasedPageSet()):
-      return getattr(self.page_set, name)
-    raise AttributeError(
-        '%r object has no attribute %r' % (self.__class__, name))
+  def RunNavigateSteps(self, action_runner):
+    action_runner.RunAction(NavigateAction())
 
   @property
   def page_set(self):
     return self._page_set
 
   def GetSyntheticDelayCategories(self):
-    if not hasattr(self, 'synthetic_delays'):
-      return []
     result = []
     for delay, options in self.synthetic_delays.items():
       options = '%f;%s' % (options.get('target_duration', 0),
@@ -149,6 +140,3 @@ class Page(object):
 class PageWithDefaultRunNavigate(Page):
   def __init__(self, *args, **kwargs):
     super(PageWithDefaultRunNavigate, self).__init__(*args, **kwargs)
-
-  def RunNavigateSteps(self, action_runner):
-    action_runner.RunAction(NavigateAction())

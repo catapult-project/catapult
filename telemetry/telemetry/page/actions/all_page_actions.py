@@ -38,6 +38,3 @@ def GetAllClasses():
 
 def FindClassWithName(name):
   return _page_action_classes.get(name)
-
-def RegisterClassForTest(name, clazz):
-  _page_action_classes[name] = clazz

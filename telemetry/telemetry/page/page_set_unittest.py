@@ -41,43 +41,6 @@ class TestPageSet(unittest.TestCase):
     finally:
       os.rmdir(directory_path)
 
-  def testRenamingCompoundActions(self):
-    ps = page_set.PageSet.FromDict({
-      'serving_dirs': ['a/b'],
-      'smoothness' : { 'action' : 'scroll' },
-      'pages': [
-        {'url': 'http://www.foo.com',
-         'stress_memory': {'action': 'javasciprt'}
-        },
-        {'url': 'http://www.bar.com',
-         'navigate_steps': {'action': 'navigate2'},
-         'repaint' : {'action': 'scroll'}
-        },
-      ]}, 'file://foo.js')
-
-    self.assertTrue(hasattr(ps.pages[0], 'RunNavigateSteps'))
-    self.assertEquals(ps.pages[0].RunSmoothness, {'action': 'scroll'})
-    self.assertEquals(ps.pages[0].RunStressMemory, {'action': 'javasciprt'})
-
-    self.assertEquals(ps.pages[1].RunSmoothness, {'action': 'scroll'})
-    self.assertEquals(ps.pages[1].RunNavigateSteps, {'action': 'navigate2'})
-    self.assertEquals(ps.pages[1].RunRepaint, {'action': 'scroll'})
-
-  def testRunNavigateStepsInheritance(self):
-    ps = page_set.PageSet.FromDict({
-      'serving_dirs': ['a/b'],
-      'navigate_steps' : { 'action' : 'navigate1' },
-      'pages': [
-        {'url': 'http://www.foo.com',
-        },
-        {'url': 'http://www.bar.com',
-         'navigate_steps': {'action': 'navigate2'},
-        },
-      ]}, 'file://foo.js')
-
-    self.assertEquals(ps.pages[0].RunNavigateSteps, {'action': 'navigate1'})
-    self.assertEquals(ps.pages[1].RunNavigateSteps, {'action': 'navigate2'})
-
   def testSuccesfulPythonPageSetLoading(self):
     test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
     pps = page_set.PageSet.FromFile(test_pps_dir)
@@ -115,15 +78,3 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual(
       os.path.normpath(os.path.join(
         util.GetUnittestDataDir(), 'pages/foo.html')), external_page.file_path)
-
-  def testDictBasedPageSet(self):
-    dict_ps = page_set.PageSet.FromDict({
-      'description': 'hello',
-      'archive_path': 'foo.wpr',
-      'pages': [{'url': 'file://../../otherdir/foo/'}]
-      }, os.path.dirname(__file__))
-    self.assertTrue(dict_ps.IsDictBasedPageSet())
-
-    test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
-    python_ps = page_set.PageSet.FromFile(test_pps_dir)
-    self.assertFalse(python_ps.IsDictBasedPageSet())
