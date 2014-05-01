@@ -67,7 +67,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
       self._cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
-                                '--user=%s' % self.browser_options.username])
+                                '--user=%s' % self._username])
     if self.browser_options.profile_dir:
       cri.RmRF(self.profile_directory)
       cri.PushFile(self.browser_options.profile_dir + '/Default',
@@ -208,13 +208,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # Guest browsing shuts down the current browser and launches an
         # incognito browser in a separate process, which we need to wait for.
         util.WaitFor(lambda: pid != self.pid, 10)
-        self._WaitForBrowserToComeUp()
       elif self.browser_options.gaia_login:
-        self.oobe.NavigateGaiaLogin(self.browser_options.username,
-                                    self.browser_options.password)
+        self.oobe.NavigateGaiaLogin(self._username, self._password)
       else:
-        self.oobe.NavigateFakeLogin(self.browser_options.username,
-                                    self.browser_options.password)
+        self.oobe.NavigateFakeLogin(self._username, self._password)
+      self._WaitForLogin()
 
     logging.info('Browser is up!')
 
@@ -257,9 +255,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       else:
         self._cri.RunCmdOnDevice(['start', 'ui'])
 
-  def TakeScreenShot(self, screenshot_prefix):
-    self._cri.TakeScreenShot(screenshot_prefix)
-
   @property
   @decorators.Cache
   def misc_web_contents_backend(self):
@@ -274,8 +269,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def oobe_exists(self):
     return self.misc_web_contents_backend.oobe_exists
 
+  @property
+  def _username(self):
+    return self.browser_options.username
+
+  @property
+  def _password(self):
+    return self.browser_options.password
+
   def _IsCryptohomeMounted(self):
-    username = '$guest' if self._is_guest else self.browser_options.username
+    username = '$guest' if self._is_guest else self._username
     return self._cri.IsCryptohomeMounted(username, self._is_guest)
 
   def _IsLoggedIn(self):
@@ -285,15 +288,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self.HasBrowserFinishedLaunching() and
             not self.oobe_exists)
 
-  def WaitForLogin(self):
+  def _WaitForLogin(self):
     if self._is_guest:
+      self._WaitForBrowserToComeUp()
       util.WaitFor(self._IsCryptohomeMounted, 30)
       return
 
     try:
       util.WaitFor(self._IsLoggedIn, 60)
     except util.TimeoutException:
-      self.TakeScreenShot('login-screen')
+      self._cri.TakeScreenShot('login-screen')
       raise exceptions.LoginException('Timed out going through login screen')
 
     # Wait for extensions to load.
@@ -301,7 +305,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._WaitForBrowserToComeUp()
     except util.TimeoutException:
       logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
-      self.TakeScreenShot('extension-timeout')
+      self._cri.TakeScreenShot('extension-timeout')
       raise
 
     # Workaround for crbug.com/329271, crbug.com/334726.
