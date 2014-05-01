@@ -246,7 +246,9 @@ def _LogStackTrace(title, browser):
 def _PrepareAndRunPage(test, page_set, expectations, finder_options,
                        browser_options, page, credentials_path,
                        possible_browser, results, state):
-  if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+  if finder_options.use_live_sites:
+    possible_browser.finder_options.browser_options.wpr_mode = wpr_modes.WPR_OFF
+  elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
     possible_browser.finder_options.browser_options.wpr_mode = (
         wpr_modes.WPR_REPLAY
         if page.archive_path and os.path.isfile(page.archive_path)
