@@ -15,7 +15,7 @@ from telemetry.page.actions.all_page_actions import *
 from telemetry.unittest import options_for_unittests
 
 
-class BasicTestPage(page_module.PageWithDefaultRunNavigate):
+class BasicTestPage(page_module.Page):
   def __init__(self, url, page_set, base_dir):
     super(BasicTestPage, self).__init__(url, page_set, base_dir)
 

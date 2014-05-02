@@ -54,7 +54,7 @@ class PageSet(object):
     """ Add a simple page with url equals to page_url that contains only default
     RunNavigateSteps.
     """
-    self.AddPage(page_module.PageWithDefaultRunNavigate(
+    self.AddPage(page_module.Page(
       page_url, self, self.base_dir))
 
   @staticmethod
