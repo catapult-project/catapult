@@ -107,6 +107,7 @@ tvcm.exportTo('cc', function() {
     set picture(picture) {
       this.picture_ = picture;
       this.pictureOps_ = picture.tagOpsWithTimings(picture.getOps());
+      this.currentBarMouseOverTarget_ = undefined;
       this.processPictureData_();
       this.dimensionsHaveChanged = true;
     },
