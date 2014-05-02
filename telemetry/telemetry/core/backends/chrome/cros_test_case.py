@@ -78,8 +78,8 @@ class CrOSTestCase(unittest.TestCase):
     """Returns credentials from file."""
     credentials_path = os.path.join(os.path.dirname(__file__),
                                     credentials_path)
-    credentials = []
     if os.path.isfile(credentials_path):
       with open(credentials_path) as f:
-        credentials = f.read().rstrip().split(':')
-    return credentials
+        username, password = f.read().rstrip().split(':')
+        return (username, password)
+    return (None, None)
