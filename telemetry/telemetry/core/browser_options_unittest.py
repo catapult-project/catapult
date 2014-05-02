@@ -1,11 +1,14 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import copy
 import optparse
 import os
 import unittest
 
 from telemetry.core import browser_options
+
 
 class BrowserOptionsTest(unittest.TestCase):
   def testDefaults(self):
@@ -14,6 +17,13 @@ class BrowserOptionsTest(unittest.TestCase):
     parser.add_option('-x', action='store', default=3)
     parser.parse_args(['--browser', 'any'])
     self.assertEquals(options.x, 3) # pylint: disable=E1101
+
+  def testCopy(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.add_option('-x', action='store', default=3)
+    parser.parse_args(['--browser', 'any'])
+    self.assertEquals(options, copy.copy(options))
 
   def testDefaultsPlusOverride(self):
     options = browser_options.BrowserFinderOptions()

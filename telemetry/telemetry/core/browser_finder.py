@@ -7,10 +7,12 @@
 import logging
 import operator
 
-from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
+from telemetry import decorators
 from telemetry.core.backends.chrome import android_browser_finder
 from telemetry.core.backends.chrome import cros_browser_finder
 from telemetry.core.backends.chrome import desktop_browser_finder
+from telemetry.core.backends.webdriver import webdriver_desktop_browser_finder
+
 
 BROWSER_FINDERS = [
   desktop_browser_finder,
@@ -31,6 +33,7 @@ class BrowserFinderException(Exception):
   pass
 
 
+@decorators.Cache
 def FindBrowser(options):
   """Finds the best PossibleBrowser object given a BrowserOptions object.
 
@@ -143,4 +146,3 @@ def GetAllAvailableBrowserTypes(options):
   type_list = list(type_list)
   type_list.sort()
   return type_list
-

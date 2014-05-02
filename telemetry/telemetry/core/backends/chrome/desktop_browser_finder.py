@@ -53,6 +53,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     return factory.GetPlatformBackendForCurrentOS()
 
   def Create(self):
+    if self._flash_path and not os.path.exists(self._flash_path):
+      logging.warning(
+          'Could not find Flash at %s. Continuing without Flash.\n'
+          'To run with Flash, check it out via http://go/read-src-internal',
+          self._flash_path)
+      self._flash_path = None
+
     backend = desktop_browser_backend.DesktopBrowserBackend(
         self.finder_options.browser_options, self._local_executable,
         self._flash_path, self._is_content_shell, self._browser_directory,

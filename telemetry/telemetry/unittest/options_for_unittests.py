@@ -9,6 +9,10 @@ if unit tests are not running.
 
 This allows multiple unit tests to use a specific
 browser, in face of multiple options."""
+
+import copy
+
+
 _options = None
 _browser_type = None
 def Set(options, browser_type):
@@ -22,7 +26,7 @@ def GetCopy():
   if not _options:
     return None
 
-  return _options.Copy()
+  return copy.copy(_options)
 
 def AreSet():
   if _options:
