@@ -21,7 +21,7 @@ import urllib
 _CHROME_SRC_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir))
 REPLAY_DIR = os.path.join(
-    _CHROME_SRC_DIR, 'third_party', 'web-page-replay')
+    _CHROME_SRC_DIR, 'third_party', 'webpagereplay')
 LOG_PATH = os.path.join(
     _CHROME_SRC_DIR, 'webpagereplay_logs', 'logs.txt')
 
