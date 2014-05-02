@@ -74,3 +74,12 @@ class CrOSTestCase(unittest.TestCase):
     return util.WaitFor(
         lambda: extension.EvaluateJavaScript('window.__login_status'), 10)
 
+  def _Credentials(self, credentials_path):
+    """Returns credentials from file."""
+    credentials_path = os.path.join(os.path.dirname(__file__),
+                                    credentials_path)
+    credentials = []
+    if os.path.isfile(credentials_path):
+      with open(credentials_path) as f:
+        credentials = f.read().rstrip().split(':')
+    return credentials

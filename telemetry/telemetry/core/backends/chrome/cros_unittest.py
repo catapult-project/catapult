@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import os
 
 from telemetry import test
 from telemetry.core import exceptions
@@ -71,13 +70,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     credentials.txt file, with a single line of format username:password."""
     if self._is_guest:
       return
-    username = None
-    password = None
-    credentials_path = os.path.join(os.path.dirname(__file__),
-                                    'credentials.txt')
-    if os.path.isfile(credentials_path):
-      with open(credentials_path) as f:
-        (username, password) = f.read().rstrip().split(':')
+    (username, password) = self._Credentials('credentials.txt')
     if username and password:
       with self._CreateBrowser(gaia_login=True,
                                username=username,
