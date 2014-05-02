@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import collections
 import copy
 import logging
 import optparse
@@ -21,7 +20,7 @@ util.AddDirToPythonPath(
 import net_configs  # pylint: disable=F0401
 
 
-class BrowserFinderOptions(optparse.Values, object):
+class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering a browser."""
 
   def __init__(self, browser_type=None):
@@ -51,17 +50,8 @@ class BrowserFinderOptions(optparse.Values, object):
 
     self.android_rndis = False
 
-  def __repr__(self):
-    return str(sorted(self.__dict__.items()))
-
-  def __copy__(self):
-    cls = self.__class__
-    result = cls.__new__(cls)
-    for k, v in self.__dict__.items():
-      if isinstance(v, collections.Container):
-        v = copy.copy(v)
-      setattr(result, k, v)
-    return result
+  def Copy(self):
+    return copy.deepcopy(self)
 
   def CreateParser(self, *args, **kwargs):
     parser = optparse.OptionParser(*args, **kwargs)
@@ -189,6 +179,8 @@ class BrowserOptions(object):
     self.browser_type = None
     self.show_stdout = False
 
+    self.warn_if_no_flash = True
+
     # When set to True, the browser will use the default profile.  Telemetry
     # will not provide an alternate profile directory.
     self.dont_override_profile = False
@@ -208,18 +200,6 @@ class BrowserOptions(object):
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
-
-  def __copy__(self):
-    cls = self.__class__
-    result = cls.__new__(cls)
-    for k, v in self.__dict__.items():
-      if isinstance(v, collections.Container):
-        v = copy.copy(v)
-      setattr(result, k, v)
-    return result
-
-  def __repr__(self):
-    return str(sorted(self.__dict__.items()))
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
