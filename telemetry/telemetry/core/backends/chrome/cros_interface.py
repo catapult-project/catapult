@@ -431,3 +431,15 @@ class CrOSInterface(object):
             screenshot_file])
         return
     logging.warning('screenshot directory full.')
+
+  def RestartUI(self, clear_enterprise_policy):
+    logging.info('(Re)starting the ui (logs the user out)')
+    if clear_enterprise_policy:
+      self.RunCmdOnDevice(['stop', 'ui'])
+      self.RmRF('/var/lib/whitelist/*')
+      self.RmRF('/home/chronos/Local\ State')
+
+    if self.IsServiceRunning('ui'):
+      self.RunCmdOnDevice(['restart', 'ui'])
+    else:
+      self.RunCmdOnDevice(['start', 'ui'])

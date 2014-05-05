@@ -33,7 +33,7 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     # Create a browser with oobe property.
     self.create_browser_with_oobe = False
     # Clear enterprise policy before logging in.
-    self.clear_enterprise_policy = False
+    self.clear_enterprise_policy = True
 
     self.auto_login = True
     self.gaia_login = False

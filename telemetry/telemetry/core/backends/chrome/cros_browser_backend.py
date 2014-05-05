@@ -52,11 +52,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.Chown(extension_dir)
       e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
 
-    self._cri.RunCmdOnDevice(['stop', 'ui'])
-
-    if self.browser_options.clear_enterprise_policy:
-      self._cri.RmRF('/var/lib/whitelist/*')
-      self._cri.RmRF('/home/chronos/Local\ State')
+    self._cri.RestartUI(self.browser_options.clear_enterprise_policy)
+    util.WaitFor(self.IsBrowserRunning, 20)
 
     # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
@@ -67,9 +64,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.PushFile(self.browser_options.profile_dir + '/Default',
                    self.profile_directory)
       cri.Chown(self.profile_directory)
-
-    self._cri.RunCmdOnDevice(['start', 'ui'])
-    util.WaitFor(self.IsBrowserRunning, 20)
 
     self._SetBranchNumber(self._GetChromeVersion())
 
@@ -176,7 +170,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(CrOSBrowserBackend, self).Close()
 
-    self._RestartUI() # Logs out.
+    if self._cri:
+      self._cri.RestartUI(False) # Logs out.
 
     util.WaitFor(lambda: not self._IsCryptohomeMounted(), 30)
 
@@ -203,14 +198,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStackTrace(self):
     return 'Cannot get stack trace on CrOS'
-
-  def _RestartUI(self):
-    if self._cri:
-      logging.info('(Re)starting the ui (logs the user out)')
-      if self._cri.IsServiceRunning('ui'):
-        self._cri.RunCmdOnDevice(['restart', 'ui'])
-      else:
-        self._cri.RunCmdOnDevice(['start', 'ui'])
 
   @property
   @decorators.Cache
