@@ -16,12 +16,6 @@ from telemetry.core.forwarders import cros_forwarder
 
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
-  # Some developers' workflow includes running the Chrome process from
-  # /usr/local/... instead of the default location. We have to check for both
-  # paths in order to support this workflow.
-  CHROME_PATHS = ['/opt/google/chrome/chrome ',
-                  '/usr/local/opt/google/chrome/chrome ']
-
   def __init__(self, browser_type, browser_options, cri, is_guest,
                extensions_to_load):
     super(CrOSBrowserBackend, self).__init__(
@@ -100,42 +94,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     return args
 
-  def _GetSessionManagerPid(self, procs):
-    """Returns the pid of the session_manager process, given the list of
-    processes."""
-    for pid, process, _, _ in procs:
-      if process.startswith('/sbin/session_manager '):
-        return pid
-    return None
-
-  def _GetChromeProcess(self):
-    """Locates the the main chrome browser process.
-
-    Chrome on cros is usually in /opt/google/chrome, but could be in
-    /usr/local/ for developer workflows - debug chrome is too large to fit on
-    rootfs.
-
-    Chrome spawns multiple processes for renderers. pids wrap around after they
-    are exhausted so looking for the smallest pid is not always correct. We
-    locate the session_manager's pid, and look for the chrome process that's an
-    immediate child. This is the main browser process.
-    """
-    procs = self._cri.ListProcesses()
-    session_manager_pid = self._GetSessionManagerPid(procs)
-    if not session_manager_pid:
-      return None
-
-    # Find the chrome process that is the child of the session_manager.
-    for pid, process, ppid, _ in procs:
-      if ppid != session_manager_pid:
-        continue
-      for path in self.CHROME_PATHS:
-        if process.startswith(path):
-          return {'pid': pid, 'path': path, 'args': process}
-    return None
-
   def _GetChromeVersion(self):
-    result = util.WaitFor(self._GetChromeProcess, timeout=30)
+    result = util.WaitFor(self._cri.GetChromeProcess, timeout=30)
     assert result and result['path']
     (version, _) = self._cri.RunCmdOnDevice([result['path'], '--version'])
     assert version
@@ -143,14 +103,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def pid(self):
-    result = self._GetChromeProcess()
-    if result and 'pid' in result:
-      return result['pid']
-    return None
+    return self._cri.GetChromePid()
 
   @property
   def browser_directory(self):
-    result = self._GetChromeProcess()
+    result = self._cri.GetChromeProcess()
     if result and 'path' in result:
       return os.path.dirname(result['path'])
     return None
@@ -304,7 +261,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       self._WaitForBrowserToComeUp()
     except util.TimeoutException:
-      logging.error('Chrome args: %s' % self._GetChromeProcess()['args'])
+      logging.error('Chrome args: %s' % self._cri.GetChromeProcess()['args'])
       self._cri.TakeScreenShot('extension-timeout')
       raise
 
