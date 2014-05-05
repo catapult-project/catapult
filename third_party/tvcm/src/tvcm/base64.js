@@ -49,6 +49,7 @@ tvcm.exportTo('tvcm', function() {
         nUint24 = 0;
       }
     }
+    return nOutIdx - 1;
   }
 
   return {

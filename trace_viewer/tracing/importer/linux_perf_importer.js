@@ -21,6 +21,7 @@
 tvcm.require('tracing.trace_model');
 tvcm.require('tracing.color_scheme');
 tvcm.require('tracing.importer.importer');
+tvcm.require('tracing.importer.simple_line_reader');
 tvcm.require('tracing.importer.linux_perf.bus_parser');
 tvcm.require('tracing.importer.linux_perf.clock_parser');
 tvcm.require('tracing.importer.linux_perf.cpufreq_parser');
@@ -250,34 +251,29 @@ tvcm.exportTo('tracing.importer', function() {
 
     if (/^<!DOCTYPE HTML>/.test(incoming_events) == false)
       return failure;
-    var lines = incoming_events.split('\n');
-    var cur_line = 1;
-    function advanceToLineMatching(regex) {
-      for (; cur_line < lines.length; cur_line++) {
-        if (regex.test(lines[cur_line]))
-          return true;
-      }
-      return false;
-    }
+    var r = new tracing.importer.SimpleLineReader(incoming_events);
 
     // Try to find the data...
-    if (!advanceToLineMatching(/^  <script>$/))
+    if (!r.advanceToLineMatching(/^  <script>$/))
       return failure;
-    if (!advanceToLineMatching(/^  var linuxPerfData = "\\$/))
-      return failure;
-    var events_begin_at_line = cur_line + 1;
-
-    if (!advanceToLineMatching(/^  <\/script>$/))
-      return failure;
-    var events_end_at_line = cur_line;
-
-    if (!advanceToLineMatching(/^<\/body>$/))
-      return failure;
-    if (!advanceToLineMatching(/^<\/html>$/))
+    if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/))
       return failure;
 
-    var raw_events = lines.slice(events_begin_at_line,
-                                 events_end_at_line);
+    var events_begin_at_line = r.curLineNumber + 1;
+    r.beginSavingLines();
+    if (!r.advanceToLineMatching(/^  <\/script>$/))
+      return failure;
+
+    var raw_events = r.endSavingLinesAndGetResult();
+
+    // Drop off first and last event as it contains the </script> tag.
+    raw_events = raw_events.slice(1, raw_events.length - 1);
+
+    if (!r.advanceToLineMatching(/^<\/body>$/))
+      return failure;
+    if (!r.advanceToLineMatching(/^<\/html>$/))
+      return failure;
+
     function endsWith(str, suffix) {
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }

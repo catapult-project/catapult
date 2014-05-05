@@ -28,4 +28,10 @@ tvcm.unittest.testSuite('tvcm.base64_test', function() {
       assertTrue(buffer.getInt8(i) == 97 + i);
   });
 
+  test('DecodeLengthReturn', function() {
+    var buffer = new DataView(new ArrayBuffer(256));
+    var len = tvcm.Base64.DecodeToTypedArray(btoa('hello'), buffer);
+    assertEquals(5, len);
+  });
+
 });

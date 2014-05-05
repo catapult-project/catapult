@@ -10,3 +10,4 @@ tvcm.require('tracing.importer.linux_perf_importer');
 tvcm.require('tracing.importer.trace_event_importer');
 tvcm.require('tracing.importer.v8_log_importer');
 tvcm.require('tracing.importer.etw_importer');
+tvcm.require('tracing.importer.trace2html_importer');
