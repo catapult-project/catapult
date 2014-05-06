@@ -10,6 +10,19 @@ from telemetry.core.backends.chrome import inspector_websocket
 from telemetry.core.backends.chrome import tracing_timeline_data
 
 
+# All tracing categories not disabled-by-default
+DEFAULT_TRACE_CATEGORIES = None
+
+
+# Categories for absolute minimum overhead tracing. This contains no
+# sub-traces of thread tasks, so it's only useful for capturing the
+# cpu-time spent on threads (as well as needed benchmark traces)
+MINIMAL_TRACE_CATEGORIES = ("toplevel,"
+                            "benchmark,"
+                            "webkit.console,"
+                            "trace_event_overhead")
+
+
 class TracingUnsupportedException(Exception):
   pass
 

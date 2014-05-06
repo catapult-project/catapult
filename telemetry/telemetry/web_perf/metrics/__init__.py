@@ -2,6 +2,5 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """
-The web_perf module provides utilities and measurements for benchmarking web
-app's performance.
+The web_perf.metrics module provides metrics for analyzing web performance.
 """
