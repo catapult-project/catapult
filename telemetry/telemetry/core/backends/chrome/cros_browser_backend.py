@@ -160,7 +160,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # incognito browser in a separate process, which we need to wait for.
         util.WaitFor(lambda: pid != self.pid, 10)
       elif self.browser_options.gaia_login:
-        self.oobe.NavigateGaiaLogin(self._username, self._password)
+        try:
+          self.oobe.NavigateGaiaLogin(self._username, self._password)
+        except util.TimeoutException:
+          self._cri.TakeScreenShot('gaia-login')
+          raise
       else:
         self.oobe.NavigateFakeLogin(self._username, self._password)
       self._WaitForLogin()
