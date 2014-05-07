@@ -13,8 +13,7 @@ from telemetry.page import page_set_archive_info
 
 class MockPage(page.Page):
   def __init__(self, url, name=None):
-    super(MockPage, self).__init__(url, None)
-    self.name = name
+    super(MockPage, self).__init__(url, None, name=name)
 
 
 page1 = MockPage('http://www.foo.com/', 'Foo')

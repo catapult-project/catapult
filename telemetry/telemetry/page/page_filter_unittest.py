@@ -28,12 +28,14 @@ class MockLabelFilterOptions(object):
 class PageFilterTest(unittest.TestCase):
   def setUp(self):
     ps = page_set.PageSet()
-    self.p1 = page.Page('file://conformance/textures/tex-sub-image-2d.html', ps)
-    self.p1.name = 'WebglConformance.conformance_textures_tex_sub_image_2d'
-    self.p2 = page.Page('file://othersuite/textures/tex-sub-image-3d.html', ps)
-    self.p2.name = 'OtherSuite.textures_tex_sub_image_3d'
-    self.p3 = page.Page('file://othersuite/textures/tex-sub-image-3d.html', ps)
-    self.p3.name = None
+    self.p1 = page.Page(
+      'file://conformance/textures/tex-sub-image-2d.html', page_set=ps,
+      name='WebglConformance.conformance_textures_tex_sub_image_2d')
+    self.p2 = page.Page(
+      'file://othersuite/textures/tex-sub-image-3d.html', page_set=ps,
+      name='OtherSuite.textures_tex_sub_image_3d')
+    self.p3 = page.Page(
+      'file://othersuite/textures/tex-sub-image-3d.html', page_set=ps)
 
   def testURLPattern(self):
     options = MockUrlFilterOptions('conformance/textures', '')

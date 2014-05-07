@@ -186,6 +186,6 @@ class TestExpectationsTest(unittest.TestCase):
   # Expectations can be set against page names as well as urls
   def testPageNameExpectations(self):
     ps = page_set.PageSet()
-    page = page_module.Page('http://test.com/page11.html', ps)
-    page.name = "Pages.page_11"
+    page = page_module.Page('http://test.com/page11.html', ps,
+                            name='Pages.page_11')
     self.assertExpectationEquals('fail', page)
