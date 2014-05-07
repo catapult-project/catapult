@@ -10,10 +10,7 @@ from telemetry.page import page_test
 
 
 class DoNothingPageTest(page_test.PageTest):
-  def __init__(self, action_name_to_run):
-    super(DoNothingPageTest, self).__init__('DoNothing', action_name_to_run)
-
-  def DoNothing(self, page, tab, results):
+  def ValidatePage(self, *_):
     pass
 
 

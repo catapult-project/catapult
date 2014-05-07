@@ -12,14 +12,12 @@ from telemetry.page.actions import interact
 class Failure(Exception):
   """Exception that can be thrown from PageMeasurement to indicate an
   undesired but designed-for problem."""
-  pass
 
 
 class TestNotSupportedOnPlatformFailure(Failure):
   """Exception that can be thrown to indicate that a certain feature required
   to run the test is not available on the platform, hardware configuration, or
   browser version."""
-  pass
 
 
 class PageTest(command_line.Command):
@@ -28,7 +26,6 @@ class PageTest(command_line.Command):
   options = {}
 
   def __init__(self,
-               test_method_name,
                action_name_to_run='',
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
@@ -39,11 +36,6 @@ class PageTest(command_line.Command):
     super(PageTest, self).__init__()
 
     self.options = None
-    try:
-      self._test_method = getattr(self, test_method_name)
-    except AttributeError:
-      raise ValueError, 'No such method %s.%s' % (
-        self.__class_, test_method_name)  # pylint: disable=E1101
     if action_name_to_run:
       assert action_name_to_run.startswith('Run') \
           and '_' not in action_name_to_run, \
@@ -155,7 +147,6 @@ class PageTest(command_line.Command):
 
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""
-    pass
 
   def CustomizeBrowserOptionsForSinglePage(self, page, options):
     """Set options specific to the test and the given page.
@@ -170,11 +161,9 @@ class PageTest(command_line.Command):
 
   def WillStartBrowser(self, browser):
     """Override to manipulate the browser environment before it launches."""
-    pass
 
   def DidStartBrowser(self, browser):
     """Override to customize the browser right after it has launched."""
-    pass
 
   def CanRunForPage(self, page):  # pylint: disable=W0613
     """Override to customize if the test can be ran for the given page."""
@@ -195,15 +184,12 @@ class PageTest(command_line.Command):
 
   def WillRunPageRepeats(self, page):
     """Override to do operations before each page is iterated over."""
-    pass
 
   def DidRunPageRepeats(self, page):
     """Override to do operations after each page is iterated over."""
-    pass
 
   def DidStartHTTPServer(self, tab):
     """Override to do operations after the HTTP server is started."""
-    pass
 
   def WillNavigateToPage(self, page, tab):
     """Override to do operations before the page is navigated, notably Telemetry
@@ -211,24 +197,19 @@ class PageTest(command_line.Command):
     calling this function:
     * Ensure only one tab is open.
     * Call WaitForDocumentReadyStateToComplete on the tab."""
-    pass
 
   def DidNavigateToPage(self, page, tab):
     """Override to do operations right after the page is navigated and after
     all waiting for completion has occurred."""
-    pass
 
   def WillRunActions(self, page, tab):
     """Override to do operations before running the actions on the page."""
-    pass
 
   def DidRunActions(self, page, tab):
     """Override to do operations after running the actions on the page."""
-    pass
 
   def CleanUpAfterPage(self, page, tab):
     """Called after the test run method was run, even if it failed."""
-    pass
 
   def CreateExpectations(self, page_set):   # pylint: disable=W0613
     """Override to make this test generate its own expectations instead of
@@ -243,9 +224,15 @@ class PageTest(command_line.Command):
   def ValidatePageSet(self, page_set):
     """Override to examine the page set before the test run.  Useful for
     example to validate that the pageset can be used with the test."""
-    pass
+
+  def ValidatePage(self, page, tab, results):
+    """Override to check the actual test assertions.
+
+    This is where most your test logic should go."""
+    raise NotImplementedError()
 
   def RunPage(self, page, tab, results):
+    # Run actions.
     interactive = self.options and self.options.interactive
     action_runner = action_runner_module.ActionRunner(page, tab, self)
     self.WillRunActions(page, tab)
@@ -254,7 +241,9 @@ class PageTest(command_line.Command):
     else:
       self._RunMethod(page, self._action_name_to_run, action_runner)
     self.DidRunActions(page, tab)
-    self._test_method(page, tab, results)
+
+    # Run validator.
+    self.ValidatePage(page, tab, results)
 
   def _RunMethod(self, page, method_name, action_runner):
     if hasattr(page, method_name):

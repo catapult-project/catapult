@@ -8,7 +8,6 @@ from telemetry.page import page_test
 class MeasurementFailure(page_test.Failure):
   """Exception that can be thrown from MeasurePage to indicate an undesired but
   designed-for problem."""
-  pass
 
 
 class PageMeasurement(page_test.PageTest):
@@ -43,13 +42,12 @@ class PageMeasurement(page_test.PageTest):
                discard_first_result=False,
                clear_cache_before_each_run=False):
     super(PageMeasurement, self).__init__(
-      '_RunTest',
       action_name_to_run,
       needs_browser_restart_after_each_page,
       discard_first_result,
       clear_cache_before_each_run)
 
-  def _RunTest(self, page, tab, results):
+  def ValidatePage(self, page, tab, results):
     results.WillMeasurePage(page)
     try:
       self.MeasurePage(page, tab, results)
