@@ -9,6 +9,7 @@
  */
 tvcm.require('tracing.trace_model.cpu');
 tvcm.require('tracing.trace_model.process_base');
+tvcm.require('tvcm.iteration_helpers');
 
 tvcm.exportTo('tracing.trace_model', function() {
 
@@ -25,6 +26,7 @@ tvcm.exportTo('tracing.trace_model', function() {
       throw new Error('model must be provided');
     ProcessBase.call(this, model);
     this.cpus = {};
+    this.softwareMeasuredCpuCount_ = undefined;
   };
 
   /**
@@ -57,6 +59,34 @@ tvcm.exportTo('tracing.trace_model', function() {
       if (!this.cpus[cpuNumber])
         this.cpus[cpuNumber] = new Cpu(this, cpuNumber);
       return this.cpus[cpuNumber];
+    },
+
+    get softwareMeasuredCpuCount() {
+      return this.softwareMeasuredCpuCount_;
+    },
+
+    set softwareMeasuredCpuCount(softwareMeasuredCpuCount) {
+      if (this.softwareMeasuredCpuCount_ !== undefined &&
+          this.softwareMeasuredCpuCount_ !== softwareMeasuredCpuCount) {
+        throw new Error(
+            'Cannot change the softwareMeasuredCpuCount once it is set');
+      }
+
+      this.softwareMeasuredCpuCount_ = softwareMeasuredCpuCount;
+    },
+
+    /**
+     * Estimates how many cpus are in the system, for use in system load
+     * estimation.
+     *
+     * If kernel trace was provided, uses that data. Otherwise, uses the
+     * software measured cpu count.
+     */
+    get bestGuessAtCpuCount() {
+      var realCpuCount = tvcm.dictionaryLength(this.cpus);
+      if (realCpuCount !== 0)
+        return realCpuCount;
+      return this.softwareMeasuredCpuCount;
     },
 
     shiftTimestampsForward: function(amount) {

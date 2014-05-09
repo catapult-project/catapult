@@ -358,4 +358,24 @@ tvcm.unittest.testSuite('tracing.importer.linux_perf_importer_test', function() 
 
     assertAlmostEquals((15180.978813 - 0) * 1000, c.slices[0].start);
   });
+
+  test('cpuCount', function() {
+    var lines = [
+      'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
+          'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
+          'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
+          'next_prio=120',
+      ' kworker/1:0-7873  [001] 15180.978836: sched_switch: ' +
+          'prev_comm=kworker/1:0 prev_pid=7873 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=debugd next_pid=4404 next_prio=120',
+      '     debugd-4404  [000] 15180.979010: sched_switch: prev_comm=debugd ' +
+          'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
+          'next_comm=dbus-daemon next_pid=510 next_prio=120'
+    ];
+    var m = new tracing.TraceModel(lines.join('\n'), false);
+    assertFalse(m.hasImportWarnings);
+
+    assertEquals(2, tvcm.dictionaryLength(m.kernel.cpus));
+    assertEquals(2, m.kernel.bestGuessAtCpuCount);
+  });
 });

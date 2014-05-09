@@ -312,6 +312,8 @@ tvcm.exportTo('tracing.importer', function() {
         var thread = this.model_.getOrCreateProcess(event.pid).
             getOrCreateThread(event.tid);
         thread.sortIndex = event.args.sort_index;
+      } else if (event.name == 'num_cpus') {
+        this.model_.kernel.softwareMeasuredCpuCount = event.args.number;
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',

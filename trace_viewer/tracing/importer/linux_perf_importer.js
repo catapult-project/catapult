@@ -393,6 +393,7 @@ tvcm.exportTo('tracing.importer', function() {
       this.importCpuData(timeShift);
       this.buildMapFromLinuxPidsToThreads();
       this.buildPerThreadCpuSlicesFromCpuState();
+      this.computeCpuTimestampsForSlicesAsNeeded();
     },
 
     /**
@@ -566,6 +567,11 @@ tvcm.exportTo('tracing.importer', function() {
         }
         thread.timeSlices = slices;
       }, this);
+    },
+
+    computeCpuTimestampsForSlicesAsNeeded: function() {
+      /* iterate all slices and try to figure out cpuStart/endTimes */
+
     },
 
     /**

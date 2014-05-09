@@ -570,6 +570,20 @@ tvcm.unittest.testSuite('tracing.importer.trace_event_importer_test', function()
     assertTrue(t1.compareTo(t2) > 0);
   });
 
+  // CPU counts.
+  test('cpuCounts', function() {
+    var events = [
+      {name: 'num_cpus', args: {number: 4},
+        pid: 7, ts: 0, tid: 0, ph: 'M'},
+      {name: 'num_cpus', args: {number: 4},
+        pid: 14, ts: 0, tid: 0, ph: 'M'}
+    ];
+    var m = new tracing.TraceModel();
+    m.importTraces([events], false, false);
+    assertEquals(4, m.kernel.softwareMeasuredCpuCount);
+    assertEquals(4, m.kernel.bestGuessAtCpuCount);
+  });
+
   test('parsingWhenEndComesFirst', function() {
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'E'},

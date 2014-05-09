@@ -11,9 +11,13 @@ tvcm.require('tracing.test_utils');
 tvcm.unittest.testSuite('tracing.time_summary_side_panel_test', function() {
   var newSliceNamed = tracing.test_utils.newSliceNamed;
 
-  function createModel() {
+  function createModel(opt_options) {
+    var options = opt_options || {};
     var m = new tracing.TraceModel();
     m.importTraces([], false, false, function() {
+      if (options.provideSoftwareMeasuredCpuCount)
+        m.kernel.softwareMeasuredCpuCount = 2;
+
       var browserProcess = m.getOrCreateProcess(1);
       var browserMain = browserProcess.getOrCreateThread(2);
       browserMain.name = 'CrBrowserMain';
@@ -156,13 +160,38 @@ tvcm.unittest.testSuite('tracing.time_summary_side_panel_test', function() {
   });
 
 
-  test('basic', function() {
+  test('basicInWallTimeMode', function() {
     var m = createModel();
     assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
 
     var panel = new tracing.TimeSummarySidePanel();
     this.addHTMLOutput(panel);
     panel.model = m;
+    panel.groupingUnit = tracing.WALL_TIME_GROUPING_UNIT;
+    panel.style.border = '1px solid black';
+  });
+
+  test('basicInCpuTimeModeButNoCpuData', function() {
+    var m = createModel();
+    assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
+
+    var panel = new tracing.TimeSummarySidePanel();
+    this.addHTMLOutput(panel);
+    panel.model = m;
+    panel.groupingUnit = tracing.CPU_TIME_GROUPING_UNIT;
+    panel.style.border = '1px solid black';
+  });
+
+  test('basicInCpuTimeModeAndCpuData', function() {
+    var m = createModel({
+      provideSoftwareMeasuredCpuCount: true
+    });
+    assertTrue(tracing.TimeSummarySidePanel.supportsModel(m).supported);
+
+    var panel = new tracing.TimeSummarySidePanel();
+    this.addHTMLOutput(panel);
+    panel.model = m;
+    panel.groupingUnit = tracing.CPU_TIME_GROUPING_UNIT;
     panel.style.border = '1px solid black';
   });
 });

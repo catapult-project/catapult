@@ -56,7 +56,7 @@ tvcm.exportTo('tracing', function() {
    * pie-chart consumption. Otherwise, the pie chart gets overwhelmed with tons
    * of little slices.
    */
-  function trimPieChartData(groups, otherGroup, getValue) {
+  function trimPieChartData(groups, otherGroup, getValue, opt_extraValue) {
     // Copy the array so it can be mutated.
     groups = groups.filter(function(d) {
       return getValue(d) != 0;
@@ -64,6 +64,8 @@ tvcm.exportTo('tracing', function() {
 
     // Figure out total array range.
     var sum = tvcm.Statistics.sum(groups, getValue);
+    if (opt_extraValue !== undefined)
+      sum += opt_extraValue;
 
     // Sort by value.
     function compareByValue(a, b) {
@@ -72,7 +74,7 @@ tvcm.exportTo('tracing', function() {
     groups.sort(compareByValue);
 
     // Now start fusing elements until none are less than threshold in size.
-    var thresshold = 0.05 * sum;
+    var thresshold = 0.1 * sum;
     while (groups.length > 1) {
       var group = groups[0];
       if (getValue(group) >= thresshold)
@@ -96,15 +98,11 @@ tvcm.exportTo('tracing', function() {
     return groups;
   }
 
-  function createPieChartFromResultGroups(groups, title, getValue) {
+  function createPieChartFromResultGroups(
+      groups, title, getValue, opt_extraData) {
     var chart = new tvcm.ui.PieChart();
 
-    // Build chart data.
-    var data = [];
-    groups.forEach(function(resultsForGroup) {
-      var value = getValue(resultsForGroup);
-      if (value === 0)
-        return;
+    function pushDataForGroup(data, resultsForGroup, value) {
       data.push({
         label: resultsForGroup.name,
         value: value,
@@ -116,7 +114,18 @@ tvcm.exportTo('tracing', function() {
           chart.dispatchEvent(event);
         }
       });
+    }
+
+    // Build chart data.
+    var data = [];
+    groups.forEach(function(resultsForGroup) {
+      var value = getValue(resultsForGroup);
+      if (value === 0)
+        return;
+      pushDataForGroup(data, resultsForGroup, value);
     });
+    if (opt_extraData)
+      data.push.apply(data, opt_extraData);
 
     chart.chartTitle = title;
     chart.data = data;
@@ -217,27 +226,37 @@ tvcm.exportTo('tracing', function() {
       this.rangeOfInterest_ = new tvcm.Range();
       this.selection_ = undefined;
       this.groupBy_ = GROUP_BY_PROCESS_NAME;
+      this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
+      this.showCpuIdleTime_ = true;
       this.chart_ = undefined;
 
       var toolbarEl = this.querySelector('toolbar');
-      toolbarEl.appendChild(tvcm.ui.createSelector(
+      this.groupBySelector_ = tvcm.ui.createSelector(
           this, 'groupBy',
           'timeSummarySidePanel.groupBy', this.groupBy_,
           [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
            {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
-          ]));
+          ]);
+      toolbarEl.appendChild(this.groupBySelector_);
 
-      this.groupingUnit_ = CPU_TIME_GROUPING_UNIT;
-      toolbarEl.appendChild(tvcm.ui.createSelector(
+      this.groupingUnitSelector_ = tvcm.ui.createSelector(
           this, 'groupingUnit',
           'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
           [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
            {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
-          ]));
+          ]);
+      toolbarEl.appendChild(this.groupingUnitSelector_);
+
+      this.showCpuIdleTimeCheckbox_ = tvcm.ui.createCheckBox(
+          this, 'showCpuIdleTime',
+          'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
+          'Show CPU idle time');
+      toolbarEl.appendChild(this.showCpuIdleTimeCheckbox_);
+      this.updateShowCpuIdleTimeCheckboxVisibility_();
     },
 
     get model() {
-      return model_;
+      return this.model_;
     },
 
     set model(model) {
@@ -251,6 +270,8 @@ tvcm.exportTo('tracing', function() {
 
     set groupBy(groupBy) {
       this.groupBy_ = groupBy;
+      if (this.groupBySelector_)
+        this.groupBySelector_.selectedValue = groupBy;
       this.updateContents_();
     },
 
@@ -260,7 +281,31 @@ tvcm.exportTo('tracing', function() {
 
     set groupingUnit(groupingUnit) {
       this.groupingUnit_ = groupingUnit;
+      if (this.groupingUnitSelector_)
+        this.groupingUnitSelector_.selectedValue = groupingUnit;
+      this.updateShowCpuIdleTimeCheckboxVisibility_();
       this.updateContents_();
+    },
+
+    get showCpuIdleTime() {
+      return this.showCpuIdleTime_;
+    },
+
+    set showCpuIdleTime(showCpuIdleTime) {
+      this.showCpuIdleTime_ = showCpuIdleTime;
+      if (this.showCpuIdleTimeCheckbox_)
+        this.showCpuIdleTimeCheckbox_.checked = showCpuIdleTime;
+      this.updateContents_();
+    },
+
+    updateShowCpuIdleTimeCheckboxVisibility_: function() {
+      if (!this.showCpuIdleTimeCheckbox_)
+        return;
+      var visible = this.groupingUnit_ == CPU_TIME_GROUPING_UNIT;
+      if (visible)
+        this.showCpuIdleTimeCheckbox_.style.display = '';
+      else
+        this.showCpuIdleTimeCheckbox_.style.display = 'none';
     },
 
     getGroupNameForThread_: function(thread) {
@@ -316,12 +361,31 @@ tvcm.exportTo('tracing', function() {
       }));
       resultArea.appendChild(summaryText);
 
+      // If needed, add in the idle time.
+      var extraValue = 0;
+      var extraData = [];
+      if (this.showCpuIdleTime_ &&
+          this.groupingUnit_ === CPU_TIME_GROUPING_UNIT &&
+          this.model.kernel.bestGuessAtCpuCount !== undefined) {
+        var maxCpuTime = rangeOfInterest.range *
+            this.model.kernel.bestGuessAtCpuCount;
+        var idleTime = Math.max(0, maxCpuTime - allGroup.cpuTime);
+        extraData.push({
+          label: 'CPU Idle',
+          value: idleTime,
+          valueText: tsRound(idleTime) + 'ms'
+        });
+        extraValue += idleTime;
+      }
+
       // Create the actual chart.
       var otherGroup = new ResultsForGroup(this.model_, 'Other');
       var groups = trimPieChartData(
           tvcm.dictionaryValues(resultsByGroupName),
           otherGroup,
-          getValueFromGroup);
+          getValueFromGroup,
+          extraValue);
+
       if (groups.length == 0) {
         resultArea.appendChild(tvcm.ui.createSpan({textContent: 'No data'}));
         return undefined;
@@ -330,7 +394,7 @@ tvcm.exportTo('tracing', function() {
       this.chart_ = createPieChartFromResultGroups(
           groups,
           this.groupingUnit_ + ' breakdown by ' + this.groupBy_,
-          getValueFromGroup);
+          getValueFromGroup, extraData);
       resultArea.appendChild(this.chart_);
       this.chart_.addEventListener('click', function() {
         var event = new tracing.RequestSelectionChangeEvent();
@@ -374,6 +438,11 @@ tvcm.exportTo('tracing', function() {
     trimPieChartData: trimPieChartData,
     createPieChartFromResultGroups: createPieChartFromResultGroups,
     ResultsForGroup: ResultsForGroup,
-    TimeSummarySidePanel: TimeSummarySidePanel
+    TimeSummarySidePanel: TimeSummarySidePanel,
+
+    GROUP_BY_PROCESS_NAME: GROUP_BY_PROCESS_NAME,
+    GROUP_BY_THREAD_NAME: GROUP_BY_THREAD_NAME,
+    WALL_TIME_GROUPING_UNIT: WALL_TIME_GROUPING_UNIT,
+    CPU_TIME_GROUPING_UNIT: CPU_TIME_GROUPING_UNIT
   };
 });
