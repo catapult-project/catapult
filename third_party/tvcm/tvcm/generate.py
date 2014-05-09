@@ -52,6 +52,9 @@ def GenerateCSS(load_sequence):
       style_sheet_chunks.append('\n')
   return ''.join(style_sheet_chunks)
 
+def _EscapeJSIfNeeded(js):
+  return js.replace("</script>", "<\/script>")
+
 def GenerateJS(load_sequence, include_html_templates=True):
   js_chunks = [js_warning_message, '\n']
   js_chunks.append("window.FLATTENED = {};\n")
@@ -77,9 +80,9 @@ def GenerateJS(load_sequence, include_html_templates=True):
 
   for module in load_sequence:
     for dependent_raw_script in module.dependent_raw_scripts:
-      js_chunks.append(dependent_raw_script.contents)
+      js_chunks.append(_EscapeJSIfNeeded(dependent_raw_script.contents))
       js_chunks.append('\n')
-    js_chunks.append(module.contents)
+    js_chunks.append(_EscapeJSIfNeeded(module.contents))
     js_chunks.append("\n")
 
   return ''.join(js_chunks)
