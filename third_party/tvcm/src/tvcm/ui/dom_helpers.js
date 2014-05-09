@@ -79,8 +79,11 @@ tvcm.exportTo('tvcm.ui', function() {
       for (var i = 0; i < selectorEl.children.length; i++) {
         var value = selectorEl.children[i].targetPropertyValue;
         if (value == v) {
-          selectorEl.selectedIndex = i;
-          onChange();
+          var changed = selectorEl.selectedIndex != i;
+          if (changed) {
+            selectorEl.selectedIndex = i;
+            onChange();
+          }
           return;
         }
       }
@@ -137,6 +140,10 @@ tvcm.exportTo('tvcm.ui', function() {
     spanEl.appendChild(labelEl);
 
     spanEl.__defineSetter__('checked', function(opt_bool) {
+      var changed = buttonEl.checked !== (!!opt_bool);
+      if (!changed)
+        return;
+
       buttonEl.checked = !!opt_bool;
       onChange();
     });
