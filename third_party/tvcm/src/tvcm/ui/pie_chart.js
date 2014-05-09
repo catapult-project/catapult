@@ -227,6 +227,8 @@ tvcm.exportTo('tvcm.ui', function() {
           .attr('dy', '.35em');
 
       labelSel.text(function(d) {
+        if (d.data.label.length > 40)
+          return d.data.label.substr(0, 40) + '...';
         return d.data.label;
       });
       labelSel.attr('transform', function(d) {
