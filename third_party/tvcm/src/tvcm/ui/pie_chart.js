@@ -97,7 +97,7 @@ tvcm.exportTo('tvcm.ui', function() {
       var rightTextHeightSum = 0;
       labelSel.each(function(l) {
         var r = this.getBoundingClientRect();
-        maxLabelWidth = Math.max(maxLabelWidth, r.width);
+        maxLabelWidth = Math.max(maxLabelWidth, r.width + 32);
         if (this.style.textAnchor == 'end') {
           leftTextHeightSum += r.height;
         } else {
@@ -137,7 +137,7 @@ tvcm.exportTo('tvcm.ui', function() {
 
       var width = this.chartAreaSize.width;
       var height = this.chartAreaSize.height;
-      var radius = Math.max(MIN_RADIUS, Math.min(width, height) / 2);
+      var radius = Math.max(MIN_RADIUS, Math.min(width, height * 0.95) / 2);
 
       d3.select(this.pieGroup_).attr(
           'transform',
