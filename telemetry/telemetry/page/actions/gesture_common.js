@@ -13,6 +13,15 @@
                  left: bound.left,
                  width: bound.width,
                  height: bound.height };
+    if (rect.top < 0) {
+      rect.height += rect.top;
+      rect.top = 0;
+    }
+    if (rect.left < 0) {
+      rect.width += rect.left;
+      rect.left = 0;
+    }
+
     var outsideHeight = (rect.top + rect.height) - window.innerHeight;
     var outsideWidth = (rect.left + rect.width) - window.innerWidth;
 

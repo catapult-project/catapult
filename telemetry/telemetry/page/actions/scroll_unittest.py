@@ -80,7 +80,11 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     # scrollable area being more than twice as tall as the viewport) would
     # result in a scroll location outside of the viewport bounds.
     self._tab.ExecuteJavaScript("""document.body.style.height =
-                           (2 * window.innerHeight + 1) + 'px';""")
+                           (3 * window.innerHeight + 1) + 'px';""")
+    self._tab.ExecuteJavaScript("""document.body.style.width =
+                           (3 * window.innerWidth + 1) + 'px';""")
+    self._tab.ExecuteJavaScript(
+        "window.scrollTo(window.innerWidth, window.innerHeight);")
 
     rect_top = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
@@ -97,6 +101,10 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
     viewport_width = int(self._tab.EvaluateJavaScript('window.innerWidth'))
 
+    self.assertTrue(rect_top >= 0,
+        msg='%s >= %s' % (rect_top, 0))
+    self.assertTrue(rect_left >= 0,
+        msg='%s >= %s' % (rect_left, 0))
     self.assertTrue(rect_bottom <= viewport_height,
         msg='%s + %s <= %s' % (rect_top, rect_height, viewport_height))
     self.assertTrue(rect_right <= viewport_width,
