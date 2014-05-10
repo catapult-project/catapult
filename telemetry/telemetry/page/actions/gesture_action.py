@@ -11,6 +11,9 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(GestureAction, self).__init__(attributes)
+    if not hasattr(self, 'automatically_record_interaction'):
+      self.automatically_record_interaction = True
+
     if hasattr(self, 'wait_after'):
       self.wait_action = wait.WaitAction(self.wait_after)
     else:
@@ -25,11 +28,16 @@ class GestureAction(page_action.PageAction):
       interaction_name = 'Action_%s' % self.__class__.__name__
     else:
       interaction_name = 'Gesture_%s' % self.__class__.__name__
-    runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
+
+    if self.automatically_record_interaction:
+      runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
+
     self.RunGesture(page, tab)
     if self.wait_action:
       self.wait_action.RunAction(page, tab)
-    runner.EndInteraction(interaction_name, [tir_module.IS_SMOOTH])
+
+    if self.automatically_record_interaction:
+      runner.EndInteraction(interaction_name, [tir_module.IS_SMOOTH])
 
   def RunGesture(self, page, tab):
     raise NotImplementedError()
