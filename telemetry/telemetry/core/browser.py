@@ -210,11 +210,12 @@ class Browser(object):
     del result['ProcessCount']
 
     # We want a single time value, not the sum for all processes.
+    cpu_timestamp = self._platform_backend.GetCpuTimestamp()
     for process_type in result:
       # Skip any process_types that are empty
       if not len(result[process_type]):
         continue
-      result[process_type].update(self._platform_backend.GetCpuTimestamp())
+      result[process_type].update(cpu_timestamp)
     return result
 
   @property
