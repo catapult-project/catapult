@@ -157,12 +157,12 @@ class AndroidPlatformBackend(
         break
     return child_pids
 
+  @decorators.Cache
   def GetCommandLine(self, pid):
-    ps = self._GetPsOutput(['pid', 'name'])
-    for curr_pid, curr_name in ps:
-      if int(curr_pid) == pid:
-        return curr_name
-    raise exceptions.ProcessGoneException()
+    ps = self._GetPsOutput(['pid', 'name'], pid)
+    if not ps:
+      raise exceptions.ProcessGoneException()
+    return ps[0][1]
 
   def GetOSName(self):
     return 'android'
