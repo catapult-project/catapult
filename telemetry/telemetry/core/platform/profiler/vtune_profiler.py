@@ -3,10 +3,12 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import subprocess
 import sys
 import tempfile
 
+from telemetry.core import util
 from telemetry.core.platform import profiler
 
 
@@ -17,10 +19,21 @@ class _SingleProcessVTuneProfiler(object):
     self._platform_backend = platform_backend
     self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
+    cmd = ['amplxe-cl', '-collect', 'hotspots',
+           '-target-pid', str(pid), '-r', self._output_file]
+    if platform_backend.GetOSName() == 'android':
+      cmd += ['-target-system', 'android']
+
+      print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
+      print 'symbolized library matching the one on device.'
+      search_dir = os.path.join(util.GetChromiumSrcDir(),
+                                os.environ.get('CHROMIUM_OUT_DIR', 'out'),
+                                os.environ.get('BUILDTYPE', 'Release'),
+                                'lib')
+      cmd += ['-search-dir', search_dir]
+
     self._proc = subprocess.Popen(
-        ['amplxe-cl', '-collect', 'hotspots',
-         '-target-pid', str(pid), '-r', self._output_file],
-        stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
+        cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def CollectProfile(self):
     if ('renderer' in self._output_file and
@@ -87,14 +100,24 @@ class VTuneProfiler(profiler.Profiler):
   def is_supported(cls, browser_type):
     if sys.platform != 'linux2':
       return False
-    if (browser_type.startswith('android') or
-        browser_type.startswith('cros')):
+    if browser_type.startswith('cros'):
       return False
     try:
       proc = subprocess.Popen(['amplxe-cl', '-version'],
                               stderr=subprocess.STDOUT,
-                              stdout=subprocess.PIPE).communicate()
-      return not proc.returncode
+                              stdout=subprocess.PIPE)
+      proc.communicate()
+      if proc.returncode != 0:
+        return False
+
+      if browser_type.startswith('android'):
+        # VTune checks if 'su' is available on the device.
+        proc = subprocess.Popen(['adb', 'shell', 'su', '-c', 'id'],
+                                stderr=subprocess.STDOUT,
+                                stdout=subprocess.PIPE)
+        return 'not found' not in proc.communicate()[0]
+
+      return True
     except OSError:
       return False
 
