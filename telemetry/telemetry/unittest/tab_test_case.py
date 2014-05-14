@@ -22,7 +22,7 @@ class TabTestCase(unittest.TestCase):
     self._tab = None
     options = options_for_unittests.GetCopy()
 
-    self.CustomizeBrowserOptions(options)
+    self.CustomizeBrowserOptions(options.browser_options)
 
     if self._extra_browser_args:
       options.AppendExtraBrowserArgs(self._extra_browser_args)

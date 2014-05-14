@@ -15,7 +15,7 @@ import struct
 import subprocess
 
 from telemetry.core import util
-from telemetry.core.platform import factory
+from telemetry.core import platform
 from telemetry.util import support_binaries
 
 util.AddDirToPythonPath(util.GetTelemetryDir(), 'third_party', 'png')
@@ -123,7 +123,7 @@ class _BitmapTools(object):
 
   def __init__(self, dimensions, pixels):
     binary = support_binaries.FindPath(
-        'bitmaptools', factory.GetPlatformBackendForCurrentOS().GetOSName())
+        'bitmaptools', platform.GetHostPlatform().GetOSName())
     assert binary, 'You must build bitmaptools first!'
 
     self._popen = subprocess.Popen([binary],

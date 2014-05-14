@@ -13,8 +13,8 @@ import xml.parsers.expat
 
 from telemetry import decorators
 from telemetry.core import util
-import telemetry.core.platform as platform
-import telemetry.core.platform.power_monitor as power_monitor
+from telemetry.core.platform import platform_backend
+from telemetry.core.platform import power_monitor
 
 
 class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
@@ -57,8 +57,8 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
   @decorators.Cache
   def CanMonitorPower(self):
-    mavericks_or_later = (self._backend.GetOSVersionName() >=
-                          platform.mac_platform_backend.MAVERICKS)
+    mavericks_or_later = (
+        self._backend.GetOSVersionName() >= platform_backend.MAVERICKS)
     binary_path = self.binary_path
     return mavericks_or_later and self._backend.CanLaunchApplication(
         binary_path)

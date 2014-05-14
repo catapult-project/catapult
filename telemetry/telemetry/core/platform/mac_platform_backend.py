@@ -16,13 +16,6 @@ from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform.power_monitor import powermetrics_power_monitor
 
 
-LEOPARD =      platform_backend.OSVersion('leopard',      10.5)
-SNOWLEOPARD =  platform_backend.OSVersion('snowleopard',  10.6)
-LION =         platform_backend.OSVersion('lion',         10.7)
-MOUNTAINLION = platform_backend.OSVersion('mountainlion', 10.8)
-MAVERICKS =    platform_backend.OSVersion('mavericks',    10.9)
-
-
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def __init__(self):
     super(MacPlatformBackend, self).__init__()
@@ -96,7 +89,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
                'ContextSwitches': proc_info.pti_csw}
 
     # top only reports idle wakeup count starting from OS X 10.9.
-    if self.GetOSVersionName() >= MAVERICKS:
+    if self.GetOSVersionName() >= platform_backend.MAVERICKS:
       results.update({'IdleWakeupCount': self._GetIdleWakeupCount(pid)})
     return results
 
@@ -137,15 +130,15 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     os_version = os.uname()[2]
 
     if os_version.startswith('9.'):
-      return LEOPARD
+      return platform_backend.LEOPARD
     if os_version.startswith('10.'):
-      return SNOWLEOPARD
+      return platform_backend.SNOWLEOPARD
     if os_version.startswith('11.'):
-      return LION
+      return platform_backend.LION
     if os_version.startswith('12.'):
-      return MOUNTAINLION
+      return platform_backend.MOUNTAINLION
     if os_version.startswith('13.'):
-      return MAVERICKS
+      return platform_backend.MAVERICKS
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
@@ -153,7 +146,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     return False
 
   def FlushEntireSystemCache(self):
-    mavericks_or_later = self.GetOSVersionName() >= MAVERICKS
+    mavericks_or_later = self.GetOSVersionName() >= platform_backend.MAVERICKS
     p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
     p.communicate()
     assert p.returncode == 0, 'Failed to flush system cache'

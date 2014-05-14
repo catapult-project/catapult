@@ -348,7 +348,6 @@ def Run(test, page_set, expectations, finder_options):
   test.ValidatePageSet(page_set)
 
   # Create a possible_browser with the given options.
-  test.CustomizeBrowserOptions(finder_options)
   try:
     possible_browser = browser_finder.FindBrowser(finder_options)
   except browser_finder.BrowserTypeRequiredException, e:
@@ -362,6 +361,8 @@ def Run(test, page_set, expectations, finder_options):
     sys.exit(-1)
 
   browser_options.browser_type = possible_browser.browser_type
+  browser_options.platform = possible_browser.platform
+  test.CustomizeBrowserOptions(browser_options)
 
   if not decorators.IsEnabled(
       test, browser_options.browser_type, possible_browser.platform):

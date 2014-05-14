@@ -54,7 +54,7 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
         continue
       setattr(options, k, v)
 
-    measurement.CustomizeBrowserOptions(options)
+    measurement.CustomizeBrowserOptions(options.browser_options)
     options.output_file = None
     options.output_format = 'none'
     options.output_trace_tag = None

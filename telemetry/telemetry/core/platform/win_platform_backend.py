@@ -144,13 +144,13 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     os_version = platform.uname()[3]
 
     if os_version.startswith('5.1.'):
-      return platform_backend.OSVersion('xp', 5.1)
+      return platform_backend.XP
     if os_version.startswith('6.0.'):
-      return platform_backend.OSVersion('vista', 6.0)
+      return platform_backend.VISTA
     if os_version.startswith('6.1.'):
-      return platform_backend.OSVersion('win7', 6.1)
+      return platform_backend.WIN7
     if os_version.startswith('6.2.'):
-      return platform_backend.OSVersion('win8', 6.2)
+      return platform_backend.WIN8
 
     raise NotImplementedError('Unknown win version %s.' % os_version)
 

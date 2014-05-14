@@ -64,7 +64,7 @@ class Test(command_line.Command):
 
   def Run(self, args):
     """Run this test with the given options."""
-    self.CustomizeBrowserOptions(args)
+    self.CustomizeBrowserOptions(args.browser_options)
 
     test = self.PageTestClass()()
     test.__name__ = self.__class__.__name__

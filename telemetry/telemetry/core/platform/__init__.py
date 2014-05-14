@@ -2,6 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.core.platform import factory
+
+
+def GetHostPlatform():
+  return Platform(factory.GetPlatformBackendForCurrentOS())
+
+
 class Platform(object):
   """The platform that the target browser is running on.
 

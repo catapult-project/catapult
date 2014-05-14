@@ -4,7 +4,6 @@
 
 # pylint: disable=W0613
 
-
 # pylint: disable=W0212
 class OSVersion(str):
   def __new__(cls, friendly_name, sortable_name, *args, **kwargs):
@@ -23,6 +22,18 @@ class OSVersion(str):
 
   def __ge__(self, other):
     return self._sortable_name >= other._sortable_name
+
+
+XP =           OSVersion('xp',            5.1)
+VISTA =        OSVersion('vista',         6.0)
+WIN7 =         OSVersion('win7',          6.1)
+WIN8 =         OSVersion('win8',          6.2)
+
+LEOPARD =      OSVersion('leopard',      10.5)
+SNOWLEOPARD =  OSVersion('snowleopard',  10.6)
+LION =         OSVersion('lion',         10.7)
+MOUNTAINLION = OSVersion('mountainlion', 10.8)
+MAVERICKS =    OSVersion('mavericks',    10.9)
 
 
 class PlatformBackend(object):

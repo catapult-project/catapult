@@ -12,7 +12,6 @@ from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.platform import proc_supporting_platform_backend
-from telemetry.core.platform import factory
 from telemetry.core.platform.power_monitor import android_ds2784_power_monitor
 from telemetry.core.platform.power_monitor import android_dumpsys_power_monitor
 from telemetry.core.platform.power_monitor import android_temperature_monitor
@@ -49,7 +48,6 @@ class AndroidPlatformBackend(
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._no_performance_mode = no_performance_mode
     self._raw_display_frame_rate_measurements = []
-    self._host_platform_backend = factory.GetPlatformBackendForCurrentOS()
     self._can_access_protected_file_contents = \
         self._device.old_interface.CanAccessProtectedFileContents()
     power_controller = power_monitor_controller.PowerMonitorController([
@@ -188,7 +186,7 @@ class AndroidPlatformBackend(
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
     if application in _HOST_APPLICATIONS:
-      self._host_platform_backend.LaunchApplication(
+      platform.GetHostPlatform().LaunchApplication(
           application, parameters, elevate_privilege=elevate_privilege)
       return
     if elevate_privilege:
@@ -200,17 +198,17 @@ class AndroidPlatformBackend(
 
   def IsApplicationRunning(self, application):
     if application in _HOST_APPLICATIONS:
-      return self._host_platform_backend.IsApplicationRunning(application)
+      return platform.GetHostPlatform().IsApplicationRunning(application)
     return len(self._device.old_interface.ExtractPid(application)) > 0
 
   def CanLaunchApplication(self, application):
     if application in _HOST_APPLICATIONS:
-      return self._host_platform_backend.CanLaunchApplication(application)
+      return platform.GetHostPlatform().CanLaunchApplication(application)
     return True
 
   def InstallApplication(self, application):
     if application in _HOST_APPLICATIONS:
-      self._host_platform_backend.InstallApplication(application)
+      platform.GetHostPlatform().InstallApplication(application)
       return
     raise NotImplementedError(
         'Please teach Telemetry how to install ' + application)

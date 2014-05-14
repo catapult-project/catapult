@@ -201,6 +201,8 @@ class BrowserOptions(object):
     # performance measurements.
     self.disable_component_extensions_with_background_pages = True
 
+    self.platform = None
+
   @classmethod
   def AddCommandLineArgs(cls, parser):
 
