@@ -127,11 +127,11 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    if self._device.old_interface.RunShellCommand(
+    (status, output) = self._device.old_interface.GetAndroidToolStatusAndOutput(
         android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'),
-        log_result=True):
-      return
-    raise Exception('Error while purging ashmem.')
+        log_result=True)
+    if status != 0:
+      raise Exception('Error while purging ashmem: ' + '\n'.join(output))
 
   def GetMemoryStats(self, pid):
     memory_usage = self._device.old_interface.GetMemoryUsageForPid(pid)

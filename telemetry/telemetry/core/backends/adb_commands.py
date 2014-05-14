@@ -113,6 +113,7 @@ def SetupPrebuiltTools(adb):
     'forwarder_dist/device_forwarder',
     'md5sum_dist/md5sum_bin',
     'purge_ashmem',
+    'run_pie',
   ]
 
   host_tools = [
@@ -141,7 +142,7 @@ def SetupPrebuiltTools(adb):
       platform_name = ('android' if t in device_tools else
                        platform.GetHostPlatform().GetOSName())
       prebuilt_path = support_binaries.FindPath(executable, platform_name)
-      if not os.path.exists(prebuilt_path):
+      if not prebuilt_path or not os.path.exists(prebuilt_path):
         raise NotImplementedError("""
 %s must be checked into cloud storage.
 Instructions:
