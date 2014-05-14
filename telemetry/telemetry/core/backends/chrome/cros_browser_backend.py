@@ -35,9 +35,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self.wpr_port_pairs = forwarders.PortPairs(
         http=forwarders.PortPair(self.wpr_port_pairs.http.local_port,
-                                 self._cri.GetRemotePort()),
+                                 self.GetRemotePort(
+                                     self.wpr_port_pairs.http.local_port)),
         https=forwarders.PortPair(self.wpr_port_pairs.https.local_port,
-                                  self._cri.GetRemotePort()),
+                                  self.GetRemotePort(
+                                      self.wpr_port_pairs.http.local_port)),
         dns=None)
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
