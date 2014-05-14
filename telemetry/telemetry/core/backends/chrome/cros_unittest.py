@@ -118,7 +118,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     browser.oobe.ExecuteJavaScript('''
         Oobe.authenticateForTesting('%s', '%s');
     ''' % (self._username, self._password))
-    util.WaitFor(lambda: not browser.oobe, 10)
+    util.WaitFor(lambda: not browser.oobe_exists, 10)
     self.assertFalse(self._IsScreenLocked(browser))
 
   @test.Enabled('chromeos')
