@@ -262,12 +262,8 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         state.StopBrowser()
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.
-      try:
-        state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
-                                   credentials_path, page.archive_path)
-      except exceptions.TabCrashException:
-        _LogStackTrace('Tab crashed: %s' % page.url, state.browser)
-        raise
+      state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
+                                 credentials_path, page.archive_path)
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
 

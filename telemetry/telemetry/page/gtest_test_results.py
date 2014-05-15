@@ -24,7 +24,7 @@ class GTestTestResults(page_test_results.PageTestResults):
   @staticmethod
   def _formatTestname(test):
     if isinstance(test, unittest.TestCase):
-      chunks = test.id().split('.')[2:]
+      chunks = test.id().split('.')[-2:]
       return '.'.join(chunks)
     else:
       return str(test)
