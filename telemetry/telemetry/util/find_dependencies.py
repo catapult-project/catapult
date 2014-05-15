@@ -199,7 +199,7 @@ def ZipDependencies(paths, dependencies, options):
     # TODO: If there's a gsutil in telemetry/third_party/, bootstrap_deps
     # will include it. Then there will be two copies of gsutil at the same
     # location in the archive. This can be confusing for users.
-    gsutil_path = cloud_storage.FindGsutil()
+    gsutil_path = os.path.realpath(cloud_storage.FindGsutil())
     if cloud_storage.SupportsProdaccess(gsutil_path):
       gsutil_base_dir = os.path.join(os.path.dirname(gsutil_path), os.pardir)
       gsutil_dependencies = path_set.PathSet()
