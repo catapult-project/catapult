@@ -28,7 +28,7 @@ class TestPerfProfiler(unittest.TestCase):
     mock_subprocess = simple_mock.MockObject()
     mock_subprocess.ExpectCall(
         'Popen').WithArgs(simple_mock.DONT_CARE).WillReturn(mock_popen)
-    setattr(mock_subprocess, 'PIPE', simple_mock.MockObject())
+    mock_subprocess.SetAttribute('PIPE', simple_mock.MockObject())
 
     real_subprocess = perf_profiler.subprocess
     perf_profiler.subprocess = mock_subprocess

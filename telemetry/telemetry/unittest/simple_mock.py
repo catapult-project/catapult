@@ -66,6 +66,9 @@ class MockObject(object):
     assert isinstance(value, MockObject)
     object.__setattr__(self, name, value)
 
+  def SetAttribute(self, name, value):
+    setattr(self, name, value)
+
   def ExpectCall(self, func_name, *args):
     assert self._trace.next_call_index == 0
     if not hasattr(self, func_name):
