@@ -143,33 +143,27 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
               https=None,
               dns=None), forwarding_flag='L')
 
-    try:
-      self._WaitForBrowserToComeUp(wait_for_extensions=False)
-      self._PostBrowserStartupInitialization()
-    except:
-      import traceback
-      traceback.print_exc()
-      self.Close()
-      raise
-
+    # Wait for oobe.
+    self._WaitForBrowserToComeUp(wait_for_extensions=False)
+    self._PostBrowserStartupInitialization()
     util.WaitFor(lambda: self.oobe_exists, 10)
 
     if self.browser_options.auto_login:
-      if self._is_guest:
-        pid = self.pid
-        self.oobe.NavigateGuestLogin()
-        # Guest browsing shuts down the current browser and launches an
-        # incognito browser in a separate process, which we need to wait for.
-        util.WaitFor(lambda: pid != self.pid, 10)
-      elif self.browser_options.gaia_login:
-        try:
+      try:
+        if self._is_guest:
+          pid = self.pid
+          self.oobe.NavigateGuestLogin()
+          # Guest browsing shuts down the current browser and launches an
+          # incognito browser in a separate process, which we need to wait for.
+          util.WaitFor(lambda: pid != self.pid, 10)
+        elif self.browser_options.gaia_login:
           self.oobe.NavigateGaiaLogin(self._username, self._password)
-        except util.TimeoutException:
-          self._cri.TakeScreenShot('gaia-login')
-          raise
-      else:
-        self.oobe.NavigateFakeLogin(self._username, self._password)
-      self._WaitForLogin()
+        else:
+          self.oobe.NavigateFakeLogin(self._username, self._password)
+        self._WaitForLogin()
+      except util.TimeoutException:
+        self._cri.TakeScreenShot('login-screen')
+        raise exceptions.LoginException('Timed out going through login screen')
 
     logging.info('Browser is up!')
 
@@ -244,19 +238,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       util.WaitFor(self._IsCryptohomeMounted, 30)
       return
 
-    try:
-      util.WaitFor(self._IsLoggedIn, 60)
-    except util.TimeoutException:
-      self._cri.TakeScreenShot('login-screen')
-      raise exceptions.LoginException('Timed out going through login screen')
+    # Wait for cryptohome to mount.
+    util.WaitFor(self._IsLoggedIn, 60)
 
     # Wait for extensions to load.
-    try:
-      self._WaitForBrowserToComeUp()
-    except util.TimeoutException:
-      logging.error('Chrome args: %s' % self._cri.GetChromeProcess()['args'])
-      self._cri.TakeScreenShot('extension-timeout')
-      raise
+    self._WaitForBrowserToComeUp()
 
     # Workaround for crbug.com/329271, crbug.com/334726.
     retries = 3
