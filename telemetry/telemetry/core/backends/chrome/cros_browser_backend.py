@@ -269,8 +269,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       except (exceptions.TabCrashException, util.TimeoutException,
               IndexError):
         retries -= 1
-        logging.warn('TabCrashException/TimeoutException in '
-                     'new tab creation/navigation, '
-                     'remaining retries %d' % retries)
+        logging.warning('TabCrashException/TimeoutException in '
+                        'new tab creation/navigation, '
+                        'remaining retries %d', retries)
         if not retries:
           raise

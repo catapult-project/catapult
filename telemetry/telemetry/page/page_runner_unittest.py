@@ -136,10 +136,10 @@ class PageRunnerTests(unittest.TestCase):
 
     class CrashyMeasurement(page_measurement.PageMeasurement):
       has_crashed = False
-      def MeasurePage(self, *_):
+      def MeasurePage(self, _, tab, __):
         if not self.has_crashed:
           self.has_crashed = True
-          raise exceptions.BrowserGoneException()
+          raise exceptions.BrowserGoneException(tab.browser)
 
     options = options_for_unittests.GetCopy()
     options.output_format = 'csv'

@@ -69,7 +69,7 @@ class _RunState(object):
         if self.browser.supports_system_info:
           system_info = self.browser.GetSystemInfo()
           if system_info.model_name:
-            logging.info('Model: %s' % system_info.model_name)
+            logging.info('Model: %s', system_info.model_name)
           if system_info.gpu:
             for i, device in enumerate(system_info.gpu.devices):
               logging.info('GPU device %d: %s', i, device)
@@ -231,18 +231,6 @@ def ProcessCommandLineArgs(parser, args):
     parser.error('--pageset-repeat must be a positive integer.')
 
 
-def _LogStackTrace(title, browser):
-  if browser:
-    stack_trace = browser.GetStackTrace()
-  else:
-    stack_trace = 'Browser object is empty, no stack trace.'
-  stack_trace = (('\nStack Trace:\n') +
-            ('*' * 80) +
-            '\n\t' + stack_trace.replace('\n', '\n\t') + '\n' +
-            ('*' * 80))
-  logging.warning('%s%s', title, stack_trace)
-
-
 def _PrepareAndRunPage(test, page_set, expectations, finder_options,
                        browser_options, page, credentials_path,
                        possible_browser, results, state):
@@ -276,14 +264,13 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         _RunPage(test, page, state, expectation,
                  results_for_current_run, finder_options)
         _CheckThermalThrottling(state.browser.platform)
-      except exceptions.TabCrashException:
-        _LogStackTrace('Tab crashed: %s' % page.url, state.browser)
+      except exceptions.TabCrashException as e:
         if test.is_multi_tab_test:
-          logging.error('Stopping multi-tab test after tab %s crashed'
-                        % page.url)
+          logging.error('Aborting multi-tab test after tab %s crashed',
+                        page.url)
           raise
-        else:
-          state.StopBrowser()
+        logging.warning(e)
+        state.StopBrowser()
 
       if finder_options.profiler:
         state.StopProfiling()
@@ -298,17 +285,15 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         if test.discard_first_result:
           return results
       return results_for_current_run
-    except exceptions.BrowserGoneException:
-      _LogStackTrace('Browser crashed', state.browser)
-      logging.warning('Lost connection to browser. Retrying.')
+    except exceptions.BrowserGoneException as e:
       state.StopBrowser()
       if not tries:
-        logging.error('Lost connection to browser 3 times. Failing.')
+        logging.error('Aborting after too many retries')
         raise
       if test.is_multi_tab_test:
-        logging.error(
-          'Lost connection to browser during multi-tab test. Failing.')
+        logging.error('Aborting multi-tab test after browser crashed')
         raise
+      logging.warning(e)
 
 
 def _UpdatePageSetArchivesIfChanged(page_set):
@@ -515,7 +500,7 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     results.AddSkip(page, 'Skipped by test expectations')
     return
 
-  logging.info('Running %s' % page.url)
+  logging.info('Running %s', page.url)
 
   page_state = PageState(page, test.TabForPage(page, state.browser))
 
@@ -592,13 +577,13 @@ def _WaitForThermalThrottlingIfNeeded(platform):
     time.sleep(thermal_throttling_retry * 2)
 
   if thermal_throttling_retry and platform.IsThermallyThrottled():
-    logging.error('Device is thermally throttled before running '
-                  'performance tests, results will vary.')
+    logging.warning('Device is thermally throttled before running '
+                    'performance tests, results will vary.')
 
 
 def _CheckThermalThrottling(platform):
   if not platform.CanMonitorThermalThrottling():
     return
   if platform.HasBeenThermallyThrottled():
-    logging.error('Device has been thermally throttled during '
-                  'performance tests, results will vary.')
+    logging.warning('Device has been thermally throttled during '
+                    'performance tests, results will vary.')

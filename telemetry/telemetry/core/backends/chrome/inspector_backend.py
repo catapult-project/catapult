@@ -36,17 +36,17 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     self._context = context
     self._domain_handlers = {}
 
-    logging.debug('InspectorBackend._Connect() to %s' % self.debugger_url)
+    logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
       self.Connect(self.debugger_url)
     except (websocket.WebSocketException, util.TimeoutException):
       err_msg = sys.exc_info()[1]
       if not self._browser_backend.IsBrowserRunning():
-        raise exceptions.BrowserGoneException(err_msg)
+        raise exceptions.BrowserGoneException(self.browser, err_msg)
       elif not self._browser_backend.HasBrowserFinishedLaunching():
-        raise exceptions.BrowserConnectionGoneException(err_msg)
+        raise exceptions.BrowserConnectionGoneException(self.browser, err_msg)
       else:
-        raise exceptions.TabCrashException(err_msg)
+        raise exceptions.TabCrashException(self.browser, err_msg)
 
     self._console = inspector_console.InspectorConsole(self)
     self._memory = inspector_memory.InspectorMemory(self)
@@ -220,11 +220,11 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   def _HandleNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
-        res.get('params', {}).get('reason','') == 'replaced_with_devtools'):
+        res.get('params', {}).get('reason', '') == 'replaced_with_devtools'):
       self._WaitForInspectorToGoAwayAndReconnect()
       return
     if res['method'] == 'Inspector.targetCrashed':
-      raise exceptions.TabCrashException()
+      raise exceptions.TabCrashException(self.browser)
 
     mname = res['method']
     dot_pos = mname.find('.')
@@ -244,7 +244,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
           'Received a socket error in the browser connection and the tab '
           'still exists, assuming it timed out. '
           'Elapsed=%ds Error=%s' % (elapsed_time, sys.exc_info()[1]))
-    raise exceptions.TabCrashException(
+    raise exceptions.TabCrashException(self.browser,
         'Received a socket error in the browser connection and the tab no '
         'longer exists, assuming it crashed. Error=%s' % sys.exc_info()[1])
 

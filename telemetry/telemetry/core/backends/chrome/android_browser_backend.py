@@ -166,7 +166,8 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
                          'activity %s:%s to come up',
                          self.package,
                          self.activity)
-        raise exceptions.BrowserGoneException('Timeout waiting for PID.')
+        raise exceptions.BrowserGoneException(self.browser,
+                                              'Timeout waiting for PID.')
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
 
@@ -339,7 +340,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def pid(self):
     pids = self._adb.ExtractPid(self._backend_settings.package)
     if not pids:
-      raise exceptions.BrowserGoneException(self.GetStackTrace())
+      raise exceptions.BrowserGoneException(self.browser)
     return int(pids[0])
 
   @property

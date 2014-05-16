@@ -144,7 +144,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     try:
       util.WaitFor(self.HasBrowserFinishedLaunching, timeout=30)
     except (util.TimeoutException, exceptions.ProcessGoneException) as e:
-      raise exceptions.BrowserGoneException(self.GetStackTrace())
+      if not self.IsBrowserRunning():
+        raise exceptions.BrowserGoneException(self.browser, e)
+      raise exceptions.BrowserConnectionGoneException(self.browser, e)
 
     def AllExtensionsLoaded():
       # Extension pages are loaded from an about:blank page,
@@ -235,8 +237,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       if throw_network_exception:
         raise e
       if not self.IsBrowserRunning():
-        raise exceptions.BrowserGoneException(e)
-      raise exceptions.BrowserConnectionGoneException(e)
+        raise exceptions.BrowserGoneException(self.browser, e)
+      raise exceptions.BrowserConnectionGoneException(self.browser, e)
 
   @property
   def browser_directory(self):
