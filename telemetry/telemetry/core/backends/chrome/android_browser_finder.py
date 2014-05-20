@@ -199,6 +199,10 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
   device = devices[0]
 
   adb = adb_commands.AdbCommands(device=device)
+  # Trying to root the device, if possible.
+  if not adb.IsRootEnabled():
+    # Ignore result.
+    adb.EnableAdbRoot()
 
   if sys.platform.startswith('linux'):
     # Host side workaround for crbug.com/268450 (adb instability)
