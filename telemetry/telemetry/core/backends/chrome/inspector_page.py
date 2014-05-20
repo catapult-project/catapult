@@ -101,19 +101,13 @@ class InspectorPage(object):
 
     def DoNavigate():
       self._SetScriptToEvaluateOnCommit(script_to_evaluate_on_commit)
-      # Navigate the page. However, there seems to be a bug in chrome devtools
-      # protocol where the request id for this event gets held on the browser
-      # side pretty much indefinitely.
-      #
-      # So, instead of waiting for the event to actually complete, wait for the
-      # Page.frameNavigated event.
       request = {
           'method': 'Page.navigate',
           'params': {
               'url': url,
               }
           }
-      self._inspector_backend.SendAndIgnoreResponse(request)
+      self._inspector_backend.SyncRequest(request, timeout)
     self._navigation_url = url
     self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
 
