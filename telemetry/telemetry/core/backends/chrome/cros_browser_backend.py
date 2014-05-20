@@ -233,20 +233,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             not self.oobe_exists)
 
   def _WaitForLogin(self):
-    if self._is_guest:
-      self._WaitForBrowserToComeUp()
-      util.WaitFor(self._IsCryptohomeMounted, 30)
-      return
-
     # Wait for cryptohome to mount.
     util.WaitFor(self._IsLoggedIn, 60)
 
     # Wait for extensions to load.
     self._WaitForBrowserToComeUp()
 
-    # Workaround for crbug.com/329271, crbug.com/334726.
+    # Workaround for crbug.com/374462 - the bug doesn't manifest in the guest
+    # session, which also starts with an open browser tab.
     retries = 3
-    while True:
+    while not self._is_guest:
       try:
         # Open a new window/tab.
         tab = self.tab_list_backend.New(timeout=30)
