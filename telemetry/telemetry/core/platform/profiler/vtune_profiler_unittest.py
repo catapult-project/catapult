@@ -21,6 +21,47 @@ class MockPopen(object):
     return self.returncode
 
 
+class MockSubprocess(object):
+  def __init__(self):
+    self.PIPE = simple_mock.MockObject()
+    self.STDOUT = simple_mock.MockObject()
+    self._num_collect_calls = 0
+    self._num_stop_calls = 0
+
+  @property
+  def num_collect_calls(self):
+    return self._num_collect_calls
+
+  @property
+  def num_stop_calls(self):
+    return self._num_stop_calls
+
+  def Popen(self, cmd, **_):
+    self._AnalyzeCommand(cmd)
+    return MockPopen(0)
+
+  def call(self, cmd):
+    self._AnalyzeCommand(cmd)
+
+  def _AnalyzeCommand(self, cmd):
+    if MockSubprocess._IsCollectCommand(cmd):
+      self._num_collect_calls += 1
+    elif MockSubprocess._IsStopCommand(cmd):
+      self._num_stop_calls += 1
+
+  @staticmethod
+  def _IsCollectCommand(cmd):
+    return '-collect' in cmd
+
+  @staticmethod
+  def _IsStopCommand(cmd):
+    try:
+      cmd_idx = cmd.index('-command') + 1
+      return cmd_idx < len(cmd) and cmd[cmd_idx] == 'stop'
+    except ValueError:
+      return False
+
+
 class TestVTuneProfiler(tab_test_case.TabTestCase):
   def setUp(self):
     super(TestVTuneProfiler, self).setUp()
@@ -50,33 +91,8 @@ class TestVTuneProfiler(tab_test_case.TabTestCase):
     finally:
       vtune_profiler.subprocess = real_subprocess
 
-  def _ComputeNumProcesses(self, browser_backend, platform_backend):
-    # Compute the number of processes that will be profiled by VTune:
-    # If we have renderer processes, each of them will be profiled, otherwise
-    # we profile the browser process.
-    pids = ([browser_backend.pid] +
-            platform_backend.GetChildPids(browser_backend.pid))
-    cmd_lines = [ platform_backend.GetCommandLine(p) for p in pids ]
-    process_names = [ browser_backend.GetProcessName(cl) for cl in cmd_lines ]
-
-    return max(1, process_names.count('renderer'))
-
   def testVTuneProfiler(self):
-    mock_subprocess = simple_mock.MockObject()
-    mock_subprocess.SetAttribute('PIPE', simple_mock.MockObject())
-    mock_subprocess.SetAttribute('STDOUT', simple_mock.MockObject())
-
-    # For each profiled process, expect one call to start VTune and one to stop
-    # it.
-    # pylint: disable=W0212
-    num_processes = self._ComputeNumProcesses(self._browser._browser_backend,
-                                              self._browser._platform_backend)
-    for _ in xrange(num_processes):
-      mock_subprocess.ExpectCall(
-          'Popen').WithArgs(simple_mock.DONT_CARE).WillReturn(MockPopen(0))
-    for _ in xrange(num_processes):
-      mock_subprocess.ExpectCall('call').WithArgs(simple_mock.DONT_CARE)
-
+    mock_subprocess = MockSubprocess()
     real_subprocess = vtune_profiler.subprocess
     vtune_profiler.subprocess = mock_subprocess
 
@@ -87,5 +103,7 @@ class TestVTuneProfiler(tab_test_case.TabTestCase):
                                               'tmp',
                                               {})
       profiler.CollectProfile()
+      self.assertEqual(mock_subprocess.num_collect_calls,
+                       mock_subprocess.num_stop_calls)
     finally:
       vtune_profiler.subprocess = real_subprocess
