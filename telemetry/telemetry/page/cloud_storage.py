@@ -28,7 +28,7 @@ _DOWNLOAD_PATH = os.path.join(util.GetTelemetryDir(), 'third_party', 'gsutil')
 class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions(gsutil_path):
-    if SupportsProdaccess(gsutil_path):
+    if SupportsProdaccess(gsutil_path) and _FindExecutableInPath('prodaccess'):
       return 'Run prodaccess to authenticate.'
     else:
       return ('To configure your credentials:\n'
@@ -92,11 +92,8 @@ def FindGsutil():
 
 
 def SupportsProdaccess(gsutil_path):
-  def GsutilSupportsProdaccess():
-    with open(gsutil_path, 'r') as gsutil:
-      return 'prodaccess' in gsutil.read()
-
-  return _FindExecutableInPath('prodaccess') and GsutilSupportsProdaccess()
+  with open(gsutil_path, 'r') as gsutil:
+    return 'prodaccess' in gsutil.read()
 
 
 def _RunCommand(args):
