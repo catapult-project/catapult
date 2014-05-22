@@ -2,11 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+import os
+
+from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
+from telemetry.core.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import smoothness
 from telemetry.page import page_measurement
-from telemetry.core.timeline import model as model_module
+from telemetry.value import string as string_value_module
 
 
 # TimelineBasedMeasurement considers all instrumentation as producing a single
@@ -100,6 +105,10 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
         choices=ALL_OVERHEAD_LEVELS,
         default=NO_OVERHEAD_LEVEL,
         help='How much overhead to incur during the measurement.')
+    parser.add_option(
+        '--trace-dir', type='string', default=None,
+        help=('Where to save the trace after the run. If this flag '
+              'is not set, the trace will not be saved.'))
 
   def WillNavigateToPage(self, page, tab):
     if not tab.browser.supports_tracing:
@@ -127,6 +136,18 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
   def MeasurePage(self, page, tab, results):
     """ Collect all possible metrics and added them to results. """
     trace_result = tab.browser.StopTracing()
+    trace_dir = self.options.trace_dir
+    if trace_dir:
+      trace_file_path = util.GetSequentialFileName(
+          os.path.join(trace_dir, 'trace')) + '.json'
+      try:
+        with open(trace_file_path, 'w') as f:
+          trace_result.Serialize(f)
+        results.AddValue(string_value_module.StringValue(
+            page, 'trace_path', 'string', trace_file_path))
+      except IOError, e:
+        logging.error('Cannot open %s. %s' % (trace_file_path, e))
+
     model = model_module.TimelineModel(trace_result)
     renderer_thread = model.GetRendererThreadFromTab(tab)
     meta_metrics = _TimelineBasedMetrics(

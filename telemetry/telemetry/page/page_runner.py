@@ -4,7 +4,6 @@
 
 import collections
 import copy
-import glob
 import logging
 import optparse
 import os
@@ -137,7 +136,7 @@ class _RunState(object):
     is_repeating = (finder_options.page_repeat != 1 or
                     finder_options.pageset_repeat != 1)
     if is_repeating:
-      output_file = _GetSequentialFileName(output_file)
+      output_file = util.GetSequentialFileName(output_file)
     self.browser.StartProfiling(finder_options.profiler, output_file)
 
   def StopProfiling(self):
@@ -551,18 +550,6 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     results.AddSuccess(page)
   finally:
     page_state.CleanUpPage(test)
-
-
-def _GetSequentialFileName(base_name):
-  """Returns the next sequential file name based on |base_name| and the
-  existing files."""
-  index = 0
-  while True:
-    output_name = '%s_%03d' % (base_name, index)
-    if not glob.glob(output_name + '.*'):
-      break
-    index = index + 1
-  return output_name
 
 
 def _WaitForThermalThrottlingIfNeeded(platform):
