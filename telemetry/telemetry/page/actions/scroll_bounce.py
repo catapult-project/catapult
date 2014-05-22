@@ -10,7 +10,7 @@ class ScrollBounceAction(GestureAction):
   def __init__(self, attributes=None):
     super(ScrollBounceAction, self).__init__(attributes)
 
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'scroll_bounce.js']:
       with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
         js = f.read()
@@ -39,7 +39,7 @@ class ScrollBounceAction(GestureAction):
         window.__scrollBounceAction = new __ScrollBounceAction(%s);"""
         % (done_callback))
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     left_start_percentage = 0.5
     top_start_percentage = 0.5
     direction = 'down'

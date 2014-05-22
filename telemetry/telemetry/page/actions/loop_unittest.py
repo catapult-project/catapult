@@ -23,8 +23,8 @@ class LoopActionTest(tab_test_case.TabTestCase):
     """Tests that with no selector Loop action loops first media element."""
     data = {'selector': '#video_1', 'loop_count': 2}
     action = loop.LoopAction(data)
-    action.WillRunAction(None, self._tab)
-    action.RunAction(None, self._tab)
+    action.WillRunAction(self._tab)
+    action.RunAction(self._tab)
     # Assert only first video has played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
@@ -34,11 +34,11 @@ class LoopActionTest(tab_test_case.TabTestCase):
     """Tests that Loop action loops all video elements with selector='all'."""
     data = {'selector': 'all', 'loop_count': 2}
     action = loop.LoopAction(data)
-    action.WillRunAction(None, self._tab)
+    action.WillRunAction(self._tab)
     # Both videos not playing before running action.
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
-    action.RunAction(None, self._tab)
+    action.RunAction(self._tab)
     # Assert all media elements played.
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_LOOP_CHECK))
@@ -50,14 +50,14 @@ class LoopActionTest(tab_test_case.TabTestCase):
             'wait_timeout': 1,
             'loop_count': 2}
     action = loop.LoopAction(data)
-    action.WillRunAction(None, self._tab)
+    action.WillRunAction(self._tab)
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
-    self.assertRaises(util.TimeoutException, action.RunAction, None, self._tab)
+    self.assertRaises(util.TimeoutException, action.RunAction, self._tab)
 
   @decorators.Disabled('android')
   def testLoopWithoutLoopCount(self):
     """Tests that loop action fails with no loop count."""
     data = {}
     action = loop.LoopAction(data)
-    action.WillRunAction(None, self._tab)
-    self.assertRaises(AssertionError, action.RunAction, None, self._tab)
+    action.WillRunAction(self._tab)
+    self.assertRaises(AssertionError, action.RunAction, self._tab)

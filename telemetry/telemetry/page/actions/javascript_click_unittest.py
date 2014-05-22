@@ -18,7 +18,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
     j = wait_until.WaitUntil(i, data)
-    j.RunActionAndWait(None, self._tab)
+    j.RunActionAndWait(self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -34,7 +34,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
     j = wait_until.WaitUntil(i, data)
-    j.RunActionAndWait(None, self._tab)
+    j.RunActionAndWait(self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -50,7 +50,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
     j = wait_until.WaitUntil(i, data)
-    j.RunActionAndWait(None, self._tab)
+    j.RunActionAndWait(self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
@@ -66,7 +66,7 @@ class ClickElementActionTest(tab_test_case.TabTestCase):
     i = javascript_click.ClickElementAction(data)
     data = {'condition': 'href_change'}
     j = wait_until.WaitUntil(i, data)
-    j.RunActionAndWait(None, self._tab)
+    j.RunActionAndWait(self._tab)
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),

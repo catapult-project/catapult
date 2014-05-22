@@ -40,7 +40,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
                                    || document.body.scrollTop"""), 0)
 
     i = scroll.ScrollAction()
-    i.WillRunAction(page, self._tab)
+    i.WillRunAction(self._tab)
 
     self._tab.ExecuteJavaScript("""
         window.__scrollAction.beginMeasuringHook = function() {
@@ -49,7 +49,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         window.__scrollAction.endMeasuringHook = function() {
             window.__didEndMeasuring = true;
         };""")
-    i.RunAction(page, self._tab)
+    i.RunAction(self._tab)
 
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))

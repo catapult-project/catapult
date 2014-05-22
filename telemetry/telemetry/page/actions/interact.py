@@ -8,5 +8,5 @@ class InteractAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(InteractAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     raw_input("Interacting... Press Enter to continue.")

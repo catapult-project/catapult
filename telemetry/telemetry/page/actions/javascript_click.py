@@ -15,7 +15,7 @@ class ClickElementAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(ClickElementAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     def DoClick():
       if hasattr(self, 'selector'):
         code = ('document.querySelector(\'' + _EscapeSelector(self.selector) +

@@ -234,7 +234,7 @@ class PageTest(command_line.Command):
   def RunPage(self, page, tab, results):
     # Run actions.
     interactive = self.options and self.options.interactive
-    action_runner = action_runner_module.ActionRunner(page, tab, self)
+    action_runner = action_runner_module.ActionRunner(tab)
     self.WillRunActions(page, tab)
     if interactive:
       action_runner.RunAction(interact.InteractAction())
@@ -255,7 +255,7 @@ class PageTest(command_line.Command):
 
     Runs the 'navigate_steps' page attribute as a compound action.
     """
-    action_runner = action_runner_module.ActionRunner(page, tab, None)
+    action_runner = action_runner_module.ActionRunner(tab)
     page.RunNavigateSteps(action_runner)
 
   def IsExiting(self):

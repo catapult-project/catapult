@@ -10,7 +10,7 @@ class ScrollAction(GestureAction):
   def __init__(self, attributes=None):
     super(ScrollAction, self).__init__(attributes)
 
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'scroll.js']:
       with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
         js = f.read()
@@ -43,7 +43,7 @@ class ScrollAction(GestureAction):
         window.__scrollAction = new __ScrollAction(%s, %s);"""
         % (done_callback, distance_func))
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     # scrollable_element_function is a function that passes the scrollable
     # element on the page to a callback. For example:
     #   function (callback) {

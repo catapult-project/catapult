@@ -22,7 +22,7 @@ class PageAction(object):
     else:
       self.wait_until = None
 
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     """Override to do action-specific setup before
     Test.WillRunAction is called."""
     pass
@@ -30,16 +30,16 @@ class PageAction(object):
   def WillWaitAfterRun(self):
     return self.wait_until is not None
 
-  def RunActionAndMaybeWait(self, page, tab):
+  def RunActionAndMaybeWait(self, tab):
     if self.wait_until:
-      self.wait_until.RunActionAndWait(page, tab)
+      self.wait_until.RunActionAndWait(tab)
     else:
-      self.RunAction(page, tab)
+      self.RunAction(tab)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     raise NotImplementedError()
 
-  def CleanUp(self, page, tab):
+  def CleanUp(self, tab):
     pass
 
   def CanBeBound(self):

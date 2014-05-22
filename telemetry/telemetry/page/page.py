@@ -7,8 +7,6 @@ import os
 import re
 import urlparse
 
-from telemetry.page.actions.navigate import NavigateAction
-
 
 class Page(object):
   def __init__(self, url, page_set=None, base_dir=None, name=''):
@@ -41,7 +39,7 @@ class Page(object):
         raise ValueError('startup_url with local file scheme is not supported')
 
   def RunNavigateSteps(self, action_runner):
-    action_runner.RunAction(NavigateAction())
+    action_runner.NavigateToPage(self)
 
   @property
   def page_set(self):

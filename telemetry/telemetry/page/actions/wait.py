@@ -17,7 +17,7 @@ class WaitAction(page_action.PageAction):
     return (getattr(self, 'condition', None) == 'navigate' or
             getattr(self, 'condition', None) == 'href_change')
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     assert not self._RunsPreviousAction(), \
         ('"navigate" and "href_change" support for wait is deprecated, use '
          'wait_until instead')

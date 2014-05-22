@@ -12,17 +12,16 @@ class WaitUntil(object):
         setattr(self, k, v)
     self._previous_action = previous_action
 
-  def RunActionAndWait(self, page, tab):
+  def RunActionAndWait(self, tab):
     if getattr(self, 'condition', None) == 'navigate':
-      self._previous_action.WillRunAction(page, tab)
-      action_to_perform = lambda: self._previous_action.RunAction(page, tab)
+      self._previous_action.WillRunAction(tab)
+      action_to_perform = lambda: self._previous_action.RunAction(tab)
       tab.PerformActionAndWaitForNavigate(action_to_perform, self.timeout)
       tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
     elif getattr(self, 'condition', None) == 'href_change':
-      self._previous_action.WillRunAction(page, tab)
+      self._previous_action.WillRunAction(tab)
       old_url = tab.EvaluateJavaScript('document.location.href')
-      self._previous_action.RunAction(page, tab)
+      self._previous_action.RunAction(tab)
       tab.WaitForJavaScriptExpression(
           'document.location.href != "%s"' % old_url, self.timeout)
-

@@ -12,12 +12,12 @@ from telemetry.page.actions import page_action
 
 
 class MediaAction(page_action.PageAction):
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     """Loads the common media action JS code prior to running the action."""
     self.LoadJS(tab, 'media_action.js')
 
-  def RunAction(self, page, tab):
-    super(MediaAction, self).RunAction(page, tab)
+  def RunAction(self, tab):
+    super(MediaAction, self).RunAction(tab)
 
   def LoadJS(self, tab, js_file_name):
     """Loads and executes a JS file in the tab."""

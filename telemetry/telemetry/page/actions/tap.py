@@ -16,7 +16,7 @@ class TapAction(GestureAction):
   def __init__(self, attributes=None):
     super(TapAction, self).__init__(attributes)
 
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'tap.js']:
       with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
         js = f.read()
@@ -63,7 +63,7 @@ class TapAction(GestureAction):
       tab.ExecuteJavaScript('(%s)(function(element) { %s });' %
                                 (element_function, js_cmd))
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     left_position_percentage = 0.5
     top_position_percentage = 0.5
     duration_ms = 50

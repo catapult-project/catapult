@@ -20,12 +20,12 @@ from telemetry.page.actions import page_action
 
 
 class LoopAction(media_action.MediaAction):
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
-    super(LoopAction, self).WillRunAction(page, tab)
+    super(LoopAction, self).WillRunAction(tab)
     self.LoadJS(tab, 'loop.js')
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     try:
       assert hasattr(self, 'loop_count') and self.loop_count > 0
       selector = self.selector if hasattr(self, 'selector') else ''

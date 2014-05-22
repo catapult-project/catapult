@@ -22,8 +22,8 @@ class GestureAction(page_action.PageAction):
     assert self.wait_until is None or self.wait_action is None, (
       'gesture cannot have wait_after and wait_until at the same time.')
 
-  def RunAction(self, page, tab):
-    runner = action_runner.ActionRunner(None, tab)
+  def RunAction(self, tab):
+    runner = action_runner.ActionRunner(tab)
     if self.wait_action:
       interaction_name = 'Action_%s' % self.__class__.__name__
     else:
@@ -32,14 +32,14 @@ class GestureAction(page_action.PageAction):
     if self.automatically_record_interaction:
       runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
 
-    self.RunGesture(page, tab)
+    self.RunGesture(tab)
     if self.wait_action:
-      self.wait_action.RunAction(page, tab)
+      self.wait_action.RunAction(tab)
 
     if self.automatically_record_interaction:
       runner.EndInteraction(interaction_name, [tir_module.IS_SMOOTH])
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     raise NotImplementedError()
 
   @staticmethod

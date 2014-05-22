@@ -73,7 +73,7 @@ class RecordPage(page_test.PageTest):  # pylint: disable=W0223
         continue
       if should_reload:
         self.RunNavigateSteps(page, tab)
-      action_runner = action_runner_module.ActionRunner(page, tab, self)
+      action_runner = action_runner_module.ActionRunner(tab)
       if interactive:
         action_runner.RunAction(interact.InteractAction())
       else:

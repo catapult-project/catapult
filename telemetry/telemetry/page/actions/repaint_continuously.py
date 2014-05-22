@@ -14,7 +14,7 @@ class RepaintContinuouslyAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(RepaintContinuouslyAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     assert(hasattr(self, 'seconds'))
     start_time = time.time()
     tab.ExecuteJavaScript(

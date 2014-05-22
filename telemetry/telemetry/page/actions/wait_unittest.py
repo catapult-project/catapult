@@ -22,7 +22,7 @@ class WaitActionTest(tab_test_case.TabTestCase):
     try:
       i = wait.WaitAction({ 'condition': 'duration', 'seconds': 1 })
 
-      i.RunAction(None, self._tab)
+      i.RunAction(self._tab)
       self.assertEqual(mock_timer.GetTime(), 1)
     finally:
       wait.time.sleep = real_time_sleep
@@ -46,7 +46,7 @@ class WaitActionTest(tab_test_case.TabTestCase):
 
       self.assertRaises(
           util.TimeoutException,
-          lambda: wait_action.RunAction(None, self._tab))
+          lambda: wait_action.RunAction(self._tab))
       self.assertLess(mock_timer.GetTime(), 5)
     finally:
       wait.time.sleep = real_wait_time_sleep

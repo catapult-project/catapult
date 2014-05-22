@@ -24,12 +24,12 @@ from telemetry.page.actions import page_action
 
 
 class SeekAction(media_action.MediaAction):
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
-    super(SeekAction, self).WillRunAction(page, tab)
+    super(SeekAction, self).WillRunAction(tab)
     self.LoadJS(tab, 'seek.js')
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     try:
       assert hasattr(self, 'seek_time')
       selector = self.selector if hasattr(self, 'selector') else ''

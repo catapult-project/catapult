@@ -10,7 +10,7 @@ class SwipeAction(GestureAction):
   def __init__(self, attributes=None):
     super(SwipeAction, self).__init__(attributes)
 
-  def WillRunAction(self, page, tab):
+  def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'swipe.js']:
       with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
         js = f.read()
@@ -36,7 +36,7 @@ class SwipeAction(GestureAction):
         window.__swipeAction = new __SwipeAction(%s);"""
         % (done_callback))
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     left_start_percentage = 0.5
     top_start_percentage = 0.5
     direction = 'left'

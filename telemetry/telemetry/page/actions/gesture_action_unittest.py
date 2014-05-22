@@ -13,7 +13,7 @@ class MockGestureAction(gesture_action.GestureAction):
     self.sleep_func = sleep_func
     super(MockGestureAction, self).__init__(attributes)
 
-  def RunGesture(self, page, tab):
+  def RunGesture(self, tab):
     duration = getattr(self, 'duration', 2)
 
     self.sleep_func(duration)
@@ -25,7 +25,7 @@ class GestureActionTest(tab_test_case.TabTestCase):
     mock_timer = simple_mock.MockTimer()
     action = MockGestureAction(mock_timer.Sleep, { 'duration': 1 })
 
-    action.RunAction(None, self._tab)
+    action.RunAction(self._tab)
     self.assertEqual(mock_timer.GetTime(), 1)
 
   def testWaitAfter(self):
@@ -38,7 +38,7 @@ class GestureActionTest(tab_test_case.TabTestCase):
                                  { 'duration': 1,
                                    'wait_after': { 'seconds': 1 } })
 
-      action.RunAction(None, self._tab)
+      action.RunAction(self._tab)
       self.assertEqual(mock_timer.GetTime(), 2)
     finally:
       wait.time.sleep = real_time_sleep

@@ -16,7 +16,6 @@ from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.js_collect_garbage import JsCollectGarbageAction
 from telemetry.page.actions.loop import LoopAction
 from telemetry.page.actions.media_action import MediaAction
-from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.pinch import PinchAction
 from telemetry.page.actions.play import PlayAction
 from telemetry.page.actions.reload import ReloadAction

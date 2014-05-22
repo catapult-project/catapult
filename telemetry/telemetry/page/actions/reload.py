@@ -8,6 +8,6 @@ class ReloadAction(page_action.PageAction):
   def __init__(self, attributes=None):
     super(ReloadAction, self).__init__(attributes)
 
-  def RunAction(self, page, tab):
+  def RunAction(self, tab):
     tab.ExecuteJavaScript('window.location.reload()')
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
