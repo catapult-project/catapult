@@ -15,15 +15,13 @@
       this.element_ = opt_options.element;
       this.left_anchor_percentage_ = opt_options.left_anchor_percentage;
       this.top_anchor_percentage_ = opt_options.top_anchor_percentage;
-      this.zoom_in_ = opt_options.zoom_in;
-      this.pixels_to_cover_ = opt_options.pixels_to_cover;
+      this.scale_factor_ = opt_options.scale_factor;
       this.speed_ = opt_options.speed;
     } else {
       this.element_ = document.body;
       this.left_anchor_percentage_ = 0.5;
       this.top_anchor_percentage_ = 0.5;
-      this.zoom_in_ = true;
-      this.pixels_to_cover_ = 4000;
+      this.scale_factor_ = 2.0;
       this.speed_ = 800;
     }
   }
@@ -59,8 +57,7 @@
         rect.left + rect.width * this.options_.left_anchor_percentage_;
     var anchor_top =
         rect.top + rect.height * this.options_.top_anchor_percentage_;
-    chrome.gpuBenchmarking.pinchBy(this.options_.zoom_in_,
-                                   this.options_.pixels_to_cover_,
+    chrome.gpuBenchmarking.pinchBy(this.options_.scale_factor_,
                                    anchor_left, anchor_top,
                                    this.onGestureComplete_.bind(this),
                                    this.options_.speed_);
