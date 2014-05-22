@@ -210,6 +210,12 @@ def ZipDependencies(paths, dependencies, options):
       gsutil_dependencies -= FindExcludedFiles(
           set(gsutil_dependencies), options)
 
+      # Also add upload.py to the archive from depot_tools, if it is available.
+      # This allows us to post patches without requiring a full depot_tools
+      # install. There's no real point in including upload.py if we do not
+      # also have gsutil, which is why this is inside the gsutil block.
+      gsutil_dependencies.add(os.path.join(gsutil_base_dir, 'upload.py'))
+
       for path in gsutil_dependencies:
         path_in_archive = os.path.join(
             'telemetry', os.path.relpath(util.GetTelemetryDir(), base_dir),
