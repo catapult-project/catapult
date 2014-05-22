@@ -69,7 +69,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
               "units": "count",
               "important": False
             },
-            "a_by_url.http://www.bar.com/": {
+            "a.http://www.bar.com/": {
               "current": [7],
               "units": "seconds",
               "important": False
@@ -79,7 +79,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
               "units": "count",
               "important": False
             },
-            "a_by_url.http://www.foo.com/": {
+            "a.http://www.foo.com/": {
               "current": [3],
               "units": "seconds",
               "important": False
@@ -124,7 +124,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
                 "units": "count",
                 "important": False
               },
-              "a_by_url.http://www.bar.com/": {
+              "a.http://www.bar.com/": {
                 "current": [7],
                 "units": "seconds",
                 "important": False
@@ -134,7 +134,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
                 "units": "count",
                 "important": False
               },
-              "a_by_url.http://www.foo.com/": {
+              "a.http://www.foo.com/": {
                 "current": [3],
                 "units": "seconds",
                 "important": False
@@ -161,7 +161,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
                 "units": "count",
                 "important": False,
               },
-              "a_by_url.http://www.bar.com/": {
+              "a.http://www.bar.com/": {
                 "current": [8],
                 "units": "seconds",
                 "important": False
@@ -171,7 +171,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
                 "units": "count",
                 "important": False
               },
-              "a_by_url.http://www.foo.com/": {
+              "a.http://www.foo.com/": {
                 "current": [4],
                 "units": "seconds",
                 "important": False
@@ -216,7 +216,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
               "units": "count",
               "important": False
             },
-            "a_by_url.http://www.bar.com/": {
+            "a.http://www.bar.com/": {
               "current": [9],
               "units": "seconds",
               "important": False
@@ -226,7 +226,7 @@ class HtmlPageMeasurementResultsTest(unittest.TestCase):
               "units": "count",
               "important": False
             },
-            "a_by_url.http://www.foo.com/": {
+            "a.http://www.foo.com/": {
               "current": [5],
               "units": "seconds",
               "important": False

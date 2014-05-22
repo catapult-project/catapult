@@ -116,9 +116,8 @@ class Value(object):
     raise NotImplementedError()
 
   def GetBuildbotMeasurementAndTraceNameForPerPageResult(self):
-    measurement, _ = (
-       _ConvertValueNameToBuildbotChartAndTraceName(self.name))
-    return measurement + '_by_url', self.page.display_name
+    measurement, _ = _ConvertValueNameToBuildbotChartAndTraceName(self.name)
+    return measurement, self.page.display_name
 
   @property
   def name_suffix(self):

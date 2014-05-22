@@ -234,8 +234,8 @@ class PageRunnerTests(unittest.TestCase):
       self.assertEquals(0, len(results.failures))
       with open(output_file) as f:
         stdout = f.read()
-      self.assertIn('RESULT metric_by_url: blank.html= [1,3] unit', stdout)
-      self.assertIn('RESULT metric_by_url: green_rect.html= [2,4] unit', stdout)
+      self.assertIn('RESULT metric: blank.html= [1,3] unit', stdout)
+      self.assertIn('RESULT metric: green_rect.html= [2,4] unit', stdout)
       self.assertIn('*RESULT metric: metric= [1,2,3,4] unit', stdout)
     finally:
       results._output_stream.close()  # pylint: disable=W0212

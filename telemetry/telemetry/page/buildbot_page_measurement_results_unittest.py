@@ -77,8 +77,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= 7 seconds',
-                'RESULT a_by_url: http___www.foo.com_= 3 seconds',
+    expected = ['RESULT a: http___www.bar.com_= 7 seconds',
+                'RESULT a: http___www.foo.com_= 3 seconds',
                 '*RESULT a: a= [3,7] seconds\nAvg a: 5.000000seconds\n' +
                     'Sd  a: 2.828427seconds',
                 'RESULT telemetry_page_measurement_results: ' +
@@ -127,13 +127,13 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[2])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= 3 seconds',
-                'RESULT a_by_url: http___www.baz.com_= 7 seconds',
-                'RESULT a_by_url: http___www.foo.com_= 3 seconds',
+    expected = ['RESULT a: http___www.bar.com_= 3 seconds',
+                'RESULT a: http___www.baz.com_= 7 seconds',
+                'RESULT a: http___www.foo.com_= 3 seconds',
                 '*RESULT a: a= [3,3,7] seconds\nAvg a: 4.333333seconds\n' +
                     'Sd  a: 2.309401seconds',
-                'RESULT b_by_url: http___www.bar.com_= 10 seconds',
-                'RESULT b_by_url: http___www.foo.com_= 10 seconds',
+                'RESULT b: http___www.bar.com_= 10 seconds',
+                'RESULT b: http___www.foo.com_= 10 seconds',
                 '*RESULT b: b= [10,10] seconds\nAvg b: 10.000000seconds',
                 'RESULT telemetry_page_measurement_results: ' +
                     'num_failed= 0 count',
@@ -157,8 +157,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= 7 seconds',
-                'RESULT a_by_url: http___www.foo.com_= 3 seconds',
+    expected = ['RESULT a: http___www.bar.com_= 7 seconds',
+                'RESULT a: http___www.foo.com_= 3 seconds',
                 'RESULT telemetry_page_measurement_results: ' +
                     'num_failed= 1 count',
                 'RESULT telemetry_page_measurement_results: ' +
@@ -190,12 +190,12 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= [7,8] seconds\n' +
-                    'Avg a_by_url: 7.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
-                'RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
-                    'Avg a_by_url: 3.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
+    expected = ['RESULT a: http___www.bar.com_= [7,8] seconds\n' +
+                    'Avg a: 7.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
+                'RESULT a: http___www.foo.com_= [3,4] seconds\n' +
+                    'Avg a: 3.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
                 'RESULT telemetry_page_measurement_results: ' +
                     'num_failed= 1 count',
                 'RESULT telemetry_page_measurement_results: ' +
@@ -228,12 +228,12 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= [7,8] seconds\n' +
-                    'Avg a_by_url: 7.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
-                'RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
-                    'Avg a_by_url: 3.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
+    expected = ['RESULT a: http___www.bar.com_= [7,8] seconds\n' +
+                    'Avg a: 7.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
+                'RESULT a: http___www.foo.com_= [3,4] seconds\n' +
+                    'Avg a: 3.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
                 'RESULT telemetry_page_measurement_results: ' +
                     'num_failed= 0 count',
                 'RESULT telemetry_page_measurement_results: ' +
@@ -265,12 +265,12 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= [7,8] seconds\n' +
-                    'Avg a_by_url: 7.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
-                'RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
-                    'Avg a_by_url: 3.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
+    expected = ['RESULT a: http___www.bar.com_= [7,8] seconds\n' +
+                    'Avg a: 7.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
+                'RESULT a: http___www.foo.com_= [3,4] seconds\n' +
+                    'Avg a: 3.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
                 '*RESULT a: a= [3,7,4,8] seconds\n' +
                     'Avg a: 5.500000seconds\n' +
                     'Sd  a: 2.380476seconds',
@@ -306,12 +306,12 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.AddSuccess(test_page_set.pages[1])
 
     measurement_results.PrintSummary()
-    expected = ['RESULT a_by_url: http___www.bar.com_= [7,8] seconds\n' +
-                    'Avg a_by_url: 7.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
-                'RESULT a_by_url: http___www.foo.com_= [3,4] seconds\n' +
-                    'Avg a_by_url: 3.500000seconds\n' +
-                    'Sd  a_by_url: 0.707107seconds',
+    expected = ['RESULT a: http___www.bar.com_= [7,8] seconds\n' +
+                    'Avg a: 7.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
+                'RESULT a: http___www.foo.com_= [3,4] seconds\n' +
+                    'Avg a: 3.500000seconds\n' +
+                    'Sd  a: 0.707107seconds',
                 '*RESULT a: a= [3,4,7,8] seconds\n' +
                     'Avg a: 5.500000seconds\n' +
                     'Sd  a: 2.380476seconds',
@@ -376,8 +376,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.PrintSummary()
 
     expected = [
-        'RESULT b_by_url: http___www.foo.com_= [2,3] seconds\n' +
-            'Avg b_by_url: 2.500000seconds\nSd  b_by_url: 0.707107seconds',
+        'RESULT b: http___www.foo.com_= [2,3] seconds\n' +
+            'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
         '*RESULT b: b= [2,3] seconds\n' +
         'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
         '*RESULT a: a= 1 seconds',
@@ -407,8 +407,8 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
 
     self.assertEquals(
         measurement_results.results,
-        ['RESULT b_by_url: http___www.bar.com_= 3 seconds',
-         'RESULT b_by_url: http___www.foo.com_= 2 seconds',
+        ['RESULT b: http___www.bar.com_= 3 seconds',
+         'RESULT b: http___www.foo.com_= 2 seconds',
          'RESULT b: b= [2,3] seconds\n' +
             'Avg b: 2.500000seconds\nSd  b: 0.707107seconds',
          'RESULT a: a= 1 seconds',
@@ -436,10 +436,10 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.PrintSummary()
 
     expected = [
-      'RESULT b_by_url: http___www.bar.com_= [3,3] seconds\n' +
-          'Avg b_by_url: 3.000000seconds',
-      'RESULT b_by_url: http___www.foo.com_= [2,2] seconds\n' +
-          'Avg b_by_url: 2.000000seconds',
+      'RESULT b: http___www.bar.com_= [3,3] seconds\n' +
+          'Avg b: 3.000000seconds',
+      'RESULT b: http___www.foo.com_= [2,2] seconds\n' +
+          'Avg b: 2.000000seconds',
       '*RESULT b: b= [2,2,3,3] seconds\nAvg b: 2.500000seconds\n' +
           'Sd  b: 0.577350seconds',
       '*RESULT a: a= [1,1] seconds\nAvg a: 1.000000seconds',
@@ -468,12 +468,12 @@ class BuildbotPageMeasurementResultsTest(unittest.TestCase):
     measurement_results.PrintSummary()
 
     expected = [
-        'HISTOGRAM a_by_url: http___www.bar.com_= ' +
+        'HISTOGRAM a: http___www.bar.com_= ' +
             '{"buckets": [{"low": 2, "high": 3, "count": 1}]} units\n' +
-            'Avg a_by_url: 2.500000units',
-        'HISTOGRAM a_by_url: http___www.foo.com_= ' +
+            'Avg a: 2.500000units',
+        'HISTOGRAM a: http___www.foo.com_= ' +
             '{"buckets": [{"low": 1, "high": 2, "count": 1}]} units\n' +
-            'Avg a_by_url: 1.500000units',
+            'Avg a: 1.500000units',
         'RESULT telemetry_page_measurement_results: num_failed= 0 count',
         'RESULT telemetry_page_measurement_results: num_errored= 0 count']
     self.assertEquals(expected, measurement_results.results)

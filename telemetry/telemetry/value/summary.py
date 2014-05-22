@@ -78,15 +78,15 @@ class Summary(object):
 
     # Now we have a bunch of values, but there is only one value_name per page.
     # Suppose page1 and page2 ran, producing values x and y. We want to print
-    #    x_by_url for page1
-    #    x_by_url for page2
+    #    x for page1
+    #    x for page2
     #    x for page1, page2 combined
     #
-    #    y_by_url for page1
-    #    y_by_url for page2
+    #    y for page1
+    #    y for page2
     #    y for page1, page2 combined
     #
-    # We already have the x_by_url values in the values array. But, we will need
+    # We already have the x values in the values array. But, we will need
     # them indexable by the value name.
     #
     # The following dict maps value_name -> list of pages that have values of
@@ -95,7 +95,7 @@ class Summary(object):
     for value in merged_page_values:
       per_page_values_by_value_name[value.name].append(value)
 
-    # We already have the x_by_url values in the values array. But, we also need
+    # We already have the x values in the values array. But, we also need
     # the values merged across the pages. And, we will need them indexed by
     # value name so that we can find them when printing out value names in
     # alphabetical order.
@@ -110,8 +110,8 @@ class Summary(object):
     value_names = set([v.name for v in merged_page_values])
     sorted_value_names = sorted(value_names)
 
-    # Time to walk through the values by name, printing first the by_url values
-    # and then the merged_site value.
+    # Time to walk through the values by name, printing first the page-specific
+    # values and then the merged_site value.
     for value_name in sorted_value_names:
       per_page_values = per_page_values_by_value_name.get(value_name, [])
 
@@ -120,7 +120,7 @@ class Summary(object):
       sorted_per_page_values.sort(
           key=lambda per_page_values: per_page_values.page.display_name)
 
-      # Output the _by_url results.
+      # Output the page-specific results.
       num_successful_pages_for_this_value_name = (
           num_successful_pages_for_value_name[value_name])
       for per_page_value in sorted_per_page_values:
