@@ -73,6 +73,7 @@
       'third_party/tvcm/src/tvcm/ui/pie_chart.css',
       'third_party/tvcm/src/tvcm/ui/quad_stack_view.css',
       'third_party/tvcm/src/tvcm/ui/sortable_table.css',
+      'third_party/tvcm/src/tvcm/ui/sunburst_chart.css',
       'third_party/tvcm/src/tvcm/ui/tool_button.css',
     ],
     'tracing_js_files': [
@@ -287,6 +288,7 @@
       'third_party/tvcm/src/tvcm/ui/pie_chart.js',
       'third_party/tvcm/src/tvcm/ui/quad_stack_view.js',
       'third_party/tvcm/src/tvcm/ui/sortable_table.js',
+      'third_party/tvcm/src/tvcm/ui/sunburst_chart.js',
     ],
     'tracing_img_files': [
       'trace_viewer/images/checkerboard.png',
