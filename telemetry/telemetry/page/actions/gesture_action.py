@@ -56,7 +56,8 @@ class GestureAction(page_action.PageAction):
     if tab.EvaluateJavaScript("""
         typeof chrome.gpuBenchmarking.gestureSourceTypeSupported ===
             'undefined'"""):
-      return True
+      return (tab.browser.platform.GetOSName() != 'mac' or
+              gesture_source_type.lower() != 'touch')
 
     return tab.EvaluateJavaScript("""
         chrome.gpuBenchmarking.gestureSourceTypeSupported(
