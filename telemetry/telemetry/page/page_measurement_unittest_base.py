@@ -4,6 +4,7 @@
 
 import unittest
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.page import page_runner
 from telemetry.page import page as page_module
@@ -21,6 +22,7 @@ class BasicTestPage(page_module.Page):
 
   def RunSmoothness(self, action_runner):
     action_runner.RunAction(ScrollAction())
+
 
 class PageMeasurementUnitTestBase(unittest.TestCase):
   """unittest.TestCase-derived class to help in the construction of unit tests
@@ -77,7 +79,7 @@ class PageMeasurementUnitTestBase(unittest.TestCase):
         def FakeStartTracing(*args, **kwargs):
           ActualStartTracing(*args, **kwargs)
           start_tracing_called[0] = True
-          raise Exception('Intentional exception')
+          raise exceptions.IntentionalException
         browser.StartTracing = FakeStartTracing
 
         ActualStopTracing = browser.StopTracing

@@ -44,6 +44,10 @@ class ProcessGoneException(Exception):
   """Represents a process that no longer exists for an unknown reason."""
 
 
+class IntentionalException(Exception):
+  """Represent an exception raised by a unittest which is not printed."""
+
+
 class LoginException(Exception):
   pass
 

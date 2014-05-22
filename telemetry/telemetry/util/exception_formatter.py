@@ -9,16 +9,21 @@ import os
 import sys
 import traceback
 
+from telemetry.core import exceptions
 from telemetry.core import util
 
 
-def PrintFormattedException(exception_class=None, exception=None, tb=None):
+def PrintFormattedException(exception_class=None, exception=None, tb=None,
+                            msg=None):
   if not (bool(exception_class) == bool(exception) == bool(tb)):
     raise ValueError('Must specify all or none of '
                      'exception_class, exception, and tb')
 
   if not exception_class:
     exception_class, exception, tb = sys.exc_info()
+
+  if exception_class == exceptions.IntentionalException:
+    return
 
   def _GetFinalFrame(tb_level):
     while tb_level.tb_next:
@@ -29,6 +34,11 @@ def PrintFormattedException(exception_class=None, exception=None, tb=None):
   frame = _GetFinalFrame(tb)
   exception_list = traceback.format_exception_only(exception_class, exception)
   exception_string = '\n'.join(l.strip() for l in exception_list)
+
+  if msg:
+    print >> sys.stderr
+    print >> sys.stderr, msg
+
   _PrintFormattedTrace(processed_tb, frame, exception_string)
 
 

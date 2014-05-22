@@ -504,13 +504,13 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   page_state = PageState(page, test.TabForPage(page, state.browser))
 
   def ProcessError():
-    logging.error('%s:', page.url)
-    exception_formatter.PrintFormattedException()
     if expectation == 'fail':
-      logging.info('Error was expected\n')
+      msg = 'Expected exception while running %s' % page.url
       results.AddSuccess(page)
     else:
+      msg = 'Exception while running %s' % page.url
       results.AddError(page, sys.exc_info())
+    exception_formatter.PrintFormattedException(msg=msg)
 
   try:
     page_state.PreparePage(test)
@@ -523,13 +523,12 @@ def _RunPage(test, page, state, expectation, results, finder_options):
     raise
   except page_test.Failure:
     if expectation == 'fail':
-      logging.info('%s:', page.url)
-      exception_formatter.PrintFormattedException()
-      logging.info('Failure was expected\n')
+      exception_formatter.PrintFormattedException(
+          msg='Expected failure while running %s' % page.url)
       results.AddSuccess(page)
     else:
-      logging.warning('%s:', page.url)
-      exception_formatter.PrintFormattedException()
+      exception_formatter.PrintFormattedException(
+          msg='Failure while running %s' % page.url)
       results.AddFailure(page, sys.exc_info())
   except (util.TimeoutException, exceptions.LoginException,
           exceptions.ProfilingException):
@@ -541,8 +540,8 @@ def _RunPage(test, page, state, expectation, results, finder_options):
   except page_action.PageActionNotSupported as e:
     results.AddSkip(page, 'Unsupported page action: %s' % e)
   except Exception:
-    logging.warning('While running %s', page.url)
-    exception_formatter.PrintFormattedException()
+    exception_formatter.PrintFormattedException(
+        msg='Unhandled exception while running %s' % page.url)
     results.AddFailure(page, sys.exc_info())
   else:
     if expectation == 'fail':

@@ -426,7 +426,7 @@ class PageRunnerTests(unittest.TestCase):
         self.did_call_clean_up = False
 
       def ValidatePage(self, *_):
-        raise Exception('Intentional failure')
+        raise exceptions.IntentionalException
 
       def CleanUpAfterPage(self, page, tab):
         self.did_call_clean_up = True

@@ -6,6 +6,7 @@ import json
 import os
 
 from telemetry import test
+from telemetry.core import exceptions
 from telemetry.core import wpr_modes
 from telemetry.page import page as page_module
 from telemetry.page import page_measurement
@@ -17,7 +18,7 @@ from telemetry.unittest import options_for_unittests
 
 class MeasurementThatFails(page_measurement.PageMeasurement):
   def MeasurePage(self, page, tab, results):
-    raise page_measurement.MeasurementFailure('Intentional failure.')
+    raise exceptions.IntentionalException
 
 class MeasurementThatHasDefaults(page_measurement.PageMeasurement):
   def AddCommandLineArgs(self, parser):
