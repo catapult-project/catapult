@@ -48,8 +48,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Note that we also perform this copy locally to ensure that
     # the owner of the extensions is set to chronos.
     for e in extensions_to_load:
-      output = cri.RunCmdOnDevice(['mktemp', '-d', '/tmp/extension_XXXXX'])
-      extension_dir = output[0].rstrip()
+      extension_dir = cri.RunCmdOnDevice(
+          ['mktemp', '-d', '/tmp/extension_XXXXX'])[0].rstrip()
       cri.PushFile(e.path, extension_dir)
       cri.Chown(extension_dir)
       e.local_path = os.path.join(extension_dir, os.path.basename(e.path))
