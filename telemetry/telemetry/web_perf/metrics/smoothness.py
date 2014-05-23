@@ -13,6 +13,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     super(SmoothnessMetric, self).__init__()
 
   def AddResults(self, model, renderer_thread, interaction_records, results):
+    self.VerifyNonOverlappedRecords(interaction_records)
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
       renderer_process, model.browser_process,
