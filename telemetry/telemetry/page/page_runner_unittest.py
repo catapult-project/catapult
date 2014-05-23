@@ -438,3 +438,42 @@ class PageRunnerTests(unittest.TestCase):
     SetUpPageRunnerArguments(options)
     page_runner.Run(test, ps, expectations, options)
     assert test.did_call_clean_up
+
+  # Ensure skipping the test if page cannot be run on the browser
+  def testPageCannotRunOnBrowser(self):
+    ps = page_set.PageSet()
+    expectations = test_expectations.TestExpectations()
+
+    class PageThatCannotRunOnBrowser(page_module.Page):
+
+      def __init__(self):
+        super(PageThatCannotRunOnBrowser, self).__init__(
+            url='file://blank.html', page_set=ps,
+            base_dir=util.GetUnittestDataDir())
+
+      def CanRunOnBrowser(self, _):
+        return False
+
+      def ValidatePage(self, _):
+        pass
+
+    class Test(page_test.PageTest):
+      def __init__(self, *args, **kwargs):
+        super(Test, self).__init__(*args, **kwargs)
+        self.will_navigate_to_page_called = False
+
+      def ValidatePage(self, *args):
+        pass
+
+      def WillNavigateToPage(self, _1, _2):
+        self.will_navigate_to_page_called = True
+
+    test = Test()
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
+    results = page_runner.Run(test, ps, expectations, options)
+    self.assertFalse(test.will_navigate_to_page_called)
+    self.assertEquals(0, len(results.successes))
+    self.assertEquals(0, len(results.failures))
+    self.assertEquals(0, len(results.errors))

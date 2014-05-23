@@ -14,6 +14,7 @@ import time
 
 from telemetry import decorators
 from telemetry.core import browser_finder
+from telemetry.core import browser_info
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import wpr_modes
@@ -251,6 +252,11 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         # options for just the current page before starting the browser.
       state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
                                  credentials_path, page.archive_path)
+      if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
+        logging.info('Skip test for page %s because browser is not supported.'
+                     % page.url)
+        results_for_current_run.StopTest(page)
+        return results
 
       expectation = expectations.GetExpectationForPage(state.browser, page)
 
