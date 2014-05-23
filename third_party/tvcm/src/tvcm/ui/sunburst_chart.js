@@ -51,7 +51,7 @@ tvcm.exportTo('tvcm.ui', function() {
 
     /**
      * @param {Data} Data for the chart, where data must be of the
-     * form {comp: str, name: str, (size: number or children: [])} .
+     * form {category: str, name: str, (size: number or children: [])} .
      */
     set data(data) {
       this.data_ = data;
@@ -334,7 +334,7 @@ tvcm.exportTo('tvcm.ui', function() {
         path.enter().insert('svg:path')
           .attr('d', arc)
           .attr('fill-rule', 'evenodd')
-          .style('fill', function(dd) { return colors[dd.comp]; })
+          .style('fill', function(dd) { return colors[dd.category]; })
           .style('opacity', 0.7)
           .on('mouseover', mouseover)
           .on('click', click);

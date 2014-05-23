@@ -1,0 +1,110 @@
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<template id="x-sample-summary-side-panel-template">
+  <style>
+    .x-sample-summary-side-panel {
+      display: block;
+    }
+    .x-sample-summary-side-panel > toolbar {
+      border-bottom: 1px solid black;
+    }
+
+    .x-sample-summary-side-panel > x-left-panel {
+      position: relative;
+      width: 810px;
+      left: 0;
+      top: 0;
+      height: 820px;
+      margin: 5;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel {
+      display: block;
+      min-height: 810px;
+      margin-left: 810px;
+      margin: 5;
+    }
+
+    .x-sample-summary-side-panel > x-left-panel > result-area {
+      display: block;
+      width: 810px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 810px;
+      margin: 5;
+    }
+
+    .x-sample-summary-side-panel > x-left-panel > x-legend {
+      display: block;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 10px 0 0 3px;
+      font-weight: 600;
+      fill: #fff;
+    }
+
+    .x-sample-summary-side-panel >x-right-panel > x-sequence {
+      display: block;
+      width: auto;
+      height: 400px;
+    }
+
+    .x-sample-summary-side-panel > x-left-panel > x-explanation {
+      display: block;
+      position: absolute;
+      top: 300px;
+      left: 255px;
+      width: 100px;
+      height: 100px;
+      text-align: center;
+      vertical-align:middle;
+      color: #666;
+      z-index: -1;
+      font-size: 1.0em;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-sequence text {
+      font-weight: 600;
+      fill: #fff;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-callees {
+      display: block;
+      position: relative;
+      width: auto;
+      height: auto;
+      z-index: 1;
+    }
+  </style>
+
+  <toolbar>
+  </toolbar>
+
+  <x-left-panel>
+    <result-area></result-area>
+    <x-legend>Legend</x-legend>
+    <x-explanation><span id="percentage"/>123ms<br>100.0%</x-explanation>
+  </x-left-panel>
+  <x-right-panel>
+    <x-sequence>
+      callstack<br>
+      callstack<br>
+      callstack<br>
+      callstack<br>
+      callstack<br>
+    </x-sequence>
+    <x-callees>
+      <table id="example" class="display" cellspacing="0" width="auto">
+        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
+        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
+        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
+      </table>
+    </x-callees>
+  </x-right-panel>
+</template>
