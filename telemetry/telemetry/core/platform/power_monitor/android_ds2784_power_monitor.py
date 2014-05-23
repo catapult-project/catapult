@@ -23,7 +23,6 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
     super(DS2784PowerMonitor, self).__init__()
     self._device = device
     self._powermonitor_process_port = None
-    android_prebuilt_profiler_helper.InstallOnDevice(device, 'file_poller')
     self._file_poller_binary = android_prebuilt_profiler_helper.GetDevicePath(
         'file_poller')
 
@@ -43,6 +42,8 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._powermonitor_process_port, (
         'Must call StopMonitoringPower().')
+    android_prebuilt_profiler_helper.InstallOnDevice(
+        self._device, 'file_poller')
     self._powermonitor_process_port = int(
         self._device.old_interface.RunShellCommand(
             '%s %d %s %s %s' % (self._file_poller_binary, SAMPLE_RATE_HZ,
