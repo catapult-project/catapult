@@ -345,6 +345,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           async_slice.end_thread = async_event_state['thread']
           if async_slice.start_thread == async_slice.end_thread:
             if 'tts' in event and 'tts' in events[0]['event']:
+              async_slice.thread_start = events[0]['event']['tts'] / 1000.0
               async_slice.thread_duration = ((event['tts'] / 1000.0)
                   - (events[0]['event']['tts'] / 1000.0))
           async_slice.id = event_id

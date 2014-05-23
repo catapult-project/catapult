@@ -945,6 +945,8 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('a', parent_slice.name)
     self.assertEqual('foo', parent_slice.category)
     self.assertEqual(0, parent_slice.start)
+    self.assertAlmostEqual(17/1000.0, parent_slice.thread_start)
+    self.assertAlmostEqual(25/1000.0, parent_slice.thread_end)
 
     self.assertEqual(2, len(parent_slice.sub_slices))
     sub_slice = parent_slice.sub_slices[0]
