@@ -173,10 +173,12 @@ def GetIfChanged(file_path, bucket=None):
   """
   hash_path = file_path + '.sha1'
   if not os.path.exists(hash_path):
+    logging.warning('Hash file not found: %s' % hash_path)
     return False
 
   expected_hash = ReadHash(hash_path)
   if os.path.exists(file_path) and CalculateHash(file_path) == expected_hash:
+    logging.info('File up to date: %s' % file_path)
     return False
 
   if bucket:
@@ -188,6 +190,7 @@ def GetIfChanged(file_path, bucket=None):
   for bucket in buckets:
     try:
       url = 'gs://%s/%s' % (bucket, expected_hash)
+      logging.info('Running gsutil command: cp %s %s' % (url, file_path))
       _RunCommand(['cp', url, file_path])
       logging.info('Downloaded %s to %s' % (url, file_path))
       found = True
