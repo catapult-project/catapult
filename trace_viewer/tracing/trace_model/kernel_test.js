@@ -27,7 +27,7 @@ tvcm.unittest.testSuite('tracing.trace_model.kernel_test', function() {
   test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
     var m = new tracing.TraceModel();
     m.importTraces([], false, false, function() {
-      m.softwareMeasuredCpuCount = 2;
+      m.kernel.softwareMeasuredCpuCount = 2;
     });
     assertEquals(2, m.kernel.bestGuessAtCpuCount);
   });
