@@ -45,17 +45,27 @@ tvcm.unittest.testSuite('tracing.timeline_track_view_test', function() {
   };
 
   test('instantiate', function() {
-    var events = [
-      {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'},
-      {name: 'b', args: {}, pid: 52, ts: 629, cat: 'foo', tid: 53, ph: 'B'},
-      {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'}
-    ];
-    var model = new tracing.TraceModel(events);
+    var model = new tracing.TraceModel();
+    var num_threads = 500;
+    model.importTraces([], false, false, function() {
+      var p100 = model.getOrCreateProcess(100);
+      for (var i = 0; i < num_threads; i++) {
+        var t = p100.getOrCreateThread(101 + i);
+        if (i % 2 == 0) {
+          t.sliceGroup.beginSlice('cat', 'a', 100);
+          t.sliceGroup.endSlice(110);
+        } else {
+          t.sliceGroup.beginSlice('cat', 'b', 50);
+          t.sliceGroup.endSlice(120);
+        }
+      }
+    });
+
     var timeline = new tracing.TimelineTrackView();
     timeline.model = model;
     timeline.focusElement = timeline;
     timeline.tabIndex = 0;
+    timeline.style.maxHeight = '600px';
     this.addHTMLOutput(timeline);
   });
 
