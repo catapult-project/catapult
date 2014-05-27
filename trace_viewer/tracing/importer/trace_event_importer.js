@@ -58,6 +58,7 @@ tvcm.exportTo('tracing.importer', function() {
     this.stackFrameEvents_ = undefined;
     this.systemTraceEvents_ = undefined;
     this.eventsWereFromString_ = false;
+    this.softwareMeasuredCpuCount_ = undefined;
     this.allAsyncEvents_ = [];
     this.allFlowEvents_ = [];
     this.allObjectEvents_ = [];
@@ -313,7 +314,13 @@ tvcm.exportTo('tracing.importer', function() {
             getOrCreateThread(event.tid);
         thread.sortIndex = event.args.sort_index;
       } else if (event.name == 'num_cpus') {
-        this.model_.kernel.softwareMeasuredCpuCount = event.args.number;
+        var n = event.args.number;
+        // Not all render processes agree on the cpu count in trace_event. Some
+        // processes will report 1, while others will report the actual cpu
+        // count. To deal with this, take the max of what is reported.
+        if (this.softwareMeasuredCpuCount_ !== undefined)
+          n = Math.max(n, this.softwareMeasuredCpuCount_);
+        this.softwareMeasuredCpuCount_ = n;
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',
@@ -471,6 +478,10 @@ tvcm.exportTo('tracing.importer', function() {
      * events.
      */
     finalizeImport: function() {
+      if (this.softwareMeasuredCpuCount_ !== undefined) {
+        this.model_.kernel.softwareMeasuredCpuCount =
+            this.softwareMeasuredCpuCount_;
+      }
       this.createAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
