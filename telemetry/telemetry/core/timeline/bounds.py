@@ -97,3 +97,18 @@ class Bounds(object):
       return 1
 
     return 0
+
+  @staticmethod
+  def GetOverlapBetweenBounds(first_bounds, second_bounds):
+    """Compute the overlap duration between first_bounds and second_bounds."""
+    return Bounds.GetOverlap(first_bounds.min_, first_bounds.max_,
+                             second_bounds.min_, second_bounds.max_)
+
+  @staticmethod
+  def GetOverlap(first_bounds_min, first_bounds_max,
+                 second_bounds_min, second_bounds_max):
+    assert first_bounds_min <= first_bounds_max
+    assert second_bounds_min <= second_bounds_max
+    overlapped_range_start = max(first_bounds_min, second_bounds_min)
+    overlapped_range_end = min(first_bounds_max, second_bounds_max)
+    return max(overlapped_range_end - overlapped_range_start, 0)

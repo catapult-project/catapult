@@ -10,9 +10,11 @@ class AsyncSlice(event.TimelineEvent):
   itself and so is only associated with Threads at its start and end point.
   '''
   def __init__(self, category, name, timestamp, args=None,
-               duration=0, start_thread=None, end_thread=None):
+               duration=0, start_thread=None, end_thread=None,
+               thread_start=None, thread_duration=None):
     super(AsyncSlice, self).__init__(
-        category, name, timestamp, duration=duration, args=args)
+        category, name, timestamp, duration, thread_start, thread_duration,
+        args)
     self.parent_slice = None
     self.start_thread = start_thread
     self.end_thread = end_thread
@@ -22,7 +24,6 @@ class AsyncSlice(event.TimelineEvent):
   def AddSubSlice(self, sub_slice):
     assert sub_slice.parent_slice == self
     self.sub_slices.append(sub_slice)
-
 
   def IterEventsInThisContainerRecrusively(self):
     for sub_slice in self.sub_slices:

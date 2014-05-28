@@ -5,10 +5,13 @@
 import unittest
 
 from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.core.timeline import slice as slice_module
 from telemetry.core.timeline import async_slice
+from telemetry.core.timeline import model as model_module
 
 
 class ParseTests(unittest.TestCase):
+
   def testParse(self):
     self.assertTrue(tir_module.IsTimelineInteractionRecord(
         'Interaction.Foo'))
@@ -17,29 +20,40 @@ class ParseTests(unittest.TestCase):
     self.assertFalse(tir_module.IsTimelineInteractionRecord(
         'SomethingRandom'))
 
-  def CreateRecord(self, event_name):
+
+class TimelineInteractionRecordTests(unittest.TestCase):
+
+  def CreateSimpleRecordWithName(self, event_name):
     s = async_slice.AsyncSlice(
-      'cat', event_name,
-      timestamp=1, duration=2)
-    return tir_module.TimelineInteractionRecord.FromEvent(s)
+        'cat', event_name,
+        timestamp=0, duration=200, thread_start=20, thread_duration=100)
+    return tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
+
+  def CreateTestSliceFromTimeRanges(
+      self, parent_thread, time_start, time_end, thread_start, thread_end):
+    duration = time_end - time_start
+    thread_duration = thread_end - thread_start
+    return slice_module.Slice(parent_thread, 'Test', 'foo', time_start,
+                              duration, thread_start, thread_duration)
 
   def testCreate(self):
-    r = self.CreateRecord('Interaction.LogicalName')
+    r = self.CreateSimpleRecordWithName('Interaction.LogicalName')
     self.assertEquals('LogicalName', r.logical_name)
     self.assertEquals(False, r.is_smooth)
     self.assertEquals(False, r.is_loading_resources)
 
-    r = self.CreateRecord('Interaction.LogicalName/is_smooth')
+    r = self.CreateSimpleRecordWithName('Interaction.LogicalName/is_smooth')
     self.assertEquals('LogicalName', r.logical_name)
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(False, r.is_loading_resources)
 
-    r = self.CreateRecord('Interaction.LogicalNameWith/Slash/is_smooth')
+    r = self.CreateSimpleRecordWithName(
+        'Interaction.LogicalNameWith/Slash/is_smooth')
     self.assertEquals('LogicalNameWith/Slash', r.logical_name)
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(False, r.is_loading_resources)
 
-    r = self.CreateRecord(
+    r = self.CreateSimpleRecordWithName(
         'Interaction.LogicalNameWith/Slash/is_smooth,is_loading_resources')
     self.assertEquals('LogicalNameWith/Slash', r.logical_name)
     self.assertEquals(True, r.is_smooth)
@@ -47,10 +61,86 @@ class ParseTests(unittest.TestCase):
 
   def testGetJavascriptMarker(self):
     smooth_marker = tir_module.TimelineInteractionRecord.GetJavascriptMarker(
-      'LogicalName', [tir_module.IS_SMOOTH])
+        'LogicalName', [tir_module.IS_SMOOTH])
     self.assertEquals('Interaction.LogicalName/is_smooth', smooth_marker)
     slr_marker = tir_module.TimelineInteractionRecord.GetJavascriptMarker(
-      'LogicalName', [tir_module.IS_SMOOTH, tir_module.IS_LOADING_RESOURCES])
+        'LogicalName', [tir_module.IS_SMOOTH, tir_module.IS_LOADING_RESOURCES])
     self.assertEquals('Interaction.LogicalName/is_smooth,is_loading_resources',
                       slr_marker)
 
+  def testGetOverlappedThreadTimeForSliceInSameThread(self):
+    # Create a renderer thread.
+    model = model_module.TimelineModel()
+    renderer_main = model.GetOrCreateProcess(1).GetOrCreateThread(2)
+    model.FinalizeImport()
+
+   # Make a record that starts at 30ms and ends at 60ms in thread time.
+    s = async_slice.AsyncSlice(
+        'cat', 'Interaction.Test/is_smooth',
+        timestamp=0, duration=200, start_thread=renderer_main,
+        end_thread=renderer_main, thread_start=30, thread_duration=30)
+    record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
+
+    # Non overlapped range on the left of event.
+    s1 = self.CreateTestSliceFromTimeRanges(renderer_main, 0, 100, 10, 20)
+    self.assertEquals(0, record.GetOverlappedThreadTimeForSlice(s1))
+
+    # Non overlapped range on the right of event.
+    s2 = self.CreateTestSliceFromTimeRanges(renderer_main, 0, 100, 70, 90)
+    self.assertEquals(0, record.GetOverlappedThreadTimeForSlice(s2))
+
+    # Overlapped range on the left of event.
+    s3 = self.CreateTestSliceFromTimeRanges(renderer_main, 0, 100, 20, 50)
+    self.assertEquals(20, record.GetOverlappedThreadTimeForSlice(s3))
+
+    # Overlapped range in the middle of event.
+    s4 = self.CreateTestSliceFromTimeRanges(renderer_main, 0, 100, 40, 50)
+    self.assertEquals(10, record.GetOverlappedThreadTimeForSlice(s4))
+
+    # Overlapped range on the left of event.
+    s5 = self.CreateTestSliceFromTimeRanges(renderer_main, 0, 100, 50, 90)
+    self.assertEquals(10, record.GetOverlappedThreadTimeForSlice(s5))
+
+  def testGetOverlappedThreadTimeForSliceInDifferentThread(self):
+    # Create a renderer thread and another thread.
+    model = model_module.TimelineModel()
+    renderer_main = model.GetOrCreateProcess(1).GetOrCreateThread(2)
+    another_thread = model.GetOrCreateProcess(1).GetOrCreateThread(3)
+    model.FinalizeImport()
+
+   # Make a record that starts at 50ms and ends at 150ms in wall time, and is
+   # scheduled 75% of the time (hence thread_duration = 100ms*75% = 75ms).
+    s = async_slice.AsyncSlice(
+        'cat', 'Interaction.Test/is_smooth',
+        timestamp=50, duration=100, start_thread=renderer_main,
+        end_thread=renderer_main, thread_start=55, thread_duration=75)
+    record = tir_module.TimelineInteractionRecord.FromAsyncEvent(s)
+
+    # Non overlapped range on the left of event.
+    s1 = self.CreateTestSliceFromTimeRanges(another_thread, 25, 40, 28, 30)
+    self.assertEquals(0, record.GetOverlappedThreadTimeForSlice(s1))
+
+    # Non overlapped range on the right of event.
+    s2 = self.CreateTestSliceFromTimeRanges(another_thread, 200, 300, 270, 290)
+    self.assertEquals(0, record.GetOverlappedThreadTimeForSlice(s2))
+
+    # Overlapped range on the left of event, and slice is scheduled 50% of the
+    # time.
+    # The overlapped wall-time duration is 50ms.
+    # The overlapped thread-time duration is 50ms * 75% * 50% = 18.75
+    s3 = self.CreateTestSliceFromTimeRanges(another_thread, 0, 100, 20, 70)
+    self.assertEquals(18.75, record.GetOverlappedThreadTimeForSlice(s3))
+
+    # Overlapped range in the middle of event, and slice is scheduled 20% of the
+    # time.
+    # The overlapped wall-time duration is 40ms.
+    # The overlapped thread-time duration is 40ms * 75% * 20% = 6
+    s4 = self.CreateTestSliceFromTimeRanges(another_thread, 100, 140, 120, 128)
+    self.assertEquals(6, record.GetOverlappedThreadTimeForSlice(s4))
+
+    # Overlapped range on the left of event, and slice is scheduled 100% of the
+    # time.
+    # The overlapped wall-time duration is 32ms.
+    # The overlapped thread-time duration is 32ms * 75% * 100% = 24
+    s5 = self.CreateTestSliceFromTimeRanges(another_thread, 118, 170, 118, 170)
+    self.assertEquals(24, record.GetOverlappedThreadTimeForSlice(s5))

@@ -27,6 +27,10 @@ class TimelineEvent(object):
     return self.start + self.duration
 
   @property
+  def has_thread_timestamps(self):
+    return self.thread_start is not None and self.thread_duration is not None
+
+  @property
   def thread_end(self):
     """Thread-specific CPU time when this event ended.
 

@@ -30,11 +30,13 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     renderer_thread.async_slices.append(async_slice.AsyncSlice(
         'cat', 'Interaction.LogicalName1/is_smooth',
         timestamp=0, duration=20,
-        start_thread=renderer_thread, end_thread=renderer_thread))
+        start_thread=renderer_thread, end_thread=renderer_thread,
+        thread_start=5, thread_duration=15))
     renderer_thread.async_slices.append(async_slice.AsyncSlice(
         'cat', 'Interaction.LogicalName2/is_loading_resources',
         timestamp=25, duration=5,
-        start_thread=renderer_thread, end_thread=renderer_thread))
+        start_thread=renderer_thread, end_thread=renderer_thread,
+        thread_start=25, thread_duration=5))
     model.FinalizeImport()
 
     self.model = model

@@ -26,7 +26,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     for event in renderer_thread.async_slices:
       if not tir_module.IsTimelineInteractionRecord(event.name):
         continue
-      records.append(tir_module.TimelineInteractionRecord.FromEvent(event))
+      records.append(tir_module.TimelineInteractionRecord.FromAsyncEvent(event))
     self.assertEqual(1, len(records),
                      'Fail to issue the interaction record on tracing timeline.'
                      ' Trace data:\n%s' % repr(trace_data.EventData()))
