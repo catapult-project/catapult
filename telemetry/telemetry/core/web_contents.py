@@ -44,7 +44,24 @@ class WebContents(object):
         # may time out here early. Instead, we want to wait for the full
         # timeout of this method.
         return False
-    util.WaitFor(IsJavaScriptExpressionTrue, timeout)
+    try:
+      util.WaitFor(IsJavaScriptExpressionTrue, timeout)
+    except util.TimeoutException as e:
+      # Try to make timeouts a little more actionable by dumping |this|.
+      raise util.TimeoutException(e.message + '\n\nJavaScript |this|:\n' +
+                                  self.EvaluateJavaScript("""
+        (function() {
+          var error = '';
+          for (name in this) {
+            try {
+              error += '\\t' + name + ': ' + this[name] + '\\n';
+            } catch (e) {
+              error += '\\t' + name + ': ???\\n';
+            }
+          }
+          return error;
+        })();
+      """))
 
   def HasReachedQuiescence(self):
     """Determine whether the page has reached quiescence after loading.
