@@ -12,7 +12,7 @@ import tempfile
 
 from telemetry.core import util
 from telemetry.core.platform import profiler
-from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.core.platform.profiler import android_profiling_helper
 
 
 class _SingleProcessPerfProfiler(object):
@@ -21,7 +21,8 @@ class _SingleProcessPerfProfiler(object):
   On android, this profiler uses pre-built binaries from AOSP.
   See more details in prebuilt/android/README.txt.
   """
-  def __init__(self, pid, output_file, browser_backend, platform_backend):
+  def __init__(self, pid, output_file, browser_backend, platform_backend,
+               perf_binary):
     self._pid = pid
     self._browser_backend = browser_backend
     self._platform_backend = platform_backend
@@ -30,8 +31,6 @@ class _SingleProcessPerfProfiler(object):
     self._is_android = platform_backend.GetOSName() == 'android'
     cmd_prefix = []
     if self._is_android:
-      perf_binary = android_prebuilt_profiler_helper.GetDevicePath(
-          'perf')
       cmd_prefix = ['adb', '-s', browser_backend.adb.device_serial(), 'shell',
                     perf_binary]
       output_file = os.path.join('/sdcard', 'perf_profiles',
@@ -39,8 +38,9 @@ class _SingleProcessPerfProfiler(object):
       self._device_output_file = output_file
       browser_backend.adb.RunShellCommand(
           'mkdir -p ' + os.path.dirname(self._device_output_file))
+      browser_backend.adb.RunShellCommand('rm -f ' + self._device_output_file)
     else:
-      cmd_prefix = ['perf']
+      cmd_prefix = [perf_binary]
     # In perf 3.13 --call-graph requires an argument, so use
     # the -g short-hand which does not.
     self._proc = subprocess.Popen(cmd_prefix +
@@ -79,80 +79,29 @@ Try rerunning this script under sudo or setting
       self._tmp_output_file.close()
     cmd = 'perf report -n -i %s' % self._output_file
     if self._is_android:
-      print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
-      print 'symbolized library matching the one on device.'
+      device = self._browser_backend.adb.device()
+      device.old_interface.Adb().Pull(self._device_output_file,
+                                      self._output_file)
+      required_libs = \
+          android_profiling_helper.GetRequiredLibrariesForPerfProfile(
+              self._output_file)
+      symfs_root = os.path.dirname(self._output_file)
+      kallsyms = android_profiling_helper.CreateSymFs(device,
+                                                      symfs_root,
+                                                      required_libs,
+                                                      use_symlinks=True)
+      cmd += ' --symfs %s --kallsyms %s' % (symfs_root, kallsyms)
+
       objdump_path = os.path.join(os.environ.get('ANDROID_TOOLCHAIN',
                                                  '$ANDROID_TOOLCHAIN'),
                                   'arm-linux-androideabi-objdump')
       print 'If you have recent version of perf (3.10+), append the following '
       print 'to see annotated source code (by pressing the \'a\' key): '
       print '  --objdump %s' % objdump_path
-      cmd += ' ' + ' '.join(self._PrepareAndroidSymfs())
+
     print 'To view the profile, run:'
     print ' ', cmd
     return self._output_file
-
-  def _PrepareAndroidSymfs(self):
-    """Create a symfs directory using an Android device.
-
-    Create a symfs directory by pulling the necessary files from an Android
-    device.
-
-    Returns:
-      List of arguments to be passed to perf to point it to the created symfs.
-    """
-    assert self._is_android
-    device = self._browser_backend.adb.device()
-    device.old_interface.Adb().Pull(self._device_output_file, self._output_file)
-    symfs_dir = os.path.dirname(self._output_file)
-    host_app_symfs = os.path.join(symfs_dir, 'data', 'app-lib')
-    if not os.path.exists(host_app_symfs):
-      os.makedirs(host_app_symfs)
-      # On Android, the --symfs parameter needs to map a directory structure
-      # similar to the device, that is:
-      # --symfs=/tmp/foobar and then inside foobar there'll be something like
-      # /tmp/foobar/data/app-lib/$PACKAGE/libname.so
-      # Assume the symbolized library under out/Release/lib is equivalent to
-      # the one in the device, and symlink it in the host to match --symfs.
-      device_dir = filter(
-          lambda app_lib: app_lib.startswith(self._browser_backend.package),
-          device.old_interface.RunShellCommand('ls /data/app-lib'))
-      os.symlink(os.path.abspath(
-                    os.path.join(util.GetChromiumSrcDir(),
-                                 os.environ.get('CHROMIUM_OUT_DIR', 'out'),
-                                 'Release', 'lib')),
-                 os.path.join(host_app_symfs, device_dir[0]))
-
-    # Also pull copies of common system libraries from the device so perf can
-    # resolve their symbols. Only copy a subset of libraries to make this
-    # faster.
-    # TODO(skyostil): Find a way to pull in all system libraries without being
-    # too slow.
-    host_system_symfs = os.path.join(symfs_dir, 'system', 'lib')
-    if not os.path.exists(host_system_symfs):
-      os.makedirs(host_system_symfs)
-      common_system_libs = [
-        'libandroid*.so',
-        'libart.so',
-        'libc.so',
-        'libdvm.so',
-        'libEGL*.so',
-        'libGL*.so',
-        'libm.so',
-        'libRS.so',
-        'libskia.so',
-        'libstdc++.so',
-        'libstlport.so',
-        'libz.so',
-      ]
-      for lib in common_system_libs:
-        device.old_interface.Adb().Pull('/system/lib/%s' % lib,
-                                        host_system_symfs)
-    # Pull a copy of the kernel symbols.
-    host_kallsyms = os.path.join(symfs_dir, 'kallsyms')
-    if not os.path.exists(host_kallsyms):
-      device.old_interface.Adb().Pull('/proc/kallsyms', host_kallsyms)
-    return ['--kallsyms', host_kallsyms, '--symfs', symfs_dir]
 
   def _GetStdOut(self):
     self._tmp_output_file.flush()
@@ -170,18 +119,17 @@ class PerfProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
     process_output_file_map = self._GetProcessOutputFileMap()
     self._process_profilers = []
+    perf_binary = 'perf'
     if platform_backend.GetOSName() == 'android':
-      android_prebuilt_profiler_helper.InstallOnDevice(
-          browser_backend.adb.device(), 'perf')
-      # Make sure kernel pointers are not hidden.
-      browser_backend.adb.device().old_interface.SetProtectedFileContents(
-          '/proc/sys/kernel/kptr_restrict', '0')
+      perf_binary = android_profiling_helper.PrepareDeviceForPerf(
+          browser_backend.adb.device())
+
     for pid, output_file in process_output_file_map.iteritems():
       if 'zygote' in output_file:
         continue
       self._process_profilers.append(
           _SingleProcessPerfProfiler(
-              pid, output_file, browser_backend, platform_backend))
+              pid, output_file, browser_backend, platform_backend, perf_binary))
 
   @classmethod
   def name(cls):
