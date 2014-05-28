@@ -8,9 +8,9 @@ import re
 import socket
 import struct
 import subprocess
-import sys
 
 from telemetry.core import forwarders
+from telemetry.core import platform
 from telemetry.core import util
 from telemetry.core.backends import adb_commands
 
@@ -192,11 +192,12 @@ class AndroidRndisConfigurator(object):
       return candidates[0]
 
   def _EnumerateHostInterfaces(self):
-    if sys.platform.startswith('linux'):
+    host_platform = platform.GetHostPlatform().GetOSName()
+    if host_platform == 'linux':
       return subprocess.check_output(['ip', 'addr']).splitlines()
-    elif sys.platform == 'darwin':
+    if host_platform == 'mac':
       return subprocess.check_output(['ifconfig']).splitlines()
-    raise Exception('Platform %s not supported!' % sys.platform)
+    raise NotImplementedError('Platform %s not supported!' % host_platform)
 
   def _FindHostRndisInterface(self):
     """Returns the name of the host-side network interface."""
@@ -205,8 +206,8 @@ class AndroidRndisConfigurator(object):
         '%s/f_rndis/ethaddr' % self._RNDIS_DEVICE)[0]
     interface_name = None
     for line in interface_list:
-      if not line.startswith(' '):
-        interface_name = line.split()[1].strip(':')
+      if not line.startswith((' ', '\t')):
+        interface_name = line.split(':')[-2].strip()
       elif ether_address in line:
         return interface_name
 
@@ -283,6 +284,16 @@ doit &
       force = False
     raise Exception('Could not enable RNDIS, giving up.')
 
+  def _Ip2Long(self, addr):
+    return struct.unpack('!L', socket.inet_aton(addr))[0]
+
+  def _IpPrefix2AddressMask(self, addr):
+    def _Length2Mask(length):
+      return 0xFFFFFFFF & ~((1 << (32 - length)) - 1)
+
+    addr, masklen = addr.split('/')
+    return self._Ip2Long(addr), _Length2Mask(int(masklen))
+
   def _GetHostAddresses(self, iface):
     """Returns the IP addresses on host's interfaces, breaking out |iface|."""
     interface_list = self._EnumerateHostInterfaces()
@@ -290,11 +301,16 @@ doit &
     iface_address = None
     found_iface = False
     for line in interface_list:
-      if not line.startswith(' '):
+      if not line.startswith((' ', '\t')):
         found_iface = iface in line
       match = re.search('(?<=inet )\S+', line)
       if match:
         address = match.group(0)
+        if '/' in address:
+          address = self._IpPrefix2AddressMask(address)
+        else:
+          match = re.search('(?<=netmask )\S+', line)
+          address = self._Ip2Long(address), int(match.group(0), 16)
         if found_iface:
           assert not iface_address, (
             'Found %s twice when parsing host interfaces.' % iface)
@@ -323,18 +339,8 @@ doit &
   def _ConfigureNetwork(self, device_iface, host_iface):
     """Configures the |device_iface| to be on the same network as |host_iface|.
     """
-    def _Ip2Long(addr):
-      return struct.unpack('!L', socket.inet_aton(addr))[0]
-
     def _Long2Ip(value):
       return socket.inet_ntoa(struct.pack('!L', value))
-
-    def _Length2Mask(length):
-      return 0xFFFFFFFF & ~((1 << (32 - length)) - 1)
-
-    def _IpPrefix2AddressMask(addr):
-      addr, masklen = addr.split('/')
-      return _Ip2Long(addr), _Length2Mask(int(masklen))
 
     def _IsNetworkUnique(network, addresses):
       return all((addr & mask != network & mask) for addr, mask in addresses)
@@ -346,34 +352,38 @@ doit &
         if candidate not in used_addresses:
           return candidate
 
-    with open(self._NETWORK_INTERFACES) as f:
-      orig_interfaces = f.read()
-    if self._INTERFACES_INCLUDE not in orig_interfaces:
-      interfaces = '\n'.join([
-          orig_interfaces,
-          '',
-          '# Added by Telemetry.',
-          self._INTERFACES_INCLUDE])
-      self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
-    interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
-    if not os.path.exists(interface_conf_file):
-      interface_conf_dir = os.path.dirname(interface_conf_file)
-      if not interface_conf_dir:
-        subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
-        subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
-      interface_conf = '\n'.join([
-          '# Added by Telemetry for RNDIS forwarding.',
-          'auto %s' % host_iface,
-          'iface %s inet static' % host_iface,
-          '  address 192.168.123.1',
-          '  netmask 255.255.255.0',
-          ])
-      self._WriteProtectedFile(interface_conf_file, interface_conf)
-      subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
-    if 'stop/waiting' not in subprocess.check_output(
-        ['status', 'network-manager']):
-      logging.info('Stopping network-manager...')
-      subprocess.call(['sudo', 'stop', 'network-manager'])
+    if platform.GetHostPlatform().GetOSName() == 'mac':
+      # TODO(tonyg): Probably want to ifconfig restart host_iface here.
+      pass
+    elif platform.GetHostPlatform().GetOSName() == 'linux':
+      with open(self._NETWORK_INTERFACES) as f:
+        orig_interfaces = f.read()
+      if self._INTERFACES_INCLUDE not in orig_interfaces:
+        interfaces = '\n'.join([
+            orig_interfaces,
+            '',
+            '# Added by Telemetry.',
+            self._INTERFACES_INCLUDE])
+        self._WriteProtectedFile(self._NETWORK_INTERFACES, interfaces)
+      interface_conf_file = self._TELEMETRY_INTERFACE_FILE.format(host_iface)
+      if not os.path.exists(interface_conf_file):
+        interface_conf_dir = os.path.dirname(interface_conf_file)
+        if not interface_conf_dir:
+          subprocess.call(['sudo', '/bin/mkdir', interface_conf_dir])
+          subprocess.call(['sudo', '/bin/chmod', '755', interface_conf_dir])
+        interface_conf = '\n'.join([
+            '# Added by Telemetry for RNDIS forwarding.',
+            'auto %s' % host_iface,
+            'iface %s inet static' % host_iface,
+            '  address 192.168.123.1',
+            '  netmask 255.255.255.0',
+            ])
+        self._WriteProtectedFile(interface_conf_file, interface_conf)
+        subprocess.check_call(['sudo', '/etc/init.d/networking', 'restart'])
+      if 'stop/waiting' not in subprocess.check_output(
+          ['status', 'network-manager']):
+        logging.info('Stopping network-manager...')
+        subprocess.call(['sudo', 'stop', 'network-manager'])
 
     def HasHostAddress():
       _, host_address = self._GetHostAddresses(host_iface)
@@ -384,9 +394,7 @@ doit &
     addresses, host_address = self._GetHostAddresses(host_iface)
     assert host_address, 'Interface %s could not be configured.' % host_iface
 
-    addresses = [_IpPrefix2AddressMask(addr) for addr in addresses]
-    host_ip, netmask = _IpPrefix2AddressMask(host_address)
-
+    host_ip, netmask = host_address
     network = host_ip & netmask
 
     if not _IsNetworkUnique(network, addresses):
@@ -400,7 +408,7 @@ doit &
 
     # Find unused IP address.
     used_addresses = [addr for addr, _ in addresses]
-    used_addresses += [_IpPrefix2AddressMask(addr)[0]
+    used_addresses += [self._IpPrefix2AddressMask(addr)[0]
                        for addr in self._GetDeviceAddresses(device_iface)]
     used_addresses += [host_ip]
 
@@ -413,8 +421,8 @@ doit &
     netmask = _Long2Ip(netmask)
 
     # TODO(szym) run via su -c if necessary.
-    self._device.old_interface.RunShellCommand('ifconfig %s %s netmask %s up' %
-                              (device_iface, device_ip, netmask))
+    self._device.old_interface.RunShellCommand(
+        'ifconfig %s %s netmask %s up' % (device_iface, device_ip, netmask))
     # Enabling the interface sometimes breaks adb.
     self._WaitForDevice()
     self._host_iface = host_iface
@@ -424,9 +432,8 @@ doit &
 
   def _TestConnectivity(self):
     with open(os.devnull, 'wb') as devnull:
-      return subprocess.call(['ping', '-q', '-c1', '-W1',
-                              '-I', self._host_iface, self._device_ip],
-                              stdout=devnull) == 0
+      return subprocess.call(['ping', '-q', '-c1', '-W1', self._device_ip],
+                             stdout=devnull) == 0
 
   def _CheckConfigureNetwork(self):
     """Enables RNDIS and configures it, retrying until we have connectivity."""

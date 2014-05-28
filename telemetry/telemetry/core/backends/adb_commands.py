@@ -118,9 +118,11 @@ def SetupPrebuiltTools(adb):
 
   host_tools = [
     'bitmaptools',
-    'host_forwarder',
     'md5sum_bin_host',
   ]
+
+  if platform.GetHostPlatform().GetOSName() == 'linux':
+    host_tools.append('host_forwarder')
 
   has_device_prebuilt = adb.system_properties['ro.product.cpu.abi'].startswith(
       'armeabi')
