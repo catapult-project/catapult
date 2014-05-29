@@ -8,103 +8,111 @@ found in the LICENSE file.
   <style>
     .x-sample-summary-side-panel {
       display: block;
+      overflow: auto;
+      padding: 5px;
     }
-    .x-sample-summary-side-panel > toolbar {
+    .x-sample-summary-side-panel > x-toolbar {
+      display: block;
       border-bottom: 1px solid black;
     }
 
     .x-sample-summary-side-panel > x-left-panel {
       position: relative;
-      width: 810px;
+      width: 610px;
       left: 0;
       top: 0;
-      height: 820px;
-      margin: 5;
-    }
-
-    .x-sample-summary-side-panel > x-right-panel {
-      display: block;
-      min-height: 810px;
-      margin-left: 810px;
-      margin: 5;
+      height: 610px;
+      padding: 5px;
     }
 
     .x-sample-summary-side-panel > x-left-panel > result-area {
       display: block;
-      width: 810px;
+      width: 610px;
       position: absolute;
       left: 0;
       top: 0;
-      height: 810px;
-      margin: 5;
-    }
-
-    .x-sample-summary-side-panel > x-left-panel > x-legend {
-      display: block;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 10px 0 0 3px;
-      font-weight: 600;
-      fill: #fff;
-    }
-
-    .x-sample-summary-side-panel >x-right-panel > x-sequence {
-      display: block;
-      width: auto;
-      height: 400px;
+      height: 610px;
     }
 
     .x-sample-summary-side-panel > x-left-panel > x-explanation {
       display: block;
       position: absolute;
       top: 300px;
-      left: 255px;
+      left: 250px;
       width: 100px;
       height: 100px;
       text-align: center;
       vertical-align:middle;
       color: #666;
       z-index: -1;
-      font-size: 1.0em;
+      font-size: 12px;
     }
 
-    .x-sample-summary-side-panel > x-right-panel > x-sequence text {
-      font-weight: 600;
-      fill: #fff;
+    .x-sample-summary-side-panel > x-right-panel {
+      display: block;
+      min-height: 610px;
+      margin-left: 610px;
+      padding: 5px;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel td {
+      color: #fff;
+      padding: 1px 5px;
+      font-size: 1.0em;
+      white-space: nowrap;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-sequence {
+      display: block;
+      overflow: auto;
+      width: 600px;
+      height: 400px;
+      font-size: 14px;
+      margin: 10px;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-sequence table {
+      min-width: 600px;
     }
 
     .x-sample-summary-side-panel > x-right-panel > x-callees {
       display: block;
       position: relative;
-      width: auto;
+      width: 600px;
       height: auto;
-      z-index: 1;
+      overflow: auto;
+      font-size: 14px;
+      margin: 10px;
     }
+
+    .x-sample-summary-side-panel > x-right-panel > x-callees .x-col-numeric {
+      width: 30px;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-callees .x-td-numeric {
+      text-align: right;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-callees table {
+      min-width: 600px;
+      max-width: 600px;
+    }
+
+    .x-sample-summary-side-panel > x-right-panel > x-callees {
+      display: block;
+      overflow: auto;
+      height: 300px;
+    }
+
   </style>
 
-  <toolbar>
-  </toolbar>
-
+  <x-toolbar></x-toolbar>
   <x-left-panel>
     <result-area></result-area>
-    <x-legend>Legend</x-legend>
-    <x-explanation><span id="percentage"/>123ms<br>100.0%</x-explanation>
+    <x-explanation></x-explanation>
   </x-left-panel>
   <x-right-panel>
-    <x-sequence>
-      callstack<br>
-      callstack<br>
-      callstack<br>
-      callstack<br>
-      callstack<br>
-    </x-sequence>
-    <x-callees>
-      <table id="example" class="display" cellspacing="0" width="auto">
-        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
-        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
-        <tr><td>0.00</td><td>0.00</td><td>Foobar</td></tr>
-      </table>
-    </x-callees>
+    <x-sequence></x-sequence>
+    <x-callees></x-callees>
   </x-right-panel>
 </template>

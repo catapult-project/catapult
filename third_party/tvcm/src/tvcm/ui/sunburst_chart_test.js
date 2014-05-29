@@ -14,47 +14,49 @@ tvcm.testSuite('tvcm.ui.sunburst_chart_test', function() {
     assertEquals('600', chart.getAttribute('width'));
     assertEquals('600', chart.getAttribute('height'));
     chart.chartTitle = 'Chart title';
-    var data = {
-      'comp': 'root',
-      'name': '<All Threads>',
-      'children': [
+    var nodes = {
+      category: 'root',
+      name: '<All Threads>',
+      children: [
         {
-          'comp': 'Thread',
-          'name': 'Thread 1',
-          'children': [
+          category: 'Thread',
+          name: 'Thread 1',
+          children: [
             {
-              'comp': 'Chrome',
-              'name': 'foo()',
-              'children': [
+              category: 'Chrome',
+              name: 'foo()',
+              children: [
                 {
-                  'comp': 'Chrome',
-                  'name': 'foo()',
-                  'size': 150
+                  category: 'Chrome',
+                  name: 'foo()',
+                  size: 150
                 },
                 {
-                  'comp': 'Chrome',
-                  'name': 'bar()',
-                  'size': 200
+                  category: 'Chrome',
+                  name: 'bar()',
+                  size: 200
                 }]
             },
             {
-              'comp': 'Chrome',
-              'name': 'bar()',
-              'size': 200
+              category: 'Chrome',
+              name: 'bar()',
+              size: 200
             }]
         },
         {
-          'comp': 'Thread',
-          'name': 'Thread 2',
-          'children': [
+          category: 'Thread',
+          name: 'Thread 2',
+          children: [
             {
-              'comp': 'Java',
-              'name': 'Java',
-              'size': 100
+              category: 'Java',
+              name: 'Java',
+              size: 100
             }]
         }]
     };
-    chart.data = data;
+    chart.data = {
+      nodes: nodes
+    };
     this.addHTMLOutput(chart);
   });
 });

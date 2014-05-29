@@ -32,12 +32,30 @@ tvcm.exportTo('tvcm.ui', function() {
       this.data_ = undefined;
       this.seriesKeys_ = undefined;
 
+      this.yDomainMin_ = 0.0;
+      this.yDomainMax_ = 0.0;
+      this.xDomainScale_ = undefined;
+      this.yDomainScale_ = undefined;
+      this.radius_ = undefined;
+      this.arc_ = undefined;
+      this.selectedNode_ = null;
+      this.clickStack_ = undefined;
+      this.vis_ = undefined;
+      this.nodes_ = undefined;
+      this.minX_ = 0.0;
+      this.maxX_ = 1.0;
+      this.minY_ = 0.0;
+      this.clickedY_ = 0;
+
       var chartAreaSel = d3.select(this.chartAreaElement);
+      this.legendSel_ = chartAreaSel.append('g');
+
       var pieGroupSel = chartAreaSel.append('g')
         .attr('class', 'pie-group');
       this.pieGroup_ = pieGroupSel.node();
 
       this.backSel_ = pieGroupSel.append('g');
+
 
       this.pathsGroup_ = pieGroupSel.append('g')
         .attr('class', 'paths')
@@ -63,6 +81,22 @@ tvcm.exportTo('tvcm.ui', function() {
       if (this.chartTitle_)
         margin.top += 40;
       return margin;
+    },
+
+    set selectedNodeID(id) {
+      this.zoomToID_(id);
+    },
+
+    get selectedNodeID() {
+      if (this.selectedNode_ != null)
+        return this.selectedNode_.id;
+      return null;
+    },
+
+    get selectedNode() {
+      if (this.selectedNode_ != null)
+        return this.selectedNode_;
+      return null;
     },
 
     getMinSize: function() {
@@ -93,258 +127,296 @@ tvcm.exportTo('tvcm.ui', function() {
         return;
     },
 
+    // Interpolate the scales!
+    arcTween_: function(minX, maxX, minY) {
+      var that = this;
+      var xd, yd, yr;
+
+      if (minY > 0) {
+        xd = d3.interpolate(that.xDomainScale_.domain(), [minX, maxX]);
+        yd = d3.interpolate(
+            that.yDomainScale_.domain(), [minY, that.yDomainMax_]);
+        yr = d3.interpolate(that.yDomainScale_.range(), [50, that.radius_]);
+      }
+      else {
+        xd = d3.interpolate(that.xDomainScale_.domain(), [minX, maxX]);
+        yd = d3.interpolate(that.yDomainScale_.domain(),
+                            [that.yDomainMin_, that.yDomainMax_]);
+        yr = d3.interpolate(that.yDomainScale_.range(), [50, that.radius_]);
+      }
+
+      return function(d, i) {
+        return i ? function(t) { return that.arc_(d); }
+            : function(t) {
+              that.xDomainScale_.domain(xd(t));
+              that.yDomainScale_.domain(yd(t)).range(yr(t));
+              return that.arc_(d);
+            };
+      };
+    },
+
+    getNodeById_: function(id) {
+      if (!this.nodes_)
+        return null;
+
+      if (id < 0 || id > this.nodes_.length)
+        return null;
+
+      return this.nodes_[id];
+    },
+
+    zoomOut_: function() {
+      if (this.clickStack_.length > 1) {
+        this.clickStack_.pop();
+        this.selectedNodeID = this.clickStack_[this.clickStack_.length - 1];
+      }
+    },
+
+    zoomToID_: function(id) {
+      var d = this.getNodeById_(id);
+
+      if (d) {
+        this.clickedY_ = d.y;
+        this.minX_ = d.x;
+        this.maxX_ = d.x + d.dx;
+        this.minY_ = d.y;
+      }
+      else {
+        this.clickedY_ = -1;
+        this.minX_ = 0.0;
+        this.maxX_ = 1.0;
+        this.minY_ = 0.0;
+      }
+
+      this.selectedNode_ = d;
+      this.redrawSegments_(this.minX_, this.maxX_, this.minY_);
+      var path = this.vis_.selectAll('path');
+
+      path.transition()
+        .duration(750)
+        .attrTween('d', this.arcTween_(this.minX_, this.maxX_, this.minY_));
+
+      this.showBreadcrumbs_(d);
+
+      var e = new Event('node-selected');
+      e.node = d;
+      this.dispatchEvent(e);
+    },
+
+    click_: function(d) {
+      if (d3.event.shiftKey) {
+        // Zoom partially onto the selected range
+        var diff_x = (this.maxX_ - this.minX_) * 0.5;
+        this.minX_ = d.x + d.dx * 0.5 - diff_x * 0.5;
+        this.minX_ = this.minX_ < 0.0 ? 0.0 : this.minX_;
+        this.maxX_ = this.minX_ + diff_x;
+        this.maxX_ = this.maxX_ > 1.0 ? 1.0 : this.maxX_;
+        this.minX_ = this.maxX_ - diff_x;
+
+        this.selectedNode_ = d;
+        this.redrawSegments_(this.minX_, this.maxX_, this.minY_);
+
+        var path = this.vis_.selectAll('path');
+        path.transition()
+          .duration(750)
+          .attrTween('d', this.arcTween_(this.minX_, this.maxX_, this.minY_));
+
+        return;
+      }
+
+      if (this.clickStack_[this.clickStack_.length - 1] != d.id) {
+        this.clickStack_.push(d.id);
+        this.selectedNodeID = d.id;
+      }
+    },
+
+    // Given a node in a partition layout, return an array of all of its
+    // ancestor nodes, highest first, but excluding the root.
+    getAncestors_: function(node) {
+      var path = [];
+      var current = node;
+      while (current.parent) {
+        path.unshift(current);
+        current = current.parent;
+      }
+      return path;
+    },
+
+    showBreadcrumbs_: function(d) {
+      var sequenceArray = this.getAncestors_(d);
+
+      // Fade all the segments.
+      this.vis_.selectAll('path')
+        .style('opacity', function(d) {
+            return sequenceArray.indexOf(d) >= 0 ? 0.7 : 1.0;
+          });
+
+      var e = new Event('node-highlighted');
+      e.node = d;
+      this.dispatchEvent(e);
+
+      //if (this.data_.onNodeHighlighted != undefined)
+      //  this.data_.onNodeHighlighted(this, d);
+    },
+
+    mouseOver_: function(d) {
+      this.showBreadcrumbs_(d);
+    },
+
+    // Restore everything to full opacity when moving off the
+    // visualization.
+    mouseLeave_: function(d) {
+      var that = this;
+      // Hide the breadcrumb trail
+      if (that.selectedNode_ != null)
+        that.showBreadcrumbs_(that.selectedNode_);
+      else {
+        // Deactivate all segments during transition.
+        that.vis_.selectAll('path')
+          .on('mouseover', null);
+
+        // Transition each segment to full opacity and then reactivate it.
+        that.vis_.selectAll('path')
+          .transition()
+          .duration(300)
+          .style('opacity', 1)
+          .each('end', function() {
+              d3.select(that).on('mouseover', function(d) {
+                that.mouseOver_(d);
+              });
+            });
+      }
+    },
+
+    // Update visible segments between new min/max ranges.
+    redrawSegments_: function(minX, maxX, minY) {
+      var that = this;
+      var scale = maxX - minX;
+      var visible_nodes = that.nodes_.filter(function(d) {
+        return d.depth &&
+            (d.y >= minY) &&
+            (d.x < maxX) &&
+            (d.x + d.dx > minX) &&
+            (d.dx / scale > 0.001);
+      });
+      var path = that.vis_.data([that.data_.nodes]).selectAll('path')
+        .data(visible_nodes, function(d) { return d.id; });
+
+      path.enter().insert('svg:path')
+        .attr('d', that.arc_)
+        .attr('fill-rule', 'evenodd')
+        .style('fill', function(dd) { return getColorOfKey(dd.category); })
+        .style('opacity', 1.0)
+        .on('mouseover', function(d) { that.mouseOver_(d); })
+        .on('click', function(d) { that.click_(d); });
+
+      path.exit().remove();
+      return path;
+    },
+
     updateContents_: function() {
       ChartBase.prototype.updateContents_.call(this);
       if (!this.data_)
         return;
 
-      var width = this.chartAreaSize.width;
-      var height = this.chartAreaSize.height;
-      var radius = Math.max(MIN_RADIUS, Math.min(width, height) / 2);
+      var that = this;
 
-      d3.select(this.pieGroup_).attr(
+      // Partition data into d3 nodes.
+      var partition = d3.layout.partition()
+          .size([1, 1])
+          .value(function(d) { return d.size; });
+      that.nodes_ = partition.nodes(that.data_.nodes);
+
+      // Allocate an id to each node.  Gather all categories.
+      var categoryDict = {};
+      that.nodes_.forEach(function f(d, i) {
+        d.id = i;
+        categoryDict[d.category] = null;
+      });
+
+      // Create legend.
+      var li = {
+        w: 85, h: 20, s: 3, r: 3
+      };
+
+      var legend = that.legendSel_.append('svg:svg')
+          .attr('width', li.w)
+          .attr('height', d3.keys(categoryDict).length * (li.h + li.s));
+
+      var g = legend.selectAll('g')
+          .data(d3.keys(categoryDict))
+          .enter().append('svg:g')
+          .attr('transform', function(d, i) {
+            return 'translate(0,' + i * (li.h + li.s) + ')';
+          });
+
+      g.append('svg:rect')
+          .attr('rx', li.r)
+          .attr('ry', li.r)
+          .attr('width', li.w)
+          .attr('height', li.h)
+          .style('fill', function(d) { return getColorOfKey(d); });
+
+      g.append('svg:text')
+          .attr('x', li.w / 2)
+          .attr('y', li.h / 2)
+          .attr('dy', '0.35em')
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#fff')
+          .attr('font-size', '12px')
+          .text(function(d) { return d; });
+
+      // Create sunburst visualization.
+      var width = that.chartAreaSize.width;
+      var height = that.chartAreaSize.height;
+      that.radius_ = Math.max(MIN_RADIUS, Math.min(width, height) / 2);
+
+      d3.select(that.pieGroup_).attr(
           'transform',
           'translate(' + width / 2 + ',' + height / 2 + ')');
 
+      that.selectedNode_ = null;
+      that.clickStack_ = new Array();
+      that.clickStack_.push(0);
 
-      /////////////////////////////////////////
-      // Mapping of step names to colors.
-      var colors = {
-        'Chrome': '#5687d1',
-        'Kernel': '#7b615c',
-        'GPU Driver': '#ff0000',
-        'Java': '#de783b',
-        'Android': '#6ab975',
-        'Thread': '#aaaaaa',
-        'Standard Lib': '#bbbbbb',
-        '<self>': '#888888',
-        '<unknown>': '#444444'
-      };
+      var depth = 1.0 + d3.max(that.nodes_, function(d) { return d.depth; });
+      that.yDomainMin_ = 1.0 / depth;
+      that.yDomainMax_ = Math.min(Math.max(depth, 20), 50) / depth;
 
-      // temp test data
-      var json = this.data_;
-      var partition = d3.layout.partition()
-          .size([1, 1]) // radius * radius
-          .value(function(d) { return d.size; });
-
-      // For efficiency, filter nodes to keep only those large enough to see.
-      var nodes = partition.nodes(json);
-      nodes.forEach(function f(d, i) { d.id = i; });
-      var totalSize = nodes[0].value;
-      var depth = 1.0 + d3.max(nodes, function(d) { return d.depth; });
-      var yDomainMin = 1.0 / depth;
-      var yDomainMax = Math.min(Math.max(depth, 20), 50) / depth;
-
-      var x = d3.scale.linear()
+      that.xDomainScale_ = d3.scale.linear()
           .range([0, 2 * Math.PI]);
 
-      var y = d3.scale.sqrt()
-          .domain([yDomainMin, yDomainMax])
-          .range([50, radius]);
+      that.yDomainScale_ = d3.scale.sqrt()
+          .domain([that.yDomainMin_, that.yDomainMax_])
+          .range([50, that.radius_]);
 
-      var arc = d3.svg.arc()
+      that.arc_ = d3.svg.arc()
           .startAngle(function(d) {
-            return Math.max(0, Math.min(2 * Math.PI, x(d.x)));
+            return Math.max(0, Math.min(2 * Math.PI, that.xDomainScale_(d.x)));
           })
           .endAngle(function(d) {
-            return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
+            return Math.max(0,
+                Math.min(2 * Math.PI, that.xDomainScale_(d.x + d.dx)));
           })
-          .innerRadius(function(d) { return Math.max(0, y((d.y))); })
-          .outerRadius(function(d) { return Math.max(0, y((d.y + d.dy))); });
+          .innerRadius(function(d) {
+            return Math.max(0, that.yDomainScale_((d.y)));
+          })
+          .outerRadius(function(d) {
+            return Math.max(0, that.yDomainScale_((d.y + d.dy)));
+          });
 
-      // Interpolate the scales!
-      function arcTween(minX, maxX, minY) {
-        var xd, yd, yr;
-
-        if (minY > 0) {
-          xd = d3.interpolate(x.domain(), [minX, maxX]);
-          yd = d3.interpolate(y.domain(), [minY, yDomainMax]);
-          yr = d3.interpolate(y.range(), [50, radius]);
-        }
-        else {
-          xd = d3.interpolate(x.domain(), [minX, maxX]);
-          yd = d3.interpolate(y.domain(), [yDomainMin, yDomainMax]);
-          yr = d3.interpolate(y.range(), [50, radius]);
-        }
-
-        return function(d, i) {
-          return i ? function(t) { return arc(d); }
-              : function(t) {
-                x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d);
-              };
-        };
-      }
-
-
-      var clickedNode = null;
-      var click_stack = new Array();
-      click_stack.push(0);
-
-      function zoomout(d) {
-        if (click_stack.length > 1)
-          click_stack.pop();
-        zoomto(click_stack[click_stack.length - 1]);
-      }
 
       // Bounding circle underneath the sunburst, to make it easier to detect
       // when the mouse leaves the parent g.
-      this.backSel_.append('svg:circle')
-          .attr('r', radius)
+      that.backSel_.append('svg:circle')
+          .attr('r', that.radius_)
           .style('opacity', 0.0)
-          .on('click', zoomout);
+          .on('click', function() { that.zoomOut_(); });
 
 
-      var vis = d3.select(this.pathsGroup_);
-
-      function getNode(id) {
-        for (var i = 0; i < nodes.length; i++) {
-          if (nodes[i].id == id)
-            return nodes[i];
-        }
-        return null;
-      }
-
-      var minX = 0.0;
-      var maxX = 1.0;
-      var minY = 0.0;
-      var clickedY = 0;
-
-      function zoomto(id) {
-        var d = getNode(id);
-
-        if (d) {
-          clickedY = d.y;
-          minX = d.x;
-          maxX = d.x + d.dx;
-          minY = d.y;
-        }
-        else {
-          clickedY = -1;
-          minX = 0.0;
-          maxX = 1.0;
-          minY = 0.0;
-        }
-
-        clickedNode = d;
-        redraw(minX, maxX, minY);
-        var path = vis.selectAll('path');
-
-        path.transition()
-          .duration(750)
-          .attrTween('d', arcTween(minX, maxX, minY));
-
-        showBreadcrumbs(d);
-      }
-
-      function click(d) {
-        if (d3.event.shiftKey) {
-          // Zoom partially onto the selected range
-          var diff_x = (maxX - minX) * 0.5;
-          minX = d.x + d.dx * 0.5 - diff_x * 0.5;
-          minX = minX < 0.0 ? 0.0 : minX;
-          maxX = minX + diff_x;
-          maxX = maxX > 1.0 ? 1.0 : maxX;
-          minX = maxX - diff_x;
-
-          redraw(minX, maxX, minY);
-
-          var path = vis.selectAll('path');
-
-          clickedNode = d;
-          path.transition()
-            .duration(750)
-            .attrTween('d', arcTween(minX, maxX, minY));
-
-          return;
-        }
-
-        if (click_stack[click_stack.length - 1] != d.id) {
-          click_stack.push(d.id);
-          zoomto(d.id);
-        }
-      }
-
-      // Given a node in a partition layout, return an array of all of its
-      // ancestor nodes, highest first, but excluding the root.
-      function getAncestors(node) {
-        var path = [];
-        var current = node;
-        while (current.parent) {
-          path.unshift(current);
-          current = current.parent;
-        }
-        return path;
-      }
-
-      function showBreadcrumbs(d) {
-        var sequenceArray = getAncestors(d);
-
-        // Fade all the segments.
-        vis.selectAll('path')
-          .style('opacity', 0.7);
-
-        // Then highlight only those that are an ancestor of the current
-        // segment.
-        vis.selectAll('path')
-          .filter(function(node) {
-              return (sequenceArray.indexOf(node) >= 0);
-            })
-          .style('opacity', 1);
-      }
-
-      function mouseover(d) {
-        showBreadcrumbs(d);
-      }
-
-      // Restore everything to full opacity when moving off the
-      // visualization.
-      function mouseleave(d) {
-        // Hide the breadcrumb trail
-        if (clickedNode != null)
-          showBreadcrumbs(clickedNode);
-        else {
-          // Deactivate all segments during transition.
-          vis.selectAll('path')
-            .on('mouseover', null);
-
-          // Transition each segment to full opacity and then reactivate it.
-          vis.selectAll('path')
-            .transition()
-            .duration(300)
-            .style('opacity', 1)
-            .each('end', function() {
-                d3.select(this).on('mouseover', mouseover);
-              });
-        }
-      }
-
-      // Update visible segments between new min/max ranges.
-      function redraw(minX, maxX, minY) {
-        var scale = maxX - minX;
-        var visible_nodes = nodes.filter(function(d) {
-          return d.depth &&
-              (d.y >= minY) &&
-              (d.x < maxX) &&
-              (d.x + d.dx > minX) &&
-              (d.dx / scale > 0.001);
-        });
-        var path = vis.data([json]).selectAll('path')
-          .data(visible_nodes, function(d) { return d.id; });
-
-        path.enter().insert('svg:path')
-          .attr('d', arc)
-          .attr('fill-rule', 'evenodd')
-          .style('fill', function(dd) { return colors[dd.category]; })
-          .style('opacity', 0.7)
-          .on('mouseover', mouseover)
-          .on('click', click);
-
-        path.exit().remove();
-        return path;
-      }
-
-      zoomto(0);
-      vis.on('mouseleave', mouseleave);
+      that.vis_ = d3.select(that.pathsGroup_);
+      that.selectedNodeID = 0;
+      that.vis_.on('mouseleave', function(d) { that.mouseLeave_(d); });
     },
 
     updateHighlight_: function() {
@@ -356,7 +428,7 @@ tvcm.exportTo('tvcm.ui', function() {
         var origData = that.data_[i];
         var highlighted = origData.label == that.currentHighlightedLegendKey;
         var color = getColorOfKey(origData.label, highlighted);
-        this.style.fill = color;
+        this.style.fill = getColorOfKey(origData.label, highlighted);
       });
     }
   };
