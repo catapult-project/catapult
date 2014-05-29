@@ -41,12 +41,11 @@ class _RunState(object):
     self.repeat_state = None
 
   def StartBrowserIfNeeded(self, test, page_set, page, possible_browser,
-                           credentials_path, archive_path):
+                           credentials_path, archive_path, finder_options):
     started_browser = not self.browser
     # Create a browser.
     if not self.browser:
-      test.CustomizeBrowserOptionsForSinglePage(page,
-                                                possible_browser.finder_options)
+      test.CustomizeBrowserOptionsForSinglePage(page, finder_options)
       self.browser = possible_browser.Create()
       self.browser.credentials.credentials_path = credentials_path
 
@@ -232,7 +231,7 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
                        browser_options, page, credentials_path,
                        possible_browser, results, state):
   if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
-    possible_browser.finder_options.browser_options.wpr_mode = (
+    browser_options.wpr_mode = (
         wpr_modes.WPR_REPLAY
         if page.archive_path and os.path.isfile(page.archive_path)
         else wpr_modes.WPR_OFF)
@@ -248,7 +247,8 @@ def _PrepareAndRunPage(test, page_set, expectations, finder_options,
         # If we are restarting the browser for each page customize the per page
         # options for just the current page before starting the browser.
       state.StartBrowserIfNeeded(test, page_set, page, possible_browser,
-                                 credentials_path, page.archive_path)
+                                 credentials_path, page.archive_path,
+                                 finder_options)
       if not page.CanRunOnBrowser(browser_info.BrowserInfo(state.browser)):
         logging.info('Skip test for page %s because browser is not supported.'
                      % page.url)
@@ -330,7 +330,6 @@ def _UpdatePageSetArchivesIfChanged(page_set):
 def Run(test, page_set, expectations, finder_options):
   """Runs a given test against a given page_set with the given options."""
   results = results_options.PrepareResults(test, finder_options)
-  browser_options = finder_options.browser_options
 
   test.ValidatePageSet(page_set)
 
@@ -347,12 +346,13 @@ def Run(test, page_set, expectations, finder_options):
         '\n')
     sys.exit(-1)
 
+  browser_options = possible_browser.finder_options.browser_options
   browser_options.browser_type = possible_browser.browser_type
   browser_options.platform = possible_browser.platform
   test.CustomizeBrowserOptions(browser_options)
 
   if not decorators.IsEnabled(
-      test, browser_options.browser_type, possible_browser.platform):
+      test, browser_options.browser_type, browser_options.platform):
     return results
 
   # Reorder page set based on options.
@@ -372,13 +372,12 @@ def Run(test, page_set, expectations, finder_options):
       credentials_path = None
 
   # Set up user agent.
-  if page_set.user_agent_type:
-    browser_options.browser_user_agent_type = page_set.user_agent_type
+  browser_options.browser_user_agent_type = page_set.user_agent_type or None
 
   if finder_options.profiler:
     profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
-    profiler_class.CustomizeBrowserOptions(possible_browser.browser_type,
-                                           possible_browser.finder_options)
+    profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
+                                           finder_options)
 
   for page in list(pages):
     if not test.CanRunForPage(page):

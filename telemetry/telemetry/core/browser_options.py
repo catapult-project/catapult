@@ -50,6 +50,9 @@ class BrowserFinderOptions(optparse.Values):
 
     self.android_rndis = False
 
+  def __repr__(self):
+    return str(sorted(self.__dict__.items()))
+
   def Copy(self):
     return copy.deepcopy(self)
 
@@ -179,8 +182,6 @@ class BrowserOptions(object):
     self.browser_type = None
     self.show_stdout = False
 
-    self.warn_if_no_flash = True
-
     # When set to True, the browser will use the default profile.  Telemetry
     # will not provide an alternate profile directory.
     self.dont_override_profile = False
@@ -202,6 +203,9 @@ class BrowserOptions(object):
     self.disable_component_extensions_with_background_pages = True
 
     self.platform = None
+
+  def __repr__(self):
+    return str(sorted(self.__dict__.items()))
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
