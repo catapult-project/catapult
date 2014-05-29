@@ -8,7 +8,6 @@ import os
 import re
 import shutil
 
-from telemetry.core.backends.chrome import cros_interface
 from telemetry.page import cloud_storage
 
 
@@ -24,7 +23,7 @@ class PageSetArchiveInfo(object):
     # Download all .wpr files.
     if not ignore_archive:
       # TODO(tbarzic): Remove this once http://crbug.com/351143 is diagnosed.
-      log_cloud_storage_exception = cros_interface.IsRunningOnCrosDevice()
+      log_cloud_storage_exception = True
       for archive_path in data['archives']:
         archive_path = self._WprFileNameToPath(archive_path)
         try:
@@ -67,8 +66,7 @@ class PageSetArchiveInfo(object):
         data = json.load(f)
         return cls(file_path, data, ignore_archive=ignore_archive)
     # TODO(tbarzic): Remove this once http://crbug.com/351143 is diagnosed.
-    if cros_interface.IsRunningOnCrosDevice():
-      logging.warning('Page set archives not found: %s' % file_path)
+    logging.warning('Page set archives not found: %s' % file_path)
     return cls(file_path, {'archives': {}}, ignore_archive=ignore_archive)
 
   def WprFilePathForPage(self, page):
