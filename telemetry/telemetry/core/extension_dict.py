@@ -16,7 +16,7 @@ class ExtensionDict(object):
     ExtensionPage instance."""
     if not isinstance(load_extension, extension_to_load.ExtensionToLoad):
       raise TypeError("Input param must be of type ExtensionToLoad")
-    return self._extension_backend[load_extension.extension_id]
+    return self.GetByExtensionId(load_extension.extension_id)[0]
 
   def __contains__(self, load_extension):
     """Checks if this ExtensionToLoad instance has been loaded"""
@@ -26,3 +26,8 @@ class ExtensionDict(object):
 
   def keys(self):
     return self._extension_backend.keys()
+
+  def GetByExtensionId(self, extension_id):
+    """Returns a list of extensions given an extension id. This is useful for
+    connecting to built-in apps and component extensions."""
+    return self._extension_backend[extension_id]

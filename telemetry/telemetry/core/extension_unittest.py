@@ -16,22 +16,27 @@ from telemetry.unittest import options_for_unittests
 
 class ExtensionTest(unittest.TestCase):
   def setUp(self):
-    extension_path = os.path.join(util.GetUnittestDataDir(), 'simple_extension')
+    self._browser = None
+    self._extension = None
+    self._extension_id = None
+
+  def CreateBrowserWithExtension(self, ext_path):
+    extension_path = os.path.join(util.GetUnittestDataDir(), ext_path)
     options = options_for_unittests.GetCopy()
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type)
     options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
 
-    self._browser = None
-    self._extension = None
     if not browser_to_create:
       # May not find a browser that supports extensions.
-      return
+      return False
     self._browser = browser_to_create.Create()
     self._browser.Start()
     self._extension = self._browser.extensions[load_extension]
+    self._extension_id = load_extension.extension_id
     self.assertTrue(self._extension)
+    return True
 
   def tearDown(self):
     if self._browser:
@@ -39,7 +44,7 @@ class ExtensionTest(unittest.TestCase):
 
   def testExtensionBasic(self):
     """Test ExtensionPage's ExecuteJavaScript and EvaluateJavaScript."""
-    if not self._extension:
+    if not self.CreateBrowserWithExtension('simple_extension'):
       logging.warning('Did not find a browser that supports extensions, '
                       'skipping test.')
       return
@@ -49,6 +54,32 @@ class ExtensionTest(unittest.TestCase):
     self.assertEquals('abcdef',
                       self._extension.EvaluateJavaScript('_testVar'))
 
+  def testExtensionGetByExtensionId(self):
+    """Test GetByExtensionId for a simple extension with a background page."""
+    if not self.CreateBrowserWithExtension('simple_extension'):
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
+      return
+    ext = self._browser.extensions.GetByExtensionId(self._extension_id)
+    self.assertEqual(1, len(ext))
+    self.assertEqual(ext[0], self._extension)
+    self.assertTrue(
+        ext[0].EvaluateJavaScript('chrome.runtime != null'))
+
+  def testWebApp(self):
+    """Tests GetByExtensionId for a web app with multiple pages."""
+    if not self.CreateBrowserWithExtension('simple_app'):
+      logging.warning('Did not find a browser that supports extensions, '
+                      'skipping test.')
+      return
+    extensions = self._browser.extensions.GetByExtensionId(self._extension_id)
+    extension_urls = set([ext.EvaluateJavaScript('location.href;')
+                          for ext in extensions])
+    expected_urls = set(['chrome-extension://' + self._extension_id + '/' + path
+                         for path in ['main.html', 'second.html',
+                                      '_generated_background_page.html']])
+
+    self.assertEqual(expected_urls, extension_urls)
 
 class NonExistentExtensionTest(unittest.TestCase):
   def testNonExistentExtensionPath(self):

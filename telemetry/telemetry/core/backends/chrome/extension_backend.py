@@ -26,10 +26,13 @@ class ExtensionBackendDict(collections.Mapping):
     self._extension_backend_list = ExtensionBackendList(browser_backend)
 
   def __getitem__(self, extension_id):
+    extensions = []
     for i, context_id in enumerate(self._extension_backend_list):
       if self.ContextIdToExtensionId(context_id) == extension_id:
-        return self._extension_backend_list[i]
-    raise KeyError('Cannot find an extension with id=%s' % extension_id)
+        extensions.append(self._extension_backend_list[i])
+    if not extensions:
+      raise KeyError('Cannot find an extension with id=%s' % extension_id)
+    return extensions
 
   def __iter__(self):
     for context_id in self._extension_backend_list:
