@@ -16,7 +16,9 @@ class Oobe(web_contents.WebContents):
     for gaia_context in range(15):
       try:
         if self.EvaluateJavaScriptInContext(
-            "document.getElementById('Email') != null", gaia_context):
+            "document.readyState == 'complete' && "
+            "document.getElementById('Email') != null",
+            gaia_context):
           return gaia_context
       except exceptions.EvaluateException:
         pass
