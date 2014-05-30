@@ -22,23 +22,23 @@ class PageSetSmokeTest(unittest.TestCase):
     # Instantiate all page sets and verify that all URLs have an associated
     # archive.
     page_sets = discover.GetAllPageSetFilenames(page_sets_dir)
-    for path in page_sets:
-      page_set = page_set_module.PageSet.FromFile(path)
+    for page_set_path in page_sets:
+      page_set = page_set_module.PageSet.FromFile(page_set_path)
 
       # TODO: Eventually these should be fatal.
       if not page_set.archive_data_file:
-        logging.warning('Skipping %s: missing archive data file', path)
+        logging.warning('Skipping %s: no archive data file', page_set_path)
         continue
-      if not os.path.exists(os.path.join(page_sets_dir,
-                                         page_set.archive_data_file)):
-        logging.warning('Skipping %s: archive data file not found', path)
-        continue
+
+      logging.info('Testing %s', page_set_path)
+
+      archive_data_file_path = os.path.join(page_set.base_dir,
+                                            page_set.archive_data_file)
+      self.assertTrue(os.path.exists(archive_data_file_path),
+                      msg='Archive data file not found for %s' % page_set_path)
 
       wpr_archive_info = page_set_archive_info.PageSetArchiveInfo.FromFile(
-        os.path.join(page_sets_dir, page_set.archive_data_file),
-        ignore_archive=True)
-
-      logging.info('Testing %s', path)
+        archive_data_file_path, ignore_archive=True)
       for page in page_set.pages:
         if not page.url.startswith('http'):
           continue
