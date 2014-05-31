@@ -109,7 +109,9 @@ class Tab(web_contents.WebContents):
         screen.style.zIndex = '2147483638';
         document.body.appendChild(screen);
         requestAnimationFrame(function() {
-          window.__telemetry_screen_%d = screen;
+          requestAnimationFrame(function() {
+            window.__telemetry_screen_%d = screen;
+          });
         });
       })();
     """ % (color.r, color.g, color.b, color.a, int(color)))
@@ -122,7 +124,11 @@ class Tab(web_contents.WebContents):
       (function() {
         document.body.removeChild(window.__telemetry_screen_%d);
         requestAnimationFrame(function() {
-          window.__telemetry_screen_%d = null;
+          requestAnimationFrame(function() {
+            window.__telemetry_screen_%d = null;
+            console.time('__ClearHighlight.video_capture_start');
+            console.timeEnd('__ClearHighlight.video_capture_start');
+          });
         });
       })();
     """ % (int(color), int(color)))

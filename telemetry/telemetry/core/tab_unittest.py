@@ -5,8 +5,11 @@
 import logging
 
 from telemetry import test
+from telemetry.core import bitmap
 from telemetry.core import util
 from telemetry.core import exceptions
+from telemetry.core.backends.chrome import tracing_backend
+from telemetry.core.timeline import model
 from telemetry.unittest import tab_test_case
 
 
@@ -92,6 +95,21 @@ class TabTest(tab_test_case.TabTestCase):
       pass
     self.assertFalse(self._tab.is_video_capture_running)
     self._tab.browser._platform = original_platform
+
+  def testHighlight(self):
+    self.assertEquals(self._tab.url, 'about:blank')
+    self._browser.StartTracing(tracing_backend.DEFAULT_TRACE_CATEGORIES)
+    self._tab.Highlight(bitmap.WEB_PAGE_TEST_ORANGE)
+    self._tab.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
+    trace_data = self._browser.StopTracing()
+    timeline_model = model.TimelineModel(trace_data)
+    renderer_thread = timeline_model.GetRendererThreadFromTab(self._tab)
+    found_video_start_event = False
+    for event in renderer_thread.async_slices:
+      if event.name == '__ClearHighlight.video_capture_start':
+        found_video_start_event = True
+        break
+    self.assertTrue(found_video_start_event)
 
 
 class GpuTabTest(tab_test_case.TabTestCase):
