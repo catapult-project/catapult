@@ -12,6 +12,10 @@ from telemetry.core.backends import google_credentials_backend
 from telemetry.unittest import options_for_unittests
 
 
+class CredentialsError(Exception):
+  """Error that can be thrown when logging in."""
+
+
 class BrowserCredentials(object):
   def __init__(self, backends = None):
     self._credentials = {}
@@ -33,19 +37,22 @@ class BrowserCredentials(object):
 
   def IsLoggedIn(self, credentials_type):
     if credentials_type not in self._backends:
-      raise Exception('Unrecognized credentials type: %s', credentials_type)
+      raise CredentialsError(
+          'Unrecognized credentials type: %s', credentials_type)
     if credentials_type not in self._credentials:
       return False
     return self._backends[credentials_type].IsLoggedIn()
 
   def CanLogin(self, credentials_type):
     if credentials_type not in self._backends:
-      raise Exception('Unrecognized credentials type: %s', credentials_type)
+      raise CredentialsError(
+          'Unrecognized credentials type: %s', credentials_type)
     return credentials_type in self._credentials
 
   def LoginNeeded(self, tab, credentials_type):
     if credentials_type not in self._backends:
-      raise Exception('Unrecognized credentials type: %s', credentials_type)
+      raise CredentialsError(
+          'Unrecognized credentials type: %s', credentials_type)
     if credentials_type not in self._credentials:
       return False
     return self._backends[credentials_type].LoginNeeded(
