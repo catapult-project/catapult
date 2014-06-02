@@ -297,7 +297,8 @@ class CrOSInterface(object):
     """Returns the pid of the session_manager process, given the list of
     processes."""
     for pid, process, _, _ in procs:
-      if process.startswith('/sbin/session_manager '):
+      argv = process.split()
+      if argv and os.path.basename(argv[0]) == 'session_manager':
         return pid
     return None
 
