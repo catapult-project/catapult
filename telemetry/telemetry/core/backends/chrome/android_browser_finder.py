@@ -220,13 +220,12 @@ def FindAllAvailableBrowsers(finder_options, logging=real_logging):
         if ret:
           logging.warn('Failed to taskset %d (%s)', pid, ret)
 
-    if not os.environ.get('BUILDBOT_BUILDERNAME'):
-      # Killing adbd before running tests has proven to make them less likely to
-      # flake out during the test. We skip this if Telemetry is running under a
-      # buildbot because build/android/test_runner.py wrapper already took care
-      # of it before starting the shards.
-      adb.RestartAdbdOnDevice()
-      adb.WaitForDevicePm()
+  if not os.environ.get('BUILDBOT_BUILDERNAME'):
+    # Killing adbd before running tests has proven to make them less likely to
+    # flake out during the test. We skip this if Telemetry is running under a
+    # buildbot because build/android/test_runner.py wrapper already took care
+    # of it before starting the shards.
+    adb.RestartAdbdOnDevice()
 
   packages = adb.RunShellCommand('pm list packages')
   possible_browsers = []
