@@ -18,35 +18,17 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     stats = rendering_stats.RenderingStats(
       renderer_process, model.browser_process,
       [r.GetBounds() for r in interaction_records])
-    if stats.mouse_wheel_scroll_latency:
-      mean_mouse_wheel_scroll_latency = statistics.ArithmeticMean(
-        stats.mouse_wheel_scroll_latency)
-      mouse_wheel_scroll_latency_discrepancy = statistics.DurationsDiscrepancy(
-        stats.mouse_wheel_scroll_latency)
-      results.Add('mean_mouse_wheel_scroll_latency', 'ms',
-                  round(mean_mouse_wheel_scroll_latency, 3))
-      results.Add('mouse_wheel_scroll_latency_discrepancy', 'ms',
-                  round(mouse_wheel_scroll_latency_discrepancy, 4))
 
-    if stats.touch_scroll_latency:
-      mean_touch_scroll_latency = statistics.ArithmeticMean(
-        stats.touch_scroll_latency)
-      touch_scroll_latency_discrepancy = statistics.DurationsDiscrepancy(
-        stats.touch_scroll_latency)
-      results.Add('mean_touch_scroll_latency', 'ms',
-                  round(mean_touch_scroll_latency, 3))
-      results.Add('touch_scroll_latency_discrepancy', 'ms',
-                  round(touch_scroll_latency_discrepancy, 4))
-
-    if stats.js_touch_scroll_latency:
-      mean_js_touch_scroll_latency = statistics.ArithmeticMean(
-        stats.js_touch_scroll_latency)
-      js_touch_scroll_latency_discrepancy = statistics.DurationsDiscrepancy(
-        stats.js_touch_scroll_latency)
-      results.Add('mean_js_touch_scroll_latency', 'ms',
-                  round(mean_js_touch_scroll_latency, 3))
-      results.Add('js_touch_scroll_latency_discrepancy', 'ms',
-                  round(js_touch_scroll_latency_discrepancy, 4))
+    input_event_latency = FlattenList(stats.input_event_latency)
+    if input_event_latency:
+      mean_input_event_latency = statistics.ArithmeticMean(
+        input_event_latency)
+      input_event_latency_discrepancy = statistics.DurationsDiscrepancy(
+        input_event_latency)
+      results.Add('mean_input_event_latency', 'ms',
+                  round(mean_input_event_latency, 3))
+      results.Add('input_event_latency_discrepancy', 'ms',
+                  round(input_event_latency_discrepancy, 4))
 
     # List of raw frame times.
     frame_times = FlattenList(stats.frame_times)

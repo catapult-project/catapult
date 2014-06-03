@@ -30,76 +30,53 @@ class NotEnoughFramesError(page_measurement.MeasurementFailure):
       '- Pages that can\'t be scrolled')
 
 
-def GetScrollInputLatencyEvents(scroll_type, browser_process, timeline_range):
-  """Get scroll events' LatencyInfo from the browser process's trace buffer
-     that are within the timeline_range.
+def GetInputLatencyEvents(process, timeline_range):
+  """Get input events' LatencyInfo from the process's trace buffer that are
+     within the timeline_range.
 
-  Scroll events (MouseWheel, GestureScrollUpdate or JS scroll on TouchMove)
-  dump their LatencyInfo into trace buffer as async trace event with name
-  "InputLatency". The trace event has a memeber 'step' containing its event
-  type and a memeber 'data' containing its latency history.
+  Input events dump their LatencyInfo into trace buffer as async trace event
+  with name "InputLatency". The trace event has a memeber 'data' containing
+  its latency history.
 
   """
-  scroll_events = []
-  if not browser_process:
-    return scroll_events
-  for event in browser_process.IterAllAsyncSlicesOfName("InputLatency"):
+  input_events = []
+  if not process:
+    return input_events
+  for event in process.IterAllAsyncSlicesOfName("InputLatency"):
     if event.start >= timeline_range.min and event.end <= timeline_range.max:
       for ss in event.sub_slices:
-        if 'step' not in ss.args:
-          continue
-        if 'data' not in ss.args:
-          continue
-        if ss.args['step'] == scroll_type:
-          scroll_events.append(ss)
-  return scroll_events
+        if 'data' in ss.args:
+          input_events.append(ss)
+  return input_events
 
+def ComputeInputEventLatency(input_events):
+  """ Compute the input event latency.
 
-def ComputeMouseWheelScrollLatency(mouse_wheel_events):
-  """ Compute the mouse wheel scroll latency.
-
-  Mouse wheel scroll latency is the time from when mouse wheel event is sent
-  from browser RWH to renderer (the timestamp of component
-  'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT') to when the scrolled page is
-  buffer swapped (the timestamp of component
-  'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT')
+  Input event latency is the time from when the input event is created to
+  when its resulted page is swap buffered.
+  Input event on differnt platforms uses different LatencyInfo component to
+  record its creation timestamp. We go through the following component list
+  to find the creation timestamp:
+  1. INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT -- when event is created in OS
+  2. INPUT_EVENT_LATENCY_UI_COMPONENT -- when event reaches Chrome
+  3. INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT -- when event reaches RenderWidget
 
   """
-  mouse_wheel_latency = []
-  for event in mouse_wheel_events:
-    data = event.args['data']
-    if BEGIN_COMP_NAME in data and END_COMP_NAME in data:
-      latency = data[END_COMP_NAME]['time'] - data[BEGIN_COMP_NAME]['time']
-      mouse_wheel_latency.append(latency / 1000.0)
-  return mouse_wheel_latency
-
-
-def ComputeTouchScrollLatency(touch_scroll_events):
-  """ Compute the touch scroll latency.
-
-  Touch scroll latency is the time from when the touch event is created to
-  when the scrolled page is buffer swapped.
-  Touch event on differnt platforms uses different LatencyInfo component to
-  record its creation timestamp. On Aura, the creation time is kept in
-  'INPUT_EVENT_LATENCY_UI_COMPONENT' . On Android, the creation time is kept
-  in 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT'.
-
-  """
-  touch_scroll_latency = []
-  for event in touch_scroll_events:
+  input_event_latency = []
+  for event in input_events:
     data = event.args['data']
     if END_COMP_NAME in data:
       end_time = data[END_COMP_NAME]['time']
-      if UI_COMP_NAME in data and ORIGINAL_COMP_NAME in data:
-        raise ValueError, 'LatencyInfo has both UI and ORIGINAL component'
-      if UI_COMP_NAME in data:
-        latency = end_time - data[UI_COMP_NAME]['time']
-        touch_scroll_latency.append(latency / 1000.0)
-      elif ORIGINAL_COMP_NAME in data:
+      if ORIGINAL_COMP_NAME in data:
         latency = end_time - data[ORIGINAL_COMP_NAME]['time']
-        touch_scroll_latency.append(latency / 1000.0)
-  return touch_scroll_latency
-
+      elif UI_COMP_NAME in data:
+        latency = end_time - data[UI_COMP_NAME]['time']
+      elif BEGIN_COMP_NAME in data:
+        latency = end_time - data[BEGIN_COMP_NAME]['time']
+      else:
+        raise ValueError, 'LatencyInfo has no begin component'
+      input_event_latency.append(latency / 1000.0)
+  return input_event_latency
 
 def HasRenderingStats(process):
   """ Returns True if the process contains at least one
@@ -146,15 +123,9 @@ class RenderingStats(object):
     self.rasterize_times = []
     self.rasterized_pixel_counts = []
     self.approximated_pixel_percentages = []
-    # End-to-end latency for MouseWheel scroll - from when mouse wheel event is
-    # generated to when the scrolled page is buffer swapped.
-    self.mouse_wheel_scroll_latency = []
-    # End-to-end latency for GestureScrollUpdate scroll - from when the touch
-    # event is generated to the scrolled page is buffer swapped.
-    self.touch_scroll_latency = []
-    # End-to-end latency for JS touch handler scrolling - from when the touch
-    # event is generated to the scrolled page is buffer swapped.
-    self.js_touch_scroll_latency = []
+    # End-to-end latency for input event - from when input event is
+    # generated to when the its resulted page is swap buffered.
+    self.input_event_latency = []
 
     for timeline_range in timeline_ranges:
       self.frame_timestamps.append([])
@@ -166,9 +137,7 @@ class RenderingStats(object):
       self.rasterize_times.append([])
       self.rasterized_pixel_counts.append([])
       self.approximated_pixel_percentages.append([])
-      self.mouse_wheel_scroll_latency.append([])
-      self.touch_scroll_latency.append([])
-      self.js_touch_scroll_latency.append([])
+      self.input_event_latency.append([])
 
       if timeline_range.is_empty:
         continue
@@ -177,7 +146,8 @@ class RenderingStats(object):
           renderer_process, timeline_range)
       self._InitImplThreadRenderingStatsFromTimeline(
           renderer_process, timeline_range)
-      self._InitScrollLatencyStatsFromTimeline(browser_process, timeline_range)
+      self._InitInputLatencyStatsFromTimeline(
+          browser_process, renderer_process, timeline_range)
 
     # Check if we have collected at least 2 frames in every range. Otherwise we
     # can't compute any meaningful metrics.
@@ -185,21 +155,13 @@ class RenderingStats(object):
       if len(segment) < 2:
         raise NotEnoughFramesError(len(segment))
 
-  def _InitScrollLatencyStatsFromTimeline(
-      self, browser_process, timeline_range):
-    mouse_wheel_events = GetScrollInputLatencyEvents(
-        "MouseWheel", browser_process, timeline_range)
-    self.mouse_wheel_scroll_latency = ComputeMouseWheelScrollLatency(
-        mouse_wheel_events)
-
-    touch_scroll_events = GetScrollInputLatencyEvents(
-        "GestureScrollUpdate", browser_process, timeline_range)
-    self.touch_scroll_latency = ComputeTouchScrollLatency(touch_scroll_events)
-
-    js_touch_scroll_events = GetScrollInputLatencyEvents(
-        "TouchMove", browser_process, timeline_range)
-    self.js_touch_scroll_latency = ComputeTouchScrollLatency(
-        js_touch_scroll_events)
+  def _InitInputLatencyStatsFromTimeline(
+      self, browser_process, renderer_process, timeline_range):
+    latency_events = GetInputLatencyEvents(browser_process, timeline_range)
+    # Plugin input event's latency slice is generated in renderer process.
+    latency_events.extend(GetInputLatencyEvents(renderer_process,
+                                                timeline_range))
+    self.input_event_latency[-1] = ComputeInputEventLatency(latency_events)
 
   def _GatherEvents(self, event_name, process, timeline_range):
     events = []
