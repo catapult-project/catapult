@@ -88,7 +88,11 @@ tvcm.exportTo('tvcm.unittest', function() {
         var link = document.createElement('a');
         link.href = l.linkPath;
         link.textContent = l.title;
-        linksEl.appendChild(link);
+
+        var li = document.createElement('li');
+        li.appendChild(link);
+
+        linksEl.appendChild(li);
       }, this);
     },
 
