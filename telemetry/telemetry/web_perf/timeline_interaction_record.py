@@ -9,11 +9,11 @@ import telemetry.core.timeline.bounds as timeline_bounds
 
 
 IS_SMOOTH = 'is_smooth'
-IS_LOADING_RESOURCES = 'is_loading_resources'
+IS_RESPONSIVE = 'is_responsive'
 
 FLAGS = [
     IS_SMOOTH,
-    IS_LOADING_RESOURCES
+    IS_RESPONSIVE
 ]
 
 
@@ -22,6 +22,9 @@ class ThreadTimeRangeOverlappedException(Exception):
   with other events.
   """
 
+class NoThreadTimeDataException(ThreadTimeRangeOverlappedException):
+  """Exception that can be thrown if there is not sufficient thread time data
+  to compute the overlapped thread time range."""
 
 def IsTimelineInteractionRecord(event_name):
   return event_name.startswith('Interaction.')
@@ -52,7 +55,7 @@ class TimelineInteractionRecord(object):
   is currently done by pushing markers into the console.time/timeEnd API: this
   for instance can be issued in JS:
 
-     var str = 'Interaction.SendEmail/is_smooth,is_loading_resources';
+     var str = 'Interaction.SendEmail/is_smooth,is_responsive';
      console.time(str);
      setTimeout(function() {
        console.timeEnd(str);
@@ -71,7 +74,7 @@ class TimelineInteractionRecord(object):
     self.start = start
     self.end = end
     self.is_smooth = False
-    self.is_loading_resources = False
+    self.is_responsive = False
     self._async_event = async_event
 
   # TODO(nednguyen): After crbug.com/367175 is marked fixed, we should be able
@@ -84,6 +87,9 @@ class TimelineInteractionRecord(object):
       async_event: An instance of
         telemetry.core.timeline.async_slices.AsyncSlice
     """
+    assert async_event.start_thread == async_event.end_thread, (
+        'Start thread of this record\'s async event is not the same as its '
+        'end thread')
     m = re.match('Interaction\.(.+)\/(.+)', async_event.name)
     if m:
       logical_name = m.group(1)
@@ -104,7 +110,7 @@ class TimelineInteractionRecord(object):
         raise Exception(
             'Unrecognized flag in timeline Interaction record: %s' % f)
     record.is_smooth = IS_SMOOTH in flags
-    record.is_loading_resources = IS_LOADING_RESOURCES in flags
+    record.is_responsive = IS_RESPONSIVE in flags
     return record
 
   def GetResultNameFor(self, result_name):
@@ -169,16 +175,12 @@ class TimelineInteractionRecord(object):
     if not self._async_event:
       raise ThreadTimeRangeOverlappedException(
           'This record was not constructed from async event')
-    if self._async_event.start_thread != self._async_event.end_thread:
-      raise ThreadTimeRangeOverlappedException(
-          'Start thread of this record\'s async event is not the same as its '
-          'end thread')
     if not self._async_event.has_thread_timestamps:
-      raise ThreadTimeRangeOverlappedException(
+      raise NoThreadTimeDataException(
           'This record\'s async_event does not contain thread time data. '
           'Event data: %s' % repr(self._async_event))
     if not timeline_slice.has_thread_timestamps:
-      raise ThreadTimeRangeOverlappedException(
+      raise NoThreadTimeDataException(
           'slice does not contain thread time data')
 
     if timeline_slice.parent_thread == self._async_event.start_thread:
@@ -210,3 +212,19 @@ class TimelineInteractionRecord(object):
         self._async_event.thread_duration / float(self._async_event.duration))
     return (overlapped_walltime_duration * timeline_slice_scheduled_ratio *
             record_scheduled_ratio)
+
+  def __repr__(self):
+    flags = []
+    if self.is_smooth:
+      flags.append(IS_SMOOTH)
+    elif self.is_responsive:
+      flags.append(IS_RESPONSIVE)
+    flags_str = ','.join(flags)
+
+    return ('TimelineInteractionRecord(logical_name=\'%s\', start=%f, end=%f,' +
+            ' flags=%s, async_event=%s)') % (
+                self.logical_name,
+                self.start,
+                self.end,
+                flags_str,
+                repr(self._async_event))

@@ -33,7 +33,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
         start_thread=renderer_thread, end_thread=renderer_thread,
         thread_start=5, thread_duration=15))
     renderer_thread.async_slices.append(async_slice.AsyncSlice(
-        'cat', 'Interaction.LogicalName2/is_loading_resources',
+        'cat', 'Interaction.LogicalName2/is_responsive',
         timestamp=25, duration=5,
         start_thread=renderer_thread, end_thread=renderer_thread,
         thread_start=25, thread_duration=5))
@@ -51,7 +51,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
     self.assertEquals(0, interactions[0].start)
     self.assertEquals(20, interactions[0].end)
 
-    self.assertTrue(interactions[1].is_loading_resources)
+    self.assertTrue(interactions[1].is_responsive)
     self.assertEquals(25, interactions[1].start)
     self.assertEquals(30, interactions[1].end)
 
@@ -73,7 +73,7 @@ class TimelineBasedMetricsTests(unittest.TestCase):
       res = []
       if interaction.is_smooth:
         res.append(FakeSmoothMetric())
-      if interaction.is_loading_resources:
+      if interaction.is_responsive:
         res.append(FakeLoadingMetric())
       return res
 
