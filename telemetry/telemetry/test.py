@@ -37,8 +37,14 @@ class Test(command_line.Command):
     name = cls.__module__.split('.')[-1]
     if hasattr(cls, 'tag'):
       name += '.' + cls.tag
-    if hasattr(cls, 'page_set'):
-      name += '.' + os.path.basename(os.path.splitext(cls.page_set)[0])
+    page_set_name = None
+    if hasattr(cls, 'page_set') and isinstance(cls.page_set, page_set.PageSet):
+      page_set_name = os.path.basename(
+          os.path.splitext(cls.page_set.file_path)[0])
+    elif hasattr(cls, 'page_set') and isinstance(cls.page_set, str):
+      page_set_name = os.path.basename(os.path.splitext(cls.page_set)[0])
+    if page_set_name:
+      name += '.' + page_set_name
     return name
 
   @classmethod
@@ -172,8 +178,15 @@ class Test(command_line.Command):
     """
     if not hasattr(cls, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')
-    return page_set.PageSet.FromFile(
-        file_path=os.path.join(util.GetBaseDir(), cls.page_set))
+
+    if isinstance(cls.page_set, str):
+      return page_set.PageSet.FromFile(
+          file_path=os.path.join(util.GetBaseDir(), cls.page_set))
+    elif isinstance(cls.page_set, page_set.PageSet):
+      return cls.page_set
+    else:
+      raise TypeError('The page_set field of %s has unsupported type.' %
+                      cls.Name)
 
   @classmethod
   def CreateExpectations(cls, ps):  # pylint: disable=W0613
