@@ -204,6 +204,11 @@ class BrowserOptions(object):
 
     self.platform = None
 
+    # Whether to use the new code path for choosing an ephemeral port for
+    # DevTools. The bots set this to true. When Chrome 37 reaches stable,
+    # remove this setting and the old code path. http://crbug.com/379980
+    self.use_devtools_active_port = False
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
@@ -244,6 +249,11 @@ class BrowserOptions(object):
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
+    # This hidden option is to be removed, and the older code path deleted,
+    # once Chrome 37 reaches Stable. http://crbug.com/379980
+    group.add_option('--use-devtools-active-port',
+        action='store_true',
+        help=optparse.SUPPRESS_HELP)
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
@@ -274,6 +284,7 @@ class BrowserOptions(object):
         'profile_type',
         'show_stdout',
         'synthetic_gesture_source_type',
+        'use_devtools_active_port',
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)
