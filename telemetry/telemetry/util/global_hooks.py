@@ -83,7 +83,7 @@ def InstallAtExitHook():
   hangs on the builbots.
   """
   # TODO(tonyg): Find a way to do something similar on Windows.
-  if platform.GetHostPlatform().GetOSName() not in ['linux', 'mac']:
+  if platform.GetHostPlatform().GetOSName() == 'win':
     return
 
   # Create new process group and become its leader.
