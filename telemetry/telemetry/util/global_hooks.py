@@ -4,12 +4,10 @@
 
 """Hooks that apply globally to all scripts that import or use Telemetry."""
 
-import atexit
 import os
 import signal
 import sys
 
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry.util import exception_formatter
 
@@ -20,7 +18,6 @@ def InstallHooks():
   InstallUnhandledExceptionFormatter()
   InstallStackDumpOnSigusr1()
   InstallTerminationHook()
-  InstallAtExitHook()
 
 
 def RemoveAllStalePycFiles(base_dir):
@@ -74,24 +71,3 @@ def InstallTerminationHook():
     exception_formatter.PrintFormattedFrame(stack_frame, exception_string)
     sys.exit(-1)
   signal.signal(signal.SIGTERM, PrintStackAndExit)
-
-
-def InstallAtExitHook():
-  """Ensure all subprocesses are killed.
-
-  Subprocesses should never outlive Telemetry. If they do, they can cause
-  hangs on the builbots.
-  """
-  # TODO(tonyg): Find a way to do something similar on Windows.
-  if platform.GetHostPlatform().GetOSName() == 'win':
-    return
-
-  # Create new process group and become its leader.
-  os.setpgrp()
-
-  # At exit, terminate everything in the group.
-  def KillGroup():
-    # Ignore the TERM we're about to get.
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)
-    os.killpg(0, signal.SIGTERM)
-  atexit.register(KillGroup)
