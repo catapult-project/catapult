@@ -10,6 +10,7 @@ from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.timeline import model as model_module
 from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import smoothness
+from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.page import page_measurement
 from telemetry.value import string as string_value_module
 
@@ -57,7 +58,6 @@ class _TimelineBasedMetrics(object):
     return [tir_module.TimelineInteractionRecord.FromAsyncEvent(event) for
             event in self._renderer_thread.async_slices
             if tir_module.IsTimelineInteractionRecord(event.name)]
-
 
   def AddResults(self, results):
     interactions = self.FindTimelineInteractionRecords()
@@ -131,6 +131,8 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
     res = []
     if interaction.is_smooth:
       res.append(smoothness.SmoothnessMetric())
+    if interaction.is_responsive:
+      res.append(responsiveness_metric.ResponsivenessMetric())
     return res
 
   def MeasurePage(self, page, tab, results):

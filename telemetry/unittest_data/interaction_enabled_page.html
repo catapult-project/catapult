@@ -53,5 +53,20 @@
     <div id="drawer">
       This is a drawer.
     </div>
+    <script>
+    'use strict';
+    var jankMs = 100;
+    function jankThread() {
+      console.time('Interaction.JankThreadJSRun/is_responsive');
+      var startTime = window.performance.now();
+      var currTime = startTime;
+      while (currTime - startTime < jankMs) {
+        var currTime = window.performance.now();
+      }
+      console.timeEnd('Interaction.JankThreadJSRun/is_responsive');
+    }
+    var drawer = document.getElementById('drawer');
+    drawer.addEventListener('click', jankThread);
+    </script>
   </body>
 </html>
