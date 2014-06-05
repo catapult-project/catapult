@@ -101,12 +101,12 @@ class TimelineBasedMeasurement(page_measurement.PageMeasurement):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     parser.add_option(
-        '--overhead-level', type='choice',
+        '--overhead-level', dest='overhead_level', type='choice',
         choices=ALL_OVERHEAD_LEVELS,
         default=NO_OVERHEAD_LEVEL,
         help='How much overhead to incur during the measurement.')
     parser.add_option(
-        '--trace-dir', type='string', default=None,
+        '--trace-dir', dest='trace_dir', type='string', default=None,
         help=('Where to save the trace after the run. If this flag '
               'is not set, the trace will not be saved.'))
 
