@@ -5,9 +5,9 @@
 from telemetry.page.actions import page_action
 
 
-class JavascriptAction(page_action.PageAction):
+class JavaScriptAction(page_action.PageAction):
   def __init__(self, attributes=None):
-    super(JavascriptAction, self).__init__(attributes)
+    super(JavaScriptAction, self).__init__(attributes)
 
   def RunAction(self, tab):
     assert hasattr(self, 'expression')

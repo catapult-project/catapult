@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.timeline import model
 from telemetry.page.actions import action_runner as action_runner_module
@@ -16,8 +17,9 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.Navigate('interaction_enabled_page.html')
     action_runner.RunAction(WaitAction({'seconds': 1}))
     self._browser.StartTracing(tracing_backend.DEFAULT_TRACE_CATEGORIES)
-    action_runner.BeginInteraction('TestInteraction', [tir_module.IS_SMOOTH])
-    action_runner.EndInteraction('TestInteraction', [tir_module.IS_SMOOTH])
+    interaction = action_runner.BeginInteraction(
+        'TestInteraction', is_smooth=True)
+    interaction.End()
     trace_data = self._browser.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
 
@@ -32,3 +34,9 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
                      ' Trace data:\n%s' % repr(trace_data.EventData()))
     self.assertEqual('TestInteraction', records[0].logical_name)
     self.assertTrue(records[0].is_smooth)
+
+  def testExecuteJavaScript(self):
+    action_runner = action_runner_module.ActionRunner(self._tab)
+    self.Navigate('blank.html')
+    action_runner.ExecuteJavaScript('var testing = 42;')
+    self.assertEqual(42, self._tab.EvaluateJavaScript('testing'))

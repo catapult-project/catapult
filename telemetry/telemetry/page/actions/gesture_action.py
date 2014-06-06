@@ -6,7 +6,6 @@ from telemetry.page.actions import page_action
 from telemetry.page.actions import wait
 from telemetry import decorators
 from telemetry.page.actions import action_runner
-from telemetry.web_perf import timeline_interaction_record as tir_module
 
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
@@ -29,15 +28,16 @@ class GestureAction(page_action.PageAction):
     else:
       interaction_name = 'Gesture_%s' % self.__class__.__name__
 
+    interaction = None
     if self.automatically_record_interaction:
-      runner.BeginInteraction(interaction_name, [tir_module.IS_SMOOTH])
+      interaction = runner.BeginInteraction(interaction_name, is_smooth=True)
 
     self.RunGesture(tab)
     if self.wait_action:
       self.wait_action.RunAction(tab)
 
-    if self.automatically_record_interaction:
-      runner.EndInteraction(interaction_name, [tir_module.IS_SMOOTH])
+    if interaction is not None:
+      interaction.End()
 
   def RunGesture(self, tab):
     raise NotImplementedError()

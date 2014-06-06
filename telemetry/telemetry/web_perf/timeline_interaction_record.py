@@ -124,7 +124,7 @@ class TimelineInteractionRecord(object):
     return bounds
 
   @staticmethod
-  def GetJavascriptMarker(logical_name, flags):
+  def GetJavaScriptMarker(logical_name, flags):
     """ Get the marker string of an interaction record with logical_name
     and flags.
     """

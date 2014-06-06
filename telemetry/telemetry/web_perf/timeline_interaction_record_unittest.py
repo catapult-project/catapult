@@ -59,11 +59,11 @@ class TimelineInteractionRecordTests(unittest.TestCase):
     self.assertEquals(True, r.is_smooth)
     self.assertEquals(True, r.is_responsive)
 
-  def testGetJavascriptMarker(self):
-    smooth_marker = tir_module.TimelineInteractionRecord.GetJavascriptMarker(
+  def testGetJavaScriptMarker(self):
+    smooth_marker = tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
         'LogicalName', [tir_module.IS_SMOOTH])
     self.assertEquals('Interaction.LogicalName/is_smooth', smooth_marker)
-    slr_marker = tir_module.TimelineInteractionRecord.GetJavascriptMarker(
+    slr_marker = tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
         'LogicalName', [tir_module.IS_SMOOTH, tir_module.IS_RESPONSIVE])
     self.assertEquals('Interaction.LogicalName/is_smooth,is_responsive',
                       slr_marker)
