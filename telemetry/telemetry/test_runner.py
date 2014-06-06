@@ -155,8 +155,8 @@ class Run(command_line.OptparseCommand):
 
     assert issubclass(test_class, test.Test), 'Trying to run a non-Test?!'
 
-    test_class.ProcessCommandLineArgs(parser, args)
     test.ProcessCommandLineArgs(parser, args)
+    test_class.ProcessCommandLineArgs(parser, args)
 
     cls._test = test_class
 

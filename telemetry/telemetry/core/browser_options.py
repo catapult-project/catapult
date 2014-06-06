@@ -308,12 +308,17 @@ class BrowserOptions(object):
       self.dont_override_profile = True
 
     if self.profile_dir and self.profile_type != 'clean':
-      raise Exception("It's illegal to specify both --profile-type and"
-          " --profile-dir.")
+      logging.critical(
+          "It's illegal to specify both --profile-type and --profile-dir.\n"
+          "For more information see: http://goo.gl/ngdGD5")
+      sys.exit(1)
 
     if self.profile_dir and not os.path.isdir(self.profile_dir):
-      raise Exception("Directory specified by --profile-dir (%s) doesn't"
-          " exist or isn't a directory." % (self.profile_dir))
+      logging.critical(
+          "Directory specified by --profile-dir (%s) doesn't exist "
+          "or isn't a directory.\n"
+          "For more information see: http://goo.gl/ngdGD5" % self.profile_dir)
+      sys.exit(1)
 
     if not self.profile_dir:
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
