@@ -30,7 +30,7 @@ class InspectorPage(object):
           (not url == 'chrome://newtab/' and not url == 'about:blank'
           and not 'parentId' in msg['params']['frame'])):
         # Marks the navigation as complete and unblocks the
-        # PerformActionAndWaitForNavigate call.
+        # WaitForNavigate call.
         self._navigation_pending = False
 
   def _OnClose(self):
@@ -70,16 +70,14 @@ class InspectorPage(object):
     res = self._inspector_backend.SyncRequest(request, timeout)
     assert len(res['result'].keys()) == 0
 
-  def PerformActionAndWaitForNavigate(self, action_function, timeout=60):
-    """Executes action_function, and waits for the navigation to complete.
+  def WaitForNavigate(self, timeout=60):
+    """Waits for the navigation to complete.
 
-    action_function is expect to result in a navigation. This function returns
+    The current page is expect to be in a navigation. This function returns
     when the navigation is complete or when the timeout has been exceeded.
     """
     start_time = time.time()
     remaining_time = timeout
-
-    action_function()
     self._navigation_pending = True
     try:
       while self._navigation_pending and remaining_time > 0:
@@ -99,17 +97,16 @@ class InspectorPage(object):
     the page exists, but before any script on the page itself has executed.
     """
 
-    def DoNavigate():
-      self._SetScriptToEvaluateOnCommit(script_to_evaluate_on_commit)
-      request = {
-          'method': 'Page.navigate',
-          'params': {
-              'url': url,
-              }
-          }
-      self._inspector_backend.SyncRequest(request, timeout)
+    self._SetScriptToEvaluateOnCommit(script_to_evaluate_on_commit)
+    request = {
+        'method': 'Page.navigate',
+        'params': {
+            'url': url,
+            }
+        }
+    self._inspector_backend.SyncRequest(request, timeout)
     self._navigation_url = url
-    self.PerformActionAndWaitForNavigate(DoNavigate, timeout)
+    self.WaitForNavigate(timeout)
 
   def GetCookieByName(self, name, timeout=60):
     """Returns the value of the cookie by the given |name|."""

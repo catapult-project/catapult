@@ -158,8 +158,8 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   # Page public methods.
 
-  def PerformActionAndWaitForNavigate(self, action_function, timeout):
-    self._page.PerformActionAndWaitForNavigate(action_function, timeout)
+  def WaitForNavigate(self, timeout):
+    self._page.WaitForNavigate(timeout)
 
   def Navigate(self, url, script_to_evaluate_on_commit, timeout):
     self._page.Navigate(url, script_to_evaluate_on_commit, timeout)

@@ -40,3 +40,16 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.Navigate('blank.html')
     action_runner.ExecuteJavaScript('var testing = 42;')
     self.assertEqual(42, self._tab.EvaluateJavaScript('testing'))
+
+  def testWaitForNavigate(self):
+    self.Navigate('page_with_link.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner.RunAction(ClickElementAction({'xpath': 'id("clickme")'}))
+    action_runner.WaitForNavigate()
+
+    self.assertTrue(self._tab.EvaluateJavaScript(
+        'document.readyState == "interactive" || '
+        'document.readyState == "complete"'))
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/blank.html')

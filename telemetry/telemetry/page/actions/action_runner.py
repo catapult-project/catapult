@@ -8,6 +8,7 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
 class ActionRunner(object):
+
   def __init__(self, tab):
     self._tab = tab
 
@@ -55,11 +56,15 @@ class ActionRunner(object):
     else:
       target_side_url = page.url
     attributes = {
-      'url': target_side_url ,
-      'script_to_evaluate_on_commit': page.script_to_evaluate_on_commit}
+        'url': target_side_url,
+        'script_to_evaluate_on_commit': page.script_to_evaluate_on_commit}
     if timeout_seconds:
       attributes['timeout_seconds'] = timeout_seconds
     self.RunAction(NavigateAction(attributes))
+
+  def WaitForNavigate(self, timeout_seconds=60):
+    self._tab.WaitForNavigate(timeout_seconds)
+    self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def ExecuteJavaScript(self, js_expression):
     """Executes a given JavaScript expression.
@@ -73,6 +78,7 @@ class ActionRunner(object):
 
 
 class Interaction(object):
+
   def __init__(self, action_runner, label, flags):
     assert action_runner
     assert label

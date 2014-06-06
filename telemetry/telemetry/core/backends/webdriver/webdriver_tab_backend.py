@@ -66,9 +66,8 @@ class WebDriverTabBackend(object):
     # Webdriver has no API for DOM status.
     raise NotImplementedError()
 
-  def PerformActionAndWaitForNavigate(self, action_function, _):
-    # TODO(chrisgao): Double check of navigation.
-    action_function()
+  def WaitForNavigate(self):
+    raise NotImplementedError()
 
   def Navigate(self, url, script_to_evaluate_on_commit=None, timeout=None):
     if script_to_evaluate_on_commit:

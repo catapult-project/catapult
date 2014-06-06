@@ -13,13 +13,7 @@ class WaitUntil(object):
     self._previous_action = previous_action
 
   def RunActionAndWait(self, tab):
-    if getattr(self, 'condition', None) == 'navigate':
-      self._previous_action.WillRunAction(tab)
-      action_to_perform = lambda: self._previous_action.RunAction(tab)
-      tab.PerformActionAndWaitForNavigate(action_to_perform, self.timeout)
-      tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-
-    elif getattr(self, 'condition', None) == 'href_change':
+    if getattr(self, 'condition', None) == 'href_change':
       self._previous_action.WillRunAction(tab)
       old_url = tab.EvaluateJavaScript('document.location.href')
       self._previous_action.RunAction(tab)

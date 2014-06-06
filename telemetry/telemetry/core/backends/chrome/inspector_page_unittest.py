@@ -21,14 +21,9 @@ class InspectorPageTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/page_with_link.html')
 
-    custom_action_called = [False]
-    def CustomAction():
-      custom_action_called[0] = True
-      self._tab.ExecuteJavaScript('document.getElementById("clickme").click();')
+    self._tab.ExecuteJavaScript('document.getElementById("clickme").click();')
+    self._tab.WaitForNavigate()
 
-    self._tab.PerformActionAndWaitForNavigate(CustomAction)
-
-    self.assertTrue(custom_action_called[0])
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
