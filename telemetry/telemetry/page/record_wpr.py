@@ -41,6 +41,7 @@ class RecordPage(page_test.PageTest):  # pylint: disable=W0223
     """Override to ensure all resources are fetched from network."""
     tab.ClearCache(force=False)
     if self.test:
+      self.test.options = self.options
       self.test.WillNavigateToPage(page, tab)
 
   def DidNavigateToPage(self, page, tab):
@@ -49,20 +50,14 @@ class RecordPage(page_test.PageTest):  # pylint: disable=W0223
       self.test.DidNavigateToPage(page, tab)
 
   def RunPage(self, page, tab, results):
-    # When recording, sleep to catch any resources that load post-onload.
     tab.WaitForDocumentReadyStateToBeComplete()
 
-    if self.test:
-      dummy_results = page_measurement_results.PageMeasurementResults()
-      dummy_results.WillMeasurePage(page)
-      self.test.MeasurePage(page, tab, dummy_results)
-      dummy_results.DidMeasurePage()
-    else:
-      # TODO(tonyg): This should probably monitor resource timing for activity
-      # and sleep until 2s since the last network event with some timeout like
-      # 20s. We could wrap this up as WaitForNetworkIdle() and share with the
-      # speed index metric.
-      time.sleep(3)
+    # When recording, sleep to catch any resources that load post-onload.
+    # TODO(tonyg): This should probably monitor resource timing for activity
+    # and sleep until 2s since the last network event with some timeout like
+    # 20s. We could wrap this up as WaitForNetworkIdle() and share with the
+    # speed index metric.
+    time.sleep(3)
 
     # Run the actions for all measurements. Reload the page between
     # actions.
@@ -79,6 +74,12 @@ class RecordPage(page_test.PageTest):  # pylint: disable=W0223
       else:
         self._RunMethod(page, action_name, action_runner)
       should_reload = True
+
+    # Run the PageTest's validator, so that we capture any additional resources
+    # that are loaded by the test.
+    if self.test:
+      dummy_results = page_measurement_results.PageMeasurementResults()
+      self.test.ValidatePage(page, tab, dummy_results)
 
 
 def Main(base_dir):
