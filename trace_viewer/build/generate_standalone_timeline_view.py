@@ -35,9 +35,7 @@ various ordering restrictions between them.
     parser.print_help()
     return 1
 
-  project = trace_viewer_project.TraceViewerProject()
-  load_sequence = project.CalcLoadSequenceForModuleFilenames(
-      ['tracing/standalone_timeline_view.js'])
+  load_sequence = CalcLoadSequence()
 
   if options.js_file:
     with _sopen(options.js_file, 'w') as f:
@@ -48,3 +46,8 @@ various ordering restrictions between them.
       f.write(tvcm.GenerateCSS(load_sequence))
 
   return 0
+
+def CalcLoadSequence():
+  project = trace_viewer_project.TraceViewerProject()
+  return project.CalcLoadSequenceForModuleFilenames(
+      ['tracing/standalone_timeline_view.js'])
