@@ -89,6 +89,15 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args.append('--no-default-browser-check')
     args.append('--no-first-run')
 
+    # TODO(tonyg): Telemetry runs on release build bots which enable DCHECKs.
+    # While, we'd really like for Chrome to be DCHECK clean, pragmatically, it
+    # is far from it and the Telemetry unittests are hitting DCHECKS so often
+    # that the flakiness is becoming untenable.
+    #
+    # We should remove this as soon as we're ready to get serious about the
+    # DCHECK problem and keep Chrome clean.
+    args.append('--silent-dump-on-dcheck')
+
     # Turn on GPU benchmarking extension for all runs. The only side effect of
     # the extension being on is that render stats are tracked. This is believed
     # to be effectively free. And, by doing so here, it avoids us having to
