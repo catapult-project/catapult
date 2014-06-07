@@ -142,10 +142,21 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not os.path.isfile(port_file):
         # File isn't ready yet. Return false. Will retry.
         return False
-      with open(port_file) as f:
-        port_string = f.read()
-        self._port = int(port_string)
-        logging.info('Discovered ephemeral port %s' % self._port)
+      # Attempt to avoid reading the file until it's populated.
+      got_port = False
+      try:
+        if os.stat(port_file).st_size > 0:
+          with open(port_file) as f:
+            port_string = f.read()
+            self._port = int(port_string)
+            logging.info('Discovered ephemeral port %s' % self._port)
+            got_port = True
+      except Exception:
+        # Both stat and open can throw exceptions.
+        pass
+      if not got_port:
+        # File isn't ready yet. Return false. Will retry.
+        return False
     return super(DesktopBrowserBackend, self).HasBrowserFinishedLaunching()
 
   def GetBrowserStartupArgs(self):
