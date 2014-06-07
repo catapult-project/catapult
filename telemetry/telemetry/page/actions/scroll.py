@@ -98,13 +98,3 @@ class ScrollAction(GestureAction):
            gesture_source_type))
 
     tab.WaitForJavaScriptExpression('window.__scrollActionDone', 60)
-
-  def CanBeBound(self):
-    return True
-
-  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the scroll action start and stop measurement automatically.
-    tab.ExecuteJavaScript("""
-        window.__scrollAction.beginMeasuringHook = function() { %s };
-        window.__scrollAction.endMeasuringHook = function() { %s };
-    """ % (start_js, stop_js))

@@ -86,13 +86,3 @@ class SwipeAction(GestureAction):
            speed))
 
     tab.WaitForJavaScriptExpression('window.__swipeActionDone', 60)
-
-  def CanBeBound(self):
-    return True
-
-  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the swipe action start and stop measurement automatically.
-    tab.ExecuteJavaScript("""
-        window.__swipeAction.beginMeasuringHook = function() { %s };
-        window.__swipeAction.endMeasuringHook = function() { %s };
-    """ % (start_js, stop_js))

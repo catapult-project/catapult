@@ -41,24 +41,3 @@ class PageAction(object):
 
   def CleanUp(self, tab):
     pass
-
-  def CanBeBound(self):
-    """If this class implements BindMeasurementJavaScript, override CanBeBound
-    to return True so that a test knows it can bind measurements."""
-    return False
-
-  def BindMeasurementJavaScript(
-      self, tab, start_js, stop_js):  # pylint: disable=W0613
-    """Let this action determine when measurements should start and stop.
-
-    A measurement can call this method to provide the action
-    with JavaScript code that starts and stops measurements. The action
-    determines when to execute the provided JavaScript code, for more accurate
-    timings.
-
-    Args:
-      tab: The tab to do everything on.
-      start_js: JavaScript code that starts measurements.
-      stop_js: JavaScript code that stops measurements.
-    """
-    raise Exception('This action cannot be bound.')

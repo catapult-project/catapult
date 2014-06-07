@@ -82,13 +82,3 @@ class PinchAction(GestureAction):
            speed))
 
     tab.WaitForJavaScriptExpression('window.__pinchActionDone', 60)
-
-  def CanBeBound(self):
-    return True
-
-  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the pinch action start and stop measurement automatically.
-    tab.ExecuteJavaScript("""
-        window.__pinchAction.beginMeasuringHook = function() { %s };
-        window.__pinchAction.endMeasuringHook = function() { %s };
-    """ % (start_js, stop_js))

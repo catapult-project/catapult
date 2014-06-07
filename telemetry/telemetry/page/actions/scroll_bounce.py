@@ -109,13 +109,3 @@ class ScrollBounceAction(GestureAction):
            speed))
 
     tab.WaitForJavaScriptExpression('window.__scrollBounceActionDone', 60)
-
-  def CanBeBound(self):
-    return True
-
-  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the scroll bounce action start and stop measurement automatically.
-    tab.ExecuteJavaScript("""
-        window.__scrollBounceAction.beginMeasuringHook = function() { %s };
-        window.__scrollBounceAction.endMeasuringHook = function() { %s };
-    """ % (start_js, stop_js))

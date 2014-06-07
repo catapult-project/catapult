@@ -102,13 +102,3 @@ class TapAction(GestureAction):
       self.TapSelectedElement(tab, js_cmd)
 
     tab.WaitForJavaScriptExpression('window.__tapActionDone', 60)
-
-  def CanBeBound(self):
-    return True
-
-  def BindMeasurementJavaScript(self, tab, start_js, stop_js):
-    # Make the tap action start and stop measurement automatically.
-    tab.ExecuteJavaScript("""
-        window.__tapAction.beginMeasuringHook = function() { %s };
-        window.__tapAction.endMeasuringHook = function() { %s };
-    """ % (start_js, stop_js))
