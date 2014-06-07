@@ -8,11 +8,8 @@ https://code.google.com/p/trace-viewer/
 '''
 
 from operator import attrgetter
-import weakref
 
 import telemetry.core.timeline.process as tracing_process
-from telemetry.core import web_contents
-from telemetry.core import browser
 
 # Register importers for data
 from telemetry.core.timeline import bounds
@@ -52,14 +49,10 @@ class TimelineModel(object):
     self._processes = {}
     self._browser_process = None
     self._frozen = False
+    self._tab_ids_to_renderer_threads_map = {}
     self.import_errors = []
     self.metadata = []
     self.flow_events = []
-    # Use a WeakKeyDictionary, because an ordinary dictionary could keep
-    # references to Tab objects around until it gets garbage collected.
-    # This would prevent telemetry from navigating to another page.
-    self._core_object_to_timeline_container_map = weakref.WeakKeyDictionary()
-
     if timeline_data is not None:
       self.ImportTraces(timeline_data, shift_world_to_zero=shift_world_to_zero)
 
@@ -85,9 +78,15 @@ class TimelineModel(object):
   def browser_process(self, browser_process):
     self._browser_process = browser_process
 
+  def AddMappingFromTabIdToRendererThread(self, tab_id, renderer_thread):
+    if self._frozen:
+      raise Exception('Cannot add mapping from tab id to renderer thread once '
+                      'trace is imported')
+    self._tab_ids_to_renderer_threads_map[tab_id] = renderer_thread
+
   def ImportTraces(self, timeline_data, shift_world_to_zero=True):
     if self._frozen:
-      raise Exception("Cannot add events once recording is done")
+      raise Exception("Cannot add events once trace is imported")
 
     importers = []
     if isinstance(timeline_data, list):
@@ -232,20 +231,14 @@ class TimelineModel(object):
 
     return events
 
-  def GetRendererProcessFromTab(self, tab):
-    return self._core_object_to_timeline_container_map[tab].parent
+  def GetRendererProcessFromTabId(self, tab_id):
+    renderer_thread = self.GetRendererThreadFromTabId(tab_id)
+    if renderer_thread:
+      return renderer_thread.parent
+    return None
 
-  def GetRendererThreadFromTab(self, tab):
-    return self._core_object_to_timeline_container_map[tab]
-
-  def AddCoreObjectToContainerMapping(self, core_object, container):
-    """ Add a mapping from a core object to a timeline container.
-
-    Used for example to map a Tab to its renderer process in the timeline model.
-    """
-    assert(isinstance(core_object, web_contents.WebContents) or
-           isinstance(core_object, browser.Browser))
-    self._core_object_to_timeline_container_map[core_object] = container
+  def GetRendererThreadFromTabId(self, tab_id):
+    return self._tab_ids_to_renderer_threads_map.get(tab_id, None)
 
   def _CreateImporter(self, event_data):
     for importer_class in _IMPORTERS:

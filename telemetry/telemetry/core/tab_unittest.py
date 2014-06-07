@@ -103,13 +103,55 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
     trace_data = self._browser.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
-    renderer_thread = timeline_model.GetRendererThreadFromTab(self._tab)
+    renderer_thread = timeline_model.GetRendererThreadFromTabId(
+        self._tab.id)
     found_video_start_event = False
     for event in renderer_thread.async_slices:
       if event.name == '__ClearHighlight.video_capture_start':
         found_video_start_event = True
         break
     self.assertTrue(found_video_start_event)
+
+  def testGetRendererThreadFromTabId(self):
+    self.assertEquals(self._tab.url, 'about:blank')
+    # Create 3 tabs. The third tab is closed before we call StartTracing.
+    first_tab = self._tab
+    second_tab = self._browser.tabs.New()
+    second_tab.Navigate('about:blank')
+    second_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    third_tab = self._browser.tabs.New()
+    third_tab.Navigate('about:blank')
+    third_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    third_tab.Close()
+
+    self._browser.StartTracing(tracing_backend.MINIMAL_TRACE_CATEGORIES)
+    first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
+    first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
+    second_tab.ExecuteJavaScript('console.time("second-tab-marker");')
+    second_tab.ExecuteJavaScript('console.timeEnd("second-tab-marker");')
+    trace_data = self._browser.StopTracing()
+    timeline_model = model.TimelineModel(trace_data)
+
+    # Assert that the renderer_thread of the first tab contains
+    # 'first-tab-marker'.
+    renderer_thread = timeline_model.GetRendererThreadFromTabId(
+        first_tab.id)
+    first_tab_markers = [
+        renderer_thread.IterAllSlicesOfName('first-tab-marker')]
+    self.assertEquals(1, len(first_tab_markers))
+
+    # Close second tab and assert that the renderer_thread of the second tab
+    # contains 'second-tab-marker'.
+    second_tab.Close()
+    renderer_thread = timeline_model.GetRendererThreadFromTabId(
+        second_tab.id)
+    second_tab_markers = [
+        renderer_thread.IterAllSlicesOfName('second-tab-marker')]
+    self.assertEquals(1, len(second_tab_markers))
+
+    # Third tab wasn't available when we start tracing, so there is no
+    # renderer_thread corresponding to it in the the trace.
+    self.assertIs(None, timeline_model.GetRendererThreadFromTabId(third_tab.id))
 
 
 class GpuTabTest(tab_test_case.TabTestCase):

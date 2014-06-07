@@ -79,6 +79,10 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
     return None
 
   @property
+  def id(self):
+    return self.debugger_url
+
+  @property
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
 

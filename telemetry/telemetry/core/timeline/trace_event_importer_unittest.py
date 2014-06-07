@@ -1152,3 +1152,38 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     timeline_data = tracing_timeline_data.TracingTimelineData(events)
     m = timeline_model.TimelineModel(timeline_data=timeline_data)
     self.assertEqual(0, len(m.flow_events))
+
+  def testTraceEventsWithTabIdsMarkers(self):
+    trace_events = [
+      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10, 'cat': 'foo',
+       'tid': 1, 'ph': 'B'},
+      # tab-id-1
+      {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
+       'tid': 1,
+         'ph': 'S', 'id': 72},
+      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 30, 'tts': 20, 'cat': 'foo',
+       'tid': 1, 'ph': 'E'},
+      {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 35, 'cat': 'foo',
+       'tid': 1,
+         'ph': 'F', 'id': 72},
+      # tab-id-2
+      {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
+       'tid': 2,
+         'ph': 'S', 'id': 72},
+      {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 26, 'cat': 'foo',
+       'tid': 2,
+         'ph': 'F', 'id': 72},
+     ]
+    event_data = {'traceEvents': trace_events,
+                  'tabIds': ['tab-id-1', 'tab-id-2']}
+    timeline_data = tracing_timeline_data.TracingTimelineData(event_data)
+    m = timeline_model.TimelineModel(timeline_data=timeline_data)
+    processes = m.GetAllProcesses()
+    self.assertEqual(1, len(processes))
+    self.assertIs(processes[0], m.GetRendererProcessFromTabId('tab-id-1'))
+    self.assertIs(processes[0], m.GetRendererProcessFromTabId('tab-id-2'))
+
+    p = processes[0]
+    self.assertEqual(2, len(p.threads))
+    self.assertIs(p.threads[1], m.GetRendererThreadFromTabId('tab-id-1'))
+    self.assertIs(p.threads[2], m.GetRendererThreadFromTabId('tab-id-2'))

@@ -24,7 +24,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     timeline_model = model.TimelineModel(trace_data)
 
     records = []
-    renderer_thread = timeline_model.GetRendererThreadFromTab(self._tab)
+    renderer_thread = timeline_model.GetRendererThreadFromTabId(self._tab.id)
     for event in renderer_thread.async_slices:
       if not tir_module.IsTimelineInteractionRecord(event.name):
         continue

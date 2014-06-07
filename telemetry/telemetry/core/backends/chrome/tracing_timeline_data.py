@@ -3,36 +3,20 @@
 # found in the LICENSE file.
 
 import json
-import weakref
 
 from telemetry.core.timeline_data import TimelineData
 
 class TracingTimelineData(TimelineData):
-  def __init__(self, event_data, tab_to_marker_mapping = None):
+  def __init__(self, event_data):
     super(TracingTimelineData, self).__init__()
     self._event_data = event_data
-    if tab_to_marker_mapping == None:
-      self._tab_to_marker_mapping = weakref.WeakKeyDictionary()
-    else:
-      self._tab_to_marker_mapping = tab_to_marker_mapping
 
   def Serialize(self, f):
     """Serializes the trace result to a file-like object"""
-    f.write('{"traceEvents":')
-    json.dump(self._event_data, f)
-    f.write('}')
+    if 'traceEvents' in self._event_data:
+      json.dump(self._event_data, f)
+    else:
+      json.dump({'traceEvents' : self._event_data}, f)
 
   def EventData(self):
     return self._event_data
-
-  def AugmentTimelineModel(self, timeline):
-    for thread in timeline.GetAllThreads():
-      if thread.name == 'CrBrowserMain':
-        timeline.browser_process = thread.parent
-    for key, value in self._tab_to_marker_mapping.iteritems():
-      timeline_markers = timeline.FindTimelineMarkers(value)
-      assert(len(timeline_markers) == 1)
-      assert(timeline_markers[0].start_thread ==
-             timeline_markers[0].end_thread)
-      renderer_thread = timeline_markers[0].start_thread
-      timeline.AddCoreObjectToContainerMapping(key, renderer_thread)

@@ -20,6 +20,11 @@ class WebContents(object):
         'network_quiescence.js')) as f:
       self._quiescence_js = f.read()
 
+  @property
+  def id(self):
+    """Return the unique id string for this tab object."""
+    return self._inspector_backend.id
+
   def WaitForDocumentReadyStateToBeComplete(self,
       timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     self.WaitForJavaScriptExpression(

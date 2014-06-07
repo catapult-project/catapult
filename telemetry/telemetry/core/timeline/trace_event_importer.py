@@ -16,6 +16,7 @@ from telemetry.core.timeline import importer
 import telemetry.core.timeline.async_slice as tracing_async_slice
 import telemetry.core.timeline.flow_event as tracing_flow_event
 
+
 class TraceEventTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, timeline_data):
     super(TraceEventTimelineImporter, self).__init__(
@@ -58,7 +59,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         # Any other fields in the container should be treated as metadata.
         self._model.metadata.append({
             'name' : field_name,
-            'value' : container['field_name']})
+            'value' : container[field_name]})
 
   @staticmethod
   def CanImport(timeline_data):
@@ -275,10 +276,10 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._model.UpdateBounds()
     self._CreateAsyncSlices()
     self._CreateFlowSlices()
+    self._SetBrowserProcess()
     self._CreateExplicitObjects()
     self._CreateImplicitObjects()
-
-    self._timeline_data.AugmentTimelineModel(self._model)
+    self._CreateTabIdsToThreadsMap()
 
   def _CreateAsyncSlices(self):
     if len(self._all_async_events) == 0:
@@ -445,3 +446,22 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         else:
           # Make this event the next start event in this flow.
           flow_id_to_event[event['id']] = flow_event
+
+  def _SetBrowserProcess(self):
+    for thread in self._model.GetAllThreads():
+      if thread.name == 'CrBrowserMain':
+        self._model.browser_process = thread.parent
+
+  def _CreateTabIdsToThreadsMap(self):
+    tab_ids_list = []
+    for metadata in self._model.metadata:
+      if metadata['name'] == 'tabIds':
+        tab_ids_list = metadata['value']
+        break
+    for tab_id in tab_ids_list:
+      timeline_markers = self._model.FindTimelineMarkers(tab_id)
+      assert(len(timeline_markers) == 1)
+      assert(timeline_markers[0].start_thread ==
+             timeline_markers[0].end_thread)
+      self._model.AddMappingFromTabIdToRendererThread(
+          tab_id, timeline_markers[0].start_thread)

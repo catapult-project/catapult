@@ -104,6 +104,10 @@ class WebDriverTabBackend(object):
     # IE/Firefox has no timeline.
     raise NotImplementedError()
 
+  @property
+  def id(self):
+    raise NotImplementedError()
+
   def StartTimelineRecording(self):
     raise NotImplementedError()
 
