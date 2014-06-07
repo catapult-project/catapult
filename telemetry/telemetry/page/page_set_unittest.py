@@ -45,7 +45,7 @@ class TestPageSet(unittest.TestCase):
     test_pps_dir = os.path.join(util.GetUnittestDataDir(), 'test_page_set.py')
     pps = page_set.PageSet.FromFile(test_pps_dir)
     self.assertEqual('TestPageSet', pps.__class__.__name__)
-    self.assertEqual('A pageset for testing purpose', pps.description)
+    self.assertEqual('A pageset for testing purpose', pps.Description())
     self.assertEqual('data/test.json', pps.archive_data_file)
     self.assertEqual('data/credential', pps.credentials_path)
     self.assertEqual('desktop', pps.user_agent_type)

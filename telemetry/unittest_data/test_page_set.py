@@ -12,9 +12,10 @@ class InternalPage(Page):
     super(InternalPage, self).__init__('file://bar.html', page_set=ps)
 
 class TestPageSet(PageSet):
+  """A pageset for testing purpose"""
+
   def __init__(self):
     super(TestPageSet, self).__init__(
-      description='A pageset for testing purpose',
       archive_data_file='data/test.json',
       credentials_path='data/credential',
       user_agent_type='desktop')

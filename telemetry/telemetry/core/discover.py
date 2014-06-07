@@ -133,15 +133,3 @@ def IsPageSetFile(file_path):
     return False
   module = util.GetPythonPageSetModule(file_path)
   return bool(DiscoverClassesInModule(module, page_set.PageSet))
-
-
-def GetAllPageSetFilenames(dir_path):
-  results = []
-  for sub_path, _, filenames in os.walk(dir_path):
-    for f in filenames:
-      if f.startswith('.'):
-        continue
-      filename = os.path.join(sub_path, f)
-      if IsPageSetFile(filename):
-        results.append(filename)
-  return results

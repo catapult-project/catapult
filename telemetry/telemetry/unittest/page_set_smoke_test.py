@@ -67,10 +67,6 @@ class PageSetSmokeTest(unittest.TestCase):
           msg='page_set %\'s file_path must have type string')
 
     self.assertTrue(
-        isinstance(page_set.description, str),
-        msg='page_set\'s description must have type string')
-
-    self.assertTrue(
         isinstance(page_set.archive_data_file, str),
         msg='page_set\'s archive_data_file path must have type string')
 
@@ -99,16 +95,16 @@ class PageSetSmokeTest(unittest.TestCase):
        isinstance(page.name, str),
        msg='page %s \'s name field must have type string' % page.display_name)
 
-  def RunSmokeTest(self, page_sets_dir):
+  def RunSmokeTest(self, page_sets_dir, top_level_dir):
     """Run smoke test on all page sets in page_sets_dir.
 
     Subclass of PageSetSmokeTest is supposed to call this in some test
     method to run smoke test.
     """
-    page_sets = discover.GetAllPageSetFilenames(page_sets_dir)
-
-    for page_set_path in page_sets:
-      page_set = page_set_module.PageSet.FromFile(page_set_path)
+    page_sets = discover.DiscoverClasses(page_sets_dir, top_level_dir,
+                                         page_set_module.PageSet).values()
+    for page_set_class in page_sets:
+      page_set = page_set_class()
       logging.info('Testing %s', page_set.file_path)
       self.CheckArchive(page_set)
       self.CheckCredentials(page_set)

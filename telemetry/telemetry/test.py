@@ -37,14 +37,12 @@ class Test(command_line.Command):
     name = cls.__module__.split('.')[-1]
     if hasattr(cls, 'tag'):
       name += '.' + cls.tag
-    page_set_name = None
-    if hasattr(cls, 'page_set') and isinstance(cls.page_set, page_set.PageSet):
-      page_set_name = os.path.basename(
-          os.path.splitext(cls.page_set.file_path)[0])
-    elif hasattr(cls, 'page_set') and isinstance(cls.page_set, str):
-      page_set_name = os.path.basename(os.path.splitext(cls.page_set)[0])
-    if page_set_name:
-      name += '.' + page_set_name
+    if hasattr(cls, 'page_set'):
+      if isinstance(cls.page_set, basestring):
+        # TODO(dtu): Remove this code path after crbug.com/362293.
+        name += '.' + os.path.basename(os.path.splitext(cls.page_set)[0])
+      else:
+        name += '.' + cls.page_set.Name()
     return name
 
   @classmethod
@@ -170,6 +168,18 @@ class Test(command_line.Command):
     return cls.test
 
   @classmethod
+  def PageSetClass(cls):
+    """Get the PageSet for this Test.
+
+    If the Test has no PageSet, raises NotImplementedError.
+    """
+    if not hasattr(cls, 'page_set'):
+      raise NotImplementedError('This test has no "page_set" attribute.')
+    if not issubclass(cls.page_set, page_set.PageSet):
+      raise TypeError('"%s" is not a PageSet.' % cls.page_set.__name__)
+    return cls.page_set
+
+  @classmethod
   def CreatePageSet(cls, options):  # pylint: disable=W0613
     """Get the page set this test will run on.
 
@@ -178,15 +188,12 @@ class Test(command_line.Command):
     """
     if not hasattr(cls, 'page_set'):
       raise NotImplementedError('This test has no "page_set" attribute.')
-
-    if isinstance(cls.page_set, str):
+    if isinstance(cls.page_set, basestring):
+      # TODO(dtu): Remove this code path after crbug.com/362293.
       return page_set.PageSet.FromFile(
           file_path=os.path.join(util.GetBaseDir(), cls.page_set))
-    elif isinstance(cls.page_set, page_set.PageSet):
-      return cls.page_set
     else:
-      raise TypeError('The page_set field of %s has unsupported type.' %
-                      cls.Name)
+      return cls.PageSetClass()()
 
   @classmethod
   def CreateExpectations(cls, ps):  # pylint: disable=W0613

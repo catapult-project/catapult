@@ -15,7 +15,7 @@ class PageSetError(Exception):
 
 
 class PageSet(object):
-  def __init__(self, file_path=None, description='', archive_data_file='',
+  def __init__(self, file_path=None, archive_data_file='',
                credentials_path=None, user_agent_type=None,
                make_javascript_deterministic=True, startup_url='',
                serving_dirs=None):
@@ -29,7 +29,6 @@ class PageSet(object):
 
     self.file_path = file_path
     # These attributes can be set dynamically by the page set.
-    self.description = description
     self.archive_data_file = archive_data_file
     self.credentials_path = credentials_path
     self.user_agent_type = user_agent_type
@@ -45,6 +44,17 @@ class PageSet(object):
         self.serving_dirs.add(os.path.realpath(sd))
       else:
         self.serving_dirs.add(os.path.realpath(os.path.join(self.base_dir, sd)))
+
+  @classmethod
+  def Name(cls):
+    return cls.__module__.split('.')[-1]
+
+  @classmethod
+  def Description(cls):
+    if cls.__doc__:
+      return cls.__doc__.splitlines()[0]
+    else:
+      return ''
 
   def AddPage(self, page):
     assert page.page_set is self
