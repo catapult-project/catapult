@@ -74,13 +74,9 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
   @property
   def url(self):
     for c in self._browser_backend.ListInspectableContexts():
-      if c['id'] == self.id:
+      if c['id'] == self._context['id']:
         return c['url']
     return None
-
-  @property
-  def id(self):
-    return self._context['id']
 
   @property
   def id(self):
@@ -220,7 +216,7 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
 
   def _IsInspectable(self):
     contexts = self._browser_backend.ListInspectableContexts()
-    return self.id in [c['id'] for c in contexts]
+    return self._context['id'] in [c['id'] for c in contexts]
 
   def _HandleNotification(self, res):
     if (res['method'] == 'Inspector.detached' and
