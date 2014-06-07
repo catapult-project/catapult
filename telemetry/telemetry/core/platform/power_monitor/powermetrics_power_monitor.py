@@ -23,7 +23,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     self._powermetrics_process = None
     self._backend = backend
     self._output_filename = None
-    self._ouput_directory = None
+    self._output_directory = None
 
   @property
   def binary_path(self):
@@ -39,8 +39,8 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # we create a temp directory and have powermetrics create it's output
     # there rather than say, creating a tempfile, deleting it and reusing its
     # name.
-    self._ouput_directory = tempfile.mkdtemp()
-    self._output_filename = os.path.join(self._ouput_directory,
+    self._output_directory = tempfile.mkdtemp()
+    self._output_filename = os.path.join(self._output_directory,
         'powermetrics.output')
     args = ['-f', 'plist',
             '-i', '%d' % SAMPLE_INTERVAL_MS,
@@ -257,7 +257,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           powermetrics_output)
 
     finally:
-      shutil.rmtree(self._ouput_directory)
-      self._ouput_directory = None
+      shutil.rmtree(self._output_directory)
+      self._output_directory = None
       self._output_filename = None
       self._powermetrics_process = None
