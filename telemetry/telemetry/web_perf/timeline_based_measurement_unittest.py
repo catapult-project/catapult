@@ -108,10 +108,10 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
         'file://interaction_enabled_page.html', ps, base_dir)
 
   def RunSmoothness(self, action_runner):
-    action_runner.RunAction(WaitAction({'seconds': 2}))
+    action_runner.Wait(2)
     action_runner.RunAction(TapAction(
         {'selector': '#drawer', 'automatically_record_interaction': False}))
-    action_runner.RunAction(WaitAction({'seconds': 1}))
+    action_runner.Wait(1)
 
 
 class TimelineBasedMeasurementTest(

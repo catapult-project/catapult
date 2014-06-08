@@ -2,8 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.page.actions import page_action
 from telemetry.page.actions.javascript import JavaScriptAction
 from telemetry.page.actions.navigate import NavigateAction
+from telemetry.page.actions.wait import WaitAction
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
@@ -75,6 +77,61 @@ class ActionRunner(object):
       js_expression: The expression to execute (provided as string).
     """
     self.RunAction(JavaScriptAction({'expression': js_expression}))
+
+  def Wait(self, seconds):
+    """Wait for the number of seconds specified.
+
+    Args:
+      seconds: The number of seconds to wait.
+    """
+    self.RunAction(WaitAction({'seconds': seconds}))
+
+  def WaitForJavaScriptCondition(self, condition, timeout=60):
+    """Wait for a JavaScript condition to become true.
+
+    Example: runner.WaitForJavaScriptCondition('window.foo == 10');
+
+    Args:
+      condition: The JavaScript condition (as string).
+      timeout: The timeout in seconds (default to 60).
+    """
+    self.RunAction(WaitAction({'javascript': condition, 'timeout': timeout}))
+
+  def WaitForElement(self, selector=None, text=None, element_function=None,
+                     timeout=60):
+    """Wait for an element to appear in the document. Only one of selector,
+    text, or element_function must be specified.
+
+    Args:
+      selector: A CSS selector describing the element.
+      text: The element must contains this exact text.
+      element_function: A JavaScript function (as string) that is used
+          to retrieve the element. For example:
+          'function() { return foo.element; }'.
+      timeout: The timeout in seconds (default to 60).
+    """
+    attr = {'condition': 'element', 'timeout': timeout}
+    _FillElementSelector(
+        attr, selector, text, element_function)
+    self.RunAction(WaitAction(attr))
+
+
+def _FillElementSelector(attr, selector=None, text=None, element_function=None):
+  count = 0
+  if selector is not None:
+    count = count + 1
+    attr['selector'] = selector
+  if text is not None:
+    count = count + 1
+    attr['text'] = text
+  if element_function is not None:
+    count = count + 1
+    attr['element_function'] = element_function
+
+  if count != 1:
+    raise page_action.PageActionFailed(
+        'Must specify 1 way to retrieve function, but %s was specified: %s' %
+        (len(attr), attr.keys()))
 
 
 class Interaction(object):
