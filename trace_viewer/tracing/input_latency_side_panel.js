@@ -37,6 +37,7 @@ tvcm.exportTo('tracing', function() {
   }
 
   var BROWSER_PROCESS_NAME = 'CrBrowserMain';
+  var RENDERER_PROCESS_NAME = 'CrRendererMain';
 
   function findBrowserProcess(model) {
     var browserProcess;
@@ -47,6 +48,15 @@ tvcm.exportTo('tracing', function() {
     return browserProcess;
   }
 
+  function findRendererProcesses(model) {
+    var rendererProcesses = [];
+    model.getAllProcesses().forEach(function(process) {
+      if (process.findAllThreadsNamed(RENDERER_PROCESS_NAME).length != 0)
+        rendererProcesses.push(process);
+    });
+    return rendererProcesses;
+  }
+
   var MAIN_RENDERING_STATS =
       'BenchmarkInstrumentation::MainThreadRenderingStats';
   var IMPL_RENDERING_STATS =
@@ -55,18 +65,38 @@ tvcm.exportTo('tracing', function() {
   var MAIN_FRAMETIME_TYPE = 'main_frametime_type';
   var IMPL_FRAMETIME_TYPE = 'impl_frametime_type';
 
-  function getFrametimeData(model, frametimeType, rangeOfInterest) {
+  function getFrametimeData(model, frametimeType, rangeOfInterest, pid) {
     var mainRenderingSlices = [];
     var implRenderingSlices = [];
+    var frametimeData = [];
+
+    if (pid === undefined)
+      return frametimeData;
+
+    var rendererProcesses = findRendererProcesses(model);
     var browserProcess = findBrowserProcess(model);
-    if (browserProcess != undefined) {
-      browserProcess.iterateAllEvents(function(event) {
-        if (event.title === MAIN_RENDERING_STATS)
-          mainRenderingSlices.push(event);
-        if (event.title === IMPL_RENDERING_STATS)
-          implRenderingSlices.push(event);
-      });
+    var selectedProcess;
+
+    if (browserProcess !== undefined && browserProcess.pid === pid) {
+      selectedProcess = browserProcess;
+    } else {
+      for (var i = 0; i < rendererProcesses.length; i++) {
+        if (rendererProcesses[i].pid === pid) {
+          selectedProcess = rendererProcesses[i];
+          break;
+        }
+      }
     }
+
+    if (selectedProcess === undefined)
+      return frametimeData;
+
+    selectedProcess.iterateAllEvents(function(event) {
+      if (event.title === MAIN_RENDERING_STATS)
+        mainRenderingSlices.push(event);
+      if (event.title === IMPL_RENDERING_STATS)
+        implRenderingSlices.push(event);
+    });
 
     var renderingSlices = [];
     if (frametimeType === MAIN_FRAMETIME_TYPE) {
@@ -77,7 +107,6 @@ tvcm.exportTo('tracing', function() {
                                                    implRenderingSlices);
     }
 
-    var frametimeData = [];
     renderingSlices.sort(function(a, b) {return a.start - b.start});
     for (var i = 1; i < renderingSlices.length; i++) {
       var diff = renderingSlices[i].start - renderingSlices[i - 1].start;
@@ -148,10 +177,11 @@ tvcm.exportTo('tracing', function() {
       };
     }
 
-    if (findBrowserProcess(m) === undefined) {
+    if (findBrowserProcess(m) === undefined &&
+        findRendererProcesses(m).length === 0) {
       return {
         supported: false,
-        reason: 'No browser process found'
+        reason: 'No browser and renderer process found'
       };
     }
 
@@ -185,17 +215,10 @@ tvcm.exportTo('tracing', function() {
           '#x-input-latency-side-panel-template'));
 
       this.rangeOfInterest_ = new tvcm.Range();
-      this.frametimeType_ = MAIN_FRAMETIME_TYPE;
+      this.frametimeType_ = IMPL_FRAMETIME_TYPE;
       this.latencyChart_ = undefined;
       this.frametimeChart_ = undefined;
-
-      var toolbarEl = this.querySelector('toolbar');
-      toolbarEl.appendChild(tvcm.ui.createSelector(
-          this, 'frametimeType',
-          'inputLatencySidePanel.frametimeType', this.frametimeType_,
-          [{label: 'Main Thread Frame Times', value: MAIN_FRAMETIME_TYPE},
-           {label: 'Impl Thread Frame Times', value: IMPL_FRAMETIME_TYPE}
-          ]));
+      this.selectedProcess_ = undefined;
     },
 
     get model() {
@@ -204,6 +227,7 @@ tvcm.exportTo('tracing', function() {
 
     set model(model) {
       this.model_ = model;
+      this.updateToolbar_();
       this.updateContents_();
     },
 
@@ -216,6 +240,50 @@ tvcm.exportTo('tracing', function() {
         return;
       this.frametimeType_ = type;
       this.updateContents_();
+    },
+
+    get selectedProcess() {
+      return this.selectedProcess_;
+    },
+
+    set selectedProcess(process) {
+      if (this.selectedProcess_ === process)
+        return;
+      this.selectedProcess_ = process;
+      this.updateContents_();
+    },
+
+    updateToolbar_: function() {
+      var rendererProcesses = findRendererProcesses(this.model_);
+      var browserProcess = findBrowserProcess(this.model_);
+      var labels = [];
+
+      if (browserProcess !== undefined) {
+        var label_str = 'Browser: ' + browserProcess.pid;
+        labels.push({label: label_str, value: browserProcess.pid});
+      }
+
+      rendererProcesses.forEach(function(rendererProcess) {
+        var label_str = 'Renderer: ' + rendererProcess.pid;
+        labels.push({label: label_str, value: rendererProcess.pid});
+      });
+
+      if (labels.length === 0)
+        return;
+
+      this.selectedProcess_ = labels[0].value;
+      var toolbarEl = this.querySelector('toolbar');
+      toolbarEl.appendChild(tvcm.ui.createSelector(
+          this, 'frametimeType',
+          'inputLatencySidePanel.frametimeType', this.frametimeType_,
+          [{label: 'Main Thread Frame Times', value: MAIN_FRAMETIME_TYPE},
+           {label: 'Impl Thread Frame Times', value: IMPL_FRAMETIME_TYPE}
+          ]));
+      toolbarEl.appendChild(tvcm.ui.createSelector(
+          this, 'selectedProcess',
+          'inputLatencySidePanel.selectedProcess',
+          this.selectedProcess_,
+          labels));
     },
 
     updateContents_: function() {
@@ -233,9 +301,10 @@ tvcm.exportTo('tracing', function() {
       else
         rangeOfInterest = this.rangeOfInterest_;
 
-
-      var frametimeData = getFrametimeData(this.model_, this.frametimeType,
-                                           rangeOfInterest);
+      var frametimeData = getFrametimeData(this.model_,
+                                           this.frametimeType,
+                                           rangeOfInterest,
+                                           this.selectedProcess_);
       var averageFrametime = tvcm.Statistics.mean(frametimeData, function(d) {
         return d.frametime});
 

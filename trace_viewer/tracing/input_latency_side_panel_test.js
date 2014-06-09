@@ -36,20 +36,75 @@ tvcm.unittest.testSuite('tracing.input_latency_side_panel_test', function() {
   });
 
   test('getFrametime', function() {
+    var frame_ts;
     var events = [];
+    // Browser process 3507
     events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3507, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrBrowserMain'}}); // @suppress longLineCheck
-    events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3560, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'Chrome_InProcGpuThread'}}); // @suppress longLineCheck
+    // Renderer process 3508
+    events.push({'cat' : '__metadata', 'pid' : 3508, 'tid' : 3508, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrRendererMain'}}); // @suppress longLineCheck
+    // Renderer process 3509
+    events.push({'cat' : '__metadata', 'pid' : 3509, 'tid' : 3509, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrRendererMain'}}); // @suppress longLineCheck
 
-    var frame_ts = 0;
+    frame_ts = 0;
+    // Add impl rendering stats for browser process 3507
     for (var i = 0; i < 10; i++) {
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid' : 3507, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid' : 3507, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frame_ts += 16000 + 1000 * (i % 2);
+    }
+
+    frame_ts = 0;
+    // Add main rendering stats for renderer process 3508
+    for (var i = 0; i < 10; i++) {
+      events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3508, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frame_ts += 16000 + 1000 * (i % 2);
+    }
+
+    frame_ts = 0;
+    // Add impl and main rendering stats for renderer process 3509
+    for (var i = 0; i < 10; i++) {
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3509, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3509, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
       frame_ts += 16000 + 1000 * (i % 2);
     }
 
     var m = new tracing.TraceModel(events);
     var panel = new tracing.InputLatencySidePanel();
+
+    // Testing browser impl and main rendering stats.
     var frametime_data =
-        tracing.getFrametimeData(m, panel.frametimeType, m.bounds);
+        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3507);
+    assertEquals(9, frametime_data.length);
+    for (var i = 0; i < frametime_data.length; i++) {
+      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    }
+    // No main rendering stats.
+    frametime_data =
+        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3507);
+    assertEquals(0, frametime_data.length);
+
+
+    // Testing renderer 3508 impl and main rendering stats.
+    frametime_data =
+        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3508);
+    assertEquals(9, frametime_data.length);
+    for (var i = 0; i < frametime_data.length; i++) {
+      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    }
+    // No impl rendering stats.
+    frametime_data =
+        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3508);
+    assertEquals(0, frametime_data.length);
+
+
+    // Testing renderer 3509 impl and main rendering stats.
+    frametime_data =
+        tracing.getFrametimeData(m, 'impl_frametime_type', m.bounds, 3509);
+    assertEquals(9, frametime_data.length);
+    for (var i = 0; i < frametime_data.length; i++) {
+      assertEquals(16 + i % 2, frametime_data[i].frametime);
+    }
+    frametime_data =
+        tracing.getFrametimeData(m, 'main_frametime_type', m.bounds, 3509);
     assertEquals(9, frametime_data.length);
     for (var i = 0; i < frametime_data.length; i++) {
       assertEquals(16 + i % 2, frametime_data[i].frametime);
