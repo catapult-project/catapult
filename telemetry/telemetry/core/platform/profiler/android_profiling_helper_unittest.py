@@ -2,15 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import glob
-import logging
 import os
 import re
 import shutil
 import tempfile
 
+from telemetry import test
 from telemetry.core import util
 from telemetry.core.platform.profiler import android_profiling_helper
-from telemetry.unittest import options_for_unittests
 from telemetry.unittest import simple_mock
 from telemetry.unittest import tab_test_case
 
@@ -30,6 +29,12 @@ def _GetLibrariesMappedIntoProcesses(device, pids):
 class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
   def setUp(self):
     super(TestAndroidProfilingHelper, self).setUp()
+    # pylint: disable=W0212
+    browser_backend = self._browser._browser_backend
+    try:
+      self._device = browser_backend.adb.device()
+    except AttributeError:
+      pass
 
   def testGetRequiredLibrariesForPerfProfile(self):
     perf_output = os.path.join(
@@ -57,23 +62,19 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
     finally:
       android_profiling_helper.subprocess = real_subprocess
 
+  @test.Enabled('android')
   def testCreateSymFs(self):
-    options = options_for_unittests.GetCopy()
-    if not options.browser_type.startswith('android'):
-      logging.warning('AndroidProfilingHelper only works on Android. Skipping.')
-      return
-
     # pylint: disable=W0212
-    browser_backend = self._browser._browser_backend
-    pids = ([browser_backend.pid] +
-            self._browser._platform_backend.GetChildPids(browser_backend.pid))
-    device = browser_backend.adb.device()
-    libs = _GetLibrariesMappedIntoProcesses(device, pids)
+    browser_pid = self._browser._browser_backend.pid
+    pids = ([browser_pid] +
+        self._browser._platform_backend.GetChildPids(browser_pid))
+    libs = _GetLibrariesMappedIntoProcesses(self._device, pids)
     assert libs
 
     symfs_dir = tempfile.mkdtemp()
     try:
-      kallsyms = android_profiling_helper.CreateSymFs(device, symfs_dir, libs)
+      kallsyms = android_profiling_helper.CreateSymFs(self._device, symfs_dir,
+                                                      libs)
 
       # Make sure we found at least one unstripped library.
       unstripped_libs = glob.glob(os.path.join(symfs_dir,
@@ -89,3 +90,12 @@ class TestAndroidProfilingHelper(tab_test_case.TabTestCase):
             '%s not found in symfs' % lib
     finally:
       shutil.rmtree(symfs_dir)
+
+  @test.Enabled('android')
+  def testGetToolchainBinaryPath(self):
+    with tempfile.NamedTemporaryFile() as libc:
+      self._device.old_interface.PullFileFromDevice('/system/lib/libc.so',
+                                                    libc.name)
+      path = android_profiling_helper.GetToolchainBinaryPath(libc.name,
+                                                             'objdump')
+      assert os.path.exists(path)

@@ -6,14 +6,25 @@ import glob
 import hashlib
 import logging
 import os
+import platform
 import re
 import shutil
 import subprocess
 
+from telemetry.core import util
 from telemetry.core.platform.profiler import android_prebuilt_profiler_helper
 
 
 _TEXT_SECTION = '.text'
+
+
+def _ElfMachineId(elf_file):
+  headers = subprocess.check_output(['readelf', '-h', elf_file])
+  return re.match(r'.*Machine:\s+(\w+)', headers, re.DOTALL).group(1)
+
+
+def _ElfSectionAsString(elf_file, section):
+  return subprocess.check_output(['readelf', '-p', section, elf_file])
 
 
 def _ElfSectionMd5Sum(elf_file, section):
@@ -23,20 +34,27 @@ def _ElfSectionMd5Sum(elf_file, section):
 
 
 def _FindMatchingUnstrippedLibraryOnHost(device, lib):
-  out_path = os.path.join(os.environ.get('CHROMIUM_OUT_DIR', 'out'), 'Release')
   lib_base = os.path.basename(lib)
 
   device_md5 = device.old_interface.RunShellCommandWithSU('md5 "%s"' % lib)[0]
   device_md5 = device_md5.split(' ', 1)[0]
 
-  # First find a matching stripped library on the host. This avoids the need to
-  # pull the stripped library from the device, which can take tens of seconds.
-  host_lib_pattern = os.path.join(out_path, '*_apk', 'libs', '*', lib_base)
-  for stripped_host_lib in glob.glob(host_lib_pattern):
-    with open(stripped_host_lib) as f:
-      host_md5 = hashlib.md5(f.read()).hexdigest()
-      if host_md5 == device_md5:
-        break
+  def FindMatchingStrippedLibrary(out_path):
+    # First find a matching stripped library on the host. This avoids the need
+    # to pull the stripped library from the device, which can take tens of
+    # seconds.
+    host_lib_pattern = os.path.join(out_path, '*_apk', 'libs', '*', lib_base)
+    for stripped_host_lib in glob.glob(host_lib_pattern):
+      with open(stripped_host_lib) as f:
+        host_md5 = hashlib.md5(f.read()).hexdigest()
+        if host_md5 == device_md5:
+          return stripped_host_lib
+
+  for build_dir, build_type in util.GetBuildDirectories():
+    out_path = os.path.join(build_dir, build_type)
+    stripped_host_lib = FindMatchingStrippedLibrary(out_path)
+    if stripped_host_lib:
+      break
   else:
     return None
 
@@ -176,3 +194,41 @@ def PrepareDeviceForPerf(device):
   device.old_interface.SetProtectedFileContents(
       '/proc/sys/kernel/kptr_restrict', '0')
   return android_prebuilt_profiler_helper.GetDevicePath('perf')
+
+
+def GetToolchainBinaryPath(library_file, binary_name):
+  """Return the path to an Android toolchain binary on the host.
+
+  Args:
+    library_file: ELF library which is used to identify the used ABI,
+        architecture and toolchain.
+    binary_name: Binary to search for, e.g., 'objdump'
+  Returns:
+    Full path to binary or None if the binary was not found.
+  """
+  # Mapping from ELF machine identifiers to GNU toolchain names.
+  toolchain_configs = {
+    'x86': 'i686-linux-android',
+    'MIPS': 'mipsel-linux-android',
+    'ARM': 'arm-linux-androideabi',
+    'x86-64': 'x86_64-linux-android',
+    'AArch64': 'aarch64-linux-android',
+  }
+  toolchain_config = toolchain_configs[_ElfMachineId(library_file)]
+  host_os = platform.uname()[0].lower()
+  host_machine = platform.uname()[4]
+
+  elf_comment = _ElfSectionAsString(library_file, '.comment')
+  toolchain_version = re.match(r'.*GCC: \(GNU\) ([\w.]+)',
+                               elf_comment, re.DOTALL)
+  if not toolchain_version:
+    return None
+  toolchain_version = toolchain_version.group(1)
+
+  path = os.path.join(util.GetChromiumSrcDir(), 'third_party', 'android_tools',
+                      'ndk', 'toolchains',
+                      '%s-%s' % (toolchain_config, toolchain_version),
+                      'prebuilt', '%s-%s' % (host_os, host_machine), 'bin',
+                      '%s-%s' % (toolchain_config, binary_name))
+  path = os.path.abspath(path)
+  return path if os.path.exists(path) else None

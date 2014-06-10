@@ -8,7 +8,6 @@ import subprocess
 import sys
 
 from telemetry import decorators
-from telemetry.core import util
 from telemetry.core.platform import platform_backend
 from telemetry.core.platform import posix_platform_backend
 from telemetry.core.platform import proc_supporting_platform_backend
@@ -73,7 +72,9 @@ class LinuxPlatformBackend(
     if application == 'ipfw':
       self._InstallIpfw()
     elif application == 'avconv':
-      self._InstallAvconv()
+      self._InstallBinary(application, 'libav-tools')
+    elif application == 'perfhost':
+      self._InstallBinary(application, 'linux-tools')
     else:
       raise NotImplementedError(
           'Please teach Telemetry how to install ' + application)
@@ -105,17 +106,18 @@ class LinuxPlatformBackend(
 
     assert self.CanLaunchApplication('ipfw'), 'Failed to install ipfw'
 
-  def _InstallAvconv(self):
-    avconv_bin = support_binaries.FindPath('avconv', self.GetOSName())
-    os.environ['PATH'] += os.pathsep + os.path.join(util.GetTelemetryDir(),
-                                                    'bin')
+  def _InstallBinary(self, bin_name, fallback_package=None):
+    bin_path = support_binaries.FindPath(bin_name, self.GetOSName())
+    os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)
 
     try:
-      cloud_storage.GetIfChanged(avconv_bin, cloud_storage.INTERNAL_BUCKET)
+      cloud_storage.GetIfChanged(bin_path, cloud_storage.INTERNAL_BUCKET)
+      os.chmod(bin_path, 0755)
     except cloud_storage.CloudStorageError, e:
       logging.error(e)
-      logging.error('You may proceed by manually installing avconv via:\n'
-                    'sudo apt-get install libav-tools')
+      if fallback_package:
+        logging.error('You may proceed by manually installing %s via:\n'
+                      'sudo apt-get install %s' % (bin_name, fallback_package))
       sys.exit(1)
 
-    assert self.CanLaunchApplication('avconv'), 'Failed to install avconv'
+    assert self.CanLaunchApplication(bin_name), 'Failed to install ' + bin_name

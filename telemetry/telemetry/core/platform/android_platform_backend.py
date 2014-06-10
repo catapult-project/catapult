@@ -35,6 +35,7 @@ except Exception:
 _HOST_APPLICATIONS = [
     'avconv',
     'ipfw',
+    'perfhost',
     ]
 
 
