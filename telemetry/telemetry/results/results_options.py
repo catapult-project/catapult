@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -7,13 +7,13 @@ import os
 import sys
 
 from telemetry.core import util
-from telemetry.page import block_page_measurement_results
-from telemetry.page import buildbot_page_measurement_results
-from telemetry.page import csv_page_measurement_results
-from telemetry.page import gtest_test_results
-from telemetry.page import html_page_measurement_results
 from telemetry.page import page_measurement
-from telemetry.page import page_measurement_results
+from telemetry.results import block_page_measurement_results
+from telemetry.results import buildbot_page_measurement_results
+from telemetry.results import csv_page_measurement_results
+from telemetry.results import gtest_test_results
+from telemetry.results import html_page_measurement_results
+from telemetry.results import page_measurement_results
 
 
 # Allowed output formats. The default is the first item in the list.

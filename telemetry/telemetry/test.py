@@ -17,8 +17,8 @@ from telemetry.page import page_runner
 from telemetry.page import cloud_storage
 from telemetry.page import page_set
 from telemetry.page import page_test
-from telemetry.page import page_test_results
 from telemetry.page import test_expectations
+from telemetry.results import page_test_results
 
 
 Disabled = decorators.Disabled

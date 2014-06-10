@@ -13,7 +13,7 @@ import sys
 import time
 import unittest
 
-from telemetry.page import gtest_test_results
+from telemetry.results import gtest_test_results
 
 
 class GTestTestSuite(unittest.TestSuite):

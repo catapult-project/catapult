@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -10,8 +10,8 @@ import re
 import sys
 
 from telemetry.core import util
-from telemetry.page import buildbot_page_measurement_results
 from telemetry.page import cloud_storage
+from telemetry.results import buildbot_page_measurement_results
 
 util.AddDirToPythonPath(util.GetChromiumSrcDir(), 'build', 'util')
 import lastchange  # pylint: disable=F0401

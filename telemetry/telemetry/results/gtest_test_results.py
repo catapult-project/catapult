@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -7,7 +7,8 @@ import sys
 import time
 import unittest
 
-from telemetry.page import page_test_results
+from telemetry.results import page_test_results
+
 
 class GTestTestResults(page_test_results.PageTestResults):
   def __init__(self, output_stream):

@@ -23,9 +23,9 @@ from telemetry.page import cloud_storage
 from telemetry.page import page_filter
 from telemetry.page import page_runner_repeat
 from telemetry.page import page_test
-from telemetry.page import results_options
 from telemetry.page.actions import navigate
 from telemetry.page.actions import page_action
+from telemetry.results import results_options
 from telemetry.util import exception_formatter
 
 

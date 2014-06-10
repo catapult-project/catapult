@@ -1,9 +1,9 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 from telemetry import value as value_module
-from telemetry.page import page_test_results
+from telemetry.results import page_test_results
 from telemetry.value import value_backcompat
 
 class PageMeasurementResults(page_test_results.PageTestResults):

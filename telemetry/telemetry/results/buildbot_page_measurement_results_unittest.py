@@ -1,14 +1,14 @@
-# Copyright 2012 The Chromium Authors. All rights reserved.
+# Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
 import unittest
 
-from telemetry.page import buildbot_page_measurement_results
+from telemetry import perf_tests_helper
 from telemetry.page import page_set
-from telemetry.page import perf_tests_helper
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
+from telemetry.results import buildbot_page_measurement_results
 
 def _MakePageSet():
   ps = page_set.PageSet(file_path=os.path.dirname(__file__))

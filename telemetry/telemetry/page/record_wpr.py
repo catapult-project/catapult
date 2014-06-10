@@ -13,7 +13,6 @@ from telemetry.core import browser_options
 from telemetry.core import discover
 from telemetry.core import wpr_modes
 from telemetry.page import page_measurement
-from telemetry.page import page_measurement_results
 from telemetry.page import page_runner
 from telemetry.page import page_set
 from telemetry.page import page_test
@@ -21,6 +20,7 @@ from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
 from telemetry.page.actions import interact
+from telemetry.results import page_measurement_results
 
 
 class RecordPage(page_test.PageTest):  # pylint: disable=W0223
