@@ -107,14 +107,20 @@ tvcm.exportTo('tracing', function() {
         label: resultsForGroup.name,
         value: value,
         valueText: tsRound(value) + 'ms',
-        onClick: function() {
-          var event = new tracing.RequestSelectionChangeEvent();
-          event.selection = new tracing.Selection(resultsForGroup.allSlices);
-          event.selection.timeSummaryGroupName = resultsForGroup.name;
-          chart.dispatchEvent(event);
-        }
+        resultsForGroup: resultsForGroup
       });
     }
+    chart.addEventListener('item-click', function(clickEvent) {
+      var resultsForGroup = clickEvent.data.resultsForGroup;
+      if (resultsForGroup === undefined)
+        return;
+
+      var event = new tracing.RequestSelectionChangeEvent();
+      event.selection = new tracing.Selection(resultsForGroup.allSlices);
+      event.selection.timeSummaryGroupName = resultsForGroup.name;
+      chart.dispatchEvent(event);
+    });
+
 
     // Build chart data.
     var data = [];

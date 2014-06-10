@@ -185,8 +185,10 @@ tvcm.exportTo('tvcm.ui', function() {
         .attr('d', pathsArc)
         .on('click', function(d, i) {
             var origData = this.data_[i];
-            if (origData.onClick)
-              origData.onClick(d, i);
+            var event = new Event('item-click');
+            event.data = origData;
+            event.index = i;
+            this.dispatchEvent(event);
             d3.event.stopPropagation();
           }.bind(this))
         .on('mouseenter', function(d, i) {

@@ -43,6 +43,29 @@ tvcm.testSuite('tvcm.ui.pie_chart_test', function() {
     this.addHTMLOutput(chart);
   });
 
+  test('clickEvent', function() {
+    var chart = new tvcm.ui.PieChart();
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {label: 'a', value: 100, foo: 42},
+      {label: 'b', value: 200, foo: 43}
+    ];
+    chart.data = data;
+
+    var didGetClick = false;
+    chart.addEventListener('item-click', function(event) {
+      assertEquals(1, event.index);
+      assertEquals(43, event.data.foo);
+      didGetClick = true;
+    });
+
+    var arc0 = chart.querySelectorAll('.paths > path')[1];
+    tvcm.dispatchSimpleEvent(arc0, 'click');
+    assertTrue(didGetClick);
+  });
+
   test('lotsOfValues', function() {
     var chart = new tvcm.ui.PieChart();
     chart.chartTitle = 'Chart title';
