@@ -21,7 +21,6 @@ class RepaintContinuouslyAction(page_action.PageAction):
         'window.__rafCount = 0;'
         'window.__rafFunction = function() {'
           'window.__rafCount += 1;'
-          'chrome.gpuBenchmarking.setNeedsDisplayOnAllLayers();'
           'window.webkitRequestAnimationFrame(window.__rafFunction);'
         '};'
         'window.webkitRequestAnimationFrame(window.__rafFunction);')
