@@ -7,8 +7,15 @@ import inspect
 import os
 
 from telemetry.core import util
+from telemetry.page import cloud_storage
 from telemetry.page import page as page_module
 from telemetry.page import page_set_archive_info
+
+
+PUBLIC_BUCKET = cloud_storage.PUBLIC_BUCKET
+PARTNER_BUCKET = cloud_storage.PARTNER_BUCKET
+INTERNAL_BUCKET = cloud_storage.INTERNAL_BUCKET
+
 
 class PageSetError(Exception):
   pass
@@ -18,7 +25,7 @@ class PageSet(object):
   def __init__(self, file_path=None, archive_data_file='',
                credentials_path=None, user_agent_type=None,
                make_javascript_deterministic=True, startup_url='',
-               serving_dirs=None):
+               serving_dirs=None, bucket=None):
     # The default value of file_path is location of the file that define this
     # page set instance's class.
     if file_path is None:
@@ -44,6 +51,10 @@ class PageSet(object):
         self.serving_dirs.add(os.path.realpath(sd))
       else:
         self.serving_dirs.add(os.path.realpath(os.path.join(self.base_dir, sd)))
+    if self._IsValidPrivacyBucket(bucket):
+      self._bucket = bucket
+    else:
+      raise ValueError("Pageset privacy bucket %s is invalid" % bucket)
 
   @classmethod
   def Name(cls):
@@ -99,6 +110,14 @@ pages in %s must be in the form of def Run<...>(self, action_runner):"""
                                      % file_path)
     return page_set
 
+  @staticmethod
+  def _IsValidPrivacyBucket(bucket_name):
+    if not bucket_name:
+      return True
+    if (bucket_name in [PUBLIC_BUCKET, PARTNER_BUCKET, INTERNAL_BUCKET]):
+      return True
+    return False
+
   @property
   def base_dir(self):
     if os.path.isfile(self.file_path):
@@ -114,6 +133,10 @@ pages in %s must be in the form of def Run<...>(self, action_runner):"""
           page_set_archive_info.PageSetArchiveInfo.FromFile(
             os.path.join(self.base_dir, self.archive_data_file)))
     return self._wpr_archive_info
+
+  @property
+  def bucket(self):
+    return self._bucket
 
   @wpr_archive_info.setter
   def wpr_archive_info(self, value):  # pylint: disable=E0202

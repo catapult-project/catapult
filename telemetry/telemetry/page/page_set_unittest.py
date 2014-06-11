@@ -7,8 +7,8 @@ import tempfile
 import unittest
 
 from telemetry.core import util
+from telemetry.page import cloud_storage
 from telemetry.page import page_set
-
 
 class TestPageSet(unittest.TestCase):
 
@@ -50,6 +50,7 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual('data/credential', pps.credentials_path)
     self.assertEqual('desktop', pps.user_agent_type)
     self.assertEqual(test_pps_dir, pps.file_path)
+    self.assertEqual(page_set.PUBLIC_BUCKET, pps.bucket)
     self.assertEqual(3, len(pps.pages))
     google_page = pps.pages[0]
     self.assertEqual('https://www.google.com', google_page.url)
@@ -78,3 +79,22 @@ class TestPageSet(unittest.TestCase):
     self.assertEqual(
       os.path.normpath(os.path.join(
         util.GetUnittestDataDir(), 'pages/foo.html')), external_page.file_path)
+
+  def testCloudBucket(self):
+    blank_ps = page_set.PageSet()
+    expected_bucket = None
+    self.assertEqual(blank_ps.bucket, expected_bucket)
+
+    public_ps = page_set.PageSet(bucket=page_set.PUBLIC_BUCKET)
+    expected_bucket = cloud_storage.PUBLIC_BUCKET
+    self.assertEqual(public_ps.bucket, expected_bucket)
+
+    partner_ps = page_set.PageSet(bucket=page_set.PARTNER_BUCKET)
+    expected_bucket = cloud_storage.PARTNER_BUCKET
+    self.assertEqual(partner_ps.bucket, expected_bucket)
+
+    internal_ps = page_set.PageSet(bucket=page_set.INTERNAL_BUCKET)
+    expected_bucket = cloud_storage.INTERNAL_BUCKET
+    self.assertEqual(internal_ps.bucket, expected_bucket)
+
+    self.assertRaises(ValueError, page_set.PageSet, bucket='garbage_bucket')
