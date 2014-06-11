@@ -84,13 +84,13 @@ class WebContents(object):
             "window.__telemetry_testHasReachedNetworkQuiescence()"))
     return has_reached_quiescence
 
-  def ExecuteJavaScript(self, expr, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
-    """Executes expr in JavaScript. Does not return the result.
+  def ExecuteJavaScript(self, statement, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Executes statement in JavaScript. Does not return the result.
 
-    If the expression failed to evaluate, EvaluateException will be raised.
+    If the statement failed to evaluate, EvaluateException will be raised.
     """
     return self.ExecuteJavaScriptInContext(
-        expr, context_id=None, timeout=timeout)
+        statement, context_id=None, timeout=timeout)
 
   def EvaluateJavaScript(self, expr, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Evalutes expr in JavaScript and returns the JSONized result.

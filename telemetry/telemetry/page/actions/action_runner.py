@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.page.actions import page_action
-from telemetry.page.actions.javascript import JavaScriptAction
 from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.wait import WaitAction
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -68,15 +67,15 @@ class ActionRunner(object):
     self._tab.WaitForNavigate(timeout_seconds)
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  def ExecuteJavaScript(self, js_expression):
-    """Executes a given JavaScript expression.
+  def ExecuteJavaScript(self, statement):
+    """Executes a given JavaScript statement.
 
     Example: runner.ExecuteJavaScript('var foo = 1;');
 
     Args:
-      js_expression: The expression to execute (provided as string).
+      statement: The statement to execute (provided as string).
     """
-    self.RunAction(JavaScriptAction({'expression': js_expression}))
+    self._tab.ExecuteJavaScript(statement)
 
   def Wait(self, seconds):
     """Wait for the number of seconds specified.
