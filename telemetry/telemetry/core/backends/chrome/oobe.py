@@ -13,7 +13,9 @@ class Oobe(web_contents.WebContents):
     super(Oobe, self).__init__(inspector_backend, backend_list)
 
   def _GaiaLoginContext(self):
-    for gaia_context in range(15):
+    max_context_id = self.EnableAllContexts()
+    logging.debug('%d contexts in Gaia page' % max_context_id)
+    for gaia_context in range(max_context_id + 1):
       try:
         if self.EvaluateJavaScriptInContext(
             "document.readyState == 'complete' && "

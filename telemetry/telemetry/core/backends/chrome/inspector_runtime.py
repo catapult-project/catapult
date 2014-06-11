@@ -11,9 +11,13 @@ class InspectorRuntime(object):
         self._OnNotification,
         self._OnClose)
     self._contexts_enabled = False
+    self._max_context_id = None
 
   def _OnNotification(self, msg):
-    pass
+    if (self._contexts_enabled and
+        msg['method'] == 'Runtime.executionContextCreated'):
+      self._max_context_id = max(self._max_context_id,
+                                 msg['params']['context']['id'])
 
   def _OnClose(self):
     pass
@@ -22,7 +26,6 @@ class InspectorRuntime(object):
     self.Evaluate(expr + '; 0;', context_id, timeout)
 
   def Evaluate(self, expr, context_id, timeout):
-    self._EnableAllContexts(context_id)
     request = {
       'method': 'Runtime.evaluate',
       'params': {
@@ -31,6 +34,7 @@ class InspectorRuntime(object):
         }
       }
     if context_id is not None:
+      self.EnableAllContexts()
       request['params']['contextId'] = context_id
     res = self._inspector_backend.SyncRequest(request, timeout)
     if 'error' in res:
@@ -44,9 +48,10 @@ class InspectorRuntime(object):
       return None
     return res['result']['result']['value']
 
-  def _EnableAllContexts(self, context_id):
-    """Allow access to iframes as necessary."""
-    if context_id is not None and not self._contexts_enabled:
+  def EnableAllContexts(self):
+    """Allow access to iframes."""
+    if not self._contexts_enabled:
+      self._contexts_enabled = True
       self._inspector_backend.SyncRequest({'method': 'Runtime.enable'},
                                           timeout=30)
-      self._contexts_enabled = True
+    return self._max_context_id

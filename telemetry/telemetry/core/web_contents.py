@@ -123,6 +123,11 @@ class WebContents(object):
     return self._inspector_backend.EvaluateJavaScript(
         expr, context_id=context_id, timeout=timeout)
 
+  def EnableAllContexts(self):
+    """Enable all contexts in a page. Returns the number of available contexts.
+    """
+    return self._inspector_backend.EnableAllContexts()
+
   @property
   def message_output_stream(self):
     return self._inspector_backend.message_output_stream

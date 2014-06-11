@@ -41,6 +41,8 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     # Access host page.
     test_defined_js = "typeof(testVar) != 'undefined'"
     self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=30)
+    util.WaitFor(lambda: self._tab.EnableAllContexts() == 4, timeout=30)
+
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
     def TestVarReady(context_id):

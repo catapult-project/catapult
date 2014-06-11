@@ -39,13 +39,14 @@ class CrOSTestCase(unittest.TestCase):
 
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertTrue(browser_to_create)
-    options.browser_options.create_browser_with_oobe = True
-    options.browser_options.auto_login = auto_login
-    options.browser_options.gaia_login = gaia_login
+    browser_options = browser_to_create.finder_options.browser_options
+    browser_options.create_browser_with_oobe = True
+    browser_options.auto_login = auto_login
+    browser_options.gaia_login = gaia_login
     if username is not None:
-      options.browser_options.username = username
+      browser_options.username = username
     if password is not None:
-      options.browser_options.password = password
+      browser_options.password = password
 
     return browser_to_create.Create()
 

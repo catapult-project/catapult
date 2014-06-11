@@ -175,6 +175,9 @@ class InspectorBackend(inspector_websocket.InspectorWebsocket):
   def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
     return self._runtime.Evaluate(expr, context_id, timeout)
 
+  def EnableAllContexts(self):
+    return self._runtime.EnableAllContexts()
+
   # Timeline public methods.
 
   @property
