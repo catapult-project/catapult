@@ -32,7 +32,6 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
   def StartMonitoringPower(self, browser):
     assert not self._powermetrics_process, (
         "Must call StopMonitoringPower().")
-    SAMPLE_INTERVAL_MS = 1000 / 20 # 20 Hz, arbitrary.
     # Empirically powermetrics creates an empty output file immediately upon
     # starting.  We detect file creation as a signal that measurement has
     # started.  In order to avoid various race conditions in tempfile creation
@@ -43,7 +42,6 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     self._output_filename = os.path.join(self._output_directory,
         'powermetrics.output')
     args = ['-f', 'plist',
-            '-i', '%d' % SAMPLE_INTERVAL_MS,
             '-u', self._output_filename]
     self._powermetrics_process = self._backend.LaunchApplication(
         self.binary_path, args, elevate_privilege=True)
@@ -52,8 +50,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # synchronous in respect to powermetrics starting.
     def _OutputFileExists():
       return os.path.isfile(self._output_filename)
-    timeout_sec = 2 * (SAMPLE_INTERVAL_MS / 1000.)
-    util.WaitFor(_OutputFileExists, timeout_sec)
+    util.WaitFor(_OutputFileExists, 1)
 
   @decorators.Cache
   def CanMonitorPower(self):
