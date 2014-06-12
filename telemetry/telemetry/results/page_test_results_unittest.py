@@ -2,8 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
-import sys
-import unittest
+from telemetry.results import base_test_results_unittest
 
 from telemetry.page import page_set
 from telemetry.results import page_test_results
@@ -16,7 +15,7 @@ class NonPrintingPageTestResults(
   def _PrintPerfResult(self, *args):
     pass
 
-class PageTestResultsTest(unittest.TestCase):
+class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
     self.page_set = page_set.PageSet(file_path=os.path.dirname(__file__))
     self.page_set.AddPageWithDefaultRunNavigate("http://www.bar.com/")
@@ -26,12 +25,6 @@ class PageTestResultsTest(unittest.TestCase):
   @property
   def pages(self):
     return self.page_set.pages
-
-  def CreateException(self):
-    try:
-      raise Exception('Intentional exception')
-    except Exception:
-      return sys.exc_info()
 
   def test_failures(self):
     results = NonPrintingPageTestResults()

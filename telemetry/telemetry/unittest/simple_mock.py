@@ -107,3 +107,6 @@ class MockTimer(object):
 
   def GetTime(self):
     return self._elapsed_time
+
+  def SetTime(self, time):
+    self._elapsed_time = time

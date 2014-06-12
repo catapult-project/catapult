@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
-import unittest
 
 from telemetry import perf_tests_helper
 from telemetry.page import page_set
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
+from telemetry.results import base_test_results_unittest
 from telemetry.results import buildbot_page_measurement_results
 
 def _MakePageSet():
@@ -28,40 +28,8 @@ class SummarySavingPageMeasurementResults(
     res = perf_tests_helper.PrintPerfResult(*args, print_to_stdout=False)
     self.results.append(res)
 
-class BuildbotPageMeasurementResultsTest(unittest.TestCase):
-  def assertEquals(self, ex, res):
-    # This helps diagnose result mismatches.
-    if ex != res and isinstance(ex, list):
-      def CleanList(l):
-        res = []
-        for x in l:
-          x = x.split('\n')
-          res.extend(x)
-        return res
-      ex = CleanList(ex)
-      res = CleanList(res)
-      max_len = max(len(ex), len(res))
-      max_width  = max([len(x) for x in ex + res])
-      max_width = max(10, max_width)
-      print "Lists differ!"
-      print '%*s | %*s' % (max_width, 'expected', max_width, 'result')
-      for i in range(max_len):
-        if i < len(ex):
-          e = ex[i]
-        else:
-          e = ''
-        if i < len(res):
-          r = res[i]
-        else:
-          r = ''
-        if e != r:
-          sep = '*'
-        else:
-          sep = '|'
-        print '%*s %s %*s' % (max_width, e, sep, max_width, r)
-      print ""
-    super(BuildbotPageMeasurementResultsTest, self).assertEquals(ex, res)
-
+class BuildbotPageMeasurementResultsTest(
+    base_test_results_unittest.BaseTestResultsUnittest):
   def test_basic_summary(self):
     test_page_set = _MakePageSet()
 
