@@ -35,17 +35,24 @@ class PageMeasurement(page_test.PageTest):
            body_child_count = tab.EvaluateJavaScript(
               'document.querySelector('%s').children.length')
            results.Add('children', 'count', child_count)
+
+  is_action_name_to_run_optional determines what to do if action_name_to_run is
+  not empty but the page doesn't have that action. The page will run (without
+  any action) if is_action_name_to_run_optional is True, otherwise the page will
+  fail.
   """
   def __init__(self,
                action_name_to_run='',
                needs_browser_restart_after_each_page=False,
                discard_first_result=False,
-               clear_cache_before_each_run=False):
+               clear_cache_before_each_run=False,
+               is_action_name_to_run_optional=False):
     super(PageMeasurement, self).__init__(
       action_name_to_run,
       needs_browser_restart_after_each_page,
       discard_first_result,
-      clear_cache_before_each_run)
+      clear_cache_before_each_run,
+      is_action_name_to_run_optional=is_action_name_to_run_optional)
 
   def ValidatePage(self, page, tab, results):
     results.WillMeasurePage(page)

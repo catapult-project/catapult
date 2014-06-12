@@ -32,7 +32,8 @@ class PageTest(command_line.Command):
                clear_cache_before_each_run=False,
                attempts=3,
                max_failures=None,
-               max_errors=None):
+               max_errors=None,
+               is_action_name_to_run_optional=False):
     super(PageTest, self).__init__()
 
     self.options = None
@@ -50,6 +51,7 @@ class PageTest(command_line.Command):
     self._attempts = attempts
     self._max_failures = max_failures
     self._max_errors = max_errors
+    self._is_action_name_to_run_optional = is_action_name_to_run_optional
     assert self._attempts > 0, 'Test attempts must be greater than 0'
     # If the test overrides the TabForPage method, it is considered a multi-tab
     # test.  The main difference between this and a single-tab test is that we
@@ -167,7 +169,7 @@ class PageTest(command_line.Command):
 
   def CanRunForPage(self, page):  # pylint: disable=W0613
     """Override to customize if the test can be ran for the given page."""
-    if self._action_name_to_run:
+    if self._action_name_to_run and not self._is_action_name_to_run_optional:
       return hasattr(page, self._action_name_to_run)
     return True
 
