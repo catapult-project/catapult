@@ -26,7 +26,6 @@ try:
 except Exception:
   ports = None
 from pylib.device import device_utils  # pylint: disable=F0401
-from pylib.utils import apk_helper  # pylint: disable=F0401
 
 
 def IsAndroidSupported():
@@ -85,9 +84,7 @@ class AdbCommands(object):
         constants.GetOutDirectory('Debug'), 'md5sum_bin_host'))):
       constants.SetBuildType('Debug')
 
-    apk_package_name = apk_helper.GetPackageName(apk_path)
-    return self._device.old_interface.ManagedInstall(
-        apk_path, package_name=apk_package_name)
+    self._device.Install(apk_path)
 
   def IsUserBuild(self):
     return self._device.old_interface.GetBuildType() == 'user'
