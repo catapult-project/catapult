@@ -230,7 +230,9 @@ def ProcessCommandLineArgs(parser, args):
 def _PrepareAndRunPage(test, page_set, expectations, finder_options,
                        browser_options, page, credentials_path,
                        possible_browser, results, state):
-  if browser_options.wpr_mode != wpr_modes.WPR_RECORD:
+  if finder_options.use_live_sites:
+    browser_options.wpr_mode = wpr_modes.WPR_OFF
+  elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
     browser_options.wpr_mode = (
         wpr_modes.WPR_REPLAY
         if page.archive_path and os.path.isfile(page.archive_path)
@@ -304,9 +306,11 @@ def _UpdatePageSetArchivesIfChanged(page_set):
     try:
       cloud_storage.GetIfChanged(
           os.path.join(page_set.base_dir, page_set.credentials_path))
-    except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
-      logging.warning('Cannot retrieve credential file: %s',
-                      page_set.credentials_path)
+    except (cloud_storage.CredentialsError, cloud_storage.PermissionError,
+            cloud_storage.CloudStorageError) as e:
+      logging.warning('Cannot retrieve credential file %s due to cloud storage '
+                      'error %s', page_set.credentials_path, str(e))
+
   # Scan every serving directory for .sha1 files
   # and download them from Cloud Storage. Assume all data is public.
   all_serving_dirs = page_set.serving_dirs.copy()

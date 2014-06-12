@@ -477,3 +477,47 @@ class PageRunnerTests(unittest.TestCase):
     self.assertEquals(0, len(results.successes))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(0, len(results.errors))
+
+  def TestUseLiveSitesFlag(self, options, expect_from_archive):
+    ps = page_set.PageSet(
+      file_path=util.GetUnittestDataDir(),
+      archive_data_file='data/archive_blank.json')
+    ps.pages.append(page_module.Page(
+      'file://blank.html', ps, base_dir=ps.base_dir))
+    expectations = test_expectations.TestExpectations()
+
+    class ArchiveTest(page_measurement.PageMeasurement):
+      def __init__(self):
+        super(ArchiveTest, self).__init__()
+        self.is_page_from_archive = False
+        self.archive_path_exist = True
+
+      def WillNavigateToPage(self, page, tab):
+        self.archive_path_exist = (page.archive_path
+                                   and os.path.isfile(page.archive_path))
+        self.is_page_from_archive = (
+          tab.browser._wpr_server is not None) # pylint: disable=W0212
+
+      def MeasurePage(self, _, __, results):
+        pass
+
+    test = ArchiveTest()
+    page_runner.Run(test, ps, expectations, options)
+    if expect_from_archive and not test.archive_path_exist:
+      logging.warning('archive path did not exist, asserting that page '
+                      'is from archive is skipped.')
+      return
+    self.assertEquals(expect_from_archive, test.is_page_from_archive)
+
+  def testUseLiveSitesFlagSet(self):
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    options.use_live_sites = True
+    SetUpPageRunnerArguments(options)
+    self.TestUseLiveSitesFlag(options, expect_from_archive=False)
+
+  def testUseLiveSitesFlagUnset(self):
+    options = options_for_unittests.GetCopy()
+    options.output_format = 'none'
+    SetUpPageRunnerArguments(options)
+    self.TestUseLiveSitesFlag(options, expect_from_archive=True)
