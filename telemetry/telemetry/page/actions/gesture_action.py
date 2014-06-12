@@ -5,7 +5,7 @@
 from telemetry.page.actions import page_action
 from telemetry.page.actions import wait
 from telemetry import decorators
-from telemetry.page.actions import action_runner
+from telemetry.web_perf import timeline_interaction_record as tir_module
 
 class GestureAction(page_action.PageAction):
   def __init__(self, attributes=None):
@@ -22,22 +22,24 @@ class GestureAction(page_action.PageAction):
       'gesture cannot have wait_after and wait_until at the same time.')
 
   def RunAction(self, tab):
-    runner = action_runner.ActionRunner(tab)
     if self.wait_action:
       interaction_name = 'Action_%s' % self.__class__.__name__
     else:
       interaction_name = 'Gesture_%s' % self.__class__.__name__
 
-    interaction = None
     if self.automatically_record_interaction:
-      interaction = runner.BeginInteraction(interaction_name, is_smooth=True)
+      tab.ExecuteJavaScript('console.time("%s");' %
+          tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
+              interaction_name, [tir_module.IS_SMOOTH]))
 
     self.RunGesture(tab)
     if self.wait_action:
       self.wait_action.RunAction(tab)
 
-    if interaction is not None:
-      interaction.End()
+    if self.automatically_record_interaction:
+      tab.ExecuteJavaScript('console.timeEnd("%s");' %
+          tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
+              interaction_name, [tir_module.IS_SMOOTH]))
 
   def RunGesture(self, tab):
     raise NotImplementedError()

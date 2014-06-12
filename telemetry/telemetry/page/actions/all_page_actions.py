@@ -11,7 +11,6 @@ from telemetry.page.actions import page_action
 # TODO(nednguyen): Remove all of these imports when we done porting all actions
 # to action_runner
 from telemetry.page.actions.interact import InteractAction
-from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.js_collect_garbage import JsCollectGarbageAction
 from telemetry.page.actions.loop import LoopAction
 from telemetry.page.actions.media_action import MediaAction

@@ -47,13 +47,13 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
   def testWaitForNavigate(self):
     self.Navigate('page_with_link.html')
     action_runner = action_runner_module.ActionRunner(self._tab)
-    action_runner.RunAction(ClickElementAction({'xpath': 'id("clickme")'}))
+    action_runner.ClickElement('#clickme')
     action_runner.WaitForNavigate()
 
     self.assertTrue(self._tab.EvaluateJavaScript(
         'document.readyState == "interactive" || '
         'document.readyState == "complete"'))
-    self.assertEquals(
+    self.assertEqual(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
@@ -150,3 +150,42 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     def WaitForElement3():
       action_runner.WaitForElement(text='foo', element_function='', timeout=1)
     self.assertRaises(page_action.PageActionFailed, WaitForElement3)
+
+  def testClickElement(self):
+    self.Navigate('page_with_clickables.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
+    action_runner.ClickElement('#test')
+    self.assertEquals(1, action_runner.EvaluateJavaScript('valueToTest'))
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 2;')
+    action_runner.ClickElement(text='Click/tap me')
+    self.assertEquals(2, action_runner.EvaluateJavaScript('valueToTest'))
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 3;')
+    action_runner.ClickElement(
+        element_function='document.body.firstElementChild')
+    self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
+
+  def testTapElement(self):
+    self.Navigate('page_with_clickables.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
+    action_runner.TapElement('#test')
+    self.assertEquals(1, action_runner.EvaluateJavaScript('valueToTest'))
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 2;')
+    action_runner.TapElement(text='Click/tap me')
+    self.assertEquals(2, action_runner.EvaluateJavaScript('valueToTest'))
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 3;')
+    action_runner.TapElement(
+        element_function='document.body.firstElementChild')
+    self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
+
+    action_runner.ExecuteJavaScript('valueSettableByTest = 4;')
+    action_runner.TapElement(element_function='''
+        function(callback) { callback(document.body.firstElementChild); }''')
+    self.assertEquals(4, action_runner.EvaluateJavaScript('valueToTest'))

@@ -44,24 +44,28 @@ class TapAction(GestureAction):
       util.FindElementAndPerformAction(tab, self.text, callback_code)
     else:
       if hasattr(self, 'element_function'):
+        # TODO(chrishenry): This special case is around to not break
+        # page sets in other repo. This special case will be deleted when
+        # these page sets are updated.
+        if self.element_function.strip().startswith('function(callback)'):
+          tab.ExecuteJavaScript('(%s)(function(element) { %s });' %
+                                (self.element_function, js_cmd))
+          return
+
         element_function = self.element_function
       elif hasattr(self, 'selector'):
-        element_cmd = ('document.querySelector(\'' +
-            _EscapeSelector(self.selector) + '\')')
-        element_function = 'function(callback) { callback(%s); }' % element_cmd
+        element_function = 'document.querySelector(\'%s\')' % _EscapeSelector(
+            self.selector)
       elif hasattr(self, 'xpath'):
-        element_cmd = ('document.evaluate("%s",'
-                                          'document,'
-                                          'null,'
-                                          'XPathResult.FIRST_ORDERED_NODE_TYPE,'
-                                          'null)'
-                              '.singleNodeValue' % re.escape(self.xpath))
-        element_function = 'function(callback) { callback(%s); }' % element_cmd
+        element_function = (
+            'document.evaluate("%s", document, null, '
+            '    XPathResult.FIRST_ORDERED_NODE_TYPE, null)'
+            '    .singleNodeValue') % re.escape(self.xpath)
       else:
         assert False
 
-      tab.ExecuteJavaScript('(%s)(function(element) { %s });' %
-                                (element_function, js_cmd))
+      tab.ExecuteJavaScript(
+          '(function(element) { %s })(%s)' % (js_cmd, element_function))
 
   def RunGesture(self, tab):
     left_position_percentage = 0.5

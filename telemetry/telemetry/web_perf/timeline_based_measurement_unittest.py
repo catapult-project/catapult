@@ -109,8 +109,7 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
 
   def RunSmoothness(self, action_runner):
     action_runner.Wait(2)
-    action_runner.RunAction(TapAction(
-        {'selector': '#drawer', 'automatically_record_interaction': False}))
+    action_runner.TapElement('#drawer')
     action_runner.Wait(1)
 
 

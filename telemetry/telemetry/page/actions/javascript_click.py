@@ -17,7 +17,15 @@ class ClickElementAction(page_action.PageAction):
 
   def RunAction(self, tab):
     def DoClick():
-      if hasattr(self, 'selector'):
+      if hasattr(self, 'element_function'):
+        code = '(%s).click();' % self.element_function
+        try:
+          tab.ExecuteJavaScript(code)
+        except exceptions.EvaluateException:
+          raise page_action.PageActionFailed(
+              'Cannot find element with element_function ' +
+              self.element_function)
+      elif hasattr(self, 'selector'):
         code = ('document.querySelector(\'' + _EscapeSelector(self.selector) +
             '\').click();')
         try:
