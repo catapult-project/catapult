@@ -18,9 +18,6 @@ class GestureAction(page_action.PageAction):
     else:
       self.wait_action = None
 
-    assert self.wait_until is None or self.wait_action is None, (
-      'gesture cannot have wait_after and wait_until at the same time.')
-
   def RunAction(self, tab):
     if self.wait_action:
       interaction_name = 'Action_%s' % self.__class__.__name__

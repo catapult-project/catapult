@@ -18,9 +18,8 @@ class ActionRunner(object):
   # TODO(nednguyen): remove this (or make private) when
   # crbug.com/361809 is marked fixed
   def RunAction(self, action):
-    if not action.WillWaitAfterRun():
-      action.WillRunAction(self._tab)
-    action.RunActionAndMaybeWait(self._tab)
+    action.WillRunAction(self._tab)
+    action.RunAction(self._tab)
 
   def BeginInteraction(self, label, is_smooth=False, is_responsive=False):
     """Marks the beginning of an interaction record.
