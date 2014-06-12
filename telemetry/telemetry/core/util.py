@@ -39,7 +39,7 @@ def GetChromiumSrcDir():
 def AddDirToPythonPath(*path_parts):
   path = os.path.abspath(os.path.join(*path_parts))
   if os.path.isdir(path) and path not in sys.path:
-    sys.path.append(path)
+    sys.path.insert(0, path)
 
 _counter = [0]
 def _GetUniqueModuleName():

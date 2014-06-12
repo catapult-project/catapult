@@ -44,6 +44,8 @@ class Monsoon:
     can be specified with 'serialno' (using the number printed on its back).
     With wait=False, IOError is thrown if a device is not immediately available.
     """
+    assert float(serial.VERSION) >= 2.7, \
+     'Monsoon requires pyserial v2.7 or later. You have %s' % serial.VERSION
 
     self._coarse_ref = self._fine_ref = self._coarse_zero = self._fine_zero = 0
     self._coarse_scale = self._fine_scale = 0
