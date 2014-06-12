@@ -6,6 +6,7 @@ import logging
 
 from telemetry import test
 from telemetry.core import bitmap
+from telemetry.core import video
 from telemetry.core import util
 from telemetry.core import exceptions
 from telemetry.core.backends.chrome import tracing_backend
@@ -27,7 +28,7 @@ class FakePlatform(object):
 
   def StopVideoCapture(self):
     self._is_video_capture_running = False
-    return []
+    return video.Video(self, None)
 
   def SetFullPerformanceModeEnabled(self, enabled):
     pass
@@ -89,10 +90,7 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertFalse(self._tab.is_video_capture_running)
     self._tab.StartVideoCapture(min_bitrate_mbps=2)
     self.assertTrue(self._tab.is_video_capture_running)
-    try:
-      self._tab.StopVideoCapture().next()
-    except Exception:
-      pass
+    self.assertIsNotNone(self._tab.StopVideoCapture())
     self.assertFalse(self._tab.is_video_capture_running)
     self._tab.browser._platform = original_platform
 

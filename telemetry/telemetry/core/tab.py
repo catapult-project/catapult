@@ -2,14 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import bitmap
+from telemetry.core import video
 from telemetry.core import web_contents
 
 DEFAULT_TAB_TIMEOUT = 60
-
-
-class BoundingBoxNotFoundException(Exception):
-  pass
 
 
 class Tab(web_contents.WebContents):
@@ -25,7 +21,6 @@ class Tab(web_contents.WebContents):
   """
   def __init__(self, inspector_backend, backend_list):
     super(Tab, self).__init__(inspector_backend, backend_list)
-    self._tab_contents_bounding_box = None
 
   @property
   def browser(self):
@@ -135,7 +130,8 @@ class Tab(web_contents.WebContents):
     self.WaitForJavaScriptExpression(
         '!window.__telemetry_screen_%d' % int(color), 5)
 
-  def StartVideoCapture(self, min_bitrate_mbps):
+  def StartVideoCapture(self, min_bitrate_mbps,
+                        highlight_bitmap=video.HIGHLIGHT_ORANGE_FRAME):
     """Starts capturing video of the tab's contents.
 
     This works by flashing the entire tab contents to a arbitrary color and then
@@ -147,54 +143,9 @@ class Tab(web_contents.WebContents):
           The platform is free to deliver a higher bitrate if it can do so
           without increasing overhead.
     """
-    self.Highlight(bitmap.WEB_PAGE_TEST_ORANGE)
+    self.Highlight(highlight_bitmap)
     self.browser.platform.StartVideoCapture(min_bitrate_mbps)
-    self.ClearHighlight(bitmap.WEB_PAGE_TEST_ORANGE)
-
-  def _FindHighlightBoundingBox(self, bmp, color, bounds_tolerance=8,
-      color_tolerance=8):
-    """Returns the bounding box of the content highlight of the given color.
-
-    Raises:
-      BoundingBoxNotFoundException if the hightlight could not be found.
-    """
-    content_box, pixel_count = bmp.GetBoundingBox(color,
-        tolerance=color_tolerance)
-
-    if not content_box:
-      return None
-
-    # We assume arbitrarily that tabs are all larger than 200x200. If this
-    # fails it either means that assumption has changed or something is
-    # awry with our bounding box calculation.
-    if content_box[2] < 200 or content_box[3] < 200:
-      raise BoundingBoxNotFoundException('Unexpectedly small tab contents.')
-
-    # TODO(tonyg): Can this threshold be increased?
-    if pixel_count < 0.9 * content_box[2] * content_box[3]:
-      raise BoundingBoxNotFoundException(
-          'Low count of pixels in tab contents matching expected color.')
-
-    # Since we allow some fuzziness in bounding box finding, we want to make
-    # sure that the bounds are always stable across a run. So we cache the
-    # first box, whatever it may be.
-    #
-    # This relies on the assumption that since Telemetry doesn't know how to
-    # resize the window, we should always get the same content box for a tab.
-    # If this assumption changes, this caching needs to be reworked.
-    if not self._tab_contents_bounding_box:
-      self._tab_contents_bounding_box = content_box
-
-    # Verify that there is only minor variation in the bounding box. If it's
-    # just a few pixels, we can assume it's due to compression artifacts.
-    for x, y in zip(self._tab_contents_bounding_box, content_box):
-      if abs(x - y) > bounds_tolerance:
-        # If this fails, it means either that either the above assumption has
-        # changed or something is awry with our bounding box calculation.
-        raise BoundingBoxNotFoundException(
-            'Unexpected change in tab contents box.')
-
-    return self._tab_contents_bounding_box
+    self.ClearHighlight(highlight_bitmap)
 
   @property
   def is_video_capture_running(self):
@@ -206,36 +157,10 @@ class Tab(web_contents.WebContents):
     This looks for the initial color flash in the first frame to establish the
     tab content boundaries and then omits all frames displaying the flash.
 
-    Yields:
-      (time_ms, bitmap) tuples representing each video keyframe. Only the first
-      frame in a run of sequential duplicate bitmaps is typically included.
-        time_ms is milliseconds since navigationStart.
-        bitmap is a telemetry.core.Bitmap.
+    Returns:
+      video: A video object which is a telemetry.core.Video
     """
-    frame_generator = self.browser.platform.StopVideoCapture()
-
-    # Flip through frames until we find the initial tab contents flash.
-    content_box = None
-    for _, bmp in frame_generator:
-      content_box = self._FindHighlightBoundingBox(
-          bmp, bitmap.WEB_PAGE_TEST_ORANGE)
-      if content_box:
-        break
-
-    if not content_box:
-      raise BoundingBoxNotFoundException(
-          'Failed to identify tab contents in video capture.')
-
-    # Flip through frames until the flash goes away and emit that as frame 0.
-    timestamp = 0
-    for timestamp, bmp in frame_generator:
-      if not self._FindHighlightBoundingBox(bmp, bitmap.WEB_PAGE_TEST_ORANGE):
-        yield 0, bmp.Crop(*content_box)
-        break
-
-    start_time = timestamp
-    for timestamp, bmp in frame_generator:
-      yield timestamp - start_time, bmp.Crop(*content_box)
+    return self.browser.platform.StopVideoCapture()
 
   def WaitForNavigate(self, timeout=DEFAULT_TAB_TIMEOUT):
     """Waits for the navigation to complete.
