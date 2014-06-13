@@ -125,7 +125,6 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           "Was expecting a number: %s (%s)" % (type(out_data), out_data))
       return float(out_data)
 
-    power_samples = []
     sample_durations = []
     total_energy_consumption_mwh = 0
     # powermetrics outputs multiple plists separated by null terminators.
@@ -176,7 +175,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plists[0])
     if not plist:
       logging.error("Error parsing plist.")
-      return
+      return {}
 
     # Duration of this sample.
     sample_duration_ms = int(plist['elapsed_ns']) / 10**6
@@ -184,15 +183,11 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
     if 'processor' not in plist:
       logging.error("'processor' field not found in plist.")
-      return
+      return {}
     processor = plist['processor']
 
-    energy_consumption_mw = int(processor.get('package_watts', 0)) * 10**3
-
-    total_energy_consumption_mwh += (energy_consumption_mw *
-        (sample_duration_ms / 3600000.))
-
-    power_samples.append(energy_consumption_mw)
+    total_energy_consumption_mwh = (
+        (float(processor.get('package_joules', 0)) / 3600.) * 10**3 )
 
     for m in metrics:
       m.samples.append(DataWithMetricKeyPath(m, plist))
@@ -200,10 +195,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # -------- Collect and Process Data --------
     out_dict = {}
     out_dict['identifier'] = 'powermetrics'
-    # Raw power usage samples.
-    if power_samples:
-      out_dict['power_samples_mw'] = power_samples
-      out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
+    out_dict['energy_consumption_mwh'] = total_energy_consumption_mwh
 
     def StoreMetricAverage(metric, sample_durations, out):
       """Calculate average value of samples in a metric and store in output
