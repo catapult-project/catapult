@@ -201,6 +201,13 @@ tvcm.exportTo('tracing.tracks', function() {
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
 
+      if (startEvent.selected || endEvent.selected) {
+        ctx.shadowBlur = 1;
+        ctx.shadowColor = 'red';
+        ctx.shadowOffsety = 2;
+        ctx.strokeStyle = 'red';
+      }
+
       var startSize = startBounds.left + startBounds.top +
           startBounds.bottom + startBounds.right;
       var endSize = endBounds.left + endBounds.top +
@@ -223,6 +230,12 @@ tvcm.exportTo('tracing.tracks', function() {
           startEvent.start + half, pixelEndY,
           endEvent.start, pixelEndY);
       ctx.stroke();
+
+      if (startEvent.selected || endEvent.selected) {
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      }
 
       var arrowWidth = 5 * pixWidth * pixelRatio;
       var distance = endEvent.start - startEvent.start;
