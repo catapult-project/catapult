@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import test
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.timeline import model
@@ -168,6 +169,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         element_function='document.body.firstElementChild')
     self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
 
+  @test.Disabled('debug')
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab)
