@@ -7,7 +7,6 @@ import logging
 import os
 import plistlib
 import shutil
-import signal
 import tempfile
 import xml.parsers.expat
 
@@ -42,7 +41,9 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     self._output_filename = os.path.join(self._output_directory,
         'powermetrics.output')
     args = ['-f', 'plist',
-            '-u', self._output_filename]
+            '-u', self._output_filename,
+            '-i0',
+            '--show-usage-summary']
     self._powermetrics_process = self._backend.LaunchApplication(
         self.binary_path, args, elevate_privilege=True)
 
@@ -130,6 +131,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # powermetrics outputs multiple plists separated by null terminators.
     raw_plists = powermetrics_output.split('\0')
     raw_plists = [x for x in raw_plists if len(x) > 0]
+    assert(len(raw_plists) == 1)
 
     # -------- Examine contents of first plist for systems specs. --------
     plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plists[0])
@@ -171,28 +173,29 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
           cpu_num += 1
 
     # -------- Parse Data Out of Plists --------
-    for raw_plist in raw_plists:
-      plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plist)
-      if not plist:
-        continue
+    plist = PowerMetricsPowerMonitor._ParsePlistString(raw_plists[0])
+    if not plist:
+      logging.error("Error parsing plist.")
+      return
 
-      # Duration of this sample.
-      sample_duration_ms = int(plist['elapsed_ns']) / 10**6
-      sample_durations.append(sample_duration_ms)
+    # Duration of this sample.
+    sample_duration_ms = int(plist['elapsed_ns']) / 10**6
+    sample_durations.append(sample_duration_ms)
 
-      if 'processor' not in plist:
-        continue
-      processor = plist['processor']
+    if 'processor' not in plist:
+      logging.error("'processor' field not found in plist.")
+      return
+    processor = plist['processor']
 
-      energy_consumption_mw = int(processor.get('package_watts', 0)) * 10**3
+    energy_consumption_mw = int(processor.get('package_watts', 0)) * 10**3
 
-      total_energy_consumption_mwh += (energy_consumption_mw *
-          (sample_duration_ms / 3600000.))
+    total_energy_consumption_mwh += (energy_consumption_mw *
+        (sample_duration_ms / 3600000.))
 
-      power_samples.append(energy_consumption_mw)
+    power_samples.append(energy_consumption_mw)
 
-      for m in metrics:
-        m.samples.append(DataWithMetricKeyPath(m, plist))
+    for m in metrics:
+      m.samples.append(DataWithMetricKeyPath(m, plist))
 
     # -------- Collect and Process Data --------
     out_dict = {}
@@ -238,8 +241,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         "StartMonitoringPower() not called.")
     # Tell powermetrics to take an immediate sample.
     try:
-      self._powermetrics_process.send_signal(signal.SIGINFO)
-      self._powermetrics_process.send_signal(signal.SIGTERM)
+      self._powermetrics_process.terminate()
       (power_stdout, power_stderr) = self._powermetrics_process.communicate()
       returncode = self._powermetrics_process.returncode
       assert returncode in [0, -15], (
