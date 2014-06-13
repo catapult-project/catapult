@@ -4,15 +4,19 @@
 
 'use strict';
 
+tvcm.require('about_tracing.tracing_controller_client');
+
 tvcm.exportTo('about_tracing', function() {
-  function MockRequestHandler() {
+  function MockTracingControllerClient() {
     this.requests = [];
     this.nextRequestIndex = 0;
     this.allowLooping = false;
   }
 
-  MockRequestHandler.prototype = {
-    expectRequest: function(method, pathRegex, generateResponse) {
+  MockTracingControllerClient.prototype = {
+    __proto__: about_tracing.TracingControllerClient.prototype,
+
+    expectRequest: function(method, generateResponse) {
       var generateResponseCb;
       if (typeof generateResponse === 'function') {
         generateResponseCb = generateResponse;
@@ -24,11 +28,10 @@ tvcm.exportTo('about_tracing', function() {
 
       this.requests.push({
         method: method,
-        pathRegex: pathRegex,
         generateResponseCb: generateResponseCb});
     },
 
-    tracingRequest: function(method, path, data) {
+    _request: function(method, args) {
       return new Promise(function(resolver) {
         var requestIndex = this.nextRequestIndex;
         if (requestIndex >= this.requests.length)
@@ -41,9 +44,8 @@ tvcm.exportTo('about_tracing', function() {
         }
 
         var req = this.requests[requestIndex];
-        assertTrue(req.method === method);
-        assertTrue(path.search(req.pathRegex) == 0);
-        var resp = req.generateResponseCb(data, path);
+        assertEquals(req.method, method);
+        var resp = req.generateResponseCb(args);
         resolver.resolve(resp);
       }.bind(this));
     },
@@ -52,10 +54,42 @@ tvcm.exportTo('about_tracing', function() {
       if (this.allowLooping)
         throw new Error('Incompatible with allowLooping');
       assertTrue(this.nextRequestIndex == this.requests.length);
+    },
+
+    beginMonitoring: function(monitoringOptions) {
+      return this._request('beginMonitoring', monitoringOptions);
+    },
+
+    endMonitoring: function() {
+      return this._request('endMonitoring');
+    },
+
+    captureMonitoring: function() {
+      return this._request('captureMonitoring');
+    },
+
+    getMonitoringStatus: function() {
+      return this._request('getMonitoringStatus');
+    },
+
+    getCategories: function() {
+      return this._request('getCategories');
+    },
+
+    beginRecording: function(recordingOptions) {
+      return this._request('beginRecording', recordingOptions);
+    },
+
+    beginGetBufferPercentFull: function() {
+      return this._request('beginGetBufferPercentFull');
+    },
+
+    endRecording: function() {
+      return this._request('endRecording');
     }
   };
 
   return {
-    MockRequestHandler: MockRequestHandler
+    MockTracingControllerClient: MockTracingControllerClient
   };
 });

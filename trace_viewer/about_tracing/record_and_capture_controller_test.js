@@ -4,10 +4,10 @@
 
 'use strict';
 
-tvcm.require('about_tracing.mock_request_handler');
-tvcm.require('about_tracing.tracing_ui_client');
+tvcm.require('about_tracing.mock_tracing_controller_client');
+tvcm.require('about_tracing.record_and_capture_controller');
 
-tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
+tvcm.unittest.testSuite('about_tracing.record_and_capture_controller_test', function() { // @suppress longLineCheck
   var testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},
@@ -17,19 +17,17 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
 
   test('fullRecording', function() {
     return new Promise(function(r) {
-      var mock = new about_tracing.MockRequestHandler();
-      mock.expectRequest('GET', '/json/end_recording', function() {
+      var mock = new about_tracing.MockTracingControllerClient();
+      mock.expectRequest('endRecording', function() {
         return '';
       });
-      mock.expectRequest('GET', '/json/categories', function() {
+      mock.expectRequest('getCategories', function() {
         setTimeout(function() {
           recordingPromise.selectionDlg.clickRecordButton();
         }, 20);
         return JSON.stringify(['a', 'b', 'c']);
       });
-      mock.expectRequest('GET', '/json/begin_recording', function(data, path) {
-        var optionsB64 = path.match(/\/json\/begin_recording\?(.+)/)[1];
-        var recordingOptions = JSON.parse(atob(optionsB64));
+      mock.expectRequest('beginRecording', function(recordingOptions) {
         assertTrue(typeof recordingOptions.categoryFilter === 'string');
         assertTrue(typeof recordingOptions.useSystemTracing === 'boolean');
         assertTrue(typeof recordingOptions.useSampling === 'boolean');
@@ -39,12 +37,11 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
         }, 10);
         return '';
       });
-      mock.expectRequest('GET', '/json/end_recording', function(data) {
+      mock.expectRequest('endRecording', function(data) {
         return JSON.stringify(testData);
       });
 
-      var recordingPromise = about_tracing.beginRecording(
-          mock.tracingRequest.bind(mock));
+      var recordingPromise = about_tracing.beginRecording(mock);
 
       return recordingPromise.then(
           function(data) {
@@ -61,18 +58,15 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
 
   test('monitoring', function() {
     return new Promise(function(r) {
-      var mock = new about_tracing.MockRequestHandler();
-      var tracingRequest = mock.tracingRequest.bind(mock);
+      var mock = new about_tracing.MockTracingControllerClient();
 
-      mock.expectRequest('GET', '/json/begin_monitoring', function(data, path) {
-        var optionsB64 = path.match(/\/json\/begin_monitoring\?(.+)/)[1];
-        var monitoringOptions = JSON.parse(atob(optionsB64));
+      mock.expectRequest('beginMonitoring', function(monitoringOptions) {
         assertTrue(typeof monitoringOptions.categoryFilter === 'string');
         assertTrue(typeof monitoringOptions.useSystemTracing === 'boolean');
         assertTrue(typeof monitoringOptions.useSampling === 'boolean');
         assertTrue(typeof monitoringOptions.useContinuousTracing === 'boolean');
         setTimeout(function() {
-          var capturePromise = about_tracing.captureMonitoring(tracingRequest);
+          var capturePromise = about_tracing.captureMonitoring(mock);
           capturePromise.then(
               function(data) {
                 var testDataString = JSON.stringify(testData);
@@ -85,9 +79,9 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
         return '';
       });
 
-      mock.expectRequest('GET', '/json/capture_monitoring', function(data) {
+      mock.expectRequest('captureMonitoring', function(data) {
         setTimeout(function() {
-          var endPromise = about_tracing.endMonitoring(tracingRequest);
+          var endPromise = about_tracing.endMonitoring(mock);
           endPromise.then(
               function(data) {
                 mock.assertAllRequestsHandled();
@@ -100,10 +94,10 @@ tvcm.unittest.testSuite('about_tracing.tracing_ui_client_test', function() {
         return JSON.stringify(testData);
       });
 
-      mock.expectRequest('GET', '/json/end_monitoring', function(data) {
+      mock.expectRequest('endMonitoring', function(data) {
       });
 
-      about_tracing.beginMonitoring(tracingRequest);
+      about_tracing.beginMonitoring(mock);
     });
   });
 });

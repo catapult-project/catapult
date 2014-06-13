@@ -8,7 +8,9 @@
  * @fileoverview ProfilingView glues the View control to
  * TracingController.
  */
-tvcm.require('about_tracing.tracing_ui_client');
+tvcm.require('about_tracing.record_and_capture_controller');
+tvcm.require('about_tracing.inspector_tracing_controller_client');
+tvcm.require('about_tracing.xhr_based_tracing_controller_client');
 tvcm.require('tracing.timeline_view');
 tvcm.require('tvcm.key_event_manager');
 tvcm.require('tvcm.promise');
@@ -49,7 +51,7 @@ tvcm.exportTo('about_tracing', function() {
   ProfilingView.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
-    decorate: function(tracingRequestImpl) {
+    decorate: function(tracingControllerClient) {
       this.appendChild(tvcm.instantiateTemplate('#profiling-view-template'));
 
       this.timelineView_ = this.querySelector('x-timeline-view');
@@ -71,8 +73,16 @@ tvcm.exportTo('about_tracing', function() {
 
       this.initDragAndDrop_();
 
-      this.tracingRequestImpl_ =
-          tracingRequestImpl || about_tracing.tracingRequest;
+      if (tracingControllerClient) {
+        this.tracingControllerClient_ = tracingControllerClient;
+      } else if (window.InspectorFrontendHost !== undefined) {
+        this.tracingControllerClient_ =
+            new about_tracng.InspectorTracingControllerClient();
+      } else {
+        this.tracingControllerClient_ =
+            new about_tracing.XhrBasedTracingControllerClient();
+      }
+
       this.isRecording_ = false;
       this.isMonitoring_ = false;
       this.activeTrace_ = undefined;
@@ -98,8 +108,8 @@ tvcm.exportTo('about_tracing', function() {
       return this.isMonitoring_;
     },
 
-    set tracingRequestImpl(tracingRequestImpl) {
-      this.tracingRequestImpl_ = tracingRequestImpl;
+    set tracingControllerClient(tracingControllerClient) {
+      this.tracingControllerClient_ = tracingControllerClient;
     },
 
     beginRecording: function() {
@@ -112,7 +122,7 @@ tvcm.exportTo('about_tracing', function() {
       buttons.querySelector('#monitor-checkbox').disabled = true;
       buttons.querySelector('#monitor-checkbox').checked = false;
       var resultPromise = about_tracing.beginRecording(
-          this.tracingRequestImpl_);
+          this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
             this.isRecording_ = false;
@@ -136,7 +146,7 @@ tvcm.exportTo('about_tracing', function() {
         throw new Error('Already monitoring');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          about_tracing.beginMonitoring(this.tracingRequestImpl_);
+          about_tracing.beginMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
@@ -155,7 +165,7 @@ tvcm.exportTo('about_tracing', function() {
         throw new Error('Monitoring is disabled');
       var buttons = this.querySelector('x-timeline-view-buttons');
       var resultPromise =
-          about_tracing.endMonitoring(this.tracingRequestImpl_);
+          about_tracing.endMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function() {
           }.bind(this),
@@ -171,7 +181,7 @@ tvcm.exportTo('about_tracing', function() {
       if (!this.isMonitoring_)
         throw new Error('Monitoring is disabled');
       var resultPromise =
-          about_tracing.captureMonitoring(this.tracingRequestImpl_);
+          about_tracing.captureMonitoring(this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
             this.setActiveTrace('trace.json', data, true);
@@ -186,7 +196,7 @@ tvcm.exportTo('about_tracing', function() {
 
     getMonitoringStatus: function() {
       var resultPromise =
-          about_tracing.getMonitoringStatus(this.tracingRequestImpl_);
+          about_tracing.getMonitoringStatus(this.tracingControllerClient_);
       resultPromise.then(
           function(isMonitoring, categoryFilter, useSystemTracing,
                    useContinuousTracing, useSampling) {

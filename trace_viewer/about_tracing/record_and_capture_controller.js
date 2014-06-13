@@ -1,4 +1,4 @@
-// Copyright (c) 2013 The Chromium Authors. All rights reserved.
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,30 +7,7 @@
 tvcm.require('tracing.record_selection_dialog');
 
 tvcm.exportTo('about_tracing', function() {
-  function tracingRequest(method, path, data) {
-    if (data === undefined)
-      data = null;
-    return new Promise(function(resolver) {
-      var req = new XMLHttpRequest();
-      if (method != 'POST' && data !== null)
-        throw new Error('Non-POST should have data==null');
-      req.open(method, path, true);
-      req.onreadystatechange = function(e) {
-        if (req.readyState == 4) {
-          window.setTimeout(function() {
-            if (req.status == 200 && req.responseText != '##ERROR##') {
-              resolver.resolve(req.responseText);
-            } else {
-              resolver.reject(new Error('Error occured at ' + path));
-            }
-          }, 0);
-        }
-      };
-      req.send(data);
-    });
-  }
-
-  function beginMonitoring(tracingRequest) {
+  function beginMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
@@ -44,9 +21,10 @@ tvcm.exportTo('about_tracing', function() {
       useSampling: true
     };
 
-    var monitoringOptionsB64 = btoa(JSON.stringify(monitoringOptions));
-    var beginMonitoringPromise = tracingRequest(
-        'GET', '/json/begin_monitoring?' + monitoringOptionsB64);
+
+    var beginMonitoringPromise = tracingControllerClient.beginMonitoring(
+        monitoringOptions);
+
     beginMonitoringPromise.then(
         function() {
           finalPromiseResolver.resolve();
@@ -58,13 +36,13 @@ tvcm.exportTo('about_tracing', function() {
     return finalPromise;
   }
 
-  function endMonitoring(tracingRequest) {
+  function endMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
     });
 
-    var endMonitoringPromise = tracingRequest('GET', '/json/end_monitoring');
+    var endMonitoringPromise = tracingControllerClient.endMonitoring();
     endMonitoringPromise.then(
         function() {
           finalPromiseResolver.resolve();
@@ -76,14 +54,14 @@ tvcm.exportTo('about_tracing', function() {
     return finalPromise;
   }
 
-  function captureMonitoring(tracingRequest) {
+  function captureMonitoring(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
     });
 
     var captureMonitoringPromise =
-        tracingRequest('GET', '/json/capture_monitoring');
+        tracingControllerClient.captureMonitoring();
     captureMonitoringPromise.then(
         captureMonitoringResolved,
         captureMonitoringRejected);
@@ -99,14 +77,14 @@ tvcm.exportTo('about_tracing', function() {
     return finalPromise;
   }
 
-  function getMonitoringStatus(tracingRequest) {
+  function getMonitoringStatus(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
     });
 
     var getMonitoringStatusPromise =
-        tracingRequest('GET', '/json/get_monitoring_status');
+        tracingControllerClient.getMonitoringStatus();
     getMonitoringStatusPromise.then(
         function(monitoringOptionsBase64) {
           var monitoringOptions = JSON.parse(atob(monitoringOptionsBase64));
@@ -123,7 +101,7 @@ tvcm.exportTo('about_tracing', function() {
     return finalPromise;
   }
 
-  function beginRecording(tracingRequest) {
+  function beginRecording(tracingControllerClient) {
     var finalPromiseResolver;
     var finalPromise = new Promise(function(resolver) {
       finalPromiseResolver = resolver;
@@ -138,13 +116,18 @@ tvcm.exportTo('about_tracing', function() {
     // Step 0: End recording. This is necessary when the user reloads the
     // about:tracing page when we are recording. Window.onbeforeunload is not
     // reliable to end recording on reload.
-    endRecording(tracingRequest).then(
+    endRecording(tracingControllerClient).then(
         getCategories,
         getCategories);  // Ignore error.
 
+    // But just in case, bind onbeforeunload anyway.
+    window.onbeforeunload = function(e) {
+      endRecording(tracingControllerClient);
+    }
+
     // Step 1: Get categories.
     function getCategories() {
-      tracingRequest('GET', '/json/categories').then(
+      tracingControllerClient.getCategories().then(
           showTracingDialog,
           beginRecordingError);
     }
@@ -194,9 +177,8 @@ tvcm.exportTo('about_tracing', function() {
       };
 
 
-      var recordingOptionsB64 = btoa(JSON.stringify(recordingOptions));
-      var requestPromise = tracingRequest('GET', '/json/begin_recording?' +
-                                          recordingOptionsB64);
+      var requestPromise = tracingControllerClient.beginRecording(
+          recordingOptions);
       requestPromise.then(
           function() {
             progressDlg.visible = true;
@@ -206,7 +188,7 @@ tvcm.exportTo('about_tracing', function() {
           recordFailed);
 
       stopButton.addEventListener('click', function() {
-        var recordingPromise = endRecording(tracingRequest);
+        var recordingPromise = endRecording(tracingControllerClient);
         recordingPromise.then(
             recordFinished,
             recordFailed);
@@ -231,7 +213,7 @@ tvcm.exportTo('about_tracing', function() {
       if (!bufferPercentFullDiv)
         return;
 
-      tracingRequest('GET', '/json/get_buffer_percent_full').then(
+      tracingControllerClient.beginGetBufferPercentFull().then(
           updateBufferPercentFull);
     }
 
@@ -251,8 +233,8 @@ tvcm.exportTo('about_tracing', function() {
     return finalPromise;
   };
 
-  function endRecording(tracingRequest) {
-    return tracingRequest('GET', '/json/end_recording');
+  function endRecording(tracingControllerClient) {
+    return tracingControllerClient.endRecording();
   }
 
   function UserCancelledError() {
@@ -262,12 +244,7 @@ tvcm.exportTo('about_tracing', function() {
     __proto__: Error.prototype
   };
 
-  window.onbeforeunload = function(e) {
-    endRecording(tracingRequest);
-  }
-
   return {
-    tracingRequest: tracingRequest,
     beginRecording: beginRecording,
     beginMonitoring: beginMonitoring,
     endMonitoring: endMonitoring,

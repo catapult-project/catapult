@@ -4,7 +4,7 @@
 
 'use strict';
 
-tvcm.require('about_tracing.mock_request_handler');
+tvcm.require('about_tracing.mock_tracing_controller_client');
 tvcm.require('about_tracing.profiling_view');
 
 tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
@@ -28,25 +28,25 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
 
   test('recording', function() {
 
-    var mock = new about_tracing.MockRequestHandler();
+    var mock = new about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
-    mock.expectRequest('GET', '/json/get_monitoring_status', function() {
+    mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
     });
-    mock.expectRequest('GET', '/json/end_recording', function() {
+    mock.expectRequest('endRecording', function() {
       return '';
     });
-    mock.expectRequest('GET', '/json/categories', function() {
+    mock.expectRequest('getCategories', function() {
       return JSON.stringify(['a', 'b', 'c']);
     });
-    mock.expectRequest('GET', '/json/begin_recording', function(data) {
+    mock.expectRequest('beginRecording', function(data) {
       return '';
     });
-    mock.expectRequest('GET', '/json/end_recording', function(data) {
+    mock.expectRequest('endRecording', function(data) {
       return JSON.stringify(testData);
     });
 
-    var view = new ProfilingView(mock.tracingRequest.bind(mock));
+    var view = new ProfilingView(mock);
     view.style.height = '400px';
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
@@ -73,22 +73,22 @@ tvcm.unittest.testSuite('about_tracing.profiling_view_test', function() {
 
   test('monitoring', function() {
 
-    var mock = new about_tracing.MockRequestHandler();
+    var mock = new about_tracing.MockTracingControllerClient();
     mock.allowLooping = true;
-    mock.expectRequest('GET', '/json/get_monitoring_status', function() {
+    mock.expectRequest('getMonitoringStatus', function() {
       return btoa(JSON.stringify(monitoringOptions));
     });
-    mock.expectRequest('GET', '/json/begin_monitoring', function(data) {
+    mock.expectRequest('beginMonitoring', function(data) {
       return '';
     });
-    mock.expectRequest('GET', '/json/capture_monitoring', function(data) {
+    mock.expectRequest('captureMonitoring', function(data) {
       return JSON.stringify(testData);
     });
-    mock.expectRequest('GET', '/json/end_monitoring', function(data) {
+    mock.expectRequest('endMonitoring', function(data) {
       return '';
     });
 
-    var view = new ProfilingView(mock.tracingRequest.bind(mock));
+    var view = new ProfilingView(mock);
     view.style.height = '400px';
     view.style.border = '1px solid black';
     this.addHTMLOutput(view);
