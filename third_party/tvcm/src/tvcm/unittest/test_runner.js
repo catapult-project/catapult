@@ -46,9 +46,8 @@ tvcm.exportTo('tvcm.unittest', function() {
     tvcm.onAnimationFrameError = realTvcmOnAnimationFrameError;
     realTvcmOnAnimationFrameError = undefined;
 
-    realWindowHistoryPushState = undefined;
     window.history.pushState = realWindowHistoryPushState;
-
+    realWindowHistoryPushState = undefined;
 
     tvcm.unittest.addHTMLOutputForCurrentTest = undefined;
   }
