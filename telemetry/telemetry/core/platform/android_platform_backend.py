@@ -122,8 +122,12 @@ class AndroidPlatformBackend(
   def PurgeUnpinnedMemory(self):
     """Purges the unpinned ashmem memory for the whole system.
 
-    This can be used to make memory measurements more stable in particular.
+    This can be used to make memory measurements more stable. Requires root.
     """
+    if not self._can_access_protected_file_contents:
+      logging.warning('Cannot run purge_ashmem. Requires a rooted device.')
+      return
+
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
