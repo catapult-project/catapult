@@ -50,7 +50,7 @@ def FilterSuite(suite, predicate):
 def DiscoverAndRunTests(dir_name, args, top_level_dir, platform,
                         options, default_options, runner):
   if not runner:
-    runner = gtest_testrunner.GTestTestRunner(inner=True)
+    runner = gtest_testrunner.GTestTestRunner(print_result_after_run=True)
   suite = Discover(dir_name, top_level_dir, '*_unittest.py')
   def IsTestSelected(test):
     if len(args) != 0:
