@@ -91,29 +91,6 @@ def WaitFor(condition, timeout):
     time.sleep(poll_interval)
 
 
-def FindElementAndPerformAction(tab, text, callback_code):
-  """JavaScript snippet for finding an element with a given text on a page."""
-  code = """
-      (function() {
-        var callback_function = """ + callback_code + """;
-        function _findElement(element, text) {
-          if (element.innerHTML == text) {
-            callback_function
-            return element;
-          }
-          for (var i in element.childNodes) {
-            var found = _findElement(element.childNodes[i], text);
-            if (found)
-              return found;
-          }
-          return null;
-        }
-        var _element = _findElement(document, \"""" + text + """\");
-        return callback_function(_element);
-      })();"""
-  return tab.EvaluateJavaScript(code)
-
-
 def GetUnreservedAvailableLocalPort():
   """Returns an available port on the system.
 

@@ -23,9 +23,7 @@ from telemetry.page.actions.repaint_continuously import (
 from telemetry.page.actions.scroll import ScrollAction
 from telemetry.page.actions.scroll_bounce import ScrollBounceAction
 from telemetry.page.actions.seek import SeekAction
-from telemetry.page.actions.tap import TapAction
 from telemetry.page.actions.swipe import SwipeAction
-from telemetry.page.actions.wait import WaitAction
 
 
 _page_action_classes = discover.DiscoverClasses(

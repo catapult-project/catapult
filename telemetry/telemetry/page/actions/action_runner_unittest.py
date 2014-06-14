@@ -3,14 +3,13 @@
 # found in the LICENSE file.
 
 from telemetry import test
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.timeline import model
 from telemetry.page.actions import action_runner as action_runner_module
-from telemetry.page.actions import page_action
 # pylint: disable=W0401,W0614
 from telemetry.page.actions.all_page_actions import *
-from telemetry.unittest import tab_test_case
 from telemetry.unittest import tab_test_case
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
@@ -137,21 +136,6 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.WaitForElement(text='oo', timeout=1)
     self.assertRaises(util.TimeoutException, WaitForElement)
 
-  def testWaitForElementWithConflictingParams(self):
-    action_runner = action_runner_module.ActionRunner(self._tab)
-    def WaitForElement1():
-      action_runner.WaitForElement(selector='div', text='foo', timeout=1)
-    self.assertRaises(page_action.PageActionFailed, WaitForElement1)
-
-    def WaitForElement2():
-      action_runner.WaitForElement(selector='div', element_function='foo',
-                                   timeout=1)
-    self.assertRaises(page_action.PageActionFailed, WaitForElement2)
-
-    def WaitForElement3():
-      action_runner.WaitForElement(text='foo', element_function='', timeout=1)
-    self.assertRaises(page_action.PageActionFailed, WaitForElement3)
-
   def testClickElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab)
@@ -166,8 +150,12 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 3;')
     action_runner.ClickElement(
-        element_function='document.body.firstElementChild')
+        element_function='document.body.firstElementChild;')
     self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
+
+    def WillFail():
+      action_runner.ClickElement('#notfound')
+    self.assertRaises(exceptions.EvaluateException, WillFail)
 
   @test.Disabled('debug')
   def testTapElement(self):
@@ -187,7 +175,6 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         element_function='document.body.firstElementChild')
     self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
 
-    action_runner.ExecuteJavaScript('valueSettableByTest = 4;')
-    action_runner.TapElement(element_function='''
-        function(callback) { callback(document.body.firstElementChild); }''')
-    self.assertEquals(4, action_runner.EvaluateJavaScript('valueToTest'))
+    def WillFail():
+      action_runner.TapElement('#notfound')
+    self.assertRaises(exceptions.EvaluateException, WillFail)

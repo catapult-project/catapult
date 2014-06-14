@@ -2,10 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
 import time
 
-from telemetry.core import util
 from telemetry.page.actions import page_action
 
 class WaitAction(page_action.PageAction):
@@ -25,29 +23,22 @@ class WaitAction(page_action.PageAction):
     if hasattr(self, 'seconds'):
       time.sleep(self.seconds)
     elif getattr(self, 'condition', None) == 'element':
+      text = None
+      selector = None
+      element_function = None
       if hasattr(self, 'text'):
-        callback_code = 'function(element) { return element != null; }'
-        util.WaitFor(
-            lambda: util.FindElementAndPerformAction(
-                tab, self.text, callback_code), self.timeout)
+        text = self.text
       elif hasattr(self, 'selector'):
-        tab.WaitForJavaScriptExpression(
-             'document.querySelector("%s") != null' % re.escape(self.selector),
-             self.timeout)
-      elif hasattr(self, 'xpath'):
-        code = ('document.evaluate("%s",'
-                                   'document,'
-                                   'null,'
-                                   'XPathResult.FIRST_ORDERED_NODE_TYPE,'
-                                   'null)'
-                  '.singleNodeValue' % re.escape(self.xpath))
-        tab.WaitForJavaScriptExpression('%s != null' % code, self.timeout)
+        selector = self.selector
       elif hasattr(self, 'element_function'):
-        tab.WaitForJavaScriptExpression(
-            '%s != null' % self.element_function, self.timeout)
-      else:
-        raise page_action.PageActionFailed(
-            'No element condition given to wait')
+        element_function = self.element_function
+
+      code = 'function(element) { return element != null; }'
+      page_action.EvaluateCallbackWithElement(
+          tab, code, selector=selector, text=text,
+          element_function=element_function,
+          wait=True, timeout=self.timeout)
+
     elif hasattr(self, 'javascript'):
       tab.WaitForJavaScriptExpression(self.javascript, self.timeout)
     else:

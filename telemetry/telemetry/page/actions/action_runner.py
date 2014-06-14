@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.page.actions import page_action
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.tap import TapAction
@@ -150,12 +149,16 @@ class ActionRunner(object):
       text: The element must contains this exact text.
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
-          'function() { return foo.element; }'.
+          '(function() { return foo.element; })()'.
       timeout: The timeout in seconds (default to 60).
     """
     attr = {'condition': 'element', 'timeout': timeout}
-    _FillElementSelector(
-        attr, selector, text, element_function)
+    if selector is not None:
+      attr['selector'] = selector
+    if text is not None:
+      attr['text'] = text
+    if element_function is not None:
+      attr['element_function'] = element_function
     self.RunAction(WaitAction(attr))
 
   def TapElement(self, selector=None, text=None, element_function=None):
@@ -169,11 +172,10 @@ class ActionRunner(object):
       text: The element must contains this exact text.
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
-          'function() { return foo.element; }'.
+          '(function() { return foo.element; })()'.
     """
-    attr = {'automatically_record_interaction': False}
-    _FillElementSelector(attr, selector, text, element_function)
-    self.RunAction(TapAction(attr))
+    self.RunAction(TapAction(
+        selector=selector, text=text, element_function=element_function))
 
   def ClickElement(self, selector=None, text=None, element_function=None):
     """Click an element.
@@ -186,29 +188,10 @@ class ActionRunner(object):
       text: The element must contains this exact text.
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
-          'function() { return foo.element; }'.
+          '(function() { return foo.element; })()'.
     """
-    attr = {'automatically_record_interaction': False}
-    _FillElementSelector(attr, selector, text, element_function)
-    self.RunAction(ClickElementAction(attr))
-
-
-def _FillElementSelector(attr, selector=None, text=None, element_function=None):
-  count = 0
-  if selector is not None:
-    count = count + 1
-    attr['selector'] = selector
-  if text is not None:
-    count = count + 1
-    attr['text'] = text
-  if element_function is not None:
-    count = count + 1
-    attr['element_function'] = element_function
-
-  if count != 1:
-    raise page_action.PageActionFailed(
-        'Must specify 1 way to retrieve function, but %s was specified: %s' %
-        (len(attr), attr.keys()))
+    self.RunAction(ClickElementAction(
+        selector=selector, text=text, element_function=element_function))
 
 
 class Interaction(object):

@@ -2,58 +2,24 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
-
-from telemetry.core import util
-from telemetry.core import exceptions
 from telemetry.page.actions import page_action
 
-def _EscapeSelector(selector):
-  return selector.replace('\'', '\\\'')
-
 class ClickElementAction(page_action.PageAction):
-  def __init__(self, attributes=None):
-    super(ClickElementAction, self).__init__(attributes)
+  def __init__(self, selector=None, text=None, element_function=None):
+    super(ClickElementAction, self).__init__()
+    self.automatically_record_interaction = False
+    self.selector = selector
+    self.text = text
+    self.element_function = element_function
 
   def RunAction(self, tab):
-    def DoClick():
-      if hasattr(self, 'element_function'):
-        code = '(%s).click();' % self.element_function
-        try:
-          tab.ExecuteJavaScript(code)
-        except exceptions.EvaluateException:
-          raise page_action.PageActionFailed(
-              'Cannot find element with element_function ' +
-              self.element_function)
-      elif hasattr(self, 'selector'):
-        code = ('document.querySelector(\'' + _EscapeSelector(self.selector) +
-            '\').click();')
-        try:
-          tab.ExecuteJavaScript(code)
-        except exceptions.EvaluateException:
-          raise page_action.PageActionFailed(
-              'Cannot find element with selector ' + self.selector)
-      elif hasattr(self, 'text'):
-        callback_code = 'function(element) { element.click(); }'
-        try:
-          util.FindElementAndPerformAction(tab, self.text, callback_code)
-        except exceptions.EvaluateException:
-          raise page_action.PageActionFailed(
-              'Cannot find element with text ' + self.text)
-      elif hasattr(self, 'xpath'):
-        code = ('document.evaluate("%s",'
-                                   'document,'
-                                   'null,'
-                                   'XPathResult.FIRST_ORDERED_NODE_TYPE,'
-                                   'null)'
-                  '.singleNodeValue.click()' % re.escape(self.xpath))
-        try:
-          tab.ExecuteJavaScript(code)
-        except exceptions.EvaluateException:
-          raise page_action.PageActionFailed(
-              'Cannot find element with xpath ' + self.xpath)
-      else:
-        raise page_action.PageActionFailed(
-            'No condition given to javascript_click')
-
-    DoClick()
+    code = '''
+        function(element, errorMsg) {
+          if (!element) {
+            throw Error('Cannot find element: ' + errorMsg);
+          }
+          element.click();
+        }'''
+    page_action.EvaluateCallbackWithElement(
+        tab, code, selector=self.selector, text=self.text,
+        element_function=self.element_function)
