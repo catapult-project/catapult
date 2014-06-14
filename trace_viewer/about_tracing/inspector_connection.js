@@ -1,0 +1,113 @@
+// Copyright (c) 2014 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+'use strict';
+
+
+/**
+ * Contains connection code that inspector's embedding framework calls on
+ * tracing, and that tracing can use to talk to inspector.
+ */
+tvcm.exportTo('about_tracing', function() {
+  // Shim needed to keep the bootup code of chrome://inspect happy.
+  window.WebInspector = {
+  };
+
+  window.WebInspector.addExtensions = function() {
+  };
+
+
+  // Interface used by inspector when it hands data to us from the backend.
+  window.InspectorFrontendAPI = {
+    setToolbarColors: function() {
+    },
+
+    dispatchMessage: function(payload) {
+      throw new Error('Should have been patched by InspectorConnection');
+    }
+  };
+
+
+  /**
+   * @constructor
+   */
+  function InspectorConnection() {
+    if (InspectorConnection.instance)
+      throw new Error('Singleton');
+
+    this.nextRequestId_ = 1;
+    this.pendingRequestResolversId_ = {};
+
+    this.notificationListenersByMethodName_ = {};
+    InspectorFrontendAPI.dispatchMessage = this.dispatchMessage_.bind(this);
+  }
+
+  InspectorConnection.prototype = {
+    req: function(method, params) {
+      var id = this.nextRequestId_++;
+      var msg = JSON.stringify({
+        id: id,
+        method: method,
+        params: params
+      });
+      InspectorFrontendHost.sendMessageToBackend(msg);
+
+      return new Promise(function(resolver) {
+        this.pendingRequestResolversId_[id] = resolver;
+      }.bind(this));
+    },
+
+    setNotificationListener: function(method, listener) {
+      this.notificationListenersByMethodName_[method] = listener;
+    },
+
+    dispatchMessage_: function(payload) {
+      // Special handling for Tracing.dataCollected because it is high
+      // bandwidth.
+      if (payload.indexOf('"method": "Tracing.dataCollected"') !== -1) {
+        var listener = this.notificationListenersByMethodName_[
+            'Tracing.dataCollected'];
+        if (listener) {
+          listener(payload);
+          return;
+        }
+      }
+
+      var message = JSON.parse(payload);
+      if (message.id) {
+        var resolver = this.pendingRequestResolversId_[message.id];
+        if (resolver === undefined) {
+          console.log('Unrecognized ack', message);
+          return;
+        }
+        if (message.error) {
+          resolver.reject(message.error);
+          return;
+        }
+        resolver.resolve(message.params);
+        return;
+      }
+
+      if (message['method']) {
+        var listener = this.notificationListenersByMethodName_[message.method];
+        if (listener === undefined) {
+          console.log('Unhandled ', message.method);
+          return;
+        }
+        listener(message.params);
+        return;
+      }
+      console.log('Unknown dispatchMessage: ', payload);
+    }
+  };
+
+  if (window.InspectorFrontendHost)
+    InspectorConnection.instance = new InspectorConnection();
+  else
+    InspectorConnection.instance = undefined;
+
+  return {
+    InspectorConnection: InspectorConnection
+  };
+});

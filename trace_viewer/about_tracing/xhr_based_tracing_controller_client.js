@@ -53,7 +53,10 @@ tvcm.exportTo('about_tracing', function() {
     },
 
     getMonitoringStatus: function() {
-      return beginXhr('GET', '/json/get_monitoring_status');
+      return beginXhr('GET', '/json/get_monitoring_status').then(
+          function(monitoringOptionsB64) {
+            return JSON.parse(atob(monitoringOptionsB64));
+          });
     },
 
     getCategories: function() {

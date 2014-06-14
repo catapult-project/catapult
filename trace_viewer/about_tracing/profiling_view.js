@@ -77,7 +77,7 @@ tvcm.exportTo('about_tracing', function() {
         this.tracingControllerClient_ = tracingControllerClient;
       } else if (window.InspectorFrontendHost !== undefined) {
         this.tracingControllerClient_ =
-            new about_tracng.InspectorTracingControllerClient();
+            new about_tracing.InspectorTracingControllerClient();
       } else {
         this.tracingControllerClient_ =
             new about_tracing.XhrBasedTracingControllerClient();
@@ -92,6 +92,7 @@ tvcm.exportTo('about_tracing', function() {
       }.bind(this);
 
       this.getMonitoringStatus();
+      this.updateTracingControllerSpecificState_();
     },
 
     // Detach all document event listeners. Without this the tests can get
@@ -110,6 +111,24 @@ tvcm.exportTo('about_tracing', function() {
 
     set tracingControllerClient(tracingControllerClient) {
       this.tracingControllerClient_ = tracingControllerClient;
+      this.updateTracingControllerSpecificState_();
+    },
+
+    updateTracingControllerSpecificState_: function() {
+      var isInspector = this.tracingControllerClient_ instanceof
+          about_tracing.InspectorTracingControllerClient;
+
+      if (isInspector) {
+        this.infoBarGroup_.addMessage(
+            'This about:tracing is connected to a remote device...',
+            [{buttonText: 'Wow!', onClick: function() {}}]);
+      }
+
+      var monitoringElementsEl = this.querySelector('#monitoring-elements');
+      if (isInspector)
+        monitoringElementsEl.style.display = 'none';
+      else
+        monitoringElementsEl.style.display = '';
     },
 
     beginRecording: function() {
@@ -250,6 +269,7 @@ tvcm.exportTo('about_tracing', function() {
       };
 
       this.infoBarGroup_.clearMessages();
+      this.updateTracingControllerSpecificState_();
       this.saveButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
@@ -268,12 +288,14 @@ tvcm.exportTo('about_tracing', function() {
 
     initButtons_: function(buttons) {
       buttons.querySelector('#record-button').addEventListener(
-          'click', function() {
+          'click', function(event) {
+            event.stopPropagation();
             this.beginRecording();
           }.bind(this));
 
       buttons.querySelector('#monitor-checkbox').addEventListener(
-          'click', function() {
+          'click', function(event) {
+            event.stopPropagation();
             if (this.isMonitoring_)
               this.endMonitoring();
             else
@@ -281,13 +303,17 @@ tvcm.exportTo('about_tracing', function() {
           }.bind(this));
 
       buttons.querySelector('#capture-button').addEventListener(
-          'click', function() {
+          'click', function(event) {
+            event.stopPropagation();
             this.captureMonitoring();
           }.bind(this));
       buttons.querySelector('#capture-button').disabled = true;
 
       buttons.querySelector('#load-button').addEventListener(
-          'click', this.onLoadClicked_.bind(this));
+          'click', function(event) {
+            event.stopPropagation();
+            this.onLoadClicked_();
+          }.bind(this));
 
       this.saveButton_ = buttons.querySelector('#save-button');
       this.saveButton_.addEventListener('click',

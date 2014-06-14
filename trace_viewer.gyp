@@ -80,6 +80,7 @@
     'tracing_js_files': [
       'trace_viewer/about_tracing/__init__.js',
       'trace_viewer/about_tracing/features.js',
+      'trace_viewer/about_tracing/inspector_connection.js',
       'trace_viewer/about_tracing/inspector_tracing_controller_client.js',
       'trace_viewer/about_tracing/mock_tracing_controller_client.js',
       'trace_viewer/about_tracing/profiling_view.js',

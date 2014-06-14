@@ -86,8 +86,7 @@ tvcm.exportTo('about_tracing', function() {
     var getMonitoringStatusPromise =
         tracingControllerClient.getMonitoringStatus();
     getMonitoringStatusPromise.then(
-        function(monitoringOptionsBase64) {
-          var monitoringOptions = JSON.parse(atob(monitoringOptionsBase64));
+        function(monitoringOptions) {
           finalPromiseResolver.resolve(monitoringOptions.isMonitoring,
                                        monitoringOptions.categoryFilter,
                                        monitoringOptions.useSystemTracing,
