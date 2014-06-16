@@ -38,8 +38,7 @@ class NetLogProfiler(profiler.Profiler):
       self._browser_backend.adb.device().old_interface.Adb().Pull(
           output_file, host_output_file)
       # Clean the device
-      self._browser_backend.adb.device().old_interface.RunShellCommand(
-          'rm %s' % output_file)
+      self._browser_backend.adb.device().RunShellCommand('rm %s' % output_file)
       output_file = host_output_file
     print 'Net-internals log saved as %s' % output_file
     print 'To view, open in chrome://net-internals'

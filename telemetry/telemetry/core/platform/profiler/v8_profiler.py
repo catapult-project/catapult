@@ -40,8 +40,7 @@ class V8Profiler(profiler.Profiler):
       self._browser_backend.adb.device().old_interface.Adb().Pull(
           output_file, host_output_file)
       # Clean the device
-      self._browser_backend.adb.device().old_interface.RunShellCommand(
-          'rm %s' % output_file)
+      self._browser_backend.adb.device().RunShellCommand('rm %s' % output_file)
       output_file = host_output_file
     print 'V8 profile saved as %s' % output_file
     print 'To view, open in ' \

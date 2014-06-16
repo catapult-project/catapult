@@ -184,8 +184,7 @@ class AndroidPlatformBackend(
     raise NotImplementedError()
 
   def FlushDnsCache(self):
-    self._device.old_interface.RunShellCommandWithSU(
-        'ndc resolver flushdefaultif')
+    self._device.RunShellCommand('ndc resolver flushdefaultif', root=True)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
@@ -197,8 +196,7 @@ class AndroidPlatformBackend(
       raise NotImplementedError("elevate_privilege isn't supported on android.")
     if not parameters:
       parameters = ''
-    self._device.old_interface.RunShellCommand(
-        'am start ' + parameters + ' ' + application)
+    self._device.RunShellCommand('am start ' + parameters + ' ' + application)
 
   def IsApplicationRunning(self, application):
     if application in _HOST_APPLICATIONS:
@@ -269,8 +267,7 @@ class AndroidPlatformBackend(
     command = 'ps'
     if pid:
       command += ' -p %d' % pid
-    ps = self._device.old_interface.RunShellCommand(
-        command, log_result=False)[1:]
+    ps = self._device.RunShellCommand(command)[1:]
     output = []
     for line in ps:
       data = line.split()

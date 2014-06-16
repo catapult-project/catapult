@@ -101,8 +101,7 @@ class _SingleProcessPerfProfiler(object):
     if self._is_android:
       device = self._browser_backend.adb.device()
       perf_pids = device.old_interface.ExtractPid('perf')
-      device.old_interface.RunShellCommand(
-          'kill -SIGINT ' + ' '.join(perf_pids))
+      device.RunShellCommand('kill -SIGINT ' + ' '.join(perf_pids))
       util.WaitFor(lambda: not device.old_interface.ExtractPid('perf'),
                    timeout=2)
     self._proc.send_signal(signal.SIGINT)

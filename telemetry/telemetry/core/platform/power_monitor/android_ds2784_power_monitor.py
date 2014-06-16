@@ -45,7 +45,7 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
     android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'file_poller')
     self._powermonitor_process_port = int(
-        self._device.old_interface.RunShellCommand(
+        self._device.RunShellCommand(
             '%s %d %s %s %s' % (self._file_poller_binary, SAMPLE_RATE_HZ,
                                 CHARGE_COUNTER, CURRENT, VOLTAGE))[0])
 
@@ -53,7 +53,7 @@ class DS2784PowerMonitor(power_monitor.PowerMonitor):
     assert self._powermonitor_process_port, (
         'StartMonitoringPower() not called.')
     try:
-      result = '\n'.join(self._device.old_interface.RunShellCommand(
+      result = '\n'.join(self._device.RunShellCommand(
           '%s %d' % (self._file_poller_binary,
                      self._powermonitor_process_port)))
       assert result, 'PowerMonitor produced no output'

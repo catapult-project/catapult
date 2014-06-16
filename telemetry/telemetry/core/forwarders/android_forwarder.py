@@ -184,7 +184,7 @@ class AndroidRndisConfigurator(object):
 
   def _FindDeviceRndisInterface(self):
     """Returns the name of the RNDIS network interface if present."""
-    config = self._device.old_interface.RunShellCommand('netcfg')
+    config = self._device.RunShellCommand('netcfg')
     interfaces = [line.split()[0] for line in config]
     candidates = [iface for iface in interfaces if re.match('rndis|usb', iface)]
     if candidates:
@@ -257,8 +257,8 @@ doit &
            'prefix': script_prefix }
     self._device.old_interface.SetFileContents('%s.sh' % script_prefix, script)
     # TODO(szym): run via su -c if necessary.
-    self._device.old_interface.RunShellCommand('rm %s.log' % script_prefix)
-    self._device.old_interface.RunShellCommand('. %s.sh' % script_prefix)
+    self._device.RunShellCommand('rm %s.log' % script_prefix)
+    self._device.RunShellCommand('. %s.sh' % script_prefix)
     self._WaitForDevice()
     result = self._device.old_interface.GetFileContents(
         '%s.log' % script_prefix)
@@ -332,7 +332,7 @@ doit &
       else:
         excluded = 'no interfaces excluded on other devices'
       addresses += [line.split()[2]
-                    for line in device.old_interface.RunShellCommand('netcfg')
+                    for line in device.RunShellCommand('netcfg')
                     if excluded not in line]
     return addresses
 
@@ -421,7 +421,7 @@ doit &
     netmask = _Long2Ip(netmask)
 
     # TODO(szym) run via su -c if necessary.
-    self._device.old_interface.RunShellCommand(
+    self._device.RunShellCommand(
         'ifconfig %s %s netmask %s up' % (device_iface, device_ip, netmask))
     # Enabling the interface sometimes breaks adb.
     self._WaitForDevice()

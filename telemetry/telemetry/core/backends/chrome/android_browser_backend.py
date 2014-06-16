@@ -33,10 +33,11 @@ class AndroidBrowserBackendSettings(object):
     raise NotImplementedError()
 
   def RemoveProfile(self):
-    files = self.adb.RunShellCommandWithSU('ls "%s"' % self.profile_dir)
+    files = self.adb.device().RunShellCommand(
+        'ls "%s"' % self.profile_dir, root=True)
     # Don't delete lib, since it is created by the installer.
     paths = ['"%s/%s"' % (self.profile_dir, f) for f in files if f != 'lib']
-    self.adb.RunShellCommandWithSU('rm -r %s' % ' '.join(paths))
+    self.adb.device().RunShellCommand('rm -r %s' % ' '.join(paths), root=True)
 
   def PushProfile(self, _):
     logging.critical('Profiles cannot be overriden with current configuration')
@@ -91,16 +92,18 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
 
     self.adb.device().old_interface.EfficientDeviceDirectoryCopy(
         saved_profile_location, self.profile_dir)
-    dumpsys = self.adb.RunShellCommand('dumpsys package %s' % self.package)
+    dumpsys = self.adb.device().RunShellCommand(
+        'dumpsys package %s' % self.package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search('\d+', id_line).group()
-    files = self.adb.RunShellCommandWithSU('ls "%s"' % self.profile_dir)
+    files = self.adb.device().RunShellCommand(
+        'ls "%s"' % self.profile_dir, root=True)
     files.remove('lib')
     paths = ['%s/%s' % (self.profile_dir, f) for f in files]
     for path in paths:
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
-      self.adb.RunShellCommand('chown %s.%s %s' %
-                             (uid, uid, extended_path))
+      self.adb.device().RunShellCommand(
+          'chown %s.%s %s' % (uid, uid, extended_path))
 
 class ContentShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, adb, package):
@@ -215,8 +218,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Set the debug app if needed.
     if self._adb.IsUserBuild():
       logging.debug('User build device, setting debug app')
-      self._adb.RunShellCommand('am set-debug-app --persistent %s' %
-                                self._backend_settings.package)
+      self._adb.device().RunShellCommand(
+          'am set-debug-app --persistent %s' % self._backend_settings.package)
 
   def _SetUpCommandLine(self):
     def QuoteIfNeeded(arg):
@@ -272,7 +275,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self):
     self._SetUpCommandLine()
-    self._adb.RunShellCommand('logcat -c')
+    self._adb.device().RunShellCommand('logcat -c')
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
     elif self.browser_options.profile_dir:
@@ -378,7 +381,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # pulled down is really needed e.g. .pak files.
       if not os.path.exists(self._output_profile_path):
         os.makedirs(self._output_profile_pathame)
-      files = self.adb.RunShellCommandWithSU(
+      files = self.adb.device().RunShellCommand(
           'ls "%s"' % self._backend_settings.profile_dir)
       for f in files:
         # Don't pull lib, since it is created by the installer.
@@ -400,7 +403,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return local_port
 
   def GetStandardOutput(self):
-    return '\n'.join(self._adb.RunShellCommand('logcat -d -t 500'))
+    return '\n'.join(self._adb.device().RunShellCommand('logcat -d -t 500'))
 
   def GetStackTrace(self):
     def Decorate(title, content):

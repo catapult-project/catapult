@@ -28,6 +28,6 @@ def InstallOnDevice(device, profiler_binary):
 
   device_binary_path = GetDevicePath(profiler_binary)
   device.old_interface.PushIfNeeded(host_path, device_binary_path)
-  device.old_interface.RunShellCommand('chmod 777 ' + device_binary_path)
+  device.RunShellCommand('chmod 777 ' + device_binary_path)
   return True
 

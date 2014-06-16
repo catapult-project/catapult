@@ -46,7 +46,7 @@ class DumpsysPowerMonitor(power_monitor.PowerMonitor):
       package = self._browser._browser_backend.package
       # By default, 'dumpsys batterystats' measures power consumption during the
       # last unplugged period.
-      result = self._device.old_interface.RunShellCommand(
+      result = self._device.RunShellCommand(
           'dumpsys batterystats -c %s' % package)
       assert result, 'Dumpsys produced no output'
       return DumpsysPowerMonitor.ParseSamplingOutput(package, result)
