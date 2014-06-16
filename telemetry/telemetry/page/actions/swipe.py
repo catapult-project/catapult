@@ -1,14 +1,29 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import os
 
 from telemetry.page.actions.gesture_action import GestureAction
 from telemetry.page.actions import page_action
 
 class SwipeAction(GestureAction):
-  def __init__(self, attributes=None):
-    super(SwipeAction, self).__init__(attributes)
+  def __init__(self, selector=None, text=None, element_function=None,
+               left_start_ratio=0.5, top_start_ratio=0.5,
+               direction='left', distance=100, speed=800):
+    super(SwipeAction, self).__init__(None)
+    if direction not in ['down', 'up', 'left', 'right']:
+      raise page_action.PageActionNotSupported(
+          'Invalid swipe direction: %s' % self.direction)
+    self.automatically_record_interaction = False
+    self._selector = selector
+    self._text = text
+    self._element_function = element_function
+    self._left_start_ratio = left_start_ratio
+    self._top_start_ratio = top_start_ratio
+    self._direction = direction
+    self._distance = distance
+    self._speed = speed
 
   def WillRunAction(self, tab):
     for js_file in ['gesture_common.js', 'swipe.js']:
@@ -37,52 +52,28 @@ class SwipeAction(GestureAction):
         % (done_callback))
 
   def RunGesture(self, tab):
-    left_start_percentage = 0.5
-    top_start_percentage = 0.5
-    direction = 'left'
-    distance = 100
-    speed = 800
-    if hasattr(self, 'left_start_percentage'):
-      left_start_percentage = self.left_start_percentage
-    if hasattr(self, 'top_start_percentage'):
-      top_start_percentage = self.top_start_percentage
-    if hasattr(self, 'direction'):
-      direction = self.direction
-      if direction not in ['down', 'up', 'left', 'right']:
-        raise page_action.PageActionNotSupported(
-            'Invalid swipe direction: %s' % direction)
-    if hasattr(self, 'distance'):
-      distance = self.distance
-    if hasattr(self, 'speed'):
-      speed = self.speed
-    if hasattr(self, 'element_function'):
-      tab.ExecuteJavaScript("""
-          (%s)(function(element) { window.__swipeAction.start(
-             { element: element,
-               left_start_percentage: %s,
-               top_start_percentage: %s,
-               direction: '%s',
-               distance: %s,
-               speed: %s })
-             });""" % (self.element_function,
-                       left_start_percentage,
-                       top_start_percentage,
-                       direction,
-                       distance,
-                       speed))
-    else:
-      tab.ExecuteJavaScript("""
-          window.__swipeAction.start(
-          { element: document.body,
-            left_start_percentage: %s,
-            top_start_percentage: %s,
+    if (self._selector is None and self._text is None and
+        self._element_function is None):
+      self._element_function = 'document.body'
+    code = '''
+        function(element, info) {
+          if (!element) {
+            throw Error('Cannot find element: ' + info);
+          }
+          window.__swipeAction.start({
+            element: element,
+            left_start_ratio: %s,
+            top_start_ratio: %s,
             direction: '%s',
             distance: %s,
-            speed: %s });"""
-        % (left_start_percentage,
-           top_start_percentage,
-           direction,
-           distance,
-           speed))
-
+            speed: %s
+          });
+        }''' % (self._left_start_ratio,
+                self._top_start_ratio,
+                self._direction,
+                self._distance,
+                self._speed)
+    page_action.EvaluateCallbackWithElement(
+        tab, code, selector=self._selector, text=self._text,
+        element_function=self._element_function)
     tab.WaitForJavaScriptExpression('window.__swipeActionDone', 60)

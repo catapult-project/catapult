@@ -7,6 +7,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core.backends.chrome import tracing_backend
 from telemetry.core.timeline import model
+from telemetry.page.actions import gesture_action
 from telemetry.page.actions import action_runner as action_runner_module
 # pylint: disable=W0401,W0614
 from telemetry.page.actions.all_page_actions import *
@@ -142,16 +143,16 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
     action_runner.ClickElement('#test')
-    self.assertEquals(1, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(1, action_runner.EvaluateJavaScript('valueToTest'))
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 2;')
     action_runner.ClickElement(text='Click/tap me')
-    self.assertEquals(2, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(2, action_runner.EvaluateJavaScript('valueToTest'))
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 3;')
     action_runner.ClickElement(
         element_function='document.body.firstElementChild;')
-    self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(3, action_runner.EvaluateJavaScript('valueToTest'))
 
     def WillFail():
       action_runner.ClickElement('#notfound')
@@ -164,17 +165,38 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 1;')
     action_runner.TapElement('#test')
-    self.assertEquals(1, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(1, action_runner.EvaluateJavaScript('valueToTest'))
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 2;')
     action_runner.TapElement(text='Click/tap me')
-    self.assertEquals(2, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(2, action_runner.EvaluateJavaScript('valueToTest'))
 
     action_runner.ExecuteJavaScript('valueSettableByTest = 3;')
     action_runner.TapElement(
         element_function='document.body.firstElementChild')
-    self.assertEquals(3, action_runner.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(3, action_runner.EvaluateJavaScript('valueToTest'))
 
     def WillFail():
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
+
+  def testSwipe(self):
+    if not gesture_action.GestureAction.IsGestureSourceTypeSupported(
+        self._tab, 'touch'):
+      return
+
+    self.Navigate('page_with_swipeables.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+
+    action_runner.SwipeElement(
+        selector='#left-right', direction='left', left_start_ratio=0.9)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.querySelector("#left-right").scrollLeft') > 75)
+    action_runner.SwipeElement(
+        selector='#top-bottom', direction='up', top_start_ratio=0.9)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.querySelector("#top-bottom").scrollTop') > 75)
+
+    action_runner.SwipePage(direction='left', left_start_ratio=0.9)
+    self.assertTrue(action_runner.EvaluateJavaScript(
+        'document.body.scrollLeft') > 75)

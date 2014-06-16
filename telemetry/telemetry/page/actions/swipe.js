@@ -8,15 +8,15 @@
   function SwipeGestureOptions(opt_options) {
     if (opt_options) {
       this.element_ = opt_options.element;
-      this.left_start_percentage_ = opt_options.left_start_percentage;
-      this.top_start_percentage_ = opt_options.top_start_percentage;
+      this.left_start_ratio_ = opt_options.left_start_ratio;
+      this.top_start_ratio_ = opt_options.top_start_ratio;
       this.direction_ = opt_options.direction;
       this.distance_ = opt_options.distance;
       this.speed_ = opt_options.speed;
     } else {
       this.element_ = document.body;
-      this.left_start_percentage_ = 0.5;
-      this.top_start_percentage_ = 0.5;
+      this.left_start_ratio_ = 0.5;
+      this.top_start_ratio_ = 0.5;
       this.direction_ = 'left';
       this.distance_ = 0;
       this.speed_ = 800;
@@ -52,9 +52,9 @@
 
     var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
     var start_left =
-        rect.left + rect.width * this.options_.left_start_percentage_;
+        rect.left + rect.width * this.options_.left_start_ratio_;
     var start_top =
-        rect.top + rect.height * this.options_.top_start_percentage_;
+        rect.top + rect.height * this.options_.top_start_ratio_;
     chrome.gpuBenchmarking.swipe(this.options_.direction_,
                                  this.options_.distance_,
                                  this.onGestureComplete_.bind(this),

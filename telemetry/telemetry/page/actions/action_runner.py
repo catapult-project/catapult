@@ -4,6 +4,7 @@
 
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.navigate import NavigateAction
+from telemetry.page.actions.swipe import SwipeAction
 from telemetry.page.actions.tap import TapAction
 from telemetry.page.actions.wait import WaitAction
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -192,6 +193,53 @@ class ActionRunner(object):
     """
     self.RunAction(ClickElementAction(
         selector=selector, text=text, element_function=element_function))
+
+  def SwipePage(self, left_start_ratio=0.5, top_start_ratio=0.5,
+                direction='left', distance=100, speed=800):
+    """Perform swipe gesture on the page.
+
+    Args:
+      left_start_ratio: The horizontal starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      top_start_ratio: The vertical starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          document.body.
+      direction: The direction of swipe, either 'left', 'right',
+          'up', or 'down'
+      distance: The distance to swipe (in pixel).
+      speed: The speed of the gesture.
+    """
+    self.RunAction(SwipeAction(
+        left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
+        direction=direction, distance=distance, speed=speed))
+
+  def SwipeElement(self, selector=None, text=None, element_function=None,
+                   left_start_ratio=0.5, top_start_ratio=0.5,
+                   direction='left', distance=100, speed=800):
+    """Perform swipe gesture on the element.
+
+    Args:
+      selector: A CSS selector describing the element.
+      text: The element must contains this exact text.
+      element_function: A JavaScript function (as string) that is used
+          to retrieve the element. For example:
+          'function() { return foo.element; }'.
+      left_start_ratio: The horizontal starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          the element.
+      top_start_ratio: The vertical starting coordinate of the
+          gesture, as a ratio of the visible bounding rectangle for
+          the element.
+      direction: The direction of swipe, either 'left', 'right',
+          'up', or 'down'
+      distance: The distance to swipe (in pixel).
+      speed: The speed of the gesture.
+    """
+    self.RunAction(SwipeAction(
+        selector=selector, text=text, element_function=element_function,
+        left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
+        direction=direction, distance=distance, speed=speed))
 
 
 class Interaction(object):
