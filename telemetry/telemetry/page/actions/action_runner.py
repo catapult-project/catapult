@@ -2,11 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import time
+
 from telemetry.page.actions.javascript_click import ClickElementAction
 from telemetry.page.actions.navigate import NavigateAction
 from telemetry.page.actions.swipe import SwipeAction
 from telemetry.page.actions.tap import TapAction
-from telemetry.page.actions.wait import WaitAction
+from telemetry.page.actions.wait import WaitForElementAction
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
 
@@ -125,7 +127,7 @@ class ActionRunner(object):
     Args:
       seconds: The number of seconds to wait.
     """
-    self.RunAction(WaitAction({'seconds': seconds}))
+    time.sleep(seconds)
 
   def WaitForJavaScriptCondition(self, condition, timeout=60):
     """Wait for a JavaScript condition to become true.
@@ -136,7 +138,7 @@ class ActionRunner(object):
       condition: The JavaScript condition (as string).
       timeout: The timeout in seconds (default to 60).
     """
-    self.RunAction(WaitAction({'javascript': condition, 'timeout': timeout}))
+    self._tab.WaitForJavaScriptExpression(condition, timeout)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
                      timeout=60):
@@ -153,14 +155,9 @@ class ActionRunner(object):
           '(function() { return foo.element; })()'.
       timeout: The timeout in seconds (default to 60).
     """
-    attr = {'condition': 'element', 'timeout': timeout}
-    if selector is not None:
-      attr['selector'] = selector
-    if text is not None:
-      attr['text'] = text
-    if element_function is not None:
-      attr['element_function'] = element_function
-    self.RunAction(WaitAction(attr))
+    self.RunAction(WaitForElementAction(
+        selector=selector, text=text, element_function=element_function,
+        timeout=timeout))
 
   def TapElement(self, selector=None, text=None, element_function=None):
     """Tap an element.

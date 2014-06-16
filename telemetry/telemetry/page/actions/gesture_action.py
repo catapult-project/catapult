@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.page.actions import page_action
-from telemetry.page.actions import wait
 from telemetry import decorators
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
@@ -13,26 +12,13 @@ class GestureAction(page_action.PageAction):
     if not hasattr(self, 'automatically_record_interaction'):
       self.automatically_record_interaction = True
 
-    if hasattr(self, 'wait_after'):
-      self.wait_action = wait.WaitAction(self.wait_after)
-    else:
-      self.wait_action = None
-
   def RunAction(self, tab):
-    if self.wait_action:
-      interaction_name = 'Action_%s' % self.__class__.__name__
-    else:
-      interaction_name = 'Gesture_%s' % self.__class__.__name__
-
+    interaction_name = 'Gesture_%s' % self.__class__.__name__
     if self.automatically_record_interaction:
       tab.ExecuteJavaScript('console.time("%s");' %
           tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
               interaction_name, [tir_module.IS_SMOOTH]))
-
     self.RunGesture(tab)
-    if self.wait_action:
-      self.wait_action.RunAction(tab)
-
     if self.automatically_record_interaction:
       tab.ExecuteJavaScript('console.timeEnd("%s");' %
           tir_module.TimelineInteractionRecord.GetJavaScriptMarker(
