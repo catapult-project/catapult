@@ -8,29 +8,23 @@ import subprocess
 import sys
 import tempfile
 
-from telemetry.core import util
 from telemetry.core.platform import profiler
+from telemetry.core.platform.profiler import android_profiling_helper
 
 
 class _SingleProcessVTuneProfiler(object):
   """An internal class for using vtune for a given process."""
-  def __init__(self, pid, output_file, platform_backend):
+  def __init__(self, pid, output_file, browser_backend, platform_backend):
     self._pid = pid
+    self._browser_backend = browser_backend
     self._platform_backend = platform_backend
     self._output_file = output_file
     self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
     cmd = ['amplxe-cl', '-collect', 'hotspots',
            '-target-pid', str(pid), '-r', self._output_file]
-    if platform_backend.GetOSName() == 'android':
+    self._is_android = platform_backend.GetOSName() == 'android'
+    if self._is_android:
       cmd += ['-target-system', 'android']
-
-      print 'On Android, assuming $CHROMIUM_OUT_DIR/Release/lib has a fresh'
-      print 'symbolized library matching the one on device.'
-      search_dir = os.path.join(util.GetChromiumSrcDir(),
-                                os.environ.get('CHROMIUM_OUT_DIR', 'out'),
-                                os.environ.get('BUILDTYPE', 'Release'),
-                                'lib')
-      cmd += ['-search-dir', search_dir]
 
     self._proc = subprocess.Popen(
         cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
@@ -54,9 +48,29 @@ class _SingleProcessVTuneProfiler(object):
     finally:
       self._tmp_output_file.close()
 
-    if not exit_code:
-      print 'To view the profile, run:'
-      print '  amplxe-gui %s' % self._output_file
+    if exit_code:
+      # The renderer process was swapped out. Now that we made sure VTune has
+      # stopped, return without further processing the invalid profile.
+      return self._output_file
+
+    if self._is_android:
+      required_libs = \
+          android_profiling_helper.GetRequiredLibrariesForVTuneProfile(
+              self._output_file)
+
+      device = self._browser_backend.adb.device()
+      symfs_root = os.path.dirname(self._output_file)
+      android_profiling_helper.CreateSymFs(device,
+                                           symfs_root,
+                                           required_libs,
+                                           use_symlinks=True)
+      logging.info('Resolving symbols in profile.')
+      subprocess.call(['amplxe-cl', '-finalize', '-r', self._output_file,
+                       '-search-dir', symfs_root])
+
+    print 'To view the profile, run:'
+    print '  amplxe-gui %s' % self._output_file
+
     return self._output_file
 
   def _GetStdOut(self):
@@ -90,7 +104,8 @@ class VTuneProfiler(profiler.Profiler):
         continue
 
       self._process_profilers.append(
-          _SingleProcessVTuneProfiler(pid, output_file, platform_backend))
+          _SingleProcessVTuneProfiler(pid, output_file, browser_backend,
+                                      platform_backend))
 
   @classmethod
   def name(cls):
