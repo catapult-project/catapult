@@ -19,7 +19,6 @@ from telemetry.page import page_test
 from telemetry.page import profile_creator
 from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
-from telemetry.page.actions import interact
 from telemetry.results import page_measurement_results
 
 
@@ -70,7 +69,7 @@ class RecordPage(page_test.PageTest):  # pylint: disable=W0223
         self.RunNavigateSteps(page, tab)
       action_runner = action_runner_module.ActionRunner(tab)
       if interactive:
-        action_runner.RunAction(interact.InteractAction())
+        action_runner.PauseInteractive()
       else:
         self._RunMethod(page, action_name, action_runner)
       should_reload = True

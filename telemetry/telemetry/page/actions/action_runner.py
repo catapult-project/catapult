@@ -238,6 +238,19 @@ class ActionRunner(object):
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance, speed=speed))
 
+  def ForceGarbageCollection(self):
+    """Forces JavaScript garbage collection on the page."""
+    self._tab.CollectGarbage()
+
+  def PauseInteractive(self):
+    """Pause the page execution and wait for terminal interaction.
+
+    This is typically used for debugging. You can use this to pause
+    the page execution and inspect the browser state before
+    continuing.
+    """
+    raw_input("Interacting... Press Enter to continue.")
+
 
 class Interaction(object):
 

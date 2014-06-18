@@ -6,7 +6,6 @@ from telemetry.core import command_line
 
 from telemetry.page import test_expectations
 from telemetry.page.actions import action_runner as action_runner_module
-from telemetry.page.actions import interact
 
 
 class Failure(Exception):
@@ -239,7 +238,7 @@ class PageTest(command_line.Command):
     action_runner = action_runner_module.ActionRunner(tab)
     self.WillRunActions(page, tab)
     if interactive:
-      action_runner.RunAction(interact.InteractAction())
+      action_runner.PauseInteractive()
     else:
       self._RunMethod(page, self._action_name_to_run, action_runner)
     self.DidRunActions(page, tab)
