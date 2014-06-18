@@ -61,7 +61,8 @@ class OptparseCommand(Command):
 
   @classmethod
   def CreateParser(cls):
-    return optparse.OptionParser('%%prog %s %s' % (cls.Name(), cls.usage))
+    return optparse.OptionParser('%%prog %s %s' % (cls.Name(), cls.usage),
+                                 description=cls.Description())
 
   def Run(self, args):
     raise NotImplementedError()

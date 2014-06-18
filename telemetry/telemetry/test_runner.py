@@ -35,14 +35,27 @@ class Deps(find_dependencies.FindDependenciesCommand):
 
 
 class Help(command_line.OptparseCommand):
-  """Display help information"""
+  """Display help information about a command"""
+
+  usage = '[command]'
 
   def Run(self, args):
+    if len(args.positional_args) == 1:
+      commands = _MatchingCommands(args.positional_args[0])
+      if len(commands) == 1:
+        command = commands[0]
+        parser = command.CreateParser()
+        command.AddCommandLineArgs(parser)
+        parser.print_help()
+        return 0
+
     print >> sys.stderr, ('usage: %s <command> [<options>]' % _ScriptName())
     print >> sys.stderr, 'Available commands are:'
     for command in _Commands():
       print >> sys.stderr, '  %-10s %s' % (
           command.Name(), command.Description())
+    print >> sys.stderr, ('"%s help <command>" to see usage information '
+                          'for a specific command.' % _ScriptName())
     return 0
 
 
@@ -177,6 +190,9 @@ def _Commands():
       continue
     yield cls
 
+def _MatchingCommands(string):
+  return [command for command in _Commands()
+         if command.Name().startswith(string)]
 
 @decorators.Cache
 def _Tests():
@@ -260,8 +276,7 @@ def main():
       break
 
   # Validate and interpret the command name.
-  commands = [command for command in _Commands()
-              if command.Name().startswith(command_name)]
+  commands = _MatchingCommands(command_name)
   if len(commands) > 1:
     print >> sys.stderr, ('"%s" is not a %s command. Did you mean one of these?'
                           % (command_name, _ScriptName()))
